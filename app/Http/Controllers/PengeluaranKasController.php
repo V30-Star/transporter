@@ -30,6 +30,7 @@ class PengeluaranKasController extends Controller
                 'trkasmt.fkasmtno',
                 'trkasmt.fkasmtdate',
                 'trkasmt.fnogiro',
+                'trkasmt.fdkheader',
                 DB::raw("
                     COALESCE(
                         string_agg(
@@ -48,9 +49,9 @@ class PengeluaranKasController extends Controller
                         COALESCE(NULLIF(trim(trkasmt.fket), ''), '-')
                     ) as description_summary
                 "),
-                DB::raw('COALESCE(SUM(COALESCE(dt.fkasdtvalue, 0)), COALESCE(trkasmt.famountpay, 0), 0) as payment_amount'),
+                DB::raw('ABS(COALESCE(SUM(COALESCE(dt.fkasdtvalue, 0)), COALESCE(trkasmt.famountpay, 0), 0)) as payment_amount'),
             ])
-            ->groupBy('trkasmt.fkasmtid', 'trkasmt.fkasmtno', 'trkasmt.fkasmtdate', 'trkasmt.fnogiro', 'trkasmt.fket')
+            ->groupBy('trkasmt.fkasmtid', 'trkasmt.fkasmtno', 'trkasmt.fkasmtdate', 'trkasmt.fnogiro', 'trkasmt.fket', 'trkasmt.fdkheader')
             ->orderByDesc('trkasmt.fkasmtdate')
             ->orderByDesc('trkasmt.fkasmtid')
             ->get();
@@ -139,8 +140,8 @@ class PengeluaranKasController extends Controller
                     'fnote' => $detail['fnote'] ?? null,
                     'fkasdtvalue' => $detail['fkasdtvalue'],
                     'fvalue_rp' => $detail['fkasdtvalue'],
-                    'fjurnal' => $detail['fkasdtvalue'],
-                    'fjurnal_rp' => $detail['fkasdtvalue'],
+                    'fjurnal' => $this->resolveDetailJournalAmount($detail['fkasdtvalue']),
+                    'fjurnal_rp' => $this->resolveDetailJournalAmount($detail['fkasdtvalue']),
                     'fuserid' => $this->currentUserId(),
                     'fdatetime' => $now,
                     'fnou' => $index + 1,
@@ -246,8 +247,8 @@ class PengeluaranKasController extends Controller
                     'fnote' => $detail['fnote'] ?? null,
                     'fkasdtvalue' => $detail['fkasdtvalue'],
                     'fvalue_rp' => $detail['fkasdtvalue'],
-                    'fjurnal' => $detail['fkasdtvalue'],
-                    'fjurnal_rp' => $detail['fkasdtvalue'],
+                    'fjurnal' => $this->resolveDetailJournalAmount($detail['fkasdtvalue']),
+                    'fjurnal_rp' => $this->resolveDetailJournalAmount($detail['fkasdtvalue']),
                     'fuserid' => $this->currentUserId(),
                     'fdatetime' => $now,
                     'fnou' => $index + 1,
@@ -307,7 +308,7 @@ class PengeluaranKasController extends Controller
                 'sub.fsubaccountname as subaccount_name',
             ]);
 
-        $totalAmount = (float) $details->sum(fn ($detail) => (float) ($detail->fkasdtvalue ?? 0));
+        $totalAmount = (float) $details->sum(fn ($detail) => abs((float) ($detail->fkasdtvalue ?? 0)));
         $fmt = fn ($date) => $date ? Carbon::parse($date)->translatedFormat('d F Y') : '-';
 
         return view('pengeluarankas.print', [
@@ -538,6 +539,11 @@ class PengeluaranKasController extends Controller
     private function resolveDetailDk(float $amount): string
     {
         return $amount >= 0 ? 'D' : 'K';
+    }
+
+    private function resolveDetailJournalAmount(float $amount): float
+    {
+        return $amount < 0 ? abs($amount) : $amount;
     }
 
     private function findHeader($fkasmtno): Trkasmt

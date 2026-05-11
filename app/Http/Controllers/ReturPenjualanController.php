@@ -301,7 +301,7 @@ class ReturPenjualanController extends Controller
 
         // Detail: join dengan product
         $dt = DB::table('trandt')
-            ->leftJoin('msprd as p', 'p.fprdid', '=', 'trandt.fprdcodeid')
+            ->leftJoin('msprd as p', 'p.fprdcode', '=', 'trandt.fprdcode')
             ->where('trandt.fsono', $fsono) // Gunakan variabel $fsono dari parameter fungsi
             ->orderBy('trandt.fnou', 'asc') // Urutkan berdasarkan nomor urut baris
             ->get([
@@ -510,7 +510,6 @@ class ReturPenjualanController extends Controller
 
             $detailRows[] = array_merge([
                 'fnou' => $nouCounter,
-                'fprdcodeid' => $fprdcodeid,
                 'fprdcode' => mb_substr($code, 0, 30),
                 'fdesc' => $itemDescs[$i] ?? '',
                 'fqty' => $qty,
@@ -535,7 +534,6 @@ class ReturPenjualanController extends Controller
             ], $this->buildReferenceRandomNumberColumns($frefcode ?? '', $frefnoacaks[$i] ?? null));
 
             $stockDetailRows[] = [
-                'fprdcodeid' => $fprdcodeid,
                 'fprdcode' => mb_substr($code, 0, 30),
                 'fdesc' => $itemDescs[$i] ?? '',
                 'fqty' => $qty,
@@ -556,28 +554,13 @@ class ReturPenjualanController extends Controller
             return back()->withInput()->with('error', 'Tidak ada item valid. Periksa kode produk dan qty.');
         }
 
-        $soUsageByDetailId = [];
-        $srjUsageByDetailId = [];
-        foreach ($detailRows as $row) {
-            $qtyKecil = (float) ($row['fqtykecil'] ?? 0);
-            $soDetailId = (int) ($row['frefsoid'] ?? 0);
-            $srjDetailId = (int) ($row['frefsrjid'] ?? 0);
-            if ($qtyKecil <= 0) {
-                continue;
-            }
-            if ($soDetailId > 0) {
-                $soUsageByDetailId[$soDetailId] = ($soUsageByDetailId[$soDetailId] ?? 0) + $qtyKecil;
-            }
-            if ($srjDetailId > 0) {
-                $srjUsageByDetailId[$srjDetailId] = ($srjUsageByDetailId[$srjDetailId] ?? 0) + $qtyKecil;
-            }
-        }
+        [$soUsageByReference, $srjUsageByReference] = $this->buildReturReferenceUsageMaps($detailRows);
 
-        if ($validationMessage = $this->validateUniqueReferenceTransaction($soUsageByDetailId, $srjUsageByDetailId)) {
+        if ($validationMessage = $this->validateUniqueReferenceTransaction($soUsageByReference, $srjUsageByReference)) {
             return back()->withInput()->with('error', $validationMessage);
         }
 
-        if ($validationMessage = $this->validateReferenceUsage($soUsageByDetailId, $srjUsageByDetailId)) {
+        if ($validationMessage = $this->validateReferenceUsage($soUsageByReference, $srjUsageByReference)) {
             return back()->withInput()->with('error', $validationMessage);
         }
 
@@ -621,9 +604,7 @@ class ReturPenjualanController extends Controller
                 $frate,
                 $ppnPersen,
                 $typeSales,
-                $fapplyppn,
-                $soUsageByDetailId,
-                $srjUsageByDetailId
+                $fapplyppn
             ) {
 
                 $fsono = $request->input('fsono');
@@ -806,118 +787,74 @@ class ReturPenjualanController extends Controller
 
     private function getReferenceSummaryByTranNo(string $fsono): array
     {
-        $rows = DB::table('tranmt as h')
-            ->leftJoin('trandt as d', 'h.fsono', '=', 'd.fsono')
-            ->leftJoin('trsodt as so_d', 'so_d.ftrsodtid', '=', 'd.frefsoid')
-            ->leftJoin('trsomt as so_h', 'so_h.fsono', '=', 'd.frefso')
-            ->leftJoin('trstockdt as sj_d', 'sj_d.fstockdtid', '=', 'd.frefsrjid')
-            ->leftJoin('trstockmt as sj_h', 'sj_h.fstockmtno', '=', 'd.frefsrj')
-            ->leftJoinSub(
-                DB::table('trandt as dt')
-                    ->selectRaw('dt.frefsoid, dt.fprdcode, dt.frefnoacak, SUM(COALESCE(dt.fqtykecil, 0)) as fqtykecilinv')
-                    ->whereNotNull('dt.frefsoid')
-                    ->groupBy('dt.frefsoid', 'dt.fprdcode', 'dt.frefnoacak'),
-                'inv_so',
-                function ($join) {
-                    $join->on('inv_so.frefsoid', '=', 'd.frefsoid')
-                        ->on('inv_so.fprdcode', '=', 'd.fprdcode')
-                        ->whereRaw('COALESCE(inv_so.frefnoacak, \'\') = COALESCE(d.frefnoacak, \'\')');
-                }
-            )
-            ->leftJoinSub(
-                DB::table('trandt as dt')
-                    ->selectRaw('dt.frefsrjid, dt.fprdcode, dt.frefnoacak, SUM(COALESCE(dt.fqtykecil, 0)) as fqtykecilinv')
-                    ->whereNotNull('dt.frefsrjid')
-                    ->groupBy('dt.frefsrjid', 'dt.fprdcode', 'dt.frefnoacak'),
-                'inv_srj',
-                function ($join) {
-                    $join->on('inv_srj.frefsrjid', '=', 'd.frefsrjid')
-                        ->on('inv_srj.fprdcode', '=', 'd.fprdcode')
-                        ->whereRaw('COALESCE(inv_srj.frefnoacak, \'\') = COALESCE(d.frefnoacak, \'\')');
-                }
-            )
+        $rows = DB::table('trandt as d')
             ->leftJoin('msprd as p', 'p.fprdcode', '=', 'd.fprdcode')
-            ->where('h.fsono', $fsono)
-            ->selectRaw("
-                d.ftrandtid,
-                CASE
-                    WHEN d.frefcode = 'SO' AND so_d.fsatuan = p.fsatuanbesar
-                        THEN COALESCE(inv_so.fqtykecilinv, 0) / NULLIF(p.fqtykecil, 0)
-                    WHEN d.frefcode = 'SO' AND so_d.fsatuan = p.fsatuanbesar2
-                        THEN COALESCE(inv_so.fqtykecilinv, 0) / NULLIF(p.fqtykecil2, 0)
-                    WHEN d.frefcode = 'SRJ' AND sj_d.fsatuan = p.fsatuanbesar
-                        THEN COALESCE(inv_srj.fqtykecilinv, 0) / NULLIF(p.fqtykecil, 0)
-                    WHEN d.frefcode = 'SRJ' AND sj_d.fsatuan = p.fsatuanbesar2
-                        THEN COALESCE(inv_srj.fqtykecilinv, 0) / NULLIF(p.fqtykecil2, 0)
-                    ELSE COALESCE(d.fqtykecil, 0)
-                END as fqtyterinvoice,
-                CASE
-                    WHEN d.frefcode = 'SO' AND so_d.fsatuan = p.fsatuanbesar
-                        THEN (COALESCE(so_d.fqtykecil, 0) + COALESCE(inv_so.fqtykecilinv, 0)) / NULLIF(p.fqtykecil, 0)
-                    WHEN d.frefcode = 'SO' AND so_d.fsatuan = p.fsatuanbesar2
-                        THEN (COALESCE(so_d.fqtykecil, 0) + COALESCE(inv_so.fqtykecilinv, 0)) / NULLIF(p.fqtykecil2, 0)
-                    WHEN d.frefcode = 'SRJ' AND sj_d.fsatuan = p.fsatuanbesar
-                        THEN (COALESCE(sj_d.fqtykecil, 0) + COALESCE(inv_srj.fqtykecilinv, 0)) / NULLIF(p.fqtykecil, 0)
-                    WHEN d.frefcode = 'SRJ' AND sj_d.fsatuan = p.fsatuanbesar2
-                        THEN (COALESCE(sj_d.fqtykecil, 0) + COALESCE(inv_srj.fqtykecilinv, 0)) / NULLIF(p.fqtykecil2, 0)
-                    WHEN d.frefcode = 'SO'
-                        THEN COALESCE(so_d.fqtykecil, 0) + COALESCE(inv_so.fqtykecilinv, 0)
-                    WHEN d.frefcode = 'SRJ'
-                        THEN COALESCE(sj_d.fqtykecil, 0) + COALESCE(inv_srj.fqtykecilinv, 0)
-                    ELSE 0
-                END as fqtysisa_ref
-            ")
-            ->get();
+            ->where('d.fsono', $fsono)
+            ->get([
+                'd.ftrandtid',
+                'd.frefcode',
+                'd.frefso',
+                'd.frefsrj',
+                'd.frefnoacak',
+                'd.fprdcode',
+                'd.fsatuan',
+                'p.fqtykecil',
+                'p.fqtykecil2',
+                'p.fsatuanbesar',
+                'p.fsatuanbesar2',
+            ]);
 
-        return $rows->keyBy('ftrandtid')->map(function ($row) {
+        $soStats = $this->getReturReferenceStats(
+            'SO',
+            $rows->pluck('frefso')->filter()->map(fn ($value) => trim((string) $value))->unique()->values()->all()
+        );
+        $srjStats = $this->getReturReferenceStats(
+            'SRJ',
+            $rows->pluck('frefsrj')->filter()->map(fn ($value) => trim((string) $value))->unique()->values()->all()
+        );
+
+        return $rows->keyBy('ftrandtid')->map(function ($row) use ($soStats, $srjStats) {
+            $refCode = strtoupper(trim((string) ($row->frefcode ?? '')));
+            $isSrj = $refCode === 'SRJ' || trim((string) ($row->frefsrj ?? '')) !== '';
+            $docNo = trim((string) ($isSrj ? ($row->frefsrj ?? '') : ($row->frefso ?? '')));
+            $refNoAcak = $this->normalizeReferenceRandomNumbers($row->frefnoacak ?? null) ?? '';
+            $key = $this->buildReferenceUsageKey($docNo, (string) ($row->fprdcode ?? ''), $refNoAcak);
+            $stat = $isSrj ? ($srjStats[$key] ?? null) : ($soStats[$key] ?? null);
+            $usedQty = (float) ($stat['used_qty_kecil'] ?? 0);
+            $remainQty = (float) ($stat['remain_qty_kecil'] ?? 0);
+
             return [
-                'fqtyterinvoice' => (float) ($row->fqtyterinvoice ?? 0),
-                'fqtysisa_ref' => (float) ($row->fqtysisa_ref ?? 0),
+                'fqtyterinvoice' => $this->convertQtyKecilToUnit($usedQty, (string) ($row->fsatuan ?? ''), $row),
+                'fqtysisa_ref' => $this->convertQtyKecilToUnit($remainQty, (string) ($row->fsatuan ?? ''), $row),
             ];
         })->all();
     }
 
-    private function validateReferenceUsage(array $soUsageByDetailId, array $srjUsageByDetailId, array $oldSoUsageByDetailId = [], array $oldSrjUsageByDetailId = []): ?string
+    private function validateReferenceUsage(array $soUsageByReference, array $srjUsageByReference, ?string $exceptFsono = null): ?string
     {
-        $soIds = array_values(array_unique(array_merge(array_keys($soUsageByDetailId), array_keys($oldSoUsageByDetailId))));
-        if (! empty($soIds)) {
-            $soRemainMap = $this->getSoRemainByIds($soIds);
-            $soDetails = DB::table('trsodt as d')
-                ->leftJoin('trsomt as h', 'h.fsono', '=', 'd.fsono')
-                ->leftJoin('msprd as p', 'p.fprdcode', '=', 'd.fprdcode')
-                ->whereIn('d.ftrsodtid', $soIds)
-                ->select('d.ftrsodtid', 'h.fsono as refno', 'p.fprdname', 'd.fprdcode')
-                ->get()
-                ->keyBy('ftrsodtid');
+        if (! empty($soUsageByReference)) {
+            $soStats = $this->getReturReferenceStats('SO', $this->extractReferenceDocsFromUsageKeys(array_keys($soUsageByReference)), $exceptFsono);
 
-            foreach ($soUsageByDetailId as $detailId => $qtyKecil) {
-                $available = max(0, (float) ($soRemainMap[$detailId] ?? 0) + (float) ($oldSoUsageByDetailId[$detailId] ?? 0));
+            foreach ($soUsageByReference as $referenceKey => $qtyKecil) {
+                $stat = $soStats[$referenceKey] ?? null;
+                $available = max(0, (float) ($stat['remain_qty_kecil'] ?? 0));
                 if ((float) $qtyKecil - $available > 0.000001) {
-                    $detail = $soDetails->get($detailId);
-                    $label = trim((string) ($detail->fprdname ?? $detail->fprdcode ?? $detailId));
-                    $refno = trim((string) ($detail->refno ?? ''));
+                    $label = trim((string) ($stat['product_name'] ?? $stat['product_code'] ?? $referenceKey));
+                    $refno = trim((string) ($stat['ref_doc'] ?? ''));
                     return 'Qty referensi SO untuk item '.$label.($refno !== '' ? ' pada '.$refno : '').' melebihi qty yang masih tersedia.';
                 }
             }
         }
 
-        $srjIds = array_values(array_unique(array_merge(array_keys($srjUsageByDetailId), array_keys($oldSrjUsageByDetailId))));
-        if (! empty($srjIds)) {
-            $srjRemainMap = $this->getSrjRemainByIds($srjIds);
-            $srjDetails = DB::table('trstockdt as d')
-                ->leftJoin('trstockmt as h', 'h.fstockmtno', '=', 'd.fstockmtno')
-                ->leftJoin('msprd as p', 'p.fprdcode', '=', 'd.fprdcode')
-                ->whereIn('d.fstockdtid', $srjIds)
-                ->select('d.fstockdtid', 'h.fstockmtno as refno', 'p.fprdname', 'd.fprdcode')
-                ->get()
-                ->keyBy('fstockdtid');
+        if (! empty($srjUsageByReference)) {
+            $srjStats = $this->getReturReferenceStats('SRJ', $this->extractReferenceDocsFromUsageKeys(array_keys($srjUsageByReference)), $exceptFsono);
 
-            foreach ($srjUsageByDetailId as $detailId => $qtyKecil) {
-                $available = max(0, (float) ($srjRemainMap[$detailId] ?? 0) + (float) ($oldSrjUsageByDetailId[$detailId] ?? 0));
+            foreach ($srjUsageByReference as $referenceKey => $qtyKecil) {
+                $stat = $srjStats[$referenceKey] ?? null;
+                $available = max(0, (float) ($stat['remain_qty_kecil'] ?? 0));
                 if ((float) $qtyKecil - $available > 0.000001) {
-                    $detail = $srjDetails->get($detailId);
-                    $label = trim((string) ($detail->fprdname ?? $detail->fprdcode ?? $detailId));
-                    $refno = trim((string) ($detail->refno ?? ''));
+                    $label = trim((string) ($stat['product_name'] ?? $stat['product_code'] ?? $referenceKey));
+                    $refno = trim((string) ($stat['ref_doc'] ?? ''));
                     return 'Qty referensi SRJ untuk item '.$label.($refno !== '' ? ' pada '.$refno : '').' melebihi qty yang masih tersedia.';
                 }
             }
@@ -926,61 +863,207 @@ class ReturPenjualanController extends Controller
         return null;
     }
 
-    private function validateUniqueReferenceTransaction(array $soUsageByDetailId, array $srjUsageByDetailId, ?string $exceptFsono = null): ?string
+    private function validateUniqueReferenceTransaction(array $soUsageByReference, array $srjUsageByReference, ?string $exceptFsono = null): ?string
     {
-        $soIds = array_values(array_filter(array_map('intval', array_keys($soUsageByDetailId))));
-        if (! empty($soIds)) {
-            $query = DB::table('trandt as d')
-                ->join('tranmt as h', 'h.fsono', '=', 'd.fsono')
-                ->leftJoin('trsodt as so_d', 'so_d.ftrsodtid', '=', 'd.frefsoid')
-                ->leftJoin('trsomt as so_h', 'so_h.fsono', '=', 'so_d.fsono')
-                ->where('h.fsono', 'like', 'REJ.%')
-                ->whereIn('d.frefsoid', $soIds);
-
-            if (! empty($exceptFsono)) {
-                $query->where('h.fsono', '<>', $exceptFsono);
-            }
-
-            $existing = $query
-                ->orderBy('h.fsono')
-                ->select(
-                    'h.fsono as transaction_no',
-                    DB::raw("COALESCE(NULLIF(TRIM(so_h.fsono), ''), NULLIF(TRIM(d.frefso), '')) as ref_no")
-                )
-                ->first();
-
-            if ($existing) {
-                return 'Nomor referensi '.trim((string) ($existing->ref_no ?? '')).' sudah pernah dibuat di transaksi nomor '.trim((string) ($existing->transaction_no ?? '')).'.';
+        if (! empty($soUsageByReference)) {
+            $soStats = $this->getReturReferenceStats('SO', $this->extractReferenceDocsFromUsageKeys(array_keys($soUsageByReference)), $exceptFsono);
+            foreach ($soUsageByReference as $referenceKey => $qtyKecil) {
+                if ((float) ($soStats[$referenceKey]['used_qty_kecil'] ?? 0) > 0) {
+                    $refNo = trim((string) ($soStats[$referenceKey]['ref_doc'] ?? ''));
+                    $transactionNo = trim((string) ($soStats[$referenceKey]['used_by_transaction'] ?? ''));
+                    return 'Nomor referensi '.$refNo.' sudah pernah dibuat di transaksi nomor '.$transactionNo.'.';
+                }
             }
         }
 
-        $srjIds = array_values(array_filter(array_map('intval', array_keys($srjUsageByDetailId))));
-        if (! empty($srjIds)) {
-            $query = DB::table('trandt as d')
-                ->join('tranmt as h', 'h.fsono', '=', 'd.fsono')
-                ->leftJoin('trstockdt as sj_d', 'sj_d.fstockdtid', '=', 'd.frefsrjid')
-                ->leftJoin('trstockmt as sj_h', 'sj_h.fstockmtno', '=', 'sj_d.fstockmtno')
-                ->where('h.fsono', 'like', 'REJ.%')
-                ->whereIn('d.frefsrjid', $srjIds);
-
-            if (! empty($exceptFsono)) {
-                $query->where('h.fsono', '<>', $exceptFsono);
-            }
-
-            $existing = $query
-                ->orderBy('h.fsono')
-                ->select(
-                    'h.fsono as transaction_no',
-                    DB::raw("COALESCE(NULLIF(TRIM(sj_h.fstockmtno), ''), NULLIF(TRIM(d.frefsrj), '')) as ref_no")
-                )
-                ->first();
-
-            if ($existing) {
-                return 'Nomor referensi '.trim((string) ($existing->ref_no ?? '')).' sudah pernah dibuat di transaksi nomor '.trim((string) ($existing->transaction_no ?? '')).'.';
+        if (! empty($srjUsageByReference)) {
+            $srjStats = $this->getReturReferenceStats('SRJ', $this->extractReferenceDocsFromUsageKeys(array_keys($srjUsageByReference)), $exceptFsono);
+            foreach ($srjUsageByReference as $referenceKey => $qtyKecil) {
+                if ((float) ($srjStats[$referenceKey]['used_qty_kecil'] ?? 0) > 0) {
+                    $refNo = trim((string) ($srjStats[$referenceKey]['ref_doc'] ?? ''));
+                    $transactionNo = trim((string) ($srjStats[$referenceKey]['used_by_transaction'] ?? ''));
+                    return 'Nomor referensi '.$refNo.' sudah pernah dibuat di transaksi nomor '.$transactionNo.'.';
+                }
             }
         }
 
         return null;
+    }
+
+    private function buildReferenceUsageKey(?string $docNo, ?string $productCode, ?string $refNoAcak = null): string
+    {
+        return implode('|', [
+            trim((string) ($docNo ?? '')),
+            trim((string) ($productCode ?? '')),
+            trim((string) ($refNoAcak ?? '')),
+        ]);
+    }
+
+    private function extractReferenceDocsFromUsageKeys(array $keys): array
+    {
+        return collect($keys)
+            ->map(function ($key) {
+                return explode('|', (string) $key)[0] ?? '';
+            })
+            ->filter(fn ($value) => trim((string) $value) !== '')
+            ->unique()
+            ->values()
+            ->all();
+    }
+
+    private function buildReturReferenceUsageMaps(array $detailRows): array
+    {
+        $soUsage = [];
+        $srjUsage = [];
+
+        foreach ($detailRows as $row) {
+            $qtyKecil = (float) ($row['fqtykecil'] ?? 0);
+            if ($qtyKecil <= 0) {
+                continue;
+            }
+
+            $productCode = trim((string) ($row['fprdcode'] ?? ''));
+            $soDocNo = trim((string) ($row['frefso'] ?? ''));
+            $srjDocNo = trim((string) ($row['frefsrj'] ?? ''));
+            $refNoAcak = $this->normalizeReferenceRandomNumbers($row['frefnoacak'] ?? null) ?? '';
+
+            if ($soDocNo !== '') {
+                $key = $this->buildReferenceUsageKey($soDocNo, $productCode, $refNoAcak);
+                $soUsage[$key] = ($soUsage[$key] ?? 0) + $qtyKecil;
+            }
+
+            if ($srjDocNo !== '') {
+                $key = $this->buildReferenceUsageKey($srjDocNo, $productCode, $refNoAcak);
+                $srjUsage[$key] = ($srjUsage[$key] ?? 0) + $qtyKecil;
+            }
+        }
+
+        return [$soUsage, $srjUsage];
+    }
+
+    private function getReturReferenceStats(string $type, array $docNos, ?string $exceptFsono = null): array
+    {
+        $docNos = collect($docNos)
+            ->map(fn ($value) => trim((string) $value))
+            ->filter()
+            ->unique()
+            ->values()
+            ->all();
+
+        if (empty($docNos)) {
+            return [];
+        }
+
+        if ($type === 'SO') {
+            $sourceRows = DB::table('trsodt as d')
+                ->leftJoin('msprd as p', 'p.fprdcode', '=', 'd.fprdcode')
+                ->whereIn('d.fsono', $docNos)
+                ->selectRaw("
+                    TRIM(d.fsono) as ref_doc,
+                    TRIM(d.fprdcode) as product_code,
+                    COALESCE(d.frefnosoacak::text, d.fnoacak::text, '') as ref_noacak,
+                    MAX(COALESCE(p.fprdname, d.fprdcode)) as product_name,
+                    SUM(COALESCE(d.fqtykecil, 0)) as source_qty_kecil
+                ")
+                ->groupByRaw("TRIM(d.fsono), TRIM(d.fprdcode), COALESCE(d.frefnosoacak::text, d.fnoacak::text, '')")
+                ->get();
+
+            $usageRows = DB::table('trandt as d')
+                ->join('tranmt as h', 'h.fsono', '=', 'd.fsono')
+                ->whereIn('d.frefso', $docNos)
+                ->where('h.fsono', 'like', 'REJ.%')
+                ->when($exceptFsono, fn ($query) => $query->where('h.fsono', '<>', $exceptFsono))
+                ->selectRaw("
+                    TRIM(d.frefso) as ref_doc,
+                    TRIM(d.fprdcode) as product_code,
+                    COALESCE(d.frefnoacak::text, '') as ref_noacak,
+                    SUM(COALESCE(d.fqtykecil, 0)) as used_qty_kecil,
+                    MIN(h.fsono) as used_by_transaction
+                ")
+                ->groupByRaw("TRIM(d.frefso), TRIM(d.fprdcode), COALESCE(d.frefnoacak::text, '')")
+                ->get();
+        } else {
+            $sourceRows = DB::table('trstockdt as d')
+                ->leftJoin('msprd as p', 'p.fprdcode', '=', 'd.fprdcode')
+                ->whereIn('d.fstockmtno', $docNos)
+                ->selectRaw("
+                    TRIM(d.fstockmtno) as ref_doc,
+                    TRIM(d.fprdcode) as product_code,
+                    COALESCE(d.frefnoacak::text, d.fnoacak::text, '') as ref_noacak,
+                    MAX(COALESCE(p.fprdname, d.fprdcode)) as product_name,
+                    SUM(COALESCE(d.fqtykecil, 0)) as source_qty_kecil
+                ")
+                ->groupByRaw("TRIM(d.fstockmtno), TRIM(d.fprdcode), COALESCE(d.frefnoacak::text, d.fnoacak::text, '')")
+                ->get();
+
+            $usageRows = DB::table('trandt as d')
+                ->join('tranmt as h', 'h.fsono', '=', 'd.fsono')
+                ->whereIn('d.frefsrj', $docNos)
+                ->where('h.fsono', 'like', 'REJ.%')
+                ->when($exceptFsono, fn ($query) => $query->where('h.fsono', '<>', $exceptFsono))
+                ->selectRaw("
+                    TRIM(d.frefsrj) as ref_doc,
+                    TRIM(d.fprdcode) as product_code,
+                    COALESCE(d.frefnoacak::text, '') as ref_noacak,
+                    SUM(COALESCE(d.fqtykecil, 0)) as used_qty_kecil,
+                    MIN(h.fsono) as used_by_transaction
+                ")
+                ->groupByRaw("TRIM(d.frefsrj), TRIM(d.fprdcode), COALESCE(d.frefnoacak::text, '')")
+                ->get();
+        }
+
+        $stats = [];
+
+        foreach ($sourceRows as $row) {
+            $key = $this->buildReferenceUsageKey($row->ref_doc ?? '', $row->product_code ?? '', $row->ref_noacak ?? '');
+            $stats[$key] = [
+                'ref_doc' => trim((string) ($row->ref_doc ?? '')),
+                'product_code' => trim((string) ($row->product_code ?? '')),
+                'product_name' => trim((string) ($row->product_name ?? '')),
+                'source_qty_kecil' => (float) ($row->source_qty_kecil ?? 0),
+                'used_qty_kecil' => 0.0,
+                'remain_qty_kecil' => (float) ($row->source_qty_kecil ?? 0),
+                'used_by_transaction' => '',
+            ];
+        }
+
+        foreach ($usageRows as $row) {
+            $key = $this->buildReferenceUsageKey($row->ref_doc ?? '', $row->product_code ?? '', $row->ref_noacak ?? '');
+            if (! isset($stats[$key])) {
+                $stats[$key] = [
+                    'ref_doc' => trim((string) ($row->ref_doc ?? '')),
+                    'product_code' => trim((string) ($row->product_code ?? '')),
+                    'product_name' => trim((string) ($row->product_code ?? '')),
+                    'source_qty_kecil' => 0.0,
+                    'used_qty_kecil' => 0.0,
+                    'remain_qty_kecil' => 0.0,
+                    'used_by_transaction' => '',
+                ];
+            }
+
+            $stats[$key]['used_qty_kecil'] = (float) ($row->used_qty_kecil ?? 0);
+            $stats[$key]['remain_qty_kecil'] = max(0, (float) $stats[$key]['source_qty_kecil'] - (float) $stats[$key]['used_qty_kecil']);
+            $stats[$key]['used_by_transaction'] = trim((string) ($row->used_by_transaction ?? ''));
+        }
+
+        return $stats;
+    }
+
+    private function convertQtyKecilToUnit(float $qtyKecil, string $unit, $productRow): float
+    {
+        $unit = trim((string) $unit);
+        $ratio1 = (float) ($productRow->fqtykecil ?? 0);
+        $ratio2 = (float) ($productRow->fqtykecil2 ?? 0);
+
+        if ($unit !== '' && $unit === trim((string) ($productRow->fsatuanbesar2 ?? '')) && $ratio2 > 0) {
+            return $qtyKecil / $ratio2;
+        }
+
+        if ($unit !== '' && $unit === trim((string) ($productRow->fsatuanbesar ?? '')) && $ratio1 > 0) {
+            return $qtyKecil / $ratio1;
+        }
+
+        return $qtyKecil;
     }
 
     public function edit(Request $request, $ftranmtid)
@@ -1006,7 +1089,7 @@ class ReturPenjualanController extends Controller
         $returpenjualan = Tranmt::with(['customer', 'details' => function ($q) {
             $q->leftJoin('msprd', function ($j) {
                 // Gunakan trandt.fprdcodeid karena sudah integer (tidak perlu CAST lagi)
-                $j->on('msprd.fprdid', '=', 'trandt.fprdcodeid');
+                $j->on('msprd.fprdcode', '=', 'trandt.fprdcode');
             })
                 ->select(
                     'trandt.*',
@@ -1023,27 +1106,9 @@ class ReturPenjualanController extends Controller
 
         $usageLockMessage = $this->getUsageLockMessage($returpenjualan);
 
-        $soDetailIds = $returpenjualan->details
-            ->pluck('frefsoid')
-            ->filter(fn ($v) => is_numeric($v) && (int) $v > 0)
-            ->map(fn ($v) => (int) $v)
-            ->unique()
-            ->values()
-            ->all();
-
-        $srjDetailIds = $returpenjualan->details
-            ->pluck('frefsrjid')
-            ->filter(fn ($v) => is_numeric($v) && (int) $v > 0)
-            ->map(fn ($v) => (int) $v)
-            ->unique()
-            ->values()
-            ->all();
-
-        $soRemainRows = $this->getSoRemainByIds($soDetailIds);
-        $srjRemainRows = $this->getSrjRemainByIds($srjDetailIds);
         $referenceSummary = $this->getReferenceSummaryByTranNo((string) $returpenjualan->fsono);
 
-        $savedItems = $returpenjualan->details->map(function ($d) use ($soRemainRows, $srjRemainRows, $referenceSummary) {
+        $savedItems = $returpenjualan->details->map(function ($d) use ($referenceSummary) {
             $refCode = strtoupper(trim($d->frefcode ?? ''));
             $valSo = trim($d->frefso ?? '');
             $valSrj = trim($d->frefsrj ?? '');
@@ -1061,16 +1126,8 @@ class ReturPenjualanController extends Controller
                 $refCode = 'SO';
             }
 
-            $usedQtyKecil = (float) ($d->fqtykecil ?? 0);
-            $remainDb = 0.0;
-            if (is_numeric($d->frefsoid) && (int) $d->frefsoid > 0) {
-                $remainDb = (float) ($soRemainRows[(int) $d->frefsoid] ?? 0);
-            } elseif (is_numeric($d->frefsrjid) && (int) $d->frefsrjid > 0) {
-                $remainDb = (float) ($srjRemainRows[(int) $d->frefsrjid] ?? 0);
-            }
-
-            $maxqty = max(0.0, $remainDb + $usedQtyKecil);
             $summary = $referenceSummary[(int) ($d->ftrandtid ?? 0)] ?? ['fqtyterinvoice' => 0, 'fqtysisa_ref' => 0];
+            $maxqty = max(0.0, (float) ($d->fqty ?? 0) + (float) ($summary['fqtysisa_ref'] ?? 0));
 
             return [
                 'uid' => $d->ftrandtid,
@@ -1178,7 +1235,7 @@ class ReturPenjualanController extends Controller
         $returpenjualan = Tranmt::with(['customer', 'details' => function ($q) {
             $q->leftJoin('msprd', function ($j) {
                 // Gunakan trandt.fprdcodeid karena sudah integer (tidak perlu CAST lagi)
-                $j->on('msprd.fprdid', '=', 'trandt.fprdcodeid');
+                $j->on('msprd.fprdcode', '=', 'trandt.fprdcode');
             })
                 ->select(
                     'trandt.*',
@@ -1394,7 +1451,6 @@ class ReturPenjualanController extends Controller
             $detailRows[] = array_merge([
                 'fsono' => $header->fsono,
                 'fnou' => $i + 1,
-                'fprdcodeid' => $fprdcodeid,
                 'fprdcode' => mb_substr($code, 0, 30),
                 'fdesc' => $itemDescs[$i] ?? '',
                 'fqty' => $qty,
@@ -1419,7 +1475,6 @@ class ReturPenjualanController extends Controller
             ], $this->buildReferenceRandomNumberColumns($frefcode ?? '', $frefnoacaks[$i] ?? null));
 
             $stockDetailRows[] = [
-                'fprdcodeid' => $fprdcodeid,
                 'fprdcode' => mb_substr($code, 0, 30),
                 'fdesc' => $itemDescs[$i] ?? '',
                 'fqty' => $qty,
@@ -1464,36 +1519,20 @@ class ReturPenjualanController extends Controller
             }
         }
 
-        $soUsageByDetailId = [];
-        $srjUsageByDetailId = [];
-        foreach ($detailRows as $row) {
-            $qtyKecil = (float) ($row['fqtykecil'] ?? 0);
-            $soDetailId = (int) ($row['frefsoid'] ?? 0);
-            $srjDetailId = (int) ($row['frefsrjid'] ?? 0);
-            if ($qtyKecil <= 0) {
-                continue;
-            }
-            if ($soDetailId > 0) {
-                $soUsageByDetailId[$soDetailId] = ($soUsageByDetailId[$soDetailId] ?? 0) + $qtyKecil;
-            }
-            if ($srjDetailId > 0) {
-                $srjUsageByDetailId[$srjDetailId] = ($srjUsageByDetailId[$srjDetailId] ?? 0) + $qtyKecil;
-            }
-        }
+        [$soUsageByReference, $srjUsageByReference] = $this->buildReturReferenceUsageMaps($detailRows);
 
         if ($validationMessage = $this->validateUniqueReferenceTransaction(
-            $soUsageByDetailId,
-            $srjUsageByDetailId,
+            $soUsageByReference,
+            $srjUsageByReference,
             $header->fsono
         )) {
             return back()->withInput()->with('error', $validationMessage);
         }
 
         if ($validationMessage = $this->validateReferenceUsage(
-            $soUsageByDetailId,
-            $srjUsageByDetailId,
-            $oldSoUsageByDetailId,
-            $oldSrjUsageByDetailId
+            $soUsageByReference,
+            $srjUsageByReference,
+            $header->fsono
         )) {
             return back()->withInput()->with('error', $validationMessage);
         }
@@ -1536,8 +1575,6 @@ class ReturPenjualanController extends Controller
                 $stockDetailRows,
                 $oldSoUsageByDetailId,
                 $oldSrjUsageByDetailId,
-                $soUsageByDetailId,
-                $srjUsageByDetailId,
                 $totalGross,
                 $totalDisc,
                 $amountNet,
@@ -1657,7 +1694,7 @@ class ReturPenjualanController extends Controller
         $returpenjualan = Tranmt::with(['customer', 'details' => function ($q) {
             $q->leftJoin('msprd', function ($j) {
                 // Gunakan trandt.fprdcodeid karena sudah integer (tidak perlu CAST lagi)
-                $j->on('msprd.fprdid', '=', 'trandt.fprdcodeid');
+                $j->on('msprd.fprdcode', '=', 'trandt.fprdcode');
             })
                 ->select(
                     'trandt.*',

@@ -15,7 +15,6 @@
         'ftgljatuhtempo',
         optional($pengeluaranKas->ftgljatuhtempo ?? null)?->format('Y-m-d') ?? ($pengeluaranKas->ftgljatuhtempo ?? ''),
     );
-    $totalAmount = $detailRows->sum(fn($row) => (float) ($row->fkasdtvalue ?? 0));
     $headerAccountOptions = collect($headerAccounts ?? []);
     $accountOptions = collect($accounts ?? []);
     $subaccountOptions = collect($subaccounts ?? []);
@@ -26,6 +25,22 @@
     $selectedHeaderLabel = $selectedHeaderLabel
         ? trim($selectedHeaderLabel->faccount . ' - ' . $selectedHeaderLabel->faccname)
         : (string) $selectedHeader;
+    $isPenerimaanKasForm = ($transactionLabel ?? 'Pengeluaran Kas') === 'Penerimaan Kas';
+    $resolveDetailDkLabel = function ($amount) use ($isPenerimaanKasForm) {
+        $numericAmount = (float) ($amount ?? 0);
+
+        if ($isPenerimaanKasForm) {
+            return $numericAmount >= 0 ? 'K' : 'D';
+        }
+
+        return $numericAmount >= 0 ? 'D' : 'K';
+    };
+    $resolveDetailDkBadgeClass = function ($amount) use ($resolveDetailDkLabel) {
+        return $resolveDetailDkLabel($amount) === 'D'
+            ? 'border-blue-200 bg-blue-50 text-blue-700'
+            : 'border-amber-200 bg-amber-50 text-amber-700';
+    };
+    $totalAmount = $detailRows->sum(fn($row) => abs((float) ($row->fkasdtvalue ?? 0)));
 @endphp
 
 <style>
@@ -36,9 +51,19 @@
         border-color: #2563eb;
         box-shadow: 0 0 0 2px rgba(37, 99, 235, .2);
     }
+
+    .detail-dk-badge {
+        min-width: 2.25rem;
+        border-radius: 9999px;
+        border-width: 1px;
+        padding: .2rem .55rem;
+        font-size: .75rem;
+        font-weight: 700;
+        line-height: 1;
+    }
 </style>
 
-<div x-data="pengeluaranKasForm(@js($isReadOnly), @js(old('fkasmtno', $pengeluaranKas->fkasmtno ?? '')), @js($isGiroMundur))" x-init="init()" class="bg-white rounded shadow p-6 md:p-8 max-w-7xl mx-auto">
+<div x-data="pengeluaranKasForm(@js($isReadOnly), @js(old('fkasmtno', $pengeluaranKas->fkasmtno ?? '')), @js($isGiroMundur), @js($isPenerimaanKasForm))" x-init="init()" class="bg-white rounded shadow p-6 md:p-8 max-w-7xl mx-auto">
 
     @if ($isDeleteMode)
         <div class="mb-6 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-red-700">
@@ -198,15 +223,17 @@
                             <col style="width:18%;">
                             <col style="width:22%;">
                             <col style="width:20%;">
+                            <col style="width:6%;">
                             <col style="width:18%;">
                             <col style="width:18%;">
                         @else
                             <col style="width:4%;">
-                            <col style="width:16%;">
+                            <col style="width:15%;">
+                            <col style="width:19%;">
+                            <col style="width:17%;">
+                            <col style="width:17%;">
+                            <col style="width:6%;">
                             <col style="width:20%;">
-                            <col style="width:18%;">
-                            <col style="width:18%;">
-                            <col style="width:16%;">
                             <col style="width:8%;">
                         @endif
                     </colgroup>
@@ -217,6 +244,7 @@
                             <th class="border px-1.5 py-1 whitespace-nowrap">{{ 'Nama Account' }}</th>
                             <th class="border px-1.5 py-1 whitespace-nowrap">{{ 'Sub Account' }}</th>
                             <th class="border px-1.5 py-1 whitespace-nowrap">{{ 'Uraian' }}</th>
+                            <th class="border px-1.5 py-1 text-center whitespace-nowrap">{{ 'D/K' }}</th>
                             <th class="border px-1.5 py-1 text-right whitespace-nowrap">{{ 'Nilai Bayar' }}</th>
                             @unless ($isReadOnly)
                                 <th class="border px-1.5 py-1 text-center whitespace-nowrap">{{ 'Aksi' }}</th>
@@ -327,12 +355,32 @@
                                         <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                                     @enderror
                                 </td>
+                                <td class="border px-1.5 py-1 align-top text-center">
+                                    <span data-role="detail-dk-badge"
+                                        class="detail-dk-badge inline-flex items-center justify-center {{ $resolveDetailDkBadgeClass(old("details.$index.fkasdtvalue", $detail->fkasdtvalue ?? 0)) }}">
+                                        {{ $resolveDetailDkLabel(old("details.$index.fkasdtvalue", $detail->fkasdtvalue ?? 0)) }}
+                                    </span>
+                                </td>
                                 <td class="border px-1.5 py-1 align-top">
-                                    <input type="number" name="details[{{ $index }}][fkasdtvalue]"
-                                        step="0.01"
-                                        value="{{ old("details.$index.fkasdtvalue", $detail->fkasdtvalue ?? '') }}"
-                                        class="detail-amount w-full border rounded px-1.5 py-1 text-right {{ $isReadOnly ? 'bg-gray-100' : '' }}"
-                                        {{ $isReadOnly ? 'readonly' : '' }}>
+                                    @php
+                                        $detailAmountValue = old("details.$index.fkasdtvalue", $detail->fkasdtvalue ?? '');
+                                    @endphp
+                                    @if ($isReadOnly)
+                                        <input type="text"
+                                            value="{{ number_format(abs((float) ($detailAmountValue ?: 0)), 2, '.', ',') }}"
+                                            class="detail-amount w-full border rounded px-1.5 py-1 text-right bg-gray-100"
+                                            readonly>
+                                        <input type="hidden" name="details[{{ $index }}][fkasdtvalue]"
+                                            value="{{ $detailAmountValue }}">
+                                    @else
+                                        <input type="number" name="details[{{ $index }}][fkasdtvalue]"
+                                            step="0.01" value="{{ $detailAmountValue }}"
+                                            class="detail-amount w-full border rounded px-1.5 py-1 text-right"
+                                            data-role="detail-amount-input">
+                                        <p class="mt-1 text-xs text-gray-500 text-right">
+                                            {{ 'Nominal tampil sebagai arah D/K + nilai input' }}
+                                        </p>
+                                    @endif
                                     @error("details.$index.fkasdtvalue")
                                         <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                                     @enderror
@@ -354,7 +402,7 @@
                     </tbody>
                     <tfoot class="bg-gray-50">
                         <tr>
-                            <td colspan="{{ $isReadOnly ? 6 : 6 }}" class="border px-1.5 py-1"></td>
+                            <td colspan="{{ $isReadOnly ? 7 : 7 }}" class="border px-1.5 py-1"></td>
                             @unless ($isReadOnly)
                                 <td class="border px-1.5 py-1"></td>
                             @endunless
@@ -416,12 +464,13 @@
 
     @push('scripts')
         <script>
-            function pengeluaranKasForm(isReadOnly, initialVoucherNo, initialGiroMundur) {
+            function pengeluaranKasForm(isReadOnly, initialVoucherNo, initialGiroMundur, isPenerimaanKasForm) {
                 return {
                     isReadOnly,
                     voucherNo: initialVoucherNo || '',
                     autoCode: !initialVoucherNo,
                     isGiroMundur: !!initialGiroMundur,
+                    isPenerimaanKasForm: !!isPenerimaanKasForm,
                     activeLookupRow: null,
                     activeLookupType: null,
 
@@ -574,6 +623,7 @@
                         tbody.appendChild(clone);
                         this.renumberRows();
                         this.syncSubaccountState(clone, false);
+                        this.syncRowAmountState(clone);
                         this.updateTotal();
                     },
 
@@ -606,14 +656,45 @@
                         });
 
                         this.updateActionButtons();
-                        rows.forEach((row) => this.syncSubaccountState(row));
+                        rows.forEach((row) => {
+                            this.syncSubaccountState(row);
+                            this.syncRowAmountState(row);
+                        });
                     },
 
                     updateTotal() {
-                        const total = Array.from(document.querySelectorAll('.detail-amount'))
-                            .reduce((sum, field) => sum + (parseFloat(field.value || 0) || 0), 0);
-
                         refreshPengeluaranKasTotal();
+                    },
+
+                    resolveDetailDk(amount) {
+                        const numericAmount = parseFloat(amount || 0) || 0;
+
+                        if (this.isPenerimaanKasForm) {
+                            return numericAmount >= 0 ? 'K' : 'D';
+                        }
+
+                        return numericAmount >= 0 ? 'D' : 'K';
+                    },
+
+                    syncRowAmountState(row) {
+                        if (!row) {
+                            return;
+                        }
+
+                        const amountField = row.querySelector('.detail-amount');
+                        const dkBadge = row.querySelector('[data-role="detail-dk-badge"]');
+
+                        if (!amountField || !dkBadge) {
+                            return;
+                        }
+
+                        const dkValue = this.resolveDetailDk(amountField.value);
+                        dkBadge.textContent = dkValue;
+                        dkBadge.classList.remove('border-blue-200', 'bg-blue-50', 'text-blue-700', 'border-amber-200',
+                            'bg-amber-50', 'text-amber-700');
+                        dkBadge.classList.add(...(dkValue === 'D'
+                            ? ['border-blue-200', 'bg-blue-50', 'text-blue-700']
+                            : ['border-amber-200', 'bg-amber-50', 'text-amber-700']));
                     },
 
                     updateActionButtons() {
@@ -638,7 +719,7 @@
 
             function refreshPengeluaranKasTotal() {
                 const total = Array.from(document.querySelectorAll('.detail-amount'))
-                    .reduce((sum, field) => sum + (parseFloat(field.value || 0) || 0), 0);
+                    .reduce((sum, field) => sum + Math.abs(parseFloat(field.value || 0) || 0), 0);
 
                 const totalField = document.getElementById('detailTotal');
                 if (totalField) {
@@ -651,6 +732,11 @@
 
             document.addEventListener('input', (event) => {
                 if (event.target.classList.contains('detail-amount')) {
+                    const formRoot = event.target.closest('[x-data]');
+                    const alpineComponent = formRoot?._x_dataStack?.[0];
+                    if (alpineComponent?.syncRowAmountState) {
+                        alpineComponent.syncRowAmountState(event.target.closest('tr.detail-row'));
+                    }
                     refreshPengeluaranKasTotal();
                 }
             });
@@ -688,6 +774,22 @@
 
                         if (hint) {
                             hint.classList.toggle('hidden', enabled);
+                        }
+
+                        const amountField = row.querySelector('.detail-amount');
+                        const dkBadge = row.querySelector('[data-role="detail-dk-badge"]');
+                        if (amountField && dkBadge) {
+                            const isPenerimaanKasForm = @json($isPenerimaanKasForm);
+                            const numericAmount = parseFloat(amountField.value || 0) || 0;
+                            const dkValue = isPenerimaanKasForm
+                                ? (numericAmount >= 0 ? 'K' : 'D')
+                                : (numericAmount >= 0 ? 'D' : 'K');
+                            dkBadge.textContent = dkValue;
+                            dkBadge.classList.remove('border-blue-200', 'bg-blue-50', 'text-blue-700',
+                                'border-amber-200', 'bg-amber-50', 'text-amber-700');
+                            dkBadge.classList.add(...(dkValue === 'D'
+                                ? ['border-blue-200', 'bg-blue-50', 'text-blue-700']
+                                : ['border-amber-200', 'bg-amber-50', 'text-amber-700']));
                         }
                     });
                 }

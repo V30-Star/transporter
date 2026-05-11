@@ -34,7 +34,14 @@
                         <td class="border px-2 py-2">{{ $record->fnogiro ?: '-' }}</td>
                         <td class="border px-2 py-2">{{ $record->account_summary }}</td>
                         <td class="border px-2 py-2">{{ $record->description_summary }}</td>
-                        <td class="border px-2 py-2 text-right">{{ number_format((float) $record->payment_amount, 2, ',', '.') }}</td>
+                        <td class="border px-2 py-2 text-right">
+                            <div class="inline-flex items-center justify-end gap-2 w-full">
+                                <span class="inline-flex items-center justify-center min-w-[2rem] px-2 py-0.5 rounded border border-slate-300 bg-slate-100 text-slate-700 text-xs font-semibold">
+                                    {{ $record->fdkheader ?: 'D' }}
+                                </span>
+                                <span>{{ number_format((float) $record->payment_amount, 2, ',', '.') }}</span>
+                            </div>
+                        </td>
                         <td class="border px-2 py-2 text-center whitespace-nowrap">
                             <div class="flex items-center justify-center gap-2 flex-wrap">
                                 <a href="{{ route('penerimaankas.view', $record->fkasmtno) }}"
@@ -88,6 +95,10 @@
             width: 28rem !important;
             min-width: 28rem !important;
             max-width: 100%;
+        }
+
+        #penerimaanKasTable td.text-right .inline-flex {
+            white-space: nowrap;
         }
     </style>
 @endpush

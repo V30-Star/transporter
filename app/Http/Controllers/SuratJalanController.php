@@ -554,7 +554,9 @@ class SuratJalanController extends Controller
             ]);
         }
 
-        if ($validationMessage = $this->validateUniqueReferenceUsage($rowsDt)) {
+        $soUsageByReference = $this->buildSuratJalanReferenceUsageMap($rowsDt);
+
+        if ($validationMessage = $this->validateUniqueReferenceUsage($soUsageByReference)) {
             return back()->withInput()->withErrors([
                 'detail' => $validationMessage,
             ]);
@@ -563,16 +565,7 @@ class SuratJalanController extends Controller
         // =========================
         // 6.5) VALIDASI QTY REMAIN SO
         // =========================
-        $soUsageByDetailId = [];
-        foreach ($rowsDt as $row) {
-            $soDetailId = isset($row['frefsoid']) ? (int) $row['frefsoid'] : 0;
-            $qtyKecil = (float) ($row['fqtykecil'] ?? 0);
-            if ($soDetailId > 0 && $qtyKecil > 0) {
-                $soUsageByDetailId[$soDetailId] = ($soUsageByDetailId[$soDetailId] ?? 0) + $qtyKecil;
-            }
-        }
-
-        if ($validationMessage = $this->validateSoUsageRequest($soUsageByDetailId)) {
+        if ($validationMessage = $this->validateSoUsageRequest($soUsageByReference)) {
             return back()->withInput()->withErrors([
                 'detail' => $validationMessage,
             ]);
@@ -596,8 +589,7 @@ class SuratJalanController extends Controller
                 &$fstockmtno,
                 &$rowsDt,
                 $subtotal,
-                $ppnAmount,
-                $soUsageByDetailId
+                $ppnAmount
             ) {
                 // ---- 7.1. kodeCabang ----
                 $kodeCabang = null;
@@ -841,13 +833,15 @@ class SuratJalanController extends Controller
 
         // 4. Map the data for savedItems (sudah menggunakan data yang benar)
         $usageLockMessage = $this->getUsageLockMessage($suratjalan);
-        $oldUsageBySo = $suratjalan->details
-            ->groupBy(fn($d) => (int) ($d->frefsoid ?? 0))
-            ->map(fn($rows) => (float) $rows->sum(fn($r) => (float) ($r->fqtykecil ?? 0)))
-            ->all();
-        $soRemainMap = $this->getSoRemainByIds($suratjalan->details->pluck('frefsoid')->all());
+        $soReferenceStats = $this->getSoReferenceStats(
+            $suratjalan->details->pluck('frefso')->filter()->map(fn ($value) => trim((string) $value))->unique()->values()->all(),
+            $suratjalan->fstockmtno
+        );
 
-        $savedItems = $suratjalan->details->map(function ($d) use ($oldUsageBySo, $soRemainMap) {
+        $savedItems = $suratjalan->details->map(function ($d) use ($soReferenceStats) {
+            $referenceKey = $this->buildSoReferenceUsageKey($d->frefso ?? '', $d->fprdcode ?? '', $d->frefnoacak ?? '');
+            $stat = $soReferenceStats[$referenceKey] ?? null;
+            $maxqty = max(0, (float) ($d->fqty ?? 0) + (float) ($stat['remain_qty_kecil'] ?? 0));
             return [
                 'uid' => $d->fstockdtid,
                 'fitemcode' => $d->fitemcode_text ?? '',
@@ -868,8 +862,8 @@ class SuratJalanController extends Controller
                 'frefsoid' => $d->frefsoid ?? null,
                 'fnoacak' => (string) ($d->fnoacak ?? ''),
                 'frefnoacak' => (string) ($d->frefnoacak ?? ''),
-                'fqtyremain' => $d->frefsoid ? max(0, (float) ($soRemainMap[(int) $d->frefsoid] ?? 0) + (float) ($oldUsageBySo[(int) $d->frefsoid] ?? 0)) : 0,
-                'maxqty' => $d->frefsoid ? max(0, (float) ($soRemainMap[(int) $d->frefsoid] ?? 0) + (float) ($oldUsageBySo[(int) $d->frefsoid] ?? 0)) : 0,
+                'fqtyremain' => $maxqty,
+                'maxqty' => $maxqty,
                 'fketdt' => $d->fketdt ?? '',
                 'units' => [],
             ];
@@ -973,13 +967,15 @@ class SuratJalanController extends Controller
             ->findOrFail($fstockmtid); // Temukan header berdasarkan $fstockmtid dari URL
 
         // 4. Map the data for savedItems (sudah menggunakan data yang benar)
-        $oldUsageBySo = $suratjalan->details
-            ->groupBy(fn($d) => (int) ($d->frefsoid ?? 0))
-            ->map(fn($rows) => (float) $rows->sum(fn($r) => (float) ($r->fqtykecil ?? 0)))
-            ->all();
-        $soRemainMap = $this->getSoRemainByIds($suratjalan->details->pluck('frefsoid')->all());
+        $soReferenceStats = $this->getSoReferenceStats(
+            $suratjalan->details->pluck('frefso')->filter()->map(fn ($value) => trim((string) $value))->unique()->values()->all(),
+            $suratjalan->fstockmtno
+        );
 
-        $savedItems = $suratjalan->details->map(function ($d) use ($oldUsageBySo, $soRemainMap) {
+        $savedItems = $suratjalan->details->map(function ($d) use ($soReferenceStats) {
+            $referenceKey = $this->buildSoReferenceUsageKey($d->frefso ?? '', $d->fprdcode ?? '', $d->frefnoacak ?? '');
+            $stat = $soReferenceStats[$referenceKey] ?? null;
+            $maxqty = max(0, (float) ($d->fqty ?? 0) + (float) ($stat['remain_qty_kecil'] ?? 0));
             return [
                 'uid' => $d->fstockdtid,
                 'fitemcode' => $d->fitemcode_text ?? '',
@@ -1000,8 +996,8 @@ class SuratJalanController extends Controller
                 'frefsoid' => $d->frefsoid ?? null,
                 'fnoacak' => (string) ($d->fnoacak ?? ''),
                 'frefnoacak' => (string) ($d->frefnoacak ?? ''),
-                'fqtyremain' => $d->frefsoid ? max(0, (float) ($soRemainMap[(int) $d->frefsoid] ?? 0) + (float) ($oldUsageBySo[(int) $d->frefsoid] ?? 0)) : 0,
-                'maxqty' => $d->frefsoid ? max(0, (float) ($soRemainMap[(int) $d->frefsoid] ?? 0) + (float) ($oldUsageBySo[(int) $d->frefsoid] ?? 0)) : 0,
+                'fqtyremain' => $maxqty,
+                'maxqty' => $maxqty,
                 'fketdt' => $d->fketdt ?? '',
                 'units' => [],
             ];
@@ -1241,7 +1237,9 @@ class SuratJalanController extends Controller
             ]);
         }
 
-        if ($validationMessage = $this->validateUniqueReferenceUsage($rowsDt, $header->fstockmtno)) {
+        $soUsageByReference = $this->buildSuratJalanReferenceUsageMap($rowsDt);
+
+        if ($validationMessage = $this->validateUniqueReferenceUsage($soUsageByReference, $header->fstockmtno)) {
             return back()->withInput()->withErrors([
                 'detail' => $validationMessage,
             ]);
@@ -1250,26 +1248,10 @@ class SuratJalanController extends Controller
         // =========================
         // 5.5) VALIDASI QTY REMAIN SO
         // =========================
-        $soUsageByDetailId = [];
-        foreach ($rowsDt as $row) {
-            $soDetailId = isset($row['frefsoid']) ? (int) $row['frefsoid'] : 0;
-            $qtyKecil = (float) ($row['fqtykecil'] ?? 0);
-            if ($soDetailId > 0 && $qtyKecil > 0) {
-                $soUsageByDetailId[$soDetailId] = ($soUsageByDetailId[$soDetailId] ?? 0) + $qtyKecil;
-            }
-        }
-
-        $soIdsToCheck = array_values(array_unique(array_merge(
-            array_keys($soUsageByDetailId),
-            array_keys($oldSoUsageByDetailId)
-        )));
-
-        if (! empty($soIdsToCheck)) {
-            if ($validationMessage = $this->validateSoUsageRequest($soUsageByDetailId, $oldSoUsageByDetailId)) {
-                return back()->withInput()->withErrors([
-                    'detail' => $validationMessage,
-                ]);
-            }
+        if ($validationMessage = $this->validateSoUsageRequest($soUsageByReference, $header->fstockmtno)) {
+            return back()->withInput()->withErrors([
+                'detail' => $validationMessage,
+            ]);
         }
 
         // =========================
@@ -1292,8 +1274,7 @@ class SuratJalanController extends Controller
                 &$rowsDt,
                 $subtotal,
                 $ppnAmount,
-                $oldSoUsageByDetailId,
-                $soUsageByDetailId
+                $oldSoUsageByDetailId
             ) {
                 // ---- 6.1. kodeCabang ----
                 $kodeCabang = $header->fbranchcode;
@@ -1531,13 +1512,15 @@ class SuratJalanController extends Controller
 
         // 4. Map the data for savedItems (sudah menggunakan data yang benar)
         $usageLockMessage = $this->getUsageLockMessage($suratjalan);
-        $oldUsageBySo = $suratjalan->details
-            ->groupBy(fn($d) => (int) ($d->frefsoid ?? 0))
-            ->map(fn($rows) => (float) $rows->sum(fn($r) => (float) ($r->fqtykecil ?? 0)))
-            ->all();
-        $soRemainMap = $this->getSoRemainByIds($suratjalan->details->pluck('frefsoid')->all());
+        $soReferenceStats = $this->getSoReferenceStats(
+            $suratjalan->details->pluck('frefso')->filter()->map(fn ($value) => trim((string) $value))->unique()->values()->all(),
+            $suratjalan->fstockmtno
+        );
 
-        $savedItems = $suratjalan->details->map(function ($d) use ($oldUsageBySo, $soRemainMap) {
+        $savedItems = $suratjalan->details->map(function ($d) use ($soReferenceStats) {
+            $referenceKey = $this->buildSoReferenceUsageKey($d->frefso ?? '', $d->fprdcode ?? '', $d->frefnoacak ?? '');
+            $stat = $soReferenceStats[$referenceKey] ?? null;
+            $maxqty = max(0, (float) ($d->fqty ?? 0) + (float) ($stat['remain_qty_kecil'] ?? 0));
             return [
                 'uid' => $d->fstockdtid,
                 'fitemcode' => $d->fitemcode_text ?? '',
@@ -1558,8 +1541,8 @@ class SuratJalanController extends Controller
                 'frefsoid' => $d->frefsoid ?? null,
                 'fnoacak' => (string) ($d->fnoacak ?? ''),
                 'frefnoacak' => (string) ($d->frefnoacak ?? ''),
-                'fqtyremain' => $d->frefsoid ? max(0, (float) ($soRemainMap[(int) $d->frefsoid] ?? 0) + (float) ($oldUsageBySo[(int) $d->frefsoid] ?? 0)) : 0,
-                'maxqty' => $d->frefsoid ? max(0, (float) ($soRemainMap[(int) $d->frefsoid] ?? 0) + (float) ($oldUsageBySo[(int) $d->frefsoid] ?? 0)) : 0,
+                'fqtyremain' => $maxqty,
+                'maxqty' => $maxqty,
                 'fketdt' => $d->fketdt ?? '',
                 'units' => [],
             ];
@@ -1654,92 +1637,147 @@ class SuratJalanController extends Controller
         }
     }
 
-    /**
-     * Hitung sisa qty SO dinamis dalam satuan kecil per detail SO.
-     *
-     * @param  array<int, int|string>  $soDetailIds
-     * @return array<int, float>
-     */
-    private function getSoRemainByIds(array $soDetailIds): array
+    private function buildSoReferenceUsageKey(?string $docNo, ?string $productCode, ?string $refNoAcak = null): string
     {
-        $ids = collect($soDetailIds)
-            ->map(fn ($id) => (int) $id)
-            ->filter(fn ($id) => $id > 0)
+        return implode('|', [
+            trim((string) ($docNo ?? '')),
+            trim((string) ($productCode ?? '')),
+            trim((string) ($refNoAcak ?? '')),
+        ]);
+    }
+
+    private function extractSoReferenceDocsFromKeys(array $keys): array
+    {
+        return collect($keys)
+            ->map(fn ($key) => explode('|', (string) $key)[0] ?? '')
+            ->filter(fn ($value) => trim((string) $value) !== '')
+            ->unique()
+            ->values()
+            ->all();
+    }
+
+    private function buildSuratJalanReferenceUsageMap(array $rowsDt): array
+    {
+        $usage = [];
+
+        foreach ($rowsDt as $row) {
+            $qtyKecil = (float) ($row['fqtykecil'] ?? 0);
+            $docNo = trim((string) ($row['frefso'] ?? ''));
+            $productCode = trim((string) ($row['fprdcode'] ?? ''));
+            $refNoAcak = trim((string) ($row['frefnoacak'] ?? ''));
+
+            if ($qtyKecil <= 0 || $docNo === '' || $productCode === '') {
+                continue;
+            }
+
+            $key = $this->buildSoReferenceUsageKey($docNo, $productCode, $refNoAcak);
+            $usage[$key] = ($usage[$key] ?? 0) + $qtyKecil;
+        }
+
+        return $usage;
+    }
+
+    private function getSoReferenceStats(array $docNos, ?string $exceptStockMtNo = null): array
+    {
+        $docNos = collect($docNos)
+            ->map(fn ($value) => trim((string) $value))
+            ->filter()
             ->unique()
             ->values()
             ->all();
 
-        if (empty($ids)) {
+        if (empty($docNos)) {
             return [];
         }
 
-        return DB::table('trsodt as d')
-            ->whereIn('d.ftrsodtid', $ids)
-            ->selectRaw('d.ftrsodtid, GREATEST(COALESCE(d.fqtykecil, 0), 0) AS remain_kecil')
-            ->pluck('remain_kecil', 'd.ftrsodtid')
-            ->map(fn ($value) => (float) $value)
-            ->all();
+        $sourceRows = DB::table('trsodt as d')
+            ->leftJoin('msprd as p', 'p.fprdcode', '=', 'd.fprdcode')
+            ->whereIn('d.fsono', $docNos)
+            ->selectRaw("
+                TRIM(d.fsono) as ref_doc,
+                TRIM(d.fprdcode) as product_code,
+                COALESCE(d.frefnosoacak::text, d.fnoacak::text, '') as ref_noacak,
+                MAX(COALESCE(p.fprdname, d.fprdcode)) as product_name,
+                SUM(COALESCE(d.fqtykecil, 0)) as source_qty_kecil
+            ")
+            ->groupByRaw("TRIM(d.fsono), TRIM(d.fprdcode), COALESCE(d.frefnosoacak::text, d.fnoacak::text, '')")
+            ->get();
+
+        $usageRows = DB::table('trstockdt as d')
+            ->join('trstockmt as h', 'h.fstockmtno', '=', 'd.fstockmtno')
+            ->where('h.fstockmtcode', 'SRJ')
+            ->whereIn('d.frefso', $docNos)
+            ->when($exceptStockMtNo, fn ($query) => $query->where('h.fstockmtno', '<>', $exceptStockMtNo))
+            ->selectRaw("
+                TRIM(d.frefso) as ref_doc,
+                TRIM(d.fprdcode) as product_code,
+                COALESCE(d.frefnoacak::text, '') as ref_noacak,
+                SUM(COALESCE(d.fqtykecil, 0)) as used_qty_kecil,
+                MIN(h.fstockmtno) as used_by_transaction
+            ")
+            ->groupByRaw("TRIM(d.frefso), TRIM(d.fprdcode), COALESCE(d.frefnoacak::text, '')")
+            ->get();
+
+        $stats = [];
+
+        foreach ($sourceRows as $row) {
+            $key = $this->buildSoReferenceUsageKey($row->ref_doc ?? '', $row->product_code ?? '', $row->ref_noacak ?? '');
+            $stats[$key] = [
+                'ref_doc' => trim((string) ($row->ref_doc ?? '')),
+                'product_code' => trim((string) ($row->product_code ?? '')),
+                'product_name' => trim((string) ($row->product_name ?? '')),
+                'source_qty_kecil' => (float) ($row->source_qty_kecil ?? 0),
+                'used_qty_kecil' => 0.0,
+                'remain_qty_kecil' => (float) ($row->source_qty_kecil ?? 0),
+                'used_by_transaction' => '',
+            ];
+        }
+
+        foreach ($usageRows as $row) {
+            $key = $this->buildSoReferenceUsageKey($row->ref_doc ?? '', $row->product_code ?? '', $row->ref_noacak ?? '');
+            if (! isset($stats[$key])) {
+                $stats[$key] = [
+                    'ref_doc' => trim((string) ($row->ref_doc ?? '')),
+                    'product_code' => trim((string) ($row->product_code ?? '')),
+                    'product_name' => trim((string) ($row->product_code ?? '')),
+                    'source_qty_kecil' => 0.0,
+                    'used_qty_kecil' => 0.0,
+                    'remain_qty_kecil' => 0.0,
+                    'used_by_transaction' => '',
+                ];
+            }
+
+            $stats[$key]['used_qty_kecil'] = (float) ($row->used_qty_kecil ?? 0);
+            $stats[$key]['remain_qty_kecil'] = max(0, (float) $stats[$key]['source_qty_kecil'] - (float) $stats[$key]['used_qty_kecil']);
+            $stats[$key]['used_by_transaction'] = trim((string) ($row->used_by_transaction ?? ''));
+        }
+
+        return $stats;
     }
 
-    /**
-     * Validasi pemakaian qty SO dalam satuan kecil.
-     *
-     * @param  array<int, float|int>  $requestedUsageByDetailId
-     * @param  array<int, float|int>  $restoredUsageByDetailId
-     */
-    private function validateSoUsageRequest(array $requestedUsageByDetailId, array $restoredUsageByDetailId = []): ?string
+    private function validateSoUsageRequest(array $requestedUsageByReference, ?string $exceptStockMtNo = null): ?string
     {
-        $requested = collect($requestedUsageByDetailId)
-            ->mapWithKeys(fn ($qty, $id) => [(int) $id => (float) $qty])
-            ->filter(fn ($qty, $id) => $id > 0 && $qty > 0)
-            ->all();
-
-        if (empty($requested)) {
+        if (empty($requestedUsageByReference)) {
             return null;
         }
 
-        $restored = collect($restoredUsageByDetailId)
-            ->mapWithKeys(fn ($qty, $id) => [(int) $id => (float) $qty])
-            ->filter(fn ($qty, $id) => $id > 0 && $qty > 0)
-            ->all();
+        $stats = $this->getSoReferenceStats(
+            $this->extractSoReferenceDocsFromKeys(array_keys($requestedUsageByReference)),
+            $exceptStockMtNo
+        );
 
-        $ids = array_values(array_unique(array_merge(array_keys($requested), array_keys($restored))));
-        $remainMap = $this->getSoRemainByIds($ids);
-
-        $details = DB::table('trsodt as d')
-            ->leftJoin('trsomt as h', 'h.fsono', '=', 'd.fsono')
-            ->leftJoin('msprd as p', 'p.fprdcode', '=', 'd.fprdcode')
-            ->whereIn('d.ftrsodtid', $ids)
-            ->select(
-                'd.ftrsodtid',
-                'd.fsono',
-                'd.fprdcode',
-                'd.fsatuan',
-                'h.fsono as fsono_header',
-                'p.fprdname'
-            )
-            ->get()
-            ->keyBy('ftrsodtid');
-
-        foreach ($requested as $detailId => $requestedQtyKecil) {
-            $availableQtyKecil = max(
-                0,
-                (float) ($remainMap[$detailId] ?? 0) + (float) ($restored[$detailId] ?? 0)
-            );
-
+        foreach ($requestedUsageByReference as $referenceKey => $requestedQtyKecil) {
+            $stat = $stats[$referenceKey] ?? null;
+            $availableQtyKecil = max(0, (float) ($stat['remain_qty_kecil'] ?? 0));
             if ($availableQtyKecil <= 0) {
-                $detail = $details->get($detailId);
-                $product = trim((string) ($detail->fprdname ?? $detail->fprdcode ?? $detailId));
-                $soNo = trim((string) ($detail->fsono_header ?? $detail->fsono ?? ''));
-
+                $product = trim((string) ($stat['product_name'] ?? $stat['product_code'] ?? $referenceKey));
+                $soNo = trim((string) ($stat['ref_doc'] ?? ''));
                 return 'Qty Surat Jalan untuk item '.$product.($soNo !== '' ? ' pada SO '.$soNo : '').' tidak bisa diinput karena qty sudah habis atau sudah digunakan.';
             }
 
-            if ($requestedQtyKecil - $availableQtyKecil > 0.000001) {
-                $detail = $details->get($detailId);
-                $product = trim((string) ($detail->fprdname ?? $detail->fprdcode ?? $detailId));
-                $soNo = trim((string) ($detail->fsono_header ?? $detail->fsono ?? ''));
-
+            if ((float) $requestedQtyKecil - $availableQtyKecil > 0.000001) {
+                $product = trim((string) ($stat['product_name'] ?? $stat['product_code'] ?? $referenceKey));
+                $soNo = trim((string) ($stat['ref_doc'] ?? ''));
                 return 'Qty Surat Jalan untuk item '.$product.($soNo !== '' ? ' pada SO '.$soNo : '').' melebihi sisa qty yang tersedia.';
             }
         }
@@ -1747,51 +1785,26 @@ class SuratJalanController extends Controller
         return null;
     }
 
-    private function validateUniqueReferenceUsage(array $rowsDt, ?string $exceptStockMtNo = null): ?string
+    private function validateUniqueReferenceUsage(array $usageByReference, ?string $exceptStockMtNo = null): ?string
     {
-        $soDetailIds = collect($rowsDt)
-            ->pluck('frefsoid')
-            ->map(fn ($id) => (int) $id)
-            ->filter(fn ($id) => $id > 0)
-            ->unique()
-            ->values()
-            ->all();
-
-        if (empty($soDetailIds)) {
+        if (empty($usageByReference)) {
             return null;
         }
 
-        $query = DB::table('trstockdt as d')
-            ->join('trstockmt as h', 'h.fstockmtno', '=', 'd.fstockmtno')
-            ->leftJoin('trsodt as so_d', 'so_d.ftrsodtid', '=', 'd.frefsoid')
-            ->leftJoin('trsomt as so_h', 'so_h.fsono', '=', 'so_d.fsono')
-            ->where('h.fstockmtcode', 'SRJ')
-            ->whereIn('d.frefsoid', $soDetailIds);
+        $stats = $this->getSoReferenceStats(
+            $this->extractSoReferenceDocsFromKeys(array_keys($usageByReference)),
+            $exceptStockMtNo
+        );
 
-        if (! empty($exceptStockMtNo)) {
-            $query->where('h.fstockmtno', '<>', $exceptStockMtNo);
+        foreach ($usageByReference as $referenceKey => $qtyKecil) {
+            if ((float) ($stats[$referenceKey]['used_qty_kecil'] ?? 0) > 0) {
+                $refNo = trim((string) ($stats[$referenceKey]['ref_doc'] ?? ''));
+                $transactionNo = trim((string) ($stats[$referenceKey]['used_by_transaction'] ?? ''));
+                return 'Nomor referensi '.$refNo.' sudah pernah dibuat di transaksi nomor '.$transactionNo.'.';
+            }
         }
 
-        $existing = $query
-            ->orderBy('h.fstockmtno')
-            ->select(
-                'h.fstockmtno as transaction_no',
-                DB::raw("COALESCE(NULLIF(TRIM(so_h.fsono), ''), NULLIF(TRIM(d.frefso), '')) as ref_no")
-            )
-            ->first();
-
-        if (! $existing) {
-            return null;
-        }
-
-        $refNo = trim((string) ($existing->ref_no ?? ''));
-        $transactionNo = trim((string) ($existing->transaction_no ?? ''));
-
-        if ($refNo === '' || $transactionNo === '') {
-            return 'Nomor referensi ini sudah pernah dibuat di transaksi lain.';
-        }
-
-        return 'Nomor referensi '.$refNo.' sudah pernah dibuat di transaksi nomor '.$transactionNo.'.';
+        return null;
     }
 
     /**
