@@ -18,6 +18,23 @@
     $headerAccountOptions = collect($headerAccounts ?? []);
     $accountOptions = collect($accounts ?? []);
     $subaccountOptions = collect($subaccounts ?? []);
+    $journalAccountValidation = $journalAccountValidation ?? ['system' => [], 'stock' => [], 'reference' => []];
+    $accountCatalog = $accountOptions
+        ->mapWithKeys(function ($account) {
+            $code = strtoupper(trim((string) ($account->faccount ?? '')));
+            if ($code === '') {
+                return [];
+            }
+
+            return [
+                $code => [
+                    'faccount' => (string) ($account->faccount ?? ''),
+                    'faccname' => (string) ($account->faccname ?? ''),
+                    'fhavesubaccount' => (string) ($account->fhavesubaccount ?? '0'),
+                ],
+            ];
+        })
+        ->all();
     $selectedHeaderLookup = $isGiroMundur
         ? $giroMundurHeaderAccount ?? null
         : $headerAccountOptions->firstWhere('faccount', (string) $selectedHeader);
@@ -63,7 +80,7 @@
     }
 </style>
 
-<div x-data="pengeluaranKasForm(@js($isReadOnly), @js(old('fkasmtno', $pengeluaranKas->fkasmtno ?? '')), @js($isGiroMundur), @js($isPenerimaanKasForm))" x-init="init()" class="bg-white rounded shadow p-6 md:p-8 max-w-7xl mx-auto">
+<div x-data="pengeluaranKasForm(@js($isReadOnly), @js(old('fkasmtno', $pengeluaranKas->fkasmtno ?? '')), @js($isGiroMundur), @js($isPenerimaanKasForm), @js($journalAccountValidation), @js($accountCatalog))" x-init="init()" class="bg-white rounded shadow p-6 md:p-8 max-w-7xl mx-auto">
 
     @if ($isDeleteMode)
         <div class="mb-6 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-red-700">
@@ -73,7 +90,7 @@
         </div>
     @endif
 
-    <form action="{{ $formAction }}" method="POST">
+    <form action="{{ $formAction }}" method="POST" @submit="handleSubmit($event)">
         @csrf
         @if (strtoupper($formMethod) !== 'POST')
             @method($formMethod)
@@ -221,11 +238,11 @@
                         @if ($isReadOnly)
                             <col style="width:4%;">
                             <col style="width:18%;">
-                            <col style="width:22%;">
+                            <col style="width:16%;">
                             <col style="width:20%;">
                             <col style="width:6%;">
                             <col style="width:18%;">
-                            <col style="width:18%;">
+                            <col style="width:12%;">
                         @else
                             <col style="width:4%;">
                             <col style="width:15%;">
@@ -348,6 +365,14 @@
                                     @enderror
                                 </td>
                                 <td class="border px-1.5 py-1 align-top">
+                                    @php
+                                        $detailReferenceValue = (string) old(
+                                            "details.$index.frefno",
+                                            $detail->frefno ?? '',
+                                        );
+                                    @endphp
+                                    <input type="hidden" name="details[{{ $index }}][frefno]"
+                                        value="{{ $detailReferenceValue }}" data-role="detail-reference-input">
                                     <textarea name="details[{{ $index }}][fnote]" rows="2"
                                         class="w-full border rounded px-1.5 py-1 {{ $isReadOnly ? 'bg-gray-100' : '' }}"
                                         {{ $isReadOnly ? 'readonly' : '' }}>{{ old("details.$index.fnote", $detail->fnote ?? '') }}</textarea>
@@ -377,9 +402,6 @@
                                             step="0.01" value="{{ $detailAmountValue }}"
                                             class="detail-amount w-full border rounded px-1.5 py-1 text-right"
                                             data-role="detail-amount-input">
-                                        <p class="mt-1 text-xs text-gray-500 text-right">
-                                            {{ 'Nominal tampil sebagai arah D/K + nilai input' }}
-                                        </p>
                                     @endif
                                     @error("details.$index.fkasdtvalue")
                                         <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
@@ -464,13 +486,20 @@
 
     @push('scripts')
         <script>
-            function pengeluaranKasForm(isReadOnly, initialVoucherNo, initialGiroMundur, isPenerimaanKasForm) {
+            function pengeluaranKasForm(isReadOnly, initialVoucherNo, initialGiroMundur, isPenerimaanKasForm,
+                journalAccountValidation, accountCatalog) {
                 return {
                     isReadOnly,
                     voucherNo: initialVoucherNo || '',
                     autoCode: !initialVoucherNo,
                     isGiroMundur: !!initialGiroMundur,
                     isPenerimaanKasForm: !!isPenerimaanKasForm,
+                    journalAccountValidation: journalAccountValidation || {
+                        system: {},
+                        stock: {},
+                        reference: {}
+                    },
+                    accountCatalog: accountCatalog || {},
                     activeLookupRow: null,
                     activeLookupType: null,
 
@@ -495,11 +524,160 @@
                                 return;
                             }
 
+                            const activeRow = this.activeLookupRow;
                             const code = (event.detail?.fsubaccountcode || '').toString().trim();
                             const name = (event.detail?.fsubaccountname || '').toString().trim();
-                            this.applyLookupValue(this.activeLookupRow, 'fsubaccount', 'subaccount-display', code,
+                            this.applyLookupValue(activeRow, 'fsubaccount', 'subaccount-display', code,
                                 code && name ? `${code} - ${name}` : code);
+                            if (activeRow) {
+                                const result = this.validateJournalRow(activeRow);
+                                if (result.status === 'ERROR') {
+                                    this.presentValidationError(result, activeRow);
+                                }
+                            }
                         });
+                    },
+
+                    normalizeAccountCode(value) {
+                        return (value || '').toString().trim().toUpperCase();
+                    },
+
+                    getValidationAccountMeta(code) {
+                        const normalized = this.normalizeAccountCode(code);
+                        return this.accountCatalog?.[normalized] || null;
+                    },
+
+                    getValidationAccountLabel(code) {
+                        const normalized = this.normalizeAccountCode(code);
+                        const meta = this.getValidationAccountMeta(normalized);
+
+                        if (meta?.faccname) {
+                            return meta.faccname;
+                        }
+
+                        const allGroups = [
+                            ...(Object.entries(this.journalAccountValidation?.system || {})),
+                            ...(Object.entries(this.journalAccountValidation?.stock || {})),
+                            ...(Object.entries(this.journalAccountValidation?.reference || {})),
+                        ];
+                        const match = allGroups.find(([accountCode]) => this.normalizeAccountCode(accountCode) === normalized);
+                        return match?.[1]?.display_name || normalized || 'Account';
+                    },
+
+                    clearAccountSelection(row) {
+                        if (!row) {
+                            return;
+                        }
+
+                        const accountHidden = row.querySelector('input[name$="[faccount]"]');
+                        const accountCodeDisplay = row.querySelector('[data-role="account-code-display"]');
+                        const accountNameDisplay = row.querySelector('[data-role="account-name-display"]');
+                        const hasSubaccountField = row.querySelector('[data-role="account-has-subaccount"]');
+
+                        if (accountHidden) accountHidden.value = '';
+                        if (accountCodeDisplay) accountCodeDisplay.value = '';
+                        if (accountNameDisplay) accountNameDisplay.value = '';
+                        if (hasSubaccountField) hasSubaccountField.value = '0';
+
+                        this.syncSubaccountState(row, false);
+                    },
+
+                    focusValidationField(row, focusField) {
+                        if (!row) {
+                            return;
+                        }
+
+                        const focusTarget = {
+                            faccount: row.querySelector('button[title="Cari Account"]') || row.querySelector('[data-role="account-code-display"]'),
+                            fsubaccount: row.querySelector('.detail-subaccount-btn') || row.querySelector('[data-role="subaccount-display"]'),
+                            frefno: row.querySelector('[data-role="detail-reference-input"]'),
+                        }[focusField];
+
+                        focusTarget?.focus?.();
+                    },
+
+                    presentValidationError(result, row) {
+                        if (!result || result.status !== 'ERROR') {
+                            return;
+                        }
+
+                        if (window.showTransactionErrorModal) {
+                            window.showTransactionErrorModal(result.message, {
+                                title: 'Validasi Jurnal Gagal',
+                                reason: result.validasi || 'Masih ada data detail jurnal yang belum valid.',
+                            });
+                        }
+
+                        this.$nextTick(() => this.focusValidationField(row, result.fokus));
+                    },
+
+                    validateJournalRow(row) {
+                        const accountCode = this.normalizeAccountCode(row?.querySelector('input[name$="[faccount]"]')?.value);
+                        const referenceNo = (row?.querySelector('input[name$="[frefno]"]')?.value || '').toString().trim();
+                        const subaccountCode = (row?.querySelector('input[name$="[fsubaccount]"]')?.value || '').toString().trim();
+
+                        if (accountCode === '') {
+                            return {
+                                status: 'OK',
+                                message: ''
+                            };
+                        }
+
+                        const systemAccounts = this.journalAccountValidation?.system || {};
+                        const stockAccounts = this.journalAccountValidation?.stock || {};
+                        const referenceAccounts = this.journalAccountValidation?.reference || {};
+                        const accountMeta = this.getValidationAccountMeta(accountCode);
+                        const accountLabel = this.getValidationAccountLabel(accountCode);
+
+                        if (Object.prototype.hasOwnProperty.call(systemAccounts, accountCode)) {
+                            return {
+                                status: 'ERROR',
+                                validasi: 'Account Sistem',
+                                message: `Account ${accountLabel} tidak boleh digunakan untuk jurnal. Perlakuan khusus oleh System.`,
+                                fokus: 'faccount',
+                            };
+                        }
+
+                        if (Object.prototype.hasOwnProperty.call(stockAccounts, accountCode)) {
+                            return {
+                                status: 'ERROR',
+                                validasi: 'Account Stok',
+                                message: `Account ${accountLabel} sebaiknya menggunakan Adjustment Stok, karena berhubungan dengan stok.`,
+                                fokus: 'faccount',
+                            };
+                        }
+
+                        if (Object.prototype.hasOwnProperty.call(referenceAccounts, accountCode) && referenceNo === '') {
+                            return {
+                                status: 'ERROR',
+                                validasi: 'Nomor Referensi',
+                                message: 'No. Referensi harus diisi untuk account Piutang/Hutang Dagang.',
+                                fokus: 'frefno',
+                            };
+                        }
+
+                        if (!accountMeta) {
+                            return {
+                                status: 'ERROR',
+                                validasi: 'Keberadaan Account di Database',
+                                message: 'Account ini tidak ada atau bukan account detail.',
+                                fokus: 'faccount',
+                            };
+                        }
+
+                        if (String(accountMeta.fhavesubaccount || '0') === '1' && subaccountCode === '') {
+                            return {
+                                status: 'ERROR',
+                                validasi: 'Sub-Account',
+                                message: 'Account ini memiliki Sub-Account. Harap pilih Sub-Account terlebih dahulu.',
+                                fokus: 'fsubaccount',
+                            };
+                        }
+
+                        return {
+                            status: 'OK',
+                            message: ''
+                        };
                     },
 
                     openAccountBrowse(event) {
@@ -568,6 +746,14 @@
                         }
 
                         this.syncSubaccountState(row, hasSubaccount);
+                        const validationResult = this.validateJournalRow(row);
+                        if (validationResult.status === 'ERROR') {
+                            if (validationResult.validasi === 'Account Sistem' || validationResult.validasi ===
+                                'Account Stok') {
+                                this.clearAccountSelection(row);
+                            }
+                            this.presentValidationError(validationResult, row);
+                        }
                         this.activeLookupRow = null;
                         this.activeLookupType = null;
                     },
@@ -713,7 +899,23 @@
                                 deleteButton.style.display = isLastRow ? 'none' : 'inline-flex';
                             }
                         });
-                    }
+                    },
+
+                    handleSubmit(event) {
+                        if (this.isReadOnly) {
+                            return;
+                        }
+
+                        const rows = Array.from(document.querySelectorAll('#detailRows tr.detail-row'));
+                        for (const row of rows) {
+                            const result = this.validateJournalRow(row);
+                            if (result.status === 'ERROR') {
+                                event.preventDefault();
+                                this.presentValidationError(result, row);
+                                return;
+                            }
+                        }
+                    },
                 }
             }
 

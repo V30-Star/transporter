@@ -19,6 +19,9 @@ class PenerimaanKasController extends Controller
     private const TRAN_CODE = 'BKM';
     private const HEADER_ACCOUNT_NAMES = ['KASBANKHEADER', 'UANGMUKAPEMBELIAN', 'UANGMUKAPENJUALAN'];
     private const GIRO_MUNDUR_ACCOUNT_NAME = 'PIUTANGGIRO';
+    private const SYSTEM_JOURNAL_ACCOUNT_NAMES = ['LABATAHUNBERJALAN', 'LABADITAHAN', 'IKHTISARLABARUGI'];
+    private const STOCK_JOURNAL_ACCOUNT_NAMES = ['PERSEDIAANAWAL', 'PERSEDIAAN', 'PERSEDIAANAHIR', 'HPP'];
+    private const REFERENCE_REQUIRED_ACCOUNT_NAMES = ['PIUTANGDAGANG', 'HUTANGDAGANG'];
 
     public function index()
     {
@@ -136,6 +139,7 @@ class PenerimaanKasController extends Controller
                     'ftrancode' => self::TRAN_CODE,
                     'faccount' => $detail['faccount'],
                     'faccountid' => $account?->faccid,
+                    'frefno' => $detail['frefno'] ?? null,
                     'fsubaccount' => $detail['fsubaccount'] ?? null,
                     'fdk' => $this->resolveDetailDk($detail['fkasdtvalue']),
                     'fnote' => $detail['fnote'] ?? null,
@@ -243,6 +247,7 @@ class PenerimaanKasController extends Controller
                     'ftrancode' => self::TRAN_CODE,
                     'faccount' => $detail['faccount'],
                     'faccountid' => $account?->faccid,
+                    'frefno' => $detail['frefno'] ?? null,
                     'fsubaccount' => $detail['fsubaccount'] ?? null,
                     'fdk' => $this->resolveDetailDk($detail['fkasdtvalue']),
                     'fnote' => $detail['fnote'] ?? null,
@@ -343,6 +348,7 @@ class PenerimaanKasController extends Controller
                 ->where('fnonactive', '0')
                 ->orderBy('fsubaccountcode')
                 ->get(['fsubaccountid', 'fsubaccountcode', 'fsubaccountname']),
+            'journalAccountValidation' => $this->resolveJournalAccountValidationConfig(),
         ], $overrides);
     }
 
@@ -383,8 +389,9 @@ class PenerimaanKasController extends Controller
             ],
             'fket' => ['nullable', 'string', 'max:50'],
             'details' => ['required', 'array', 'min:1'],
-            'details.*.faccount' => ['required', 'string', 'max:10', Rule::exists('account', 'faccount')],
-            'details.*.fsubaccount' => ['nullable', 'string', 'max:50', Rule::exists('mssubaccount', 'fsubaccountcode')],
+            'details.*.faccount' => ['required', 'string', 'max:10'],
+            'details.*.frefno' => ['nullable', 'string', 'max:30'],
+            'details.*.fsubaccount' => ['nullable', 'string', 'max:50'],
             'details.*.fnote' => ['nullable', 'string', 'max:100'],
             'details.*.fkasdtvalue' => ['required', 'numeric', 'not_in:0'],
         ], [
@@ -403,9 +410,70 @@ class PenerimaanKasController extends Controller
             $payload['faccountheader'] = $giroAccount;
         }
 
+        $this->validateJournalDetailAccounts($payload['details']);
         $this->validateDetailSubaccountAccess($payload['details']);
 
         return $payload;
+    }
+
+    private function validateJournalDetailAccounts(array $details): void
+    {
+        $validationConfig = $this->resolveJournalAccountValidationConfig();
+        $normalizedCodes = collect($details)
+            ->pluck('faccount')
+            ->map(fn ($value) => strtoupper(trim((string) $value)))
+            ->filter()
+            ->values()
+            ->all();
+
+        $detailAccounts = DB::table('account')
+            ->select('faccount', 'faccname', 'fhavesubaccount')
+            ->where('fend', 1)
+            ->whereIn(DB::raw('UPPER(faccount)'), $normalizedCodes)
+            ->get()
+            ->keyBy(fn ($account) => strtoupper(trim((string) $account->faccount)));
+
+        foreach ($details as $index => $detail) {
+            $accountCode = strtoupper(trim((string) ($detail['faccount'] ?? '')));
+            $referenceNo = trim((string) ($detail['frefno'] ?? ''));
+            $subaccountCode = trim((string) ($detail['fsubaccount'] ?? ''));
+
+            if ($accountCode === '') {
+                continue;
+            }
+
+            if (isset($validationConfig['system'][$accountCode])) {
+                throw ValidationException::withMessages([
+                    "details.$index.faccount" => 'Account '.$validationConfig['system'][$accountCode]['display_name'].' tidak boleh digunakan untuk jurnal. Perlakuan khusus oleh System.',
+                ]);
+            }
+
+            if (isset($validationConfig['stock'][$accountCode])) {
+                throw ValidationException::withMessages([
+                    "details.$index.faccount" => 'Account '.$validationConfig['stock'][$accountCode]['display_name'].' sebaiknya menggunakan Adjustment Stok, karena berhubungan dengan stok.',
+                ]);
+            }
+
+            if (isset($validationConfig['reference'][$accountCode]) && $referenceNo === '') {
+                throw ValidationException::withMessages([
+                    "details.$index.frefno" => 'No. Referensi harus diisi untuk account Piutang/Hutang Dagang.',
+                ]);
+            }
+
+            $account = $detailAccounts->get($accountCode);
+
+            if (! $account) {
+                throw ValidationException::withMessages([
+                    "details.$index.faccount" => 'Account ini tidak ada atau bukan account detail.',
+                ]);
+            }
+
+            if ((string) ($account->fhavesubaccount ?? '0') === '1' && $subaccountCode === '') {
+                throw ValidationException::withMessages([
+                    "details.$index.fsubaccount" => 'Account ini memiliki Sub-Account. Harap pilih Sub-Account terlebih dahulu.',
+                ]);
+            }
+        }
     }
 
     private function validateDetailSubaccountAccess(array $details): void
@@ -414,6 +482,10 @@ class PenerimaanKasController extends Controller
             ->whereIn('faccount', collect($details)->pluck('faccount')->filter()->all())
             ->get(['faccount', 'fhavesubaccount'])
             ->keyBy('faccount');
+        $subaccounts = Subaccount::query()
+            ->whereIn('fsubaccountcode', collect($details)->pluck('fsubaccount')->filter()->all())
+            ->get(['fsubaccountcode'])
+            ->keyBy('fsubaccountcode');
 
         $errors = [];
 
@@ -421,12 +493,21 @@ class PenerimaanKasController extends Controller
             $accountCode = trim((string) ($detail['faccount'] ?? ''));
             $subaccountCode = trim((string) ($detail['fsubaccount'] ?? ''));
 
-            if ($accountCode === '' || $subaccountCode === '') {
+            if ($accountCode === '') {
                 continue;
             }
 
             $account = $accounts->get($accountCode);
             $hasSubaccount = (string) ($account?->fhavesubaccount ?? '0') === '1';
+
+            if ($subaccountCode !== '' && ! $subaccounts->has($subaccountCode)) {
+                $errors["details.$index.fsubaccount"] = 'Sub Account tidak ditemukan.';
+                continue;
+            }
+
+            if ($subaccountCode === '') {
+                continue;
+            }
 
             if (! $hasSubaccount) {
                 $errors["details.$index.fsubaccount"] = 'Sub Account hanya boleh diisi untuk account yang memiliki sub account.';
@@ -447,11 +528,12 @@ class PenerimaanKasController extends Controller
                 }
 
                 $account = trim((string) ($detail['faccount'] ?? ''));
+                $reference = trim((string) ($detail['frefno'] ?? ''));
                 $subaccount = trim((string) ($detail['fsubaccount'] ?? ''));
                 $note = trim((string) ($detail['fnote'] ?? ''));
                 $amount = trim((string) ($detail['fkasdtvalue'] ?? ''));
 
-                return $account !== '' || $subaccount !== '' || $note !== '' || $amount !== '';
+                return $account !== '' || $reference !== '' || $subaccount !== '' || $note !== '' || $amount !== '';
             })
             ->values()
             ->all();
@@ -463,6 +545,7 @@ class PenerimaanKasController extends Controller
             ->map(function (array $detail) {
                 return [
                     'faccount' => trim((string) ($detail['faccount'] ?? '')),
+                    'frefno' => trim((string) ($detail['frefno'] ?? '')) ?: null,
                     'fsubaccount' => trim((string) ($detail['fsubaccount'] ?? '')) ?: null,
                     'fnote' => trim((string) ($detail['fnote'] ?? '')) ?: null,
                     'fkasdtvalue' => round((float) ($detail['fkasdtvalue'] ?? 0), 2),
@@ -505,6 +588,54 @@ class PenerimaanKasController extends Controller
             ->filter(fn ($value) => $value !== '')
             ->values()
             ->all();
+    }
+
+    private function resolveSetAccountCodeMap(array $accountNames): array
+    {
+        return DB::table('set_account')
+            ->whereIn('faccount_name', $accountNames)
+            ->pluck('faccount', 'faccount_name')
+            ->map(fn ($value) => trim((string) $value))
+            ->toArray();
+    }
+
+    private function resolveJournalAccountValidationConfig(): array
+    {
+        $setAccountNames = array_merge(
+            self::SYSTEM_JOURNAL_ACCOUNT_NAMES,
+            self::STOCK_JOURNAL_ACCOUNT_NAMES,
+            self::REFERENCE_REQUIRED_ACCOUNT_NAMES,
+        );
+
+        $codeMap = $this->resolveSetAccountCodeMap($setAccountNames);
+        $accountMetadata = Account::query()
+            ->whereIn('faccount', collect($codeMap)->filter()->all())
+            ->get(['faccount', 'faccname'])
+            ->keyBy(fn ($account) => strtoupper(trim((string) $account->faccount)));
+
+        $buildGroup = function (array $names) use ($codeMap, $accountMetadata) {
+            $group = [];
+
+            foreach ($names as $name) {
+                $code = strtoupper(trim((string) ($codeMap[$name] ?? '')));
+                if ($code === '') {
+                    continue;
+                }
+
+                $group[$code] = [
+                    'set_name' => $name,
+                    'display_name' => trim((string) ($accountMetadata->get($code)->faccname ?? $name)),
+                ];
+            }
+
+            return $group;
+        };
+
+        return [
+            'system' => $buildGroup(self::SYSTEM_JOURNAL_ACCOUNT_NAMES),
+            'stock' => $buildGroup(self::STOCK_JOURNAL_ACCOUNT_NAMES),
+            'reference' => $buildGroup(self::REFERENCE_REQUIRED_ACCOUNT_NAMES),
+        ];
     }
 
     private function resolveHeaderAccounts(): Collection

@@ -278,11 +278,12 @@
             <thead>
                 <tr>
                     <th style="width: 5%;" class="text-center">No</th>
-                    <th style="width: 24%;">Account</th>
-                    <th style="width: 24%;">Sub Account</th>
+                    <th style="width: 22%;">Account</th>
+                    <th style="width: 18%;">Sub Account</th>
+                    <th style="width: 15%;">No. Referensi</th>
                     <th>Uraian</th>
                     <th style="width: 8%;" class="text-center">D/K</th>
-                    <th style="width: 18%;" class="text-right">Nilai Bayar</th>
+                    <th style="width: 12%;" class="text-right">Nilai Bayar</th>
                 </tr>
             </thead>
             <tbody>
@@ -295,13 +296,14 @@
                         <td>
                             {{ trim(($row->fsubaccount ?? '') . ' - ' . ($row->subaccount_name ?? ''), ' -') ?: '-' }}
                         </td>
+                        <td>{{ $row->frefno ?: '-' }}</td>
                         <td>{{ $row->fnote ?: '-' }}</td>
                         <td class="text-center">{{ $row->fdk ?: '-' }}</td>
                         <td class="text-right">{{ number_format(abs((float) ($row->fkasdtvalue ?? 0)), 2, ',', '.') }}</td>
                     </tr>
                 @empty
                     <tr>
-                        <td colspan="6" class="text-center muted">Tidak ada detail transaksi.</td>
+                        <td colspan="7" class="text-center muted">Tidak ada detail transaksi.</td>
                     </tr>
                 @endforelse
             </tbody>
