@@ -334,7 +334,7 @@
             <table class="sign-table">
                 <tr>
                     <td>Dibuat</td>
-                    <td>Disetujui</td>
+                    <td>Mengetahui</td>
                 </tr>
                 <tr>
                     <td class="box-content">{{ strtoupper($hdr->fusercreate ?? 'STEPHANUS') }}</td>

@@ -238,7 +238,7 @@
                                     <th class="p-2 text-left w-10">#</th>
                                     <th class="p-2 text-left w-40">Kode Produk</th>
                                     <th class="p-2 text-left w-72">Nama Produk</th>
-                                    <th class="p-2 text-left w-72">No Refrensi</th>
+                                    <th class="p-2 text-left w-72">No Referensi</th>
                                     <th class="p-2 text-left w-28">Satuan</th>
                                     <th class="p-2 text-right w-24 whitespace-nowrap">Qty.</th>
                                     <th class="p-2 text-right w-32 whitespace-nowrap">@ Harga</th>
@@ -253,11 +253,15 @@
                                         <td class="p-2" x-text="i + 1"></td>
                                         <td class="p-2 font-mono" x-text="it.fitemcode"></td>
                                         <td class="p-2 text-gray-800">
-                                            <div class="w-full border rounded px-2 py-1 bg-gray-100 text-gray-600 text-sm leading-5 whitespace-normal break-words" x-text="it.fitemname"></div>
-                                            <div x-show="it.fdesc" class="mt-1 text-xs">
-                                                <span
-                                                    class="inline-block px-1.5 py-0.5 rounded bg-emerald-50 text-emerald-700 border border-emerald-200 mr-2">Deskripsi</span>
-                                                <span class="align-middle text-gray-600" x-text="it.fdesc"></span>
+                                            <div class="flex w-full max-w-full">
+                                                <div class="min-w-0 flex-1 rounded-l border bg-gray-100 px-2 py-1 text-sm leading-5 text-gray-600 whitespace-normal break-words"
+                                                    x-text="it.fitemname"></div>
+                                                <button type="button" @click="openDesc(it)"
+                                                    class="shrink-0 inline-flex items-center border border-l-0 rounded-r px-2 py-1 transition-colors"
+                                                    :class="it.fdesc ? 'border-emerald-300 bg-emerald-50 text-emerald-600 hover:bg-emerald-100' : 'border-gray-300 bg-white text-gray-500 hover:bg-gray-50'"
+                                                    title="Deskripsi item">
+                                                    <x-heroicon-o-document-text class="h-4 w-4" />
+                                                </button>
                                             </div>
                                         </td>
                                         <td class="p-2 text-right" x-text="it.frefdtno"></td>
@@ -731,25 +735,6 @@
                     </div>
                 </div>
 
-                @php
-                    $canApproval = in_array('approvalpr', explode(',', session('user_restricted_permissions', '')));
-                @endphp
-
-                {{-- APPROVAL & ACTIONS --}}
-                <div class="md:col-span-2 flex justify-center items-center space-x-2 mt-6">
-                    @if ($canApproval)
-                        <label class="block text-sm font-medium">Approval</label>
-
-                        {{-- fallback 0 saat checkbox tidak dicentang --}}
-                        <input type="hidden" name="fapproval" value="0">
-
-                        <label class="switch">
-                            <input disabled type="checkbox" name="fapproval" id="approvalToggle" value="1"
-                                {{ old('fapproval', session('fapproval') ? 1 : 0) ? 'checked' : '' }}>
-                            <span class="slider"></span>
-                        </label>
-                    @endif
-                </div>
             </div>
             <div class="mt-6 flex justify-center space-x-4">
                 @if ($canPrint)

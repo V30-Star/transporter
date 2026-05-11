@@ -14,15 +14,17 @@ class ApprovalEmail extends Mailable
     public $dt;
     public $productName;
     public $approver;
+    public $approvalToken;
 
     // Constructor accepts hdr, dt, productName, and approver
-    public function __construct($hdr, $dt, $productName, $approver, $subjectMail)
+    public function __construct($hdr, $dt, $productName, $approver, $subjectMail, $approvalToken = null)
     {
         $this->hdr = $hdr;
         $this->dt = $dt;
         $this->productName = $productName;
         $this->approver = $approver;
         $this->subjectMail = $subjectMail;
+        $this->approvalToken = $approvalToken;
     }
 
     // Build the email
@@ -36,6 +38,7 @@ class ApprovalEmail extends Mailable
                 'dt' => $this->dt,    // Pass dt to the email
                 'productName' => $this->productName,
                 'approver' => $this->approver,
+                'approvalToken' => $this->approvalToken,
             ]);
     }
 }

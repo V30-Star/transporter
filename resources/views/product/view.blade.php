@@ -120,8 +120,13 @@
     <div x-data="{ showModal: false, open: true, selected: 'alamatsurat', frekening: '' }">
         <div class="bg-white rounded shadow p-6 md:p-8 max-w-[1500px] w-full mx-auto">
             @php
-                $isApproved = !empty($product->fapproval);
+                $isApproved = \App\Support\ApprovalState::isApprovedRecord($product);
             @endphp
+            @if (!empty($approvalLockMessage))
+                <div class="mb-4 rounded-lg border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-800">
+                    {{ $approvalLockMessage }}
+                </div>
+            @endif
             <div class="space-y-4">
                 <div>
                     <!-- Group Produk Dropdown -->
@@ -632,19 +637,24 @@
                         <p class="text-xs text-gray-500 mt-4 italic">Klik gambar untuk melihat lebih besar</p>
                     </div>
 
-                    <div class="md:col-span-2 flex justify-center items-center space-x-2">
-                        <fieldset {{ $isApproved ? 'disabled' : '' }}>
-                            <div class="flex items-center space-x-2">
-                                <label class="text-sm font-medium">Approval</label>
-                                <label class="switch">
-                                    <input type="checkbox" name="approve_now" id="approvalToggle"
-                                        {{ !empty($product->fapproval) ? 'checked' : '' }} disabled>
-                                    <span class="slider round"></span>
-                                </label>
-                            </div>
-                        </fieldset>
-                    </div>
-                    <br>
+                    @php
+                        $canApproval = in_array('approveProduct', explode(',', session('user_restricted_permissions', '')));
+                    @endphp
+                    @if ($canApproval)
+                        <div class="md:col-span-2 flex justify-center items-center space-x-2">
+                            <fieldset {{ $isApproved ? 'disabled' : '' }}>
+                                <div class="flex items-center space-x-2">
+                                    <label class="text-sm font-medium">Status Persetujuan</label>
+                                    <label class="switch">
+                                        <input type="checkbox" name="approve_now" id="approvalToggle"
+                                            {{ $isApproved ? 'checked' : '' }} disabled>
+                                        <span class="slider round"></span>
+                                    </label>
+                                </div>
+                            </fieldset>
+                        </div>
+                        <br>
+                    @endif
                     <div class="flex justify-center mt-4">
                         <label for="statusToggle"
                             class="flex items-center justify-between w-40 p-3 border rounded-lg cursor-pointer hover:bg-gray-50 transition bg-gray-100">
@@ -667,7 +677,7 @@
             <br>
             <hr><br>
             <span class="text-sm text-gray-600 flex justify-between items-center">
-                <strong>{{ auth('sysuser')->user()->fname ?? '—' }}</strong>
+                <strong>{{ auth('sysuser')->user()->fname ?? '-' }}</strong>
                 <span>{{ \Carbon\Carbon::parse($product->fupdatedat ?: $product->fcreatedat)->timezone('Asia/Jakarta')->format('d M Y, H:i:s') }}</span>
             </span>
         </div>

@@ -520,15 +520,6 @@
                         </div>
 
                         <div class="md:col-span-2 flex flex-col items-center space-y-4">
-                            <div class="flex items-center space-x-2 bg-gray-100">
-                                <label class="block text-sm font-medium">Approval</label>
-                                <label class="switch">
-                                    <input disabled type="checkbox" name="approve_now" id="approvalToggle"
-                                        {{ !empty($customer->fapproval) ? 'checked' : '' }}>
-                                    <span class="slider round"></span>
-                                </label>
-                            </div>
-
                             <label for="statusToggle"
                                 class="flex items-center justify-between w-40 p-3 border rounded-lg cursor-pointer hover:bg-gray-50 transition bg-gray-100">
                                 <span class="text-sm font-medium">Non Aktif</span>
@@ -952,15 +943,6 @@
                         </div>
 
                         <div class="md:col-span-2 flex flex-col items-center space-y-4">
-                            <div class="flex items-center space-x-2">
-                                <label class="block text-sm font-medium">Approval</label>
-                                <label class="switch">
-                                    <input type="checkbox" name="approve_now" id="approvalToggle"
-                                        {{ !empty($customer->fapproval) ? 'checked' : '' }}>
-                                    <span class="slider round"></span>
-                                </label>
-                            </div>
-
                             <label for="statusToggle"
                                 class="flex items-center justify-between w-40 p-3 border rounded-lg cursor-pointer hover:bg-gray-50 transition">
                                 <span class="text-sm font-medium">Non Aktif</span>

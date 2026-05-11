@@ -96,8 +96,13 @@
     @endphp
 
     <div>
-        <div x-data="{ includePPN: {{ old('fincludeppn', $tr_poh->fincludeppn ?? 0) ? 'true' : 'false' }}, ppnRate: 0, ppnAmount: 0, totalHarga: 100000 }" class="lg:col-span-5">
+        <div x-data="{ includePPN: {{ old('fincludeppn', $salesorder->fincludeppn ?? 0) ? 'true' : 'false' }}, ppnRate: 0, ppnAmount: 0, totalHarga: 100000 }" class="lg:col-span-5">
             <div class="bg-white rounded shadow p-6 md:p-8 max-w-[1600px] w-full mx-auto">
+                @if (!empty($approvalLockMessage))
+                    <div class="mb-4 rounded-lg border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-800">
+                        {{ $approvalLockMessage }}
+                    </div>
+                @endif
                 <div class="space-y-4">
                     <div class="grid grid-cols-1 lg:grid-cols-12 gap-4">
                         <div class="lg:col-span-4">
@@ -1141,8 +1146,6 @@
                     });
                 </script>
             @endpush
-
-
 
 
 

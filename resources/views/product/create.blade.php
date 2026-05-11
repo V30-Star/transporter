@@ -171,10 +171,10 @@
                                 @endforeach
                             </select>
                             <input type="hidden" name="fgroupid" id="groupIdHidden"
-                                value="{{ old('fgroupid', $tr_prh->fgroupid ?? null) }}">
+                                value="{{ old('fgroupid', old('fgroupcode')) }}">
 
                             <input type="hidden" name="fgroupcode" id="groupCodeHidden"
-                                value="{{ old('fgroupcode', $product->fgroupcode ?? '') }}">
+                                value="{{ old('fgroupcode', '') }}">
 
                             <button type="button" @click="isEditable = true; $dispatch('open-group-modal')"
                                 class="whitespace-nowrap bg-green-600 text-white px-3 py-2 rounded hover:bg-green-700">
@@ -738,15 +738,20 @@
                     </div>
                 @endif
 
-                <div class="md:col-span-2 flex justify-center items-center space-x-2">
-                    <label class="block text-sm font-medium">Approval</label>
-                    <label class="switch">
-                        <input type="checkbox" name="fapproval" id="approvalToggle"
-                            {{ session('fapproval') ? 'checked' : '' }}>
-                        <span class="slider round"></span>
-                    </label>
-                </div>
-                <br>
+                @php
+                    $canApproval = in_array('approveProduct', explode(',', session('user_restricted_permissions', '')));
+                @endphp
+                @if ($canApproval)
+                    <div class="md:col-span-2 flex justify-center items-center space-x-2">
+                        <label class="block text-sm font-medium">Approve</label>
+                        <label class="switch">
+                            <input type="checkbox" name="fapproval" id="approvalToggle"
+                                {{ session('fapproval') ? 'checked' : '' }}>
+                            <span class="slider round"></span>
+                        </label>
+                    </div>
+                    <br>
+                @endif
                 <div class="md:col-span-2 flex justify-center items-center space-x-2">
                     <label for="statusToggle"
                         class="flex items-center justify-between w-40 p-3 border rounded-lg cursor-pointer hover:bg-gray-50 transition">

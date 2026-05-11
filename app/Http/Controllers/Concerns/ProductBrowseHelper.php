@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Concerns;
 
 use App\Models\Product;
+use App\Support\ApprovalState;
 
 trait ProductBrowseHelper
 {
@@ -19,6 +20,7 @@ trait ProductBrowseHelper
             'fqtykecil2',
             'fminstock'
         )
+            ->whereRaw(ApprovalState::approvedSql('msprd.'))
             ->orderBy('fprdname')
             ->get();
     }

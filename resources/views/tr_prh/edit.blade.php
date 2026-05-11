@@ -204,7 +204,7 @@
                 <div class="space-y-4">
                     @php
                         $fmt = fn($d) => $d ? \Illuminate\Support\Carbon::parse($d)->format('Y-m-d') : '';
-                        $isApproved = !empty($tr_prh->fuserapproved) || (int) $tr_prh->fapproval === 1;
+                        $isApproved = \App\Support\ApprovalState::isApprovedRecord($tr_prh);
                     @endphp
 
                     {{-- HEADER FORM READONLY --}}
@@ -364,7 +364,7 @@
 
                     @php
                         $fmt = fn($d) => $d ? \Illuminate\Support\Carbon::parse($d)->format('Y-m-d') : '';
-                        $isApproved = !empty($tr_prh->fuserapproved) || (int) $tr_prh->fapproval === 1;
+                        $isApproved = \App\Support\ApprovalState::isApprovedRecord($tr_prh);
                     @endphp
 
                     {{-- HEADER FORM EDITABLE --}}
@@ -1302,7 +1302,6 @@
         }
     </script>
 @endpush
-
 
 
 

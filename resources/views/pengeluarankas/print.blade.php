@@ -338,7 +338,7 @@
             <table class="sign-table">
                 <tr>
                     <td>{{ "User Create" }}</td>
-                    <td>{{ "Disetujui" }}</td>
+                    <td>{{ "Mengetahui" }}</td>
                 </tr>
                 <tr>
                     <td class="box-content">{{ strtoupper(trim((string) ($hdr->fuserid ?? '-'))) }}</td>

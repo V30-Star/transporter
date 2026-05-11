@@ -634,28 +634,8 @@
                     <x-transaction.browse-product-modal show-controls="true" show-pagination="true" />
 
                     @php
-                        $canApproval = in_array('approvalpr', explode(',', session('user_restricted_permissions', '')));
+                        $canApproval = in_array('approveSalesOrder', explode(',', session('user_restricted_permissions', '')));
                     @endphp
-
-                    {{-- APPROVAL & ACTIONS --}}
-                    @php
-                        $canApproval = in_array('approvalpr', explode(',', session('user_restricted_permissions', '')));
-                    @endphp
-
-                    <div class="flex justify-center items-center space-x-2 mt-6">
-                        @if ($canApproval)
-                            <label class="block text-sm font-medium">Approval</label>
-
-                            {{-- fallback 0 saat checkbox tidak dicentang --}}
-                            <input type="hidden" name="fapproval" value="0">
-
-                            <label class="switch">
-                                <input type="checkbox" name="fapproval" id="approvalToggle" value="1"
-                                    {{ old('fapproval', 0) ? 'checked' : '' }}>
-                                <span class="slider"></span>
-                            </label>
-                        @endif
-                    </div>
 
                     <div class="mt-8 flex justify-center gap-4">
                         <button type="submit"
@@ -732,20 +712,6 @@
                 label: '',
                 text: ''
             },
-            descList: []
-        });
-    });
-
-    document.addEventListener('alpine:init', () => {
-        Alpine.store('trsomt', {
-            // desc yang sedang dipreview
-            descPreview: {
-                uid: null,
-                index: null,
-                label: '',
-                text: ''
-            },
-            // optional: daftar semua desc
             descList: []
         });
     });
@@ -1247,7 +1213,7 @@
                             <div>${@json("Nilai transaksi ini")}: <strong>${Number(limitCheck.transaction_amount || 0).toLocaleString('id-ID')}</strong></div>
                             <div>${@json("Limit customer")}: <strong>${Number(limitCheck.limit || 0).toLocaleString('id-ID')}</strong></div>
                             <div>${@json("Total setelah transaksi")}: <strong>${Number(limitCheck.projected_total || 0).toLocaleString('id-ID')}</strong></div>
-                            <div class="mt-3">${@json("Sales Order ini butuh ACC. Lanjutkan?")}</div>
+                            <div class="mt-3">${@json("Sales Order ini membutuhkan ACC Kredit. Lanjutkan?")}</div>
                         </div>
                     `,
                     showCancelButton: true,
@@ -1263,8 +1229,8 @@
                 if (!canApprove) {
                     await Swal.fire({
                         icon: 'error',
-                        title: @json("ACC Ditolak"),
-                        text: @json("User login tidak punya wewenang ACC untuk limit piutang.")
+                        title: @json("ACC Kredit Ditolak"),
+                        text: @json("User login tidak punya wewenang ACC Kredit untuk limit piutang customer.")
                     });
                     return false;
                 }
@@ -1286,7 +1252,7 @@
                         <div class="text-left text-sm">
                             <div>${@json("Customer punya nota yang lewat jatuh tempo lebih dari")} <strong>${overdueCheck.max_tempo || 0}</strong> ${@json("hari.")}</div>
                             <ul class="mt-3 list-disc pl-5">${overdueHtml}</ul>
-                            <div class="mt-3">${@json("Sales Order ini butuh ACC. Lanjutkan?")}</div>
+                            <div class="mt-3">${@json("Sales Order ini membutuhkan ACC Kredit. Lanjutkan?")}</div>
                         </div>
                     `,
                     showCancelButton: true,
@@ -1302,8 +1268,8 @@
                 if (!canApprove) {
                     await Swal.fire({
                         icon: 'error',
-                        title: @json("ACC Ditolak"),
-                        text: @json("User login tidak punya wewenang ACC untuk nota lewat jatuh tempo.")
+                        title: @json("ACC Kredit Ditolak"),
+                        text: @json("User login tidak punya wewenang ACC Kredit untuk nota customer yang lewat jatuh tempo.")
                     });
                     return false;
                 }
@@ -1316,8 +1282,8 @@
         } catch (error) {
             await Swal.fire({
                 icon: 'error',
-                title: @json("Cek Customer Gagal"),
-                text: @json("Terjadi kesalahan saat mengecek limit piutang customer.")
+                title: @json("Cek ACC Kredit Gagal"),
+                text: @json("Terjadi kesalahan saat mengecek kebutuhan ACC Kredit customer.")
             });
             return false;
         }
@@ -1356,21 +1322,6 @@
     <script>
         window.PRODUCT_MAP = @json($productMap ?? []);
 
-        document.addEventListener('alpine:init', () => {
-            Alpine.store('trsomt', {
-                descPreview: {
-                    uid: null,
-                    index: null,
-                    label: '',
-                    text: ''
-                },
-                descList: []
-            });
-        });
     </script>
 @endpush
-
-
-
-
 

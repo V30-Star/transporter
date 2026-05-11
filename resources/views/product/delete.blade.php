@@ -262,7 +262,7 @@
             <div :class="notificationType === 'success' ? 'bg-green-500' : 'bg-red-500'"
                 class="text-white px-6 py-4 rounded-lg shadow-lg flex items-center space-x-3">
                 <span x-text="notificationMessage"></span>
-                <button @click="showNotification = false" class="ml-4 text-white hover:text-gray-200">×</button>
+                <button @click="showNotification = false" class="ml-4 text-white hover:text-gray-200">&times;</button>
             </div>
         </div>
 

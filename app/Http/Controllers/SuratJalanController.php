@@ -331,8 +331,6 @@ class SuratJalanController extends Controller
             )
             ->first(['fcabangid', 'fcabangkode', 'fcabangname']);
 
-        $canApproval = in_array('approvalpr', explode(',', session('user_restricted_permissions', '')));
-
         $fcabang = $branch->fcabangname ?? (string) $raw;
         $fbranchcode = $branch->fcabangkode ?? (string) $raw;
 
@@ -372,7 +370,6 @@ class SuratJalanController extends Controller
         return view('suratjalan.create', [
             'newtr_prh_code' => $newtr_prh_code,
             'warehouses' => $warehouses,
-            'perms' => ['can_approval' => $canApproval],
             'customers' => $customers,
             'fcabang' => $fcabang,
             'fbranchcode' => $fbranchcode,

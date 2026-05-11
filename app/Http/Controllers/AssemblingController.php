@@ -324,8 +324,6 @@ class AssemblingController extends Controller
             )
             ->first(['fcabangid', 'fcabangkode', 'fcabangname']);
 
-        $canApproval = in_array('approvalpr', explode(',', session('user_restricted_permissions', '')));
-
         $fcabang = $branch->fcabangname ?? (string) $raw;
         $fbranchcode = $branch->fcabangkode ?? (string) $raw;
 

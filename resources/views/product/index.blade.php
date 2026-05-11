@@ -515,6 +515,37 @@
         $(function() {
             const canEdit = {{ $canEdit ? 'true' : 'false' }};
             const canDelete = {{ $canDelete ? 'true' : 'false' }};
+
+            const isApprovedValue = (value) => {
+                const normalized = (value ?? '').toString().trim();
+                return normalized === '2' || (normalized !== '' && !['0', '1', '2'].includes(normalized));
+            };
+
+            const isEditBlockedApproval = (row) => {
+                const left = (row?.fapproval ?? '').toString().trim();
+                const right = (row?.fapproval2 ?? '').toString().trim();
+
+                if (isApprovedValue(left) || isApprovedValue(right)) {
+                    return false;
+                }
+
+                return left === '1' || right === '1';
+            };
+
+            window.showProductApprovalLocked = function() {
+                const message = 'Produk belum dapat diedit karena status approval saat ini belum mengizinkan edit.';
+                if (window.Swal?.fire) {
+                    window.Swal.fire({
+                        icon: 'info',
+                        title: 'Edit Belum Tersedia',
+                        text: message,
+                        confirmButtonText: 'Tutup'
+                    });
+                    return;
+                }
+
+                window.alert(message);
+            };
             const hasActions = {{ $showActionsColumn ? 'true' : 'false' }};
 
             // ------------------------------------------
@@ -604,8 +635,9 @@
                     name: 'actions',
                     orderable: false,
                     searchable: false,
-                    render: function(fprdid) {
+                    render: function(fprdid, type, row) {
                         let html = '<div class="space-x-2">';
+                        const editBlocked = isEditBlockedApproval(row);
 
                         const viewUrl = `{{ config('app.url') }}/master/product/${fprdid}/view`;
 
@@ -626,16 +658,27 @@
                         `;
 
                         if (canEdit) {
-                            html += `
-                                <a href="{{ config('app.url') }}/master/product/${fprdid}/edit">
-                                    <button class="inline-flex items-center bg-yellow-500 text-white px-4 py-2 rounded hover:bg-yellow-600">
+                            if (editBlocked) {
+                                html += `
+                                    <button type="button" onclick="showProductApprovalLocked()" class="inline-flex items-center bg-yellow-500 text-white px-4 py-2 rounded hover:bg-yellow-600">
                                         <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                                 d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
                                         </svg>
                                         Edit
-                                    </button>
-                                </a>`;
+                                    </button>`;
+                            } else {
+                                html += `
+                                    <a href="{{ config('app.url') }}/master/product/${fprdid}/edit">
+                                        <button class="inline-flex items-center bg-yellow-500 text-white px-4 py-2 rounded hover:bg-yellow-600">
+                                            <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                    d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
+                                            </svg>
+                                            Edit
+                                        </button>
+                                    </a>`;
+                            }
                         }
 
                         if (canDelete) {

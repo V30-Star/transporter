@@ -521,13 +521,13 @@
                 </div>
 
                 @php
-                    $canApproval = in_array('approvalpr', explode(',', session('user_restricted_permissions', '')));
+                    $canApproval = in_array('approvePR', explode(',', session('user_restricted_permissions', '')));
                 @endphp
 
                 {{-- APPROVAL & ACTIONS --}}
                 <div class="md:col-span-2 flex justify-center items-center space-x-2 mt-6">
                     @if ($canApproval)
-                        <label class="block text-sm font-medium">Approval</label>
+                        <label class="block text-sm font-medium">Approve</label>
                         <input type="hidden" name="fapproval" value="0">
                         <label class="switch">
                             <input type="checkbox" name="fapproval" id="approvalToggle" value="1"
@@ -1198,8 +1198,6 @@
         }
     </script>
 @endpush
-
-
 
 
 

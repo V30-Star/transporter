@@ -9,6 +9,7 @@ use App\Models\Supplier;
 use App\Models\Tr_prd;
 use App\Models\Tr_prh;
 use App\Models\Tranmt;
+use App\Support\ApprovalState;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -133,46 +134,50 @@ class ReturPenjualanController extends Controller
 
     public function pickable(Request $request)
     {
-        // Base query dengan JOIN
-        $query = Tr_prh::leftJoin('mssupplier', 'tr_prh.fsupplier', '=', 'mssupplier.fsupplierid')
+        $query = DB::table('tranmt as mt')
+            ->leftJoin('mscustomer as cust', 'mt.fcustno', '=', 'cust.fcustomercode')
             ->select(
-                'tr_prh.*',
-                'mssupplier.fsuppliername',
-                'mssupplier.fsuppliercode'
+                'mt.ftranmtid',
+                'mt.fsono',
+                'mt.frefno',
+                'mt.fsodate',
+                'mt.fcustno',
+                'cust.fcustomername'
             );
+        $query->where('mt.fsono', 'like', 'INV.%');
+        ApprovalState::applyApprovedFilter($query, 'mt.');
 
-        // Total records tanpa filter
-        $recordsTotal = Tr_prh::count();
+        $recordsTotal = DB::table('tranmt as mt')
+            ->where('mt.fsono', 'like', 'INV.%')
+            ->whereRaw(ApprovalState::approvedSql('mt.'))
+            ->count();
 
-        // Search
         if ($request->filled('search') && $request->search != '') {
             $search = $request->search;
             $query->where(function ($q) use ($search) {
-                $q->where('tr_prh.fprno', 'ilike', "%{$search}%")
-                    ->orWhere('mssupplier.fsuppliername', 'ilike', "%{$search}%")
-                    ->orWhere('mssupplier.fsuppliercode', 'ilike', "%{$search}%");
+                $q->where('mt.fsono', 'ilike', "%{$search}%")
+                    ->orWhere('mt.frefno', 'ilike', "%{$search}%")
+                    ->orWhere('cust.fcustomername', 'ilike', "%{$search}%")
+                    ->orWhere('mt.fcustno', 'ilike', "%{$search}%");
             });
         }
 
-        // Total records setelah filter
         $recordsFiltered = $query->count();
 
-        // Sorting
-        $orderColumn = $request->input('order_column', 'fprdate');
+        $orderColumn = $request->input('order_column', 'fsodate');
         $orderDir = $request->input('order_dir', 'desc');
 
-        $allowedColumns = ['fprno', 'fprdate'];
+        $allowedColumns = ['fsono', 'frefno', 'fsodate', 'fcustomername'];
         if (in_array($orderColumn, $allowedColumns)) {
-            if (in_array($orderColumn, ['fprno', 'fprdate'])) {
-                $query->orderBy('tr_prh.'.$orderColumn, $orderDir);
+            if ($orderColumn === 'fcustomername') {
+                $query->orderBy('cust.fcustomername', $orderDir);
             } else {
-                $query->orderBy('mssupplier.fsuppliername', $orderDir);
+                $query->orderBy('mt.'.$orderColumn, $orderDir);
             }
         } else {
-            $query->orderBy('tr_prh.fprdate', 'desc');
+            $query->orderBy('mt.fsodate', 'desc');
         }
 
-        // Pagination
         $start = (int) $request->input('start', 0);
         $length = (int) $request->input('length', 10);
 
@@ -180,7 +185,6 @@ class ReturPenjualanController extends Controller
             ->take($length)
             ->get();
 
-        // Response format untuk DataTables
         return response()->json([
             'draw' => (int) $request->input('draw', 1),
             'recordsTotal' => (int) $recordsTotal,
@@ -191,31 +195,38 @@ class ReturPenjualanController extends Controller
 
     public function items($id)
     {
-        // Ambil data header PR berdasarkan fprhid
-        $header = Tr_prh::where('fprhid', $id)->firstOrFail();
+        $header = DB::table('tranmt')
+            ->where('ftranmtid', $id)
+            ->where('fsono', 'like', 'INV.%')
+            ->firstOrFail();
 
-        // Detail PR sekarang dihubungkan lewat fprno
-        $items = Tr_prd::where('tr_prd.fprno', $header->fprno)
-            ->leftJoin('msprd as m', 'm.fprdcodeid', '=', 'tr_prd.fitemid')
+        abort_if(! ApprovalState::isApprovedRecord($header), 404);
+
+        $items = DB::table('trandt')
+            ->where('trandt.fsono', $header->fsono)
+            ->leftJoin('msprd as m', 'm.fprdcode', '=', 'trandt.fprdcode')
             ->select([
-                'tr_prd.fprdcodeid as frefdtno',
-                'm.fprdcode as fitemcode',
+                'trandt.ftrandtid as frefdtno',
+                'trandt.fprdcode as fitemcode',
                 'm.fprdname as fitemname',
-                'tr_prd.fqty',
-                'tr_prd.fsatuan as fsatuan',
-                'tr_prd.fprno',
-                'tr_prd.fprice as fprice',
-                DB::raw('0::numeric as fdisc'),
+                'trandt.fqty',
+                'trandt.fsatuan as fsatuan',
+                'trandt.fprice as fprice',
+                DB::raw("COALESCE(NULLIF(TRIM(trandt.fdisc), ''), '0') as fdisc"),
+                'trandt.fdesc',
+                'trandt.frefso',
+                'trandt.frefsrj',
             ])
-            ->orderBy('tr_prd.fitemid')
+            ->orderBy('trandt.fnou')
             ->get();
 
         return response()->json([
             'header' => [
-                'fprhid' => $header->fprhid,
-                'fprno' => $header->fprno,
-                'fsupplier' => trim($header->fsupplier ?? ''),
-                'fprdate' => optional($header->fprdate)->format('Y-m-d H:i:s'),
+                'ftranmtid' => $header->ftranmtid,
+                'fsono' => $header->fsono,
+                'frefno' => trim((string) ($header->frefno ?? '')),
+                'fcustno' => trim((string) ($header->fcustno ?? '')),
+                'fsodate' => optional($header->fsodate)->format('Y-m-d H:i:s'),
             ],
             'items' => $items,
         ]);
@@ -343,8 +354,6 @@ class ReturPenjualanController extends Controller
             )
             ->first(['fcabangid', 'fcabangkode', 'fcabangname']);
 
-        $canApproval = in_array('approvalpr', explode(',', session('user_restricted_permissions', '')));
-
         $fcabang = $branch->fcabangname ?? (string) $raw;
         $fbranchcode = $branch->fcabangkode ?? (string) $raw;
 
@@ -383,7 +392,6 @@ class ReturPenjualanController extends Controller
 
         return view('returpenjualan.create', [
             'newtr_prh_code' => $newtr_prh_code,
-            'perms' => ['can_approval' => $canApproval],
             'customers' => $customers,
             'salesmans' => $salesmans,
             'fcabang' => $fcabang,

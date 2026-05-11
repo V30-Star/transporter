@@ -211,7 +211,15 @@
                                             <td class="p-2" x-text="i + 1"></td>
                                             <td class="p-2 font-mono" x-text="it.fitemcode"></td>
                                             <td class="p-2 text-gray-800">
-                                                <div x-text="it.fitemname"></div>
+                                                <div class="flex items-center gap-2">
+                                                    <div class="flex-1 min-w-0" x-text="it.fitemname"></div>
+                                                    <button type="button" @click="openDesc(it)"
+                                                        class="inline-flex h-9 w-9 items-center justify-center rounded border transition"
+                                                        :class="it.fdesc ? 'border-emerald-300 bg-emerald-50 text-emerald-600 hover:bg-emerald-100' : 'border-gray-300 bg-white text-gray-500 hover:bg-gray-50'"
+                                                        title="Deskripsi item">
+                                                        <x-heroicon-o-document-text class="h-4 w-4" />
+                                                    </button>
+                                                </div>
                                             </td>
                                             <td class="p-2 text-left">
                                                 <select class="w-full border rounded px-2 py-1 select2" :value="it.account_code"
@@ -275,20 +283,6 @@
                                             </td>
                                         </tr>
 
-                                        <tr class="border-b">
-                                            <td class="p-0"></td>
-                                            <td class="p-0"></td>
-                                            <td class="p-2">
-                                                <button type="button" @click="openDesc(it)"
-                                                    class="inline-flex h-9 w-9 items-center justify-center rounded border transition"
-                                                    :class="it.fdesc ? 'border-emerald-300 bg-emerald-50 text-emerald-600 hover:bg-emerald-100' : 'border-gray-300 bg-white text-gray-500 hover:bg-gray-50'"
-                                                    title="Deskripsi item">
-                                                    <x-heroicon-o-document-text class="h-4 w-4" />
-                                                </button>
-                                            </td>
-                                            <td class="p-0" colspan="4"></td>
-                                            <td class="p-0"></td>
-                                        </tr>
                                     </template>
 
 

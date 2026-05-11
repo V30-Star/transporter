@@ -637,11 +637,43 @@
                                 </td>
                             </tr>
 
-                            <tr class="bg-gray-50">
-                                <td class="px-3 py-2 font-semibold">Approval Permintaan Pembelian</td>
+                            <tr>
+                                <td class="px-3 py-2 font-semibold">Boleh Approve SO</td>
                                 <td class="text-center" colspan="4">
-                                    <input type="checkbox" name="permission[]" value="approvalpr"
-                                        {{ isset($roleAccess) && in_array('approvalpr', explode(',', $roleAccess->fpermission)) ? 'checked' : '' }}>
+                                    <input type="checkbox" name="permission[]" value="approveSalesOrder"
+                                        {{ isset($roleAccess) && in_array('approveSalesOrder', explode(',', $roleAccess->fpermission)) ? 'checked' : '' }}>
+                                </td>
+                            </tr>
+
+                            <tr class="bg-gray-50">
+                                <td class="px-3 py-2 font-semibold">Boleh Approve Faktur Penjualan</td>
+                                <td class="text-center" colspan="4">
+                                    <input type="checkbox" name="permission[]" value="approveFakturPenjualan"
+                                        {{ isset($roleAccess) && in_array('approveFakturPenjualan', explode(',', $roleAccess->fpermission)) ? 'checked' : '' }}>
+                                </td>
+                            </tr>
+
+                            <tr>
+                                <td class="px-3 py-2 font-semibold">Boleh Approve PR</td>
+                                <td class="text-center" colspan="4">
+                                    <input type="checkbox" name="permission[]" value="approvePR"
+                                        {{ isset($roleAccess) && in_array('approvePR', explode(',', $roleAccess->fpermission)) ? 'checked' : '' }}>
+                                </td>
+                            </tr>
+
+                            <tr class="bg-gray-50">
+                                <td class="px-3 py-2 font-semibold">Boleh Approve PO</td>
+                                <td class="text-center" colspan="4">
+                                    <input type="checkbox" name="permission[]" value="approvePO"
+                                        {{ isset($roleAccess) && in_array('approvePO', explode(',', $roleAccess->fpermission)) ? 'checked' : '' }}>
+                                </td>
+                            </tr>
+
+                            <tr>
+                                <td class="px-3 py-2 font-semibold">Boleh Approve Produk</td>
+                                <td class="text-center" colspan="4">
+                                    <input type="checkbox" name="permission[]" value="approveProduct"
+                                        {{ isset($roleAccess) && in_array('approveProduct', explode(',', $roleAccess->fpermission)) ? 'checked' : '' }}>
                                 </td>
                             </tr>
                         </tbody>

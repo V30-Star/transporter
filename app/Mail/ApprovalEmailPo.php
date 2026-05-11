@@ -15,14 +15,16 @@ class ApprovalEmailPo extends Mailable
   public $productName;
   public $approver;
   public $subjectMail;
+  public $approvalToken;
 
-  public function __construct($hdr, $dt, $productName, $approver, $subjectMail = 'Order Pembelian (PO)')
+  public function __construct($hdr, $dt, $productName, $approver, $subjectMail = 'Order Pembelian (PO)', $approvalToken = null)
   {
     $this->hdr         = $hdr;
     $this->dt          = $dt;
     $this->productName = $productName;
     $this->approver    = $approver;
     $this->subjectMail = $subjectMail;
+    $this->approvalToken = $approvalToken;
   }
 
   public function build()
@@ -35,6 +37,7 @@ class ApprovalEmailPo extends Mailable
         'dt'          => $this->dt,
         'productName' => $this->productName,
         'approver'    => $this->approver,
+        'approvalToken' => $this->approvalToken,
       ]);
   }
 }

@@ -501,11 +501,11 @@
                                 const inputRefSo = document.getElementById('frefso');
                                 const inputRefSrj = document.getElementById('frefsrj');
 
-                                // Menangkap Event saat SO dipilih
+                                // Menangkap Event saat referensi faktur dipilih
                                 window.addEventListener('pr-picked', (e) => {
                                     const header = e.detail.header;
                                     inputRefCode.value = 'SO';
-                                    inputRefSo.value = header.ftrsomtid; // Sesuaikan ID header SO
+                                    inputRefSo.value = header.ftranmtid ?? header.ftrsomtid ?? ''; // Simpan id referensi aktif
                                     inputRefSrj.value = ''; // Reset yang lain
                                 });
 
@@ -641,12 +641,12 @@
                                                     <path stroke-linecap="round" stroke-linejoin="round"
                                                         stroke-width="1.5" d="M12 4.5v15m7.5-7.5h-15" />
                                                 </svg>
-                                                Add SO
+                                                Add Faktur
                                             </button>
                                         </div>
                                     </div>
 
-                                    {{-- MODAL SO --}}
+                                    {{-- MODAL FAKTUR PENJUALAN --}}
                                     <div x-show="show" x-cloak x-transition.opacity
                                         class="fixed inset-0 z-50 flex items-center justify-center p-4">
                                         <div class="absolute inset-0 bg-black/50 backdrop-blur-sm" @click="closeModal()">
@@ -658,9 +658,9 @@
                                             <div
                                                 class="px-6 py-4 border-b border-gray-200 flex items-center justify-between flex-shrink-0 bg-gradient-to-r from-teal-50 to-white">
                                                 <div>
-                                                    <h3 class="text-xl font-bold text-gray-800">Add SO</h3>
-                                                    <p class="text-sm text-gray-500 mt-0.5">Pilih Purchase Order yang
-                                                        diinginkan
+                                                    <h3 class="text-xl font-bold text-gray-800">Add Faktur Penjualan</h3>
+                                                    <p class="text-sm text-gray-500 mt-0.5">Pilih Faktur Penjualan yang
+                                                        sudah di-approve
                                                     </p>
                                                 </div>
                                                 <button type="button" @click="closeModal()"
@@ -684,10 +684,10 @@
                                                             <tr class="bg-gradient-to-r from-gray-50 to-gray-100">
                                                                 <th
                                                                     class="text-left p-3 font-semibold text-gray-700 border-b-2 border-gray-200">
-                                                                    SO No</th>
+                                                                    No. Faktur</th>
                                                                 <th
                                                                     class="text-left p-3 font-semibold text-gray-700 border-b-2 border-gray-200">
-                                                                    No Ref</th>
+                                                                    No. Referensi</th>
                                                                 <th
                                                                     class="text-left p-3 font-semibold text-gray-700 border-b-2 border-gray-200">
                                                                     Tanggal</th>
@@ -851,7 +851,7 @@
                                     @keydown.escape.window="closeModal()"></div>
 
                                 <div>
-                                    {{-- MODAL PR --}}
+                                    {{-- MODAL FAKTUR PENJUALAN --}}
                                     <div x-show="show" x-cloak x-transition.opacity
                                         class="fixed inset-0 z-50 flex items-center justify-center p-4 md:p-8"
                                         aria-modal="true" role="dialog">
@@ -861,7 +861,7 @@
                                             <!-- Header -->
                                             <div
                                                 class="px-6 py-4 border-b border-gray-200 flex items-center justify-between flex-shrink-0 bg-gradient-to-r from-blue-50 to-white">
-                                                <h3 class="text-xl font-bold text-gray-800">{{ "Pilih Purchase Order (PO)" }}</h3>
+                                                <h3 class="text-xl font-bold text-gray-800">{{ "Pilih Faktur Penjualan" }}</h3>
                                                 <button type="button" @click="closeModal()"
                                                     class="px-4 py-2 rounded-lg border-2 border-gray-300 bg-white hover:bg-gray-50 hover:border-gray-400 transition-all duration-150 font-medium text-gray-700 text-sm">
                                                     {{ "Tutup" }}
@@ -875,7 +875,7 @@
                                                     style="width:100%">
                                                     <thead class="sticky top-0 z-10">
                                                         <tr class="bg-gray-50 border-b-2 border-gray-200">
-                                                            <th class="p-3 text-left font-semibold text-gray-700">PR No
+                                                            <th class="p-3 text-left font-semibold text-gray-700">No. Faktur
                                                             </th>
                                                             <th class="p-3 text-left font-semibold text-gray-700">Customer
                                                             </th>
@@ -1184,26 +1184,6 @@
                                 <div id="productTablePagination"></div>
                             </div>
                         </div>
-                    </div>
-
-                    @php
-                        $canApproval = in_array('approvalpr', explode(',', session('user_restricted_permissions', '')));
-                    @endphp
-
-                    {{-- APPROVAL & ACTIONS --}}
-                    <div class="md:col-span-2 flex justify-center items-center space-x-2 mt-6">
-                        @if ($canApproval)
-                            <label class="block text-sm font-medium">Approval</label>
-
-                            {{-- fallback 0 saat checkbox tidak dicentang --}}
-                            <input type="hidden" name="fapproval" value="0">
-
-                            <label class="switch">
-                                <input type="checkbox" name="fapproval" id="approvalToggle" value="1"
-                                    {{ old('fapproval', session('fapproval') ? 1 : 0) ? 'checked' : '' }}>
-                                <span class="slider"></span>
-                            </label>
-                        @endif
                     </div>
 
                     <div class="mt-8 flex justify-center gap-4">
@@ -2466,7 +2446,7 @@
                         page: this.currentPage,
                     });
 
-                    const res = await fetch(`{{ route('penerimaanbarang.pickable') }}?` + params.toString(), {
+                    const res = await fetch(`{{ route('returpenjualan.pickable') }}?` + params.toString(), {
                         headers: {
                             'X-Requested-With': 'XMLHttpRequest'
                         }
@@ -2511,8 +2491,8 @@
                         });
                         return; // Hentikan proses, jangan tambahkan ke tabel
                     }
-                    const url = `{{ route('penerimaanbarang.items', ['id' => 'PR_ID_PLACEHOLDER']) }}`
-                        .replace('PR_ID_PLACEHOLDER', row.fprhid);
+                    const url = `{{ route('returpenjualan.items', ['id' => 'INV_ID_PLACEHOLDER']) }}`
+                        .replace('INV_ID_PLACEHOLDER', row.ftranmtid);
 
                     const res = await fetch(url, {
                         headers: {
@@ -2544,17 +2524,9 @@
                     }));
                     this.closeModal();
 
-                    window.dispatchEvent(new CustomEvent('pr-picked', {
-                        detail: {
-                            header: row,
-                            items
-                        }
-                    }));
-
-                    this.closeModal();
                 } catch (e) {
                     console.error(e);
-                    alert(@json("Gagal mengambil detail PR. Lihat konsol untuk detail."));
+                    alert(@json("Gagal mengambil detail Faktur Penjualan. Lihat konsol untuk detail."));
                 }
             },
         };
@@ -2581,7 +2553,7 @@
                     processing: true,
                     serverSide: true,
                     ajax: {
-                        url: "{{ route('salesorder.pickable') }}",
+                        url: "{{ route('returpenjualan.pickable') }}",
                         type: 'GET',
                         data: function(d) {
                             return {
@@ -2595,18 +2567,18 @@
                         }
                     },
                     columns: [{
-                            data: 'fsono', // Nomor SO
-                            name: 'trsomt.fsono',
+                            data: 'fsono',
+                            name: 'fsono',
                             className: 'font-mono text-sm'
                         },
                         {
-                            data: 'frefno', // Nomor SO
+                            data: 'frefno',
                             name: 'frefno',
                             className: 'font-mono text-sm'
                         },
                         {
-                            data: 'fsodate', // Tanggal SO
-                            name: 'trsomt.fsodate',
+                            data: 'fsodate',
+                            name: 'fsodate',
                             className: 'text-sm',
                             render: function(data) {
                                 return formatDate(data);
@@ -2741,8 +2713,8 @@
                         return; // Hentikan proses, jangan tambahkan ke tabel
                     }
 
-                    const url = `{{ route('salesorder.items', ['id' => 'SO_ID_PLACEHOLDER']) }}`
-                        .replace('SO_ID_PLACEHOLDER', row.ftrsomtid);
+                    const url = `{{ route('returpenjualan.items', ['id' => 'INV_ID_PLACEHOLDER']) }}`
+                        .replace('INV_ID_PLACEHOLDER', row.ftranmtid);
 
                     const res = await fetch(url, {
                         headers: {
@@ -2780,7 +2752,7 @@
                     this.closeModal();
                 } catch (e) {
                     console.error('Error:', e);
-                    window.toast?.error(`${@json("Gagal mengambil detail Sales Order:")} ${e.message}`);
+                    window.toast?.error(`${@json("Gagal mengambil detail Faktur Penjualan:")} ${e.message}`);
                 }
             }
         };
@@ -3199,8 +3171,3 @@
         });
     </script>
 @endpush
-
-
-
-
-

@@ -483,15 +483,6 @@
                     </div>
 
                     <div class="md:col-span-2 flex flex-col items-center space-y-4">
-                        <div class="flex items-center space-x-2">
-                            <label class="block text-sm font-medium">Approval</label>
-                            <label class="switch">
-                                <input type="checkbox" name="fapproval" id="approvalToggle"
-                                    {{ session('fapproval') ? 'checked' : '' }}>
-                                <span class="slider round"></span>
-                            </label>
-                        </div>
-
                         <label for="statusToggle"
                             class="flex items-center justify-between w-40 p-3 border rounded-lg cursor-pointer hover:bg-gray-50 transition">
                             <span class="text-sm font-medium">Non Aktif</span>

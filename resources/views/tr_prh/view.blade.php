@@ -11,7 +11,7 @@
         input:focus,
         select:focus,
         textarea:focus {
-            r outline: none;
+            outline: none;
             border-color: #2563eb;
             box-shadow: 0 0 0 2px rgba(37, 99, 235, .2);
         }
@@ -89,13 +89,17 @@
 
     <div x-data="{ open: true }">
         <div class="bg-white rounded shadow p-6 md:p-8 max-w-[1600px] w-full mx-auto">
+            @if (!empty($approvalLockMessage))
+                <div class="mb-4 rounded-lg border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-800">
+                    {{ $approvalLockMessage }}
+                </div>
+            @endif
             <div class="space-y-4">
                 @php
                     $fmt = fn($d) => $d ? \Illuminate\Support\Carbon::parse($d)->format('Y-m-d') : '';
                 @endphp
                 @php
-                    // anggap "approved" kalau sudah ada fuserapproved ATAU fapproval=1
-                    $isApproved = !empty($tr_prh->fuserapproved) || (int) $tr_prh->fapproval === 1;
+                    $isApproved = \App\Support\ApprovalState::isApprovedRecord($tr_prh);
                 @endphp
 
                 {{-- HEADER FORM --}}
@@ -508,29 +512,34 @@
                     </label>
                 </div>
 
-                <fieldset {{ $isApproved ? 'disabled' : '' }}>
-                    <div class="md:col-span-2 flex justify-center items-center space-x-2 mt-6">
-                        <label class="text-sm font-medium">Approval</label>
+                @php
+                    $canApproval = in_array('approvePR', explode(',', session('user_restricted_permissions', '')));
+                @endphp
+                @if ($canApproval)
+                    <fieldset {{ $isApproved ? 'disabled' : '' }}>
+                        <div class="md:col-span-2 flex justify-center items-center space-x-2 mt-6">
+                            <label class="text-sm font-medium">Status Persetujuan</label>
 
-                        {{-- default 0 supaya unchecked tetap terkirim --}}
-                        <input type="hidden" name="fapproval" value="0">
+                            <input type="hidden" name="fapproval" value="0">
 
-                        <label class="switch">
-                            <input disabled type="checkbox" name="fapproval" id="approvalToggle" value="1"
-                                {{ $isApproved ? 'checked' : '' }}>
-                            <span class="slider round"></span>
-                        </label>
-                    </div>
-
-                    @if ($isApproved)
-                        <div class="text-xs text-gray-600 text-center mt-2">
-                            Disetujui oleh: <strong>{{ $tr_prh->fuserapproved }}</strong>
-                            @if (!empty($tr_prh->fdateapproved))
-                                pada {{ \Carbon\Carbon::parse($tr_prh->fdateapproved)->format('d-m-Y H:i') }}
-                            @endif
+                            <label class="switch">
+                                <input disabled type="checkbox" name="fapproval" id="approvalToggle" value="1"
+                                    {{ $isApproved ? 'checked' : '' }}>
+                                <span class="slider round"></span>
+                            </label>
                         </div>
-                    @endif
-                </fieldset>
+
+                        @if ($isApproved)
+                            <div class="text-xs text-gray-600 text-center mt-2">
+                            Disetujui oleh:
+                            <strong>{{ $tr_prh->fuserapproved ?: ($tr_prh->fuserapproved2 ?: '-') }}</strong>
+                                @if (!empty($tr_prh->fdateapproved))
+                                    pada {{ \Carbon\Carbon::parse($tr_prh->fdateapproved)->format('d-m-Y H:i') }}
+                                @endif
+                            </div>
+                        @endif
+                    </fieldset>
+                @endif
             </div>
 
             <div class="mt-6 flex justify-center space-x-4">
@@ -1393,8 +1402,3 @@
                 });
             </script>
         @endpush
-
-
-
-
-

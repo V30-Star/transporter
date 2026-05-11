@@ -545,7 +545,7 @@
                                         <th class="px-2 py-1 text-left w-10">#</th>
                                         <th class="px-2 py-1 text-left">Kode Produk</th>
                                         <th class="px-2 py-1 text-left">Nama Produk</th>
-                                        <th class="px-2 py-1 text-left">No Refrensi</th>
+                                        <th class="px-2 py-1 text-left">No Referensi</th>
                                         <th class="px-2 py-1 text-left">Satuan</th>
                                         <th class="px-2 py-1 text-right whitespace-nowrap">Qty.</th>
                                         <th class="px-2 py-1 text-right whitespace-nowrap">@ Harga</th>
@@ -678,29 +678,6 @@
                                 <input type="hidden" name="fincludeppn" value="0">
                                 <input type="hidden" name="famountpopajak" :value="ppnRate">
                             </div>
-                        </div>
-
-                        @php
-                            $canApproval = in_array(
-                                'approvalpr',
-                                explode(',', session('user_restricted_permissions', '')),
-                            );
-                        @endphp
-
-                        {{-- APPROVAL & ACTIONS --}}
-                        <div class="md:col-span-2 flex justify-center items-center space-x-2 mt-6">
-                            @if ($canApproval)
-                                <label class="block text-sm font-medium">Approval</label>
-
-                                {{-- fallback 0 saat checkbox tidak dicentang --}}
-                                <input type="hidden" name="fapproval" value="0">
-
-                                <label class="switch">
-                                    <input disabled type="checkbox" name="fapproval" id="approvalToggle" value="1"
-                                        {{ old('fapproval', session('fapproval') ? 1 : 0) ? 'checked' : '' }}>
-                                    <span class="slider"></span>
-                                </label>
-                            @endif
                         </div>
 
                         <div x-show="showDescModal" x-cloak class="fixed inset-0 z-[95] flex items-center justify-center"
@@ -1150,7 +1127,7 @@
                                             <th class="px-2 py-1 text-left w-10">#</th>
                                             <th class="px-2 py-1 text-left">Kode Produk</th>
                                             <th class="px-2 py-1 text-left">Nama Produk</th>
-                                            <th class="px-2 py-1 text-left">No Refrensi</th>
+                                            <th class="px-2 py-1 text-left">No Referensi</th>
                                             <th class="px-2 py-1 text-left">Satuan</th>
                                             <th class="px-2 py-1 text-right whitespace-nowrap">Qty.</th>
                                             <th class="px-2 py-1 text-right whitespace-nowrap">@ Harga</th>
@@ -1630,29 +1607,6 @@
                                     <input type="hidden" name="fincludeppn" value="0">
                                     <input type="hidden" name="famountpopajak" :value="ppnRate">
                                 </div>
-                            </div>
-
-                            @php
-                                $canApproval = in_array(
-                                    'approvalpr',
-                                    explode(',', session('user_restricted_permissions', '')),
-                                );
-                            @endphp
-
-                            {{-- APPROVAL & ACTIONS --}}
-                            <div class="md:col-span-2 flex justify-center items-center space-x-2 mt-6">
-                                @if ($canApproval)
-                                    <label class="block text-sm font-medium">Approval</label>
-
-                                    {{-- fallback 0 saat checkbox tidak dicentang --}}
-                                    <input type="hidden" name="fapproval" value="0">
-
-                                    <label class="switch">
-                                        <input type="checkbox" name="fapproval" id="approvalToggle" value="1"
-                                            {{ old('fapproval', session('fapproval') ? 1 : 0) ? 'checked' : '' }}>
-                                        <span class="slider"></span>
-                                    </label>
-                                @endif
                             </div>
 
                             <div class="mt-8 flex justify-center gap-4 pb-6">

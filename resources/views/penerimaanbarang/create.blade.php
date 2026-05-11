@@ -749,22 +749,6 @@
 
             <x-transaction.browse-product-modal />
 
-            @php
-                $canApproval = in_array('approvalpr', explode(',', session('user_restricted_permissions', '')));
-            @endphp
-
-            <div class="flex justify-center items-center space-x-2 mt-6">
-                @if ($canApproval)
-                    <label class="block text-sm font-medium">Approval</label>
-                    <input type="hidden" name="fapproval" value="0">
-                    <label class="switch">
-                        <input type="checkbox" name="fapproval" id="approvalToggle" value="1"
-                            {{ old('fapproval', 0) ? 'checked' : '' }}>
-                        <span class="slider"></span>
-                    </label>
-                @endif
-            </div>
-
             <div class="mt-8 flex justify-center gap-4">
                 <button type="submit"
                     class="bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700 flex items-center">
@@ -1467,7 +1451,6 @@
         });
     </script>
 @endpush
-
 
 
 

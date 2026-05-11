@@ -77,7 +77,6 @@ class ReportingAssemblingController extends Controller
                   'famountpo',
                   'fcurrency',
                   'fclose',
-                  'fapproval',
               ])
           : collect();
 

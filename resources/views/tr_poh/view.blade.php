@@ -25,6 +25,11 @@
 
     <div class="bg-white rounded shadow p-6 md:p-8 max-w-[1600px] w-full mx-auto" x-data="viewForm()"
         x-init="init()">
+        @if (!empty($approvalLockMessage))
+            <div class="mb-4 rounded-lg border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-800">
+                {{ $approvalLockMessage }}
+            </div>
+        @endif
 
         {{-- ================================================================
              HEADER — semua readonly/disabled
@@ -259,15 +264,15 @@
         </div>
 
         @php
-            $canApproval = in_array('approvalpr', explode(',', session('user_restricted_permissions', '')));
+            $canApproval = in_array('approvePO', explode(',', session('user_restricted_permissions', '')));
         @endphp
 
         {{-- APPROVAL --}}
         @if ($canApproval)
             <div class="flex justify-center items-center space-x-2 mt-6">
-                <label class="block text-sm font-medium">Approval</label>
+                <label class="block text-sm font-medium">Status Persetujuan</label>
                 <label class="switch" style="pointer-events:none; opacity: 0.8;">
-                    <input type="checkbox" disabled {{ $tr_poh->fapproval ?? 0 ? 'checked' : '' }}>
+                    <input type="checkbox" disabled {{ \App\Support\ApprovalState::isApprovedRecord($tr_poh) ? 'checked' : '' }}>
                     <span class="slider"></span>
                 </label>
             </div>

@@ -77,7 +77,6 @@ class ReportingPenerimaanBarangController extends Controller
                   'famountpo',
                   'fcurrency',
                   'fclose',
-                  'fapproval',
               ])
           : collect();
 

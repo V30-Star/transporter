@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Mail\GenericApprovalNotification;
 use App\Models\Customer;
 use App\Models\Product;
 use App\Models\Salesman;
@@ -13,8 +14,10 @@ use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Mail;
 // sekalian biar aman untuk tanggal
 use Illuminate\Validation\ValidationException;
+use App\Support\ApprovalState;
 
 class InvoiceController extends Controller
 {
@@ -38,7 +41,104 @@ class InvoiceController extends Controller
 
     private function canApproveCreditLimit(): bool
     {
-        return in_array('approvalpr', explode(',', session('user_restricted_permissions', '')));
+        return in_array('approveFakturPenjualan', explode(',', session('user_restricted_permissions', '')));
+    }
+
+    private function getApprovalRecipients(): array
+    {
+        return array_values(array_filter([
+            trim((string) config('approval.invoice.stage1', '')),
+            trim((string) config('approval.invoice.stage2', '')),
+        ]));
+    }
+
+    private function sendApprovalNotification(string $fsono, string $approver): void
+    {
+        $header = DB::table('tranmt as mt')
+            ->leftJoin('mscustomer as c', 'mt.fcustno', '=', 'c.fcustomercode')
+            ->leftJoin('mssalesman as s', 'mt.fsalesman', '=', 's.fsalesmancode')
+            ->where('mt.fsono', $fsono)
+            ->first([
+                'mt.*',
+                'c.fcustomername',
+                's.fsalesmanname',
+            ]);
+
+        if (! $header) {
+            return;
+        }
+
+        $items = DB::table('trandt as d')
+            ->leftJoin('msprd as p', 'd.fprdcode', '=', 'p.fprdcode')
+            ->where('d.fsono', $fsono)
+            ->orderBy('d.fnou')
+            ->get([
+                'd.fprdcode',
+                'd.fdesc',
+                'd.fqty',
+                'd.fprice',
+                'd.famount',
+                'd.fsatuan',
+                'p.fprdname',
+            ])
+            ->map(fn ($item) => [
+                'code' => $item->fprdcode,
+                'name' => trim(($item->fprdname ?? '-') . (! empty($item->fdesc) ? ' / ' . $item->fdesc : '')),
+                'qty' => number_format((float) $item->fqty, 2, ',', '.') . ' ' . ($item->fsatuan ?? ''),
+                'price' => format_number($item->fprice ?? 0),
+                'total' => format_number($item->famount ?? 0),
+            ])
+            ->all();
+
+        $fields = [
+            ['label' => 'Tanggal', 'value' => $header->fsodate ? Carbon::parse($header->fsodate)->format('d-m-Y') : '-'],
+            ['label' => 'Customer', 'value' => trim(($header->fcustno ?? '-') . ' - ' . ($header->fcustomername ?? '-'))],
+            ['label' => 'Salesman', 'value' => $header->fsalesmanname ?? ($header->fsalesman ?? '-')],
+            ['label' => 'ACC Kredit', 'value' => $header->fuseracc ?? '-'],
+            ['label' => 'Total', 'value' => format_number($header->famountso ?? 0)],
+            ['label' => 'Keterangan', 'value' => $header->fket ?? '-'],
+        ];
+
+        $recipients = array_slice($this->getApprovalRecipients(), 0, 2);
+
+        if (! empty($recipients[0]) && ! empty($header->fapproval_token)) {
+            Mail::to($recipients[0])->send(new GenericApprovalNotification(
+                'Approval Faktur Penjualan',
+                'Faktur Penjualan Approval',
+                $fsono,
+                $approver,
+                route('approval.invoice.page', ['fsono' => $fsono, 'token' => $header->fapproval_token]),
+                $fields,
+                $items
+            ));
+        }
+
+        if (! empty($recipients[1]) && ! empty($header->fapproval_token2)) {
+            Mail::to($recipients[1])->send(new GenericApprovalNotification(
+                'Approval Faktur Penjualan',
+                'Faktur Penjualan Approval',
+                $fsono,
+                $approver,
+                route('approval.invoice.page', ['fsono' => $fsono, 'token' => $header->fapproval_token2]),
+                $fields,
+                $items
+            ));
+        }
+    }
+
+    private function initializeApprovalState(): array
+    {
+        return ApprovalState::initializeApprovalColumns(
+            array_slice($this->getApprovalRecipients(), 0, 2),
+            fn () => \Illuminate\Support\Str::random(64)
+        );
+    }
+
+    private function getApprovalLockMessage($record): ?string
+    {
+        return ApprovalState::isEditBlockedRecord($record)
+            ? 'Faktur Penjualan belum dapat diubah karena status approval saat ini belum mengizinkan edit.'
+            : null;
     }
 
     private function getCustomerCreditChecks(string $customerCode, float $currentTransactionAmount = 0, ?int $exceptTranmtId = null): array
@@ -290,6 +390,8 @@ class InvoiceController extends Controller
                     'fuseracc' => $row->fuseracc,
                     'ftempohr' => $row->ftempohr,
                     'fprint' => $row->fprint,
+                    'fapproval' => $row->fapproval,
+                    'fapproval2' => $row->fapproval2,
                 ];
             });
 
@@ -568,7 +670,7 @@ class InvoiceController extends Controller
             )
             ->first(['fcabangid', 'fcabangkode', 'fcabangname']);
 
-        $canApproval = in_array('approvalpr', explode(',', session('user_restricted_permissions', '')));
+        $canApproval = $this->canApproveCreditLimit();
 
         $fcabang = $branch->fcabangname ?? (string) $raw;
         $fbranchcode = $branch->fcabangkode ?? (string) $raw;
@@ -622,6 +724,7 @@ class InvoiceController extends Controller
 
     public function store(Request $request)
     {
+        $shouldSendApprovalNotification = false;
         // 1. VALIDASI (Tetap sama)
         $request->validate([
             'fsodate' => ['required', 'date'],
@@ -766,7 +869,7 @@ class InvoiceController extends Controller
 
         // 5. DATABASE TRANSACTION
         try {
-            DB::transaction(function () use ($fapplyppn, $request, $fsodate, $fincludeppn, $userid, $now, $detailRows, $totalGross, $totalDisc, $amountNet, $ppnAmount, $grandTotal, $fcurrency, $frate, $ppnPersen, $creditApproval, $fkodefp) {
+            DB::transaction(function () use ($fapplyppn, $request, $fsodate, $fincludeppn, $userid, $now, $detailRows, $totalGross, $totalDisc, $amountNet, $ppnAmount, $grandTotal, $fcurrency, $frate, $ppnPersen, $creditApproval, $fkodefp, &$shouldSendApprovalNotification) {
 
                 // Penomoran Otomatis (Tetap sama)
                 $fsono = $request->input('fsono');
@@ -776,6 +879,8 @@ class InvoiceController extends Controller
                     $nextNumber = $lastRecord ? ((int) substr(trim($lastRecord->fsono), -4) + 1) : 1;
                     $fsono = $prefix.str_pad($nextNumber, 4, '0', STR_PAD_LEFT);
                 }
+
+                $approvalState = $this->initializeApprovalState();
 
                 // --- INSERT HEADER DAN AMBIL ID ---
                 $ftranmtid = DB::table('tranmt')->insertGetId([
@@ -809,6 +914,7 @@ class InvoiceController extends Controller
                     'ftrcode' => 'I',
                     'fprdout' => '0',
                     'fuseracc' => $creditApproval['fuseracc'],
+                    ...$approvalState,
                 ], 'ftranmtid');
 
                 // --- UPDATE DETAIL ROWS DENGAN ID HEADER DAN NOMOR SONO ---
@@ -819,7 +925,13 @@ class InvoiceController extends Controller
                 // INSERT DETAIL
                 DB::table('trandt')->insert($detailRows);
 
+                $shouldSendApprovalNotification = ApprovalState::hasApprovalProgress((object) $approvalState);
+
             });
+
+            if ($shouldSendApprovalNotification) {
+                $this->sendApprovalNotification($fsono, $userid);
+            }
 
             return redirect()->route('invoice.index')->with('success', 'Faktur Penjualan berhasil disimpan.');
         } catch (\Exception $e) {
@@ -1387,6 +1499,8 @@ class InvoiceController extends Controller
             $invoice->setRelation('customer', Customer::where('fcustomercode', trim((string) $invoice->fcustno))->first());
         }
 
+        $approvalLockMessage = $this->getApprovalLockMessage($invoice);
+
         $referenceSummary = $this->getReferenceSummaryByTranNo((string) $invoice->fsono);
 
         $savedItems = $invoice->details->map(function ($d) use ($referenceSummary) {
@@ -1452,6 +1566,7 @@ class InvoiceController extends Controller
             'productMap' => $productMap,
             'invoice' => $invoice,
             'savedItems' => $savedItems,
+            'approvalLockMessage' => $approvalLockMessage,
             'ppnAmount' => (float) ($invoice->famountpopajak ?? 0), // total PPN from DB
             'famountgross' => (float) ($invoice->famountgross ?? 0),  // nilai Grand Total dari DB
             'famountso' => (float) ($invoice->famountso ?? 0),  // nilai Grand Total dari DB
@@ -1462,6 +1577,7 @@ class InvoiceController extends Controller
 
     public function update(Request $request, $ftranmtid)
     {
+        $shouldSendApprovalNotification = false;
         // 1. VALIDASI
         $request->validate([
             'fsodate' => ['required', 'date'],
@@ -1485,6 +1601,9 @@ class InvoiceController extends Controller
         if (! $header) {
 
             return abort(404, 'Faktur Penjualan tidak ditemukan.');
+        }
+        if ($message = $this->getApprovalLockMessage((object) $header)) {
+            return redirect()->route('invoice.view', $ftranmtid)->with('error', $message);
         }
 
         if ($message = $this->getUsageLockMessage((object) $header)) {
@@ -1682,7 +1801,8 @@ class InvoiceController extends Controller
                 $frate,
                 $ppnPersen,
                 $creditApproval,
-                $fkodefp
+                $fkodefp,
+                &$shouldSendApprovalNotification
             ) {
                 // Update Header
                 DB::table('tranmt')->where('ftranmtid', $ftranmtid)->update([
@@ -1711,6 +1831,8 @@ class InvoiceController extends Controller
                     'fuseracc' => $creditApproval['fuseracc'],
                 ]);
 
+                $shouldSendApprovalNotification = false;
+
                 // Hapus detail lama
                 DB::table('trandt')->where('fsono', $header->fsono)->delete();
 
@@ -1731,6 +1853,10 @@ class InvoiceController extends Controller
                 }
 
             });
+
+            if ($shouldSendApprovalNotification) {
+                $this->sendApprovalNotification($header->fsono, $userid);
+            }
 
             return redirect()->route('invoice.index')->with('success', "Faktur Penjualan {$header->fsono} berhasil diperbarui.");
         } catch (\Exception $e) {
@@ -1772,6 +1898,10 @@ class InvoiceController extends Controller
                 )
                 ->orderBy('trandt.ftrandtid', 'asc');
         }])->findOrFail($ftranmtid);
+
+        if ($message = $this->getApprovalLockMessage($invoice)) {
+            return redirect()->route('invoice.view', $invoice->ftranmtid)->with('error', $message);
+        }
 
         if (! $invoice->customer) {
             $invoice->setRelation('customer', Customer::where('fcustomercode', trim((string) $invoice->fcustno))->first());

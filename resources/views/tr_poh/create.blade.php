@@ -351,45 +351,42 @@
                                     </td>
 
                                     {{-- Nama Produk + Deskripsi --}}
-                                    <td class="p-2 align-top overflow-visible" colspan="2">
-                                        <div class="flex min-w-0 flex-col gap-1 overflow-visible">
-                                            <div class="flex items-start gap-2">
-                                                <div
-                                                    class="min-w-0 flex-1 rounded-l border bg-gray-100 px-2 py-1 text-sm leading-5 text-gray-600 whitespace-normal break-words"
-                                                    x-text="it.fitemname"></div>
-                                                <div class="w-20 shrink-0">
-                                                    <select class="w-full border rounded px-2 py-1 text-sm"
-                                                        x-show="it.units.length > 1" :id="'unit_saved_' + i"
-                                                        @focus="activeRow = it.uid" @blur="activeRow = null"
-                                                        @keydown.enter.prevent="focusSavedQty(i)"
-                                                        @change="it.fsatuan = $event.target.value; it.maxqty = calcMaxQty(it);"
-                                                        x-effect="
-                                                            const sel = $el;
-                                                            sel.innerHTML = '';
-                                                            it.units.forEach(u => {
-                                                                const opt = document.createElement('option');
-                                                                opt.value = u;
-                                                                opt.textContent = u;
-                                                                if (u === it.fsatuan) opt.selected = true;
-                                                                sel.appendChild(opt);
-                                                            });
-                                                            it.maxqty = calcMaxQty(it);
-                                                        ">
-                                                    </select>
-                                                    <input type="text" x-show="it.units.length <= 1"
-                                                        class="w-full border rounded px-2 py-1 bg-gray-100 text-gray-600 text-sm"
-                                                        :value="it.fsatuan || '-'" disabled>
-                                                </div>
-                                            </div>
-                                            <div class="flex justify-end">
-                                                <button type="button" @click="openDesc(it)"
-                                                    class="inline-flex h-9 w-9 items-center justify-center rounded border transition"
-                                                    :class="it.fdesc ? 'border-emerald-300 bg-emerald-50 text-emerald-600 hover:bg-emerald-100' : 'border-gray-300 bg-white text-gray-500 hover:bg-gray-50'"
-                                                    title="Deskripsi item">
-                                                    <x-heroicon-o-document-text class="h-4 w-4" />
-                                                </button>
-                                            </div>
+                                    <td class="p-2 align-top overflow-visible">
+                                        <div class="flex w-full max-w-full">
+                                            <div
+                                                class="min-w-0 flex-1 rounded-l border bg-gray-100 px-2 py-1 text-sm leading-5 text-gray-600 whitespace-normal break-words"
+                                                x-text="it.fitemname"></div>
+                                            <button type="button" @click="openDesc(it)"
+                                                class="shrink-0 inline-flex items-center border border-l-0 rounded-r px-2 py-1 transition-colors"
+                                                :class="it.fdesc ? 'border-emerald-300 bg-emerald-50 text-emerald-600 hover:bg-emerald-100' : 'border-gray-300 bg-white text-gray-500 hover:bg-gray-50'"
+                                                title="Deskripsi item">
+                                                <x-heroicon-o-document-text class="h-4 w-4" />
+                                            </button>
                                         </div>
+                                    </td>
+
+                                    <td class="p-2 align-top">
+                                        <select class="w-full border rounded px-2 py-1 text-sm"
+                                            x-show="it.units.length > 1" :id="'unit_saved_' + i"
+                                            @focus="activeRow = it.uid" @blur="activeRow = null"
+                                            @keydown.enter.prevent="focusSavedQty(i)"
+                                            @change="it.fsatuan = $event.target.value; it.maxqty = calcMaxQty(it);"
+                                            x-effect="
+                                                const sel = $el;
+                                                sel.innerHTML = '';
+                                                it.units.forEach(u => {
+                                                    const opt = document.createElement('option');
+                                                    opt.value = u;
+                                                    opt.textContent = u;
+                                                    if (u === it.fsatuan) opt.selected = true;
+                                                    sel.appendChild(opt);
+                                                });
+                                                it.maxqty = calcMaxQty(it);
+                                            ">
+                                        </select>
+                                        <input type="text" x-show="it.units.length <= 1"
+                                            class="w-full border rounded px-2 py-1 bg-gray-100 text-gray-600 text-sm"
+                                            :value="it.fsatuan || '-'" disabled>
                                     </td>
 
                                     {{-- Ref.PR# --}}
@@ -497,31 +494,28 @@
                                     </div>
                                 </td>
 
-                                <td class="p-2 align-top overflow-visible" colspan="2">
-                                    <div class="flex min-w-0 flex-col gap-1 overflow-visible">
-                                        <div class="flex items-start gap-2">
-                                            <div
-                                                class="min-w-0 flex-1 rounded-l border bg-gray-100 px-2 py-1 text-sm leading-5 text-gray-600 whitespace-normal break-words"
-                                                x-text="draft.fitemname"></div>
-                                            <div class="w-20 shrink-0">
-                                                <select id="draftUnitSelect" class="w-full border rounded px-2 py-1 text-sm"
-                                                    x-show="draft.units.length > 1" @keydown.enter.prevent="$refs.draftQty?.focus()">
-                                                </select>
-                                                <input type="text" x-show="draft.units.length <= 1"
-                                                    class="w-full border rounded px-2 py-1 bg-gray-100 text-gray-600 text-sm"
-                                                    :value="draft.fsatuan || '-'" disabled>
-                                            </div>
-                                        </div>
-                                        <div class="flex justify-end">
-                                            <button type="button" @click="openDesc(draft)"
-                                                class="inline-flex h-9 w-9 items-center justify-center rounded border transition"
-                                                :class="draft.fdesc ? 'border-emerald-300 bg-emerald-50 text-emerald-600 hover:bg-emerald-100' : 'border-gray-300 bg-white text-gray-500 hover:bg-gray-50'"
-                                                title="Deskripsi item">
-                                                <x-heroicon-o-document-text class="h-4 w-4" />
-                                            </button>
-                                        </div>
+                                <td class="p-2 align-top overflow-visible">
+                                    <div class="flex w-full max-w-full">
+                                        <div
+                                            class="min-w-0 flex-1 rounded-l border bg-gray-100 px-2 py-1 text-sm leading-5 text-gray-600 whitespace-normal break-words"
+                                            x-text="draft.fitemname"></div>
+                                        <button type="button" @click="openDesc(draft)"
+                                            class="shrink-0 inline-flex items-center border border-l-0 rounded-r px-2 py-1 transition-colors"
+                                            :class="draft.fdesc ? 'border-emerald-300 bg-emerald-50 text-emerald-600 hover:bg-emerald-100' : 'border-gray-300 bg-white text-gray-500 hover:bg-gray-50'"
+                                            title="Deskripsi item">
+                                            <x-heroicon-o-document-text class="h-4 w-4" />
+                                        </button>
                                     </div>
                                 </td>
+
+                                <td class="p-2 align-top">
+                                    <select id="draftUnitSelect" class="w-full border rounded px-2 py-1 text-sm"
+                                        x-show="draft.units.length > 1" @keydown.enter.prevent="$refs.draftQty?.focus()">
+                                    </select>
+                                    <input type="text" x-show="draft.units.length <= 1"
+                                        class="w-full border rounded px-2 py-1 bg-gray-100 text-gray-600 text-sm"
+                                        :value="draft.fsatuan || '-'" disabled>
+                                    </td>
 
                                 <td class="p-2">
                                     <input type="text"
@@ -803,12 +797,12 @@
             <x-transaction.browse-product-modal />
 
             @php
-                $canApproval = in_array('approvalpr', explode(',', session('user_restricted_permissions', '')));
+                $canApproval = in_array('approvePO', explode(',', session('user_restricted_permissions', '')));
             @endphp
 
             <div class="flex justify-center items-center space-x-2 mt-6">
                 @if ($canApproval)
-                    <label class="block text-sm font-medium">Approval</label>
+                    <label class="block text-sm font-medium">Approve</label>
                     <input type="hidden" name="fapproval" value="0">
                     <label class="switch">
                         <input type="checkbox" name="fapproval" id="approvalToggle" value="1"
@@ -1797,8 +1791,5 @@
         });
     </script>
 @endpush
-
-
-
 
 

@@ -250,8 +250,6 @@ class CustomerController extends Controller
             $validated['fcustomercode'] = $this->generateCustomerCode();
         }
 
-        $validated['fapproval'] = auth('sysuser')->user()->fname ?? null;
-
         $validated['fcreatedby'] = auth('sysuser')->user()->fname ?? null;
         $validated['fcreatedat'] = now();
 
@@ -394,12 +392,6 @@ class CustomerController extends Controller
         $validated['fupdatedby'] = auth('sysuser')->user()->fname ?? null;
         $validated['fupdatedat'] = now();
 
-        if ($request->has('approve_now')) {
-            $validated['fapproval'] = auth('sysuser')->user()->fname ?? null;
-        } else {
-            $validated['fapproval'] = null;
-        }
-
         $validated['fnonactive'] = $request->has('fnonactive') ? '1' : '0';
 
         $validated['fcurrency'] = 'IDR';
@@ -465,46 +457,73 @@ class CustomerController extends Controller
 
     public function browse(Request $request)
     {
-        // Base query
-        $query = Customer::query();
+        $query = DB::table('mscustomer')
+            ->leftJoin('mswilayah as w', 'w.fwilayahid', '=', 'mscustomer.fwilayah')
+            ->select(
+                'mscustomer.fcustomerid',
+                'mscustomer.fcustomercode',
+                'mscustomer.fcustomername',
+                'mscustomer.faddress',
+                'mscustomer.ftelp',
+                'mscustomer.fnonactive',
+                'w.fwilayahname as wilayah_name'
+            );
 
-        // Total records tanpa filter
-        $recordsTotal = Customer::count();
+        $recordsTotal = DB::table('mscustomer')->count();
 
-        // Search
-        if ($request->filled('search') && $request->search != '') {
-            $search = $request->search;
+        $rawSearch = data_get($request->all(), 'search.value', $request->input('search', ''));
+        if (is_array($rawSearch)) {
+            $rawSearch = reset($rawSearch);
+        }
+
+        $search = trim((string) $rawSearch);
+
+        if ($search !== '') {
             $query->where(function ($q) use ($search) {
                 $q->where('fcustomercode', 'ilike', "%{$search}%")
                     ->orWhere('fcustomername', 'ilike', "%{$search}%")
                     ->orWhere('faddress', 'ilike', "%{$search}%")
-                    ->orWhere('ftelp', 'ilike', "%{$search}%");
+                    ->orWhere('ftelp', 'ilike', "%{$search}%")
+                    ->orWhere('w.fwilayahname', 'ilike', "%{$search}%");
             });
         }
 
-        // Total records setelah filter
         $recordsFiltered = $query->count();
 
-        // Sorting
-        $orderColumn = $request->input('order_column', 'fcustomername');
-        $orderDir = $request->input('order_dir', 'asc');
+        $orderColumn = (string) $request->input('order_column', 'fcustomername');
+        $orderDir = strtolower((string) $request->input('order_dir', 'asc')) === 'desc' ? 'desc' : 'asc';
 
-        $allowedColumns = ['fcustomercode', 'fcustomername', 'faddress', 'ftelp'];
+        $allowedColumns = ['fcustomercode', 'fcustomername', 'faddress', 'ftelp', 'wilayah_name'];
         if (in_array($orderColumn, $allowedColumns)) {
             $query->orderBy($orderColumn, $orderDir);
         } else {
             $query->orderBy('fcustomername', 'asc');
         }
 
-        // Pagination
         $start = (int) $request->input('start', 0);
         $length = (int) $request->input('length', 10);
 
         $data = $query->skip($start)
             ->take($length)
-            ->get();
+            ->get()
+            ->map(function ($customer) {
+                $isActive = (string) ($customer->fnonactive ?? '0') === '0';
 
-        // Response format untuk DataTables
+                return [
+                    'fcustomerid' => (int) $customer->fcustomerid,
+                    'fcustomercode' => (string) ($customer->fcustomercode ?? ''),
+                    'fcustomername' => (string) ($customer->fcustomername ?? ''),
+                    'faddress' => (string) ($customer->faddress ?? ''),
+                    'ftelp' => (string) ($customer->ftelp ?? ''),
+                    'fnonactive' => (string) ($customer->fnonactive ?? '0'),
+                    'wilayah_name' => (string) ($customer->wilayah_name ?? ''),
+                    'status' => $isActive
+                        ? '<span class="inline-flex items-center px-2 py-0.5 rounded text-xs bg-green-100 text-green-700">Active</span>'
+                        : '<span class="inline-flex items-center px-2 py-0.5 rounded text-xs bg-red-200 text-red-700">Non Active</span>',
+                ];
+            })
+            ->values();
+
         return response()->json([
             'draw' => (int) $request->input('draw', 1),
             'recordsTotal' => (int) $recordsTotal,

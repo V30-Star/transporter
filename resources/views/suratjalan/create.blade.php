@@ -281,7 +281,16 @@
                                             <td class="p-2" x-text="i + 1"></td>
                                             <td class="p-2 font-mono" x-text="it.fitemcode"></td>
                                             <td class="p-2 text-gray-800">
-                                                <div class="w-full border rounded px-2 py-1 bg-gray-100 text-gray-600 text-sm leading-5 whitespace-normal break-words" x-text="it.fitemname"></div>
+                                                <div class="flex w-full max-w-full">
+                                                    <div class="min-w-0 flex-1 rounded-l border bg-gray-100 px-2 py-1 text-sm leading-5 text-gray-600 whitespace-normal break-words"
+                                                        x-text="it.fitemname"></div>
+                                                    <button type="button" @click="openDesc('saved', i)"
+                                                        class="shrink-0 inline-flex items-center border border-l-0 rounded-r px-2 py-1 transition-colors"
+                                                        :class="it.fdesc ? 'border-emerald-300 bg-emerald-50 text-emerald-600 hover:bg-emerald-100' : 'border-gray-300 bg-white text-gray-500 hover:bg-gray-50'"
+                                                        title="Deskripsi item">
+                                                        <x-heroicon-o-document-text class="h-4 w-4" />
+                                                    </button>
+                                                </div>
                                             </td>
                                             <td class="p-2">
                                                 <div x-text="it.frefno_display || it.frefdtno || '-'"
@@ -304,7 +313,7 @@
                                                 <input type="number" class="border rounded px-2 py-1 w-24 text-right"
                                                     x-model.number="it.fqty"
                                                     @input="recalc(it); enforceQtyRow(it); recalc(it);"
-                                                    @keydown.enter.prevent="$refs[`desc-${i}`]?.focus()">
+                                                    @keydown.enter.prevent="openDesc('saved', i)">
                                                 <div class="text-xs text-gray-400 mt-0.5 text-right">
                                                     <span x-show="it.fitemcode" x-html="formatStockLimit(it)"></span>
                                                 </div>
@@ -333,16 +342,6 @@
                                             </td>
                                         </tr>
 
-                                        <!-- ROW DESC RESTRICTED -->
-                                        <tr class="border-b">
-                                            <td class="p-0"></td>
-                                            <td class="p-0"></td>
-                                            <td class="p-2" colspan="3">
-                                                <textarea x-model="it.fdesc" :x-ref="`desc-${i}`" rows="3" class="w-full border rounded px-2 py-1 text-xs"
-                                                    placeholder="Deskripsi item (opsional)"></textarea>
-                                            </td>
-                                            <td class="p-0" colspan="2"></td>
-                                        </tr>
                                     </template>
 
                                     <!-- REMOVED THE EDIT ROW SECTION -->
@@ -370,9 +369,16 @@
 
                                         <!-- Nama Produk (readonly) -->
                                         <td class="p-2">
-                                            <div
-                                                class="w-full border rounded px-2 py-1 bg-gray-100 text-gray-600 text-sm leading-5 whitespace-normal break-words"
-                                                x-text="draft.fitemname"></div>
+                                            <div class="flex w-full max-w-full">
+                                                <div class="min-w-0 flex-1 rounded-l border bg-gray-100 px-2 py-1 text-sm leading-5 text-gray-600 whitespace-normal break-words"
+                                                    x-text="draft.fitemname"></div>
+                                                <button type="button" @click="openDesc('draft')"
+                                                    class="shrink-0 inline-flex items-center border border-l-0 rounded-r px-2 py-1 transition-colors"
+                                                    :class="draft.fdesc ? 'border-emerald-300 bg-emerald-50 text-emerald-600 hover:bg-emerald-100' : 'border-gray-300 bg-white text-gray-500 hover:bg-gray-50'"
+                                                    title="Deskripsi item">
+                                                    <x-heroicon-o-document-text class="h-4 w-4" />
+                                                </button>
+                                            </div>
                                         </td>
 
                                         <!-- Ref.PR# -->
@@ -424,16 +430,6 @@
                                         </td>
                                     </tr>
 
-                                    <!-- ROW DRAFT DESC RESTRICTED -->
-                                    <tr class="border-b">
-                                        <td class="p-0"></td>
-                                        <td class="p-0"></td>
-                                        <td class="p-2" colspan="3">
-                                            <textarea x-model="draft.fdesc" x-ref="draftDesc" rows="3" class="w-full border rounded px-2 py-1 text-xs"
-                                                placeholder="Deskripsi item (opsional)" @keydown.enter.prevent="addIfComplete()"></textarea>
-                                        </td>
-                                        <td class="p-0" colspan="2"></td>
-                                    </tr>
                                 </tbody>
                             </table>
                         </div>
@@ -1157,9 +1153,26 @@
             descTarget: 'draft',
             descSavedIndex: null,
             descValue: '',
-            openDesc() {},
-            closeDesc() {},
-            applyDesc() {},
+            openDesc(target = 'draft', index = null) {
+                this.descTarget = target;
+                this.descSavedIndex = index;
+                this.descValue = target === 'saved' && index !== null
+                    ? (this.savedItems[index]?.fdesc || '')
+                    : (this.draft.fdesc || '');
+                this.showDescModal = true;
+            },
+            closeDesc() {
+                this.showDescModal = false;
+                this.descValue = '';
+            },
+            applyDesc() {
+                if (this.descTarget === 'saved' && this.descSavedIndex !== null) {
+                    this.savedItems[this.descSavedIndex].fdesc = this.descValue;
+                } else {
+                    this.draft.fdesc = this.descValue;
+                }
+                this.closeDesc();
+            },
 
             itemKey(it) {
                 return `${(it.fitemcode ?? '').toString().trim()}::${(it.frefdtno ?? '').toString().trim()}`;
@@ -1361,9 +1374,6 @@
         });
     </script>
 @endpush
-
-
-
 
 
 

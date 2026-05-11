@@ -598,4 +598,31 @@ Route::post('/reject-po/{fpono}', [ApprovalController::class, 'rejectRequestPO']
 Route::get('/approval-po/info/{fpono}', [ApprovalController::class, 'infoApprovalPagePO'])
     ->name('approval.po.info');
 
+Route::get('/approval-product/{fprdid}', [ApprovalController::class, 'showProductApprovalPage'])
+    ->name('approval.product.page');
+Route::post('/approve-product/{fprdid}', [ApprovalController::class, 'approveProduct'])
+    ->name('approval.product.submit');
+Route::post('/reject-product/{fprdid}', [ApprovalController::class, 'rejectProduct'])
+    ->name('approval.product.reject');
+Route::get('/approval-product/info/{fprdid}', [ApprovalController::class, 'productInfo'])
+    ->name('approval.product.info');
+
+Route::get('/approval-salesorder/{fsono}', [ApprovalController::class, 'showSalesOrderApprovalPage'])
+    ->name('approval.salesorder.page');
+Route::post('/approve-salesorder/{fsono}', [ApprovalController::class, 'approveSalesOrder'])
+    ->name('approval.salesorder.submit');
+Route::post('/reject-salesorder/{fsono}', [ApprovalController::class, 'rejectSalesOrder'])
+    ->name('approval.salesorder.reject');
+Route::get('/approval-salesorder/info/{fsono}', [ApprovalController::class, 'salesOrderInfo'])
+    ->name('approval.salesorder.info');
+
+Route::get('/approval-invoice/{fsono}', [ApprovalController::class, 'showInvoiceApprovalPage'])
+    ->name('approval.invoice.page');
+Route::post('/approve-invoice/{fsono}', [ApprovalController::class, 'approveInvoice'])
+    ->name('approval.invoice.submit');
+Route::post('/reject-invoice/{fsono}', [ApprovalController::class, 'rejectInvoice'])
+    ->name('approval.invoice.reject');
+Route::get('/approval-invoice/info/{fsono}', [ApprovalController::class, 'invoiceInfo'])
+    ->name('approval.invoice.info');
+
 require __DIR__.'/auth.php';

@@ -16,10 +16,63 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Mail; // sekalian biar aman untuk tanggal
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Str;
+use App\Support\ApprovalState;
 
 class Tr_pohController extends Controller
 {
     use ProductBrowseHelper;
+
+    private function canApprovePurchaseOrder(): bool
+    {
+        return in_array('approvePO', explode(',', session('user_restricted_permissions', '')));
+    }
+
+    private function getApprovalRecipients(): array
+    {
+        return array_values(array_filter([
+            trim((string) config('approval.purchase_order.stage1', '')),
+            trim((string) config('approval.purchase_order.stage2', '')),
+        ]));
+    }
+
+    private function generateApprovalToken(): string
+    {
+        return Str::random(64);
+    }
+
+    private function initializeApprovalState(): array
+    {
+        return ApprovalState::initializeApprovalColumns(
+            array_slice($this->getApprovalRecipients(), 0, 2),
+            fn () => $this->generateApprovalToken()
+        );
+    }
+
+    private function sendApprovalNotifications(Tr_poh $hdr, $dt, string $productName, string $approver): void
+    {
+        $recipients = array_slice($this->getApprovalRecipients(), 0, 2);
+
+        if (! empty($recipients[0]) && ! empty($hdr->fapproval_token)) {
+            Mail::to($recipients[0])->send(
+                new ApprovalEmailPo($hdr, $dt, $productName, $approver, 'Order Pembelian (PO)', $hdr->fapproval_token)
+            );
+        }
+
+        if (! empty($recipients[1]) && ! empty($hdr->fapproval_token2)) {
+            Mail::to($recipients[1])->send(
+                new ApprovalEmailPo($hdr, $dt, $productName, $approver, 'Order Pembelian (PO)', $hdr->fapproval_token2)
+            );
+        }
+    }
+
+    private function getApprovalLockMessage(Tr_poh $header): ?string
+    {
+        return ApprovalState::isEditBlockedRecord($header)
+            ? 'Order Pembelian belum dapat diubah karena status approval saat ini belum mengizinkan edit.'
+            : null;
+    }
+
     public function index(Request $request)
     {
         // Ambil izin (permissions)
@@ -130,6 +183,7 @@ class Tr_pohController extends Controller
                     'fclose' => $row->fclose == '1' ? 'Close' : 'Open',
                     'fusercreate' => $row->fusercreate,
                     'fapproval' => $row->fapproval,
+                    'fapproval2' => $row->fapproval2,
                     'fsuppliername' => $row->fsuppliername,
                     'fprno' => $row->fprno, // Kolom dari tr_prd
                     'frefdtno' => $row->frefdtno, // tambah ini
@@ -167,6 +221,7 @@ class Tr_pohController extends Controller
             )
             ->whereIn('tr_prh.fclose', ['0', ''])
             ->whereIn('tr_prh.fprdin', ['0', '']);
+        ApprovalState::applyApprovedFilter($query, 'tr_prh.');
 
         // Total records tanpa filter
         $recordsTotal = Tr_prh::count();
@@ -219,6 +274,7 @@ class Tr_pohController extends Controller
     public function items($id)
     {
         $header = Tr_prh::where('fprhid', $id)->firstOrFail();
+        abort_if(! ApprovalState::isApprovedRecord($header), 404);
 
         $items = DB::table('tr_prd as d')
             ->leftJoin('msprd as m', 'm.fprdid', '=', 'd.fprdcodeid')
@@ -670,7 +726,7 @@ class Tr_pohController extends Controller
             )
             ->first(['fcabangid', 'fcabangkode', 'fcabangname']);
 
-        $canApproval = in_array('approvalpr', explode(',', session('user_restricted_permissions', '')));
+        $canApproval = $this->canApprovePurchaseOrder();
 
         $fcabang = $branch->fcabangname ?? (string) $raw;
         $fbranchcode = $branch->fcabangkode ?? (string) $raw;
@@ -948,7 +1004,7 @@ class Tr_pohController extends Controller
                 $fcurrency = $request->input('fcurrency', 'IDR');
                 $frate = $request->input('frate', 15500);
                 $ftempohr = $request->input('ftempohr', 0);
-                $isApproval = (int) ($request->input('fapproval', 0));
+                $approvalState = $this->initializeApprovalState();
 
                 // INSERT HEADER and GET fpohid
                 $fpohid = DB::table('tr_poh')->insertGetId([
@@ -967,16 +1023,16 @@ class Tr_pohController extends Controller
                     'famountponet' => round($totalHarga, 2),
                     'famountpopajak' => $ppnAmount,
                     'famountpo' => $grandTotal,
-                    'fapproval' => $isApproval,
                     'fppnpersen' => $request->input('ppn_rate', 0),
                     'fclose' => '0',
                     'fprdin' => '0',
+                    ...$approvalState,
                 ], 'fpohid');
 
                 $fpono = DB::table('tr_poh')->where('fpohid', $fpohid)->value('fpono');
 
                 // EMAIL after commit — use fpohid and fprdid
-                if ($isApproval === 1) {
+                if (ApprovalState::hasApprovalProgress((object) $approvalState)) {
                     DB::afterCommit(function () use ($fpohid) {
                         $hdr = Tr_poh::where('fpohid', $fpohid)->first();
 
@@ -992,9 +1048,7 @@ class Tr_pohController extends Controller
 
                         $productName = $dt->pluck('product_name')->implode(', ');
                         $approver = auth('sysuser')->user()->fname ?? '-';
-
-                        Mail::to('vierybiliam8@gmail.com')
-                            ->send(new ApprovalEmailPo($hdr, $dt, $productName, $approver, 'Order Pembelian (PO)'));
+                        $this->sendApprovalNotifications($hdr, $dt, $productName, $approver);
                     });
                 }
 
@@ -1241,6 +1295,7 @@ class Tr_pohController extends Controller
                 );
         }])->findOrFail($fpohid);
         $details = $this->getPoDetailsWithTerimaUsage($tr_poh->fpono);
+        $approvalLockMessage = $this->getApprovalLockMessage($tr_poh);
 
         $currencies = DB::table('mscurrency')
             ->where(function ($q) {
@@ -1297,6 +1352,7 @@ class Tr_pohController extends Controller
             'products' => $products,
             'productMap' => $productMap,
             'tr_poh' => $tr_poh,
+            'approvalLockMessage' => $approvalLockMessage,
             'savedItems' => $savedItems,
             'currencies' => $currencies,
             'currentCurrency' => $currentCurrency,
@@ -1310,6 +1366,9 @@ class Tr_pohController extends Controller
     public function update(Request $request, $fpohid)
     {
         $header = Tr_poh::where('fpohid', $fpohid)->firstOrFail();
+        if ($message = $this->getApprovalLockMessage($header)) {
+            return redirect()->route('tr_poh.view', $header->fpohid)->with('error', $message);
+        }
         $isCloseOnly = $request->boolean('close_only');
         $canClosePo = $isCloseOnly
             && $request->has('fclose')
@@ -1667,6 +1726,10 @@ class Tr_pohController extends Controller
                     DB::raw('COALESCE(r.total_terima, 0) AS fqtyterima'),
                 );
         }])->findOrFail($fpohid);
+        if ($message = $this->getApprovalLockMessage($tr_poh)) {
+            return redirect()->route('tr_poh.view', $tr_poh->fpohid)->with('error', $message);
+        }
+
         $details = $this->getPoDetailsWithTerimaUsage($tr_poh->fpono);
 
         // Cek apakah PO sudah ada penerimaan barang
@@ -1755,7 +1818,6 @@ class Tr_pohController extends Controller
     {
         try {
             $tr_poh = Tr_poh::findOrFail($fpohid);
-
             if ($message = $this->getUsageLockMessage($tr_poh)) {
                 return redirect()->route('tr_poh.index')->with('error', $message);
             }

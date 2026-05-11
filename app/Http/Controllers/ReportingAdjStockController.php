@@ -77,7 +77,6 @@ class ReportingAdjStockController extends Controller
                   'famountpo',
                   'fcurrency',
                   'fclose',
-                  'fapproval',
               ])
           : collect();
 

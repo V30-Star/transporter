@@ -657,28 +657,6 @@
                             </div>
                         </div>
 
-                        @php
-                            $canApproval = in_array(
-                                'approvalpr',
-                                explode(',', session('user_restricted_permissions', '')),
-                            );
-                        @endphp
-
-                        {{-- APPROVAL & ACTIONS --}}
-                        <div class="md:col-span-2 flex justify-center items-center space-x-2 mt-6">
-                            @if ($canApproval)
-                                <label class="block text-sm font-medium">Approval</label>
-
-                                {{-- fallback 0 saat checkbox tidak dicentang --}}
-                                <input type="hidden" name="fapproval" value="0">
-
-                                <label class="switch">
-                                    <input type="checkbox" name="fapproval" id="approvalToggle" value="1" disabled
-                                        {{ old('fapproval', session('fapproval') ? 1 : 0) ? 'checked' : '' }}>
-                                    <span class="slider"></span>
-                                </label>
-                            @endif
-                        </div>
                     </fieldset>
 
                         <div class="mt-6 flex justify-center space-x-4">
@@ -901,7 +879,16 @@
                                                     <td class="p-2" x-text="i + 1"></td>
                                                     <td class="p-2 font-mono" x-text="it.fitemcode"></td>
                                                     <td class="p-2">
-                                                        <div class="w-full border rounded px-2 py-1 bg-gray-100 text-gray-600 text-sm leading-5 whitespace-normal break-words" x-text="it.fitemname"></div>
+                                                        <div class="flex w-full max-w-full">
+                                                            <div class="min-w-0 flex-1 rounded-l border bg-gray-100 px-2 py-1 text-sm leading-5 text-gray-600 whitespace-normal break-words"
+                                                                x-text="it.fitemname"></div>
+                                                            <button type="button" @click="openDesc(it)"
+                                                                class="shrink-0 inline-flex items-center border border-l-0 rounded-r px-2 py-1 transition-colors"
+                                                                :class="it.fdesc ? 'border-emerald-300 bg-emerald-50 text-emerald-600 hover:bg-emerald-100' : 'border-gray-300 bg-white text-gray-500 hover:bg-gray-50'"
+                                                                title="Deskripsi item">
+                                                                <x-heroicon-o-document-text class="h-4 w-4" />
+                                                            </button>
+                                                        </div>
                                                     </td>
                                                     <td class="p-2">
                                                         <template x-if="it.units && it.units.length > 1">
@@ -971,15 +958,6 @@
                                                     </td>
                                                 </tr>
 
-                                                <tr class="border-b transition-colors hover:bg-gray-50">
-                                                    <td class="p-0"></td>
-                                                    <td class="p-0"></td>
-                                                    <td class="p-2" colspan="2">
-                                                        <textarea x-model="it.fdesc" rows="3" class="w-full border rounded px-2 py-1 text-xs"
-                                                            placeholder="Deskripsi item (opsional)"></textarea>
-                                                    </td>
-                                                    <td class="p-1" colspan="6"></td>
-                                                </tr>
                                             </template>
 
                                             <!-- ROW DRAFT UTAMA -->
@@ -1000,9 +978,16 @@
                                                     </div>
                                                 </td>
                                                 <td class="p-2">
-                                                    <div
-                                                        class="w-full border rounded px-2 py-1 bg-gray-100 text-gray-600 text-sm leading-5 whitespace-normal break-words"
-                                                        x-text="draft.fitemname"></div>
+                                                    <div class="flex w-full max-w-full">
+                                                        <div class="min-w-0 flex-1 rounded-l border bg-gray-100 px-2 py-1 text-sm leading-5 text-gray-600 whitespace-normal break-words"
+                                                            x-text="draft.fitemname"></div>
+                                                        <button type="button" @click="openDesc(draft)"
+                                                            class="shrink-0 inline-flex items-center border border-l-0 rounded-r px-2 py-1 transition-colors"
+                                                            :class="draft.fdesc ? 'border-emerald-300 bg-emerald-50 text-emerald-600 hover:bg-emerald-100' : 'border-gray-300 bg-white text-gray-500 hover:bg-gray-50'"
+                                                            title="Deskripsi item">
+                                                            <x-heroicon-o-document-text class="h-4 w-4" />
+                                                        </button>
+                                                    </div>
                                                 </td>
                                                 <td class="p-2">
                                                     <template x-if="draft.units.length > 1">
@@ -1058,16 +1043,6 @@
                                                 </td>
                                             </tr>
 
-                                            <!-- ROW DRAFT DESC -->
-                                            <tr class="border-b">
-                                                <td class="p-0"></td>
-                                                <td class="p-0"></td>
-                                                <td class="p-2" colspan="2">
-                                                    <textarea x-model="draft.fdesc" rows="3" class="w-full border rounded px-2 py-1 text-xs"
-                                                        placeholder="Deskripsi item (opsional)"></textarea>
-                                                </td>
-                                                <td class="p-0" colspan="6"></td>
-                                            </tr>
                                         </tbody>
                                     </table>
                                 </div>
@@ -1082,15 +1057,15 @@
 
                                 <script>
                                     document.addEventListener('DOMContentLoaded', () => {
-                                        const inputRefCode = document.getElementById('frefcode');
+                                        const inputRefCode = document.getElementById('frefcode_global');
                                         const inputRefSo = document.getElementById('frefso');
                                         const inputRefSrj = document.getElementById('frefsrj');
 
-                                        // Menangkap Event saat SO dipilih
+                                        // Menangkap Event saat referensi faktur dipilih
                                         window.addEventListener('pr-picked', (e) => {
                                             const header = e.detail.header;
                                             inputRefCode.value = 'SO';
-                                            inputRefSo.value = header.ftrsomtid; // Sesuaikan ID header SO
+                                            inputRefSo.value = header.ftranmtid ?? header.ftrsomtid ?? ''; // Simpan id referensi aktif
                                             inputRefSrj.value = ''; // Reset yang lain
                                         });
 
@@ -1230,12 +1205,12 @@
                                                             <path stroke-linecap="round" stroke-linejoin="round"
                                                                 stroke-width="1.5" d="M12 4.5v15m7.5-7.5h-15" />
                                                         </svg>
-                                                        Add SO
+                                                        Add Faktur
                                                     </button>
                                                 </div>
                                             </div>
 
-                                            {{-- MODAL SO --}}
+                                            {{-- MODAL FAKTUR PENJUALAN --}}
                                             <div x-show="show" x-cloak x-transition.opacity
                                                 class="fixed inset-0 z-50 flex items-center justify-center p-4">
                                                 <div class="absolute inset-0 bg-black/50 backdrop-blur-sm"
@@ -1248,10 +1223,10 @@
                                                     <div
                                                         class="px-6 py-4 border-b border-gray-200 flex items-center justify-between flex-shrink-0 bg-gradient-to-r from-teal-50 to-white">
                                                         <div>
-                                                            <h3 class="text-xl font-bold text-gray-800">Add SO</h3>
-                                                            <p class="text-sm text-gray-500 mt-0.5">Pilih Purchase Order
+                                                            <h3 class="text-xl font-bold text-gray-800">Add Faktur Penjualan</h3>
+                                                            <p class="text-sm text-gray-500 mt-0.5">Pilih Faktur Penjualan
                                                                 yang
-                                                                diinginkan
+                                                                sudah di-approve
                                                             </p>
                                                         </div>
                                                         <button type="button" @click="closeModal()"
@@ -1275,10 +1250,10 @@
                                                                     <tr class="bg-gradient-to-r from-gray-50 to-gray-100">
                                                                         <th
                                                                             class="text-left p-3 font-semibold text-gray-700 border-b-2 border-gray-200">
-                                                                            SO No</th>
+                                                                            No. Faktur</th>
                                                                         <th
                                                                             class="text-left p-3 font-semibold text-gray-700 border-b-2 border-gray-200">
-                                                                            No Ref</th>
+                                                                            No. Referensi</th>
                                                                         <th
                                                                             class="text-left p-3 font-semibold text-gray-700 border-b-2 border-gray-200">
                                                                             Tanggal</th>
@@ -1459,7 +1434,7 @@
                                                     <!-- Header -->
                                                     <div
                                                         class="px-6 py-4 border-b border-gray-200 flex items-center justify-between flex-shrink-0 bg-gradient-to-r from-blue-50 to-white">
-                                                        <h3 class="text-xl font-bold text-gray-800">{{ "Pilih Purchase Order (PO)" }}</h3>
+                                                        <h3 class="text-xl font-bold text-gray-800">{{ "Pilih Faktur Penjualan" }}</h3>
                                                         <button type="button" @click="closeModal()"
                                                             class="px-4 py-2 rounded-lg border-2 border-gray-300 bg-white hover:bg-gray-50 hover:border-gray-400 transition-all duration-150 font-medium text-gray-700 text-sm">
                                                             {{ "Tutup" }}
@@ -1474,7 +1449,7 @@
                                                             <thead class="sticky top-0 z-10">
                                                                 <tr class="bg-gray-50 border-b-2 border-gray-200">
                                                                     <th class="p-3 text-left font-semibold text-gray-700">
-                                                                        PR No
+                                                                        No. Faktur
                                                                     </th>
                                                                     <th class="p-3 text-left font-semibold text-gray-700">
                                                                         Customer
@@ -1792,29 +1767,6 @@
                                         <div id="productTablePagination"></div>
                                     </div>
                                 </div>
-                            </div>
-
-                            @php
-                                $canApproval = in_array(
-                                    'approvalpr',
-                                    explode(',', session('user_restricted_permissions', '')),
-                                );
-                            @endphp
-
-                            {{-- APPROVAL & ACTIONS --}}
-                            <div class="md:col-span-2 flex justify-center items-center space-x-2 mt-6">
-                                @if ($canApproval)
-                                    <label class="block text-sm font-medium">Approval</label>
-
-                                    {{-- fallback 0 saat checkbox tidak dicentang --}}
-                                    <input type="hidden" name="fapproval" value="0">
-
-                                    <label class="switch">
-                                        <input type="checkbox" name="fapproval" id="approvalToggle" value="1"
-                                            {{ old('fapproval', session('fapproval') ? 1 : 0) ? 'checked' : '' }}>
-                                        <span class="slider"></span>
-                                    </label>
-                                @endif
                             </div>
 
                             <div class="mt-8 flex justify-center gap-4">
@@ -3161,7 +3113,7 @@
                     processing: true,
                     serverSide: true,
                     ajax: {
-                        url: "{{ route('salesorder.pickable') }}",
+                        url: "{{ route('returpenjualan.pickable') }}",
                         type: 'GET',
                         data: function(d) {
                             return {
@@ -3175,18 +3127,18 @@
                         }
                     },
                     columns: [{
-                            data: 'fsono', // Nomor SO
-                            name: 'trsomt.fsono',
+                            data: 'fsono',
+                            name: 'fsono',
                             className: 'font-mono text-sm'
                         },
                         {
-                            data: 'frefno', // Nomor SO
+                            data: 'frefno',
                             name: 'frefno',
                             className: 'font-mono text-sm'
                         },
                         {
-                            data: 'fsodate', // Tanggal SO
-                            name: 'trsomt.fsodate',
+                            data: 'fsodate',
+                            name: 'fsodate',
                             className: 'text-sm',
                             render: function(data) {
                                 return formatDate(data);
@@ -3315,8 +3267,8 @@
                         return; // Hentikan proses, jangan tambahkan ke tabel
                     }
 
-                    const url = `{{ route('salesorder.items', ['id' => 'SO_ID_PLACEHOLDER']) }}`
-                        .replace('SO_ID_PLACEHOLDER', row.ftrsomtid);
+                    const url = `{{ route('returpenjualan.items', ['id' => 'INV_ID_PLACEHOLDER']) }}`
+                        .replace('INV_ID_PLACEHOLDER', row.ftranmtid);
 
                     const res = await fetch(url, {
                         headers: {
@@ -3354,7 +3306,7 @@
                     this.closeModal();
                 } catch (e) {
                     console.error('Error:', e);
-                    window.toast?.error(`${@json("Gagal mengambil detail Sales Order:")} ${e.message}`);
+                    window.toast?.error(`${@json("Gagal mengambil detail Faktur Penjualan:")} ${e.message}`);
                 }
             }
         };
@@ -3607,7 +3559,7 @@
                     processing: true,
                     serverSide: true,
                     ajax: {
-                        url: "{{ route('tr_poh.pickable') }}",
+                        url: "{{ route('returpenjualan.pickable') }}",
                         type: 'GET',
                         data: function(d) {
                             return {
@@ -3628,21 +3580,21 @@
                         // dataSrc: function(json) { return json.data; }
                     },
                     columns: [{
-                            data: 'fprno',
-                            name: 'fprno',
+                            data: 'fsono',
+                            name: 'fsono',
                             className: 'font-mono text-sm' // Styling konsisten
                         },
                         {
-                            data: 'fsuppliername',
-                            name: 'fsuppliername',
+                            data: 'fcustomername',
+                            name: 'fcustomername',
                             className: 'text-sm', // Styling konsisten
                             render: function(data) {
                                 return data || '-';
                             }
                         },
                         {
-                            data: 'fprdate',
-                            name: 'fprdate',
+                            data: 'fsodate',
+                            name: 'fsodate',
                             className: 'text-sm', // Styling konsisten
                             render: function(data) {
                                 return formatDate(data);
@@ -3764,8 +3716,8 @@
                 try {
                     // Tampilkan loading indicator (opsional)
 
-                    const url = `{{ route('tr_poh.items', ['id' => 'PR_ID_PLACEHOLDER']) }}`
-                        .replace('PR_ID_PLACEHOLDER', row.fprhid);
+                    const url = `{{ route('returpenjualan.items', ['id' => 'INV_ID_PLACEHOLDER']) }}`
+                        .replace('INV_ID_PLACEHOLDER', row.ftranmtid);
 
                     const res = await fetch(url, {
                         headers: {
@@ -4005,9 +3957,3 @@
         });
     </script>
 @endpush
-
-
-
-
-
-

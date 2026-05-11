@@ -126,7 +126,7 @@
             {{-- ============================================ --}}
             @if ($action === 'delete')
                 @php
-                    $isApproved = !empty($product->fapproval);
+                    $isApproved = \App\Support\ApprovalState::isApprovedRecord($product);
                 @endphp
                 <div class="space-y-4">
                     <div>
@@ -190,13 +190,13 @@
                                     @click="isMerekEditable = true; $dispatch('open-merk-modal')"
                                     class="whitespace-nowrap bg-green-600 text-white px-3 py-2 rounded hover:bg-green-700">
                                     <i class="fa fa-plus"></i>
-
-                                    <!-- Button Browse Merek -->
-                                    <button type="button" disabled
-                                        @click="window.dispatchEvent(new CustomEvent('merek-browse-open'))"
-                                        class="whitespace-nowrap bg-blue-600 text-white px-3 py-2 rounded hover:bg-blue-700">
-                                        <i class="fa fa-search"></i>
-                                    </button>
+                                </button>
+                                <!-- Button Browse Merek -->
+                                <button type="button" disabled
+                                    @click="window.dispatchEvent(new CustomEvent('merek-browse-open'))"
+                                    class="whitespace-nowrap bg-blue-600 text-white px-3 py-2 rounded hover:bg-blue-700">
+                                    <i class="fa fa-search"></i>
+                                </button>
                             </div>
                             @error('fmerek')
                                 <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
@@ -661,19 +661,24 @@
                             @enderror
                         </div>
 
-                        <div class="md:col-span-2 flex justify-center items-center space-x-2">
-                            <fieldset {{ $isApproved ? 'disabled' : '' }}>
-                                <div class="flex items-center space-x-2">
-                                    <label class="text-sm font-medium">Approval</label>
-                                    <label class="switch">
-                                        <input type="checkbox" name="approve_now" id="approvalToggle"
-                                            {{ !empty($product->fapproval) ? 'checked' : '' }} disabled>
-                                        <span class="slider round"></span>
-                                    </label>
-                                </div>
-                            </fieldset>
-                        </div>
-                        <br>
+                        @php
+                            $canApproval = in_array('approveProduct', explode(',', session('user_restricted_permissions', '')));
+                        @endphp
+                        @if ($canApproval)
+                            <div class="md:col-span-2 flex justify-center items-center space-x-2">
+                                <fieldset {{ $isApproved ? 'disabled' : '' }}>
+                                    <div class="flex items-center space-x-2">
+                                        <label class="text-sm font-medium">Status Persetujuan</label>
+                                        <label class="switch">
+                                            <input type="checkbox" name="approve_now" id="approvalToggle"
+                                                {{ $isApproved ? 'checked' : '' }} disabled>
+                                            <span class="slider round"></span>
+                                        </label>
+                                    </div>
+                                </fieldset>
+                            </div>
+                            <br>
+                        @endif
                         <div class="flex justify-center mt-4">
                             <label for="statusToggle"
                                 class="flex items-center justify-between w-40 p-3 border rounded-lg cursor-pointer hover:bg-gray-50 transition bg-gray-100">
@@ -703,7 +708,7 @@
                     @csrf
                     @method('PATCH')
                     @php
-                        $isApproved = !empty($product->fapproval);
+                        $isApproved = \App\Support\ApprovalState::isApprovedRecord($product);
                         $isUsedProduct = $usageInfo['is_used'] ?? false;
                         $usedByLabels = $usageInfo['used_by'] ?? [];
                         $allowedNewUnitField = $usageInfo['allowed_new_unit_field'] ?? null;
@@ -779,13 +784,13 @@
                                 <button type="button" @click="isMerekEditable = true; $dispatch('open-merk-modal')"
                                     class="whitespace-nowrap bg-green-600 text-white px-3 py-2 rounded hover:bg-green-700">
                                     <i class="fa fa-plus"></i>
-
-                                    <!-- Button Browse Merek -->
-                                    <button type="button"
-                                        @click="window.dispatchEvent(new CustomEvent('merek-browse-open'))"
-                                        class="whitespace-nowrap bg-blue-600 text-white px-3 py-2 rounded hover:bg-blue-700">
-                                        <i class="fa fa-search"></i>
-                                    </button>
+                                </button>
+                                <!-- Button Browse Merek -->
+                                <button type="button"
+                                    @click="window.dispatchEvent(new CustomEvent('merek-browse-open'))"
+                                    class="whitespace-nowrap bg-blue-600 text-white px-3 py-2 rounded hover:bg-blue-700">
+                                    <i class="fa fa-search"></i>
+                                </button>
                             </div>
                             @error('fmerek')
                                 <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
@@ -1396,19 +1401,24 @@
                             </div>
                         @endif
 
-                        <div class="md:col-span-2 flex justify-center items-center space-x-2">
-                            <fieldset {{ $isApproved ? 'disabled' : '' }}>
-                                <div class="flex items-center space-x-2">
-                                    <label class="text-sm font-medium">Approval</label>
-                                    <label class="switch">
-                                        <input type="checkbox" name="approve_now" id="approvalToggle"
-                                            {{ !empty($product->fapproval) ? 'checked' : '' }}>
-                                        <span class="slider round"></span>
-                                    </label>
-                                </div>
-                            </fieldset>
-                        </div>
-                        <br>
+                        @php
+                            $canApproval = in_array('approveProduct', explode(',', session('user_restricted_permissions', '')));
+                        @endphp
+                        @if ($canApproval)
+                            <div class="md:col-span-2 flex justify-center items-center space-x-2">
+                                <fieldset {{ $isApproved ? 'disabled' : '' }}>
+                                    <div class="flex items-center space-x-2">
+                                        <label class="text-sm font-medium">Approve</label>
+                                        <label class="switch">
+                                            <input type="checkbox" name="approve_now" id="approvalToggle"
+                                                {{ $isApproved ? 'checked' : '' }}>
+                                            <span class="slider round"></span>
+                                        </label>
+                                    </div>
+                                </fieldset>
+                            </div>
+                            <br>
+                        @endif
                         <div class="flex justify-center mt-4">
                             <label for="statusToggle"
                                 class="flex items-center justify-between w-40 p-3 border rounded-lg cursor-pointer hover:bg-gray-50 transition">
@@ -1479,7 +1489,7 @@
         <div id="toast" class="hidden fixed top-4 right-4 z-50 max-w-sm">
             <div id="toastContent" class="text-white px-6 py-4 rounded-lg shadow-lg flex items-center">
                 <span id="toastMessage"></span>
-                <button onclick="closeToast()" class="ml-4 text-white hover:text-gray-200">×</button>
+                <button onclick="closeToast()" class="ml-4 text-white hover:text-gray-200">&times;</button>
             </div>
         </div>
 

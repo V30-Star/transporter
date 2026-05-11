@@ -568,7 +568,6 @@
 
 
                     @php
-                        $canApproval = in_array('approvalpr', explode(',', session('user_restricted_permissions', '')));
                         $permissions = explode(',', session('user_restricted_permissions', ''));
                         $canPrint = in_array('viewTr_poh', $permissions, true) || in_array('updateReturPenjualan', $permissions, true) || in_array('deleteReturPenjualan', $permissions, true) || in_array('createReturPenjualan', $permissions, true);
                     @endphp
@@ -1987,7 +1986,6 @@
                 });
             </script>
         @endpush
-
 
 
 

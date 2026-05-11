@@ -134,7 +134,7 @@
                     <strong>Supplier</strong>:
                     {{ $hdr->fsupplier ?? '-' }}
                     @if (!empty($hdr->supplier_name))
-                        — {{ $hdr->supplier_name }}
+                        - {{ $hdr->supplier_name }}
                     @endif
                 </td>
                 <td>
@@ -208,14 +208,16 @@
             </tr>
         </div>
 
-        {{-- Approve button (opsional bila ada fprno) --}}
-        @php $fpono = $hdr->fpono ?? null; @endphp
-        @if ($fpono)
+        @php
+            $fpono = $hdr->fpono ?? null;
+            $approvalToken = trim((string) (($approvalToken ?? null) ?: ($hdr->approval_mail_token ?? $hdr->fapproval_token ?? '')));
+        @endphp
+        @if ($fpono && $approvalToken !== '')
             <div class="btn-wrap">
-                <a class="btn btn-approve" href="{{ route('approval.page.po', ['fpono' => $fpono]) }}">✅ Approve</a>
+                <a class="btn btn-approve" href="{{ route('approval.page.po', ['fpono' => $fpono, 'token' => $approvalToken]) }}">Approve</a>
             </div>
         @else
-            <p class="warning">PR number tidak tersedia.</p>
+            <p class="warning">Link approval PO tidak tersedia.</p>
         @endif
 
         <p class="muted" style="text-align:right;">Hal : 1 / 1</p>
@@ -223,4 +225,3 @@
 </body>
 
 </html>
-

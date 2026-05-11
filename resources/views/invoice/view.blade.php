@@ -5,7 +5,7 @@
 @section('content')
     @php
         $permissions = explode(',', session('user_restricted_permissions', ''));
-        $canPrint = in_array('viewTr_poh', $permissions, true) || in_array('updateInvoice', $permissions, true) || in_array('deleteInvoice', $permissions, true) || in_array('createInvoice', $permissions, true);
+        $canPrint = in_array('createInvoice', $permissions, true) || in_array('updateInvoice', $permissions, true) || in_array('deleteInvoice', $permissions, true);
     @endphp
     <style>
         input:focus,
@@ -90,6 +90,11 @@
 
     <div x-data="{ open: true }">
             <div class="bg-white rounded shadow p-6 md:p-8 max-w-[1600px] w-full mx-auto">
+                @if (!empty($approvalLockMessage))
+                    <div class="mb-4 rounded-lg border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-800">
+                        {{ $approvalLockMessage }}
+                    </div>
+                @endif
                 <div class="space-y-4">
                     <div class="grid grid-cols-1 lg:grid-cols-12 gap-4">
                         <div class="lg:col-span-4">
@@ -595,7 +600,7 @@
                     <x-transaction.browse-product-modal show-controls="true" show-pagination="true" />
 
                     @php
-                        $canApproval = in_array('approvalpr', explode(',', session('user_restricted_permissions', '')));
+                        $canApproval = in_array('approveFakturPenjualan', explode(',', session('user_restricted_permissions', '')));
                     @endphp
 
                     <div class="mt-6 flex justify-center space-x-4">
@@ -646,20 +651,6 @@
                 } catch (e) {}
                 return 'r' + (Date.now().toString(16) + Math.random().toString(16).slice(2));
             };
-
-            document.addEventListener('alpine:init', () => {
-                Alpine.store('trsomt', {
-                    // desc yang sedang dipreview
-                    descPreview: {
-                        uid: null,
-                        index: null,
-                        label: '',
-                        text: ''
-                    },
-                    // optional: daftar semua desc
-                    descList: []
-                });
-            });
 
             document.addEventListener('alpine:init', () => {
                 Alpine.store('trsomt', {
@@ -1195,22 +1186,5 @@
         @push('scripts')
             <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
             <script src="https://cdn.datatables.net/1.13.7/js/jquery.dataTables.min.js"></script>
-            <script>
-                document.addEventListener('alpine:init', () => {
-                    Alpine.store('trsomt', {
-                        descPreview: {
-                            uid: null,
-                            index: null,
-                            label: '',
-                            text: ''
-                        },
-                        descList: []
-                    });
-                });
-            </script>
         @endpush
-
-
-
-
 

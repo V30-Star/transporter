@@ -76,7 +76,6 @@ class ReportingFakturPembelianController extends Controller
                   'famountpo',
                   'fcurrency',
                   'fclose',
-                  'fapproval',
               ])
           : collect();
 

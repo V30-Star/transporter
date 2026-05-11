@@ -156,12 +156,13 @@
 
         @php
             $fprno = $hdr->fprno ?? null;
+            $approvalToken = trim((string) (($approvalToken ?? null) ?: ($hdr->approval_mail_token ?? $hdr->fapproval_token ?? '')));
         @endphp
 
-        @if ($fprno)
+        @if ($fprno && $approvalToken !== '')
             <div style="margin-top:24px; text-align:center;">
                 <!-- Approve Button -->
-                <a href="{{ route('approval.page', ['fprno' => $fprno]) }}"
+                <a href="{{ route('approval.page', ['fprno' => $fprno, 'token' => $approvalToken]) }}"
                     style="display:inline-block;
                   padding:12px 28px;
                   margin:4px;
@@ -176,7 +177,7 @@
                 </a>
             </div>
         @else
-            <p style="color:#dc3545; font-size:14px;">PR number tidak tersedia.</p>
+            <p style="color:#dc3545; font-size:14px;">Link approval PR tidak tersedia.</p>
         @endif
 
         <p class="hal">Hal : 1 / 1</p>

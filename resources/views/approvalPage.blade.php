@@ -104,7 +104,7 @@
 
             <!-- Actions -->
             <div class="px-6 pb-6 pt-2">
-                @if ($hdr->fapproval == 1)
+                @if (!($locked ?? false))
                     <form class="flex flex-col md:flex-row gap-3 items-stretch md:items-center" method="POST">
                         @csrf
                         <input type="hidden" name="fprno" value="{{ $hdr->fprno }}">
@@ -125,9 +125,9 @@
                     </form>
                 @else
                     <div class="bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-center">
-                        @if ($hdr->fapproval == 2)
+                        @if (\App\Support\ApprovalState::isApprovedRecord($hdr))
                             <span class="text-emerald-600 font-semibold">PR ini sudah disetujui.</span>
-                        @elseif ($hdr->fapproval == 0)
+                        @else
                             <span class="text-rose-600 font-semibold">PR ini sudah ditolak.</span>
                         @endif
                     </div>

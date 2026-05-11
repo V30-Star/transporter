@@ -160,7 +160,7 @@
                             <a href="{{ route('product.index') }}"
                                 class="flex items-center p-2 rounded hover:bg-gray-700">
                                 <x-heroicon-o-cube class="w-5 h-5" />
-                                <span class="ml-3">{{ "Product" }}</span>
+                                <span class="ml-3">{{ "Produk" }}</span>
                             </a>
                         </li>
                     @endif
@@ -629,7 +629,7 @@
                             <a href="{{ route('reportingproduct.index') }}"
                                 class="flex items-center p-2 rounded hover:bg-gray-700">
                                 <x-heroicon-o-credit-card class="w-5 h-5" />
-                                <span class="ml-3">{{ "Product" }}</span>
+                                <span class="ml-3">{{ "Produk" }}</span>
                             </a>
                         </li>
                     @endif

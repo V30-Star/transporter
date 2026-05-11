@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Mail\GenericApprovalNotification;
 use App\Models\Groupproduct;
 use App\Models\Merek;
 use App\Models\Product;
@@ -9,10 +10,78 @@ use App\Models\Satuan;
 use App\Services\GoogleDriveService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Validation\ValidationException;
+use App\Support\ApprovalState;
 
 class ProductController extends Controller
 {
+    protected function canApproveProduct(): bool
+    {
+        return in_array('approveProduct', explode(',', session('user_restricted_permissions', '')));
+    }
+
+    protected function getApprovalRecipients(): array
+    {
+        return array_values(array_filter([
+            trim((string) config('approval.product.stage1', '')),
+            trim((string) config('approval.product.stage2', '')),
+        ]));
+    }
+
+    protected function sendApprovalNotification(Product $product, string $approver): void
+    {
+        $fields = [
+            ['label' => 'Nama Produk', 'value' => $product->fprdname ?? '-'],
+            ['label' => 'Kode Produk', 'value' => $product->fprdcode ?? '-'],
+            ['label' => 'Group', 'value' => $product->fgroupcode ?? '-'],
+            ['label' => 'Merek', 'value' => $product->fmerek ?? '-'],
+            ['label' => 'Satuan 1', 'value' => $product->fsatuankecil ?? '-'],
+            ['label' => 'HPP', 'value' => format_number($product->fhpp ?? 0)],
+            ['label' => 'Min. Stok', 'value' => number_format((float) ($product->fminstock ?? 0), 2, ',', '.')],
+        ];
+        $recipients = array_slice($this->getApprovalRecipients(), 0, 2);
+
+        if (! empty($recipients[0]) && ! empty($product->fapproval_token)) {
+            Mail::to($recipients[0])->send(new GenericApprovalNotification(
+                'Approval Produk',
+                'Produk Approval',
+                (string) ($product->fprdcode ?? '-'),
+                $approver,
+                route('approval.product.page', ['fprdid' => $product->fprdid, 'token' => $product->fapproval_token]),
+                $fields,
+                []
+            ));
+        }
+
+        if (! empty($recipients[1]) && ! empty($product->fapproval_token2)) {
+            Mail::to($recipients[1])->send(new GenericApprovalNotification(
+                'Approval Produk',
+                'Produk Approval',
+                (string) ($product->fprdcode ?? '-'),
+                $approver,
+                route('approval.product.page', ['fprdid' => $product->fprdid, 'token' => $product->fapproval_token2]),
+                $fields,
+                []
+            ));
+        }
+    }
+
+    protected function initializeApprovalState(): array
+    {
+        return ApprovalState::initializeApprovalColumns(
+            array_slice($this->getApprovalRecipients(), 0, 2),
+            fn () => \Illuminate\Support\Str::random(64)
+        );
+    }
+
+    protected function getApprovalLockMessage(Product $product): ?string
+    {
+        return ApprovalState::isEditBlockedRecord($product)
+            ? 'Produk belum dapat diubah karena status approval saat ini belum mengizinkan edit.'
+            : null;
+    }
+
     protected function getEnabledProductImageNumbers(): array
     {
         return collect([1, 2, 3])
@@ -137,6 +206,8 @@ class ProductController extends Controller
                 'msprd.fimage1',
                 'msprd.fprdid',
                 'msprd.fnonactive',
+                'msprd.fapproval',
+                'msprd.fapproval2',
                 'msprd.fmerek',
                 'msmerek.fmerekname AS merek_name',
             ]);
@@ -156,6 +227,8 @@ class ProductController extends Controller
                     'fimage1' => $item->fimage1,
                     'status' => $statusBadge,
                     'fprdid' => $item->fprdid,
+                    'fapproval' => $item->fapproval,
+                    'fapproval2' => $item->fapproval2,
                 ];
             });
 
@@ -246,6 +319,7 @@ class ProductController extends Controller
     public function store(Request $request)
     {
         try {
+            $shouldSendApprovalNotification = false;
             $enabledImageFields = $this->getEnabledProductImageFields();
             $validationRules = [
                 'fprdcode' => 'nullable|string|unique:msprd,fprdcode',
@@ -336,7 +410,9 @@ class ProductController extends Controller
             }
 
             $user = auth('sysuser')->user();
-            $validated['fapproval'] = $user->fname ?? 'System';
+            $approvalState = $this->initializeApprovalState();
+            $validated = array_merge($validated, $approvalState);
+            $shouldSendApprovalNotification = ApprovalState::hasApprovalProgress((object) $approvalState);
             $validated['fcreatedby'] = $user->fname ?? 'System';
             $validated['fcreatedat'] = now();
             $validated['fnonactive'] = $request->has('fnonactive') ? '1' : '0';
@@ -355,7 +431,11 @@ class ProductController extends Controller
                 }
             }
 
-            Product::create($validated);
+            $product = Product::create($validated);
+
+            if ($shouldSendApprovalNotification) {
+                $this->sendApprovalNotification($product, $user->fname ?? 'System');
+            }
 
             return redirect()
                 ->route('product.create')
@@ -370,6 +450,9 @@ class ProductController extends Controller
     public function edit($id)
     {
         $product = Product::findOrFail($id);
+        if ($message = $this->getApprovalLockMessage($product)) {
+            return redirect()->route('product.view', $product->fprdid)->with('error', $message);
+        }
         $groups = Groupproduct::where('fnonactive', 0)->get();
         $merks = Merek::where('fnonactive', 0)->get();
         $satuan = Satuan::where('fnonactive', 0)->get();
@@ -399,12 +482,17 @@ class ProductController extends Controller
             'groups' => $groups,
             'merks' => $merks,
             'satuan' => $satuan,
+            'approvalLockMessage' => $this->getApprovalLockMessage($product),
         ]);
     }
 
     public function update(Request $request, $fprdid)
     {
         $product = Product::findOrFail($fprdid);
+        if ($message = $this->getApprovalLockMessage($product)) {
+            return redirect()->route('product.view', $product->fprdid)->with('error', $message);
+        }
+        $shouldSendApprovalNotification = false;
         $usageInfo = $this->getProductUsageInfo($product);
         $enabledImageFields = $this->getEnabledProductImageFields();
 
@@ -472,11 +560,7 @@ class ProductController extends Controller
         $validated['fprdcode'] = strtoupper($validated['fprdcode']);
         $validated['fprdname'] = strtoupper($validated['fprdname']);
 
-        if ($request->has('approve_now')) {
-            $validated['fapproval'] = auth('sysuser')->user()->fname ?? null;
-        } else {
-            $validated['fapproval'] = null;
-        }
+        $shouldSendApprovalNotification = false;
 
         $sanitizeNumeric = function ($value) {
             if ($value === null || $value === '') {
@@ -601,6 +685,11 @@ class ProductController extends Controller
         }
 
         $product->update($validated);
+
+        if ($shouldSendApprovalNotification) {
+            $product->refresh();
+            $this->sendApprovalNotification($product, auth('sysuser')->user()->fname ?? 'System');
+        }
 
         return redirect()
             ->route('product.index')

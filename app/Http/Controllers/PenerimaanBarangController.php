@@ -12,6 +12,7 @@ use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use App\Support\ApprovalState;
 
 class PenerimaanBarangController extends Controller
 {
@@ -132,6 +133,7 @@ class PenerimaanBarangController extends Controller
             ->leftJoin('mssupplier', 'tr_poh.fsupplier', '=', 'mssupplier.fsuppliercode')
             ->select('tr_poh.*', 'mssupplier.fsuppliername', 'mssupplier.fsuppliercode')
             ->where('tr_poh.fprdin', '0');
+        ApprovalState::applyApprovedFilter($query, 'tr_poh.');
 
         $recordsTotal = DB::table('tr_poh')->count();
 
@@ -182,6 +184,9 @@ class PenerimaanBarangController extends Controller
 
         if (! $header) {
             return response()->json(['message' => 'PO tidak ditemukan'], 404);
+        }
+        if (! ApprovalState::isApprovedRecord($header)) {
+            return response()->json(['message' => 'PO belum di-approve.'], 422);
         }
 
         $receiptSub = DB::table('trstockdt')
@@ -613,7 +618,6 @@ class PenerimaanBarangController extends Controller
             ->when(! is_numeric($raw), fn($q) => $q->where('fcabangkode', $raw)->orWhere('fcabangname', $raw))
             ->first(['fcabangid', 'fcabangkode', 'fcabangname']);
 
-        $canApproval = in_array('approvalpr', explode(',', session('user_restricted_permissions', '')));
         $fcabang = $branch->fcabangname ?? (string) $raw;
         $fbranchcode = $branch->fcabangkode ?? (string) $raw;
 
@@ -622,7 +626,6 @@ class PenerimaanBarangController extends Controller
 
         return view('penerimaanbarang.create', [
             'warehouses' => $warehouses,
-            'perms' => ['can_approval' => $canApproval],
             'suppliers' => $suppliers,
             'fcabang' => $fcabang,
             'fbranchcode' => $fbranchcode,

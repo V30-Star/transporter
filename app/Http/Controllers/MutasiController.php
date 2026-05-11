@@ -346,8 +346,6 @@ class MutasiController extends Controller
             )
             ->first(['fcabangid', 'fcabangkode', 'fcabangname']);
 
-        $canApproval = in_array('approvalpr', explode(',', session('user_restricted_permissions', '')));
-
         $fcabang = $branch->fcabangname ?? (string) $raw;
         $fbranchcode = $branch->fcabangkode ?? (string) $raw;
 
@@ -365,7 +363,6 @@ class MutasiController extends Controller
 
         return view('mutasi.create', [
             'newtr_prh_code' => $newtr_prh_code,
-            'perms' => ['can_approval' => $canApproval],
             'warehouses' => $warehouses,
             'accounts' => $accounts,
             'supplier' => $supplier,

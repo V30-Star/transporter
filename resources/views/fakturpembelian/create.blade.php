@@ -499,7 +499,7 @@
                                         <th class="px-2 py-1 text-left w-10">#</th>
                                         <th class="px-2 py-1 text-left">Kode Produk</th>
                                         <th class="px-2 py-1 text-left">Nama Produk</th>
-                                        <th class="px-2 py-1 text-left">No Refrensi</th>
+                                        <th class="px-2 py-1 text-left">No Referensi</th>
                                         <th class="px-2 py-1 text-left">Satuan</th>
                                         <th class="px-2 py-1 text-right whitespace-nowrap">Qty.</th>
                                         <th class="px-2 py-1 text-right whitespace-nowrap">@ Harga</th>
@@ -547,7 +547,7 @@
                                                 </div>
                                             </td>
 
-                                            <!-- No Refrensi -->
+                                            <!-- No Referensi -->
                                             <td class="p-2">
                                                 <input type="text"
                                                     class="w-full border rounded px-2 py-1 bg-gray-100 text-gray-600 text-sm"
@@ -1098,26 +1098,6 @@
                     <x-transaction.browse-product-modal show-controls="true" show-pagination="true" />
                     <x-transaction.browse-warehouse-modal event-name="faktur-pembelian-warehouse-browse-open" />
                     <x-transaction.browse-account-modal />
-
-                    @php
-                        $canApproval = in_array('approvalpr', explode(',', session('user_restricted_permissions', '')));
-                    @endphp
-
-                    {{-- APPROVAL & ACTIONS --}}
-                    <div class="md:col-span-2 flex justify-center items-center space-x-2 mt-6">
-                        @if ($canApproval)
-                            <label class="block text-sm font-medium">Approval</label>
-
-                            {{-- fallback 0 saat checkbox tidak dicentang --}}
-                            <input type="hidden" name="fapproval" value="0">
-
-                            <label class="switch">
-                                <input type="checkbox" name="fapproval" id="approvalToggle" value="1"
-                                    {{ old('fapproval', session('fapproval') ? 1 : 0) ? 'checked' : '' }}>
-                                <span class="slider"></span>
-                            </label>
-                        @endif
-                    </div>
 
                     <div class="mt-8 flex justify-center gap-4">
                         <button type="submit"
@@ -2626,8 +2606,6 @@
         });
     </script>
 @endpush
-
-
 
 
 

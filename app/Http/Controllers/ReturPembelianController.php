@@ -364,8 +364,6 @@ class ReturPembelianController extends Controller
             )
             ->first(['fcabangid', 'fcabangkode', 'fcabangname']);
 
-        $canApproval = in_array('approvalpr', explode(',', session('user_restricted_permissions', '')));
-
         $fcabang = $branch->fcabangname ?? (string) $raw;
         $fbranchcode = $branch->fcabangkode ?? (string) $raw;
 
@@ -383,7 +381,6 @@ class ReturPembelianController extends Controller
 
         return view('returpembelian.create', [
             'newtr_prh_code' => $newtr_prh_code,
-            'perms' => ['can_approval' => $canApproval],
             'warehouses' => $warehouses,
             'accounts' => $accounts,
             'suppliers' => $suppliers,
