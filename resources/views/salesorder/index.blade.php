@@ -83,7 +83,7 @@
                     <th class="border px-2 py-1">{{ "No.Ref" }}</th>
                     <th class="border px-2 py-1">{{ "Nama Customer" }}</th>
                     <th class="border px-2 py-1">{{ "Nilai SO" }}</th>
-                    <th class="border px-2 py-1">{{ "User Create" }}</th>
+                    <th class="border px-2 py-1">{{ "User Id" }}</th>
                     @if ($showActionsColumn)
                         <th class="border px-2 py-1 col-aksi">{{ "Aksi" }}</th>
                     @endif

@@ -57,9 +57,6 @@
                         <td class="border px-2 py-2">{{ $record->description_summary }}</td>
                         <td class="border px-2 py-2 text-right">
                             <div class="inline-flex items-center justify-end gap-2 w-full">
-                                <span class="inline-flex items-center justify-center min-w-[2rem] px-2 py-0.5 rounded border border-slate-300 bg-slate-100 text-slate-700 text-xs font-semibold">
-                                    {{ $record->fdkheader ?: 'D' }}
-                                </span>
                                 <span>{{ number_format((float) $record->payment_amount, 2, ',', '.') }}</span>
                             </div>
                         </td>

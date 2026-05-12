@@ -98,7 +98,7 @@
                     <th class="border px-2 py-1">Nilai Faktur</th>
                     <th class="border px-2 py-1">Sisa Piutang</th>
                     <th class="border px-2 py-1">Ref.PO</th>
-                    <th class="border px-2 py-1">User Create</th>
+                    <th class="border px-2 py-1">User Id</th>
                     <th class="border px-2 py-1">Tagih?</th>
                     @if ($showActionsColumn)
                         <th class="border px-2 py-1 col-aksi">Aksi</th>

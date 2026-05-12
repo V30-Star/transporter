@@ -337,7 +337,7 @@
         <div class="sign-container">
             <table class="sign-table">
                 <tr>
-                    <td>{{ "User Create" }}</td>
+                    <td>{{ "User Id" }}</td>
                     <td>{{ "Mengetahui" }}</td>
                 </tr>
                 <tr>

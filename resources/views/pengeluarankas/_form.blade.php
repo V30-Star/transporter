@@ -80,7 +80,7 @@
     }
 </style>
 
-<div x-data="pengeluaranKasForm(@js($isReadOnly), @js(old('fkasmtno', $pengeluaranKas->fkasmtno ?? '')), @js($isGiroMundur), @js($isPenerimaanKasForm), @js($journalAccountValidation), @js($accountCatalog))" x-init="init()" class="bg-white rounded shadow p-6 md:p-8 max-w-7xl mx-auto">
+<div x-data="pengeluaranKasForm(@js($isReadOnly), @js(old('fkasmtno', $pengeluaranKas->fkasmtno ?? '')), @js($isGiroMundur), @js($isPenerimaanKasForm), @js($journalAccountValidation), @js($accountCatalog))" x-init="init()" class="bg-white rounded shadow p-6 md:p-8 max-w-[96rem] mx-auto">
 
     @if ($isDeleteMode)
         <div class="mb-6 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-red-700">
@@ -131,46 +131,6 @@
             </div>
 
             <div>
-                <label class="block text-sm font-medium mb-1">{{ 'No.Giro/Cek' }}</label>
-                <input type="text" name="fnogiro" value="{{ old('fnogiro', $pengeluaranKas->fnogiro) }}"
-                    class="w-full border rounded px-3 py-2 {{ $isReadOnly ? 'bg-gray-100' : '' }}"
-                    {{ $isReadOnly ? 'readonly' : '' }}>
-                @error('fnogiro')
-                    <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
-                @enderror
-            </div>
-
-            <div class="flex items-start gap-6">
-                <!-- Checkbox: Sejajar dengan box input -->
-                <div class="flex-none pt-6">
-                    <label class="inline-flex items-center gap-2 cursor-pointer">
-                        <input type="checkbox" x-model="isGiroMundur" {{ $isReadOnly ? 'disabled' : '' }}
-                            class="rounded border-gray-300">
-                        <span class="text-sm text-gray-700 whitespace-nowrap">{{ 'Giro Mundur' }}</span>
-                    </label>
-                    <input type="hidden" name="fgiromundur" :value="isGiroMundur ? '1' : '0'">
-
-                    @error('fgiromundur')
-                        <p class="text-red-600 text-xs mt-1">{{ $message }}</p>
-                    @enderror
-                </div>
-
-                <!-- Field Tanggal: Dilebarkan ke w-72 -->
-                <div class="flex-none w-72">
-                    <div class="flex flex-col">
-                        <label class="text-sm text-gray-600 mb-1">{{ 'Tgl. Jatuh Tempo' }}</label>
-                        <input type="date" name="ftgljatuhtempo" value="{{ $selectedJatuhTempo }}"
-                            class="w-full border rounded px-3 py-1.5 text-sm"
-                            :class="isReadOnly || !isGiroMundur ? 'bg-gray-100 cursor-not-allowed text-gray-400' : 'bg-white'"
-                            :readonly="isReadOnly || !isGiroMundur" :disabled="isReadOnly || !isGiroMundur">
-                    </div>
-                    @error('ftgljatuhtempo')
-                        <p class="text-red-600 text-xs mt-1">{{ $message }}</p>
-                    @enderror
-                </div>
-            </div>
-
-            <div>
                 <label class="block text-sm font-medium mb-1">{{ 'Cash / Bank Account' }}</label>
                 @if ($isReadOnly)
                     <input type="text" value="{{ $selectedHeaderLabel }}"
@@ -217,6 +177,44 @@
                 @enderror
             </div>
 
+            <div>
+                <label class="block text-sm font-medium mb-1">{{ 'No.Giro/Cek' }}</label>
+                <input type="text" name="fnogiro" value="{{ old('fnogiro', $pengeluaranKas->fnogiro) }}"
+                    class="w-full border rounded px-3 py-2 {{ $isReadOnly ? 'bg-gray-100' : '' }}"
+                    {{ $isReadOnly ? 'readonly' : '' }}>
+                @error('fnogiro')
+                    <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+                @enderror
+            </div>
+
+            <div class="flex items-start gap-6">
+                <div class="flex-none pt-6">
+                    <label class="inline-flex items-center gap-2 cursor-pointer">
+                        <input type="checkbox" x-model="isGiroMundur" {{ $isReadOnly ? 'disabled' : '' }}
+                            class="rounded border-gray-300">
+                        <span class="text-sm text-gray-700 whitespace-nowrap">{{ 'Giro Mundur' }}</span>
+                    </label>
+                    <input type="hidden" name="fgiromundur" :value="isGiroMundur ? '1' : '0'">
+
+                    @error('fgiromundur')
+                        <p class="text-red-600 text-xs mt-1">{{ $message }}</p>
+                    @enderror
+                </div>
+
+                <div class="flex-none w-72">
+                    <div class="flex flex-col">
+                        <label class="text-sm text-gray-600 mb-1">{{ 'Tgl. Jatuh Tempo' }}</label>
+                        <input type="date" name="ftgljatuhtempo" value="{{ $selectedJatuhTempo }}"
+                            class="w-full border rounded px-3 py-1.5 text-sm"
+                            :class="isReadOnly || !isGiroMundur ? 'bg-gray-100 cursor-not-allowed text-gray-400' : 'bg-white'"
+                            :readonly="isReadOnly || !isGiroMundur" :disabled="isReadOnly || !isGiroMundur">
+                    </div>
+                    @error('ftgljatuhtempo')
+                        <p class="text-red-600 text-xs mt-1">{{ $message }}</p>
+                    @enderror
+                </div>
+            </div>
+
             <div class="md:col-span-2">
                 <label class="block text-sm font-medium mb-1">{{ 'Keterangan' }}</label>
                 <textarea name="fket" rows="3" class="w-full border rounded px-3 py-2 {{ $isReadOnly ? 'bg-gray-100' : '' }}"
@@ -239,18 +237,18 @@
                             <col style="width:4%;">
                             <col style="width:18%;">
                             <col style="width:16%;">
-                            <col style="width:20%;">
-                            <col style="width:6%;">
                             <col style="width:18%;">
-                            <col style="width:12%;">
+                            <col style="width:22%;">
+                            <col style="width:6%;">
+                            <col style="width:8%;">
                         @else
                             <col style="width:4%;">
                             <col style="width:15%;">
                             <col style="width:19%;">
-                            <col style="width:17%;">
-                            <col style="width:17%;">
+                            <col style="width:15%;">
+                            <col style="width:22%;">
                             <col style="width:6%;">
-                            <col style="width:20%;">
+                            <col style="width:11%;">
                             <col style="width:8%;">
                         @endif
                     </colgroup>
