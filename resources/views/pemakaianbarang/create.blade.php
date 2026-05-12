@@ -82,6 +82,25 @@
         input[type=number] {
             -moz-appearance: textfield;
         }
+
+        .desc-inline-field {
+            display: flex !important;
+            width: 100%;
+            min-width: 0;
+            align-items: stretch;
+            flex-wrap: nowrap !important;
+        }
+
+        .desc-inline-field__text {
+            min-width: 0;
+            flex: 1 1 auto;
+        }
+
+        .desc-inline-field__button {
+            flex: 0 0 auto;
+            width: 2.5rem;
+            justify-content: center;
+        }
     </style>
 
     <div x-data="{ open: true }">
@@ -195,7 +214,7 @@
                                     <tr>
                                         <th class="p-2 text-left w-10">#</th>
                                         <th class="p-2 text-left w-40">Kode Produk</th>
-                                        <th class="p-2 text-left w-102">Nama Produk</th>
+                                        <th class="p-2 text-left" style="width: 20rem; min-width: 20rem;">Nama Produk</th>
                                         <th class="p-2 text-left w-48">Account</th>
                                         <th class="p-2 text-left w-48">Sub Account</th>
                                         <th class="p-2 text-left w-24">Sat</th>
@@ -210,12 +229,12 @@
                                         <tr class="border-t align-top">
                                             <td class="p-2" x-text="i + 1"></td>
                                             <td class="p-2 font-mono" x-text="it.fitemcode"></td>
-                                            <td class="p-2 text-gray-800">
-                                                <div class="flex w-full max-w-full">
-                                                    <div class="min-w-0 flex-1 rounded-l border bg-gray-100 px-2 py-1 text-sm leading-5 text-gray-600 whitespace-normal break-words"
+                                            <td class="p-2 text-gray-800" style="width: 20rem; min-width: 20rem;">
+                                                <div class="desc-inline-field">
+                                                    <div class="desc-inline-field__text rounded-l border bg-gray-100 px-2 py-1 text-sm leading-5 text-gray-600 whitespace-normal break-words"
                                                         x-text="it.fitemname"></div>
                                                     <button type="button" @click="openDesc(it)"
-                                                        class="shrink-0 inline-flex items-center border border-l-0 rounded-r px-2 py-1 transition-colors"
+                                                        class="desc-inline-field__button inline-flex items-center border border-l-0 rounded-r px-2 py-1 transition-colors"
                                                         :class="it.fdesc ? 'border-emerald-300 bg-emerald-50 text-emerald-600 hover:bg-emerald-100' : 'border-gray-300 bg-white text-gray-500 hover:bg-gray-50'"
                                                         title="Deskripsi item">
                                                         <x-heroicon-o-document-text class="h-4 w-4" />
@@ -224,7 +243,7 @@
                                             </td>
                                             <td class="p-2 text-left">
                                                 <select class="w-full border rounded px-2 py-1 select2" :value="it.account_code"
-                                                    x-init="initSelect2($el)"
+                                                    x-init="window.initSelect2($el)"
                                                     @change="it.account_code = $event.target.value; it.account_name = $event.target.options[$event.target.selectedIndex].dataset.name">
                                                     <option value="">Pilih Akun</option>
                                                     <template x-for="acc in accounts" :key="acc.faccount">
@@ -236,7 +255,7 @@
                                             </td>
                                             <td class="p-2 text-left">
                                                 <select class="w-full border rounded px-2 py-1 select2" :value="it.subaccount_code"
-                                                    x-init="initSelect2($el)"
+                                                    x-init="window.initSelect2($el)"
                                                     @change="it.subaccount_code = $event.target.value; it.subaccount_name = $event.target.options[$event.target.selectedIndex].dataset.name">
                                                     <option value="">Pilih Sub Akun</option>
                                                     <template x-for="sacc in subaccounts" :key="sacc.fsubaccountcode">
@@ -310,12 +329,12 @@
                                         </td>
 
                                         <!-- Nama Produk (readonly) -->
-                                        <td class="p-2">
-                                            <div class="flex w-full max-w-full">
-                                                <div class="min-w-0 flex-1 rounded-l border bg-gray-100 px-2 py-1 text-sm leading-5 text-gray-600 whitespace-normal break-words"
+                                        <td class="p-2" style="width: 20rem; min-width: 20rem;">
+                                            <div class="desc-inline-field">
+                                                <div class="desc-inline-field__text rounded-l border bg-gray-100 px-2 py-1 text-sm leading-5 text-gray-600 whitespace-normal break-words"
                                                     x-text="draft.fitemname"></div>
                                                 <button type="button" @click="openDesc(draft)"
-                                                    class="shrink-0 inline-flex items-center border border-l-0 rounded-r px-2 py-1 transition-colors"
+                                                    class="desc-inline-field__button inline-flex items-center border border-l-0 rounded-r px-2 py-1 transition-colors"
                                                     :class="draft.fdesc ? 'border-emerald-300 bg-emerald-50 text-emerald-600 hover:bg-emerald-100' : 'border-gray-300 bg-white text-gray-500 hover:bg-gray-50'"
                                                     title="Deskripsi item">
                                                     <x-heroicon-o-document-text class="h-4 w-4" />
@@ -325,7 +344,7 @@
 
                                         <td class="p-2">
                                             <select class="w-full border rounded px-2 py-1 select2" :value="draft.account_code"
-                                                x-init="initSelect2($el)"
+                                                x-init="window.initSelect2($el)"
                                                 @input="updateAccount(draft, $event.target.value, $event.target.options[$event.target.selectedIndex].dataset.name)">
                                                 <option value="">Pilih Akun</option>
                                                 <template x-for="acc in accounts" :key="acc.faccount">
@@ -338,7 +357,7 @@
                                         <td class="p-2">
                                             <select class="w-full border rounded px-2 py-1 select2"
                                                 :value="draft.subaccount_code"
-                                                x-init="initSelect2($el)"
+                                                x-init="window.initSelect2($el)"
                                                 @input="updateSubAccount(draft, $event.target.value, $event.target.options[$event.target.selectedIndex].dataset.name)">
                                                 <option value="">Pilih Sub Akun</option>
                                                 <template x-for="sacc in subaccounts" :key="sacc.fsubaccountcode">
@@ -399,9 +418,9 @@
                         </div>
                     </div>
 
-                    <div x-show="showDescModal" x-cloak class="fixed inset-0 z-[95] flex items-center justify-center"
+                    <div x-show="$store.pemakaianDesc.show" x-cloak class="fixed inset-0 z-[95] flex items-center justify-center"
                         x-transition.opacity>
-                        <div class="absolute inset-0 bg-black/50" @click="closeDesc()"></div>
+                        <div class="absolute inset-0 bg-black/50" @click="$store.pemakaianDesc.close()"></div>
                         <div class="relative bg-white w-[92vw] max-w-lg rounded-2xl shadow-2xl overflow-hidden"
                             x-transition.scale>
                             <div class="px-5 py-4 border-b flex items-center">
@@ -410,15 +429,17 @@
                             </div>
                             <div class="px-5 py-4 space-y-2">
                                 <label class="block text-sm text-gray-700">Deskripsi</label>
-                                <textarea x-model="descValue" rows="5" class="w-full border rounded px-3 py-2"
+                                <textarea x-model="$store.pemakaianDesc.value" rows="5" class="w-full border rounded px-3 py-2"
+                                    :readonly="$store.pemakaianDesc.readonly"
+                                    :class="$store.pemakaianDesc.readonly ? 'bg-gray-100 cursor-not-allowed text-gray-600' : ''"
                                     placeholder="Tulis deskripsi item di sini..."></textarea>
                             </div>
                             <div class="px-5 py-3 border-t flex items-center justify-end gap-2">
-                                <button type="button" @click="closeDesc()"
+                                <button type="button" @click="$store.pemakaianDesc.close()"
                                     class="h-9 px-4 rounded-lg bg-gray-100 text-gray-700 text-sm font-medium hover:bg-gray-200">
                                     Batal
                                 </button>
-                                <button type="button" @click="applyDesc()"
+                                <button x-show="!$store.pemakaianDesc.readonly" type="button" @click="$store.pemakaianDesc.apply()"
                                     class="h-9 px-4 rounded-lg bg-emerald-600 text-white text-sm font-medium hover:bg-emerald-700">
                                     Simpan
                                 </button>
@@ -660,13 +681,18 @@
 
 @push('scripts')
     <script>
-        $(document).ready(function() {
-            window.initSelect2 = function(sel = '.select2') {
-                $(sel).select2({
-                    width: '100%'
-                });
-            };
+        window.initSelect2 = function(sel = '.select2') {
+            if (!window.jQuery || !$.fn || !$.fn.select2) return;
 
+            const $select = $(sel);
+            if (!$select.length) return;
+
+            $select.select2({
+                width: '100%'
+            });
+        };
+
+        $(document).ready(function() {
             // Bridge: Select2 -> Alpine
             $(document).on('select2:select select2:clear', 'select', function() {
                 this.dispatchEvent(new Event('input', {
@@ -676,8 +702,7 @@
                     bubbles: true
                 }));
             });
-
-            initSelect2();
+            window.initSelect2();
         });
 
         // Map produk untuk auto-fill tabel
@@ -715,6 +740,31 @@
                 },
                 // optional: daftar semua desc
                 descList: []
+            });
+            Alpine.store('pemakaianDesc', {
+                show: false,
+                value: '',
+                readonly: false,
+                target: null,
+                open(targetRow, readonly = false) {
+                    if (!targetRow) return;
+                    this.target = targetRow;
+                    this.value = (targetRow?.fdesc || '').toString();
+                    this.readonly = !!readonly;
+                    this.show = true;
+                },
+                close() {
+                    this.show = false;
+                    this.value = '';
+                    this.readonly = false;
+                    this.target = null;
+                },
+                apply() {
+                    if (!this.readonly && this.target) {
+                        this.target.fdesc = this.value;
+                    }
+                    this.close();
+                }
             });
         });
 
@@ -943,23 +993,8 @@
                     }
                 },
 
-                showDescModal: false,
-                descTarget: 'draft',
-                descSavedIndex: null,
-                descValue: '',
-                _descTarget: null,
-                openDesc(targetRow) {
-                    this._descTarget = targetRow;
-                    this.descValue = targetRow?.fdesc || '';
-                    this.showDescModal = true;
-                },
-                closeDesc() {
-                    this.showDescModal = false;
-                    this._descTarget = null;
-                },
-                applyDesc() {
-                    if (this._descTarget) this._descTarget.fdesc = this.descValue;
-                    this.closeDesc();
+                openDesc(targetRow, readonly = false) {
+                    Alpine.store('pemakaianDesc').open(targetRow, readonly);
                 },
 
                 itemKey(it) {
@@ -968,6 +1003,10 @@
 
                 getCurrentItemKeys() {
                     return this.savedItems.map(it => this.itemKey(it));
+                },
+
+                initSelect2(sel = '.select2') {
+                    if (window.initSelect2) window.initSelect2(sel);
                 },
 
                 init() {

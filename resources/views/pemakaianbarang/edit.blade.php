@@ -88,6 +88,25 @@
             -moz-appearance: textfield;
         }
 
+        .desc-inline-field {
+            display: flex !important;
+            width: 100%;
+            min-width: 0;
+            align-items: stretch;
+            flex-wrap: nowrap !important;
+        }
+
+        .desc-inline-field__text {
+            min-width: 0;
+            flex: 1 1 auto;
+        }
+
+        .desc-inline-field__button {
+            flex: 0 0 auto;
+            width: 2.5rem;
+            justify-content: center;
+        }
+
         .readonly-mode input:not([type="hidden"]),
         .readonly-mode select,
         .readonly-mode textarea,
@@ -249,7 +268,7 @@
                                         <tr>
                                             <th class="p-2 text-left w-10">#</th>
                                             <th class="p-2 text-left w-40">Kode Produk</th>
-                                            <th class="p-2 text-left w-102">Nama Produk</th>
+                                            <th class="p-2 text-left" style="width: 20rem; min-width: 20rem;">Nama Produk</th>
                                             <th class="p-2 text-left w-48">Account</th>
                                             <th class="p-2 text-left w-48">Sub Account</th>
                                             <th class="p-2 text-left w-24">Sat</th>
@@ -263,12 +282,12 @@
                                             <tr class="border-t align-top">
                                                 <td class="p-2" x-text="i + 1"></td>
                                                 <td class="p-2 font-mono" x-text="it.fitemcode"></td>
-                                                <td class="p-2 text-gray-800">
-                                                    <div class="flex w-full max-w-full">
-                                                        <div class="min-w-0 flex-1 rounded-l border bg-gray-100 px-2 py-1 text-sm leading-5 text-gray-600 whitespace-normal break-words"
+                                                <td class="p-2 text-gray-800" style="width: 20rem; min-width: 20rem;">
+                                                    <div class="desc-inline-field">
+                                                        <div class="desc-inline-field__text rounded-l border bg-gray-100 px-2 py-1 text-sm leading-5 text-gray-600 whitespace-normal break-words"
                                                             x-text="it.fitemname"></div>
                                                         <button type="button" @click="openDesc(it, true)"
-                                                            class="shrink-0 inline-flex items-center border border-l-0 rounded-r px-2 py-1 transition-colors"
+                                                            class="desc-inline-field__button inline-flex items-center border border-l-0 rounded-r px-2 py-1 transition-colors"
                                                             :class="it.fdesc ? 'border-emerald-300 bg-emerald-50 text-emerald-600 hover:bg-emerald-100' : 'border-gray-300 bg-white text-gray-500 hover:bg-gray-50'"
                                                             title="Deskripsi item">
                                                             <x-heroicon-o-document-text class="h-4 w-4" />
@@ -311,7 +330,7 @@
                                         </template>
 
                                         <!-- ROW EDIT DESC -->
-                                        <tr x-show="editingIndex !== null" class="bg-amber-50 border-b" x-cloak>
+                                        <tr class="bg-amber-50 border-b" x-cloak>
                                             <td class="p-0"></td>
                                             <td class="p-0"></td>
                                             <td class="p-0"></td>
@@ -352,9 +371,9 @@
                         </button>
                     </div>
 
-                    <div x-show="showDescModal" x-cloak class="fixed inset-0 z-[95] flex items-center justify-center"
+                    <div x-show="$store.pemakaianDesc.show" x-cloak class="fixed inset-0 z-[95] flex items-center justify-center"
                         x-transition.opacity>
-                        <div class="absolute inset-0 bg-black/50" @click="closeDesc()"></div>
+                        <div class="absolute inset-0 bg-black/50" @click="$store.pemakaianDesc.close()"></div>
                         <div class="relative bg-white w-[92vw] max-w-lg rounded-2xl shadow-2xl overflow-hidden"
                             x-transition.scale>
                             <div class="px-5 py-4 border-b flex items-center">
@@ -363,12 +382,12 @@
                             </div>
                             <div class="px-5 py-4 space-y-2">
                                 <label class="block text-sm text-gray-700">Deskripsi</label>
-                                <textarea x-model="descValue" rows="5"
+                                <textarea x-model="$store.pemakaianDesc.value" rows="5"
                                     class="w-full border rounded px-3 py-2 bg-gray-100 cursor-not-allowed text-gray-600"
                                     readonly></textarea>
                             </div>
                             <div class="px-5 py-3 border-t flex items-center justify-end gap-2">
-                                <button type="button" @click="closeDesc()"
+                                <button type="button" @click="$store.pemakaianDesc.close()"
                                     class="h-9 px-4 rounded-lg bg-gray-100 text-gray-700 text-sm font-medium hover:bg-gray-200">
                                     Tutup
                                 </button>
@@ -483,7 +502,7 @@
                                         <tr>
                                             <th class="p-2 text-left w-10">#</th>
                                             <th class="p-2 text-left w-40">Kode Produk</th>
-                                            <th class="p-2 text-left w-102">Nama Produk</th>
+                                            <th class="p-2 text-left" style="width: 20rem; min-width: 20rem;">Nama Produk</th>
                                             <th class="p-2 text-left w-48">Account</th>
                                             <th class="p-2 text-left w-48">Sub Account</th>
                                             <th class="p-2 text-left w-24">Sat</th>
@@ -498,11 +517,12 @@
                                             <tr class="border-t align-top">
                                                 <td class="p-2" x-text="i + 1"></td>
                                                 <td class="p-2 font-mono" x-text="it.fitemcode"></td>
-                                                <td class="p-2 text-gray-800">
-                                                    <div class="flex items-center gap-2">
-                                                        <div class="flex-1 min-w-0" x-text="it.fitemname"></div>
+                                                <td class="p-2 text-gray-800" style="width: 20rem; min-width: 20rem;">
+                                                    <div class="desc-inline-field">
+                                                        <div class="desc-inline-field__text rounded-l border bg-gray-100 px-2 py-1 text-sm leading-5 text-gray-600 whitespace-normal break-words"
+                                                            x-text="it.fitemname"></div>
                                                         <button type="button" @click="openDesc(it)"
-                                                            class="inline-flex h-9 w-9 items-center justify-center rounded border transition"
+                                                            class="desc-inline-field__button inline-flex items-center border border-l-0 rounded-r px-2 py-1 transition-colors"
                                                             :class="it.fdesc ? 'border-emerald-300 bg-emerald-50 text-emerald-600 hover:bg-emerald-100' : 'border-gray-300 bg-white text-gray-500 hover:bg-gray-50'"
                                                             title="Deskripsi item">
                                                             <x-heroicon-o-document-text class="h-4 w-4" />
@@ -601,12 +621,12 @@
                                             </td>
 
                                             <!-- Nama Produk (readonly) -->
-                                            <td class="p-2">
-                                                <div class="flex w-full max-w-full">
-                                                    <div class="min-w-0 flex-1 rounded-l border bg-gray-100 px-2 py-1 text-sm leading-5 text-gray-600 whitespace-normal break-words"
+                                            <td class="p-2" style="width: 20rem; min-width: 20rem;">
+                                                <div class="desc-inline-field">
+                                                    <div class="desc-inline-field__text rounded-l border bg-gray-100 px-2 py-1 text-sm leading-5 text-gray-600 whitespace-normal break-words"
                                                         x-text="draft.fitemname"></div>
                                                     <button type="button" @click="openDesc(draft)"
-                                                        class="shrink-0 inline-flex items-center border border-l-0 rounded-r px-2 py-1 transition-colors"
+                                                        class="desc-inline-field__button inline-flex items-center border border-l-0 rounded-r px-2 py-1 transition-colors"
                                                         :class="draft.fdesc ? 'border-emerald-300 bg-emerald-50 text-emerald-600 hover:bg-emerald-100' : 'border-gray-300 bg-white text-gray-500 hover:bg-gray-50'"
                                                         title="Deskripsi item">
                                                         <x-heroicon-o-document-text class="h-4 w-4" />
@@ -690,9 +710,9 @@
                             </div>
                         </div>
 
-                        <div x-show="showDescModal" x-cloak class="fixed inset-0 z-[95] flex items-center justify-center"
+                        <div x-show="$store.pemakaianDesc.show" x-cloak class="fixed inset-0 z-[95] flex items-center justify-center"
                             x-transition.opacity>
-                            <div class="absolute inset-0 bg-black/50" @click="closeDesc()"></div>
+                            <div class="absolute inset-0 bg-black/50" @click="$store.pemakaianDesc.close()"></div>
                             <div class="relative bg-white w-[92vw] max-w-lg rounded-2xl shadow-2xl overflow-hidden"
                                 x-transition.scale>
                                 <div class="px-5 py-4 border-b flex items-center">
@@ -701,17 +721,17 @@
                                 </div>
                                 <div class="px-5 py-4 space-y-2">
                                     <label class="block text-sm text-gray-700">Deskripsi</label>
-                                    <textarea x-model="descValue" rows="5" class="w-full border rounded px-3 py-2"
-                                        :readonly="descReadonly"
-                                        :class="descReadonly ? 'bg-gray-100 cursor-not-allowed text-gray-600' : ''"
+                                    <textarea x-model="$store.pemakaianDesc.value" rows="5" class="w-full border rounded px-3 py-2"
+                                        :readonly="$store.pemakaianDesc.readonly"
+                                        :class="$store.pemakaianDesc.readonly ? 'bg-gray-100 cursor-not-allowed text-gray-600' : ''"
                                         placeholder="Tulis deskripsi item di sini..."></textarea>
                                 </div>
                                 <div class="px-5 py-3 border-t flex items-center justify-end gap-2">
-                                    <button type="button" @click="closeDesc()"
+                                    <button type="button" @click="$store.pemakaianDesc.close()"
                                         class="h-9 px-4 rounded-lg bg-gray-100 text-gray-700 text-sm font-medium hover:bg-gray-200">
                                         Tutup
                                     </button>
-                                    <button x-show="!descReadonly" type="button" @click="applyDesc()"
+                                    <button x-show="!$store.pemakaianDesc.readonly" type="button" @click="$store.pemakaianDesc.apply()"
                                         class="h-9 px-4 rounded-lg bg-emerald-600 text-white text-sm font-medium hover:bg-emerald-700">
                                         Simpan
                                     </button>
@@ -1046,30 +1066,33 @@
 
 @push('scripts')
     <script>
+        window.initSelect2 = function(sel = '.select2', selectedValue = null) {
+            if (!window.jQuery || !$.fn || !$.fn.select2) return;
+
+            const $select = $(sel);
+            if (!$select.length) return;
+
+            $select.select2({
+                width: '100%'
+            });
+
+            if (selectedValue !== null && selectedValue !== undefined && selectedValue !== '') {
+                $select.val(selectedValue).trigger('change.select2');
+            }
+        };
+
+        window.syncSelect2Value = function(el, value) {
+            if (!window.jQuery || !$.fn || !$.fn.select2) return;
+
+            const $select = $(el);
+            if (!$select.length || !$select.hasClass('select2-hidden-accessible')) return;
+            const normalized = value ?? '';
+            if (($select.val() ?? '') !== normalized) {
+                $select.val(normalized).trigger('change.select2');
+            }
+        };
+
         $(document).ready(function() {
-            window.initSelect2 = function(sel = '.select2', selectedValue = null) {
-                const $select = $(sel);
-                if (!$select.length) return;
-                if ($select.hasClass('select2-hidden-accessible')) {
-                    $select.select2('destroy');
-                }
-                $select.select2({
-                    width: '100%'
-                });
-                if (selectedValue !== null && selectedValue !== undefined && selectedValue !== '') {
-                    $select.val(selectedValue).trigger('change.select2');
-                }
-            };
-
-            window.syncSelect2Value = function(el, value) {
-                const $select = $(el);
-                if (!$select.length || !$select.hasClass('select2-hidden-accessible')) return;
-                const normalized = value ?? '';
-                if (($select.val() ?? '') !== normalized) {
-                    $select.val(normalized).trigger('change.select2');
-                }
-            };
-
             // Bridge: Select2 -> Alpine
             $(document).on('select2:select select2:clear', 'select', function() {
                 this.dispatchEvent(new Event('input', {
@@ -1079,8 +1102,7 @@
                     bubbles: true
                 }));
             });
-
-            initSelect2();
+            window.initSelect2();
         });
 
         // Map produk untuk auto-fill tabel
@@ -1118,6 +1140,31 @@
                 },
                 // optional: daftar semua desc
                 descList: []
+            });
+            Alpine.store('pemakaianDesc', {
+                show: false,
+                value: '',
+                readonly: false,
+                target: null,
+                open(targetRow, readonly = false) {
+                    if (!targetRow) return;
+                    this.target = targetRow;
+                    this.value = (targetRow?.fdesc || '').toString();
+                    this.readonly = !!readonly;
+                    this.show = true;
+                },
+                close() {
+                    this.show = false;
+                    this.value = '';
+                    this.readonly = false;
+                    this.target = null;
+                },
+                apply() {
+                    if (!this.readonly && this.target) {
+                        this.target.fdesc = this.value;
+                    }
+                    this.close();
+                }
             });
         });
 
@@ -1348,26 +1395,8 @@
                     }
                 },
 
-                showDescModal: false,
-                descTarget: 'draft',
-                descSavedIndex: null,
-                descValue: '',
-                descReadonly: false,
-                _descTarget: null,
                 openDesc(targetRow, readonly = false) {
-                    this._descTarget = targetRow;
-                    this.descValue = targetRow?.fdesc || '';
-                    this.descReadonly = readonly;
-                    this.showDescModal = true;
-                },
-                closeDesc() {
-                    this.showDescModal = false;
-                    this._descTarget = null;
-                    this.descReadonly = false;
-                },
-                applyDesc() {
-                    if (this._descTarget) this._descTarget.fdesc = this.descValue;
-                    this.closeDesc();
+                    Alpine.store('pemakaianDesc').open(targetRow, readonly);
                 },
 
                 itemKey(it) {
