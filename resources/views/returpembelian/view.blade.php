@@ -85,6 +85,25 @@
         input[type=number] {
             -moz-appearance: textfield;
         }
+
+        .desc-inline-field {
+            display: flex !important;
+            width: 100%;
+            min-width: 0;
+            align-items: stretch;
+            flex-wrap: nowrap !important;
+        }
+
+        .desc-inline-field__text {
+            min-width: 0;
+            flex: 1 1 auto;
+        }
+
+        .desc-inline-field__button {
+            flex: 0 0 auto;
+            width: 2.5rem;
+            justify-content: center;
+        }
     </style>
 
     @php
@@ -237,7 +256,7 @@
                                 <tr>
                                     <th class="p-2 text-left w-10">#</th>
                                     <th class="p-2 text-left w-40">Kode Produk</th>
-                                    <th class="p-2 text-left w-72">Nama Produk</th>
+                                    <th class="p-2 text-left" style="width: 20rem; min-width: 20rem;">Nama Produk</th>
                                     <th class="p-2 text-left w-72">No Referensi</th>
                                     <th class="p-2 text-left w-28">Satuan</th>
                                     <th class="p-2 text-right w-24 whitespace-nowrap">Qty.</th>
@@ -252,15 +271,15 @@
                                     <tr class="border-t align-top">
                                         <td class="p-2" x-text="i + 1"></td>
                                         <td class="p-2 font-mono" x-text="it.fitemcode"></td>
-                                        <td class="p-2 text-gray-800">
-                                            <div class="flex w-full max-w-full">
-                                                <div class="min-w-0 flex-1 rounded-l border bg-gray-100 px-2 py-1 text-sm leading-5 text-gray-600 whitespace-normal break-words"
-                                                    x-text="it.fitemname"></div>
-                                                <button type="button" @click="openDesc(it)"
-                                                    class="shrink-0 inline-flex items-center border border-l-0 rounded-r px-2 py-1 transition-colors"
-                                                    :class="it.fdesc ? 'border-emerald-300 bg-emerald-50 text-emerald-600 hover:bg-emerald-100' : 'border-gray-300 bg-white text-gray-500 hover:bg-gray-50'"
-                                                    title="Deskripsi item">
-                                                    <x-heroicon-o-document-text class="h-4 w-4" />
+                                            <td class="p-2 text-gray-800" style="width: 20rem; min-width: 20rem;">
+                                                <div class="desc-inline-field">
+                                                    <div class="desc-inline-field__text rounded-l border bg-gray-100 px-2 py-1 text-sm leading-5 text-gray-600 whitespace-normal break-words"
+                                                        x-text="it.fitemname"></div>
+                                                    <button type="button" @click="openDesc(it)"
+                                                        class="desc-inline-field__button inline-flex items-center border border-l-0 rounded-r px-2 py-1 transition-colors"
+                                                        :class="it.fdesc ? 'border-emerald-300 bg-emerald-50 text-emerald-600 hover:bg-emerald-100' : 'border-gray-300 bg-white text-gray-500 hover:bg-gray-50'"
+                                                        title="Deskripsi item">
+                                                        <x-heroicon-o-document-text class="h-4 w-4" />
                                                 </button>
                                             </div>
                                         </td>
