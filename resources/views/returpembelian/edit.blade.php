@@ -313,7 +313,7 @@
                                         <th class="p-2 text-left" style="width: 20rem; min-width: 20rem;">Nama Produk</th>
                                         <th class="p-2 text-left w-72">No Referensi</th>
                                         <th class="p-2 text-left w-28">Satuan</th>
-                                        <th class="p-2 text-right w-24 whitespace-nowrap">Qty.</th>
+                                        <th class="p-2 text-right w-36 whitespace-nowrap">Qty.</th>
                                         <th class="p-2 text-right w-32 whitespace-nowrap">@ Harga</th>
                                         <th class="p-2 text-right w-36 whitespace-nowrap">Total Harga</th>
                                     </tr>
@@ -940,7 +940,7 @@
                                         <th class="p-2 text-left w-72">Nama Produk</th>
                                         <th class="p-2 text-left w-72">No Referensi</th>
                                         <th class="p-2 text-left w-28">Satuan</th>
-                                        <th class="p-2 text-right w-24 whitespace-nowrap">Qty.</th>
+                                        <th class="p-2 text-right w-36 whitespace-nowrap">Qty.</th>
                                         <th class="p-2 text-right w-32 whitespace-nowrap">@ Harga</th>
                                         <th class="p-2 text-right w-36 whitespace-nowrap">Total Harga</th>
                                         <th class="p-2 text-center w-28">Aksi</th>
