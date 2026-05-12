@@ -34,6 +34,7 @@
         <table id="pengeluaranKasTable" class="min-w-full border text-sm">
             <thead class="bg-gray-100">
                 <tr>
+                    <th class="border px-2 py-2">{{ "Cab." }}</th>
                     <th class="border px-2 py-2">{{ "Voucher No." }}</th>
                     <th class="border px-2 py-2">{{ "Tanggal" }}</th>
                     <th class="border px-2 py-2">{{ "No.Giro/Cek" }}</th>
@@ -48,13 +49,16 @@
                     <tr
                         data-filter-year="{{ \Carbon\Carbon::parse($record->fkasmtdate)->format('Y') }}"
                         data-filter-month="{{ (int) \Carbon\Carbon::parse($record->fkasmtdate)->format('n') }}">
+                        <td class="border px-2 py-2">{{ $record->fbranchcode }}</td>
                         <td class="border px-2 py-2">{{ $record->fkasmtno }}</td>
                         <td class="border px-2 py-2">
                             {{ optional($record->fkasmtdate)->format('d/m/Y') ?? \Carbon\Carbon::parse($record->fkasmtdate)->format('d/m/Y') }}
                         </td>
                         <td class="border px-2 py-2">{{ $record->fnogiro ?: '-' }}</td>
                         <td class="border px-2 py-2">{{ $record->account_summary }}</td>
-                        <td class="border px-2 py-2">{{ $record->description_summary }}</td>
+                        <td class="border px-2 py-2">
+                            <div class="kas-description-cell">{{ $record->description_summary }}</div>
+                        </td>
                         <td class="border px-2 py-2 text-right">
                             <div class="inline-flex items-center justify-end gap-2 w-full">
                                 <span>{{ number_format((float) $record->payment_amount, 2, ',', '.') }}</span>
@@ -124,6 +128,13 @@
 
         #pengeluaranKasTable td.text-right .inline-flex {
             white-space: nowrap;
+        }
+
+        #pengeluaranKasTable .kas-description-cell {
+            white-space: normal;
+            word-break: break-word;
+            overflow-wrap: anywhere;
+            line-height: 1.4;
         }
     </style>
 @endpush

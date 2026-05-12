@@ -70,10 +70,14 @@
                         {
                             data: 'faddress',
                             name: 'faddress',
-                            className: 'text-sm',
+                            className: 'text-sm align-top',
                             defaultContent: '-',
                             orderable: false,
-                            width: '30%'
+                            width: '30%',
+                            render: function(data) {
+                                const value = (data || '-').toString();
+                                return `<div class="supplier-address-cell whitespace-normal break-words leading-5 min-w-0 max-w-[28rem]">${value}</div>`;
+                            }
                         },
                         {
                             data: 'ftelp',
@@ -105,7 +109,7 @@
                         [1, 'asc']
                     ],
                     autoWidth: false,
-                    scrollX: true,
+                    scrollX: false,
                     scrollCollapse: true,
                     initComplete: function() {
                         const api = this.api();
@@ -255,7 +259,7 @@
 
         <div class="flex-1 overflow-auto px-6" style="min-height: 0;">
             <div class="bg-white min-w-max">
-                <table id="supplierBrowseTable" class="min-w-full text-sm display nowrap stripe hover"
+                <table id="supplierBrowseTable" class="min-w-full text-sm display stripe hover"
                     style="width:100%">
                     <thead class="sticky top-0 z-10">
                         <tr class="bg-gradient-to-r from-gray-50 to-gray-100">

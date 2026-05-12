@@ -70,10 +70,14 @@
                         {
                             data: 'faddress',
                             name: 'faddress',
-                            className: 'text-sm',
+                            className: 'text-sm align-top',
                             defaultContent: '-',
                             orderable: false,
-                            width: '30%'
+                            width: '30%',
+                            render: function(data) {
+                                const value = (data || '-').toString();
+                                return `<div class="supplier-address-cell whitespace-normal break-words leading-5 min-w-0 max-w-[28rem]">${value}</div>`;
+                            }
                         },
                         {
                             data: 'ftelp',
@@ -105,7 +109,7 @@
                         [1, 'asc']
                     ],
                     autoWidth: false,
-                    scrollX: true,
+                    scrollX: false,
                     scrollCollapse: true,
                     initComplete: function() {
                         const api = this.api();

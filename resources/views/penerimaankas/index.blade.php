@@ -54,7 +54,9 @@
                         </td>
                         <td class="border px-2 py-2">{{ $record->fnogiro ?: '-' }}</td>
                         <td class="border px-2 py-2">{{ $record->account_summary }}</td>
-                        <td class="border px-2 py-2">{{ $record->description_summary }}</td>
+                        <td class="border px-2 py-2">
+                            <div class="kas-description-cell">{{ $record->description_summary }}</div>
+                        </td>
                         <td class="border px-2 py-2 text-right">
                             <div class="inline-flex items-center justify-end gap-2 w-full">
                                 <span>{{ number_format((float) $record->payment_amount, 2, ',', '.') }}</span>
@@ -124,6 +126,13 @@
 
         #penerimaanKasTable td.text-right .inline-flex {
             white-space: nowrap;
+        }
+
+        #penerimaanKasTable .kas-description-cell {
+            white-space: normal;
+            word-break: break-word;
+            overflow-wrap: anywhere;
+            line-height: 1.4;
         }
     </style>
 @endpush
