@@ -4,6 +4,25 @@
 
 @section('content')
     <div class="bg-white rounded shadow p-4">
+        @php
+            $availableYears = collect($records ?? [])
+                ->map(function ($record) {
+                    $date = $record->fkasmtdate ?? null;
+                    if (!$date) {
+                        return null;
+                    }
+
+                    try {
+                        return \Carbon\Carbon::parse($date)->format('Y');
+                    } catch (\Throwable $e) {
+                        return null;
+                    }
+                })
+                ->filter()
+                ->unique()
+                ->sortDesc()
+                ->values();
+        @endphp
         <div class="flex justify-end items-center mb-4">
             <div></div>
             <a href="{{ route('penerimaankas.create') }}"
@@ -26,7 +45,9 @@
             </thead>
             <tbody>
                 @foreach ($records as $record)
-                    <tr>
+                    <tr
+                        data-filter-year="{{ \Carbon\Carbon::parse($record->fkasmtdate)->format('Y') }}"
+                        data-filter-month="{{ (int) \Carbon\Carbon::parse($record->fkasmtdate)->format('n') }}">
                         <td class="border px-2 py-2">{{ $record->fkasmtno }}</td>
                         <td class="border px-2 py-2">
                             {{ optional($record->fkasmtdate)->format('d/m/Y') ?? \Carbon\Carbon::parse($record->fkasmtdate)->format('d/m/Y') }}
@@ -90,6 +111,13 @@
             gap: .5rem;
         }
 
+        .dataTables_wrapper .dt-search {
+            display: flex;
+            align-items: center;
+            gap: .75rem;
+            flex-wrap: wrap;
+        }
+
         .dt-container .dt-search .dt-input,
         .dataTables_wrapper .dt-search .dt-input {
             width: 28rem !important;
@@ -108,11 +136,46 @@
     <script src="https://cdn.datatables.net/2.1.6/js/dataTables.min.js"></script>
     <script>
         $(function() {
-            $('#penerimaanKasTable').DataTable({
+            const filterState = {
+                year: '',
+                month: ''
+            };
+
+            const dateFilter = function(settings, data, dataIndex) {
+                if (settings.nTable.id !== 'penerimaanKasTable') {
+                    return true;
+                }
+
+                if (!filterState.year && !filterState.month) {
+                    return true;
+                }
+
+                const rowNode = settings.aoData?.[dataIndex]?.nTr;
+                if (!rowNode) {
+                    return true;
+                }
+
+                const rowYear = String(rowNode.dataset.filterYear || '');
+                const rowMonth = String(rowNode.dataset.filterMonth || '');
+
+                if (filterState.year && rowYear !== filterState.year) {
+                    return false;
+                }
+
+                if (filterState.month && rowMonth !== filterState.month) {
+                    return false;
+                }
+
+                return true;
+            };
+
+            $.fn.dataTable.ext.search = $.fn.dataTable.ext.search.filter(fn => fn !== dateFilter);
+            $.fn.dataTable.ext.search.push(dateFilter);
+
+            const table = $('#penerimaanKasTable').DataTable({
                 pageLength: 10,
                 lengthMenu: [10, 25, 50, 100],
                 order: [
-                    [1, 'desc'],
                     [0, 'desc']
                 ],
                 layout: {
@@ -129,8 +192,71 @@
                     {
                         targets: 5,
                         className: 'text-right'
+                    },
+                    {
+                        targets: [1, 3, 5],
+                        orderable: false,
+                        searchable: false
+                    },
+                    {
+                        targets: [0, 2, 4],
+                        orderable: true,
+                        searchable: true
                     }
                 ],
+                initComplete: function() {
+                    const wrapper = document.querySelector('#penerimaanKasTable_wrapper .dt-search');
+                    if (!wrapper || wrapper.querySelector('[data-role="year-filter"]')) {
+                        return;
+                    }
+
+                    const filterWrap = document.createElement('div');
+                    filterWrap.className = 'flex items-center gap-3 flex-wrap';
+                    filterWrap.innerHTML = `
+                        <div class="flex items-center gap-2">
+                            <span class="text-sm text-gray-700">Tahun</span>
+                            <select data-role="year-filter" class="border rounded px-2 py-1 w-24">
+                                <option value="">Semua</option>
+                                @foreach ($availableYears as $yr)
+                                    <option value="{{ $yr }}">{{ $yr }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <span class="text-sm text-gray-700">Bulan</span>
+                            <select data-role="month-filter" class="border rounded px-2 py-1">
+                                <option value="">Semua</option>
+                                <option value="1">Januari</option>
+                                <option value="2">Februari</option>
+                                <option value="3">Maret</option>
+                                <option value="4">April</option>
+                                <option value="5">Mei</option>
+                                <option value="6">Juni</option>
+                                <option value="7">Juli</option>
+                                <option value="8">Agustus</option>
+                                <option value="9">September</option>
+                                <option value="10">Oktober</option>
+                                <option value="11">November</option>
+                                <option value="12">Desember</option>
+                            </select>
+                        </div>
+                    `;
+
+                    wrapper.appendChild(filterWrap);
+
+                    const yearSelect = wrapper.querySelector('[data-role="year-filter"]');
+                    const monthSelect = wrapper.querySelector('[data-role="month-filter"]');
+
+                    yearSelect?.addEventListener('change', function() {
+                        filterState.year = this.value;
+                        table.draw();
+                    });
+
+                    monthSelect?.addEventListener('change', function() {
+                        filterState.month = this.value;
+                        table.draw();
+                    });
+                }
             });
         });
     </script>
