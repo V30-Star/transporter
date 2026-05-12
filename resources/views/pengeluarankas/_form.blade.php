@@ -18,6 +18,13 @@
     $headerAccountOptions = collect($headerAccounts ?? []);
     $accountOptions = collect($accounts ?? []);
     $subaccountOptions = collect($subaccounts ?? []);
+    $branchOptions = collect($branches ?? []);
+    $resolvedBranchCode = (string) old('fbranchcode', $pengeluaranKas->fbranchcode ?? ($currentBranchCode ?? ''));
+    $resolvedBranchLabel = $branchOptions
+        ->firstWhere('fcabangkode', $resolvedBranchCode);
+    $resolvedBranchLabel = $resolvedBranchLabel
+        ? trim($resolvedBranchLabel->fcabangkode . ' - ' . $resolvedBranchLabel->fcabangname)
+        : $resolvedBranchCode;
     $journalAccountValidation = $journalAccountValidation ?? ['system' => [], 'stock' => [], 'reference' => []];
     $accountCatalog = $accountOptions
         ->mapWithKeys(function ($account) {
@@ -97,6 +104,17 @@
         @endif
 
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+                <label class="block text-sm font-medium mb-1">{{ 'Cabang' }}</label>
+                <input type="text"
+                    value="{{ $resolvedBranchLabel }}"
+                    class="w-full border rounded px-3 py-2 bg-gray-100 cursor-not-allowed" readonly>
+                <input type="hidden" name="fbranchcode" value="{{ $resolvedBranchCode }}">
+                @error('fbranchcode')
+                    <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+                @enderror
+            </div>
+
             <div>
                 <label class="block text-sm font-medium mb-1">{{ 'Voucher No.' }}</label>
                 @if ($isReadOnly)

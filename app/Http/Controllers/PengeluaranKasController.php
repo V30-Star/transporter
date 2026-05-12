@@ -31,6 +31,7 @@ class PengeluaranKasController extends Controller
             ->select([
                 'trkasmt.fkasmtid',
                 'trkasmt.fkasmtno',
+                'trkasmt.fbranchcode',
                 'trkasmt.fkasmtdate',
                 'trkasmt.fnogiro',
                 'trkasmt.fdkheader',
@@ -104,6 +105,7 @@ class PengeluaranKasController extends Controller
                 'fkasmtid' => $headerId,
                 'fkasmtno' => $voucherNo,
                 'ftrancode' => self::TRAN_CODE,
+                'fbranchcode' => $payload['fbranchcode'],
                 'fkasmtdate' => $payload['fkasmtdate'],
                 'frate' => 1,
                 'fwhom' => $payload['fwhom'] ?? null,
@@ -212,6 +214,7 @@ class PengeluaranKasController extends Controller
 
             $header->update([
                 'fkasmtno' => $voucherNoInput !== '' ? $voucherNoInput : $header->fkasmtno,
+                'fbranchcode' => $payload['fbranchcode'],
                 'fkasmtdate' => $payload['fkasmtdate'],
                 'fwhom' => $payload['fwhom'] ?? null,
                 'faccountheader' => $headerAccount?->faccount,
@@ -333,6 +336,10 @@ class PengeluaranKasController extends Controller
         return array_merge([
             'pengeluaranKas' => $header,
             'details' => $details->isNotEmpty() ? $details : collect([new Trkasdt]),
+            'currentBranchCode' => $this->resolveBranchCode(),
+            'branches' => DB::table('mscabang')
+                ->orderBy('fcabangkode')
+                ->get(['fcabangid', 'fcabangkode', 'fcabangname']),
             'giroMundurHeaderAccount' => ($giroCode = $this->resolveSetAccountCode(self::GIRO_MUNDUR_ACCOUNT_NAME))
                 ? Account::query()->where('faccount', $giroCode)->first(['faccid', 'faccount', 'faccname'])
                 : null,
@@ -364,6 +371,7 @@ class PengeluaranKasController extends Controller
         $request->merge([
             'details' => $this->filterEmptyDetailRows($request->input('details', [])),
             'fgiromundur' => $isGiroMundur ? '1' : '0',
+            'fbranchcode' => trim((string) $request->input('fbranchcode', $header?->fbranchcode ?? $this->resolveBranchCode())),
         ]);
 
         $payload = $request->validate([
@@ -374,6 +382,7 @@ class PengeluaranKasController extends Controller
                 Rule::unique('trkasmt', 'fkasmtno')->ignore($header?->fkasmtno, 'fkasmtno'),
             ],
             'fkasmtdate' => ['required', 'date'],
+            'fbranchcode' => ['required', 'string', 'max:10', Rule::exists('mscabang', 'fcabangkode')],
             'fnogiro' => ['nullable', 'string', 'max:35', Rule::unique('trkasmt', 'fnogiro')->ignore($header?->fkasmtid, 'fkasmtid')],
             'fwhom' => ['nullable', 'string', 'max:40'],
             'fgiromundur' => ['nullable', 'in:0,1'],
@@ -394,6 +403,7 @@ class PengeluaranKasController extends Controller
             'details.*.fkasdtvalue' => ['required', 'numeric', 'not_in:0'],
         ], [
             'fkasmtdate.required' => 'Tanggal wajib diisi.',
+            'fbranchcode.required' => 'Cabang wajib diisi.',
             'fnogiro.unique' => 'No.Giro/Cek sudah digunakan.',
             'ftgljatuhtempo.required' => 'Tgl.Jatuh Tempo wajib diisi saat Giro Mundur dicentang.',
             'ftgljatuhtempo.before_or_equal' => 'Tgl.Jatuh Tempo tidak boleh melebihi Tanggal.',

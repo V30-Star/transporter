@@ -34,6 +34,7 @@
         <table id="penerimaanKasTable" class="min-w-full border text-sm">
             <thead class="bg-gray-100">
                 <tr>
+                    <th class="border px-2 py-2">{{ "Cab." }}</th>
                     <th class="border px-2 py-2">{{ "No.Voucher" }}</th>
                     <th class="border px-2 py-2">{{ "Tanggal" }}</th>
                     <th class="border px-2 py-2">{{ "No.Giro" }}</th>
@@ -48,6 +49,7 @@
                     <tr
                         data-filter-year="{{ \Carbon\Carbon::parse($record->fkasmtdate)->format('Y') }}"
                         data-filter-month="{{ (int) \Carbon\Carbon::parse($record->fkasmtdate)->format('n') }}">
+                        <td class="border px-2 py-2">{{ $record->fbranchcode }}</td>
                         <td class="border px-2 py-2">{{ $record->fkasmtno }}</td>
                         <td class="border px-2 py-2">
                             {{ optional($record->fkasmtdate)->format('d/m/Y') ?? \Carbon\Carbon::parse($record->fkasmtdate)->format('d/m/Y') }}
