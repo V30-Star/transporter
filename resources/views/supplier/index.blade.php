@@ -43,7 +43,6 @@
                     <th class="border px-2 py-2">Nama Supplier</th>
                     <th class="border px-2 py-2 no-sort">Kontak</th>
                     <th class="border px-2 py-2 no-sort">Alamat</th>
-                    <th class="border px-2 py-2 no-sort">Kota</th>
                     <th class="border px-2 py-2 no-sort">Status</th>
                     <th class="border px-2 py-2" data-col="statusRaw">StatusRaw</th>
                     @if ($showActionsColumn)
@@ -58,7 +57,6 @@
                         <td>{{ $item->fsuppliername }}</td>
                         <td>{{ $item->fkontakperson ?? '-' }}</td>
                         <td> {{ !empty(trim($item->faddress)) ? $item->faddress : '-' }}
-                        <td>{{ $item->faddress }}</td>
                         </td>
                         <td>
                             @php $isActive = (string)$item->fnonactive === '0'; @endphp
@@ -198,9 +196,6 @@
                     title: 'Alamat'
                 },
                 {
-                    title: 'Kota'
-                },
-                {
                     title: 'Aksi',
                     orderable: false,
                     searchable: false
@@ -217,9 +212,6 @@
                 {
                     title: 'Alamat'
                 },
-                {
-                    title: 'Kota'
-                }
             ];
 
             $('#supplierTable').DataTable({
