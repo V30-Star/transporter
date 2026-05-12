@@ -299,7 +299,8 @@
             };
 
             window.showPoApprovalLocked = function() {
-                const message = 'Order Pembelian belum dapat diedit karena status approval saat ini belum mengizinkan edit.';
+                const message =
+                    'Order Pembelian belum dapat diedit karena status approval saat ini belum mengizinkan edit.';
                 if (window.Swal?.fire) {
                     window.Swal.fire({
                         icon: 'info',
@@ -339,8 +340,10 @@
                     name: 'fclose'
                 },
                 {
-                    data: 'fapproval',
-                    name: 'fapproval'
+                    name: 'fuserapproved',
+                    data: function(row, type, val, meta) {
+                        return row.fuserapproved || row.fuserapproved2 || '-';
+                    }
                 }
             ];
 

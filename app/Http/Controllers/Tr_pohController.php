@@ -45,7 +45,7 @@ class Tr_pohController extends Controller
     {
         return ApprovalState::initializeApprovalColumns(
             array_slice($this->getApprovalRecipients(), 0, 2),
-            fn () => $this->generateApprovalToken()
+            fn() => $this->generateApprovalToken()
         );
     }
 
@@ -105,6 +105,8 @@ class Tr_pohController extends Controller
                     'tr_poh.fusercreate',
                     'tr_poh.fapproval',
                     'tr_poh.fdatetime',
+                    'tr_poh.fuserapproved',
+                    'tr_poh.fuserapproved2',
                     'mssupplier.fsuppliername',
                     'tr_prh.fprno',
                     DB::raw('STRING_AGG(DISTINCT tr_pod.frefdtno, \', \') as frefdtno'),
@@ -150,6 +152,8 @@ class Tr_pohController extends Controller
                 'tr_poh.fclose',
                 'tr_poh.fusercreate',
                 'tr_poh.fapproval',
+                'tr_poh.fuserapproved',
+                'tr_poh.fuserapproved2',
                 'tr_poh.fdatetime', // Pastikan semua kolom tr_poh masuk atau gunakan agregat
                 'mssupplier.fsuppliername',
                 'tr_prh.fprno'
@@ -182,6 +186,9 @@ class Tr_pohController extends Controller
                     'fpodate' => $row->fpodate,
                     'fclose' => $row->fclose == '1' ? 'Close' : 'Open',
                     'fusercreate' => $row->fusercreate,
+                    'fdatetime' => $row->fdatetime,
+                    'fuserapproved' => $row->fuserapproved,
+                    'fuserapproved2' => $row->fuserapproved2,
                     'fapproval' => $row->fapproval,
                     'fapproval2' => $row->fapproval2,
                     'fsuppliername' => $row->fsuppliername,
@@ -1914,8 +1921,8 @@ class Tr_pohController extends Controller
     {
         $referenceDetailIds = collect($rowsPod)
             ->pluck('frefdtid')
-            ->map(fn ($id) => (int) $id)
-            ->filter(fn ($id) => $id > 0)
+            ->map(fn($id) => (int) $id)
+            ->filter(fn($id) => $id > 0)
             ->unique()
             ->values()
             ->all();
@@ -1951,6 +1958,6 @@ class Tr_pohController extends Controller
             return 'Nomor referensi ini sudah pernah dibuat di transaksi lain.';
         }
 
-        return 'Nomor referensi '.$refNo.' sudah pernah dibuat di transaksi nomor '.$transactionNo.'.';
+        return 'Nomor referensi ' . $refNo . ' sudah pernah dibuat di transaksi nomor ' . $transactionNo . '.';
     }
 }
