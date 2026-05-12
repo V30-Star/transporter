@@ -88,6 +88,25 @@
             -moz-appearance: textfield;
         }
 
+        .desc-inline-field {
+            display: flex !important;
+            width: 100%;
+            min-width: 0;
+            align-items: stretch;
+            flex-wrap: nowrap !important;
+        }
+
+        .desc-inline-field__text {
+            min-width: 0;
+            flex: 1 1 auto;
+        }
+
+        .desc-inline-field__button {
+            flex: 0 0 auto;
+            width: 2.5rem;
+            justify-content: center;
+        }
+
         .readonly-mode input:not([type="hidden"]),
         .readonly-mode select,
         .readonly-mode textarea,
@@ -343,7 +362,17 @@
                                                 <tr class="border-t align-top">
                                                     <td class="p-2" x-text="i + 1"></td>
                                                     <td class="p-2 font-mono" x-text="it.fitemcode"></td>
-                                                    <td class="p-2 text-gray-800" x-text="it.fitemname"></td>
+                                                    <td class="p-2 text-gray-800" style="width: 27rem; min-width: 27rem;">
+                                                    <div class="desc-inline-field">
+                                                        <div class="desc-inline-field__text rounded-l border bg-gray-100 px-2 py-1 text-sm leading-5 text-gray-600 whitespace-normal break-words"
+                                                            x-text="it.fitemname"></div>
+                                                        <button type="button" @click="openDesc('saved', i, true)"
+                                                            class="desc-inline-field__button inline-flex items-center rounded-r border border-l-0 px-2 py-1 transition-colors"
+                                                            :class="descButtonClass(it.fdesc)" title="Deskripsi">
+                                                                <x-heroicon-o-document-text class="w-4 h-4" />
+                                                            </button>
+                                                        </div>
+                                                    </td>
                                                     <td class="p-2 text-left" x-text="it.fsatuan"></td>
                                                     <td class="p-2 text-right" x-text="fmt(it.fqty)"></td>
                                                     <td class="p-2 text-right" x-text="fmt(it.fprice)"></td>
@@ -404,7 +433,17 @@
                                                 <tr class="border-t align-top">
                                                     <td class="p-2" x-text="i + 1"></td>
                                                     <td class="p-2 font-mono" x-text="it.fitemcode"></td>
-                                                    <td class="p-2 text-gray-800" x-text="it.fitemname"></td>
+                                                    <td class="p-2 text-gray-800" style="width: 27rem; min-width: 27rem;">
+                                                    <div class="desc-inline-field">
+                                                        <div class="desc-inline-field__text rounded-l border bg-gray-100 px-2 py-1 text-sm leading-5 text-gray-600 whitespace-normal break-words"
+                                                            x-text="it.fitemname"></div>
+                                                        <button type="button" @click="openDesc('saved', i)"
+                                                            class="desc-inline-field__button inline-flex items-center rounded-r border border-l-0 px-2 py-1 transition-colors"
+                                                            :class="descButtonClass(it.fdesc)" title="Deskripsi">
+                                                                <x-heroicon-o-document-text class="w-4 h-4" />
+                                                            </button>
+                                                        </div>
+                                                    </td>
                                                     <td class="p-2 text-left" x-text="it.fsatuan"></td>
                                                     <td class="p-2 text-right" x-text="fmt(it.fqty)"></td>
 
@@ -622,7 +661,17 @@
                                     <tr class="border-t align-top">
                                         <td class="p-2" x-text="i + 1"></td>
                                         <td class="p-2 font-mono" x-text="it.fitemcode"></td>
-                                        <td class="p-2 text-gray-800" x-text="it.fitemname"></td>
+                                        <td class="p-2 text-gray-800" style="width: 27rem; min-width: 27rem;">
+                                            <div class="flex w-full min-w-0 items-stretch flex-nowrap">
+                                                <div class="min-w-0 flex-1 rounded-l border bg-gray-100 px-2 py-1 text-sm leading-5 text-gray-600 whitespace-normal break-words"
+                                                    x-text="it.fitemname"></div>
+                                                <button type="button" @click="openDesc('saved', i)"
+                                                    class="shrink-0 inline-flex items-center rounded-r border border-l-0 px-2 py-1 transition-colors"
+                                                    :class="descButtonClass(it.fdesc)" title="Deskripsi">
+                                                    <x-heroicon-o-document-text class="w-4 h-4" />
+                                                </button>
+                                            </div>
+                                        </td>
                                         <td class="p-2 text-left" x-text="it.fsatuan"></td>
                                         <td class="p-2 text-right" x-text="fmt(it.fqty)"></td>
                                         <td class="p-2 text-right" x-text="fmt(it.fprice)"></td>
@@ -647,6 +696,7 @@
                                             <input type="hidden" name="fprice[]" :value="it.fprice">
                                             <input type="hidden" name="ftotal[]" :value="it.ftotal">
                                             <input type="hidden" name="fketdt[]" :value="it.fketdt">
+                                            <input type="hidden" name="fdesc[]" :value="it.fdesc">
                                         </td>
                                     </tr>
                                 </template>
@@ -673,9 +723,15 @@
 
                                     <!-- Nama Produk (readonly) -->
                                     <td class="p-2">
-                                        <input type="text"
-                                            class="w-full border rounded px-2 py-1 bg-gray-100 text-gray-600"
-                                            :value="editRow.fitemname" disabled>
+                                        <div class="desc-inline-field">
+                                            <div class="desc-inline-field__text rounded-l border bg-gray-100 px-2 py-1 text-sm leading-5 text-gray-600 whitespace-normal break-words"
+                                                x-text="editRow.fitemname"></div>
+                                            <button type="button" @click="openDesc('edit')"
+                                                class="desc-inline-field__button inline-flex items-center rounded-r border border-l-0 px-2 py-1 transition-colors"
+                                                :class="descButtonClass(editRow.fdesc)" title="Deskripsi">
+                                                <x-heroicon-o-document-text class="w-4 h-4" />
+                                            </button>
+                                        </div>
                                     </td>
 
                                     <!-- Satuan -->
@@ -749,9 +805,15 @@
 
                                     <!-- Nama Produk (readonly) -->
                                     <td class="p-2">
-                                        <input type="text"
-                                            class="w-full border rounded px-2 py-1 bg-gray-100 text-gray-600"
-                                            :value="draft.fitemname" disabled>
+                                        <div class="desc-inline-field">
+                                            <div class="desc-inline-field__text rounded-l border bg-gray-100 px-2 py-1 text-sm leading-5 text-gray-600 whitespace-normal break-words"
+                                                x-text="draft.fitemname"></div>
+                                            <button type="button" @click="openDesc('draft')"
+                                                class="desc-inline-field__button inline-flex items-center rounded-r border border-l-0 px-2 py-1 transition-colors"
+                                                :class="descButtonClass(draft.fdesc)" title="Deskripsi">
+                                                <x-heroicon-o-document-text class="w-4 h-4" />
+                                            </button>
+                                        </div>
                                     </td>
 
                                     <!-- Satuan -->
@@ -811,6 +873,90 @@
                             </div>
                         </div>
                     </div>
+                    <div x-show="showDescModal" x-cloak class="fixed inset-0 z-[95] flex items-center justify-center"
+                        x-transition.opacity>
+                        <div class="absolute inset-0 bg-black/50" @click="closeDesc()"></div>
+
+                        <div class="relative bg-white w-[92vw] max-w-lg rounded-2xl shadow-2xl overflow-hidden"
+                            x-transition.scale>
+                            <div class="px-5 py-4 border-b flex items-center">
+                                <x-heroicon-o-document-text class="w-6 h-6 text-blue-600 mr-2" />
+                                <h3 class="text-lg font-semibold text-gray-800">Isi Deskripsi Item</h3>
+                            </div>
+
+                            <div class="px-5 py-4 space-y-4">
+                                <div class="rounded-lg border border-slate-200 bg-slate-50 px-4 py-3">
+                                    <div class="space-y-2 text-sm text-slate-700">
+                                        <div>
+                                            <span class="font-medium text-slate-900">Kode Produk:</span>
+                                            <span x-text="descItemCode || '-'"></span>
+                                        </div>
+                                        <div>
+                                            <span class="font-medium text-slate-900">Nama Produk:</span>
+                                            <span x-text="descItemName || '-'"></span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <label class="block text-sm text-gray-700">Deskripsi</label>
+                                <textarea x-model="descValue" rows="5" class="w-full border rounded px-3 py-2"
+                                    :readonly="descReadonly" placeholder="Tulis deskripsi item di sini..."></textarea>
+                            </div>
+
+                            <div class="px-5 py-3 border-t flex items-center justify-end gap-2">
+                                <button type="button" @click="closeDesc()"
+                                    class="h-9 px-4 rounded-lg bg-gray-100 text-gray-700 text-sm font-medium hover:bg-gray-200">
+                                    Batal
+                                </button>
+                                <button x-show="!descReadonly" type="button" @click="applyDesc()"
+                                    class="h-9 px-4 rounded-lg bg-emerald-600 text-white text-sm font-medium hover:bg-emerald-700">
+                                    Simpan
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    <div x-show="showDescModal" x-cloak class="fixed inset-0 z-[95] flex items-center justify-center"
+                        x-transition.opacity>
+                        <div class="absolute inset-0 bg-black/50" @click="closeDesc()"></div>
+
+                        <div class="relative bg-white w-[92vw] max-w-lg rounded-2xl shadow-2xl overflow-hidden"
+                            x-transition.scale>
+                            <div class="px-5 py-4 border-b flex items-center">
+                                <x-heroicon-o-document-text class="w-6 h-6 text-blue-600 mr-2" />
+                                <h3 class="text-lg font-semibold text-gray-800">Isi Deskripsi Item</h3>
+                            </div>
+
+                            <div class="px-5 py-4 space-y-4">
+                                <div class="rounded-lg border border-slate-200 bg-slate-50 px-4 py-3">
+                                    <div class="space-y-2 text-sm text-slate-700">
+                                        <div>
+                                            <span class="font-medium text-slate-900">Kode Produk:</span>
+                                            <span x-text="descItemCode || '-'"></span>
+                                        </div>
+                                        <div>
+                                            <span class="font-medium text-slate-900">Nama Produk:</span>
+                                            <span x-text="descItemName || '-'"></span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <label class="block text-sm text-gray-700">Deskripsi</label>
+                                <textarea x-model="descValue" rows="5" class="w-full border rounded px-3 py-2"
+                                    :readonly="descReadonly" placeholder="Tulis deskripsi item di sini..."></textarea>
+                            </div>
+
+                            <div class="px-5 py-3 border-t flex items-center justify-end gap-2">
+                                <button type="button" @click="closeDesc()"
+                                    class="h-9 px-4 rounded-lg bg-gray-100 text-gray-700 text-sm font-medium hover:bg-gray-200">
+                                    Batal
+                                </button>
+                                <button x-show="!descReadonly" type="button" @click="applyDesc()"
+                                    class="h-9 px-4 rounded-lg bg-emerald-600 text-white text-sm font-medium hover:bg-emerald-700">
+                                    Simpan
+                                </button>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </template>
 
@@ -839,7 +985,17 @@
                                     <tr class="border-t align-top">
                                         <td class="p-2" x-text="i + 1"></td>
                                         <td class="p-2 font-mono" x-text="it.fitemcode"></td>
-                                        <td class="p-2 text-gray-800" x-text="it.fitemname"></td>
+                                        <td class="p-2 text-gray-800" style="width: 27rem; min-width: 27rem;">
+                                            <div class="flex w-full min-w-0 items-stretch flex-nowrap">
+                                                <div class="min-w-0 flex-1 rounded-l border bg-gray-100 px-2 py-1 text-sm leading-5 text-gray-600 whitespace-normal break-words"
+                                                    x-text="it.fitemname"></div>
+                                                <button type="button" @click="openDesc('saved', i)"
+                                                    class="shrink-0 inline-flex items-center rounded-r border border-l-0 px-2 py-1 transition-colors"
+                                                    :class="descButtonClass(it.fdesc)" title="Deskripsi">
+                                                    <x-heroicon-o-document-text class="w-4 h-4" />
+                                                </button>
+                                            </div>
+                                        </td>
                                         <td class="p-2 text-left" x-text="it.fsatuan"></td>
                                         <td class="p-2 text-right" x-text="fmt(it.fqty)"></td>
                                         <td class="p-2 text-center">
@@ -862,6 +1018,7 @@
                                             <input type="hidden" name="fprice[]" :value="it.fprice">
                                             <input type="hidden" name="ftotal[]" :value="it.ftotal">
                                             <input type="hidden" name="fketdt[]" :value="it.fketdt">
+                                            <input type="hidden" name="fdesc[]" :value="it.fdesc">
                                         </td>
                                     </tr>
                                 </template>
@@ -888,9 +1045,15 @@
 
                                     <!-- Nama Produk (readonly) -->
                                     <td class="p-2">
-                                        <input type="text"
-                                            class="w-full border rounded px-2 py-1 bg-gray-100 text-gray-600"
-                                            :value="editRow.fitemname" disabled>
+                                        <div class="flex w-full min-w-0 items-stretch flex-nowrap">
+                                            <div class="min-w-0 flex-1 rounded-l border bg-gray-100 px-2 py-1 text-sm leading-5 text-gray-600 whitespace-normal break-words"
+                                                x-text="editRow.fitemname"></div>
+                                            <button type="button" @click="openDesc('edit')"
+                                                class="shrink-0 inline-flex items-center rounded-r border border-l-0 px-2 py-1 transition-colors"
+                                                :class="descButtonClass(editRow.fdesc)" title="Deskripsi">
+                                                <x-heroicon-o-document-text class="w-4 h-4" />
+                                            </button>
+                                        </div>
                                     </td>
 
                                     <!-- Satuan -->
@@ -953,9 +1116,15 @@
 
                                     <!-- Nama Produk (readonly) -->
                                     <td class="p-2">
-                                        <input type="text"
-                                            class="w-full border rounded px-2 py-1 bg-gray-100 text-gray-600"
-                                            :value="draft.fitemname" disabled>
+                                        <div class="flex w-full min-w-0 items-stretch flex-nowrap">
+                                            <div class="min-w-0 flex-1 rounded-l border bg-gray-100 px-2 py-1 text-sm leading-5 text-gray-600 whitespace-normal break-words"
+                                                x-text="draft.fitemname"></div>
+                                            <button type="button" @click="openDesc('draft')"
+                                                class="shrink-0 inline-flex items-center rounded-r border border-l-0 px-2 py-1 transition-colors"
+                                                :class="descButtonClass(draft.fdesc)" title="Deskripsi">
+                                                <x-heroicon-o-document-text class="w-4 h-4" />
+                                            </button>
+                                        </div>
                                     </td>
 
                                     <!-- Satuan -->
@@ -1856,9 +2025,62 @@
             descTarget: 'draft',
             descSavedIndex: null,
             descValue: '',
-            openDesc() {},
-            closeDesc() {},
-            applyDesc() {},
+            descReadonly: false,
+            descItemCode: '',
+            descItemName: '',
+            hasDesc(value) {
+                return String(value ?? '').trim() !== '';
+            },
+            descButtonClass(value) {
+                return this.hasDesc(value)
+                    ? 'border-emerald-200 bg-emerald-50 text-emerald-700 hover:bg-emerald-100'
+                    : 'border-slate-200 bg-slate-50 text-slate-700 hover:bg-slate-100';
+            },
+            getDescRow(target = 'draft', index = null) {
+                if (target === 'saved' && index !== null) return this.savedItems[index] || null;
+                if (target === 'edit') return this.editRow || null;
+                return this.draft || null;
+            },
+            openDesc(target = 'draft', index = null, readonly = false) {
+                const row = this.getDescRow(target, index);
+                const itemCode = (row?.fitemcode || '').toString().trim();
+                if (!itemCode) return;
+
+                this.descTarget = target;
+                this.descSavedIndex = index;
+                this.descReadonly = readonly;
+                this.descItemCode = itemCode;
+                this.descItemName = (row?.fitemname || '').toString().trim();
+                this.descValue = (row?.fdesc || '').toString();
+                this.showDescModal = true;
+            },
+            closeDesc() {
+                this.showDescModal = false;
+                this.descTarget = 'draft';
+                this.descSavedIndex = null;
+                this.descValue = '';
+                this.descReadonly = false;
+                this.descItemCode = '';
+                this.descItemName = '';
+            },
+            applyDesc() {
+                if (this.descReadonly) {
+                    this.closeDesc();
+                    return;
+                }
+
+                if (this.descTarget === 'saved' && this.descSavedIndex !== null) {
+                    if (this.savedItems[this.descSavedIndex]) {
+                        this.savedItems[this.descSavedIndex].fdesc = this.descValue;
+                    }
+                } else if (this.descTarget === 'edit') {
+                    this.editRow.fdesc = this.descValue;
+                } else {
+                    this.draft.fdesc = this.descValue;
+                }
+
+                this.showDescModal = false;
+            },
 
             itemKey(it) {
                 return `${(it.fitemcode ?? '').toString().trim()}::${(it.frefdtno ?? '').toString().trim()}`;
@@ -2187,9 +2409,62 @@
             descTarget: 'draft',
             descSavedIndex: null,
             descValue: '',
-            openDesc() {},
-            closeDesc() {},
-            applyDesc() {},
+            descReadonly: false,
+            descItemCode: '',
+            descItemName: '',
+            hasDesc(value) {
+                return String(value ?? '').trim() !== '';
+            },
+            descButtonClass(value) {
+                return this.hasDesc(value)
+                    ? 'border-emerald-200 bg-emerald-50 text-emerald-700 hover:bg-emerald-100'
+                    : 'border-slate-200 bg-slate-50 text-slate-700 hover:bg-slate-100';
+            },
+            getDescRow(target = 'draft', index = null) {
+                if (target === 'saved' && index !== null) return this.savedItems[index] || null;
+                if (target === 'edit') return this.editRow || null;
+                return this.draft || null;
+            },
+            openDesc(target = 'draft', index = null, readonly = false) {
+                const row = this.getDescRow(target, index);
+                const itemCode = (row?.fitemcode || '').toString().trim();
+                if (!itemCode) return;
+
+                this.descTarget = target;
+                this.descSavedIndex = index;
+                this.descReadonly = readonly;
+                this.descItemCode = itemCode;
+                this.descItemName = (row?.fitemname || '').toString().trim();
+                this.descValue = (row?.fdesc || '').toString();
+                this.showDescModal = true;
+            },
+            closeDesc() {
+                this.showDescModal = false;
+                this.descTarget = 'draft';
+                this.descSavedIndex = null;
+                this.descValue = '';
+                this.descReadonly = false;
+                this.descItemCode = '';
+                this.descItemName = '';
+            },
+            applyDesc() {
+                if (this.descReadonly) {
+                    this.closeDesc();
+                    return;
+                }
+
+                if (this.descTarget === 'saved' && this.descSavedIndex !== null) {
+                    if (this.savedItems[this.descSavedIndex]) {
+                        this.savedItems[this.descSavedIndex].fdesc = this.descValue;
+                    }
+                } else if (this.descTarget === 'edit') {
+                    this.editRow.fdesc = this.descValue;
+                } else {
+                    this.draft.fdesc = this.descValue;
+                }
+
+                this.showDescModal = false;
+            },
 
             itemKey(it) {
                 return `${(it.fitemcode ?? '').toString().trim()}::${(it.frefdtno ?? '').toString().trim()}`;

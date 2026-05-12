@@ -85,6 +85,25 @@
         input[type=number] {
             -moz-appearance: textfield
         }
+
+        .desc-inline-field {
+            display: flex !important;
+            width: 100%;
+            min-width: 0;
+            align-items: stretch;
+            flex-wrap: nowrap !important;
+        }
+
+        .desc-inline-field__text {
+            min-width: 0;
+            flex: 1 1 auto;
+        }
+
+        .desc-inline-field__button {
+            flex: 0 0 auto;
+            width: 2.5rem;
+            justify-content: center;
+        }
     </style>
 
     <div x-data="{ open: true }">
@@ -195,7 +214,7 @@
                                 <tr>
                                     <th class="p-2 text-left w-10">#</th>
                                     <th class="p-2 text-left w-44">Kode Produk</th>
-                                    <th class="p-2 text-left" style="width: 31rem; min-width: 31rem;">Nama Produk</th>
+                                    <th class="p-2 text-left" style="width: 20rem; min-width: 20rem;">Nama Produk</th>
                                     <th class="p-2 text-left w-40">Satuan</th>
                                     <th class="p-2 text-right w-28">Qty</th>
                                     <th class="p-2 text-right w-28">Qty PO</th>
@@ -209,13 +228,12 @@
                                     <tr class="border-t align-top">
                                         <td class="p-2" x-text="i + 1"></td>
                                         <td class="p-2 font-mono" x-text="it.fitemcode"></td>
-                                        <td class="p-2 text-gray-800" style="width: 31rem; min-width: 31rem;">
-                                            <div style="display:flex; width:100%; min-width:0; align-items:stretch; flex-wrap:nowrap;">
-                                                <div class="min-w-0 flex-1 rounded-l border bg-gray-100 px-2 py-1 text-sm leading-5 text-gray-600 whitespace-normal break-words"
+                                        <td class="p-2 text-gray-800" style="width: 20rem; min-width: 20rem;">
+                                            <div class="desc-inline-field">
+                                                <div class="desc-inline-field__text rounded-l border bg-gray-100 px-2 py-1 text-sm leading-5 text-gray-600 whitespace-normal break-words"
                                                     x-text="it.fitemname"></div>
                                                 <button type="button" @click="openDesc('saved', i, true)"
-                                                    style="flex:0 0 auto;"
-                                                    class="shrink-0 inline-flex items-center border border-l-0 rounded-r px-2 py-1 transition-colors"
+                                                    class="desc-inline-field__button inline-flex items-center border border-l-0 rounded-r px-2 py-1 transition-colors"
                                                     :class="descButtonClass(it.fdesc)"
                                                     title="Deskripsi">
                                                     <x-heroicon-o-document-text class="w-4 h-4" />
@@ -264,14 +282,13 @@
                                         </div>
                                     </td>
 
-                                    <td class="p-2" style="width: 31rem; min-width: 31rem;">
-                                        <div style="display:flex; width:100%; min-width:0; align-items:stretch; flex-wrap:nowrap;">
+                                    <td class="p-2" style="width: 20rem; min-width: 20rem;">
+                                        <div class="desc-inline-field">
                                             <div
-                                                class="min-w-0 flex-1 rounded-l border bg-gray-100 px-2 py-1 text-sm leading-5 text-gray-600 whitespace-normal break-words"
+                                                class="desc-inline-field__text rounded-l border bg-gray-100 px-2 py-1 text-sm leading-5 text-gray-600 whitespace-normal break-words"
                                                 x-text="editRow.fitemname"></div>
                                             <button type="button" @click="openDesc('edit', null)"
-                                                style="flex:0 0 auto;"
-                                                class="shrink-0 inline-flex items-center border border-l-0 rounded-r px-2 py-1 transition-colors"
+                                                class="desc-inline-field__button inline-flex items-center border border-l-0 rounded-r px-2 py-1 transition-colors"
                                                 :class="descButtonClass(editRow.fdesc)"
                                                 title="Deskripsi">
                                                 <x-heroicon-o-document-text class="w-4 h-4" />
