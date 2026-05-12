@@ -372,9 +372,7 @@
                                                 <input type="hidden" name="fnouref[]" :value="it.fnouref">
                                                 <input type="hidden" name="frefpr[]" :value="it.frefpr">
                                                 <input type="hidden" name="frefso[]" :value="it.frefso">
-                                                <input type="hidden" name="frefsoid[]" :value="it.frefsoid">
                                                 <input type="hidden" name="frefsrj[]" :value="it.frefsrj">
-                                                <input type="hidden" name="frefsrjid[]" :value="it.frefsrjid">
                                                 <input type="hidden" name="fnoacak[]" :value="it.fnoacak">
                                                 <input type="hidden" name="frefnoacak[]" :value="it.frefnoacak">
                                                 <input type="hidden" name="fqty[]" :value="it.fqty">
@@ -1046,9 +1044,7 @@
                                                     <input type="hidden" name="fnouref[]" :value="it.fnouref">
                                                     <input type="hidden" name="frefpr[]" :value="it.frefpr">
                                                     <input type="hidden" name="frefso[]" :value="it.frefso">
-                                                    <input type="hidden" name="frefsoid[]" :value="it.frefsoid">
                                                     <input type="hidden" name="frefsrj[]" :value="it.frefsrj">
-                                                    <input type="hidden" name="frefsrjid[]" :value="it.frefsrjid">
                                                     <input type="hidden" name="fnoacak[]" :value="it.fnoacak">
                                                     <input type="hidden" name="frefnoacak[]" :value="it.frefnoacak">
                                                     <input type="hidden" name="fqty[]" :value="it.fqty">
@@ -2337,9 +2333,7 @@
                         frefcode: src.frefcode || '',
                         frefpr: refNo,
                         frefso: source === 'SO' ? (header?.fsono ?? '') : '',
-                        frefsoid: source === 'SO' ? (src.frefdtno ?? null) : null,
                         frefsrj: source === 'SRJ' ? (header?.fstockmtno ?? '') : '',
-                        frefsrjid: source === 'SRJ' ? (src.frefdtno ?? null) : null,
                         fnoacak: this.generateUniqueNoAcak(),
                         frefnoacak: this.normalizeRefNoAcak(src.frefnoacak ?? src.fnoacak ?? ''),
                         fqty: (src.fqty !== null && src.fqty !== undefined && Number(src.fqty) > 0) ? Number(src.fqty) : 1,

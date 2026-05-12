@@ -1146,7 +1146,6 @@ class PenerimaanBarangController extends Controller
                 'frefdtid' => $rid,
                 'fnoacak' => $this->normalizeRandomNumber($fnoacaks[$i] ?? null, $usedNoAcaks),
                 'frefnoacak' => $rid ? $this->normalizeReferenceRandomNumber($frefnoacaks[$i] ?? null) : null,
-                'frefsoid' => null,
                 'fqty' => $qty,
                 'fqtykecil' => $qtyKecil,
                 'fqtyremain' => $qtyKecil,

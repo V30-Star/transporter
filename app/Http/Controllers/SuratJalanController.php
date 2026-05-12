@@ -160,9 +160,7 @@ class SuratJalanController extends Controller
             return response()->json(['message' => 'Data tidak ditemukan'], 404);
         }
 
-        $remainMap = $this->getSrjRemainByIds(
-            DB::table('trstockdt')->where('fstockmtno', $header->fstockmtno)->pluck('fstockdtid')->all()
-        );
+        $remainMap = $this->getSrjRemainByStockNo($header->fstockmtno);
 
         $items = DB::table('trstockdt')
             ->where('trstockdt.fstockmtno', $header->fstockmtno)
@@ -409,8 +407,6 @@ class SuratJalanController extends Controller
             'famountpopajak' => ['nullable', 'numeric', 'min:0'],
             'frefso' => ['nullable', 'array'],
             'frefso.*' => ['nullable', 'string', 'max:100'],
-            'frefsoid' => ['nullable', 'array'],
-            'frefsoid.*' => ['nullable', 'integer'],
             'fnoacak' => ['nullable', 'array'],
             'fnoacak.*' => ['nullable', 'regex:/^[1-9]{3}$/'],
             'frefnoacak' => ['nullable', 'array'],
@@ -446,7 +442,6 @@ class SuratJalanController extends Controller
         $prices = $request->input('fprice', []);
         $descs = $request->input('fdesc', []);
         $frefso = $request->input('frefso', []);
-        $frefsoid = $request->input('frefsoid', []);
         $fnoacaks = $request->input('fnoacak', []);
         $frefnoacaks = $request->input('frefnoacak', []);
 
@@ -525,10 +520,8 @@ class SuratJalanController extends Controller
                 'fketdt' => '',
                 'fcode' => $this->resolveSuratJalanFcode([
                     'frefso' => $frefso[$i] ?? null,
-                    'frefsoid' => $frefsoid[$i] ?? null,
                 ]),
                 'frefso' => $frefso[$i] ?? null,
-                'frefsoid' => isset($frefsoid[$i]) ? (int) $frefsoid[$i] : null,
                 'fnoacak' => $this->normalizeRandomNumber($fnoacaks[$i] ?? null, $usedNoAcaks),
                 'frefnoacak' => trim((string) ($frefso[$i] ?? '')) !== ''
                     ? $this->normalizeReferenceRandomNumber($frefnoacaks[$i] ?? null)
@@ -856,7 +849,6 @@ class SuratJalanController extends Controller
                 'fdesc' => is_array($d->fdesc) ? implode(', ', $d->fdesc) : ($d->fdesc ?? ''),
                 'frefno_display' => $d->frefso ?? $d->fpono ?? '-',
                 'frefso' => $d->frefso ?? null,
-                'frefsoid' => $d->frefsoid ?? null,
                 'fnoacak' => (string) ($d->fnoacak ?? ''),
                 'frefnoacak' => (string) ($d->frefnoacak ?? ''),
                 'fqtyremain' => $maxqty,
@@ -990,7 +982,6 @@ class SuratJalanController extends Controller
                 'fdesc' => is_array($d->fdesc) ? implode(', ', $d->fdesc) : ($d->fdesc ?? ''),
                 'frefno_display' => $d->frefso ?? $d->fpono ?? '-',
                 'frefso' => $d->frefso ?? null,
-                'frefsoid' => $d->frefsoid ?? null,
                 'fnoacak' => (string) ($d->fnoacak ?? ''),
                 'frefnoacak' => (string) ($d->frefnoacak ?? ''),
                 'fqtyremain' => $maxqty,
@@ -1070,8 +1061,6 @@ class SuratJalanController extends Controller
             'famountpopajak' => ['nullable', 'numeric', 'min:0'],
             'frefso' => ['nullable', 'array'],
             'frefso.*' => ['nullable', 'string', 'max:100'],
-            'frefsoid' => ['nullable', 'array'],
-            'frefsoid.*' => ['nullable', 'integer'],
             'fnoacak' => ['nullable', 'array'],
             'fnoacak.*' => ['nullable', 'regex:/^[1-9]{3}$/'],
             'frefnoacak' => ['nullable', 'array'],
@@ -1113,24 +1102,8 @@ class SuratJalanController extends Controller
         $prices = $request->input('fprice', []);
         $descs = $request->input('fdesc', []);
         $frefso = $request->input('frefso', []);
-        $frefsoid = $request->input('frefsoid', []);
         $fnoacaks = $request->input('fnoacak', []);
         $frefnoacaks = $request->input('frefnoacak', []);
-
-        $oldSoUsageRows = DB::table('trstockdt')
-            ->where('fstockmtno', $header->fstockmtno)
-            ->whereNotNull('frefsoid')
-            ->select('frefsoid', DB::raw('SUM(COALESCE(fqtykecil, 0)) as used_qty_kecil'))
-            ->groupBy('frefsoid')
-            ->get();
-        $oldSoUsageByDetailId = [];
-        foreach ($oldSoUsageRows as $oldUsageRow) {
-            $detailId = (int) ($oldUsageRow->frefsoid ?? 0);
-            $qtyKecil = (float) ($oldUsageRow->used_qty_kecil ?? 0);
-            if ($detailId > 0 && $qtyKecil > 0) {
-                $oldSoUsageByDetailId[$detailId] = ($oldSoUsageByDetailId[$detailId] ?? 0) + $qtyKecil;
-            }
-        }
 
         $rowCount = count($codes);
         $uniqueCodes = array_values(array_unique(
@@ -1208,10 +1181,8 @@ class SuratJalanController extends Controller
                 'fketdt' => '',
                 'fcode' => $this->resolveSuratJalanFcode([
                     'frefso' => $frefso[$i] ?? null,
-                    'frefsoid' => $frefsoid[$i] ?? null,
                 ]),
                 'frefso' => $frefso[$i] ?? null,
-                'frefsoid' => isset($frefsoid[$i]) ? (int) $frefsoid[$i] : null,
                 'fnoacak' => $this->normalizeRandomNumber($fnoacaks[$i] ?? null, $usedNoAcaks),
                 'frefnoacak' => trim((string) ($frefso[$i] ?? '')) !== ''
                     ? $this->normalizeReferenceRandomNumber($frefnoacaks[$i] ?? null)
@@ -1271,7 +1242,6 @@ class SuratJalanController extends Controller
                 &$rowsDt,
                 $subtotal,
                 $ppnAmount,
-                $oldSoUsageByDetailId
             ) {
                 // ---- 6.1. kodeCabang ----
                 $kodeCabang = $header->fbranchcode;
@@ -1535,7 +1505,6 @@ class SuratJalanController extends Controller
                 'fdesc' => is_array($d->fdesc) ? implode(', ', $d->fdesc) : ($d->fdesc ?? ''),
                 'frefno_display' => $d->frefso ?? $d->fpono ?? '-',
                 'frefso' => $d->frefso ?? null,
-                'frefsoid' => $d->frefsoid ?? null,
                 'fnoacak' => (string) ($d->fnoacak ?? ''),
                 'frefnoacak' => (string) ($d->frefnoacak ?? ''),
                 'fqtyremain' => $maxqty,
@@ -1598,28 +1567,6 @@ class SuratJalanController extends Controller
             }
 
             DB::transaction(function () use ($suratjalan) {
-                $oldSoUsageRows = DB::table('trstockdt')
-                    ->where('fstockmtno', $suratjalan->fstockmtno)
-                    ->whereNotNull('frefsoid')
-                    ->select('frefsoid', DB::raw('SUM(COALESCE(fqtykecil, 0)) as used_qty_kecil'))
-                    ->groupBy('frefsoid')
-                    ->get();
-
-                foreach ($oldSoUsageRows as $row) {
-                    $detailId = (int) ($row->frefsoid ?? 0);
-                    $qtyKecil = (float) ($row->used_qty_kecil ?? 0);
-
-                    if ($detailId <= 0 || $qtyKecil <= 0) {
-                        continue;
-                    }
-
-                    DB::table('trsodt')
-                        ->where('ftrsodtid', $detailId)
-                        ->update([
-                            'fqtykecil' => DB::raw('COALESCE(fqtykecil,0) + '.$qtyKecil),
-                        ]);
-                }
-
                 DB::table('trstockdt')
                     ->where('fstockmtno', $suratjalan->fstockmtno)
                     ->delete();
@@ -1810,32 +1757,46 @@ class SuratJalanController extends Controller
      * @param  array<int, int|string>  $srjDetailIds
      * @return array<int, float>
      */
-    private function getSrjRemainByIds(array $srjDetailIds): array
+    private function getSrjRemainByStockNo(string $stockMtNo): array
     {
-        $ids = collect($srjDetailIds)
-            ->map(fn ($id) => (int) $id)
-            ->filter(fn ($id) => $id > 0)
-            ->unique()
-            ->values()
-            ->all();
-
-        if (empty($ids)) {
+        $stockMtNo = trim($stockMtNo);
+        if ($stockMtNo === '') {
             return [];
         }
 
-        $salesUsed = DB::table('trandt')
-            ->selectRaw('CAST(frefsrjid AS BIGINT) AS detail_id, SUM(COALESCE(fqtykecil, 0)) AS used_kecil')
-            ->whereNotNull('frefsrjid')
-            ->whereIn(DB::raw('CAST(frefsrjid AS BIGINT)'), $ids)
-            ->groupBy(DB::raw('CAST(frefsrjid AS BIGINT)'));
+        $sourceRows = DB::table('trstockdt as d')
+            ->where('d.fstockmtno', $stockMtNo)
+            ->selectRaw("
+                d.fstockdtid,
+                TRIM(COALESCE(d.fprdcode::text, '')) as product_code,
+                COALESCE(d.frefnoacak::text, '') as ref_noacak,
+                COALESCE(d.fqtykecil, 0) as source_qty_kecil
+            ")
+            ->get();
 
-        return DB::table('trstockdt as d')
-            ->leftJoinSub($salesUsed, 'sale', fn ($join) => $join->on('sale.detail_id', '=', 'd.fstockdtid'))
-            ->whereIn('d.fstockdtid', $ids)
-            ->selectRaw('d.fstockdtid, GREATEST(COALESCE(d.fqtykecil, 0) - COALESCE(sale.used_kecil, 0), 0) AS remain_kecil')
-            ->pluck('remain_kecil', 'd.fstockdtid')
-            ->map(fn ($value) => (float) $value)
-            ->all();
+        if ($sourceRows->isEmpty()) {
+            return [];
+        }
+
+        $usageRows = DB::table('trandt as d')
+            ->where('d.frefsrj', $stockMtNo)
+            ->selectRaw("
+                TRIM(COALESCE(d.fprdcode::text, '')) as product_code,
+                COALESCE(d.frefnosrjacak::text, '') as ref_noacak,
+                SUM(COALESCE(d.fqtykecil, 0)) as used_kecil
+            ")
+            ->groupByRaw("TRIM(COALESCE(d.fprdcode::text, '')), COALESCE(d.frefnosrjacak::text, '')")
+            ->get()
+            ->keyBy(fn ($row) => $this->buildSrjRemainKey($row->product_code ?? '', $row->ref_noacak ?? ''));
+
+        $result = [];
+        foreach ($sourceRows as $row) {
+            $key = $this->buildSrjRemainKey($row->product_code ?? '', $row->ref_noacak ?? '');
+            $used = (float) ($usageRows[$key]->used_kecil ?? 0);
+            $result[(int) $row->fstockdtid] = max(0, (float) ($row->source_qty_kecil ?? 0) - $used);
+        }
+
+        return $result;
     }
 
     private function getUsageLockMessage(PenerimaanPembelianHeader $header): ?string
@@ -1873,13 +1834,11 @@ class SuratJalanController extends Controller
 
     private function resolveSuratJalanFcode(array $row): string
     {
-        $soRef = trim((string) ($row['frefso'] ?? ''));
-        $soDetailId = (int) ($row['frefsoid'] ?? 0);
-
-        if ($soRef !== '' || $soDetailId > 0) {
-            return 'S';
-        }
-
         return trim((string) ($row['frefso'] ?? '')) !== '' ? 'S' : '0';
+    }
+
+    private function buildSrjRemainKey(?string $productCode, ?string $refNoAcak): string
+    {
+        return trim((string) ($productCode ?? '')).'|'.trim((string) ($refNoAcak ?? ''));
     }
 }

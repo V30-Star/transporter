@@ -104,7 +104,6 @@
         $oldNoAcaks = old('fnoacak', []);
         $oldRefNoAcaks = old('frefnoacak', []);
         $oldPonos = old('fpono', []);
-        $oldRefSoIds = old('frefsoid', []);
         $oldNoUrefs = old('fnouref', []);
         $oldRefPrs = old('frefpr', []);
         $oldPrhIds = old('fprhid', []);
@@ -125,7 +124,6 @@
                 'fnoacak' => $oldNoAcaks[$index] ?? '',
                 'frefnoacak' => $oldRefNoAcaks[$index] ?? '',
                 'fpono' => $oldPonos[$index] ?? '',
-                'frefsoid' => $oldRefSoIds[$index] ?? '',
                 'fnouref' => $oldNoUrefs[$index] ?? '',
                 'frefpr' => $oldRefPrs[$index] ?? '',
                 'fprhid' => $oldPrhIds[$index] ?? '',
@@ -405,7 +403,6 @@
                                         <input type="hidden" name="fnoacak[]" :value="it.fnoacak">
                                         <input type="hidden" name="frefnoacak[]" :value="it.frefnoacak">
                                         <input type="hidden" name="fpono[]" :value="it.fpono">
-                                        <input type="hidden" name="frefsoid[]" :value="it.frefsoid">
                                         <input type="hidden" name="fnouref[]" :value="it.fnouref">
                                         <input type="hidden" name="frefpr[]" :value="it.frefpr">
                                         <input type="hidden" name="fprhid[]" :value="it.fprhid">
@@ -1383,7 +1380,6 @@
             $oldNoAcaks = old('fnoacak', []);
             $oldRefNoAcaks = old('frefnoacak', []);
             $oldPonos = old('fpono', []);
-            $oldRefSoIds = old('frefsoid', []);
             $oldNoUrefs = old('fnouref', []);
             $oldRefPrs = old('frefpr', []);
             $oldPrhIds = old('fprhid', []);
@@ -1404,7 +1400,6 @@
                     'fnoacak' => $oldNoAcaks[$index] ?? '',
                     'frefnoacak' => $oldRefNoAcaks[$index] ?? '',
                     'fpono' => $oldPonos[$index] ?? '',
-                    'frefsoid' => $oldRefSoIds[$index] ?? '',
                     'fnouref' => $oldNoUrefs[$index] ?? '',
                     'frefpr' => $oldRefPrs[$index] ?? '',
                     'fprhid' => $oldPrhIds[$index] ?? '',
@@ -1451,6 +1446,5 @@
         });
     </script>
 @endpush
-
 
 

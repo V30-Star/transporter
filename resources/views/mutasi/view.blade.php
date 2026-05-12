@@ -304,7 +304,6 @@
                                                 <input type="hidden" name="frefdtno[]" :value="it.frefdtno">
                                                 <input type="hidden" name="frefpr[]" :value="it.frefpr">
                                                 <input type="hidden" name="frefso[]" :value="it.frefso">
-                                                <input type="hidden" name="frefsoid[]" :value="it.frefsoid">
                                                 <input type="hidden" name="frefnoacak[]" :value="it.frefnoacak">
                                                 <input type="hidden" name="fqty[]" :value="it.fqty">
                                                 <input type="hidden" name="fdesc[]" :value="it.fdesc">
@@ -934,7 +933,6 @@
                         fsatuan: src.fsatuan ?? '',
                         frefpr: src.frefpr ?? (header?.fprno ?? header?.fpono ?? ''),
                         frefso: header?.fprno ?? header?.fpono ?? '',
-                        frefsoid: header?.fprhid ?? header?.fpohid ?? '',
                         frefnoacak: src.frefnoacak ?? '',
                         frefdtno: src.frefdtno ?? '',
                         fqty: Number(src.fqty ?? 0),
@@ -1122,7 +1120,6 @@
                 fsatuan: '',
                 frefpr: '',
                 frefso: '',
-                frefsoid: '',
                 frefnoacak: '',
                 frefdtno: '',
                 fqty: 0,

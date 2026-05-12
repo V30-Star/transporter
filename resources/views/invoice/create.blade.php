@@ -422,9 +422,7 @@
                                             <input type="hidden" name="frefdtno[]" :value="it.frefdtno">
                                             <input type="hidden" name="fnouref[]" :value="it.fnouref">
                                             <input type="hidden" name="frefso[]" :value="it.frefso">
-                                            <input type="hidden" name="frefsoid[]" :value="it.frefsoid">
                                             <input type="hidden" name="frefsrj[]" :value="it.frefsrj">
-                                            <input type="hidden" name="frefsrjid[]" :value="it.frefsrjid">
                                             <input type="hidden" name="fnoacak[]" :value="it.fnoacak">
                                             <input type="hidden" name="frefnoacak[]" :value="it.frefnoacak">
                                             <input type="hidden" name="fprhid[]" :value="it.fprhid">
@@ -1688,9 +1686,7 @@
                         fnouref: (src.frefdtno ?? src.fnouref ?? null),
                         frefno_display: src.frefno_display ?? header?.fstockmtno ?? header?.fsono ?? '',
                         frefso: source === 'SO' ? (header?.fsono ?? '') : '',
-                        frefsoid: source === 'SO' ? (src.frefdtno ?? null) : null,
                         frefsrj: source === 'SRJ' ? (header?.fstockmtno ?? '') : '',
-                        frefsrjid: source === 'SRJ' ? (src.frefdtno ?? null) : null,
                         fnoacak: this.generateUniqueNoAcak(),
                         frefnoacak: this.normalizeRefNoAcak(src.frefnoacak ?? src.fnoacak ?? ''),
                         frefpr: (src.frefpr ?? header?.fsono ?? header?.fpono ?? header?.fstockmtno ?? '')
@@ -2004,9 +2000,7 @@
                 fnouref: '',
                 frefpr: '',
                 frefso: '',
-                frefsoid: '',
                 frefsrj: '',
-                frefsrjid: '',
                 fnoacak: '',
                 frefnoacak: '',
                 fqty: 0,

@@ -410,8 +410,6 @@ class MutasiController extends Controller
                 'famountpopajak' => ['nullable', 'numeric', 'min:0'],
                 'frefso' => ['nullable', 'array'],
                 'frefso.*' => ['nullable', 'string', 'max:100'],
-                'frefsoid' => ['nullable', 'array'],
-                'frefsoid.*' => ['nullable', 'integer'],
                 'frefnoacak' => ['nullable', 'array'],
                 'frefnoacak.*' => ['nullable', 'regex:/^\d{3}$/'],
             ]);
@@ -449,7 +447,6 @@ class MutasiController extends Controller
             $satuans = $request->input('fsatuan', []);
             $refdtno = $request->input('frefdtno', []);
             $frefso = $request->input('frefso', []);
-            $frefsoid = $request->input('frefsoid', []);
             $frefnoacaks = $request->input('frefnoacak', []);
             $qtys = $request->input('fqty', []);
             $prices = $request->input('fprice', []);
@@ -495,7 +492,6 @@ class MutasiController extends Controller
                     'fketdt' => '',
                     'fcode' => '0',
                     'frefso' => trim((string) ($frefso[$i] ?? '')) ?: null,
-                    'frefsoid' => isset($frefsoid[$i]) && $frefsoid[$i] !== '' ? (int) $frefsoid[$i] : null,
                     'frefnoacak' => $this->normalizeReferenceRandomNumber($frefnoacaks[$i] ?? null),
                     'fdesc' => $descs[$i] ?? '',
                     'fsatuan' => mb_substr($sat, 0, 5),
@@ -661,7 +657,6 @@ class MutasiController extends Controller
                 'famountpo' => $d->famountpo ?? null,
                 'frefdtno' => $d->frefdtno ?? null,
                 'frefso' => trim((string) ($d->frefso ?? '')),
-                'frefsoid' => $d->frefsoid !== null && $d->frefsoid !== '' ? (string) (int) $d->frefsoid : '',
                 'frefnoacak' => trim((string) ($d->frefnoacak ?? '')),
                 'fqty' => (float) ($d->fqty ?? 0),
                 'fterima' => (float) ($d->fterima ?? 0),
@@ -766,7 +761,6 @@ class MutasiController extends Controller
                 'famountpo' => $d->famountpo ?? null,
                 'frefdtno' => $d->frefdtno ?? null,
                 'frefso' => trim((string) ($d->frefso ?? '')),
-                'frefsoid' => $d->frefsoid !== null && $d->frefsoid !== '' ? (string) (int) $d->frefsoid : '',
                 'frefnoacak' => trim((string) ($d->frefnoacak ?? '')),
                 'fqty' => (float) ($d->fqty ?? 0),
                 'fterima' => (float) ($d->fterima ?? 0),
@@ -856,8 +850,6 @@ class MutasiController extends Controller
                 'famountpopajak' => ['nullable', 'numeric', 'min:0'],
                 'frefso' => ['nullable', 'array'],
                 'frefso.*' => ['nullable', 'string', 'max:100'],
-                'frefsoid' => ['nullable', 'array'],
-                'frefsoid.*' => ['nullable', 'integer'],
                 'frefnoacak' => ['nullable', 'array'],
                 'frefnoacak.*' => ['nullable', 'regex:/^\d{3}$/'],
             ]);
@@ -896,7 +888,6 @@ class MutasiController extends Controller
             $satuans = $request->input('fsatuan', []);
             $refdtno = $request->input('frefdtno', []);
             $frefso = $request->input('frefso', []);
-            $frefsoid = $request->input('frefsoid', []);
             $frefnoacaks = $request->input('frefnoacak', []);
             $qtys = $request->input('fqty', []);
             $prices = $request->input('fprice', []);
@@ -937,7 +928,6 @@ class MutasiController extends Controller
 
                 $sat = mb_substr($sat, 0, 5);
                 $refSo = trim((string) ($frefso[$i] ?? ''));
-                $refSoId = isset($frefsoid[$i]) && $frefsoid[$i] !== '' ? (int) $frefsoid[$i] : null;
 
                 $amount = $qty * $price;
                 $subtotal += $amount;
@@ -957,7 +947,6 @@ class MutasiController extends Controller
                     'fketdt' => '',
                     'fcode' => '0',
                     'frefso' => $refSo !== '' ? mb_substr($refSo, 0, 100) : null,
-                    'frefsoid' => $refSoId,
                     'frefnoacak' => $this->normalizeReferenceRandomNumber($frefnoacaks[$i] ?? null),
                     'fdesc' => $desc,
                     'fsatuan' => $sat,
@@ -1075,7 +1064,6 @@ class MutasiController extends Controller
                 'famountpo' => $d->famountpo ?? null,
                 'frefdtno' => $d->frefdtno ?? null,
                 'frefso' => trim((string) ($d->frefso ?? '')),
-                'frefsoid' => $d->frefsoid !== null && $d->frefsoid !== '' ? (string) (int) $d->frefsoid : '',
                 'frefnoacak' => trim((string) ($d->frefnoacak ?? '')),
                 'fqty' => (float) ($d->fqty ?? 0),
                 'fterima' => (float) ($d->fterima ?? 0),

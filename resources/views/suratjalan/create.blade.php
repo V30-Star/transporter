@@ -331,7 +331,6 @@
                                                 <input type="hidden" name="frefdtno[]" :value="it.frefdtno">
                                                 <input type="hidden" name="frefpr[]" :value="it.frefpr">
                                                 <input type="hidden" name="frefso[]" :value="it.frefso">
-                                                <input type="hidden" name="frefsoid[]" :value="it.frefsoid">
                                                 <input type="hidden" name="fnoacak[]" :value="it.fnoacak">
                                                 <input type="hidden" name="frefnoacak[]" :value="it.frefnoacak">
                                                 <input type="hidden" name="fqty[]" :value="it.fqty">
@@ -963,7 +962,6 @@
                         frefno_display: (src.frefpr ?? header?.fsono ?? '').toString().trim(),
                         frefpr: (src.frefpr ?? header?.fpono ?? header?.fsono ?? '').toString().trim(),
                         frefso: header?.fsono ?? null,
-                        frefsoid: src.frefdtno ?? null,
                         fqty: (src.fqty !== null && src.fqty !== undefined && Number(src.fqty) > 0) ? Number(src.fqty) : 1,
                         fprice: Number(src.fprice ?? src.fharga ?? 0), // ← Boleh 0
                         fterima: Number(src.fterima ?? 0),
@@ -1253,7 +1251,6 @@
                 frefno_display: '',
                 frefpr: '',
                 frefso: null,
-                frefsoid: null,
                 fqty: 0,
                 fdesc: '',
                 fketdt: '',
@@ -1374,6 +1371,5 @@
         });
     </script>
 @endpush
-
 
 

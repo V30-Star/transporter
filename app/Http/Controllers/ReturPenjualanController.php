@@ -449,9 +449,7 @@ class ReturPenjualanController extends Controller
         // FREFCODE & REFERENCES
         $frefcodes = $request->input('frefcode', []);
         $frefso = $request->input('frefso', []);
-        $frefso_ids = $request->input('frefsoid', []);
         $frefsrj = $request->input('frefsrj', []);
-        $frefsrjid_ids = $request->input('frefsrjid', []);
         $fnoacaks = $request->input('fnoacak', []);
         $frefnoacaks = $request->input('frefnoacak', []);
 
@@ -764,28 +762,6 @@ class ReturPenjualanController extends Controller
             ->whereIn('d.ftrsodtid', $ids)
             ->selectRaw('d.ftrsodtid, GREATEST(COALESCE(d.fqtykecil, 0), 0) AS remain_kecil')
             ->pluck('remain_kecil', 'd.ftrsodtid')
-            ->map(fn($value) => (float) $value)
-            ->all();
-    }
-
-    private function getSrjRemainByIds(array $srjDetailIds): array
-    {
-        $ids = collect($srjDetailIds)->map(fn($id) => (int) $id)->filter(fn($id) => $id > 0)->unique()->values()->all();
-        if (empty($ids)) {
-            return [];
-        }
-
-        $salesUsed = DB::table('trandt')
-            ->selectRaw('CAST(frefsrjid AS BIGINT) AS detail_id, SUM(COALESCE(fqtykecil, 0)) AS used_kecil')
-            ->whereNotNull('frefsrjid')
-            ->whereIn(DB::raw('CAST(frefsrjid AS BIGINT)'), $ids)
-            ->groupBy(DB::raw('CAST(frefsrjid AS BIGINT)'));
-
-        return DB::table('trstockdt as d')
-            ->leftJoinSub($salesUsed, 'sale', fn($join) => $join->on('sale.detail_id', '=', 'd.fstockdtid'))
-            ->whereIn('d.fstockdtid', $ids)
-            ->selectRaw('d.fstockdtid, GREATEST(COALESCE(d.fqtykecil, 0) - COALESCE(sale.used_kecil, 0), 0) AS remain_kecil')
-            ->pluck('remain_kecil', 'd.fstockdtid')
             ->map(fn($value) => (float) $value)
             ->all();
     }
@@ -1235,8 +1211,6 @@ class ReturPenjualanController extends Controller
                 'fitemname' => (string) ($d->fprdname ?? ''),
                 'fsatuan' => (string) ($d->fsatuan ?? ''),
                 'frefdtno' => (string) ($d->frefdtno ?? ''),
-                'frefsoid' => (string) ($d->frefsoid ?? ''),
-                'frefsrjid' => (string) ($d->frefsrjid ?? ''),
                 'fqty' => (float) ($d->fqty ?? 0),
                 'fterima' => (float) ($d->fterima ?? 0),
                 'fqtyremain' => $maxqty,
@@ -1486,9 +1460,7 @@ class ReturPenjualanController extends Controller
 
         $frefcodes = $request->input('frefcode', []);   // per baris, jika array
         $frefso = $request->input('frefso', []);
-        $frefso_ids = $request->input('frefsoid', []);
         $frefsrj = $request->input('frefsrj', []);
-        $frefsrjid_ids = $request->input('frefsrjid', []);
         $fnoacaks = $request->input('fnoacak', []);
         $frefnoacaks = $request->input('frefnoacak', []);
 
