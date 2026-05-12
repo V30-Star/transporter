@@ -260,7 +260,7 @@
                                     <tr>
                                         <th class="p-2 text-left w-10">#</th>
                                         <th class="p-2 text-left w-44">Kode Produk</th>
-                                        <th class="p-2 text-left">Nama Produk</th>
+                                        <th class="p-2 text-left" style="width: 31rem; min-width: 31rem;">Nama Produk</th>
                                         <th class="p-2 text-left w-40">Satuan</th>
                                         <th class="p-2 text-right w-28">Qty</th>
                                         <th class="p-2 text-right w-28">Qty PO</th>
@@ -272,12 +272,17 @@
                                         <tr class="border-t align-top">
                                             <td class="p-2" x-text="i + 1"></td>
                                             <td class="p-2 font-mono" x-text="it.fitemcode"></td>
-                                            <td class="p-2 text-gray-800">
-                                                <div x-text="it.fitemname"></div>
-                                                <div x-show="it.fdesc" class="mt-1 text-xs">
-                                                    <span
-                                                        class="inline-block px-1.5 py-0.5 rounded bg-emerald-50 text-emerald-700 border border-emerald-200 mr-2">Deskripsi</span>
-                                                    <span class="align-middle text-gray-600" x-text="it.fdesc"></span>
+                                            <td class="p-2 text-gray-800" style="width: 31rem; min-width: 31rem;">
+                                                <div style="display:flex; width:100%; min-width:0; align-items:stretch; flex-wrap:nowrap;">
+                                                    <div class="min-w-0 flex-1 rounded-l border bg-gray-100 px-2 py-1 text-sm leading-5 text-gray-600 whitespace-normal break-words"
+                                                        x-text="it.fitemname"></div>
+                                                    <button type="button" @click="openDesc('saved', i, true)"
+                                                        style="flex:0 0 auto;"
+                                                        class="shrink-0 inline-flex items-center border border-l-0 rounded-r px-2 py-1 transition-colors"
+                                                        :class="descButtonClass(it.fdesc)"
+                                                        title="Deskripsi">
+                                                        <x-heroicon-o-document-text class="w-4 h-4" />
+                                                    </button>
                                                 </div>
                                             </td>
                                             <td class="p-2" x-text="it.fsatuan"></td>
@@ -441,7 +446,7 @@
                                     <tr>
                                         <th class="p-2 text-left w-10">#</th>
                                         <th class="p-2 text-left w-48">Kode Produk</th>
-                                        <th class="p-2 text-left">Nama & Deskripsi</th>
+                                        <th class="p-2 text-left" style="width: 31rem; min-width: 31rem;">Nama Produk</th>
                                         <th class="p-2 text-left w-36">Satuan</th>
                                         <th class="p-2 text-right w-24">Qty</th>
                                         <th class="p-2 text-right w-24">Qty PO</th>
@@ -469,12 +474,13 @@
                                                     </button>
                                                 </div>
                                             </td>
-                                            <td class="p-2">
-                                                <div class="flex w-full max-w-full">
+                                            <td class="p-2" style="width: 31rem; min-width: 31rem;">
+                                                <div style="display:flex; width:100%; min-width:0; align-items:stretch; flex-wrap:nowrap;">
                                                     <div
                                                         class="min-w-0 flex-1 rounded-l border bg-gray-100 px-2 py-1 text-sm leading-5 text-gray-600 whitespace-normal break-words"
                                                         x-text="it.fitemname"></div>
                                                     <button type="button" @click="openDesc('saved', i)"
+                                                        style="flex:0 0 auto;"
                                                         class="shrink-0 inline-flex items-center border border-l-0 rounded-r px-2 py-1 transition-colors"
                                                         :class="descButtonClass(it.fdesc)"
                                                         :disabled="blockedByPO"
@@ -555,12 +561,13 @@
                                                 </button>
                                             </div>
                                         </td>
-                                        <td class="p-2">
-                                            <div class="flex w-full max-w-full">
+                                        <td class="p-2" style="width: 31rem; min-width: 31rem;">
+                                            <div style="display:flex; width:100%; min-width:0; align-items:stretch; flex-wrap:nowrap;">
                                                 <div
                                                     class="min-w-0 flex-1 rounded-l border bg-gray-100 px-2 py-1 text-sm leading-5 text-gray-600 whitespace-normal break-words"
                                                     x-text="draft.fitemname"></div>
                                                 <button type="button" @click="openDesc('draft')"
+                                                    style="flex:0 0 auto;"
                                                     class="shrink-0 inline-flex items-center border border-l-0 rounded-r px-2 py-1 transition-colors"
                                                     :class="descButtonClass(draft.fdesc)"
                                                     title="Deskripsi">
@@ -1389,4 +1396,3 @@
         }
     </script>
 @endpush
-

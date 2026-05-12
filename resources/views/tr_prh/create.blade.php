@@ -222,7 +222,7 @@
                                 <tr>
                                     <th class="p-2 text-left w-10">#</th>
                                     <th class="p-2 text-left w-52">Kode Produk</th>
-                                    <th class="p-2 text-left">Nama Produk</th>
+                                    <th class="p-2 text-left" style="width: 31rem; min-width: 31rem;">Nama Produk</th>
                                     <th class="p-2 text-left w-40">Satuan</th>
                                     <th class="p-2 text-right w-28">Qty</th>
                                     <th class="p-2 text-left w-56">Ket Item</th>
@@ -253,12 +253,13 @@
                                             </div>
                                         </td>
 
-                                        <td class="p-2">
-                                            <div class="flex w-full max-w-full">
+                                        <td class="p-2" style="width: 31rem; min-width: 31rem;">
+                                            <div style="display:flex; width:100%; min-width:0; align-items:stretch; flex-wrap:nowrap;">
                                                 <div
                                                     class="min-w-0 flex-1 rounded-l border bg-gray-100 px-2 py-1 text-sm leading-5 text-gray-600 whitespace-normal break-words"
                                                     x-text="it.fitemname"></div>
                                                 <button type="button" @click="openDesc('saved', i)"
+                                                    style="flex:0 0 auto;"
                                                     class="shrink-0 inline-flex items-center border border-l-0 rounded-r px-2 py-1 transition-colors"
                                                     :class="descButtonClass(it.fdesc)"
                                                     title="Deskripsi">
@@ -343,12 +344,13 @@
                                         </div>
                                     </td>
 
-                                    <td class="p-2">
-                                        <div class="flex w-full max-w-full">
+                                    <td class="p-2" style="width: 31rem; min-width: 31rem;">
+                                        <div style="display:flex; width:100%; min-width:0; align-items:stretch; flex-wrap:nowrap;">
                                             <div
                                                 class="min-w-0 flex-1 rounded-l border bg-gray-100 px-2 py-1 text-sm leading-5 text-gray-600 whitespace-normal break-words"
                                                 x-text="draft.fitemname"></div>
                                             <button type="button" @click="openDesc('draft')"
+                                                style="flex:0 0 auto;"
                                                 class="shrink-0 inline-flex items-center border border-l-0 rounded-r px-2 py-1 transition-colors"
                                                 :class="descButtonClass(draft.fdesc)"
                                                 title="Deskripsi">
@@ -396,31 +398,6 @@
                     </div>
 
                     <input type="hidden" id="itemsCount" :value="savedItems.length">
-                </div>
-
-                {{-- MODAL ERROR: belum ada item --}}
-                    <div x-show="showNoItems" x-cloak class="fixed inset-0 z-[90] flex items-center justify-center"
-                        x-transition.opacity>
-                    <div class="absolute inset-0 bg-black/50" @click="showNoItems=false"></div>
-                    <div class="relative bg-white w-[92vw] max-w-md rounded-2xl shadow-2xl overflow-hidden"
-                        x-transition.scale>
-                        <div class="px-5 py-4 border-b flex items-center">
-                            <x-heroicon-o-exclamation-triangle class="w-6 h-6 text-red-500 mr-2" />
-                            <h3 class="text-lg font-semibold text-gray-800">Tidak Ada Item</h3>
-                        </div>
-                        <div class="px-5 py-4">
-                            <p class="text-sm text-gray-700">
-                                Anda belum menambahkan item apa pun pada tabel. Silakan isi baris "Detail Item" terlebih
-                                dahulu.
-                            </p>
-                        </div>
-                        <div class="px-5 py-3 border-t flex items-center justify-end gap-2">
-                            <button type="button" @click="showNoItems=false"
-                                class="h-9 px-4 rounded-lg bg-blue-600 text-white text-sm font-medium hover:bg-blue-700">
-                                OK
-                            </button>
-                        </div>
-                    </div>
 
                     <div x-show="showDescModal" x-cloak class="fixed inset-0 z-[95] flex items-center justify-center"
                         x-transition.opacity>
@@ -450,8 +427,33 @@
                     </div>
                 </div>
 
+                {{-- MODAL ERROR: belum ada item --}}
+                    <div x-show="showNoItems" x-cloak class="fixed inset-0 z-[90] flex items-center justify-center"
+                        x-transition.opacity>
+                    <div class="absolute inset-0 bg-black/50" @click="showNoItems=false"></div>
+                    <div class="relative bg-white w-[92vw] max-w-md rounded-2xl shadow-2xl overflow-hidden"
+                        x-transition.scale>
+                        <div class="px-5 py-4 border-b flex items-center">
+                            <x-heroicon-o-exclamation-triangle class="w-6 h-6 text-red-500 mr-2" />
+                            <h3 class="text-lg font-semibold text-gray-800">Tidak Ada Item</h3>
+                        </div>
+                        <div class="px-5 py-4">
+                            <p class="text-sm text-gray-700">
+                                Anda belum menambahkan item apa pun pada tabel. Silakan isi baris "Detail Item" terlebih
+                                dahulu.
+                            </p>
+                        </div>
+                        <div class="px-5 py-3 border-t flex items-center justify-end gap-2">
+                            <button type="button" @click="showNoItems=false"
+                                class="h-9 px-4 rounded-lg bg-blue-600 text-white text-sm font-medium hover:bg-blue-700">
+                                OK
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
                 {{-- MODAL SUPPLIER --}}
-                <div x-data="supplierBrowser()" x-show="open" x-cloak x-transition.opacity
+                <div x-data="supplierBrowser()" x-init="init()" x-show="open" x-cloak x-transition.opacity
                     class="fixed inset-0 z-50 flex items-center justify-center p-4">
                     <div class="absolute inset-0 bg-black/50 backdrop-blur-sm"></div>
                     <div class="relative bg-white rounded-2xl shadow-2xl w-full max-w-6xl flex flex-col overflow-hidden"
@@ -504,7 +506,7 @@
                 </div>
 
                 {{-- MODAL PRODUK --}}
-                <div x-data="productBrowser()" x-show="open" x-cloak x-transition.opacity
+                <div x-data="productBrowser()" x-init="init()" x-show="open" x-cloak x-transition.opacity
                     class="fixed inset-0 z-50 flex items-center justify-center p-4">
                     <div class="absolute inset-0 bg-black/50 backdrop-blur-sm"></div>
                     <div class="relative bg-white rounded-2xl shadow-2xl w-full max-w-6xl flex flex-col overflow-hidden"
@@ -1287,4 +1289,3 @@
         }
     </script>
 @endpush
-
