@@ -194,7 +194,7 @@
         };
     @endphp
 
-    <div class="bg-white rounded shadow p-6 md:p-8 max-w-[1600px] w-full mx-auto" x-data="mainForm()"
+    <div class="bg-white rounded shadow p-6 md:p-8 max-w-[96rem] mx-auto" x-data="mainForm()"
         x-init="init()">
 
         @if ($isEdit)
@@ -359,7 +359,7 @@
             {{-- Keterangan --}}
             <div class="lg:col-span-12">
                 <label class="block text-sm font-medium">Keterangan</label>
-                <textarea name="fket" rows="3" {{ $readonly }}
+                <textarea name="fket" rows="3" maxlength="300" {{ $readonly }}
                     class="w-full border rounded px-3 py-2 {{ $bgDisabled }} @error('fket') border-red-500 @enderror"
                     placeholder="Tulis keterangan tambahan di sini...">{{ old('fket', $tr_poh->fket) }}</textarea>
                 @error('fket')

@@ -910,7 +910,13 @@ class FakturpembelianController extends Controller
                 'frefnoacak' => ['nullable', 'array'],
                 'frefnoacak.*' => ['nullable', 'regex:/^\d{3}(,\s*\d{3})*$/'],
             ], [
-                'fprdjadi.required_if' => 'Account wajib diisi ketika tipe pembelian adalah Non Stok.',
+                'fstockmtdate.required' => 'Tanggal transaksi wajib diisi.',
+                'fsupplier.required' => 'Supplier wajib dipilih.',
+                'fitemcode.required' => 'Minimal harus ada 1 item.',
+                'fqty.*.min' => 'Jumlah item harus lebih dari 0.',
+                'fprice.*.min' => 'Harga item tidak boleh minus.',
+                'frefnoacak.*.regex' => 'Nomor acak harus berisi 3 digit angka.',
+                'fprdjadi.required_if' => 'Account wajib dipilih jika tipe pembelian Non Stok.',
             ]);
 
             // 2) HEADER FIELDS
@@ -955,7 +961,7 @@ class FakturpembelianController extends Controller
 
                 if (! empty($invalidAdvanceCodes)) {
                     return back()->withInput()->withErrors([
-                        'detail' => 'Untuk tipe pembelian Uang Muka, hanya produk dengan kode UM yang diperbolehkan. Kode tidak valid: ' . implode(', ', $invalidAdvanceCodes) . '.',
+                        'detail' => 'Tipe pembelian Uang Muka hanya boleh memakai produk dengan kode UM. Periksa item: ' . implode(', ', $invalidAdvanceCodes) . '.',
                     ]);
                 }
             }
@@ -1057,7 +1063,7 @@ class FakturpembelianController extends Controller
             if (empty($rowsDt)) {
                 $message = 'Detail item transaksi pembelian tidak berhasil dibentuk, sehingga data detail tidak tersimpan.';
                 if (! empty($skippedDetailCodes)) {
-                    $message .= ' Kode item yang tidak dikenali: '.implode(', ', array_values(array_unique($skippedDetailCodes))).'.';
+                    $message = 'Ada kode produk yang tidak dikenali: '.implode(', ', array_values(array_unique($skippedDetailCodes))).'.';
                 }
 
                 return back()->withInput()->withErrors([
@@ -1167,7 +1173,7 @@ class FakturpembelianController extends Controller
         } catch (\Exception $e) {
             Log::error('FakturPembelian@store ERROR: ' . $e->getMessage());
 
-            return back()->withInput()->withErrors(['error' => 'Gagal simpan: ' . $e->getMessage()]);
+            return back()->withInput()->withErrors(['error' => 'Data belum berhasil disimpan. Silakan cek kembali isian transaksi lalu coba lagi.']);
         }
     }
 
@@ -1506,10 +1512,14 @@ class FakturpembelianController extends Controller
                 'fprdjadi' => ['required_if:ftypebuy,1'],
             ], [
                 'fstockmtdate.required' => 'Tanggal transaksi wajib diisi.',
-                'fsupplier.required' => 'Supplier wajib diisi.',
-                'fitemcode.required' => 'Minimal 1 item.',
-                'fsatuan.*.max' => 'Satuan di salah satu baris tidak boleh lebih dari 5 karakter.',
-                'fprdjadi.required_if' => 'Account wajib diisi ketika tipe pembelian adalah Non Stok.',
+                'fsupplier.required' => 'Supplier wajib dipilih.',
+                'fitemcode.required' => 'Minimal harus ada 1 item.',
+                'fsatuan.*.max' => 'Satuan item terlalu panjang.',
+                'fqty.*.min' => 'Jumlah item tidak boleh minus.',
+                'fprice.*.min' => 'Harga item tidak boleh minus.',
+                'fbiaya.*.min' => 'Biaya item tidak boleh minus.',
+                'frefnoacak.*.regex' => 'Nomor acak harus berisi 3 digit angka.',
+                'fprdjadi.required_if' => 'Account wajib dipilih jika tipe pembelian Non Stok.',
             ]);
 
             // 2. Muat header yang ada
@@ -1567,7 +1577,7 @@ class FakturpembelianController extends Controller
 
                 if (! empty($invalidAdvanceCodes)) {
                     return back()->withInput()->withErrors([
-                        'detail' => 'Untuk tipe pembelian Uang Muka, hanya produk dengan kode UM yang diperbolehkan. Kode tidak valid: ' . implode(', ', $invalidAdvanceCodes) . '.',
+                        'detail' => 'Tipe pembelian Uang Muka hanya boleh memakai produk dengan kode UM. Periksa item: ' . implode(', ', $invalidAdvanceCodes) . '.',
                     ]);
                 }
             }
@@ -1694,7 +1704,7 @@ class FakturpembelianController extends Controller
             }
 
             if (empty($rowsDt)) {
-                return back()->withInput()->withErrors(['detail' => 'Minimal satu item valid (Kode, Satuan, Qty > 0).']);
+                return back()->withInput()->withErrors(['detail' => 'Minimal harus ada 1 item yang lengkap dan jumlahnya lebih dari 0.']);
             }
 
             $grandTotal = $subtotal + $ppnAmount;
@@ -1797,7 +1807,7 @@ class FakturpembelianController extends Controller
 
             return back()
                 ->withInput()
-                ->withErrors(['error' => 'Terjadi kesalahan sistem: ' . $e->getMessage()]);
+                ->withErrors(['error' => 'Data belum berhasil diperbarui. Silakan cek kembali isian transaksi lalu coba lagi.']);
         }
     }
 
@@ -1962,7 +1972,7 @@ class FakturpembelianController extends Controller
             return redirect()->route('fakturpembelian.index')->with('success', 'Data Faktur Pembelian ' . $fakturpembelian->fstockmtno . ' berhasil dihapus.');
         } catch (\Exception $e) {
             // Jika terjadi kesalahan saat menghapus, kembali ke halaman delete dengan pesan error
-            return redirect()->route('fakturpembelian.delete', $fstockmtid)->with('error', 'Gagal menghapus data: ' . $e->getMessage());
+            return redirect()->route('fakturpembelian.delete', $fstockmtid)->with('error', 'Data belum berhasil dihapus. Silakan coba lagi.');
         }
     }
 

@@ -135,10 +135,11 @@
             ];
         }
     @endphp
-    <div class="bg-white rounded shadow p-6 md:p-8 max-w-[1600px] w-full mx-auto">
+    <div class="bg-white rounded shadow p-6 md:p-8 max-w-[96rem] mx-auto">
         <form action="{{ route('penerimaanbarang.store') }}" method="POST" class="mt-6" data-form-draft="true"
-            data-draft-key="penerimaanbarang:create" x-data="mainForm()"
-            x-init="syncSupplierDisplay(@js(old('fsupplier', ''))); restoreSavedItems(@js($initialPenerimaanItems)); init()"
+            data-draft-key="penerimaanbarang:create" x-data="mainForm()" x-init="syncSupplierDisplay(@js(old('fsupplier', '')));
+            restoreSavedItems(@js($initialPenerimaanItems));
+            init()"
             @submit.prevent="submitForm($el)">
             @csrf
 
@@ -228,11 +229,13 @@
                                 @endforeach
                             </select>
                             <div class="absolute inset-0" role="button" aria-label="Browse warehouse"
-                                @click="window.dispatchEvent(new CustomEvent('penerimaanbarang-warehouse-browse-open'))"></div>
+                                @click="window.dispatchEvent(new CustomEvent('penerimaanbarang-warehouse-browse-open'))">
+                            </div>
                         </div>
 
                         <input type="hidden" name="ffrom" id="warehouseCodeHidden" value="{{ old('ffrom') }}">
-                        <button type="button" @click="window.dispatchEvent(new CustomEvent('penerimaanbarang-warehouse-browse-open'))"
+                        <button type="button"
+                            @click="window.dispatchEvent(new CustomEvent('penerimaanbarang-warehouse-browse-open'))"
                             class="border -ml-px px-3 py-2 bg-white hover:bg-gray-50 rounded-r-none"
                             title="Browse Gudang">
                             <x-heroicon-o-magnifying-glass class="w-5 h-5" />
@@ -316,12 +319,13 @@
                                     {{-- Nama Produk + Deskripsi --}}
                                     <td class="p-2">
                                         <div class="flex w-full max-w-full">
-                                            <div
-                                                class="min-w-0 flex-1 rounded-l border bg-gray-100 px-2 py-1 text-sm leading-5 text-gray-600 whitespace-normal break-words"
+                                            <div class="min-w-0 flex-1 rounded-l border bg-gray-100 px-2 py-1 text-sm leading-5 text-gray-600 whitespace-normal break-words"
                                                 x-text="it.fitemname"></div>
                                             <button type="button" @click="openDesc(it)"
                                                 class="shrink-0 inline-flex items-center border border-l-0 rounded-r px-2 py-1 transition-colors"
-                                                :class="it.fdesc ? 'border-emerald-300 bg-emerald-50 text-emerald-600 hover:bg-emerald-100' : 'bg-white text-gray-500 hover:bg-gray-50'"
+                                                :class="it.fdesc ?
+                                                    'border-emerald-300 bg-emerald-50 text-emerald-600 hover:bg-emerald-100' :
+                                                    'bg-white text-gray-500 hover:bg-gray-50'"
                                                 title="Deskripsi item">
                                                 <x-heroicon-o-document-text class="h-4 w-4" />
                                             </button>
@@ -435,12 +439,13 @@
 
                                 <td class="p-2">
                                     <div class="flex w-full max-w-full">
-                                        <div
-                                            class="min-w-0 flex-1 rounded-l border bg-gray-100 px-2 py-1 text-sm leading-5 text-gray-600 whitespace-normal break-words"
+                                        <div class="min-w-0 flex-1 rounded-l border bg-gray-100 px-2 py-1 text-sm leading-5 text-gray-600 whitespace-normal break-words"
                                             x-text="draft.fitemname"></div>
                                         <button type="button" @click="openDesc(draft)"
                                             class="shrink-0 inline-flex items-center border border-l-0 rounded-r px-2 py-1 transition-colors"
-                                            :class="draft.fdesc ? 'border-emerald-300 bg-emerald-50 text-emerald-600 hover:bg-emerald-100' : 'bg-white text-gray-500 hover:bg-gray-50'"
+                                            :class="draft.fdesc ?
+                                                'border-emerald-300 bg-emerald-50 text-emerald-600 hover:bg-emerald-100' :
+                                                'bg-white text-gray-500 hover:bg-gray-50'"
                                             title="Deskripsi item">
                                             <x-heroicon-o-document-text class="h-4 w-4" />
                                         </button>
@@ -466,7 +471,7 @@
 
                                 <td class="p-2 text-right">
                                     <input type="number" class="border rounded px-2 py-1 w-20 text-right text-sm"
-                                                min="0" step="0.01" x-ref="draftQty" x-model.number="draft.fqty"
+                                        min="0" step="0.01" x-ref="draftQty" x-model.number="draft.fqty"
                                         @input="recalc(draft)" @blur="enforceQtyRow(draft);"
                                         @keydown.enter.prevent="$refs.draftPrice?.focus()">
                                     <div class="text-[10px] text-orange-600 font-medium text-right mt-0.5"
@@ -802,7 +807,11 @@
                     fqtykecil: 0,
                     fqtykecil2: 0,
                     maxqty_satuan: '',
-                    unit_ratios: { satuankecil: 1, satuanbesar: 1, satuanbesar2: 1 },
+                    unit_ratios: {
+                        satuankecil: 1,
+                        satuanbesar: 1,
+                        satuanbesar2: 1
+                    },
                     frefdtid: '',
                     fqtykecil_ref: 0,
                     fqtypo: 0,
@@ -910,7 +919,11 @@
                             name: '',
                             units: [],
                             stock: 0,
-                            unit_ratios: { satuankecil: 1, satuanbesar: 1, satuanbesar2: 1 }
+                            unit_ratios: {
+                                satuankecil: 1,
+                                satuanbesar: 1,
+                                satuanbesar2: 1
+                            }
                         };
                     }
                     return meta;
@@ -923,7 +936,9 @@
                     const used = new Set(this.savedItems.map(item => this.normalizeNoAcak(item.fnoacak)).filter(Boolean));
                     let candidate = '';
                     do {
-                        candidate = Array.from({ length: 3 }, () => '123456789'[Math.floor(Math.random() * 9)]).join('');
+                        candidate = Array.from({
+                            length: 3
+                        }, () => '123456789' [Math.floor(Math.random() * 9)]).join('');
                     } while (used.has(candidate));
                     return candidate;
                 },
@@ -939,7 +954,8 @@
                     const rasio = Number(row.fqtykecil || 0);
                     const rasio2 = Number(row.fqtykecil2 || 0);
 
-                    const hasRemainField = row.fqtykecil_ref !== undefined && row.fqtykecil_ref !== null && row.fqtykecil_ref !== '';
+                    const hasRemainField = row.fqtykecil_ref !== undefined && row.fqtykecil_ref !== null && row
+                        .fqtykecil_ref !== '';
                     if (!hasRemainField) return 0;
                     const sisaKecil = Math.max(0, Number(row.fqtykecil_ref) || 0);
 
@@ -976,7 +992,9 @@
                     this.hydrateRowFromMeta(item, this.productMeta(item.fitemcode));
                 },
 
-                getSupplier() { return (document.getElementById('supplierCodeHidden')?.value || '').trim(); },
+                getSupplier() {
+                    return (document.getElementById('supplierCodeHidden')?.value || '').trim();
+                },
                 syncSupplierDisplay(code) {
                     const supplierCode = (code || '').toString().trim();
                     const sel = document.getElementById('modal_filter_supplier_id');
@@ -990,10 +1008,17 @@
                         if (selected) found = true;
                     });
                     if (!found && supplierCode) sel.add(new Option(supplierCode, supplierCode, true, true));
-                    sel.dispatchEvent(new Event('change', { bubbles: true }));
+                    sel.dispatchEvent(new Event('change', {
+                        bubbles: true
+                    }));
                 },
                 restoreSavedItems(items = []) {
-                    this.savedItems = Array.isArray(items) ? items.filter(i => (i?.fitemcode || '').toString().trim() !== '').map(i => ({ ...newRow(), ...i, uid: i.uid || cryptoRandom() })) : [];
+                    this.savedItems = Array.isArray(items) ? items.filter(i => (i?.fitemcode || '').toString().trim() !==
+                        '').map(i => ({
+                        ...newRow(),
+                        ...i,
+                        uid: i.uid || cryptoRandom()
+                    })) : [];
                     this.showNoItems = false;
                 },
                 isDupeItem(candidate) {
@@ -1001,10 +1026,14 @@
                     if (cPod) return this.savedItems.some(it => String(it.frefdtid ?? '').trim() === cPod);
                     const cCode = (candidate.fitemcode || '').trim().toLowerCase();
                     const cSatuan = (candidate.fsatuan || '').trim().toLowerCase();
-                    return this.savedItems.some(it => (it.fitemcode || '').trim().toLowerCase() === cCode && (it.fsatuan || '').trim().toLowerCase() === cSatuan);
+                    return this.savedItems.some(it => (it.fitemcode || '').trim().toLowerCase() === cCode && (it.fsatuan ||
+                        '').trim().toLowerCase() === cSatuan);
                 },
                 addIfComplete() {
-                    if (!this.getSupplier()) { this.showNoSupplier = true; return; }
+                    if (!this.getSupplier()) {
+                        this.showNoSupplier = true;
+                        return;
+                    }
                     if (!this.draft.fitemcode || !this.draft.fsatuan || !(Number(this.draft.fqty) > 0)) return;
                     if (this.isDupeItem(this.draft)) {
                         this.showDupItemModal = true;
@@ -1012,12 +1041,18 @@
                         this.dupItemSatuan = this.draft.fsatuan;
                         return;
                     }
-                    this.savedItems.push({ ...this.draft, uid: cryptoRandom() });
+                    this.savedItems.push({
+                        ...this.draft,
+                        uid: cryptoRandom()
+                    });
                     this.draft = newRow();
                     this.draft.fnoacak = this.generateUniqueNoAcak();
                 },
                 onPrPicked(e) {
-                    const { header, items } = e.detail || {};
+                    const {
+                        header,
+                        items
+                    } = e.detail || {};
                     if (!items || !Array.isArray(items)) return;
                     const skipped = [];
                     items.forEach(src => {
@@ -1035,9 +1070,9 @@
                             return;
                         }
 
-                        const units = meta
-                            ? [...new Set((meta.units || []).map(u => (u ?? '').toString().trim()).filter(Boolean))]
-                            : (Array.isArray(src.units) && src.units.length ? src.units : [fsatuan].filter(Boolean));
+                        const units = meta ?
+                            [...new Set((meta.units || []).map(u => (u ?? '').toString().trim()).filter(Boolean))] :
+                            (Array.isArray(src.units) && src.units.length ? src.units : [fsatuan].filter(Boolean));
                         if (fsatuan && !units.includes(fsatuan)) units.unshift(fsatuan);
 
                         const row = {
@@ -1054,12 +1089,14 @@
                             fprhid: String(src.fprhid ?? header?.fprhid ?? ''),
                             fprno: String(header?.fpono ?? src.fpono ?? ''),
                             fpono: String(header?.fpono ?? src.fpono ?? ''),
-                            fqty: (src.fqty !== null && src.fqty !== undefined && Number(src.fqty) > 0) ? Number(src.fqty) : 1,
+                            fqty: (src.fqty !== null && src.fqty !== undefined && Number(src.fqty) > 0) ?
+                                Number(src.fqty) : 1,
                             fqtypo: 0,
                             fqtysisapo: Number(src.fqtysisapo ?? 0),
                             fqtyditer: Number(src.fqtyditer ?? 0),
                             fqtymaxedit: Number(src.fqtymaxedit ?? src.maxqty ?? 0),
-                            fqtykecil_ref: Number(src.fqtykecil_ref ?? src.fqtyremain ?? src.fqtykecil_sisa ?? 0),
+                            fqtykecil_ref: Number(src.fqtykecil_ref ?? src.fqtyremain ?? src.fqtykecil_sisa ??
+                                0),
                             frefdtid: src.frefdtid ?? '',
                             fsatuankecil: src.fsatuankecil || meta?.fsatuankecil || '',
                             fsatuanbesar: src.fsatuanbesar || meta?.fsatuanbesar || '',
@@ -1101,11 +1138,16 @@
                     }
                     this.browseTarget = (where === 'saved' && idx !== null) ? idx : 'draft';
                     window.dispatchEvent(new CustomEvent('browse-open', {
-                        detail: { forEdit: false }
+                        detail: {
+                            forEdit: false
+                        }
                     }));
                 },
                 submitForm(form) {
-                    if (this.savedItems.length < 1) { this.showNoItems = true; return; }
+                    if (this.savedItems.length < 1) {
+                        this.showNoItems = true;
+                        return;
+                    }
                     form.submit();
                 },
                 init() {
@@ -1117,8 +1159,12 @@
                     window.isDupeItem = (candidate) => this.isDupeItem(candidate);
                     window.addEventListener('show-no-supplier', () => {
                         this.showNoSupplier = true;
-                    }, { passive: true });
-                    window.addEventListener('pr-picked', (e) => this.onPrPicked(e), { passive: true });
+                    }, {
+                        passive: true
+                    });
+                    window.addEventListener('pr-picked', (e) => this.onPrPicked(e), {
+                        passive: true
+                    });
                 }
             };
         }
@@ -1192,7 +1238,8 @@
                                 searchable: false,
                                 className: 'text-center',
                                 width: '100px',
-                                render: () => '<button type="button" class="btn-pick px-4 py-1.5 rounded-md text-sm font-medium bg-teal-600 hover:bg-teal-700 text-white transition-colors duration-150">Pilih</button>'
+                                render: () =>
+                                    '<button type="button" class="btn-pick px-4 py-1.5 rounded-md text-sm font-medium bg-teal-600 hover:bg-teal-700 text-white transition-colors duration-150">Pilih</button>'
                             }
                         ],
                         dom: '<"flex flex-col gap-3 md:flex-row md:items-center mb-4"<"w-full md:w-auto"f><"w-full md:w-auto md:ml-auto md:text-right"l>>rt<"flex flex-col gap-3 md:flex-row md:items-center md:justify-between mt-4"i p>',
@@ -1291,7 +1338,9 @@
 
                     if (hid) {
                         hid.value = supplierCode;
-                        hid.dispatchEvent(new Event('change', { bubbles: true }));
+                        hid.dispatchEvent(new Event('change', {
+                            bubbles: true
+                        }));
                     }
 
                     if (!sel) return;
@@ -1308,7 +1357,9 @@
                     Array.from(sel.options).forEach(option => {
                         option.selected = String(option.value) === supplierCode;
                     });
-                    sel.dispatchEvent(new Event('change', { bubbles: true }));
+                    sel.dispatchEvent(new Event('change', {
+                        bubbles: true
+                    }));
                 },
                 async pick(row) {
                     try {
@@ -1336,10 +1387,11 @@
                         }
 
                         const formEl = document.querySelector('form[data-draft-key="penerimaanbarang:create"]');
-                        const formState = window.penerimaanBarangCreateForm
-                            || (window.Alpine?.$data ? window.Alpine.$data(formEl) : null)
-                            || (Array.isArray(formEl?._x_dataStack) && formEl._x_dataStack.length > 0 ? formEl._x_dataStack[0] : null)
-                            || formEl?.__x?.$data;
+                        const formState = window.penerimaanBarangCreateForm ||
+                            (window.Alpine?.$data ? window.Alpine.$data(formEl) : null) ||
+                            (Array.isArray(formEl?._x_dataStack) && formEl._x_dataStack.length > 0 ? formEl
+                                ._x_dataStack[0] : null) ||
+                            formEl?.__x?.$data;
 
                         if (formState && typeof formState.onPrPicked === 'function') {
                             formState.onPrPicked({
@@ -1430,8 +1482,10 @@
 
         // â”€â”€â”€ PRODUCT BROWSER â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     </script>
-        @include('components.transaction.browse-warehouse-script', ['eventName' => 'penerimaanbarang-warehouse-browse-open'])
-        @include('components.transaction.browse-product-script', ['destroyOnClose' => true, 'openDelay' => 50])
+    @include('components.transaction.browse-warehouse-script', [
+        'eventName' => 'penerimaanbarang-warehouse-browse-open',
+    ])
+    @include('components.transaction.browse-product-script', ['destroyOnClose' => true, 'openDelay' => 50])
     <script>
         document.addEventListener('alpine:init', () => {
             Alpine.store('prh', {
@@ -1446,5 +1500,3 @@
         });
     </script>
 @endpush
-
-

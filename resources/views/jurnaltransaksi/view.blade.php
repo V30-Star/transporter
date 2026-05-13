@@ -8,7 +8,7 @@
         $totalKredit = collect($savedItems)->where('fdk', 'K')->sum(fn ($item) => (float) ($item['famount'] ?? 0));
     @endphp
 
-    <div class="bg-white rounded shadow p-6 md:p-8 max-w-[1600px] w-full mx-auto space-y-6">
+    <div class="bg-white rounded shadow p-6 md:p-8 max-w-[96rem] mx-auto space-y-6">
         <div class="grid grid-cols-1 lg:grid-cols-12 gap-4">
             <div class="lg:col-span-4">
                 <label class="block text-sm font-medium mb-1">Cabang</label>
@@ -50,9 +50,6 @@
                     <span>Total Kredit:
                         <strong class="text-green-700">{{ number_format($totalKredit, 2, ',', '.') }}</strong>
                     </span>
-                    <span class="{{ round($totalDebit, 2) === round($totalKredit, 2) ? 'text-green-600' : 'text-red-600' }} font-semibold">
-                        {{ round($totalDebit, 2) === round($totalKredit, 2) ? 'Balance' : 'Tidak Balance' }}
-                    </span>
                 </div>
             </div>
 
@@ -61,11 +58,12 @@
                     <thead class="bg-gray-100">
                         <tr>
                             <th class="p-2 text-left w-12">#</th>
-                            <th class="p-2 text-left w-56">Account</th>
+                            <th class="p-2 text-left w-44">Kode Account</th>
+                            <th class="p-2 text-left w-56">Nama Account</th>
                             <th class="p-2 text-left w-56">Sub Account</th>
+                            <th class="p-2 text-left w-48">Ref No</th>
                             <th class="p-2 text-left w-20">D/K</th>
                             <th class="p-2 text-left w-[28rem]">Keterangan</th>
-                            <th class="p-2 text-left w-48">Ref No</th>
                             <th class="p-2 text-right w-44">Jumlah</th>
                         </tr>
                     </thead>
@@ -73,11 +71,12 @@
                         @forelse ($savedItems as $index => $item)
                             <tr class="border-t align-top">
                                 <td class="p-2 text-gray-500">{{ $index + 1 }}</td>
+                                <td class="p-2 text-gray-700 font-mono">{{ $item['faccount'] ?: '-' }}</td>
                                 <td class="p-2">
                                     <div class="font-medium text-gray-800">{{ $item['faccname'] ?: '-' }}</div>
-                                    <div class="text-xs text-gray-500">{{ $item['faccount'] ?: '-' }}</div>
                                 </td>
                                 <td class="p-2 text-gray-700">{{ $item['fsubaccountname'] ?: '-' }}</td>
+                                <td class="p-2 text-gray-600">{{ $item['frefno'] ?: '-' }}</td>
                                 <td class="p-2">
                                     <span
                                         class="px-2 py-0.5 rounded text-xs font-semibold {{ ($item['fdk'] ?? '') === 'D' ? 'bg-blue-100 text-blue-700' : 'bg-green-100 text-green-700' }}">
@@ -85,7 +84,6 @@
                                     </span>
                                 </td>
                                 <td class="p-2 text-gray-700">{{ $item['faccountnote'] ?: '-' }}</td>
-                                <td class="p-2 text-gray-600">{{ $item['frefno'] ?: '-' }}</td>
                                 <td class="p-2 text-right font-medium">{{ number_format((float) ($item['famount'] ?? 0), 2, ',', '.') }}</td>
                             </tr>
                         @empty
@@ -112,3 +110,4 @@
         </div>
     </div>
 @endsection
+

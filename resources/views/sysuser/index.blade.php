@@ -41,11 +41,11 @@
                         <td>{{ $sysuser->fname }}</td>
                         <td>{{ $sysuser->salesman_name }}</td>
                         @if ($showActionsColumn)
-                            <td class="border px-2 py-1">
+                            <td class="border px-2 py-1 text-right whitespace-nowrap">
                                 @if ($canEdit)
                                     <a href="{{ route('sysuser.edit', $sysuser->fuid) }}">
                                         <button
-                                            class="inline-flex items-center bg-yellow-500 text-white px-4 py-2 rounded hover:bg-yellow-600">
+                                            class="inline-flex items-center bg-yellow-500 text-white px-3 py-1.5 text-xs rounded hover:bg-yellow-600">
                                             <x-heroicon-o-pencil-square class="w-4 h-4 mr-1" />
                                             Edit
                                         </button>
@@ -55,7 +55,7 @@
                                 @if ($canDelete)
                                     <a href="{{ route('sysuser.delete', $sysuser->fuid) }}">
                                         <button
-                                            class="inline-flex items-center bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700">
+                                            class="inline-flex items-center bg-red-600 text-white px-3 py-1.5 text-xs rounded hover:bg-red-700">
                                             <x-heroicon-o-trash class="w-4 h-4 mr-1" />
                                             Hapus
                                         </button>
@@ -65,7 +65,7 @@
                                 @if ($canRoleAccess)
                                     <a href="{{ route('roleaccess.index', $sysuser->fuid) }}">
                                         <button
-                                            class="inline-flex items-center bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">
+                                            class="inline-flex items-center bg-green-600 text-white px-3 py-1.5 text-xs rounded hover:bg-green-700">
                                             <x-heroicon-o-key class="w-4 h-4 mr-1" />
                                             Set Menu
                                         </button>

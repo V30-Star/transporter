@@ -602,7 +602,7 @@ class MutasiController extends Controller
                 ->route('mutasi.create')
                 ->with('success', "Transaksi {$finalNo} berhasil disimpan.");
         } catch (\Exception $e) {
-            return back()->withInput()->withErrors(['fatal' => 'Terjadi error: '.$e->getMessage()]);
+            return back()->withInput()->withErrors(['fatal' => 'Data belum berhasil disimpan. Silakan cek kembali isian transaksi.']);
         }
     }
 
@@ -1008,7 +1008,7 @@ class MutasiController extends Controller
                 ->with('success', "Transaksi {$header->fstockmtno} berhasil diperbarui.");
         } catch (\Exception $e) {
             return back()->withInput()->withErrors([
-                'fatal' => 'Terjadi error saat update: '.$e->getMessage(),
+                'fatal' => 'Data belum berhasil diperbarui. Silakan cek kembali isian transaksi.',
             ]);
         }
     }
@@ -1180,7 +1180,7 @@ class MutasiController extends Controller
                 DB::rollBack();
             }
 
-            return redirect()->route('mutasi.index')->with('error', 'Gagal menghapus data: '.$e->getMessage());
+            return redirect()->route('mutasi.index')->with('error', 'Data belum berhasil dihapus. Silakan coba lagi.');
         }
     }
 

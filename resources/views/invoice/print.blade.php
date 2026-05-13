@@ -273,7 +273,7 @@
                 <tr>
                     <th style="width: 5%;">No.</th>
                     <th style="width: 45%;">Nama Produk</th>
-                    <th style="width: 15%; text-align: right;">Quantity</th>
+                    <th style="width: 15%; text-align: right;">Jumlah</th>
                     <th style="width: 15%; text-align: right;">@ Harga</th>
                     <th style="width: 5%; text-align: center;">Disc.%</th>
                     <th style="width: 15%; text-align: right;">Total Harga</th>
@@ -343,4 +343,3 @@
 </body>
 
 </html>
-

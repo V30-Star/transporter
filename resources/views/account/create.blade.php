@@ -14,7 +14,7 @@
     </style>
 
     <div x-data="{ open: true, selected: 'rekening', subAccount: false }">
-        <div class="bg-white rounded shadow p-6 md:p-8 max-w-5xl mx-auto">
+        <div class="bg-white rounded shadow p-6 md:p-8 max-w-[96rem] mx-auto">
             <form action="{{ route('account.store') }}" method="POST">
                 @csrf
 

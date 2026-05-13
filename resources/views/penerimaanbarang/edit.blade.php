@@ -134,7 +134,7 @@
             </div>
         </div>
     @endif
-    <div class="bg-white rounded shadow p-6 md:p-8 max-w-[1600px] w-full mx-auto">
+    <div class="bg-white rounded shadow p-6 md:p-8 max-w-[96rem] mx-auto">
         <form action="{{ $action === 'delete' ? '#' : route('penerimaanbarang.update', $penerimaanbarang->fstockmtid) }}"
             method="POST" class="mt-6" x-data="mainForm()" x-init="init()" @submit.prevent="submitForm($el)">
 
@@ -1731,6 +1731,7 @@
         });
     </script>
 @endpush
+
 
 
 

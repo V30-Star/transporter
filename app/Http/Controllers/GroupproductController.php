@@ -138,7 +138,7 @@ class GroupproductController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'Gagal menghapus data: '.$e->getMessage(),
+                'message' => 'Data belum berhasil dihapus. Silakan coba lagi.',
             ], 500);
         }
     }

@@ -112,7 +112,7 @@
     @endif
     <div x-data="{ open: true }">
         <div x-data="{ includePPN: false, ppnRate: 0, ppnAmount: 0, totalHarga: 100000 }" class="lg:col-span-5">
-            <div class="bg-white rounded shadow p-6 md:p-8 max-w-[1600px] w-full mx-auto">
+            <div class="bg-white rounded shadow p-6 md:p-8 max-w-[96rem] mx-auto">
                 <form action="{{ route('suratjalan.store') }}" method="POST" class="mt-6" data-form-draft="true"
                     data-draft-key="suratjalan:create" x-data="{ showNoItems: false }"
                     @submit.prevent="
@@ -1180,6 +1180,34 @@
                 return this.savedItems.map(it => this.itemKey(it));
             },
 
+            normalizeRestoredRow(item, index = 0) {
+                const row = {
+                    ...newRow(),
+                    ...(item || {}),
+                    uid: item?.uid || `restored-${index}`
+                };
+                row.fnoacak = this.normalizeNoAcak(row.fnoacak) || this.generateUniqueNoAcak();
+                row.frefnoacak = this.normalizeNoAcak(row.frefnoacak);
+                this.hydrateRowFromMeta(row, this.productMeta(row.fitemcode));
+                this.recalc(row);
+                return row;
+            },
+
+            restoreSavedItems(items = []) {
+                this.savedItems = Array.isArray(items)
+                    ? items.map((item, index) => this.normalizeRestoredRow(item, index))
+                    : [];
+                this.recalcTotals();
+            },
+
+            restoreDraft(draft = {}) {
+                this.draft = this.normalizeRestoredRow(draft, 'draft');
+            },
+
+            restoreEditRow(editRow = {}) {
+                this.editRow = this.normalizeRestoredRow(editRow, 'edit');
+            },
+
             init() {
                 window.getCurrentItemKeys = () => this.getCurrentItemKeys();
                 this.savedItems = (this.savedItems || []).map(item => ({
@@ -1371,5 +1399,7 @@
         });
     </script>
 @endpush
+
+
 
 

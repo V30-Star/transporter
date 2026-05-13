@@ -1001,31 +1001,57 @@
                 const text = items.join(' ').toLowerCase();
 
                 if (text.includes('balance') || text.includes('debit') || text.includes('kredit')) {
-                    return 'Nilai transaksi masih belum seimbang atau belum sesuai aturan jurnal.';
+                    return 'Jumlah debit dan kredit masih belum seimbang.';
                 }
 
                 if (text.includes('minimal satu item') || text.includes('data items') || text.includes('detail')) {
-                    return 'Detail item transaksi masih belum lengkap atau belum valid.';
+                    return 'Detail transaksi masih belum lengkap.';
                 }
 
                 if (text.includes('qty') || text.includes('quantity')) {
-                    return 'Qty yang diinput belum sesuai batas atau format yang diperbolehkan.';
+                    return 'Jumlah item yang diinput masih belum sesuai.';
                 }
 
                 if (text.includes('supplier') || text.includes('customer') || text.includes('salesman') || text.includes('gudang') || text.includes('akun')) {
-                    return 'Data referensi transaksi masih ada yang kosong atau tidak cocok.';
+                    return 'Ada data pilihan yang masih kosong atau belum sesuai.';
                 }
 
                 if (text.includes('close') || text.includes('referensi')) {
-                    return 'Status transaksi belum bisa diproses karena syarat referensinya belum terpenuhi.';
+                    return 'Data referensi transaksi ini masih belum bisa dipakai.';
                 }
 
-                return 'Masih ada data yang belum valid, jadi sistem menolak proses simpan.';
+                return 'Masih ada data yang perlu diperbaiki.';
+            }
+
+            function simplifyMessage(message) {
+                let result = String(message ?? '').trim();
+
+                result = result.replace(/^the\s+/i, '');
+                result = result.replace(/\.$/, '');
+                result = result.replace(/\bvalidation\b/gi, 'pemeriksaan');
+                result = result.replace(/\bfield\b/gi, 'kolom');
+                result = result.replace(/\brequired\b/gi, 'wajib diisi');
+                result = result.replace(/\bmust be\b/gi, 'harus');
+                result = result.replace(/\bmay not be greater than\b/gi, 'tidak boleh lebih dari');
+                result = result.replace(/\bmay not be less than\b/gi, 'tidak boleh kurang dari');
+                result = result.replace(/\bmust not\b/gi, 'tidak boleh');
+                result = result.replace(/\bselected\b/gi, 'dipilih');
+                result = result.replace(/\binvalid\b/gi, 'tidak valid');
+                result = result.replace(/\bexists\b/gi, 'sudah ada');
+                result = result.replace(/\bqty\b/gi, 'jumlah');
+                result = result.replace(/\baccount\b/gi, 'account');
+                result = result.replace(/\s+/g, ' ').trim();
+
+                if (!/[.!?]$/.test(result)) {
+                    result += '.';
+                }
+
+                return result.charAt(0).toUpperCase() + result.slice(1);
             }
 
             window.showTransactionErrorModal = function(messages, options = {}) {
                 const normalizedMessages = (Array.isArray(messages) ? messages : [messages])
-                    .map((message) => String(message ?? '').trim())
+                    .map((message) => simplifyMessage(message))
                     .filter(Boolean);
 
                 if (normalizedMessages.length === 0) {
@@ -1037,19 +1063,18 @@
                 ).join('');
 
                 Swal.fire({
-                    icon: 'error',
-                    title: options.title || 'Transaksi Belum Bisa Disimpan',
+                    icon: 'warning',
+                    title: options.title || 'Data Belum Bisa Disimpan',
                     html: `
                         <div style="text-align:left; font-size:14px; line-height:1.6;">
-                            <p style="margin:0 0 10px 0;"><strong>Alasan:</strong> ${escapeHtml(options.reason || inferReason(normalizedMessages))}</p>
-                            <p style="margin:0 0 8px 0;">Sistem menemukan masalah berikut:</p>
+                            <p style="margin:0 0 10px 0;">${escapeHtml(options.reason || inferReason(normalizedMessages))}</p>
                             <ul style="margin:0 0 12px 18px; padding:0;">${listHtml}</ul>
-                            <p style="margin:0; color:#6b7280;">Silakan perbaiki data di atas, lalu coba simpan kembali.</p>
+                            <p style="margin:0; color:#6b7280;">Silakan cek poin di atas lalu simpan lagi.</p>
                         </div>
                     `,
-                    confirmButtonText: 'Tutup',
-                    confirmButtonColor: '#dc2626',
-                    width: 640
+                    confirmButtonText: 'Mengerti',
+                    confirmButtonColor: '#f59e0b',
+                    width: 560
                 });
             };
         })();
@@ -1419,6 +1444,21 @@
                 if (alpineState?.savedItems && Array.isArray(alpineState.savedItems)) {
                     customState.savedItems = JSON.parse(JSON.stringify(alpineState.savedItems));
                 }
+                if (alpineState?.items && Array.isArray(alpineState.items)) {
+                    customState.items = JSON.parse(JSON.stringify(alpineState.items));
+                }
+                if (alpineState?.draft && typeof alpineState.draft === 'object') {
+                    customState.draft = JSON.parse(JSON.stringify(alpineState.draft));
+                }
+                if (alpineState?.editRow && typeof alpineState.editRow === 'object') {
+                    customState.editRow = JSON.parse(JSON.stringify(alpineState.editRow));
+                }
+                if (typeof alpineState?.editingIndex !== 'undefined') {
+                    customState.editingIndex = alpineState.editingIndex;
+                }
+                if (typeof alpineState?.showNoItems !== 'undefined') {
+                    customState.showNoItems = alpineState.showNoItems;
+                }
 
                 const collectEvent = new CustomEvent('form-draft-collect', {
                     bubbles: true,
@@ -1466,6 +1506,8 @@
                 [
                     ['supplierCodeHidden', 'modal_filter_supplier_id'],
                     ['customerCodeHidden', 'modal_filter_customer_id'],
+                    ['salesmanCodeHidden', 'modal_filter_salesman_id'],
+                    ['accountCodeHidden', 'accountSelect'],
                     ['warehouseCodeHidden', 'warehouseSelect']
                 ].forEach(([hiddenId, selectId]) => syncLinkedSelect(hiddenId, selectId));
             }
@@ -1525,8 +1567,11 @@
                 syncCommonDisplayFields();
 
                 const alpineState = getAlpineFormState(form);
-                const savedItems = savedDraft?.customState?.savedItems;
-                if (Array.isArray(savedItems) && savedItems.length > 0) {
+                const customState = savedDraft?.customState && typeof savedDraft.customState === 'object'
+                    ? savedDraft.customState
+                    : {};
+                const savedItems = customState.savedItems;
+                if (Array.isArray(savedItems)) {
                     if (alpineState && typeof alpineState.restoreSavedItems === 'function') {
                         alpineState.restoreSavedItems(savedItems);
                     } else if (alpineState && Array.isArray(alpineState.savedItems)) {
@@ -1535,6 +1580,50 @@
                             alpineState.recalcTotals();
                         }
                     }
+                }
+
+                const restoredItems = customState.items;
+                if (Array.isArray(restoredItems) && alpineState) {
+                    if (typeof alpineState.restoreItems === 'function') {
+                        alpineState.restoreItems(restoredItems);
+                    } else if (Array.isArray(alpineState.items)) {
+                        alpineState.items = JSON.parse(JSON.stringify(restoredItems));
+                        if (typeof alpineState.recalcTotals === 'function') {
+                            alpineState.recalcTotals();
+                        }
+                    }
+                }
+
+                if (customState.draft && alpineState) {
+                    if (typeof alpineState.restoreDraft === 'function') {
+                        alpineState.restoreDraft(customState.draft);
+                    } else if (typeof alpineState.restoreDraftState === 'function') {
+                        alpineState.restoreDraftState(customState);
+                    } else if (alpineState.draft && typeof alpineState.draft === 'object') {
+                        alpineState.draft = JSON.parse(JSON.stringify(customState.draft));
+                    }
+                }
+
+                if (customState.editRow && alpineState) {
+                    if (typeof alpineState.restoreEditRow === 'function') {
+                        alpineState.restoreEditRow(customState.editRow);
+                    } else if (alpineState.editRow && typeof alpineState.editRow === 'object') {
+                        alpineState.editRow = JSON.parse(JSON.stringify(customState.editRow));
+                    }
+                }
+
+                if (Object.prototype.hasOwnProperty.call(customState, 'editingIndex') && alpineState &&
+                    Object.prototype.hasOwnProperty.call(alpineState, 'editingIndex')) {
+                    alpineState.editingIndex = customState.editingIndex;
+                }
+
+                if (Object.prototype.hasOwnProperty.call(customState, 'showNoItems') && alpineState &&
+                    Object.prototype.hasOwnProperty.call(alpineState, 'showNoItems')) {
+                    alpineState.showNoItems = customState.showNoItems;
+                }
+
+                if (alpineState && typeof alpineState.recalcTotals === 'function') {
+                    alpineState.recalcTotals();
                 }
 
                 form.dispatchEvent(new CustomEvent('form-draft-restored', {

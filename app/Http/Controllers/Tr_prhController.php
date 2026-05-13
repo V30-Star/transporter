@@ -706,7 +706,7 @@ class Tr_prhController extends Controller
 
             return redirect()->route('tr_prh.index')->with('success', 'Data Permintaan Pembelian '.$tr_prh->fprno.' berhasil dihapus.');
         } catch (\Exception $e) {
-            return redirect()->route('tr_prh.delete', $fprhid)->with('error', 'Gakey: gal menghapus data: '.$e->getMessage());
+            return redirect()->route('tr_prh.delete', $fprhid)->with('error', 'Data belum berhasil dihapus. Silakan coba lagi.');
         }
     }
 

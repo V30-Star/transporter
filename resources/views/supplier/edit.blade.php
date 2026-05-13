@@ -14,7 +14,7 @@
     </style>
 
     <div x-data="{ open: true, selected: 'surat' }">
-        <div class="bg-white rounded shadow p-6 md:p-8 max-w-5xl mx-auto">
+        <div class="bg-white rounded shadow p-6 md:p-8 max-w-[96rem] mx-auto">
             <form action="{{ route('supplier.update', $supplier->fsupplierid) }}" method="POST" data-form-draft="true"
                 data-draft-key="supplier:edit">
                 @csrf
@@ -168,3 +168,4 @@
         </div>
     </div>
 @endsection
+

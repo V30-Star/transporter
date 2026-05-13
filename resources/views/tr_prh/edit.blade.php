@@ -218,7 +218,7 @@
     @endif
 
     <div x-data="{ open: true }">
-        <div class="bg-white rounded shadow p-6 md:p-8 max-w-[1600px] w-full mx-auto">
+        <div class="bg-white rounded shadow p-6 md:p-8 max-w-[96rem] mx-auto">
             @if ($action === 'delete')
                 <div class="space-y-4">
                     @php
@@ -451,7 +451,7 @@
 
                         <div class="lg:col-span-12">
                             <label class="block text-sm font-medium">Keterangan</label>
-                            <textarea name="fket" rows="2" class="w-full border rounded px-3 py-2">{{ old('fket', $tr_prh->fket) }}</textarea>
+                            <textarea name="fket" rows="2" maxlength="300" class="w-full border rounded px-3 py-2">{{ old('fket', $tr_prh->fket) }}</textarea>
                         </div>
                     </div>
 
@@ -1412,3 +1412,4 @@
         }
     </script>
 @endpush
+

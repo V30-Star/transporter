@@ -741,7 +741,7 @@ class PenerimaanBarangController extends Controller
         }
 
         if (empty($rowsDt)) {
-            return back()->withInput()->withErrors(['detail' => 'Minimal satu item valid diperlukan.']);
+            return back()->withInput()->withErrors(['detail' => 'Minimal harus ada 1 item yang lengkap dan jumlahnya lebih dari 0.']);
         }
 
         if ($validationMessage = $this->validateUniqueReferenceUsage($rowsDt)) {
@@ -875,9 +875,9 @@ class PenerimaanBarangController extends Controller
                 DB::table('jurnaldt')->insert($jurnalDt);
             });
         } catch (\RuntimeException $e) {
-            return back()->withInput()->withErrors(['detail' => $e->getMessage()]);
+            return back()->withInput()->withErrors(['detail' => 'Data belum berhasil disimpan. Silakan cek kembali isian transaksi.']);
         } catch (Exception $e) {
-            return back()->withInput()->withErrors(['detail' => 'Gagal simpan: ' . $e->getMessage()]);
+            return back()->withInput()->withErrors(['detail' => 'Data belum berhasil disimpan. Silakan cek kembali isian transaksi.']);
         }
 
         return redirect()->route('penerimaanbarang.create')->with('success', "Transaksi {$fstockmtno} berhasil disimpan.");
@@ -1166,7 +1166,7 @@ class PenerimaanBarangController extends Controller
         }
 
         if (empty($rowsDt)) {
-            return back()->withInput()->withErrors(['detail' => 'Minimal satu item valid (Kode, Satuan, Qty > 0).']);
+            return back()->withInput()->withErrors(['detail' => 'Minimal harus ada 1 item yang lengkap dan jumlahnya lebih dari 0.']);
         }
 
         if ($validationMessage = $this->validateUniqueReferenceUsage($rowsDt, $header->fstockmtno)) {
@@ -1244,7 +1244,7 @@ class PenerimaanBarangController extends Controller
                 $this->adjustPoReferenceQtyKecil($podAgg, -1);
             });
         } catch (\RuntimeException $e) {
-            return back()->withInput()->withErrors(['detail' => $e->getMessage()]);
+            return back()->withInput()->withErrors(['detail' => 'Data belum berhasil diperbarui. Silakan cek kembali isian transaksi.']);
         }
 
         return redirect()->route('penerimaanbarang.index')
@@ -1292,7 +1292,7 @@ class PenerimaanBarangController extends Controller
                 ->with('success', 'Data Penerimaan Barang ' . $penerimaanbarang->fstockmtno . ' berhasil dihapus.');
         } catch (\Exception $e) {
             return redirect()->route('penerimaanbarang.delete', $fstockmtid)
-                ->with('error', 'Gagal menghapus data: ' . $e->getMessage());
+                ->with('error', 'Data belum berhasil dihapus. Silakan coba lagi.');
         }
     }
 

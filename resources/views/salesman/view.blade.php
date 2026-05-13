@@ -14,7 +14,7 @@
     </style>
 
     <div x-data="{ open: true, selected: 'surat' }">
-        <div class="bg-white rounded shadow p-6 md:p-8 max-w-[700px] mx-auto">
+        <div class="bg-white rounded shadow p-6 md:p-8 max-w-[96rem] mx-auto">
             <div class="space-y-4 mt-4">
                 <div>
                     <label class="block text-sm font-medium">Kode Salesman</label>
@@ -48,3 +48,4 @@
         </div>
     </div>
 @endsection
+

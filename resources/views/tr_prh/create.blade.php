@@ -132,7 +132,7 @@
         </div>
     @endif
     <div x-data="{ open: true }">
-        <div class="bg-white rounded shadow p-6 md:p-8 max-w-[1600px] w-full mx-auto">
+        <div class="bg-white rounded shadow p-6 md:p-8 max-w-[96rem] mx-auto">
             <form action="{{ route('tr_prh.store') }}" method="POST" class="mt-6" x-data="{ showNoItems: false }"
                 @submit.prevent="
                     const n = Number(document.getElementById('itemsCount')?.value || 0);
@@ -223,7 +223,8 @@
 
                     <div class="lg:col-span-12">
                         <label class="block text-sm font-medium">Keterangan</label>
-                        <textarea name="fket" rows="3" class="w-full border rounded px-3 py-2 @error('fket') border-red-500 @enderror"
+                        <textarea name="fket" rows="3" maxlength="300"
+                            class="w-full border rounded px-3 py-2 @error('fket') border-red-500 @enderror"
                             placeholder="Tulis keterangan tambahan di sini...">{{ old('fket') }}</textarea>
                         @error('fket')
                             <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
@@ -1306,3 +1307,4 @@
         }
     </script>
 @endpush
+

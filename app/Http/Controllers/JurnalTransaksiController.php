@@ -16,6 +16,13 @@ use Illuminate\Support\Facades\DB; // sekalian biar aman untuk tanggal
 
 class JurnalTransaksiController extends Controller
 {
+    private const REFERENCE_ALLOWED_ACCOUNT_NAMES = [
+        'HUTANGDAGANG',
+        'PIUTANGDAGANG',
+        'RETJUALBLMPOTPIUTANG',
+        'RETBELIBLMPOTHUTANG',
+    ];
+
     private function normalizeDecimal($value, int $scale = 2): float
     {
         if (is_numeric($value)) {
@@ -53,6 +60,18 @@ class JurnalTransaksiController extends Controller
         }
 
         return round((float) $normalized, $scale);
+    }
+
+    private function resolveReferenceAllowedAccountCodes(): array
+    {
+        return DB::table('set_account')
+            ->whereIn('faccount_name', self::REFERENCE_ALLOWED_ACCOUNT_NAMES)
+            ->pluck('faccount')
+            ->filter()
+            ->map(fn ($value) => trim((string) $value))
+            ->filter(fn ($value) => $value !== '')
+            ->values()
+            ->all();
     }
 
     public function index(Request $request)
@@ -105,23 +124,23 @@ class JurnalTransaksiController extends Controller
                 $actions = '';
 
                 $viewUrl = route('jurnaltransaksi.view', $row->fjurnalmtid);
-                $actions .= ' <a href="'.$viewUrl.'" class="inline-flex items-center bg-slate-500 text-white px-4 py-2 rounded hover:bg-slate-600">
-                                    <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                $actions .= ' <a href="'.$viewUrl.'" class="inline-flex items-center bg-slate-500 text-white px-3 py-1.5 text-xs rounded hover:bg-slate-600">
+                                    <svg class="w-3.5 h-3.5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
                                     </svg> View
                                 </a>';
 
                 $editUrl = route('jurnaltransaksi.edit', $row->fjurnalmtid);
-                $actions .= ' <a href="'.$editUrl.'" class="inline-flex items-center bg-yellow-500 text-white px-4 py-2 rounded hover:bg-yellow-600">
-                                    <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                $actions .= ' <a href="'.$editUrl.'" class="inline-flex items-center bg-yellow-500 text-white px-3 py-1.5 text-xs rounded hover:bg-yellow-600">
+                                    <svg class="w-3.5 h-3.5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
                                     </svg> Edit
                                 </a>';
 
                 $deleteUrl = route('jurnaltransaksi.delete', $row->fjurnalmtid);
                 $actions .= '<a href="'.$deleteUrl.'">
-                <button class="inline-flex items-center bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700">
-                    <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <button class="inline-flex items-center bg-red-600 text-white px-3 py-1.5 text-xs rounded hover:bg-red-700">
+                    <svg class="w-3.5 h-3.5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
                     </svg>
                     Hapus
@@ -370,6 +389,8 @@ class JurnalTransaksiController extends Controller
             'fminstock'
         )->orderBy('fprdname')->get();
 
+        $referenceAllowedAccountCodes = $this->resolveReferenceAllowedAccountCodes();
+
         return view('jurnaltransaksi.create', [
             'newtr_prh_code' => $newtr_prh_code,
             'accounts' => $accounts,
@@ -378,6 +399,7 @@ class JurnalTransaksiController extends Controller
             'fcabang' => $fcabang,
             'fbranchcode' => $fbranchcode,
             'products' => $products,
+            'referenceAllowedAccountCodes' => $referenceAllowedAccountCodes,
         ]);
     }
 
@@ -418,8 +440,9 @@ class JurnalTransaksiController extends Controller
         ], [
             'fjurnaldate.required' => 'Tanggal jurnal wajib diisi.',
             'fjurnaltype.required' => 'Tipe jurnal wajib diisi.',
-            'faccount.required' => 'Minimal 1 baris jurnal.',
-            'fdk.*.in' => 'Nilai D/K harus Debit (D) atau Kredit (K).',
+            'faccount.required' => 'Minimal harus ada 1 baris jurnal.',
+            'fdk.*.in' => 'Pilihan D/K harus Debit atau Kredit.',
+            'famount.*.min' => 'Jumlah jurnal tidak boleh minus.',
         ]);
 
         // =========================================================
@@ -471,6 +494,10 @@ class JurnalTransaksiController extends Controller
         $refnos = $request->input('frefno', []);
         $amounts = $request->input('famount', []);
         $rates = $request->input('frate', []);
+        $referenceAllowedAccountCodes = collect($this->resolveReferenceAllowedAccountCodes())
+            ->map(fn ($code) => strtoupper(trim((string) $code)))
+            ->flip()
+            ->all();
 
         $rowsDt = [];
         $totalDebit = 0.0;
@@ -487,6 +514,12 @@ class JurnalTransaksiController extends Controller
             $frate = $this->normalizeDecimal($rates[$i] ?? 1, 4);
             if ($frate <= 0) {
                 $frate = 1;
+            }
+
+            if ($frefno !== null && ! isset($referenceAllowedAccountCodes[strtoupper($faccount)])) {
+                return back()->withInput()->withErrors([
+                    'detail' => "Ref No di baris ".($i + 1)." tidak boleh diisi untuk account ini.",
+                ]);
             }
 
             // Skip baris tidak valid
@@ -514,13 +547,12 @@ class JurnalTransaksiController extends Controller
                 'frate' => $frate,
                 'fusercreate' => $fuserid,
                 'fdatetime' => $now,
-                // fjurnalmtid, fjurnalno, flineno → diisi di dalam transaksi
             ];
         }
 
         if (empty($rowsDt)) {
             return back()->withInput()->withErrors([
-                'detail' => 'Minimal satu baris jurnal valid (Akun, D/K, Jumlah > 0).',
+                'detail' => 'Minimal harus ada 1 baris jurnal yang lengkap dan jumlahnya lebih dari 0.',
             ]);
         }
 
@@ -534,7 +566,7 @@ class JurnalTransaksiController extends Controller
         if (round($totalDebit, 2) !== round($totalKredit, 2)) {
             return back()->withInput()->withErrors([
                 'detail' => sprintf(
-                    'Jurnal tidak balance. Total Debit: Rp %s | Total Kredit: Rp %s',
+                    'Jurnal belum seimbang. Total Debit Rp %s dan Total Kredit Rp %s.',
                     number_format($totalDebit, 2, ',', '.'),
                     number_format($totalKredit, 2, ',', '.')
                 ),
@@ -683,6 +715,8 @@ class JurnalTransaksiController extends Controller
             ];
         })->toArray();
 
+        $referenceAllowedAccountCodes = $this->resolveReferenceAllowedAccountCodes();
+
         return view('jurnaltransaksi.edit', [
             'supplier' => $supplier,
             'selectedSupplierCode' => $selectedSupplierCode,
@@ -696,6 +730,7 @@ class JurnalTransaksiController extends Controller
             'jurnaltransaksi' => $jurnaltransaksi,
             'pemakaianbarang' => $jurnaltransaksi,
             'savedItems' => $savedItems,
+            'referenceAllowedAccountCodes' => $referenceAllowedAccountCodes,
             'ppnAmount' => 0,
             'famountponet' => 0,
             'famountpo' => 0,
@@ -756,6 +791,8 @@ class JurnalTransaksiController extends Controller
             ];
         })->toArray();
 
+        $referenceAllowedAccountCodes = $this->resolveReferenceAllowedAccountCodes();
+
         return view('jurnaltransaksi.view', [
             'supplier' => $supplier,
             'selectedSupplierCode' => $selectedSupplierCode,
@@ -769,6 +806,7 @@ class JurnalTransaksiController extends Controller
             'jurnaltransaksi' => $jurnaltransaksi,
             'pemakaianbarang' => $jurnaltransaksi,
             'savedItems' => $savedItems,
+            'referenceAllowedAccountCodes' => $referenceAllowedAccountCodes,
             'ppnAmount' => 0,
             'famountponet' => 0,
             'famountpo' => 0,
@@ -807,8 +845,9 @@ class JurnalTransaksiController extends Controller
         ], [
             'fjurnaldate.required' => 'Tanggal jurnal wajib diisi.',
             'fjurnaltype.required' => 'Tipe jurnal wajib diisi.',
-            'faccount.required' => 'Minimal 1 baris jurnal.',
-            'fdk.*.in' => 'Nilai D/K harus Debit (D) atau Kredit (K).',
+            'faccount.required' => 'Minimal harus ada 1 baris jurnal.',
+            'fdk.*.in' => 'Pilihan D/K harus Debit atau Kredit.',
+            'famount.*.min' => 'Jumlah jurnal tidak boleh minus.',
         ]);
 
         $header = DB::table('jurnalmt')
@@ -833,6 +872,10 @@ class JurnalTransaksiController extends Controller
         $refnos = $request->input('frefno', []);
         $amounts = $request->input('famount', []);
         $rates = $request->input('frate', []);
+        $referenceAllowedAccountCodes = collect($this->resolveReferenceAllowedAccountCodes())
+            ->map(fn ($code) => strtoupper(trim((string) $code)))
+            ->flip()
+            ->all();
 
         $rowsDt = [];
         $totalDebit = 0.0;
@@ -849,6 +892,12 @@ class JurnalTransaksiController extends Controller
             $frate = round((float) ($rates[$i] ?? 1), 4);
             if ($frate <= 0) {
                 $frate = 1;
+            }
+
+            if ($frefno !== null && ! isset($referenceAllowedAccountCodes[strtoupper($faccount)])) {
+                return back()->withInput()->withErrors([
+                    'detail' => "Ref No di baris ".($i + 1)." tidak boleh diisi untuk account ini.",
+                ]);
             }
 
             if ($faccount === '' || $famount <= 0 || ! in_array($fdk, ['D', 'K'])) {
@@ -879,7 +928,7 @@ class JurnalTransaksiController extends Controller
 
         if (empty($rowsDt)) {
             return back()->withInput()->withErrors([
-                'detail' => 'Minimal satu baris jurnal valid (Akun, D/K, Jumlah > 0).',
+                'detail' => 'Minimal harus ada 1 baris jurnal yang lengkap dan jumlahnya lebih dari 0.',
             ]);
         }
 
@@ -892,7 +941,7 @@ class JurnalTransaksiController extends Controller
         if (round($totalDebit, 2) !== round($totalKredit, 2)) {
             return back()->withInput()->withErrors([
                 'detail' => sprintf(
-                    'Jurnal tidak balance. Total Debit: Rp %s | Total Kredit: Rp %s',
+                    'Jurnal belum seimbang. Total Debit Rp %s dan Total Kredit Rp %s.',
                     number_format($totalDebit, 2, ',', '.'),
                     number_format($totalKredit, 2, ',', '.')
                 ),
@@ -1071,7 +1120,7 @@ class JurnalTransaksiController extends Controller
 
             return redirect()->route('jurnaltransaksi.index')->with('success', $message);
         } catch (\Exception $e) {
-            $message = 'Gagal menghapus data: '.$e->getMessage();
+            $message = 'Data belum berhasil dihapus. Silakan coba lagi.';
 
             if (request()->expectsJson()) {
                 return response()->json([

@@ -706,7 +706,7 @@ class ReturPenjualanController extends Controller
             return redirect()->route('returpenjualan.index')->with('success', 'Retur Penjualan berhasil disimpan.');
         } catch (\Exception $e) {
 
-            return back()->withInput()->with('error', 'Terjadi kesalahan: '.$e->getMessage());
+            return back()->withInput()->with('error', 'Data belum berhasil disimpan. Silakan cek kembali isian transaksi.');
         }
     }
 
@@ -1702,7 +1702,7 @@ class ReturPenjualanController extends Controller
 
             return redirect()->route('returpenjualan.index')->with('success', "Retur Penjualan {$header->fsono} berhasil diperbarui.");
         } catch (\Exception $e) {
-            return back()->withInput()->with('error', 'Gagal update: '.$e->getMessage());
+            return back()->withInput()->with('error', 'Data belum berhasil diperbarui. Silakan cek kembali isian transaksi.');
         }
     }
 
@@ -1870,7 +1870,7 @@ class ReturPenjualanController extends Controller
 
             return redirect()->route('returpenjualan.index')->with('success', 'Data Retur Penjualan berhasil dihapus.');
         } catch (\Exception $e) {
-            return redirect()->route('returpenjualan.index')->with('error', 'Gagal menghapus data: '.$e->getMessage());
+            return redirect()->route('returpenjualan.index')->with('error', 'Data belum berhasil dihapus. Silakan coba lagi.');
         }
     }
 

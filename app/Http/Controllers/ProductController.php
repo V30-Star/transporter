@@ -443,7 +443,7 @@ class ProductController extends Controller
         } catch (\Illuminate\Validation\ValidationException $v) {
             throw $v;
         } catch (\Exception $e) {
-            return redirect()->back()->with('error', 'Terjadi kesalahan sistem: '.$e->getMessage());
+            return redirect()->back()->with('error', 'Data produk belum berhasil disimpan. Silakan cek kembali isian Anda.');
         }
     }
 
@@ -679,7 +679,7 @@ class ProductController extends Controller
                         $validated[$imageField] = $fileId;
                     }
                 } catch (\Exception $e) {
-                    return redirect()->back()->with('error', 'Terjadi kesalahan sistem: '.$e->getMessage());
+                    return redirect()->back()->with('error', 'Data produk belum berhasil diperbarui. Silakan cek kembali isian Anda.');
                 }
             }
         }
@@ -799,7 +799,7 @@ class ProductController extends Controller
 
             return response()->json(['message' => 'Data produk '.$product->fprdname.' berhasil dihapus.']);
         } catch (\Exception $e) {
-            return response()->json(['message' => 'Gagal menghapus: '.$e->getMessage()], 500);
+            return response()->json(['message' => 'Data belum berhasil dihapus. Silakan coba lagi.'], 500);
         }
     }
 
@@ -833,7 +833,7 @@ class ProductController extends Controller
                 d.fsatuan
             FROM tranmt m
             JOIN trandt d ON m.fsono = d.fsono
-            JOIN mscustomer c ON m.fcustno = c.fcustomerid
+            JOIN mscustomer c ON m.fcustno = c.fcustomercode
             WHERE d.fprdcode = :fprdcode
             ORDER BY m.fsodate DESC 
             LIMIT 30
@@ -853,7 +853,7 @@ class ProductController extends Controller
                 d.fsatuan
             FROM trstockmt m 
             LEFT OUTER JOIN trstockdt d ON m.fstockmtno = d.fstockmtno 
-            LEFT OUTER JOIN mssupplier s ON m.fsupplier = s.fsupplierid
+            LEFT OUTER JOIN mssupplier s ON m.fsupplier = s.fsuppliercode
             WHERE 
                 d.fqty > 0 
                 AND (
@@ -863,7 +863,6 @@ class ProductController extends Controller
                 ) 
                 AND d.fprdcode = :fprdcode
             ORDER BY m.fstockmtdate DESC 
-            LIMIT 15
         ", ['fprdcode' => $product->fprdcode]);
 
         return response()->json([

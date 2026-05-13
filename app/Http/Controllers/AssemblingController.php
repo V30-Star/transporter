@@ -1284,7 +1284,7 @@ class AssemblingController extends Controller
             return redirect()->route('assembling.index')->with('success', 'Data assembling '.$assembling->fstockmtno.' berhasil dihapus.');
         } catch (\Exception $e) {
             // Jika terjadi kesalahan saat menghapus, kembali ke halaman delete dengan pesan error
-            return redirect()->route('assembling.delete', $fstockmtid)->with('error', 'Gagal menghapus data: '.$e->getMessage());
+            return redirect()->route('assembling.delete', $fstockmtid)->with('error', 'Data belum berhasil dihapus. Silakan coba lagi.');
         }
     }
 

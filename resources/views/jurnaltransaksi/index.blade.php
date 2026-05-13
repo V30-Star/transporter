@@ -92,7 +92,7 @@
         #mutasiTable th:last-child,
         #mutasiTable td:last-child {
             white-space: nowrap;
-            text-align: center;
+            text-align: right;
         }
 
         #mutasiTable td:last-child {

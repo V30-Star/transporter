@@ -104,7 +104,7 @@
 
     <div x-data="{ open: true }">
         <div x-data="{ includePPN: false, totalHarga: 100000 }" class="lg:col-span-5">
-            <div class="bg-white rounded shadow p-6 md:p-8 max-w-[1600px] w-full mx-auto">
+            <div class="bg-white rounded shadow p-6 md:p-8 max-w-[96rem] mx-auto">
                 <form action="{{ route('returpembelian.store') }}" method="POST" class="mt-6" data-form-draft="true"
                     data-draft-key="returpembelian:create" x-data="{ showNoItems: false }"
                     @submit.prevent="
@@ -218,7 +218,7 @@
                                     title="Tambah Gudang">
                                     <x-heroicon-o-plus class="w-5 h-5" />
                                 </a>
-                            </div>
+                            </div><!--  -->
 
                             @error('ffrom')
                                 <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
@@ -1409,6 +1409,45 @@
                 return this.savedItems.map(it => this.itemKey(it));
             },
 
+            normalizeRestoredRow(item, index = 0) {
+                const row = {
+                    ...newRow(),
+                    ...(item || {}),
+                    uid: item?.uid || `restored-${index}`
+                };
+
+                if (typeof row.units === 'string') {
+                    try {
+                        const parsed = JSON.parse(row.units);
+                        row.units = Array.isArray(parsed) ? parsed : [];
+                    } catch (e) {
+                        row.units = row.units.split(',').map(u => u.trim()).filter(Boolean);
+                    }
+                } else if (!Array.isArray(row.units)) {
+                    row.units = [];
+                }
+
+                this.hydrateRowFromMeta(row, this.productMeta(row.fitemcode));
+                this.recalc(row);
+                return row;
+            },
+
+            restoreSavedItems(items = []) {
+                this.savedItems = Array.isArray(items)
+                    ? items.map((item, index) => this.normalizeRestoredRow(item, index))
+                    : [];
+                this.syncDescList?.();
+                this.recalcTotals();
+            },
+
+            restoreDraft(draft = {}) {
+                this.draft = this.normalizeRestoredRow(draft, 'draft');
+            },
+
+            restoreEditRow(editRow = {}) {
+                this.editRow = this.normalizeRestoredRow(editRow, 'edit');
+            },
+
             init() {
                 this.$watch('includePPN', () => this.recalcTotals());
                 this.$watch('fapplyppn', () => this.recalcTotals());
@@ -2028,3 +2067,4 @@
         }
     </script>
 @endpush
+

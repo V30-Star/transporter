@@ -14,7 +14,7 @@
     </style>
 
     <div x-data="{ open: true, selected: 'surat' }">
-        <div class="bg-white rounded shadow p-6 md:p-8 max-w-lg mx-auto">
+        <div class="bg-white rounded shadow p-6 md:p-8 max-w-[96rem] mx-auto">
             <form action="{{ route('sysuser.store') }}" method="POST" data-form-draft="true"
                 data-draft-key="sysuser:create">
                 @csrf
@@ -155,3 +155,4 @@
         </div>
     </div>
 @endsection
+

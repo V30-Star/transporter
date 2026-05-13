@@ -135,7 +135,7 @@
             ];
         }
     @endphp
-    <div class="bg-white rounded shadow p-6 md:p-8 max-w-[1600px] w-full mx-auto">
+    <div class="bg-white rounded shadow p-6 md:p-8 max-w-[96rem] mx-auto">
         <form action="{{ route('tr_poh.store') }}" method="POST" class="mt-6" data-form-draft="true"
             data-draft-key="tr_poh:create" x-data="mainForm()"
             x-init="syncSupplierDisplay(@js(old('fsupplier', ''))); restoreSavedItems(@js($initialPoItems)); init()"
@@ -282,7 +282,7 @@
                 {{-- Keterangan --}}
                 <div class="lg:col-span-12">
                     <label class="block text-sm font-medium">Keterangan</label>
-                    <textarea name="fket" rows="3"
+                    <textarea name="fket" rows="3" maxlength="300"
                         class="w-full border rounded px-3 py-2 @error('fket') border-red-500 @enderror"
                         placeholder="Tulis keterangan tambahan di sini...">{{ old('fket') }}</textarea>
                     @error('fket')

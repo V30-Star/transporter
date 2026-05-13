@@ -7,12 +7,13 @@
         $isDelete = $action === 'delete';
     @endphp
 
-    <div class="bg-white rounded shadow p-6 md:p-8 max-w-[1600px] w-full mx-auto"
+    <div class="bg-white rounded shadow p-6 md:p-8 max-w-[96rem] mx-auto"
         x-data="journalForm({
             mode: @js($action),
             items: @js($savedItems),
             accounts: @js($accounts),
             subaccounts: @js($subaccounts),
+            referenceAllowedAccountCodes: @js($referenceAllowedAccountCodes ?? []),
             deleteUrl: @js(route('jurnaltransaksi.destroy', $jurnaltransaksi->fjurnalmtid)),
             indexUrl: @js(route('jurnaltransaksi.index')),
             csrfToken: @js(csrf_token()),
@@ -70,11 +71,12 @@
                             <thead class="bg-gray-100">
                                 <tr>
                                     <th class="p-2 text-left w-12">#</th>
-                                    <th class="p-2 text-left w-56">Account</th>
+                                    <th class="p-2 text-left w-44">Kode Account</th>
+                                    <th class="p-2 text-left w-56">Nama Account</th>
                                     <th class="p-2 text-left w-56">Sub Account</th>
+                                    <th class="p-2 text-left w-48">Ref No</th>
                                     <th class="p-2 text-left w-20">D/K</th>
                                     <th class="p-2 text-left w-[28rem]">Keterangan</th>
-                                    <th class="p-2 text-left w-48">Ref No</th>
                                     <th class="p-2 text-right w-44">Jumlah</th>
                                 </tr>
                             </thead>
@@ -82,18 +84,18 @@
                                 <template x-for="(item, index) in items" :key="item.uid ?? index">
                                     <tr class="border-t align-top">
                                         <td class="p-2 text-gray-500" x-text="index + 1"></td>
+                                        <td class="p-2 text-gray-700 font-mono" x-text="item.faccount || '-'"></td>
                                         <td class="p-2">
-                                            <div class="font-medium text-gray-800" x-text="accountName(item.faccount)"></div>
-                                            <div class="text-xs text-gray-500" x-text="item.faccount || '-'"></div>
+                                            <div class="font-medium text-gray-800" x-text="accountName(item.faccount) || '-'"></div>
                                         </td>
                                         <td class="p-2 text-gray-700" x-text="subaccountName(item.fsubaccountcode) || '-'"></td>
+                                        <td class="p-2 text-gray-600" x-text="item.frefno || '-'"></td>
                                         <td class="p-2">
                                             <span class="px-2 py-0.5 rounded text-xs font-semibold"
                                                 :class="item.fdk === 'D' ? 'bg-blue-100 text-blue-700' : 'bg-green-100 text-green-700'"
                                                 x-text="item.fdk === 'D' ? 'Debit' : 'Kredit'"></span>
                                         </td>
                                         <td class="p-2 text-gray-700" x-text="item.faccountnote || '-'"></td>
-                                        <td class="p-2 text-gray-600" x-text="item.frefno || '-'"></td>
                                         <td class="p-2 text-right font-medium" x-text="formatAmount(item.famount)"></td>
                                     </tr>
                                 </template>
@@ -173,9 +175,6 @@
                             <span>Total Kredit:
                                 <strong class="text-green-700" x-text="formatAmount(totalKredit())"></strong>
                             </span>
-                            <span class="font-semibold"
-                                :class="isBalanced() ? 'text-green-600' : 'text-red-600'"
-                                x-text="isBalanced() ? 'Balance' : 'Tidak Balance'"></span>
                         </div>
                     </div>
 
@@ -184,11 +183,12 @@
                             <thead class="bg-gray-100">
                                 <tr>
                                     <th class="p-2 text-left w-12">#</th>
-                                    <th class="p-2 text-left w-60">Account</th>
+                                    <th class="p-2 text-left w-44">Kode Account</th>
+                                    <th class="p-2 text-left w-60">Nama Account</th>
                                     <th class="p-2 text-left w-60">Sub Account</th>
+                                    <th class="p-2 text-left w-44">Ref No</th>
                                     <th class="p-2 text-left w-20">D/K</th>
                                     <th class="p-2 text-left w-[24rem]">Keterangan</th>
-                                    <th class="p-2 text-left w-44">Ref No</th>
                                     <th class="p-2 text-right w-40">Jumlah</th>
                                     <th class="p-2 text-right w-28">Aksi</th>
                                 </tr>
@@ -198,12 +198,21 @@
                                     <tr class="border-t align-top">
                                         <td class="p-2 text-gray-500" x-text="index + 1"></td>
                                         <td class="p-2">
-                                            <select class="w-full border rounded px-2 py-1" :name="'faccount[]'" x-model="item.faccount">
-                                                <option value="">Pilih Akun</option>
-                                                <template x-for="account in accounts" :key="account.faccid">
-                                                    <option :value="account.faccount" x-text="`${account.faccount} - ${account.faccname}`"></option>
-                                                </template>
-                                            </select>
+                                            <div class="flex items-center gap-2">
+                                                <input type="text" class="w-full border rounded px-2 py-1 font-mono uppercase"
+                                                    :name="'faccount[]'" x-model.trim="item.faccount"
+                                                    @input="syncAccountFromCode(item)"
+                                                    @keydown.enter.prevent="openBrowseFor(index)">
+                                                <button type="button" @click="openBrowseFor(index)"
+                                                    class="border rounded px-2 py-1 bg-white hover:bg-gray-50"
+                                                    title="Cari account">
+                                                    <x-heroicon-o-magnifying-glass class="w-4 h-4" />
+                                                </button>
+                                            </div>
+                                        </td>
+                                        <td class="p-2">
+                                            <input type="text" class="w-full border rounded px-2 py-1 bg-gray-100 text-gray-600"
+                                                :value="accountName(item.faccount) || '-'" disabled>
                                         </td>
                                         <td class="p-2">
                                             <select class="w-full border rounded px-2 py-1" :name="'fsubaccount[]'" x-model="item.fsubaccountcode">
@@ -215,18 +224,21 @@
                                             </select>
                                         </td>
                                         <td class="p-2">
-                                            <select class="w-full border rounded px-2 py-1" :name="'fdk[]'" x-model="item.fdk">
+                                            <input type="text"
+                                                class="w-full border rounded px-2 py-1 bg-gray-100 text-gray-400 cursor-not-allowed"
+                                                x-model="item.frefno" placeholder="No referensi" disabled>
+                                            <input type="hidden" :name="'frefno[]'" :value="item.frefno">
+                                        </td>
+                                        <td class="p-2">
+                                            <select class="w-full border rounded px-2 py-1" :name="'fdk[]'" x-model="item.fdk"
+                                                @change="autofillBalancedAmount(item, index)">
                                                 <option value="D">D</option>
                                                 <option value="K">K</option>
                                             </select>
                                         </td>
                                         <td class="p-2">
                                             <input type="text" class="w-full border rounded px-2 py-1"
-                                                :name="'faccountnote[]'" x-model="item.faccountnote" placeholder="Keterangan baris">
-                                        </td>
-                                        <td class="p-2">
-                                            <input type="text" class="w-full border rounded px-2 py-1"
-                                                :name="'frefno[]'" x-model="item.frefno" placeholder="No referensi">
+                                                :name="'faccountnote[]'" x-model="item.faccountnote" placeholder="Keterangan">
                                         </td>
                                         <td class="p-2">
                                             <input type="text" inputmode="decimal"
@@ -303,7 +315,24 @@
     </div>
 @endsection
 
+@include('components.transaction.browse-account-modal', [
+    'tableId' => 'journalAccountTableEdit',
+    'showControls' => true,
+    'controlsId' => 'journalAccountTableEditControls',
+    'showPagination' => true,
+    'paginationId' => 'journalAccountTableEditPagination',
+    'routeName' => 'account.browse',
+    'eventName' => 'account-browse-open',
+    'title' => 'Pilih Account',
+])
+
+@push('styles')
+    <link rel="stylesheet" href="https://cdn.datatables.net/2.1.6/css/dataTables.dataTables.min.css">
+@endpush
+
 @push('scripts')
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script src="https://cdn.datatables.net/2.1.6/js/dataTables.min.js"></script>
     <script>
         function journalForm(config) {
             return {
@@ -321,9 +350,11 @@
                 })),
                 accounts: config.accounts || [],
                 subaccounts: config.subaccounts || [],
+                referenceAllowedAccountCodes: (config.referenceAllowedAccountCodes || []).map((code) => String(code).trim().toUpperCase()),
                 deleteUrl: config.deleteUrl || '',
                 indexUrl: config.indexUrl || '',
                 csrfToken: config.csrfToken || '',
+                browseIndex: null,
 
                 addRow() {
                     this.items.push({
@@ -339,6 +370,11 @@
                     });
                 },
 
+                openBrowseFor(index) {
+                    this.browseIndex = index;
+                    window.dispatchEvent(new CustomEvent('account-browse-open'));
+                },
+
                 removeRow(index) {
                     this.items.splice(index, 1);
                 },
@@ -349,6 +385,27 @@
 
                 totalKredit() {
                     return this.items.reduce((sum, item) => sum + (item.fdk === 'K' ? Number(item.famount || 0) : 0), 0);
+                },
+
+                getBalanceSuggestion(targetType, rowIndex) {
+                    let debit = 0;
+                    let kredit = 0;
+
+                    this.items.forEach((item, index) => {
+                        if (index === rowIndex) return;
+                        if (item.fdk === 'D') debit += Number(item.famount || 0);
+                        if (item.fdk === 'K') kredit += Number(item.famount || 0);
+                    });
+
+                    if (targetType === 'D') {
+                        return Math.max(0, Number((kredit - debit).toFixed(2)));
+                    }
+
+                    if (targetType === 'K') {
+                        return Math.max(0, Number((debit - kredit).toFixed(2)));
+                    }
+
+                    return 0;
                 },
 
                 isBalanced() {
@@ -404,6 +461,33 @@
                     item.famountInput = this.formatDecimalInput(item.famount);
                 },
 
+                autofillBalancedAmount(item, index) {
+                    const suggested = this.getBalanceSuggestion(item.fdk, index);
+                    if (!(suggested > 0)) return;
+
+                    item.famount = suggested;
+                    item.famountInput = this.formatDecimalInput(suggested);
+                },
+
+                isRefAllowed(accountCode) {
+                    return this.referenceAllowedAccountCodes.includes(String(accountCode ?? '').trim().toUpperCase());
+                },
+
+                syncAccountFromCode(item) {
+                    const code = String(item.faccount ?? '').trim().toUpperCase();
+                    const match = this.accounts.find((account) => String(account.faccount ?? '').trim().toUpperCase() === code);
+
+                    if (!match) {
+                        item.frefno = '';
+                        return;
+                    }
+
+                    item.faccount = match.faccount;
+                    if (!this.isRefAllowed(item.faccount)) {
+                        item.frefno = '';
+                    }
+                },
+
                 accountName(code) {
                     const match = this.accounts.find((account) => String(account.faccount) === String(code));
                     return match ? match.faccname : '';
@@ -428,8 +512,23 @@
                         famount: Number(this.parseDecimal(item.famount).toFixed(2)),
                         famountInput: this.formatDecimalInput(item.famount),
                     }));
+
+                    window.addEventListener('account-picked', (event) => {
+                        if (this.browseIndex === null || !this.items[this.browseIndex]) {
+                            return;
+                        }
+
+                        const detail = event.detail || {};
+                        this.items[this.browseIndex].faccount = (detail.faccount || '').toString().trim();
+                        if (!this.isRefAllowed(this.items[this.browseIndex].faccount)) {
+                            this.items[this.browseIndex].frefno = '';
+                        }
+                    }, {
+                        passive: true
+                    });
                 }
             };
         }
     </script>
 @endpush
+

@@ -110,7 +110,7 @@
     </style>
 
     <div x-data="{ showModal: false, open: true, selected: 'alamatsurat', frekening: '' }">
-        <div class="bg-white rounded shadow p-6 md:p-8 max-w-5xl mx-auto">
+        <div class="bg-white rounded shadow p-6 md:p-8 max-w-[96rem] mx-auto">
             <div class="space-y-4">
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
                     <div x-data="{ autoCode: true }" class="flex items-center gap-4">
@@ -491,3 +491,4 @@
         });
     });
 </script>
+

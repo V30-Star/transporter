@@ -1362,7 +1362,7 @@ class PemakaianbarangController extends Controller
             return redirect()->route('pemakaianbarang.index')->with('success', 'Data pemakaianbarang '.$pemakaianbarang->fstockmtno.' berhasil dihapus.');
         } catch (\Exception $e) {
             // Jika terjadi kesalahan saat menghapus, kembali ke halaman delete dengan pesan error
-            return redirect()->route('pemakaianbarang.delete', $fstockmtid)->with('error', 'Gagal menghapus data: '.$e->getMessage());
+            return redirect()->route('pemakaianbarang.delete', $fstockmtid)->with('error', 'Data belum berhasil dihapus. Silakan coba lagi.');
         }
     }
 

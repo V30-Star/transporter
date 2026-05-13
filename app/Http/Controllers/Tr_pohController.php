@@ -943,7 +943,7 @@ class Tr_pohController extends Controller
         }
 
         if (empty($rowsPod)) {
-            return back()->withInput()->withErrors(['detail' => 'Minimal satu item valid (Kode, Satuan, Qty > 0).']);
+            return back()->withInput()->withErrors(['detail' => 'Minimal harus ada 1 item yang lengkap dan jumlahnya lebih dari 0.']);
         }
 
         if ($validationMessage = $this->validateUniqueReferenceUsage($rowsPod)) {
@@ -1073,7 +1073,7 @@ class Tr_pohController extends Controller
                 $this->adjustPrReferenceQtyKecil($prdAgg, -1);
             });
         } catch (\RuntimeException $e) {
-            return back()->withInput()->withErrors(['detail' => $e->getMessage()]);
+            return back()->withInput()->withErrors(['detail' => 'Data belum berhasil disimpan. Silakan cek kembali isian transaksi.']);
         }
 
         return redirect()
@@ -1666,9 +1666,9 @@ class Tr_pohController extends Controller
                 $this->adjustPrReferenceQtyKecil($prdAgg, -1);
             });
         } catch (\RuntimeException $e) {
-            return back()->withInput()->withErrors(['detail' => $e->getMessage()]);
+            return back()->withInput()->withErrors(['detail' => 'Data belum berhasil diperbarui. Silakan cek kembali isian transaksi.']);
         } catch (\Throwable $e) {
-            return back()->withInput()->with('error', 'Gagal menyimpan: ' . $e->getMessage());
+            return back()->withInput()->with('error', 'Data belum berhasil diperbarui. Silakan cek kembali isian transaksi.');
         }
 
         return redirect()
@@ -1845,7 +1845,7 @@ class Tr_pohController extends Controller
             return redirect()->route('tr_poh.index')
                 ->with('success', "Data Order Pembelian {$tr_poh->fpono} berhasil dihapus.");
         } catch (\Exception $e) {
-            return redirect()->back()->with('error', 'Gagal menghapus data: ' . $e->getMessage());
+            return redirect()->back()->with('error', 'Data belum berhasil dihapus. Silakan coba lagi.');
         }
     }
 

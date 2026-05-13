@@ -73,7 +73,7 @@ class SalesOrderController extends Controller
             ['label' => 'Tanggal', 'value' => $header->fsodate ? Carbon::parse($header->fsodate)->format('d-m-Y') : '-'],
             ['label' => 'Customer', 'value' => trim(($header->fcustno ?? '-') . ' - ' . ($header->fcustomername ?? '-'))],
             ['label' => 'Salesman', 'value' => $header->fsalesmanname ?? ($header->fsalesman ?? '-')],
-            ['label' => 'ACC Kredit', 'value' => $header->fuseracc ?? '-'],
+            ['label' => 'Persetujuan Kredit', 'value' => $header->fuseracc ?? '-'],
             ['label' => 'Total', 'value' => format_number($header->famountso ?? 0)],
             ['label' => 'Keterangan', 'value' => $header->fket ?? '-'],
         ];
@@ -223,14 +223,14 @@ class SalesOrderController extends Controller
 
         if (! $this->canApproveCreditLimit()) {
             throw ValidationException::withMessages([
-                'fcustno' => 'Sales Order customer ini melebihi batas piutang atau memiliki nota jatuh tempo. User tidak punya wewenang ACC.',
+                'fcustno' => "Transaksi ini butuh persetujuan.\n- Limit piutang customer sudah terlampaui, atau\n- Ada tagihan customer yang sudah lewat jatuh tempo.\n\nSilakan hubungi user yang berwenang.",
             ]);
         }
 
         $approvedBy = trim((string) $request->input('fuseracc', ''));
         if ($approvedBy === '') {
             throw ValidationException::withMessages([
-                'fcustno' => 'Sales Order customer ini membutuhkan ACC. Silakan pilih Yes pada konfirmasi untuk melanjutkan.',
+                'fcustno' => "Transaksi ini butuh persetujuan.\n- Pilih Yes pada konfirmasi untuk melanjutkan.",
             ]);
         }
 
@@ -270,32 +270,35 @@ class SalesOrderController extends Controller
         $year = $request->query('year');
         $month = $request->query('month');
 
-        $availableYears = SalesOrderHeader::selectRaw('DISTINCT EXTRACT(YEAR FROM fdatetime) as year')
-            ->whereNotNull('fdatetime')
-            ->orderByRaw('EXTRACT(YEAR FROM fdatetime) DESC')
+        $availableYears = SalesOrderHeader::selectRaw('DISTINCT EXTRACT(YEAR FROM fsodate) as year')
+            ->whereNotNull('fsodate')
+            ->orderByRaw('EXTRACT(YEAR FROM fsodate) DESC')
             ->pluck('year');
 
         if ($request->ajax()) {
 
             $query = SalesOrderHeader::query()
-                ->leftJoin('mscustomer', 'trsomt.fcustno', '=', 'mscustomer.fcustomercode')
-                ->select('trsomt.*', 'mscustomer.fcustomername');
+                ->leftJoin('mscustomer as c', function ($join) {
+                    $join->on(DB::raw('TRIM(trsomt.fcustno)'), '=', DB::raw('TRIM(c.fcustomercode)'));
+                })
+                ->select('trsomt.*', 'c.fcustomername');
 
             $totalRecords = SalesOrderHeader::count();
 
             if ($search = $request->input('search.value')) {
                 $query->where(function ($q) use ($search) {
                     $q->where('trsomt.fsono', 'like', "%{$search}%")
-                        ->orWhere('mscustomer.fcustomername', 'like', "%{$search}%");
+                        ->orWhere('c.fcustomername', 'like', "%{$search}%")
+                        ->orWhere('trsomt.fcustno', 'like', "%{$search}%");
                 });
             }
 
             if ($year) {
-                $query->whereRaw('EXTRACT(YEAR FROM fdatetime) = ?', [$year]);
+                $query->whereRaw('EXTRACT(YEAR FROM fsodate) = ?', [$year]);
             }
 
             if ($month) {
-                $query->whereRaw('EXTRACT(MONTH FROM fdatetime) = ?', [$month]);
+                $query->whereRaw('EXTRACT(MONTH FROM fsodate) = ?', [$month]);
             }
 
             $filteredRecords = (clone $query)->count();
@@ -333,7 +336,7 @@ class SalesOrderController extends Controller
                     'famountpajak' => $row->famountpajak,
                     'famountso' => $row->famountso,
                     'fket' => $row->fket,
-                    'fcustomername' => $row->fcustomername,
+                    'fcustomername' => $row->fcustomername ?: ($row->fcustno ?? ''),
                     'falamatkirim' => $row->falamatkirim,
                     'fprdout' => $row->fprdout,
                     'fusercreate' => $row->fusercreate,
@@ -549,7 +552,7 @@ class SalesOrderController extends Controller
             ]);
 
         if (! $hdr) {
-            return redirect()->back()->with('error', 'Sales Order tidak ditemukan.');
+            return redirect()->back()->with('error', 'Data Sales Order tidak ditemukan.');
         }
 
         // Detail: join dengan product
@@ -680,8 +683,12 @@ class SalesOrderController extends Controller
             'frefnoacak.*' => ['nullable', 'regex:/^\d{3}$/'],
         ], [
             'fsodate.required' => 'Tanggal SO wajib diisi.',
-            'fcustno.required' => 'Customer wajib diisi.',
-            'fprdcode.required' => 'Minimal 1 item.',
+            'fcustno.required' => 'Customer wajib dipilih.',
+            'fprdcode.required' => 'Minimal harus ada 1 item.',
+            'fqty.*.min' => 'Jumlah item tidak boleh minus.',
+            'fprice.*.min' => 'Harga item tidak boleh minus.',
+            'fnoacak.*.regex' => 'Nomor acak harus 3 digit angka 1 sampai 9.',
+            'frefnoacak.*.regex' => 'Nomor referensi acak harus 3 digit angka.',
         ]);
 
         // HEADER VALUES
@@ -873,7 +880,8 @@ class SalesOrderController extends Controller
 
             return redirect()->route('salesorder.create')->with('success', "Sales Order {$fsono} berhasil disimpan.");
         } catch (\Exception $e) {
-            return back()->withInput()->withErrors(['error' => 'Gagal simpan: '.$e->getMessage()]);
+            report($e);
+            return back()->withInput()->withErrors(['error' => 'Sales Order belum berhasil disimpan. Silakan cek kembali data yang diisi.']);
         }
     }
 
@@ -1208,14 +1216,18 @@ class SalesOrderController extends Controller
             'frefnoacak.*' => ['nullable', 'regex:/^\d{3}$/'],
         ], [
             'fsodate.required' => 'Tanggal SO wajib diisi.',
-            'fcustno.required' => 'Customer wajib diisi.',
-            'fprdcode.required' => 'Minimal 1 item.',
+            'fcustno.required' => 'Customer wajib dipilih.',
+            'fprdcode.required' => 'Minimal harus ada 1 item.',
+            'fqty.*.min' => 'Jumlah item tidak boleh minus.',
+            'fprice.*.min' => 'Harga item tidak boleh minus.',
+            'fnoacak.*.regex' => 'Nomor acak harus 3 digit angka 1 sampai 9.',
+            'frefnoacak.*.regex' => 'Nomor referensi acak harus 3 digit angka.',
         ]);
 
         // 2. LOAD HEADER
         $header = DB::table('trsomt')->where('ftrsomtid', $ftrsomtid)->first();
         if (! $header) {
-            return abort(404, 'Sales Order tidak ditemukan.');
+            return abort(404, 'Data Sales Order tidak ditemukan.');
         }
         if ($message = $this->getApprovalLockMessage((object) $header)) {
             return redirect()->route('salesorder.view', $ftrsomtid)->with('error', $message);
@@ -1544,7 +1556,8 @@ class SalesOrderController extends Controller
             return redirect()->route('salesorder.index')->with('success', 'Data Sales Order '.$salesorder->fsono.' berhasil dihapus.');
         } catch (\Exception $e) {
             // Jika terjadi kesalahan saat menghapus, kembali ke halaman delete dengan pesan error
-            return redirect()->route('salesorder.delete', $ftrsomtid)->with('error', 'Gakey: gal menghapus data: '.$e->getMessage());
+            report($e);
+            return redirect()->route('salesorder.delete', $ftrsomtid)->with('error', 'Data belum berhasil dihapus. Silakan coba lagi.');
         }
     }
 
@@ -1637,6 +1650,6 @@ class SalesOrderController extends Controller
             return null;
         }
 
-        return 'Sales Order '.$fsono.' tidak dapat diubah atau dihapus karena sudah digunakan pada '.implode('; ', $parts).'.';
+        return 'Sales Order '.$fsono.' tidak bisa diubah atau dihapus karena sudah dipakai di '.implode('; ', $parts).'.';
     }
 }

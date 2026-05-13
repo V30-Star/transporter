@@ -3,7 +3,7 @@
 @section('title', 'View Group Customer')
 
 @section('content')
-    <div class="bg-white rounded shadow p-6 md:p-8 max-w-2xl mx-auto">
+    <div class="bg-white rounded shadow p-6 md:p-8 max-w-[96rem] mx-auto">
             <div class="space-y-4">
                 <div>
                     <label class="block text-sm font-medium text-gray-700">Kode Group Customer</label>

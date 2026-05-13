@@ -30,10 +30,11 @@
     <script>
         window.ACCOUNTS_DATA = @json($accounts);
         window.SUBACCOUNTS_DATA = @json($subaccounts);
+        window.REFERENCE_ALLOWED_ACCOUNT_CODES = @json($referenceAllowedAccountCodes ?? []);
     </script>
 
     <div x-data="{ open: true }">
-        <div class="bg-white rounded shadow p-6 md:p-8 max-w-[1600px] w-full mx-auto">
+        <div class="bg-white rounded shadow p-6 md:p-8 max-w-[96rem] mx-auto">
 
             <form action="{{ route('jurnaltransaksi.store') }}" method="POST" x-data="itemsTable()" x-init="init()"
                 @submit="onSubmit($event)"> @csrf
@@ -104,9 +105,6 @@
                         <div class="text-sm flex gap-6">
                             <span>Total Debit: <strong x-text="fmt(totalDebit)" class="text-blue-700"></strong></span>
                             <span>Total Kredit: <strong x-text="fmt(totalKredit)" class="text-green-700"></strong></span>
-                            <span x-show="totalDebit > 0 || totalKredit > 0"
-                                :class="isBalanced ? 'text-green-600 font-semibold' : 'text-red-500 font-semibold'"
-                                x-text="isBalanced ? '✓ Balance' : '✗ Tidak Balance'"></span>
                         </div>
                     </div>
 
@@ -115,12 +113,13 @@
                             <thead class="bg-gray-100">
                                 <tr>
                                     <th class="p-2 text-left w-8">#</th>
-                                    <th class="p-2 text-left w-52">Account <span class="text-red-500">*</span></th>
+                                    <th class="p-2 text-left w-40">Kode Account <span class="text-red-500">*</span></th>
+                                    <th class="p-2 text-left w-56">Nama Account</th>
                                     <th class="p-2 text-left w-52">Sub Account</th>
+                                    <th class="p-2 text-left w-28">Ref No</th>
                                     <th class="p-2 text-left w-20">D/K <span class="text-red-500">*</span></th>
-                                    <th class="p-2 text-left w-72">Keterangan (faccountnote)</th>
-                                    <th class="p-2 text-left w-28">Ref No (frefno)</th>
-                                    <th class="p-2 text-right w-40">Jumlah (famount) <span class="text-red-500">*</span>
+                                    <th class="p-2 text-left w-72">Keterangan</th>
+                                    <th class="p-2 text-right w-40">Jumlah <span class="text-red-500">*</span>
                                     </th>
                                     <th class="p-2 text-center w-28">Aksi</th>
                                 </tr>
@@ -132,14 +131,21 @@
                                     <tr class="border-t align-middle hover:bg-gray-50">
                                         <td class="p-2 text-gray-500" x-text="i + 1"></td>
 
-                                        {{-- faccount --}}
+                                        {{-- faccount code --}}
+                                        <td class="p-2 font-mono text-gray-700" x-text="it.faccount || '—'"></td>
+
+                                        {{-- faccount name --}}
                                         <td class="p-2">
-                                            <div class="font-medium text-gray-800" x-text="it.faccname"></div>
-                                            <div class="text-xs text-gray-400" x-text="it.faccount"></div>
+                                            <input type="text"
+                                                class="w-full border rounded px-2 py-1 bg-gray-100 text-gray-600"
+                                                :value="it.faccname || '-'" disabled>
                                         </td>
 
                                         {{-- fsubaccount --}}
                                         <td class="p-2 text-gray-700" x-text="it.fsubaccountname || '—'"></td>
+
+                                        {{-- frefno --}}
+                                        <td class="p-2 text-gray-500 text-xs" x-text="it.frefno || '—'"></td>
 
                                         {{-- fdk --}}
                                         <td class="p-2">
@@ -153,9 +159,6 @@
                                         {{-- faccountnote --}}
                                         <td class="p-2 text-gray-700 max-w-xs truncate" x-text="it.faccountnote || '—'">
                                         </td>
-
-                                        {{-- frefno --}}
-                                        <td class="p-2 text-gray-500 text-xs" x-text="it.frefno || '—'"></td>
 
                                         {{-- famount --}}
                                         <td class="p-2 text-right font-medium" x-text="fmt(it.famount)"></td>
@@ -188,20 +191,27 @@
                                 <tr x-show="editingIndex !== null" class="border-t bg-amber-50 align-middle" x-cloak>
                                     <td class="p-2 text-gray-500" x-text="(editingIndex ?? 0) + 1"></td>
 
-                                    {{-- Account --}}
+                                    {{-- Kode Account --}}
                                     <td class="p-2">
-                                        <select class="w-full border rounded px-2 py-1 select2-acc-edit"
-                                            :value="editRow.faccid"
-                                            @input="updateAccount(editRow, $event.target.value,
-                                                $event.target.options[$event.target.selectedIndex].dataset.name,
-                                                $event.target.options[$event.target.selectedIndex].dataset.code)">
-                                            <option value="">Pilih Akun</option>
-                                            <template x-for="acc in accounts" :key="acc.faccid">
-                                                <option :value="acc.faccid" :data-name="acc.faccname"
-                                                    :data-code="acc.faccount"
-                                                    x-text="`${acc.faccount} - ${acc.faccname}`"></option>
-                                            </template>
-                                        </select>
+                                        <div class="flex items-center gap-2">
+                                            <input type="text"
+                                                class="w-full border rounded px-2 py-1 font-mono uppercase"
+                                                x-model.trim="editRow.faccount"
+                                                @input="syncAccountFromCode(editRow)"
+                                                @keydown.enter.prevent="openBrowseFor('edit')">
+                                            <button type="button" @click="openBrowseFor('edit')"
+                                                class="border rounded px-2 py-1 bg-white hover:bg-gray-50"
+                                                title="Cari account">
+                                                <x-heroicon-o-magnifying-glass class="w-4 h-4" />
+                                            </button>
+                                        </div>
+                                    </td>
+
+                                    {{-- Nama Account --}}
+                                    <td class="p-2">
+                                        <input type="text"
+                                            class="w-full border rounded px-2 py-1 bg-gray-100 text-gray-600"
+                                            :value="editRow.faccname || '-'" disabled>
                                     </td>
 
                                     {{-- Sub Account --}}
@@ -223,11 +233,17 @@
                                         </select>
                                     </td>
 
+                                    {{-- frefno --}}
+                                    <td class="p-2">
+                                        <input type="text" class="w-full border rounded px-2 py-1 bg-gray-100 text-gray-400 cursor-not-allowed"
+                                            x-model="editRow.frefno" placeholder="No Ref" disabled>
+                                    </td>
+
                                     {{-- D/K --}}
                                     <td class="p-2">
-                                        <select class="w-full border rounded px-2 py-1 select2-dk-edit"
+                                        <select class="w-full border rounded px-2 py-1"
                                             :value="editRow.fdk"
-                                            @input="editRow.fdk = $event.target.value; recalcTotals()">
+                                            @input="editRow.fdk = $event.target.value; autofillBalancedAmount(editRow, 'edit'); recalcTotals()">
                                             <option value="D">D</option>
                                             <option value="K">K</option>
                                         </select>
@@ -236,13 +252,7 @@
                                     {{-- faccountnote --}}
                                     <td class="p-2">
                                         <input type="text" class="w-full border rounded px-2 py-1"
-                                            x-model="editRow.faccountnote" placeholder="Keterangan baris">
-                                    </td>
-
-                                    {{-- frefno --}}
-                                    <td class="p-2">
-                                        <input type="text" class="w-full border rounded px-2 py-1"
-                                            x-model="editRow.frefno" placeholder="No Ref">
+                                            x-model="editRow.faccountnote" placeholder="Keterangan">
                                     </td>
 
                                     {{-- famount --}}
@@ -268,20 +278,27 @@
                                 <tr class="border-t bg-green-50 align-middle">
                                     <td class="p-2 text-gray-400" x-text="savedItems.length + 1"></td>
 
-                                    {{-- Account --}}
+                                    {{-- Kode Account --}}
                                     <td class="p-2">
-                                        <select class="w-full border rounded px-2 py-1 select2-acc-draft"
-                                            :value="draft.faccid"
-                                            @input="updateAccount(draft, $event.target.value,
-                                                $event.target.options[$event.target.selectedIndex].dataset.name,
-                                                $event.target.options[$event.target.selectedIndex].dataset.code)">
-                                            <option value="">Pilih Akun</option>
-                                            <template x-for="acc in accounts" :key="acc.faccid">
-                                                <option :value="acc.faccid" :data-name="acc.faccname"
-                                                    :data-code="acc.faccount"
-                                                    x-text="`${acc.faccount} - ${acc.faccname}`"></option>
-                                            </template>
-                                        </select>
+                                        <div class="flex items-center gap-2">
+                                            <input type="text"
+                                                class="w-full border rounded px-2 py-1 font-mono uppercase"
+                                                x-model.trim="draft.faccount"
+                                                @input="syncAccountFromCode(draft)"
+                                                @keydown.enter.prevent="openBrowseFor('draft')">
+                                            <button type="button" @click="openBrowseFor('draft')"
+                                                class="border rounded px-2 py-1 bg-white hover:bg-gray-50"
+                                                title="Cari account">
+                                                <x-heroicon-o-magnifying-glass class="w-4 h-4" />
+                                            </button>
+                                        </div>
+                                    </td>
+
+                                    {{-- Nama Account --}}
+                                    <td class="p-2">
+                                        <input type="text"
+                                            class="w-full border rounded px-2 py-1 bg-gray-100 text-gray-600"
+                                            :value="draft.faccname || '-'" disabled>
                                     </td>
 
                                     {{-- Sub Account --}}
@@ -308,11 +325,17 @@
                                         </p>
                                     </td>
 
+                                    {{-- frefno --}}
+                                    <td class="p-2">
+                                        <input type="text" class="w-full border rounded px-2 py-1 bg-gray-100 text-gray-400 cursor-not-allowed"
+                                            x-model="draft.frefno" placeholder="No Ref" disabled>
+                                    </td>
+
                                     {{-- D/K --}}
                                     <td class="p-2">
-                                        <select class="w-full border rounded px-2 py-1 select2-dk-draft"
+                                        <select class="w-full border rounded px-2 py-1"
                                             :value="draft.fdk"
-                                            @input="draft.fdk = $event.target.value; recalcTotals()">
+                                            @input="draft.fdk = $event.target.value; autofillBalancedAmount(draft, 'draft'); recalcTotals()">
                                             <option value="D">D</option>
                                             <option value="K">K</option>
                                         </select>
@@ -321,13 +344,7 @@
                                     {{-- faccountnote --}}
                                     <td class="p-2">
                                         <input type="text" class="w-full border rounded px-2 py-1"
-                                            x-model="draft.faccountnote" placeholder="Keterangan baris">
-                                    </td>
-
-                                    {{-- frefno --}}
-                                    <td class="p-2">
-                                        <input type="text" class="w-full border rounded px-2 py-1"
-                                            x-model="draft.frefno" placeholder="No Ref">
+                                            x-model="draft.faccountnote" placeholder="Keterangan">
                                     </td>
 
                                     {{-- famount --}}
@@ -349,7 +366,7 @@
 
                                 {{-- Total row --}}
                                 <tr class="border-t bg-gray-50 font-semibold text-sm">
-                                    <td colspan="6" class="p-2 text-right text-gray-600">Total:</td>
+                                    <td colspan="7" class="p-2 text-right text-gray-600">Total:</td>
                                     <td class="p-2 text-right" x-text="fmt(totalDebit + totalKredit)"></td>
                                     <td></td>
                                 </tr>
@@ -395,9 +412,25 @@
     </div>
 @endsection
 
+@include('components.transaction.browse-account-modal', [
+    'tableId' => 'journalAccountTable',
+    'showControls' => true,
+    'controlsId' => 'journalAccountTableControls',
+    'showPagination' => true,
+    'paginationId' => 'journalAccountTablePagination',
+    'routeName' => 'account.browse',
+    'eventName' => 'account-browse-open',
+    'title' => 'Pilih Account',
+])
+
+@push('styles')
+    <link rel="stylesheet" href="https://cdn.datatables.net/2.1.6/css/dataTables.dataTables.min.css">
+@endpush
+
 @push('scripts')
     <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet">
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script src="https://cdn.datatables.net/2.1.6/js/dataTables.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 
     <script>
@@ -418,12 +451,8 @@
                 }));
             });
 
-            initSelect2('.select2-acc-draft');
             initSelect2('.select2-sacc-draft');
-            initSelect2('.select2-dk-draft');
-            initSelect2('.select2-acc-edit');
             initSelect2('.select2-sacc-edit');
-            initSelect2('.select2-dk-edit');
         });
 
         // ─── Alpine component ───────────────────────────────────────────────────────
@@ -435,10 +464,13 @@
                 draft: newRow(),
                 editingIndex: null,
                 editRow: newRow(),
+                browseTarget: 'draft',
+                browseSavedIndex: null,
 
                 // Data master
                 accounts: window.ACCOUNTS_DATA ?? [],
                 subaccounts: window.SUBACCOUNTS_DATA ?? [],
+                referenceAllowedAccountCodes: (window.REFERENCE_ALLOWED_ACCOUNT_CODES ?? []).map(code => String(code).trim().toUpperCase()),
 
                 // Totals
                 totalDebit: 0,
@@ -515,6 +547,48 @@
                         fsubaccountcode: '',
                         fsubaccountname: '',
                     });
+
+                    if (!this.isRefAllowed(row.faccount)) {
+                        row.frefno = '';
+                    }
+                },
+
+                isRefAllowed(accountCode) {
+                    return this.referenceAllowedAccountCodes.includes(String(accountCode ?? '').trim().toUpperCase());
+                },
+
+                syncAccountFromCode(row) {
+                    const code = String(row.faccount ?? '').trim().toUpperCase();
+                    const accObj = this.accounts.find(a => String(a.faccount ?? '').trim().toUpperCase() === code);
+
+                    if (!accObj) {
+                        Object.assign(row, {
+                            faccid: '',
+                            faccname: '',
+                            fhavesubaccount: 0,
+                            fsubaccountid: '',
+                            fsubaccountcode: '',
+                            fsubaccountname: '',
+                            frefno: '',
+                        });
+                        return;
+                    }
+
+                    this.updateAccount(row, accObj.faccid, accObj.faccname, accObj.faccount);
+                },
+
+                openBrowseFor(target = 'draft', index = null) {
+                    this.browseTarget = target;
+                    this.browseSavedIndex = index;
+                    window.dispatchEvent(new CustomEvent('account-browse-open'));
+                },
+
+                getBrowseRow() {
+                    if (this.browseTarget === 'edit') return this.editRow;
+                    if (this.browseTarget === 'saved' && this.browseSavedIndex !== null) {
+                        return this.savedItems[this.browseSavedIndex] || null;
+                    }
+                    return this.draft;
                 },
 
                 // ── Update Sub Account → set fsubaccountcode (yang masuk ke DB) ──
@@ -534,6 +608,41 @@
                     this.totalKredit = this.savedItems
                         .filter(it => it.fdk === 'K')
                         .reduce((s, it) => s + Number(it.famount || 0), 0);
+                },
+
+                getBalanceSuggestion(targetType, mode = 'draft') {
+                    let debit = this.savedItems
+                        .filter(it => it.fdk === 'D')
+                        .reduce((sum, it) => sum + Number(it.famount || 0), 0);
+                    let kredit = this.savedItems
+                        .filter(it => it.fdk === 'K')
+                        .reduce((sum, it) => sum + Number(it.famount || 0), 0);
+
+                    if (mode === 'edit' && this.editingIndex !== null) {
+                        const current = this.savedItems[this.editingIndex];
+                        if (current) {
+                            if (current.fdk === 'D') debit -= Number(current.famount || 0);
+                            if (current.fdk === 'K') kredit -= Number(current.famount || 0);
+                        }
+                    }
+
+                    if (targetType === 'D') {
+                        return Math.max(0, Number((kredit - debit).toFixed(2)));
+                    }
+
+                    if (targetType === 'K') {
+                        return Math.max(0, Number((debit - kredit).toFixed(2)));
+                    }
+
+                    return 0;
+                },
+
+                autofillBalancedAmount(row, mode = 'draft') {
+                    const suggested = this.getBalanceSuggestion(row.fdk, mode);
+                    if (!(suggested > 0)) return;
+
+                    row.famount = suggested;
+                    row.famountInput = this.formatDecimalInput(suggested);
                 },
 
                 // ── Validasi baris lengkap ──
@@ -563,9 +672,7 @@
                     this.recalcTotals();
                     this.$nextTick(() => {
                         // re-init select2 pada row baru
-                        $('.select2-acc-draft').val('').trigger('change');
                         $('.select2-sacc-draft').val('').trigger('change');
-                        $('.select2-dk-draft').val('').trigger('change');
                     });
                 },
 
@@ -576,11 +683,10 @@
                         ...this.savedItems[i],
                         famountInput: this.formatDecimalInput(this.savedItems[i].famount),
                     };
+                    this.autofillBalancedAmount(this.editRow, 'edit');
                     this.$nextTick(() => {
                         // Sync select2 edit ke nilai editRow
-                        $('.select2-acc-edit').val(this.editRow.faccid).trigger('change');
                         $('.select2-sacc-edit').val(this.editRow.fsubaccountid).trigger('change');
-                        $('.select2-dk-edit').val(this.editRow.fdk).trigger('change');
                         this.$refs.editAmt?.focus();
                     });
                 },
@@ -635,8 +741,58 @@
                     }
                 },
 
+                restoreSavedItems(items = []) {
+                    this.savedItems = Array.isArray(items)
+                        ? items.map((item, index) => {
+                            const row = {
+                                ...newRow(),
+                                ...(item || {}),
+                                uid: item?.uid || `restored-${index}`
+                            };
+                            this.syncAccountFromCode(row);
+                            this.normalizeAmount(row);
+                            return row;
+                        })
+                        : [];
+                    this.recalcTotals();
+                },
+
+                restoreDraft(draft = {}) {
+                    this.draft = {
+                        ...newRow(),
+                        ...(draft || {})
+                    };
+                    this.syncAccountFromCode(this.draft);
+                    this.normalizeAmount(this.draft);
+                },
+
+                restoreEditRow(editRow = {}) {
+                    this.editRow = {
+                        ...newRow(),
+                        ...(editRow || {})
+                    };
+                    this.syncAccountFromCode(this.editRow);
+                    this.normalizeAmount(this.editRow);
+                },
+
                 init() {
                     this.normalizeAmount(this.draft);
+                    window.addEventListener('account-picked', (event) => {
+                        const row = this.getBrowseRow();
+                        if (!row) return;
+                        const detail = event.detail || {};
+                        this.updateAccount(
+                            row,
+                            detail.faccid ?? '',
+                            detail.faccname ?? '',
+                            detail.faccount ?? ''
+                        );
+                        if (!this.isRefAllowed(row.faccount)) {
+                            row.frefno = '';
+                        }
+                    }, {
+                        passive: true
+                    });
                 },
             };
 
@@ -674,3 +830,4 @@
         }
     </script>
 @endpush
+

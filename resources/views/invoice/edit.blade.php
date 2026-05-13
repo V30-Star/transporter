@@ -79,7 +79,7 @@
             {{-- Header Strip --}}
             <div class="d-flex align-items-center px-4 py-3" style="background-color: #c0392b;">
                 <i class="bi bi-exclamation-triangle-fill text-white me-2 fs-5"></i>
-                <strong class="text-white fs-6">{{ "Gagal Menyimpan Data!" }}</strong>
+                <strong class="text-white fs-6">{{ "Data Belum Bisa Disimpan" }}</strong>
                 <button type="button" class="btn-close btn-close-white ms-auto" data-bs-dismiss="alert"
                     aria-label="Close"></button>
             </div>
@@ -88,7 +88,7 @@
             <div class="px-4 py-3" style="background-color: #fdeded; border-left: 5px solid #c0392b;">
                 <p class="mb-2 text-danger fw-semibold">
                     <i class="bi bi-info-circle me-1"></i>
-                    {{ "Periksa kembali data berikut sebelum menyimpan:" }}
+                    {{ "Tolong perbaiki bagian ini dulu:" }}
                 </p>
                 <ul class="mb-0 ps-3">
                     @foreach ($errors->all() as $error)
@@ -136,7 +136,7 @@
         </div>
     @endif
     <div x-data="{ open: true }">
-        <div class="bg-white rounded shadow p-6 md:p-8 max-w-[1600px] w-full mx-auto">
+        <div class="bg-white rounded shadow p-6 md:p-8 max-w-[96rem] mx-auto">
             @if ($action === 'delete')
                 <div class="space-y-4">
 
@@ -332,7 +332,7 @@
                                         <th class="p-2 text-left w-96">Nama Produk</th>
                                         <th class="p-2 text-left w-36">Satuan</th>
                                         <th class="p-2 text-left w-36">No.Ref</th>
-                                        <th class="p-2 text-right w-36 whitespace-nowrap">Qty</th>
+                                        <th class="p-2 text-right w-36 whitespace-nowrap">Jumlah</th>
                                         <th class="p-2 text-right w-32 whitespace-nowrap">@ Harga</th>
                                         <th class="p-2 text-right w-36 whitespace-nowrap">Disc. %</th>
                                         <th class="p-2 text-right w-36 whitespace-nowrap">Total Harga</th>
@@ -647,9 +647,9 @@
 
                     @if ($canApproval)
                         <div class="mt-6 mx-auto max-w-2xl rounded-lg border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-700">
-                            <div class="font-semibold">Status ACC Kredit</div>
+                            <div class="font-semibold">Status Persetujuan Kredit</div>
                             <div class="mt-1">
-                                {{ !empty($invoice->fuseracc) ? 'Sudah di-ACC oleh: '.$invoice->fuseracc : 'Belum ada ACC kredit pada transaksi ini.' }}
+                                {{ !empty($invoice->fuseracc) ? 'Sudah disetujui oleh: '.$invoice->fuseracc : 'Belum ada persetujuan kredit pada transaksi ini.' }}
                             </div>
                         </div>
                     @endif
@@ -935,7 +935,7 @@
                                             <th class="p-2 text-left w-96">Nama Produk</th>
                                             <th class="p-2 text-left w-36">Satuan</th>
                                             <th class="p-2 text-left w-36">No.Ref</th>
-                                            <th class="p-2 text-right w-36 whitespace-nowrap">Qty</th>
+                                            <th class="p-2 text-right w-36 whitespace-nowrap">Jumlah</th>
                                             <th class="p-2 text-right w-32 whitespace-nowrap">@ Harga</th>
                                             <th class="p-2 text-right w-36 whitespace-nowrap">Disc. %</th>
                                             <th class="p-2 text-right w-36 whitespace-nowrap">Total Harga</th>
@@ -1705,7 +1705,7 @@
                         btnYa.disabled = false;
                         btnTidak.disabled = false;
                         btnYa.textContent = 'Ya, Hapus';
-                        showToast('Terjadi kesalahan saat menghapus data', false);
+                        showToast('Gagal menghapus data.', false);
                     });
             }
         </script>
@@ -1865,7 +1865,7 @@
                 await Swal.fire({
                     icon: 'error',
                     title: @json("Cek Customer Gagal"),
-                    text: message
+                    html: `<div class="text-left whitespace-pre-line">${message}</div>`
                 });
                 return false;
             }
@@ -1886,7 +1886,7 @@
                             <div>${@json("Nilai transaksi ini")}: <strong>${Number(limitCheck.transaction_amount || 0).toLocaleString('id-ID')}</strong></div>
                             <div>${@json("Limit customer")}: <strong>${Number(limitCheck.limit || 0).toLocaleString('id-ID')}</strong></div>
                             <div>${@json("Total setelah transaksi")}: <strong>${Number(limitCheck.projected_total || 0).toLocaleString('id-ID')}</strong></div>
-                            <div class="mt-3">${@json("Transaksi ini membutuhkan ACC Kredit. Lanjutkan?")}</div>
+                            <div class="mt-3">${@json("Transaksi ini membutuhkan persetujuan kredit. Lanjutkan?")}</div>
                         </div>
                     `,
                     showCancelButton: true,
@@ -1902,8 +1902,17 @@
                 if (!canApprove) {
                     await Swal.fire({
                         icon: 'error',
-                        title: @json("ACC Kredit Ditolak"),
-                        text: @json("User login tidak punya wewenang ACC Kredit untuk limit piutang customer.")
+                        title: @json("Persetujuan Kredit Ditolak"),
+                        html: `
+                            <div class="text-left text-sm">
+                                <div class="font-medium mb-2">Persetujuan diperlukan:</div>
+                                <ul class="list-disc pl-5 space-y-1">
+                                    <li>Limit piutang customer sudah terlampaui.</li>
+                                    <li>Ada nota yang lewat jatuh tempo.</li>
+                                </ul>
+                                <div class="mt-3">User login ini tidak punya wewenang menyetujui.</div>
+                            </div>
+                        `
                     });
                     return false;
                 }
@@ -1925,7 +1934,7 @@
                         <div class="text-left text-sm">
                             <div>${@json("Customer punya nota yang lewat jatuh tempo lebih dari")} <strong>${overdueCheck.max_tempo || 0}</strong> ${@json("hari.")}</div>
                             <ul class="mt-3 list-disc pl-5">${overdueHtml}</ul>
-                            <div class="mt-3">${@json("Transaksi ini membutuhkan ACC Kredit. Lanjutkan?")}</div>
+                            <div class="mt-3">${@json("Transaksi ini membutuhkan persetujuan kredit. Lanjutkan?")}</div>
                         </div>
                     `,
                     showCancelButton: true,
@@ -1941,8 +1950,16 @@
                 if (!canApprove) {
                     await Swal.fire({
                         icon: 'error',
-                        title: @json("ACC Kredit Ditolak"),
-                        text: @json("User login tidak punya wewenang ACC Kredit untuk nota customer yang lewat jatuh tempo.")
+                        title: @json("Persetujuan Kredit Ditolak"),
+                        html: `
+                            <div class="text-left text-sm">
+                                <div class="font-medium mb-2">Persetujuan diperlukan:</div>
+                                <ul class="list-disc pl-5 space-y-1">
+                                    <li>Customer punya nota lewat jatuh tempo.</li>
+                                </ul>
+                                <div class="mt-3">User login ini tidak punya wewenang menyetujui.</div>
+                            </div>
+                        `
                     });
                     return false;
                 }
@@ -1955,8 +1972,8 @@
         } catch (error) {
             await Swal.fire({
                 icon: 'error',
-                title: @json("Cek ACC Kredit Gagal"),
-                text: @json("Terjadi kesalahan saat mengecek kebutuhan ACC Kredit customer.")
+                title: @json("Pemeriksaan Persetujuan Gagal"),
+                html: `<div class="text-left whitespace-pre-line">@json("Gagal memeriksa persetujuan customer.\nSilakan coba lagi.")</div>`
             });
             return false;
         }
@@ -2196,14 +2213,14 @@
                 const limit = this.getRowQtyLimit(row);
                 if (limit <= 0) {
                     row.fqty = 0;
-                    if (showToast) window.toast?.error('Qty referensi sudah habis atau sudah digunakan.');
+                    if (showToast) window.toast?.error('Sisa referensi sudah habis.');
                     return false;
                 }
 
                 const qty = Number(row?.fqty ?? 0);
                 if (qty > limit) {
                     row.fqty = limit;
-                    if (showToast) window.toast?.error(`Qty melebihi sisa referensi. Maksimal ${limit} ${row.fsatuan || ''}`.trim());
+                    if (showToast) window.toast?.error(`Jumlah melebihi sisa referensi. Maksimal ${limit} ${row.fsatuan || ''}`.trim());
                 }
 
                 return Number(row?.fqty ?? 0) > 0;
@@ -2780,7 +2797,7 @@
                     console.error(e);
                     // Menggunakan custom alert/modal, bukan alert() bawaan browser
                     // Idealnya: tampilkan notifikasi di UI
-                    console.log(@json("Gagal mengambil detail PR. Lihat konsol untuk detail."));
+                    console.log(@json("Gagal mengambil detail PR."));
                 }
             }
         };
@@ -2809,3 +2826,4 @@
     @include('components.transaction.browse-product-script', ['showControls' => true, 'showPagination' => true, 'supportsForEdit' => true])
 
 @endpush
+

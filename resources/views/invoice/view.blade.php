@@ -89,7 +89,7 @@
     </style>
 
     <div x-data="{ open: true }">
-            <div class="bg-white rounded shadow p-6 md:p-8 max-w-[1600px] w-full mx-auto">
+            <div class="bg-white rounded shadow p-6 md:p-8 max-w-[96rem] mx-auto">
                 @if (!empty($approvalLockMessage))
                     <div class="mb-4 rounded-lg border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-800">
                         {{ $approvalLockMessage }}
@@ -296,7 +296,7 @@
                                         <th class="p-2 text-left w-96">Nama Produk</th>
                                         <th class="p-2 text-left w-36">Satuan</th>
                                         <th class="p-2 text-left w-36">No.Ref</th>
-                                        <th class="p-2 text-right w-36 whitespace-nowrap">Qty</th>
+                                        <th class="p-2 text-right w-36 whitespace-nowrap">Jumlah</th>
                                         <th class="p-2 text-right w-32 whitespace-nowrap">@ Harga</th>
                                         <th class="p-2 text-right w-36 whitespace-nowrap">Disc. %</th>
                                         <th class="p-2 text-right w-36 whitespace-nowrap">Total Harga</th>

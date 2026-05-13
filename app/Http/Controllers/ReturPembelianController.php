@@ -652,7 +652,7 @@ class ReturPembelianController extends Controller
         } catch (\Exception $e) {
             return back()
                 ->withInput()
-                ->withErrors(['error' => 'Terjadi kesalahan: '.$e->getMessage()]);
+                ->withErrors(['error' => 'Data belum berhasil disimpan. Silakan cek kembali isian transaksi.']);
         }
     }
 
@@ -1158,7 +1158,7 @@ class ReturPembelianController extends Controller
         } catch (\Exception $e) {
             return back()
                 ->withInput()
-                ->withErrors(['error' => 'Terjadi kesalahan: '.$e->getMessage()]);
+                ->withErrors(['error' => 'Data belum berhasil diperbarui. Silakan cek kembali isian transaksi.']);
         }
     }
 
@@ -1305,7 +1305,7 @@ class ReturPembelianController extends Controller
             return redirect()->route('returpembelian.index')->with('success', 'Data Retur Pembelian '.$returpembelian->fstockmtno.' berhasil dihapus.');
         } catch (\Exception $e) {
             // Jika terjadi kesalahan saat menghapus, kembali ke halaman delete dengan pesan error
-            return redirect()->route('returpembelian.delete', $fstockmtid)->with('error', 'Gagal menghapus data: '.$e->getMessage());
+            return redirect()->route('returpembelian.delete', $fstockmtid)->with('error', 'Data belum berhasil dihapus. Silakan coba lagi.');
         }
     }
 

@@ -14,7 +14,7 @@
     </style>
 
     <div x-data="{ open: true, selected: 'surat' }">
-        <div class="bg-white rounded shadow p-6 md:p-8 max-w-lg mx-auto">
+        <div class="bg-white rounded shadow p-6 md:p-8 max-w-[96rem] mx-auto">
             <form action="{{ route('sysuser.update', $sysuser->fuid) }}" method="POST"
                 data-form-draft="true" data-draft-key="sysuser:edit">
                 @csrf
@@ -179,3 +179,4 @@
         margin-bottom: 20px;
     }
 </style>
+
