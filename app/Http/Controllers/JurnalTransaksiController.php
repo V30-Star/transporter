@@ -16,6 +16,13 @@ use Illuminate\Support\Facades\DB; // sekalian biar aman untuk tanggal
 
 class JurnalTransaksiController extends Controller
 {
+    private const REFERENCE_ALLOWED_ACCOUNT_NAMES = [
+        'HUTANGDAGANG',
+        'PIUTANGDAGANG',
+        'RETJUALBLMPOTPIUTANG',
+        'RETBELIBLMPOTHUTANG',
+    ];
+
     private function normalizeDecimal($value, int $scale = 2): float
     {
         if (is_numeric($value)) {
@@ -53,6 +60,18 @@ class JurnalTransaksiController extends Controller
         }
 
         return round((float) $normalized, $scale);
+    }
+
+    private function resolveReferenceAllowedAccountCodes(): array
+    {
+        return DB::table('set_account')
+            ->whereIn('faccount_name', self::REFERENCE_ALLOWED_ACCOUNT_NAMES)
+            ->pluck('faccount')
+            ->filter()
+            ->map(fn ($value) => trim((string) $value))
+            ->filter(fn ($value) => $value !== '')
+            ->values()
+            ->all();
     }
 
     public function index(Request $request)
@@ -370,6 +389,8 @@ class JurnalTransaksiController extends Controller
             'fminstock'
         )->orderBy('fprdname')->get();
 
+        $referenceAllowedAccountCodes = $this->resolveReferenceAllowedAccountCodes();
+
         return view('jurnaltransaksi.create', [
             'newtr_prh_code' => $newtr_prh_code,
             'accounts' => $accounts,
@@ -378,6 +399,7 @@ class JurnalTransaksiController extends Controller
             'fcabang' => $fcabang,
             'fbranchcode' => $fbranchcode,
             'products' => $products,
+            'referenceAllowedAccountCodes' => $referenceAllowedAccountCodes,
         ]);
     }
 
@@ -471,6 +493,10 @@ class JurnalTransaksiController extends Controller
         $refnos = $request->input('frefno', []);
         $amounts = $request->input('famount', []);
         $rates = $request->input('frate', []);
+        $referenceAllowedAccountCodes = collect($this->resolveReferenceAllowedAccountCodes())
+            ->map(fn ($code) => strtoupper(trim((string) $code)))
+            ->flip()
+            ->all();
 
         $rowsDt = [];
         $totalDebit = 0.0;
@@ -487,6 +513,12 @@ class JurnalTransaksiController extends Controller
             $frate = $this->normalizeDecimal($rates[$i] ?? 1, 4);
             if ($frate <= 0) {
                 $frate = 1;
+            }
+
+            if ($frefno !== null && ! isset($referenceAllowedAccountCodes[strtoupper($faccount)])) {
+                return back()->withInput()->withErrors([
+                    'detail' => "Ref No hanya boleh diisi untuk account Hutang/Piutang/Retur yang ditentukan pada set_account. Baris ".($i + 1)." tidak diizinkan.",
+                ]);
             }
 
             // Skip baris tidak valid
@@ -683,6 +715,8 @@ class JurnalTransaksiController extends Controller
             ];
         })->toArray();
 
+        $referenceAllowedAccountCodes = $this->resolveReferenceAllowedAccountCodes();
+
         return view('jurnaltransaksi.edit', [
             'supplier' => $supplier,
             'selectedSupplierCode' => $selectedSupplierCode,
@@ -696,6 +730,7 @@ class JurnalTransaksiController extends Controller
             'jurnaltransaksi' => $jurnaltransaksi,
             'pemakaianbarang' => $jurnaltransaksi,
             'savedItems' => $savedItems,
+            'referenceAllowedAccountCodes' => $referenceAllowedAccountCodes,
             'ppnAmount' => 0,
             'famountponet' => 0,
             'famountpo' => 0,
@@ -756,6 +791,8 @@ class JurnalTransaksiController extends Controller
             ];
         })->toArray();
 
+        $referenceAllowedAccountCodes = $this->resolveReferenceAllowedAccountCodes();
+
         return view('jurnaltransaksi.view', [
             'supplier' => $supplier,
             'selectedSupplierCode' => $selectedSupplierCode,
@@ -769,6 +806,7 @@ class JurnalTransaksiController extends Controller
             'jurnaltransaksi' => $jurnaltransaksi,
             'pemakaianbarang' => $jurnaltransaksi,
             'savedItems' => $savedItems,
+            'referenceAllowedAccountCodes' => $referenceAllowedAccountCodes,
             'ppnAmount' => 0,
             'famountponet' => 0,
             'famountpo' => 0,
@@ -833,6 +871,10 @@ class JurnalTransaksiController extends Controller
         $refnos = $request->input('frefno', []);
         $amounts = $request->input('famount', []);
         $rates = $request->input('frate', []);
+        $referenceAllowedAccountCodes = collect($this->resolveReferenceAllowedAccountCodes())
+            ->map(fn ($code) => strtoupper(trim((string) $code)))
+            ->flip()
+            ->all();
 
         $rowsDt = [];
         $totalDebit = 0.0;
@@ -849,6 +891,12 @@ class JurnalTransaksiController extends Controller
             $frate = round((float) ($rates[$i] ?? 1), 4);
             if ($frate <= 0) {
                 $frate = 1;
+            }
+
+            if ($frefno !== null && ! isset($referenceAllowedAccountCodes[strtoupper($faccount)])) {
+                return back()->withInput()->withErrors([
+                    'detail' => "Ref No hanya boleh diisi untuk account Hutang/Piutang/Retur yang ditentukan pada set_account. Baris ".($i + 1)." tidak diizinkan.",
+                ]);
             }
 
             if ($faccount === '' || $famount <= 0 || ! in_array($fdk, ['D', 'K'])) {
