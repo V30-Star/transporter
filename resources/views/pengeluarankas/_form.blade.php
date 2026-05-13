@@ -197,28 +197,28 @@
 
             <div>
                 <label class="block text-sm font-medium mb-1">{{ 'No.Giro/Cek' }}</label>
-                <div class="flex flex-col gap-2">
-                    <div class="flex flex-wrap items-start gap-3">
+                <div class="flex items-center gap-3 flex-nowrap">
+                    <div class="w-[12rem] shrink-0">
                         <input type="text" name="fnogiro" value="{{ old('fnogiro', $pengeluaranKas->fnogiro) }}"
-                            class="min-w-0 flex-1 border rounded px-3 py-2 {{ $isReadOnly ? 'bg-gray-100' : '' }}"
+                            class="w-full border rounded px-3 py-2 {{ $isReadOnly ? 'bg-gray-100' : '' }}"
                             {{ $isReadOnly ? 'readonly' : '' }}>
+                    </div>
 
-                        <div class="flex-none w-full max-w-[220px]">
-                            <label class="inline-flex items-center gap-2 cursor-pointer">
-                                <input type="checkbox" x-model="isGiroMundur" {{ $isReadOnly ? 'disabled' : '' }}
-                                    class="rounded border-gray-300">
-                                <span class="text-sm text-gray-700 whitespace-nowrap">{{ 'Giro Mundur' }}</span>
-                            </label>
-                            <input type="hidden" name="fgiromundur" :value="isGiroMundur ? '1' : '0'">
+                    <div class="flex items-center h-10 px-1 shrink-0">
+                        <label class="inline-flex items-center gap-2 cursor-pointer whitespace-nowrap">
+                            <input type="checkbox" x-model="isGiroMundur" {{ $isReadOnly ? 'disabled' : '' }}
+                                class="rounded border-gray-300">
+                            <span class="text-sm text-gray-700">{{ 'Giro Mundur' }}</span>
+                        </label>
+                        <input type="hidden" name="fgiromundur" :value="isGiroMundur ? '1' : '0'">
+                    </div>
 
-                            <div class="mt-2">
-                                <label class="block text-sm text-gray-600 mb-1">{{ 'Tgl. Jatuh Tempo' }}</label>
-                                <input type="date" name="ftgljatuhtempo" value="{{ $selectedJatuhTempo }}"
-                                    class="w-full border rounded px-3 py-1.5 text-sm"
-                                    :class="isReadOnly || !isGiroMundur ? 'bg-gray-100 cursor-not-allowed text-gray-400' : 'bg-white'"
-                                    :readonly="isReadOnly || !isGiroMundur" :disabled="isReadOnly || !isGiroMundur">
-                            </div>
-                        </div>
+                    <div class="flex items-center gap-2 shrink-0">
+                        <label class="text-sm font-medium whitespace-nowrap">{{ 'Tgl. Jatuh Tempo' }}</label>
+                        <input type="date" name="ftgljatuhtempo" value="{{ $selectedJatuhTempo }}"
+                            class="w-[12rem] border rounded px-3 py-2"
+                            :class="isReadOnly || !isGiroMundur ? 'bg-gray-100 cursor-not-allowed text-gray-400' : 'bg-white'"
+                            :readonly="isReadOnly || !isGiroMundur" :disabled="isReadOnly || !isGiroMundur">
                     </div>
                 </div>
 
