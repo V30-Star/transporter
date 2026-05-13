@@ -400,10 +400,19 @@ class SalesOrderController extends Controller
                 'trsomt.fcustno',
                 'trsomt.fsodate',
                 'mscustomer.fcustomername'
-            );
+            )
+            ->where(function ($q) {
+                $q->whereNull('trsomt.fneedacc')
+                    ->orWhereRaw("COALESCE(TRIM(CAST(trsomt.fneedacc AS TEXT)), '0') = '0'");
+            });
         ApprovalState::applyApprovedFilter($query, 'trsomt.');
 
-        $recordsTotal = SalesOrderHeader::count();
+        $recordsTotal = SalesOrderHeader::query()
+            ->where(function ($q) {
+                $q->whereNull('trsomt.fneedacc')
+                    ->orWhereRaw("COALESCE(TRIM(CAST(trsomt.fneedacc AS TEXT)), '0') = '0'");
+            })
+            ->count();
 
         if ($request->filled('search') && $request->search != '') {
             $search = $request->search;
@@ -448,6 +457,7 @@ class SalesOrderController extends Controller
     public function items($id)
     {
         $header = SalesOrderHeader::where('ftrsomtid', $id)->firstOrFail();
+        abort_if(trim((string) ($header->fneedacc ?? '0')) === '1', 404);
         abort_if(! ApprovalState::isApprovedRecord($header), 404);
         $remainMap = $this->getSoRemainByIds(
             DB::table('trsodt')->where('fsono', $header->fsono)->pluck('ftrsodtid')->all()

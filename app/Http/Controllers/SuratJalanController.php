@@ -115,6 +115,13 @@ class SuratJalanController extends Controller
         $query = DB::table('trstockmt')
             ->leftJoin('mscustomer', 'trstockmt.fsupplier', '=', 'mscustomer.fcustomercode')
             ->where('trstockmt.fstockmtcode', 'SRJ')
+            ->whereNotExists(function ($subQuery) {
+                $subQuery->select(DB::raw(1))
+                    ->from('trstockdt as srj_dt')
+                    ->join('trsomt as so_hdr', 'so_hdr.fsono', '=', 'srj_dt.frefso')
+                    ->whereColumn('srj_dt.fstockmtno', 'trstockmt.fstockmtno')
+                    ->whereRaw("COALESCE(TRIM(CAST(so_hdr.fneedacc AS TEXT)), '0') = '1'");
+            })
             ->select(
                 'trstockmt.fstockmtid',
                 'trstockmt.fstockmtno',
@@ -133,7 +140,16 @@ class SuratJalanController extends Controller
             });
         }
 
-        $recordsTotal = DB::table('trstockmt')->count();
+        $recordsTotal = DB::table('trstockmt')
+            ->where('trstockmt.fstockmtcode', 'SRJ')
+            ->whereNotExists(function ($subQuery) {
+                $subQuery->select(DB::raw(1))
+                    ->from('trstockdt as srj_dt')
+                    ->join('trsomt as so_hdr', 'so_hdr.fsono', '=', 'srj_dt.frefso')
+                    ->whereColumn('srj_dt.fstockmtno', 'trstockmt.fstockmtno')
+                    ->whereRaw("COALESCE(TRIM(CAST(so_hdr.fneedacc AS TEXT)), '0') = '1'");
+            })
+            ->count();
         $recordsFiltered = $query->count();
 
         $data = $query->orderBy('trstockmt.fstockmtdate', 'desc')
@@ -158,6 +174,16 @@ class SuratJalanController extends Controller
 
         if (! $header) {
             return response()->json(['message' => 'Data tidak ditemukan'], 404);
+        }
+
+        $hasBlockedSoReference = DB::table('trstockdt as srj_dt')
+            ->join('trsomt as so_hdr', 'so_hdr.fsono', '=', 'srj_dt.frefso')
+            ->where('srj_dt.fstockmtno', $header->fstockmtno)
+            ->whereRaw("COALESCE(TRIM(CAST(so_hdr.fneedacc AS TEXT)), '0') = '1'")
+            ->exists();
+
+        if ($hasBlockedSoReference) {
+            return response()->json(['message' => 'Data SRJ ini belum dapat dipakai karena referensi Sales Order masih membutuhkan approval.'], 403);
         }
 
         $remainMap = $this->getSrjRemainByStockNo($header->fstockmtno);
