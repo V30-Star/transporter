@@ -555,6 +555,8 @@ class SalesOrderController extends Controller
             return redirect()->back()->with('error', 'Data Sales Order tidak ditemukan.');
         }
 
+        DB::table('trsomt')->where('fsono', $hdr->fsono)->update(['fprint' => 1]);
+
         // Detail: join dengan product
         $dt = DB::table('trsodt')
             ->leftJoin('msprd as p', function ($j) {

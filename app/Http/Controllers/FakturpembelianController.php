@@ -820,6 +820,8 @@ class FakturpembelianController extends Controller
             return redirect()->back()->with('error', 'PO tidak ditemukan.');
         }
 
+        DB::table('trstockmt')->where('fstockmtno', $hdr->fstockmtno)->update(['fprint' => 1]);
+
         $dt = PenerimaanPembelianDetail::query()
             ->leftJoin('msprd as p', 'p.fprdid', '=', 'trstockdt.fprdcodeid')
             ->where('trstockdt.fstockmtno', $fstockmtno)

@@ -623,6 +623,8 @@ class InvoiceController extends Controller
             return redirect()->back()->with('error', 'Data Sales Order tidak ditemukan.');
         }
 
+        DB::table('tranmt')->where('fsono', $hdr->fsono)->update(['fprint' => 1]);
+
         // Use header ID (integer) for detail FK
         $ftranmtid = (int) $hdr->ftranmtid;
 
@@ -914,6 +916,7 @@ class InvoiceController extends Controller
                     'ftrcode' => 'I',
                     'fprdout' => '0',
                     'fuseracc' => $creditApproval['fuseracc'],
+                    'fprint' => 0,
                     ...$approvalState,
                 ], 'ftranmtid');
 

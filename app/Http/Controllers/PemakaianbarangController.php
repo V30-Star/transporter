@@ -278,6 +278,8 @@ class PemakaianbarangController extends Controller
             return redirect()->back()->with('error', 'Pemakaian Barang tidak ditemukan.');
         }
 
+        DB::table('trstockmt')->where('fstockmtno', $hdr->fstockmtno)->update(['fprint' => 1]);
+
         $dt = PenerimaanPembelianDetail::query()
             ->leftJoin('msprd as p', 'p.fprdid', '=', 'trstockdt.fprdcodeid')
             ->where('trstockdt.fstockmtno', $fstockmtno)

@@ -307,6 +307,8 @@ class ReturPenjualanController extends Controller
             return redirect()->back()->with('error', 'Sales Order tidak ditemukan.');
         }
 
+        DB::table('tranmt')->where('fsono', $hdr->fsono)->update(['fprint' => 1]);
+
         // Use header ID (integer) for detail FK
         $ftranmtid = (int) $hdr->ftranmtid;
 
@@ -657,6 +659,7 @@ class ReturPenjualanController extends Controller
                     'ftrcode' => 'I',
                     'fprdout' => '0',
                     'ftaxno' => $request->ftaxno ?? '0',
+                    'fprint' => 0,
                 ];
 
                 $ftranmtid = DB::table('tranmt')->insertGetId($headerData, 'ftranmtid');

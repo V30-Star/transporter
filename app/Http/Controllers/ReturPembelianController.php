@@ -309,6 +309,8 @@ class ReturPembelianController extends Controller
             return redirect()->back()->with('error', 'Retur Pembelian tidak ditemukan.');
         }
 
+        DB::table('trstockmt')->where('fstockmtno', $hdr->fstockmtno)->update(['fprint' => 1]);
+
         $dt = PenerimaanPembelianDetail::query()
             ->leftJoin('msprd as p', function ($join) {
                 $join->on('p.fprdid', '=', 'trstockdt.fprdcodeid')

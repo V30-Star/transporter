@@ -290,6 +290,8 @@ class MutasiController extends Controller
             return redirect()->back()->with('error', 'Mutasi Stock tidak ditemukan.');
         }
 
+        DB::table('trstockmt')->where('fstockmtno', $hdr->fstockmtno)->update(['fprint' => 1]);
+
         $dt = PenerimaanPembelianDetail::query()
             ->leftJoin('msprd as p', function ($join) {
                 $join->whereRaw(

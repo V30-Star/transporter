@@ -657,6 +657,8 @@ class Tr_pohController extends Controller
             return redirect()->back()->with('error', 'PO tidak ditemukan.');
         }
 
+        DB::table('tr_poh')->where('fpono', $hdr->fpono)->update(['fprint' => 1]);
+
         $dt = DB::table('tr_pod')
             ->leftJoin('msprd as p', function ($j) {
                 $j->on('p.fprdid', '=', DB::raw('CAST(tr_pod.fprdid AS INTEGER)'));
@@ -1033,6 +1035,7 @@ class Tr_pohController extends Controller
                     'fppnpersen' => $request->input('ppn_rate', 0),
                     'fclose' => '0',
                     'fprdin' => '0',
+                    'fprint' => 0,
                     ...$approvalState,
                 ], 'fpohid');
 

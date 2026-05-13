@@ -284,6 +284,8 @@ class SuratJalanController extends Controller
             return redirect()->back()->with('error', 'PO tidak ditemukan.');
         }
 
+        DB::table('trstockmt')->where('fstockmtno', $hdr->fstockmtno)->update(['fprint' => 1]);
+
         // Bagian detail (sudah benar, tidak ada duplikasi alias)
         $dt = PenerimaanPembelianDetail::query()
             ->leftJoin('msprd as p', 'p.fprdcode', '=', 'trstockdt.fprdcode')

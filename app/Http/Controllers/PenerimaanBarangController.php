@@ -579,6 +579,8 @@ class PenerimaanBarangController extends Controller
             return redirect()->back()->with('error', 'PO tidak ditemukan.');
         }
 
+        DB::table('trstockmt')->where('fstockmtno', $hdr->fstockmtno)->update(['fprint' => 1]);
+
         $dt = PenerimaanPembelianDetail::query()
             ->leftJoin('msprd as p', 'p.fprdcode', '=', 'trstockdt.fprdcode') // join by varchar code
             ->where('trstockdt.fstockmtno', $fstockmtno)

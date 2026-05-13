@@ -603,10 +603,11 @@
                         $canApproval = in_array('approveFakturPenjualan', explode(',', session('user_restricted_permissions', '')));
                     @endphp
 
+                    @php $isPrinted = (int) ($invoice->fprint ?? 0) === 1; @endphp
                     <div class="mt-6 flex justify-center space-x-4">
                         @if ($canPrint)
                             <a href="{{ route('invoice.print', $invoice->fsono) }}" target="_blank"
-                                class="bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700 flex items-center">
+                                class="{{ $isPrinted ? 'bg-gray-400 pointer-events-none cursor-not-allowed' : 'bg-blue-600 hover:bg-blue-700' }} text-white px-6 py-2 rounded flex items-center">
                                 <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                         d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m10 0v-5a2 2 0 00-2-2H9a2 2 0 00-2 2v5m10 0v5H7v-5">
@@ -1187,4 +1188,3 @@
             <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
             <script src="https://cdn.datatables.net/1.13.7/js/jquery.dataTables.min.js"></script>
         @endpush
-
