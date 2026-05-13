@@ -551,7 +551,7 @@ class AdjstockController extends Controller
                 ->route('adjstock.create')
                 ->with('success', "Transaksi {$finalNo} berhasil disimpan.");
         } catch (\Exception $e) {
-            return back()->withInput()->withErrors(['fatal' => 'Terjadi error: '.$e->getMessage()]);
+            return back()->withInput()->withErrors(['fatal' => 'Data belum berhasil disimpan. Silakan cek kembali isian transaksi.']);
         }
     }
 
@@ -1165,7 +1165,7 @@ class AdjstockController extends Controller
             return redirect()->route('adjstock.index')->with('success', 'Data Adjustment Stock '.$adjstock->fstockmtno.' berhasil dihapus.');
         } catch (\Exception $e) {
             // Jika terjadi kesalahan saat menghapus, kembali ke halaman delete dengan pesan error
-            return redirect()->route('adjstock.delete', $fstockmtid)->with('error', 'Gagal menghapus data: '.$e->getMessage());
+            return redirect()->route('adjstock.delete', $fstockmtid)->with('error', 'Data belum berhasil dihapus. Silakan coba lagi.');
         }
     }
 

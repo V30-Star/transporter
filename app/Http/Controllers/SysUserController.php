@@ -108,7 +108,7 @@ class SysUserController extends Controller
                 ->route('sysuser.create')
                 ->with('success', 'User berhasil ditambahkan.');
         } catch (\Exception $e) {
-            return back()->withInput()->with('error', 'Gagal menyimpan user: '.$e->getMessage());
+            return back()->withInput()->with('error', 'Data user belum berhasil disimpan. Silakan cek kembali isian Anda.');
         }
     }
 

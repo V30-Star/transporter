@@ -776,7 +776,7 @@ class SuratJalanController extends Controller
         } catch (\Throwable $e) {
 
             return back()->withInput()->withErrors([
-                'detail' => 'Transaksi gagal disimpan: '.$e->getMessage(),
+                'detail' => 'Data belum berhasil disimpan. Silakan cek kembali isian transaksi.',
             ]);
         }
 
@@ -1455,7 +1455,7 @@ class SuratJalanController extends Controller
             });
         } catch (\Throwable $e) {
             return back()->withInput()->withErrors([
-                'detail' => 'Transaksi gagal diperbarui: '.$e->getMessage(),
+                'detail' => 'Data belum berhasil diperbarui. Silakan cek kembali isian transaksi.',
             ]);
         }
 
@@ -1630,7 +1630,7 @@ class SuratJalanController extends Controller
             return redirect()->route('suratjalan.index')->with('success', 'Data Surat Jalan '.$suratjalan->fstockmtno.' berhasil dihapus.');
         } catch (\Exception $e) {
             // Jika terjadi kesalahan saat menghapus, kembali ke halaman delete dengan pesan error
-            return redirect()->route('suratjalan.delete', $fstockmtid)->with('error', 'Gagal menghapus data: '.$e->getMessage());
+            return redirect()->route('suratjalan.delete', $fstockmtid)->with('error', 'Data belum berhasil dihapus. Silakan coba lagi.');
         }
     }
 

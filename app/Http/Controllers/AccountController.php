@@ -276,7 +276,7 @@ class AccountController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'Terjadi kesalahan: '.$e->getMessage(),
+                'message' => 'Data belum berhasil diproses. Silakan coba lagi.',
             ], 500);
         }
     }

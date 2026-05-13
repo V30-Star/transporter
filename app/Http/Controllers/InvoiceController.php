@@ -254,14 +254,14 @@ class InvoiceController extends Controller
 
         if (! $this->canApproveCreditLimit()) {
             throw ValidationException::withMessages([
-                'fcustno' => "Persetujuan diperlukan:\n- Limit piutang sudah terlampaui, atau\n- Ada nota yang lewat jatuh tempo.\n\nHubungi user yang berwenang.",
+                'fcustno' => "Transaksi ini butuh persetujuan.\n- Limit piutang customer sudah terlampaui, atau\n- Ada tagihan customer yang sudah lewat jatuh tempo.\n\nSilakan hubungi user yang berwenang.",
             ]);
         }
 
         $approvedBy = trim((string) $request->input('fuseracc', ''));
         if ($approvedBy === '') {
             throw ValidationException::withMessages([
-                'fcustno' => "Persetujuan diperlukan:\n- Pilih Yes pada konfirmasi untuk lanjutkan.",
+                'fcustno' => "Transaksi ini butuh persetujuan.\n- Pilih Yes pada konfirmasi untuk melanjutkan.",
             ]);
         }
 
@@ -938,7 +938,7 @@ class InvoiceController extends Controller
             return redirect()->route('invoice.index')->with('success', 'Faktur Penjualan berhasil disimpan.');
         } catch (\Exception $e) {
             report($e);
-            return back()->withInput()->with('error', 'Gagal simpan. Periksa kembali data yang diisi.');
+            return back()->withInput()->with('error', 'Faktur Penjualan belum berhasil disimpan. Silakan cek kembali data yang diisi.');
         }
     }
 
@@ -1937,7 +1937,7 @@ class InvoiceController extends Controller
             return redirect()->route('invoice.index')->with('success', "Faktur Penjualan {$header->fsono} berhasil diperbarui.");
         } catch (\Exception $e) {
             report($e);
-            return back()->withInput()->with('error', 'Gagal update. Periksa kembali data yang diisi.');
+            return back()->withInput()->with('error', 'Faktur Penjualan belum berhasil diperbarui. Silakan cek kembali data yang diisi.');
         }
     }
 
@@ -2085,7 +2085,7 @@ class InvoiceController extends Controller
         } catch (\Exception $e) {
             // Jika terjadi kesalahan saat menghapus, kembali ke halaman delete dengan pesan error
             report($e);
-            return redirect()->route('invoice.delete', $ftranmtid)->with('error', 'Gagal menghapus data. Silakan coba lagi.');
+            return redirect()->route('invoice.delete', $ftranmtid)->with('error', 'Data belum berhasil dihapus. Silakan coba lagi.');
         }
     }
 

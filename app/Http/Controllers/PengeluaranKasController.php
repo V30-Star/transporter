@@ -452,19 +452,19 @@ class PengeluaranKasController extends Controller
 
             if (isset($validationConfig['system'][$accountCode])) {
                 throw ValidationException::withMessages([
-                    "details.$index.faccount" => 'Account '.$validationConfig['system'][$accountCode]['display_name'].' tidak boleh digunakan untuk jurnal. Perlakuan khusus oleh System.',
+                    "details.$index.faccount" => 'Account '.$validationConfig['system'][$accountCode]['display_name'].' tidak bisa dipakai di transaksi ini.',
                 ]);
             }
 
             if (isset($validationConfig['stock'][$accountCode])) {
                 throw ValidationException::withMessages([
-                    "details.$index.faccount" => 'Account '.$validationConfig['stock'][$accountCode]['display_name'].' sebaiknya menggunakan Adjustment Stok, karena berhubungan dengan stok.',
+                    "details.$index.faccount" => 'Account '.$validationConfig['stock'][$accountCode]['display_name'].' sebaiknya diproses lewat Adjustment Stok.',
                 ]);
             }
 
             if (isset($validationConfig['reference'][$accountCode]) && $referenceNo === '') {
                 throw ValidationException::withMessages([
-                    "details.$index.frefno" => 'No. Referensi harus diisi untuk account Piutang/Hutang Dagang.',
+                    "details.$index.frefno" => 'No. Referensi wajib diisi untuk account Piutang atau Hutang Dagang.',
                 ]);
             }
 
@@ -472,13 +472,13 @@ class PengeluaranKasController extends Controller
 
             if (! $account) {
                 throw ValidationException::withMessages([
-                    "details.$index.faccount" => 'Account ini tidak ada atau bukan account detail.',
+                    "details.$index.faccount" => 'Account yang dipilih tidak ditemukan atau bukan account detail.',
                 ]);
             }
 
             if ((string) ($account->fhavesubaccount ?? '0') === '1' && $subaccountCode === '') {
                 throw ValidationException::withMessages([
-                    "details.$index.fsubaccount" => 'Account ini memiliki Sub-Account. Harap pilih Sub-Account terlebih dahulu.',
+                    "details.$index.fsubaccount" => 'Sub Account wajib dipilih untuk account ini.',
                 ]);
             }
         }
@@ -509,7 +509,7 @@ class PengeluaranKasController extends Controller
             $hasSubaccount = (string) ($account?->fhavesubaccount ?? '0') === '1';
 
             if ($subaccountCode !== '' && ! $subaccounts->has($subaccountCode)) {
-                $errors["details.$index.fsubaccount"] = 'Sub Account tidak ditemukan.';
+                $errors["details.$index.fsubaccount"] = 'Sub Account yang dipilih tidak ditemukan.';
                 continue;
             }
 
@@ -518,7 +518,7 @@ class PengeluaranKasController extends Controller
             }
 
             if (! $hasSubaccount) {
-                $errors["details.$index.fsubaccount"] = 'Sub Account hanya boleh diisi untuk account yang memiliki sub account.';
+                $errors["details.$index.fsubaccount"] = 'Sub Account hanya boleh diisi untuk account yang memang memakai Sub Account.';
             }
         }
 

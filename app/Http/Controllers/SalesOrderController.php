@@ -223,14 +223,14 @@ class SalesOrderController extends Controller
 
         if (! $this->canApproveCreditLimit()) {
             throw ValidationException::withMessages([
-                'fcustno' => "Persetujuan diperlukan:\n- Limit piutang sudah terlampaui, atau\n- Ada nota yang lewat jatuh tempo.\n\nHubungi user yang berwenang.",
+                'fcustno' => "Transaksi ini butuh persetujuan.\n- Limit piutang customer sudah terlampaui, atau\n- Ada tagihan customer yang sudah lewat jatuh tempo.\n\nSilakan hubungi user yang berwenang.",
             ]);
         }
 
         $approvedBy = trim((string) $request->input('fuseracc', ''));
         if ($approvedBy === '') {
             throw ValidationException::withMessages([
-                'fcustno' => "Persetujuan diperlukan:\n- Pilih Yes pada konfirmasi untuk lanjutkan.",
+                'fcustno' => "Transaksi ini butuh persetujuan.\n- Pilih Yes pada konfirmasi untuk melanjutkan.",
             ]);
         }
 
@@ -683,8 +683,12 @@ class SalesOrderController extends Controller
             'frefnoacak.*' => ['nullable', 'regex:/^\d{3}$/'],
         ], [
             'fsodate.required' => 'Tanggal SO wajib diisi.',
-            'fcustno.required' => 'Customer wajib diisi.',
-            'fprdcode.required' => 'Minimal 1 item.',
+            'fcustno.required' => 'Customer wajib dipilih.',
+            'fprdcode.required' => 'Minimal harus ada 1 item.',
+            'fqty.*.min' => 'Jumlah item tidak boleh minus.',
+            'fprice.*.min' => 'Harga item tidak boleh minus.',
+            'fnoacak.*.regex' => 'Nomor acak harus 3 digit angka 1 sampai 9.',
+            'frefnoacak.*.regex' => 'Nomor referensi acak harus 3 digit angka.',
         ]);
 
         // HEADER VALUES
@@ -877,7 +881,7 @@ class SalesOrderController extends Controller
             return redirect()->route('salesorder.create')->with('success', "Sales Order {$fsono} berhasil disimpan.");
         } catch (\Exception $e) {
             report($e);
-            return back()->withInput()->withErrors(['error' => 'Gagal simpan. Periksa kembali data yang diisi.']);
+            return back()->withInput()->withErrors(['error' => 'Sales Order belum berhasil disimpan. Silakan cek kembali data yang diisi.']);
         }
     }
 
@@ -1212,8 +1216,12 @@ class SalesOrderController extends Controller
             'frefnoacak.*' => ['nullable', 'regex:/^\d{3}$/'],
         ], [
             'fsodate.required' => 'Tanggal SO wajib diisi.',
-            'fcustno.required' => 'Customer wajib diisi.',
-            'fprdcode.required' => 'Minimal 1 item.',
+            'fcustno.required' => 'Customer wajib dipilih.',
+            'fprdcode.required' => 'Minimal harus ada 1 item.',
+            'fqty.*.min' => 'Jumlah item tidak boleh minus.',
+            'fprice.*.min' => 'Harga item tidak boleh minus.',
+            'fnoacak.*.regex' => 'Nomor acak harus 3 digit angka 1 sampai 9.',
+            'frefnoacak.*.regex' => 'Nomor referensi acak harus 3 digit angka.',
         ]);
 
         // 2. LOAD HEADER
@@ -1549,7 +1557,7 @@ class SalesOrderController extends Controller
         } catch (\Exception $e) {
             // Jika terjadi kesalahan saat menghapus, kembali ke halaman delete dengan pesan error
             report($e);
-            return redirect()->route('salesorder.delete', $ftrsomtid)->with('error', 'Gagal menghapus data. Silakan coba lagi.');
+            return redirect()->route('salesorder.delete', $ftrsomtid)->with('error', 'Data belum berhasil dihapus. Silakan coba lagi.');
         }
     }
 

@@ -443,7 +443,7 @@ class ProductController extends Controller
         } catch (\Illuminate\Validation\ValidationException $v) {
             throw $v;
         } catch (\Exception $e) {
-            return redirect()->back()->with('error', 'Terjadi kesalahan sistem: '.$e->getMessage());
+            return redirect()->back()->with('error', 'Data produk belum berhasil disimpan. Silakan cek kembali isian Anda.');
         }
     }
 
@@ -679,7 +679,7 @@ class ProductController extends Controller
                         $validated[$imageField] = $fileId;
                     }
                 } catch (\Exception $e) {
-                    return redirect()->back()->with('error', 'Terjadi kesalahan sistem: '.$e->getMessage());
+                    return redirect()->back()->with('error', 'Data produk belum berhasil diperbarui. Silakan cek kembali isian Anda.');
                 }
             }
         }
@@ -799,7 +799,7 @@ class ProductController extends Controller
 
             return response()->json(['message' => 'Data produk '.$product->fprdname.' berhasil dihapus.']);
         } catch (\Exception $e) {
-            return response()->json(['message' => 'Gagal menghapus: '.$e->getMessage()], 500);
+            return response()->json(['message' => 'Data belum berhasil dihapus. Silakan coba lagi.'], 500);
         }
     }
 

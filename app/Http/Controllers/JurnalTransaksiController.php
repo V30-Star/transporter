@@ -440,8 +440,9 @@ class JurnalTransaksiController extends Controller
         ], [
             'fjurnaldate.required' => 'Tanggal jurnal wajib diisi.',
             'fjurnaltype.required' => 'Tipe jurnal wajib diisi.',
-            'faccount.required' => 'Minimal 1 baris jurnal.',
-            'fdk.*.in' => 'Nilai D/K harus Debit (D) atau Kredit (K).',
+            'faccount.required' => 'Minimal harus ada 1 baris jurnal.',
+            'fdk.*.in' => 'Pilihan D/K harus Debit atau Kredit.',
+            'famount.*.min' => 'Jumlah jurnal tidak boleh minus.',
         ]);
 
         // =========================================================
@@ -517,7 +518,7 @@ class JurnalTransaksiController extends Controller
 
             if ($frefno !== null && ! isset($referenceAllowedAccountCodes[strtoupper($faccount)])) {
                 return back()->withInput()->withErrors([
-                    'detail' => "Ref No hanya boleh diisi untuk account Hutang/Piutang/Retur yang ditentukan pada set_account. Baris ".($i + 1)." tidak diizinkan.",
+                    'detail' => "Ref No di baris ".($i + 1)." tidak boleh diisi untuk account ini.",
                 ]);
             }
 
@@ -551,7 +552,7 @@ class JurnalTransaksiController extends Controller
 
         if (empty($rowsDt)) {
             return back()->withInput()->withErrors([
-                'detail' => 'Minimal satu baris jurnal valid (Akun, D/K, Jumlah > 0).',
+                'detail' => 'Minimal harus ada 1 baris jurnal yang lengkap dan jumlahnya lebih dari 0.',
             ]);
         }
 
@@ -565,7 +566,7 @@ class JurnalTransaksiController extends Controller
         if (round($totalDebit, 2) !== round($totalKredit, 2)) {
             return back()->withInput()->withErrors([
                 'detail' => sprintf(
-                    'Jurnal tidak balance. Total Debit: Rp %s | Total Kredit: Rp %s',
+                    'Jurnal belum seimbang. Total Debit Rp %s dan Total Kredit Rp %s.',
                     number_format($totalDebit, 2, ',', '.'),
                     number_format($totalKredit, 2, ',', '.')
                 ),
@@ -844,8 +845,9 @@ class JurnalTransaksiController extends Controller
         ], [
             'fjurnaldate.required' => 'Tanggal jurnal wajib diisi.',
             'fjurnaltype.required' => 'Tipe jurnal wajib diisi.',
-            'faccount.required' => 'Minimal 1 baris jurnal.',
-            'fdk.*.in' => 'Nilai D/K harus Debit (D) atau Kredit (K).',
+            'faccount.required' => 'Minimal harus ada 1 baris jurnal.',
+            'fdk.*.in' => 'Pilihan D/K harus Debit atau Kredit.',
+            'famount.*.min' => 'Jumlah jurnal tidak boleh minus.',
         ]);
 
         $header = DB::table('jurnalmt')
@@ -894,7 +896,7 @@ class JurnalTransaksiController extends Controller
 
             if ($frefno !== null && ! isset($referenceAllowedAccountCodes[strtoupper($faccount)])) {
                 return back()->withInput()->withErrors([
-                    'detail' => "Ref No hanya boleh diisi untuk account Hutang/Piutang/Retur yang ditentukan pada set_account. Baris ".($i + 1)." tidak diizinkan.",
+                    'detail' => "Ref No di baris ".($i + 1)." tidak boleh diisi untuk account ini.",
                 ]);
             }
 
@@ -926,7 +928,7 @@ class JurnalTransaksiController extends Controller
 
         if (empty($rowsDt)) {
             return back()->withInput()->withErrors([
-                'detail' => 'Minimal satu baris jurnal valid (Akun, D/K, Jumlah > 0).',
+                'detail' => 'Minimal harus ada 1 baris jurnal yang lengkap dan jumlahnya lebih dari 0.',
             ]);
         }
 
@@ -939,7 +941,7 @@ class JurnalTransaksiController extends Controller
         if (round($totalDebit, 2) !== round($totalKredit, 2)) {
             return back()->withInput()->withErrors([
                 'detail' => sprintf(
-                    'Jurnal tidak balance. Total Debit: Rp %s | Total Kredit: Rp %s',
+                    'Jurnal belum seimbang. Total Debit Rp %s dan Total Kredit Rp %s.',
                     number_format($totalDebit, 2, ',', '.'),
                     number_format($totalKredit, 2, ',', '.')
                 ),
@@ -1118,7 +1120,7 @@ class JurnalTransaksiController extends Controller
 
             return redirect()->route('jurnaltransaksi.index')->with('success', $message);
         } catch (\Exception $e) {
-            $message = 'Gagal menghapus data: '.$e->getMessage();
+            $message = 'Data belum berhasil dihapus. Silakan coba lagi.';
 
             if (request()->expectsJson()) {
                 return response()->json([
