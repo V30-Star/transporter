@@ -64,8 +64,8 @@
                                 <span>{{ number_format((float) $record->payment_amount, 2, ',', '.') }}</span>
                             </div>
                         </td>
-                        <td class="border px-2 py-2 text-center whitespace-nowrap">
-                            <div class="flex items-center justify-center gap-1.5 flex-nowrap">
+                        <td class="border px-2 py-2 text-right whitespace-nowrap">
+                            <div class="flex items-center justify-end gap-1.5 flex-nowrap">
                                 <a href="{{ route('penerimaankas.view', $record->fkasmtno) }}"
                                     class="inline-flex items-center bg-slate-500 text-white px-3 py-1.5 text-xs rounded hover:bg-slate-600">
                                     <x-heroicon-o-eye class="w-3.5 h-3.5 mr-1" /> {{ "View" }}
@@ -101,7 +101,7 @@
 
         #penerimaanKasTable th:last-child,
         #penerimaanKasTable td:last-child {
-            text-align: center;
+            text-align: right;
             white-space: nowrap;
         }
 

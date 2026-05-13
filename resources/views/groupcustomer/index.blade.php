@@ -57,23 +57,23 @@
                         </td>
                         <td class="border px-2 py-1">{{ $gc->fnonactive }}</td>
                         @if ($showActionsColumn)
-                            <td class="border px-2 py-1 text-center space-x-2">
+                            <td class="border px-2 py-1 text-right space-x-1.5">
                                 <a href="{{ route('groupcustomer.view', $gc->fgroupid) }}">
-                                    <button class="inline-flex items-center bg-slate-500 text-white px-4 py-2 rounded hover:bg-slate-600">
-                                        <x-heroicon-o-eye class="w-4 h-4 mr-1" /> View
+                                    <button class="inline-flex items-center bg-slate-500 text-white px-3 py-1.5 text-xs rounded hover:bg-slate-600">
+                                        <x-heroicon-o-eye class="w-3.5 h-3.5 mr-1" /> View
                                     </button>
                                 </a>
                                 @if ($canEdit)
                                     <a href="{{ route('groupcustomer.edit', $gc->fgroupid) }}">
-                                        <button class="inline-flex items-center bg-yellow-500 text-white px-4 py-2 rounded hover:bg-yellow-600">
-                                            <x-heroicon-o-pencil-square class="w-4 h-4 mr-1" /> Edit
+                                        <button class="inline-flex items-center bg-yellow-500 text-white px-3 py-1.5 text-xs rounded hover:bg-yellow-600">
+                                            <x-heroicon-o-pencil-square class="w-3.5 h-3.5 mr-1" /> Edit
                                         </button>
                                     </a>
                                 @endif
                                 @if ($canDelete)
                                     <a href="{{ route('groupcustomer.delete', $gc->fgroupid) }}">
-                                        <button class="inline-flex items-center bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700">
-                                            <x-heroicon-o-trash class="w-4 h-4 mr-1" /> Hapus
+                                        <button class="inline-flex items-center bg-red-600 text-white px-3 py-1.5 text-xs rounded hover:bg-red-700">
+                                        <x-heroicon-o-trash class="w-3.5 h-3.5 mr-1" /> Hapus
                                         </button>
                                     </a>
                                 @endif
@@ -113,7 +113,7 @@
 
         #groupcustomerTable th:last-child,
         #groupcustomerTable td:last-child {
-            text-align: center;
+            text-align: right;
             white-space: nowrap;
         }
 

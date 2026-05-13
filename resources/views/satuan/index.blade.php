@@ -67,16 +67,16 @@
                         <td class="border px-2 py-1">{{ $item->fnonactive }}</td>
 
                         @if ($showActionsColumn)
-                            <td class="border px-2 py-1 space-x-2 text-center">
+                            <td class="border px-2 py-1 space-x-1.5 text-right">
                                 @if ($canEdit)
                                     <a href="{{ route('satuan.edit', $item->fsatuanid) }}"
-                                        class="inline-flex items-center bg-yellow-500 text-white px-4 py-2 rounded hover:bg-yellow-600">
+                                        class="inline-flex items-center bg-yellow-500 text-white px-3 py-1.5 text-xs rounded hover:bg-yellow-600">
                                         Edit
                                     </a>
                                 @endif
                                 @if ($canDelete)
                                     <a href="{{ route('satuan.delete', $item->fsatuanid) }}"
-                                        class="inline-flex items-center bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700">
+                                        class="inline-flex items-center bg-red-600 text-white px-3 py-1.5 text-xs rounded hover:bg-red-700">
                                         Hapus
                                     </a>
                                 @endif

@@ -101,7 +101,7 @@
 
         #pengeluaranKasTable th:last-child,
         #pengeluaranKasTable td:last-child {
-            text-align: center;
+            text-align: right;
             white-space: nowrap;
         }
 

@@ -65,17 +65,17 @@
                             <td class="border px-2 py-1 space-x-1.5 text-right">
                                 <a href="{{ route('currency.view', $item->fcurrid) }}">
                                     <button class="inline-flex items-center bg-slate-500 text-white px-3 py-1.5 text-xs rounded hover:bg-slate-600">
-                                        <x-heroicon-o-pencil-square class="w-4 h-4 mr-1" /> View
+                                        <x-heroicon-o-pencil-square class="w-3.5 h-3.5 mr-1" /> View
                                     </button>
                                 </a>
                                     <a href="{{ route('currency.edit', $item->fcurrid) }}">
                                         <button class="inline-flex items-center bg-yellow-500 text-white px-3 py-1.5 text-xs rounded hover:bg-yellow-600">
-                                            <x-heroicon-o-pencil-square class="w-4 h-4 mr-1" /> Edit
+                                            <x-heroicon-o-pencil-square class="w-3.5 h-3.5 mr-1" /> Edit
                                         </button>
                                     </a>
                                     <a href="{{ route('currency.delete', $item->fcurrid) }}"
                                         class="inline-flex items-center bg-red-600 text-white px-3 py-1.5 text-xs rounded hover:bg-red-700">
-                                        <x-heroicon-o-trash class="w-4 h-4 mr-1" /> Hapus
+                                        <x-heroicon-o-trash class="w-3.5 h-3.5 mr-1" /> Hapus
                                     </a>
                             </td>
                     </tr>
@@ -116,7 +116,7 @@
 
         #currencyTable th:last-child,
         #currencyTable td:last-child {
-            text-align: center;
+            text-align: right;
             white-space: nowrap;
         }
 

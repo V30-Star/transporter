@@ -243,7 +243,7 @@
                     searchable: false,
                     className: 'col-aksi',
                     render: function(data, type, row) {
-                        let html = '<div class="space-x-2">';
+                        let html = '<div class="flex justify-end gap-1.5 flex-nowrap">';
                         let viewUrl = '{{ route('customer.index') }}/' + data + '/view';
 
                         html += `<a href="${viewUrl}" class="inline-flex items-center bg-slate-500 text-white px-3 py-1.5 text-xs rounded hover:bg-slate-600">

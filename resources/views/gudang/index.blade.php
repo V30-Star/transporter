@@ -74,20 +74,20 @@
                             <td class="border px-2 py-1 space-x-1.5 text-right">
                                 <a href="{{ route('gudang.view', $item->fwhid) }}">
                                     <button class="inline-flex items-center bg-slate-500 text-white px-3 py-1.5 text-xs rounded hover:bg-slate-600">
-                                        <x-heroicon-o-pencil-square class="w-4 h-4 mr-1" /> View
+                                        <x-heroicon-o-pencil-square class="w-3.5 h-3.5 mr-1" /> View
                                     </button>
                                 </a>
                                 @if ($canEdit)
                                     <a href="{{ route('gudang.edit', $item->fwhid) }}">
                                         <button class="inline-flex items-center bg-yellow-500 text-white px-3 py-1.5 text-xs rounded hover:bg-yellow-600">
-                                            <x-heroicon-o-pencil-square class="w-4 h-4 mr-1" /> Edit
+                                            <x-heroicon-o-pencil-square class="w-3.5 h-3.5 mr-1" /> Edit
                                         </button>
                                     </a>
                                 @endif
                                 @if ($canDelete)
                                     <a href="{{ route('gudang.delete', $item->fwhid) }}"
                                         class="inline-flex items-center bg-red-600 text-white px-3 py-1.5 text-xs rounded hover:bg-red-700">
-                                        <x-heroicon-o-trash class="w-4 h-4 mr-1" /> Hapus
+                                        <x-heroicon-o-trash class="w-3.5 h-3.5 mr-1" /> Hapus
                                     </a>
                                 @endif
                             </td>
@@ -130,7 +130,7 @@
 
         #gudangTable th:last-child,
         #gudangTable td:last-child {
-            text-align: center;
+            text-align: right;
             white-space: nowrap;
         }
 
