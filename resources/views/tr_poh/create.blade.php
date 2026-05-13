@@ -282,7 +282,7 @@
                 {{-- Keterangan --}}
                 <div class="lg:col-span-12">
                     <label class="block text-sm font-medium">Keterangan</label>
-                    <textarea name="fket" rows="3"
+                    <textarea name="fket" rows="3" maxlength="300"
                         class="w-full border rounded px-3 py-2 @error('fket') border-red-500 @enderror"
                         placeholder="Tulis keterangan tambahan di sini...">{{ old('fket') }}</textarea>
                     @error('fket')
@@ -1791,5 +1791,4 @@
         });
     </script>
 @endpush
-
 

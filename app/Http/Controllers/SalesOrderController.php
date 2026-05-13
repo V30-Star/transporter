@@ -270,32 +270,35 @@ class SalesOrderController extends Controller
         $year = $request->query('year');
         $month = $request->query('month');
 
-        $availableYears = SalesOrderHeader::selectRaw('DISTINCT EXTRACT(YEAR FROM fdatetime) as year')
-            ->whereNotNull('fdatetime')
-            ->orderByRaw('EXTRACT(YEAR FROM fdatetime) DESC')
+        $availableYears = SalesOrderHeader::selectRaw('DISTINCT EXTRACT(YEAR FROM fsodate) as year')
+            ->whereNotNull('fsodate')
+            ->orderByRaw('EXTRACT(YEAR FROM fsodate) DESC')
             ->pluck('year');
 
         if ($request->ajax()) {
 
             $query = SalesOrderHeader::query()
-                ->leftJoin('mscustomer', 'trsomt.fcustno', '=', 'mscustomer.fcustomercode')
-                ->select('trsomt.*', 'mscustomer.fcustomername');
+                ->leftJoin('mscustomer as c', function ($join) {
+                    $join->on(DB::raw('TRIM(trsomt.fcustno)'), '=', DB::raw('TRIM(c.fcustomercode)'));
+                })
+                ->select('trsomt.*', 'c.fcustomername');
 
             $totalRecords = SalesOrderHeader::count();
 
             if ($search = $request->input('search.value')) {
                 $query->where(function ($q) use ($search) {
                     $q->where('trsomt.fsono', 'like', "%{$search}%")
-                        ->orWhere('mscustomer.fcustomername', 'like', "%{$search}%");
+                        ->orWhere('c.fcustomername', 'like', "%{$search}%")
+                        ->orWhere('trsomt.fcustno', 'like', "%{$search}%");
                 });
             }
 
             if ($year) {
-                $query->whereRaw('EXTRACT(YEAR FROM fdatetime) = ?', [$year]);
+                $query->whereRaw('EXTRACT(YEAR FROM fsodate) = ?', [$year]);
             }
 
             if ($month) {
-                $query->whereRaw('EXTRACT(MONTH FROM fdatetime) = ?', [$month]);
+                $query->whereRaw('EXTRACT(MONTH FROM fsodate) = ?', [$month]);
             }
 
             $filteredRecords = (clone $query)->count();
@@ -333,7 +336,7 @@ class SalesOrderController extends Controller
                     'famountpajak' => $row->famountpajak,
                     'famountso' => $row->famountso,
                     'fket' => $row->fket,
-                    'fcustomername' => $row->fcustomername,
+                    'fcustomername' => $row->fcustomername ?: ($row->fcustno ?? ''),
                     'falamatkirim' => $row->falamatkirim,
                     'fprdout' => $row->fprdout,
                     'fusercreate' => $row->fusercreate,

@@ -115,7 +115,8 @@
                             <thead class="bg-gray-100">
                                 <tr>
                                     <th class="p-2 text-left w-8">#</th>
-                                    <th class="p-2 text-left w-52">Account <span class="text-red-500">*</span></th>
+                                    <th class="p-2 text-left w-40">Kode Account <span class="text-red-500">*</span></th>
+                                    <th class="p-2 text-left w-56">Nama Account</th>
                                     <th class="p-2 text-left w-52">Sub Account</th>
                                     <th class="p-2 text-left w-20">D/K <span class="text-red-500">*</span></th>
                                     <th class="p-2 text-left w-72">Keterangan (faccountnote)</th>
@@ -132,10 +133,27 @@
                                     <tr class="border-t align-middle hover:bg-gray-50">
                                         <td class="p-2 text-gray-500" x-text="i + 1"></td>
 
-                                        {{-- faccount --}}
+                                        {{-- faccount code --}}
                                         <td class="p-2">
-                                            <div class="font-medium text-gray-800" x-text="it.faccname"></div>
-                                            <div class="text-xs text-gray-400" x-text="it.faccount"></div>
+                                            <div class="flex items-center gap-2">
+                                                <input type="text"
+                                                    class="w-full border rounded px-2 py-1 font-mono uppercase"
+                                                    x-model.trim="it.faccount"
+                                                    @input="syncAccountFromCode(it)"
+                                                    @keydown.enter.prevent="openBrowseFor('saved', i)">
+                                                <button type="button" @click="openBrowseFor('saved', i)"
+                                                    class="border rounded px-2 py-1 bg-white hover:bg-gray-50"
+                                                    title="Cari account">
+                                                    <x-heroicon-o-magnifying-glass class="w-4 h-4" />
+                                                </button>
+                                            </div>
+                                        </td>
+
+                                        {{-- faccount name --}}
+                                        <td class="p-2">
+                                            <input type="text"
+                                                class="w-full border rounded px-2 py-1 bg-gray-100 text-gray-600"
+                                                :value="it.faccname || '-'" disabled>
                                         </td>
 
                                         {{-- fsubaccount --}}
@@ -188,20 +206,27 @@
                                 <tr x-show="editingIndex !== null" class="border-t bg-amber-50 align-middle" x-cloak>
                                     <td class="p-2 text-gray-500" x-text="(editingIndex ?? 0) + 1"></td>
 
-                                    {{-- Account --}}
+                                    {{-- Kode Account --}}
                                     <td class="p-2">
-                                        <select class="w-full border rounded px-2 py-1 select2-acc-edit"
-                                            :value="editRow.faccid"
-                                            @input="updateAccount(editRow, $event.target.value,
-                                                $event.target.options[$event.target.selectedIndex].dataset.name,
-                                                $event.target.options[$event.target.selectedIndex].dataset.code)">
-                                            <option value="">Pilih Akun</option>
-                                            <template x-for="acc in accounts" :key="acc.faccid">
-                                                <option :value="acc.faccid" :data-name="acc.faccname"
-                                                    :data-code="acc.faccount"
-                                                    x-text="`${acc.faccount} - ${acc.faccname}`"></option>
-                                            </template>
-                                        </select>
+                                        <div class="flex items-center gap-2">
+                                            <input type="text"
+                                                class="w-full border rounded px-2 py-1 font-mono uppercase"
+                                                x-model.trim="editRow.faccount"
+                                                @input="syncAccountFromCode(editRow)"
+                                                @keydown.enter.prevent="openBrowseFor('edit')">
+                                            <button type="button" @click="openBrowseFor('edit')"
+                                                class="border rounded px-2 py-1 bg-white hover:bg-gray-50"
+                                                title="Cari account">
+                                                <x-heroicon-o-magnifying-glass class="w-4 h-4" />
+                                            </button>
+                                        </div>
+                                    </td>
+
+                                    {{-- Nama Account --}}
+                                    <td class="p-2">
+                                        <input type="text"
+                                            class="w-full border rounded px-2 py-1 bg-gray-100 text-gray-600"
+                                            :value="editRow.faccname || '-'" disabled>
                                     </td>
 
                                     {{-- Sub Account --}}
@@ -268,20 +293,27 @@
                                 <tr class="border-t bg-green-50 align-middle">
                                     <td class="p-2 text-gray-400" x-text="savedItems.length + 1"></td>
 
-                                    {{-- Account --}}
+                                    {{-- Kode Account --}}
                                     <td class="p-2">
-                                        <select class="w-full border rounded px-2 py-1 select2-acc-draft"
-                                            :value="draft.faccid"
-                                            @input="updateAccount(draft, $event.target.value,
-                                                $event.target.options[$event.target.selectedIndex].dataset.name,
-                                                $event.target.options[$event.target.selectedIndex].dataset.code)">
-                                            <option value="">Pilih Akun</option>
-                                            <template x-for="acc in accounts" :key="acc.faccid">
-                                                <option :value="acc.faccid" :data-name="acc.faccname"
-                                                    :data-code="acc.faccount"
-                                                    x-text="`${acc.faccount} - ${acc.faccname}`"></option>
-                                            </template>
-                                        </select>
+                                        <div class="flex items-center gap-2">
+                                            <input type="text"
+                                                class="w-full border rounded px-2 py-1 font-mono uppercase"
+                                                x-model.trim="draft.faccount"
+                                                @input="syncAccountFromCode(draft)"
+                                                @keydown.enter.prevent="openBrowseFor('draft')">
+                                            <button type="button" @click="openBrowseFor('draft')"
+                                                class="border rounded px-2 py-1 bg-white hover:bg-gray-50"
+                                                title="Cari account">
+                                                <x-heroicon-o-magnifying-glass class="w-4 h-4" />
+                                            </button>
+                                        </div>
+                                    </td>
+
+                                    {{-- Nama Account --}}
+                                    <td class="p-2">
+                                        <input type="text"
+                                            class="w-full border rounded px-2 py-1 bg-gray-100 text-gray-600"
+                                            :value="draft.faccname || '-'" disabled>
                                     </td>
 
                                     {{-- Sub Account --}}
@@ -349,7 +381,7 @@
 
                                 {{-- Total row --}}
                                 <tr class="border-t bg-gray-50 font-semibold text-sm">
-                                    <td colspan="6" class="p-2 text-right text-gray-600">Total:</td>
+                                    <td colspan="7" class="p-2 text-right text-gray-600">Total:</td>
                                     <td class="p-2 text-right" x-text="fmt(totalDebit + totalKredit)"></td>
                                     <td></td>
                                 </tr>
@@ -418,10 +450,8 @@
                 }));
             });
 
-            initSelect2('.select2-acc-draft');
             initSelect2('.select2-sacc-draft');
             initSelect2('.select2-dk-draft');
-            initSelect2('.select2-acc-edit');
             initSelect2('.select2-sacc-edit');
             initSelect2('.select2-dk-edit');
         });
@@ -435,6 +465,8 @@
                 draft: newRow(),
                 editingIndex: null,
                 editRow: newRow(),
+                browseTarget: 'draft',
+                browseSavedIndex: null,
 
                 // Data master
                 accounts: window.ACCOUNTS_DATA ?? [],
@@ -517,6 +549,39 @@
                     });
                 },
 
+                syncAccountFromCode(row) {
+                    const code = String(row.faccount ?? '').trim().toUpperCase();
+                    const accObj = this.accounts.find(a => String(a.faccount ?? '').trim().toUpperCase() === code);
+
+                    if (!accObj) {
+                        Object.assign(row, {
+                            faccid: '',
+                            faccname: '',
+                            fhavesubaccount: 0,
+                            fsubaccountid: '',
+                            fsubaccountcode: '',
+                            fsubaccountname: '',
+                        });
+                        return;
+                    }
+
+                    this.updateAccount(row, accObj.faccid, accObj.faccname, accObj.faccount);
+                },
+
+                openBrowseFor(target = 'draft', index = null) {
+                    this.browseTarget = target;
+                    this.browseSavedIndex = index;
+                    window.dispatchEvent(new CustomEvent('account-browse-open'));
+                },
+
+                getBrowseRow() {
+                    if (this.browseTarget === 'edit') return this.editRow;
+                    if (this.browseTarget === 'saved' && this.browseSavedIndex !== null) {
+                        return this.savedItems[this.browseSavedIndex] || null;
+                    }
+                    return this.draft;
+                },
+
                 // ── Update Sub Account → set fsubaccountcode (yang masuk ke DB) ──
                 updateSubAccount(row, fsubaccountid, subName, subCode) {
                     Object.assign(row, {
@@ -563,7 +628,6 @@
                     this.recalcTotals();
                     this.$nextTick(() => {
                         // re-init select2 pada row baru
-                        $('.select2-acc-draft').val('').trigger('change');
                         $('.select2-sacc-draft').val('').trigger('change');
                         $('.select2-dk-draft').val('').trigger('change');
                     });
@@ -578,7 +642,6 @@
                     };
                     this.$nextTick(() => {
                         // Sync select2 edit ke nilai editRow
-                        $('.select2-acc-edit').val(this.editRow.faccid).trigger('change');
                         $('.select2-sacc-edit').val(this.editRow.fsubaccountid).trigger('change');
                         $('.select2-dk-edit').val(this.editRow.fdk).trigger('change');
                         this.$refs.editAmt?.focus();
@@ -637,6 +700,19 @@
 
                 init() {
                     this.normalizeAmount(this.draft);
+                    window.addEventListener('account-picked', (event) => {
+                        const row = this.getBrowseRow();
+                        if (!row) return;
+                        const detail = event.detail || {};
+                        this.updateAccount(
+                            row,
+                            detail.faccid ?? '',
+                            detail.faccname ?? '',
+                            detail.faccount ?? ''
+                        );
+                    }, {
+                        passive: true
+                    });
                 },
             };
 

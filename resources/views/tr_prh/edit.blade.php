@@ -451,7 +451,7 @@
 
                         <div class="lg:col-span-12">
                             <label class="block text-sm font-medium">Keterangan</label>
-                            <textarea name="fket" rows="2" class="w-full border rounded px-3 py-2">{{ old('fket', $tr_prh->fket) }}</textarea>
+                            <textarea name="fket" rows="2" maxlength="300" class="w-full border rounded px-3 py-2">{{ old('fket', $tr_prh->fket) }}</textarea>
                         </div>
                     </div>
 
