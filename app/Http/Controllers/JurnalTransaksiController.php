@@ -546,7 +546,6 @@ class JurnalTransaksiController extends Controller
                 'frate' => $frate,
                 'fusercreate' => $fuserid,
                 'fdatetime' => $now,
-                // fjurnalmtid, fjurnalno, flineno → diisi di dalam transaksi
             ];
         }
 

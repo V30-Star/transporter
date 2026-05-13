@@ -833,7 +833,7 @@ class ProductController extends Controller
                 d.fsatuan
             FROM tranmt m
             JOIN trandt d ON m.fsono = d.fsono
-            JOIN mscustomer c ON m.fcustno = c.fcustomerid
+            JOIN mscustomer c ON m.fcustno = c.fcustomercode
             WHERE d.fprdcode = :fprdcode
             ORDER BY m.fsodate DESC 
             LIMIT 30
@@ -853,7 +853,7 @@ class ProductController extends Controller
                 d.fsatuan
             FROM trstockmt m 
             LEFT OUTER JOIN trstockdt d ON m.fstockmtno = d.fstockmtno 
-            LEFT OUTER JOIN mssupplier s ON m.fsupplier = s.fsupplierid
+            LEFT OUTER JOIN mssupplier s ON m.fsupplier = s.fsuppliercode
             WHERE 
                 d.fqty > 0 
                 AND (
@@ -863,7 +863,6 @@ class ProductController extends Controller
                 ) 
                 AND d.fprdcode = :fprdcode
             ORDER BY m.fstockmtdate DESC 
-            LIMIT 15
         ", ['fprdcode' => $product->fprdcode]);
 
         return response()->json([
