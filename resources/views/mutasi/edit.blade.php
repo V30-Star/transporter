@@ -122,6 +122,42 @@
 
     @php
         $usageLocked = !empty($isUsageLocked);
+        $oldMutasiCodes = old('fitemcode', []);
+        $oldMutasiNames = old('fitemname', []);
+        $oldMutasiUnits = old('fsatuan', []);
+        $oldMutasiRefs = old('frefdtno', []);
+        $oldMutasiRefPrs = old('frefpr', []);
+        $oldMutasiRefSos = old('frefso', []);
+        $oldMutasiQtys = old('fqty', []);
+        $oldMutasiDescs = old('fdesc', []);
+        $oldMutasiKetdts = old('fketdt', []);
+        $initialEditMutasiItems = [];
+
+        foreach ($oldMutasiCodes as $index => $itemCode) {
+            $code = trim((string) $itemCode);
+            $name = trim((string) ($oldMutasiNames[$index] ?? ''));
+            if ($code === '' && $name === '') {
+                continue;
+            }
+
+            $unit = trim((string) ($oldMutasiUnits[$index] ?? ''));
+            $initialEditMutasiItems[] = [
+                'uid' => 'old-mutasi-edit-' . $index,
+                'fitemcode' => $code,
+                'fitemname' => $name,
+                'units' => $unit !== '' ? [$unit] : [],
+                'fsatuan' => $unit,
+                'frefdtno' => trim((string) ($oldMutasiRefs[$index] ?? '')),
+                'frefpr' => trim((string) ($oldMutasiRefPrs[$index] ?? '')),
+                'frefso' => trim((string) ($oldMutasiRefSos[$index] ?? '')),
+                'frefnoacak' => trim((string) ($oldMutasiRefs[$index] ?? '')),
+                'fqty' => (float) ($oldMutasiQtys[$index] ?? 0),
+                'fprice' => 0,
+                'fdesc' => (string) ($oldMutasiDescs[$index] ?? ''),
+                'fketdt' => (string) ($oldMutasiKetdts[$index] ?? ''),
+                'maxqty' => 0,
+            ];
+        }
     @endphp
 
     @if ($usageLocked)
@@ -1615,7 +1651,7 @@
     function itemsTable() {
         return {
             showNoItems: false,
-            savedItems: @json($savedItems),
+            savedItems: @json(count($initialEditMutasiItems) ? $initialEditMutasiItems : $savedItems),
             draft: newRow(),
             editingIndex: null,
             editRow: newRow(),
@@ -2524,4 +2560,3 @@
         });
     </script>
 @endpush
-

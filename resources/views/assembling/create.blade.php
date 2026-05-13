@@ -3,6 +3,51 @@
 @section('title', 'Tambah Assembling')
 
 @section('content')
+    @php
+        $productLookup = collect($products ?? [])->keyBy(fn ($product) => trim((string) ($product->fprdcode ?? '')));
+        $oldAssemblingCodes = old('fitemcode', []);
+        $oldAssemblingNames = old('fitemname', []);
+        $oldAssemblingUnits = old('fsatuan', []);
+        $oldAssemblingQtys = old('fqty', []);
+        $oldAssemblingDescs = old('fdesc', []);
+        $oldAssemblingTypes = old('fitemtype', []);
+        $initialAssemblingItems = [];
+
+        foreach ($oldAssemblingCodes as $index => $itemCode) {
+            $code = trim((string) $itemCode);
+            if ($code === '') {
+                continue;
+            }
+
+            $product = $productLookup->get($code);
+            $unit = trim((string) ($oldAssemblingUnits[$index] ?? ''));
+            $name = trim((string) ($oldAssemblingNames[$index] ?? ($product->fprdname ?? '')));
+            $units = array_values(array_filter([
+                trim((string) ($product->fsatuankecil ?? '')),
+                trim((string) ($product->fsatuanbesar ?? '')),
+                trim((string) ($product->fsatuanbesar2 ?? '')),
+            ]));
+
+            if ($unit !== '' && !in_array($unit, $units, true)) {
+                array_unshift($units, $unit);
+                $units = array_values(array_unique(array_filter($units)));
+            }
+
+            $initialAssemblingItems[] = [
+                'uid' => 'old-assembling-' . $index,
+                'fitemcode' => $code,
+                'fitemname' => $name,
+                'units' => $units,
+                'fsatuan' => $unit,
+                'frefpr' => '',
+                'fqty' => (float) ($oldAssemblingQtys[$index] ?? 0),
+                'fdesc' => (string) ($oldAssemblingDescs[$index] ?? ''),
+                'fketdt' => '',
+                'maxqty' => 0,
+                'fitemtype' => trim((string) ($oldAssemblingTypes[$index] ?? 'bahan_baku')),
+            ];
+        }
+    @endphp
     <style>
         input:focus,
         select:focus,
@@ -467,7 +512,7 @@
 
                             // === ORIGINAL PROPERTIES ===
                             showNoItems: false,
-                            savedItems: [],
+                            savedItems: @json($initialAssemblingItems),
                             draft: newRow(),
                             editingIndex: null,
                             editRow: newRow(),
@@ -1779,4 +1824,3 @@
         });
     </script>
 @endpush
-

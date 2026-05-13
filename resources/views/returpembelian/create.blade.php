@@ -3,6 +3,45 @@
 @section('title', 'Retur Pembelian')
 
 @section('content')
+    @php
+        $oldReturBeliCodes = old('fitemcode', []);
+        $oldReturBeliNames = old('fitemname', []);
+        $oldReturBeliUnits = old('fsatuan', []);
+        $oldReturBeliQtys = old('fqty', []);
+        $oldReturBeliPrices = old('fprice', []);
+        $oldReturBeliBiayas = old('fbiaya', []);
+        $oldReturBeliDiscs = old('fdiscpersen', []);
+        $oldReturBeliTotals = old('ftotprice', []);
+        $oldReturBeliDescs = old('fdesc', []);
+        $oldReturBeliKetdts = old('fketdt', []);
+        $oldReturBeliRefs = old('frefdtno', []);
+        $initialReturPembelianItems = [];
+
+        foreach ($oldReturBeliCodes as $index => $itemCode) {
+            $code = trim((string) $itemCode);
+            $name = trim((string) ($oldReturBeliNames[$index] ?? ''));
+            if ($code === '' && $name === '') {
+                continue;
+            }
+
+            $unit = trim((string) ($oldReturBeliUnits[$index] ?? ''));
+            $initialReturPembelianItems[] = [
+                'uid' => 'old-returbeli-' . $index,
+                'fitemcode' => $code,
+                'fitemname' => $name,
+                'units' => $unit !== '' ? [$unit] : [],
+                'fsatuan' => $unit,
+                'fqty' => (float) ($oldReturBeliQtys[$index] ?? 0),
+                'fprice' => (float) ($oldReturBeliPrices[$index] ?? 0),
+                'fbiaya' => (float) ($oldReturBeliBiayas[$index] ?? 0),
+                'fdiscpersen' => $oldReturBeliDiscs[$index] ?? 0,
+                'ftotprice' => (float) ($oldReturBeliTotals[$index] ?? 0),
+                'fdesc' => (string) ($oldReturBeliDescs[$index] ?? ''),
+                'fketdt' => (string) ($oldReturBeliKetdts[$index] ?? ''),
+                'frefdtno' => trim((string) ($oldReturBeliRefs[$index] ?? '')),
+            ];
+        }
+    @endphp
     <style>
         input:focus,
         select:focus,
@@ -1083,7 +1122,7 @@
     function itemsTable() {
         return {
             showNoItems: false,
-            savedItems: [],
+            savedItems: @json($initialReturPembelianItems),
             draft: newRow(),
             editingIndex: null,
             editRow: newRow(),
@@ -2067,4 +2106,3 @@
         }
     </script>
 @endpush
-

@@ -127,6 +127,43 @@
         $currentPpnAmount = old('famountpajak', $returpembelian->famountpajak ?? 0);
         $currentSubtotal = old('famount', $returpembelian->famount ?? 0);
         $usageLocked = !empty($isUsageLocked);
+        $oldReturBeliCodes = old('fitemcode', []);
+        $oldReturBeliNames = old('fitemname', []);
+        $oldReturBeliUnits = old('fsatuan', []);
+        $oldReturBeliQtys = old('fqty', []);
+        $oldReturBeliPrices = old('fprice', []);
+        $oldReturBeliBiayas = old('fbiaya', []);
+        $oldReturBeliDiscs = old('fdiscpersen', []);
+        $oldReturBeliTotals = old('ftotprice', []);
+        $oldReturBeliDescs = old('fdesc', []);
+        $oldReturBeliKetdts = old('fketdt', []);
+        $oldReturBeliRefs = old('frefdtno', []);
+        $initialEditReturPembelianItems = [];
+
+        foreach ($oldReturBeliCodes as $index => $itemCode) {
+            $code = trim((string) $itemCode);
+            $name = trim((string) ($oldReturBeliNames[$index] ?? ''));
+            if ($code === '' && $name === '') {
+                continue;
+            }
+
+            $unit = trim((string) ($oldReturBeliUnits[$index] ?? ''));
+            $initialEditReturPembelianItems[] = [
+                'uid' => 'old-returbeli-edit-' . $index,
+                'fitemcode' => $code,
+                'fitemname' => $name,
+                'units' => $unit !== '' ? [$unit] : [],
+                'fsatuan' => $unit,
+                'fqty' => (float) ($oldReturBeliQtys[$index] ?? 0),
+                'fprice' => (float) ($oldReturBeliPrices[$index] ?? 0),
+                'fbiaya' => (float) ($oldReturBeliBiayas[$index] ?? 0),
+                'fdiscpersen' => $oldReturBeliDiscs[$index] ?? 0,
+                'ftotprice' => (float) ($oldReturBeliTotals[$index] ?? 0),
+                'fdesc' => (string) ($oldReturBeliDescs[$index] ?? ''),
+                'fketdt' => (string) ($oldReturBeliKetdts[$index] ?? ''),
+                'frefdtno' => trim((string) ($oldReturBeliRefs[$index] ?? '')),
+            ];
+        }
     @endphp
 
     @if ($usageLocked)
@@ -1861,7 +1898,7 @@
     function itemsTable() {
         return {
             showNoItems: false,
-            savedItems: @json($savedItems),
+            savedItems: @json(count($initialEditReturPembelianItems) ? $initialEditReturPembelianItems : $savedItems),
             draft: newRow(),
             editingIndex: null,
             editRow: newRow(),
@@ -2799,4 +2836,3 @@
         }
     </script>
 @endpush
-

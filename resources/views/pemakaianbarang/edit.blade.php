@@ -122,6 +122,54 @@
 
     @php
         $usageLocked = !empty($isUsageLocked);
+        $accountLookup = collect($accounts ?? [])->keyBy(fn ($account) => trim((string) ($account->faccount ?? '')));
+        $subaccountLookup = collect($subaccounts ?? [])->keyBy(fn ($subaccount) => trim((string) ($subaccount->fsubaccountcode ?? '')));
+        $oldPemakaianCodes = old('fitemcode', []);
+        $oldPemakaianNames = old('fitemname', []);
+        $oldPemakaianUnits = old('fsatuan', []);
+        $oldPemakaianAccountCodes = old('frefdtno', []);
+        $oldPemakaianSubAccountCodes = old('frefso', []);
+        $oldPemakaianRefPrs = old('frefpr', []);
+        $oldPemakaianQtys = old('fqty', []);
+        $oldPemakaianDescs = old('fdesc', []);
+        $oldPemakaianKetdts = old('fketdt', []);
+        $initialEditPemakaianItems = [];
+
+        foreach ($oldPemakaianCodes as $index => $itemCode) {
+            $code = trim((string) $itemCode);
+            $name = trim((string) ($oldPemakaianNames[$index] ?? ''));
+            if ($code === '' && $name === '') {
+                continue;
+            }
+
+            $unit = trim((string) ($oldPemakaianUnits[$index] ?? ''));
+            $accountCode = trim((string) ($oldPemakaianAccountCodes[$index] ?? ''));
+            $subAccountCode = trim((string) ($oldPemakaianSubAccountCodes[$index] ?? ''));
+            $account = $accountLookup->get($accountCode);
+            $subaccount = $subaccountLookup->get($subAccountCode);
+            $accountName = trim((string) ($account->faccname ?? ''));
+            $subaccountName = trim((string) ($subaccount->fsubaccountname ?? ''));
+
+            $initialEditPemakaianItems[] = [
+                'uid' => 'old-pemakaian-edit-' . $index,
+                'fitemcode' => $code,
+                'fitemname' => $name,
+                'fitemid' => '',
+                'units' => $unit !== '' ? [$unit] : [],
+                'fsatuan' => $unit,
+                'frefpr' => trim((string) ($oldPemakaianRefPrs[$index] ?? '')),
+                'fqty' => (float) ($oldPemakaianQtys[$index] ?? 0),
+                'fdesc' => (string) ($oldPemakaianDescs[$index] ?? ''),
+                'fketdt' => (string) ($oldPemakaianKetdts[$index] ?? ''),
+                'maxqty' => 0,
+                'account_code' => $accountCode,
+                'account_name' => $accountName,
+                'account_label' => $accountCode !== '' ? trim($accountCode . ' - ' . $accountName) : '',
+                'subaccount_code' => $subAccountCode,
+                'subaccount_name' => $subaccountName,
+                'subaccount_label' => $subAccountCode !== '' ? trim($subAccountCode . ' - ' . $subaccountName) : '',
+            ];
+        }
     @endphp
 
     @if ($usageLocked)
@@ -1168,11 +1216,11 @@
             });
         });
 
-        function itemsTable() {
-            return {
-                showNoItems: false,
-                savedItems: @json($savedItems),
-                draft: newRow(),
+    function itemsTable() {
+        return {
+            showNoItems: false,
+            savedItems: @json(count($initialEditPemakaianItems) ? $initialEditPemakaianItems : $savedItems),
+            draft: newRow(),
                 totalHarga: 0,
 
                 updateAccount(row, accountCode, accName) {
@@ -1870,4 +1918,3 @@
         });
     </script>
 @endpush
-

@@ -90,6 +90,59 @@
     </style>
     @php
         $usageLocked = !empty($isUsageLocked);
+        $oldReturJualCodes = old('fitemcode', []);
+        $oldReturJualNames = old('fitemname', []);
+        $oldReturJualUnits = old('fsatuan', []);
+        $oldReturJualRefCodes = old('frefcode', []);
+        $oldReturJualNouRefs = old('fnouref', []);
+        $oldReturJualRefPrs = old('frefpr', []);
+        $oldReturJualRefSos = old('frefso', []);
+        $oldReturJualRefSrjs = old('frefsrj', []);
+        $oldReturJualNoAcaks = old('fnoacak', []);
+        $oldReturJualRefNoAcaks = old('frefnoacak', []);
+        $oldReturJualQtys = old('fqty', []);
+        $oldReturJualTerimas = old('fterima', []);
+        $oldReturJualPrices = old('fprice', []);
+        $oldReturJualDiscs = old('fdisc', []);
+        $oldReturJualTotals = old('ftotal', []);
+        $oldReturJualDescs = old('fdesc', []);
+        $oldReturJualKetdts = old('fketdt', []);
+        $initialEditReturPenjualanItems = [];
+
+        foreach ($oldReturJualCodes as $index => $itemCode) {
+            $code = trim((string) $itemCode);
+            $name = trim((string) ($oldReturJualNames[$index] ?? ''));
+            if ($code === '' && $name === '') {
+                continue;
+            }
+
+            $unit = trim((string) ($oldReturJualUnits[$index] ?? ''));
+            $refSo = trim((string) ($oldReturJualRefSos[$index] ?? ''));
+            $refSrj = trim((string) ($oldReturJualRefSrjs[$index] ?? ''));
+
+            $initialEditReturPenjualanItems[] = [
+                'uid' => 'old-returjual-edit-' . $index,
+                'fitemcode' => $code,
+                'fitemname' => $name,
+                'frefcode' => trim((string) ($oldReturJualRefCodes[$index] ?? '')),
+                'units' => $unit !== '' ? [$unit] : [],
+                'fsatuan' => $unit,
+                'fnouref' => trim((string) ($oldReturJualNouRefs[$index] ?? '')),
+                'frefpr' => trim((string) ($oldReturJualRefPrs[$index] ?? '')),
+                'frefso' => $refSo,
+                'frefsrj' => $refSrj,
+                'fnoacak' => trim((string) ($oldReturJualNoAcaks[$index] ?? '')),
+                'frefnoacak' => trim((string) ($oldReturJualRefNoAcaks[$index] ?? '')),
+                'fqty' => (float) ($oldReturJualQtys[$index] ?? 0),
+                'fterima' => (float) ($oldReturJualTerimas[$index] ?? 0),
+                'fprice' => (float) ($oldReturJualPrices[$index] ?? 0),
+                'fdisc' => $oldReturJualDiscs[$index] ?? 0,
+                'ftotal' => (float) ($oldReturJualTotals[$index] ?? 0),
+                'fdesc' => (string) ($oldReturJualDescs[$index] ?? ''),
+                'fketdt' => (string) ($oldReturJualKetdts[$index] ?? ''),
+                'maxqty' => max(0, (float) ($oldReturJualQtys[$index] ?? 0)),
+            ];
+        }
     @endphp
     @if ($usageLocked)
         <div x-data="{ open: true }" x-show="open" x-cloak class="fixed inset-0 z-[99] flex items-center justify-center"
@@ -2416,7 +2469,7 @@
     function itemsTable() {
         return {
             showNoItems: false,
-            savedItems: @json($savedItems ?? []),
+            savedItems: @json(count($initialEditReturPenjualanItems) ? $initialEditReturPenjualanItems : ($savedItems ?? [])),
             draft: newRow(),
             action: @js($action ?? 'edit'),
 
@@ -3942,4 +3995,3 @@
         });
     </script>
 @endpush
-
