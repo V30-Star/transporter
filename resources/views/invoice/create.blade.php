@@ -1913,6 +1913,56 @@
                 return this.savedItems.map(it => this.itemKey(it));
             },
 
+            normalizeRestoredRow(item, index = 0) {
+                const row = {
+                    ...newRow(),
+                    ...(item || {}),
+                    uid: item?.uid || `restored-${index}`
+                };
+                row.fnoacak = this.normalizeNoAcak(row.fnoacak) || this.generateUniqueNoAcak();
+                row.frefnoacak = this.normalizeRefNoAcak(row.frefnoacak);
+
+                if (typeof row.units === 'string') {
+                    try {
+                        const parsed = JSON.parse(row.units);
+                        row.units = Array.isArray(parsed) ? parsed : [];
+                    } catch (e) {
+                        row.units = row.units.split(',').map(u => u.trim()).filter(Boolean);
+                    }
+                } else if (!Array.isArray(row.units)) {
+                    row.units = [];
+                }
+
+                const meta = this.productMeta(row.fitemcode);
+                if (meta?.units?.length) {
+                    row.units = [...new Set([...row.units, ...meta.units])];
+                } else if (row.fsatuan && !row.units.includes(row.fsatuan)) {
+                    row.units.unshift(row.fsatuan);
+                }
+
+                if (meta?.unit_ratios) {
+                    row.unit_ratios = row.unit_ratios || meta.unit_ratios;
+                }
+
+                this.recalc(row);
+                return row;
+            },
+
+            restoreSavedItems(items = []) {
+                this.savedItems = Array.isArray(items)
+                    ? items.map((item, index) => this.normalizeRestoredRow(item, index))
+                    : [];
+                this.syncDescList?.();
+                this.recalcTotals();
+            },
+
+            restoreDraft(draft = {}) {
+                this.draft = this.normalizeRestoredRow(draft, 'draft');
+                if (this.draft.fitemcode) {
+                    this.hydrateRowFromMeta(this.draft, this.productMeta(this.draft.fitemcode));
+                }
+            },
+
             // Tambahkan di Alpine data
             showToast(message, type = 'info') {
                 // Buat element toast

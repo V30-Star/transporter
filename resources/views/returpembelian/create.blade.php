@@ -1409,6 +1409,45 @@
                 return this.savedItems.map(it => this.itemKey(it));
             },
 
+            normalizeRestoredRow(item, index = 0) {
+                const row = {
+                    ...newRow(),
+                    ...(item || {}),
+                    uid: item?.uid || `restored-${index}`
+                };
+
+                if (typeof row.units === 'string') {
+                    try {
+                        const parsed = JSON.parse(row.units);
+                        row.units = Array.isArray(parsed) ? parsed : [];
+                    } catch (e) {
+                        row.units = row.units.split(',').map(u => u.trim()).filter(Boolean);
+                    }
+                } else if (!Array.isArray(row.units)) {
+                    row.units = [];
+                }
+
+                this.hydrateRowFromMeta(row, this.productMeta(row.fitemcode));
+                this.recalc(row);
+                return row;
+            },
+
+            restoreSavedItems(items = []) {
+                this.savedItems = Array.isArray(items)
+                    ? items.map((item, index) => this.normalizeRestoredRow(item, index))
+                    : [];
+                this.syncDescList?.();
+                this.recalcTotals();
+            },
+
+            restoreDraft(draft = {}) {
+                this.draft = this.normalizeRestoredRow(draft, 'draft');
+            },
+
+            restoreEditRow(editRow = {}) {
+                this.editRow = this.normalizeRestoredRow(editRow, 'edit');
+            },
+
             init() {
                 this.$watch('includePPN', () => this.recalcTotals());
                 this.$watch('fapplyppn', () => this.recalcTotals());

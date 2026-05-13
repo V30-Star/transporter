@@ -741,6 +741,40 @@
                     }
                 },
 
+                restoreSavedItems(items = []) {
+                    this.savedItems = Array.isArray(items)
+                        ? items.map((item, index) => {
+                            const row = {
+                                ...newRow(),
+                                ...(item || {}),
+                                uid: item?.uid || `restored-${index}`
+                            };
+                            this.syncAccountFromCode(row);
+                            this.normalizeAmount(row);
+                            return row;
+                        })
+                        : [];
+                    this.recalcTotals();
+                },
+
+                restoreDraft(draft = {}) {
+                    this.draft = {
+                        ...newRow(),
+                        ...(draft || {})
+                    };
+                    this.syncAccountFromCode(this.draft);
+                    this.normalizeAmount(this.draft);
+                },
+
+                restoreEditRow(editRow = {}) {
+                    this.editRow = {
+                        ...newRow(),
+                        ...(editRow || {})
+                    };
+                    this.syncAccountFromCode(this.editRow);
+                    this.normalizeAmount(this.editRow);
+                },
+
                 init() {
                     this.normalizeAmount(this.draft);
                     window.addEventListener('account-picked', (event) => {

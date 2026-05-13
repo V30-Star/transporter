@@ -1444,6 +1444,21 @@
                 if (alpineState?.savedItems && Array.isArray(alpineState.savedItems)) {
                     customState.savedItems = JSON.parse(JSON.stringify(alpineState.savedItems));
                 }
+                if (alpineState?.items && Array.isArray(alpineState.items)) {
+                    customState.items = JSON.parse(JSON.stringify(alpineState.items));
+                }
+                if (alpineState?.draft && typeof alpineState.draft === 'object') {
+                    customState.draft = JSON.parse(JSON.stringify(alpineState.draft));
+                }
+                if (alpineState?.editRow && typeof alpineState.editRow === 'object') {
+                    customState.editRow = JSON.parse(JSON.stringify(alpineState.editRow));
+                }
+                if (typeof alpineState?.editingIndex !== 'undefined') {
+                    customState.editingIndex = alpineState.editingIndex;
+                }
+                if (typeof alpineState?.showNoItems !== 'undefined') {
+                    customState.showNoItems = alpineState.showNoItems;
+                }
 
                 const collectEvent = new CustomEvent('form-draft-collect', {
                     bubbles: true,
@@ -1491,6 +1506,8 @@
                 [
                     ['supplierCodeHidden', 'modal_filter_supplier_id'],
                     ['customerCodeHidden', 'modal_filter_customer_id'],
+                    ['salesmanCodeHidden', 'modal_filter_salesman_id'],
+                    ['accountCodeHidden', 'accountSelect'],
                     ['warehouseCodeHidden', 'warehouseSelect']
                 ].forEach(([hiddenId, selectId]) => syncLinkedSelect(hiddenId, selectId));
             }
@@ -1550,8 +1567,11 @@
                 syncCommonDisplayFields();
 
                 const alpineState = getAlpineFormState(form);
-                const savedItems = savedDraft?.customState?.savedItems;
-                if (Array.isArray(savedItems) && savedItems.length > 0) {
+                const customState = savedDraft?.customState && typeof savedDraft.customState === 'object'
+                    ? savedDraft.customState
+                    : {};
+                const savedItems = customState.savedItems;
+                if (Array.isArray(savedItems)) {
                     if (alpineState && typeof alpineState.restoreSavedItems === 'function') {
                         alpineState.restoreSavedItems(savedItems);
                     } else if (alpineState && Array.isArray(alpineState.savedItems)) {
@@ -1560,6 +1580,50 @@
                             alpineState.recalcTotals();
                         }
                     }
+                }
+
+                const restoredItems = customState.items;
+                if (Array.isArray(restoredItems) && alpineState) {
+                    if (typeof alpineState.restoreItems === 'function') {
+                        alpineState.restoreItems(restoredItems);
+                    } else if (Array.isArray(alpineState.items)) {
+                        alpineState.items = JSON.parse(JSON.stringify(restoredItems));
+                        if (typeof alpineState.recalcTotals === 'function') {
+                            alpineState.recalcTotals();
+                        }
+                    }
+                }
+
+                if (customState.draft && alpineState) {
+                    if (typeof alpineState.restoreDraft === 'function') {
+                        alpineState.restoreDraft(customState.draft);
+                    } else if (typeof alpineState.restoreDraftState === 'function') {
+                        alpineState.restoreDraftState(customState);
+                    } else if (alpineState.draft && typeof alpineState.draft === 'object') {
+                        alpineState.draft = JSON.parse(JSON.stringify(customState.draft));
+                    }
+                }
+
+                if (customState.editRow && alpineState) {
+                    if (typeof alpineState.restoreEditRow === 'function') {
+                        alpineState.restoreEditRow(customState.editRow);
+                    } else if (alpineState.editRow && typeof alpineState.editRow === 'object') {
+                        alpineState.editRow = JSON.parse(JSON.stringify(customState.editRow));
+                    }
+                }
+
+                if (Object.prototype.hasOwnProperty.call(customState, 'editingIndex') && alpineState &&
+                    Object.prototype.hasOwnProperty.call(alpineState, 'editingIndex')) {
+                    alpineState.editingIndex = customState.editingIndex;
+                }
+
+                if (Object.prototype.hasOwnProperty.call(customState, 'showNoItems') && alpineState &&
+                    Object.prototype.hasOwnProperty.call(alpineState, 'showNoItems')) {
+                    alpineState.showNoItems = customState.showNoItems;
+                }
+
+                if (alpineState && typeof alpineState.recalcTotals === 'function') {
+                    alpineState.recalcTotals();
                 }
 
                 form.dispatchEvent(new CustomEvent('form-draft-restored', {

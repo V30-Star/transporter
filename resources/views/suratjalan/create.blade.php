@@ -1182,6 +1182,34 @@
                 return this.savedItems.map(it => this.itemKey(it));
             },
 
+            normalizeRestoredRow(item, index = 0) {
+                const row = {
+                    ...newRow(),
+                    ...(item || {}),
+                    uid: item?.uid || `restored-${index}`
+                };
+                row.fnoacak = this.normalizeNoAcak(row.fnoacak) || this.generateUniqueNoAcak();
+                row.frefnoacak = this.normalizeNoAcak(row.frefnoacak);
+                this.hydrateRowFromMeta(row, this.productMeta(row.fitemcode));
+                this.recalc(row);
+                return row;
+            },
+
+            restoreSavedItems(items = []) {
+                this.savedItems = Array.isArray(items)
+                    ? items.map((item, index) => this.normalizeRestoredRow(item, index))
+                    : [];
+                this.recalcTotals();
+            },
+
+            restoreDraft(draft = {}) {
+                this.draft = this.normalizeRestoredRow(draft, 'draft');
+            },
+
+            restoreEditRow(editRow = {}) {
+                this.editRow = this.normalizeRestoredRow(editRow, 'edit');
+            },
+
             init() {
                 window.getCurrentItemKeys = () => this.getCurrentItemKeys();
                 this.savedItems = (this.savedItems || []).map(item => ({
