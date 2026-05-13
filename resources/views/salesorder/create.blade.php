@@ -100,7 +100,7 @@
     @endif
     <div>
         <div x-data="{ includePPN: false, ppnRate: 11, ppnAmount: 0, selected: 'alamatsurat', totalHarga: 0 }" class="lg:col-span-5">
-            <div class="bg-white rounded shadow p-6 md:p-8 max-w-[1600px] w-full mx-auto">
+            <div class="bg-white rounded shadow p-6 md:p-8 max-w-[96rem] mx-auto">
                 <form id="salesOrderForm" action="{{ route('salesorder.store') }}" method="POST" class="mt-6"
                     data-form-draft="true" data-draft-key="salesorder:create" x-data="{ showNoItems: false }"
                     @submit.prevent="
@@ -1341,3 +1341,4 @@
 
     </script>
 @endpush
+

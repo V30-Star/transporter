@@ -142,7 +142,7 @@
     @endif
     <div>
         <div x-data="{ fclose: {{ old('fclose', $salesorder->fclose) == '1' ? 'true' : 'false' }}, includePPN: false, ppnRate: 0, ppnAmount: 0, selected: 'alamatsurat', totalHarga: 100000 }" class="lg:col-span-5">
-            <div class="bg-white rounded shadow p-6 md:p-8 max-w-[1600px] w-full mx-auto">
+            <div class="bg-white rounded shadow p-6 md:p-8 max-w-[96rem] mx-auto">
                 @if ($action === 'delete')
                     <div class="space-y-4">
 
@@ -2274,3 +2274,4 @@
 
     </script>
 @endpush
+

@@ -118,7 +118,7 @@
     </style>
 
     <div x-data="{ showModal: false, open: true, selected: 'alamatsurat', frekening: '' }">
-        <div class="bg-white rounded shadow p-6 md:p-8 max-w-5xl mx-auto">
+        <div class="bg-white rounded shadow p-6 md:p-8 max-w-[96rem] mx-auto">
 
             {{-- ============================================ --}}
             {{-- MODE DELETE: VIEW ONLY + BUTTON HAPUS       --}}

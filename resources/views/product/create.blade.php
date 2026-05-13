@@ -149,7 +149,7 @@
     </style>
 
     <div x-data="{ open: false, keyword: '', rows: [], page: 1, lastPage: 1, total: 0 }">
-        <div class="bg-white rounded shadow p-6 md:p-8 max-w-[1500px] w-full mx-auto">
+        <div class="bg-white rounded shadow p-6 md:p-8 max-w-[96rem] mx-auto">
             <form action="{{ route('product.store') }}" method="POST" enctype="multipart/form-data"
                 data-form-draft="true" data-draft-key="product:create">
                 @csrf
@@ -1935,3 +1935,4 @@ document.addEventListener('keydown', function(e) {
     if (e.key === "Escape") closeModal();
 });
 </script>
+

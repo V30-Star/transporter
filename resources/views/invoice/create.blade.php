@@ -97,7 +97,7 @@
         </div>
     @endif
     <div x-data="{ open: true }">
-        <div class="bg-white rounded shadow p-6 md:p-8 max-w-[1600px] w-full mx-auto">
+        <div class="bg-white rounded shadow p-6 md:p-8 max-w-[96rem] mx-auto">
             <form id="invoiceForm" action="{{ route('invoice.store') }}" method="POST" class="mt-6" data-form-draft="true"
                 data-draft-key="invoice:create" data-tranmtid="" x-data="{ showNoItems: false }"
                 @submit.prevent="
@@ -2255,3 +2255,4 @@
     @include('components.transaction.browse-product-script', ['showControls' => true, 'showPagination' => true, 'supportsForEdit' => true])
 
 @endpush
+

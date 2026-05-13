@@ -34,7 +34,7 @@
     </script>
 
     <div x-data="{ open: true }">
-        <div class="bg-white rounded shadow p-6 md:p-8 max-w-[1600px] w-full mx-auto">
+        <div class="bg-white rounded shadow p-6 md:p-8 max-w-[96rem] mx-auto">
 
             <form action="{{ route('jurnaltransaksi.store') }}" method="POST" x-data="itemsTable()" x-init="init()"
                 @submit="onSubmit($event)"> @csrf
@@ -796,3 +796,4 @@
         }
     </script>
 @endpush
+

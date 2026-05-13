@@ -8,7 +8,7 @@
         $totalKredit = collect($savedItems)->where('fdk', 'K')->sum(fn ($item) => (float) ($item['famount'] ?? 0));
     @endphp
 
-    <div class="bg-white rounded shadow p-6 md:p-8 max-w-[1600px] w-full mx-auto space-y-6">
+    <div class="bg-white rounded shadow p-6 md:p-8 max-w-[96rem] mx-auto space-y-6">
         <div class="grid grid-cols-1 lg:grid-cols-12 gap-4">
             <div class="lg:col-span-4">
                 <label class="block text-sm font-medium mb-1">Cabang</label>
@@ -110,3 +110,4 @@
         </div>
     </div>
 @endsection
+

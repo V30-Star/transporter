@@ -3,7 +3,7 @@
 @section('title', $action === 'delete' ? 'Hapus Group Product' : 'Edit Group Product')
 
 @section('content')
-    <div class="bg-white rounded shadow p-6 md:p-8 max-w-[700px] mx-auto">
+    <div class="bg-white rounded shadow p-6 md:p-8 max-w-[96rem] mx-auto">
 
         {{-- ============================================ --}}
         {{-- MODE DELETE: VIEW ONLY + BUTTON HAPUS       --}}
@@ -213,3 +213,4 @@
         margin-bottom: 20px;
     }
 </style>
+

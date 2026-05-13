@@ -23,7 +23,7 @@
         }
     </style>
 
-    <div class="bg-white rounded shadow p-6 md:p-8 max-w-[1600px] w-full mx-auto" x-data="viewForm()"
+    <div class="bg-white rounded shadow p-6 md:p-8 max-w-[96rem] mx-auto" x-data="viewForm()"
         x-init="init()">
         @if (!empty($approvalLockMessage))
             <div class="mb-4 rounded-lg border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-800">
@@ -455,3 +455,4 @@
         };
     }
 </script>
+

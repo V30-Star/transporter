@@ -107,7 +107,7 @@
     </style>
 
     <div x-data="{ showModal: false, selected: 'alamatsurat', frekening: '' }">
-        <div class="bg-white rounded shadow p-6 md:p-8 max-w-5xl mx-auto">
+        <div class="bg-white rounded shadow p-6 md:p-8 max-w-[96rem] mx-auto">
             <form id="customerForm"
                 @submit.prevent="
                     frekening = $el.querySelector('#frekening').value;
@@ -557,3 +557,4 @@
         });
     });
 </script>
+

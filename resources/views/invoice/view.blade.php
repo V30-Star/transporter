@@ -89,7 +89,7 @@
     </style>
 
     <div x-data="{ open: true }">
-            <div class="bg-white rounded shadow p-6 md:p-8 max-w-[1600px] w-full mx-auto">
+            <div class="bg-white rounded shadow p-6 md:p-8 max-w-[96rem] mx-auto">
                 @if (!empty($approvalLockMessage))
                     <div class="mb-4 rounded-lg border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-800">
                         {{ $approvalLockMessage }}
@@ -1187,3 +1187,4 @@
             <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
             <script src="https://cdn.datatables.net/1.13.7/js/jquery.dataTables.min.js"></script>
         @endpush
+

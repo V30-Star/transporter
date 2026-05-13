@@ -5,7 +5,7 @@
 @section('content')
 
     <div x-data="{ open: true }">
-        <div class="bg-white rounded shadow p-6 md:p-8 max-w-[700px] mx-auto">
+        <div class="bg-white rounded shadow p-6 md:p-8 max-w-[96rem] mx-auto">
             <form action="{{ route('groupcustomer.store') }}" method="POST">
                 @csrf
 
@@ -56,3 +56,4 @@
         </div>
     </div>
 @endsection
+

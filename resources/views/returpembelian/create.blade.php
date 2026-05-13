@@ -104,7 +104,7 @@
 
     <div x-data="{ open: true }">
         <div x-data="{ includePPN: false, totalHarga: 100000 }" class="lg:col-span-5">
-            <div class="bg-white rounded shadow p-6 md:p-8 max-w-[1600px] w-full mx-auto">
+            <div class="bg-white rounded shadow p-6 md:p-8 max-w-[96rem] mx-auto">
                 <form action="{{ route('returpembelian.store') }}" method="POST" class="mt-6" data-form-draft="true"
                     data-draft-key="returpembelian:create" x-data="{ showNoItems: false }"
                     @submit.prevent="
@@ -2028,3 +2028,4 @@
         }
     </script>
 @endpush
+

@@ -118,7 +118,7 @@
     </style>
 
     <div x-data="{ showModal: false, open: true, selected: 'alamatsurat', frekening: '' }">
-        <div class="bg-white rounded shadow p-6 md:p-8 max-w-[1500px] w-full mx-auto">
+        <div class="bg-white rounded shadow p-6 md:p-8 max-w-[96rem] mx-auto">
             @php
                 $isApproved = \App\Support\ApprovalState::isApprovedRecord($product);
             @endphp
@@ -790,3 +790,4 @@
             });
     }
 </script>
+

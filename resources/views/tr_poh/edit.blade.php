@@ -194,7 +194,7 @@
         };
     @endphp
 
-    <div class="bg-white rounded shadow p-6 md:p-8 max-w-[1600px] w-full mx-auto" x-data="mainForm()"
+    <div class="bg-white rounded shadow p-6 md:p-8 max-w-[96rem] mx-auto" x-data="mainForm()"
         x-init="init()">
 
         @if ($isEdit)
@@ -1987,4 +1987,5 @@
         @include('components.transaction.browse-product-script')
     @endif
 @endpush
+
 
