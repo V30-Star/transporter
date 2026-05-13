@@ -218,7 +218,7 @@
                                     title="Tambah Gudang">
                                     <x-heroicon-o-plus class="w-5 h-5" />
                                 </a>
-                            </div>
+                            </div><!--  -->
 
                             @error('ffrom')
                                 <p class="text-red-600 text-sm mt-1">{{ $message }}</p>

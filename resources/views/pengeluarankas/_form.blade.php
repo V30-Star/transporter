@@ -197,40 +197,40 @@
 
             <div>
                 <label class="block text-sm font-medium mb-1">{{ 'No.Giro/Cek' }}</label>
-                <input type="text" name="fnogiro" value="{{ old('fnogiro', $pengeluaranKas->fnogiro) }}"
-                    class="w-full border rounded px-3 py-2 {{ $isReadOnly ? 'bg-gray-100' : '' }}"
-                    {{ $isReadOnly ? 'readonly' : '' }}>
+                <div class="flex flex-col gap-2">
+                    <div class="flex flex-wrap items-start gap-3">
+                        <input type="text" name="fnogiro" value="{{ old('fnogiro', $pengeluaranKas->fnogiro) }}"
+                            class="min-w-0 flex-1 border rounded px-3 py-2 {{ $isReadOnly ? 'bg-gray-100' : '' }}"
+                            {{ $isReadOnly ? 'readonly' : '' }}>
+
+                        <div class="flex-none w-full max-w-[220px]">
+                            <label class="inline-flex items-center gap-2 cursor-pointer">
+                                <input type="checkbox" x-model="isGiroMundur" {{ $isReadOnly ? 'disabled' : '' }}
+                                    class="rounded border-gray-300">
+                                <span class="text-sm text-gray-700 whitespace-nowrap">{{ 'Giro Mundur' }}</span>
+                            </label>
+                            <input type="hidden" name="fgiromundur" :value="isGiroMundur ? '1' : '0'">
+
+                            <div class="mt-2">
+                                <label class="block text-sm text-gray-600 mb-1">{{ 'Tgl. Jatuh Tempo' }}</label>
+                                <input type="date" name="ftgljatuhtempo" value="{{ $selectedJatuhTempo }}"
+                                    class="w-full border rounded px-3 py-1.5 text-sm"
+                                    :class="isReadOnly || !isGiroMundur ? 'bg-gray-100 cursor-not-allowed text-gray-400' : 'bg-white'"
+                                    :readonly="isReadOnly || !isGiroMundur" :disabled="isReadOnly || !isGiroMundur">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
                 @error('fnogiro')
                     <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                 @enderror
-            </div>
-
-            <div class="flex items-start gap-6">
-                <div class="flex-none pt-6">
-                    <label class="inline-flex items-center gap-2 cursor-pointer">
-                        <input type="checkbox" x-model="isGiroMundur" {{ $isReadOnly ? 'disabled' : '' }}
-                            class="rounded border-gray-300">
-                        <span class="text-sm text-gray-700 whitespace-nowrap">{{ 'Giro Mundur' }}</span>
-                    </label>
-                    <input type="hidden" name="fgiromundur" :value="isGiroMundur ? '1' : '0'">
-
-                    @error('fgiromundur')
-                        <p class="text-red-600 text-xs mt-1">{{ $message }}</p>
-                    @enderror
-                </div>
-
-                <div class="flex-none w-72">
-                    <div class="flex flex-col">
-                        <label class="text-sm text-gray-600 mb-1">{{ 'Tgl. Jatuh Tempo' }}</label>
-                        <input type="date" name="ftgljatuhtempo" value="{{ $selectedJatuhTempo }}"
-                            class="w-full border rounded px-3 py-1.5 text-sm"
-                            :class="isReadOnly || !isGiroMundur ? 'bg-gray-100 cursor-not-allowed text-gray-400' : 'bg-white'"
-                            :readonly="isReadOnly || !isGiroMundur" :disabled="isReadOnly || !isGiroMundur">
-                    </div>
-                    @error('ftgljatuhtempo')
-                        <p class="text-red-600 text-xs mt-1">{{ $message }}</p>
-                    @enderror
-                </div>
+                @error('fgiromundur')
+                    <p class="text-red-600 text-xs mt-1">{{ $message }}</p>
+                @enderror
+                @error('ftgljatuhtempo')
+                    <p class="text-red-600 text-xs mt-1">{{ $message }}</p>
+                @enderror
             </div>
 
             <div class="md:col-span-2">
