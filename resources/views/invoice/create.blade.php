@@ -74,7 +74,7 @@
             {{-- Header Strip --}}
             <div class="d-flex align-items-center px-4 py-3" style="background-color: #c0392b;">
                 <i class="bi bi-exclamation-triangle-fill text-white me-2 fs-5"></i>
-                <strong class="text-white fs-6">{{ "Gagal Menyimpan Data!" }}</strong>
+                <strong class="text-white fs-6">{{ "Data Belum Bisa Disimpan" }}</strong>
                 <button type="button" class="btn-close btn-close-white ms-auto" data-bs-dismiss="alert"
                     aria-label="Close"></button>
             </div>
@@ -83,7 +83,7 @@
             <div class="px-4 py-3" style="background-color: #fdeded; border-left: 5px solid #c0392b;">
                 <p class="mb-2 text-danger fw-semibold">
                     <i class="bi bi-info-circle me-1"></i>
-                    {{ "Periksa kembali data berikut sebelum menyimpan:" }}
+                    {{ "Tolong perbaiki bagian ini dulu:" }}
                 </p>
                 <ul class="mb-0 ps-3">
                     @foreach ($errors->all() as $error)
@@ -330,7 +330,7 @@
                                     <th class="p-2 text-left w-96">Nama Produk</th>
                                     <th class="p-2 text-left w-36">Satuan</th>
                                     <th class="p-2 text-left w-36">No.Ref</th>
-                                    <th class="p-2 text-right w-36 whitespace-nowrap">Qty</th>
+                                    <th class="p-2 text-right w-36 whitespace-nowrap">Jumlah</th>
                                     <th class="p-2 text-right w-32 whitespace-nowrap">@ Harga</th>
                                     <th class="p-2 text-right w-36 whitespace-nowrap">Disc. %</th>
                                     <th class="p-2 text-right w-36 whitespace-nowrap">Total Harga</th>
@@ -1032,8 +1032,8 @@
 
                             <div class="px-5 py-4">
                                 <p class="text-sm text-gray-700">
-                                    Customer wajib dipilih sebelum input produk manual. Untuk Tambah SO atau Add SRJ,
-                                    customer tidak wajib dipilih terlebih dahulu.
+                                    Pilih customer dulu sebelum menambah produk manual.
+                                    Jika ambil dari SO atau SRJ, customer boleh dipilih setelahnya.
                                 </p>
                             </div>
 
@@ -1220,7 +1220,7 @@
                 await Swal.fire({
                     icon: 'error',
                     title: @json("Cek Customer Gagal"),
-                    text: message
+                    html: `<div class="text-left whitespace-pre-line">${message}</div>`
                 });
                 return false;
             }
@@ -1241,7 +1241,7 @@
                             <div>${@json("Nilai transaksi ini")}: <strong>${Number(limitCheck.transaction_amount || 0).toLocaleString('id-ID')}</strong></div>
                             <div>${@json("Limit customer")}: <strong>${Number(limitCheck.limit || 0).toLocaleString('id-ID')}</strong></div>
                             <div>${@json("Total setelah transaksi")}: <strong>${Number(limitCheck.projected_total || 0).toLocaleString('id-ID')}</strong></div>
-                            <div class="mt-3">${@json("Transaksi ini membutuhkan ACC Kredit. Lanjutkan?")}</div>
+                            <div class="mt-3">${@json("Transaksi ini membutuhkan persetujuan kredit. Lanjutkan?")}</div>
                         </div>
                     `,
                     showCancelButton: true,
@@ -1257,8 +1257,17 @@
                 if (!canApprove) {
                     await Swal.fire({
                         icon: 'error',
-                        title: @json("ACC Kredit Ditolak"),
-                        text: @json("User login tidak punya wewenang ACC Kredit untuk limit piutang customer.")
+                        title: @json("Persetujuan Kredit Ditolak"),
+                        html: `
+                            <div class="text-left text-sm">
+                                <div class="font-medium mb-2">Persetujuan diperlukan:</div>
+                                <ul class="list-disc pl-5 space-y-1">
+                                    <li>Limit piutang customer sudah terlampaui.</li>
+                                    <li>Ada nota yang lewat jatuh tempo.</li>
+                                </ul>
+                                <div class="mt-3">User login ini tidak punya wewenang menyetujui.</div>
+                            </div>
+                        `
                     });
                     return false;
                 }
@@ -1280,7 +1289,7 @@
                         <div class="text-left text-sm">
                             <div>${@json("Customer punya nota yang lewat jatuh tempo lebih dari")} <strong>${overdueCheck.max_tempo || 0}</strong> ${@json("hari.")}</div>
                             <ul class="mt-3 list-disc pl-5">${overdueHtml}</ul>
-                            <div class="mt-3">${@json("Transaksi ini membutuhkan ACC Kredit. Lanjutkan?")}</div>
+                            <div class="mt-3">${@json("Transaksi ini membutuhkan persetujuan kredit. Lanjutkan?")}</div>
                         </div>
                     `,
                     showCancelButton: true,
@@ -1296,8 +1305,16 @@
                 if (!canApprove) {
                     await Swal.fire({
                         icon: 'error',
-                        title: @json("ACC Kredit Ditolak"),
-                        text: @json("User login tidak punya wewenang ACC Kredit untuk nota customer yang lewat jatuh tempo.")
+                        title: @json("Persetujuan Kredit Ditolak"),
+                        html: `
+                            <div class="text-left text-sm">
+                                <div class="font-medium mb-2">Persetujuan diperlukan:</div>
+                                <ul class="list-disc pl-5 space-y-1">
+                                    <li>Customer punya nota lewat jatuh tempo.</li>
+                                </ul>
+                                <div class="mt-3">User login ini tidak punya wewenang menyetujui.</div>
+                            </div>
+                        `
                     });
                     return false;
                 }
@@ -1310,8 +1327,8 @@
         } catch (error) {
             await Swal.fire({
                 icon: 'error',
-                title: @json("Cek ACC Kredit Gagal"),
-                text: @json("Terjadi kesalahan saat mengecek kebutuhan ACC Kredit customer.")
+                title: @json("Pemeriksaan Persetujuan Gagal"),
+                html: `<div class="text-left whitespace-pre-line">@json("Gagal memeriksa persetujuan customer.\nSilakan coba lagi.")</div>`
             });
             return false;
         }
@@ -1540,14 +1557,14 @@
                 const limit = this.getRowQtyLimit(row);
                 if (limit <= 0) {
                     row.fqty = 0;
-                    if (showToast) window.toast?.error('Qty referensi sudah habis atau sudah digunakan.');
+                    if (showToast) window.toast?.error('Sisa referensi sudah habis.');
                     return false;
                 }
 
                 const qty = Number(row?.fqty ?? 0);
                 if (qty > limit) {
                     row.fqty = limit;
-                    if (showToast) window.toast?.error(`Qty melebihi sisa referensi. Maksimal ${limit} ${row.fsatuan || ''}`.trim());
+                    if (showToast) window.toast?.error(`Jumlah melebihi sisa referensi. Maksimal ${limit} ${row.fsatuan || ''}`.trim());
                 }
 
                 return Number(row?.fqty ?? 0) > 0;
@@ -1740,12 +1757,12 @@
                 const r = this.draft;
 
                 if (r.fitemcode === 'UM' && this.ftypesales === 0) {
-                    this.showToast('Produk UM hanya untuk tipe Uang Muka!', 'error');
+                    this.showToast('Produk UM hanya untuk transaksi Uang Muka.', 'error');
                     return;
                 }
 
                 if (Number(r.fqty) <= 0) {
-                    this.showToast(@json("Quantity harus lebih besar dari 0!"), 'warning');
+                    this.showToast(@json("Jumlah harus lebih dari 0."), 'warning');
                     this.$refs.draftQty?.focus();
                     return;
                 }
@@ -1808,12 +1825,12 @@
             applyEdit() {
                 const r = this.editRow;
                 if (!this.isComplete(r)) {
-                    alert(@json("Lengkapi data item."));
+                    alert(@json("Lengkapi data item dulu."));
                     return;
                 }
 
                 if (Number(r.fqty) <= 0) {
-                    this.showToast(@json("Quantity harus lebih besar dari 0!"), 'warning');
+                    this.showToast(@json("Jumlah harus lebih dari 0."), 'warning');
                     return;
                 }
 
@@ -2055,7 +2072,7 @@
             Swal.fire({
                 icon: 'error',
                 title: @json("Penyimpanan Batal"),
-                text: "{{ session('error') }}",
+                html: `<div class="text-left whitespace-pre-line">{{ session('error') }}</div>`,
                 confirmButtonColor: '#ef4444', // Warna merah tailwind
                 confirmButtonText: @json("OK"),
                 allowOutsideClick: false
@@ -2163,8 +2180,8 @@
                     if (row.fdiscontinue == '1') {
                         Swal.fire({
                             icon: 'warning',
-                            title: @json("Produk Discontinue"),
-                            html: `${@json("Produk :name sudah tidak diproduksi lagi.").replace('__NAME__', `<b>${row.fprdname}</b>`)}<br><br>${@json("Penyimpanan Batal")}.`,
+                            title: @json("Produk Tidak Tersedia"),
+                            html: `${@json("Produk :name sudah tidak tersedia.").replace('__NAME__', `<b>${row.fprdname}</b>`)}<br><br>${@json("Penyimpanan dibatalkan.")}`,
                             confirmButtonColor: '#f59e0b', // Warna orange amber
                             confirmButtonText: @json("Kembali")
                         });
@@ -2213,7 +2230,7 @@
                     this.closeModal();
                 } catch (e) {
                     console.error(e);
-                    alert(@json("Gagal mengambil detail PR. Lihat konsol untuk detail."));
+                    alert(@json("Gagal mengambil detail PR."));
                 }
             },
         };

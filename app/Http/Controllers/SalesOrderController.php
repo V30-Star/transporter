@@ -73,7 +73,7 @@ class SalesOrderController extends Controller
             ['label' => 'Tanggal', 'value' => $header->fsodate ? Carbon::parse($header->fsodate)->format('d-m-Y') : '-'],
             ['label' => 'Customer', 'value' => trim(($header->fcustno ?? '-') . ' - ' . ($header->fcustomername ?? '-'))],
             ['label' => 'Salesman', 'value' => $header->fsalesmanname ?? ($header->fsalesman ?? '-')],
-            ['label' => 'ACC Kredit', 'value' => $header->fuseracc ?? '-'],
+            ['label' => 'Persetujuan Kredit', 'value' => $header->fuseracc ?? '-'],
             ['label' => 'Total', 'value' => format_number($header->famountso ?? 0)],
             ['label' => 'Keterangan', 'value' => $header->fket ?? '-'],
         ];
@@ -223,14 +223,14 @@ class SalesOrderController extends Controller
 
         if (! $this->canApproveCreditLimit()) {
             throw ValidationException::withMessages([
-                'fcustno' => 'Sales Order customer ini melebihi batas piutang atau memiliki nota jatuh tempo. User tidak punya wewenang ACC.',
+                'fcustno' => "Persetujuan diperlukan:\n- Limit piutang sudah terlampaui, atau\n- Ada nota yang lewat jatuh tempo.\n\nHubungi user yang berwenang.",
             ]);
         }
 
         $approvedBy = trim((string) $request->input('fuseracc', ''));
         if ($approvedBy === '') {
             throw ValidationException::withMessages([
-                'fcustno' => 'Sales Order customer ini membutuhkan ACC. Silakan pilih Yes pada konfirmasi untuk melanjutkan.',
+                'fcustno' => "Persetujuan diperlukan:\n- Pilih Yes pada konfirmasi untuk lanjutkan.",
             ]);
         }
 
@@ -552,7 +552,7 @@ class SalesOrderController extends Controller
             ]);
 
         if (! $hdr) {
-            return redirect()->back()->with('error', 'Sales Order tidak ditemukan.');
+            return redirect()->back()->with('error', 'Data Sales Order tidak ditemukan.');
         }
 
         // Detail: join dengan product
@@ -876,7 +876,8 @@ class SalesOrderController extends Controller
 
             return redirect()->route('salesorder.create')->with('success', "Sales Order {$fsono} berhasil disimpan.");
         } catch (\Exception $e) {
-            return back()->withInput()->withErrors(['error' => 'Gagal simpan: '.$e->getMessage()]);
+            report($e);
+            return back()->withInput()->withErrors(['error' => 'Gagal simpan. Periksa kembali data yang diisi.']);
         }
     }
 
@@ -1218,7 +1219,7 @@ class SalesOrderController extends Controller
         // 2. LOAD HEADER
         $header = DB::table('trsomt')->where('ftrsomtid', $ftrsomtid)->first();
         if (! $header) {
-            return abort(404, 'Sales Order tidak ditemukan.');
+            return abort(404, 'Data Sales Order tidak ditemukan.');
         }
         if ($message = $this->getApprovalLockMessage((object) $header)) {
             return redirect()->route('salesorder.view', $ftrsomtid)->with('error', $message);
@@ -1547,7 +1548,8 @@ class SalesOrderController extends Controller
             return redirect()->route('salesorder.index')->with('success', 'Data Sales Order '.$salesorder->fsono.' berhasil dihapus.');
         } catch (\Exception $e) {
             // Jika terjadi kesalahan saat menghapus, kembali ke halaman delete dengan pesan error
-            return redirect()->route('salesorder.delete', $ftrsomtid)->with('error', 'Gakey: gal menghapus data: '.$e->getMessage());
+            report($e);
+            return redirect()->route('salesorder.delete', $ftrsomtid)->with('error', 'Gagal menghapus data. Silakan coba lagi.');
         }
     }
 
@@ -1640,6 +1642,6 @@ class SalesOrderController extends Controller
             return null;
         }
 
-        return 'Sales Order '.$fsono.' tidak dapat diubah atau dihapus karena sudah digunakan pada '.implode('; ', $parts).'.';
+        return 'Sales Order '.$fsono.' tidak bisa diubah atau dihapus karena sudah dipakai di '.implode('; ', $parts).'.';
     }
 }

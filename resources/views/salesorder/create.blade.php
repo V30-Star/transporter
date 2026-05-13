@@ -76,7 +76,7 @@
             {{-- Header Strip --}}
             <div class="d-flex align-items-center px-4 py-3" style="background-color: #c0392b;">
                 <i class="bi bi-exclamation-triangle-fill text-white me-2 fs-5"></i>
-                <strong class="text-white fs-6">{{ "Gagal Menyimpan Data!" }}</strong>
+                <strong class="text-white fs-6">{{ "Data Belum Bisa Disimpan" }}</strong>
                 <button type="button" class="btn-close btn-close-white ms-auto" data-bs-dismiss="alert"
                     aria-label="Close"></button>
             </div>
@@ -85,7 +85,7 @@
             <div class="px-4 py-3" style="background-color: #fdeded; border-left: 5px solid #c0392b;">
                 <p class="mb-2 text-danger fw-semibold">
                     <i class="bi bi-info-circle me-1"></i>
-                    {{ "Periksa kembali data berikut sebelum menyimpan:" }}
+                    {{ "Tolong perbaiki bagian ini dulu:" }}
                 </p>
                 <ul class="mb-0 ps-3">
                     @foreach ($errors->all() as $error)
@@ -349,7 +349,7 @@
                                         <th class="p-2 text-left w-52">Kode Produk</th>
                                         <th class="p-2 text-left w-[28rem]">Nama Produk</th>
                                         <th class="p-2 text-left w-32">Satuan</th>
-                                        <th class="p-2 text-right w-28 whitespace-nowrap">Qty</th>
+                                        <th class="p-2 text-right w-28 whitespace-nowrap">Jumlah</th>
                                         <th class="p-2 text-right w-28 whitespace-nowrap">@ Harga</th>
                                         <th class="p-2 text-right w-28 whitespace-nowrap">Disc. %</th>
                                         <th class="p-2 text-right w-32 whitespace-nowrap">Total Harga</th>
@@ -1192,7 +1192,7 @@
                 await Swal.fire({
                     icon: 'error',
                     title: @json("Cek Customer Gagal"),
-                    text: message
+                    html: `<div class="text-left whitespace-pre-line">${message}</div>`
                 });
                 return false;
             }
@@ -1213,7 +1213,7 @@
                             <div>${@json("Nilai transaksi ini")}: <strong>${Number(limitCheck.transaction_amount || 0).toLocaleString('id-ID')}</strong></div>
                             <div>${@json("Limit customer")}: <strong>${Number(limitCheck.limit || 0).toLocaleString('id-ID')}</strong></div>
                             <div>${@json("Total setelah transaksi")}: <strong>${Number(limitCheck.projected_total || 0).toLocaleString('id-ID')}</strong></div>
-                            <div class="mt-3">${@json("Sales Order ini membutuhkan ACC Kredit. Lanjutkan?")}</div>
+                            <div class="mt-3">${@json("Sales Order ini membutuhkan persetujuan kredit. Lanjutkan?")}</div>
                         </div>
                     `,
                     showCancelButton: true,
@@ -1229,8 +1229,17 @@
                 if (!canApprove) {
                     await Swal.fire({
                         icon: 'error',
-                        title: @json("ACC Kredit Ditolak"),
-                        text: @json("User login tidak punya wewenang ACC Kredit untuk limit piutang customer.")
+                        title: @json("Persetujuan Kredit Ditolak"),
+                        html: `
+                            <div class="text-left text-sm">
+                                <div class="font-medium mb-2">Persetujuan diperlukan:</div>
+                                <ul class="list-disc pl-5 space-y-1">
+                                    <li>Limit piutang customer sudah terlampaui.</li>
+                                    <li>Ada nota yang lewat jatuh tempo.</li>
+                                </ul>
+                                <div class="mt-3">User login ini tidak punya wewenang menyetujui.</div>
+                            </div>
+                        `
                     });
                     return false;
                 }
@@ -1252,7 +1261,7 @@
                         <div class="text-left text-sm">
                             <div>${@json("Customer punya nota yang lewat jatuh tempo lebih dari")} <strong>${overdueCheck.max_tempo || 0}</strong> ${@json("hari.")}</div>
                             <ul class="mt-3 list-disc pl-5">${overdueHtml}</ul>
-                            <div class="mt-3">${@json("Sales Order ini membutuhkan ACC Kredit. Lanjutkan?")}</div>
+                            <div class="mt-3">${@json("Sales Order ini membutuhkan persetujuan kredit. Lanjutkan?")}</div>
                         </div>
                     `,
                     showCancelButton: true,
@@ -1268,8 +1277,16 @@
                 if (!canApprove) {
                     await Swal.fire({
                         icon: 'error',
-                        title: @json("ACC Kredit Ditolak"),
-                        text: @json("User login tidak punya wewenang ACC Kredit untuk nota customer yang lewat jatuh tempo.")
+                        title: @json("Persetujuan Kredit Ditolak"),
+                        html: `
+                            <div class="text-left text-sm">
+                                <div class="font-medium mb-2">Persetujuan diperlukan:</div>
+                                <ul class="list-disc pl-5 space-y-1">
+                                    <li>Customer punya nota lewat jatuh tempo.</li>
+                                </ul>
+                                <div class="mt-3">User login ini tidak punya wewenang menyetujui.</div>
+                            </div>
+                        `
                     });
                     return false;
                 }
@@ -1282,8 +1299,8 @@
         } catch (error) {
             await Swal.fire({
                 icon: 'error',
-                title: @json("Cek ACC Kredit Gagal"),
-                text: @json("Terjadi kesalahan saat mengecek kebutuhan ACC Kredit customer.")
+                title: @json("Pemeriksaan Persetujuan Gagal"),
+                html: `<div class="text-left whitespace-pre-line">@json("Gagal memeriksa persetujuan customer.\nSilakan coba lagi.")</div>`
             });
             return false;
         }
@@ -1324,4 +1341,3 @@
 
     </script>
 @endpush
-

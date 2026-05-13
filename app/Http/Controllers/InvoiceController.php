@@ -94,7 +94,7 @@ class InvoiceController extends Controller
             ['label' => 'Tanggal', 'value' => $header->fsodate ? Carbon::parse($header->fsodate)->format('d-m-Y') : '-'],
             ['label' => 'Customer', 'value' => trim(($header->fcustno ?? '-') . ' - ' . ($header->fcustomername ?? '-'))],
             ['label' => 'Salesman', 'value' => $header->fsalesmanname ?? ($header->fsalesman ?? '-')],
-            ['label' => 'ACC Kredit', 'value' => $header->fuseracc ?? '-'],
+            ['label' => 'Persetujuan Kredit', 'value' => $header->fuseracc ?? '-'],
             ['label' => 'Total', 'value' => format_number($header->famountso ?? 0)],
             ['label' => 'Keterangan', 'value' => $header->fket ?? '-'],
         ];
@@ -254,14 +254,14 @@ class InvoiceController extends Controller
 
         if (! $this->canApproveCreditLimit()) {
             throw ValidationException::withMessages([
-                'fcustno' => 'Transaksi customer ini melebihi batas piutang atau memiliki nota jatuh tempo. User tidak punya wewenang ACC.',
+                'fcustno' => "Persetujuan diperlukan:\n- Limit piutang sudah terlampaui, atau\n- Ada nota yang lewat jatuh tempo.\n\nHubungi user yang berwenang.",
             ]);
         }
 
         $approvedBy = trim((string) $request->input('fuseracc', ''));
         if ($approvedBy === '') {
             throw ValidationException::withMessages([
-                'fcustno' => 'Transaksi customer ini membutuhkan ACC. Silakan pilih Yes pada konfirmasi untuk melanjutkan.',
+                'fcustno' => "Persetujuan diperlukan:\n- Pilih Yes pada konfirmasi untuk lanjutkan.",
             ]);
         }
 
@@ -620,7 +620,7 @@ class InvoiceController extends Controller
             ]);
 
         if (! $hdr) {
-            return redirect()->back()->with('error', 'Sales Order tidak ditemukan.');
+            return redirect()->back()->with('error', 'Data Sales Order tidak ditemukan.');
         }
 
         // Use header ID (integer) for detail FK
@@ -784,10 +784,10 @@ class InvoiceController extends Controller
         // Logika UM (Tetap sama)
         $hasUM = in_array('UM', $itemCodes);
         if ($hasUM && $typeSales === 0) {
-            return back()->withInput()->with('error', 'Produk Uang Muka (UM) hanya diperbolehkan untuk tipe transaksi Uang Muka.');
+            return back()->withInput()->with('error', 'Produk UM hanya bisa dipakai pada transaksi Uang Muka.');
         }
         if (! $hasUM && $typeSales === 1) {
-            return back()->withInput()->with('error', 'Transaksi Uang Muka wajib menggunakan produk dengan kode UM.');
+            return back()->withInput()->with('error', 'Transaksi Uang Muka harus memakai produk UM.');
         }
 
         $products = DB::table('msprd')
@@ -937,7 +937,8 @@ class InvoiceController extends Controller
 
             return redirect()->route('invoice.index')->with('success', 'Faktur Penjualan berhasil disimpan.');
         } catch (\Exception $e) {
-            return back()->withInput()->with('error', 'Terjadi kesalahan: '.$e->getMessage());
+            report($e);
+            return back()->withInput()->with('error', 'Gagal simpan. Periksa kembali data yang diisi.');
         }
     }
 
@@ -1088,7 +1089,7 @@ class InvoiceController extends Controller
                 if ((float) $qtyKecil - $available > 0.000001) {
                     $label = trim((string) ($stat['product_name'] ?? $stat['product_code'] ?? $referenceKey));
                     $refno = trim((string) ($stat['ref_doc'] ?? ''));
-                    return 'Qty referensi SO untuk item '.$label.($refno !== '' ? ' pada '.$refno : '').' melebihi qty yang masih tersedia.';
+                    return 'Jumlah untuk item '.$label.($refno !== '' ? ' dari referensi '.$refno : '').' melebihi sisa yang tersedia.';
                 }
             }
         }
@@ -1102,7 +1103,7 @@ class InvoiceController extends Controller
                 if ((float) $qtyKecil - $available > 0.000001) {
                     $label = trim((string) ($stat['product_name'] ?? $stat['product_code'] ?? $referenceKey));
                     $refno = trim((string) ($stat['ref_doc'] ?? ''));
-                    return 'Qty referensi SRJ untuk item '.$label.($refno !== '' ? ' pada '.$refno : '').' melebihi qty yang masih tersedia.';
+                    return 'Jumlah untuk item '.$label.($refno !== '' ? ' dari referensi '.$refno : '').' melebihi sisa yang tersedia.';
                 }
             }
         }
@@ -1118,7 +1119,7 @@ class InvoiceController extends Controller
                 if ((float) ($soStats[$referenceKey]['used_qty_kecil'] ?? 0) > 0) {
                     $refNo = trim((string) ($soStats[$referenceKey]['ref_doc'] ?? ''));
                     $transactionNo = trim((string) ($soStats[$referenceKey]['used_by_transaction'] ?? ''));
-                    return 'Nomor referensi '.$refNo.' sudah pernah dibuat di transaksi nomor '.$transactionNo.'.';
+                    return 'Referensi '.$refNo.' sudah dipakai di transaksi '.$transactionNo.'.';
                 }
             }
         }
@@ -1129,7 +1130,7 @@ class InvoiceController extends Controller
                 if ((float) ($srjStats[$referenceKey]['used_qty_kecil'] ?? 0) > 0) {
                     $refNo = trim((string) ($srjStats[$referenceKey]['ref_doc'] ?? ''));
                     $transactionNo = trim((string) ($srjStats[$referenceKey]['used_by_transaction'] ?? ''));
-                    return 'Nomor referensi '.$refNo.' sudah pernah dibuat di transaksi nomor '.$transactionNo.'.';
+                    return 'Referensi '.$refNo.' sudah dipakai di transaksi '.$transactionNo.'.';
                 }
             }
         }
@@ -1754,7 +1755,7 @@ class InvoiceController extends Controller
         $hasUM = in_array('UM', $itemCodes);
         if ($hasUM && $typeSales === 0) {
 
-            return back()->withInput()->with('error', 'Produk Uang Muka (UM) hanya diperbolehkan untuk tipe transaksi Uang Muka.');
+            return back()->withInput()->with('error', 'Produk UM hanya bisa dipakai pada transaksi Uang Muka.');
         }
 
         // Ambil data produk masal
@@ -1787,11 +1788,11 @@ class InvoiceController extends Controller
 
             if (! $product) {
 
-                return back()->withInput()->with('error', "Data produk [{$code}] tidak ditemukan.");
+                return back()->withInput()->with('error', "Produk {$code} tidak ditemukan.");
             }
 
             if ($product->fdiscontinue == '1') {
-                return back()->withInput()->with('error', "Produk [{$code}] {$product->fprdname} Sudah Discontinue.");
+                return back()->withInput()->with('error', "Produk {$product->fprdname} sudah tidak tersedia.");
             }
 
             // Konversi Satuan
@@ -1935,8 +1936,8 @@ class InvoiceController extends Controller
 
             return redirect()->route('invoice.index')->with('success', "Faktur Penjualan {$header->fsono} berhasil diperbarui.");
         } catch (\Exception $e) {
-
-            return back()->withInput()->with('error', 'Gagal update: '.$e->getMessage());
+            report($e);
+            return back()->withInput()->with('error', 'Gagal update. Periksa kembali data yang diisi.');
         }
     }
 
@@ -2083,7 +2084,8 @@ class InvoiceController extends Controller
             return redirect()->route('invoice.index')->with('success', 'Data Faktur Penjualan '.$invoice->fsono.' berhasil dihapus.');
         } catch (\Exception $e) {
             // Jika terjadi kesalahan saat menghapus, kembali ke halaman delete dengan pesan error
-            return redirect()->route('invoice.delete', $ftranmtid)->with('error', 'Gakey: gal menghapus data: '.$e->getMessage());
+            report($e);
+            return redirect()->route('invoice.delete', $ftranmtid)->with('error', 'Gagal menghapus data. Silakan coba lagi.');
         }
     }
 
