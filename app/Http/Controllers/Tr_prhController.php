@@ -139,7 +139,7 @@ class Tr_prhController extends Controller
                 $query->skip($start)->take($length);
             }
 
-            $records = $query->get(['fprhid', 'fprno', 'fprdate', 'fsupplier', 'fusercreate', 'fuserupdate', 'fclose', 'fapproval', 'fapproval2', 'mssupplier.fsuppliername']);
+            $records = $query->get(['fprhid', 'fprno', 'fprdate', 'fsupplier', 'fusercreate', 'fuserupdate', 'fprdin', 'fclose', 'fapproval', 'fapproval2', 'mssupplier.fsuppliername']);
 
             $data = $records->map(function ($record) {
                 return [
@@ -148,7 +148,8 @@ class Tr_prhController extends Controller
                     'fsuppliername' => $record->fsuppliername,
                     'display_user' => $record->fuserupdate ?: $record->fusercreate,
                     'fuserupdate' => $record->fuserupdate,
-                    'fclose' => $record->fclose == '1' ? 'Done' : 'Not Done',
+                    'fprdin' => (string) ($record->fprdin ?? '0'),
+                    'fclose' => (string) ($record->fclose ?? '0'),
                     'fprhid' => $record->fprhid,
                     'fapproval' => $record->fapproval,
                     'fapproval2' => $record->fapproval2,

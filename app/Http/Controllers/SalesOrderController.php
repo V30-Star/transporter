@@ -281,7 +281,24 @@ class SalesOrderController extends Controller
                 ->leftJoin('mscustomer as c', function ($join) {
                     $join->on(DB::raw('TRIM(trsomt.fcustno)'), '=', DB::raw('TRIM(c.fcustomercode)'));
                 })
-                ->select('trsomt.*', 'c.fcustomername');
+                ->select(
+                    'trsomt.*',
+                    'c.fcustomername',
+                    DB::raw("
+                        CASE
+                            WHEN NULLIF(TRIM(COALESCE(trsomt.frefno, '')), '') IS NOT NULL
+                                AND EXISTS (
+                                    SELECT 1
+                                    FROM trsomt so2
+                                    WHERE TRIM(COALESCE(so2.fcustno, '')) = TRIM(COALESCE(trsomt.fcustno, ''))
+                                      AND TRIM(COALESCE(so2.frefno, '')) = TRIM(COALESCE(trsomt.frefno, ''))
+                                      AND so2.ftrsomtid <> trsomt.ftrsomtid
+                                )
+                            THEN 'Yes'
+                            ELSE 'No'
+                        END AS frefno_confirm
+                    ")
+                );
 
             $totalRecords = SalesOrderHeader::count();
 
@@ -327,6 +344,7 @@ class SalesOrderController extends Controller
                         ? $row->fsodate->format('Y-m-d')
                         : $row->fsodate,
                     'frefno' => $row->frefno ?? '',
+                    'frefno_confirm' => $row->frefno_confirm ?? 'No',
                     'fcustno' => $row->fcustno ?? '',
                     'fsalesman' => $row->fsalesman,
                     'fdiscpersen' => $row->fdiscpersen,

@@ -2,6 +2,7 @@
 
 namespace App\Support;
 
+use Illuminate\Database\Eloquent\Builder as EloquentBuilder;
 use Illuminate\Database\Query\Builder;
 
 class ApprovalState
@@ -118,7 +119,7 @@ class ApprovalState
         return "(({$left}) IN ('0', '1') OR ({$right}) IN ('0', '1')) AND ({$left}) <> '2' AND ({$right}) <> '2'";
     }
 
-    public static function applyApprovedFilter(Builder $query, string $prefix = ''): Builder
+    public static function applyApprovedFilter(EloquentBuilder|Builder $query, string $prefix = ''): EloquentBuilder|Builder
     {
         return $query->whereRaw(self::approvedSql($prefix));
     }

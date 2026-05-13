@@ -813,7 +813,6 @@ class InvoiceController extends Controller
             }
 
             $product = $products->get($code);
-            $fprdcodeid = $product ? $product->fprdid : null;
 
             $qtyKecil = $qty;
             if ($product && ($satuans[$i] ?? '') === $product->fsatuanbesar) {

@@ -83,6 +83,7 @@
                     <th class="border px-2 py-1">{{ "No.Ref" }}</th>
                     <th class="border px-2 py-1">{{ "Nama Customer" }}</th>
                     <th class="border px-2 py-1">{{ "Nilai SO" }}</th>
+                    <th class="border px-2 py-1">{{ "Status" }}</th>
                     <th class="border px-2 py-1">{{ "User Id" }}</th>
                     @if ($showActionsColumn)
                         <th class="border px-2 py-1 col-aksi">{{ "Aksi" }}</th>
@@ -352,6 +353,25 @@
                 return left === '1' || right === '1';
             };
 
+            const renderSoStatus = (row) => {
+                const closeValue = (row?.fclose ?? '').toString().trim();
+                const outValue = (row?.fprdout ?? '').toString().trim();
+
+                if (closeValue === '1') {
+                    return '<span class="inline-flex items-center rounded-full bg-slate-200 px-2 py-1 text-xs font-semibold text-slate-700">CLOSE</span>';
+                }
+
+                if (outValue === '1') {
+                    return '<span class="inline-flex items-center rounded-full bg-green-100 px-2 py-1 text-xs font-semibold text-green-700">DONE</span>';
+                }
+
+                if (outValue === '2') {
+                    return '<span class="inline-flex items-center rounded-full bg-amber-100 px-2 py-1 text-xs font-semibold text-amber-700">PARTIAL</span>';
+                }
+
+                return '<span class="inline-flex items-center rounded-full bg-blue-100 px-2 py-1 text-xs font-semibold text-blue-700">Open</span>';
+            };
+
             window.showSoApprovalLocked = function() {
                 const message = 'Sales Order belum dapat diedit karena status approval saat ini belum mengizinkan edit.';
                 if (window.Swal?.fire) {
@@ -383,7 +403,16 @@
                 },
                 {
                     data: 'frefno', // ← UBAH DARI fsono JADI frefno
-                    name: 'frefno'
+                    name: 'frefno',
+                    render: function(data, type, row) {
+                        if (type !== 'display') {
+                            return data;
+                        }
+
+                        return (row?.frefno_confirm ?? data ?? '').toString().trim().toLowerCase() === 'yes'
+                            ? '<span class="inline-flex items-center rounded-full bg-amber-100 px-2 py-1 text-xs font-semibold text-amber-700">Yes</span>'
+                            : '<span class="inline-flex items-center rounded-full bg-slate-100 px-2 py-1 text-xs font-semibold text-slate-700">No</span>';
+                    }
                 },
                 {
                     data: 'fcustomername',
@@ -395,6 +424,17 @@
                     render: function(data) {
                         // Format currency jika perlu
                         return new Intl.NumberFormat('id-ID', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(data);
+                    }
+                },
+                {
+                    data: 'fclose',
+                    name: 'fclose',
+                    render: function(data, type, row) {
+                        if (type !== 'display') {
+                            return data;
+                        }
+
+                        return renderSoStatus(row);
                     }
                 },
                 {
@@ -602,4 +642,3 @@
         });
     </script>
 @endpush
-

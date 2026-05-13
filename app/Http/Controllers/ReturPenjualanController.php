@@ -500,7 +500,6 @@ class ReturPenjualanController extends Controller
                 return back()->withInput()->with('error', "Produk [{$code}] {$product->fprdname} Sudah Discontinue.");
             }
 
-            $fprdcodeid = $product?->fprdid;
             $qtyKecil = $qty;
             if ($product && isset($satuans[$i]) && $satuans[$i] === $product->fsatuanbesar) {
                 $qtyKecil = $qty * (float) $product->rasio_konversi;
@@ -1167,7 +1166,6 @@ class ReturPenjualanController extends Controller
 
         $returpenjualan = Tranmt::with(['customer', 'details' => function ($q) {
             $q->leftJoin('msprd', function ($j) {
-                // Gunakan trandt.fprdcodeid karena sudah integer (tidak perlu CAST lagi)
                 $j->on('msprd.fprdcode', '=', 'trandt.fprdcode');
             })
                 ->select(
@@ -1311,7 +1309,6 @@ class ReturPenjualanController extends Controller
 
         $returpenjualan = Tranmt::with(['customer', 'details' => function ($q) {
             $q->leftJoin('msprd', function ($j) {
-                // Gunakan trandt.fprdcodeid karena sudah integer (tidak perlu CAST lagi)
                 $j->on('msprd.fprdcode', '=', 'trandt.fprdcode');
             })
                 ->select(
@@ -1351,8 +1348,8 @@ class ReturPenjualanController extends Controller
 
             return [
                 'uid' => $d->ftrandtid,
-                'fitemcode' => (string) ($d->fitemcode ?? ''),  // dari alias msprd.fprdcodeid
-                'fitemname' => (string) ($d->fprdname ?? ''),   // dari msprd.fprdname
+                'fitemcode' => (string) ($d->fitemcode ?? ''),
+                'fitemname' => (string) ($d->fprdname ?? ''),
                 'fsatuan' => (string) ($d->fsatuan ?? ''),
                 'frefdtno' => (string) ($d->frefdtno ?? ''),
                 'fqty' => (float) ($d->fqty ?? 0),
@@ -1474,7 +1471,7 @@ class ReturPenjualanController extends Controller
                 ?: ($header->frefcode ?? '');  // fallback dari DB jika kosong
         }
 
-        // Ambil mapping produk untuk mendapatkan fprdcodeid dan rasio
+        // Ambil mapping produk untuk mendapatkan rasio satuan
         $products = DB::table('msprd')
             ->whereIn('fprdcode', array_filter($itemCodes))
             ->get(['fprdid', 'fprdcode', 'fsatuanbesar', 'fqtykecil as rasio_konversi'])
@@ -1508,8 +1505,6 @@ class ReturPenjualanController extends Controller
             }
 
             $product = $products->get($code);
-            $fprdcodeid = $product?->fprdid;
-
             $qtyKecil = $qty;
             if ($product && isset($satuans[$i]) && $satuans[$i] === $product->fsatuanbesar) {
                 $qtyKecil = $qty * (float) $product->rasio_konversi;
@@ -1731,7 +1726,6 @@ class ReturPenjualanController extends Controller
 
         $returpenjualan = Tranmt::with(['customer', 'details' => function ($q) {
             $q->leftJoin('msprd', function ($j) {
-                // Gunakan trandt.fprdcodeid karena sudah integer (tidak perlu CAST lagi)
                 $j->on('msprd.fprdcode', '=', 'trandt.fprdcode');
             })
                 ->select(
@@ -1772,7 +1766,7 @@ class ReturPenjualanController extends Controller
 
             return [
                 'uid' => $d->ftrandtid,
-                'fitemcode' => (string) ($d->fitemcode ?? ''),  // dari alias msprd.fprdcodeid
+                'fitemcode' => (string) ($d->fitemcode ?? ''),
                 'fitemname' => (string) ($d->fprdname ?? ''),   // dari msprd.fprdname
                 'fsatuan' => (string) ($d->fsatuan ?? ''),
                 'frefdtno' => (string) ($d->frefdtno ?? ''),
