@@ -119,7 +119,7 @@
         #tr_prhTable th:last-child,
         #tr_prhTable td:last-child {
             white-space: nowrap;
-            text-align: center;
+            text-align: right;
         }
 
         #tr_prhTable td:last-child {

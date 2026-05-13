@@ -65,22 +65,22 @@
                         <td class="border px-2 py-1">{{ $item->fnonactive }}</td>
 
                         @if ($showActionsColumn)
-                            <td class="border px-2 py-1 space-x-2 text-center">
+                            <td class="border px-2 py-1 space-x-1.5 text-right">
                                 <a href="{{ route('rekening.view', $item->frekeningid) }}">
-                                    <button class="inline-flex items-center bg-slate-500 text-white px-4 py-2 rounded hover:bg-slate-600">
+                                    <button class="inline-flex items-center bg-slate-500 text-white px-3 py-1.5 text-xs rounded hover:bg-slate-600">
                                         <x-heroicon-o-pencil-square class="w-4 h-4 mr-1" /> View
                                     </button>
                                 </a>
                                 @if ($canEdit)
                                     <a href="{{ route('rekening.edit', $item->frekeningid) }}">
-                                        <button class="inline-flex items-center bg-yellow-500 text-white px-4 py-2 rounded hover:bg-yellow-600">
+                                        <button class="inline-flex items-center bg-yellow-500 text-white px-3 py-1.5 text-xs rounded hover:bg-yellow-600">
                                             <x-heroicon-o-pencil-square class="w-4 h-4 mr-1" /> Edit
                                         </button>
                                     </a>
                                 @endif
                                 @if ($canDelete)
                                     <a href="{{ route('rekening.delete', $item->frekeningid) }}"
-                                        class="inline-flex items-center bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700">
+                                        class="inline-flex items-center bg-red-600 text-white px-3 py-1.5 text-xs rounded hover:bg-red-700">
                                         <x-heroicon-o-trash class="w-4 h-4 mr-1" /> Hapus
                                     </a>
                                 @endif
