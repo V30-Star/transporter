@@ -320,6 +320,7 @@
 
                                         <td class="p-2">
                                             <input type="text" class="border rounded px-2 py-1 w-full text-sm"
+                                                maxlength="50"
                                                 x-model="it.fketdt" :id="'ket_saved_' + i" @focus="activeRow = it.uid"
                                                 @blur="activeRow = null" @keydown.enter.prevent="focusDraftCode()">
                                         </td>
@@ -400,6 +401,7 @@
 
                                     <td class="p-2">
                                         <input type="text" class="border rounded px-2 py-1 w-full text-sm"
+                                            maxlength="50"
                                             x-model="draft.fketdt" x-ref="draftKet"
                                             @keydown.enter.prevent="addIfComplete()">
                                     </td>
@@ -861,8 +863,37 @@
 
     // ── itemsTable ────────────────────────────────────────────────────────────
     function itemsTable() {
+        const oldDetailPayload = {
+            codes: @json(old('fitemcode', [])),
+            units: @json(old('fsatuan', [])),
+            qtys: @json(old('fqty', [])),
+            noacaks: @json(old('fnoacak', [])),
+            descs: @json(old('fdesc', [])),
+            ketdts: @json(old('fketdt', []))
+        };
+
+        const oldSavedItems = (oldDetailPayload.codes || []).map((code, idx) => ({
+            uid: cryptoRandom(),
+            fitemcode: (code || '').toString(),
+            fitemname: '',
+            fnoacak: (oldDetailPayload.noacaks?.[idx] || '').toString(),
+            units: [],
+            fsatuan: (oldDetailPayload.units?.[idx] || '').toString(),
+            fqty: Number(oldDetailPayload.qtys?.[idx] || 0),
+            fdesc: (oldDetailPayload.descs?.[idx] || '').toString(),
+            fketdt: (oldDetailPayload.ketdts?.[idx] || '').toString(),
+            maxqty: 0,
+            fqtypo: 0,
+        })).filter(row =>
+            row.fitemcode.trim() !== '' ||
+            row.fsatuan.trim() !== '' ||
+            Number(row.fqty) > 0 ||
+            row.fdesc.trim() !== '' ||
+            row.fketdt.trim() !== ''
+        );
+
         return {
-            savedItems: [],
+            savedItems: oldSavedItems,
             activeRow: null,
             browseTarget: 'draft',
             showDescModal: false,
@@ -1307,4 +1338,3 @@
         }
     </script>
 @endpush
-

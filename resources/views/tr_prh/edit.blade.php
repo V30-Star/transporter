@@ -537,6 +537,7 @@
                                             </td>
                                             <td class="p-2">
                                                 <input type="text" class="w-full border rounded px-2 py-1"
+                                                    maxlength="50"
                                                     x-model="it.fketdt" :disabled="blockedByPO"
                                                     @focus="activeRow = it.uid" @blur="activeRow = null">
                                             </td>
@@ -614,6 +615,7 @@
                                         <td class="p-2 text-right">-</td>
                                         <td class="p-2">
                                             <input type="text" class="w-full border rounded px-2 py-1"
+                                                maxlength="50"
                                                 x-model="draft.fketdt" @keydown.enter.prevent="addIfComplete()">
                                         </td>
                                         <td class="p-2 text-center">
@@ -1158,7 +1160,38 @@
 
         function itemsTable() {
             // Hydrate savedItems BEFORE passing to Alpine
-            const rawItems = @json($savedItems ?? []);
+            const oldDetailPayload = {
+                ids: @json(old('fprdid', [])),
+                codes: @json(old('fitemcode', [])),
+                units: @json(old('fsatuan', [])),
+                qtys: @json(old('fqty', [])),
+                qtypos: @json(old('fqtypo', [])),
+                noacaks: @json(old('fnoacak', [])),
+                descs: @json(old('fdesc', [])),
+                ketdts: @json(old('fketdt', []))
+            };
+
+            const oldItems = (oldDetailPayload.codes || []).map((code, idx) => ({
+                uid: cryptoRandom(),
+                fprdid: Number(oldDetailPayload.ids?.[idx] || 0),
+                fitemcode: (code || '').toString(),
+                fitemname: '',
+                fnoacak: (oldDetailPayload.noacaks?.[idx] || '').toString(),
+                units: [],
+                fsatuan: (oldDetailPayload.units?.[idx] || '').toString(),
+                fqty: Number(oldDetailPayload.qtys?.[idx] || 0),
+                fdesc: (oldDetailPayload.descs?.[idx] || '').toString(),
+                fketdt: (oldDetailPayload.ketdts?.[idx] || '').toString(),
+                fqtypo: Number(oldDetailPayload.qtypos?.[idx] || 0)
+            })).filter(row =>
+                row.fitemcode.trim() !== '' ||
+                row.fsatuan.trim() !== '' ||
+                Number(row.fqty) > 0 ||
+                row.fdesc.trim() !== '' ||
+                row.fketdt.trim() !== ''
+            );
+
+            const rawItems = oldItems.length > 0 ? oldItems : @json($savedItems ?? []);
 
             const hydratedItems = rawItems.map(it => {
                 const code = (it.fitemcode || '').trim();
@@ -1412,4 +1445,3 @@
         }
     </script>
 @endpush
-
