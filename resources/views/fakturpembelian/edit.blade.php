@@ -150,6 +150,55 @@
         $ppnMode = old('fincludeppn', $fakturpembelian->fincludeppn ?? 0);
         $ppnRate = old('ppn_rate', $fakturpembelian->fppnpersen ?? 11);
         $usageLocked = !empty($isUsageLocked);
+        $oldItemNames = old('fitemname', []);
+        $oldCodes = old('fitemcode', []);
+        $oldSatuans = old('fsatuan', []);
+        $oldRefDtnos = old('frefdtno', []);
+        $oldRefDtids = old('frefdtid', []);
+        $oldRefNoAcaks = old('frefnoacak', []);
+        $oldSources = old('fsource', []);
+        $oldFnourefs = old('fnouref', []);
+        $oldRefprs = old('frefpr', []);
+        $oldQtys = old('fqty', []);
+        $oldPrices = old('fprice', []);
+        $oldBiayas = old('fbiaya', []);
+        $oldDiscs = old('fdiscpersen', []);
+        $oldTotals = old('ftotal', []);
+        $oldDescs = old('fdesc', []);
+        $oldKetdts = old('fketdt', []);
+        $initialEditFakturItems = [];
+
+        $oldRowCount = count($oldCodes);
+        for ($i = 0; $i < $oldRowCount; $i++) {
+            $code = trim((string) ($oldCodes[$i] ?? ''));
+            if ($code === '') {
+                continue;
+            }
+
+            $initialEditFakturItems[] = [
+                'uid' => 'old-edit-'.$i,
+                'fitemcode' => $code,
+                'fitemname' => (string) ($oldItemNames[$i] ?? ''),
+                'fsatuan' => (string) ($oldSatuans[$i] ?? ''),
+                'frefdtno' => (string) ($oldRefDtnos[$i] ?? ''),
+                'frefdtid' => $oldRefDtids[$i] ?? null,
+                'frefnoacak' => (string) ($oldRefNoAcaks[$i] ?? ''),
+                'fsource' => (string) ($oldSources[$i] ?? ''),
+                'fnouref' => (string) ($oldFnourefs[$i] ?? ''),
+                'frefpr' => (string) ($oldRefprs[$i] ?? ''),
+                'fqty' => (float) ($oldQtys[$i] ?? 0),
+                'fprice' => (float) ($oldPrices[$i] ?? 0),
+                'fbiaya' => (float) ($oldBiayas[$i] ?? 0),
+                'fdiscpersen' => (float) ($oldDiscs[$i] ?? 0),
+                'ftotprice' => (float) ($oldTotals[$i] ?? 0),
+                'fdesc' => (string) ($oldDescs[$i] ?? ''),
+                'fketdt' => (string) ($oldKetdts[$i] ?? ''),
+                'units' => [],
+                'maxqty' => 0,
+                'lockQty' => false,
+                'hideQtyLimitHint' => false,
+            ];
+        }
     @endphp
 
     @if ($usageLocked)
@@ -2062,7 +2111,7 @@
         function itemsTable() {
             return {
                 showNoItems: false,
-                savedItems: @json($savedItems),
+                savedItems: @json(count($initialEditFakturItems) ? $initialEditFakturItems : $savedItems),
                 draft: newRow(),
                 activeRow: null,
                 browseIndex: null,
@@ -3312,4 +3361,3 @@
             });
         </script>
     @endpush
-

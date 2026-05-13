@@ -102,6 +102,44 @@
     @endif
     @php
         $usageLocked = !empty($isUsageLocked);
+        $oldItemCodes = old('fitemcode', []);
+        $oldItemNames = old('fitemname', []);
+        $oldSatuans = old('fsatuan', []);
+        $oldRefDtNos = old('frefdtno', []);
+        $oldRefDtIds = old('frefdtid', []);
+        $oldNoAcaks = old('fnoacak', []);
+        $oldRefNoAcaks = old('frefnoacak', []);
+        $oldPonos = old('fpono', []);
+        $oldNoUrefs = old('fnouref', []);
+        $oldRefPrs = old('frefpr', []);
+        $oldPrhIds = old('fprhid', []);
+        $oldQtys = old('fqty', []);
+        $oldPrices = old('fprice', []);
+        $oldTotals = old('ftotal', []);
+        $oldDescs = old('fdesc', []);
+        $oldKetdts = old('fketdt', []);
+        $initialEditPenerimaanItems = [];
+
+        foreach ($oldItemCodes as $index => $itemCode) {
+            $initialEditPenerimaanItems[] = [
+                'fitemcode' => $itemCode,
+                'fitemname' => $oldItemNames[$index] ?? '',
+                'fsatuan' => $oldSatuans[$index] ?? '',
+                'frefdtno' => $oldRefDtNos[$index] ?? '',
+                'frefdtid' => $oldRefDtIds[$index] ?? '',
+                'fnoacak' => $oldNoAcaks[$index] ?? '',
+                'frefnoacak' => $oldRefNoAcaks[$index] ?? '',
+                'fpono' => $oldPonos[$index] ?? '',
+                'fnouref' => $oldNoUrefs[$index] ?? '',
+                'frefpr' => $oldRefPrs[$index] ?? '',
+                'fprhid' => $oldPrhIds[$index] ?? '',
+                'fqty' => $oldQtys[$index] ?? 0,
+                'fprice' => $oldPrices[$index] ?? 0,
+                'ftotal' => $oldTotals[$index] ?? 0,
+                'fdesc' => $oldDescs[$index] ?? '',
+                'fketdt' => $oldKetdts[$index] ?? '',
+            ];
+        }
     @endphp
     @if ($usageLocked)
         <div x-data="{ open: true }" x-show="open" x-cloak class="fixed inset-0 z-[99] flex items-center justify-center"
@@ -972,7 +1010,7 @@
                 ppnMode: 0,
                 ppnRate: 11,
                 // â”€â”€ Diisi dari DB (perbedaan utama vs create) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-                savedItems: @json($savedItems),
+                savedItems: @json(count($initialEditPenerimaanItems) ? $initialEditPenerimaanItems : $savedItems),
                 draft: newRow(),
                 activeRow: null,
                 browseTarget: 'draft',
@@ -1731,8 +1769,6 @@
         });
     </script>
 @endpush
-
-
 
 
 

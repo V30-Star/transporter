@@ -3,6 +3,55 @@
 @section('title', "Sales Order")
 
 @section('content')
+    @php
+        $oldSoItemCodes = old('fitemcode', []);
+        $oldSoItemNames = old('fitemname', []);
+        $oldSoUnits = old('fsatuan', []);
+        $oldSoRefNos = old('frefdtno', []);
+        $oldSoNouRefs = old('fnouref', []);
+        $oldSoRefPrs = old('frefpr', []);
+        $oldSoNoAcaks = old('fnoacak', []);
+        $oldSoQtys = old('fqty', []);
+        $oldSoTerimas = old('fterima', []);
+        $oldSoPrices = old('fprice', []);
+        $oldSoDiscs = old('fdisc', []);
+        $oldSoTotals = old('ftotal', []);
+        $oldSoDescs = old('fdesc', []);
+        $oldSoKetdts = old('fketdt', []);
+        $initialSalesOrderItems = [];
+
+        foreach ($oldSoItemCodes as $index => $itemCode) {
+            $code = trim((string) $itemCode);
+            $name = trim((string) ($oldSoItemNames[$index] ?? ''));
+            if ($code === '' && $name === '') {
+                continue;
+            }
+
+            $unit = trim((string) ($oldSoUnits[$index] ?? ''));
+            $refPr = trim((string) ($oldSoRefPrs[$index] ?? ''));
+            $refDtNo = trim((string) ($oldSoRefNos[$index] ?? ''));
+
+            $initialSalesOrderItems[] = [
+                'uid' => 'old-so-' . $index,
+                'fprdcode' => $code,
+                'fitemname' => $name,
+                'units' => $unit !== '' ? [$unit] : [],
+                'fsatuan' => $unit,
+                'fnoacak' => trim((string) ($oldSoNoAcaks[$index] ?? '')),
+                'frefdtno' => $refDtNo,
+                'fnouref' => trim((string) ($oldSoNouRefs[$index] ?? '')),
+                'frefpr' => $refPr,
+                'fqty' => (float) ($oldSoQtys[$index] ?? 0),
+                'fterima' => (float) ($oldSoTerimas[$index] ?? 0),
+                'fprice' => (float) ($oldSoPrices[$index] ?? 0),
+                'fdisc' => $oldSoDiscs[$index] ?? 0,
+                'ftotal' => (float) ($oldSoTotals[$index] ?? 0),
+                'fdesc' => (string) ($oldSoDescs[$index] ?? ''),
+                'fketdt' => (string) ($oldSoKetdts[$index] ?? ''),
+                'frefno_display' => $refPr !== '' ? $refPr : $refDtNo,
+            ];
+        }
+    @endphp
     <link href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <style>
@@ -719,7 +768,7 @@
     function itemsTable() {
         return {
             showNoItems: false,
-            savedItems: [],
+            savedItems: @json($initialSalesOrderItems),
             draft: newRow(),
 
             totalHarga: 0,
@@ -1391,4 +1440,3 @@
 
     </script>
 @endpush
-

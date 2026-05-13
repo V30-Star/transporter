@@ -192,6 +192,46 @@
             $num = (float) ($value ?? 0);
             return number_format($num, 2, ',', '.');
         };
+        $oldItemCodes = old('fitemcode', []);
+        $oldItemNames = old('fitemname', []);
+        $oldSatuans = old('fsatuan', []);
+        $oldRefDtNos = old('frefdtno', []);
+        $oldRefDtIds = old('frefdtid', []);
+        $oldNoUrefs = old('fnouref', []);
+        $oldNoAcaks = old('fnoacak', []);
+        $oldRefNoAcaks = old('frefnoacak', []);
+        $oldRefPrs = old('frefpr', []);
+        $oldPrhIds = old('fprhid', []);
+        $oldPrNos = old('fprno', []);
+        $oldQtys = old('fqty', []);
+        $oldPrices = old('fprice', []);
+        $oldDiscs = old('fdisc', []);
+        $oldTotals = old('ftotal', []);
+        $oldDescs = old('fdesc', []);
+        $oldKetdts = old('fketdt', []);
+        $initialEditPoItems = [];
+
+        foreach ($oldItemCodes as $index => $itemCode) {
+            $initialEditPoItems[] = [
+                'fitemcode' => $itemCode,
+                'fitemname' => $oldItemNames[$index] ?? '',
+                'fsatuan' => $oldSatuans[$index] ?? '',
+                'frefdtno' => $oldRefDtNos[$index] ?? '',
+                'frefdtid' => $oldRefDtIds[$index] ?? '',
+                'fnouref' => $oldNoUrefs[$index] ?? '',
+                'fnoacak' => $oldNoAcaks[$index] ?? '',
+                'frefnoacak' => $oldRefNoAcaks[$index] ?? '',
+                'frefpr' => $oldRefPrs[$index] ?? '',
+                'fprhid' => $oldPrhIds[$index] ?? '',
+                'fprno' => $oldPrNos[$index] ?? '',
+                'fqty' => $oldQtys[$index] ?? 0,
+                'fprice' => $oldPrices[$index] ?? 0,
+                'fdisc' => $oldDiscs[$index] ?? 0,
+                'ftotal' => $oldTotals[$index] ?? 0,
+                'fdesc' => $oldDescs[$index] ?? '',
+                'fketdt' => $oldKetdts[$index] ?? '',
+            ];
+        }
     @endphp
 
     <div class="bg-white rounded shadow p-6 md:p-8 max-w-[96rem] mx-auto" x-data="mainForm()"
@@ -1238,7 +1278,7 @@
             includePPN: {{ (int) old('fapplyppn', $tr_poh->fapplyppn ?? 0) === 1 ? 'true' : 'false' }},
             ppnMode: {{ old('ppn_mode', $tr_poh->fincludeppn ?? 0) }},
             ppnRate: {{ old('ppn_rate', $tr_poh->fppnpersen ?? 11) }},
-            savedItems: @json($savedItems ?? []),
+            savedItems: @json(count($initialEditPoItems) ? $initialEditPoItems : ($savedItems ?? [])),
             draft: null,
             activeRow: null,
             browseTarget: 'draft',
@@ -1987,5 +2027,3 @@
         @include('components.transaction.browse-product-script')
     @endif
 @endpush
-
-

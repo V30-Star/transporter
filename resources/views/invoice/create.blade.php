@@ -3,6 +3,65 @@
 @section('title', "Faktur Penjualan")
 
 @section('content')
+    @php
+        $oldInvoiceItemCodes = old('fitemcode', []);
+        $oldInvoiceItemNames = old('fitemname', []);
+        $oldInvoiceUnits = old('fsatuan', []);
+        $oldInvoiceRefCodes = old('frefcode', []);
+        $oldInvoiceRefNos = old('frefdtno', []);
+        $oldInvoiceNouRefs = old('fnouref', []);
+        $oldInvoiceRefPrs = old('frefpr', []);
+        $oldInvoiceRefSos = old('frefso', []);
+        $oldInvoiceRefSrjs = old('frefsrj', []);
+        $oldInvoiceNoAcaks = old('fnoacak', []);
+        $oldInvoiceRefNoAcaks = old('frefnoacak', []);
+        $oldInvoiceQtys = old('fqty', []);
+        $oldInvoiceTerimas = old('fterima', []);
+        $oldInvoicePrices = old('fprice', []);
+        $oldInvoiceDiscs = old('fdisc', []);
+        $oldInvoiceTotals = old('ftotal', []);
+        $oldInvoiceDescs = old('fdesc', []);
+        $oldInvoiceKetdts = old('fketdt', []);
+        $initialInvoiceItems = [];
+
+        foreach ($oldInvoiceItemCodes as $index => $itemCode) {
+            $code = trim((string) $itemCode);
+            $name = trim((string) ($oldInvoiceItemNames[$index] ?? ''));
+            if ($code === '' && $name === '') {
+                continue;
+            }
+
+            $unit = trim((string) ($oldInvoiceUnits[$index] ?? ''));
+            $refSo = trim((string) ($oldInvoiceRefSos[$index] ?? ''));
+            $refSrj = trim((string) ($oldInvoiceRefSrjs[$index] ?? ''));
+            $refDtNo = trim((string) ($oldInvoiceRefNos[$index] ?? ''));
+
+            $initialInvoiceItems[] = [
+                'uid' => 'old-invoice-' . $index,
+                'fitemcode' => $code,
+                'fitemname' => $name,
+                'frefcode' => trim((string) ($oldInvoiceRefCodes[$index] ?? '')),
+                'units' => $unit !== '' ? [$unit] : [],
+                'fsatuan' => $unit,
+                'frefdtno' => $refDtNo,
+                'frefno_display' => $refSrj !== '' ? $refSrj : ($refSo !== '' ? $refSo : $refDtNo),
+                'fnouref' => trim((string) ($oldInvoiceNouRefs[$index] ?? '')),
+                'frefpr' => trim((string) ($oldInvoiceRefPrs[$index] ?? '')),
+                'frefso' => $refSo,
+                'frefsrj' => $refSrj,
+                'fnoacak' => trim((string) ($oldInvoiceNoAcaks[$index] ?? '')),
+                'frefnoacak' => trim((string) ($oldInvoiceRefNoAcaks[$index] ?? '')),
+                'fqty' => (float) ($oldInvoiceQtys[$index] ?? 0),
+                'fterima' => (float) ($oldInvoiceTerimas[$index] ?? 0),
+                'fprice' => (float) ($oldInvoicePrices[$index] ?? 0),
+                'fdisc' => $oldInvoiceDiscs[$index] ?? 0,
+                'ftotal' => (float) ($oldInvoiceTotals[$index] ?? 0),
+                'fdesc' => (string) ($oldInvoiceDescs[$index] ?? ''),
+                'fketdt' => (string) ($oldInvoiceKetdts[$index] ?? ''),
+                'maxqty' => max(0, (float) ($oldInvoiceQtys[$index] ?? 0)),
+            ];
+        }
+    @endphp
     <style>
         input:focus,
         select:focus,
@@ -1377,7 +1436,7 @@
     function itemsTable() {
         return {
             showNoItems: false,
-            savedItems: [],
+            savedItems: @json($initialInvoiceItems),
             draft: newRow(),
             editingIndex: null,
             editRow: newRow(),
@@ -2299,4 +2358,3 @@
     @include('components.transaction.browse-product-script', ['showControls' => true, 'showPagination' => true, 'supportsForEdit' => true])
 
 @endpush
-

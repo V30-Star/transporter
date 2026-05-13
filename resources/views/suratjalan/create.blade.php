@@ -3,6 +3,53 @@
 @section('title', "Surat Jalan")
 
 @section('content')
+    @php
+        $oldSjItemCodes = old('fitemcode', []);
+        $oldSjItemNames = old('fitemname', []);
+        $oldSjUnits = old('fsatuan', []);
+        $oldSjRefNos = old('frefdtno', []);
+        $oldSjRefPrs = old('frefpr', []);
+        $oldSjNoAcaks = old('fnoacak', []);
+        $oldSjRefNoAcaks = old('frefnoacak', []);
+        $oldSjQtys = old('fqty', []);
+        $oldSjPrices = old('fprice', []);
+        $oldSjTotals = old('ftotal', []);
+        $oldSjDescs = old('fdesc', []);
+        $oldSjKetdts = old('fketdt', []);
+        $initialSuratJalanItems = [];
+
+        foreach ($oldSjItemCodes as $index => $itemCode) {
+            $code = trim((string) $itemCode);
+            $name = trim((string) ($oldSjItemNames[$index] ?? ''));
+            if ($code === '' && $name === '') {
+                continue;
+            }
+
+            $unit = trim((string) ($oldSjUnits[$index] ?? ''));
+            $refPr = trim((string) ($oldSjRefPrs[$index] ?? ''));
+            $refDtNo = trim((string) ($oldSjRefNos[$index] ?? ''));
+
+            $initialSuratJalanItems[] = [
+                'uid' => 'old-sj-' . $index,
+                'fitemcode' => $code,
+                'fitemname' => $name,
+                'units' => $unit !== '' ? [$unit] : [],
+                'fsatuan' => $unit,
+                'frefdtno' => $refDtNo,
+                'fnoacak' => trim((string) ($oldSjNoAcaks[$index] ?? '')),
+                'frefnoacak' => trim((string) ($oldSjRefNoAcaks[$index] ?? '')),
+                'frefno_display' => $refPr !== '' ? $refPr : $refDtNo,
+                'frefpr' => $refPr,
+                'frefso' => $refPr,
+                'fqty' => (float) ($oldSjQtys[$index] ?? 0),
+                'fprice' => (float) ($oldSjPrices[$index] ?? 0),
+                'ftotal' => (float) ($oldSjTotals[$index] ?? 0),
+                'fdesc' => (string) ($oldSjDescs[$index] ?? ''),
+                'fketdt' => (string) ($oldSjKetdts[$index] ?? ''),
+                'maxqty' => max(0, (float) ($oldSjQtys[$index] ?? 0)),
+            ];
+        }
+    @endphp
     <style>
         input:focus,
         select:focus,
@@ -695,7 +742,7 @@
     function itemsTable() {
         return {
             showNoItems: false,
-            savedItems: [],
+            savedItems: @json($initialSuratJalanItems),
             draft: newRow(),
             editingIndex: null,
             editRow: newRow(),
@@ -1399,7 +1446,6 @@
         });
     </script>
 @endpush
-
 
 
 
