@@ -837,7 +837,7 @@ class InvoiceController extends Controller
             $totalGross += $subtotal;
             $totalDisc += $discAmount;
 
-            if ($fapplyppn == 0) {
+            if ($fapplyppn == 1) {
                 $fsalesnet = (100 / (100 + $ppnPersen)) * $netPrice;
             } else {
                 $fsalesnet = $netPrice;
