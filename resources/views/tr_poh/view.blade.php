@@ -32,242 +32,23 @@
         @endif
 
         {{-- ================================================================
-             HEADER — semua readonly/disabled
+             HEADER â€” semua readonly/disabled
              ================================================================ --}}
-        <div class="grid grid-cols-1 lg:grid-cols-12 gap-4">
-
-            {{-- Cabang --}}
-            <div class="lg:col-span-4">
-                <label class="block text-sm font-medium">Cabang</label>
-                <input type="text" disabled value="{{ $fcabang }}"
-                    class="w-full border rounded px-3 py-2 bg-gray-100 cursor-not-allowed text-gray-600">
-            </div>
-
-            {{-- PO# --}}
-            <div class="lg:col-span-4">
-                <label class="block text-sm font-medium mb-1">PO#</label>
-                <input type="text" disabled value="{{ $tr_poh->fpono }}"
-                    class="w-full border rounded px-3 py-2 bg-gray-100 cursor-not-allowed text-gray-600">
-            </div>
-
-            {{-- Supplier --}}
-            <div class="lg:col-span-4">
-                <label class="block text-sm font-medium mb-1">Supplier</label>
-                <select disabled class="w-full border rounded px-3 py-2 bg-gray-100 text-gray-600 cursor-not-allowed">
-                    <option value=""></option>
-                    @foreach ($suppliers as $supplier)
-                        <option value="{{ $supplier->fsuppliercode }}"
-                            {{ $tr_poh->fsupplier == $supplier->fsuppliercode ? 'selected' : '' }}>
-                            {{ $supplier->fsuppliername }} ({{ $supplier->fsuppliercode }})
-                        </option>
-                    @endforeach
-                </select>
-            </div>
-
-            {{-- Tanggal --}}
-            <div class="lg:col-span-4">
-                <label class="block text-sm font-medium">Tanggal</label>
-                <input type="date" disabled value="{{ substr($tr_poh->fpodate ?? '', 0, 10) }}"
-                    class="w-full border rounded px-3 py-2 bg-gray-100 cursor-not-allowed text-gray-600">
-            </div>
-
-            {{-- Tgl. Kirim --}}
-            <div class="lg:col-span-4">
-                <label class="block text-sm font-medium">Tgl. Kirim</label>
-                <input type="date" disabled value="{{ substr($tr_poh->fkirimdate ?? '', 0, 10) }}"
-                    class="w-full border rounded px-3 py-2 bg-gray-100 cursor-not-allowed text-gray-600">
-            </div>
-
-            {{-- Tempo --}}
-            <div class="lg:col-span-4">
-                <label class="block text-sm font-medium mb-1">Tempo</label>
-                <div class="flex items-center">
-                    <input type="number" disabled value="{{ $tr_poh->ftempohr ?? 0 }}"
-                        class="w-full border rounded px-3 py-2 bg-gray-100 cursor-not-allowed text-gray-600">
-                    <span class="ml-2 text-sm text-gray-600">Hari</span>
-                </div>
-            </div>
-
-            {{-- Currency --}}
-            <div class="lg:col-span-4">
-                <label class="block text-sm font-medium">Currency</label>
-                <input type="text" disabled value="{{ $currentCurrency->fcurrname ?? ($tr_poh->fcurrency ?? 'IDR') }}"
-                    class="w-full border rounded px-3 py-2 bg-gray-100 cursor-not-allowed text-gray-600">
-            </div>
-
-            {{-- Rate --}}
-            <div class="lg:col-span-4">
-                <label class="block text-sm font-medium">Rate</label>
-                <input type="text" disabled value="{{ number_format($tr_poh->frate ?? 1, 2, ',', '.') }}"
-                    class="w-full border rounded px-3 py-2 bg-gray-100 cursor-not-allowed text-gray-600">
-            </div>
-
-            {{-- Keterangan --}}
-            <div class="lg:col-span-12">
-                <label class="block text-sm font-medium">Keterangan</label>
-                <textarea disabled rows="3" class="w-full border rounded px-3 py-2 bg-gray-100 cursor-not-allowed text-gray-600">{{ $tr_poh->fket }}</textarea>
-            </div>
-        </div>
-
-        {{-- ================================================================
-             DETAIL ITEM — pure readonly
-             ================================================================ --}}
-        <div class="mt-6 space-y-2">
-            <h3 class="text-base font-semibold text-gray-800">Detail Item</h3>
-
-            <div class="overflow-x-auto border rounded">
-                <table class="min-w-full text-sm po-detail-table" data-skip-auto-detail-style="true">
-                    <colgroup>
-                        <col style="width:2%;">
-                        <col style="width:13%;">
-                        <col style="width:24%;">
-                        <col style="width:7%;">
-                        <col style="width:10%;">
-                        <col style="width:7%;">
-                        <col style="width:8%;">
-                        <col style="width:7%;">
-                        <col style="width:5%;">
-                        <col style="width:8%;">
-                        <col style="width:9%;">
-                    </colgroup>
-                    <thead class="bg-gray-100">
-                        <tr>
-                            <th class="p-2 text-left w-10">#</th>
-                            <th class="p-2 text-left w-32">Kode Produk</th>
-                            <th class="p-2 text-left w-[26rem]">Nama Produk</th>
-                            <th class="p-2 text-left w-24">Satuan</th>
-                            <th class="p-2 text-left w-24">Ref.PR#</th>
-                            <th class="p-2 text-right w-24 whitespace-nowrap">Qty</th>
-                            <th class="p-2 text-right w-28 whitespace-nowrap">Qty Terima</th>
-                            <th class="p-2 text-right w-24 whitespace-nowrap">@ Harga</th>
-                            <th class="p-2 text-right w-20 whitespace-nowrap">Disc. %</th>
-                            <th class="p-2 text-right w-24 whitespace-nowrap">Total Harga</th>
-                            <th class="p-2 text-right w-20 whitespace-nowrap">Total Harga (Rp)</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <template x-for="(it, i) in savedItems" :key="it.uid">
-                            <tr class="border-t align-top hover:bg-gray-50">
-                                <td class="p-2 text-gray-500" x-text="i + 1"></td>
-                                <td class="p-2 font-mono text-sm" x-text="it.fitemcode"></td>
-                                <td class="p-2">
-                                    <div class="flex w-full max-w-full">
-                                        <div class="min-w-0 flex-1 rounded-l border bg-gray-100 px-2 py-1 text-sm leading-5 text-gray-600 whitespace-normal break-words" x-text="it.fitemname"></div>
-                                        <button type="button" @click="openDesc(it)"
-                                            class="shrink-0 inline-flex items-center border border-l-0 rounded-r px-2 py-1 transition-colors"
-                                            :class="it.fdesc ? 'border-emerald-300 bg-emerald-50 text-emerald-600 hover:bg-emerald-100' : 'bg-white text-gray-500 hover:bg-gray-50'"
-                                            title="Deskripsi item">
-                                            <x-heroicon-o-document-text class="h-4 w-4" />
-                                        </button>
-                                    </div>
-                                </td>
-                                <td class="p-2 text-sm" x-text="it.fsatuan || '-'"></td>
-                                <td class="p-2 text-sm text-gray-600" x-text="it.fprno || it.frefdtno || '-'"></td>
-                                <td class="p-2 text-right text-sm">
-                                    <div x-text="formatQtyValue(it.fqty)"></div>
-                                </td>
-                                <td class="p-2 text-right text-sm">
-                                    <div x-text="formatQtyValue(it.fqtyterima ?? 0)"></div>
-                                </td>
-                                <td class="p-2 text-right text-sm" x-text="fmtCurr(it.fprice)"></td>
-                                <td class="p-2 text-right text-sm" x-text="it.fdisc"></td>
-                                <td class="p-2">
-                                    <input type="text"
-                                        class="w-full border rounded px-2 py-1 bg-gray-100 text-gray-600 text-sm text-right"
-                                        :value="fmtCurr(it.ftotal)" disabled>
-                                </td>
-                                <td class="p-2">
-                                    <input type="text"
-                                        class="w-full border rounded px-2 py-1 bg-gray-100 text-gray-600 text-sm text-right"
-                                        :value="rupiah(itemTotalRp(it.ftotal))" disabled>
-                                </td>
-                            </tr>
-                        </template>
-
-                        {{-- Empty state --}}
-                        <template x-if="savedItems.length === 0">
-                            <tr>
-                                <td colspan="11" class="p-6 text-center text-gray-400 text-sm">Tidak ada item</td>
-                            </tr>
-                        </template>
-                    </tbody>
-                </table>
-            </div>
-
-            {{-- Panel Totals --}}
-            <div class="mt-3 flex justify-end">
-                <div class="w-[480px] shrink-0">
-                    <div class="rounded-lg border bg-gray-50 p-3 space-y-2 text-sm">
-
-                        <div class="flex items-center justify-between">
-                            <span class="text-gray-600">Total Harga</span>
-                            <span class="font-medium" x-text="fmtCurr(totalHarga)"></span>
-                        </div>
-
-                        <div class="flex items-center gap-2">
-                            <label class="flex items-center gap-1.5 select-none">
-                                <input type="checkbox" disabled x-model="includePPN"
-                                    class="h-4 w-4 text-blue-600 border-gray-300 rounded cursor-not-allowed">
-                                <span class="font-bold">PPN</span>
-                            </label>
-                            <input type="text" disabled :value="ppnMode === 1 ? 'Include' : 'Exclude'"
-                                class="w-28 h-8 px-2 text-xs border rounded bg-gray-100 cursor-not-allowed text-gray-600">
-                            <input type="number" disabled x-model.number="ppnRate"
-                                class="w-16 h-8 px-2 text-xs text-right border rounded bg-gray-100 cursor-not-allowed text-gray-600">
-                            <span class="text-xs text-gray-500">%</span>
-                            <span class="flex-1"></span>
-                            <span class="font-medium text-xs" x-text="fmtCurr(ppnNominal)"></span>
-                        </div>
-
-                        <div class="border-t"></div>
-
-                        <div class="flex items-center justify-between">
-                            <span class="font-semibold text-gray-800">
-                                Grand Total
-                                <span class="text-xs font-normal text-gray-500"
-                                    x-text="selectedCurrCode ? '(' + selectedCurrCode + ')' : ''"></span>
-                            </span>
-                            <span class="font-bold text-blue-700" x-text="fmtCurr(grandTotal)"></span>
-                        </div>
-
-                        <div class="flex items-center justify-between bg-blue-50 rounded px-2 py-1">
-                            <span class="font-semibold text-gray-800">Grand Total (RP)</span>
-                            <span class="font-bold text-emerald-700" x-text="rupiah(grandTotalRp)"></span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div x-show="showDescModal" x-cloak class="fixed inset-0 z-[95] flex items-center justify-center"
-                x-transition.opacity>
-                <div class="absolute inset-0 bg-black/50" @click="closeDesc()"></div>
-                <div class="relative bg-white w-[92vw] max-w-lg rounded-2xl shadow-2xl overflow-hidden"
-                    x-transition.scale>
-                    <div class="px-5 py-4 border-b flex items-center">
-                        <x-heroicon-o-document-text class="w-6 h-6 text-blue-600 mr-2" />
-                        <h3 class="text-lg font-semibold text-gray-800">Deskripsi Item</h3>
-                    </div>
-                    <div class="px-5 py-4 space-y-2">
-                        <label class="block text-sm text-gray-700">Deskripsi</label>
-                        <textarea x-model="descValue" rows="5"
-                            class="w-full border rounded px-3 py-2 bg-gray-100 cursor-not-allowed text-gray-600"
-                            readonly></textarea>
-                    </div>
-                    <div class="px-5 py-3 border-t flex items-center justify-end gap-2">
-                        <button type="button" @click="closeDesc()"
-                            class="h-9 px-4 rounded-lg bg-gray-100 text-gray-700 text-sm font-medium hover:bg-gray-200">
-                            Tutup
-                        </button>
-                    </div>
-                </div>
-            </div>
-        </div>
+        @include('tr_poh._form', [
+            'mode' => 'view',
+            'fcabang' => $fcabang,
+            'fbranchcode' => $fbranchcode,
+            'suppliers' => $suppliers,
+            'currencies' => $currencies,
+            'currentCurrency' => $currentCurrency,
+            'tr_poh' => $tr_poh,
+        ])
 
         @php
             $canApproval = in_array('approvePO', explode(',', session('user_restricted_permissions', '')));
+            $isPrinted = (int) ($tr_poh->fprint ?? 0) === 1;
         @endphp
 
-        {{-- APPROVAL --}}
         @if ($canApproval)
             <div class="flex justify-center items-center space-x-2 mt-6">
                 <label class="block text-sm font-medium">Status Persetujuan</label>
@@ -279,7 +60,6 @@
         @endif
 
         {{-- ACTIONS --}}
-        @php $isPrinted = (int) ($tr_poh->fprint ?? 0) === 1; @endphp
         <div class="mt-8 flex justify-center gap-4">
             @if ($canPrint)
                 <a href="{{ route('tr_poh.print', $tr_poh->fpono) }}" target="_blank"

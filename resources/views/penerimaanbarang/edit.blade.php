@@ -192,136 +192,15 @@
                 </div>
             @endif
 
-            {{-- HEADER FORM --}}
-            <div class="grid grid-cols-1 lg:grid-cols-12 gap-4">
+            @include('penerimaanbarang._form', [
+                'action' => $action,
+                'fcabang' => $fcabang,
+                'fbranchcode' => $fbranchcode,
+                'suppliers' => $suppliers,
+                'warehouses' => $warehouses,
+                'penerimaanbarang' => $penerimaanbarang,
+            ])
 
-                <div class="lg:col-span-4">
-                    <label class="block text-sm font-medium mb-1">Cabang</label>
-                    <input type="text" class="w-full border rounded px-3 py-2 bg-gray-100 text-gray-700 cursor-not-allowed"
-                        value="{{ trim(($fbranchcode ?? '') . (($fcabang ?? '') ? ' - ' . $fcabang : '')) }}" disabled>
-                    <input type="hidden" name="fbranchcode" value="{{ old('fbranchcode', $fbranchcode) }}">
-                </div>
-                
-                {{-- Transaksi# â€” selalu disabled (nomor tidak bisa diubah) --}}
-                <div class="lg:col-span-4">
-                    <label class="block text-sm font-medium mb-1">Transaksi#</label>
-                    <div class="flex items-center gap-3">
-                        <input type="text" class="w-full border rounded px-3 py-2 bg-gray-200 cursor-not-allowed"
-                            value="{{ $penerimaanbarang->fstockmtno }}" disabled>
-                    </div>
-                    <input type="hidden" name="fstockmtno" value="{{ $penerimaanbarang->fstockmtno }}">
-                </div>
-
-                <input type="hidden" name="fstockmtid" value="{{ $penerimaanbarang->fstockmtid }}">
-
-                {{-- Supplier --}}
-                <div class="lg:col-span-4">
-                    <label class="block text-sm font-medium mb-1">Supplier</label>
-                    <div class="flex">
-                        <div class="relative flex-1">
-                            <select id="modal_filter_supplier_id" name="filter_supplier_id"
-                                class="w-full border rounded-l px-3 py-2 bg-gray-100 text-gray-700 cursor-not-allowed"
-                                disabled>
-                                <option value=""></option>
-                                @foreach ($suppliers as $supplier)
-                                    <option value="{{ $supplier->fsuppliercode }}"
-                                        {{ old('fsupplier', $penerimaanbarang->fsupplier) == $supplier->fsuppliercode ? 'selected' : '' }}>
-                                        {{ $supplier->fsuppliername }} ({{ $supplier->fsuppliercode }})
-                                    </option>
-                                @endforeach
-                            </select>
-                            @if ($action !== 'delete')
-                                <div class="absolute inset-0" role="button" aria-label="Browse supplier"
-                                    @click="window.dispatchEvent(new CustomEvent('supplier-browse-open'))"></div>
-                            @endif
-                        </div>
-                        <input type="hidden" name="fsupplier" id="supplierCodeHidden"
-                            value="{{ old('fsupplier', $penerimaanbarang->fsupplier) }}">
-                        @if ($action !== 'delete')
-                            <button type="button" @click="window.dispatchEvent(new CustomEvent('supplier-browse-open'))"
-                                class="border -ml-px px-3 py-2 bg-white hover:bg-gray-50 rounded-r-none"
-                                title="Browse Supplier">
-                                <x-heroicon-o-magnifying-glass class="w-5 h-5" />
-                            </button>
-                            <a href="{{ route('supplier.create') }}" target="_blank" rel="noopener"
-                                class="border -ml-px rounded-r px-3 py-2 bg-white hover:bg-gray-50" title="Tambah Supplier">
-                                <x-heroicon-o-plus class="w-5 h-5" />
-                            </a>
-                        @endif
-                    </div>
-                    @error('fsupplier')
-                        <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
-                    @enderror
-                </div>
-
-                {{-- Gudang --}}
-                <div class="lg:col-span-4">
-                    <label class="block text-sm font-medium mb-1">Gudang</label>
-                    <div class="flex">
-                        <div class="relative flex-1">
-                            <select id="warehouseSelect"
-                                class="w-full border rounded-l px-3 py-2 bg-gray-100 text-gray-700 cursor-not-allowed"
-                                disabled>
-                                <option value=""></option>
-                                @foreach ($warehouses as $wh)
-                                    <option value="{{ $wh->fwhcode }}" data-id="{{ $wh->fwhid }}"
-                                        data-branch="{{ $wh->fbranchcode }}"
-                                        {{ old('ffrom', $penerimaanbarang->ffrom) == $wh->fwhcode ? 'selected' : '' }}>
-                                        {{ $wh->fwhcode }} - {{ $wh->fwhname }}
-                                    </option>
-                                @endforeach
-                            </select>
-                            @if ($action !== 'delete')
-                                <div class="absolute inset-0" role="button" aria-label="Browse warehouse"
-                                    @click="window.dispatchEvent(new CustomEvent('penerimaanbarang-warehouse-browse-open'))"></div>
-                            @endif
-                        </div>
-                        <input type="hidden" name="ffrom" id="warehouseCodeHidden"
-                            value="{{ old('ffrom', $penerimaanbarang->ffrom) }}">
-                        @if ($action !== 'delete')
-                            <button type="button" @click="window.dispatchEvent(new CustomEvent('penerimaanbarang-warehouse-browse-open'))"
-                                class="border -ml-px px-3 py-2 bg-white hover:bg-gray-50 rounded-r-none"
-                                title="Browse Gudang">
-                                <x-heroicon-o-magnifying-glass class="w-5 h-5" />
-                            </button>
-                            <a href="{{ route('gudang.create') }}" target="_blank" rel="noopener"
-                                class="border -ml-px rounded-r px-3 py-2 bg-white hover:bg-gray-50" title="Tambah Gudang">
-                                <x-heroicon-o-plus class="w-5 h-5" />
-                            </a>
-                        @endif
-                    </div>
-                    @error('ffrom')
-                        <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
-                    @enderror
-                </div>
-
-                {{-- Tanggal --}}
-                <div class="lg:col-span-4">
-                    <label class="block text-sm font-medium">Tanggal</label>
-                    <input type="date" name="fstockmtdate"
-                        value="{{ old('fstockmtdate', \Carbon\Carbon::parse($penerimaanbarang->fstockmtdate)->format('Y-m-d')) }}"
-                        {{ $action === 'delete' ? 'disabled' : '' }}
-                        class="w-full border rounded px-3 py-2
-                            {{ $action === 'delete' ? 'bg-gray-100 cursor-not-allowed' : '' }}
-                            @error('fstockmtdate') border-red-500 @enderror">
-                    @error('fstockmtdate')
-                        <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
-                    @enderror
-                </div>
-
-                {{-- Keterangan --}}
-                <div class="lg:col-span-12">
-                    <label class="block text-sm font-medium">Keterangan</label>
-                    <textarea name="fket" rows="3" {{ $action === 'delete' ? 'disabled' : '' }}
-                        class="w-full border rounded px-3 py-2
-                            {{ $action === 'delete' ? 'bg-gray-100 cursor-not-allowed' : '' }}
-                            @error('fket') border-red-500 @enderror"
-                        placeholder="Tulis keterangan tambahan di sini...">{{ old('fket', $penerimaanbarang->fket) }}</textarea>
-                    @error('fket')
-                        <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
-                    @enderror
-                </div>
-            </div>
 
             {{-- DETAIL ITEM --}}
             <div class="mt-6 space-y-2">
@@ -370,7 +249,7 @@
                                                 </button>
                                             @else
                                                 <span
-                                                    class="border border-l-0 rounded-r px-2 py-1 bg-gray-100 text-gray-400 text-xs flex items-center">â€”</span>
+                                                    class="border border-l-0 rounded-r px-2 py-1 bg-gray-100 text-gray-400 text-xs flex items-center">Ã¢â‚¬â€</span>
                                             @endif
                                         </div>
                                     </td>
@@ -472,7 +351,7 @@
                                                 Hapus
                                             </button>
                                         @else
-                                            <span class="text-gray-300 text-xs">â€”</span>
+                                            <span class="text-gray-300 text-xs">Ã¢â‚¬â€</span>
                                         @endif
                                     </td>
 
@@ -497,7 +376,7 @@
                                 </tr>
                             </template>
 
-                            {{-- BARIS DRAFT â€” hanya tampil saat mode edit --}}
+                            {{-- BARIS DRAFT Ã¢â‚¬â€ hanya tampil saat mode edit --}}
                             @if ($action !== 'delete')
                                 <tr class="border-t bg-green-50 align-top">
                                     <td class="p-2 text-gray-400" x-text="savedItems.length + 1"></td>
@@ -614,7 +493,7 @@
                         </div>
                     </div>
 
-                    {{-- MODAL PO â€” hanya mode edit --}}
+                    {{-- MODAL PO Ã¢â‚¬â€ hanya mode edit --}}
                     @if ($action !== 'delete')
                         <div x-show="show" x-cloak x-transition.opacity
                             class="fixed inset-0 z-50 flex items-center justify-center p-4 md:p-8" aria-modal="true"
@@ -696,7 +575,7 @@
                                                         class="inline-flex w-5 h-5 items-center justify-center rounded-full bg-amber-200 text-amber-800 text-xs font-bold">!</span>
                                                     <span class="font-mono font-medium text-gray-700"
                                                         x-text="d.fitemcode || '-'"></span>
-                                                    <span class="text-gray-400">â€¢</span>
+                                                    <span class="text-gray-400">Ã¢â‚¬Â¢</span>
                                                     <span class="text-gray-600 truncate"
                                                         x-text="d.fitemname || '-'"></span>
                                                 </li>
@@ -910,7 +789,7 @@
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
     <script src="https://cdn.datatables.net/1.13.7/js/jquery.dataTables.min.js"></script>
     <script>
-        {{-- â”€â”€ Identik dengan create.blade.php â”€â”€ --}}
+        {{-- Ã¢â€â‚¬Ã¢â€â‚¬ Identik dengan create.blade.php Ã¢â€â‚¬Ã¢â€â‚¬ --}}
         window.CURRENCY_MAP = window.CURRENCY_MAP || {};
 
         window.PRODUCT_MAP = {
@@ -959,7 +838,7 @@
             }
         };
 
-        // â”€â”€â”€ mainForm() â€” sama persis dengan create, satu-satunya beda:
+        // Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ mainForm() Ã¢â‚¬â€ sama persis dengan create, satu-satunya beda:
         //     savedItems diisi dari $savedItems (data existing dari DB)
         function mainForm() {
             function newRow() {
@@ -1009,7 +888,7 @@
                 includePPN: false,
                 ppnMode: 0,
                 ppnRate: 11,
-                // â”€â”€ Diisi dari DB (perbedaan utama vs create) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+                // Ã¢â€â‚¬Ã¢â€â‚¬ Diisi dari DB (perbedaan utama vs create) Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
                 savedItems: @json(count($initialEditPenerimaanItems) ? $initialEditPenerimaanItems : $savedItems),
                 draft: newRow(),
                 activeRow: null,
@@ -1425,7 +1304,7 @@
                         return row;
                     });
 
-                    // â”€â”€ Guard CURRENCY_MAP â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+                    // Ã¢â€â‚¬Ã¢â€â‚¬ Guard CURRENCY_MAP Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
                     if (window.CURRENCY_MAP && typeof window.CURRENCY_MAP === 'object') {
                         const idrEntry = Object.values(window.CURRENCY_MAP).find(c => c.code === 'IDR');
                         if (idrEntry && !this.selectedCurrId) {
@@ -1507,7 +1386,7 @@
             if (sel) sel.innerHTML = '';
         }
 
-        // â”€â”€â”€ pohFormModal â€” identik create â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+        // Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ pohFormModal Ã¢â‚¬â€ identik create Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
         window.pohFormModal = function() {
             return {
                 show: false,
@@ -1740,7 +1619,7 @@
             return `${d.getFullYear()}-${p(d.getMonth()+1)}-${p(d.getDate())} ${p(d.getHours())}:${p(d.getMinutes())}`;
         }
 
-        // â”€â”€â”€ supplierBrowser â€” identik create â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+        // Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ supplierBrowser Ã¢â‚¬â€ identik create Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
         window.addEventListener('warehouse-picked', (ev) => {
             const { fwhcode } = ev.detail || {};
 
@@ -1751,7 +1630,7 @@
             if (hidFrom) hidFrom.value = fwhcode || '';
         });
 
-        // â”€â”€â”€ productBrowser â€” identik create â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+        // Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ productBrowser Ã¢â‚¬â€ identik create Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
     </script>
         @include('components.transaction.browse-warehouse-script', ['eventName' => 'penerimaanbarang-warehouse-browse-open'])
         @include('components.transaction.browse-product-script', ['destroyOnClose' => true, 'openDelay' => 50])
