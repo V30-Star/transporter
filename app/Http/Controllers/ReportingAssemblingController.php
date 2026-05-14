@@ -143,11 +143,7 @@ class ReportingAssemblingController extends Controller
 
             foreach ($penerimaanbarang->details as $detail) {
                 $product = DB::table('msprd')
-                    ->when(
-                        ! empty($detail->fprdcodeid),
-                        fn ($q) => $q->where('fprdid', $detail->fprdcodeid),
-                        fn ($q) => $q->where('fprdcode', $detail->fprdcode)
-                    )
+                    ->where('fprdcode', $detail->fprdcode)
                     ->first();
                 $detail->product_name = $product->fprdname ?? $detail->fprdcode;
                 $fhpp = $product->fhpp ?? 0;
@@ -256,11 +252,7 @@ class ReportingAssemblingController extends Controller
 
             foreach ($details as $detail) {
                 $product = DB::table('msprd')
-                    ->when(
-                        ! empty($detail->fprdcodeid),
-                        fn ($q) => $q->where('fprdid', $detail->fprdcodeid),
-                        fn ($q) => $q->where('fprdcode', $detail->fprdcode)
-                    )
+                    ->where('fprdcode', $detail->fprdcode)
                     ->first();
 
                 $product_name = $product->fprdname ?? $detail->fprdcode;

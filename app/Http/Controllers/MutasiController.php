@@ -293,18 +293,13 @@ class MutasiController extends Controller
         DB::table('trstockmt')->where('fstockmtno', $hdr->fstockmtno)->update(['fprint' => 1]);
 
         $dt = PenerimaanPembelianDetail::query()
-            ->leftJoin('msprd as p', function ($join) {
-                $join->whereRaw(
-                    'p.fprdid = COALESCE(trstockdt.fprdcodeid, CASE WHEN btrim(trstockdt.fprdcode::text) ~ ? THEN cast(btrim(trstockdt.fprdcode::text) as integer) ELSE NULL END)',
-                    ['^[0-9]+$']
-                );
-            })
+            ->leftJoin('msprd as p', 'p.fprdcode', '=', 'trstockdt.fprdcode')
             ->where('trstockdt.fstockmtno', $fstockmtno)
             ->orderBy('trstockdt.fprdcode')
             ->get([
                 'trstockdt.*',
                 'p.fprdname as product_name',
-                DB::raw('COALESCE(p.fprdcode, NULLIF(trim(trstockdt.fprdcode::text), \'\')) as product_code'),
+                'p.fprdcode as product_code',
                 'p.fminstock as stock',
                 'trstockdt.fqtyremain',
             ]);
@@ -480,7 +475,6 @@ class MutasiController extends Controller
                 $subtotal += $amount;
 
                 $rowsDt[] = [
-                    'fprdcodeid' => (int) $meta->fprdid,
                     'fprdcode' => mb_substr((string) $meta->fprdcode, 0, 50),
                     'frefdtno' => trim((string) ($refdtno[$i] ?? '')) ?: null,
                     'fnoacak' => $this->normalizeRandomNumber(null, $usedNoAcaks),
@@ -935,7 +929,6 @@ class MutasiController extends Controller
                 $subtotal += $amount;
 
                 $rowsDt[] = [
-                    'fprdcodeid' => (int) $meta->fprdid,
                     'fprdcode' => mb_substr((string) ($meta->fprdcode ?? $code), 0, 50),
                     'frefdtno' => $rref,
                     'fnoacak' => $this->normalizeRandomNumber(null, $usedNoAcaks),
@@ -1121,22 +1114,13 @@ class MutasiController extends Controller
         ]);
     }
 
-    /**
-     * Join trstockdt to msprd: fprdcodeid stores fprdid; fprdcode stores product code string.
-     * Legacy rows may have stored only fprdid in fprdcode (numeric).
-     */
     private function appendMutasiDetailProductJoin($query): void
     {
-        $query->leftJoin('msprd', function ($join) {
-            $join->whereRaw(
-                'msprd.fprdid = COALESCE(trstockdt.fprdcodeid, CASE WHEN btrim(trstockdt.fprdcode::text) ~ ? THEN cast(btrim(trstockdt.fprdcode::text) as integer) ELSE NULL END)',
-                ['^[0-9]+$']
-            );
-        })
+        $query->leftJoin('msprd', 'msprd.fprdcode', '=', 'trstockdt.fprdcode')
             ->select(
                 'trstockdt.*',
                 'msprd.fprdname',
-                DB::raw('COALESCE(msprd.fprdcode, NULLIF(trim(trstockdt.fprdcode::text), \'\')) as fitemcode_text')
+                'msprd.fprdcode as fitemcode_text'
             )
             ->orderBy('trstockdt.fstockdtid', 'asc');
     }

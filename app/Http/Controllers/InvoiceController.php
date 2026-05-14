@@ -481,10 +481,10 @@ class InvoiceController extends Controller
 
         // Detail PR sekarang dihubungkan lewat fprno
         $items = Tr_prd::where('tr_prd.fprno', $header->fprno)
-            ->leftJoin('msprd as m', 'm.fprdcodeid', '=', 'tr_prd.fitemid')
+            ->leftJoin('msprd as m', 'm.fprdcode', '=', 'tr_prd.fprdcode')
             ->select([
-                'tr_prd.fprdcodeid as frefdtno',
-                'tr_prd.fitemid as fitemcode',
+                'tr_prd.fprdcode as frefdtno',
+                'tr_prd.fprdcode as fitemcode',
                 'm.fprdname as fitemname',
                 'tr_prd.fqty',
                 'tr_prd.fsatuan as fsatuan',
@@ -492,7 +492,7 @@ class InvoiceController extends Controller
                 'tr_prd.fprice as fharga',
                 DB::raw('0::numeric as fdiskon'),
             ])
-            ->orderBy('tr_prd.fitemid')
+            ->orderBy('tr_prd.fprdcode')
             ->get();
 
         return response()->json([

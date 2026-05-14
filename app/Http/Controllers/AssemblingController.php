@@ -279,10 +279,7 @@ class AssemblingController extends Controller
         DB::table('trstockmt')->where('fstockmtno', $hdr->fstockmtno)->update(['fprint' => 1]);
 
         $dt = PenerimaanPembelianDetail::query()
-            ->leftJoin('msprd as p', function ($join) {
-                $join->on('p.fprdid', '=', 'trstockdt.fprdcodeid')
-                    ->orOn('p.fprdid', '=', DB::raw("NULLIF(trstockdt.fprdcode, '')::integer"));
-            })
+            ->leftJoin('msprd as p', 'p.fprdcode', '=', 'trstockdt.fprdcode')
             ->where('trstockdt.fstockmtno', $fstockmtno)
             ->orderBy('trstockdt.fprdcode')
             ->get([
@@ -501,7 +498,6 @@ class AssemblingController extends Controller
 
             $rowsDt[] = [
                 'fprdcode' => $code,
-                'fprdcodeid' => $prdId,
                 'fnoacak' => $this->normalizeRandomNumber(null, $usedNoAcaks),
                 'frefdtno' => '0',
                 'frefso' => '0',
@@ -656,7 +652,7 @@ class AssemblingController extends Controller
             'details' => function ($query) {
                 $query
                     ->leftJoin('msprd', function ($join) {
-                        $join->on('msprd.fprdid', '=', 'trstockdt.fprdcodeid');
+                        $join->on('msprd.fprdcode', '=', 'trstockdt.fprdcode');
                     })
                     ->with(['account', 'subaccount']) // Eager load relasi
                     ->select(
@@ -785,7 +781,7 @@ class AssemblingController extends Controller
             'details' => function ($query) {
                 $query
                     ->leftJoin('msprd', function ($join) {
-                        $join->on('msprd.fprdid', '=', 'trstockdt.fprdcodeid');
+                        $join->on('msprd.fprdcode', '=', 'trstockdt.fprdcode');
                     })
                     ->with(['account', 'subaccount']) // Eager load relasi
                     ->select(
@@ -1022,7 +1018,6 @@ class AssemblingController extends Controller
 
             $rowsDt[] = [
                 'fprdcode' => $code,
-                'fprdcodeid' => $prdId,
                 'fnoacak' => $this->normalizeRandomNumber(null, $usedNoAcaks),
                 'frefdtno' => '0',
                 'frefso' => '0',
@@ -1167,7 +1162,7 @@ class AssemblingController extends Controller
             'details' => function ($query) {
                 $query
                     ->leftJoin('msprd', function ($join) {
-                        $join->on('msprd.fprdid', '=', 'trstockdt.fprdcodeid');
+                        $join->on('msprd.fprdcode', '=', 'trstockdt.fprdcode');
                     })
                     ->with(['account', 'subaccount']) // Eager load relasi
                     ->select(

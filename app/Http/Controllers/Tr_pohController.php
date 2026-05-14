@@ -287,7 +287,7 @@ class Tr_pohController extends Controller
         abort_if(! ApprovalState::isApprovedRecord($header), 404);
 
         $items = DB::table('tr_prd as d')
-            ->leftJoin('msprd as m', 'm.fprdid', '=', 'd.fprdcodeid')
+            ->leftJoin('msprd as m', 'm.fprdcode', '=', 'd.fprdcode')
             ->leftJoin(DB::raw('(
             SELECT
                 frefdtno,
@@ -303,7 +303,7 @@ class Tr_pohController extends Controller
             })
             ->where('d.fprno', $header->fprno)
             ->select([
-                DB::raw('d.fprdcodeid::text as frefdtno'),
+                DB::raw('d.fprdcode::text as frefdtno'),
                 'm.fprdcode as fitemcode',
                 'm.fprdname as fitemname',
                 'd.fqty',
@@ -341,7 +341,7 @@ class Tr_pohController extends Controller
                         ELSE COALESCE(o.fqtykecilpo, 0)
                     END, 0) AS fqtydipo'),
             ])
-            ->orderBy('d.fprdcodeid')
+            ->orderBy('d.fprdcode')
             ->get()
             ->map(function ($item) use ($header) {
                 $qty = (float) $item->fqty;

@@ -330,7 +330,6 @@
 
                         @foreach ($mt->details as $dt)
                             <div class="po-detail">
-                                <div class="truncate">{{ $dt->fprdcodeid }}</div>
                                 <div class="truncate">{{ $dt->fprdcode }}</div>
                                 <div>{{ number_format($dt->fqty, 2, ',', '.') }}</div>
                                 <div>0.00</div>

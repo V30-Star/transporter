@@ -190,7 +190,7 @@ class SuratJalanController extends Controller
 
         $items = DB::table('trstockdt')
             ->where('trstockdt.fstockmtno', $header->fstockmtno)
-            ->leftJoin('msprd', 'msprd.fprdid', '=', 'trstockdt.fprdcodeid')
+            ->leftJoin('msprd', 'msprd.fprdcode', '=', 'trstockdt.fprdcode')
             ->select(
                 'trstockdt.fstockdtid as frefdtno',
                 DB::raw("TRIM(BOTH ', ' FROM CONCAT_WS(', ', NULLIF(TRIM(COALESCE(trstockdt.frefnoacak::text, '')), ''), NULLIF(TRIM(COALESCE(trstockdt.fnoacak::text, '')), ''))) as frefnoacak"),
@@ -536,7 +536,6 @@ class SuratJalanController extends Controller
 
             $row = [
                 'fprdcode' => $code,
-                'fprdcodeid' => $meta->fprdid ?? null,
                 'frefdtno' => $frefdtnoValue,
                 'fqty' => $qty,
                 'fprice' => $price,
@@ -835,7 +834,7 @@ class SuratJalanController extends Controller
             'details' => function ($query) {
                 $query
                     // 2. Join ke msprd berdasarkan ID
-                    ->join('msprd', 'msprd.fprdid', '=', 'trstockdt.fprdcodeid')
+                    ->join('msprd', 'msprd.fprdcode', '=', 'trstockdt.fprdcode')
                     // 3. Select kolom yang dibutuhkan
                     ->select(
                         'trstockdt.*', // Ambil semua kolom dari tabel detail
@@ -969,7 +968,7 @@ class SuratJalanController extends Controller
             'details' => function ($query) {
                 $query
                     // 2. Join ke msprd berdasarkan ID
-                    ->join('msprd', 'msprd.fprdid', '=', 'trstockdt.fprdcodeid')
+                    ->join('msprd', 'msprd.fprdcode', '=', 'trstockdt.fprdcode')
                     // 3. Select kolom yang dibutuhkan
                     ->select(
                         'trstockdt.*', // Ambil semua kolom dari tabel detail
@@ -1196,7 +1195,6 @@ class SuratJalanController extends Controller
 
             $row = [
                 'fprdcode' => $code,
-                'fprdcodeid' => $meta->fprdid ?? null,
                 'frefdtno' => $frefdtnoValue,
                 'fqty' => $qty,
                 'fprice' => $price,
@@ -1491,7 +1489,7 @@ class SuratJalanController extends Controller
             'details' => function ($query) {
                 $query
                     // 2. Join ke msprd berdasarkan ID
-                    ->join('msprd', 'msprd.fprdid', '=', 'trstockdt.fprdcodeid')
+                    ->join('msprd', 'msprd.fprdcode', '=', 'trstockdt.fprdcode')
                     // 3. Select kolom yang dibutuhkan
                     ->select(
                         'trstockdt.*', // Ambil semua kolom dari tabel detail

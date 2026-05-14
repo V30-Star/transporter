@@ -1669,7 +1669,7 @@
                     return;
                 }
                 row.fitemname = meta.name || '';
-                row.frefcode = meta.id || meta.fprdcodeid || '';
+                row.frefcode = meta.fprdcode || meta.id || '';
                 const units = [...new Set((meta.units || []).map(u => (u ?? '').toString().trim()).filter(Boolean))];
                 row.units = units;
                 if (!units.includes(row.fsatuan)) row.fsatuan = units[0] || '';
@@ -2074,7 +2074,7 @@
                     if (!product) return;
                     const apply = (row) => {
                         row.fitemcode = (product.fprdcode || '').toString();
-                        row.frefcode = product.fprdcodeid || product.id || '';
+                        row.frefcode = product.fprdcode || product.id || '';
                         this.hydrateRowFromMeta(row, this.productMeta(row.fitemcode));
                         row.fnoacak = this.normalizeNoAcak(row.fnoacak) || this.generateUniqueNoAcak();
                         if (!row.fqty) row.fqty = 1;

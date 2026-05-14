@@ -168,7 +168,7 @@ class ListingFakturPembelianController extends Controller
     {
         $query = DB::table('trstockmt as m')
             ->leftJoin('trstockdt as d', 'm.fstockmtno', '=', 'd.fstockmtno')
-            ->leftJoin('msprd as p', 'd.fprdcodeid', '=', 'p.fprdid')
+            ->leftJoin('msprd as p', 'd.fprdcode', '=', 'p.fprdcode')
             ->leftJoin('mssupplier as s', 'm.fsupplier', '=', 's.fsuppliercode')
             ->select(
                 'm.fstockmtno',

@@ -586,10 +586,8 @@ class SalesOrderController extends Controller
         DB::table('trsomt')->where('fsono', $hdr->fsono)->update(['fprint' => 1]);
 
         // Detail: join dengan product
-        $dt = DB::table('trsodt')
-            ->leftJoin('msprd as p', function ($j) {
-                $j->on('p.fprdid', '=', 'trsodt.fprdcodeid');
-            })
+            $dt = DB::table('trsodt')
+            ->leftJoin('msprd as p', 'p.fprdcode', '=', 'trsodt.fprdcode')
             ->where('trsodt.fsono', $hdr->fsono)
             ->orderBy('trsodt.ftrsodtid')
             ->get([
@@ -731,7 +729,6 @@ class SalesOrderController extends Controller
         $fapplyppn = $request->boolean('fapplyppn') ? 1 : 0;
 
         // DETAIL ARRAYS
-        $itemId = $request->input('fprdcodeid', []);
         $itemCodes = $request->input('fprdcode', []);
         $satuans = $request->input('fsatuan', []);
         $qtys = $request->input('fqty', []);
@@ -764,7 +761,6 @@ class SalesOrderController extends Controller
                 ->select('fprdid', 'fsatuanbesar', 'fqtykecil as rasio_konversi')
                 ->first();
 
-            $itemeId = $produk ? $produk->fprdid : ($itemId[$i] ?? null);
             $satuan = trim((string) ($satuans[$i] ?? ''));
 
             // Konversi Qty Kecil
@@ -783,7 +779,6 @@ class SalesOrderController extends Controller
             $totalDisc += $discount;
 
             $rowsSodt[] = [
-                'fprdcodeid' => $itemeId,
                 'fprdcode' => mb_substr($itemCode, 0, 20),
                 'fnoacak' => $this->normalizeRandomNumber($fnoacaks[$i] ?? null, $usedNoAcaks),
                 'frefnosoacak' => $this->normalizeReferenceRandomNumber($frefnoacaks[$i] ?? null),
@@ -979,7 +974,7 @@ class SalesOrderController extends Controller
         $salesorder = SalesOrderHeader::with(['customer', 'details' => function ($q) {
             $q->orderBy('trsodt.ftrsodtid')
                 ->leftJoin('msprd', function ($j) {
-                    $j->on('msprd.fprdid', '=', DB::raw('CAST(trsodt.fprdcodeid AS INTEGER)'));
+                    $j->on('msprd.fprdcode', '=', 'trsodt.fprdcode');
                 })
                 ->select(
                     'trsodt.*',
@@ -1111,7 +1106,7 @@ class SalesOrderController extends Controller
         $salesorder = SalesOrderHeader::with(['customer', 'details' => function ($q) {
             $q->orderBy('trsodt.ftrsodtid')
                 ->leftJoin('msprd', function ($j) {
-                    $j->on('msprd.fprdid', '=', DB::raw('CAST(trsodt.fprdcodeid AS INTEGER)'));
+                    $j->on('msprd.fprdcode', '=', 'trsodt.fprdcode');
                 })
                 ->select(
                     'trsodt.*',
@@ -1277,7 +1272,6 @@ class SalesOrderController extends Controller
         $now = now();
 
         // 4. DETAIL ARRAYS
-        $itemId = $request->input('fprdcodeid', []);
         $itemCodes = $request->input('fprdcode', []);
         $itemNames = $request->input('fitemname', []);
         $satuans = $request->input('fsatuan', []);
@@ -1304,7 +1298,6 @@ class SalesOrderController extends Controller
         );
 
         for ($i = 0; $i < $rowCount; $i++) {
-            $itemeId = trim($itemId[$i] ?? '');
             $itemCode = trim($itemCodes[$i] ?? '');
             $itemName = trim((string) ($itemNames[$i] ?? ''));
             $satuan = trim((string) ($satuans[$i] ?? ''));
@@ -1322,8 +1315,6 @@ class SalesOrderController extends Controller
                 ->select('fprdid', 'fsatuanbesar', 'fqtykecil as rasio_konversi')
                 ->first();
 
-            $itemeId = $produk ? $produk->fprdid : $itemeId;
-
             $qtyKecil = $qty;
             if ($produk && $satuan === $produk->fsatuanbesar) {
                 $qtyKecil = $qty * (float) $produk->rasio_konversi;
@@ -1337,15 +1328,8 @@ class SalesOrderController extends Controller
             $totalGross += $subtotal;
             $totalDisc += $discount;
 
-            if (empty($itemeId) && ! empty($itemCode)) {
-                $itemeId = DB::table('msprd')
-                    ->where('fprdcode', $itemCode) // ✅ Gunakan fprdcode, bukan fprdid
-                    ->value('fprdid'); // Return fprdid (integer)
-            }
-
             $rowsSodt[] = [
                 'fsono' => $header->fsono, // Gunakan fsono yang sudah ada
-                'fprdcodeid' => ! empty($itemeId) && is_numeric($itemeId) ? (int) $itemeId : null,
                 'fprdcode' => $itemCode,
                 'fnoacak' => $this->normalizeRandomNumber($fnoacaks[$i] ?? null, $usedNoAcaks),
                 'frefnosoacak' => $this->normalizeReferenceRandomNumber($frefnoacaks[$i] ?? null),
@@ -1471,7 +1455,7 @@ class SalesOrderController extends Controller
         $salesorder = SalesOrderHeader::with(['customer', 'details' => function ($q) { // TAMBAHKAN 'customer' di sini
             $q->orderBy('trsodt.ftrsodtid')
                 ->leftJoin('msprd', function ($j) {
-                    $j->on('msprd.fprdid', '=', DB::raw('CAST(trsodt.fprdcodeid AS INTEGER)'));
+                    $j->on('msprd.fprdcode', '=', 'trsodt.fprdcode');
                 })
                 ->select(
                     'trsodt.*',
@@ -1535,7 +1519,7 @@ class SalesOrderController extends Controller
         // Prepare the product map for frontend
         $productMap = $products->mapWithKeys(function ($p) {
             return [
-                $p->fprdcodeid => [
+                $p->fprdcode => [
                     'name' => $p->fprdname,
                     'units' => array_values(array_filter([$p->fsatuankecil, $p->fsatuanbesar, $p->fsatuanbesar2])),
                     'stock' => $p->fminstock ?? 0,

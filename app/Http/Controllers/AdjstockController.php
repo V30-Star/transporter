@@ -237,7 +237,7 @@ class AdjstockController extends Controller
         DB::table('trstockmt')->where('fstockmtno', $hdr->fstockmtno)->update(['fprint' => 1]);
 
         $dt = PenerimaanPembelianDetail::query()
-            ->leftJoin('msprd as p', 'p.fprdid', '=', 'trstockdt.fprdcodeid')
+            ->leftJoin('msprd as p', 'p.fprdcode', '=', 'trstockdt.fprdcode')
             ->where('trstockdt.fstockmtno', $fstockmtno)
             ->orderBy('trstockdt.fprdcode')
             ->get([
@@ -427,7 +427,6 @@ class AdjstockController extends Controller
 
                 $rowsDt[] = [
                     'fprdcode' => $meta->fprdcode,
-                    'fprdcodeid' => $meta->fprdid,
                     'fnoacak' => $this->normalizeRandomNumber(null, $usedNoAcaks),
                     'frefdtno' => trim((string) ($refdtno[$i] ?? '')) ?: null,
                     'fqty' => $qty,
@@ -591,7 +590,7 @@ class AdjstockController extends Controller
             'details' => function ($query) {
                 $query
                   // 2. Join ke msprd berdasarkan ID
-                    ->join('msprd', 'msprd.fprdid', '=', 'trstockdt.fprdcodeid')
+                    ->join('msprd', 'msprd.fprdcode', '=', 'trstockdt.fprdcode')
                   // 3. Select kolom yang dibutuhkan
                     ->select(
                         'trstockdt.*', // Ambil semua kolom dari tabel detail
@@ -706,7 +705,7 @@ class AdjstockController extends Controller
             'details' => function ($query) {
                 $query
                   // 2. Join ke msprd berdasarkan ID
-                    ->join('msprd', 'msprd.fprdid', '=', 'trstockdt.fprdcodeid')
+                    ->join('msprd', 'msprd.fprdcode', '=', 'trstockdt.fprdcode')
                   // 3. Select kolom yang dibutuhkan
                     ->select(
                         'trstockdt.*', // Ambil semua kolom dari tabel detail
@@ -912,7 +911,6 @@ class AdjstockController extends Controller
 
             $rowsDt[] = [
                 'fprdcode' => $code,
-                'fprdcodeid' => $prdId,
                 'fnoacak' => $this->normalizeRandomNumber(null, $usedNoAcaks),
                 'frefdtno' => $rref,
                 'fqty' => $qty,
@@ -1068,7 +1066,7 @@ class AdjstockController extends Controller
             'details' => function ($query) {
                 $query
                   // 2. Join ke msprd berdasarkan ID
-                    ->join('msprd', 'msprd.fprdid', '=', 'trstockdt.fprdcodeid')
+                    ->join('msprd', 'msprd.fprdcode', '=', 'trstockdt.fprdcode')
                   // 3. Select kolom yang dibutuhkan
                     ->select(
                         'trstockdt.*', // Ambil semua kolom dari tabel detail

@@ -156,11 +156,7 @@ class ReportingPemakaianBarangController extends Controller
             foreach ($fakturpembelian->details as $detail) {
                 // 3. Ambil data Product
                 $product = DB::table('msprd')
-                    ->when(
-                        ! empty($detail->fprdcodeid),
-                        fn ($q) => $q->where('fprdid', $detail->fprdcodeid),
-                        fn ($q) => $q->where('fprdcode', $detail->fprdcode)
-                    )
+                    ->where('fprdcode', $detail->fprdcode)
                     ->first();
 
                 $grandTotalQty += $detail->fqty ?? 0;
@@ -276,11 +272,7 @@ class ReportingPemakaianBarangController extends Controller
                 foreach ($details as $detail) {
                     // Ambil Nama Produk (Manual Join)
                     $product = DB::table('msprd')
-                        ->when(
-                            ! empty($detail->fprdcodeid),
-                            fn ($q) => $q->where('fprdid', $detail->fprdcodeid),
-                            fn ($q) => $q->where('fprdcode', $detail->fprdcode)
-                        )
+                        ->where('fprdcode', $detail->fprdcode)
                         ->first();
                     $product_name = $product->fprdname ?? $detail->fprdcode;
 

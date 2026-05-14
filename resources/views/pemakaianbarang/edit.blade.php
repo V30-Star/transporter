@@ -630,7 +630,6 @@
                                                 <!-- hidden inputs -->
                                                 <td class="hidden">
                                                     <input type="hidden" name="fitemcode[]" :value="it.fitemcode">
-                                                    <input type="hidden" name="fprdcodeid[]" :value="it.fitemid">
                                                     <input type="hidden" name="fitemname[]" :value="it.fitemname">
                                                     <input type="hidden" name="fsatuan[]" :value="it.fsatuan">
                                                     <input type="hidden" name="frefdtno[]" :value="it.account_code">

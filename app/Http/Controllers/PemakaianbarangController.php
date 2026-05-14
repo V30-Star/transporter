@@ -281,7 +281,7 @@ class PemakaianbarangController extends Controller
         DB::table('trstockmt')->where('fstockmtno', $hdr->fstockmtno)->update(['fprint' => 1]);
 
         $dt = PenerimaanPembelianDetail::query()
-            ->leftJoin('msprd as p', 'p.fprdid', '=', 'trstockdt.fprdcodeid')
+            ->leftJoin('msprd as p', 'p.fprdcode', '=', 'trstockdt.fprdcode')
             ->where('trstockdt.fstockmtno', $fstockmtno)
             ->orderBy('trstockdt.fstockdtid')
             ->get([
@@ -504,7 +504,6 @@ class PemakaianbarangController extends Controller
 
             $rowsDt[] = [
                 'fprdcode' => $code,
-                'fprdcodeid' => $prdId,
                 'frefdtno' => $accountCode !== '' ? $accountCode : null,
                 'frefso' => $subAccountCode !== '' ? $subAccountCode : null,
                 'fnoacak' => $this->normalizeRandomNumber(null, $usedNoAcaks),
@@ -729,7 +728,7 @@ class PemakaianbarangController extends Controller
         $pemakaianbarang = PenerimaanPembelianHeader::with([
             'details' => function ($query) {
                 $query
-                    ->leftJoin('msprd', 'msprd.fprdid', '=', 'trstockdt.fprdcodeid')
+                    ->leftJoin('msprd', 'msprd.fprdcode', '=', 'trstockdt.fprdcode')
                     ->leftJoin('account', function ($join) {
                         $join->on(DB::raw('TRIM(account.faccount)'), '=', DB::raw('TRIM(trstockdt.frefdtno)'));
                     })
@@ -756,7 +755,7 @@ class PemakaianbarangController extends Controller
 
             return [
                 'uid' => $d->fstockdtid,
-                'fitemid' => $d->fprdcodeid,
+                'fitemcode' => $d->fprdcode,
                 'fitemcode' => $d->fitemcode_text ?? '',
                 'fitemname' => $d->fprdname ?? '',
                 'fsatuan' => $d->fsatuan ?? '',
@@ -871,7 +870,7 @@ class PemakaianbarangController extends Controller
         $pemakaianbarang = PenerimaanPembelianHeader::with([
             'details' => function ($query) {
                 $query
-                    ->join('msprd', 'msprd.fprdid', '=', 'trstockdt.fprdcodeid')
+                    ->join('msprd', 'msprd.fprdcode', '=', 'trstockdt.fprdcode')
                     ->leftJoin('account', function ($join) {
                         $join->on(DB::raw('TRIM(account.faccount)'), '=', DB::raw('TRIM(trstockdt.frefdtno)'));
                     })
@@ -1108,7 +1107,6 @@ class PemakaianbarangController extends Controller
 
             $rowsDt[] = [
                 'fprdcode' => $code,
-                'fprdcodeid' => $prdId,
                 'frefdtno' => $accountCode !== '' ? $accountCode : null,
                 'frefso' => $subAccountCode !== '' ? $subAccountCode : null,
                 'fnoacak' => $this->normalizeRandomNumber(null, $usedNoAcaks),
@@ -1243,7 +1241,7 @@ class PemakaianbarangController extends Controller
         $pemakaianbarang = PenerimaanPembelianHeader::with([
             'details' => function ($query) {
                 $query
-                    ->join('msprd', 'msprd.fprdid', '=', 'trstockdt.fprdcodeid')
+                    ->join('msprd', 'msprd.fprdcode', '=', 'trstockdt.fprdcode')
                     ->leftJoin('account', function ($join) {
                         $join->on(DB::raw('TRIM(account.faccount)'), '=', DB::raw('TRIM(trstockdt.frefdtno)'));
                     })

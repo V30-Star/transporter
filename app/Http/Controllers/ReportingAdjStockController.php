@@ -149,11 +149,7 @@ class ReportingAdjStockController extends Controller
 
             foreach ($fakturpembelian->details as $detail) {
                 $product = DB::table('msprd')
-                    ->when(
-                        ! empty($detail->fprdcodeid),
-                        fn ($q) => $q->where('fprdid', $detail->fprdcodeid),
-                        fn ($q) => $q->where('fprdcode', $detail->fprdcode)
-                    )
+                    ->where('fprdcode', $detail->fprdcode)
                     ->first();
 
                 $grandTotalQty += $detail->fqty ?? 0;
@@ -274,11 +270,7 @@ class ReportingAdjStockController extends Controller
             if ($details->isNotEmpty()) {
                 foreach ($details as $detail) {
                     $product = DB::table('msprd')
-                        ->when(
-                            ! empty($detail->fprdcodeid),
-                            fn ($q) => $q->where('fprdid', $detail->fprdcodeid),
-                            fn ($q) => $q->where('fprdcode', $detail->fprdcode)
-                        )
+                        ->where('fprdcode', $detail->fprdcode)
                         ->first();
                     $product_name = $product->fprdname ?? $detail->fprdcode;
 

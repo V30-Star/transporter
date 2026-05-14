@@ -152,14 +152,14 @@ class ListingPOController extends Controller
     private function getRawData(Request $request)
     {
         $subTerima = DB::table('trstockdt')
-            ->select('frefdtno', 'fprdcode', 'frefdtid', 'fprdcodeid', DB::raw('sum(fqtykecil) as fqtyterima'))
+            ->select('frefdtno', 'fprdcode', 'frefdtid', DB::raw('sum(fqtykecil) as fqtyterima'))
             ->where(function ($q) {
                 $q->where('fstockmtcode', 'TER')
                     ->orWhere(function ($sq) {
                         $sq->where('fcode', 'P')->where('fstockmtcode', 'BUY');
                     });
             })
-            ->groupBy('frefdtno', 'fprdcode', 'frefdtid', 'fprdcodeid');
+            ->groupBy('frefdtno', 'fprdcode', 'frefdtid');
 
         $query = DB::table('tr_poh as h')
             ->leftJoin('tr_pod as d', 'h.fpohid', '=', 'd.fpohid')
@@ -167,7 +167,7 @@ class ListingPOController extends Controller
             ->leftJoin('msprd as p', 'd.fprdid', '=', 'p.fprdid')
             ->leftJoinSub($subTerima, 'ter', function ($join) {
                 $join->on('h.fpohid', '=', 'ter.frefdtid')
-                    ->on(DB::raw('ter.fprdcodeid'), '=', DB::raw('p.fprdid'))
+                    ->on('ter.fprdcode', '=', 'p.fprdcode')
                     ->where('ter.frefdtno', 'PO');
             })
             ->select(

@@ -204,7 +204,6 @@ class PenerimaanBarangController extends Controller
             })
             ->select([
                 'd.fpodid as frefdtid',
-                'm.fprdid as fprdcodeid',
                 'm.fprdcode as fitemcode',
                 'm.fprdname as fitemname',
                 'd.fqty',
@@ -674,7 +673,6 @@ class PenerimaanBarangController extends Controller
 
         // 3) DETAIL ARRAYS
         $codes = $request->input('fitemcode', []);
-        $prdIds = $request->input('fprdcodeid', []);
         $satuans = $request->input('fsatuan', []);
         $fponos = $request->input('fpono', []);
         $refdtids = $request->input('frefdtid', []);
@@ -720,7 +718,6 @@ class PenerimaanBarangController extends Controller
 
             $rowsDt[] = [
                 'fprdcode' => $code,
-                'fprdcodeid' => isset($prdIds[$i]) ? (int) $prdIds[$i] : (int) $meta->fprdid,
                 'frefdtno' => trim((string) ($fponos[$i] ?? '')),
                 'frefso' => trim((string) ($fponos[$i] ?? '')),
                 'frefdtid' => $frefdtid,
@@ -970,7 +967,7 @@ class PenerimaanBarangController extends Controller
                 'uid' => $d->fstockdtid,
                 'fitemcode' => $d->fitemcode_text ?? $d->fprdcode ?? '',
                 'fitemname' => $d->fprdname ?? '',
-                'fprdcodeid' => $d->fprdcodeid ?? null,
+                'fprdcode' => $d->fprdcode ?? null,
                 'fsatuan' => $d->fsatuan ?? '',
                 'fprno' => $d->frefpr ?? '-',
                 'frefdtno' => $d->frefdtno ?? null,
@@ -1034,8 +1031,6 @@ class PenerimaanBarangController extends Controller
             'fbranchcode' => ['nullable', 'string', 'max:20'],
             'fitemcode' => ['required', 'array', 'min:1'],
             'fitemcode.*' => ['required', 'string', 'max:50'],
-            'fprdcodeid' => ['nullable', 'array'],
-            'fprdcodeid.*' => ['nullable', 'integer'],
             'frefdtno' => ['nullable', 'array'],
             'frefdtno.*' => ['nullable', 'string', 'max:50'],
             'frefdtid' => ['nullable', 'array'],
@@ -1074,7 +1069,6 @@ class PenerimaanBarangController extends Controller
         $now = now();
 
         $codes = $request->input('fitemcode', []);
-        $prdIds = $request->input('fprdcodeid', []);
         $satuans = $request->input('fsatuan', []);
         $refdtnos = $request->input('frefdtno', []);
         $refdtids = $request->input('frefdtid', []);
@@ -1125,8 +1119,6 @@ class PenerimaanBarangController extends Controller
                 continue;
             }
 
-            $prdCodeId = isset($prdIds[$i]) && $prdIds[$i] !== '' ? (int) $prdIds[$i] : (int) $meta->fprdid;
-
             if ($sat === '') {
                 $sat = $pickDefaultSat($meta);
             }
@@ -1142,7 +1134,6 @@ class PenerimaanBarangController extends Controller
 
             $rowsDt[] = [
                 'fprdcode' => $code,
-                'fprdcodeid' => $prdCodeId,
                 'frefdtno' => $rno ?: null,
                 'frefso' => $rno ?: null,
                 'frefdtid' => $rid,
