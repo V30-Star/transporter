@@ -67,6 +67,11 @@ class ProductController extends Controller
         }
     }
 
+    private function shouldRequestProductApproval(Request $request): bool
+    {
+        return $request->boolean('fapproval');
+    }
+
     protected function initializeApprovalState(): array
     {
         return ApprovalState::initializeApprovalColumns(
@@ -320,6 +325,7 @@ class ProductController extends Controller
     {
         try {
             $shouldSendApprovalNotification = false;
+            $needsApprovalNotification = $this->shouldRequestProductApproval($request);
             $enabledImageFields = $this->getEnabledProductImageFields();
             $validationRules = [
                 'fprdcode' => 'nullable|string|unique:msprd,fprdcode',
@@ -412,7 +418,8 @@ class ProductController extends Controller
             $user = auth('sysuser')->user();
             $approvalState = $this->initializeApprovalState();
             $validated = array_merge($validated, $approvalState);
-            $shouldSendApprovalNotification = ApprovalState::hasApprovalProgress((object) $approvalState);
+            $shouldSendApprovalNotification = $needsApprovalNotification
+                && ApprovalState::hasApprovalProgress((object) $approvalState);
             $validated['fcreatedby'] = $user->fname ?? 'System';
             $validated['fcreatedat'] = now();
             $validated['fnonactive'] = $request->has('fnonactive') ? '1' : '0';
@@ -662,6 +669,7 @@ class ProductController extends Controller
         $validated['fupdatedby'] = auth('sysuser')->user()->fname ?? null;
         $validated['fupdatedat'] = now();
         $validated['fnonactive'] = $request->has('fnonactive') ? '1' : '0';
+        $needsApprovalNotification = $this->shouldRequestProductApproval($request);
 
         $googleDriveService = new GoogleDriveService;
         foreach ($enabledImageFields as $imageField) {
@@ -686,7 +694,7 @@ class ProductController extends Controller
 
         $product->update($validated);
 
-        if ($shouldSendApprovalNotification) {
+        if ($needsApprovalNotification && $shouldSendApprovalNotification) {
             $product->refresh();
             $this->sendApprovalNotification($product, auth('sysuser')->user()->fname ?? 'System');
         }

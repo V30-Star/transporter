@@ -106,7 +106,7 @@
 
                         {{-- SO# --}}
                         <div class="lg:col-span-4" x-data="{ autoCode: false }">
-                            <label class="block text-sm font-medium mb-1">SO#</label>
+                            <label class="block text-sm font-medium mb-1">Faktur#</label>
                             <div class="flex items-center gap-3">
                                 <input type="text" name="fsono" value="{{ old('fsono', $invoice->fsono) }}"
                                     class="w-full border rounded px-3 py-2" :disabled="autoCode" readonly

@@ -112,6 +112,11 @@ class SalesOrderController extends Controller
         );
     }
 
+    private function shouldRequestSalesOrderApproval(Request $request): bool
+    {
+        return trim((string) $request->input('fneedacc', '0')) === '1';
+    }
+
     private function getApprovalLockMessage($record): ?string
     {
         return ApprovalState::isEditBlockedRecord($record)
@@ -683,6 +688,7 @@ class SalesOrderController extends Controller
     public function store(Request $request)
     {
         $shouldSendApprovalNotification = false;
+        $needsApprovalNotification = $this->shouldRequestSalesOrderApproval($request);
         // VALIDATION
         $request->validate([
             'fsono' => ['nullable', 'string', 'max:25'],
@@ -816,6 +822,7 @@ class SalesOrderController extends Controller
                 $amountNet,
                 $ppnAmount,
                 $creditApproval,
+                $needsApprovalNotification,
                 &$shouldSendApprovalNotification
 
             ) {
@@ -895,7 +902,8 @@ class SalesOrderController extends Controller
                     'famountso' => round($totalAmountSo, 2),
                 ]);
 
-                $shouldSendApprovalNotification = ApprovalState::hasApprovalProgress((object) $approvalState);
+                $shouldSendApprovalNotification = $needsApprovalNotification
+                    && ApprovalState::hasApprovalProgress((object) $approvalState);
             });
 
             if ($shouldSendApprovalNotification) {
@@ -1202,6 +1210,7 @@ class SalesOrderController extends Controller
     public function update(Request $request, $ftrsomtid)
     {
         $shouldSendApprovalNotification = false;
+        $needsApprovalNotification = $this->shouldRequestSalesOrderApproval($request);
         // 1. VALIDATION (Sama seperti store)
         $request->validate([
             'fsono' => ['nullable', 'string', 'max:25'],
@@ -1385,6 +1394,7 @@ class SalesOrderController extends Controller
             $fapplyppn,
             $fppnpersen,
             $creditApproval,
+            $needsApprovalNotification,
             &$shouldSendApprovalNotification
         ) {
             // Update Header
@@ -1422,7 +1432,7 @@ class SalesOrderController extends Controller
             }
         });
 
-        if ($shouldSendApprovalNotification) {
+        if ($needsApprovalNotification && $shouldSendApprovalNotification) {
             $this->sendApprovalNotification($header->fsono, $userid);
         }
 

@@ -440,6 +440,8 @@ Route::middleware('auth')->group(function () {
             ->name('returpenjualan.print');
         Route::get('/returpenjualan/{id}/items', [ReturPenjualanController::class, 'items'])
             ->name('returpenjualan.items');
+        Route::get('/returpenjualan/product-history', [ReturPenjualanController::class, 'productHistory'])
+            ->name('returpenjualan.product-history');
         Route::get('/returpenjualan/pickable', [ReturPenjualanController::class, 'pickable'])
             ->name('returpenjualan.pickable');
 

@@ -271,6 +271,11 @@ class InvoiceController extends Controller
         ];
     }
 
+    private function shouldRequestInvoiceApproval(Request $request): bool
+    {
+        return trim((string) $request->input('fneedacc', '0')) === '1';
+    }
+
     public function creditCheck(Request $request)
     {
         $validated = $request->validate([
@@ -729,6 +734,7 @@ class InvoiceController extends Controller
     public function store(Request $request)
     {
         $shouldSendApprovalNotification = false;
+        $needsApprovalNotification = $this->shouldRequestInvoiceApproval($request);
         // 1. VALIDASI (Tetap sama)
         $request->validate([
             'fsodate' => ['required', 'date'],
@@ -758,6 +764,7 @@ class InvoiceController extends Controller
         $fsodate = Carbon::parse($request->fsodate);
         $fincludeppn = $request->boolean('fincludeppn') ? '1' : '0';
         $fapplyppn = $request->boolean('fapplyppn') ? '1' : '0';
+        $ppnPersen = $request->input('fppnpersen', 0);
         $userid = mb_substr(auth('sysuser')->user()->fname ?? 'admin', 0, 10);
         $now = now();
         $fcurrency = $request->input('fcurrency', 'IDR');
@@ -830,6 +837,12 @@ class InvoiceController extends Controller
             $totalGross += $subtotal;
             $totalDisc += $discAmount;
 
+            if ($fapplyppn == 0) {
+                $fsalesnet = (100 / (100 + $ppnPersen)) * $netPrice;
+            } else {
+                $fsalesnet = $netPrice;
+            }
+
             $detailRows[] = array_merge([
                 'fsono' => '', // Akan diisi di dalam transaksi
                 'fnou' => $i + 1,
@@ -843,6 +856,7 @@ class InvoiceController extends Controller
                 'fdisc' => mb_substr((string) ($discs[$i] ?? '0'), 0, 10),
                 'fpricenet' => $netPrice,
                 'fpricenet_rp' => $netPrice * $frate,
+                'fsalesnet' => $fsalesnet,
                 'famount' => $amountRow,
                 'famount_rp' => $amountRow * $frate,
                 'fsatuan' => mb_substr($satuans[$i] ?? '', 0, 5),
@@ -873,7 +887,7 @@ class InvoiceController extends Controller
 
         // 5. DATABASE TRANSACTION
         try {
-            DB::transaction(function () use ($fapplyppn, $request, $fsodate, $fincludeppn, $userid, $now, $detailRows, $totalGross, $totalDisc, $amountNet, $ppnAmount, $grandTotal, $fcurrency, $frate, $ppnPersen, $creditApproval, $fkodefp, &$shouldSendApprovalNotification, &$fsono) {
+            DB::transaction(function () use ($fapplyppn, $request, $fsodate, $fincludeppn, $userid, $now, $detailRows, $totalGross, $totalDisc, $amountNet, $ppnAmount, $grandTotal, $fcurrency, $frate, $ppnPersen, $creditApproval, $fkodefp, $needsApprovalNotification, &$shouldSendApprovalNotification, &$fsono) {
 
                 // Penomoran Otomatis (Tetap sama)
                 if (empty($fsono)) {
@@ -914,8 +928,9 @@ class InvoiceController extends Controller
                     'fapplyppn' => $fapplyppn,
                     'fppnpersen' => $ppnPersen,
                     'ftypesales' => $request->input('ftypesales', 0),
-                    'ftrcode' => 'I',
+                    'ftrcode' => 'INV',
                     'fprdout' => '0',
+                    'fneedacc' => $needsApprovalNotification ? '1' : '0',
                     'fuseracc' => $creditApproval['fuseracc'],
                     'fprint' => 0,
                     ...$approvalState,
@@ -929,7 +944,8 @@ class InvoiceController extends Controller
                 // INSERT DETAIL
                 DB::table('trandt')->insert($detailRows);
 
-                $shouldSendApprovalNotification = ApprovalState::hasApprovalProgress((object) $approvalState);
+                $shouldSendApprovalNotification = $needsApprovalNotification
+                    && ApprovalState::hasApprovalProgress((object) $approvalState);
             });
 
             if ($shouldSendApprovalNotification) {
@@ -1662,6 +1678,7 @@ class InvoiceController extends Controller
     public function update(Request $request, $ftranmtid)
     {
         $shouldSendApprovalNotification = false;
+        $needsApprovalNotification = $this->shouldRequestInvoiceApproval($request);
         // 1. VALIDASI
         $request->validate([
             'fsodate' => ['required', 'date'],
@@ -1870,6 +1887,7 @@ class InvoiceController extends Controller
                 $ppnPersen,
                 $creditApproval,
                 $fkodefp,
+                $needsApprovalNotification,
                 &$shouldSendApprovalNotification
             ) {
                 // Update Header
@@ -1896,6 +1914,7 @@ class InvoiceController extends Controller
                     'fapplyppn' => $fapplyppn,
                     'fppnpersen' => $ppnPersen,
                     'ftypesales' => (int) $request->input('ftypesales', 0),
+                    'fneedacc' => $needsApprovalNotification ? '1' : '0',
                     'fuseracc' => $creditApproval['fuseracc'],
                 ]);
 

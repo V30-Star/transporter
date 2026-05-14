@@ -208,7 +208,7 @@
 
                         {{-- SO# --}}
                         <div class="lg:col-span-4" x-data="{ autoCode: false }">
-                            <label class="block text-sm font-medium mb-1">SO#</label>
+                            <label class="block text-sm font-medium mb-1">Faktur#</label>
                             <div class="flex items-center gap-3">
                                 <input type="text" name="fsono" value="{{ old('fsono', $invoice->fsono) }}"
                                     class="w-full border rounded px-3 py-2" :disabled="autoCode" readonly
@@ -766,7 +766,7 @@
 
                             {{-- SO# --}}
                             <div class="lg:col-span-4" x-data="{ autoCode: false }">
-                                <label class="block text-sm font-medium mb-1">SO#</label>
+                                <label class="block text-sm font-medium mb-1">Faktur#</label>
                                 <div class="flex items-center gap-3">
                                     <input type="text" name="fsono" value="{{ old('fsono', $invoice->fsono) }}"
                                         class="w-full border rounded px-3 py-2" :disabled="autoCode"
@@ -1859,29 +1859,29 @@
                 (string) $customer->fcustomercode => (string) ($customer->fkodefp ?? ''),
             ]));
 
-    window.syncInvoiceCustomerTaxCode = function(explicitValue = null) {
+    window.syncInvoiceCustomerTaxCode = function(payload = null) {
         const kodeFpInput = document.getElementById('invoiceFkodefp');
         if (!kodeFpInput) {
             return;
         }
 
-        if (explicitValue !== null) {
-            kodeFpInput.value = explicitValue || '';
-            return;
-        }
-
         const select = document.getElementById('modal_filter_customer_id');
         const hidden = document.getElementById('customerCodeHidden');
-        const customerCode = hidden?.value?.trim() || select?.value?.trim() || '';
-        const selectedOption = select?.selectedOptions?.[0];
-        const optionValue = selectedOption?.dataset?.fkodefp || '';
+        const normalize = (value) => String(value ?? '').trim();
+        const eventCode = typeof payload === 'object' && payload !== null ? normalize(payload.fcustomercode) : '';
+        const eventValue = typeof payload === 'object' && payload !== null ? normalize(payload.fkodefp) : normalize(payload);
+        const customerCode = eventCode || normalize(hidden?.value) || normalize(select?.value);
+        const selectedOption = customerCode ?
+            [...(select?.options || [])].find(option => normalize(option.value) === customerCode) :
+            select?.selectedOptions?.[0];
+        const optionValue = normalize(selectedOption?.dataset?.fkodefp);
         const mappedValue = customerCode ? (window.INVOICE_CUSTOMER_FP_MAP?.[customerCode] || '') : '';
 
-        kodeFpInput.value = optionValue || mappedValue || '';
+        kodeFpInput.value = eventValue || optionValue || mappedValue || '';
     };
 
     document.addEventListener('customer-selected', function(event) {
-        window.syncInvoiceCustomerTaxCode(event.detail?.fkodefp || '');
+        window.syncInvoiceCustomerTaxCode(event.detail || null);
     });
 
     document.addEventListener('DOMContentLoaded', function() {

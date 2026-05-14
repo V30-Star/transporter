@@ -205,6 +205,8 @@
 
                 window.dispatchEvent(new CustomEvent('customer-selected', {
                     detail: {
+                        fcustomercode: customer.fcustomercode || '',
+                        fcustomername: customer.fcustomername || '',
                         f1: customer.fkirimaddress1 || '',
                         f2: customer.fkirimaddress2 || '',
                         f3: customer.fkirimaddress3 || '',

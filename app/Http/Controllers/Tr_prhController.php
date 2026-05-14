@@ -60,6 +60,11 @@ class Tr_prhController extends Controller
         }
     }
 
+    private function shouldRequestPrApproval(Request $request): bool
+    {
+        return $request->boolean('fapproval');
+    }
+
     private function getApprovalLockMessage(Tr_prh $header): ?string
     {
         return ApprovalState::isEditBlockedRecord($header)
@@ -296,6 +301,7 @@ class Tr_prhController extends Controller
 
     public function store(Request $request)
     {
+        $needsApprovalNotification = $this->shouldRequestPrApproval($request);
         $this->validateStoreRequest($request);
 
         $fprdate = $request->filled('fprdate')
@@ -333,7 +339,8 @@ class Tr_prhController extends Controller
             $noacaks,
             $descs,
             $ketdts,
-            $productMap
+            $productMap,
+            $needsApprovalNotification
         ) {
             $approvalState = $this->initializeApprovalState();
 
@@ -393,7 +400,7 @@ class Tr_prhController extends Controller
 
             Tr_prd::insert($detailRows);
 
-            if (ApprovalState::hasApprovalProgress($tr_prh)) {
+            if ($needsApprovalNotification && ApprovalState::hasApprovalProgress($tr_prh)) {
                 $dt = Tr_prd::query()
                     ->leftJoin('msprd as p', 'p.fprdcode', '=', 'tr_prd.fprdcode')
                     ->where('tr_prd.fprno', $tr_prh->fprno)

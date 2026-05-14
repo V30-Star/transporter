@@ -193,6 +193,55 @@ class ReturPenjualanController extends Controller
         ]);
     }
 
+    public function productHistory(Request $request)
+    {
+        $customerCode = trim((string) $request->input('fcustno', ''));
+        $productCode = trim((string) $request->input('fprdcode', ''));
+
+        if ($customerCode === '' || $productCode === '') {
+            return response()->json([
+                'message' => 'Customer dan produk wajib dipilih terlebih dahulu.',
+                'data' => [],
+            ], 422);
+        }
+
+        $rows = DB::table('trandt as d')
+            ->join('tranmt as h', 'h.fsono', '=', 'd.fsono')
+            ->leftJoin('mscustomer as c', 'c.fcustomercode', '=', 'h.fcustno')
+            ->where('h.fcustno', $customerCode)
+            ->where('d.fprdcode', $productCode)
+            ->where('h.fsono', 'like', 'INV.%')
+            ->orderByDesc('h.fsodate')
+            ->orderByDesc('h.fsono')
+            ->get([
+                'h.fsono',
+                'h.fsodate',
+                'c.fcustomername',
+                'd.fqty',
+                'd.fsatuan',
+                'd.fprice',
+                'd.famount',
+                'd.fdesc',
+            ]);
+
+        return response()->json([
+            'data' => $rows->map(function ($row) {
+                return [
+                    'fsono' => (string) ($row->fsono ?? ''),
+                    'fsodate' => ! empty($row->fsodate)
+                        ? Carbon::parse($row->fsodate)->format('d/m/Y')
+                        : '-',
+                    'fcustomername' => (string) ($row->fcustomername ?? ''),
+                    'fqty' => (float) ($row->fqty ?? 0),
+                    'fsatuan' => (string) ($row->fsatuan ?? ''),
+                    'fprice' => (float) ($row->fprice ?? 0),
+                    'famount' => (float) ($row->famount ?? 0),
+                    'fdesc' => (string) ($row->fdesc ?? ''),
+                ];
+            })->values(),
+        ]);
+    }
+
     public function items($id)
     {
         $header = DB::table('tranmt')
@@ -655,7 +704,7 @@ class ReturPenjualanController extends Controller
                     'fapplyppn' => $fapplyppn,
                     'fppnpersen' => $ppnPersen,
                     'ftypesales' => $typeSales,
-                    'ftrcode' => 'I',
+                    'ftrcode' => 'REJ',
                     'fprdout' => '0',
                     'ftaxno' => $request->ftaxno ?? '0',
                     'fprint' => 0,

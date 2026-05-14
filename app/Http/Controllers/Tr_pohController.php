@@ -66,6 +66,11 @@ class Tr_pohController extends Controller
         }
     }
 
+    private function shouldRequestPoApproval(Request $request): bool
+    {
+        return $request->boolean('fapproval');
+    }
+
     private function getApprovalLockMessage(Tr_poh $header): ?string
     {
         return ApprovalState::isEditBlockedRecord($header)
@@ -768,6 +773,7 @@ class Tr_pohController extends Controller
 
     public function store(Request $request)
     {
+        $needsApprovalNotification = $this->shouldRequestPoApproval($request);
         // VALIDATION
         $validator = Validator::make($request->all(), [
             'fpohid' => ['nullable', 'string', 'max:25'],
@@ -974,6 +980,7 @@ class Tr_pohController extends Controller
                 $ppnAmount,
                 $grandTotal,
                 $prdAgg,
+                $needsApprovalNotification,
                 &$fpono
             ) {
                 $this->validatePrdRemain($prdAgg);
@@ -1045,7 +1052,7 @@ class Tr_pohController extends Controller
                 $fpono = DB::table('tr_poh')->where('fpohid', $fpohid)->value('fpono');
 
                 // EMAIL after commit — use fpohid and fprdid
-                if (ApprovalState::hasApprovalProgress((object) $approvalState)) {
+                if ($needsApprovalNotification && ApprovalState::hasApprovalProgress((object) $approvalState)) {
                     DB::afterCommit(function () use ($fpohid) {
                         $hdr = Tr_poh::where('fpohid', $fpohid)->first();
 

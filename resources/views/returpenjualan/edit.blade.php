@@ -1050,9 +1050,18 @@
                                                     </template>
                                                 </td>
                                                 <td class="p-2">
-                                                    <input type="text"
-                                                        class="w-full border rounded px-2 py-1 bg-gray-100 text-gray-600"
-                                                        :value="draft.frefpr || '-'" disabled placeholder="Ref No">
+                                                    <div class="flex w-full max-w-full">
+                                                        <input type="text"
+                                                            class="min-w-0 flex-1 border rounded-l px-2 py-1 bg-gray-100 text-gray-600"
+                                                            :value="draft.frefpr || '-'" disabled placeholder="Ref No">
+                                                        <button type="button" @click="openProductHistory(draft)"
+                                                            class="shrink-0 border border-l-0 px-2 py-1 bg-white hover:bg-gray-50 rounded-r"
+                                                            :disabled="!canOpenHistory(draft)"
+                                                            :class="!canOpenHistory(draft) ? 'opacity-50 cursor-not-allowed' : ''"
+                                                            title="Riwayat produk">
+                                                            <x-heroicon-o-clock class="w-4 h-4" />
+                                                        </button>
+                                                    </div>
                                                 </td>
                                                 <td class="p-2 text-right">
                                                     <input type="number" class="border rounded px-2 py-1 w-24 text-right"
@@ -1393,11 +1402,55 @@
                                                             class="h-9 px-4 rounded-lg border-2 border-gray-300 text-gray-700 text-sm font-bold hover:bg-gray-100 transition-colors">
                                                             {{ "Batal" }}
                                                         </button>
-                                                    </div>
-                                                </div>
-                                            </div>
                                         </div>
                                     </div>
+                                </div>
+
+                                <div x-show="showHistoryModal" x-cloak class="fixed inset-0 z-[96] flex items-center justify-center"
+                                    x-transition.opacity>
+                                    <div class="absolute inset-0 bg-black/50" @click="closeHistory()"></div>
+                                    <div class="relative bg-white w-[92vw] max-w-4xl rounded-2xl shadow-2xl overflow-hidden">
+                                        <div class="px-5 py-4 border-b flex items-center justify-between">
+                                            <h3 class="text-lg font-semibold text-gray-800">Riwayat Produk</h3>
+                                            <button type="button" @click="closeHistory()"
+                                                class="text-gray-500 hover:text-gray-700">Tutup</button>
+                                        </div>
+                                        <div class="p-5 overflow-auto max-h-[65vh]">
+                                            <template x-if="historyLoading">
+                                                <div class="text-sm text-gray-500">Memuat data...</div>
+                                            </template>
+                                            <template x-if="!historyLoading">
+                                                <table class="min-w-full text-sm">
+                                                    <thead class="bg-gray-100">
+                                                        <tr>
+                                                            <th class="p-2 text-left">No. Transaksi</th>
+                                                            <th class="p-2 text-left">Tanggal</th>
+                                                            <th class="p-2 text-right">Qty</th>
+                                                            <th class="p-2 text-right">Harga</th>
+                                                            <th class="p-2 text-right">Total</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody>
+                                                        <template x-for="row in historyRows" :key="row.fsono + row.fsodate">
+                                                            <tr class="border-t">
+                                                                <td class="p-2" x-text="row.fsono"></td>
+                                                                <td class="p-2" x-text="row.fsodate"></td>
+                                                                <td class="p-2 text-right" x-text="row.fqty + ' ' + row.fsatuan"></td>
+                                                                <td class="p-2 text-right" x-text="fmt(row.fprice)"></td>
+                                                                <td class="p-2 text-right" x-text="fmt(row.famount)"></td>
+                                                            </tr>
+                                                        </template>
+                                                        <tr x-show="!historyRows.length">
+                                                            <td colspan="5" class="p-4 text-center text-gray-500">Tidak ada riwayat.</td>
+                                                        </tr>
+                                                    </tbody>
+                                                </table>
+                                            </template>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
 
                                     <!-- ===== Panel Totals (DESAIN ASLI dipertahankan, hanya wrapper yang diperbaiki) ===== -->
                                     <div class="w-full md:w-auto md:min-w-[550px] lg:min-w-[650px]">
@@ -2970,6 +3023,62 @@
             applyDesc() {
                 if (this._descTarget) this._descTarget.fdesc = this.descValue;
                 this.closeDesc();
+            },
+
+            showHistoryModal: false,
+            historyLoading: false,
+            historyRows: [],
+            canOpenHistory(targetRow) {
+                const customerCode = (document.getElementById('customerCodeHidden')?.value || '').trim();
+                const productCode = (targetRow?.fitemcode || '').toString().trim();
+                return customerCode !== '' && productCode !== '';
+            },
+            closeHistory() {
+                this.showHistoryModal = false;
+                this.historyLoading = false;
+                this.historyRows = [];
+            },
+            async openProductHistory(targetRow) {
+                const customerCode = (document.getElementById('customerCodeHidden')?.value || '').trim();
+                const productCode = (targetRow?.fitemcode || '').toString().trim();
+
+                if (customerCode === '') {
+                    this.showToast('Pilih customer terlebih dahulu.', 'warning');
+                    return;
+                }
+
+                if (productCode === '') {
+                    this.showToast('Pilih produk terlebih dahulu.', 'warning');
+                    return;
+                }
+
+                this.showHistoryModal = true;
+                this.historyLoading = true;
+                this.historyRows = [];
+
+                try {
+                    const params = new URLSearchParams({
+                        fcustno: customerCode,
+                        fprdcode: productCode,
+                    });
+                    const response = await fetch(`{{ route('returpenjualan.product-history') }}?${params.toString()}`, {
+                        headers: {
+                            Accept: 'application/json',
+                        },
+                    });
+
+                    const payload = await response.json();
+                    if (!response.ok) {
+                        throw new Error(payload?.message || 'Gagal memuat riwayat produk.');
+                    }
+
+                    this.historyRows = Array.isArray(payload?.data) ? payload.data : [];
+                } catch (error) {
+                    this.historyRows = [];
+                    this.showToast(error.message || 'Gagal memuat riwayat produk.', 'error');
+                } finally {
+                    this.historyLoading = false;
+                }
             },
 
             itemKey(it) {
