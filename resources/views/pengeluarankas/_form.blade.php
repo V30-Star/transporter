@@ -253,21 +253,20 @@
                     <colgroup>
                         @if ($isReadOnly)
                             <col style="width:4%;">
-                            <col style="width:18%;">
+                            <col style="width:15%;">
                             <col style="width:16%;">
-                            <col style="width:18%;">
-                            <col style="width:22%;">
+                            <col style="width:15%;">
+                            <col style="width:40%;">
+                            <col style="width:12%;">
                             <col style="width:6%;">
-                            <col style="width:8%;">
                         @else
                             <col style="width:4%;">
                             <col style="width:15%;">
-                            <col style="width:19%;">
+                            <col style="width:16%;">
                             <col style="width:15%;">
-                            <col style="width:22%;">
+                            <col style="width:40%;">
+                            <col style="width:12%;">
                             <col style="width:6%;">
-                            <col style="width:11%;">
-                            <col style="width:8%;">
                         @endif
                     </colgroup>
                     <thead class="bg-gray-100">
@@ -277,7 +276,6 @@
                             <th class="border px-1.5 py-1 whitespace-nowrap">{{ 'Nama Account' }}</th>
                             <th class="border px-1.5 py-1 whitespace-nowrap">{{ 'Sub Account' }}</th>
                             <th class="border px-1.5 py-1 whitespace-nowrap">{{ 'Uraian' }}</th>
-                            <th class="border px-1.5 py-1 text-center whitespace-nowrap">{{ 'D/K' }}</th>
                             <th class="border px-1.5 py-1 text-right whitespace-nowrap">{{ 'Nilai Bayar' }}</th>
                             @unless ($isReadOnly)
                                 <th class="border px-1.5 py-1 text-center whitespace-nowrap">{{ 'Aksi' }}</th>
@@ -389,19 +387,14 @@
                                     @endphp
                                     <input type="hidden" name="details[{{ $index }}][frefno]"
                                         value="{{ $detailReferenceValue }}" data-role="detail-reference-input">
-                                    <textarea name="details[{{ $index }}][fnote]" rows="2"
+                                    <textarea name="details[{{ $index }}][fnote]" rows="1"
                                         class="w-full border rounded px-1.5 py-1 {{ $isReadOnly ? 'bg-gray-100' : '' }}"
                                         {{ $isReadOnly ? 'readonly' : '' }}>{{ old("details.$index.fnote", $detail->fnote ?? '') }}</textarea>
                                     @error("details.$index.fnote")
                                         <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                                     @enderror
                                 </td>
-                                <td class="border px-1.5 py-1 align-top text-center">
-                                    <span data-role="detail-dk-badge"
-                                        class="detail-dk-badge inline-flex items-center justify-center {{ $resolveDetailDkBadgeClass(old("details.$index.fkasdtvalue", $detail->fkasdtvalue ?? 0)) }}">
-                                        {{ $resolveDetailDkLabel(old("details.$index.fkasdtvalue", $detail->fkasdtvalue ?? 0)) }}
-                                    </span>
-                                </td>
+                               
                                 <td class="border px-1.5 py-1 align-top">
                                     @php
                                         $detailAmountValue = old("details.$index.fkasdtvalue", $detail->fkasdtvalue ?? '');
@@ -424,13 +417,13 @@
                                     @enderror
                                 </td>
                                 @unless ($isReadOnly)
-                                    <td class="detail-action-cell border px-1.5 py-1 text-center align-top">
+                                    <td class="detail-action-cell border px-0.5 py-1.5 text-center align-top">
                                         <button type="button" @click="addRow()"
-                                            class="detail-add-btn inline-flex min-w-[7.5rem] items-center justify-center bg-blue-600 text-white px-2.5 py-1 rounded hover:bg-blue-700 whitespace-nowrap">
+                                            class="detail-add-btn inline-flex min-w-[0.5rem] items-center justify-center bg-blue-600 text-white px-2.5 py-1 rounded hover:bg-blue-700 whitespace-nowrap">
                                             <x-heroicon-o-plus class="w-4 h-4 mr-1" /> {{ 'Tambah' }}
                                         </button>
                                         <button type="button" @click="removeRow($event)"
-                                            class="detail-delete-btn inline-flex min-w-[7.5rem] items-center justify-center bg-red-600 text-white px-2.5 py-1 rounded hover:bg-red-700 whitespace-nowrap">
+                                            class="detail-delete-btn inline-flex min-w-[0.5rem] items-center justify-center bg-red-600 text-white px-2.5 py-1 rounded hover:bg-red-700 whitespace-nowrap">
                                             <x-heroicon-o-trash class="w-4 h-4 mr-1" /> {{ 'Hapus' }}
                                         </button>
                                     </td>
@@ -438,14 +431,6 @@
                             </tr>
                         @endforeach
                     </tbody>
-                    <tfoot class="bg-gray-50">
-                        <tr>
-                            <td colspan="{{ $isReadOnly ? 7 : 7 }}" class="border px-1.5 py-1"></td>
-                            @unless ($isReadOnly)
-                                <td class="border px-1.5 py-1"></td>
-                            @endunless
-                        </tr>
-                    </tfoot>
                 </table>
             </div>
 
