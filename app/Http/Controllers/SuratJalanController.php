@@ -115,6 +115,7 @@ class SuratJalanController extends Controller
         $query = DB::table('trstockmt')
             ->leftJoin('mscustomer', 'trstockmt.fsupplier', '=', 'mscustomer.fcustomercode')
             ->where('trstockmt.fstockmtcode', 'SRJ')
+            ->where('trstockmt.fprdout', '0')
             ->whereNotExists(function ($subQuery) {
                 $subQuery->select(DB::raw(1))
                     ->from('trstockdt as srj_dt')
@@ -142,6 +143,7 @@ class SuratJalanController extends Controller
 
         $recordsTotal = DB::table('trstockmt')
             ->where('trstockmt.fstockmtcode', 'SRJ')
+            ->where('trstockmt.fprdout', '0')
             ->whereNotExists(function ($subQuery) {
                 $subQuery->select(DB::raw(1))
                     ->from('trstockdt as srj_dt')
