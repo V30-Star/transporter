@@ -1226,10 +1226,11 @@
         const hidden = document.getElementById('customerCodeHidden');
         const normalize = (value) => String(value ?? '').trim();
         const eventCode = typeof payload === 'object' && payload !== null ? normalize(payload.fcustomercode) : '';
-        const eventValue = typeof payload === 'object' && payload !== null ? normalize(payload.fkodefp) : normalize(payload);
+        const eventValue = typeof payload === 'object' && payload !== null ? normalize(payload.fkodefp) : normalize(
+            payload);
         const customerCode = eventCode || normalize(hidden?.value) || normalize(select?.value);
-        const selectedOption = customerCode ?
-            [...(select?.options || [])].find(option => normalize(option.value) === customerCode) :
+        const selectedOption = customerCode ? [...(select?.options || [])].find(option => normalize(option
+                .value) === customerCode) :
             select?.selectedOptions?.[0];
         const optionValue = normalize(selectedOption?.dataset?.fkodefp);
         const mappedValue = customerCode ? (window.INVOICE_CUSTOMER_FP_MAP?.[customerCode] || '') : '';
@@ -2295,7 +2296,7 @@
 
             async pick(row) {
                 try {
-                    if (row.fdiscontinue == '1') {
+                    if (row.fnonactive == '1') {
                         Swal.fire({
                             icon: 'warning',
                             title: @json('Produk Tidak Tersedia'),

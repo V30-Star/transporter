@@ -115,7 +115,8 @@
                             overflowX: 'auto',
                             overflowY: 'auto'
                         });
-                        $container.find('#srjFooter').addClass('flex items-center justify-between mt-4');
+                        $container.find('#srjFooter').addClass(
+                        'flex items-center justify-between mt-4');
                     }
                 });
 
@@ -170,7 +171,7 @@
 
             async pick(row) {
                 try {
-                    if (row.fdiscontinue == '1') {
+                    if (row.fnonactive == '1') {
                         Swal.fire({
                             icon: 'warning',
                             title: 'Produk Discontinue',

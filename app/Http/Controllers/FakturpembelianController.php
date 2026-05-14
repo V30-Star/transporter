@@ -274,11 +274,6 @@ class FakturpembelianController extends Controller
         $start = max(0, (int) $request->get('start', 0));
         $draw = (int) $request->get('draw', 0);
 
-        $buySub = DB::table('trstockdt')
-            ->selectRaw('frefdtno, fprdcode, SUM(COALESCE(fqtykecil, 0)) AS fqtybuy')
-            ->where('fstockmtcode', 'BUY')
-            ->groupBy('frefdtno', 'fprdcode');
-
         $query = PenerimaanPembelianHeader::query()
             ->leftJoin('mssupplier', 'trstockmt.fsupplier', '=', 'mssupplier.fsuppliercode')
             ->select([

@@ -172,7 +172,7 @@ class ReturPenjualanController extends Controller
             if ($orderColumn === 'fcustomername') {
                 $query->orderBy('cust.fcustomername', $orderDir);
             } else {
-                $query->orderBy('mt.'.$orderColumn, $orderDir);
+                $query->orderBy('mt.' . $orderColumn, $orderDir);
             }
         } else {
             $query->orderBy('mt.fsodate', 'desc');
@@ -293,7 +293,7 @@ class ReturPenjualanController extends Controller
         }
 
         do {
-            $candidate = (string) random_int(1, 9).random_int(1, 9).random_int(1, 9);
+            $candidate = (string) random_int(1, 9) . random_int(1, 9) . random_int(1, 9);
         } while (in_array($candidate, $usedNumbers, true));
 
         $usedNumbers[] = $candidate;
@@ -327,16 +327,16 @@ class ReturPenjualanController extends Controller
     private function generateInvoiceCode(?Carbon $onDate = null): string
     {
         $date = $onDate ?: now();
-        $prefix = 'REJ.'.$date->format('ym').'.';
+        $prefix = 'REJ.' . $date->format('ym') . '.';
 
         $last = DB::table('tranmt')
-            ->where('fsono', 'like', $prefix.'%')
-            ->selectRaw("MAX(CAST(substr(trim(fsono), length('".$prefix."') + 1) AS int)) AS lastno")
+            ->where('fsono', 'like', $prefix . '%')
+            ->selectRaw("MAX(CAST(substr(trim(fsono), length('" . $prefix . "') + 1) AS int)) AS lastno")
             ->value('lastno');
 
         $next = (int) $last + 1;
 
-        return $prefix.str_pad((string) $next, 4, '0', STR_PAD_LEFT);
+        return $prefix . str_pad((string) $next, 4, '0', STR_PAD_LEFT);
     }
 
     public function print(string $fsono)
@@ -374,7 +374,7 @@ class ReturPenjualanController extends Controller
             ]);
 
         // Format date helper
-        $fmt = fn ($d) => $d
+        $fmt = fn($d) => $d
             ? \Carbon\Carbon::parse($d)->locale('id')->translatedFormat('d F Y')
             : '-';
 
@@ -398,10 +398,10 @@ class ReturPenjualanController extends Controller
         $raw = (Auth::guard('sysuser')->user() ?? Auth::user())?->fcabang;
 
         $branch = DB::table('mscabang')
-            ->when(is_numeric($raw), fn ($q) => $q->where('fcabangid', (int) $raw))
+            ->when(is_numeric($raw), fn($q) => $q->where('fcabangid', (int) $raw))
             ->when(
                 ! is_numeric($raw),
-                fn ($q) => $q->where('fcabangkode', $raw)->orWhere('fcabangname', $raw)
+                fn($q) => $q->where('fcabangkode', $raw)->orWhere('fcabangname', $raw)
             )
             ->first(['fcabangid', 'fcabangkode', 'fcabangname']);
 
@@ -525,7 +525,7 @@ class ReturPenjualanController extends Controller
 
         $products = DB::table('msprd')
             ->whereIn('fprdcode', $filteredCodes)
-            ->get(['fprdid', 'fprdcode', 'fprdname', 'fdiscontinue', 'fsatuanbesar', 'fqtykecil as rasio_konversi'])
+            ->get(['fprdid', 'fprdcode', 'fprdname', 'fnonactive', 'fsatuanbesar', 'fqtykecil as rasio_konversi'])
             ->keyBy('fprdcode');
 
         // LOOP ITEM
@@ -545,7 +545,7 @@ class ReturPenjualanController extends Controller
 
             $product = $products->get($code);
 
-            if ($product && $product->fdiscontinue == '1') {
+            if ($product && $product->fnonactive == '1') {
                 return back()->withInput()->with('error', "Produk [{$code}] {$product->fprdname} Sudah Discontinue.");
             }
 
@@ -663,10 +663,10 @@ class ReturPenjualanController extends Controller
                 $fsono = $request->input('fsono');
 
                 if (empty($fsono)) {
-                    $prefix = 'REJ.'.$fsodate->format('ym').'.';
+                    $prefix = 'REJ.' . $fsodate->format('ym') . '.';
 
                     $lastRecord = DB::table('tranmt')
-                        ->where('fsono', 'like', $prefix.'%')
+                        ->where('fsono', 'like', $prefix . '%')
                         ->orderBy('fsono', 'desc')
                         ->lockForUpdate()
                         ->first();
@@ -675,7 +675,7 @@ class ReturPenjualanController extends Controller
                         ? ((int) substr(trim($lastRecord->fsono), -4)) + 1
                         : 1;
 
-                    $fsono = $prefix.str_pad($nextNumber, 4, '0', STR_PAD_LEFT);
+                    $fsono = $prefix . str_pad($nextNumber, 4, '0', STR_PAD_LEFT);
                 }
 
                 $headerData = [
@@ -838,11 +838,11 @@ class ReturPenjualanController extends Controller
 
         $soStats = $this->getReturReferenceStats(
             'SO',
-            $rows->pluck('frefso')->filter()->map(fn ($value) => trim((string) $value))->unique()->values()->all()
+            $rows->pluck('frefso')->filter()->map(fn($value) => trim((string) $value))->unique()->values()->all()
         );
         $srjStats = $this->getReturReferenceStats(
             'SRJ',
-            $rows->pluck('frefsrj')->filter()->map(fn ($value) => trim((string) $value))->unique()->values()->all()
+            $rows->pluck('frefsrj')->filter()->map(fn($value) => trim((string) $value))->unique()->values()->all()
         );
 
         return $rows->keyBy('ftrandtid')->map(function ($row) use ($soStats, $srjStats) {
@@ -873,7 +873,7 @@ class ReturPenjualanController extends Controller
                 if ((float) $qtyKecil - $available > 0.000001) {
                     $label = trim((string) ($stat['product_name'] ?? $stat['product_code'] ?? $referenceKey));
                     $refno = trim((string) ($stat['ref_doc'] ?? ''));
-                    return 'Qty referensi SO untuk item '.$label.($refno !== '' ? ' pada '.$refno : '').' melebihi qty yang masih tersedia.';
+                    return 'Qty referensi SO untuk item ' . $label . ($refno !== '' ? ' pada ' . $refno : '') . ' melebihi qty yang masih tersedia.';
                 }
             }
         }
@@ -887,7 +887,7 @@ class ReturPenjualanController extends Controller
                 if ((float) $qtyKecil - $available > 0.000001) {
                     $label = trim((string) ($stat['product_name'] ?? $stat['product_code'] ?? $referenceKey));
                     $refno = trim((string) ($stat['ref_doc'] ?? ''));
-                    return 'Qty referensi SRJ untuk item '.$label.($refno !== '' ? ' pada '.$refno : '').' melebihi qty yang masih tersedia.';
+                    return 'Qty referensi SRJ untuk item ' . $label . ($refno !== '' ? ' pada ' . $refno : '') . ' melebihi qty yang masih tersedia.';
                 }
             }
         }
@@ -903,7 +903,7 @@ class ReturPenjualanController extends Controller
                 if ((float) ($soStats[$referenceKey]['used_qty_kecil'] ?? 0) > 0) {
                     $refNo = trim((string) ($soStats[$referenceKey]['ref_doc'] ?? ''));
                     $transactionNo = trim((string) ($soStats[$referenceKey]['used_by_transaction'] ?? ''));
-                    return 'Nomor referensi '.$refNo.' sudah pernah dibuat di transaksi nomor '.$transactionNo.'.';
+                    return 'Nomor referensi ' . $refNo . ' sudah pernah dibuat di transaksi nomor ' . $transactionNo . '.';
                 }
             }
         }
@@ -914,7 +914,7 @@ class ReturPenjualanController extends Controller
                 if ((float) ($srjStats[$referenceKey]['used_qty_kecil'] ?? 0) > 0) {
                     $refNo = trim((string) ($srjStats[$referenceKey]['ref_doc'] ?? ''));
                     $transactionNo = trim((string) ($srjStats[$referenceKey]['used_by_transaction'] ?? ''));
-                    return 'Nomor referensi '.$refNo.' sudah pernah dibuat di transaksi nomor '.$transactionNo.'.';
+                    return 'Nomor referensi ' . $refNo . ' sudah pernah dibuat di transaksi nomor ' . $transactionNo . '.';
                 }
             }
         }
@@ -937,7 +937,7 @@ class ReturPenjualanController extends Controller
             ->map(function ($key) {
                 return explode('|', (string) $key)[0] ?? '';
             })
-            ->filter(fn ($value) => trim((string) $value) !== '')
+            ->filter(fn($value) => trim((string) $value) !== '')
             ->unique()
             ->values()
             ->all();
@@ -1014,7 +1014,7 @@ class ReturPenjualanController extends Controller
     private function getReturReferenceStats(string $type, array $docNos, ?string $exceptFsono = null): array
     {
         $docNos = collect($docNos)
-            ->map(fn ($value) => trim((string) $value))
+            ->map(fn($value) => trim((string) $value))
             ->filter()
             ->unique()
             ->values()
@@ -1042,7 +1042,7 @@ class ReturPenjualanController extends Controller
                 ->join('tranmt as h', 'h.fsono', '=', 'd.fsono')
                 ->whereIn('d.frefso', $docNos)
                 ->where('h.fsono', 'like', 'REJ.%')
-                ->when($exceptFsono, fn ($query) => $query->where('h.fsono', '<>', $exceptFsono))
+                ->when($exceptFsono, fn($query) => $query->where('h.fsono', '<>', $exceptFsono))
                 ->selectRaw("
                     TRIM(d.frefso) as ref_doc,
                     TRIM(d.fprdcode) as product_code,
@@ -1070,7 +1070,7 @@ class ReturPenjualanController extends Controller
                 ->join('tranmt as h', 'h.fsono', '=', 'd.fsono')
                 ->whereIn('d.frefsrj', $docNos)
                 ->where('h.fsono', 'like', 'REJ.%')
-                ->when($exceptFsono, fn ($query) => $query->where('h.fsono', '<>', $exceptFsono))
+                ->when($exceptFsono, fn($query) => $query->where('h.fsono', '<>', $exceptFsono))
                 ->selectRaw("
                     TRIM(d.frefsrj) as ref_doc,
                     TRIM(d.fprdcode) as product_code,
@@ -1205,8 +1205,8 @@ class ReturPenjualanController extends Controller
         $raw = (Auth::guard('sysuser')->user() ?? Auth::user())?->fcabang;
 
         $branch = DB::table('mscabang')
-            ->when(is_numeric($raw), fn ($q) => $q->where('fcabangid', (int) $raw))
-            ->when(! is_numeric($raw), fn ($q) => $q
+            ->when(is_numeric($raw), fn($q) => $q->where('fcabangid', (int) $raw))
+            ->when(! is_numeric($raw), fn($q) => $q
                 ->where('fcabangkode', $raw)
                 ->orWhere('fcabangname', $raw))
             ->first(['fcabangid', 'fcabangkode', 'fcabangname']);
@@ -1348,8 +1348,8 @@ class ReturPenjualanController extends Controller
         $raw = (Auth::guard('sysuser')->user() ?? Auth::user())?->fcabang;
 
         $branch = DB::table('mscabang')
-            ->when(is_numeric($raw), fn ($q) => $q->where('fcabangid', (int) $raw))
-            ->when(! is_numeric($raw), fn ($q) => $q
+            ->when(is_numeric($raw), fn($q) => $q->where('fcabangid', (int) $raw))
+            ->when(! is_numeric($raw), fn($q) => $q
                 ->where('fcabangkode', $raw)
                 ->orWhere('fcabangname', $raw))
             ->first(['fcabangid', 'fcabangkode', 'fcabangname']);
@@ -1765,8 +1765,8 @@ class ReturPenjualanController extends Controller
         $raw = (Auth::guard('sysuser')->user() ?? Auth::user())?->fcabang;
 
         $branch = DB::table('mscabang')
-            ->when(is_numeric($raw), fn ($q) => $q->where('fcabangid', (int) $raw))
-            ->when(! is_numeric($raw), fn ($q) => $q
+            ->when(is_numeric($raw), fn($q) => $q->where('fcabangid', (int) $raw))
+            ->when(! is_numeric($raw), fn($q) => $q
                 ->where('fcabangkode', $raw)
                 ->orWhere('fcabangname', $raw))
             ->first(['fcabangid', 'fcabangkode', 'fcabangname']);

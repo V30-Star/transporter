@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', $action === 'delete' ? "Hapus" . ' ' . "Retur Penjualan" : "Edit" . ' ' . "Retur Penjualan")
+@section('title', $action === 'delete' ? 'Hapus' . ' ' . 'Retur Penjualan' : 'Edit' . ' ' . 'Retur Penjualan')
 
 @section('content')
     @php
@@ -155,13 +155,14 @@
                     </div>
                     <div class="flex-1">
                         <h3 class="text-base font-bold text-orange-700">
-                            {{ "Retur Penjualan" }} {{ $action === 'delete' ? "Tidak Dapat Dihapus" : "Tidak Dapat Diedit" }}
+                            {{ 'Retur Penjualan' }}
+                            {{ $action === 'delete' ? 'Tidak Dapat Dihapus' : 'Tidak Dapat Diedit' }}
                         </h3>
                         <p class="text-sm text-orange-500 mt-0.5">{{ $usageLockMessage }}</p>
                     </div>
                     <button type="button" @click="open = false"
                         class="flex-shrink-0 w-8 h-8 rounded-full bg-orange-100 hover:bg-orange-200 flex items-center justify-center transition-colors"
-                        title="{{ "Tutup" }}">
+                        title="{{ 'Tutup' }}">
                         <x-heroicon-o-x-mark class="w-4 h-4 text-orange-600" />
                     </button>
                 </div>
@@ -169,7 +170,7 @@
                     <button type="button" @click="open = false"
                         class="bg-gray-500 text-white px-6 py-2 rounded hover:bg-gray-600 flex items-center gap-2">
                         <x-heroicon-o-arrow-left class="w-5 h-5" />
-                        {{ "Tutup" }}
+                        {{ 'Tutup' }}
                     </button>
                 </div>
             </div>
@@ -257,7 +258,7 @@
                                                 </option>
                                             @endforeach
                                         </select>
-                                        <div class="absolute inset-0" role="button" aria-label="{{ "Browse Customer" }}"
+                                        <div class="absolute inset-0" role="button" aria-label="{{ 'Browse Customer' }}"
                                             @click="window.dispatchEvent(new CustomEvent('customer-browse-open'))">
                                         </div>
                                     </div>
@@ -285,7 +286,8 @@
                                                 </option>
                                             @endforeach
                                         </select>
-                                        <div class="absolute inset-0" role="button" aria-label="{{ "Browse Salesman" }}"
+                                        <div class="absolute inset-0" role="button"
+                                            aria-label="{{ 'Browse Salesman' }}"
                                             @click="window.dispatchEvent(new CustomEvent('salesman-browse-open'))">
                                         </div>
                                     </div>
@@ -354,7 +356,8 @@
                             <h3 class="text-base font-semibold text-gray-800">Detail Item</h3>
 
                             <div class="overflow-auto border rounded">
-                                <table class="min-w-full text-sm balanced-detail-table" data-skip-auto-detail-style="true">
+                                <table class="min-w-full text-sm balanced-detail-table"
+                                    data-skip-auto-detail-style="true">
                                     <colgroup>
                                         <col style="width:2%;">
                                         <col style="width:16%;">
@@ -387,18 +390,20 @@
                                             <tr class="border-t align-top transition-colors hover:bg-gray-50">
                                                 <td class="p-2" x-text="i + 1"></td>
                                                 <td class="p-2 font-mono" x-text="it.fitemcode"></td>
-                                            <td class="p-2">
-                                                <div class="flex w-full max-w-full">
-                                                    <div class="min-w-0 flex-1 rounded-l border bg-gray-100 px-2 py-1 text-sm leading-5 text-gray-600 whitespace-normal break-words"
-                                                        x-text="it.fitemname"></div>
-                                                    <button type="button" @click="openDesc(it)"
-                                                        class="shrink-0 inline-flex items-center border border-l-0 rounded-r px-2 py-1 transition-colors"
-                                                        :class="it.fdesc ? 'border-emerald-300 bg-emerald-50 text-emerald-600 hover:bg-emerald-100' : 'border-gray-300 bg-white text-gray-500 hover:bg-gray-50'"
-                                                        title="Deskripsi item">
-                                                        <x-heroicon-o-document-text class="h-4 w-4" />
-                                                    </button>
-                                                </div>
-                                            </td>
+                                                <td class="p-2">
+                                                    <div class="flex w-full max-w-full">
+                                                        <div class="min-w-0 flex-1 rounded-l border bg-gray-100 px-2 py-1 text-sm leading-5 text-gray-600 whitespace-normal break-words"
+                                                            x-text="it.fitemname"></div>
+                                                        <button type="button" @click="openDesc(it)"
+                                                            class="shrink-0 inline-flex items-center border border-l-0 rounded-r px-2 py-1 transition-colors"
+                                                            :class="it.fdesc ?
+                                                                'border-emerald-300 bg-emerald-50 text-emerald-600 hover:bg-emerald-100' :
+                                                                'border-gray-300 bg-white text-gray-500 hover:bg-gray-50'"
+                                                            title="Deskripsi item">
+                                                            <x-heroicon-o-document-text class="h-4 w-4" />
+                                                        </button>
+                                                    </div>
+                                                </td>
                                                 <td class="p-2">
                                                     <template x-if="it.units && it.units.length > 1">
                                                         <select class="w-full border rounded px-2 py-1 text-xs"
@@ -414,7 +419,8 @@
                                                     </template>
                                                 </td>
                                                 <td class="p-2">
-                                                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800"
+                                                    <span
+                                                        class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800"
                                                         x-text="it.frefpr || it.frefcode || '-'">
                                                     </span>
                                                 </td>
@@ -488,7 +494,9 @@
                                                         x-text="draft.fitemname"></div>
                                                     <button type="button" @click="openDesc(draft)"
                                                         class="shrink-0 inline-flex items-center border border-l-0 rounded-r px-2 py-1 transition-colors"
-                                                        :class="draft.fdesc ? 'border-emerald-300 bg-emerald-50 text-emerald-600 hover:bg-emerald-100' : 'border-gray-300 bg-white text-gray-500 hover:bg-gray-50'"
+                                                        :class="draft.fdesc ?
+                                                            'border-emerald-300 bg-emerald-50 text-emerald-600 hover:bg-emerald-100' :
+                                                            'border-gray-300 bg-white text-gray-500 hover:bg-gray-50'"
                                                         title="Deskripsi item">
                                                         <x-heroicon-o-document-text class="h-4 w-4" />
                                                     </button>
@@ -515,11 +523,13 @@
                                             </td>
                                             <td class="p-2 text-right">
                                                 <input type="number" class="border rounded px-2 py-1 w-24 text-right"
-                                                    x-model.number="draft.fqty" @input="
+                                                    x-model.number="draft.fqty"
+                                                    @input="
                                                         recalc(draft);
                                                         enforceQtyRow(draft);
                                                         recalc(draft);
-                                                    " x-ref="draftQty">
+                                                    "
+                                                    x-ref="draftQty">
                                             </td>
                                             <td class="p-2 text-right">
                                                 <input type="number" class="border rounded px-2 py-1 w-28 text-right"
@@ -587,7 +597,8 @@
                                                 <div class="flex items-center gap-2">
                                                     <select id="fapplyppn_input" name="fapplyppn"
                                                         x-model.number="fapplyppn"
-                                                        :disabled="!(includePPN || fapplyppn) || action === 'view' || action === 'delete'"
+                                                        :disabled="!(includePPN || fapplyppn) || action === 'view' ||
+                                                            action === 'delete'"
                                                         class="w-28 h-9 px-2 text-sm leading-tight border rounded transition-opacity appearance-none
                                                            disabled:bg-gray-100 disabled:opacity-60 disabled:cursor-not-allowed">
                                                         <option value="0">Exclude</option>
@@ -597,9 +608,10 @@
 
                                                 <!-- Input Rate + Nominal (kanan) -->
                                                 <div class="flex items-center gap-2">
-                                                    <input type="number" min="0" max="100" id="fppnpersen" name="fppnpersen"
-                                                        step="0.01" x-model.number="ppnRate"
-                                                        :disabled="!(includePPN || fapplyppn) || action === 'view' || action === 'delete'"
+                                                    <input type="number" min="0" max="100" id="fppnpersen"
+                                                        name="fppnpersen" step="0.01" x-model.number="ppnRate"
+                                                        :disabled="!(includePPN || fapplyppn) || action === 'view' ||
+                                                            action === 'delete'"
                                                         class="w-20 h-9 px-2 text-sm leading-tight text-right border rounded transition-opacity
                                                             [appearance:textfield]
                                                             [&::-webkit-outer-spin-button]:appearance-none
@@ -657,7 +669,7 @@
                                         <div class="px-5 py-3 border-t flex items-center justify-end gap-2">
                                             <button type="button" @click="closeDesc()"
                                                 class="h-9 px-4 rounded-lg bg-gray-100 text-gray-700 text-sm font-medium hover:bg-gray-200">
-                                                {{ "Batal" }}
+                                                {{ 'Batal' }}
                                             </button>
                                             <button type="button" @click="applyDesc()"
                                                 class="h-9 px-4 rounded-lg bg-emerald-600 text-white text-sm font-medium hover:bg-emerald-700">
@@ -671,17 +683,16 @@
                             </div>
 
                             {{-- MODAL ERROR: belum ada item --}}
-                            <div x-data="{ showNoItems: false }"
-                                x-init="window.addEventListener('returpenjualan-show-no-items', () => { showNoItems = true })"
-                                x-show="showNoItems && Number(document.getElementById('itemsCount')?.value || 0) === 0" x-cloak
-                                class="fixed inset-0 z-[90] flex items-center justify-center" x-transition.opacity>
+                            <div x-data="{ showNoItems: false }" x-init="window.addEventListener('returpenjualan-show-no-items', () => { showNoItems = true })"
+                                x-show="showNoItems && Number(document.getElementById('itemsCount')?.value || 0) === 0"
+                                x-cloak class="fixed inset-0 z-[90] flex items-center justify-center" x-transition.opacity>
                                 <div class="absolute inset-0 bg-black/50" @click="showNoItems=false"></div>
 
                                 <div class="relative bg-white w-[92vw] max-w-md rounded-2xl shadow-2xl overflow-hidden"
                                     x-transition.scale>
                                     <div class="px-5 py-4 border-b flex items-center">
                                         <x-heroicon-o-exclamation-triangle class="w-6 h-6 text-red-500 mr-2" />
-                                        <h3 class="text-lg font-semibold text-gray-800">{{ "Tidak Ada Item" }}</h3>
+                                        <h3 class="text-lg font-semibold text-gray-800">{{ 'Tidak Ada Item' }}</h3>
                                     </div>
 
                                     <div class="px-5 py-4">
@@ -705,1187 +716,1203 @@
 
                     </fieldset>
 
-                        <div class="mt-6 flex justify-center space-x-4">
-                            @if ($usageLocked)
-                                <button type="button" disabled title="{{ $usageLockMessage }}"
-                                    class="bg-red-300 text-white px-6 py-2 rounded flex items-center cursor-not-allowed opacity-70">
-                                    <x-heroicon-o-lock-closed class="w-5 h-5 mr-2" />
-                                    Hapus
-                                </button>
-                            @else
-                                <button type="button" onclick="showDeleteModal()"
-                                    class="bg-red-600 text-white px-6 py-2 rounded hover:bg-red-700 flex items-center">
-                                    <x-heroicon-o-trash class="w-5 h-5 mr-2" />
-                                    Hapus
-                                </button>
-                            @endif
-                            <button type="button" onclick="window.location.href='{{ route('returpenjualan.index') }}'"
-                                class="bg-gray-500 text-white px-6 py-2 rounded hover:bg-gray-600 flex items-center">
-                                <x-heroicon-o-arrow-left class="w-5 h-5 mr-2" />
-                                Kembali
+                    <div class="mt-6 flex justify-center space-x-4">
+                        @if ($usageLocked)
+                            <button type="button" disabled title="{{ $usageLockMessage }}"
+                                class="bg-red-300 text-white px-6 py-2 rounded flex items-center cursor-not-allowed opacity-70">
+                                <x-heroicon-o-lock-closed class="w-5 h-5 mr-2" />
+                                Hapus
                             </button>
-                        </div>
+                        @else
+                            <button type="button" onclick="showDeleteModal()"
+                                class="bg-red-600 text-white px-6 py-2 rounded hover:bg-red-700 flex items-center">
+                                <x-heroicon-o-trash class="w-5 h-5 mr-2" />
+                                Hapus
+                            </button>
+                        @endif
+                        <button type="button" onclick="window.location.href='{{ route('returpenjualan.index') }}'"
+                            class="bg-gray-500 text-white px-6 py-2 rounded hover:bg-gray-600 flex items-center">
+                            <x-heroicon-o-arrow-left class="w-5 h-5 mr-2" />
+                            Kembali
+                        </button>
+                    </div>
 
-                        {{-- ============================================ --}}
-                        {{-- MODE EDIT: FORM EDITABLE                    --}}
-                        {{-- ============================================ --}}
-                    @else
-                        <form action="{{ route('returpenjualan.update', $returpenjualan->ftranmtid) }}" method="POST"
-                            class="mt-6"
-                            @submit.prevent="
+                    {{-- ============================================ --}}
+                    {{-- MODE EDIT: FORM EDITABLE                    --}}
+                    {{-- ============================================ --}}
+                @else
+                    <form action="{{ route('returpenjualan.update', $returpenjualan->ftranmtid) }}" method="POST"
+                        class="mt-6"
+                        @submit.prevent="
                         const n = Number(document.getElementById('itemsCount')?.value || 0);
                         if (n < 1) { window.dispatchEvent(new CustomEvent('returpenjualan-show-no-items')) } else { $el.submit() }
                     ">
-                            @csrf
-                            @method('PATCH')
+                        @csrf
+                        @method('PATCH')
 
-                            {{-- HEADER FORM --}}
-                            <div class="grid grid-cols-1 lg:grid-cols-12 gap-4">
-                                <div class="lg:col-span-4">
-                                    <label class="block text-sm font-medium">Cabang</label>
-                                    <input type="text"
-                                        class="w-full border rounded px-3 py-2 bg-gray-200 cursor-not-allowed"
-                                        value="{{ $fcabang }}" disabled>
-                                    <input type="hidden" name="fbranchcode" value="{{ $fbranchcode }}">
-                                </div>
+                        {{-- HEADER FORM --}}
+                        <div class="grid grid-cols-1 lg:grid-cols-12 gap-4">
+                            <div class="lg:col-span-4">
+                                <label class="block text-sm font-medium">Cabang</label>
+                                <input type="text"
+                                    class="w-full border rounded px-3 py-2 bg-gray-200 cursor-not-allowed"
+                                    value="{{ $fcabang }}" disabled>
+                                <input type="hidden" name="fbranchcode" value="{{ $fbranchcode }}">
+                            </div>
 
-                                <div class="lg:col-span-4" x-data="{ autoCode: true }">
-                                    <label class="block text-sm font-medium mb-1">SO#</label>
-                                    <div class="flex items-center gap-3">
-                                        <input type="text" name="fsono" class="w-full border rounded px-3 py-2"
-                                            :disabled="autoCode" value="{{ $returpenjualan->fsono }}"
-                                            :class="autoCode ? 'bg-gray-200 cursor-not-allowed' : 'bg-white'">
-                                        <label class="inline-flex items-center select-none">
-                                            <input type="checkbox" x-model="autoCode" checked>
-                                            <span class="ml-2 text-sm text-gray-700">Auto</span>
-                                        </label>
-                                    </div>
-                                </div>
-
-                                <div class="lg:col-span-4">
-                                    <label class="block text-sm font-medium">Retur Pajak#</label>
-                                    <input type="text" name="ftaxno"
-                                        value="{{ old('ftaxno', $returpenjualan->ftaxno) }}"
-                                        class="w-full border rounded px-3 py-2 @error('ftaxno') border-red-500 @enderror">
-                                    @error('ftaxno')
-                                        <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
-                                    @enderror
-                                </div>
-
-                                <div class="lg:col-span-4">
-                                    <label class="block text-sm font-medium">Type</label>
-                                    <select name="ftypesales" id="ftypesales" x-model.number="ftypesales"
-                                        x-init="ftypesales = {{ old('ftypesales', $returpenjualan->ftypesales) }}"
-                                        class="w-full border rounded px-3 py-2 @error('ftypesales') border-red-500 @enderror">
-                                        <option value="0">Penjualan</option>
-                                        <option value="1">Uang Muka</option>
-                                    </select>
-                                    @error('ftypesales')
-                                        <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
-                                    @enderror
-                                </div>
-
-                                <div class="lg:col-span-4">
-                                    <label class="block text-sm font-medium">Tanggal</label>
-                                    <input type="date" id="fsodate" name="fsodate"
-                                        value="{{ old('fsodate', \Carbon\Carbon::parse($returpenjualan->fsodate)->format('Y-m-d')) }}"
-                                        class="w-full border rounded px-3 py-2 @error('fsodate') border-red-500 @enderror">
-                                    <input type="hidden" id="ftempohr" value="0">
-                                    @error('fsodate')
-                                        <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
-                                    @enderror
-                                </div>
-
-                                {{-- Customer --}}
-                                <div class="lg:col-span-4">
-                                    <label class="block text-sm font-medium mb-1">Customer</label>
-                                    <div class="flex">
-                                        <div class="relative flex-1" for="modal_filter_customer_id">
-                                            <select id="modal_filter_customer_id" name="filter_customer_id"
-                                                class="w-full border rounded-l px-3 py-2 bg-gray-100 text-gray-700 cursor-not-allowed"
-                                                disabled>
-                                                <option value=""></option>
-                                                @foreach ($customers as $customer)
-                                                    <option value="{{ $customer->fcustomercode }}" {{-- CEK DISINI: Bandingkan dengan data yang tersimpan di DB --}}
-                                                        {{ old('fcustno', $returpenjualan->fcustno) == $customer->fcustomercode ? 'selected' : '' }}>
-                                                        {{ $customer->fcustomername }} ({{ $customer->fcustomercode }})
-                                                    </option>
-                                                @endforeach
-                                            </select>
-                                            <div class="absolute inset-0" role="button" aria-label="{{ "Browse Customer" }}"
-                                                @click="window.dispatchEvent(new CustomEvent('customer-browse-open'))">
-                                            </div>
-                                        </div>
-                                        <input type="hidden" name="fcustno" id="customerCodeHidden"
-                                            value="{{ old('fcustno', $returpenjualan->fcustno) }}">
-                                        <button type="button"
-                                            @click="window.dispatchEvent(new CustomEvent('customer-browse-open'))"
-                                            class="border -ml-px px-3 py-2 bg-white hover:bg-gray-50 rounded-r-none"
-                                            title="{{ "Browse Customer" }}">
-                                            <x-heroicon-o-magnifying-glass class="w-5 h-5" />
-                                        </button>
-                                        <a href="{{ route('customer.create') }}" target="_blank" rel="noopener"
-                                            class="border -ml-px rounded-r px-3 py-2 bg-white hover:bg-gray-50"
-                                            title="Tambah Customer">
-                                            <x-heroicon-o-plus class="w-5 h-5" />
-                                        </a>
-                                    </div>
-                                    @error('fcustno')
-                                        <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
-                                    @enderror
-                                </div>
-
-                                {{-- Salesman --}}
-                                <div class="lg:col-span-4">
-                                    <label class="block text-sm font-medium mb-1">Salesman</label>
-                                    <div class="flex">
-                                        <div class="relative flex-1" for="modal_filter_salesman_id">
-                                            <select id="modal_filter_salesman_id" name="filter_salesman_id"
-                                                class="w-full border rounded-l px-3 py-2 bg-gray-100 text-gray-700 cursor-not-allowed"
-                                                disabled>
-                                                <option value=""></option>
-                                                @foreach ($salesmans as $salesman)
-                                                    <option value="{{ $salesman->fsalesmancode }}" {{-- CEK DISINI: Bandingkan old input atau data dari database --}}
-                                                        {{ old('fsalesman', $returpenjualan->fsalesman) == $salesman->fsalesmancode ? 'selected' : '' }}>
-                                                        {{ $salesman->fsalesmanname }} ({{ $salesman->fsalesmancode }})
-                                                    </option>
-                                                @endforeach
-                                            </select>
-                                            <div class="absolute inset-0" role="button" aria-label="{{ "Browse Salesman" }}"
-                                                @click="window.dispatchEvent(new CustomEvent('salesman-browse-open'))">
-                                            </div>
-                                        </div>
-                                        <input type="hidden" name="fsalesman" id="salesmanCodeHidden"
-                                            value="{{ old('fsalesman', $returpenjualan->fsalesman ?? '0') }}">
-                                        <button type="button"
-                                            @click="window.dispatchEvent(new CustomEvent('salesman-browse-open'))"
-                                            class="border -ml-px px-3 py-2 bg-white hover:bg-gray-50 rounded-r-none"
-                                            title="{{ "Browse Salesman" }}">
-                                            <x-heroicon-o-magnifying-glass class="w-5 h-5" />
-                                        </button>
-                                        <a href="{{ route('salesman.create') }}" target="_blank" rel="noopener"
-                                            class="border -ml-px rounded-r px-3 py-2 bg-white hover:bg-gray-50"
-                                            title="Tambah Salesman">
-                                            <x-heroicon-o-plus class="w-5 h-5" />
-                                        </a>
-                                    </div>
-                                    @error('fsalesman')
-                                        <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
-                                    @enderror
-                                </div>
-
-                                <div class="lg:col-span-12">
-                                    <label class="block text-sm font-medium">Keterangan</label>
-                                    <textarea name="fket" rows="3"
-                                        class="w-full border rounded px-3 py-2 @error('fket') border-red-500 @enderror"
-                                        placeholder="Keterangan isi di sini...">{{ old('fket', $returpenjualan->fket) }}</textarea>
-                                    @error('fket')
-                                        <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
-                                    @enderror
+                            <div class="lg:col-span-4" x-data="{ autoCode: true }">
+                                <label class="block text-sm font-medium mb-1">SO#</label>
+                                <div class="flex items-center gap-3">
+                                    <input type="text" name="fsono" class="w-full border rounded px-3 py-2"
+                                        :disabled="autoCode" value="{{ $returpenjualan->fsono }}"
+                                        :class="autoCode ? 'bg-gray-200 cursor-not-allowed' : 'bg-white'">
+                                    <label class="inline-flex items-center select-none">
+                                        <input type="checkbox" x-model="autoCode" checked>
+                                        <span class="ml-2 text-sm text-gray-700">Auto</span>
+                                    </label>
                                 </div>
                             </div>
 
-                            <div x-data="itemsTable()" x-init="init()" class="mt-6 space-y-2">
+                            <div class="lg:col-span-4">
+                                <label class="block text-sm font-medium">Retur Pajak#</label>
+                                <input type="text" name="ftaxno"
+                                    value="{{ old('ftaxno', $returpenjualan->ftaxno) }}"
+                                    class="w-full border rounded px-3 py-2 @error('ftaxno') border-red-500 @enderror">
+                                @error('ftaxno')
+                                    <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+                                @enderror
+                            </div>
 
-                                {{-- DETAIL ITEM (tabel input) --}}
-                                <h3 class="text-base font-semibold text-gray-800">Detail Item</h3>
+                            <div class="lg:col-span-4">
+                                <label class="block text-sm font-medium">Type</label>
+                                <select name="ftypesales" id="ftypesales" x-model.number="ftypesales"
+                                    x-init="ftypesales = {{ old('ftypesales', $returpenjualan->ftypesales) }}"
+                                    class="w-full border rounded px-3 py-2 @error('ftypesales') border-red-500 @enderror">
+                                    <option value="0">Penjualan</option>
+                                    <option value="1">Uang Muka</option>
+                                </select>
+                                @error('ftypesales')
+                                    <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+                                @enderror
+                            </div>
 
-                                <div class="overflow-auto border rounded">
-                                    <table class="min-w-full text-sm balanced-detail-table" data-skip-auto-detail-style="true">
-                                        <colgroup>
-                                            <col style="width:2%;">
-                                            <col style="width:16%;">
-                                            <col style="width:25%;">
-                                            <col style="width:9%;">
-                                            <col style="width:16%;">
-                                            <col style="width:8%;">
-                                            <col style="width:8%;">
-                                            <col style="width:6%;">
-                                            <col style="width:7%;">
-                                            <col style="width:3%;">
-                                        </colgroup>
-                                        <thead class="bg-gray-100">
-                                            <tr>
-                                                <th class="p-2 text-left w-10">#</th>
-                                                <th class="p-2 text-left w-42">Kode Produk</th>
-                                                <th class="p-2 text-left w-96">Nama Produk</th>
-                                                <th class="p-2 text-left w-36">Satuan</th>
-                                                <th class="p-2 text-left w-36">No.Ref</th>
-                                                <th class="p-2 text-right w-36 whitespace-nowrap">Qty</th>
-                                                <th class="p-2 text-right w-32 whitespace-nowrap">@ Harga</th>
-                                                <th class="p-2 text-right w-36 whitespace-nowrap">Disc. %</th>
-                                                <th class="p-2 text-right w-36 whitespace-nowrap">Total Harga</th>
-                                                <th class="p-2 text-center w-28">Aksi</th>
-                                            </tr>
-                                        </thead>
+                            <div class="lg:col-span-4">
+                                <label class="block text-sm font-medium">Tanggal</label>
+                                <input type="date" id="fsodate" name="fsodate"
+                                    value="{{ old('fsodate', \Carbon\Carbon::parse($returpenjualan->fsodate)->format('Y-m-d')) }}"
+                                    class="w-full border rounded px-3 py-2 @error('fsodate') border-red-500 @enderror">
+                                <input type="hidden" id="ftempohr" value="0">
+                                @error('fsodate')
+                                    <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+                                @enderror
+                            </div>
 
-                                        <tbody>
-                                            <template x-for="(it, i) in savedItems" :key="it.uid || `item-${i}`">
-                                                <tr class="border-t align-top transition-colors hover:bg-gray-50">
-                                                    <td class="p-2" x-text="i + 1"></td>
-                                                    <td class="p-2 font-mono" x-text="it.fitemcode"></td>
-                                                    <td class="p-2">
-                                                        <div class="flex w-full max-w-full">
-                                                            <div class="min-w-0 flex-1 rounded-l border bg-gray-100 px-2 py-1 text-sm leading-5 text-gray-600 whitespace-normal break-words"
-                                                                x-text="it.fitemname"></div>
-                                                            <button type="button" @click="openDesc(it)"
-                                                                class="shrink-0 inline-flex items-center border border-l-0 rounded-r px-2 py-1 transition-colors"
-                                                                :class="it.fdesc ? 'border-emerald-300 bg-emerald-50 text-emerald-600 hover:bg-emerald-100' : 'border-gray-300 bg-white text-gray-500 hover:bg-gray-50'"
-                                                                title="Deskripsi item">
-                                                                <x-heroicon-o-document-text class="h-4 w-4" />
-                                                            </button>
-                                                        </div>
-                                                    </td>
-                                                    <td class="p-2">
-                                                        <template x-if="it.units && it.units.length > 1">
-                                                            <select class="w-full border rounded px-2 py-1 text-xs"
-                                                                x-model="it.fsatuan">
-                                                                <template x-for="u in it.units" :key="u">
-                                                                    <option :value="u" x-text="u"
-                                                                        :selected="u === it.fsatuan"></option>
-                                                                </template>
-                                                            </select>
-                                                        </template>
-                                                        <template x-if="!it.units || it.units.length <= 1">
-                                                            <span x-text="it.fsatuan"></span>
-                                                        </template>
-                                                    </td>
-                                                    <td class="p-2 text-blue-600 font-semibold" x-text="it.frefpr || '-'">
-                                                    </td>
-                                                    <td class="p-2 text-right">
-                                                        <input type="number"
-                                                            class="w-full border rounded px-2 py-1 text-right"
-                                                            type="number"
-                                                            x-model.number="it.fqty" @input="
-                                                                recalc(it);
-                                                                enforceQtyRow(it);
-                                                                recalc(it);
-                                                            ">
-                                                    </td>
-                                                    <td class="p-2 text-right">
-                                                        <input type="number"
-                                                            class="w-full border rounded px-2 py-1 text-right"
-                                                            x-model.number="it.fprice" @input="recalc(it)">
-                                                    </td>
-                                                    <td class="p-2 text-right">
-                                                        <input type="text"
-                                                            class="w-full border rounded px-2 py-1 text-right"
-                                                            x-model="it.fdisc" @input="recalc(it)">
-                                                    </td>
-                                                    <td class="p-2">
-                                                        <input type="text"
-                                                            class="w-full border rounded px-2 py-1 bg-gray-100 text-gray-600 text-sm text-right"
-                                                            :value="fmt(it.ftotal)" disabled>
-                                                    </td>
-                                                    <td class="p-2 text-center">
-                                                        <button type="button" @click="removeSaved(i)"
-                                                            class="px-3 py-1 rounded text-xs bg-red-100 text-red-600 hover:bg-red-200">Hapus</button>
+                            {{-- Customer --}}
+                            <div class="lg:col-span-4">
+                                <label class="block text-sm font-medium mb-1">Customer</label>
+                                <div class="flex">
+                                    <div class="relative flex-1" for="modal_filter_customer_id">
+                                        <select id="modal_filter_customer_id" name="filter_customer_id"
+                                            class="w-full border rounded-l px-3 py-2 bg-gray-100 text-gray-700 cursor-not-allowed"
+                                            disabled>
+                                            <option value=""></option>
+                                            @foreach ($customers as $customer)
+                                                <option value="{{ $customer->fcustomercode }}" {{-- CEK DISINI: Bandingkan dengan data yang tersimpan di DB --}}
+                                                    {{ old('fcustno', $returpenjualan->fcustno) == $customer->fcustomercode ? 'selected' : '' }}>
+                                                    {{ $customer->fcustomername }} ({{ $customer->fcustomercode }})
+                                                </option>
+                                            @endforeach
+                                        </select>
+                                        <div class="absolute inset-0" role="button"
+                                            aria-label="{{ 'Browse Customer' }}"
+                                            @click="window.dispatchEvent(new CustomEvent('customer-browse-open'))">
+                                        </div>
+                                    </div>
+                                    <input type="hidden" name="fcustno" id="customerCodeHidden"
+                                        value="{{ old('fcustno', $returpenjualan->fcustno) }}">
+                                    <button type="button"
+                                        @click="window.dispatchEvent(new CustomEvent('customer-browse-open'))"
+                                        class="border -ml-px px-3 py-2 bg-white hover:bg-gray-50 rounded-r-none"
+                                        title="{{ 'Browse Customer' }}">
+                                        <x-heroicon-o-magnifying-glass class="w-5 h-5" />
+                                    </button>
+                                    <a href="{{ route('customer.create') }}" target="_blank" rel="noopener"
+                                        class="border -ml-px rounded-r px-3 py-2 bg-white hover:bg-gray-50"
+                                        title="Tambah Customer">
+                                        <x-heroicon-o-plus class="w-5 h-5" />
+                                    </a>
+                                </div>
+                                @error('fcustno')
+                                    <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+                                @enderror
+                            </div>
 
-                                                        <!-- Hidden inputs for submission -->
-                                                        <input type="hidden" name="fitemcode[]" :value="it.fitemcode">
-                                                        <input type="hidden" name="fitemname[]" :value="it.fitemname">
-                                                        <input type="hidden" name="fsatuan[]" :value="it.fsatuan">
-                                                        <input type="hidden" name="frefcode[]" :value="it.frefcode">
-                                                        <input type="hidden" name="fnouref[]" :value="it.fnouref">
-                                                        <input type="hidden" name="frefpr[]" :value="it.frefpr">
-                                                        <input type="hidden" name="frefso[]" :value="it.frefso">
-                                                        <input type="hidden" name="frefsrj[]" :value="it.frefsrj">
-                                                        <input type="hidden" name="fnoacak[]" :value="it.fnoacak">
-                                                        <input type="hidden" name="frefnoacak[]" :value="it.frefnoacak">
-                                                        <input type="hidden" name="fqty[]" :value="it.fqty">
-                                                        <input type="hidden" name="fterima[]" :value="it.fterima">
-                                                        <input type="hidden" name="fprice[]" :value="it.fprice">
-                                                        <input type="hidden" name="fdisc[]" :value="it.fdisc">
-                                                        <input type="hidden" name="ftotal[]" :value="it.ftotal">
-                                                        <input type="hidden" name="fdesc[]" :value="it.fdesc">
-                                                        <input type="hidden" name="fketdt[]" :value="it.fketdt">
-                                                    </td>
-                                                </tr>
+                            {{-- Salesman --}}
+                            <div class="lg:col-span-4">
+                                <label class="block text-sm font-medium mb-1">Salesman</label>
+                                <div class="flex">
+                                    <div class="relative flex-1" for="modal_filter_salesman_id">
+                                        <select id="modal_filter_salesman_id" name="filter_salesman_id"
+                                            class="w-full border rounded-l px-3 py-2 bg-gray-100 text-gray-700 cursor-not-allowed"
+                                            disabled>
+                                            <option value=""></option>
+                                            @foreach ($salesmans as $salesman)
+                                                <option value="{{ $salesman->fsalesmancode }}" {{-- CEK DISINI: Bandingkan old input atau data dari database --}}
+                                                    {{ old('fsalesman', $returpenjualan->fsalesman) == $salesman->fsalesmancode ? 'selected' : '' }}>
+                                                    {{ $salesman->fsalesmanname }} ({{ $salesman->fsalesmancode }})
+                                                </option>
+                                            @endforeach
+                                        </select>
+                                        <div class="absolute inset-0" role="button"
+                                            aria-label="{{ 'Browse Salesman' }}"
+                                            @click="window.dispatchEvent(new CustomEvent('salesman-browse-open'))">
+                                        </div>
+                                    </div>
+                                    <input type="hidden" name="fsalesman" id="salesmanCodeHidden"
+                                        value="{{ old('fsalesman', $returpenjualan->fsalesman ?? '0') }}">
+                                    <button type="button"
+                                        @click="window.dispatchEvent(new CustomEvent('salesman-browse-open'))"
+                                        class="border -ml-px px-3 py-2 bg-white hover:bg-gray-50 rounded-r-none"
+                                        title="{{ 'Browse Salesman' }}">
+                                        <x-heroicon-o-magnifying-glass class="w-5 h-5" />
+                                    </button>
+                                    <a href="{{ route('salesman.create') }}" target="_blank" rel="noopener"
+                                        class="border -ml-px rounded-r px-3 py-2 bg-white hover:bg-gray-50"
+                                        title="Tambah Salesman">
+                                        <x-heroicon-o-plus class="w-5 h-5" />
+                                    </a>
+                                </div>
+                                @error('fsalesman')
+                                    <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+                                @enderror
+                            </div>
 
-                                            </template>
+                            <div class="lg:col-span-12">
+                                <label class="block text-sm font-medium">Keterangan</label>
+                                <textarea name="fket" rows="3"
+                                    class="w-full border rounded px-3 py-2 @error('fket') border-red-500 @enderror"
+                                    placeholder="Keterangan isi di sini...">{{ old('fket', $returpenjualan->fket) }}</textarea>
+                                @error('fket')
+                                    <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+                                @enderror
+                            </div>
+                        </div>
 
-                                            <!-- ROW DRAFT UTAMA -->
-                                            <tr class="border-t align-top">
-                                                <td class="p-2" x-text="savedItems.length + 1"></td>
-                                                <td class="p-2">
-                                                    <div class="flex">
-                                                        <input type="text"
-                                                            class="flex-1 border rounded-l px-2 py-1 font-mono"
-                                                            x-ref="draftCode" x-model.trim="draft.fitemcode"
-                                                            @input="onCodeTypedRow(draft)"
-                                                            @keydown.enter.prevent="handleEnterOnCode('draft')">
-                                                        <button type="button" @click="openBrowseFor('draft')"
-                                                            class="border border-l-0 px-2 py-1 bg-white hover:bg-gray-50"
-                                                            title="Cari Produk">
-                                                            <x-heroicon-o-magnifying-glass class="w-4 h-4" />
-                                                        </button>
-                                                    </div>
-                                                </td>
+                        <div x-data="itemsTable()" x-init="init()" class="mt-6 space-y-2">
+
+                            {{-- DETAIL ITEM (tabel input) --}}
+                            <h3 class="text-base font-semibold text-gray-800">Detail Item</h3>
+
+                            <div class="overflow-auto border rounded">
+                                <table class="min-w-full text-sm balanced-detail-table"
+                                    data-skip-auto-detail-style="true">
+                                    <colgroup>
+                                        <col style="width:2%;">
+                                        <col style="width:16%;">
+                                        <col style="width:25%;">
+                                        <col style="width:9%;">
+                                        <col style="width:16%;">
+                                        <col style="width:8%;">
+                                        <col style="width:8%;">
+                                        <col style="width:6%;">
+                                        <col style="width:7%;">
+                                        <col style="width:3%;">
+                                    </colgroup>
+                                    <thead class="bg-gray-100">
+                                        <tr>
+                                            <th class="p-2 text-left w-10">#</th>
+                                            <th class="p-2 text-left w-42">Kode Produk</th>
+                                            <th class="p-2 text-left w-96">Nama Produk</th>
+                                            <th class="p-2 text-left w-36">Satuan</th>
+                                            <th class="p-2 text-left w-36">No.Ref</th>
+                                            <th class="p-2 text-right w-36 whitespace-nowrap">Qty</th>
+                                            <th class="p-2 text-right w-32 whitespace-nowrap">@ Harga</th>
+                                            <th class="p-2 text-right w-36 whitespace-nowrap">Disc. %</th>
+                                            <th class="p-2 text-right w-36 whitespace-nowrap">Total Harga</th>
+                                            <th class="p-2 text-center w-28">Aksi</th>
+                                        </tr>
+                                    </thead>
+
+                                    <tbody>
+                                        <template x-for="(it, i) in savedItems" :key="it.uid || `item-${i}`">
+                                            <tr class="border-t align-top transition-colors hover:bg-gray-50">
+                                                <td class="p-2" x-text="i + 1"></td>
+                                                <td class="p-2 font-mono" x-text="it.fitemcode"></td>
                                                 <td class="p-2">
                                                     <div class="flex w-full max-w-full">
                                                         <div class="min-w-0 flex-1 rounded-l border bg-gray-100 px-2 py-1 text-sm leading-5 text-gray-600 whitespace-normal break-words"
-                                                            x-text="draft.fitemname"></div>
-                                                        <button type="button" @click="openDesc(draft)"
+                                                            x-text="it.fitemname"></div>
+                                                        <button type="button" @click="openDesc(it)"
                                                             class="shrink-0 inline-flex items-center border border-l-0 rounded-r px-2 py-1 transition-colors"
-                                                            :class="draft.fdesc ? 'border-emerald-300 bg-emerald-50 text-emerald-600 hover:bg-emerald-100' : 'border-gray-300 bg-white text-gray-500 hover:bg-gray-50'"
+                                                            :class="it.fdesc ?
+                                                                'border-emerald-300 bg-emerald-50 text-emerald-600 hover:bg-emerald-100' :
+                                                                'border-gray-300 bg-white text-gray-500 hover:bg-gray-50'"
                                                             title="Deskripsi item">
                                                             <x-heroicon-o-document-text class="h-4 w-4" />
                                                         </button>
                                                     </div>
                                                 </td>
                                                 <td class="p-2">
-                                                    <template x-if="draft.units.length > 1">
-                                                        <select id="draftUnitSelect" class="w-full border rounded px-2 py-1"
-                                                            x-model="draft.fsatuan"
-                                                            @keydown.enter.prevent="$refs.draftRefPr?.focus()">
-                                                            <template x-for="u in draft.units" :key="u">
-                                                                <option :value="u" x-text="u"></option>
+                                                    <template x-if="it.units && it.units.length > 1">
+                                                        <select class="w-full border rounded px-2 py-1 text-xs"
+                                                            x-model="it.fsatuan">
+                                                            <template x-for="u in it.units" :key="u">
+                                                                <option :value="u" x-text="u"
+                                                                    :selected="u === it.fsatuan"></option>
                                                             </template>
                                                         </select>
                                                     </template>
-                                                    <template x-if="draft.units.length <= 1">
-                                                        <input type="text"
-                                                            class="w-full border rounded px-2 py-1 bg-gray-100 text-gray-600"
-                                                            :value="draft.fsatuan || '-'" disabled>
+                                                    <template x-if="!it.units || it.units.length <= 1">
+                                                        <span x-text="it.fsatuan"></span>
                                                     </template>
                                                 </td>
-                                                <td class="p-2">
-                                                    <div class="flex w-full max-w-full">
-                                                        <input type="text"
-                                                            class="min-w-0 flex-1 border rounded-l px-2 py-1 bg-gray-100 text-gray-600"
-                                                            :value="draft.frefpr || '-'" disabled placeholder="Ref No">
-                                                        <button type="button" @click="openProductHistory(draft)"
-                                                            class="shrink-0 border border-l-0 px-2 py-1 bg-white hover:bg-gray-50 rounded-r"
-                                                            :disabled="!canOpenHistory(draft)"
-                                                            :class="!canOpenHistory(draft) ? 'opacity-50 cursor-not-allowed' : ''"
-                                                            title="Riwayat produk">
-                                                            <x-heroicon-o-clock class="w-4 h-4" />
-                                                        </button>
-                                                    </div>
+                                                <td class="p-2 text-blue-600 font-semibold" x-text="it.frefpr || '-'">
                                                 </td>
                                                 <td class="p-2 text-right">
-                                                    <input type="number" class="border rounded px-2 py-1 w-24 text-right"
-                                                min="0" step="0.01" x-ref="draftQty"
-                                                        x-model.number="draft.fqty" @input="
+                                                    <input type="number"
+                                                        class="w-full border rounded px-2 py-1 text-right" type="number"
+                                                        x-model.number="it.fqty"
+                                                        @input="
+                                                                recalc(it);
+                                                                enforceQtyRow(it);
+                                                                recalc(it);
+                                                            ">
+                                                </td>
+                                                <td class="p-2 text-right">
+                                                    <input type="number"
+                                                        class="w-full border rounded px-2 py-1 text-right"
+                                                        x-model.number="it.fprice" @input="recalc(it)">
+                                                </td>
+                                                <td class="p-2 text-right">
+                                                    <input type="text"
+                                                        class="w-full border rounded px-2 py-1 text-right"
+                                                        x-model="it.fdisc" @input="recalc(it)">
+                                                </td>
+                                                <td class="p-2">
+                                                    <input type="text"
+                                                        class="w-full border rounded px-2 py-1 bg-gray-100 text-gray-600 text-sm text-right"
+                                                        :value="fmt(it.ftotal)" disabled>
+                                                </td>
+                                                <td class="p-2 text-center">
+                                                    <button type="button" @click="removeSaved(i)"
+                                                        class="px-3 py-1 rounded text-xs bg-red-100 text-red-600 hover:bg-red-200">Hapus</button>
+
+                                                    <!-- Hidden inputs for submission -->
+                                                    <input type="hidden" name="fitemcode[]" :value="it.fitemcode">
+                                                    <input type="hidden" name="fitemname[]" :value="it.fitemname">
+                                                    <input type="hidden" name="fsatuan[]" :value="it.fsatuan">
+                                                    <input type="hidden" name="frefcode[]" :value="it.frefcode">
+                                                    <input type="hidden" name="fnouref[]" :value="it.fnouref">
+                                                    <input type="hidden" name="frefpr[]" :value="it.frefpr">
+                                                    <input type="hidden" name="frefso[]" :value="it.frefso">
+                                                    <input type="hidden" name="frefsrj[]" :value="it.frefsrj">
+                                                    <input type="hidden" name="fnoacak[]" :value="it.fnoacak">
+                                                    <input type="hidden" name="frefnoacak[]" :value="it.frefnoacak">
+                                                    <input type="hidden" name="fqty[]" :value="it.fqty">
+                                                    <input type="hidden" name="fterima[]" :value="it.fterima">
+                                                    <input type="hidden" name="fprice[]" :value="it.fprice">
+                                                    <input type="hidden" name="fdisc[]" :value="it.fdisc">
+                                                    <input type="hidden" name="ftotal[]" :value="it.ftotal">
+                                                    <input type="hidden" name="fdesc[]" :value="it.fdesc">
+                                                    <input type="hidden" name="fketdt[]" :value="it.fketdt">
+                                                </td>
+                                            </tr>
+
+                                        </template>
+
+                                        <!-- ROW DRAFT UTAMA -->
+                                        <tr class="border-t align-top">
+                                            <td class="p-2" x-text="savedItems.length + 1"></td>
+                                            <td class="p-2">
+                                                <div class="flex">
+                                                    <input type="text"
+                                                        class="flex-1 border rounded-l px-2 py-1 font-mono"
+                                                        x-ref="draftCode" x-model.trim="draft.fitemcode"
+                                                        @input="onCodeTypedRow(draft)"
+                                                        @keydown.enter.prevent="handleEnterOnCode('draft')">
+                                                    <button type="button" @click="openBrowseFor('draft')"
+                                                        class="border border-l-0 px-2 py-1 bg-white hover:bg-gray-50"
+                                                        title="Cari Produk">
+                                                        <x-heroicon-o-magnifying-glass class="w-4 h-4" />
+                                                    </button>
+                                                </div>
+                                            </td>
+                                            <td class="p-2">
+                                                <div class="flex w-full max-w-full">
+                                                    <div class="min-w-0 flex-1 rounded-l border bg-gray-100 px-2 py-1 text-sm leading-5 text-gray-600 whitespace-normal break-words"
+                                                        x-text="draft.fitemname"></div>
+                                                    <button type="button" @click="openDesc(draft)"
+                                                        class="shrink-0 inline-flex items-center border border-l-0 rounded-r px-2 py-1 transition-colors"
+                                                        :class="draft.fdesc ?
+                                                            'border-emerald-300 bg-emerald-50 text-emerald-600 hover:bg-emerald-100' :
+                                                            'border-gray-300 bg-white text-gray-500 hover:bg-gray-50'"
+                                                        title="Deskripsi item">
+                                                        <x-heroicon-o-document-text class="h-4 w-4" />
+                                                    </button>
+                                                </div>
+                                            </td>
+                                            <td class="p-2">
+                                                <template x-if="draft.units.length > 1">
+                                                    <select id="draftUnitSelect" class="w-full border rounded px-2 py-1"
+                                                        x-model="draft.fsatuan"
+                                                        @keydown.enter.prevent="$refs.draftRefPr?.focus()">
+                                                        <template x-for="u in draft.units" :key="u">
+                                                            <option :value="u" x-text="u"></option>
+                                                        </template>
+                                                    </select>
+                                                </template>
+                                                <template x-if="draft.units.length <= 1">
+                                                    <input type="text"
+                                                        class="w-full border rounded px-2 py-1 bg-gray-100 text-gray-600"
+                                                        :value="draft.fsatuan || '-'" disabled>
+                                                </template>
+                                            </td>
+                                            <td class="p-2">
+                                                <div class="flex w-full max-w-full">
+                                                    <input type="text"
+                                                        class="min-w-0 flex-1 border rounded-l px-2 py-1 bg-gray-100 text-gray-600"
+                                                        :value="draft.frefpr || '-'" disabled placeholder="Ref No">
+                                                    <button type="button" @click="openProductHistory(draft)"
+                                                        class="shrink-0 border border-l-0 px-2 py-1 bg-white hover:bg-gray-50 rounded-r"
+                                                        :disabled="!canOpenHistory(draft)"
+                                                        :class="!canOpenHistory(draft) ? 'opacity-50 cursor-not-allowed' : ''"
+                                                        title="Riwayat produk">
+                                                        <x-heroicon-o-clock class="w-4 h-4" />
+                                                    </button>
+                                                </div>
+                                            </td>
+                                            <td class="p-2 text-right">
+                                                <input type="number" class="border rounded px-2 py-1 w-24 text-right"
+                                                    min="0" step="0.01" x-ref="draftQty"
+                                                    x-model.number="draft.fqty"
+                                                    @input="
                                                             recalc(draft);
                                                             enforceQtyRow(draft);
                                                             recalc(draft);
                                                         "
-                                                        @keydown.enter.prevent="$refs.draftTerima?.focus()">
-                                                    <div class="text-xs text-gray-400 mt-0.5 text-right">
-                                                        <span x-show="draft.fitemcode" x-html="formatStockLimit(draft)"></span>
-                                                    </div>
-                                                </td>
-                                                <td class="p-2 text-right">
-                                                    <input type="number" class="border rounded px-2 py-1 w-28 text-right"
-                                                        min="0" step="0.01" x-ref="draftPrice"
-                                                        x-model.number="draft.fprice" @input="recalc(draft)"
-                                                        @keydown.enter.prevent="$refs.draftDisc?.focus()">
-                                                </td>
-                                                <td class="p-2 text-right">
-                                                    <input type="text" class="border rounded px-2 py-1 w-24 text-right"
-                                                        x-ref="draftDisc" x-model="draft.fdisc" @input="recalc(draft)"
-                                                        @keydown.enter.prevent="addIfComplete()" placeholder="10+2">
-                                                </td>
-                                                <td class="p-2 text-right" x-text="fmt(draft.ftotal)"></td>
-                                                <td class="p-2 text-center">
-                                                    <div class="flex items-center justify-center gap-2 flex-wrap">
-                                                        <button type="button" @click="addIfComplete()"
-                                                            class="px-3 py-1 rounded text-xs bg-emerald-600 text-white">Tambah</button>
-                                                    </div>
-                                                </td>
-                                            </tr>
+                                                    @keydown.enter.prevent="$refs.draftTerima?.focus()">
+                                                <div class="text-xs text-gray-400 mt-0.5 text-right">
+                                                    <span x-show="draft.fitemcode"
+                                                        x-html="formatStockLimit(draft)"></span>
+                                                </div>
+                                            </td>
+                                            <td class="p-2 text-right">
+                                                <input type="number" class="border rounded px-2 py-1 w-28 text-right"
+                                                    min="0" step="0.01" x-ref="draftPrice"
+                                                    x-model.number="draft.fprice" @input="recalc(draft)"
+                                                    @keydown.enter.prevent="$refs.draftDisc?.focus()">
+                                            </td>
+                                            <td class="p-2 text-right">
+                                                <input type="text" class="border rounded px-2 py-1 w-24 text-right"
+                                                    x-ref="draftDisc" x-model="draft.fdisc" @input="recalc(draft)"
+                                                    @keydown.enter.prevent="addIfComplete()" placeholder="10+2">
+                                            </td>
+                                            <td class="p-2 text-right" x-text="fmt(draft.ftotal)"></td>
+                                            <td class="p-2 text-center">
+                                                <div class="flex items-center justify-center gap-2 flex-wrap">
+                                                    <button type="button" @click="addIfComplete()"
+                                                        class="px-3 py-1 rounded text-xs bg-emerald-600 text-white">Tambah</button>
+                                                </div>
+                                            </td>
+                                        </tr>
 
-                                        </tbody>
-                                    </table>
-                                </div>
+                                    </tbody>
+                                </table>
+                            </div>
 
-                                <input type="hidden" id="itemsCount" :value="savedItems.length">
-                                <input type="hidden" name="frefcode_global" id="frefcode_global"
-                                    value="{{ old('frefcode_global', $returpenjualan->frefcode) }}">
-                                <input type="hidden" name="frefso" id="frefso"
-                                    value="{{ old('frefso', $returpenjualan->frefso) }}">
-                                <input type="hidden" name="frefsrj" id="frefsrj"
-                                    value="{{ old('frefsrj', $returpenjualan->frefsrj) }}">
+                            <input type="hidden" id="itemsCount" :value="savedItems.length">
+                            <input type="hidden" name="frefcode_global" id="frefcode_global"
+                                value="{{ old('frefcode_global', $returpenjualan->frefcode) }}">
+                            <input type="hidden" name="frefso" id="frefso"
+                                value="{{ old('frefso', $returpenjualan->frefso) }}">
+                            <input type="hidden" name="frefsrj" id="frefsrj"
+                                value="{{ old('frefsrj', $returpenjualan->frefsrj) }}">
 
-                                <script>
-                                    document.addEventListener('DOMContentLoaded', () => {
-                                        const inputRefCode = document.getElementById('frefcode_global');
-                                        const inputRefSo = document.getElementById('frefso');
-                                        const inputRefSrj = document.getElementById('frefsrj');
+                            <script>
+                                document.addEventListener('DOMContentLoaded', () => {
+                                    const inputRefCode = document.getElementById('frefcode_global');
+                                    const inputRefSo = document.getElementById('frefso');
+                                    const inputRefSrj = document.getElementById('frefsrj');
 
-                                        // Menangkap Event saat referensi faktur dipilih
-                                        window.addEventListener('pr-picked', (e) => {
-                                            const header = e.detail.header;
-                                            inputRefCode.value = 'SO';
-                                            inputRefSo.value = header.ftranmtid ?? header.ftrsomtid ?? ''; // Simpan id referensi aktif
-                                            inputRefSrj.value = ''; // Reset yang lain
-                                        });
-
-                                        // Menangkap Event saat SRJ dipilih
-                                        window.addEventListener('srj-picked', (e) => {
-                                            const header = e.detail.header;
-                                            inputRefCode.value = 'SRJ';
-                                            inputRefSrj.value = header.fstockmtid; // Sesuaikan ID header SRJ
-                                            inputRefSo.value = ''; // Reset yang lain
-                                        });
+                                    // Menangkap Event saat referensi faktur dipilih
+                                    window.addEventListener('pr-picked', (e) => {
+                                        const header = e.detail.header;
+                                        inputRefCode.value = 'SO';
+                                        inputRefSo.value = header.ftranmtid ?? header.ftrsomtid ?? ''; // Simpan id referensi aktif
+                                        inputRefSrj.value = ''; // Reset yang lain
                                     });
-                                </script>
 
-                                <div class="mt-6 flex flex-col md:flex-row justify-between items-start gap-4 w-full">
-                                    <div class="flex flex-wrap items-center gap-3 flex-shrink-0">
-                                        {{-- Container Alpine.js --}}
-                                        <div x-data="srjFormModal()" class="mt-3">
-                                            {{-- Button Trigger --}}
-                                            <button type="button" @click="openSrjModal()"
-                                                class="inline-flex items-center gap-2 rounded-lg bg-indigo-600 px-3 py-2 text-white hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 ml-4">
-                                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none"
-                                                    viewBox="0 0 24 24" stroke="currentColor">
-                                                    <path stroke-linecap="round" stroke-linejoin="round"
-                                                        stroke-width="1.5" d="M12 4.5v15m7.5-7.5h-15" />
-                                                </svg>
-                                                Add SRJ
-                                            </button>
+                                    // Menangkap Event saat SRJ dipilih
+                                    window.addEventListener('srj-picked', (e) => {
+                                        const header = e.detail.header;
+                                        inputRefCode.value = 'SRJ';
+                                        inputRefSrj.value = header.fstockmtid; // Sesuaikan ID header SRJ
+                                        inputRefSo.value = ''; // Reset yang lain
+                                    });
+                                });
+                            </script>
 
-                                            {{-- MODAL SRJ --}}
-                                            <div x-show="showSrjModal" x-cloak x-transition.opacity
-                                                class="fixed inset-0 z-50 flex items-center justify-center p-4">
-                                                <div class="absolute inset-0 bg-black/50 backdrop-blur-sm"
-                                                    @click="closeSrjModal()">
-                                                </div>
+                            <div class="mt-6 flex flex-col md:flex-row justify-between items-start gap-4 w-full">
+                                <div class="flex flex-wrap items-center gap-3 flex-shrink-0">
+                                    {{-- Container Alpine.js --}}
+                                    <div x-data="srjFormModal()" class="mt-3">
+                                        {{-- Button Trigger --}}
+                                        <button type="button" @click="openSrjModal()"
+                                            class="inline-flex items-center gap-2 rounded-lg bg-indigo-600 px-3 py-2 text-white hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 ml-4">
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none"
+                                                viewBox="0 0 24 24" stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                                                    d="M12 4.5v15m7.5-7.5h-15" />
+                                            </svg>
+                                            Add SRJ
+                                        </button>
 
-                                                <div class="relative bg-white rounded-2xl shadow-2xl w-full max-w-5xl flex flex-col overflow-hidden"
-                                                    style="height: 650px;">
-                                                    <div
-                                                        class="px-6 py-4 border-b border-gray-200 flex items-center justify-between flex-shrink-0 bg-gradient-to-r from-indigo-50 to-white">
-                                                        <div>
-                                                            <h3 class="text-xl font-bold text-gray-800">Browse Surat Jalan
-                                                            </h3>
-                                                        </div>
-                                                        <button type="button" @click="closeSrjModal()"
-                                                            class="px-4 py-2 rounded-lg border-2 border-gray-300 bg-white hover:bg-gray-50 hover:border-gray-400 transition-all duration-150 font-bold text-gray-700 text-sm">
-                                                            {{ "Tutup" }}
-                                                        </button>
-                                                    </div>
-
-                                                    <div class="px-6 pt-4 pb-2 flex-shrink-0 border-b border-gray-100">
-                                                        <div id="srjTableControls"></div>
-                                                    </div>
-
-                                                    <div class="flex-1 overflow-y-auto px-6" style="min-height: 0;">
-                                                        <div class="bg-white">
-                                                            <table id="srjTable"
-                                                                class="min-w-full text-sm display nowrap stripe hover"
-                                                                style="width:100%">
-                                                                <thead class="sticky top-0 z-10">
-                                                                    <tr class="bg-gradient-to-r from-gray-50 to-gray-100">
-                                                                        <th
-                                                                            class="text-left p-3 font-semibold text-gray-700 border-b-2 border-gray-200">
-                                                                            No. Transaksi</th>
-                                                                        <th
-                                                                            class="text-left p-3 font-semibold text-gray-700 border-b-2 border-gray-200">
-                                                                            No. Ref PO</th>
-                                                                        <th
-                                                                            class="text-left p-3 font-semibold text-gray-700 border-b-2 border-gray-200">
-                                                                            Tanggal</th>
-                                                                        <th
-                                                                            class="text-left p-3 font-semibold text-gray-700 border-b-2 border-gray-200">
-                                                                            Custoomer</th>
-                                                                        <th
-                                                                            class="text-center p-3 font-semibold text-gray-700 border-b-2 border-gray-200">
-                                                                            Aksi</th>
-                                                                    </tr>
-                                                                </thead>
-                                                                <tbody></tbody>
-                                                            </table>
-                                                        </div>
-                                                    </div>
-
-                                                    <div
-                                                        class="px-6 py-3 border-t border-gray-200 flex-shrink-0 bg-gray-50">
-                                                        <div id="srjTablePagination"></div>
-                                                    </div>
-                                                </div>
+                                        {{-- MODAL SRJ --}}
+                                        <div x-show="showSrjModal" x-cloak x-transition.opacity
+                                            class="fixed inset-0 z-50 flex items-center justify-center p-4">
+                                            <div class="absolute inset-0 bg-black/50 backdrop-blur-sm"
+                                                @click="closeSrjModal()">
                                             </div>
 
-                                            <div x-show="showDupModal" x-cloak x-transition.opacity
-                                                class="fixed inset-0 z-[60] flex items-center justify-center p-4">
-                                                <div class="absolute inset-0 bg-black/50" @click="closeDupModal()"></div>
+                                            <div class="relative bg-white rounded-2xl shadow-2xl w-full max-w-5xl flex flex-col overflow-hidden"
+                                                style="height: 650px;">
                                                 <div
-                                                    class="relative bg-white w-[92vw] max-w-md rounded-2xl shadow-2xl overflow-hidden">
-                                                    <div class="px-5 py-4 border-b flex items-center gap-2 bg-amber-50">
-                                                        <h3 class="text-lg font-semibold text-gray-800">Item Duplikat SRJ
+                                                    class="px-6 py-4 border-b border-gray-200 flex items-center justify-between flex-shrink-0 bg-gradient-to-r from-indigo-50 to-white">
+                                                    <div>
+                                                        <h3 class="text-xl font-bold text-gray-800">Browse Surat Jalan
                                                         </h3>
                                                     </div>
-                                                    <div class="px-5 py-4">
-                                                        <p class="text-sm text-gray-700 mb-3">
-                                                            Ditemukan <span x-text="dupCount" class="font-bold"></span>
-                                                            item sudah
-                                                            ada
-                                                            di
-                                                            daftar.
-                                                        </p>
-                                                        <div
-                                                            class="rounded-lg border border-amber-200 bg-amber-50 max-h-40 overflow-auto">
-                                                            <template x-for="d in dupSample">
-                                                                <div class="p-2 text-xs border-b border-amber-100">
-                                                                    <span x-text="d.fitemcode" class="font-bold"></span> -
-                                                                    <span x-text="d.fitemname"></span>
-                                                                </div>
-                                                            </template>
-                                                        </div>
+                                                    <button type="button" @click="closeSrjModal()"
+                                                        class="px-4 py-2 rounded-lg border-2 border-gray-300 bg-white hover:bg-gray-50 hover:border-gray-400 transition-all duration-150 font-bold text-gray-700 text-sm">
+                                                        {{ 'Tutup' }}
+                                                    </button>
+                                                </div>
+
+                                                <div class="px-6 pt-4 pb-2 flex-shrink-0 border-b border-gray-100">
+                                                    <div id="srjTableControls"></div>
+                                                </div>
+
+                                                <div class="flex-1 overflow-y-auto px-6" style="min-height: 0;">
+                                                    <div class="bg-white">
+                                                        <table id="srjTable"
+                                                            class="min-w-full text-sm display nowrap stripe hover"
+                                                            style="width:100%">
+                                                            <thead class="sticky top-0 z-10">
+                                                                <tr class="bg-gradient-to-r from-gray-50 to-gray-100">
+                                                                    <th
+                                                                        class="text-left p-3 font-semibold text-gray-700 border-b-2 border-gray-200">
+                                                                        No. Transaksi</th>
+                                                                    <th
+                                                                        class="text-left p-3 font-semibold text-gray-700 border-b-2 border-gray-200">
+                                                                        No. Ref PO</th>
+                                                                    <th
+                                                                        class="text-left p-3 font-semibold text-gray-700 border-b-2 border-gray-200">
+                                                                        Tanggal</th>
+                                                                    <th
+                                                                        class="text-left p-3 font-semibold text-gray-700 border-b-2 border-gray-200">
+                                                                        Custoomer</th>
+                                                                    <th
+                                                                        class="text-center p-3 font-semibold text-gray-700 border-b-2 border-gray-200">
+                                                                        Aksi</th>
+                                                                </tr>
+                                                            </thead>
+                                                            <tbody></tbody>
+                                                        </table>
                                                     </div>
-                                                    <div class="px-5 py-3 border-t bg-gray-50 flex justify-end gap-2">
-                                                        <button type="button" @click="closeDupModal()"
-                                                            class="px-4 py-2 border rounded-lg">{{ "Batal" }}</button>
-                                                        <button type="button" @click="confirmAddUniques()"
-                                                            class="px-4 py-2 bg-indigo-600 text-white rounded-lg">Tambahkan
-                                                            Sisa
-                                                            Item</button>
-                                                    </div>
+                                                </div>
+
+                                                <div class="px-6 py-3 border-t border-gray-200 flex-shrink-0 bg-gray-50">
+                                                    <div id="srjTablePagination"></div>
                                                 </div>
                                             </div>
                                         </div>
 
-                                        {{-- SO --}}
-                                        <div x-data="soFormModal()" class="mt-3">
-                                            <div class="mt-3 flex justify-between items-start gap-4">
-                                                <div class="w-full flex justify-start mb-3">
-                                                    <button type="button" @click="openModal()"
-                                                        class="inline-flex items-center gap-2 rounded-lg bg-emerald-600 px-3 py-2 text-white hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-emerald-500">
-                                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5"
-                                                            fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                            <path stroke-linecap="round" stroke-linejoin="round"
-                                                                stroke-width="1.5" d="M12 4.5v15m7.5-7.5h-15" />
-                                                        </svg>
-                                                        Add Faktur
+                                        <div x-show="showDupModal" x-cloak x-transition.opacity
+                                            class="fixed inset-0 z-[60] flex items-center justify-center p-4">
+                                            <div class="absolute inset-0 bg-black/50" @click="closeDupModal()"></div>
+                                            <div
+                                                class="relative bg-white w-[92vw] max-w-md rounded-2xl shadow-2xl overflow-hidden">
+                                                <div class="px-5 py-4 border-b flex items-center gap-2 bg-amber-50">
+                                                    <h3 class="text-lg font-semibold text-gray-800">Item Duplikat SRJ
+                                                    </h3>
+                                                </div>
+                                                <div class="px-5 py-4">
+                                                    <p class="text-sm text-gray-700 mb-3">
+                                                        Ditemukan <span x-text="dupCount" class="font-bold"></span>
+                                                        item sudah
+                                                        ada
+                                                        di
+                                                        daftar.
+                                                    </p>
+                                                    <div
+                                                        class="rounded-lg border border-amber-200 bg-amber-50 max-h-40 overflow-auto">
+                                                        <template x-for="d in dupSample">
+                                                            <div class="p-2 text-xs border-b border-amber-100">
+                                                                <span x-text="d.fitemcode" class="font-bold"></span> -
+                                                                <span x-text="d.fitemname"></span>
+                                                            </div>
+                                                        </template>
+                                                    </div>
+                                                </div>
+                                                <div class="px-5 py-3 border-t bg-gray-50 flex justify-end gap-2">
+                                                    <button type="button" @click="closeDupModal()"
+                                                        class="px-4 py-2 border rounded-lg">{{ 'Batal' }}</button>
+                                                    <button type="button" @click="confirmAddUniques()"
+                                                        class="px-4 py-2 bg-indigo-600 text-white rounded-lg">Tambahkan
+                                                        Sisa
+                                                        Item</button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    {{-- SO --}}
+                                    <div x-data="soFormModal()" class="mt-3">
+                                        <div class="mt-3 flex justify-between items-start gap-4">
+                                            <div class="w-full flex justify-start mb-3">
+                                                <button type="button" @click="openModal()"
+                                                    class="inline-flex items-center gap-2 rounded-lg bg-emerald-600 px-3 py-2 text-white hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-emerald-500">
+                                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5"
+                                                        fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                        <path stroke-linecap="round" stroke-linejoin="round"
+                                                            stroke-width="1.5" d="M12 4.5v15m7.5-7.5h-15" />
+                                                    </svg>
+                                                    Add Faktur
+                                                </button>
+                                            </div>
+                                        </div>
+
+                                        {{-- MODAL FAKTUR PENJUALAN --}}
+                                        <div x-show="show" x-cloak x-transition.opacity
+                                            class="fixed inset-0 z-50 flex items-center justify-center p-4">
+                                            <div class="absolute inset-0 bg-black/50 backdrop-blur-sm"
+                                                @click="closeModal()">
+                                            </div>
+
+                                            <div class="relative bg-white rounded-2xl shadow-2xl w-full max-w-5xl flex flex-col overflow-hidden"
+                                                style="height: 650px;">
+                                                <!-- Header -->
+                                                <div
+                                                    class="px-6 py-4 border-b border-gray-200 flex items-center justify-between flex-shrink-0 bg-gradient-to-r from-teal-50 to-white">
+                                                    <div>
+                                                        <h3 class="text-xl font-bold text-gray-800">Add Faktur Penjualan
+                                                        </h3>
+                                                        <p class="text-sm text-gray-500 mt-0.5">Pilih Faktur Penjualan
+                                                            yang
+                                                            sudah di-approve
+                                                        </p>
+                                                    </div>
+                                                    <button type="button" @click="closeModal()"
+                                                        class="px-4 py-2 rounded-lg border-2 border-gray-300 bg-white hover:bg-gray-50 hover:border-gray-400 transition-all duration-150 font-bold text-gray-700 text-sm">
+                                                        {{ 'Tutup' }}
+                                                    </button>
+                                                </div>
+
+                                                <!-- Search & Length Menu -->
+                                                <div class="px-6 pt-4 pb-2 flex-shrink-0 border-b border-gray-100">
+                                                    <div id="poTableControls"></div>
+                                                </div>
+
+                                                <!-- Table with fixed height and scroll -->
+                                                <div class="flex-1 overflow-y-auto px-6" style="min-height: 0;">
+                                                    <div class="bg-white">
+                                                        <table id="poTable"
+                                                            class="min-w-full text-sm display nowrap stripe hover"
+                                                            style="width:100%">
+                                                            <thead class="sticky top-0 z-10">
+                                                                <tr class="bg-gradient-to-r from-gray-50 to-gray-100">
+                                                                    <th
+                                                                        class="text-left p-3 font-semibold text-gray-700 border-b-2 border-gray-200">
+                                                                        No. Faktur</th>
+                                                                    <th
+                                                                        class="text-left p-3 font-semibold text-gray-700 border-b-2 border-gray-200">
+                                                                        No. Referensi</th>
+                                                                    <th
+                                                                        class="text-left p-3 font-semibold text-gray-700 border-b-2 border-gray-200">
+                                                                        Tanggal</th>
+                                                                    <th
+                                                                        class="text-center p-3 font-semibold text-gray-700 border-b-2 border-gray-200">
+                                                                        Aksi</th>
+                                                                </tr>
+                                                            </thead>
+                                                            <tbody>
+                                                                <!-- Data will be populated by DataTables -->
+                                                            </tbody>
+                                                        </table>
+                                                    </div>
+                                                </div>
+
+                                                <!-- Pagination & Info -->
+                                                <div class="px-6 py-3 border-t border-gray-200 flex-shrink-0 bg-gray-50">
+                                                    <div id="poTablePagination"></div>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        {{-- MODAL DUPLIKASI --}}
+                                        <div x-show="showDupModal" x-cloak x-transition.opacity
+                                            class="fixed inset-0 z-[60] flex items-center justify-center p-4">
+                                            <div class="absolute inset-0 bg-black/50" @click="closeDupModal()"></div>
+
+                                            <div
+                                                class="relative bg-white w-[92vw] max-w-md rounded-2xl shadow-2xl overflow-hidden">
+                                                <!-- Header -->
+                                                <div class="px-5 py-4 border-b flex items-center gap-2 bg-amber-50">
+                                                    <svg class="w-6 h-6 text-amber-600" fill="none"
+                                                        stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round"
+                                                            stroke-width="2"
+                                                            d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                                                    </svg>
+                                                    <h3 class="text-lg font-semibold text-gray-800">Item Duplikat
+                                                        Ditemukan
+                                                    </h3>
+                                                </div>
+
+                                                <!-- Body -->
+                                                <div class="px-5 py-4 space-y-3">
+                                                    <p class="text-sm text-gray-700">
+                                                        Ditemukan <span class="font-semibold text-amber-600"
+                                                            x-text="dupCount"></span>
+                                                        item duplikat.
+                                                        Item duplikat <span class="font-semibold">tidak akan
+                                                            ditambahkan</span>.
+                                                    </p>
+
+                                                    <!-- Preview list -->
+                                                    <div class="rounded-lg border border-amber-200 bg-amber-50">
+                                                        <div
+                                                            class="px-3 py-2 border-b border-amber-200 text-sm font-bold text-gray-800">
+                                                            Preview Item Duplikat
+                                                        </div>
+                                                        <ul class="max-h-40 overflow-auto divide-y divide-amber-100">
+                                                            <template x-for="d in dupSample"
+                                                                :key="`${d.fitemcode}::${d.fitemname}`">
+                                                                <li
+                                                                    class="px-3 py-2 text-sm flex items-center gap-2 hover:bg-amber-100 transition-colors">
+                                                                    <span
+                                                                        class="inline-flex w-5 h-5 items-center justify-center rounded-full bg-amber-200 text-amber-800 text-xs font-bold">!</span>
+                                                                    <span class="font-mono font-bold text-gray-700"
+                                                                        x-text="d.fitemcode || '-'"></span>
+                                                                    <span class="text-gray-400">•</span>
+                                                                    <span class="text-gray-600 truncate"
+                                                                        x-text="d.fitemname || '-'"></span>
+                                                                </li>
+                                                            </template>
+                                                            <template x-if="dupCount === 0">
+                                                                <li class="px-3 py-2 text-sm text-gray-500 text-center">
+                                                                    Tidak
+                                                                    ada
+                                                                    contoh.</li>
+                                                            </template>
+                                                        </ul>
+                                                        <div x-show="dupCount > 6"
+                                                            class="px-3 py-2 text-xs text-center text-amber-700 border-t border-amber-200">
+                                                            ... dan <span x-text="dupCount - 6"></span> item lainnya
+                                                        </div>
+                                                    </div>
+                                                </div>
+
+                                                <!-- Footer -->
+                                                <div
+                                                    class="px-5 py-3 border-t bg-gray-50 flex items-center justify-end gap-2">
+                                                    <button type="button" @click="closeDupModal()"
+                                                        class="h-9 px-4 rounded-lg border-2 border-gray-300 text-gray-700 text-sm font-bold hover:bg-gray-100 transition-colors">
+                                                        {{ 'Batal' }}
                                                     </button>
                                                 </div>
                                             </div>
+                                        </div>
 
-                                            {{-- MODAL FAKTUR PENJUALAN --}}
-                                            <div x-show="show" x-cloak x-transition.opacity
-                                                class="fixed inset-0 z-50 flex items-center justify-center p-4">
-                                                <div class="absolute inset-0 bg-black/50 backdrop-blur-sm"
-                                                    @click="closeModal()">
+                                        <div x-show="showHistoryModal" x-cloak
+                                            class="fixed inset-0 z-[96] flex items-center justify-center"
+                                            x-transition.opacity>
+                                            <div class="absolute inset-0 bg-black/50" @click="closeHistory()"></div>
+                                            <div
+                                                class="relative bg-white w-[92vw] max-w-4xl rounded-2xl shadow-2xl overflow-hidden">
+                                                <div class="px-5 py-4 border-b flex items-center justify-between">
+                                                    <h3 class="text-lg font-semibold text-gray-800">Riwayat Produk</h3>
+                                                    <button type="button" @click="closeHistory()"
+                                                        class="text-gray-500 hover:text-gray-700">Tutup</button>
                                                 </div>
-
-                                                <div class="relative bg-white rounded-2xl shadow-2xl w-full max-w-5xl flex flex-col overflow-hidden"
-                                                    style="height: 650px;">
-                                                    <!-- Header -->
-                                                    <div
-                                                        class="px-6 py-4 border-b border-gray-200 flex items-center justify-between flex-shrink-0 bg-gradient-to-r from-teal-50 to-white">
-                                                        <div>
-                                                            <h3 class="text-xl font-bold text-gray-800">Add Faktur Penjualan</h3>
-                                                            <p class="text-sm text-gray-500 mt-0.5">Pilih Faktur Penjualan
-                                                                yang
-                                                                sudah di-approve
-                                                            </p>
-                                                        </div>
-                                                        <button type="button" @click="closeModal()"
-                                                            class="px-4 py-2 rounded-lg border-2 border-gray-300 bg-white hover:bg-gray-50 hover:border-gray-400 transition-all duration-150 font-bold text-gray-700 text-sm">
-                                                            {{ "Tutup" }}
-                                                        </button>
-                                                    </div>
-
-                                                    <!-- Search & Length Menu -->
-                                                    <div class="px-6 pt-4 pb-2 flex-shrink-0 border-b border-gray-100">
-                                                        <div id="poTableControls"></div>
-                                                    </div>
-
-                                                    <!-- Table with fixed height and scroll -->
-                                                    <div class="flex-1 overflow-y-auto px-6" style="min-height: 0;">
-                                                        <div class="bg-white">
-                                                            <table id="poTable"
-                                                                class="min-w-full text-sm display nowrap stripe hover"
-                                                                style="width:100%">
-                                                                <thead class="sticky top-0 z-10">
-                                                                    <tr class="bg-gradient-to-r from-gray-50 to-gray-100">
-                                                                        <th
-                                                                            class="text-left p-3 font-semibold text-gray-700 border-b-2 border-gray-200">
-                                                                            No. Faktur</th>
-                                                                        <th
-                                                                            class="text-left p-3 font-semibold text-gray-700 border-b-2 border-gray-200">
-                                                                            No. Referensi</th>
-                                                                        <th
-                                                                            class="text-left p-3 font-semibold text-gray-700 border-b-2 border-gray-200">
-                                                                            Tanggal</th>
-                                                                        <th
-                                                                            class="text-center p-3 font-semibold text-gray-700 border-b-2 border-gray-200">
-                                                                            Aksi</th>
+                                                <div class="p-5 overflow-auto max-h-[65vh]">
+                                                    <template x-if="historyLoading">
+                                                        <div class="text-sm text-gray-500">Memuat data...</div>
+                                                    </template>
+                                                    <template x-if="!historyLoading">
+                                                        <table class="min-w-full text-sm">
+                                                            <thead class="bg-gray-100">
+                                                                <tr>
+                                                                    <th class="p-2 text-left">No. Transaksi</th>
+                                                                    <th class="p-2 text-left">Tanggal</th>
+                                                                    <th class="p-2 text-right">Qty</th>
+                                                                    <th class="p-2 text-right">Harga</th>
+                                                                    <th class="p-2 text-right">Total</th>
+                                                                </tr>
+                                                            </thead>
+                                                            <tbody>
+                                                                <template x-for="row in historyRows"
+                                                                    :key="row.fsono + row.fsodate">
+                                                                    <tr class="border-t">
+                                                                        <td class="p-2" x-text="row.fsono"></td>
+                                                                        <td class="p-2" x-text="row.fsodate"></td>
+                                                                        <td class="p-2 text-right"
+                                                                            x-text="row.fqty + ' ' + row.fsatuan"></td>
+                                                                        <td class="p-2 text-right"
+                                                                            x-text="fmt(row.fprice)"></td>
+                                                                        <td class="p-2 text-right"
+                                                                            x-text="fmt(row.famount)"></td>
                                                                     </tr>
-                                                                </thead>
-                                                                <tbody>
-                                                                    <!-- Data will be populated by DataTables -->
-                                                                </tbody>
-                                                            </table>
-                                                        </div>
-                                                    </div>
-
-                                                    <!-- Pagination & Info -->
-                                                    <div
-                                                        class="px-6 py-3 border-t border-gray-200 flex-shrink-0 bg-gray-50">
-                                                        <div id="poTablePagination"></div>
-                                                    </div>
+                                                                </template>
+                                                                <tr x-show="!historyRows.length">
+                                                                    <td colspan="5"
+                                                                        class="p-4 text-center text-gray-500">Tidak ada
+                                                                        riwayat.</td>
+                                                                </tr>
+                                                            </tbody>
+                                                        </table>
+                                                    </template>
                                                 </div>
                                             </div>
-
-                                            {{-- MODAL DUPLIKASI --}}
-                                            <div x-show="showDupModal" x-cloak x-transition.opacity
-                                                class="fixed inset-0 z-[60] flex items-center justify-center p-4">
-                                                <div class="absolute inset-0 bg-black/50" @click="closeDupModal()"></div>
-
-                                                <div
-                                                    class="relative bg-white w-[92vw] max-w-md rounded-2xl shadow-2xl overflow-hidden">
-                                                    <!-- Header -->
-                                                    <div class="px-5 py-4 border-b flex items-center gap-2 bg-amber-50">
-                                                        <svg class="w-6 h-6 text-amber-600" fill="none"
-                                                            stroke="currentColor" viewBox="0 0 24 24">
-                                                            <path stroke-linecap="round" stroke-linejoin="round"
-                                                                stroke-width="2"
-                                                                d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-                                                        </svg>
-                                                        <h3 class="text-lg font-semibold text-gray-800">Item Duplikat
-                                                            Ditemukan
-                                                        </h3>
-                                                    </div>
-
-                                                    <!-- Body -->
-                                                    <div class="px-5 py-4 space-y-3">
-                                                        <p class="text-sm text-gray-700">
-                                                            Ditemukan <span class="font-semibold text-amber-600"
-                                                                x-text="dupCount"></span>
-                                                            item duplikat.
-                                                            Item duplikat <span class="font-semibold">tidak akan
-                                                                ditambahkan</span>.
-                                                        </p>
-
-                                                        <!-- Preview list -->
-                                                        <div class="rounded-lg border border-amber-200 bg-amber-50">
-                                                            <div
-                                                                class="px-3 py-2 border-b border-amber-200 text-sm font-bold text-gray-800">
-                                                                Preview Item Duplikat
-                                                            </div>
-                                                            <ul class="max-h-40 overflow-auto divide-y divide-amber-100">
-                                                                <template x-for="d in dupSample"
-                                                                    :key="`${d.fitemcode}::${d.fitemname}`">
-                                                                    <li
-                                                                        class="px-3 py-2 text-sm flex items-center gap-2 hover:bg-amber-100 transition-colors">
-                                                                        <span
-                                                                            class="inline-flex w-5 h-5 items-center justify-center rounded-full bg-amber-200 text-amber-800 text-xs font-bold">!</span>
-                                                                        <span class="font-mono font-bold text-gray-700"
-                                                                            x-text="d.fitemcode || '-'"></span>
-                                                                        <span class="text-gray-400">•</span>
-                                                                        <span class="text-gray-600 truncate"
-                                                                            x-text="d.fitemname || '-'"></span>
-                                                                    </li>
-                                                                </template>
-                                                                <template x-if="dupCount === 0">
-                                                                    <li
-                                                                        class="px-3 py-2 text-sm text-gray-500 text-center">
-                                                                        Tidak
-                                                                        ada
-                                                                        contoh.</li>
-                                                                </template>
-                                                            </ul>
-                                                            <div x-show="dupCount > 6"
-                                                                class="px-3 py-2 text-xs text-center text-amber-700 border-t border-amber-200">
-                                                                ... dan <span x-text="dupCount - 6"></span> item lainnya
-                                                            </div>
-                                                        </div>
-                                                    </div>
-
-                                                    <!-- Footer -->
-                                                    <div
-                                                        class="px-5 py-3 border-t bg-gray-50 flex items-center justify-end gap-2">
-                                                        <button type="button" @click="closeDupModal()"
-                                                            class="h-9 px-4 rounded-lg border-2 border-gray-300 text-gray-700 text-sm font-bold hover:bg-gray-100 transition-colors">
-                                                            {{ "Batal" }}
-                                                        </button>
                                         </div>
                                     </div>
                                 </div>
 
-                                <div x-show="showHistoryModal" x-cloak class="fixed inset-0 z-[96] flex items-center justify-center"
-                                    x-transition.opacity>
-                                    <div class="absolute inset-0 bg-black/50" @click="closeHistory()"></div>
-                                    <div class="relative bg-white w-[92vw] max-w-4xl rounded-2xl shadow-2xl overflow-hidden">
-                                        <div class="px-5 py-4 border-b flex items-center justify-between">
-                                            <h3 class="text-lg font-semibold text-gray-800">Riwayat Produk</h3>
-                                            <button type="button" @click="closeHistory()"
-                                                class="text-gray-500 hover:text-gray-700">Tutup</button>
+                                <!-- ===== Panel Totals (DESAIN ASLI dipertahankan, hanya wrapper yang diperbaiki) ===== -->
+                                <div class="w-full md:w-auto md:min-w-[550px] lg:min-w-[650px]">
+                                    <div class="rounded-lg border bg-gray-50 p-3 space-y-2">
+                                        <div class="flex items-center justify-between">
+                                            <span class="text-sm text-gray-700">Total Harga (Net)</span>
+                                            <span class="min-w-[140px] text-right font-medium"
+                                                x-text="formatTransactionAmount(netTotal)"></span>
                                         </div>
-                                        <div class="p-5 overflow-auto max-h-[65vh]">
-                                            <template x-if="historyLoading">
-                                                <div class="text-sm text-gray-500">Memuat data...</div>
-                                            </template>
-                                            <template x-if="!historyLoading">
-                                                <table class="min-w-full text-sm">
-                                                    <thead class="bg-gray-100">
-                                                        <tr>
-                                                            <th class="p-2 text-left">No. Transaksi</th>
-                                                            <th class="p-2 text-left">Tanggal</th>
-                                                            <th class="p-2 text-right">Qty</th>
-                                                            <th class="p-2 text-right">Harga</th>
-                                                            <th class="p-2 text-right">Total</th>
-                                                        </tr>
-                                                    </thead>
-                                                    <tbody>
-                                                        <template x-for="row in historyRows" :key="row.fsono + row.fsodate">
-                                                            <tr class="border-t">
-                                                                <td class="p-2" x-text="row.fsono"></td>
-                                                                <td class="p-2" x-text="row.fsodate"></td>
-                                                                <td class="p-2 text-right" x-text="row.fqty + ' ' + row.fsatuan"></td>
-                                                                <td class="p-2 text-right" x-text="fmt(row.fprice)"></td>
-                                                                <td class="p-2 text-right" x-text="fmt(row.famount)"></td>
-                                                            </tr>
-                                                        </template>
-                                                        <tr x-show="!historyRows.length">
-                                                            <td colspan="5" class="p-4 text-center text-gray-500">Tidak ada riwayat.</td>
-                                                        </tr>
-                                                    </tbody>
-                                                </table>
-                                            </template>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                                    <!-- ===== Panel Totals (DESAIN ASLI dipertahankan, hanya wrapper yang diperbaiki) ===== -->
-                                    <div class="w-full md:w-auto md:min-w-[550px] lg:min-w-[650px]">
-                                        <div class="rounded-lg border bg-gray-50 p-3 space-y-2">
-                                            <div class="flex items-center justify-between">
-                                                <span class="text-sm text-gray-700">Total Harga (Net)</span>
-                                                <span class="min-w-[140px] text-right font-medium"
-                                                    x-text="formatTransactionAmount(netTotal)"></span>
+                                        <div class="flex items-center justify-between gap-6">
+                                            <!-- Checkbox -->
+                                            <div class="flex items-center">
+                                                <input id="fincludeppn_input" type="checkbox" name="fincludeppn"
+                                                    value="1" x-model="includePPN"
+                                                    :disabled="action === 'delete' || action === 'view'"
+                                                    class="h-4 w-4 text-blue-600 border-gray-300 rounded">
+                                                <label for="fincludeppn_input"
+                                                    class="ml-2 text-sm font-medium text-gray-700">
+                                                    <span class="font-bold">PPN</span>
+                                                </label>
                                             </div>
-                                            <div class="flex items-center justify-between gap-6">
-                                                <!-- Checkbox -->
-                                                <div class="flex items-center">
-                                                    <input id="fincludeppn_input" type="checkbox" name="fincludeppn"
-                                                        value="1" x-model="includePPN"
-                                                        :disabled="action === 'delete' || action === 'view'"
-                                                        class="h-4 w-4 text-blue-600 border-gray-300 rounded">
-                                                    <label for="fincludeppn_input" class="ml-2 text-sm font-medium text-gray-700">
-                                                        <span class="font-bold">PPN</span>
-                                                    </label>
-                                                </div>
 
-                                                <!-- Dropdown Include / Exclude (tengah) -->
-                                                <div class="flex items-center gap-2">
-                                                    <select id="fapplyppn_input" name="fapplyppn" x-model.number="fapplyppn"
-                                                        :disabled="!(includePPN || fapplyppn) || action === 'delete' || action === 'view'"
-                                                        class="w-28 h-9 px-2 text-sm leading-tight border rounded transition-opacity appearance-none
+                                            <!-- Dropdown Include / Exclude (tengah) -->
+                                            <div class="flex items-center gap-2">
+                                                <select id="fapplyppn_input" name="fapplyppn" x-model.number="fapplyppn"
+                                                    :disabled="!(includePPN || fapplyppn) || action === 'delete' ||
+                                                        action === 'view'"
+                                                    class="w-28 h-9 px-2 text-sm leading-tight border rounded transition-opacity appearance-none
                                disabled:bg-gray-100 disabled:opacity-60 disabled:cursor-not-allowed">
-                                                        <option value="0">Exclude</option>
-                                                        <option value="1">Include</option>
-                                                    </select>
-                                                </div>
+                                                    <option value="0">Exclude</option>
+                                                    <option value="1">Include</option>
+                                                </select>
+                                            </div>
 
-                                                <!-- Input Rate + Nominal (kanan) -->
-                                                <div class="flex items-center gap-2">
-                                                    <input type="number" min="0" max="100" step="0.01"
-                                                        x-model.number="ppnRate" :disabled="!(includePPN || fapplyppn) || action === 'delete' || action === 'view'"
-                                                        class="w-20 h-9 px-2 text-sm leading-tight text-right border rounded transition-opacity
+                                            <!-- Input Rate + Nominal (kanan) -->
+                                            <div class="flex items-center gap-2">
+                                                <input type="number" min="0" max="100" step="0.01"
+                                                    x-model.number="ppnRate"
+                                                    :disabled="!(includePPN || fapplyppn) || action === 'delete' ||
+                                                        action === 'view'"
+                                                    class="w-20 h-9 px-2 text-sm leading-tight text-right border rounded transition-opacity
                             [appearance:textfield]
                             [&::-webkit-outer-spin-button]:appearance-none
                             [&::-webkit-inner-spin-button]:appearance-none
                             disabled:bg-gray-100 disabled:opacity-60 disabled:cursor-not-allowed">
-                                                    <span class="text-sm">%</span>
-                                                    <span class="min-w-[140px] text-right font-medium"
-                                                        x-text="rupiah(ppnAmount)"></span>
-                                                </div>
-
+                                                <span class="text-sm">%</span>
+                                                <span class="min-w-[140px] text-right font-medium"
+                                                    x-text="rupiah(ppnAmount)"></span>
                                             </div>
 
-                                            <div class="border-t my-1"></div>
-
-                                            <div class="flex items-center justify-between">
-                                                <span class="text-sm font-semibold text-gray-800">Grand Total</span>
-                                                <span class="min-w-[140px] text-right text-lg font-semibold"
-                                                    x-text="rupiah(grandTotal)"></span>
-                                            </div>
                                         </div>
 
-                                        <!-- Hidden inputs for submit -->
-                                        <input type="hidden" name="famountgross" :value="totalHarga">
-                                        <input type="hidden" name="famountsonet" :value="netTotal">
-                                        <input type="hidden" name="famountpajak" :value="ppnAmount">
-                                        <input type="hidden" name="famountso" :value="grandTotal">
-                                        <input type="hidden" name="famountpopajak" :value="ppnAmount">
-                                        <input type="hidden" name="fppnpersen" :value="ppnRate">
+                                        <div class="border-t my-1"></div>
 
-                                        <!-- Modal backdrop -->
-                                        <div x-show="show" x-transition.opacity class="fixed inset-0 z-40 bg-black/50"
-                                            @keydown.escape.window="closeModal()"></div>
+                                        <div class="flex items-center justify-between">
+                                            <span class="text-sm font-semibold text-gray-800">Grand Total</span>
+                                            <span class="min-w-[140px] text-right text-lg font-semibold"
+                                                x-text="rupiah(grandTotal)"></span>
+                                        </div>
+                                    </div>
 
-                                        <div>
-                                            {{-- MODAL PR --}}
-                                            <div x-show="show" x-cloak x-transition.opacity
-                                                class="fixed inset-0 z-50 flex items-center justify-center p-4 md:p-8"
-                                                aria-modal="true" role="dialog">
+                                    <!-- Hidden inputs for submit -->
+                                    <input type="hidden" name="famountgross" :value="totalHarga">
+                                    <input type="hidden" name="famountsonet" :value="netTotal">
+                                    <input type="hidden" name="famountpajak" :value="ppnAmount">
+                                    <input type="hidden" name="famountso" :value="grandTotal">
+                                    <input type="hidden" name="famountpopajak" :value="ppnAmount">
+                                    <input type="hidden" name="fppnpersen" :value="ppnRate">
 
-                                                <div class="relative w-full max-w-5xl rounded-xl bg-white shadow-2xl flex flex-col"
-                                                    style="height: 600px;">
-                                                    <!-- Header -->
-                                                    <div
-                                                        class="px-6 py-4 border-b border-gray-200 flex items-center justify-between flex-shrink-0 bg-gradient-to-r from-blue-50 to-white">
-                                                        <h3 class="text-xl font-bold text-gray-800">{{ "Pilih Faktur Penjualan" }}</h3>
-                                                        <button type="button" @click="closeModal()"
-                                                            class="px-4 py-2 rounded-lg border-2 border-gray-300 bg-white hover:bg-gray-50 hover:border-gray-400 transition-all duration-150 font-medium text-gray-700 text-sm">
-                                                            {{ "Tutup" }}
-                                                        </button>
-                                                    </div>
+                                    <!-- Modal backdrop -->
+                                    <div x-show="show" x-transition.opacity class="fixed inset-0 z-40 bg-black/50"
+                                        @keydown.escape.window="closeModal()"></div>
 
-                                                    <!-- Table Container -->
-                                                    <div class="flex-1 overflow-y-auto p-6" style="min-height: 0;">
-                                                        <table id="prTable"
-                                                            class="min-w-full text-sm display nowrap stripe hover"
-                                                            style="width:100%">
-                                                            <thead class="sticky top-0 z-10">
-                                                                <tr class="bg-gray-50 border-b-2 border-gray-200">
-                                                                    <th class="p-3 text-left font-semibold text-gray-700">
-                                                                        No. Faktur
-                                                                    </th>
-                                                                    <th class="p-3 text-left font-semibold text-gray-700">
-                                                                        Customer
-                                                                    </th>
-                                                                    <th class="p-3 text-left font-semibold text-gray-700">
-                                                                        Tanggal
-                                                                    </th>
-                                                                    <th
-                                                                        class="p-3 text-center font-semibold text-gray-700">
-                                                                        Aksi
-                                                                    </th>
-                                                                </tr>
-                                                            </thead>
-                                                            <tbody>
-                                                                <!-- DataTables data here -->
-                                                            </tbody>
-                                                        </table>
-                                                    </div>
+                                    <div>
+                                        {{-- MODAL PR --}}
+                                        <div x-show="show" x-cloak x-transition.opacity
+                                            class="fixed inset-0 z-50 flex items-center justify-center p-4 md:p-8"
+                                            aria-modal="true" role="dialog">
 
-                                                    <!-- Footer -->
-                                                    <div
-                                                        class="px-6 py-3 border-t border-gray-200 flex-shrink-0 bg-gray-50">
-                                                    </div>
+                                            <div class="relative w-full max-w-5xl rounded-xl bg-white shadow-2xl flex flex-col"
+                                                style="height: 600px;">
+                                                <!-- Header -->
+                                                <div
+                                                    class="px-6 py-4 border-b border-gray-200 flex items-center justify-between flex-shrink-0 bg-gradient-to-r from-blue-50 to-white">
+                                                    <h3 class="text-xl font-bold text-gray-800">
+                                                        {{ 'Pilih Faktur Penjualan' }}</h3>
+                                                    <button type="button" @click="closeModal()"
+                                                        class="px-4 py-2 rounded-lg border-2 border-gray-300 bg-white hover:bg-gray-50 hover:border-gray-400 transition-all duration-150 font-medium text-gray-700 text-sm">
+                                                        {{ 'Tutup' }}
+                                                    </button>
+                                                </div>
+
+                                                <!-- Table Container -->
+                                                <div class="flex-1 overflow-y-auto p-6" style="min-height: 0;">
+                                                    <table id="prTable"
+                                                        class="min-w-full text-sm display nowrap stripe hover"
+                                                        style="width:100%">
+                                                        <thead class="sticky top-0 z-10">
+                                                            <tr class="bg-gray-50 border-b-2 border-gray-200">
+                                                                <th class="p-3 text-left font-semibold text-gray-700">
+                                                                    No. Faktur
+                                                                </th>
+                                                                <th class="p-3 text-left font-semibold text-gray-700">
+                                                                    Customer
+                                                                </th>
+                                                                <th class="p-3 text-left font-semibold text-gray-700">
+                                                                    Tanggal
+                                                                </th>
+                                                                <th class="p-3 text-center font-semibold text-gray-700">
+                                                                    Aksi
+                                                                </th>
+                                                            </tr>
+                                                        </thead>
+                                                        <tbody>
+                                                            <!-- DataTables data here -->
+                                                        </tbody>
+                                                    </table>
+                                                </div>
+
+                                                <!-- Footer -->
+                                                <div class="px-6 py-3 border-t border-gray-200 flex-shrink-0 bg-gray-50">
                                                 </div>
                                             </div>
-                                            {{-- Modal Duplikasi --}}
-                                            <div x-show="showDupModal" x-cloak x-transition.opacity
-                                                class="fixed inset-0 z-[60] flex items-center justify-center p-4">
-                                                <div class="absolute inset-0 bg-black/40" @click="closeDupModal()"></div>
-                                                <div class="relative bg-white rounded-xl shadow-xl max-w-2xl w-full p-6">
-                                                    <h3 class="text-lg font-semibold mb-4">Peringatan Duplikasi</h3>
-                                                    <p class="mb-4">
-                                                        Ditemukan <strong x-text="dupCount"></strong> item yang sudah ada
-                                                        dalam
-                                                        daftar.
-                                                        Hanya item unik yang akan ditambahkan.
-                                                    </p>
+                                        </div>
+                                        {{-- Modal Duplikasi --}}
+                                        <div x-show="showDupModal" x-cloak x-transition.opacity
+                                            class="fixed inset-0 z-[60] flex items-center justify-center p-4">
+                                            <div class="absolute inset-0 bg-black/40" @click="closeDupModal()"></div>
+                                            <div class="relative bg-white rounded-xl shadow-xl max-w-2xl w-full p-6">
+                                                <h3 class="text-lg font-semibold mb-4">Peringatan Duplikasi</h3>
+                                                <p class="mb-4">
+                                                    Ditemukan <strong x-text="dupCount"></strong> item yang sudah ada
+                                                    dalam
+                                                    daftar.
+                                                    Hanya item unik yang akan ditambahkan.
+                                                </p>
 
-                                                    <div class="mb-4 max-h-48 overflow-auto border rounded p-2 bg-gray-50"
-                                                        x-show="dupSample.length > 0">
-                                                        <p class="text-sm font-medium mb-2">Contoh item duplikat:</p>
-                                                        <template x-for="(item, idx) in dupSample" :key="idx">
-                                                            <div class="text-xs py-1">
-                                                                • <span x-text="item.fitemcode"></span> - <span
-                                                                    x-text="item.frefdtno"></span>
-                                                            </div>
-                                                        </template>
-                                                    </div>
+                                                <div class="mb-4 max-h-48 overflow-auto border rounded p-2 bg-gray-50"
+                                                    x-show="dupSample.length > 0">
+                                                    <p class="text-sm font-medium mb-2">Contoh item duplikat:</p>
+                                                    <template x-for="(item, idx) in dupSample" :key="idx">
+                                                        <div class="text-xs py-1">
+                                                            • <span x-text="item.fitemcode"></span> - <span
+                                                                x-text="item.frefdtno"></span>
+                                                        </div>
+                                                    </template>
+                                                </div>
 
-                                                    <div class="flex justify-end gap-2">
-                                                        <button type="button" @click="closeDupModal()"
-                                                            class="rounded bg-gray-200 px-4 py-2 text-sm font-medium hover:bg-gray-300">
-                                                            {{ "Batal" }}
-                                                        </button>
-                                                        <button type="button" @click="confirmAddUniques()"
-                                                            class="rounded bg-emerald-600 px-4 py-2 text-sm font-medium text-white hover:bg-emerald-700">
-                                                            Tambahkan Item Unik
-                                                        </button>
-                                                    </div>
+                                                <div class="flex justify-end gap-2">
+                                                    <button type="button" @click="closeDupModal()"
+                                                        class="rounded bg-gray-200 px-4 py-2 text-sm font-medium hover:bg-gray-300">
+                                                        {{ 'Batal' }}
+                                                    </button>
+                                                    <button type="button" @click="confirmAddUniques()"
+                                                        class="rounded bg-emerald-600 px-4 py-2 text-sm font-medium text-white hover:bg-emerald-700">
+                                                        Tambahkan Item Unik
+                                                    </button>
                                                 </div>
                                             </div>
                                         </div>
                                     </div>
                                 </div>
-
-                                <!-- MODAL DESC -->
-                                <div x-show="showDescModal" x-cloak
-                                    class="fixed inset-0 z-[95] flex items-center justify-center" x-transition.opacity>
-                                    <div class="absolute inset-0 bg-black/50" @click="closeDesc()"></div>
-
-                                    <div class="relative bg-white w-[92vw] max-w-lg rounded-2xl shadow-2xl overflow-hidden"
-                                        x-transition.scale>
-                                        <div class="px-5 py-4 border-b flex items-center">
-                                            <x-heroicon-o-document-text class="w-6 h-6 text-blue-600 mr-2" />
-                                            <h3 class="text-lg font-semibold text-gray-800">Isi Deskripsi Item</h3>
-                                        </div>
-
-                                        <div class="px-5 py-4 space-y-2">
-                                            <label class="block text-sm text-gray-700">Deskripsi</label>
-                                            <textarea x-model="descValue" rows="5" class="w-full border rounded px-3 py-2"
-                                                placeholder="Tulis deskripsi item di sini..."></textarea>
-                                        </div>
-
-                                        <div class="px-5 py-3 border-t flex items-center justify-end gap-2">
-                                            <button type="button" @click="closeDesc()"
-                                                class="h-9 px-4 rounded-lg bg-gray-100 text-gray-700 text-sm font-medium hover:bg-gray-200">
-                                                {{ "Batal" }}
-                                            </button>
-                                            <button type="button" @click="applyDesc()"
-                                                class="h-9 px-4 rounded-lg bg-emerald-600 text-white text-sm font-medium hover:bg-emerald-700">
-                                                Simpan
-                                            </button>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <input type="hidden" id="itemsCount" :value="savedItems.length">
                             </div>
 
-                            {{-- MODAL ERROR --}}
-                            <div x-data="{ showNoItems: false }"
-                                x-init="window.addEventListener('returpenjualan-show-no-items', () => { showNoItems = true })"
-                                x-show="showNoItems && Number(document.getElementById('itemsCount')?.value || 0) === 0" x-cloak
-                                class="fixed inset-0 z-[90] flex items-center justify-center" x-transition.opacity>
-                                <div class="absolute inset-0 bg-black/50" @click="showNoItems=false"></div>
+                            <!-- MODAL DESC -->
+                            <div x-show="showDescModal" x-cloak
+                                class="fixed inset-0 z-[95] flex items-center justify-center" x-transition.opacity>
+                                <div class="absolute inset-0 bg-black/50" @click="closeDesc()"></div>
 
-                                <div class="relative bg-white w-[92vw] max-w-md rounded-2xl shadow-2xl overflow-hidden"
+                                <div class="relative bg-white w-[92vw] max-w-lg rounded-2xl shadow-2xl overflow-hidden"
                                     x-transition.scale>
                                     <div class="px-5 py-4 border-b flex items-center">
-                                        <x-heroicon-o-exclamation-triangle class="w-6 h-6 text-red-500 mr-2" />
-                                        <h3 class="text-lg font-semibold text-gray-800">{{ "Tidak Ada Item" }}</h3>
+                                        <x-heroicon-o-document-text class="w-6 h-6 text-blue-600 mr-2" />
+                                        <h3 class="text-lg font-semibold text-gray-800">Isi Deskripsi Item</h3>
                                     </div>
 
-                                    <div class="px-5 py-4">
-                                        <p class="text-sm text-gray-700">
-                                            Anda belum menambahkan item apa pun pada tabel. Silakan isi baris “Detail Item”
-                                            terlebih
-                                            dahulu.
-                                        </p>
+                                    <div class="px-5 py-4 space-y-2">
+                                        <label class="block text-sm text-gray-700">Deskripsi</label>
+                                        <textarea x-model="descValue" rows="5" class="w-full border rounded px-3 py-2"
+                                            placeholder="Tulis deskripsi item di sini..."></textarea>
                                     </div>
 
                                     <div class="px-5 py-3 border-t flex items-center justify-end gap-2">
-                                        <button type="button" @click="showNoItems=false"
-                                            class="h-9 px-4 rounded-lg bg-blue-600 text-white text-sm font-medium hover:bg-blue-700">
-                                            OK
+                                        <button type="button" @click="closeDesc()"
+                                            class="h-9 px-4 rounded-lg bg-gray-100 text-gray-700 text-sm font-medium hover:bg-gray-200">
+                                            {{ 'Batal' }}
+                                        </button>
+                                        <button type="button" @click="applyDesc()"
+                                            class="h-9 px-4 rounded-lg bg-emerald-600 text-white text-sm font-medium hover:bg-emerald-700">
+                                            Simpan
                                         </button>
                                     </div>
                                 </div>
                             </div>
 
-                            {{-- MODAL CUSTOMER --}}
-                            <div x-data="customerBrowser()" x-show="open" x-cloak x-transition.opacity
-                                class="fixed inset-0 z-50 flex items-center justify-center p-4">
-                                <div class="absolute inset-0 bg-black/50 backdrop-blur-sm"></div>
+                            <input type="hidden" id="itemsCount" :value="savedItems.length">
+                        </div>
 
-                                <div class="relative bg-white rounded-2xl shadow-2xl w-full max-w-6xl flex flex-col overflow-hidden"
-                                    style="height: 650px;">
-                                    <!-- Header -->
-                                    <div
-                                        class="px-6 py-4 border-b border-gray-200 flex items-center justify-between flex-shrink-0 bg-gradient-to-r from-blue-50 to-white">
-                                        <div>
-                                            <h3 class="text-xl font-bold text-gray-800">{{ "Browse Customer" }}</h3>
-                                            <p class="text-sm text-gray-500 mt-0.5">{{ "Pilih customer yang diinginkan" }}</p>
-                                        </div>
-                                        <button type="button" @click="close()"
-                                            class="px-4 py-2 rounded-lg border-2 border-gray-300 bg-white hover:bg-gray-50 hover:border-gray-400 transition-all duration-150 font-medium text-gray-700 text-sm">
-                                            {{ "Tutup" }}
-                                        </button>
-                                    </div>
+                        {{-- MODAL ERROR --}}
+                        <div x-data="{ showNoItems: false }" x-init="window.addEventListener('returpenjualan-show-no-items', () => { showNoItems = true })"
+                            x-show="showNoItems && Number(document.getElementById('itemsCount')?.value || 0) === 0"
+                            x-cloak class="fixed inset-0 z-[90] flex items-center justify-center" x-transition.opacity>
+                            <div class="absolute inset-0 bg-black/50" @click="showNoItems=false"></div>
 
-                                    <!-- Search & Length Menu -->
-                                    <div class="px-6 pt-4 pb-2 flex-shrink-0 border-b border-gray-100">
-                                        <div id="supplierTableControls"></div>
-                                    </div>
+                            <div class="relative bg-white w-[92vw] max-w-md rounded-2xl shadow-2xl overflow-hidden"
+                                x-transition.scale>
+                                <div class="px-5 py-4 border-b flex items-center">
+                                    <x-heroicon-o-exclamation-triangle class="w-6 h-6 text-red-500 mr-2" />
+                                    <h3 class="text-lg font-semibold text-gray-800">{{ 'Tidak Ada Item' }}</h3>
+                                </div>
 
-                                    <!-- Table with fixed height and scroll -->
-                                    <div class="flex-1 overflow-y-auto px-6" style="min-height: 0;">
-                                        <div class="bg-white">
-                                            <table id="customerBrowseTable"
-                                                class="min-w-full text-sm display nowrap stripe hover"
-                                                style="width:100%">
-                                                <thead class="sticky top-0 z-10">
-                                                    <tr class="bg-gradient-to-r from-gray-50 to-gray-100">
-                                                        <th
-                                                            class="text-left p-3 font-semibold text-gray-700 border-b-2 border-gray-200">
-                                                            Kode</th>
-                                                        <th
-                                                            class="text-left p-3 font-semibold text-gray-700 border-b-2 border-gray-200">
-                                                            Nama Customer</th>
-                                                        <th
-                                                            class="text-left p-3 font-semibold text-gray-700 border-b-2 border-gray-200">
-                                                            Alamat</th>
-                                                        <th
-                                                            class="text-left p-3 font-semibold text-gray-700 border-b-2 border-gray-200">
-                                                            Telepon</th>
-                                                        <th
-                                                            class="text-center p-3 font-semibold text-gray-700 border-b-2 border-gray-200">
-                                                            Aksi</th>
-                                                    </tr>
-                                                </thead>
-                                                <tbody>
-                                                    <!-- Data will be populated by DataTables -->
-                                                </tbody>
-                                            </table>
-                                        </div>
-                                    </div>
+                                <div class="px-5 py-4">
+                                    <p class="text-sm text-gray-700">
+                                        Anda belum menambahkan item apa pun pada tabel. Silakan isi baris “Detail Item”
+                                        terlebih
+                                        dahulu.
+                                    </p>
+                                </div>
 
-                                    <!-- Pagination & Info -->
-                                    <div class="px-6 py-3 border-t border-gray-200 flex-shrink-0 bg-gray-50">
-                                        <div id="supplierTablePagination"></div>
-                                    </div>
+                                <div class="px-5 py-3 border-t flex items-center justify-end gap-2">
+                                    <button type="button" @click="showNoItems=false"
+                                        class="h-9 px-4 rounded-lg bg-blue-600 text-white text-sm font-medium hover:bg-blue-700">
+                                        OK
+                                    </button>
                                 </div>
                             </div>
+                        </div>
 
-                            {{-- MODAL Salesman --}}
-                            <div x-data="salesmanBrowser()" x-show="open" x-cloak x-transition.opacity
-                                class="fixed inset-0 z-50 flex items-center justify-center p-4">
-                                <div class="absolute inset-0 bg-black/50 backdrop-blur-sm"></div>
+                        {{-- MODAL CUSTOMER --}}
+                        <div x-data="customerBrowser()" x-show="open" x-cloak x-transition.opacity
+                            class="fixed inset-0 z-50 flex items-center justify-center p-4">
+                            <div class="absolute inset-0 bg-black/50 backdrop-blur-sm"></div>
 
-                                <div class="relative bg-white rounded-2xl shadow-2xl w-full max-w-6xl flex flex-col overflow-hidden"
-                                    style="height: 650px;">
-                                    <!-- Header -->
-                                    <div
-                                        class="px-6 py-4 border-b border-gray-200 flex items-center justify-between flex-shrink-0 bg-gradient-to-r from-blue-50 to-white">
-                                        <div>
-                                            <h3 class="text-xl font-bold text-gray-800">{{ "Browse Salesman" }}</h3>
-                                            <p class="text-sm text-gray-500 mt-0.5">{{ "Pilih salesman yang diinginkan" }}</p>
-                                        </div>
-                                        <button type="button" @click="close()"
-                                            class="px-4 py-2 rounded-lg border-2 border-gray-300 bg-white hover:bg-gray-50 hover:border-gray-400 transition-all duration-150 font-medium text-gray-700 text-sm">
-                                            {{ "Tutup" }}
-                                        </button>
+                            <div class="relative bg-white rounded-2xl shadow-2xl w-full max-w-6xl flex flex-col overflow-hidden"
+                                style="height: 650px;">
+                                <!-- Header -->
+                                <div
+                                    class="px-6 py-4 border-b border-gray-200 flex items-center justify-between flex-shrink-0 bg-gradient-to-r from-blue-50 to-white">
+                                    <div>
+                                        <h3 class="text-xl font-bold text-gray-800">{{ 'Browse Customer' }}</h3>
+                                        <p class="text-sm text-gray-500 mt-0.5">{{ 'Pilih customer yang diinginkan' }}
+                                        </p>
                                     </div>
+                                    <button type="button" @click="close()"
+                                        class="px-4 py-2 rounded-lg border-2 border-gray-300 bg-white hover:bg-gray-50 hover:border-gray-400 transition-all duration-150 font-medium text-gray-700 text-sm">
+                                        {{ 'Tutup' }}
+                                    </button>
+                                </div>
 
-                                    <!-- Search & Length Menu -->
-                                    <div class="px-6 pt-4 pb-2 flex-shrink-0 border-b border-gray-100">
-                                        <div id="salesmanTableControls"></div>
-                                    </div>
+                                <!-- Search & Length Menu -->
+                                <div class="px-6 pt-4 pb-2 flex-shrink-0 border-b border-gray-100">
+                                    <div id="supplierTableControls"></div>
+                                </div>
 
-                                    <!-- Table with fixed height and scroll -->
-                                    <div class="flex-1 overflow-y-auto px-6" style="min-height: 0;">
-                                        <div class="bg-white">
-                                            <table id="salesmanBrowseTable"
-                                                class="min-w-full text-sm display nowrap stripe hover"
-                                                style="width:100%">
-                                                <thead class="sticky top-0 z-10">
-                                                    <tr class="bg-gradient-to-r from-gray-50 to-gray-100">
-                                                        <th
-                                                            class="text-left p-3 font-semibold text-gray-700 border-b-2 border-gray-200">
-                                                            Kode</th>
-                                                        <th
-                                                            class="text-left p-3 font-semibold text-gray-700 border-b-2 border-gray-200">
-                                                            Nama Salesman</th>
-                                                        <th
-                                                            class="text-center p-3 font-semibold text-gray-700 border-b-2 border-gray-200">
-                                                            Aksi</th>
-                                                    </tr>
-                                                </thead>
-                                                <tbody>
-                                                    <!-- Data will be populated by DataTables -->
-                                                </tbody>
-                                            </table>
-                                        </div>
-                                    </div>
-
-                                    <!-- Pagination & Info -->
-                                    <div class="px-6 py-3 border-t border-gray-200 flex-shrink-0 bg-gray-50">
-                                        <div id="salesmanTablePagination"></div>
+                                <!-- Table with fixed height and scroll -->
+                                <div class="flex-1 overflow-y-auto px-6" style="min-height: 0;">
+                                    <div class="bg-white">
+                                        <table id="customerBrowseTable"
+                                            class="min-w-full text-sm display nowrap stripe hover" style="width:100%">
+                                            <thead class="sticky top-0 z-10">
+                                                <tr class="bg-gradient-to-r from-gray-50 to-gray-100">
+                                                    <th
+                                                        class="text-left p-3 font-semibold text-gray-700 border-b-2 border-gray-200">
+                                                        Kode</th>
+                                                    <th
+                                                        class="text-left p-3 font-semibold text-gray-700 border-b-2 border-gray-200">
+                                                        Nama Customer</th>
+                                                    <th
+                                                        class="text-left p-3 font-semibold text-gray-700 border-b-2 border-gray-200">
+                                                        Alamat</th>
+                                                    <th
+                                                        class="text-left p-3 font-semibold text-gray-700 border-b-2 border-gray-200">
+                                                        Telepon</th>
+                                                    <th
+                                                        class="text-center p-3 font-semibold text-gray-700 border-b-2 border-gray-200">
+                                                        Aksi</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                <!-- Data will be populated by DataTables -->
+                                            </tbody>
+                                        </table>
                                     </div>
                                 </div>
-                            </div>
 
-                            {{-- MODAL PRODUK --}}
-                            <div x-data="productBrowser()" x-show="open" x-cloak x-transition.opacity
-                                class="fixed inset-0 z-50 flex items-center justify-center p-4">
-                                <div class="absolute inset-0 bg-black/50 backdrop-blur-sm"></div>
-
-                                <div class="relative bg-white rounded-2xl shadow-2xl w-full max-w-6xl flex flex-col overflow-hidden"
-                                    style="height: 650px;">
-                                    <!-- Header -->
-                                    <div
-                                        class="px-6 py-4 border-b border-gray-200 flex items-center justify-between flex-shrink-0 bg-gradient-to-r from-blue-50 to-white">
-                                        <div>
-                                            <h3 class="text-xl font-bold text-gray-800">{{ "Browse Produk" }}</h3>
-                                            <p class="text-sm text-gray-500 mt-0.5">{{ "Pilih produk yang diinginkan" }}</p>
-                                        </div>
-                                        <button type="button" @click="close()"
-                                            class="px-4 py-2 rounded-lg border-2 border-gray-300 bg-white hover:bg-gray-50 hover:border-gray-400 transition-all duration-150 font-medium text-gray-700 text-sm">
-                                            {{ "Tutup" }}
-                                        </button>
-                                    </div>
-
-                                    <!-- Search & Length Menu -->
-                                    <div class="px-6 pt-4 pb-2 flex-shrink-0 border-b border-gray-100">
-                                        <div id="productTableControls"></div>
-                                    </div>
-
-                                    <!-- Table with fixed height and scroll -->
-                                    <div class="flex-1 overflow-y-auto px-6" style="min-height: 0;">
-                                        <div class="bg-white">
-                                            <table id="productTable"
-                                                class="min-w-full text-sm display nowrap stripe hover"
-                                                style="width:100%">
-                                                <thead class="sticky top-0 z-10">
-                                                    <tr class="bg-gradient-to-r from-gray-50 to-gray-100">
-                                                        <th
-                                                            class="text-left p-3 font-semibold text-gray-700 border-b-2 border-gray-200">
-                                                            Kode</th>
-                                                        <th
-                                                            class="text-left p-3 font-semibold text-gray-700 border-b-2 border-gray-200">
-                                                            Nama Produk</th>
-                                                        <th
-                                                            class="text-left p-3 font-semibold text-gray-700 border-b-2 border-gray-200">
-                                                            Satuan</th>
-                                                        <th
-                                                            class="text-left p-3 font-semibold text-gray-700 border-b-2 border-gray-200">
-                                                            Merek</th>
-                                                        <th
-                                                            class="text-center p-3 font-semibold text-gray-700 border-b-2 border-gray-200">
-                                                            Stock</th>
-                                                        <th
-                                                            class="text-center p-3 font-semibold text-gray-700 border-b-2 border-gray-200">
-                                                            Aksi</th>
-                                                    </tr>
-                                                </thead>
-                                                <tbody>
-                                                    <!-- Data will be populated by DataTables -->
-                                                </tbody>
-                                            </table>
-                                        </div>
-                                    </div>
-
-                                    <!-- Pagination & Info -->
-                                    <div class="px-6 py-3 border-t border-gray-200 flex-shrink-0 bg-gray-50">
-                                        <div id="productTablePagination"></div>
-                                    </div>
+                                <!-- Pagination & Info -->
+                                <div class="px-6 py-3 border-t border-gray-200 flex-shrink-0 bg-gray-50">
+                                    <div id="supplierTablePagination"></div>
                                 </div>
                             </div>
+                        </div>
 
-                            <div class="mt-8 flex justify-center gap-4">
-                                @if ($canEditPermission)
-                                    @if ($usageLocked)
-                                        <button type="button" disabled title="{{ $usageLockMessage }}"
-                                            class="bg-blue-300 text-white px-6 py-2 rounded flex items-center cursor-not-allowed opacity-70">
-                                            <x-heroicon-o-lock-closed class="w-5 h-5 mr-2" /> Simpan
-                                        </button>
-                                    @else
-                                        <button type="submit"
-                                            class="bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700 flex items-center">
-                                            <x-heroicon-o-check class="w-5 h-5 mr-2" /> Simpan
-                                        </button>
-                                    @endif
+                        {{-- MODAL Salesman --}}
+                        <div x-data="salesmanBrowser()" x-show="open" x-cloak x-transition.opacity
+                            class="fixed inset-0 z-50 flex items-center justify-center p-4">
+                            <div class="absolute inset-0 bg-black/50 backdrop-blur-sm"></div>
+
+                            <div class="relative bg-white rounded-2xl shadow-2xl w-full max-w-6xl flex flex-col overflow-hidden"
+                                style="height: 650px;">
+                                <!-- Header -->
+                                <div
+                                    class="px-6 py-4 border-b border-gray-200 flex items-center justify-between flex-shrink-0 bg-gradient-to-r from-blue-50 to-white">
+                                    <div>
+                                        <h3 class="text-xl font-bold text-gray-800">{{ 'Browse Salesman' }}</h3>
+                                        <p class="text-sm text-gray-500 mt-0.5">{{ 'Pilih salesman yang diinginkan' }}
+                                        </p>
+                                    </div>
+                                    <button type="button" @click="close()"
+                                        class="px-4 py-2 rounded-lg border-2 border-gray-300 bg-white hover:bg-gray-50 hover:border-gray-400 transition-all duration-150 font-medium text-gray-700 text-sm">
+                                        {{ 'Tutup' }}
+                                    </button>
+                                </div>
+
+                                <!-- Search & Length Menu -->
+                                <div class="px-6 pt-4 pb-2 flex-shrink-0 border-b border-gray-100">
+                                    <div id="salesmanTableControls"></div>
+                                </div>
+
+                                <!-- Table with fixed height and scroll -->
+                                <div class="flex-1 overflow-y-auto px-6" style="min-height: 0;">
+                                    <div class="bg-white">
+                                        <table id="salesmanBrowseTable"
+                                            class="min-w-full text-sm display nowrap stripe hover" style="width:100%">
+                                            <thead class="sticky top-0 z-10">
+                                                <tr class="bg-gradient-to-r from-gray-50 to-gray-100">
+                                                    <th
+                                                        class="text-left p-3 font-semibold text-gray-700 border-b-2 border-gray-200">
+                                                        Kode</th>
+                                                    <th
+                                                        class="text-left p-3 font-semibold text-gray-700 border-b-2 border-gray-200">
+                                                        Nama Salesman</th>
+                                                    <th
+                                                        class="text-center p-3 font-semibold text-gray-700 border-b-2 border-gray-200">
+                                                        Aksi</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                <!-- Data will be populated by DataTables -->
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+
+                                <!-- Pagination & Info -->
+                                <div class="px-6 py-3 border-t border-gray-200 flex-shrink-0 bg-gray-50">
+                                    <div id="salesmanTablePagination"></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        {{-- MODAL PRODUK --}}
+                        <div x-data="productBrowser()" x-show="open" x-cloak x-transition.opacity
+                            class="fixed inset-0 z-50 flex items-center justify-center p-4">
+                            <div class="absolute inset-0 bg-black/50 backdrop-blur-sm"></div>
+
+                            <div class="relative bg-white rounded-2xl shadow-2xl w-full max-w-6xl flex flex-col overflow-hidden"
+                                style="height: 650px;">
+                                <!-- Header -->
+                                <div
+                                    class="px-6 py-4 border-b border-gray-200 flex items-center justify-between flex-shrink-0 bg-gradient-to-r from-blue-50 to-white">
+                                    <div>
+                                        <h3 class="text-xl font-bold text-gray-800">{{ 'Browse Produk' }}</h3>
+                                        <p class="text-sm text-gray-500 mt-0.5">{{ 'Pilih produk yang diinginkan' }}</p>
+                                    </div>
+                                    <button type="button" @click="close()"
+                                        class="px-4 py-2 rounded-lg border-2 border-gray-300 bg-white hover:bg-gray-50 hover:border-gray-400 transition-all duration-150 font-medium text-gray-700 text-sm">
+                                        {{ 'Tutup' }}
+                                    </button>
+                                </div>
+
+                                <!-- Search & Length Menu -->
+                                <div class="px-6 pt-4 pb-2 flex-shrink-0 border-b border-gray-100">
+                                    <div id="productTableControls"></div>
+                                </div>
+
+                                <!-- Table with fixed height and scroll -->
+                                <div class="flex-1 overflow-y-auto px-6" style="min-height: 0;">
+                                    <div class="bg-white">
+                                        <table id="productTable" class="min-w-full text-sm display nowrap stripe hover"
+                                            style="width:100%">
+                                            <thead class="sticky top-0 z-10">
+                                                <tr class="bg-gradient-to-r from-gray-50 to-gray-100">
+                                                    <th
+                                                        class="text-left p-3 font-semibold text-gray-700 border-b-2 border-gray-200">
+                                                        Kode</th>
+                                                    <th
+                                                        class="text-left p-3 font-semibold text-gray-700 border-b-2 border-gray-200">
+                                                        Nama Produk</th>
+                                                    <th
+                                                        class="text-left p-3 font-semibold text-gray-700 border-b-2 border-gray-200">
+                                                        Satuan</th>
+                                                    <th
+                                                        class="text-left p-3 font-semibold text-gray-700 border-b-2 border-gray-200">
+                                                        Merek</th>
+                                                    <th
+                                                        class="text-center p-3 font-semibold text-gray-700 border-b-2 border-gray-200">
+                                                        Stock</th>
+                                                    <th
+                                                        class="text-center p-3 font-semibold text-gray-700 border-b-2 border-gray-200">
+                                                        Aksi</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                <!-- Data will be populated by DataTables -->
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+
+                                <!-- Pagination & Info -->
+                                <div class="px-6 py-3 border-t border-gray-200 flex-shrink-0 bg-gray-50">
+                                    <div id="productTablePagination"></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="mt-8 flex justify-center gap-4">
+                            @if ($canEditPermission)
+                                @if ($usageLocked)
+                                    <button type="button" disabled title="{{ $usageLockMessage }}"
+                                        class="bg-blue-300 text-white px-6 py-2 rounded flex items-center cursor-not-allowed opacity-70">
+                                        <x-heroicon-o-lock-closed class="w-5 h-5 mr-2" /> Simpan
+                                    </button>
+                                @else
+                                    <button type="submit"
+                                        class="bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700 flex items-center">
+                                        <x-heroicon-o-check class="w-5 h-5 mr-2" /> Simpan
+                                    </button>
                                 @endif
-                                <button type="button" @click="window.location.href='{{ route('returpenjualan.index') }}'"
-                                    class="bg-gray-500 text-white px-6 py-2 rounded hover:bg-gray-600 flex items-center">
-                                    <x-heroicon-o-arrow-left class="w-5 h-5 mr-2" /> Keluar
-                                </button>
-                            </div>
-                        </form>
+                            @endif
+                            <button type="button" @click="window.location.href='{{ route('returpenjualan.index') }}'"
+                                class="bg-gray-500 text-white px-6 py-2 rounded hover:bg-gray-600 flex items-center">
+                                <x-heroicon-o-arrow-left class="w-5 h-5 mr-2" /> Keluar
+                            </button>
+                        </div>
+                    </form>
                 @endif
             </div>
         </div>
@@ -2109,15 +2136,36 @@
     if (!window.toast) {
         window.toast = {
             success: (msg) => {
-                if (typeof Swal !== 'undefined') Swal.fire({ toast: true, position: 'top-end', icon: 'success', title: msg, showConfirmButton: false, timer: 3000 });
+                if (typeof Swal !== 'undefined') Swal.fire({
+                    toast: true,
+                    position: 'top-end',
+                    icon: 'success',
+                    title: msg,
+                    showConfirmButton: false,
+                    timer: 3000
+                });
                 else console.log('Success:', msg);
             },
             error: (msg) => {
-                if (typeof Swal !== 'undefined') Swal.fire({ toast: true, position: 'top-end', icon: 'error', title: msg, showConfirmButton: false, timer: 3000 });
+                if (typeof Swal !== 'undefined') Swal.fire({
+                    toast: true,
+                    position: 'top-end',
+                    icon: 'error',
+                    title: msg,
+                    showConfirmButton: false,
+                    timer: 3000
+                });
                 else console.error('Error:', msg);
             },
             info: (msg) => {
-                if (typeof Swal !== 'undefined') Swal.fire({ toast: true, position: 'top-end', icon: 'info', title: msg, showConfirmButton: false, timer: 3000 });
+                if (typeof Swal !== 'undefined') Swal.fire({
+                    toast: true,
+                    position: 'top-end',
+                    icon: 'info',
+                    title: msg,
+                    showConfirmButton: false,
+                    timer: 3000
+                });
                 else console.info('Info:', msg);
             }
         };
@@ -2215,7 +2263,7 @@
                                 if (row.fblokir == 1) {
                                     return '<span class="text-xs font-bold text-red-500">BLOKIR</span>';
                                 }
-                                return '<button type="button" class="btn-choose px-4 py-1.5 rounded-md text-sm font-medium bg-blue-600 hover:bg-blue-700 text-white transition-colors duration-150">{{ "Pilih" }}</button>';
+                                return '<button type="button" class="btn-choose px-4 py-1.5 rounded-md text-sm font-medium bg-blue-600 hover:bg-blue-700 text-white transition-colors duration-150">{{ 'Pilih' }}</button>';
                             }
                         }
                     ],
@@ -2226,14 +2274,14 @@
                     ],
                     dom: '<"flex justify-between items-center mb-4"f<"ml-auto"l>>rtip',
                     language: {
-                        processing: @json("Memuat data..."),
-                        search: @json("Search" . ':'),
-                        lengthMenu: @json("Tampilkan _MENU_"),
-                        info: @json("Menampilkan _START_ - _END_ dari _TOTAL_ data"),
-                        infoEmpty: @json("Tidak ada data"),
+                        processing: @json('Memuat data...'),
+                        search: @json('Search' . ':'),
+                        lengthMenu: @json('Tampilkan _MENU_'),
+                        info: @json('Menampilkan _START_ - _END_ dari _TOTAL_ data'),
+                        infoEmpty: @json('Tidak ada data'),
                         infoFiltered: "(disaring dari _MAX_ total data)",
-                        zeroRecords: @json("Tidak ada data yang ditemukan"),
-                        emptyTable: @json("Tidak ada data tersedia"),
+                        zeroRecords: @json('Tidak ada data yang ditemukan'),
+                        emptyTable: @json('Tidak ada data tersedia'),
                         paginate: {
                             first: "Pertama",
                             last: "Terakhir",
@@ -2392,7 +2440,7 @@
                             className: 'text-center',
                             width: '15%',
                             render: function(data, type, row) {
-                                return '<button type="button" class="btn-choose px-4 py-1.5 rounded-md text-sm font-medium bg-blue-600 hover:bg-blue-700 text-white transition-colors duration-150">{{ "Pilih" }}</button>';
+                                return '<button type="button" class="btn-choose px-4 py-1.5 rounded-md text-sm font-medium bg-blue-600 hover:bg-blue-700 text-white transition-colors duration-150">{{ 'Pilih' }}</button>';
                             }
                         }
                     ],
@@ -2403,14 +2451,14 @@
                     ],
                     dom: '<"flex justify-between items-center mb-4"f<"ml-auto"l>>rtip',
                     language: {
-                        processing: @json("Memuat data..."),
-                        search: @json("Search" . ':'),
-                        lengthMenu: @json("Tampilkan _MENU_"),
-                        info: @json("Menampilkan _START_ - _END_ dari _TOTAL_ data"),
-                        infoEmpty: @json("Tidak ada data"),
+                        processing: @json('Memuat data...'),
+                        search: @json('Search' . ':'),
+                        lengthMenu: @json('Tampilkan _MENU_'),
+                        info: @json('Menampilkan _START_ - _END_ dari _TOTAL_ data'),
+                        infoEmpty: @json('Tidak ada data'),
                         infoFiltered: "(disaring dari _MAX_ total data)",
-                        zeroRecords: @json("Tidak ada data yang ditemukan"),
-                        emptyTable: @json("Tidak ada data tersedia"),
+                        zeroRecords: @json('Tidak ada data yang ditemukan'),
+                        emptyTable: @json('Tidak ada data tersedia'),
                         paginate: {
                             first: "Pertama",
                             last: "Terakhir",
@@ -2522,7 +2570,7 @@
     function itemsTable() {
         return {
             showNoItems: false,
-            savedItems: @json(count($initialEditReturPenjualanItems) ? $initialEditReturPenjualanItems : ($savedItems ?? [])),
+            savedItems: @json(count($initialEditReturPenjualanItems) ? $initialEditReturPenjualanItems : $savedItems ?? []),
             draft: newRow(),
             action: @js($action ?? 'edit'),
 
@@ -2530,7 +2578,7 @@
             ppnRate: @json($returpenjualan->fppnpersen ?? 11),
 
             includePPN: @json($returpenjualan->fincludeppn == '1'),
-            fapplyppn: @json((int)($returpenjualan->fapplyppn ?? 0)),
+            fapplyppn: @json((int) ($returpenjualan->fapplyppn ?? 0)),
 
             get ppnIncluded() {
                 const total = +this.totalHarga || 0;
@@ -2576,29 +2624,29 @@
                 return total + this.ppnAdded;
             },
 
-                    fmt(n) {
-                        if (n === null || n === undefined || n === '') return '-';
-                        const v = Number(n);
-                        if (!isFinite(v)) return '-';
+            fmt(n) {
+                if (n === null || n === undefined || n === '') return '-';
+                const v = Number(n);
+                if (!isFinite(v)) return '-';
 
                 return v.toLocaleString('id-ID', {
                     minimumFractionDigits: 2,
                     maximumFractionDigits: 2
                 });
-                    },
+            },
 
-                    formatQtyValue(value) {
-                        const num = Number(value);
-                        if (!Number.isFinite(num)) return '0,00';
-                        return num.toLocaleString('id-ID', {
-                            minimumFractionDigits: 2,
-                            maximumFractionDigits: 2
-                        });
-                    },
+            formatQtyValue(value) {
+                const num = Number(value);
+                if (!Number.isFinite(num)) return '0,00';
+                return num.toLocaleString('id-ID', {
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2
+                });
+            },
 
-                    rupiah(n) {
-                        const v = Number(n || 0);
-                        if (!isFinite(v)) return '-';
+            rupiah(n) {
+                const v = Number(n || 0);
+                if (!isFinite(v)) return '-';
                 return v.toLocaleString('id-ID', {
                     minimumFractionDigits: 2,
                     maximumFractionDigits: 2
@@ -2699,11 +2747,19 @@
                         name: '',
                         units: [],
                         stock: 0,
-                        unit_ratios: { satuankecil: 1, satuanbesar: 1, satuanbesar2: 1 }
+                        unit_ratios: {
+                            satuankecil: 1,
+                            satuanbesar: 1,
+                            satuanbesar2: 1
+                        }
                     };
                 }
                 if (!meta.unit_ratios) {
-                    meta.unit_ratios = { satuankecil: 1, satuanbesar: 1, satuanbesar2: 1 };
+                    meta.unit_ratios = {
+                        satuankecil: 1,
+                        satuanbesar: 1,
+                        satuanbesar2: 1
+                    };
                 }
                 return meta;
             },
@@ -2733,7 +2789,8 @@
                 const qty = Number(row?.fqty ?? 0);
                 if (qty > limit) {
                     row.fqty = limit;
-                    if (showToast) window.toast?.error(`Qty melebihi sisa referensi. Maksimal ${limit} ${row.fsatuan || ''}`.trim());
+                    if (showToast) window.toast?.error(
+                        `Qty melebihi sisa referensi. Maksimal ${limit} ${row.fsatuan || ''}`.trim());
                 }
 
                 return Number(row?.fqty ?? 0) > 0;
@@ -2769,7 +2826,7 @@
                 row.fsatuan = row.fsatuan;
                 if (meta.unit_ratios) row.unit_ratios = meta.unit_ratios;
                 row.maxqty = Number.isFinite(+row.maxqty) ? +row.maxqty : 0;
-                
+
                 if (row === this.draft) {
                     if (units.length > 1) {
                         populateDraftUnitSelect(units);
@@ -2801,7 +2858,9 @@
                 const used = new Set(this.savedItems.map(item => this.normalizeNoAcak(item.fnoacak)).filter(Boolean));
                 let candidate = '';
                 do {
-                    candidate = Array.from({ length: 3 }, () => '123456789'[Math.floor(Math.random() * 9)]).join('');
+                    candidate = Array.from({
+                        length: 3
+                    }, () => '123456789' [Math.floor(Math.random() * 9)]).join('');
                 } while (used.has(candidate));
                 return candidate;
             },
@@ -2880,7 +2939,8 @@
                         fnoacak: this.generateUniqueNoAcak(),
                         frefnoacak: this.normalizeRefNoAcak(src.frefnoacak ?? src.fnoacak ?? ''),
 
-                        fqty: (src.fqty !== null && src.fqty !== undefined && Number(src.fqty) > 0) ? Number(src.fqty) : 1,
+                        fqty: (src.fqty !== null && src.fqty !== undefined && Number(src.fqty) > 0) ?
+                            Number(src.fqty) : 1,
                         fprice: Number(src.fprice ?? src.fharga ?? 0),
                         fterima: Number(src.fterima ?? 0),
                         ftotal: 0,
@@ -3061,11 +3121,12 @@
                         fcustno: customerCode,
                         fprdcode: productCode,
                     });
-                    const response = await fetch(`{{ route('returpenjualan.product-history') }}?${params.toString()}`, {
-                        headers: {
-                            Accept: 'application/json',
-                        },
-                    });
+                    const response = await fetch(
+                        `{{ route('returpenjualan.product-history') }}?${params.toString()}`, {
+                            headers: {
+                                Accept: 'application/json',
+                            },
+                        });
 
                     const payload = await response.json();
                     if (!response.ok) {
@@ -3162,7 +3223,7 @@
                 }, {
                     passive: true
                 });
-                
+
                 const self = this;
                 document.addEventListener('change', function(e) {
                     if (e.target && e.target.id === 'draftUnitSelect') {
@@ -3298,7 +3359,7 @@
                             className: 'text-center',
                             width: '100px',
                             render: function(data, type, row) {
-                                return '<button type="button" class="btn-pick px-4 py-1.5 rounded-md text-sm font-bold bg-teal-600 hover:bg-teal-700 text-white transition-colors duration-150">{{ "Pilih" }}</button>';
+                                return '<button type="button" class="btn-pick px-4 py-1.5 rounded-md text-sm font-bold bg-teal-600 hover:bg-teal-700 text-white transition-colors duration-150">{{ 'Pilih' }}</button>';
                             }
                         }
                     ],
@@ -3309,14 +3370,14 @@
                     ],
                     dom: '<"#poTableControls"lf>rt<"#poTablePagination"ip>',
                     language: {
-                        processing: @json("Memuat data..."),
-                        search: @json("Search" . ':'),
-                        lengthMenu: @json("Tampilkan _MENU_"),
-                        info: @json("Menampilkan _START_ - _END_ dari _TOTAL_ data"),
-                        infoEmpty: @json("Tidak ada data"),
+                        processing: @json('Memuat data...'),
+                        search: @json('Search' . ':'),
+                        lengthMenu: @json('Tampilkan _MENU_'),
+                        info: @json('Menampilkan _START_ - _END_ dari _TOTAL_ data'),
+                        infoEmpty: @json('Tidak ada data'),
                         infoFiltered: "(disaring dari _MAX_ total data)",
-                        zeroRecords: @json("Tidak ada data yang ditemukan"),
-                        emptyTable: @json("Tidak ada data tersedia"),
+                        zeroRecords: @json('Tidak ada data yang ditemukan'),
+                        emptyTable: @json('Tidak ada data tersedia'),
                         paginate: {
                             first: "Pertama",
                             last: "Terakhir",
@@ -3390,11 +3451,13 @@
 
             confirmAddUniques() {
                 const currentKeys = new Set((window.getCurrentItemKeys?.() || []).map(String));
-                const keyOf = (src) => `${(src.fitemcode ?? '').toString().trim()}::${(src.frefdtno ?? '').toString().trim()}`;
+                const keyOf = (src) =>
+                    `${(src.fitemcode ?? '').toString().trim()}::${(src.frefdtno ?? '').toString().trim()}`;
                 const safeUniques = this.pendingUniques.filter(src => !currentKeys.has(keyOf(src)));
 
                 if (safeUniques.length > 0) {
-                    window.transactionReferenceModalHelper.dispatchPick('pr-picked', this.pendingHeader, safeUniques);
+                    window.transactionReferenceModalHelper.dispatchPick('pr-picked', this.pendingHeader,
+                        safeUniques);
                 }
 
                 window.transactionReferenceModalHelper.closeDupModal(this);
@@ -3403,11 +3466,11 @@
 
             async pick(row) {
                 try {
-                    if (row.fdiscontinue == '1') {
+                    if (row.fnonactive == '1') {
                         Swal.fire({
                             icon: 'warning',
-                            title: @json("Produk Discontinue"),
-                            html: `${@json("Produk :name sudah tidak diproduksi lagi.").replace('__NAME__', `<b>${row.fprdname}</b>`)}<br><br>${@json("Penyimpanan Batal")}.`,
+                            title: @json('Produk Discontinue'),
+                            html: `${@json('Produk :name sudah tidak diproduksi lagi.').replace('__NAME__', `<b>${row.fprdname}</b>`)}<br><br>${@json('Penyimpanan Batal')}.`,
                             confirmButtonColor: '#f59e0b', // Warna orange amber
                             confirmButtonText: 'Kembali'
                         });
@@ -3453,7 +3516,7 @@
                     this.closeModal();
                 } catch (e) {
                     console.error('Error:', e);
-                    window.toast?.error(`${@json("Gagal mengambil detail Faktur Penjualan:")} ${e.message}`);
+                    window.toast?.error(`${@json('Gagal mengambil detail Faktur Penjualan:')} ${e.message}`);
                 }
             }
         };
@@ -3521,16 +3584,16 @@
                             className: 'text-center',
                             width: '100px',
                             render: function() {
-                                return '<button type="button" class="btn-pick-srj px-4 py-1.5 rounded-md text-sm font-bold bg-indigo-600 hover:bg-indigo-700 text-white transition-colors duration-150">{{ "Pilih" }}</button>';
+                                return '<button type="button" class="btn-pick-srj px-4 py-1.5 rounded-md text-sm font-bold bg-indigo-600 hover:bg-indigo-700 text-white transition-colors duration-150">{{ 'Pilih' }}</button>';
                             }
                         }
                     ],
                     pageLength: 10,
                     dom: '<"#srjHeader"fl>rt<"#srjFooter"ip>',
                     language: {
-                        processing: @json("Memuat data..."),
-                        search: @json("Search" . ':'),
-                        lengthMenu: @json("Tampilkan _MENU_"),
+                        processing: @json('Memuat data...'),
+                        search: @json('Search' . ':'),
+                        lengthMenu: @json('Tampilkan _MENU_'),
                         paginate: {
                             next: "Selanjutnya",
                             previous: "Sebelumnya"
@@ -3611,10 +3674,11 @@
 
             confirmAddUniques() {
                 const currentKeys = new Set((window.getCurrentItemKeys?.() || []).map(String));
-                const keyOf = (src) => `${(src.fitemcode ?? '').toString().trim()}::${(src.frefdtno ?? '').toString().trim()}`;
-                
+                const keyOf = (src) =>
+                    `${(src.fitemcode ?? '').toString().trim()}::${(src.frefdtno ?? '').toString().trim()}`;
+
                 const safeUniques = this.pendingUniques.filter(src => !currentKeys.has(keyOf(src)));
-                
+
                 if (safeUniques.length > 0) {
                     window.dispatchEvent(new CustomEvent('srj-picked', {
                         detail: {
@@ -3629,11 +3693,11 @@
 
             async pick(row) {
                 try {
-                    if (row.fdiscontinue == '1') {
+                    if (row.fnonactive == '1') {
                         Swal.fire({
                             icon: 'warning',
-                            title: @json("Produk Discontinue"),
-                            html: `${@json("Produk :name sudah tidak diproduksi lagi.").replace('__NAME__', `<b>${row.fprdname}</b>`)}<br><br>${@json("Penyimpanan Batal")}.`,
+                            title: @json('Produk Discontinue'),
+                            html: `${@json('Produk :name sudah tidak diproduksi lagi.').replace('__NAME__', `<b>${row.fprdname}</b>`)}<br><br>${@json('Penyimpanan Batal')}.`,
                             confirmButtonColor: '#f59e0b', // Warna orange amber
                             confirmButtonText: 'Kembali'
                         });
@@ -3679,7 +3743,7 @@
                     this.closeSrjModal();
                 } catch (e) {
                     console.error('Error SRJ:', e);
-                    window.toast?.error(`${@json("Gagal mengambil detail Surat Jalan:")} ${e.message}`);
+                    window.toast?.error(`${@json('Gagal mengambil detail Surat Jalan:')} ${e.message}`);
                 }
             }
         };
@@ -3754,7 +3818,7 @@
                             className: 'text-center',
                             render: function(data, type, row) {
                                 // Menggunakan styling yang lebih seragam
-                                return '<button type="button" class="btn-pick px-4 py-1.5 rounded-md text-sm font-medium bg-blue-600 hover:bg-blue-700 text-white transition-colors duration-150">{{ "Pilih" }}</button>';
+                                return '<button type="button" class="btn-pick px-4 py-1.5 rounded-md text-sm font-medium bg-blue-600 hover:bg-blue-700 text-white transition-colors duration-150">{{ 'Pilih' }}</button>';
                             }
                         }
                     ],
@@ -3767,19 +3831,19 @@
                     dom: '<"flex justify-between items-center mb-4"f<"ml-auto"l>>rtip',
 
                     language: {
-                        processing: @json("Memuat data..."),
-                        search: @json("Search" . ':'),
-                        lengthMenu: @json("Tampilkan _MENU_"),
-                        info: @json("Menampilkan _START_ - _END_ dari _TOTAL_ data"),
-                        infoEmpty: @json("Tidak ada data"),
-                        infoFiltered: @json("(disaring dari _MAX_ total data)"),
-                        zeroRecords: @json("Tidak ada data yang ditemukan"),
-                        emptyTable: @json("Tidak ada data tersedia"),
+                        processing: @json('Memuat data...'),
+                        search: @json('Search' . ':'),
+                        lengthMenu: @json('Tampilkan _MENU_'),
+                        info: @json('Menampilkan _START_ - _END_ dari _TOTAL_ data'),
+                        infoEmpty: @json('Tidak ada data'),
+                        infoFiltered: @json('(disaring dari _MAX_ total data)'),
+                        zeroRecords: @json('Tidak ada data yang ditemukan'),
+                        emptyTable: @json('Tidak ada data tersedia'),
                         paginate: {
-                            first: @json("Pertama"),
-                            last: @json("Terakhir"),
-                            next: @json("Selanjutnya"),
-                            previous: @json("Sebelumnya")
+                            first: @json('Pertama'),
+                            last: @json('Terakhir'),
+                            next: @json('Selanjutnya'),
+                            previous: @json('Sebelumnya')
                         }
                     },
                     order: [
@@ -3901,7 +3965,7 @@
                     console.error(e);
                     // Menggunakan custom alert/modal, bukan alert() bawaan browser
                     // Idealnya: tampilkan notifikasi di UI
-                    console.log(@json("Gagal mengambil detail PR. Lihat konsol untuk detail."));
+                    console.log(@json('Gagal mengambil detail PR. Lihat konsol untuk detail.'));
                 }
             }
         };
@@ -3992,7 +4056,7 @@
                                 className: 'text-center',
                                 width: '100px',
                                 render: function(data, type, row) {
-                                    return '<button type="button" class="btn-choose px-4 py-1.5 rounded-md text-sm font-medium bg-blue-600 hover:bg-blue-700 text-white transition-colors duration-150">{{ "Pilih" }}</button>';
+                                    return '<button type="button" class="btn-choose px-4 py-1.5 rounded-md text-sm font-medium bg-blue-600 hover:bg-blue-700 text-white transition-colors duration-150">{{ 'Pilih' }}</button>';
                                 }
                             }
                         ],
@@ -4003,14 +4067,14 @@
                         ],
                         dom: '<"flex justify-between items-center mb-4"f<"ml-auto"l>>rtip',
                         language: {
-                            processing: @json("Memuat data..."),
-                            search: @json("Search" . ':'),
-                            lengthMenu: @json("Tampilkan _MENU_"),
-                            info: @json("Menampilkan _START_ - _END_ dari _TOTAL_ data"),
-                            infoEmpty: @json("Tidak ada data"),
+                            processing: @json('Memuat data...'),
+                            search: @json('Search' . ':'),
+                            lengthMenu: @json('Tampilkan _MENU_'),
+                            info: @json('Menampilkan _START_ - _END_ dari _TOTAL_ data'),
+                            infoEmpty: @json('Tidak ada data'),
                             infoFiltered: "(disaring dari _MAX_ total data)",
-                            zeroRecords: @json("Tidak ada data yang ditemukan"),
-                            emptyTable: @json("Tidak ada data tersedia"),
+                            zeroRecords: @json('Tidak ada data yang ditemukan'),
+                            emptyTable: @json('Tidak ada data tersedia'),
                             paginate: {
                                 first: "Pertama",
                                 last: "Terakhir",

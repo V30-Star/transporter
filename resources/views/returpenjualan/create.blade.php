@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', "Retur Penjualan")
+@section('title', 'Retur Penjualan')
 
 @section('content')
     @php
@@ -131,7 +131,7 @@
             {{-- Header Strip --}}
             <div class="d-flex align-items-center px-4 py-3" style="background-color: #c0392b;">
                 <i class="bi bi-exclamation-triangle-fill text-white me-2 fs-5"></i>
-                <strong class="text-white fs-6">{{ "Gagal Menyimpan Data!" }}</strong>
+                <strong class="text-white fs-6">{{ 'Gagal Menyimpan Data!' }}</strong>
                 <button type="button" class="btn-close btn-close-white ms-auto" data-bs-dismiss="alert"
                     aria-label="Close"></button>
             </div>
@@ -140,7 +140,7 @@
             <div class="px-4 py-3" style="background-color: #fdeded; border-left: 5px solid #c0392b;">
                 <p class="mb-2 text-danger fw-semibold">
                     <i class="bi bi-info-circle me-1"></i>
-                    {{ "Periksa kembali data berikut sebelum menyimpan:" }}
+                    {{ 'Periksa kembali data berikut sebelum menyimpan:' }}
                 </p>
                 <ul class="mb-0 ps-3">
                     @foreach ($errors->all() as $error)
@@ -233,14 +233,14 @@
                                             </option>
                                         @endforeach
                                     </select>
-                                    <div class="absolute inset-0" role="button" aria-label="{{ "Browse Customer" }}"
+                                    <div class="absolute inset-0" role="button" aria-label="{{ 'Browse Customer' }}"
                                         @click="window.dispatchEvent(new CustomEvent('customer-browse-open'))"></div>
                                 </div>
                                 <input type="hidden" name="fcustno" id="customerCodeHidden" value="{{ old('fcustno') }}">
                                 <button type="button"
                                     @click="window.dispatchEvent(new CustomEvent('customer-browse-open'))"
                                     class="border -ml-px px-3 py-2 bg-white hover:bg-gray-50 rounded-r-none"
-                                    title="{{ "Browse Customer" }}">
+                                    title="{{ 'Browse Customer' }}">
                                     <x-heroicon-o-magnifying-glass class="w-5 h-5" />
                                 </button>
                                 <a href="{{ route('customer.create') }}" target="_blank" rel="noopener"
@@ -270,7 +270,7 @@
                                             </option>
                                         @endforeach
                                     </select>
-                                    <div class="absolute inset-0" role="button" aria-label="{{ "Browse Salesman" }}"
+                                    <div class="absolute inset-0" role="button" aria-label="{{ 'Browse Salesman' }}"
                                         @click="window.dispatchEvent(new CustomEvent('salesman-browse-open'))"></div>
                                 </div>
                                 <input type="hidden" name="fsalesman" id="salesmanCodeHidden"
@@ -278,7 +278,7 @@
                                 <button type="button"
                                     @click="window.dispatchEvent(new CustomEvent('salesman-browse-open'))"
                                     class="border -ml-px px-3 py-2 bg-white hover:bg-gray-50 rounded-r-none"
-                                    title="{{ "Browse Salesman" }}">
+                                    title="{{ 'Browse Salesman' }}">
                                     <x-heroicon-o-magnifying-glass class="w-5 h-5" />
                                 </button>
                                 <a href="{{ route('salesman.create') }}" target="_blank" rel="noopener"
@@ -348,7 +348,9 @@
                                                         x-text="it.fitemname"></div>
                                                     <button type="button" @click="openDesc(it)"
                                                         class="shrink-0 inline-flex items-center border border-l-0 rounded-r px-2 py-1 transition-colors"
-                                                        :class="it.fdesc ? 'border-emerald-300 bg-emerald-50 text-emerald-600 hover:bg-emerald-100' : 'border-gray-300 bg-white text-gray-500 hover:bg-gray-50'"
+                                                        :class="it.fdesc ?
+                                                            'border-emerald-300 bg-emerald-50 text-emerald-600 hover:bg-emerald-100' :
+                                                            'border-gray-300 bg-white text-gray-500 hover:bg-gray-50'"
                                                         title="Deskripsi item">
                                                         <x-heroicon-o-document-text class="h-4 w-4" />
                                                     </button>
@@ -446,12 +448,13 @@
                                         <!-- Nama Produk (readonly) -->
                                         <td class="p-2">
                                             <div class="flex w-full max-w-full">
-                                                <div
-                                                    class="min-w-0 flex-1 rounded-l border bg-gray-100 px-2 py-1 text-sm leading-5 text-gray-600 whitespace-normal break-words"
+                                                <div class="min-w-0 flex-1 rounded-l border bg-gray-100 px-2 py-1 text-sm leading-5 text-gray-600 whitespace-normal break-words"
                                                     x-text="draft.fitemname"></div>
                                                 <button type="button" @click="openDesc(draft)"
                                                     class="shrink-0 inline-flex items-center border border-l-0 rounded-r px-2 py-1 transition-colors"
-                                                    :class="draft.fdesc ? 'border-emerald-300 bg-emerald-50 text-emerald-600 hover:bg-emerald-100' : 'border-gray-300 bg-white text-gray-500 hover:bg-gray-50'"
+                                                    :class="draft.fdesc ?
+                                                        'border-emerald-300 bg-emerald-50 text-emerald-600 hover:bg-emerald-100' :
+                                                        'border-gray-300 bg-white text-gray-500 hover:bg-gray-50'"
                                                     title="Deskripsi item">
                                                     <x-heroicon-o-document-text class="h-4 w-4" />
                                                 </button>
@@ -610,7 +613,7 @@
                                                 </div>
                                                 <button type="button" @click="closeSrjModal()"
                                                     class="px-4 py-2 rounded-lg border-2 border-gray-300 bg-white hover:bg-gray-50 hover:border-gray-400 transition-all duration-150 font-bold text-gray-700 text-sm">
-                                                    {{ "Tutup" }}
+                                                    {{ 'Tutup' }}
                                                 </button>
                                             </div>
 
@@ -680,7 +683,7 @@
                                             </div>
                                             <div class="px-5 py-3 border-t bg-gray-50 flex justify-end gap-2">
                                                 <button type="button" @click="closeDupModal()"
-                                                    class="px-4 py-2 border rounded-lg">{{ "Batal" }}</button>
+                                                    class="px-4 py-2 border rounded-lg">{{ 'Batal' }}</button>
                                                 <button type="button" @click="confirmAddUniques()"
                                                     class="px-4 py-2 bg-indigo-600 text-white rounded-lg">Tambahkan Sisa
                                                     Item</button>
@@ -724,7 +727,7 @@
                                                 </div>
                                                 <button type="button" @click="closeModal()"
                                                     class="px-4 py-2 rounded-lg border-2 border-gray-300 bg-white hover:bg-gray-50 hover:border-gray-400 transition-all duration-150 font-bold text-gray-700 text-sm">
-                                                    {{ "Tutup" }}
+                                                    {{ 'Tutup' }}
                                                 </button>
                                             </div>
 
@@ -834,7 +837,7 @@
                                             <div class="px-5 py-3 border-t bg-gray-50 flex items-center justify-end gap-2">
                                                 <button type="button" @click="closeDupModal()"
                                                     class="h-9 px-4 rounded-lg border-2 border-gray-300 text-gray-700 text-sm font-bold hover:bg-gray-100 transition-colors">
-                                                    {{ "Batal" }}
+                                                    {{ 'Batal' }}
                                                 </button>
                                             </div>
                                         </div>
@@ -920,10 +923,11 @@
                                             <!-- Header -->
                                             <div
                                                 class="px-6 py-4 border-b border-gray-200 flex items-center justify-between flex-shrink-0 bg-gradient-to-r from-blue-50 to-white">
-                                                <h3 class="text-xl font-bold text-gray-800">{{ "Pilih Faktur Penjualan" }}</h3>
+                                                <h3 class="text-xl font-bold text-gray-800">{{ 'Pilih Faktur Penjualan' }}
+                                                </h3>
                                                 <button type="button" @click="closeModal()"
                                                     class="px-4 py-2 rounded-lg border-2 border-gray-300 bg-white hover:bg-gray-50 hover:border-gray-400 transition-all duration-150 font-medium text-gray-700 text-sm">
-                                                    {{ "Tutup" }}
+                                                    {{ 'Tutup' }}
                                                 </button>
                                             </div>
 
@@ -934,7 +938,8 @@
                                                     style="width:100%">
                                                     <thead class="sticky top-0 z-10">
                                                         <tr class="bg-gray-50 border-b-2 border-gray-200">
-                                                            <th class="p-3 text-left font-semibold text-gray-700">No. Faktur
+                                                            <th class="p-3 text-left font-semibold text-gray-700">No.
+                                                                Faktur
                                                             </th>
                                                             <th class="p-3 text-left font-semibold text-gray-700">Customer
                                                             </th>
@@ -981,7 +986,7 @@
                                             <div class="flex justify-end gap-2">
                                                 <button type="button" @click="closeDupModal()"
                                                     class="rounded bg-gray-200 px-4 py-2 text-sm font-medium hover:bg-gray-300">
-                                                    {{ "Batal" }}
+                                                    {{ 'Batal' }}
                                                 </button>
                                                 <button type="button" @click="confirmAddUniques()"
                                                     class="rounded bg-emerald-600 px-4 py-2 text-sm font-medium text-white hover:bg-emerald-700">
@@ -1015,7 +1020,7 @@
                                 <div class="px-5 py-3 border-t flex items-center justify-end gap-2">
                                     <button type="button" @click="closeDesc()"
                                         class="h-9 px-4 rounded-lg bg-gray-100 text-gray-700 text-sm font-medium hover:bg-gray-200">
-                                        {{ "Batal" }}
+                                        {{ 'Batal' }}
                                     </button>
                                     <button type="button" @click="applyDesc()"
                                         class="h-9 px-4 rounded-lg bg-emerald-600 text-white text-sm font-medium hover:bg-emerald-700">
@@ -1025,8 +1030,8 @@
                             </div>
                         </div>
 
-                        <div x-show="showHistoryModal" x-cloak class="fixed inset-0 z-[96] flex items-center justify-center"
-                            x-transition.opacity>
+                        <div x-show="showHistoryModal" x-cloak
+                            class="fixed inset-0 z-[96] flex items-center justify-center" x-transition.opacity>
                             <div class="absolute inset-0 bg-black/50" @click="closeHistory()"></div>
                             <div class="relative bg-white w-[92vw] max-w-4xl rounded-2xl shadow-2xl overflow-hidden">
                                 <div class="px-5 py-4 border-b flex items-center justify-between">
@@ -1054,13 +1059,15 @@
                                                     <tr class="border-t">
                                                         <td class="p-2" x-text="row.fsono"></td>
                                                         <td class="p-2" x-text="row.fsodate"></td>
-                                                        <td class="p-2 text-right" x-text="row.fqty + ' ' + row.fsatuan"></td>
+                                                        <td class="p-2 text-right" x-text="row.fqty + ' ' + row.fsatuan">
+                                                        </td>
                                                         <td class="p-2 text-right" x-text="fmt(row.fprice)"></td>
                                                         <td class="p-2 text-right" x-text="fmt(row.famount)"></td>
                                                     </tr>
                                                 </template>
                                                 <tr x-show="!historyRows.length">
-                                                    <td colspan="5" class="p-4 text-center text-gray-500">Tidak ada riwayat.</td>
+                                                    <td colspan="5" class="p-4 text-center text-gray-500">Tidak ada
+                                                        riwayat.</td>
                                                 </tr>
                                             </tbody>
                                         </table>
@@ -1073,8 +1080,7 @@
                     </div>
 
                     {{-- MODAL ERROR: belum ada item --}}
-                    <div x-data="{ showNoItems: false }"
-                        x-init="window.addEventListener('returpenjualan-show-no-items', () => { showNoItems = true })"
+                    <div x-data="{ showNoItems: false }" x-init="window.addEventListener('returpenjualan-show-no-items', () => { showNoItems = true })"
                         x-show="showNoItems && Number(document.getElementById('itemsCount')?.value || 0) === 0" x-cloak
                         class="fixed inset-0 z-[90] flex items-center justify-center" x-transition.opacity>
                         <div class="absolute inset-0 bg-black/50" @click="showNoItems=false"></div>
@@ -1083,7 +1089,7 @@
                             x-transition.scale>
                             <div class="px-5 py-4 border-b flex items-center">
                                 <x-heroicon-o-exclamation-triangle class="w-6 h-6 text-red-500 mr-2" />
-                                <h3 class="text-lg font-semibold text-gray-800">{{ "Tidak Ada Item" }}</h3>
+                                <h3 class="text-lg font-semibold text-gray-800">{{ 'Tidak Ada Item' }}</h3>
                             </div>
 
                             <div class="px-5 py-4">
@@ -1114,12 +1120,12 @@
                             <div
                                 class="px-6 py-4 border-b border-gray-200 flex items-center justify-between flex-shrink-0 bg-gradient-to-r from-blue-50 to-white">
                                 <div>
-                                    <h3 class="text-xl font-bold text-gray-800">{{ "Browse Customer" }}</h3>
-                                    <p class="text-sm text-gray-500 mt-0.5">{{ "Pilih customer yang diinginkan" }}</p>
+                                    <h3 class="text-xl font-bold text-gray-800">{{ 'Browse Customer' }}</h3>
+                                    <p class="text-sm text-gray-500 mt-0.5">{{ 'Pilih customer yang diinginkan' }}</p>
                                 </div>
                                 <button type="button" @click="close()"
                                     class="px-4 py-2 rounded-lg border-2 border-gray-300 bg-white hover:bg-gray-50 hover:border-gray-400 transition-all duration-150 font-medium text-gray-700 text-sm">
-                                    {{ "Tutup" }}
+                                    {{ 'Tutup' }}
                                 </button>
                             </div>
 
@@ -1177,12 +1183,12 @@
                             <div
                                 class="px-6 py-4 border-b border-gray-200 flex items-center justify-between flex-shrink-0 bg-gradient-to-r from-blue-50 to-white">
                                 <div>
-                                    <h3 class="text-xl font-bold text-gray-800">{{ "Browse Salesman" }}</h3>
-                                    <p class="text-sm text-gray-500 mt-0.5">{{ "Pilih salesman yang diinginkan" }}</p>
+                                    <h3 class="text-xl font-bold text-gray-800">{{ 'Browse Salesman' }}</h3>
+                                    <p class="text-sm text-gray-500 mt-0.5">{{ 'Pilih salesman yang diinginkan' }}</p>
                                 </div>
                                 <button type="button" @click="close()"
                                     class="px-4 py-2 rounded-lg border-2 border-gray-300 bg-white hover:bg-gray-50 hover:border-gray-400 transition-all duration-150 font-medium text-gray-700 text-sm">
-                                    {{ "Tutup" }}
+                                    {{ 'Tutup' }}
                                 </button>
                             </div>
 
@@ -1234,12 +1240,12 @@
                             <div
                                 class="px-6 py-4 border-b border-gray-200 flex items-center justify-between flex-shrink-0 bg-gradient-to-r from-blue-50 to-white">
                                 <div>
-                                    <h3 class="text-xl font-bold text-gray-800">{{ "Browse Produk" }}</h3>
-                                    <p class="text-sm text-gray-500 mt-0.5">{{ "Pilih produk yang diinginkan" }}</p>
+                                    <h3 class="text-xl font-bold text-gray-800">{{ 'Browse Produk' }}</h3>
+                                    <p class="text-sm text-gray-500 mt-0.5">{{ 'Pilih produk yang diinginkan' }}</p>
                                 </div>
                                 <button type="button" @click="close()"
                                     class="px-4 py-2 rounded-lg border-2 border-gray-300 bg-white hover:bg-gray-50 hover:border-gray-400 transition-all duration-150 font-medium text-gray-700 text-sm">
-                                    {{ "Tutup" }}
+                                    {{ 'Tutup' }}
                                 </button>
                             </div>
 
@@ -1523,7 +1529,7 @@
                                 if (row.fblokir == 1) {
                                     return '<span class="text-xs font-bold text-red-500">BLOKIR</span>';
                                 }
-                                return '<button type="button" class="btn-choose px-4 py-1.5 rounded-md text-sm font-medium bg-blue-600 hover:bg-blue-700 text-white transition-colors duration-150">{{ "Pilih" }}</button>';
+                                return '<button type="button" class="btn-choose px-4 py-1.5 rounded-md text-sm font-medium bg-blue-600 hover:bg-blue-700 text-white transition-colors duration-150">{{ 'Pilih' }}</button>';
                             }
                         }
                     ],
@@ -1534,14 +1540,14 @@
                     ],
                     dom: '<"flex justify-between items-center mb-4"f<"ml-auto"l>>rtip',
                     language: {
-                        processing: @json("Memuat data..."),
-                        search: @json("Search" . ':'),
-                        lengthMenu: @json("Tampilkan _MENU_"),
-                        info: @json("Menampilkan _START_ - _END_ dari _TOTAL_ data"),
-                        infoEmpty: @json("Tidak ada data"),
+                        processing: @json('Memuat data...'),
+                        search: @json('Search' . ':'),
+                        lengthMenu: @json('Tampilkan _MENU_'),
+                        info: @json('Menampilkan _START_ - _END_ dari _TOTAL_ data'),
+                        infoEmpty: @json('Tidak ada data'),
                         infoFiltered: "(disaring dari _MAX_ total data)",
-                        zeroRecords: @json("Tidak ada data yang ditemukan"),
-                        emptyTable: @json("Tidak ada data tersedia"),
+                        zeroRecords: @json('Tidak ada data yang ditemukan'),
+                        emptyTable: @json('Tidak ada data tersedia'),
                         paginate: {
                             first: "Pertama",
                             last: "Terakhir",
@@ -1700,7 +1706,7 @@
                             className: 'text-center',
                             width: '15%',
                             render: function(data, type, row) {
-                                return '<button type="button" class="btn-choose px-4 py-1.5 rounded-md text-sm font-medium bg-blue-600 hover:bg-blue-700 text-white transition-colors duration-150">{{ "Pilih" }}</button>';
+                                return '<button type="button" class="btn-choose px-4 py-1.5 rounded-md text-sm font-medium bg-blue-600 hover:bg-blue-700 text-white transition-colors duration-150">{{ 'Pilih' }}</button>';
                             }
                         }
                     ],
@@ -1711,14 +1717,14 @@
                     ],
                     dom: '<"flex justify-between items-center mb-4"f<"ml-auto"l>>rtip',
                     language: {
-                        processing: @json("Memuat data..."),
-                        search: @json("Search" . ':'),
-                        lengthMenu: @json("Tampilkan _MENU_"),
-                        info: @json("Menampilkan _START_ - _END_ dari _TOTAL_ data"),
-                        infoEmpty: @json("Tidak ada data"),
+                        processing: @json('Memuat data...'),
+                        search: @json('Search' . ':'),
+                        lengthMenu: @json('Tampilkan _MENU_'),
+                        info: @json('Menampilkan _START_ - _END_ dari _TOTAL_ data'),
+                        infoEmpty: @json('Tidak ada data'),
                         infoFiltered: "(disaring dari _MAX_ total data)",
-                        zeroRecords: @json("Tidak ada data yang ditemukan"),
-                        emptyTable: @json("Tidak ada data tersedia"),
+                        zeroRecords: @json('Tidak ada data yang ditemukan'),
+                        emptyTable: @json('Tidak ada data tersedia'),
                         paginate: {
                             first: "Pertama",
                             last: "Terakhir",
@@ -1886,29 +1892,29 @@
                 return total + this.ppnAdded;
             },
 
-                    fmt(n) {
-                        if (n === null || n === undefined || n === '') return '-';
-                        const v = Number(n);
-                        if (!isFinite(v)) return '-';
+            fmt(n) {
+                if (n === null || n === undefined || n === '') return '-';
+                const v = Number(n);
+                if (!isFinite(v)) return '-';
 
                 return v.toLocaleString('id-ID', {
                     minimumFractionDigits: 2,
                     maximumFractionDigits: 2
                 });
-                    },
+            },
 
-                    formatQtyValue(value) {
-                        const num = Number(value);
-                        if (!Number.isFinite(num)) return '0,00';
-                        return num.toLocaleString('id-ID', {
-                            minimumFractionDigits: 2,
-                            maximumFractionDigits: 2
-                        });
-                    },
+            formatQtyValue(value) {
+                const num = Number(value);
+                if (!Number.isFinite(num)) return '0,00';
+                return num.toLocaleString('id-ID', {
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2
+                });
+            },
 
-                    rupiah(n) {
-                        const v = Number(n || 0);
-                        if (!isFinite(v)) return '-';
+            rupiah(n) {
+                const v = Number(n || 0);
+                if (!isFinite(v)) return '-';
                 return v.toLocaleString('id-ID', {
                     minimumFractionDigits: 2,
                     maximumFractionDigits: 2
@@ -2029,7 +2035,8 @@
                 const qty = Number(row?.fqty ?? 0);
                 if (qty > limit) {
                     row.fqty = limit;
-                    if (showToast) window.toast?.error(`Qty melebihi sisa referensi. Maksimal ${limit} ${row.fsatuan || ''}`.trim());
+                    if (showToast) window.toast?.error(
+                        `Qty melebihi sisa referensi. Maksimal ${limit} ${row.fsatuan || ''}`.trim());
                 }
 
                 return Number(row?.fqty ?? 0) > 0;
@@ -2116,7 +2123,9 @@
                 const used = new Set(this.savedItems.map(item => this.normalizeNoAcak(item.fnoacak)).filter(Boolean));
                 let candidate = '';
                 do {
-                    candidate = Array.from({ length: 3 }, () => '123456789'[Math.floor(Math.random() * 9)]).join('');
+                    candidate = Array.from({
+                        length: 3
+                    }, () => '123456789' [Math.floor(Math.random() * 9)]).join('');
                 } while (used.has(candidate));
                 return candidate;
             },
@@ -2342,11 +2351,12 @@
                         fcustno: customerCode,
                         fprdcode: productCode,
                     });
-                    const response = await fetch(`{{ route('returpenjualan.product-history') }}?${params.toString()}`, {
-                        headers: {
-                            Accept: 'application/json',
-                        },
-                    });
+                    const response = await fetch(
+                        `{{ route('returpenjualan.product-history') }}?${params.toString()}`, {
+                            headers: {
+                                Accept: 'application/json',
+                            },
+                        });
 
                     const payload = await response.json();
                     if (!response.ok) {
@@ -2524,7 +2534,7 @@
         @if (session('error'))
             Swal.fire({
                 icon: 'error',
-                title: @json("Penyimpanan Batal"),
+                title: @json('Penyimpanan Batal'),
                 text: "{{ session('error') }}",
                 confirmButtonColor: '#ef4444', // Warna merah tailwind
                 confirmButtonText: 'OK',
@@ -2571,11 +2581,13 @@
             confirmAddUniques() {
                 // kirim hanya item unik
                 const currentKeys = new Set((window.getCurrentItemKeys?.() || []).map(String));
-                const keyOf = (src) => `${(src.fitemcode ?? '').toString().trim()}::${(src.frefdtno ?? '').toString().trim()}`;
+                const keyOf = (src) =>
+                    `${(src.fitemcode ?? '').toString().trim()}::${(src.frefdtno ?? '').toString().trim()}`;
                 const safeUniques = this.pendingUniques.filter(src => !currentKeys.has(keyOf(src)));
 
                 if (safeUniques.length > 0) {
-                    window.transactionReferenceModalHelper.dispatchPick('pr-picked', this.pendingHeader, safeUniques);
+                    window.transactionReferenceModalHelper.dispatchPick('pr-picked', this.pendingHeader,
+                        safeUniques);
                 }
 
                 window.transactionReferenceModalHelper.closeDupModal(this);
@@ -2634,11 +2646,11 @@
 
             async pick(row) {
                 try {
-                    if (row.fdiscontinue == '1') {
+                    if (row.fnonactive == '1') {
                         Swal.fire({
                             icon: 'warning',
-                            title: @json("Produk Discontinue"),
-                            html: `${@json("Produk :name sudah tidak diproduksi lagi.").replace('__NAME__', `<b>${row.fprdname}</b>`)}<br><br>${@json("Penyimpanan Batal")}.`,
+                            title: @json('Produk Discontinue'),
+                            html: `${@json('Produk :name sudah tidak diproduksi lagi.').replace('__NAME__', `<b>${row.fprdname}</b>`)}<br><br>${@json('Penyimpanan Batal')}.`,
                             confirmButtonColor: '#f59e0b', // Warna orange amber
                             confirmButtonText: 'Kembali'
                         });
@@ -2679,7 +2691,7 @@
 
                 } catch (e) {
                     console.error(e);
-                    alert(@json("Gagal mengambil detail Faktur Penjualan. Lihat konsol untuk detail."));
+                    alert(@json('Gagal mengambil detail Faktur Penjualan. Lihat konsol untuk detail.'));
                 }
             },
         };
@@ -2744,7 +2756,7 @@
                             className: 'text-center',
                             width: '100px',
                             render: function(data, type, row) {
-                                return '<button type="button" class="btn-pick px-4 py-1.5 rounded-md text-sm font-bold bg-teal-600 hover:bg-teal-700 text-white transition-colors duration-150">{{ "Pilih" }}</button>';
+                                return '<button type="button" class="btn-pick px-4 py-1.5 rounded-md text-sm font-bold bg-teal-600 hover:bg-teal-700 text-white transition-colors duration-150">{{ 'Pilih' }}</button>';
                             }
                         }
                     ],
@@ -2755,14 +2767,14 @@
                     ],
                     dom: '<"#poTableControls"lf>rt<"#poTablePagination"ip>',
                     language: {
-                        processing: @json("Memuat data..."),
-                        search: @json("Search" . ':'),
-                        lengthMenu: @json("Tampilkan _MENU_"),
-                        info: @json("Menampilkan _START_ - _END_ dari _TOTAL_ data"),
-                        infoEmpty: @json("Tidak ada data"),
+                        processing: @json('Memuat data...'),
+                        search: @json('Search' . ':'),
+                        lengthMenu: @json('Tampilkan _MENU_'),
+                        info: @json('Menampilkan _START_ - _END_ dari _TOTAL_ data'),
+                        infoEmpty: @json('Tidak ada data'),
                         infoFiltered: "(disaring dari _MAX_ total data)",
-                        zeroRecords: @json("Tidak ada data yang ditemukan"),
-                        emptyTable: @json("Tidak ada data tersedia"),
+                        zeroRecords: @json('Tidak ada data yang ditemukan'),
+                        emptyTable: @json('Tidak ada data tersedia'),
                         paginate: {
                             first: "Pertama",
                             last: "Terakhir",
@@ -2855,11 +2867,11 @@
 
             async pick(row) {
                 try {
-                    if (row.fdiscontinue == '1') {
+                    if (row.fnonactive == '1') {
                         Swal.fire({
                             icon: 'warning',
-                            title: @json("Produk Discontinue"),
-                            html: `${@json("Produk :name sudah tidak diproduksi lagi.").replace('__NAME__', `<b>${row.fprdname}</b>`)}<br><br>${@json("Penyimpanan Batal")}.`,
+                            title: @json('Produk Discontinue'),
+                            html: `${@json('Produk :name sudah tidak diproduksi lagi.').replace('__NAME__', `<b>${row.fprdname}</b>`)}<br><br>${@json('Penyimpanan Batal')}.`,
                             confirmButtonColor: '#f59e0b', // Warna orange amber
                             confirmButtonText: 'Kembali'
                         });
@@ -2905,7 +2917,7 @@
                     this.closeModal();
                 } catch (e) {
                     console.error('Error:', e);
-                    window.toast?.error(`${@json("Gagal mengambil detail Faktur Penjualan:")} ${e.message}`);
+                    window.toast?.error(`${@json('Gagal mengambil detail Faktur Penjualan:')} ${e.message}`);
                 }
             }
         };
@@ -2982,16 +2994,16 @@
                             className: 'text-center',
                             width: '100px',
                             render: function() {
-                                return '<button type="button" class="btn-pick-srj px-4 py-1.5 rounded-md text-sm font-bold bg-indigo-600 hover:bg-indigo-700 text-white transition-colors duration-150">{{ "Pilih" }}</button>';
+                                return '<button type="button" class="btn-pick-srj px-4 py-1.5 rounded-md text-sm font-bold bg-indigo-600 hover:bg-indigo-700 text-white transition-colors duration-150">{{ 'Pilih' }}</button>';
                             }
                         }
                     ],
                     pageLength: 10,
                     dom: '<"#srjHeader"fl>rt<"#srjFooter"ip>',
                     language: {
-                        processing: @json("Memuat data..."),
-                        search: @json("Search" . ':'),
-                        lengthMenu: @json("Tampilkan _MENU_"),
+                        processing: @json('Memuat data...'),
+                        search: @json('Search' . ':'),
+                        lengthMenu: @json('Tampilkan _MENU_'),
                         paginate: {
                             next: "Selanjutnya",
                             previous: "Sebelumnya"
@@ -3083,11 +3095,11 @@
 
             async pick(row) {
                 try {
-                    if (row.fdiscontinue == '1') {
+                    if (row.fnonactive == '1') {
                         Swal.fire({
                             icon: 'warning',
-                            title: @json("Produk Discontinue"),
-                            html: `${@json("Produk :name sudah tidak diproduksi lagi.").replace('__NAME__', `<b>${row.fprdname}</b>`)}<br><br>${@json("Penyimpanan Batal")}.`,
+                            title: @json('Produk Discontinue'),
+                            html: `${@json('Produk :name sudah tidak diproduksi lagi.').replace('__NAME__', `<b>${row.fprdname}</b>`)}<br><br>${@json('Penyimpanan Batal')}.`,
                             confirmButtonColor: '#f59e0b', // Warna orange amber
                             confirmButtonText: 'Kembali'
                         });
@@ -3133,7 +3145,7 @@
                     this.closeSrjModal();
                 } catch (e) {
                     console.error('Error SRJ:', e);
-                    window.toast?.error(`${@json("Gagal mengambil detail Surat Jalan:")} ${e.message}`);
+                    window.toast?.error(`${@json('Gagal mengambil detail Surat Jalan:')} ${e.message}`);
                 }
             }
         };
@@ -3212,7 +3224,7 @@
                                 className: 'text-center',
                                 width: '100px',
                                 render: function(data, type, row) {
-                                    return '<button type="button" class="btn-choose px-4 py-1.5 rounded-md text-sm font-medium bg-blue-600 hover:bg-blue-700 text-white transition-colors duration-150">{{ "Pilih" }}</button>';
+                                    return '<button type="button" class="btn-choose px-4 py-1.5 rounded-md text-sm font-medium bg-blue-600 hover:bg-blue-700 text-white transition-colors duration-150">{{ 'Pilih' }}</button>';
                                 }
                             }
                         ],
@@ -3223,14 +3235,14 @@
                         ],
                         dom: '<"flex justify-between items-center mb-4"f<"ml-auto"l>>rtip',
                         language: {
-                            processing: @json("Memuat data..."),
-                            search: @json("Search" . ':'),
-                            lengthMenu: @json("Tampilkan _MENU_"),
-                            info: @json("Menampilkan _START_ - _END_ dari _TOTAL_ data"),
-                            infoEmpty: @json("Tidak ada data"),
+                            processing: @json('Memuat data...'),
+                            search: @json('Search' . ':'),
+                            lengthMenu: @json('Tampilkan _MENU_'),
+                            info: @json('Menampilkan _START_ - _END_ dari _TOTAL_ data'),
+                            infoEmpty: @json('Tidak ada data'),
                             infoFiltered: "(disaring dari _MAX_ total data)",
-                            zeroRecords: @json("Tidak ada data yang ditemukan"),
-                            emptyTable: @json("Tidak ada data tersedia"),
+                            zeroRecords: @json('Tidak ada data yang ditemukan'),
+                            emptyTable: @json('Tidak ada data tersedia'),
                             paginate: {
                                 first: "Pertama",
                                 last: "Terakhir",

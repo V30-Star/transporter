@@ -801,7 +801,7 @@ class InvoiceController extends Controller
 
         $products = DB::table('msprd')
             ->whereIn('fprdcode', array_filter($itemCodes))
-            ->get(['fprdid', 'fprdcode', 'fprdname', 'fdiscontinue', 'fsatuanbesar', 'fqtykecil as rasio_konversi'])
+            ->get(['fprdid', 'fprdcode', 'fprdname', 'fnonactive', 'fsatuanbesar', 'fqtykecil as rasio_konversi'])
             ->keyBy('fprdcode');
 
         foreach ($itemCodes as $i => $code) {
@@ -1760,7 +1760,7 @@ class InvoiceController extends Controller
         // Ambil data produk masal
         $products = DB::table('msprd')
             ->whereIn('fprdcode', array_filter($itemCodes))
-            ->get(['fprdid', 'fprdcode', 'fprdname', 'fdiscontinue', 'fsatuanbesar', 'fqtykecil as rasio_konversi'])
+            ->get(['fprdid', 'fprdcode', 'fprdname', 'fnonactive', 'fsatuanbesar', 'fqtykecil as rasio_konversi'])
             ->keyBy('fprdcode');
 
         foreach ($itemCodes as $i => $code) {
@@ -1790,7 +1790,7 @@ class InvoiceController extends Controller
                 return back()->withInput()->with('error', "Produk {$code} tidak ditemukan.");
             }
 
-            if ($product->fdiscontinue == '1') {
+            if ($product->fnonactive == '1') {
                 return back()->withInput()->with('error', "Produk {$product->fprdname} sudah tidak tersedia.");
             }
 
