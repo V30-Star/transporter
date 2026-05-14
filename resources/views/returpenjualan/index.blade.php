@@ -39,17 +39,6 @@
             @endif
         </div>
 
-        <div id="statusFilterTemplate" class="hidden">
-            <div class="flex items-center gap-2" id="statusFilterWrap">
-                <span class="text-sm text-gray-700">Status</span>
-                <select data-role="status-filter" class="border rounded px-2 py-1">
-                    <option value="all">All</option>
-                    <option value="active" selected>Active</option>
-                    <option value="nonactive">Non Active</option>
-                </select>
-            </div>
-        </div>
-
         <div id="yearFilterTemplate" class="hidden">
             <div class="flex items-center gap-2" id="yearFilterWrap">
                 <span class="text-sm text-gray-700">Tahun</span>

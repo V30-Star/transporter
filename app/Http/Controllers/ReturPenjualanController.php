@@ -1094,7 +1094,7 @@ class ReturPenjualanController extends Controller
                 DB::table('trsodt')
                     ->where('ftrsodtid', $row->ftrsodtid)
                     ->update([
-                        'fqtykecil' => DB::raw('COALESCE(fqtykecil,0) + '.$qtyKecil),
+                        'fqtykecil' => (float) ($row->source_qty_kecil ?? 0),
                     ]);
             }
         }
@@ -1105,6 +1105,7 @@ class ReturPenjualanController extends Controller
                 ->whereIn('d.fstockmtno', $docNos)
                 ->selectRaw("
                     d.fstockdtid,
+                    COALESCE(d.fqtykecil, 0) as source_qty_kecil,
                     TRIM(d.fstockmtno) as ref_doc,
                     TRIM(d.fprdcode) as product_code,
                     COALESCE(d.frefnoacak::text, d.fnoacak::text, '') as ref_noacak
@@ -1121,7 +1122,7 @@ class ReturPenjualanController extends Controller
                 DB::table('trstockdt')
                     ->where('fstockdtid', $row->fstockdtid)
                     ->update([
-                        'fqtyremain' => DB::raw('COALESCE(fqtyremain,0) + '.$qtyKecil),
+                        'fqtyremain' => (float) ($row->source_qty_kecil ?? 0),
                     ]);
             }
         }
