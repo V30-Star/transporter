@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', "Surat Jalan")
+@section('title', 'Surat Jalan')
 
 @section('content')
     @php
@@ -135,7 +135,7 @@
             {{-- Header Strip --}}
             <div class="d-flex align-items-center px-4 py-3" style="background-color: #c0392b;">
                 <i class="bi bi-exclamation-triangle-fill text-white me-2 fs-5"></i>
-                <strong class="text-white fs-6">{{ "Gagal Menyimpan Data!" }}</strong>
+                <strong class="text-white fs-6">{{ 'Gagal Menyimpan Data!' }}</strong>
                 <button type="button" class="btn-close btn-close-white ms-auto" data-bs-dismiss="alert"
                     aria-label="Close"></button>
             </div>
@@ -144,7 +144,7 @@
             <div class="px-4 py-3" style="background-color: #fdeded; border-left: 5px solid #c0392b;">
                 <p class="mb-2 text-danger fw-semibold">
                     <i class="bi bi-info-circle me-1"></i>
-                    {{ "Periksa kembali data berikut sebelum menyimpan:" }}
+                    {{ 'Periksa kembali data berikut sebelum menyimpan:' }}
                 </p>
                 <ul class="mb-0 ps-3">
                     @foreach ($errors->all() as $error)
@@ -215,7 +215,7 @@
                                             </option>
                                         @endforeach
                                     </select>
-                                    <div class="absolute inset-0" role="button" aria-label="{{ "Browse Customer" }}"
+                                    <div class="absolute inset-0" role="button" aria-label="{{ 'Browse Customer' }}"
                                         @click="window.dispatchEvent(new CustomEvent('customer-browse-open'))"></div>
                                 </div>
                                 <input type="hidden" name="fsupplier" id="customerCodeHidden"
@@ -223,7 +223,7 @@
                                 <button type="button"
                                     @click="window.dispatchEvent(new CustomEvent('customer-browse-open'))"
                                     class="border -ml-px px-3 py-2 bg-white hover:bg-gray-50 rounded-r-none"
-                                    title="{{ "Browse Customer" }}">
+                                    title="{{ 'Browse Customer' }}">
                                     <x-heroicon-o-magnifying-glass class="w-5 h-5" />
                                 </button>
                                 <a href="{{ route('customer.create') }}" target="_blank" rel="noopener"
@@ -255,17 +255,19 @@
                                     </select>
 
                                     {{-- Overlay untuk buka browser gudang --}}
-                                    <div class="absolute inset-0" role="button" aria-label="{{ "Browse Gudang" }}"
+                                    <div class="absolute inset-0" role="button" aria-label="{{ 'Browse Gudang' }}"
                                         @click="window.dispatchEvent(new CustomEvent('warehouse-browse-open'))"></div>
                                 </div>
 
-                                <input type="hidden" name="ffrom" id="warehouseCodeHidden" value="{{ old('ffrom') }}">
-                                <input type="hidden" name="fwhid" id="warehouseIdHidden" value="{{ old('fwhid') }}">
+                                <input type="hidden" name="ffrom" id="warehouseCodeHidden"
+                                    value="{{ old('ffrom') }}">
+                                <input type="hidden" name="fwhid" id="warehouseIdHidden"
+                                    value="{{ old('fwhid') }}">
 
                                 <button type="button"
                                     @click="window.dispatchEvent(new CustomEvent('warehouse-browse-open'))"
                                     class="border -ml-px px-3 py-2 bg-white hover:bg-gray-50 rounded-r-none"
-                                    title="{{ "Browse Gudang" }}">
+                                    title="{{ 'Browse Gudang' }}">
                                     <x-heroicon-o-magnifying-glass class="w-5 h-5" />
                                 </button>
 
@@ -327,15 +329,14 @@
                                         <tr class="border-t align-top">
                                             <td class="p-2" x-text="i + 1"></td>
                                             <td class="p-2 font-mono" x-text="it.fitemcode"></td>
-                                            <td class="p-2 text-gray-800">
+                                            <td class="p-2">
                                                 <div class="flex w-full max-w-full">
                                                     <div class="min-w-0 flex-1 rounded-l border bg-gray-100 px-2 py-1 text-sm leading-5 text-gray-600 whitespace-normal break-words"
                                                         x-text="it.fitemname"></div>
-                                                    <button type="button" @click="openDesc('saved', i)"
-                                                        class="shrink-0 inline-flex items-center border border-l-0 rounded-r px-2 py-1 transition-colors"
-                                                        :class="it.fdesc ? 'border-emerald-300 bg-emerald-50 text-emerald-600 hover:bg-emerald-100' : 'border-gray-300 bg-white text-gray-500 hover:bg-gray-50'"
-                                                        title="Deskripsi item">
-                                                        <x-heroicon-o-document-text class="h-4 w-4" />
+                                                    <button type="button" @click="openDesc(it)"
+                                                        class="shrink-0 inline-flex items-center border border-l-0 rounded-r bg-slate-50 px-2 py-1 text-slate-700 hover:bg-slate-100"
+                                                        title="Deskripsi">
+                                                        <x-heroicon-o-document-text class="w-4 h-4" />
                                                     </button>
                                                 </div>
                                             </td>
@@ -415,14 +416,15 @@
 
                                         <!-- Nama Produk (readonly) -->
                                         <td class="p-2">
-                                            <div class="flex w-full max-w-full">
-                                                <div class="min-w-0 flex-1 rounded-l border bg-gray-100 px-2 py-1 text-sm leading-5 text-gray-600 whitespace-normal break-words"
+                                            <div class="relative w-full">
+                                                <div
+                                                    class="min-w-0 w-full rounded border bg-gray-100 pr-11 px-2 py-1.5 text-sm leading-5 text-gray-600 whitespace-normal break-words min-h-[38px]"
                                                     x-text="draft.fitemname"></div>
                                                 <button type="button" @click="openDesc('draft')"
-                                                    class="shrink-0 inline-flex items-center border border-l-0 rounded-r px-2 py-1 transition-colors"
-                                                    :class="draft.fdesc ? 'border-emerald-300 bg-emerald-50 text-emerald-600 hover:bg-emerald-100' : 'border-gray-300 bg-white text-gray-500 hover:bg-gray-50'"
-                                                    title="Deskripsi item">
-                                                    <x-heroicon-o-document-text class="h-4 w-4" />
+                                                    class="absolute right-0 top-0 z-10 inline-flex h-full min-h-[38px] w-9 items-center justify-center rounded-r border-l bg-slate-50 px-2 py-1 text-slate-700 transition-colors hover:bg-slate-100"
+                                                    :class="descButtonClass(draft.fdesc)"
+                                                    title="Deskripsi">
+                                                    <x-heroicon-o-document-text class="w-4 h-4" />
                                                 </button>
                                             </div>
                                         </td>
@@ -438,7 +440,8 @@
                                         <!-- Satuan -->
                                         <td class="p-2">
                                             <template x-if="draft.units.length > 1">
-                                                <select id="draftUnitSelect" class="w-full border rounded px-2 py-1 text-sm"
+                                                <select id="draftUnitSelect"
+                                                    class="w-full border rounded px-2 py-1 text-sm"
                                                     x-model="draft.fsatuan"
                                                     @keydown.enter.prevent="$refs.draftQty?.focus()">
                                                     <template x-for="u in draft.units" :key="u">
@@ -456,9 +459,8 @@
                                         <!-- Qty -->
                                         <td class="p-2 text-right">
                                             <input type="number" class="border rounded px-2 py-1 w-24 text-right text-sm"
-                                                type="number"
-                                                x-ref="draftQty"
-                                                x-model.number="draft.fqty" @input="
+                                                type="number" x-ref="draftQty" x-model.number="draft.fqty"
+                                                @input="
                                                     recalc(draft);
                                                     enforceQtyRow(draft);
                                                     recalc(draft);
@@ -508,11 +510,11 @@
                                         class="px-6 py-4 border-b border-gray-200 flex items-center justify-between flex-shrink-0 bg-gradient-to-r from-teal-50 to-white">
                                         <div>
                                             <h3 class="text-xl font-bold text-gray-800">Add SO</h3>
-                                            <p class="text-sm text-gray-500 mt-0.5">{{ "Pilih Purchase Order (PO)" }}</p>
+                                            <p class="text-sm text-gray-500 mt-0.5">{{ 'Pilih Purchase Order (PO)' }}</p>
                                         </div>
                                         <button type="button" @click="closeModal()"
                                             class="px-4 py-2 rounded-lg border-2 border-gray-300 bg-white hover:bg-gray-50 hover:border-gray-400 transition-all duration-150 font-bold text-gray-700 text-sm">
-                                            {{ "Tutup" }}
+                                            {{ 'Tutup' }}
                                         </button>
                                     </div>
 
@@ -615,7 +617,7 @@
                                     <div class="px-5 py-3 border-t bg-gray-50 flex items-center justify-end gap-2">
                                         <button type="button" @click="closeDupModal()"
                                             class="h-9 px-4 rounded-lg border-2 border-gray-300 text-gray-700 text-sm font-bold hover:bg-gray-100 transition-colors">
-                                            {{ "Batal" }}
+                                            {{ 'Batal' }}
                                         </button>
                                     </div>
                                 </div>
@@ -643,7 +645,7 @@
                                 <div class="px-5 py-3 border-t flex items-center justify-end gap-2">
                                     <button type="button" @click="closeDesc()"
                                         class="h-9 px-4 rounded-lg bg-gray-100 text-gray-700 text-sm font-bold hover:bg-gray-200">
-                                        {{ "Batal" }}
+                                        {{ 'Batal' }}
                                     </button>
                                     <button type="button" @click="applyDesc()"
                                         class="h-9 px-4 rounded-lg bg-emerald-600 text-white text-sm font-bold hover:bg-emerald-700">
@@ -664,7 +666,7 @@
                                 x-transition.scale>
                                 <div class="px-5 py-4 border-b flex items-center">
                                     <x-heroicon-o-exclamation-triangle class="w-6 h-6 text-red-500 mr-2" />
-                                    <h3 class="text-lg font-semibold text-gray-800">{{ "Tidak Ada Item" }}</h3>
+                                    <h3 class="text-lg font-semibold text-gray-800">{{ 'Tidak Ada Item' }}</h3>
                                 </div>
 
                                 <div class="px-5 py-4">
@@ -816,7 +818,11 @@
                         name: '',
                         units: [],
                         stock: 0,
-                        unit_ratios: { satuankecil: 1, satuanbesar: 1, satuanbesar2: 1 }
+                        unit_ratios: {
+                            satuankecil: 1,
+                            satuanbesar: 1,
+                            satuanbesar2: 1
+                        }
                     };
                 }
                 return meta;
@@ -834,7 +840,11 @@
                 if (!Number.isFinite(limitSource) || limitSource <= 0) return 0;
 
                 const units = meta.units || [];
-                const ratios = meta.unit_ratios || { satuankecil: 1, satuanbesar: 1, satuanbesar2: 1 };
+                const ratios = meta.unit_ratios || {
+                    satuankecil: 1,
+                    satuanbesar: 1,
+                    satuanbesar2: 1
+                };
                 const satuan = row.fsatuan || '';
                 const satKecil = units[0] || 'pcs';
                 const satBesar = units[1] || '';
@@ -880,19 +890,23 @@
                 const n = +row.fqty;
                 const meta = this.productMeta(row.fitemcode);
                 const units = meta?.units || [];
-                const ratios = meta?.unit_ratios || { satuankecil: 1, satuanbesar: 1, satuanbesar2: 1 };
+                const ratios = meta?.unit_ratios || {
+                    satuankecil: 1,
+                    satuanbesar: 1,
+                    satuanbesar2: 1
+                };
                 const satKecil = units[0] || 'pcs';
                 const satBesar = units[1] || '';
                 const satBesar2 = units[2] || '';
                 const satuan = row.fsatuan || '';
-                
+
                 let ratio = 1;
                 if (satuan === satBesar2 && ratios.satuanbesar2 > 0) {
                     ratio = ratios.satuanbesar2;
                 } else if (satuan === satBesar && ratios.satuanbesar > 0) {
                     ratio = ratios.satuanbesar;
                 }
-                
+
                 if (!Number.isFinite(n)) {
                     row.fqty = 1;
                     return;
@@ -920,7 +934,7 @@
                 if (meta.unit_ratios) row.unit_ratios = meta.unit_ratios;
                 row.maxqty = Number.isFinite(+row.maxqty) ? +row.maxqty : 0;
                 row.frefdtno = meta.fprdid || 0;
-                
+
                 if (row === this.draft) {
                     if (units.length > 1) {
                         populateDraftUnitSelect(units);
@@ -947,7 +961,9 @@
                 const used = new Set(this.savedItems.map(item => this.normalizeNoAcak(item.fnoacak)).filter(Boolean));
                 let candidate = '';
                 do {
-                    candidate = Array.from({ length: 3 }, () => '123456789'[Math.floor(Math.random() * 9)]).join('');
+                    candidate = Array.from({
+                        length: 3
+                    }, () => '123456789' [Math.floor(Math.random() * 9)]).join('');
                 } while (used.has(candidate));
 
                 return candidate;
@@ -1009,13 +1025,15 @@
                         frefno_display: (src.frefpr ?? header?.fsono ?? '').toString().trim(),
                         frefpr: (src.frefpr ?? header?.fpono ?? header?.fsono ?? '').toString().trim(),
                         frefso: header?.fsono ?? null,
-                        fqty: (src.fqty !== null && src.fqty !== undefined && Number(src.fqty) > 0) ? Number(src.fqty) : 1,
+                        fqty: (src.fqty !== null && src.fqty !== undefined && Number(src.fqty) > 0) ?
+                            Number(src.fqty) : 1,
                         fprice: Number(src.fprice ?? src.fharga ?? 0), // ← Boleh 0
                         fterima: Number(src.fterima ?? 0),
                         ftotal: 0,
                         fdesc: src.fdesc ? src.fdesc.toString().trim() : '',
                         fketdt: src.fketdt ? src.fketdt.toString().trim() : '',
-                        units: meta ? [...new Set((meta.units || []).map(u => (u ?? '').toString().trim()).filter(Boolean))] : [satuan].filter(Boolean),
+                        units: meta ? [...new Set((meta.units || []).map(u => (u ?? '').toString().trim())
+                            .filter(Boolean))] : [satuan].filter(Boolean),
                         maxqty: Math.max(0, Number(src.maxqty ?? src.fqtyremain ?? src.fqty ?? 0)),
                     };
 
@@ -1122,7 +1140,7 @@
             applyEdit() {
                 const r = this.editRow;
                 if (!this.isComplete(r)) {
-                    window.toast?.error(@json("Lengkapi data item."));
+                    window.toast?.error(@json('Lengkapi data item.'));
                     return;
                 }
 
@@ -1150,7 +1168,7 @@
             applyEdit() {
                 const r = this.editRow;
                 if (!this.isComplete(r)) {
-                    alert(@json("Lengkapi data item."));
+                    alert(@json('Lengkapi data item.'));
                     return;
                 }
 
@@ -1201,9 +1219,9 @@
             openDesc(target = 'draft', index = null) {
                 this.descTarget = target;
                 this.descSavedIndex = index;
-                this.descValue = target === 'saved' && index !== null
-                    ? (this.savedItems[index]?.fdesc || '')
-                    : (this.draft.fdesc || '');
+                this.descValue = target === 'saved' && index !== null ?
+                    (this.savedItems[index]?.fdesc || '') :
+                    (this.draft.fdesc || '');
                 this.showDescModal = true;
             },
             closeDesc() {
@@ -1241,9 +1259,8 @@
             },
 
             restoreSavedItems(items = []) {
-                this.savedItems = Array.isArray(items)
-                    ? items.map((item, index) => this.normalizeRestoredRow(item, index))
-                    : [];
+                this.savedItems = Array.isArray(items) ?
+                    items.map((item, index) => this.normalizeRestoredRow(item, index)) : [];
                 this.recalcTotals();
             },
 
@@ -1293,7 +1310,7 @@
                 }, {
                     passive: true
                 });
-                
+
                 const self = this;
                 document.addEventListener('change', function(e) {
                     if (e.target && e.target.id === 'draftUnitSelect') {
@@ -1426,7 +1443,12 @@
     });
 </script>
 
-@include('components.transaction.browse-product-script', ['showControls' => true, 'showPagination' => true, 'supportsForEdit' => true, 'openDelay' => 50])
+@include('components.transaction.browse-product-script', [
+    'showControls' => true,
+    'showPagination' => true,
+    'supportsForEdit' => true,
+    'openDelay' => 50,
+])
 
 @push('scripts')
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
@@ -1446,6 +1468,3 @@
         });
     </script>
 @endpush
-
-
-

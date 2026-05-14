@@ -332,7 +332,7 @@
                                                 <td class="p-2" x-text="i + 1"></td>
                                                 <td class="p-2 font-mono" x-text="it.fitemcode"></td>
                                                 <td class="p-2 text-gray-800">
-                                                    <div class="flex w-full max-w-full">
+                                                    <div class="grid w-full max-w-full grid-cols-[minmax(0,1fr)_auto]">
                                                         <div class="min-w-0 flex-1 rounded-l border bg-gray-100 px-2 py-1 text-sm leading-5 text-gray-600 whitespace-normal break-words"
                                                             x-text="it.fitemname"></div>
                                                         <button type="button" @click="openDesc('saved', i)"
@@ -385,7 +385,7 @@
                                             </td>
 
                                             <td class="p-2">
-                                                <div class="flex w-full max-w-full">
+                                                <div class="grid w-full max-w-full grid-cols-[minmax(0,1fr)_auto]">
                                                     <div class="min-w-0 flex-1 rounded-l border bg-gray-100 px-2 py-1 text-sm leading-5 text-gray-600 whitespace-normal break-words"
                                                         x-text="editRow.fitemname"></div>
                                                     <button type="button" @click="openDesc('edit')"
@@ -658,7 +658,7 @@
                                                     <td class="p-2" x-text="i + 1"></td>
                                                     <td class="p-2 font-mono" x-text="it.fitemcode"></td>
                                                     <td class="p-2 text-gray-800">
-                                                        <div class="flex w-full max-w-full">
+                                                            <div class="grid w-full max-w-full grid-cols-[minmax(0,1fr)_auto]">
                                                             <div class="min-w-0 flex-1 rounded-l border bg-gray-100 px-2 py-1 text-sm leading-5 text-gray-600 whitespace-normal break-words"
                                                                 x-text="it.fitemname"></div>
                                                             <button type="button" @click="openDesc('saved', i)"
@@ -749,14 +749,15 @@
                                                 </td>
 
                                                 <td class="p-2">
-                                                    <div class="flex w-full max-w-full">
-                                                        <div class="min-w-0 flex-1 rounded-l border bg-gray-100 px-2 py-1 text-sm leading-5 text-gray-600 whitespace-normal break-words"
+                                                    <div class="relative w-full">
+                                                        <div
+                                                            class="min-w-0 w-full rounded border bg-gray-100 pr-11 px-2 py-1.5 text-sm leading-5 text-gray-600 whitespace-normal break-words min-h-[38px]"
                                                             x-text="draft.fitemname"></div>
                                                         <button type="button" @click="openDesc('draft')"
-                                                            class="shrink-0 inline-flex items-center border border-l-0 rounded-r px-2 py-1 transition-colors"
-                                                            :class="draft.fdesc ? 'border-emerald-300 bg-emerald-50 text-emerald-600 hover:bg-emerald-100' : 'border-gray-300 bg-white text-gray-500 hover:bg-gray-50'"
-                                                            title="Deskripsi item">
-                                                            <x-heroicon-o-document-text class="h-4 w-4" />
+                                                            class="absolute right-0 top-0 z-10 inline-flex h-full min-h-[38px] w-9 items-center justify-center rounded-r border-l bg-slate-50 px-2 py-1 text-slate-700 transition-colors hover:bg-slate-100"
+                                                            :class="descButtonClass(draft.fdesc)"
+                                                            title="Deskripsi">
+                                                            <x-heroicon-o-document-text class="w-4 h-4" />
                                                         </button>
                                                     </div>
                                                 </td>
@@ -1926,4 +1927,3 @@
         });
     </script>
 @endpush
-

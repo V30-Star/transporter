@@ -220,7 +220,7 @@
                                             <td class="p-2" x-text="i + 1"></td>
                                             <td class="p-2 font-mono" x-text="it.fitemcode"></td>
                                             <td class="p-2 text-gray-800">
-                                                <div class="flex w-full max-w-full">
+                                                <div class="grid w-full max-w-full grid-cols-[minmax(0,1fr)_auto]">
                                                     <div class="min-w-0 flex-1 rounded-l border bg-gray-100 px-2 py-1 text-sm leading-5 text-gray-600 whitespace-normal break-words"
                                                         x-text="it.fitemname"></div>
                                                     <button type="button" @click="openDesc(it)"
@@ -271,7 +271,7 @@
                                         </td>
 
                                         <td class="p-2">
-                                            <div class="flex w-full max-w-full">
+                                            <div class="grid w-full max-w-full grid-cols-[minmax(0,1fr)_auto]">
                                                 <div
                                                     class="min-w-0 flex-1 rounded-l border bg-gray-100 px-2 py-1 text-sm leading-5 text-gray-600 whitespace-normal break-words"
                                                     x-text="editRow.fitemname"></div>
@@ -819,7 +819,6 @@
             });
         </script>
     @endpush
-
 
 
 
