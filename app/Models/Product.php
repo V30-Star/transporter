@@ -38,11 +38,11 @@ class Product extends Model
 
     public function trPrds()
     {
-        return $this->hasMany(Tr_prd::class, 'fprdcodeid', 'fprdid');
+        return $this->hasMany(Tr_prd::class, 'fprdcode', 'fprdcode');
     }
     public function trstockdts()
     {
-        return $this->hasMany(PenerimaanPembelianDetail::class, 'fprdcodeid', 'fprdid');
+        return $this->hasMany(PenerimaanPembelianDetail::class, 'fprdcode', 'fprdcode');
     }
 
     public function merek()
