@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', "Sales Order")
+@section('title', 'Sales Order')
 
 @section('content')
     @php
@@ -125,7 +125,7 @@
             {{-- Header Strip --}}
             <div class="d-flex align-items-center px-4 py-3" style="background-color: #c0392b;">
                 <i class="bi bi-exclamation-triangle-fill text-white me-2 fs-5"></i>
-                <strong class="text-white fs-6">{{ "Data Belum Bisa Disimpan" }}</strong>
+                <strong class="text-white fs-6">{{ 'Data Belum Bisa Disimpan' }}</strong>
                 <button type="button" class="btn-close btn-close-white ms-auto" data-bs-dismiss="alert"
                     aria-label="Close"></button>
             </div>
@@ -134,7 +134,7 @@
             <div class="px-4 py-3" style="background-color: #fdeded; border-left: 5px solid #c0392b;">
                 <p class="mb-2 text-danger fw-semibold">
                     <i class="bi bi-info-circle me-1"></i>
-                    {{ "Tolong perbaiki bagian ini dulu:" }}
+                    {{ 'Tolong perbaiki bagian ini dulu:' }}
                 </p>
                 <ul class="mb-0 ps-3">
                     @foreach ($errors->all() as $error)
@@ -150,24 +150,36 @@
     <div>
         <div x-data="{ includePPN: false, ppnRate: 11, ppnAmount: 0, selected: 'alamatsurat', totalHarga: 0 }" class="lg:col-span-5">
             <div class="bg-white rounded shadow p-6 md:p-8 max-w-[96rem] mx-auto">
+                {{-- Taruh di atas form --}}
+                <script>
+                    window._soLabels = {
+                        noItemsTitle: @json(__('Tidak Ada Item')),
+                        noItemsText: @json(__('Silakan tambahkan minimal 1 item terlebih dahulu.')),
+                        noItemsBtn: @json(__('OK')),
+                    };
+                </script>
+
                 <form id="salesOrderForm" action="{{ route('salesorder.store') }}" method="POST" class="mt-6"
-                    data-form-draft="true" data-draft-key="salesorder:create" x-data="{ showNoItems: false }"
-                    @submit.prevent="
-                        const count = Number($el.querySelector('input[name=itemsCount]')?.value || 0);
-                        if (count < 1) {
-                            Swal.fire({
-                                icon: 'warning',
-                                title: @json("Tidak Ada Item"),
-                                text: @json("Silakan tambahkan minimal 1 item terlebih dahulu."),
-                                confirmButtonText: @json("OK"),
-                                customClass: {
-                                    confirmButton: 'bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700'
-                                }
-                            });
-                            return;
+                    data-form-draft="true" data-draft-key="salesorder:create" x-data="{
+                        showNoItems: false,
+                        handleSubmit() {
+                            const count = Number(this.$el.querySelector('input[name=itemsCount]')?.value || 0);
+                            if (count < 1) {
+                                Swal.fire({
+                                    icon: 'warning',
+                                    title: window._soLabels.noItemsTitle,
+                                    text: window._soLabels.noItemsText,
+                                    confirmButtonText: window._soLabels.noItemsBtn,
+                                    customClass: {
+                                        confirmButton: 'bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700'
+                                    }
+                                });
+                                return;
+                            }
+                            window.salesOrderCreditApprovalGuard(this.$el).then(ok => { if (ok) this.$el.submit() });
                         }
-                        window.salesOrderCreditApprovalGuard($el).then(ok =&gt; { if (ok) $el.submit() });
-                    ">
+                    }"
+                    @submit.prevent="handleSubmit()">
                     @csrf
                     <input type="hidden" name="fneedacc" id="salesOrderNeedAcc" value="{{ old('fneedacc', '0') }}">
                     <input type="hidden" name="fuseracc" id="salesOrderUserAcc" value="{{ old('fuseracc', '') }}">
@@ -175,7 +187,7 @@
                     {{-- HEADER FORM --}}
                     <div class="grid grid-cols-1 lg:grid-cols-12 gap-4">
                         <div class="lg:col-span-4">
-                            <label class="block text-sm font-bold">{{ "Cabang" }}</label>
+                            <label class="block text-sm font-bold">{{ 'Cabang' }}</label>
                             <input type="text" class="w-full border rounded px-3 py-2 bg-gray-200 cursor-not-allowed"
                                 value="{{ $fcabang }}" disabled>
                             <input type="hidden" name="fbranchcode" value="{{ $fbranchcode }}">
@@ -189,13 +201,13 @@
                                     :class="autoCode ? 'bg-gray-200 cursor-not-allowed' : 'bg-white'">
                                 <label class="inline-flex items-center select-none">
                                     <input type="checkbox" x-model="autoCode" checked>
-                                    <span class="ml-2 text-sm text-gray-700">{{ "Auto" }}</span>
+                                    <span class="ml-2 text-sm text-gray-700">{{ 'Auto' }}</span>
                                 </label>
                             </div>
                         </div>
 
                         <div class="lg:col-span-4">
-                            <label class="block text-sm font-bold">{{ "Tanggal" }}</label>
+                            <label class="block text-sm font-bold">{{ 'Tanggal' }}</label>
                             <input type="date" name="fsodate" value="{{ old('fsodate') ?? date('Y-m-d') }}"
                                 class="w-full border rounded px-3 py-2 @error('fsodate') border-red-500 @enderror">
                             @error('fsodate')
@@ -205,7 +217,7 @@
 
                         {{-- Customer --}}
                         <div class="lg:col-span-4">
-                            <label class="block text-sm font-bold mb-1">{{ "Customer" }}</label>
+                            <label class="block text-sm font-bold mb-1">{{ 'Customer' }}</label>
                             <div class="flex">
                                 <div class="relative flex-1" for="modal_filter_customer_id">
                                     <select id="modal_filter_customer_id" name="filter_customer_id"
@@ -242,7 +254,7 @@
 
                         {{-- Salesman --}}
                         <div class="lg:col-span-4">
-                            <label class="block text-sm font-bold mb-1">{{ "Salesman" }}</label>
+                            <label class="block text-sm font-bold mb-1">{{ 'Salesman' }}</label>
                             <div class="flex">
                                 <div class="relative flex-1" for="modal_filter_salesman_id">
                                     <select id="modal_filter_salesman_id" name="filter_salesman_id"
@@ -279,11 +291,11 @@
                         </div>
 
                         <div class="lg:col-span-4">
-                            <label class="block text-sm font-bold mb-1">{{ "Tempo" }}</label>
+                            <label class="block text-sm font-bold mb-1">{{ 'Tempo' }}</label>
                             <div class="flex items-center">
                                 <input type="number" id="ftempohr" name="ftempohr" value="{{ old('ftempohr', 0) }}"
                                     class="w-full border rounded px-3 py-2 @error('ftempohr') border-red-500 @enderror">
-                                <span class="ml-2">{{ "Hari" }}</span>
+                                <span class="ml-2">{{ 'Hari' }}</span>
                             </div>
                             @error('ftempohr')
                                 <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
@@ -315,7 +327,7 @@
                                         value="{{ old('falamatkirim') }}">
 
                                     <div class="flex items-center gap-2">
-                                        <label class="text-sm font-bold text-gray-700 mr-2">{{ "Kirim ke" }}
+                                        <label class="text-sm font-bold text-gray-700 mr-2">{{ 'Kirim ke' }}
                                             :</label>
 
                                         <div class="inline-flex rounded-md shadow-sm" role="group">
@@ -323,19 +335,19 @@
                                                 :class="tab === 1 ? 'bg-blue-600 text-white z-10 ring-2 ring-blue-300' :
                                                     'bg-white text-gray-700 hover:bg-gray-50'"
                                                 class="px-4 py-1.5 text-xs font-semibold border border-gray-300 rounded-l-md transition-all">
-                                                {{ "Alamat 1" }}
+                                                {{ 'Alamat 1' }}
                                             </button>
                                             <button type="button" @click="tab = 2"
                                                 :class="tab === 2 ? 'bg-blue-600 text-white z-10 ring-2 ring-blue-300' :
                                                     'bg-white text-gray-700 hover:bg-gray-50'"
                                                 class="px-4 py-1.5 text-xs font-semibold border-t border-b border-r border-gray-300 transition-all">
-                                                {{ "Alamat 2" }}
+                                                {{ 'Alamat 2' }}
                                             </button>
                                             <button type="button" @click="tab = 3"
                                                 :class="tab === 3 ? 'bg-blue-600 text-white z-10 ring-2 ring-blue-300' :
                                                     'bg-white text-gray-700 hover:bg-gray-50'"
                                                 class="px-4 py-1.5 text-xs font-semibold border-t border-b border-r border-gray-300 rounded-r-md transition-all">
-                                                {{ "Alamat 3" }}
+                                                {{ 'Alamat 3' }}
                                             </button>
                                         </div>
                                     </div>
@@ -343,15 +355,15 @@
                                     <div class="w-full">
                                         <textarea x-show="tab === 1" x-model="addr1"
                                             class="w-full p-2 text-sm border border-gray-300 rounded focus:ring-blue-500 focus:border-blue-500 min-h-[80px]"
-                                            placeholder="{{ "Alamat 1" }}..."></textarea>
+                                            placeholder="{{ 'Alamat 1' }}..."></textarea>
 
                                         <textarea x-show="tab === 2" x-model="addr2"
                                             class="w-full p-2 text-sm border border-gray-300 rounded focus:ring-blue-500 focus:border-blue-500 min-h-[80px]"
-                                            placeholder="{{ "Alamat 2" }}..."></textarea>
+                                            placeholder="{{ 'Alamat 2' }}..."></textarea>
 
                                         <textarea x-show="tab === 3" x-model="addr3"
                                             class="w-full p-2 text-sm border border-gray-300 rounded focus:ring-blue-500 focus:border-blue-500 min-h-[80px]"
-                                            placeholder="{{ "Alamat 3" }}..."></textarea>
+                                            placeholder="{{ 'Alamat 3' }}..."></textarea>
                                     </div>
 
                                     <p class="text-[10px] text-gray-500 italic">*Klik tombol Alamat 1/2/3 untuk memilih
@@ -359,8 +371,7 @@
                                 </div>
 
                                 <div class="flex flex-col">
-                                    <label
-                                        class="block text-sm font-bold text-gray-700 mb-2">{{ "Keterangan" }}</label>
+                                    <label class="block text-sm font-bold text-gray-700 mb-2">{{ 'Keterangan' }}</label>
                                     <div
                                         class="flex-1 border-2 border-gray-200 rounded-xl p-3 bg-white min-h-[150px] focus-within:border-blue-400">
                                         <textarea name="fket" class="w-full h-full border-none focus:ring-0 p-0 text-sm resize-none"
@@ -375,7 +386,7 @@
                         </div>
 
                         <div class="lg:col-span-12">
-                            <label class="block text-sm font-bold">{{ "Catatan Internal" }}</label>
+                            <label class="block text-sm font-bold">{{ 'Catatan Internal' }}</label>
                             <textarea name="fketinternal" rows="3"
                                 class="w-full border rounded px-3 py-2 @error('fketinternal') border-red-500 @enderror"
                                 placeholder="Tulis Catatan Internal tambahan di sini...">{{ old('fketinternal') }}</textarea>
@@ -414,8 +425,7 @@
                                             <td class="p-2 font-mono" x-text="it.fprdcode"></td>
                                             <td class="p-2">
                                                 <div class="flex w-full max-w-full">
-                                                    <div
-                                                        class="min-w-0 flex-1 rounded-l border bg-gray-100 px-2 py-1 text-sm leading-5 text-gray-600 whitespace-normal break-words"
+                                                    <div class="min-w-0 flex-1 rounded-l border bg-gray-100 px-2 py-1 text-sm leading-5 text-gray-600 whitespace-normal break-words"
                                                         x-text="it.fitemname"></div>
                                                     <button type="button" @click="openDesc('saved', i)"
                                                         class="shrink-0 inline-flex items-center border border-l-0 rounded-r bg-slate-50 px-2 py-1 text-slate-700 hover:bg-slate-100"
@@ -499,8 +509,7 @@
                                         <!-- Nama Produk (readonly) -->
                                         <td class="p-2">
                                             <div class="flex w-full max-w-full">
-                                                <div
-                                                    class="min-w-0 flex-1 rounded-l border bg-gray-100 px-2 py-1 text-sm leading-5 text-gray-600 whitespace-normal break-words"
+                                                <div class="min-w-0 flex-1 rounded-l border bg-gray-100 px-2 py-1 text-sm leading-5 text-gray-600 whitespace-normal break-words"
                                                     x-text="draft.fitemname"></div>
                                                 <button type="button" @click="openDesc('draft')"
                                                     class="shrink-0 inline-flex items-center border border-l-0 rounded-r bg-slate-50 px-2 py-1 text-slate-700 hover:bg-slate-100"
@@ -655,8 +664,7 @@
 
                                 <div class="px-5 py-4 space-y-2">
                                     <label class="block text-sm text-gray-700">Deskripsi</label>
-                                    <textarea x-model="descValue" rows="5" class="w-full border rounded px-3 py-2"
-                                        :readonly="descReadonly"
+                                    <textarea x-model="descValue" rows="5" class="w-full border rounded px-3 py-2" :readonly="descReadonly"
                                         placeholder="Tulis deskripsi item di sini..."></textarea>
                                 </div>
 
@@ -683,7 +691,10 @@
                     <x-transaction.browse-product-modal show-controls="true" show-pagination="true" />
 
                     @php
-                        $canApproval = in_array('approveSalesOrder', explode(',', session('user_restricted_permissions', '')));
+                        $canApproval = in_array(
+                            'approveSalesOrder',
+                            explode(',', session('user_restricted_permissions', '')),
+                        );
                     @endphp
 
                     <div class="mt-8 flex justify-center gap-4">
@@ -1008,7 +1019,7 @@
                 );
 
                 if (dupe) {
-                    this.showToast(@json("Item sama sudah ada di daftar"), 'warning');
+                    this.showToast(@json('Item sama sudah ada di daftar'), 'warning');
                     return;
                 }
 
@@ -1052,9 +1063,9 @@
                 this.descTarget = target;
                 this.descSavedIndex = index;
                 this.descReadonly = readonly;
-                this.descValue = target === 'saved' && index !== null
-                    ? (this.savedItems[index]?.fdesc || '')
-                    : (this.draft?.fdesc || '');
+                this.descValue = target === 'saved' && index !== null ?
+                    (this.savedItems[index]?.fdesc || '') :
+                    (this.draft?.fdesc || '');
                 this.showDescModal = true;
             },
             closeDesc() {
@@ -1117,9 +1128,9 @@
             },
 
             restoreSavedItems(items = []) {
-                this.savedItems = Array.isArray(items)
-                    ? items.map((item, index) => this.normalizeRestoredRow(item, index))
-                    : [];
+                this.savedItems = Array.isArray(items) ?
+                    items.map((item, index) => this.normalizeRestoredRow(item, index)) :
+                    [];
                 this.syncDescList?.();
                 this.recalcTotals();
             },
@@ -1287,10 +1298,10 @@
             const payload = await response.json();
             if (!response.ok) {
                 const message = payload?.message || Object.values(payload?.errors || {}).flat().join('\n') ||
-                    @json("Gagal cek limit customer.");
+                    @json('Gagal cek limit customer.');
                 await Swal.fire({
                     icon: 'error',
-                    title: @json("Cek Customer Gagal"),
+                    title: @json('Cek Customer Gagal'),
                     html: `<div class="text-left whitespace-pre-line">${message}</div>`
                 });
                 return false;
@@ -1305,19 +1316,19 @@
             if (limitCheck.enabled && limitCheck.exceeded) {
                 const confirmed = await Swal.fire({
                     icon: 'warning',
-                    title: @json("Limit Piutang Terlampaui"),
+                    title: @json('Limit Piutang Terlampaui'),
                     html: `
                         <div class="text-left text-sm">
-                            <div>${@json("Total piutang berjalan")}: <strong>${Number(limitCheck.outstanding_total || 0).toLocaleString('id-ID')}</strong></div>
-                            <div>${@json("Nilai transaksi ini")}: <strong>${Number(limitCheck.transaction_amount || 0).toLocaleString('id-ID')}</strong></div>
-                            <div>${@json("Limit customer")}: <strong>${Number(limitCheck.limit || 0).toLocaleString('id-ID')}</strong></div>
-                            <div>${@json("Total setelah transaksi")}: <strong>${Number(limitCheck.projected_total || 0).toLocaleString('id-ID')}</strong></div>
-                            <div class="mt-3">${@json("Sales Order ini membutuhkan persetujuan kredit. Lanjutkan?")}</div>
+                            <div>${@json('Total piutang berjalan')}: <strong>${Number(limitCheck.outstanding_total || 0).toLocaleString('id-ID')}</strong></div>
+                            <div>${@json('Nilai transaksi ini')}: <strong>${Number(limitCheck.transaction_amount || 0).toLocaleString('id-ID')}</strong></div>
+                            <div>${@json('Limit customer')}: <strong>${Number(limitCheck.limit || 0).toLocaleString('id-ID')}</strong></div>
+                            <div>${@json('Total setelah transaksi')}: <strong>${Number(limitCheck.projected_total || 0).toLocaleString('id-ID')}</strong></div>
+                            <div class="mt-3">${@json('Sales Order ini membutuhkan persetujuan kredit. Lanjutkan?')}</div>
                         </div>
                     `,
                     showCancelButton: true,
-                    confirmButtonText: @json("Ya"),
-                    cancelButtonText: @json("Tidak")
+                    confirmButtonText: @json('Ya'),
+                    cancelButtonText: @json('Tidak')
                 });
 
                 if (!confirmed.isConfirmed) {
@@ -1328,7 +1339,7 @@
                 if (!canApprove) {
                     await Swal.fire({
                         icon: 'error',
-                        title: @json("Persetujuan Kredit Ditolak"),
+                        title: @json('Persetujuan Kredit Ditolak'),
                         html: `
                             <div class="text-left text-sm">
                                 <div class="font-medium mb-2">Persetujuan diperlukan:</div>
@@ -1355,17 +1366,17 @@
 
                 const confirmed = await Swal.fire({
                     icon: 'warning',
-                    title: @json("Ada Nota Lewat Jatuh Tempo"),
+                    title: @json('Ada Nota Lewat Jatuh Tempo'),
                     html: `
                         <div class="text-left text-sm">
-                            <div>${@json("Customer punya nota yang lewat jatuh tempo lebih dari")} <strong>${overdueCheck.max_tempo || 0}</strong> ${@json("hari.")}</div>
+                            <div>${@json('Customer punya nota yang lewat jatuh tempo lebih dari')} <strong>${overdueCheck.max_tempo || 0}</strong> ${@json('hari.')}</div>
                             <ul class="mt-3 list-disc pl-5">${overdueHtml}</ul>
-                            <div class="mt-3">${@json("Sales Order ini membutuhkan persetujuan kredit. Lanjutkan?")}</div>
+                            <div class="mt-3">${@json('Sales Order ini membutuhkan persetujuan kredit. Lanjutkan?')}</div>
                         </div>
                     `,
                     showCancelButton: true,
-                    confirmButtonText: @json("Ya"),
-                    cancelButtonText: @json("Tidak")
+                    confirmButtonText: @json('Ya'),
+                    cancelButtonText: @json('Tidak')
                 });
 
                 if (!confirmed.isConfirmed) {
@@ -1376,7 +1387,7 @@
                 if (!canApprove) {
                     await Swal.fire({
                         icon: 'error',
-                        title: @json("Persetujuan Kredit Ditolak"),
+                        title: @json('Persetujuan Kredit Ditolak'),
                         html: `
                             <div class="text-left text-sm">
                                 <div class="font-medium mb-2">Persetujuan diperlukan:</div>
@@ -1398,7 +1409,7 @@
         } catch (error) {
             await Swal.fire({
                 icon: 'error',
-                title: @json("Pemeriksaan Persetujuan Gagal"),
+                title: @json('Pemeriksaan Persetujuan Gagal'),
                 html: `<div class="text-left whitespace-pre-line">@json("Gagal memeriksa persetujuan customer.\nSilakan coba lagi.")</div>`
             });
             return false;
@@ -1437,6 +1448,5 @@
 
     <script>
         window.PRODUCT_MAP = @json($productMap ?? []);
-
     </script>
 @endpush

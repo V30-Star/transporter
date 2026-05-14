@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', $action === 'delete' ? "Hapus" . ' ' . "Sales Order" : "Edit" . ' ' . "Sales Order")
+@section('title', $action === 'delete' ? 'Hapus' . ' ' . 'Sales Order' : 'Edit' . ' ' . 'Sales Order')
 
 @section('content')
     @php
@@ -79,7 +79,7 @@
             {{-- Header Strip --}}
             <div class="d-flex align-items-center px-4 py-3" style="background-color: #c0392b;">
                 <i class="bi bi-exclamation-triangle-fill text-white me-2 fs-5"></i>
-                <strong class="text-white fs-6">{{ "Data Belum Bisa Disimpan" }}</strong>
+                <strong class="text-white fs-6">{{ 'Data Belum Bisa Disimpan' }}</strong>
                 <button type="button" class="btn-close btn-close-white ms-auto" data-bs-dismiss="alert"
                     aria-label="Close"></button>
             </div>
@@ -88,7 +88,7 @@
             <div class="px-4 py-3" style="background-color: #fdeded; border-left: 5px solid #c0392b;">
                 <p class="mb-2 text-danger fw-semibold">
                     <i class="bi bi-info-circle me-1"></i>
-                    {{ "Tolong perbaiki bagian ini dulu:" }}
+                    {{ 'Tolong perbaiki bagian ini dulu:' }}
                 </p>
                 <ul class="mb-0 ps-3">
                     @foreach ($errors->all() as $error)
@@ -104,9 +104,11 @@
     @php
         $currentCustomerCode = trim((string) old('fcustno', $salesorder->fcustno ?? ''));
         $currentCustomerName = trim((string) old('fcustomername', $salesorder->customer->fcustomername ?? ''));
-        $hasCurrentCustomer = $currentCustomerCode !== '' && $customers->contains(function ($customer) use ($currentCustomerCode) {
-            return trim((string) $customer->fcustomercode) === $currentCustomerCode;
-        });
+        $hasCurrentCustomer =
+            $currentCustomerCode !== '' &&
+            $customers->contains(function ($customer) use ($currentCustomerCode) {
+                return trim((string) $customer->fcustomercode) === $currentCustomerCode;
+            });
         $usageLocked = !empty($isUsageLocked);
         $oldSoItemCodes = old('fitemcode', []);
         $oldSoItemNames = old('fitemname', []);
@@ -167,13 +169,13 @@
                     </div>
                     <div class="flex-1">
                         <h3 class="text-base font-bold text-orange-700">
-                            {{ "Sales Order" }} {{ $action === 'delete' ? "Tidak Dapat Dihapus" : "Tidak Dapat Diedit" }}
+                            {{ 'Sales Order' }} {{ $action === 'delete' ? 'Tidak Dapat Dihapus' : 'Tidak Dapat Diedit' }}
                         </h3>
                         <p class="text-sm text-orange-500 mt-0.5">{{ $usageLockMessage }}</p>
                     </div>
                     <button type="button" @click="open = false"
                         class="flex-shrink-0 w-8 h-8 rounded-full bg-orange-100 hover:bg-orange-200 flex items-center justify-center transition-colors"
-                        title="{{ "Tutup" }}">
+                        title="{{ 'Tutup' }}">
                         <x-heroicon-o-x-mark class="w-4 h-4 text-orange-600" />
                     </button>
                 </div>
@@ -181,7 +183,7 @@
                     <button type="button" @click="open = false"
                         class="bg-gray-500 text-white px-6 py-2 rounded hover:bg-gray-600 flex items-center gap-2">
                         <x-heroicon-o-arrow-left class="w-5 h-5" />
-                        {{ "Tutup" }}
+                        {{ 'Tutup' }}
                     </button>
                 </div>
             </div>
@@ -233,8 +235,7 @@
                             <div class="lg:col-span-2 flex items-end pb-2">
                                 <div class="inline-flex items-center">
                                     <input id="fclose" type="checkbox" name="fclose" value="1" x-model="fclose"
-                                        disabled
-                                        {{-- text-red-600 mengubah isi centang, border-red-400 mengubah bingkai --}}
+                                        disabled {{-- text-red-600 mengubah isi centang, border-red-400 mengubah bingkai --}}
                                         class="w-6 h-6 text-red-600 border-red-400 bg-gray-200 rounded cursor-not-allowed focus:ring-red-500"
                                         {{ old('fclose', $salesorder->fclose) ? 'checked' : '' }}>
 
@@ -424,7 +425,8 @@
                             <h3 class="text-base font-semibold text-gray-800">Detail Item</h3>
 
                             <div class="overflow-x-auto border rounded">
-                                <table class="min-w-full text-sm balanced-detail-table" data-skip-auto-detail-style="true">
+                                <table class="min-w-full text-sm balanced-detail-table"
+                                    data-skip-auto-detail-style="true">
                                     <thead class="bg-gray-100">
                                         <tr>
                                             <th class="p-2 text-left w-10">#</th>
@@ -448,8 +450,7 @@
                                                 <td class="p-2 font-mono" x-text="it.fprdcode"></td>
                                                 <td class="p-2">
                                                     <div class="flex w-full max-w-full">
-                                                        <div
-                                                            class="min-w-0 flex-1 rounded-l border bg-gray-100 px-2 py-1 text-sm leading-5 text-gray-600 whitespace-normal break-words"
+                                                        <div class="min-w-0 flex-1 rounded-l border bg-gray-100 px-2 py-1 text-sm leading-5 text-gray-600 whitespace-normal break-words"
                                                             x-text="it.fitemname"></div>
                                                         <button type="button" @click="openDesc('saved', i, true)"
                                                             class="shrink-0 inline-flex items-center border border-l-0 rounded-r bg-slate-50 px-2 py-1 text-slate-700 hover:bg-slate-100"
@@ -460,7 +461,8 @@
                                                 </td>
                                                 <td class="p-2">
                                                     <template x-if="it.units && it.units.length > 1">
-                                                        <select class="w-full border rounded px-2 py-1 text-xs bg-gray-100 text-gray-600"
+                                                        <select
+                                                            class="w-full border rounded px-2 py-1 text-xs bg-gray-100 text-gray-600"
                                                             x-model="it.fsatuan" disabled>
                                                             <template x-for="u in it.units" :key="u">
                                                                 <option :value="u" x-text="u"
@@ -472,7 +474,8 @@
                                                         <span x-text="it.fsatuan"></span>
                                                     </template>
                                                 </td>
-                                                <td class="p-2 text-right font-medium" x-text="formatQtyValue(it.fqty)"></td>
+                                                <td class="p-2 text-right font-medium" x-text="formatQtyValue(it.fqty)">
+                                                </td>
                                                 <td class="p-2 text-right">
                                                     <input type="text"
                                                         class="w-full border rounded px-2 py-1 text-right bg-gray-100 text-gray-600"
@@ -541,8 +544,7 @@
 
                                         <!-- Nama Produk (readonly) -->
                                         <td class="p-2">
-                                            <div
-                                                class="w-full border rounded px-2 py-1 bg-gray-100 text-gray-600 text-sm leading-5 whitespace-normal break-words"
+                                            <div class="w-full border rounded px-2 py-1 bg-gray-100 text-gray-600 text-sm leading-5 whitespace-normal break-words"
                                                 x-text="editRow.fitemname"></div>
                                         </td>
 
@@ -705,8 +707,7 @@
 
                                         <div class="px-5 py-4 space-y-2">
                                             <label class="block text-sm text-gray-700">Deskripsi</label>
-                                            <textarea x-model="descValue" rows="5" class="w-full border rounded px-3 py-2"
-                                                :readonly="descReadonly"
+                                            <textarea x-model="descValue" rows="5" class="w-full border rounded px-3 py-2" :readonly="descReadonly"
                                                 placeholder="Tulis deskripsi item di sini..."></textarea>
                                         </div>
 
@@ -734,10 +735,11 @@
                             @endphp
 
                             @if ($canApproval)
-                                <div class="mt-6 mx-auto max-w-2xl rounded-lg border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-700">
+                                <div
+                                    class="mt-6 mx-auto max-w-2xl rounded-lg border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-700">
                                     <div class="font-semibold">Status Persetujuan Kredit</div>
                                     <div class="mt-1">
-                                        {{ !empty($salesorder->fuseracc) ? 'Sudah disetujui oleh: '.$salesorder->fuseracc : 'Belum ada persetujuan kredit pada transaksi ini.' }}
+                                        {{ !empty($salesorder->fuseracc) ? 'Sudah disetujui oleh: ' . $salesorder->fuseracc : 'Belum ada persetujuan kredit pada transaksi ini.' }}
                                     </div>
                                 </div>
                             @endif
@@ -769,24 +771,33 @@
                             {{-- MODE EDIT: FORM EDITABLE                    --}}
                             {{-- ============================================ --}}
                         @else
-                            <form id="salesOrderForm" action="{{ route('salesorder.update', $salesorder->ftrsomtid) }}" method="POST"
-                                class="mt-6"
-                               @submit.prevent="
-    const count = Number($el.querySelector('input[name=itemsCount]')?.value || 0);
-    if (count < 1) {
-        Swal.fire({
-            icon: 'warning',
-            title: @json("Tidak Ada Item"),
-            text: @json("Silakan tambahkan minimal 1 item terlebih dahulu."),
-            confirmButtonText: @json("OK"),
-            customClass: {
-                confirmButton: 'bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700'
-            }
-        });
-        return;
-    }
-    window.salesOrderCreditApprovalGuard($el).then(ok =&gt; { if (ok) $el.submit() });
-">
+                            <script>
+                                window._soLabels = {
+                                    noItemsTitle: @json(__('Tidak Ada Item')),
+                                    noItemsText: @json(__('Silakan tambahkan minimal 1 item terlebih dahulu.')),
+                                    noItemsBtn: @json(__('OK')),
+                                };
+                            </script>
+
+                            <form id="salesOrderForm" action="{{ route('salesorder.update', $salesorder->ftrsomtid) }}"
+                                method="POST" class="mt-6" x-data="{
+                                    handleSubmit() {
+                                        const count = Number(this.$el.querySelector('input[name=itemsCount]')?.value || 0);
+                                        if (count < 1) {
+                                            Swal.fire({
+                                                icon: 'warning',
+                                                title: window._soLabels.noItemsTitle,
+                                                text: window._soLabels.noItemsText,
+                                                confirmButtonText: window._soLabels.noItemsBtn,
+                                                customClass: {
+                                                    confirmButton: 'bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700'
+                                                }
+                                            });
+                                            return;
+                                        }
+                                        window.salesOrderCreditApprovalGuard(this.$el).then(ok => { if (ok) this.$el.submit() });
+                                    }
+                                }" @submit.prevent="handleSubmit()">
                                 @csrf
                                 @method('PATCH')
                                 <input type="hidden" name="fneedacc" id="salesOrderNeedAcc"
@@ -867,7 +878,8 @@
                                                         <option value="{{ $customer->fcustomercode }}"
                                                             {{-- CEK DISINI: Bandingkan dengan data yang tersimpan di DB --}}
                                                             {{ old('fcustno', $salesorder->fcustno) == $customer->fcustomercode ? 'selected' : '' }}>
-                                                            {{ $customer->fcustomername }} ({{ $customer->fcustomercode }})
+                                                            {{ $customer->fcustomername }}
+                                                            ({{ $customer->fcustomercode }})
                                                         </option>
                                                     @endforeach
                                                 </select>
@@ -907,7 +919,8 @@
                                                         <option value="{{ $salesman->fsalesmancode }}"
                                                             {{-- CEK DISINI: Bandingkan old input atau data dari database --}}
                                                             {{ old('fsalesman', $salesorder->fsalesman) == $salesman->fsalesmancode ? 'selected' : '' }}>
-                                                            {{ $salesman->fsalesmanname }} ({{ $salesman->fsalesmancode }})
+                                                            {{ $salesman->fsalesmanname }}
+                                                            ({{ $salesman->fsalesmancode }})
                                                         </option>
                                                     @endforeach
                                                 </select>
@@ -1056,7 +1069,8 @@
                                     <h3 class="text-base font-semibold text-gray-800">Detail Item</h3>
 
                                     <div class="overflow-auto border rounded">
-                                        <table class="min-w-full text-sm balanced-detail-table" data-skip-auto-detail-style="true">
+                                        <table class="min-w-full text-sm balanced-detail-table"
+                                            data-skip-auto-detail-style="true">
                                             <thead class="bg-gray-100">
                                                 <tr>
                                                     <th class="p-2 text-left w-10">#</th>
@@ -1080,8 +1094,7 @@
                                                         <td class="p-2 font-mono" x-text="it.fprdcode"></td>
                                                         <td class="p-2">
                                                             <div class="flex w-full max-w-full">
-                                                                <div
-                                                                    class="min-w-0 flex-1 rounded-l border bg-gray-100 px-2 py-1 text-sm leading-5 text-gray-600 whitespace-normal break-words"
+                                                                <div class="min-w-0 flex-1 rounded-l border bg-gray-100 px-2 py-1 text-sm leading-5 text-gray-600 whitespace-normal break-words"
                                                                     x-text="it.fitemname"></div>
                                                                 <button type="button" @click="openDesc('saved', i)"
                                                                     class="shrink-0 inline-flex items-center border border-l-0 rounded-r bg-slate-50 px-2 py-1 text-slate-700 hover:bg-slate-100"
@@ -1184,8 +1197,7 @@
                                                     <!-- Nama Produk (readonly) -->
                                                     <td class="p-2">
                                                         <div class="flex w-full max-w-full">
-                                                            <div
-                                                                class="min-w-0 flex-1 rounded-l border bg-gray-100 px-2 py-1 text-sm leading-5 text-gray-600 whitespace-normal break-words"
+                                                            <div class="min-w-0 flex-1 rounded-l border bg-gray-100 px-2 py-1 text-sm leading-5 text-gray-600 whitespace-normal break-words"
                                                                 x-text="draft.fitemname"></div>
                                                             <button type="button" @click="openDesc('draft')"
                                                                 class="shrink-0 inline-flex items-center border border-l-0 rounded-r bg-slate-50 px-2 py-1 text-slate-700 hover:bg-slate-100"
@@ -1227,7 +1239,8 @@
                                                             limit
                                                         </div>
                                                     </td>
-                                                    <td class="p-2 text-right font-medium" x-text="formatQtyValue(0)"></td>
+                                                    <td class="p-2 text-right font-medium" x-text="formatQtyValue(0)">
+                                                    </td>
                                                     <!-- @ Harga -->
                                                     <td class="p-2 text-right">
                                                         <input type="number"
@@ -1243,8 +1256,7 @@
                                                             class="border rounded px-2 py-1 w-24 text-right"
                                                             x-ref="draftDisc" x-model="draft.fdisc"
                                                             @input="recalc(draft)"
-                                                            @keydown.enter.prevent="addIfComplete()"
-                                                            placeholder="10+2">
+                                                            @keydown.enter.prevent="addIfComplete()" placeholder="10+2">
                                                     </td>
 
                                                     <!-- Total Harga (readonly) -->
@@ -1352,8 +1364,7 @@
 
                                             <div class="px-5 py-4 space-y-2">
                                                 <label class="block text-sm text-gray-700">Deskripsi</label>
-                                                <textarea x-model="descValue" rows="5" class="w-full border rounded px-3 py-2"
-                                                    :readonly="descReadonly"
+                                                <textarea x-model="descValue" rows="5" class="w-full border rounded px-3 py-2" :readonly="descReadonly"
                                                     placeholder="Tulis deskripsi item di sini..."></textarea>
                                             </div>
 
@@ -1574,7 +1585,7 @@
     function itemsTable() {
         return {
             showNoItems: false,
-            savedItems: @json(count($initialEditSalesOrderItems) ? $initialEditSalesOrderItems : ($savedItems ?? [])),
+            savedItems: @json(count($initialEditSalesOrderItems) ? $initialEditSalesOrderItems : $savedItems ?? []),
             draft: newRow(),
 
             totalHarga: 0,
@@ -1778,7 +1789,9 @@
                 const used = new Set(this.savedItems.map(item => this.normalizeNoAcak(item.fnoacak)).filter(Boolean));
                 let candidate = '';
                 do {
-                    candidate = Array.from({ length: 3 }, () => '123456789'[Math.floor(Math.random() * 9)]).join('');
+                    candidate = Array.from({
+                        length: 3
+                    }, () => '123456789' [Math.floor(Math.random() * 9)]).join('');
                 } while (used.has(candidate));
 
                 return candidate;
@@ -1799,9 +1812,10 @@
                         fnouref: src.fnouref ?? '',
                         frefpr: src.frefpr ?? (header?.fsono ?? ''),
                         fprhid: src.fprhid ?? header?.fprhid ?? '',
-                        fqty: (src.fqtysisa !== null && src.fqtysisa !== undefined && Number(src.fqtysisa) > 0) ?
-                            Number(src.fqtysisa) :
-                            ((src.fqtyremain !== null && src.fqtyremain !== undefined && Number(src.fqtyremain) > 0) ?
+                        fqty: (src.fqtysisa !== null && src.fqtysisa !== undefined && Number(src.fqtysisa) >
+                                0) ?
+                            Number(src.fqtysisa) : ((src.fqtyremain !== null && src.fqtyremain !==
+                                    undefined && Number(src.fqtyremain) > 0) ?
                                 Number(src.fqtyremain) :
                                 ((src.fqty !== null && src.fqty !== undefined && Number(src.fqty) > 0) ?
                                     Number(src.fqty) : 1)),
@@ -1861,7 +1875,7 @@
                 );
 
                 if (dupe) {
-                    this.showToast(@json("Item sama sudah ada di daftar"), 'warning');
+                    this.showToast(@json('Item sama sudah ada di daftar'), 'warning');
                     return;
                 }
 
@@ -2174,10 +2188,11 @@
 
             const payload = await response.json();
             if (!response.ok) {
-                const message = payload?.message || Object.values(payload?.errors || {}).flat().join('\n') || @json("Gagal cek limit customer.");
+                const message = payload?.message || Object.values(payload?.errors || {}).flat().join('\n') ||
+                    @json('Gagal cek limit customer.');
                 await Swal.fire({
                     icon: 'error',
-                    title: @json("Cek Customer Gagal"),
+                    title: @json('Cek Customer Gagal'),
                     html: `<div class="text-left whitespace-pre-line">${message}</div>`
                 });
                 return false;
@@ -2192,19 +2207,19 @@
             if (limitCheck.enabled && limitCheck.exceeded) {
                 const confirmed = await Swal.fire({
                     icon: 'warning',
-                    title: @json("Limit Piutang Terlampaui"),
+                    title: @json('Limit Piutang Terlampaui'),
                     html: `
                         <div class="text-left text-sm">
-                            <div>${@json("Total piutang berjalan")}: <strong>${Number(limitCheck.outstanding_total || 0).toLocaleString('id-ID')}</strong></div>
-                            <div>${@json("Nilai transaksi ini")}: <strong>${Number(limitCheck.transaction_amount || 0).toLocaleString('id-ID')}</strong></div>
-                            <div>${@json("Limit customer")}: <strong>${Number(limitCheck.limit || 0).toLocaleString('id-ID')}</strong></div>
-                            <div>${@json("Total setelah transaksi")}: <strong>${Number(limitCheck.projected_total || 0).toLocaleString('id-ID')}</strong></div>
-                            <div class="mt-3">${@json("Sales Order ini membutuhkan persetujuan kredit. Lanjutkan?")}</div>
+                            <div>${@json('Total piutang berjalan')}: <strong>${Number(limitCheck.outstanding_total || 0).toLocaleString('id-ID')}</strong></div>
+                            <div>${@json('Nilai transaksi ini')}: <strong>${Number(limitCheck.transaction_amount || 0).toLocaleString('id-ID')}</strong></div>
+                            <div>${@json('Limit customer')}: <strong>${Number(limitCheck.limit || 0).toLocaleString('id-ID')}</strong></div>
+                            <div>${@json('Total setelah transaksi')}: <strong>${Number(limitCheck.projected_total || 0).toLocaleString('id-ID')}</strong></div>
+                            <div class="mt-3">${@json('Sales Order ini membutuhkan persetujuan kredit. Lanjutkan?')}</div>
                         </div>
                     `,
                     showCancelButton: true,
-                    confirmButtonText: @json("Ya"),
-                    cancelButtonText: @json("Tidak")
+                    confirmButtonText: @json('Ya'),
+                    cancelButtonText: @json('Tidak')
                 });
 
                 if (!confirmed.isConfirmed) {
@@ -2215,7 +2230,7 @@
                 if (!canApprove) {
                     await Swal.fire({
                         icon: 'error',
-                        title: @json("Persetujuan Kredit Ditolak"),
+                        title: @json('Persetujuan Kredit Ditolak'),
                         html: `
                             <div class="text-left text-sm">
                                 <div class="font-medium mb-2">Persetujuan diperlukan:</div>
@@ -2242,17 +2257,17 @@
 
                 const confirmed = await Swal.fire({
                     icon: 'warning',
-                    title: @json("Ada Nota Lewat Jatuh Tempo"),
+                    title: @json('Ada Nota Lewat Jatuh Tempo'),
                     html: `
                         <div class="text-left text-sm">
-                            <div>${@json("Customer punya nota yang lewat jatuh tempo lebih dari")} <strong>${overdueCheck.max_tempo || 0}</strong> ${@json("hari.")}</div>
+                            <div>${@json('Customer punya nota yang lewat jatuh tempo lebih dari')} <strong>${overdueCheck.max_tempo || 0}</strong> ${@json('hari.')}</div>
                             <ul class="mt-3 list-disc pl-5">${overdueHtml}</ul>
-                            <div class="mt-3">${@json("Sales Order ini membutuhkan persetujuan kredit. Lanjutkan?")}</div>
+                            <div class="mt-3">${@json('Sales Order ini membutuhkan persetujuan kredit. Lanjutkan?')}</div>
                         </div>
                     `,
                     showCancelButton: true,
-                    confirmButtonText: @json("Ya"),
-                    cancelButtonText: @json("Tidak")
+                    confirmButtonText: @json('Ya'),
+                    cancelButtonText: @json('Tidak')
                 });
 
                 if (!confirmed.isConfirmed) {
@@ -2263,7 +2278,7 @@
                 if (!canApprove) {
                     await Swal.fire({
                         icon: 'error',
-                        title: @json("Persetujuan Kredit Ditolak"),
+                        title: @json('Persetujuan Kredit Ditolak'),
                         html: `
                             <div class="text-left text-sm">
                                 <div class="font-medium mb-2">Persetujuan diperlukan:</div>
@@ -2285,7 +2300,7 @@
         } catch (error) {
             await Swal.fire({
                 icon: 'error',
-                title: @json("Pemeriksaan Persetujuan Gagal"),
+                title: @json('Pemeriksaan Persetujuan Gagal'),
                 html: `<div class="text-left whitespace-pre-line">@json("Gagal memeriksa persetujuan customer.\nSilakan coba lagi.")</div>`
             });
             return false;
@@ -2314,10 +2329,13 @@
     <script src="https://cdn.datatables.net/1.13.7/js/jquery.dataTables.min.js"></script>
     @include('components.transaction.browse-customer-script')
     @include('components.transaction.browse-salesman-script')
-    @include('components.transaction.browse-product-script', ['showControls' => true, 'showPagination' => true, 'supportsForEdit' => true])
+    @include('components.transaction.browse-product-script', [
+        'showControls' => true,
+        'showPagination' => true,
+        'supportsForEdit' => true,
+    ])
 
     <script>
         window.PRODUCT_MAP = @json($productMap ?? []);
-
     </script>
 @endpush

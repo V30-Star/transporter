@@ -50,7 +50,6 @@ class SalesOrderController extends Controller
         $items = DB::table('trsodt as d')
             ->leftJoin('msprd as p', 'd.fprdcode', '=', 'p.fprdcode')
             ->where('d.fsono', $fsono)
-            ->orderBy('d.fnou')
             ->get([
                 'd.fprdcode',
                 'd.fdesc',
