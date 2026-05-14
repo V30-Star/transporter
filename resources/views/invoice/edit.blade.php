@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', $action === 'delete' ? "Hapus" . ' ' . "Faktur Penjualan" : "Edit" . ' ' . "Faktur Penjualan")
+@section('title', $action === 'delete' ? 'Hapus' . ' ' . 'Faktur Penjualan' : 'Edit' . ' ' . 'Faktur Penjualan')
 
 @section('content')
     @php
@@ -79,7 +79,7 @@
             {{-- Header Strip --}}
             <div class="d-flex align-items-center px-4 py-3" style="background-color: #c0392b;">
                 <i class="bi bi-exclamation-triangle-fill text-white me-2 fs-5"></i>
-                <strong class="text-white fs-6">{{ "Data Belum Bisa Disimpan" }}</strong>
+                <strong class="text-white fs-6">{{ 'Data Belum Bisa Disimpan' }}</strong>
                 <button type="button" class="btn-close btn-close-white ms-auto" data-bs-dismiss="alert"
                     aria-label="Close"></button>
             </div>
@@ -88,7 +88,7 @@
             <div class="px-4 py-3" style="background-color: #fdeded; border-left: 5px solid #c0392b;">
                 <p class="mb-2 text-danger fw-semibold">
                     <i class="bi bi-info-circle me-1"></i>
-                    {{ "Tolong perbaiki bagian ini dulu:" }}
+                    {{ 'Tolong perbaiki bagian ini dulu:' }}
                 </p>
                 <ul class="mb-0 ps-3">
                     @foreach ($errors->all() as $error)
@@ -172,13 +172,14 @@
                     </div>
                     <div class="flex-1">
                         <h3 class="text-base font-bold text-orange-700">
-                            {{ "Faktur Penjualan" }} {{ $action === 'delete' ? "Tidak Dapat Dihapus" : "Tidak Dapat Diedit" }}
+                            {{ 'Faktur Penjualan' }}
+                            {{ $action === 'delete' ? 'Tidak Dapat Dihapus' : 'Tidak Dapat Diedit' }}
                         </h3>
                         <p class="text-sm text-orange-500 mt-0.5">{{ $usageLockMessage }}</p>
                     </div>
                     <button type="button" @click="open = false"
                         class="flex-shrink-0 w-8 h-8 rounded-full bg-orange-100 hover:bg-orange-200 flex items-center justify-center transition-colors"
-                        title="{{ "Tutup" }}">
+                        title="{{ 'Tutup' }}">
                         <x-heroicon-o-x-mark class="w-4 h-4 text-orange-600" />
                     </button>
                 </div>
@@ -186,7 +187,7 @@
                     <button type="button" @click="open = false"
                         class="bg-gray-500 text-white px-6 py-2 rounded hover:bg-gray-600 flex items-center gap-2">
                         <x-heroicon-o-arrow-left class="w-5 h-5" />
-                        {{ "Tutup" }}
+                        {{ 'Tutup' }}
                     </button>
                 </div>
             </div>
@@ -462,8 +463,7 @@
 
                                     <!-- Nama Produk (readonly) -->
                                     <td class="p-2">
-                                        <div
-                                            class="w-full border rounded px-2 py-1 bg-gray-100 text-gray-600 text-sm leading-5 whitespace-normal break-words"
+                                        <div class="w-full border rounded px-2 py-1 bg-gray-100 text-gray-600 text-sm leading-5 whitespace-normal break-words"
                                             x-text="editRow.fitemname"></div>
                                     </td>
 
@@ -505,8 +505,7 @@
                                                     "
                                             @keydown.enter.prevent="$refs.editTerima?.focus()">
                                         <div class="text-xs text-gray-400 mt-0.5 text-right">
-                                            <span x-show="editRow.fitemcode"
-                                                x-html="formatStockLimit(editRow)"></span>
+                                            <span x-show="editRow.fitemcode" x-html="formatStockLimit(editRow)"></span>
                                         </div>
                                     </td>
 
@@ -668,15 +667,15 @@
                         </div>
 
                         {{-- MODAL ERROR: belum ada item --}}
-                <div x-show="showNoItems && savedItems.length === 0" x-cloak
-                    class="fixed inset-0 z-[90] flex items-center justify-center" x-transition.opacity>
+                        <div x-show="showNoItems && savedItems.length === 0" x-cloak
+                            class="fixed inset-0 z-[90] flex items-center justify-center" x-transition.opacity>
                             <div class="absolute inset-0 bg-black/50" @click="showNoItems=false"></div>
 
                             <div class="relative bg-white w-[92vw] max-w-md rounded-2xl shadow-2xl overflow-hidden"
                                 x-transition.scale>
                                 <div class="px-5 py-4 border-b flex items-center">
                                     <x-heroicon-o-exclamation-triangle class="w-6 h-6 text-red-500 mr-2" />
-                                    <h3 class="text-lg font-semibold text-gray-800">{{ "Tidak Ada Item" }}</h3>
+                                    <h3 class="text-lg font-semibold text-gray-800">{{ 'Tidak Ada Item' }}</h3>
                                 </div>
 
                                 <div class="px-5 py-4">
@@ -699,14 +698,18 @@
                     </div>
 
                     @php
-                        $canApproval = in_array('approveFakturPenjualan', explode(',', session('user_restricted_permissions', '')));
+                        $canApproval = in_array(
+                            'approveFakturPenjualan',
+                            explode(',', session('user_restricted_permissions', '')),
+                        );
                     @endphp
 
                     @if ($canApproval)
-                        <div class="mt-6 mx-auto max-w-2xl rounded-lg border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-700">
+                        <div
+                            class="mt-6 mx-auto max-w-2xl rounded-lg border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-700">
                             <div class="font-semibold">Status Persetujuan Kredit</div>
                             <div class="mt-1">
-                                {{ !empty($invoice->fuseracc) ? 'Sudah disetujui oleh: '.$invoice->fuseracc : 'Belum ada persetujuan kredit pada transaksi ini.' }}
+                                {{ !empty($invoice->fuseracc) ? 'Sudah disetujui oleh: ' . $invoice->fuseracc : 'Belum ada persetujuan kredit pada transaksi ini.' }}
                             </div>
                         </div>
                     @endif
@@ -738,8 +741,8 @@
                     {{-- MODE EDIT: FORM EDITABLE                    --}}
                     {{-- ============================================ --}}
                 @else
-                    <form id="invoiceForm" action="{{ route('invoice.update', parameters: $invoice->ftranmtid) }}" method="POST"
-                        class="mt-6" data-tranmtid="{{ $invoice->ftranmtid }}" x-data="{ showNoItems: false }"
+                    <form id="invoiceForm" action="{{ route('invoice.update', parameters: $invoice->ftranmtid) }}"
+                        method="POST" class="mt-6" data-tranmtid="{{ $invoice->ftranmtid }}" x-data="{ showNoItems: false }"
                         @submit.prevent="
         const n = Number(document.getElementById('itemsCount')?.value || 0);
         if (n < 1) { showNoItems = true } else { window.invoiceCreditApprovalGuard($el).then(ok => { if (ok) $el.submit() }) }
@@ -972,7 +975,8 @@
                             <h3 class="text-base font-semibold text-gray-800">Detail Item</h3>
 
                             <div class="overflow-auto border rounded">
-                                <table class="min-w-full text-sm balanced-detail-table" data-skip-auto-detail-style="true">
+                                <table class="min-w-full text-sm balanced-detail-table"
+                                    data-skip-auto-detail-style="true">
                                     <colgroup>
                                         <col style="width:2%;">
                                         <col style="width:16%;">
@@ -1012,8 +1016,7 @@
                                                 <!-- Nama Produk -->
                                                 <td class="p-2">
                                                     <div class="flex w-full max-w-full">
-                                                        <div
-                                                            class="min-w-0 flex-1 rounded-l border bg-gray-100 px-2 py-1 text-sm leading-5 text-gray-600 whitespace-normal break-words"
+                                                        <div class="min-w-0 flex-1 rounded-l border bg-gray-100 px-2 py-1 text-sm leading-5 text-gray-600 whitespace-normal break-words"
                                                             x-text="it.fitemname"></div>
                                                         <button type="button" @click="openDesc(it)"
                                                             class="shrink-0 inline-flex items-center border border-l-0 rounded-r bg-slate-50 px-2 py-1 text-slate-700 hover:bg-slate-100"
@@ -1058,8 +1061,7 @@
                                                                 recalc(it);
                                                             ">
                                                     <div class="text-xs text-gray-400 mt-0.5 text-right">
-                                                        <span x-show="it.fitemcode"
-                                                            x-html="formatStockLimit(it)"></span>
+                                                        <span x-show="it.fitemcode" x-html="formatStockLimit(it)"></span>
                                                     </div>
                                                 </td>
 
@@ -1140,8 +1142,7 @@
                                             <!-- Nama Produk (readonly) -->
                                             <td class="p-2">
                                                 <div class="flex w-full max-w-full">
-                                                    <div
-                                                        class="min-w-0 flex-1 rounded-l border bg-gray-100 px-2 py-1 text-sm leading-5 text-gray-600 whitespace-normal break-words"
+                                                    <div class="min-w-0 flex-1 rounded-l border bg-gray-100 px-2 py-1 text-sm leading-5 text-gray-600 whitespace-normal break-words"
                                                         x-text="draft.fitemname"></div>
                                                     <button type="button" @click="openDesc(draft)"
                                                         class="shrink-0 inline-flex items-center border border-l-0 rounded-r bg-slate-50 px-2 py-1 text-slate-700 hover:bg-slate-100"
@@ -1253,11 +1254,12 @@
                                                 <div
                                                     class="px-6 py-4 border-b border-gray-200 flex items-center justify-between flex-shrink-0 bg-gradient-to-r from-indigo-50 to-white">
                                                     <div>
-                                                        <h3 class="text-xl font-bold text-gray-800">{{ "Pilih Surat Jalan" }}</h3>
+                                                        <h3 class="text-xl font-bold text-gray-800">
+                                                            {{ 'Pilih Surat Jalan' }}</h3>
                                                     </div>
                                                     <button type="button" @click="closeSrjModal()"
                                                         class="px-4 py-2 rounded-lg border-2 border-gray-300 bg-white hover:bg-gray-50 hover:border-gray-400 transition-all duration-150 font-bold text-gray-700 text-sm">
-                                                        {{ "Tutup" }}
+                                                        {{ 'Tutup' }}
                                                     </button>
                                                 </div>
 
@@ -1274,19 +1276,19 @@
                                                                 <tr class="bg-gradient-to-r from-gray-50 to-gray-100">
                                                                     <th
                                                                         class="text-left p-3 font-semibold text-gray-700 border-b-2 border-gray-200">
-                                                                        {{ "No.Transaksi" }}</th>
+                                                                        {{ 'No.Transaksi' }}</th>
                                                                     <th
                                                                         class="text-left p-3 font-semibold text-gray-700 border-b-2 border-gray-200">
-                                                                        {{ "No.Ref" }}</th>
+                                                                        {{ 'No.Ref' }}</th>
                                                                     <th
                                                                         class="text-left p-3 font-semibold text-gray-700 border-b-2 border-gray-200">
-                                                                        {{ "Tanggal" }}</th>
+                                                                        {{ 'Tanggal' }}</th>
                                                                     <th
                                                                         class="text-left p-3 font-semibold text-gray-700 border-b-2 border-gray-200">
-                                                                        {{ "Customer" }}</th>
+                                                                        {{ 'Customer' }}</th>
                                                                     <th
                                                                         class="text-center p-3 font-semibold text-gray-700 border-b-2 border-gray-200">
-                                                                        {{ "Aksi" }}</th>
+                                                                        {{ 'Aksi' }}</th>
                                                                 </tr>
                                                             </thead>
                                                             <tbody></tbody>
@@ -1306,11 +1308,14 @@
                                             <div
                                                 class="relative bg-white w-[92vw] max-w-md rounded-2xl shadow-2xl overflow-hidden">
                                                 <div class="px-5 py-4 border-b flex items-center gap-2 bg-amber-50">
-                                                    <h3 class="text-lg font-semibold text-gray-800">{{ "Item Duplikat Surat Jalan" }}</h3>
+                                                    <h3 class="text-lg font-semibold text-gray-800">
+                                                        {{ 'Item Duplikat Surat Jalan' }}</h3>
                                                 </div>
                                                 <div class="px-5 py-4">
                                                     <p class="text-sm text-gray-700 mb-3">
-                                                        {{ Str::before("Ditemukan :count item yang sudah ada dalam daftar. Hanya item unik yang akan ditambahkan.", '__COUNT__') }}<span x-text="dupCount" class="font-bold"></span>{{ Str::after("Ditemukan :count item yang sudah ada dalam daftar. Hanya item unik yang akan ditambahkan.", '__COUNT__') }}
+                                                        {{ Str::before('Ditemukan :count item yang sudah ada dalam daftar. Hanya item unik yang akan ditambahkan.', '__COUNT__') }}<span
+                                                            x-text="dupCount"
+                                                            class="font-bold"></span>{{ Str::after('Ditemukan :count item yang sudah ada dalam daftar. Hanya item unik yang akan ditambahkan.', '__COUNT__') }}
                                                     </p>
                                                     <div
                                                         class="rounded-lg border border-amber-200 bg-amber-50 max-h-40 overflow-auto">
@@ -1324,9 +1329,9 @@
                                                 </div>
                                                 <div class="px-5 py-3 border-t bg-gray-50 flex justify-end gap-2">
                                                     <button type="button" @click="closeDupModal()"
-                                                        class="px-4 py-2 border rounded-lg">{{ "Batal" }}</button>
+                                                        class="px-4 py-2 border rounded-lg">{{ 'Batal' }}</button>
                                                     <button type="button" @click="confirmAddUniques()"
-                                                        class="px-4 py-2 bg-indigo-600 text-white rounded-lg">{{ "Tambahkan Sisa Item" }}</button>
+                                                        class="px-4 py-2 bg-indigo-600 text-white rounded-lg">{{ 'Tambahkan Sisa Item' }}</button>
                                                 </div>
                                             </div>
                                         </div>
@@ -1340,7 +1345,7 @@
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
                                                     d="M12 4.5v15m7.5-7.5h-15" />
                                             </svg>
-                                            {{ "Tambah SO" }}
+                                            {{ 'Tambah SO' }}
                                         </button>
 
                                         <div x-show="show" x-cloak x-transition.opacity
@@ -1354,12 +1359,14 @@
                                                 <div
                                                     class="px-6 py-4 border-b border-gray-200 flex items-center justify-between flex-shrink-0 bg-gradient-to-r from-teal-50 to-white">
                                                     <div>
-                                                        <h3 class="text-xl font-bold text-gray-800">{{ "Pilih Sales Order" }}</h3>
-                                                        <p class="text-sm text-gray-500 mt-0.5">{{ "Pilih Sales Order yang diinginkan" }}</p>
+                                                        <h3 class="text-xl font-bold text-gray-800">
+                                                            {{ 'Pilih Sales Order' }}</h3>
+                                                        <p class="text-sm text-gray-500 mt-0.5">
+                                                            {{ 'Pilih Sales Order yang diinginkan' }}</p>
                                                     </div>
                                                     <button type="button" @click="closeModal()"
                                                         class="px-4 py-2 rounded-lg border-2 border-gray-300 bg-white hover:bg-gray-50 hover:border-gray-400 transition-all duration-150 font-bold text-gray-700 text-sm">
-                                                        {{ "Tutup" }}
+                                                        {{ 'Tutup' }}
                                                     </button>
                                                 </div>
 
@@ -1376,16 +1383,16 @@
                                                                 <tr class="bg-gradient-to-r from-gray-50 to-gray-100">
                                                                     <th
                                                                         class="text-left p-3 font-semibold text-gray-700 border-b-2 border-gray-200">
-                                                                        {{ "No.SO" }}</th>
+                                                                        {{ 'No.SO' }}</th>
                                                                     <th
                                                                         class="text-left p-3 font-semibold text-gray-700 border-b-2 border-gray-200">
-                                                                        {{ "No.Ref" }}</th>
+                                                                        {{ 'No.Ref' }}</th>
                                                                     <th
                                                                         class="text-left p-3 font-semibold text-gray-700 border-b-2 border-gray-200">
-                                                                        {{ "Tanggal" }}</th>
+                                                                        {{ 'Tanggal' }}</th>
                                                                     <th
                                                                         class="text-center p-3 font-semibold text-gray-700 border-b-2 border-gray-200">
-                                                                        {{ "Aksi" }}</th>
+                                                                        {{ 'Aksi' }}</th>
                                                                 </tr>
                                                             </thead>
                                                             <tbody></tbody>
@@ -1412,7 +1419,8 @@
                                                             stroke-width="2"
                                                             d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
                                                     </svg>
-                                                    <h3 class="text-lg font-semibold text-gray-800">{{ "Item Duplikat Ditemukan" }}</h3>
+                                                    <h3 class="text-lg font-semibold text-gray-800">
+                                                        {{ 'Item Duplikat Ditemukan' }}</h3>
                                                 </div>
 
                                                 <div class="px-5 py-4 space-y-3">
@@ -1427,7 +1435,7 @@
                                                     <div class="rounded-lg border border-amber-200 bg-amber-50">
                                                         <div
                                                             class="px-3 py-2 border-b border-amber-200 text-sm font-bold text-gray-800">
-                                                            {{ "Preview Item Duplikat" }}
+                                                            {{ 'Preview Item Duplikat' }}
                                                         </div>
                                                         <ul class="max-h-40 overflow-auto divide-y divide-amber-100">
                                                             <template x-for="d in dupSample"
@@ -1445,7 +1453,7 @@
                                                             </template>
                                                             <template x-if="dupCount === 0">
                                                                 <li class="px-3 py-2 text-sm text-gray-500 text-center">
-                                                                    {{ "Tidak ada contoh." }}</li>
+                                                                    {{ 'Tidak ada contoh.' }}</li>
                                                             </template>
                                                         </ul>
                                                     </div>
@@ -1455,7 +1463,7 @@
                                                     class="px-5 py-3 border-t bg-gray-50 flex items-center justify-end gap-2">
                                                     <button type="button" @click="closeDupModal()"
                                                         class="h-9 px-4 rounded-lg border-2 border-gray-300 text-gray-700 text-sm font-bold hover:bg-gray-100 transition-colors">
-                                                        {{ "Batal" }}
+                                                        {{ 'Batal' }}
                                                     </button>
                                                 </div>
                                             </div>
@@ -1593,7 +1601,7 @@
                                     x-transition.scale>
                                     <div class="px-5 py-4 border-b flex items-center">
                                         <x-heroicon-o-exclamation-triangle class="w-6 h-6 text-red-500 mr-2" />
-                                        <h3 class="text-lg font-semibold text-gray-800">{{ "Tidak Ada Item" }}</h3>
+                                        <h3 class="text-lg font-semibold text-gray-800">{{ 'Tidak Ada Item' }}</h3>
                                     </div>
 
                                     <div class="px-5 py-4">
@@ -1609,41 +1617,42 @@
                                     <div class="px-5 py-3 border-t flex items-center justify-end gap-2">
                                         <button type="button" @click="showNoItems=false"
                                             class="h-9 px-4 rounded-lg bg-blue-600 text-white text-sm font-medium hover:bg-blue-700">
-                                            {{ "OK" }}
+                                            {{ 'OK' }}
                                         </button>
-                        </div>
-                    </div>
-                </div>
+                                    </div>
+                                </div>
+                            </div>
 
-                <div x-show="showCustomerRequired" x-cloak class="fixed inset-0 z-[94] flex items-center justify-center"
-                    x-transition.opacity>
-                    <div class="absolute inset-0 bg-black/50" @click="showCustomerRequired = false"></div>
+                            <div x-show="showCustomerRequired" x-cloak
+                                class="fixed inset-0 z-[94] flex items-center justify-center" x-transition.opacity>
+                                <div class="absolute inset-0 bg-black/50" @click="showCustomerRequired = false"></div>
 
-                    <div class="relative bg-white w-[92vw] max-w-md rounded-2xl shadow-2xl overflow-hidden"
-                        x-transition.scale>
-                        <div class="px-5 py-4 border-b flex items-center">
-                            <x-heroicon-o-exclamation-triangle class="w-6 h-6 text-amber-500 mr-2" />
-                            <h3 class="text-lg font-semibold text-gray-800">{{ "Pilih Customer Dulu" }}</h3>
-                        </div>
+                                <div class="relative bg-white w-[92vw] max-w-md rounded-2xl shadow-2xl overflow-hidden"
+                                    x-transition.scale>
+                                    <div class="px-5 py-4 border-b flex items-center">
+                                        <x-heroicon-o-exclamation-triangle class="w-6 h-6 text-amber-500 mr-2" />
+                                        <h3 class="text-lg font-semibold text-gray-800">{{ 'Pilih Customer Dulu' }}</h3>
+                                    </div>
 
-                        <div class="px-5 py-4">
-                            <p class="text-sm text-gray-700">
-                                Customer wajib dipilih sebelum input produk manual. Untuk Tambah SO atau Add SRJ,
-                                customer tidak wajib dipilih terlebih dahulu.
-                            </p>
-                        </div>
+                                    <div class="px-5 py-4">
+                                        <p class="text-sm text-gray-700">
+                                            Customer wajib dipilih sebelum input produk manual. Untuk Tambah SO atau Add
+                                            SRJ,
+                                            customer tidak wajib dipilih terlebih dahulu.
+                                        </p>
+                                    </div>
 
-                        <div class="px-5 py-3 border-t flex items-center justify-end gap-2">
-                            <button type="button"
-                                @click="showCustomerRequired = false; document.getElementById('modal_filter_customer_id')?.focus()"
-                                class="h-9 px-4 rounded-lg bg-blue-600 text-white text-sm font-medium hover:bg-blue-700">
-                                {{ "OK" }}
-                            </button>
-                        </div>
-                    </div>
-                </div>
+                                    <div class="px-5 py-3 border-t flex items-center justify-end gap-2">
+                                        <button type="button"
+                                            @click="showCustomerRequired = false; document.getElementById('modal_filter_customer_id')?.focus()"
+                                            class="h-9 px-4 rounded-lg bg-blue-600 text-white text-sm font-medium hover:bg-blue-700">
+                                            {{ 'OK' }}
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
 
-                <x-transaction.browse-customer-modal />
+                            <x-transaction.browse-customer-modal />
 
                             <x-transaction.browse-salesman-modal />
 
@@ -1846,9 +1855,9 @@
         };
     }
 
-    window.INVOICE_CUSTOMER_FP_MAP = @json(collect($customers)->mapWithKeys(fn ($customer) => [
-        (string) $customer->fcustomercode => (string) ($customer->fkodefp ?? ''),
-    ]));
+    window.INVOICE_CUSTOMER_FP_MAP = @json(collect($customers)->mapWithKeys(fn($customer) => [
+                (string) $customer->fcustomercode => (string) ($customer->fkodefp ?? ''),
+            ]));
 
     window.syncInvoiceCustomerTaxCode = function(explicitValue = null) {
         const kodeFpInput = document.getElementById('invoiceFkodefp');
@@ -1918,10 +1927,11 @@
 
             const payload = await response.json();
             if (!response.ok) {
-                const message = payload?.message || Object.values(payload?.errors || {}).flat().join('\n') || @json("Gagal cek limit customer.");
+                const message = payload?.message || Object.values(payload?.errors || {}).flat().join('\n') ||
+                    @json('Gagal cek limit customer.');
                 await Swal.fire({
                     icon: 'error',
-                    title: @json("Cek Customer Gagal"),
+                    title: @json('Cek Customer Gagal'),
                     html: `<div class="text-left whitespace-pre-line">${message}</div>`
                 });
                 return false;
@@ -1936,19 +1946,19 @@
             if (limitCheck.enabled && limitCheck.exceeded) {
                 const confirmed = await Swal.fire({
                     icon: 'warning',
-                    title: @json("Limit Piutang Terlampaui"),
+                    title: @json('Limit Piutang Terlampaui'),
                     html: `
                         <div class="text-left text-sm">
-                            <div>${@json("Total piutang berjalan")}: <strong>${Number(limitCheck.outstanding_total || 0).toLocaleString('id-ID')}</strong></div>
-                            <div>${@json("Nilai transaksi ini")}: <strong>${Number(limitCheck.transaction_amount || 0).toLocaleString('id-ID')}</strong></div>
-                            <div>${@json("Limit customer")}: <strong>${Number(limitCheck.limit || 0).toLocaleString('id-ID')}</strong></div>
-                            <div>${@json("Total setelah transaksi")}: <strong>${Number(limitCheck.projected_total || 0).toLocaleString('id-ID')}</strong></div>
-                            <div class="mt-3">${@json("Transaksi ini membutuhkan persetujuan kredit. Lanjutkan?")}</div>
+                            <div>${@json('Total piutang berjalan')}: <strong>${Number(limitCheck.outstanding_total || 0).toLocaleString('id-ID')}</strong></div>
+                            <div>${@json('Nilai transaksi ini')}: <strong>${Number(limitCheck.transaction_amount || 0).toLocaleString('id-ID')}</strong></div>
+                            <div>${@json('Limit customer')}: <strong>${Number(limitCheck.limit || 0).toLocaleString('id-ID')}</strong></div>
+                            <div>${@json('Total setelah transaksi')}: <strong>${Number(limitCheck.projected_total || 0).toLocaleString('id-ID')}</strong></div>
+                            <div class="mt-3">${@json('Transaksi ini membutuhkan persetujuan kredit. Lanjutkan?')}</div>
                         </div>
                     `,
                     showCancelButton: true,
-                    confirmButtonText: @json("Ya"),
-                    cancelButtonText: @json("Tidak")
+                    confirmButtonText: @json('Ya'),
+                    cancelButtonText: @json('Tidak')
                 });
 
                 if (!confirmed.isConfirmed) {
@@ -1959,7 +1969,7 @@
                 if (!canApprove) {
                     await Swal.fire({
                         icon: 'error',
-                        title: @json("Persetujuan Kredit Ditolak"),
+                        title: @json('Persetujuan Kredit Ditolak'),
                         html: `
                             <div class="text-left text-sm">
                                 <div class="font-medium mb-2">Persetujuan diperlukan:</div>
@@ -1986,17 +1996,17 @@
 
                 const confirmed = await Swal.fire({
                     icon: 'warning',
-                    title: @json("Ada Nota Lewat Jatuh Tempo"),
+                    title: @json('Ada Nota Lewat Jatuh Tempo'),
                     html: `
                         <div class="text-left text-sm">
-                            <div>${@json("Customer punya nota yang lewat jatuh tempo lebih dari")} <strong>${overdueCheck.max_tempo || 0}</strong> ${@json("hari.")}</div>
+                            <div>${@json('Customer punya nota yang lewat jatuh tempo lebih dari')} <strong>${overdueCheck.max_tempo || 0}</strong> ${@json('hari.')}</div>
                             <ul class="mt-3 list-disc pl-5">${overdueHtml}</ul>
-                            <div class="mt-3">${@json("Transaksi ini membutuhkan persetujuan kredit. Lanjutkan?")}</div>
+                            <div class="mt-3">${@json('Transaksi ini membutuhkan persetujuan kredit. Lanjutkan?')}</div>
                         </div>
                     `,
                     showCancelButton: true,
-                    confirmButtonText: @json("Ya"),
-                    cancelButtonText: @json("Tidak")
+                    confirmButtonText: @json('Ya'),
+                    cancelButtonText: @json('Tidak')
                 });
 
                 if (!confirmed.isConfirmed) {
@@ -2007,7 +2017,7 @@
                 if (!canApprove) {
                     await Swal.fire({
                         icon: 'error',
-                        title: @json("Persetujuan Kredit Ditolak"),
+                        title: @json('Persetujuan Kredit Ditolak'),
                         html: `
                             <div class="text-left text-sm">
                                 <div class="font-medium mb-2">Persetujuan diperlukan:</div>
@@ -2029,7 +2039,7 @@
         } catch (error) {
             await Swal.fire({
                 icon: 'error',
-                title: @json("Pemeriksaan Persetujuan Gagal"),
+                title: @json('Pemeriksaan Persetujuan Gagal'),
                 html: `<div class="text-left whitespace-pre-line">@json("Gagal memeriksa persetujuan customer.\nSilakan coba lagi.")</div>`
             });
             return false;
@@ -2079,7 +2089,7 @@
     function itemsTable() {
         return {
             showNoItems: false,
-            savedItems: @json(count($initialEditInvoiceItems) ? $initialEditInvoiceItems : ($savedItems ?? [])),
+            savedItems: @json(count($initialEditInvoiceItems) ? $initialEditInvoiceItems : $savedItems ?? []),
             draft: newRow(),
             showDescModal: false,
             descValue: '',
@@ -2277,7 +2287,8 @@
                 const qty = Number(row?.fqty ?? 0);
                 if (qty > limit) {
                     row.fqty = limit;
-                    if (showToast) window.toast?.error(`Jumlah melebihi sisa referensi. Maksimal ${limit} ${row.fsatuan || ''}`.trim());
+                    if (showToast) window.toast?.error(
+                        `Jumlah melebihi sisa referensi. Maksimal ${limit} ${row.fsatuan || ''}`.trim());
                 }
 
                 return Number(row?.fqty ?? 0) > 0;
@@ -2332,7 +2343,8 @@
             },
 
             getSelectedCustomerCode() {
-                return (document.getElementById('customerCodeHidden')?.value || document.getElementById('modal_filter_customer_id')?.value || '').trim();
+                return (document.getElementById('customerCodeHidden')?.value || document.getElementById(
+                    'modal_filter_customer_id')?.value || '').trim();
             },
 
             requireCustomerBeforeManualProduct() {
@@ -2374,7 +2386,9 @@
                 const used = new Set(this.savedItems.map(item => this.normalizeNoAcak(item.fnoacak)).filter(Boolean));
                 let candidate = '';
                 do {
-                    candidate = Array.from({ length: 3 }, () => '123456789'[Math.floor(Math.random() * 9)]).join('');
+                    candidate = Array.from({
+                        length: 3
+                    }, () => '123456789' [Math.floor(Math.random() * 9)]).join('');
                 } while (used.has(candidate));
                 return candidate;
             },
@@ -2410,7 +2424,8 @@
                         frefsrj: source === 'SRJ' ? (header?.fstockmtno ?? '') : '',
                         fnoacak: this.generateUniqueNoAcak(),
                         frefnoacak: this.normalizeRefNoAcak(src.frefnoacak ?? src.fnoacak ?? ''),
-                        fqty: (src.fqty !== null && src.fqty !== undefined && Number(src.fqty) > 0) ? Number(src.fqty) : 1,
+                        fqty: (src.fqty !== null && src.fqty !== undefined && Number(src.fqty) > 0) ?
+                            Number(src.fqty) : 1,
                         fprice: Number(src.fprice ?? src.fharga ?? 0),
                         ftotal: 0,
                         fdesc: src.fdesc ? src.fdesc.toString().trim() : '',
@@ -2429,7 +2444,7 @@
                     added++;
                 });
 
-                if (added > 0) window.toast?.success(@json("Berhasil menambahkan :count item").replace('__COUNT__', added));
+                if (added > 0) window.toast?.success(@json('Berhasil menambahkan :count item').replace('__COUNT__', added));
                 this.recalcTotals();
             },
 
@@ -2601,27 +2616,27 @@
             showCustomerRequired: false,
         };
 
-    function newRow() {
-        return {
-            uid: null,
-            fitemcode: '',
-            fitemname: '',
-            units: [],
-            fsatuan: '',
-            frefdtno: '',
-            frefno_display: '',
-            frefcode: '',
-            frefpr: '',
-            fnoacak: '',
-            frefnoacak: '',
+        function newRow() {
+            return {
+                uid: null,
+                fitemcode: '',
+                fitemname: '',
+                units: [],
+                fsatuan: '',
+                frefdtno: '',
+                frefno_display: '',
+                frefcode: '',
+                frefpr: '',
+                fnoacak: '',
+                frefnoacak: '',
                 fqty: 0,
                 maxqty: 0,
                 fprice: 0,
-            fdisc: 0,
-            ftotal: 0,
-            fdesc: '',
-        };
-    }
+                fdisc: 0,
+                ftotal: 0,
+                fdesc: '',
+            };
+        }
 
         function cryptoRandom() {
             return (window.crypto?.getRandomValues ? [...window.crypto.getRandomValues(new Uint32Array(2))].map(n => n
@@ -2722,7 +2737,7 @@
                             className: 'text-center',
                             render: function(data, type, row) {
                                 // Menggunakan styling yang lebih seragam
-                                return '<button type="button" class="btn-pick px-4 py-1.5 rounded-md text-sm font-medium bg-blue-600 hover:bg-blue-700 text-white transition-colors duration-150">{{ "Pilih" }}</button>';
+                                return '<button type="button" class="btn-pick px-4 py-1.5 rounded-md text-sm font-medium bg-blue-600 hover:bg-blue-700 text-white transition-colors duration-150">{{ 'Pilih' }}</button>';
                             }
                         }
                     ],
@@ -2735,19 +2750,19 @@
                     dom: '<"flex justify-between items-center mb-4"f<"ml-auto"l>>rtip',
 
                     language: {
-                        processing: @json("Memuat data..."),
-                        search: @json("Search" . ':'),
-                        lengthMenu: @json("Tampilkan _MENU_"),
-                        info: @json("Menampilkan _START_ - _END_ dari _TOTAL_ data"),
-                        infoEmpty: @json("Tidak ada data"),
-                        infoFiltered: @json("(disaring dari _MAX_ total data)"),
-                        zeroRecords: @json("Tidak ada data yang ditemukan"),
-                        emptyTable: @json("Tidak ada data tersedia"),
+                        processing: @json('Memuat data...'),
+                        search: @json('Search' . ':'),
+                        lengthMenu: @json('Tampilkan _MENU_'),
+                        info: @json('Menampilkan _START_ - _END_ dari _TOTAL_ data'),
+                        infoEmpty: @json('Tidak ada data'),
+                        infoFiltered: @json('(disaring dari _MAX_ total data)'),
+                        zeroRecords: @json('Tidak ada data yang ditemukan'),
+                        emptyTable: @json('Tidak ada data tersedia'),
                         paginate: {
-                            first: @json("Pertama"),
-                            last: @json("Terakhir"),
-                            next: @json("Selanjutnya"),
-                            previous: @json("Sebelumnya")
+                            first: @json('Pertama'),
+                            last: @json('Terakhir'),
+                            next: @json('Selanjutnya'),
+                            previous: @json('Sebelumnya')
                         }
                     },
                     order: [
@@ -2854,7 +2869,7 @@
                     console.error(e);
                     // Menggunakan custom alert/modal, bukan alert() bawaan browser
                     // Idealnya: tampilkan notifikasi di UI
-                    console.log(@json("Gagal mengambil detail PR."));
+                    console.log(@json('Gagal mengambil detail PR.'));
                 }
             }
         };
@@ -2880,6 +2895,9 @@
     @include('components.transaction.browse-salesman-script')
     @include('components.transaction.invoice-so-modal-script')
     @include('components.transaction.invoice-srj-modal-script')
-    @include('components.transaction.browse-product-script', ['showControls' => true, 'showPagination' => true, 'supportsForEdit' => true])
-
+    @include('components.transaction.browse-product-script', [
+        'showControls' => true,
+        'showPagination' => true,
+        'supportsForEdit' => true,
+    ])
 @endpush

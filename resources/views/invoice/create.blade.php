@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', "Faktur Penjualan")
+@section('title', 'Faktur Penjualan')
 
 @section('content')
     @php
@@ -133,7 +133,7 @@
             {{-- Header Strip --}}
             <div class="d-flex align-items-center px-4 py-3" style="background-color: #c0392b;">
                 <i class="bi bi-exclamation-triangle-fill text-white me-2 fs-5"></i>
-                <strong class="text-white fs-6">{{ "Data Belum Bisa Disimpan" }}</strong>
+                <strong class="text-white fs-6">{{ 'Data Belum Bisa Disimpan' }}</strong>
                 <button type="button" class="btn-close btn-close-white ms-auto" data-bs-dismiss="alert"
                     aria-label="Close"></button>
             </div>
@@ -142,7 +142,7 @@
             <div class="px-4 py-3" style="background-color: #fdeded; border-left: 5px solid #c0392b;">
                 <p class="mb-2 text-danger fw-semibold">
                     <i class="bi bi-info-circle me-1"></i>
-                    {{ "Tolong perbaiki bagian ini dulu:" }}
+                    {{ 'Tolong perbaiki bagian ini dulu:' }}
                 </p>
                 <ul class="mb-0 ps-3">
                     @foreach ($errors->all() as $error)
@@ -157,8 +157,8 @@
     @endif
     <div x-data="{ open: true }">
         <div class="bg-white rounded shadow p-6 md:p-8 max-w-[96rem] mx-auto">
-            <form id="invoiceForm" action="{{ route('invoice.store') }}" method="POST" class="mt-6" data-form-draft="true"
-                data-draft-key="invoice:create" data-tranmtid="" x-data="{ showNoItems: false }"
+            <form id="invoiceForm" action="{{ route('invoice.store') }}" method="POST" class="mt-6"
+                data-form-draft="true" data-draft-key="invoice:create" data-tranmtid="" x-data="{ showNoItems: false }"
                 @submit.prevent="
         const n = Number(document.getElementById('itemsCount')?.value || 0);
         if (n < 1) { showNoItems = true } else { window.invoiceCreditApprovalGuard($el).then(ok => { if (ok) $el.submit() }) }
@@ -245,7 +245,8 @@
                                 <x-heroicon-o-magnifying-glass class="w-5 h-5" />
                             </button>
                             <a href="{{ route('customer.create') }}" target="_blank" rel="noopener"
-                                class="border -ml-px rounded-r px-3 py-2 bg-white hover:bg-gray-50" title="Tambah Customer">
+                                class="border -ml-px rounded-r px-3 py-2 bg-white hover:bg-gray-50"
+                                title="Tambah Customer">
                                 <x-heroicon-o-plus class="w-5 h-5" />
                             </a>
                         </div>
@@ -256,8 +257,7 @@
 
                     <div class="lg:col-span-4">
                         <label class="block text-sm font-medium">Kode FP</label>
-                        <input type="text" name="fkodefp" id="invoiceFkodefp" value="{{ old('fkodefp') }}"
-                            readonly
+                        <input type="text" name="fkodefp" id="invoiceFkodefp" value="{{ old('fkodefp') }}" readonly
                             class="w-full border rounded px-3 py-2 bg-gray-100 @error('fkodefp') border-red-500 @enderror">
                         @error('fkodefp')
                             <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
@@ -406,8 +406,7 @@
                                         <td class="p-2 font-mono text-xs" x-text="it.fitemcode"></td>
                                         <td class="p-2">
                                             <div class="flex w-full max-w-full">
-                                                <div
-                                                    class="min-w-0 flex-1 rounded-l border bg-gray-100 px-2 py-1 text-sm leading-5 text-gray-600 whitespace-normal break-words"
+                                                <div class="min-w-0 flex-1 rounded-l border bg-gray-100 px-2 py-1 text-sm leading-5 text-gray-600 whitespace-normal break-words"
                                                     x-text="it.fitemname"></div>
                                                 <button type="button" @click="openDesc(it)"
                                                     class="shrink-0 inline-flex items-center border border-l-0 rounded-r bg-slate-50 px-2 py-1 text-slate-700 hover:bg-slate-100"
@@ -443,8 +442,7 @@
                                                         recalc(it);
                                                     ">
                                             <div class="text-xs text-gray-400 mt-0.5 text-right">
-                                                <span x-show="it.fitemcode"
-                                                    x-html="formatStockLimit(it)"></span>
+                                                <span x-show="it.fitemcode" x-html="formatStockLimit(it)"></span>
                                             </div>
                                         </td>
 
@@ -523,8 +521,7 @@
                                     <!-- Nama Produk (readonly) -->
                                     <td class="p-2">
                                         <div class="flex w-full max-w-full">
-                                            <div
-                                                class="min-w-0 flex-1 rounded-l border bg-gray-100 px-2 py-1 text-sm leading-5 text-gray-600 whitespace-normal break-words"
+                                            <div class="min-w-0 flex-1 rounded-l border bg-gray-100 px-2 py-1 text-sm leading-5 text-gray-600 whitespace-normal break-words"
                                                 x-text="draft.fitemname"></div>
                                             <button type="button" @click="openDesc(draft)"
                                                 class="shrink-0 inline-flex items-center border border-l-0 rounded-r bg-slate-50 px-2 py-1 text-slate-700 hover:bg-slate-100"
@@ -572,8 +569,7 @@
                                                 "
                                             @keydown.enter.prevent="$refs.draftPrice?.focus()">
                                         <div class="text-xs text-gray-400 mt-0.5 text-right">
-                                            <span x-show="draft.fitemcode"
-                                                x-html="formatStockLimit(draft)"></span>
+                                            <span x-show="draft.fitemcode" x-html="formatStockLimit(draft)"></span>
                                         </div>
                                     </td>
 
@@ -612,8 +608,8 @@
                     </div>
 
                     <input type="hidden" name="frefcode" id="frefcode" value="{{ old('frefcode') }}">
-                    <input type="hidden" name="frefso" id="frefso" value="{{ old('frefso') }}">
-                    <input type="hidden" name="frefsrj" id="frefsrj" value="{{ old('frefsrj') }}">
+                    <input type="hidden" name="frefso_header" id="frefso" value="{{ old('frefso_header') }}">
+                    <input type="hidden" name="frefsrj_header" id="frefsrj" value="{{ old('frefsrj_header') }}">
 
                     <script>
                         document.addEventListener('DOMContentLoaded', () => {
@@ -625,15 +621,15 @@
                             window.addEventListener('pr-picked', (e) => {
                                 const header = e.detail.header;
                                 inputRefCode.value = 'SO';
-                                inputRefSo.value = header.ftrsomtid; // Sesuaikan ID header SO
-                                inputRefSrj.value = ''; // Reset yang lain
+                                inputRefSo.value = header.fsono; // ← pakai fsono bukan ftrsomtid
+                                inputRefSrj.value = '';
                             });
 
                             // Menangkap Event saat SRJ dipilih
                             window.addEventListener('srj-picked', (e) => {
                                 const header = e.detail.header;
                                 inputRefCode.value = 'SRJ';
-                                inputRefSrj.value = header.fstockmtid; // Sesuaikan ID header SRJ
+                                inputRefSrj.value = header.fstockmtno;
                                 inputRefSo.value = ''; // Reset yang lain
                             });
                         });
@@ -665,11 +661,11 @@
                                         <div
                                             class="px-6 py-4 border-b border-gray-200 flex items-center justify-between flex-shrink-0 bg-gradient-to-r from-indigo-50 to-white">
                                             <div>
-                                                <h3 class="text-xl font-bold text-gray-800">{{ "Pilih Surat Jalan" }}</h3>
+                                                <h3 class="text-xl font-bold text-gray-800">{{ 'Pilih Surat Jalan' }}</h3>
                                             </div>
                                             <button type="button" @click="closeSrjModal()"
                                                 class="px-4 py-2 rounded-lg border-2 border-gray-300 bg-white hover:bg-gray-50 hover:border-gray-400 transition-all duration-150 font-bold text-gray-700 text-sm">
-                                                {{ "Tutup" }}
+                                                {{ 'Tutup' }}
                                             </button>
                                         </div>
 
@@ -686,19 +682,19 @@
                                                         <tr class="bg-gradient-to-r from-gray-50 to-gray-100">
                                                             <th
                                                                 class="text-left p-3 font-semibold text-gray-700 border-b-2 border-gray-200">
-                                                                {{ "No.Transaksi" }}</th>
+                                                                {{ 'No.Transaksi' }}</th>
                                                             <th
                                                                 class="text-left p-3 font-semibold text-gray-700 border-b-2 border-gray-200">
-                                                                {{ "No.Ref" }}</th>
+                                                                {{ 'No.Ref' }}</th>
                                                             <th
                                                                 class="text-left p-3 font-semibold text-gray-700 border-b-2 border-gray-200">
-                                                                {{ "Tanggal" }}</th>
+                                                                {{ 'Tanggal' }}</th>
                                                             <th
                                                                 class="text-left p-3 font-semibold text-gray-700 border-b-2 border-gray-200">
-                                                                {{ "Customer" }}</th>
+                                                                {{ 'Customer' }}</th>
                                                             <th
                                                                 class="text-center p-3 font-semibold text-gray-700 border-b-2 border-gray-200">
-                                                                {{ "Aksi" }}</th>
+                                                                {{ 'Aksi' }}</th>
                                                         </tr>
                                                     </thead>
                                                     <tbody></tbody>
@@ -718,11 +714,14 @@
                                     <div
                                         class="relative bg-white w-[92vw] max-w-md rounded-2xl shadow-2xl overflow-hidden">
                                         <div class="px-5 py-4 border-b flex items-center gap-2 bg-amber-50">
-                                            <h3 class="text-lg font-semibold text-gray-800">{{ "Item Duplikat Surat Jalan" }}</h3>
+                                            <h3 class="text-lg font-semibold text-gray-800">
+                                                {{ 'Item Duplikat Surat Jalan' }}</h3>
                                         </div>
                                         <div class="px-5 py-4">
                                             <p class="text-sm text-gray-700 mb-3">
-                                                {{ Str::before("Ditemukan :count item yang sudah ada dalam daftar. Hanya item unik yang akan ditambahkan.", '__COUNT__') }}<span x-text="dupCount" class="font-bold"></span>{{ Str::after("Ditemukan :count item yang sudah ada dalam daftar. Hanya item unik yang akan ditambahkan.", '__COUNT__') }}
+                                                {{ Str::before('Ditemukan :count item yang sudah ada dalam daftar. Hanya item unik yang akan ditambahkan.', '__COUNT__') }}<span
+                                                    x-text="dupCount"
+                                                    class="font-bold"></span>{{ Str::after('Ditemukan :count item yang sudah ada dalam daftar. Hanya item unik yang akan ditambahkan.', '__COUNT__') }}
                                             </p>
                                             <div
                                                 class="rounded-lg border border-amber-200 bg-amber-50 max-h-40 overflow-auto">
@@ -736,9 +735,9 @@
                                         </div>
                                         <div class="px-5 py-3 border-t bg-gray-50 flex justify-end gap-2">
                                             <button type="button" @click="closeDupModal()"
-                                                class="px-4 py-2 border rounded-lg">{{ "Batal" }}</button>
+                                                class="px-4 py-2 border rounded-lg">{{ 'Batal' }}</button>
                                             <button type="button" @click="confirmAddUniques()"
-                                                class="px-4 py-2 bg-indigo-600 text-white rounded-lg">{{ "Tambahkan Sisa Item" }}</button>
+                                                class="px-4 py-2 bg-indigo-600 text-white rounded-lg">{{ 'Tambahkan Sisa Item' }}</button>
                                         </div>
                                     </div>
                                 </div>
@@ -755,7 +754,7 @@
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
                                                     d="M12 4.5v15m7.5-7.5h-15" />
                                             </svg>
-                                            {{ "Tambah SO" }}
+                                            {{ 'Tambah SO' }}
                                         </button>
                                     </div>
                                 </div>
@@ -772,12 +771,13 @@
                                         <div
                                             class="px-6 py-4 border-b border-gray-200 flex items-center justify-between flex-shrink-0 bg-gradient-to-r from-teal-50 to-white">
                                             <div>
-                                                <h3 class="text-xl font-bold text-gray-800">{{ "Pilih Sales Order" }}</h3>
-                                                <p class="text-sm text-gray-500 mt-0.5">{{ "Pilih Sales Order yang diinginkan" }}</p>
+                                                <h3 class="text-xl font-bold text-gray-800">{{ 'Pilih Sales Order' }}</h3>
+                                                <p class="text-sm text-gray-500 mt-0.5">
+                                                    {{ 'Pilih Sales Order yang diinginkan' }}</p>
                                             </div>
                                             <button type="button" @click="closeModal()"
                                                 class="px-4 py-2 rounded-lg border-2 border-gray-300 bg-white hover:bg-gray-50 hover:border-gray-400 transition-all duration-150 font-bold text-gray-700 text-sm">
-                                                {{ "Tutup" }}
+                                                {{ 'Tutup' }}
                                             </button>
                                         </div>
 
@@ -796,16 +796,16 @@
                                                         <tr class="bg-gradient-to-r from-gray-50 to-gray-100">
                                                             <th
                                                                 class="text-left p-3 font-semibold text-gray-700 border-b-2 border-gray-200">
-                                                                {{ "No.SO" }}</th>
+                                                                {{ 'No.SO' }}</th>
                                                             <th
                                                                 class="text-left p-3 font-semibold text-gray-700 border-b-2 border-gray-200">
-                                                                {{ "No.Ref" }}</th>
+                                                                {{ 'No.Ref' }}</th>
                                                             <th
                                                                 class="text-left p-3 font-semibold text-gray-700 border-b-2 border-gray-200">
-                                                                {{ "Tanggal" }}</th>
+                                                                {{ 'Tanggal' }}</th>
                                                             <th
                                                                 class="text-center p-3 font-semibold text-gray-700 border-b-2 border-gray-200">
-                                                                {{ "Aksi" }}</th>
+                                                                {{ 'Aksi' }}</th>
                                                         </tr>
                                                     </thead>
                                                     <tbody>
@@ -836,7 +836,8 @@
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                                     d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
                                             </svg>
-                                            <h3 class="text-lg font-semibold text-gray-800">{{ "Item Duplikat Ditemukan" }}</h3>
+                                            <h3 class="text-lg font-semibold text-gray-800">
+                                                {{ 'Item Duplikat Ditemukan' }}</h3>
                                         </div>
 
                                         <!-- Body -->
@@ -853,7 +854,7 @@
                                             <div class="rounded-lg border border-amber-200 bg-amber-50">
                                                 <div
                                                     class="px-3 py-2 border-b border-amber-200 text-sm font-bold text-gray-800">
-                                                    {{ "Preview Item Duplikat" }}
+                                                    {{ 'Preview Item Duplikat' }}
                                                 </div>
                                                 <ul class="max-h-40 overflow-auto divide-y divide-amber-100">
                                                     <template x-for="d in dupSample"
@@ -886,7 +887,7 @@
                                         <div class="px-5 py-3 border-t bg-gray-50 flex items-center justify-end gap-2">
                                             <button type="button" @click="closeDupModal()"
                                                 class="h-9 px-4 rounded-lg border-2 border-gray-300 text-gray-700 text-sm font-bold hover:bg-gray-100 transition-colors">
-                                                {{ "Batal" }}
+                                                {{ 'Batal' }}
                                             </button>
                                         </div>
                                     </div>
@@ -899,7 +900,8 @@
                             <div class="rounded-lg border bg-gray-50 p-3 space-y-2">
                                 <div class="flex items-center justify-between">
                                     <span class="text-sm text-gray-700">Total Harga (Net)</span>
-                                    <span class="min-w-[140px] text-right font-medium" x-text="formatTransactionAmount(netTotal)"></span>
+                                    <span class="min-w-[140px] text-right font-medium"
+                                        x-text="formatTransactionAmount(netTotal)"></span>
                                 </div>
                                 <div class="flex items-center justify-between gap-6">
                                     <!-- Checkbox -->
@@ -977,10 +979,11 @@
                                         <!-- Header -->
                                         <div
                                             class="px-6 py-4 border-b border-gray-200 flex items-center justify-between flex-shrink-0 bg-gradient-to-r from-blue-50 to-white">
-                                            <h3 class="text-xl font-bold text-gray-800">{{ "Pilih Purchase Order (PO)" }}</h3>
+                                            <h3 class="text-xl font-bold text-gray-800">{{ 'Pilih Purchase Order (PO)' }}
+                                            </h3>
                                             <button type="button" @click="closeModal()"
                                                 class="px-4 py-2 rounded-lg border-2 border-gray-300 bg-white hover:bg-gray-50 hover:border-gray-400 transition-all duration-150 font-medium text-gray-700 text-sm">
-                                                {{ "Tutup" }}
+                                                {{ 'Tutup' }}
                                             </button>
                                         </div>
 
@@ -990,10 +993,14 @@
                                                 style="width:100%">
                                                 <thead class="sticky top-0 z-10">
                                                     <tr class="bg-gray-50 border-b-2 border-gray-200">
-                                                        <th class="p-3 text-left font-semibold text-gray-700">{{ "PO No" }}</th>
-                                                        <th class="p-3 text-left font-semibold text-gray-700">{{ "Customer" }}</th>
-                                                        <th class="p-3 text-left font-semibold text-gray-700">{{ "Tanggal" }}</th>
-                                                        <th class="p-3 text-center font-semibold text-gray-700">{{ "Aksi" }}</th>
+                                                        <th class="p-3 text-left font-semibold text-gray-700">
+                                                            {{ 'PO No' }}</th>
+                                                        <th class="p-3 text-left font-semibold text-gray-700">
+                                                            {{ 'Customer' }}</th>
+                                                        <th class="p-3 text-left font-semibold text-gray-700">
+                                                            {{ 'Tanggal' }}</th>
+                                                        <th class="p-3 text-center font-semibold text-gray-700">
+                                                            {{ 'Aksi' }}</th>
                                                     </tr>
                                                 </thead>
                                                 <tbody>
@@ -1013,14 +1020,15 @@
                                     class="fixed inset-0 z-[60] flex items-center justify-center p-4">
                                     <div class="absolute inset-0 bg-black/40" @click="closeDupModal()"></div>
                                     <div class="relative bg-white rounded-xl shadow-xl max-w-2xl w-full p-6">
-                                        <h3 class="text-lg font-semibold mb-4">{{ "Peringatan Duplikasi" }}</h3>
+                                        <h3 class="text-lg font-semibold mb-4">{{ 'Peringatan Duplikasi' }}</h3>
                                         <p class="mb-4">
-                                            {{ Str::before("Ditemukan :count item yang sudah ada dalam daftar. Hanya item unik yang akan ditambahkan.", '__COUNT__') }}<strong x-text="dupCount"></strong>{{ Str::after("Ditemukan :count item yang sudah ada dalam daftar. Hanya item unik yang akan ditambahkan.", '__COUNT__') }}
+                                            {{ Str::before('Ditemukan :count item yang sudah ada dalam daftar. Hanya item unik yang akan ditambahkan.', '__COUNT__') }}<strong
+                                                x-text="dupCount"></strong>{{ Str::after('Ditemukan :count item yang sudah ada dalam daftar. Hanya item unik yang akan ditambahkan.', '__COUNT__') }}
                                         </p>
 
                                         <div class="mb-4 max-h-48 overflow-auto border rounded p-2 bg-gray-50"
                                             x-show="dupSample.length > 0">
-                                            <p class="text-sm font-medium mb-2">{{ "Contoh item duplikat:" }}</p>
+                                            <p class="text-sm font-medium mb-2">{{ 'Contoh item duplikat:' }}</p>
                                             <template x-for="(item, idx) in dupSample" :key="idx">
                                                 <div class="text-xs py-1">
                                                     â€¢ <span x-text="item.fitemcode"></span> - <span
@@ -1032,11 +1040,11 @@
                                         <div class="flex justify-end gap-2">
                                             <button type="button" @click="closeDupModal()"
                                                 class="rounded bg-gray-200 px-4 py-2 text-sm font-medium hover:bg-gray-300">
-                                                {{ "Batal" }}
+                                                {{ 'Batal' }}
                                             </button>
                                             <button type="button" @click="confirmAddUniques()"
                                                 class="rounded bg-emerald-600 px-4 py-2 text-sm font-medium text-white hover:bg-emerald-700">
-                                                {{ "Tambahkan Item Unik" }}
+                                                {{ 'Tambahkan Item Unik' }}
                                             </button>
                                         </div>
                                     </div>
@@ -1054,37 +1062,37 @@
                             x-transition.scale>
                             <div class="px-5 py-4 border-b flex items-center">
                                 <x-heroicon-o-document-text class="w-6 h-6 text-blue-600 mr-2" />
-                                <h3 class="text-lg font-semibold text-gray-800">{{ "Isi Deskripsi Item" }}</h3>
+                                <h3 class="text-lg font-semibold text-gray-800">{{ 'Isi Deskripsi Item' }}</h3>
                             </div>
 
                             <div class="px-5 py-4 space-y-2">
-                                <label class="block text-sm text-gray-700">{{ "Keterangan" }}</label>
+                                <label class="block text-sm text-gray-700">{{ 'Keterangan' }}</label>
                                 <textarea x-model="descValue" rows="5" class="w-full border rounded px-3 py-2"
-                                    placeholder="{{ "Tulis deskripsi item di sini..." }}"></textarea>
+                                    placeholder="{{ 'Tulis deskripsi item di sini...' }}"></textarea>
                             </div>
 
                             <div class="px-5 py-3 border-t flex items-center justify-end gap-2">
                                 <button type="button" @click="closeDesc()"
                                     class="h-9 px-4 rounded-lg bg-gray-100 text-gray-700 text-sm font-medium hover:bg-gray-200">
-                                    {{ "Batal" }}
+                                    {{ 'Batal' }}
                                 </button>
                                 <button type="button" @click="applyDesc()"
                                     class="h-9 px-4 rounded-lg bg-emerald-600 text-white text-sm font-medium hover:bg-emerald-700">
-                                    {{ "Simpan" }}
+                                    {{ 'Simpan' }}
                                 </button>
                             </div>
                         </div>
                     </div>
 
-                    <div x-show="showCustomerRequired" x-cloak class="fixed inset-0 z-[94] flex items-center justify-center"
-                        x-transition.opacity>
+                    <div x-show="showCustomerRequired" x-cloak
+                        class="fixed inset-0 z-[94] flex items-center justify-center" x-transition.opacity>
                         <div class="absolute inset-0 bg-black/50" @click="showCustomerRequired = false"></div>
 
                         <div class="relative bg-white w-[92vw] max-w-md rounded-2xl shadow-2xl overflow-hidden"
                             x-transition.scale>
                             <div class="px-5 py-4 border-b flex items-center">
                                 <x-heroicon-o-exclamation-triangle class="w-6 h-6 text-amber-500 mr-2" />
-                                <h3 class="text-lg font-semibold text-gray-800">{{ "Pilih Customer Dulu" }}</h3>
+                                <h3 class="text-lg font-semibold text-gray-800">{{ 'Pilih Customer Dulu' }}</h3>
                             </div>
 
                             <div class="px-5 py-4">
@@ -1098,7 +1106,7 @@
                                 <button type="button"
                                     @click="showCustomerRequired = false; document.getElementById('modal_filter_customer_id')?.focus()"
                                     class="h-9 px-4 rounded-lg bg-blue-600 text-white text-sm font-medium hover:bg-blue-700">
-                                    {{ "OK" }}
+                                    {{ 'OK' }}
                                 </button>
                             </div>
                         </div>
@@ -1116,7 +1124,7 @@
                         x-transition.scale>
                         <div class="px-5 py-4 border-b flex items-center">
                             <x-heroicon-o-exclamation-triangle class="w-6 h-6 text-red-500 mr-2" />
-                            <h3 class="text-lg font-semibold text-gray-800">{{ "Tidak Ada Item" }}</h3>
+                            <h3 class="text-lg font-semibold text-gray-800">{{ 'Tidak Ada Item' }}</h3>
                         </div>
 
                         <div class="px-5 py-4">
@@ -1130,7 +1138,7 @@
                         <div class="px-5 py-3 border-t flex items-center justify-end gap-2">
                             <button type="button" @click="showNoItems=false"
                                 class="h-9 px-4 rounded-lg bg-blue-600 text-white text-sm font-medium hover:bg-blue-700">
-                                {{ "OK" }}
+                                {{ 'OK' }}
                             </button>
                         </div>
                     </div>
@@ -1143,7 +1151,10 @@
                 <x-transaction.browse-product-modal show-controls="true" show-pagination="true" />
 
                 @php
-                    $canApproval = in_array('approveFakturPenjualan', explode(',', session('user_restricted_permissions', '')));
+                    $canApproval = in_array(
+                        'approveFakturPenjualan',
+                        explode(',', session('user_restricted_permissions', '')),
+                    );
                 @endphp
 
                 <div class="mt-8 flex justify-center gap-4">
@@ -1201,9 +1212,9 @@
 {{-- DATA & SCRIPTS --}}
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
-    window.INVOICE_CUSTOMER_FP_MAP = @json(collect($customers)->mapWithKeys(fn ($customer) => [
-        (string) $customer->fcustomercode => (string) ($customer->fkodefp ?? ''),
-    ]));
+    window.INVOICE_CUSTOMER_FP_MAP = @json(collect($customers)->mapWithKeys(fn($customer) => [
+                (string) $customer->fcustomercode => (string) ($customer->fkodefp ?? ''),
+            ]));
 
     window.syncInvoiceCustomerTaxCode = function(explicitValue = null) {
         const kodeFpInput = document.getElementById('invoiceFkodefp');
@@ -1273,10 +1284,11 @@
 
             const payload = await response.json();
             if (!response.ok) {
-                const message = payload?.message || Object.values(payload?.errors || {}).flat().join('\n') || @json("Gagal cek limit customer.");
+                const message = payload?.message || Object.values(payload?.errors || {}).flat().join('\n') ||
+                    @json('Gagal cek limit customer.');
                 await Swal.fire({
                     icon: 'error',
-                    title: @json("Cek Customer Gagal"),
+                    title: @json('Cek Customer Gagal'),
                     html: `<div class="text-left whitespace-pre-line">${message}</div>`
                 });
                 return false;
@@ -1291,19 +1303,19 @@
             if (limitCheck.enabled && limitCheck.exceeded) {
                 const confirmed = await Swal.fire({
                     icon: 'warning',
-                    title: @json("Limit Piutang Terlampaui"),
+                    title: @json('Limit Piutang Terlampaui'),
                     html: `
                         <div class="text-left text-sm">
-                            <div>${@json("Total piutang berjalan")}: <strong>${Number(limitCheck.outstanding_total || 0).toLocaleString('id-ID')}</strong></div>
-                            <div>${@json("Nilai transaksi ini")}: <strong>${Number(limitCheck.transaction_amount || 0).toLocaleString('id-ID')}</strong></div>
-                            <div>${@json("Limit customer")}: <strong>${Number(limitCheck.limit || 0).toLocaleString('id-ID')}</strong></div>
-                            <div>${@json("Total setelah transaksi")}: <strong>${Number(limitCheck.projected_total || 0).toLocaleString('id-ID')}</strong></div>
-                            <div class="mt-3">${@json("Transaksi ini membutuhkan persetujuan kredit. Lanjutkan?")}</div>
+                            <div>${@json('Total piutang berjalan')}: <strong>${Number(limitCheck.outstanding_total || 0).toLocaleString('id-ID')}</strong></div>
+                            <div>${@json('Nilai transaksi ini')}: <strong>${Number(limitCheck.transaction_amount || 0).toLocaleString('id-ID')}</strong></div>
+                            <div>${@json('Limit customer')}: <strong>${Number(limitCheck.limit || 0).toLocaleString('id-ID')}</strong></div>
+                            <div>${@json('Total setelah transaksi')}: <strong>${Number(limitCheck.projected_total || 0).toLocaleString('id-ID')}</strong></div>
+                            <div class="mt-3">${@json('Transaksi ini membutuhkan persetujuan kredit. Lanjutkan?')}</div>
                         </div>
                     `,
                     showCancelButton: true,
-                    confirmButtonText: @json("Ya"),
-                    cancelButtonText: @json("Tidak")
+                    confirmButtonText: @json('Ya'),
+                    cancelButtonText: @json('Tidak')
                 });
 
                 if (!confirmed.isConfirmed) {
@@ -1314,7 +1326,7 @@
                 if (!canApprove) {
                     await Swal.fire({
                         icon: 'error',
-                        title: @json("Persetujuan Kredit Ditolak"),
+                        title: @json('Persetujuan Kredit Ditolak'),
                         html: `
                             <div class="text-left text-sm">
                                 <div class="font-medium mb-2">Persetujuan diperlukan:</div>
@@ -1341,17 +1353,17 @@
 
                 const confirmed = await Swal.fire({
                     icon: 'warning',
-                    title: @json("Ada Nota Lewat Jatuh Tempo"),
+                    title: @json('Ada Nota Lewat Jatuh Tempo'),
                     html: `
                         <div class="text-left text-sm">
-                            <div>${@json("Customer punya nota yang lewat jatuh tempo lebih dari")} <strong>${overdueCheck.max_tempo || 0}</strong> ${@json("hari.")}</div>
+                            <div>${@json('Customer punya nota yang lewat jatuh tempo lebih dari')} <strong>${overdueCheck.max_tempo || 0}</strong> ${@json('hari.')}</div>
                             <ul class="mt-3 list-disc pl-5">${overdueHtml}</ul>
-                            <div class="mt-3">${@json("Transaksi ini membutuhkan persetujuan kredit. Lanjutkan?")}</div>
+                            <div class="mt-3">${@json('Transaksi ini membutuhkan persetujuan kredit. Lanjutkan?')}</div>
                         </div>
                     `,
                     showCancelButton: true,
-                    confirmButtonText: @json("Ya"),
-                    cancelButtonText: @json("Tidak")
+                    confirmButtonText: @json('Ya'),
+                    cancelButtonText: @json('Tidak')
                 });
 
                 if (!confirmed.isConfirmed) {
@@ -1362,7 +1374,7 @@
                 if (!canApprove) {
                     await Swal.fire({
                         icon: 'error',
-                        title: @json("Persetujuan Kredit Ditolak"),
+                        title: @json('Persetujuan Kredit Ditolak'),
                         html: `
                             <div class="text-left text-sm">
                                 <div class="font-medium mb-2">Persetujuan diperlukan:</div>
@@ -1384,7 +1396,7 @@
         } catch (error) {
             await Swal.fire({
                 icon: 'error',
-                title: @json("Pemeriksaan Persetujuan Gagal"),
+                title: @json('Pemeriksaan Persetujuan Gagal'),
                 html: `<div class="text-left whitespace-pre-line">@json("Gagal memeriksa persetujuan customer.\nSilakan coba lagi.")</div>`
             });
             return false;
@@ -1621,7 +1633,8 @@
                 const qty = Number(row?.fqty ?? 0);
                 if (qty > limit) {
                     row.fqty = limit;
-                    if (showToast) window.toast?.error(`Jumlah melebihi sisa referensi. Maksimal ${limit} ${row.fsatuan || ''}`.trim());
+                    if (showToast) window.toast?.error(
+                        `Jumlah melebihi sisa referensi. Maksimal ${limit} ${row.fsatuan || ''}`.trim());
                 }
 
                 return Number(row?.fqty ?? 0) > 0;
@@ -1696,7 +1709,8 @@
             },
 
             getSelectedCustomerCode() {
-                return (document.getElementById('customerCodeHidden')?.value || document.getElementById('modal_filter_customer_id')?.value || '').trim();
+                return (document.getElementById('customerCodeHidden')?.value || document.getElementById(
+                    'modal_filter_customer_id')?.value || '').trim();
             },
 
             requireCustomerBeforeManualProduct() {
@@ -1723,7 +1737,9 @@
                 const used = new Set(this.savedItems.map(item => this.normalizeNoAcak(item.fnoacak)).filter(Boolean));
                 let candidate = '';
                 do {
-                    candidate = Array.from({ length: 3 }, () => '123456789'[Math.floor(Math.random() * 9)]).join('');
+                    candidate = Array.from({
+                        length: 3
+                    }, () => '123456789' [Math.floor(Math.random() * 9)]).join('');
                 } while (used.has(candidate));
                 return candidate;
             },
@@ -1817,14 +1833,14 @@
                 }
 
                 if (Number(r.fqty) <= 0) {
-                    this.showToast(@json("Jumlah harus lebih dari 0."), 'warning');
+                    this.showToast(@json('Jumlah harus lebih dari 0.'), 'warning');
                     this.$refs.draftQty?.focus();
                     return;
                 }
 
                 // 3. Validasi Harga Tidak Boleh Minus
                 if (Number(r.fprice) < 0) {
-                    this.showToast(@json("Harga tidak boleh minus!"), 'warning');
+                    this.showToast(@json('Harga tidak boleh minus!'), 'warning');
                     this.$refs.draftPrice?.focus(); // Pastikan ref="draftPrice" ada di input harga
                     return;
                 }
@@ -1847,7 +1863,7 @@
                 );
 
                 if (dupe) {
-                    this.showToast(@json("Item sama sudah ada di daftar"), 'warning');
+                    this.showToast(@json('Item sama sudah ada di daftar'), 'warning');
                     return;
                 }
 
@@ -1880,17 +1896,17 @@
             applyEdit() {
                 const r = this.editRow;
                 if (!this.isComplete(r)) {
-                    alert(@json("Lengkapi data item dulu."));
+                    alert(@json('Lengkapi data item dulu.'));
                     return;
                 }
 
                 if (Number(r.fqty) <= 0) {
-                    this.showToast(@json("Jumlah harus lebih dari 0."), 'warning');
+                    this.showToast(@json('Jumlah harus lebih dari 0.'), 'warning');
                     return;
                 }
 
                 if (Number(r.fprice) < 0) {
-                    this.showToast(@json("Harga tidak boleh minus!"), 'warning');
+                    this.showToast(@json('Harga tidak boleh minus!'), 'warning');
                     return;
                 }
 
@@ -2004,9 +2020,8 @@
             },
 
             restoreSavedItems(items = []) {
-                this.savedItems = Array.isArray(items)
-                    ? items.map((item, index) => this.normalizeRestoredRow(item, index))
-                    : [];
+                this.savedItems = Array.isArray(items) ?
+                    items.map((item, index) => this.normalizeRestoredRow(item, index)) : [];
                 this.syncDescList?.();
                 this.recalcTotals();
             },
@@ -2174,10 +2189,10 @@
         @if (session('error'))
             Swal.fire({
                 icon: 'error',
-                title: @json("Penyimpanan Batal"),
+                title: @json('Penyimpanan Batal'),
                 html: `<div class="text-left whitespace-pre-line">{{ session('error') }}</div>`,
                 confirmButtonColor: '#ef4444', // Warna merah tailwind
-                confirmButtonText: @json("OK"),
+                confirmButtonText: @json('OK'),
                 allowOutsideClick: false
             });
         @endif
@@ -2186,7 +2201,7 @@
         @if (session('success'))
             Swal.fire({
                 icon: 'success',
-                title: @json("Berhasil"),
+                title: @json('Berhasil'),
                 text: "{{ session('success') }}",
                 timer: 2000,
                 showConfirmButton: false
@@ -2283,10 +2298,10 @@
                     if (row.fdiscontinue == '1') {
                         Swal.fire({
                             icon: 'warning',
-                            title: @json("Produk Tidak Tersedia"),
-                            html: `${@json("Produk :name sudah tidak tersedia.").replace('__NAME__', `<b>${row.fprdname}</b>`)}<br><br>${@json("Penyimpanan dibatalkan.")}`,
+                            title: @json('Produk Tidak Tersedia'),
+                            html: `${@json('Produk :name sudah tidak tersedia.').replace('__NAME__', `<b>${row.fprdname}</b>`)}<br><br>${@json('Penyimpanan dibatalkan.')}`,
                             confirmButtonColor: '#f59e0b', // Warna orange amber
-                            confirmButtonText: @json("Kembali")
+                            confirmButtonText: @json('Kembali')
                         });
                         return; // Hentikan proses, jangan tambahkan ke tabel
                     }
@@ -2333,7 +2348,7 @@
                     this.closeModal();
                 } catch (e) {
                     console.error(e);
-                    alert(@json("Gagal mengambil detail PR."));
+                    alert(@json('Gagal mengambil detail PR.'));
                 }
             },
         };
@@ -2355,6 +2370,9 @@
 @push('scripts')
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
     <script src="https://cdn.datatables.net/1.13.7/js/jquery.dataTables.min.js"></script>
-    @include('components.transaction.browse-product-script', ['showControls' => true, 'showPagination' => true, 'supportsForEdit' => true])
-
+    @include('components.transaction.browse-product-script', [
+        'showControls' => true,
+        'showPagination' => true,
+        'supportsForEdit' => true,
+    ])
 @endpush
