@@ -24,7 +24,7 @@ class ProductBrowseController extends Controller
 
         // Total tanpa search
         $recordsTotal = DB::table('msprd')
-            ->where('fdiscontinue', '!=', 1)
+            ->where('fnonactive', '!=', 1)
             ->whereRaw(ApprovalState::approvedSql('msprd.'))
             ->when($exactCode !== '', function ($q) use ($exactCode) {
                 $q->whereRaw('TRIM(fprdcode) = ?', [$exactCode]);
@@ -35,8 +35,7 @@ class ProductBrowseController extends Controller
         $baseQuery = fn () => DB::table('msprd')
             ->leftJoin('msmerek', 'msprd.fmerek', '=', 'msmerek.fmerekid')
             ->where(function ($q) {
-                $q->where('msprd.fdiscontinue', '!=', 1)
-                    ->orWhereNull('msprd.fdiscontinue');
+                $q->where('msprd.fnonactive', '!=', 1);
             })
             ->whereRaw(ApprovalState::approvedSql('msprd.'))
             ->when($exactCode !== '', function ($q) use ($exactCode) {

@@ -269,7 +269,8 @@
                                         <tr>
                                             <th class="p-2 text-left w-10">#</th>
                                             <th class="p-2 text-left w-40">Kode Produk</th>
-                                            <th class="p-2 text-left" style="width: 20rem; min-width: 20rem;">Nama Produk</th>
+                                            <th class="p-2 text-left" style="width: 20rem; min-width: 20rem;">Nama Produk
+                                            </th>
                                             <th class="p-2 text-left w-24">Sat</th>
                                             <th class="p-2 text-right w-36">Qty Masuk</th>
                                             <th class="p-2 text-right w-32">@ Harga</th>
@@ -527,8 +528,8 @@
                                         </div>
 
                                         <label class="block text-sm text-gray-700">Deskripsi</label>
-                                        <textarea x-model="descValue" rows="5" class="w-full border rounded px-3 py-2"
-                                            :readonly="descReadonly" placeholder="Tulis deskripsi item di sini..."></textarea>
+                                        <textarea x-model="descValue" rows="5" class="w-full border rounded px-3 py-2" :readonly="descReadonly"
+                                            placeholder="Tulis deskripsi item di sini..."></textarea>
                                     </div>
 
                                     <div class="px-5 py-3 border-t flex items-center justify-end gap-2">
@@ -558,7 +559,8 @@
                                         <tr>
                                             <th class="p-2 text-left w-10">#</th>
                                             <th class="p-2 text-left w-40">Kode Produk</th>
-                                            <th class="p-2 text-left" style="width: 20rem; min-width: 20rem;">Nama Produk</th>
+                                            <th class="p-2 text-left" style="width: 20rem; min-width: 20rem;">Nama Produk
+                                            </th>
                                             <th class="p-2 text-left w-24">Sat</th>
                                             <th class="p-2 text-right w-36">Qty Keluar</th>
                                             <th class="p-2 text-center w-36">Aksi</th>
@@ -755,8 +757,8 @@
                                     </tbody>
                                 </table>
                             </div>
-                            <div x-show="showDescModal" x-cloak class="fixed inset-0 z-[95] flex items-center justify-center"
-                                x-transition.opacity>
+                            <div x-show="showDescModal" x-cloak
+                                class="fixed inset-0 z-[95] flex items-center justify-center" x-transition.opacity>
                                 <div class="absolute inset-0 bg-black/50" @click="closeDesc()"></div>
 
                                 <div class="relative bg-white w-[92vw] max-w-lg rounded-2xl shadow-2xl overflow-hidden"
@@ -781,8 +783,8 @@
                                         </div>
 
                                         <label class="block text-sm text-gray-700">Deskripsi</label>
-                                        <textarea x-model="descValue" rows="5" class="w-full border rounded px-3 py-2"
-                                            :readonly="descReadonly" placeholder="Tulis deskripsi item di sini..."></textarea>
+                                        <textarea x-model="descValue" rows="5" class="w-full border rounded px-3 py-2" :readonly="descReadonly"
+                                            placeholder="Tulis deskripsi item di sini..."></textarea>
                                     </div>
 
                                     <div class="px-5 py-3 border-t flex items-center justify-end gap-2">
@@ -1375,7 +1377,8 @@
 
             recalc(row) {
                 this.$nextTick(() => {
-                    row.fqty = @json((string) env('STOCKBOLEHMINUS', '0') === '1') ? (Number(row.fqty) || 0) : Math.max(0, Number(row.fqty) || 0);
+                    row.fqty = @json((string) env('STOCKBOLEHMINUS', '0') === '1') ? (Number(row.fqty) || 0) : Math.max(0, Number(row
+                        .fqty) || 0);
                     row.fterima = Math.max(0, Number(row.fterima) || 0);
                     row.fprice = Math.max(0, Number(row.fprice) || 0);
 
@@ -1424,7 +1427,8 @@
             },
 
             isComplete(row) {
-                return row.fitemcode && row.fitemname && row.fsatuan && (@json((string) env('STOCKBOLEHMINUS', '0') === '1') ? Number(row.fqty) !== 0 : Number(row.fqty) > 0);
+                return row.fitemcode && row.fitemname && row.fsatuan && (@json((string) env('STOCKBOLEHMINUS', '0') === '1') ? Number(row
+                    .fqty) !== 0 : Number(row.fqty) > 0);
             },
 
             onPrPicked(e) {
@@ -1456,7 +1460,9 @@
                         fitemname: src.fitemname ?? '',
                         fsatuan: src.fsatuan ?? '',
                         frefpr: src.frefpr ?? (header?.fpono ?? ''),
-                        fqty: (src.fqty !== null && src.fqty !== undefined && (@json((string) env('STOCKBOLEHMINUS', '0') === '1') ? Number(src.fqty) !== 0 : Number(src.fqty) > 0)) ? Number(src.fqty) : 1,
+                        fqty: (src.fqty !== null && src.fqty !== undefined && (
+                            @json((string) env('STOCKBOLEHMINUS', '0') === '1') ? Number(src.fqty) !== 0 : Number(src
+                            .fqty) > 0)) ? Number(src.fqty) : 1,
                         fprice: Number(src.fprice ?? 0),
                         ftotal: Number(src.ftotal ?? 0),
                         fdesc: src.fdesc ?? '',
@@ -1494,7 +1500,8 @@
                     if (!r.fitemname) return this.$refs.draftCode?.focus();
                     if (!r.fsatuan) return (r.units.length > 1 ? this.$refs.draftUnit?.focus() : this.$refs.draftCode
                         ?.focus());
-                    if (!(@json((string) env('STOCKBOLEHMINUS', '0') === '1') ? Number(r.fqty) !== 0 : Number(r.fqty) > 0)) return this.$refs.draftQty?.focus();
+                    if (!(@json((string) env('STOCKBOLEHMINUS', '0') === '1') ? Number(r.fqty) !== 0 : Number(r.fqty) > 0)) return this.$refs
+                        .draftQty?.focus();
                     return;
                 }
 
@@ -1590,9 +1597,9 @@
                 return String(value ?? '').trim() !== '';
             },
             descButtonClass(value) {
-                return this.hasDesc(value)
-                    ? 'border-emerald-200 bg-emerald-50 text-emerald-700 hover:bg-emerald-100'
-                    : 'border-slate-200 bg-slate-50 text-slate-700 hover:bg-slate-100';
+                return this.hasDesc(value) ?
+                    'border-emerald-200 bg-emerald-50 text-emerald-700 hover:bg-emerald-100' :
+                    'border-slate-200 bg-slate-50 text-slate-700 hover:bg-slate-100';
             },
             getDescRow(target = 'draft', index = null) {
                 if (target === 'saved' && index !== null) return this.savedItems[index] || null;
@@ -1752,7 +1759,8 @@
 
             recalc(row) {
                 this.$nextTick(() => {
-                    row.fqty = @json((string) env('STOCKBOLEHMINUS', '0') === '1') ? (Number(row.fqty) || 0) : Math.max(0, Number(row.fqty) || 0);
+                    row.fqty = @json((string) env('STOCKBOLEHMINUS', '0') === '1') ? (Number(row.fqty) || 0) : Math.max(0, Number(row
+                        .fqty) || 0);
                     row.fterima = Math.max(0, Number(row.fterima) || 0);
                     row.fprice = Math.max(0, Number(row.fprice) || 0);
 
@@ -1801,7 +1809,8 @@
             },
 
             isComplete(row) {
-                return row.fitemcode && row.fitemname && row.fsatuan && (@json((string) env('STOCKBOLEHMINUS', '0') === '1') ? Number(row.fqty) !== 0 : Number(row.fqty) > 0);
+                return row.fitemcode && row.fitemname && row.fsatuan && (@json((string) env('STOCKBOLEHMINUS', '0') === '1') ? Number(row
+                    .fqty) !== 0 : Number(row.fqty) > 0);
             },
 
             onPrPicked(e) {
@@ -1833,7 +1842,9 @@
                         fitemname: src.fitemname ?? '',
                         fsatuan: src.fsatuan ?? '',
                         frefpr: src.frefpr ?? (header?.fpono ?? ''),
-                        fqty: (src.fqty !== null && src.fqty !== undefined && (@json((string) env('STOCKBOLEHMINUS', '0') === '1') ? Number(src.fqty) !== 0 : Number(src.fqty) > 0)) ? Number(src.fqty) : 1,
+                        fqty: (src.fqty !== null && src.fqty !== undefined && (
+                            @json((string) env('STOCKBOLEHMINUS', '0') === '1') ? Number(src.fqty) !== 0 : Number(src
+                            .fqty) > 0)) ? Number(src.fqty) : 1,
                         fdesc: src.fdesc ?? '',
                         fketdt: src.fketdt ?? '',
                         units: Array.isArray(src.units) && src.units.length ? src.units : [src.fsatuan]
@@ -1869,7 +1880,8 @@
                     if (!r.fitemname) return this.$refs.draftCode?.focus();
                     if (!r.fsatuan) return (r.units.length > 1 ? this.$refs.draftUnit?.focus() : this.$refs.draftCode
                         ?.focus());
-                    if (!(@json((string) env('STOCKBOLEHMINUS', '0') === '1') ? Number(r.fqty) !== 0 : Number(r.fqty) > 0)) return this.$refs.draftQty?.focus();
+                    if (!(@json((string) env('STOCKBOLEHMINUS', '0') === '1') ? Number(r.fqty) !== 0 : Number(r.fqty) > 0)) return this.$refs
+                        .draftQty?.focus();
                     return;
                 }
 
@@ -1965,9 +1977,9 @@
                 return String(value ?? '').trim() !== '';
             },
             descButtonClass(value) {
-                return this.hasDesc(value)
-                    ? 'border-emerald-200 bg-emerald-50 text-emerald-700 hover:bg-emerald-100'
-                    : 'border-slate-200 bg-slate-50 text-slate-700 hover:bg-slate-100';
+                return this.hasDesc(value) ?
+                    'border-emerald-200 bg-emerald-50 text-emerald-700 hover:bg-emerald-100' :
+                    'border-slate-200 bg-slate-50 text-slate-700 hover:bg-slate-100';
             },
             getDescRow(target = 'draft', index = null) {
                 if (target === 'saved' && index !== null) return this.savedItems[index] || null;
@@ -2743,4 +2755,3 @@
         });
     </script>
 @endpush
-
