@@ -18,62 +18,8 @@
 @endphp
 
 @if ($routeName === 'fakturpembelian.create')
-
+    @include('components.transaction.form-base-styles')
     <style>
-        input:focus,
-        select:focus,
-        textarea:focus {
-            outline: none;
-            border-color: #2563eb;
-            box-shadow: 0 0 0 2px rgba(37, 99, 235, .2);
-        }
-
-        .switch {
-            position: relative;
-            display: inline-block;
-            width: 60px;
-            height: 34px
-        }
-
-        .switch input {
-            opacity: 0;
-            width: 0;
-            height: 0
-        }
-
-        .slider {
-            position: absolute;
-            cursor: pointer;
-            inset: 0;
-            background: #ccc;
-            transition: .4s;
-            border-radius: 34px
-        }
-
-        .slider:before {
-            content: "";
-            position: absolute;
-            height: 26px;
-            width: 26px;
-            border-radius: 50%;
-            left: 4px;
-            bottom: 4px;
-            background: #fff;
-            transition: .4s
-        }
-
-        input:checked+.slider {
-            background: #4CAF50
-        }
-
-        input:checked+.slider:before {
-            transform: translateX(26px)
-        }
-
-        [x-cloak] {
-            display: none !important
-        }
-
         .fpb-ket-biaya {
             display: grid;
             grid-template-columns: 1fr;
@@ -102,16 +48,6 @@
             display: none
         }
 
-        input[type=number]::-webkit-inner-spin-button,
-        input[type=number]::-webkit-outer-spin-button {
-            -webkit-appearance: none;
-            margin: 0;
-        }
-
-        input[type=number] {
-            -moz-appearance: textfield;
-        }
-
         .hpp-box {
             border: 1px solid #e5e7eb;
             background-color: #f9fafb;
@@ -123,33 +59,7 @@
             box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
         }
     </style>
-    @if ($errors->any())
-        <div class="alert alert-danger alert-dismissible fade show border-0 shadow p-0 overflow-hidden" role="alert">
-            {{-- Header Strip --}}
-            <div class="d-flex align-items-center px-4 py-3" style="background-color: #c0392b;">
-                <i class="bi bi-exclamation-triangle-fill text-white me-2 fs-5"></i>
-                <strong class="text-white fs-6">{{ "Gagal Menyimpan Data!" }}</strong>
-                <button type="button" class="btn-close btn-close-white ms-auto" data-bs-dismiss="alert"
-                    aria-label="Close"></button>
-            </div>
-
-            {{-- Body --}}
-            <div class="px-4 py-3" style="background-color: #fdeded; border-left: 5px solid #c0392b;">
-                <p class="mb-2 text-danger fw-semibold">
-                    <i class="bi bi-info-circle me-1"></i>
-                    {{ "Periksa kembali data berikut sebelum menyimpan:" }}
-                </p>
-                <ul class="mb-0 ps-3">
-                    @foreach ($errors->all() as $error)
-                        <li class="text-danger mb-1">
-                            <i class="bi bi-dot fs-5 align-middle"></i>
-                            {{ $error }}
-                        </li>
-                    @endforeach
-                </ul>
-            </div>
-        </div>
-    @endif
+    @include('components.transaction.error-alert')
     @php
         $includePPN = old('fapplyppn', 0);
         $ppnMode    = old('fincludeppn', 0);
@@ -2423,8 +2333,7 @@
 
 
 @push('scripts')
-    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
-    <script src="https://cdn.datatables.net/1.13.7/js/jquery.dataTables.min.js"></script>
+    @include('components.transaction.datatables-scripts')
 
     @include('components.transaction.browse-warehouse-script', ['eventName' => 'faktur-pembelian-warehouse-browse-open'])
     @include('components.transaction.browse-product-script', ['showControls' => true, 'showPagination' => true, 'supportsForEdit' => true])
@@ -2595,33 +2504,7 @@
             box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
         }
     </style>
-    @if ($errors->any())
-        <div class="alert alert-danger alert-dismissible fade show border-0 shadow p-0 overflow-hidden" role="alert">
-            {{-- Header Strip --}}
-            <div class="d-flex align-items-center px-4 py-3" style="background-color: #c0392b;">
-                <i class="bi bi-exclamation-triangle-fill text-white me-2 fs-5"></i>
-                <strong class="text-white fs-6">{{ 'Gagal Menyimpan Data!' }}</strong>
-                <button type="button" class="btn-close btn-close-white ms-auto" data-bs-dismiss="alert"
-                    aria-label="Close"></button>
-            </div>
-
-            {{-- Body --}}
-            <div class="px-4 py-3" style="background-color: #fdeded; border-left: 5px solid #c0392b;">
-                <p class="mb-2 text-danger fw-semibold">
-                    <i class="bi bi-info-circle me-1"></i>
-                    {{ 'Periksa kembali data berikut sebelum menyimpan:' }}
-                </p>
-                <ul class="mb-0 ps-3">
-                    @foreach ($errors->all() as $error)
-                        <li class="text-danger mb-1">
-                            <i class="bi bi-dot fs-5 align-middle"></i>
-                            {{ $error }}
-                        </li>
-                    @endforeach
-                </ul>
-            </div>
-        </div>
-    @endif
+    @include('components.transaction.error-alert')
     @php
         // Definisikan semua variabel Anda di sini
         $currentType = old('ftypebuy', $fakturpembelian->ftypebuy);
@@ -4364,7 +4247,7 @@
         @endif
     
 @push('styles')
-        <link rel="stylesheet" href="https://cdn.datatables.net/1.13.7/css/jquery.dataTables.min.css">
+        @include('components.transaction.datatables-styles')
     @endpush
     <style>
         /* Targeting lebih spesifik untuk length select */
@@ -5715,8 +5598,7 @@
     </script>
 
     @push('scripts')
-        <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
-        <script src="https://cdn.datatables.net/1.13.7/js/jquery.dataTables.min.js"></script>
+        @include('components.transaction.datatables-scripts')
 
         @include('components.transaction.browse-warehouse-script', [
             'eventName' => 'faktur-pembelian-warehouse-browse-open',
@@ -7475,8 +7357,7 @@
         </script>
 
         @push('scripts')
-            <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
-            <script src="https://cdn.datatables.net/1.13.7/js/jquery.dataTables.min.js"></script>
+            @include('components.transaction.datatables-scripts')
 
             <script>
                 // Modal produk dengan DataTables

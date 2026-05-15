@@ -13,6 +13,7 @@ use App\Models\Tr_prh;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Mail; // sekalian biar aman untuk tanggal
 use Illuminate\Support\Facades\Validator;
@@ -22,6 +23,43 @@ use App\Support\ApprovalState;
 class Tr_pohController extends Controller
 {
     use ProductBrowseHelper;
+
+    private function getBranchInfo($raw): ?object
+    {
+        $cacheKey = 'tr_poh:branch:' . md5((string) $raw);
+
+        return Cache::store('file')->remember($cacheKey, now()->addMinutes(10), function () use ($raw) {
+            return DB::table('mscabang')
+                ->when(is_numeric($raw), fn($q) => $q->where('fcabangid', (int) $raw))
+                ->when(
+                    ! is_numeric($raw),
+                    fn($q) => $q->where('fcabangkode', $raw)->orWhere('fcabangname', $raw)
+                )
+                ->first(['fcabangid', 'fcabangkode', 'fcabangname']);
+        });
+    }
+
+    private function getCachedSuppliers()
+    {
+        return Cache::store('file')->remember('tr_poh:suppliers', now()->addMinutes(10), function () {
+            return Supplier::orderBy('fsuppliername', 'asc')
+                ->get(['fsupplierid', 'fsuppliercode', 'fsuppliername']);
+        });
+    }
+
+    private function getCachedCurrencies()
+    {
+        return Cache::store('file')->remember('tr_poh:currencies', now()->addMinutes(10), function () {
+            return DB::table('mscurrency')
+                ->where(function ($q) {
+                    $q->whereNull('fnonactive')
+                        ->orWhere('fnonactive', '0')
+                        ->orWhere('fnonactive', '');
+                })
+                ->orderBy('fcurrname')
+                ->get(['fcurrid', 'fcurrcode', 'fcurrname', 'frate']);
+        });
+    }
 
     private function canApprovePurchaseOrder(): bool
     {
@@ -730,18 +768,11 @@ class Tr_pohController extends Controller
 
     public function create(Request $request)
     {
-        $suppliers = Supplier::orderBy('fsuppliername', 'asc')
-            ->get(['fsupplierid', 'fsuppliercode', 'fsuppliername']);
+        $suppliers = $this->getCachedSuppliers();
 
         $raw = (Auth::guard('sysuser')->user() ?? Auth::user())?->fcabang;
 
-        $branch = DB::table('mscabang')
-            ->when(is_numeric($raw), fn($q) => $q->where('fcabangid', (int) $raw))
-            ->when(
-                ! is_numeric($raw),
-                fn($q) => $q->where('fcabangkode', $raw)->orWhere('fcabangname', $raw)
-            )
-            ->first(['fcabangid', 'fcabangkode', 'fcabangname']);
+        $branch = $this->getBranchInfo($raw);
 
         $canApproval = $this->canApprovePurchaseOrder();
 
@@ -750,14 +781,9 @@ class Tr_pohController extends Controller
 
         $newtr_prh_code = $this->generatetr_poh_Code(now(), $fbranchcode);
 
-        $currencies = DB::table('mscurrency')
-            ->where(function ($q) {
-                $q->whereNull('fnonactive')->orWhere('fnonactive', '0')->orWhere('fnonactive', '');
-            })
-            ->orderBy('fcurrname')
-            ->get(['fcurrid', 'fcurrcode', 'fcurrname', 'frate']);
+        $currencies = $this->getCachedCurrencies();
 
-        $products = $this->browseProducts();
+        $productMap = $this->browseProductMapCached();
 
         return view('tr_poh.create', [
             'newtr_prh_code' => $newtr_prh_code,
@@ -765,7 +791,7 @@ class Tr_pohController extends Controller
             'suppliers' => $suppliers,
             'fcabang' => $fcabang,
             'fbranchcode' => $fbranchcode,
-            'products' => $products,
+            'productMap' => $productMap,
             'currencies' => $currencies,
             'filterSupplierId' => $request->query('filter_supplier_id'),
         ]);
@@ -1096,26 +1122,13 @@ class Tr_pohController extends Controller
 
     public function edit(Request $request, $fpohid)
     {
-        $suppliers = Supplier::orderBy('fsuppliername', 'asc')
-            ->get(['fsupplierid', 'fsuppliercode', 'fsuppliername']);
+        $suppliers = $this->getCachedSuppliers();
 
         $raw = (Auth::guard('sysuser')->user() ?? Auth::user())?->fcabang;
 
-        $currencies = DB::table('mscurrency')
-            ->where(function ($q) {
-                $q->whereNull('fnonactive')
-                    ->orWhere('fnonactive', '0')
-                    ->orWhere('fnonactive', '');
-            })
-            ->orderBy('fcurrname')
-            ->get(['fcurrid', 'fcurrcode', 'fcurrname', 'frate']);
+        $currencies = $this->getCachedCurrencies();
 
-        $branch = DB::table('mscabang')
-            ->when(is_numeric($raw), fn($q) => $q->where('fcabangid', (int) $raw))
-            ->when(! is_numeric($raw), fn($q) => $q
-                ->where('fcabangkode', $raw)
-                ->orWhere('fcabangname', $raw))
-            ->first(['fcabangid', 'fcabangkode', 'fcabangname']);
+        $branch = $this->getBranchInfo($raw);
 
         $fcabang = $branch->fcabangname ?? (string) $raw;
         $fbranchcode = $branch->fcabangkode ?? (string) $raw;
@@ -1171,8 +1184,7 @@ class Tr_pohController extends Controller
             ->where('fcurrid', $tr_poh->fcurrency)
             ->first(['fcurrid', 'fcurrcode', 'fcurrname', 'frate']);
 
-        $products = $this->browseProducts();
-        $productMap = $this->browseProductMap($products, 'fprdid');
+        $productMap = $this->browseProductMapCached();
 
         $oldUsageByRef = $details
             ->groupBy(fn($d) => (int) ($d->frefdtid ?? 0))
@@ -1181,7 +1193,7 @@ class Tr_pohController extends Controller
 
         $prRemainMap = $this->getPrRemainByDetailIds($details->pluck('frefdtid')->all());
 
-        $savedItems = $details->map(function ($d) use ($products, $oldUsageByRef, $prRemainMap) {
+        $savedItems = $details->map(function ($d) use ($productMap, $oldUsageByRef, $prRemainMap) {
             $qtyPR = (float) $d->fqtypr;
             $satPR = trim((string) $d->fqtypr_satuan);
             $satKecil = trim((string) $d->fsatuankecil);
@@ -1190,7 +1202,7 @@ class Tr_pohController extends Controller
             $rasio = (float) ($d->fqtykecil_master ?? 0);
             $rasio2 = (float) ($d->fqtykecil2_master ?? 0);
 
-            $prod = $products->firstWhere('fprdcode', $d->fitemcode);
+            $prod = $productMap[trim((string) ($d->fitemcode ?? ''))] ?? null;
 
             $refId = (int) ($d->frefdtid ?? 0);
             $sisaKecil = max(0, (float) ($prRemainMap[$refId] ?? 0) + (float) ($oldUsageByRef[$refId] ?? 0));
@@ -1262,7 +1274,6 @@ class Tr_pohController extends Controller
             'selectedSupplierCode' => $tr_poh->fsupplier,
             'fcabang' => $fcabang,
             'fbranchcode' => $fbranchcode,
-            'products' => $products,
             'existingTerima' => $existingTerima,
             'blockedByTerima' => $blockedByTerima,
             'usageLockMessage' => $blockedByTerima ? $this->getUsageLockMessage($tr_poh) : null,
@@ -1281,17 +1292,11 @@ class Tr_pohController extends Controller
 
     public function view(Request $request, $fpohid)
     {
-        $suppliers = Supplier::orderBy('fsuppliername', 'asc')
-            ->get(['fsupplierid', 'fsuppliercode', 'fsuppliername']);
+        $suppliers = $this->getCachedSuppliers();
 
         $raw = (Auth::guard('sysuser')->user() ?? Auth::user())?->fcabang;
 
-        $branch = DB::table('mscabang')
-            ->when(is_numeric($raw), fn($q) => $q->where('fcabangid', (int) $raw))
-            ->when(! is_numeric($raw), fn($q) => $q
-                ->where('fcabangkode', $raw)
-                ->orWhere('fcabangname', $raw))
-            ->first(['fcabangid', 'fcabangkode', 'fcabangname']);
+        $branch = $this->getBranchInfo($raw);
 
         $fcabang = $branch->fcabangname ?? (string) $raw;
         $fbranchcode = $branch->fcabangkode ?? (string) $raw;
@@ -1317,22 +1322,14 @@ class Tr_pohController extends Controller
         $details = $this->getPoDetailsWithTerimaUsage($tr_poh->fpono);
         $approvalLockMessage = $this->getApprovalLockMessage($tr_poh);
 
-        $currencies = DB::table('mscurrency')
-            ->where(function ($q) {
-                $q->whereNull('fnonactive')
-                    ->orWhere('fnonactive', '0')
-                    ->orWhere('fnonactive', '');
-            })
-            ->orderBy('fcurrname')
-            ->get(['fcurrid', 'fcurrcode', 'fcurrname', 'frate']);
+        $currencies = $this->getCachedCurrencies();
 
         // Lookup currency aktif dari mscurrency berdasarkan fcurrency (integer ID)
         $currentCurrency = DB::table('mscurrency')
             ->where('fcurrid', $tr_poh->fcurrency)
             ->first(['fcurrid', 'fcurrcode', 'fcurrname', 'frate']);
 
-        $products = $this->browseProducts();
-        $productMap = $this->browseProductMap($products);
+        $productMap = $this->browseProductMapCached();
 
         $savedItems = $details->map(function ($d) {
             $satKecil = trim((string) ($d->fsatuankecil ?? ''));
@@ -1369,7 +1366,6 @@ class Tr_pohController extends Controller
             'selectedSupplierCode' => $tr_poh->fsupplier,
             'fcabang' => $fcabang,
             'fbranchcode' => $fbranchcode,
-            'products' => $products,
             'productMap' => $productMap,
             'tr_poh' => $tr_poh,
             'approvalLockMessage' => $approvalLockMessage,
@@ -1766,16 +1762,15 @@ class Tr_pohController extends Controller
             ->where('fcurrid', $tr_poh->fcurrency)
             ->first(['fcurrid', 'fcurrcode', 'fcurrname', 'frate']);
 
-        $products = $this->browseProducts();
-        $productMap = $this->browseProductMap($products, 'fprdid');
+        $productMap = $this->browseProductMapCached();
 
-        $savedItems = $details->map(function ($d) use ($products) {
-            $prod = $products->firstWhere('fprdcode', $d->fitemcode);
+        $savedItems = $details->map(function ($d) use ($productMap) {
+            $prod = $productMap[trim((string) ($d->fitemcode ?? ''))] ?? null;
             $units = $prod
                 ? array_values(array_filter([
-                    $prod->fsatuankecil,
-                    $prod->fsatuanbesar,
-                    $prod->fsatuanbesar2,
+                    $prod['fsatuankecil'] ?? '',
+                    $prod['fsatuanbesar'] ?? '',
+                    $prod['fsatuanbesar2'] ?? '',
                 ]))
                 : ($d->fsatuan ? [$d->fsatuan] : []);
 
@@ -1820,7 +1815,6 @@ class Tr_pohController extends Controller
             'existingTerima' => $existingTerima,
             'blockedByTerima' => $blockedByTerima,
             'usageLockMessage' => $blockedByTerima ? $this->getUsageLockMessage($tr_poh) : null,
-            'products' => $products,
             'productMap' => $productMap,
             'tr_poh' => $tr_poh,
             'savedItems' => $savedItems,

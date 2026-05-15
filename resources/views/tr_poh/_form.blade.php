@@ -3,98 +3,8 @@
 @endphp
 
 @if ($routeName === 'tr_poh.create')
-<style>
-        input:focus,
-        select:focus,
-        textarea:focus {
-            outline: none;
-            border-color: #2563eb;
-            box-shadow: 0 0 0 2px rgba(37, 99, 235, .2);
-        }
-
-        .switch {
-            position: relative;
-            display: inline-block;
-            width: 60px;
-            height: 34px
-        }
-
-        .switch input {
-            opacity: 0;
-            width: 0;
-            height: 0
-        }
-
-        .slider {
-            position: absolute;
-            cursor: pointer;
-            inset: 0;
-            background: #ccc;
-            transition: .4s;
-            border-radius: 34px
-        }
-
-        .slider:before {
-            content: "";
-            position: absolute;
-            height: 26px;
-            width: 26px;
-            border-radius: 50%;
-            left: 4px;
-            bottom: 4px;
-            background: #fff;
-            transition: .4s
-        }
-
-        input:checked+.slider {
-            background: #4CAF50
-        }
-
-        input:checked+.slider:before {
-            transform: translateX(26px)
-        }
-
-        [x-cloak] {
-            display: none !important
-        }
-
-        input[type=number]::-webkit-inner-spin-button,
-        input[type=number]::-webkit-outer-spin-button {
-            -webkit-appearance: none;
-            margin: 0;
-        }
-
-        input[type=number] {
-            -moz-appearance: textfield;
-        }
-    </style>
-    @if ($errors->any())
-        <div class="alert alert-danger alert-dismissible fade show border-0 shadow p-0 overflow-hidden" role="alert">
-            {{-- Header Strip --}}
-            <div class="d-flex align-items-center px-4 py-3" style="background-color: #c0392b;">
-                <i class="bi bi-exclamation-triangle-fill text-white me-2 fs-5"></i>
-                <strong class="text-white fs-6">Gagal Menyimpan Data!</strong>
-                <button type="button" class="btn-close btn-close-white ms-auto" data-bs-dismiss="alert"
-                    aria-label="Close"></button>
-            </div>
-
-            {{-- Body --}}
-            <div class="px-4 py-3" style="background-color: #fdeded; border-left: 5px solid #c0392b;">
-                <p class="mb-2 text-danger fw-semibold">
-                    <i class="bi bi-info-circle me-1"></i>
-                    Periksa kembali data berikut sebelum menyimpan:
-                </p>
-                <ul class="mb-0 ps-3">
-                    @foreach ($errors->all() as $error)
-                        <li class="text-danger mb-1">
-                            <i class="bi bi-dot fs-5 align-middle"></i>
-                            {{ $error }}
-                        </li>
-                    @endforeach
-                </ul>
-            </div>
-        </div>
-    @endif
+    @include('components.transaction.form-base-styles')
+    @include('components.transaction.error-alert')
     @php
         $oldItemCodes = old('fitemcode', []);
         $oldItemNames = old('fitemname', []);
@@ -756,103 +666,14 @@
 
 
 @push('styles')
-    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.7/css/jquery.dataTables.min.css">
+    @include('components.transaction.tr-poh-shared', ['section' => 'datatables_length_styles'])
+    @include('components.transaction.datatables-styles')
 @endpush
 
-<style>
-    div#productTable_length select,
-    .dataTables_wrapper #productTable_length select,
-    div#supplierBrowseTable_length select,
-    .dataTables_wrapper #supplierBrowseTable_length select,
-    div#prTable_length select,
-    .dataTables_wrapper #prTable_length select {
-        min-width: 140px !important;
-        width: auto !important;
-        padding: 8px 45px 8px 16px !important;
-        font-size: 14px !important;
-        border: 1px solid #d1d5db !important;
-        border-radius: 0.375rem !important;
-    }
-
-    div#productTable_length,
-    .dataTables_wrapper #productTable_length,
-    div#supplierBrowseTable_length,
-    .dataTables_wrapper #supplierBrowseTable_length,
-    div#prTable_length,
-    .dataTables_wrapper #prTable_length {
-        min-width: 250px !important;
-    }
-
-    div#productTable_length label,
-    .dataTables_wrapper #productTable_length label,
-    div#supplierBrowseTable_length label,
-    .dataTables_wrapper #supplierBrowseTable_length label,
-    div#prTable_length label,
-    .dataTables_wrapper #prTable_length label {
-        font-size: 14px !important;
-        display: flex !important;
-        align-items: center !important;
-        gap: 8px !important;
-    }
-</style>
-
 <script>
-    window.PRODUCT_MAP = {
-        @foreach ($products as $p)
-            "{{ $p->fprdcode }}": {
-                id: @json($p->fprdid),
-                name: @json($p->fprdname),
-                units: @json(array_values(array_filter([$p->fsatuankecil, $p->fsatuanbesar, $p->fsatuanbesar2]))),
-                stock: @json($p->fminstock ?? 0),
-                unit_ratios: {
-                    satuankecil: 1,
-                    satuanbesar: @json((float) ($p->fqtykecil ?? 1)),
-                    satuanbesar2: @json((float) ($p->fqtykecil2 ?? 1)),
-                },
-            },
-        @endforeach
-    };
-
-    window.CURRENCY_MAP = {
-        @foreach ($currencies as $cur)
-            {{ $cur->fcurrid }}: {
-                id: {{ $cur->fcurrid }},
-                code: @json($cur->fcurrcode),
-                name: @json($cur->fcurrname),
-                rate: {{ $cur->frate ?? 0 }}
-            },
-        @endforeach
-    };
-
-    window.cryptoRandom = function() {
-        try {
-            if (window.crypto?.getRandomValues) {
-                const arr = new Uint32Array(1);
-                window.crypto.getRandomValues(arr);
-                return 'r' + arr[0].toString(16);
-            }
-        } catch (e) {}
-        return 'r' + (Date.now().toString(16) + Math.random().toString(16).slice(2));
-    };
-
-    window.fetchLastPrice = async function(fprdcode, fsupplier, fsatuan) {
-        if (!fprdcode || !fsupplier || !fsatuan) return null;
-        try {
-            const url = new URL("{{ route('tr_poh.lastPrice') }}", window.location.origin);
-            url.searchParams.set('fprdcode', fprdcode);
-            url.searchParams.set('fsupplier', fsupplier);
-            url.searchParams.set('fsatuan', fsatuan);
-            const res = await fetch(url.toString(), {
-                headers: {
-                    'X-Requested-With': 'XMLHttpRequest'
-                }
-            });
-            if (!res.ok) return null;
-            return await res.json();
-        } catch (e) {
-            return null;
-        }
-    };
+    @include('components.transaction.tr-poh-shared', ['section' => 'browser_globals'])
+    @include('components.transaction.tr-poh-shared', ['section' => 'form_method_helpers'])
+    @include('components.transaction.tr-poh-shared', ['section' => 'draft_unit_dom_helpers'])
 
     function mainForm() {
         function newRow() {
@@ -917,63 +738,6 @@
             showDescModal: false,
             descValue: '',
             _descTarget: null,
-
-            normalizeNoAcak(value) {
-                return (value || '').toString().replace(/\D/g, '').slice(0, 3);
-            },
-
-            generateUniqueNoAcak() {
-                const used = new Set(this.savedItems.map(item => this.normalizeNoAcak(item.fnoacak)).filter(Boolean));
-                let candidate = '';
-
-                do {
-                    candidate = Array.from({ length: 3 }, () => '123456789'[Math.floor(Math.random() * 9)]).join('');
-                } while (used.has(candidate));
-
-                return candidate;
-            },
-
-            get totalHarga() {
-                return this.savedItems.reduce((s, it) => s + (it.ftotal || 0), 0);
-            },
-            get ppnNominal() {
-                if (!this.includePPN) return 0;
-                const total = this.totalHarga,
-                    rate = +this.ppnRate || 0;
-                return this.ppnMode === 1 ? Math.round(total * rate / (100 + rate)) : Math.round(total * rate /
-                    100);
-            },
-            get grandTotal() {
-                if (!this.includePPN) return this.totalHarga;
-                return this.ppnMode === 1 ? this.totalHarga : this.totalHarga + this.ppnNominal;
-            },
-            get grandTotalRp() {
-                if (!this.selectedCurrCode || this.selectedCurrCode === 'IDR') return this.grandTotal;
-                return +(this.grandTotal * (+this.rateValue || 1)).toFixed(2);
-            },
-
-            fmtCurr(n) {
-                const v = Number(n || 0);
-                if (!isFinite(v)) return '-';
-                return v.toLocaleString('id-ID', {
-                    minimumFractionDigits: 2,
-                    maximumFractionDigits: 2
-                });
-            },
-            rupiah(n) {
-                const v = Number(n || 0);
-                if (!isFinite(v)) return '-';
-                return v.toLocaleString('id-ID', {
-                    minimumFractionDigits: 2,
-                    maximumFractionDigits: 2
-                });
-            },
-            itemTotalRp(value) {
-                const total = Number(value || 0);
-                if (!Number.isFinite(total)) return 0;
-                if (!this.selectedCurrCode || this.selectedCurrCode === 'IDR') return total;
-                return +(total * (+this.rateValue || 1)).toFixed(2);
-            },
             openDesc(targetRow) {
                 this._descTarget = targetRow;
                 this.descValue = targetRow?.fdesc || '';
@@ -987,103 +751,9 @@
                 if (this._descTarget) this._descTarget.fdesc = this.descValue;
                 this.closeDesc();
             },
-
-            onCurrencyChange() {
-                const id = parseInt(this.selectedCurrId);
-                const cur = window.CURRENCY_MAP[id];
-                if (cur) {
-                    this.selectedCurrCode = cur.code;
-                    this.rateValue = cur.rate;
-                } else {
-                    this.selectedCurrCode = '';
-                    this.rateValue = 0;
-                }
-            },
-
-            recalc(row) {
-                const qty = Math.max(0, +row.fqty || 0);
-                const price = Math.max(0, +row.fprice || 0);
-                const disc = Math.min(100, Math.max(0, +row.fdisc || 0));
-                row.fqty = qty;
-                row.fprice = price;
-                row.fdisc = disc;
-                row.ftotal = +(qty * price * (1 - disc / 100)).toFixed(2);
-            },
-
-            productMeta(code) {
-                const key = (code || '').trim();
-                const meta = window.PRODUCT_MAP?.[key];
-                if (!meta) {
-                    return {
-                        name: '',
-                        units: [],
-                        stock: 0,
-                        unit_ratios: {
-                            satuankecil: 1,
-                            satuanbesar: 1,
-                            satuanbesar2: 1
-                        }
-                    };
-                }
-                return meta;
-            },
-
-            formatPrRemainHint(row) {
-                return '';
-            },
-
-            enforcePrQtyRow(row) {
-                const n = +row.fqty;
-                if (!Number.isFinite(n)) {
-                    row.fqty = 1;
-                    return;
-                }
-                if (n < 1) row.fqty = 1;
-                if (!row.frefdtid) return;
-                row.maxqty = this.calcMaxQty(row);
-            },
-
-            hydrateRowFromMeta(row, meta, keepMaxqty = false) {
-                if (!meta) {
-                    row.fitemname = '';
-                    row.units = [];
-                    row.fsatuan = '';
-                    if (!keepMaxqty) row.maxqty = 0;
-                    if (row === this.draft) {
-                        clearDraftUnitSelect();
-                    }
-                    return;
-                }
-                row.fitemname = meta.name || '';
-                const units = [...new Set((meta.units || []).map(u => (u ?? '').toString().trim()).filter(Boolean))];
-                const currentSatuan = (row.fsatuan || '').trim();
-                if (currentSatuan && !units.includes(currentSatuan)) units.unshift(currentSatuan);
-                row.units = units;
-                if (!currentSatuan) row.fsatuan = units[0] || '';
-                if (meta.unit_ratios) row.unit_ratios = meta.unit_ratios;
-                if (!keepMaxqty) row.maxqty = 0;
-                
-                if (row === this.draft) {
-                    if (units.length > 1) {
-                        populateDraftUnitSelect(units);
-                    } else {
-                        clearDraftUnitSelect();
-                    }
-                }
-            },
-
-            onCodeTypedRow(row) {
-                this.hydrateRowFromMeta(row, this.productMeta(row.fitemcode));
-                this.$nextTick(() => this.applyLastPrice(row));
-            },
-            onCodeTypedSaved(item) {
-                this.hydrateRowFromMeta(item, this.productMeta(item.fitemcode));
-                this.$nextTick(() => this.applyLastPrice(item));
-            },
-
-            getSupplier() {
-                return (document.getElementById('supplierCodeHidden')?.value || '').trim();
-            },
+            ...window.trPohNoAcakMethods,
+            ...window.trPohSummaryMethods,
+            ...window.trPohCoreItemMethods,
 
             syncSupplierDisplay(code) {
                 const supplierCode = (code || '').toString().trim();
@@ -1498,38 +1168,7 @@
         };
     }
 
-    function getDraftUnitSelect() {
-        return document.getElementById('draftUnitSelect');
-    }
-
-    function populateDraftUnitSelect(units) {
-        const sel = getDraftUnitSelect();
-        if (!sel) return;
-        sel.innerHTML = '';
-        units.forEach(u => {
-            const opt = document.createElement('option');
-            opt.value = u;
-            opt.textContent = u;
-            sel.appendChild(opt);
-        });
-    }
-
-    function clearDraftUnitSelect() {
-        const sel = getDraftUnitSelect();
-        if (sel) sel.innerHTML = '';
-    }
-
-    document.addEventListener('alpine:init', () => {
-        Alpine.store('prh', {
-            descPreview: {
-                uid: null,
-                index: null,
-                label: '',
-                text: ''
-            },
-            descList: []
-        });
-    });
+    @include('components.transaction.tr-poh-shared', ['section' => 'desc_store'])
 </script>
 
 <script>
@@ -1692,32 +1331,12 @@
         };
     };
 
-    function formatDate(s) {
-        if (!s || s === 'No Date') return '-';
-        const d = new Date(s);
-        if (isNaN(d.getTime())) return '-';
-        const pad = n => n.toString().padStart(2, '0');
-        return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
-    }
+    @include('components.transaction.tr-poh-shared', ['section' => 'format_date_helper'])
 </script>
 
 @push('scripts')
-    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
-    <script src="https://cdn.datatables.net/1.13.7/js/jquery.dataTables.min.js"></script>
+    @include('components.transaction.datatables-scripts')
     @include('components.transaction.browse-product-script')
-    <script>
-        document.addEventListener('alpine:init', () => {
-            Alpine.store('prh', {
-                descPreview: {
-                    uid: null,
-                    index: null,
-                    label: '',
-                    text: ''
-                },
-                descList: []
-            });
-        });
-    </script>
 @endpush
 @endif
 
@@ -1787,33 +1406,7 @@
             -moz-appearance: textfield;
         }
     </style>
-    @if ($errors->any())
-        <div class="alert alert-danger alert-dismissible fade show border-0 shadow p-0 overflow-hidden" role="alert">
-            {{-- Header Strip --}}
-            <div class="d-flex align-items-center px-4 py-3" style="background-color: #c0392b;">
-                <i class="bi bi-exclamation-triangle-fill text-white me-2 fs-5"></i>
-                <strong class="text-white fs-6">Gagal Menyimpan Data!</strong>
-                <button type="button" class="btn-close btn-close-white ms-auto" data-bs-dismiss="alert"
-                    aria-label="Close"></button>
-            </div>
-
-            {{-- Body --}}
-            <div class="px-4 py-3" style="background-color: #fdeded; border-left: 5px solid #c0392b;">
-                <p class="mb-2 text-danger fw-semibold">
-                    <i class="bi bi-info-circle me-1"></i>
-                    Periksa kembali data berikut sebelum menyimpan:
-                </p>
-                <ul class="mb-0 ps-3">
-                    @foreach ($errors->all() as $error)
-                        <li class="text-danger mb-1">
-                            <i class="bi bi-dot fs-5 align-middle"></i>
-                            {{ $error }}
-                        </li>
-                    @endforeach
-                </ul>
-            </div>
-        </div>
-    @endif
+    @include('components.transaction.error-alert')
     @php
         $permissions = explode(',', session('user_restricted_permissions', ''));
         $canEditPermission = in_array('updateTr_poh', $permissions, true);
@@ -2682,103 +2275,14 @@
 
 
 @push('styles')
-    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.7/css/jquery.dataTables.min.css">
+    @include('components.transaction.tr-poh-shared', ['section' => 'datatables_length_styles'])
+    @include('components.transaction.datatables-styles')
 @endpush
 
-<style>
-    div#productTable_length select,
-    .dataTables_wrapper #productTable_length select,
-    div#supplierBrowseTable_length select,
-    .dataTables_wrapper #supplierBrowseTable_length select,
-    div#prTable_length select,
-    .dataTables_wrapper #prTable_length select {
-        min-width: 140px !important;
-        width: auto !important;
-        padding: 8px 45px 8px 16px !important;
-        font-size: 14px !important;
-        border: 1px solid #d1d5db !important;
-        border-radius: 0.375rem !important;
-    }
-
-    div#productTable_length,
-    .dataTables_wrapper #productTable_length,
-    div#supplierBrowseTable_length,
-    .dataTables_wrapper #supplierBrowseTable_length,
-    div#prTable_length,
-    .dataTables_wrapper #prTable_length {
-        min-width: 250px !important;
-    }
-
-    div#productTable_length label,
-    .dataTables_wrapper #productTable_length label,
-    div#supplierBrowseTable_length label,
-    .dataTables_wrapper #supplierBrowseTable_length label,
-    div#prTable_length label,
-    .dataTables_wrapper #prTable_length label {
-        font-size: 14px !important;
-        display: flex !important;
-        align-items: center !important;
-        gap: 8px !important;
-    }
-</style>
-
 <script>
-    window.PRODUCT_MAP = {
-        @foreach ($products as $p)
-            "{{ $p->fprdcode }}": {
-                id: @json($p->fprdid),
-                name: @json($p->fprdname),
-                units: @json(array_values(array_filter([$p->fsatuankecil, $p->fsatuanbesar, $p->fsatuanbesar2]))),
-                stock: @json($p->fminstock ?? 0),
-                unit_ratios: {
-                    satuankecil: 1,
-                    satuanbesar: @json((float) ($p->fqtykecil ?? 1)),
-                    satuanbesar2: @json((float) ($p->fqtykecil2 ?? 1)),
-                },
-            },
-        @endforeach
-    };
-
-    window.CURRENCY_MAP = {
-        @foreach ($currencies as $cur)
-            {{ $cur->fcurrid }}: {
-                id: {{ $cur->fcurrid }},
-                code: @json($cur->fcurrcode),
-                name: @json($cur->fcurrname),
-                rate: {{ $cur->frate ?? 0 }}
-            },
-        @endforeach
-    };
-
-    window.cryptoRandom = function() {
-        try {
-            if (window.crypto?.getRandomValues) {
-                const arr = new Uint32Array(1);
-                window.crypto.getRandomValues(arr);
-                return 'r' + arr[0].toString(16);
-            }
-        } catch (e) {}
-        return 'r' + (Date.now().toString(16) + Math.random().toString(16).slice(2));
-    };
-
-    window.fetchLastPrice = async function(fprdcode, fsupplier, fsatuan) {
-        if (!fprdcode || !fsupplier || !fsatuan) return null;
-        try {
-            const url = new URL("{{ route('tr_poh.lastPrice') }}", window.location.origin);
-            url.searchParams.set('fprdcode', fprdcode);
-            url.searchParams.set('fsupplier', fsupplier);
-            url.searchParams.set('fsatuan', fsatuan);
-            const res = await fetch(url.toString(), {
-                headers: {
-                    'X-Requested-With': 'XMLHttpRequest'
-                }
-            });
-            if (!res.ok) return null;
-            return await res.json();
-        } catch (e) {
-            return null;
-        }
-    };
+    @include('components.transaction.tr-poh-shared', ['section' => 'browser_globals'])
+    @include('components.transaction.tr-poh-shared', ['section' => 'form_method_helpers'])
+    @include('components.transaction.tr-poh-shared', ['section' => 'draft_unit_dom_helpers'])
 
     function mainForm() {
         const IS_EDIT = {{ $isEdit ? 'true' : 'false' }};
@@ -2846,63 +2350,6 @@
             descValue: '',
             descReadonly: false,
             _descTarget: null,
-
-            normalizeNoAcak(value) {
-                return (value || '').toString().replace(/\D/g, '').slice(0, 3);
-            },
-
-            generateUniqueNoAcak() {
-                const used = new Set(this.savedItems.map(item => this.normalizeNoAcak(item.fnoacak)).filter(Boolean));
-                let candidate = '';
-
-                do {
-                    candidate = Array.from({ length: 3 }, () => '123456789'[Math.floor(Math.random() * 9)]).join('');
-                } while (used.has(candidate));
-
-                return candidate;
-            },
-
-            get totalHarga() {
-                return this.savedItems.reduce((s, it) => s + (it.ftotal || 0), 0);
-            },
-            get ppnNominal() {
-                if (!this.includePPN) return 0;
-                const total = this.totalHarga,
-                    rate = +this.ppnRate || 0;
-                return this.ppnMode === 1 ? Math.round(total * rate / (100 + rate)) : Math.round(total * rate /
-                    100);
-            },
-            get grandTotal() {
-                if (!this.includePPN) return this.totalHarga;
-                return this.ppnMode === 1 ? this.totalHarga : this.totalHarga + this.ppnNominal;
-            },
-            get grandTotalRp() {
-                if (!this.selectedCurrCode || this.selectedCurrCode === 'IDR') return this.grandTotal;
-                return +(this.grandTotal * (+this.rateValue || 1)).toFixed(2);
-            },
-
-            fmtCurr(n) {
-                const v = Number(n || 0);
-                if (!isFinite(v)) return '-';
-                return v.toLocaleString('id-ID', {
-                    minimumFractionDigits: 2,
-                    maximumFractionDigits: 2
-                });
-            },
-            rupiah(n) {
-                const v = Number(n || 0);
-                if (!isFinite(v)) return '-';
-                return v.toLocaleString('id-ID', {
-                    minimumFractionDigits: 2,
-                    maximumFractionDigits: 2
-                });
-            },
-            itemTotalRp(value) {
-                const total = Number(value || 0);
-                if (!Number.isFinite(total)) return 0;
-                if (!this.selectedCurrCode || this.selectedCurrCode === 'IDR') return total;
-                return +(total * (+this.rateValue || 1)).toFixed(2);
-            },
             formatQtyValue(value) {
                 const num = Number(value);
                 if (!Number.isFinite(num)) return '0,00';
@@ -2926,103 +2373,9 @@
                 if (this._descTarget) this._descTarget.fdesc = this.descValue;
                 this.closeDesc();
             },
-
-            onCurrencyChange() {
-                const id = parseInt(this.selectedCurrId);
-                const cur = window.CURRENCY_MAP[id];
-                if (cur) {
-                    this.selectedCurrCode = cur.code;
-                    this.rateValue = cur.rate;
-                } else {
-                    this.selectedCurrCode = '';
-                    this.rateValue = 0;
-                }
-            },
-
-            recalc(row) {
-                const qty = Math.max(0, +row.fqty || 0);
-                const price = Math.max(0, +row.fprice || 0);
-                const disc = Math.min(100, Math.max(0, +row.fdisc || 0));
-                row.fqty = qty;
-                row.fprice = price;
-                row.fdisc = disc;
-                row.ftotal = +(qty * price * (1 - disc / 100)).toFixed(2);
-            },
-
-            productMeta(code) {
-                const key = (code || '').trim();
-                const meta = window.PRODUCT_MAP?.[key];
-                if (!meta) {
-                    return {
-                        name: '',
-                        units: [],
-                        stock: 0,
-                        unit_ratios: {
-                            satuankecil: 1,
-                            satuanbesar: 1,
-                            satuanbesar2: 1
-                        }
-                    };
-                }
-                return meta;
-            },
-
-            formatPrRemainHint(row) {
-                return '';
-            },
-
-            enforcePrQtyRow(row) {
-                const n = +row.fqty;
-                if (!Number.isFinite(n)) {
-                    row.fqty = 1;
-                    return;
-                }
-                if (n < 1) row.fqty = 1;
-                if (!row.frefdtid) return;
-                row.maxqty = this.calcMaxQty(row);
-            },
-
-            hydrateRowFromMeta(row, meta, keepMaxqty = false) {
-                if (!meta) {
-                    row.fitemname = '';
-                    row.units = [];
-                    row.fsatuan = '';
-                    if (!keepMaxqty) row.maxqty = 0;
-                    if (row === this.draft) {
-                        clearDraftUnitSelect();
-                    }
-                    return;
-                }
-                row.fitemname = meta.name || '';
-                const units = [...new Set((meta.units || []).map(u => (u ?? '').toString().trim()).filter(Boolean))];
-                const currentSatuan = (row.fsatuan || '').trim();
-                if (currentSatuan && !units.includes(currentSatuan)) units.unshift(currentSatuan);
-                row.units = units;
-                if (!currentSatuan) row.fsatuan = units[0] || '';
-                if (meta.unit_ratios) row.unit_ratios = meta.unit_ratios;
-                if (!keepMaxqty) row.maxqty = 0;
-                
-                if (row === this.draft) {
-                    if (units.length > 1) {
-                        populateDraftUnitSelect(units);
-                    } else {
-                        clearDraftUnitSelect();
-                    }
-                }
-            },
-
-            onCodeTypedRow(row) {
-                this.hydrateRowFromMeta(row, this.productMeta(row.fitemcode));
-                this.$nextTick(() => this.applyLastPrice(row));
-            },
-            onCodeTypedSaved(item) {
-                this.hydrateRowFromMeta(item, this.productMeta(item.fitemcode));
-                this.$nextTick(() => this.applyLastPrice(item));
-            },
-
-            getSupplier() {
-                return (document.getElementById('supplierCodeHidden')?.value || '').trim();
-            },
+            ...window.trPohNoAcakMethods,
+            ...window.trPohSummaryMethods,
+            ...window.trPohCoreItemMethods,
 
             async applyLastPrice(row) {
                 if (!IS_EDIT) return;
@@ -3375,27 +2728,6 @@
         };
     }
 
-    function getDraftUnitSelect() {
-        return document.getElementById('draftUnitSelect');
-    }
-
-    function populateDraftUnitSelect(units) {
-        const sel = getDraftUnitSelect();
-        if (!sel) return;
-        sel.innerHTML = '';
-        units.forEach(u => {
-            const opt = document.createElement('option');
-            opt.value = u;
-            opt.textContent = u;
-            sel.appendChild(opt);
-        });
-    }
-
-    function clearDraftUnitSelect() {
-        const sel = getDraftUnitSelect();
-        if (sel) sel.innerHTML = '';
-    }
-
     @if ($isEdit)
         window.prhFormModal = function() {
             return {
@@ -3553,30 +2885,12 @@
         };
     @endif
 
-    function formatDate(s) {
-        if (!s || s === 'No Date') return '-';
-        const d = new Date(s);
-        if (isNaN(d.getTime())) return '-';
-        const pad = n => n.toString().padStart(2, '0');
-        return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
-    }
-
-    document.addEventListener('alpine:init', () => {
-        Alpine.store('prh', {
-            descPreview: {
-                uid: null,
-                index: null,
-                label: '',
-                text: ''
-            },
-            descList: []
-        });
-    });
+    @include('components.transaction.tr-poh-shared', ['section' => 'format_date_helper'])
+    @include('components.transaction.tr-poh-shared', ['section' => 'desc_store'])
 </script>
 
 @push('scripts')
-    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
-    <script src="https://cdn.datatables.net/1.13.7/js/jquery.dataTables.min.js"></script>
+    @include('components.transaction.datatables-scripts')
 
     @if ($isEdit)
         @include('components.transaction.browse-product-script')
@@ -4217,49 +3531,7 @@
 
 
 
-<style>
-    .switch {
-        position: relative;
-        display: inline-block;
-        width: 60px;
-        height: 34px
-    }
-
-    .switch input {
-        opacity: 0;
-        width: 0;
-        height: 0
-    }
-
-    .slider {
-        position: absolute;
-        cursor: pointer;
-        inset: 0;
-        background: #ccc;
-        transition: .4s;
-        border-radius: 34px
-    }
-
-    .slider:before {
-        content: "";
-        position: absolute;
-        height: 26px;
-        width: 26px;
-        border-radius: 50%;
-        left: 4px;
-        bottom: 4px;
-        background: #fff;
-        transition: .4s
-    }
-
-    input:checked+.slider {
-        background: #4CAF50
-    }
-
-    input:checked+.slider:before {
-        transform: translateX(26px)
-    }
-</style>
+@include('components.transaction.tr-poh-shared', ['section' => 'switch_styles'])
 
 <script>
     window.PRODUCT_MAP = @json($productMap ?? []);
