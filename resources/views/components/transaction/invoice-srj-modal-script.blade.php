@@ -38,23 +38,38 @@
                     },
                     columns: [{
                             data: 'fstockmtno',
-                            className: 'font-mono text-sm'
-                        },
-                        {
-                            data: 'frefpo',
-                            defaultContent: '-',
+                            name: 'fstockmtno',
                             className: 'font-mono text-sm'
                         },
                         {
                             data: 'fstockmtdate',
+                            name: 'fstockmtdate',
                             className: 'text-sm',
                             render: function(data) {
                                 return formatDate(data);
                             }
                         },
                         {
+                            data: 'fcustomercode',
+                            name: 'fcustomercode',
+                            defaultContent: '-',
+                            className: 'font-mono text-sm'
+                        },
+                        {
                             data: 'fsuppliername',
                             name: 'fsuppliername',
+                            defaultContent: '-',
+                        },
+                        {
+                            data: 'fcity',
+                            name: 'fcity',
+                            defaultContent: '-',
+                        },
+                        {
+                            data: 'frefpo',
+                            name: 'frefpo',
+                            defaultContent: '-',
+                            className: 'font-mono text-sm'
                         },
                         {
                             data: null,
@@ -73,13 +88,18 @@
                         processing: "Memuat data...",
                         search: "Cari:",
                         lengthMenu: "Tampilkan _MENU_",
+                        info: "Menampilkan _START_ - _END_ dari _TOTAL_ data",
+                        infoEmpty: "Tidak ada data",
+                        infoFiltered: "(disaring dari _MAX_ total data)",
+                        zeroRecords: "Tidak ada data yang ditemukan",
+                        emptyTable: "Tidak ada data tersedia",
                         paginate: {
                             next: "Selanjutnya",
                             previous: "Sebelumnya"
                         }
                     },
                     order: [
-                        [2, 'desc']
+                        [1, 'desc']
                     ],
                     autoWidth: false,
                     scrollX: true,

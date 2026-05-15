@@ -173,7 +173,9 @@ class SuratJalanController extends Controller
                 'trstockmt.fstockmtno',
                 'trstockmt.frefpo',
                 'trstockmt.fstockmtdate',
-                'mscustomer.fcustomername as fsuppliername'
+                'mscustomer.fcustomercode',
+                'mscustomer.fcustomername as fsuppliername',
+                'mscustomer.fcity'
             );
 
         // Filter Search
@@ -182,7 +184,9 @@ class SuratJalanController extends Controller
             $query->where(function ($q) use ($search) {
                 $q->where('trstockmt.fstockmtno', 'ilike', "%{$search}%")
                     ->orWhere('trstockmt.frefpo', 'ilike', "%{$search}%")
-                    ->orWhere('fsuppliername', 'ilike', "%{$search}%");
+                    ->orWhere('mscustomer.fcustomercode', 'ilike', "%{$search}%")
+                    ->orWhere('mscustomer.fcustomername', 'ilike', "%{$search}%")
+                    ->orWhere('mscustomer.fcity', 'ilike', "%{$search}%");
             });
         }
 
@@ -199,7 +203,21 @@ class SuratJalanController extends Controller
             ->count();
         $recordsFiltered = $query->count();
 
-        $data = $query->orderBy('trstockmt.fstockmtdate', 'desc')
+        $allowedColumns = ['fstockmtno', 'fstockmtdate', 'fcustomercode', 'fsuppliername', 'fcity', 'frefpo'];
+        $orderColumn = (string) $request->input('order_column', 'fstockmtdate');
+        $orderDir = strtolower((string) $request->input('order_dir', 'desc')) === 'asc' ? 'asc' : 'desc';
+
+        if (in_array($orderColumn, $allowedColumns, true)) {
+            if (in_array($orderColumn, ['fcustomercode', 'fsuppliername', 'fcity'], true)) {
+                $query->orderBy('mscustomer.'.$orderColumn, $orderDir);
+            } else {
+                $query->orderBy('trstockmt.'.$orderColumn, $orderDir);
+            }
+        } else {
+            $query->orderBy('trstockmt.fstockmtdate', 'desc');
+        }
+
+        $data = $query
             ->skip($request->start)
             ->take($request->length)
             ->get();
