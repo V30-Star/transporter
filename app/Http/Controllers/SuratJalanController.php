@@ -35,16 +35,34 @@ class SuratJalanController extends Controller
 
         // --- 2. Handle Request AJAX dari DataTables ---
         if ($request->ajax()) {
+            $soRefSubquery = DB::table('trstockdt')
+                ->selectRaw("
+                    fstockmtno,
+                    STRING_AGG(DISTINCT NULLIF(TRIM(COALESCE(frefso, '')), ''), ', ' ORDER BY NULLIF(TRIM(COALESCE(frefso, '')), '')) as so_refs
+                ")
+                ->whereNotNull('frefso')
+                ->groupBy('fstockmtno');
 
-            // Query dasar HANYA untuk 'SRJ' (Receiving)
-            $query = PenerimaanPembelianHeader::where('fstockmtcode', 'SRJ');
+            $baseQuery = DB::table('trstockmt')
+                ->leftJoin('mscustomer as customer', 'customer.fcustomercode', '=', 'trstockmt.fsupplier')
+                ->leftJoin('mswh as warehouse', 'warehouse.fwhcode', '=', 'trstockmt.ffrom')
+                ->leftJoinSub($soRefSubquery, 'so_refs', function ($join) {
+                    $join->on('so_refs.fstockmtno', '=', 'trstockmt.fstockmtno');
+                })
+                ->where('trstockmt.fstockmtcode', 'SRJ');
 
-            // Total records (dengan filter 'SRJ')
-            $totalRecords = PenerimaanPembelianHeader::where('fstockmtcode', 'SRJ')->count();
+            $query = clone $baseQuery;
+            $totalRecords = (clone $baseQuery)->count('trstockmt.fstockmtid');
 
-            // Handle Search (cari di No. Penerimaan)
-            if ($search = $request->input('search.value')) {
-                $query->where('fstockmtno', 'like', "%{$search}%");
+            if ($search = trim((string) $request->input('search.value'))) {
+                $query->where(function ($q) use ($search) {
+                    $q->where('trstockmt.fstockmtno', 'ilike', "%{$search}%")
+                        ->orWhere('trstockmt.frefpo', 'ilike', "%{$search}%")
+                        ->orWhere('so_refs.so_refs', 'ilike', "%{$search}%")
+                        ->orWhere('trstockmt.ffrom', 'ilike', "%{$search}%")
+                        ->orWhere('warehouse.fwhname', 'ilike', "%{$search}%")
+                        ->orWhere('customer.fcustomername', 'ilike', "%{$search}%");
+                });
             }
 
             // Filter tahun
@@ -64,8 +82,14 @@ class SuratJalanController extends Controller
             $orderColIdx = $request->input('order.0.column', 0);
             $orderDir = $request->input('order.0.dir', 'desc');
 
-            // Kolom di tabel: 0 = fstockmtno, 1 = fstockmtdate, 2 = actions
-            $sortableColumns = ['fstockmtno', 'fstockmtdate'];
+            $sortableColumns = [
+                'trstockmt.fstockmtno',
+                'trstockmt.fstockmtdate',
+                'trstockmt.frefpo',
+                'so_refs.so_refs',
+                'trstockmt.ffrom',
+                'customer.fcustomername',
+            ];
 
             if (isset($sortableColumns[$orderColIdx])) {
                 $query->orderBy($sortableColumns[$orderColIdx], $orderDir);
@@ -78,14 +102,35 @@ class SuratJalanController extends Controller
             $length = $request->input('length', 10);
             $records = $query->skip($start)
                 ->take($length)
-                ->get(['fstockmtid', 'fstockmtno', 'fstockmtdate']);
+                ->get([
+                    'trstockmt.fstockmtid',
+                    'trstockmt.fstockmtno',
+                    'trstockmt.fstockmtdate',
+                    'trstockmt.frefpo',
+                    'trstockmt.ffrom',
+                    'warehouse.fwhname as warehouse_name',
+                    'customer.fcustomername as customer_name',
+                    DB::raw("COALESCE(so_refs.so_refs, '') as so_refs"),
+                ]);
 
-            // Format Data - HANYA RETURN DATA MENTAH
             $data = $records->map(function ($row) {
+                $warehouseLabel = trim((string) ($row->ffrom ?? ''));
+                $warehouseName = trim((string) ($row->warehouse_name ?? ''));
+
+                if ($warehouseLabel !== '' && $warehouseName !== '') {
+                    $warehouseLabel .= ' - '.$warehouseName;
+                } elseif ($warehouseLabel === '') {
+                    $warehouseLabel = $warehouseName;
+                }
+
                 return [
                     'fstockmtid' => $row->fstockmtid,
                     'fstockmtno' => $row->fstockmtno,
                     'fstockmtdate' => Carbon::parse($row->fstockmtdate)->format('d/m/Y'),
+                    'frefno' => (string) ($row->frefpo ?? ''),
+                    'fsono' => (string) ($row->so_refs ?? ''),
+                    'fgudang' => $warehouseLabel,
+                    'fcustomername' => (string) ($row->customer_name ?? ''),
                 ];
             });
 
@@ -574,6 +619,7 @@ class SuratJalanController extends Controller
         }
 
         $soUsageByReference = $this->buildSuratJalanReferenceUsageMap($rowsDt);
+        $invoiceReferenceDocs = $this->extractInvoiceReferenceDocs($rowsDt);
 
         if ($validationMessage = $this->validateUniqueReferenceUsage($soUsageByReference)) {
             return back()->withInput()->withErrors([
@@ -801,6 +847,8 @@ class SuratJalanController extends Controller
                 'detail' => 'Data belum berhasil disimpan. Silakan cek kembali isian transaksi.',
             ]);
         }
+
+        $this->syncInvoiceOutFlags($invoiceReferenceDocs);
 
         return redirect()
             ->route('suratjalan.create')
@@ -1234,6 +1282,13 @@ class SuratJalanController extends Controller
         }
 
         $soUsageByReference = $this->buildSuratJalanReferenceUsageMap($rowsDt);
+        $oldInvoiceReferenceDocs = DB::table('trstockdt')
+            ->where('fstockmtno', $header->fstockmtno)
+            ->pluck('frefso')
+            ->filter(fn ($value) => $this->isInvoiceReferenceDoc((string) $value))
+            ->values()
+            ->all();
+        $newInvoiceReferenceDocs = $this->extractInvoiceReferenceDocs($rowsDt);
 
         if ($validationMessage = $this->validateUniqueReferenceUsage($soUsageByReference, $header->fstockmtno)) {
             return back()->withInput()->withErrors([
@@ -1457,6 +1512,8 @@ class SuratJalanController extends Controller
             ]);
         }
 
+        $this->syncInvoiceOutFlags(array_merge($oldInvoiceReferenceDocs, $newInvoiceReferenceDocs));
+
         return redirect()
             ->route('suratjalan.index')
             ->with('success', "Transaksi {$fstockmtno} berhasil diperbarui.");
@@ -1589,6 +1646,12 @@ class SuratJalanController extends Controller
     {
         try {
             $suratjalan = PenerimaanPembelianHeader::findOrFail($fstockmtid);
+            $invoiceReferenceDocs = DB::table('trstockdt')
+                ->where('fstockmtno', $suratjalan->fstockmtno)
+                ->pluck('frefso')
+                ->filter(fn ($value) => $this->isInvoiceReferenceDoc((string) $value))
+                ->values()
+                ->all();
 
             if ($message = $this->getUsageLockMessage($suratjalan)) {
                 return redirect()->route('suratjalan.index')->with('error', $message);
@@ -1601,6 +1664,8 @@ class SuratJalanController extends Controller
 
                 $suratjalan->delete();
             });
+
+            $this->syncInvoiceOutFlags($invoiceReferenceDocs);
 
             return redirect()->route('suratjalan.index')->with('success', 'Data Surat Jalan '.$suratjalan->fstockmtno.' berhasil dihapus.');
         } catch (\Exception $e) {
@@ -1616,6 +1681,11 @@ class SuratJalanController extends Controller
             trim((string) ($productCode ?? '')),
             trim((string) ($refNoAcak ?? '')),
         ]);
+    }
+
+    private function isInvoiceReferenceDoc(string $docNo): bool
+    {
+        return str_starts_with(strtoupper(trim($docNo)), 'INV.');
     }
 
     private function extractSoReferenceDocsFromKeys(array $keys): array
@@ -1662,18 +1732,46 @@ class SuratJalanController extends Controller
             return [];
         }
 
-        $sourceRows = DB::table('trsodt as d')
-            ->leftJoin('msprd as p', 'p.fprdcode', '=', 'd.fprdcode')
-            ->whereIn('d.fsono', $docNos)
-            ->selectRaw("
-                TRIM(d.fsono) as ref_doc,
-                TRIM(d.fprdcode) as product_code,
-                COALESCE(d.frefnosoacak::text, d.fnoacak::text, '') as ref_noacak,
-                MAX(COALESCE(p.fprdname, d.fprdcode)) as product_name,
-                SUM(COALESCE(d.fqtykecil, 0)) as source_qty_kecil
-            ")
-            ->groupByRaw("TRIM(d.fsono), TRIM(d.fprdcode), COALESCE(d.frefnosoacak::text, d.fnoacak::text, '')")
-            ->get();
+        $invoiceDocNos = array_values(array_filter($docNos, fn ($docNo) => $this->isInvoiceReferenceDoc((string) $docNo)));
+        $soDocNos = array_values(array_filter($docNos, fn ($docNo) => ! $this->isInvoiceReferenceDoc((string) $docNo)));
+
+        $sourceRows = collect();
+
+        if (! empty($soDocNos)) {
+            $sourceRows = $sourceRows->merge(
+                DB::table('trsodt as d')
+                    ->leftJoin('msprd as p', 'p.fprdcode', '=', 'd.fprdcode')
+                    ->whereIn('d.fsono', $soDocNos)
+                    ->selectRaw("
+                        TRIM(d.fsono) as ref_doc,
+                        TRIM(d.fprdcode) as product_code,
+                        COALESCE(d.frefnosoacak::text, d.fnoacak::text, '') as ref_noacak,
+                        MAX(COALESCE(p.fprdname, d.fprdcode)) as product_name,
+                        SUM(COALESCE(d.fqtykecil, 0)) as source_qty_kecil
+                    ")
+                    ->groupByRaw("TRIM(d.fsono), TRIM(d.fprdcode), COALESCE(d.frefnosoacak::text, d.fnoacak::text, '')")
+                    ->get()
+            );
+        }
+
+        if (! empty($invoiceDocNos)) {
+            $sourceRows = $sourceRows->merge(
+                DB::table('trandt as d')
+                    ->leftJoin('msprd as p', 'p.fprdcode', '=', 'd.fprdcode')
+                    ->join('tranmt as h', 'h.fsono', '=', 'd.fsono')
+                    ->where('h.ftrcode', 'INV')
+                    ->whereIn('d.fsono', $invoiceDocNos)
+                    ->selectRaw("
+                        TRIM(d.fsono) as ref_doc,
+                        TRIM(d.fprdcode) as product_code,
+                        COALESCE(d.fnoacak::text, '') as ref_noacak,
+                        MAX(COALESCE(p.fprdname, d.fprdcode)) as product_name,
+                        SUM(COALESCE(d.fqtykecil, 0)) as source_qty_kecil
+                    ")
+                    ->groupByRaw("TRIM(d.fsono), TRIM(d.fprdcode), COALESCE(d.fnoacak::text, '')")
+                    ->get()
+            );
+        }
 
         $usageRows = DB::table('trstockdt as d')
             ->join('trstockmt as h', 'h.fstockmtno', '=', 'd.fstockmtno')
@@ -1741,16 +1839,16 @@ class SuratJalanController extends Controller
         foreach ($requestedUsageByReference as $referenceKey => $requestedQtyKecil) {
             $stat = $stats[$referenceKey] ?? null;
             $availableQtyKecil = max(0, (float) ($stat['remain_qty_kecil'] ?? 0));
+            $docNo = trim((string) ($stat['ref_doc'] ?? ''));
+            $docLabel = $this->isInvoiceReferenceDoc($docNo) ? 'Faktur Penjualan' : 'SO';
             if ($availableQtyKecil <= 0) {
                 $product = trim((string) ($stat['product_name'] ?? $stat['product_code'] ?? $referenceKey));
-                $soNo = trim((string) ($stat['ref_doc'] ?? ''));
-                return 'Qty Surat Jalan untuk item '.$product.($soNo !== '' ? ' pada SO '.$soNo : '').' tidak bisa diinput karena qty sudah habis atau sudah digunakan.';
+                return 'Qty Surat Jalan untuk item '.$product.($docNo !== '' ? ' pada '.$docLabel.' '.$docNo : '').' tidak bisa diinput karena qty sudah habis atau sudah digunakan.';
             }
 
             if ((float) $requestedQtyKecil - $availableQtyKecil > 0.000001) {
                 $product = trim((string) ($stat['product_name'] ?? $stat['product_code'] ?? $referenceKey));
-                $soNo = trim((string) ($stat['ref_doc'] ?? ''));
-                return 'Qty Surat Jalan untuk item '.$product.($soNo !== '' ? ' pada SO '.$soNo : '').' melebihi sisa qty yang tersedia.';
+                return 'Qty Surat Jalan untuk item '.$product.($docNo !== '' ? ' pada '.$docLabel.' '.$docNo : '').' melebihi sisa qty yang tersedia.';
             }
         }
 
@@ -1862,11 +1960,54 @@ class SuratJalanController extends Controller
 
     private function resolveSuratJalanFcode(array $row): string
     {
-        return trim((string) ($row['frefso'] ?? '')) !== '' ? 'S' : '0';
+        $docNo = trim((string) ($row['frefso'] ?? ''));
+        if ($docNo === '') {
+            return '0';
+        }
+
+        return $this->isInvoiceReferenceDoc($docNo) ? 'I' : 'S';
     }
 
     private function buildSrjRemainKey(?string $productCode, ?string $refNoAcak): string
     {
         return trim((string) ($productCode ?? '')).'|'.trim((string) ($refNoAcak ?? ''));
+    }
+
+    private function extractInvoiceReferenceDocs(array $rowsDt): array
+    {
+        return collect($rowsDt)
+            ->map(fn ($row) => trim((string) ($row['frefso'] ?? '')))
+            ->filter(fn ($docNo) => $this->isInvoiceReferenceDoc((string) $docNo))
+            ->unique()
+            ->values()
+            ->all();
+    }
+
+    private function syncInvoiceOutFlags(array $invoiceNos): void
+    {
+        $invoiceNos = collect($invoiceNos)
+            ->map(fn ($value) => trim((string) $value))
+            ->filter(fn ($value) => $this->isInvoiceReferenceDoc((string) $value))
+            ->unique()
+            ->values()
+            ->all();
+
+        if (empty($invoiceNos)) {
+            return;
+        }
+
+        foreach ($invoiceNos as $invoiceNo) {
+            $hasUsage = DB::table('trstockdt')
+                ->where('fcode', 'I')
+                ->where('frefso', $invoiceNo)
+                ->exists();
+
+            DB::table('tranmt')
+                ->where('ftrcode', 'INV')
+                ->where('fsono', $invoiceNo)
+                ->update([
+                    'fprdout' => $hasUsage ? '1' : '0',
+                ]);
+        }
     }
 }

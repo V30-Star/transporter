@@ -36,16 +36,20 @@ class ReturPembelianController extends Controller
 
         // --- 2. Handle Request AJAX dari DataTables ---
         if ($request->ajax()) {
+            $baseQuery = DB::table('trstockmt')
+                ->leftJoin('mswh as warehouse', 'warehouse.fwhcode', '=', 'trstockmt.ffrom')
+                ->leftJoin('mssupplier as supplier', 'supplier.fsuppliercode', '=', 'trstockmt.fsupplier')
+                ->where('trstockmt.fstockmtcode', 'REB');
 
-            // Query dasar HANYA untuk 'REB' (Faktur)
-            $query = PenerimaanPembelianHeader::where('fstockmtcode', 'REB');
+            $query = clone $baseQuery;
+            $totalRecords = (clone $baseQuery)->count('trstockmt.fstockmtid');
 
-            // Total records (dengan filter 'REB')
-            $totalRecords = PenerimaanPembelianHeader::where('fstockmtcode', 'REB')->count();
-
-            // Handle Search (cari di No. Faktur)
-            if ($search = $request->input('search.value')) {
-                $query->where('fstockmtno', 'like', "%{$search}%");
+            if ($search = trim((string) $request->input('search.value'))) {
+                $query->where(function ($q) use ($search) {
+                    $q->where('trstockmt.fstockmtno', 'ilike', "%{$search}%")
+                        ->orWhere('warehouse.fwhname', 'ilike', "%{$search}%")
+                        ->orWhere('supplier.fsuppliername', 'ilike', "%{$search}%");
+                });
             }
 
             // Filter tahun
@@ -65,7 +69,13 @@ class ReturPembelianController extends Controller
             $orderColIdx = $request->input('order.0.column', 0);
             $orderDir = $request->input('order.0.dir', 'desc');
 
-            $sortableColumns = ['fstockmtno', 'fstockmtdate', 'ftypebuy'];
+            $sortableColumns = [
+                'trstockmt.fstockmtno',
+                'trstockmt.fstockmtdate',
+                'warehouse.fwhname',
+                'supplier.fsuppliername',
+                'trstockmt.famountmt',
+            ];
 
             if (isset($sortableColumns[$orderColIdx])) {
                 $query->orderBy($sortableColumns[$orderColIdx], $orderDir);
@@ -78,7 +88,14 @@ class ReturPembelianController extends Controller
             $length = $request->input('length', 10);
             $records = $query->skip($start)
                 ->take($length)
-                ->get(['fstockmtid', 'fstockmtno', 'fstockmtdate', 'ftypebuy']);
+                ->get([
+                    'trstockmt.fstockmtid',
+                    'trstockmt.fstockmtno',
+                    'trstockmt.fstockmtdate',
+                    'trstockmt.famountmt',
+                    'warehouse.fwhname as warehouse_name',
+                    'supplier.fsuppliername as supplier_name',
+                ]);
 
             // Format Data dengan Actions Column
             $data = $records->map(function ($row) {
@@ -128,7 +145,9 @@ class ReturPembelianController extends Controller
                     'fstockmtid' => $row->fstockmtid,
                     'fstockmtno' => $row->fstockmtno,
                     'fstockmtdate' => Carbon::parse($row->fstockmtdate)->format('d/m/Y'),
-                    'ftypebuy' => $row->ftypebuy,
+                    'fwhname' => (string) ($row->warehouse_name ?? ''),
+                    'fsuppliername' => (string) ($row->supplier_name ?? ''),
+                    'famountmt' => number_format((float) ($row->famountmt ?? 0), 2, ',', '.'),
                     'actions' => $actions,
                 ];
             });

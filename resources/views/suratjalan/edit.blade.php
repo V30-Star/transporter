@@ -814,139 +814,7 @@
                                 </div>
 
                                 <div class="mt-3 flex flex-wrap items-start gap-3">
-                                    <div x-data="pohFormModal()" class="min-w-fit">
-                                        <div class="w-full flex justify-start">
-                                            <button type="button" @click="openModal()"
-                                                class="inline-flex items-center gap-2 rounded-lg bg-sky-600 px-3 py-2 text-white hover:bg-sky-700 focus:outline-none focus:ring-2 focus:ring-sky-500">
-                                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none"
-                                                    viewBox="0 0 24 24" stroke="currentColor">
-                                                    <path stroke-linecap="round" stroke-linejoin="round"
-                                                        stroke-width="1.5" d="M12 4.5v15m7.5-7.5h-15" />
-                                                </svg>
-                                                Add PO
-                                            </button>
-                                        </div>
-
-                                        <div x-show="show" x-cloak x-transition.opacity
-                                            class="fixed inset-0 z-50 flex items-center justify-center p-4">
-                                            <div class="absolute inset-0 bg-black/50 backdrop-blur-sm"
-                                                @click="closeModal()"></div>
-
-                                            <div class="relative bg-white rounded-2xl shadow-2xl w-full max-w-5xl flex flex-col overflow-hidden"
-                                                style="height: 650px;">
-                                                <div
-                                                    class="px-6 py-4 border-b border-gray-200 flex items-center justify-between flex-shrink-0 bg-gradient-to-r from-sky-50 to-white">
-                                                    <div>
-                                                        <h3 class="text-xl font-bold text-gray-800">Add PO</h3>
-                                                        <p class="text-sm text-gray-500 mt-0.5">Pilih Purchase Order (PO)</p>
-                                                    </div>
-                                                    <button type="button" @click="closeModal()"
-                                                        class="px-4 py-2 rounded-lg border-2 border-gray-300 bg-white hover:bg-gray-50 hover:border-gray-400 transition-all duration-150 font-bold text-gray-700 text-sm">
-                                                        Tutup
-                                                    </button>
-                                                </div>
-
-                                                <div class="px-6 pt-4 pb-2 flex-shrink-0 border-b border-gray-100">
-                                                    <div id="suratJalanPoTableControls"></div>
-                                                </div>
-
-                                                <div class="flex-1 overflow-y-auto px-6" style="min-height: 0;">
-                                                    <div class="bg-white">
-                                                        <table id="suratJalanPoTable"
-                                                            class="min-w-full text-sm display nowrap stripe hover"
-                                                            style="width:100%">
-                                                            <thead class="sticky top-0 z-10">
-                                                                <tr class="bg-gradient-to-r from-gray-50 to-gray-100">
-                                                                    <th
-                                                                        class="text-left p-3 font-semibold text-gray-700 border-b-2 border-gray-200">
-                                                                        No PO</th>
-                                                                    <th
-                                                                        class="text-left p-3 font-semibold text-gray-700 border-b-2 border-gray-200">
-                                                                        No Ref</th>
-                                                                    <th
-                                                                        class="text-left p-3 font-semibold text-gray-700 border-b-2 border-gray-200">
-                                                                        Supplier</th>
-                                                                    <th
-                                                                        class="text-left p-3 font-semibold text-gray-700 border-b-2 border-gray-200">
-                                                                        Tanggal</th>
-                                                                    <th
-                                                                        class="text-center p-3 font-semibold text-gray-700 border-b-2 border-gray-200">
-                                                                        Aksi</th>
-                                                                </tr>
-                                                            </thead>
-                                                            <tbody></tbody>
-                                                        </table>
-                                                    </div>
-                                                </div>
-
-                                                <div class="px-6 py-3 border-t border-gray-200 flex-shrink-0 bg-gray-50">
-                                                    <div id="suratJalanPoTablePagination"></div>
-                                                </div>
-                                            </div>
-                                        </div>
-
-                                        <div x-show="showDupModal" x-cloak x-transition.opacity
-                                            class="fixed inset-0 z-[60] flex items-center justify-center p-4">
-                                            <div class="absolute inset-0 bg-black/50" @click="closeDupModal()"></div>
-
-                                            <div
-                                                class="relative bg-white w-[92vw] max-w-md rounded-2xl shadow-2xl overflow-hidden">
-                                                <div class="px-5 py-4 border-b flex items-center gap-2 bg-amber-50">
-                                                    <svg class="w-6 h-6 text-amber-600" fill="none"
-                                                        stroke="currentColor" viewBox="0 0 24 24">
-                                                        <path stroke-linecap="round" stroke-linejoin="round"
-                                                            stroke-width="2"
-                                                            d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-                                                    </svg>
-                                                    <h3 class="text-lg font-semibold text-gray-800">Item Duplikat Ditemukan
-                                                    </h3>
-                                                </div>
-
-                                                <div class="px-5 py-4 space-y-3">
-                                                    <p class="text-sm text-gray-700">
-                                                        Ditemukan <span class="font-semibold text-amber-600"
-                                                            x-text="dupCount"></span>
-                                                        item duplikat. Item duplikat <span class="font-semibold">tidak
-                                                            akan ditambahkan</span>.
-                                                    </p>
-
-                                                    <div class="rounded-lg border border-amber-200 bg-amber-50">
-                                                        <div
-                                                            class="px-3 py-2 border-b border-amber-200 text-sm font-bold text-gray-800">
-                                                            Preview Item Duplikat
-                                                        </div>
-                                                        <ul class="max-h-40 overflow-auto divide-y divide-amber-100">
-                                                            <template x-for="d in dupSample"
-                                                                :key="`${d.fitemcode}::${d.fitemname}`">
-                                                                <li
-                                                                    class="px-3 py-2 text-sm flex items-center gap-2 hover:bg-amber-100 transition-colors">
-                                                                    <span
-                                                                        class="inline-flex w-5 h-5 items-center justify-center rounded-full bg-amber-200 text-amber-800 text-xs font-bold">!</span>
-                                                                    <span class="font-mono font-bold text-gray-700"
-                                                                        x-text="d.fitemcode || '-'"></span>
-                                                                    <span class="text-gray-600 truncate"
-                                                                        x-text="d.fitemname || '-'"></span>
-                                                                </li>
-                                                            </template>
-                                                        </ul>
-                                                    </div>
-                                                </div>
-
-                                                <div class="px-5 py-3 border-t bg-gray-50 flex items-center justify-end gap-2">
-                                                    <button type="button" @click="closeDupModal()"
-                                                        class="h-9 px-4 rounded-lg border-2 border-gray-300 text-gray-700 text-sm font-bold hover:bg-gray-100 transition-colors">
-                                                        Batal
-                                                    </button>
-                                                    <button x-show="pendingUniques.length > 0" type="button"
-                                                        @click="confirmAddUniques()"
-                                                        class="h-9 px-4 rounded-lg bg-emerald-600 text-white text-sm font-bold hover:bg-emerald-700">
-                                                        Lanjut Tambah yang Valid
-                                                    </button>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-
+                                    <div class="flex flex-wrap items-center gap-3">
                                     {{-- SO --}}
                                     <div x-data="soFormModal()" class="min-w-fit">
                                         <div class="w-full flex justify-start">
@@ -1023,8 +891,143 @@
                                         </div>
                                     </div>
 
+                                </div>
+
+                                    <div x-data="invoiceFormModal()" class="min-w-fit">
+                                        <div class="w-full flex justify-start">
+                                            <button type="button" @click="openModal()"
+                                                class="inline-flex items-center gap-2 rounded-lg bg-sky-600 px-3 py-2 text-white hover:bg-sky-700 focus:outline-none focus:ring-2 focus:ring-sky-500">
+                                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none"
+                                                    viewBox="0 0 24 24" stroke="currentColor">
+                                                    <path stroke-linecap="round" stroke-linejoin="round"
+                                                        stroke-width="1.5" d="M12 4.5v15m7.5-7.5h-15" />
+                                                </svg>
+                                                Add TER (INV)
+                                            </button>
+                                        </div>
+
+                                        <div x-show="show" x-cloak x-transition.opacity
+                                            class="fixed inset-0 z-50 flex items-center justify-center p-4">
+                                            <div class="absolute inset-0 bg-black/50 backdrop-blur-sm" @click="closeModal()">
+                                            </div>
+
+                                            <div class="relative bg-white rounded-2xl shadow-2xl w-full max-w-6xl flex flex-col overflow-hidden"
+                                                style="height: 650px;">
+                                                <div
+                                                    class="px-6 py-4 border-b border-gray-200 flex items-center justify-between flex-shrink-0 bg-gradient-to-r from-sky-50 to-white">
+                                                    <div>
+                                                        <h3 class="text-xl font-bold text-gray-800">Add TER (INV)</h3>
+                                                        <p class="text-sm text-gray-500 mt-0.5">Pilih transaksi invoice kode INV yang belum dipakai</p>
+                                                    </div>
+                                                    <button type="button" @click="closeModal()"
+                                                        class="px-4 py-2 rounded-lg border-2 border-gray-300 bg-white hover:bg-gray-50 hover:border-gray-400 transition-all duration-150 font-bold text-gray-700 text-sm">
+                                                        Tutup
+                                                    </button>
+                                                </div>
+
+                                                <div class="px-6 pt-4 pb-2 flex-shrink-0 border-b border-gray-100">
+                                                    <div id="invoiceTableControls"></div>
+                                                </div>
+
+                                                <div class="flex-1 overflow-y-auto px-6" style="min-height: 0;">
+                                                    <div class="bg-white">
+                                                        <table id="invoiceTable"
+                                                            class="min-w-full text-sm display nowrap stripe hover"
+                                                            style="width:100%">
+                                                            <thead class="sticky top-0 z-10">
+                                                                <tr class="bg-gradient-to-r from-gray-50 to-gray-100">
+                                                                    <th
+                                                                        class="text-left p-3 font-semibold text-gray-700 border-b-2 border-gray-200">
+                                                                        No Faktur</th>
+                                                                    <th
+                                                                        class="text-left p-3 font-semibold text-gray-700 border-b-2 border-gray-200">
+                                                                        No Ref</th>
+                                                                    <th
+                                                                        class="text-left p-3 font-semibold text-gray-700 border-b-2 border-gray-200">
+                                                                        Customer</th>
+                                                                    <th
+                                                                        class="text-left p-3 font-semibold text-gray-700 border-b-2 border-gray-200">
+                                                                        Tanggal</th>
+                                                                    <th
+                                                                        class="text-center p-3 font-semibold text-gray-700 border-b-2 border-gray-200">
+                                                                        Aksi</th>
+                                                                </tr>
+                                                            </thead>
+                                                            <tbody></tbody>
+                                                        </table>
+                                                    </div>
+                                                </div>
+
+                                                <div class="px-6 py-3 border-t border-gray-200 flex-shrink-0 bg-gray-50">
+                                                    <div id="invoiceTablePagination"></div>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div x-show="showDupModal" x-cloak x-transition.opacity
+                                            class="fixed inset-0 z-[60] flex items-center justify-center p-4">
+                                            <div class="absolute inset-0 bg-black/50" @click="closeDupModal()"></div>
+
+                                            <div
+                                                class="relative bg-white w-[92vw] max-w-md rounded-2xl shadow-2xl overflow-hidden">
+                                                <div class="px-5 py-4 border-b flex items-center gap-2 bg-amber-50">
+                                                    <svg class="w-6 h-6 text-amber-600" fill="none" stroke="currentColor"
+                                                        viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                            d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                                                    </svg>
+                                                    <h3 class="text-lg font-semibold text-gray-800">Item Duplikat Ditemukan
+                                                    </h3>
+                                                </div>
+
+                                                <div class="px-5 py-4 space-y-3">
+                                                    <p class="text-sm text-gray-700">
+                                                        Ditemukan <span class="font-semibold text-amber-600"
+                                                            x-text="dupCount"></span>
+                                                        item duplikat.
+                                                        Item duplikat <span class="font-semibold">tidak akan
+                                                            ditambahkan</span>.
+                                                    </p>
+
+                                                    <div class="rounded-lg border border-amber-200 bg-amber-50">
+                                                        <div
+                                                            class="px-3 py-2 border-b border-amber-200 text-sm font-bold text-gray-800">
+                                                            Preview Item Duplikat
+                                                        </div>
+                                                        <ul class="max-h-40 overflow-auto divide-y divide-amber-100">
+                                                            <template x-for="d in dupSample"
+                                                                :key="`${d.fitemcode}::${d.fitemname}`">
+                                                                <li
+                                                                    class="px-3 py-2 text-sm flex items-center gap-2 hover:bg-amber-100 transition-colors">
+                                                                    <span
+                                                                        class="inline-flex w-5 h-5 items-center justify-center rounded-full bg-amber-200 text-amber-800 text-xs font-bold">!</span>
+                                                                    <span class="font-mono font-bold text-gray-700"
+                                                                        x-text="d.fitemcode || '-'"></span>
+                                                                    <span class="text-gray-600 truncate"
+                                                                        x-text="d.fitemname || '-'"></span>
+                                                                </li>
+                                                            </template>
+                                                        </ul>
+                                                    </div>
+                                                </div>
+
+                                                <div class="px-5 py-3 border-t bg-gray-50 flex items-center justify-end gap-2">
+                                                    <button type="button" @click="closeDupModal()"
+                                                        class="h-9 px-4 rounded-lg border-2 border-gray-300 text-gray-700 text-sm font-bold hover:bg-gray-100 transition-colors">
+                                                        Batal
+                                                    </button>
+                                                    <button x-show="pendingUniques.length > 0" type="button"
+                                                        @click="confirmAddUniques()"
+                                                        class="h-9 px-4 rounded-lg bg-emerald-600 text-white text-sm font-bold hover:bg-emerald-700">
+                                                        Lanjut Tambah yang Valid
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
                                     {{-- MODAL DUPLIKASI --}}
-                                    <div x-show="showDupModal" x-cloak x-transition.opacity
+                                    <div x-data="{ showDupModal: false, dupCount: 0, dupSample: [], closeDupModal() { this.showDupModal = false } }" x-show="showDupModal" x-cloak x-transition.opacity
                                         class="fixed inset-0 z-[60] flex items-center justify-center p-4">
                                         <div class="absolute inset-0 bg-black/50" @click="closeDupModal()"></div>
 
@@ -1197,7 +1200,7 @@
 
             <x-transaction.browse-product-modal show-controls="true" show-pagination="true" />
 
-            <div class="mt-8 flex justify-center gap-4">
+            <div class="mt-8 flex w-full items-center justify-center gap-4">
                 @if ($canEditPermission)
                     @if ($usageLocked)
                         <button type="button" disabled title="{{ $usageLockMessage }}"
@@ -1314,7 +1317,7 @@
 @push('styles')
     <link rel="stylesheet" href="https://cdn.datatables.net/1.13.7/css/jquery.dataTables.min.css">
 @endpush
-<x-transaction.datatables-length-styles :tables="['supplierTable', 'warehouseTable', 'productTable', 'poTable', 'suratJalanPoTable']" />
+<x-transaction.datatables-length-styles :tables="['supplierTable', 'warehouseTable', 'productTable', 'poTable', 'invoiceTable']" />
 {{-- DATA & SCRIPTS --}}
 <script>
     // Map produk untuk auto-fill tabel
@@ -1479,14 +1482,15 @@
             },
 
             validateSoQtyRow(row, showToast = true) {
-                const soRef = String(row?.frefso ?? '').trim();
-                if (!soRef) return true;
+                const refDoc = String(row?.frefso ?? '').trim();
+                if (!refDoc) return true;
+                const refLabel = refDoc.startsWith('INV.') ? 'Faktur Penjualan' : 'SO';
 
                 const limit = this.getRowQtyLimit(row);
                 if (limit <= 0) {
                     row.fqty = 0;
                     if (showToast) {
-                        window.toast?.error('Qty SO untuk item ini sudah habis atau sudah digunakan.');
+                        window.toast?.error(`Qty ${refLabel} untuk item ini sudah habis atau sudah digunakan.`);
                     }
                     return false;
                 }
@@ -1495,7 +1499,7 @@
                 if (qty > limit) {
                     row.fqty = limit;
                     if (showToast) {
-                        window.toast?.error(`Qty melebihi sisa SO. Maksimal ${limit} ${row.fsatuan || ''}`.trim());
+                        window.toast?.error(`Qty melebihi sisa ${refLabel}. Maksimal ${limit} ${row.fsatuan || ''}`.trim());
                     }
                 }
 
@@ -1995,11 +1999,7 @@
 </script>
 
 @include('components.transaction.suratjalan-so-modal-script')
-@include('components.transaction.suratjalan-po-modal-script', [
-    'tableId' => 'suratJalanPoTable',
-    'controlsId' => 'suratJalanPoTableControls',
-    'paginationId' => 'suratJalanPoTablePagination',
-])
+@include('components.transaction.suratjalan-invoice-modal-script')
 
 <script>
     // Helper function untuk format tanggal

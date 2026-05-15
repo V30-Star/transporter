@@ -76,9 +76,11 @@
         <table id="returpembelianTable" class="min-w-full border text-sm">
             <thead class="bg-gray-100">
                 <tr>
-                    <th class="border px-2 py-1">No. Faktur</th>
+                    <th class="border px-2 py-1">No.Transaksi</th>
                     <th class="border px-2 py-1">Tanggal</th>
-                    <th class="border px-2 py-1">Tipe Beli</th>
+                    <th class="border px-2 py-1">Nama Gudang</th>
+                    <th class="border px-2 py-1">Nama Supplier</th>
+                    <th class="border px-2 py-1">Total Harga</th>
 
                     @if ($showActionsColumn)
                         <th class="border px-2 py-1 col-aksi">Aksi</th>
@@ -301,8 +303,19 @@
                     name: 'fstockmtdate'
                 },
                 {
-                    data: 'ftypebuy',
-                    name: 'ftypebuy'
+                    data: 'fwhname',
+                    name: 'fwhname',
+                    defaultContent: ''
+                },
+                {
+                    data: 'fsuppliername',
+                    name: 'fsuppliername',
+                    defaultContent: ''
+                },
+                {
+                    data: 'famountmt',
+                    name: 'famountmt',
+                    defaultContent: ''
                 },
                 @if ($showActionsColumn)
                 {

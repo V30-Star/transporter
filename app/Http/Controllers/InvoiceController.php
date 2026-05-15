@@ -423,46 +423,52 @@ class InvoiceController extends Controller
 
     public function pickable(Request $request)
     {
-        // Base query dengan JOIN
-        $query = Tr_prh::leftJoin('mssupplier', 'tr_prh.fsupplier', '=', 'mssupplier.fsupplierid')
+        $query = DB::table('tranmt as mt')
+            ->leftJoin('mscustomer as c', 'c.fcustomercode', '=', 'mt.fcustno')
+            ->where('mt.ftrcode', 'INV')
+            ->where('mt.fprdout', '0')
             ->select(
-                'tr_prh.*',
-                'mssupplier.fsuppliername',
-                'mssupplier.fsuppliercode'
+                'mt.ftranmtid',
+                'mt.fsono',
+                'mt.frefno',
+                'mt.fsodate',
+                'mt.fcustno',
+                'mt.ftrcode',
+                'mt.fprdout',
+                'c.fcustomername'
             );
 
-        // Total records tanpa filter
-        $recordsTotal = Tr_prh::count();
+        $recordsTotal = DB::table('tranmt as mt')
+            ->where('mt.ftrcode', 'INV')
+            ->where('mt.fprdout', '0')
+            ->count();
 
-        // Search
         if ($request->filled('search') && $request->search != '') {
-            $search = $request->search;
+            $search = trim((string) $request->search);
             $query->where(function ($q) use ($search) {
-                $q->where('tr_prh.fprno', 'ilike', "%{$search}%")
-                    ->orWhere('mssupplier.fsuppliername', 'ilike', "%{$search}%")
-                    ->orWhere('mssupplier.fsuppliercode', 'ilike', "%{$search}%");
+                $q->where('mt.fsono', 'ilike', "%{$search}%")
+                    ->orWhere('mt.frefno', 'ilike', "%{$search}%")
+                    ->orWhere('mt.fcustno', 'ilike', "%{$search}%")
+                    ->orWhere('c.fcustomername', 'ilike', "%{$search}%");
             });
         }
 
-        // Total records setelah filter
         $recordsFiltered = $query->count();
 
-        // Sorting
-        $orderColumn = $request->input('order_column', 'fprdate');
+        $orderColumn = $request->input('order_column', 'fsodate');
         $orderDir = $request->input('order_dir', 'desc');
 
-        $allowedColumns = ['fprno', 'fprdate'];
-        if (in_array($orderColumn, $allowedColumns)) {
-            if (in_array($orderColumn, ['fprno', 'fprdate'])) {
-                $query->orderBy('tr_prh.' . $orderColumn, $orderDir);
+        $allowedColumns = ['fsono', 'frefno', 'fsodate', 'fcustomername'];
+        if (in_array($orderColumn, $allowedColumns, true)) {
+            if ($orderColumn === 'fcustomername') {
+                $query->orderBy('c.fcustomername', $orderDir);
             } else {
-                $query->orderBy('mssupplier.fsuppliername', $orderDir);
+                $query->orderBy('mt.'.$orderColumn, $orderDir);
             }
         } else {
-            $query->orderBy('tr_prh.fprdate', 'desc');
+            $query->orderBy('mt.fsodate', 'desc');
         }
 
-        // Pagination
         $start = (int) $request->input('start', 0);
         $length = (int) $request->input('length', 10);
 
@@ -470,7 +476,6 @@ class InvoiceController extends Controller
             ->take($length)
             ->get();
 
-        // Response format untuk DataTables
         return response()->json([
             'draw' => (int) $request->input('draw', 1),
             'recordsTotal' => (int) $recordsTotal,
@@ -481,31 +486,36 @@ class InvoiceController extends Controller
 
     public function items($id)
     {
-        // Ambil data header PR berdasarkan fprhid
-        $header = Tr_prh::where('fprhid', $id)->firstOrFail();
+        $header = DB::table('tranmt')
+            ->where('ftranmtid', $id)
+            ->where('ftrcode', 'INV')
+            ->firstOrFail();
 
-        // Detail PR sekarang dihubungkan lewat fprno
-        $items = Tr_prd::where('tr_prd.fprno', $header->fprno)
-            ->leftJoin('msprd as m', 'm.fprdcode', '=', 'tr_prd.fprdcode')
+        $items = DB::table('trandt as d')
+            ->leftJoin('msprd as m', 'm.fprdcode', '=', 'd.fprdcode')
+            ->where('d.fsono', $header->fsono)
             ->select([
-                'tr_prd.fprdcode as frefdtno',
-                'tr_prd.fprdcode as fitemcode',
+                'd.ftrandtid as frefdtno',
+                DB::raw("COALESCE(d.fnoacak::text, '') as frefnoacak"),
+                'd.fprdcode as fitemcode',
                 'm.fprdname as fitemname',
-                'tr_prd.fqty',
-                'tr_prd.fsatuan as fsatuan',
-                'tr_prd.fprno',
-                'tr_prd.fprice as fharga',
-                DB::raw('0::numeric as fdiskon'),
+                'd.fqty',
+                'd.fqtyremain',
+                'd.fsatuan',
+                'd.fprice as fharga',
+                'd.famount as ftotal',
+                'd.fdesc',
             ])
-            ->orderBy('tr_prd.fprdcode')
+            ->orderBy('d.fnou')
             ->get();
 
         return response()->json([
             'header' => [
-                'fprhid' => $header->fprhid,
-                'fprno' => $header->fprno,
-                'fsupplier' => trim($header->fsupplier ?? ''),
-                'fprdate' => optional($header->fprdate)->format('Y-m-d H:i:s'),
+                'ftranmtid' => $header->ftranmtid,
+                'fsono' => $header->fsono,
+                'fcustno' => trim((string) ($header->fcustno ?? '')),
+                'fsodate' => ! empty($header->fsodate) ? Carbon::parse($header->fsodate)->format('Y-m-d H:i:s') : null,
+                'ftrcode' => trim((string) ($header->ftrcode ?? 'INV')),
             ],
             'items' => $items,
         ]);

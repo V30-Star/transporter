@@ -76,6 +76,10 @@
                 <tr>
                     <th class="border px-2 py-1">{{ "No.Transaksi" }}</th>
                     <th class="border px-2 py-1">{{ "Tanggal" }}</th>
+                    <th class="border px-2 py-1">{{ "No.Ref" }}</th>
+                    <th class="border px-2 py-1">{{ "SO#" }}</th>
+                    <th class="border px-2 py-1">{{ "Gudang" }}</th>
+                    <th class="border px-2 py-1">{{ "Nama Customer" }}</th>
 
                     @if ($showActionsColumn)
                         <th class="border px-2 py-1 col-aksi">{{ "Aksi" }}</th>
@@ -302,6 +306,26 @@
                 {
                     data: 'fstockmtdate',
                     name: 'fstockmtdate'
+                },
+                {
+                    data: 'frefno',
+                    name: 'frefno',
+                    defaultContent: ''
+                },
+                {
+                    data: 'fsono',
+                    name: 'fsono',
+                    defaultContent: ''
+                },
+                {
+                    data: 'fgudang',
+                    name: 'fgudang',
+                    defaultContent: ''
+                },
+                {
+                    data: 'fcustomername',
+                    name: 'fcustomername',
+                    defaultContent: ''
                 }
             ];
 
@@ -448,4 +472,3 @@
         });
     </script>
 @endpush
-
