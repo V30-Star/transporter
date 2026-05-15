@@ -302,6 +302,16 @@
                             @enderror
                         </div>
 
+                        <div class="lg:col-span-4">
+                            <label class="block text-sm font-bold mb-1">{{ 'Reff PO' }}</label>
+                            <input type="text" name="frefpo" value="{{ old('frefpo') }}"
+                                class="w-full border rounded px-3 py-2 @error('frefpo') border-red-500 @enderror"
+                                placeholder="Masukkan nomor PO customer">
+                            @error('frefpo')
+                                <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+                            @enderror
+                        </div>
+
                         <div class="col-span-12 mt-4">
                             <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 items-stretch">
 
@@ -716,7 +726,7 @@
 @push('styles')
     <link rel="stylesheet" href="https://cdn.datatables.net/1.13.7/css/jquery.dataTables.min.css">
 @endpush
-<x-transaction.datatables-length-styles :tables="['productTable', 'supplierTable', 'prTable']" />
+<x-transaction.datatables-length-styles :tables="['productTable', 'supplierTable']" />
 <style>
     @keyframes slide-in {
         from {
@@ -997,6 +1007,49 @@
                 return candidate;
             },
 
+            addManyFromPR(header, items) {
+                const existing = new Set(this.getCurrentItemKeys());
+
+                items.forEach(src => {
+                    const row = {
+                        uid: cryptoRandom(),
+                        fprdcode: src.fitemcode ?? '',
+                        fitemname: src.fitemname ?? '',
+                        fsatuan: src.fsatuan ?? '',
+                        fnoacak: this.generateUniqueNoAcak(),
+                        frefdtno: src.frefdtno ?? '',
+                        fnouref: src.fnouref ?? '',
+                        frefpr: src.frefpr ?? (header?.fpono ?? header?.fsono ?? ''),
+                        fprhid: src.fprhid ?? header?.fprhid ?? header?.fpohid ?? '',
+                        fqty: (src.fqtysisa !== null && src.fqtysisa !== undefined && Number(src.fqtysisa) > 0) ?
+                            Number(src.fqtysisa) : ((src.fqtyremain !== null && src.fqtyremain !== undefined &&
+                                Number(src.fqtyremain) > 0) ? Number(src.fqtyremain) : ((src.fqty !== null &&
+                                src.fqty !== undefined && Number(src.fqty) > 0) ? Number(src.fqty) : 1)),
+                        fterima: Number(src.fterima ?? 0),
+                        fprice: Number(src.fprice ?? 0),
+                        fdisc: src.fdisc ?? 0,
+                        ftotal: Number(src.ftotal ?? 0),
+                        fdesc: src.fdesc ?? '',
+                        fketdt: src.fketdt ?? '',
+                        hideQtyLimitHint: false,
+                        units: Array.isArray(src.units) && src.units.length ? src.units : [src.fsatuan].filter(Boolean),
+                    };
+
+                    const key = this.itemKey({
+                        fprdcode: row.fprdcode,
+                        frefdtno: row.frefdtno
+                    });
+
+                    if (!(Number(row.fqty) > 0)) return;
+                    if (existing.has(key)) return;
+
+                    this.recalc(row);
+                    this.savedItems.push(row);
+                    existing.add(key);
+                });
+
+                this.recalcTotals();
+            },
 
 
             addIfComplete() {
@@ -1178,6 +1231,9 @@
                 this.$watch('ppnRate', () => this.recalcTotals());
 
                 window.getCurrentItemKeys = () => this.getCurrentItemKeys();
+                window.addEventListener('pr-picked', this.onPrPicked.bind(this), {
+                    passive: true
+                });
 
                 window.addEventListener('product-chosen', (e) => {
                     const {
@@ -1414,12 +1470,6 @@
             });
             return false;
         }
-    };
-
-    window.prhFormModal = function() {
-        return {
-            show: false,
-        };
     };
 
     // Helper function untuk format tanggal (ditingkatkan sedikit)

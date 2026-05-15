@@ -309,6 +309,7 @@ class SalesOrderController extends Controller
             if ($search = $request->input('search.value')) {
                 $query->where(function ($q) use ($search) {
                     $q->where('trsomt.fsono', 'like', "%{$search}%")
+                        ->orWhere('trsomt.frefpo', 'like', "%{$search}%")
                         ->orWhere('c.fcustomername', 'like', "%{$search}%")
                         ->orWhere('trsomt.fcustno', 'like', "%{$search}%");
                 });
@@ -698,6 +699,7 @@ class SalesOrderController extends Controller
             'fsalesman' => ['nullable', 'string', 'max:20'],
             'fincludeppn' => ['nullable'],
             'fket' => ['nullable', 'string', 'max:300'],
+            'frefpo' => ['nullable', 'string', 'max:100'],
             'falamatkirim' => ['nullable', 'string', 'max:300'],
             'fbranchcode' => ['nullable', 'string', 'max:2'],
             'ftempohr' => ['nullable', 'string', 'max:3'],
@@ -869,6 +871,7 @@ class SalesOrderController extends Controller
                     'fcustno' => mb_substr($request->input('fcustno', ''), 0, 20),
                     'fsalesman' => mb_substr((string) $request->input('fsalesman', ''), 0, 20) ?: null,
                     'ftempohr' => mb_substr($request->input('ftempohr', '0'), 0, 3),
+                    'frefpo' => mb_substr($request->input('frefpo', ''), 0, 100),
                     'fket' => mb_substr($request->input('fket', ''), 0, 300),
                     'falamatkirim' => mb_substr($request->input('falamatkirim', ''), 0, 300),
                     'fusercreate' => mb_substr($userid, 0, 10),
@@ -1220,6 +1223,7 @@ class SalesOrderController extends Controller
             'fsalesman' => ['nullable', 'string', 'max:20'],
             'fincludeppn' => ['nullable'],
             'fket' => ['nullable', 'string', 'max:300'],
+            'frefpo' => ['nullable', 'string', 'max:100'],
             'falamatkirim' => ['nullable', 'string', 'max:300'],
             'fbranchcode' => ['nullable', 'string', 'max:2'],
             'ftempohr' => ['nullable', 'string', 'max:3'],
@@ -1404,6 +1408,7 @@ class SalesOrderController extends Controller
                 'fcustno' => mb_substr($request->input('fcustno', ''), 0, 20),
                 'fsalesman' => mb_substr((string) $request->input('fsalesman', ''), 0, 20) ?: null,
                 'ftempohr' => mb_substr($request->input('ftempohr', '0'), 0, 3),
+                'frefpo' => mb_substr($request->input('frefpo', ''), 0, 100),
                 'fincludeppn' => $fincludeppn,
                 'fclose' => $fclose,
                 'fket' => mb_substr($request->input('fket', ''), 0, 300),

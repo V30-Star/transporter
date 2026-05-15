@@ -241,7 +241,7 @@
                 <tr>
                     <td>Ref.PO</td>
                     <td>:</td>
-                    <td>{{ $hdr->frefno ?? '001/SRI/-DME-PKS/I/' }}</td>
+                    <td>{{ $hdr->frefpo ?? '-' }}</td>
                 </tr>
                 <tr>
                     <td>Sales</td>

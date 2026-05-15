@@ -317,6 +317,12 @@
                                     <span class="ml-2">Hari</span>
                                 </div>
                             </div>
+                            <div class="lg:col-span-4">
+                                <label class="block text-sm font-medium mb-1">Reff PO</label>
+                                <input type="text" name="frefpo" disabled
+                                    value="{{ old('frefpo', $salesorder->frefpo) }}"
+                                    class="w-full border rounded px-3 py-2 bg-gray-200">
+                            </div>
                             <div class="col-span-12 mt-4">
                                 <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 items-stretch">
 
@@ -621,14 +627,8 @@
                                 </table>
                             </div>
 
-                            <!-- ===== Trigger: Add tr_prh dari panel kanan ===== -->
-                            <div x-data="prhFormModal()">
-                                <!-- Trigger: Add PR dari panel kanan -->
-                                <div class="mt-3 flex justify-between items-start gap-4">
-                                    <div class="w-full flex justify-start mb-3">
-                                    </div>
-                                    <!-- Kanan: Panel Totals -->
-                                    <div class="w-1/2">
+                            <div class="mt-3 flex justify-end items-start gap-4">
+                                <div class="w-1/2">
                                         <div class="rounded-lg border bg-gray-50 p-3 space-y-2">
                                             <div class="flex items-center justify-between">
                                                 <span class="text-sm text-gray-700">Total Harga</span>
@@ -956,6 +956,16 @@
                                                 class="w-full border rounded px-3 py-2">
                                             <span class="ml-2">Hari</span>
                                         </div>
+                                    </div>
+                                    <div class="lg:col-span-4">
+                                        <label class="block text-sm font-medium mb-1">Reff PO</label>
+                                        <input type="text" name="frefpo"
+                                            value="{{ old('frefpo', $salesorder->frefpo) }}"
+                                            class="w-full border rounded px-3 py-2 @error('frefpo') border-red-500 @enderror"
+                                            placeholder="Masukkan nomor PO customer">
+                                        @error('frefpo')
+                                            <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+                                        @enderror
                                     </div>
                                     <div class="col-span-12 mt-4">
                                         <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 items-stretch">
@@ -1521,7 +1531,7 @@
 @push('styles')
     <link rel="stylesheet" href="https://cdn.datatables.net/1.13.7/css/jquery.dataTables.min.css">
 @endpush
-<x-transaction.datatables-length-styles :tables="['productTable', 'supplierTable', 'prTable']" />
+<x-transaction.datatables-length-styles :tables="['productTable', 'supplierTable']" />
 <style>
     @keyframes slide-in {
         from {
@@ -2307,8 +2317,6 @@
         }
     };
 </script>
-
-@include('components.transaction.salesorder-pr-modal-script')
 
 <script>
     // Helper function untuk format tanggal (ditingkatkan sedikit)

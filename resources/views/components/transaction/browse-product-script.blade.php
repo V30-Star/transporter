@@ -107,7 +107,7 @@
                         [10, 25, 50, 100],
                         [10, 25, 50, 100]
                     ],
-                    dom: @json($showControls || $showPagination ? '<"product-browser-top"fl>rt<"product-browser-bottom"ip>' : '<"flex justify-between items-center mb-4"f<"ml-auto"l>>rtip'),
+                    dom: @json($showControls || $showPagination ? '<"product-browser-top d-flex justify-content-between align-items-center flex-wrap gap-3"f<"product-browser-length ms-auto"l>>rt<"product-browser-bottom"ip>' : '<"d-flex justify-content-between align-items-center flex-wrap gap-3 mb-4"f<"ms-auto"l>>rtip'),
                     language: dataTableLanguage,
                     order: [
                         [1, 'asc']
@@ -118,7 +118,9 @@
                     initComplete: function() {
                         const api = this.api();
                         const $container = $(api.table().container());
+                        const $searchWrap = $container.find('.dt-search, .dataTables_filter');
                         const $searchInput = $container.find('.dt-search .dt-input, .dataTables_filter input');
+                        const $lengthWrap = $container.find('.dt-length, .dataTables_length');
                         const $lengthSelect = $container.find('.dt-length select, .dataTables_length select');
 
                         $searchInput.css({
@@ -128,6 +130,14 @@
                             borderRadius: '8px',
                             fontSize: '14px'
                         }).focus();
+
+                        $searchWrap.css({
+                            marginRight: 'auto'
+                        });
+
+                        $lengthWrap.css({
+                            marginLeft: 'auto'
+                        });
 
                         $lengthSelect.css({
                             padding: '6px 32px 6px 10px',
@@ -146,19 +156,15 @@
                         });
 
                         @if ($showControls)
-                            const $filter = $container.find('.dataTables_filter, .dt-search');
-                            const $length = $container.find('.dataTables_length, .dt-length');
                             const controls = document.getElementById(@js($controlsId));
 
                             if (controls) {
                                 controls.innerHTML = '';
                                 controls.className = 'flex items-center justify-between gap-4 flex-wrap';
-                                if ($filter.length) {
-                                    $filter.addClass('order-1').appendTo(controls);
-                                }
-                                if ($length.length) {
-                                    $length.addClass('order-2 ml-auto').appendTo(controls);
-                                }
+                                const filterEl = $searchWrap.first();
+                                const lengthEl = $lengthWrap.first();
+                                if (filterEl.length) filterEl.addClass('order-1').appendTo(controls);
+                                if (lengthEl.length) lengthEl.addClass('order-2 ms-auto').appendTo(controls);
                             }
                         @endif
 

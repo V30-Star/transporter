@@ -227,6 +227,13 @@
                             </div>
                         </div>
 
+                        <div class="lg:col-span-4">
+                            <label class="block text-sm font-medium mb-1">Reff PO</label>
+                            <input type="text" name="frefpo" disabled
+                                value="{{ old('frefpo', $salesorder->frefpo) }}"
+                                class="w-full border rounded px-3 py-2 bg-gray-200">
+                        </div>
+
                         <div class="col-span-12 mt-4">
                             <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 items-stretch">
 
@@ -622,7 +629,7 @@
             @push('styles')
                 <link rel="stylesheet" href="https://cdn.datatables.net/1.13.7/css/jquery.dataTables.min.css">
             @endpush
-            <x-transaction.datatables-length-styles :tables="['supplierTable', 'productTable', 'prTable']" />
+            <x-transaction.datatables-length-styles :tables="['supplierTable', 'productTable']" />
             {{-- DATA & SCRIPTS --}}
             <script>
                 // Map produk untuk auto-fill tabel
@@ -1110,8 +1117,6 @@
                 }
             </script>
 
-            @include('components.transaction.salesorder-pr-modal-script')
-
             <script>
                 // Helper function untuk format tanggal (ditingkatkan sedikit)
                 function formatDate(s) {
@@ -1147,6 +1152,5 @@
                     });
                 </script>
             @endpush
-
 
 

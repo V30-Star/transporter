@@ -1,10 +1,14 @@
 @php
     $pickableRoute = $pickableRoute ?? route('suratjalan.pickable');
     $itemsRouteTemplate = $itemsRouteTemplate ?? route('suratjalan.items', ['id' => 'PO_ID_PLACEHOLDER']);
+    $tableId = $tableId ?? 'poTable';
+    $controlsId = $controlsId ?? 'poTableControls';
+    $paginationId = $paginationId ?? 'poTablePagination';
+    $modalFunctionName = $modalFunctionName ?? 'pohFormModal';
 @endphp
 
 <script>
-    window.pohFormModal = function() {
+    window[@js($modalFunctionName)] = function() {
         return {
             show: false,
             table: null,
@@ -19,7 +23,7 @@
                     this.table.destroy();
                 }
 
-                this.table = $('#poTable').DataTable({
+                this.table = $('#{{ $tableId }}').DataTable({
                     processing: true,
                     serverSide: true,
                     ajax: {
@@ -78,7 +82,7 @@
                         [10, 25, 50, 100],
                         [10, 25, 50, 100]
                     ],
-                    dom: '<"#poTableControls"fl>rt<"#poTablePagination"ip>',
+                    dom: '<"#{{ $controlsId }}"fl>rt<"#{{ $paginationId }}"ip>',
                     language: {
                         processing: "Memuat data...",
                         search: "Cari:",
@@ -130,7 +134,7 @@
                 });
 
                 const self = this;
-                $('#poTable').off('click', '.btn-pick').on('click', '.btn-pick', function() {
+                $('#{{ $tableId }}').off('click', '.btn-pick').on('click', '.btn-pick', function() {
                     const data = self.table.row($(this).closest('tr')).data();
                     self.pick(data);
                 });
