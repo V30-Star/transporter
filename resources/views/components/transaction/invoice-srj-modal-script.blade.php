@@ -61,8 +61,8 @@
                             defaultContent: '-',
                         },
                         {
-                            data: 'fcity',
-                            name: 'fcity',
+                            data: 'faddress',
+                            name: 'faddress',
                             defaultContent: '-',
                         },
                         {
@@ -136,7 +136,7 @@
                             overflowY: 'auto'
                         });
                         $container.find('#srjFooter').addClass(
-                        'flex items-center justify-between mt-4');
+                            'flex items-center justify-between mt-4');
                     }
                 });
 

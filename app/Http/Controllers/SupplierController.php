@@ -47,7 +47,7 @@ class SupplierController extends Controller
                 'fcurr' => 'required|string',
                 'fjabatan' => '',
                 'ftempo' => '',
-                'fcity' => '',
+                'faddress' => '',
                 'fmemo' => '',
             ],
             [
@@ -117,7 +117,7 @@ class SupplierController extends Controller
                 'ftelp' => 'required|string',
                 'ffax' => 'required|string',
                 'fcurr' => 'required|string',
-                'fcity' => '',
+                'faddress' => '',
             ],
             [
                 'fsuppliercode.unique' => 'Kode Supplier sudah ada.',
@@ -171,7 +171,7 @@ class SupplierController extends Controller
 
             return response()->json([
                 'success' => true,
-                'message' => 'Data supplier '.$supplier->fsuppliername.' berhasil dihapus.',
+                'message' => 'Data supplier ' . $supplier->fsuppliername . ' berhasil dihapus.',
                 'redirect' => route('supplier.index'),
             ]);
         } catch (\Exception $e) {

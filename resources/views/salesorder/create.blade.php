@@ -176,7 +176,10 @@
                                 });
                                 return;
                             }
-                            window.salesOrderCreditApprovalGuard(this.$el).then(ok => { if (ok) this.$el.submit() });
+                            window.salesOrderDuplicateRefPoGuard(this.$el).then(ok => {
+                                if (!ok) return;
+                                window.salesOrderCreditApprovalGuard(this.$el).then(approved => { if (approved) this.$el.submit() });
+                            });
                         }
                     }"
                     @submit.prevent="handleSubmit()">
@@ -1365,6 +1368,75 @@
 </script>
 
 <script>
+    window.salesOrderDuplicateRefPoGuard = async function(form) {
+        const customerCode = form.querySelector('[name="fcustno"]')?.value?.trim() || '';
+        const refPo = form.querySelector('[name="frefpo"]')?.value?.trim() || '';
+        const exceptId = form.getAttribute('data-salesorder-id') || '';
+        const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
+
+        if (!customerCode || !refPo) {
+            return true;
+        }
+
+        try {
+            const response = await fetch('{{ route('salesorder.duplicate-refpo-check') }}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json',
+                    'X-CSRF-TOKEN': csrfToken
+                },
+                body: JSON.stringify({
+                    fcustno: customerCode,
+                    frefpo: refPo,
+                    except_id: exceptId || null
+                })
+            });
+
+            const payload = await response.json();
+            if (!response.ok) {
+                const message = payload?.message || Object.values(payload?.errors || {}).flat().join('\n') ||
+                    @json('Gagal memeriksa Reff PO.');
+                await Swal.fire({
+                    icon: 'error',
+                    title: @json('Cek Reff PO Gagal'),
+                    html: `<div class="text-left whitespace-pre-line">${message}</div>`
+                });
+                return false;
+            }
+
+            if (!payload?.exists) {
+                return true;
+            }
+
+            const record = payload.record || {};
+            const label = [record.fsono, record.fsodate].filter(Boolean).join(' / ');
+            const result = await Swal.fire({
+                icon: 'warning',
+                title: @json('Reff PO Sudah Ada'),
+                html: `
+                    <div class="text-left text-sm">
+                        <div>${@json('Customer dan Reff PO ini sudah ada.')}</div>
+                        ${label ? `<div class="mt-2"><strong>${label}</strong></div>` : ''}
+                        <div class="mt-3">${@json('Apakah anda ingin melanjutkan penyimpanan?')}</div>
+                    </div>
+                `,
+                showCancelButton: true,
+                confirmButtonText: @json('Yes'),
+                cancelButtonText: @json('No')
+            });
+
+            return !!result.isConfirmed;
+        } catch (error) {
+            await Swal.fire({
+                icon: 'error',
+                title: @json('Cek Reff PO Gagal'),
+                html: `<div class="text-left whitespace-pre-line">@json("Gagal memeriksa duplikasi customer dan Reff PO.\nSilakan coba lagi.")</div>`
+            });
+            return false;
+        }
+    };
+
     window.salesOrderCreditApprovalGuard = async function(form) {
         const customerCode = form.querySelector('[name="fcustno"]')?.value?.trim() || '';
         const amountValue = parseFloat(form.querySelector('[name="famountso"]')?.value || '0') || 0;

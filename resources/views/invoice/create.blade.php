@@ -656,8 +656,8 @@
                                     <div class="absolute inset-0 bg-black/50 backdrop-blur-sm" @click="closeSrjModal()">
                                     </div>
 
-                                    <div class="relative bg-white rounded-2xl shadow-2xl w-full max-w-5xl flex flex-col overflow-hidden"
-                                        style="height: 650px;">
+                                    <div class="relative bg-white rounded-2xl shadow-2xl w-[96vw] max-w-[110rem] flex flex-col overflow-hidden"
+                                        style="height: 85vh;">
                                         <div
                                             class="px-6 py-4 border-b border-gray-200 flex items-center justify-between flex-shrink-0 bg-gradient-to-r from-indigo-50 to-white">
                                             <div>
@@ -673,7 +673,7 @@
                                             <div id="srjTableControls"></div>
                                         </div>
 
-                                        <div class="flex-1 overflow-y-auto px-6" style="min-height: 0;">
+                                        <div class="flex-1 overflow-x-auto overflow-y-hidden px-6" style="min-height: 0;">
                                             <div class="bg-white">
                                                 <table id="srjTable"
                                                     class="min-w-full text-sm display nowrap stripe hover"
@@ -771,8 +771,8 @@
                                     <div class="absolute inset-0 bg-black/50 backdrop-blur-sm" @click="closeModal()">
                                     </div>
 
-                                    <div class="relative bg-white rounded-2xl shadow-2xl w-full max-w-5xl flex flex-col overflow-hidden"
-                                        style="height: 650px;">
+                                    <div class="relative bg-white rounded-2xl shadow-2xl w-[96vw] max-w-[110rem] flex flex-col overflow-hidden"
+                                        style="height: 85vh;">
                                         <!-- Header -->
                                         <div
                                             class="px-6 py-4 border-b border-gray-200 flex items-center justify-between flex-shrink-0 bg-gradient-to-r from-teal-50 to-white">
@@ -793,7 +793,7 @@
                                         </div>
 
                                         <!-- Table with fixed height and scroll -->
-                                        <div class="flex-1 overflow-y-auto px-6" style="min-height: 0;">
+                                        <div class="flex-1 overflow-x-auto overflow-y-hidden px-6" style="min-height: 0;">
                                             <div class="bg-white">
                                                 <table id="poTable"
                                                     class="min-w-full text-sm display nowrap stripe hover"
@@ -802,13 +802,22 @@
                                                         <tr class="bg-gradient-to-r from-gray-50 to-gray-100">
                                                             <th
                                                                 class="text-left p-3 font-semibold text-gray-700 border-b-2 border-gray-200">
-                                                                {{ 'No.SO' }}</th>
-                                                            <th
-                                                                class="text-left p-3 font-semibold text-gray-700 border-b-2 border-gray-200">
-                                                                {{ 'No.Ref' }}</th>
+                                                                {{ 'No. SO' }}</th>
                                                             <th
                                                                 class="text-left p-3 font-semibold text-gray-700 border-b-2 border-gray-200">
                                                                 {{ 'Tanggal' }}</th>
+                                                            <th
+                                                                class="text-left p-3 font-semibold text-gray-700 border-b-2 border-gray-200">
+                                                                {{ 'Customer #' }}</th>
+                                                            <th
+                                                                class="text-left p-3 font-semibold text-gray-700 border-b-2 border-gray-200">
+                                                                {{ 'Nama Customer' }}</th>
+                                                            <th
+                                                                class="text-left p-3 font-semibold text-gray-700 border-b-2 border-gray-200">
+                                                                {{ 'Kota' }}</th>
+                                                            <th
+                                                                class="text-left p-3 font-semibold text-gray-700 border-b-2 border-gray-200">
+                                                                {{ 'Ref PO' }}</th>
                                                             <th
                                                                 class="text-center p-3 font-semibold text-gray-700 border-b-2 border-gray-200">
                                                                 {{ 'Aksi' }}</th>
@@ -1001,8 +1010,8 @@
                                     class="fixed inset-0 z-50 flex items-center justify-center p-4 md:p-8"
                                     aria-modal="true" role="dialog">
 
-                                    <div class="relative w-full max-w-5xl rounded-xl bg-white shadow-2xl flex flex-col"
-                                        style="height: 600px;">
+                                    <div class="relative bg-white rounded-2xl shadow-2xl w-[96vw] max-w-[110rem] flex flex-col overflow-hidden"
+                                        style="height: 85vh;">
                                         <!-- Header -->
                                         <div
                                             class="px-6 py-4 border-b border-gray-200 flex items-center justify-between flex-shrink-0 bg-gradient-to-r from-blue-50 to-white">
@@ -1015,7 +1024,7 @@
                                         </div>
 
                                         <!-- Table Container -->
-                                        <div class="flex-1 overflow-y-auto p-6" style="min-height: 0;">
+                                        <div class="flex-1 overflow-x-auto overflow-y-hidden p-6" style="min-height: 0;">
                                             <table id="prTable" class="min-w-full text-sm display nowrap stripe hover"
                                                 style="width:100%">
                                                 <thead class="sticky top-0 z-10">

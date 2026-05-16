@@ -42,17 +42,32 @@
                             className: 'font-mono text-sm'
                         },
                         {
-                            data: 'frefno',
-                            name: 'frefno',
-                            className: 'font-mono text-sm'
-                        },
-                        {
                             data: 'fsodate',
                             name: 'trsomt.fsodate',
                             className: 'text-sm',
                             render: function(data) {
                                 return formatDate(data);
                             }
+                        },
+                        {
+                            data: 'fcustno',
+                            name: 'trsomt.fcustno',
+                            className: 'font-mono text-sm'
+                        },
+                        {
+                            data: 'fcustomername',
+                            name: 'fcustomername',
+                            className: 'text-sm'
+                        },
+                        {
+                            data: 'faddress',
+                            name: 'faddress',
+                            className: 'text-sm',
+                        },
+                        {
+                            data: 'frefpo',
+                            name: 'trsomt.frefpo',
+                            className: 'text-sm'
                         },
                         {
                             data: null,
@@ -88,7 +103,7 @@
                         }
                     },
                     order: [
-                        [3, 'desc']
+                        [1, 'desc']
                     ],
                     autoWidth: false,
                     scrollX: true,

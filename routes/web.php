@@ -385,6 +385,7 @@ Route::middleware('auth')->group(function () {
         Route::post('/salesorder', [SalesOrderController::class, 'store'])->name('salesorder.store');
         Route::get('/salesorder/create', [SalesOrderController::class, 'create'])->name('salesorder.create');
         Route::post('/salesorder/credit-check', [SalesOrderController::class, 'creditCheck'])->name('salesorder.credit-check');
+        Route::post('/salesorder/duplicate-refpo-check', [SalesOrderController::class, 'duplicateRefPoCheck'])->name('salesorder.duplicate-refpo-check');
         Route::get('/salesorder/{ftrsomtid}/view', [SalesOrderController::class, 'view'])->name('salesorder.view');
         Route::get('/salesorder/{ftrsomtid}/edit', [SalesOrderController::class, 'edit'])->name('salesorder.edit');
         Route::get('/salesorder/{ftrsomtid}/delete', [SalesOrderController::class, 'delete'])->name('salesorder.delete');

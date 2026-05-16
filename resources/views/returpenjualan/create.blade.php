@@ -603,8 +603,8 @@
                                             @click="closeSrjModal()">
                                         </div>
 
-                                        <div class="relative bg-white rounded-2xl shadow-2xl w-full max-w-5xl flex flex-col overflow-hidden"
-                                            style="height: 650px;">
+                                        <div class="relative bg-white rounded-2xl shadow-2xl w-[96vw] max-w-[110rem] flex flex-col overflow-hidden"
+                                            style="height: 85vh;">
                                             <div
                                                 class="px-6 py-4 border-b border-gray-200 flex items-center justify-between flex-shrink-0 bg-gradient-to-r from-indigo-50 to-white">
                                                 <div>
@@ -621,7 +621,7 @@
                                                 <div id="srjTableControls"></div>
                                             </div>
 
-                                            <div class="flex-1 overflow-y-auto px-6" style="min-height: 0;">
+                                            <div class="flex-1 overflow-x-auto overflow-y-hidden px-6" style="min-height: 0;">
                                                 <div class="bg-white">
                                                     <table id="srjTable"
                                                         class="min-w-full text-sm display nowrap stripe hover"

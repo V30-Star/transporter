@@ -118,7 +118,7 @@ class SuratJalanController extends Controller
                 $warehouseName = trim((string) ($row->warehouse_name ?? ''));
 
                 if ($warehouseLabel !== '' && $warehouseName !== '') {
-                    $warehouseLabel .= ' - '.$warehouseName;
+                    $warehouseLabel .= ' - ' . $warehouseName;
                 } elseif ($warehouseLabel === '') {
                     $warehouseLabel = $warehouseName;
                 }
@@ -203,15 +203,15 @@ class SuratJalanController extends Controller
             ->count();
         $recordsFiltered = $query->count();
 
-        $allowedColumns = ['fstockmtno', 'fstockmtdate', 'fcustomercode', 'fsuppliername', 'fcity', 'frefpo'];
+        $allowedColumns = ['fstockmtno', 'fstockmtdate', 'fcustomercode', 'fsuppliername', 'faddress', 'frefpo'];
         $orderColumn = (string) $request->input('order_column', 'fstockmtdate');
         $orderDir = strtolower((string) $request->input('order_dir', 'desc')) === 'asc' ? 'asc' : 'desc';
 
         if (in_array($orderColumn, $allowedColumns, true)) {
-            if (in_array($orderColumn, ['fcustomercode', 'fsuppliername', 'fcity'], true)) {
-                $query->orderBy('mscustomer.'.$orderColumn, $orderDir);
+            if (in_array($orderColumn, ['fcustomercode', 'fsuppliername', 'faddress'], true)) {
+                $query->orderBy('mscustomer.' . $orderColumn, $orderDir);
             } else {
-                $query->orderBy('trstockmt.'.$orderColumn, $orderDir);
+                $query->orderBy('trstockmt.' . $orderColumn, $orderDir);
             }
         } else {
             $query->orderBy('trstockmt.fstockmtdate', 'desc');
@@ -295,7 +295,7 @@ class SuratJalanController extends Controller
         }
 
         do {
-            $candidate = (string) random_int(1, 9).random_int(1, 9).random_int(1, 9);
+            $candidate = (string) random_int(1, 9) . random_int(1, 9) . random_int(1, 9);
         } while (in_array($candidate, $usedNumbers, true));
 
         $usedNumbers[] = $candidate;
@@ -337,17 +337,17 @@ class SuratJalanController extends Controller
         $prefix = sprintf('PO.%s.%s.%s.', $kodeCabang, $date->format('y'), $date->format('m'));
 
         // kunci per (branch, tahun-bulan) — TANPA bikin tabel baru
-        $lockKey = crc32('PO|'.$kodeCabang.'|'.$date->format('Y-m'));
+        $lockKey = crc32('PO|' . $kodeCabang . '|' . $date->format('Y-m'));
         DB::statement('SELECT pg_advisory_xact_lock(?)', [$lockKey]);
 
         $last = DB::table('trstockmt')
-            ->where('fstockmtno', 'like', $prefix.'%')
+            ->where('fstockmtno', 'like', $prefix . '%')
             ->selectRaw("MAX(CAST(split_part(fstockmtno, '.', 5) AS int)) AS lastno")
             ->value('lastno');
 
         $next = (int) $last + 1;
 
-        return $prefix.str_pad((string) $next, 4, '0', STR_PAD_LEFT);
+        return $prefix . str_pad((string) $next, 4, '0', STR_PAD_LEFT);
     }
 
     public function print(string $fstockmtno)
@@ -388,7 +388,7 @@ class SuratJalanController extends Controller
                 'p.fprdcode as product_code',
             ]);
 
-        $fmt = fn ($d) => $d
+        $fmt = fn($d) => $d
             ? \Carbon\Carbon::parse($d)->locale('id')->translatedFormat('d F Y')
             : '-';
 
@@ -415,10 +415,10 @@ class SuratJalanController extends Controller
         $raw = (Auth::guard('sysuser')->user() ?? Auth::user())?->fcabang;
 
         $branch = DB::table('mscabang')
-            ->when(is_numeric($raw), fn ($q) => $q->where('fcabangid', (int) $raw))
+            ->when(is_numeric($raw), fn($q) => $q->where('fcabangid', (int) $raw))
             ->when(
                 ! is_numeric($raw),
-                fn ($q) => $q->where('fcabangkode', $raw)->orWhere('fcabangname', $raw)
+                fn($q) => $q->where('fcabangkode', $raw)->orWhere('fcabangname', $raw)
             )
             ->first(['fcabangid', 'fcabangkode', 'fcabangname']);
 
@@ -540,7 +540,7 @@ class SuratJalanController extends Controller
 
         $rowCount = count($codes);
         $uniqueCodes = array_values(array_unique(
-            array_filter(array_map(fn ($c) => trim((string) $c), $codes))
+            array_filter(array_map(fn($c) => trim((string) $c), $codes))
         ));
 
         // =========================
@@ -698,15 +698,15 @@ class SuratJalanController extends Controller
                 // ---- 7.2. Generate nomor transaksi ----
                 if (empty($fstockmtno)) {
                     $prefix = sprintf('%s.%s.%s.%s.', $fstockmtcode, $kodeCabang, $yy, $mm);
-                    $lockKey = crc32('STOCKMT|'.$fstockmtcode.'|'.$kodeCabang.'|'.$fstockmtdate->format('Y-m'));
+                    $lockKey = crc32('STOCKMT|' . $fstockmtcode . '|' . $kodeCabang . '|' . $fstockmtdate->format('Y-m'));
                     DB::statement('SELECT pg_advisory_xact_lock(?)', [$lockKey]);
 
                     $last = DB::table('trstockmt')
-                        ->where('fstockmtno', 'like', $prefix.'%')
+                        ->where('fstockmtno', 'like', $prefix . '%')
                         ->selectRaw("MAX(CAST(split_part(fstockmtno, '.', 5) AS int)) AS lastno")
                         ->value('lastno');
                     $next = (int) $last + 1;
-                    $fstockmtno = $prefix.str_pad((string) $next, 4, '0', STR_PAD_LEFT);
+                    $fstockmtno = $prefix . str_pad((string) $next, 4, '0', STR_PAD_LEFT);
                 }
 
                 // ---- 7.3. INSERT HEADER ----
@@ -768,23 +768,23 @@ class SuratJalanController extends Controller
                 $fjurnaltype = 'JV';
                 $jurnalPrefix = sprintf('%s.%s.%s.%s.', $fjurnaltype, $kodeCabang, $yy, $mm);
 
-                $jurnalLockKey = crc32('JURNAL|'.$fjurnaltype.'|'.$kodeCabang.'|'.$fstockmtdate->format('Y-m'));
+                $jurnalLockKey = crc32('JURNAL|' . $fjurnaltype . '|' . $kodeCabang . '|' . $fstockmtdate->format('Y-m'));
                 DB::statement('SELECT pg_advisory_xact_lock(?)', [$jurnalLockKey]);
 
                 $lastJurnalNo = DB::table('jurnalmt')
-                    ->where('fjurnalno', 'like', $jurnalPrefix.'%')
+                    ->where('fjurnalno', 'like', $jurnalPrefix . '%')
                     ->selectRaw("MAX(CAST(split_part(fjurnalno, '.', 5) AS int)) AS lastno")
                     ->value('lastno');
 
                 $nextJurnalNo = (int) $lastJurnalNo + 1;
-                $fjurnalno = $jurnalPrefix.str_pad((string) $nextJurnalNo, 4, '0', STR_PAD_LEFT);
+                $fjurnalno = $jurnalPrefix . str_pad((string) $nextJurnalNo, 4, '0', STR_PAD_LEFT);
 
                 $jurnalHeader = [
                     'fbranchcode' => $kodeCabang,
                     'fjurnalno' => $fjurnalno,
                     'fjurnaltype' => $fjurnaltype,
                     'fjurnaldate' => $fstockmtdate,
-                    'fjurnalnote' => 'Jurnal Penerimaan Barang '.$fstockmtno.' dari Customer: '.$fsupplier,
+                    'fjurnalnote' => 'Jurnal Penerimaan Barang ' . $fstockmtno . ' dari Customer: ' . $fsupplier,
                     'fbalance' => $subtotal + $ppnAmount,
                     'fbalance_rp' => ($subtotal + $ppnAmount) * $frate,
                     'fdatetime' => $now,
@@ -813,7 +813,7 @@ class SuratJalanController extends Controller
                     'frate' => $frate,
                     'famount' => $subtotal,
                     'famount_rp' => $subtotalRp,
-                    'faccountnote' => 'Persediaan Barang Dagang '.$fstockmtno,
+                    'faccountnote' => 'Persediaan Barang Dagang ' . $fstockmtno,
                     'fusercreate' => $userid,
                     'fdatetime' => $now,
                 ];
@@ -832,7 +832,7 @@ class SuratJalanController extends Controller
                         'frate' => $frate,
                         'famount' => $ppnAmount,
                         'famount_rp' => $ppnAmount * $frate,
-                        'faccountnote' => 'PPN Masukan '.$fstockmtno,
+                        'faccountnote' => 'PPN Masukan ' . $fstockmtno,
                         'fusercreate' => $userid,
                         'fdatetime' => $now,
                     ];
@@ -852,7 +852,7 @@ class SuratJalanController extends Controller
                     'frate' => $frate,
                     'famount' => $totalHutang,
                     'famount_rp' => $totalHutang * $frate,
-                    'faccountnote' => 'Hutang Dagang Customer '.$fsupplier.' (Total Pembelian)',
+                    'faccountnote' => 'Hutang Dagang Customer ' . $fsupplier . ' (Total Pembelian)',
                     'fusercreate' => $userid,
                     'fdatetime' => $now,
                 ];
@@ -881,8 +881,8 @@ class SuratJalanController extends Controller
         $raw = (Auth::guard('sysuser')->user() ?? Auth::user())?->fcabang;
 
         $branch = DB::table('mscabang')
-            ->when(is_numeric($raw), fn ($q) => $q->where('fcabangid', (int) $raw))
-            ->when(! is_numeric($raw), fn ($q) => $q
+            ->when(is_numeric($raw), fn($q) => $q->where('fcabangid', (int) $raw))
+            ->when(! is_numeric($raw), fn($q) => $q
                 ->where('fcabangkode', $raw)
                 ->orWhere('fcabangname', $raw))
             ->first(['fcabangid', 'fcabangkode', 'fcabangname']);
@@ -919,7 +919,7 @@ class SuratJalanController extends Controller
         // 4. Map the data for savedItems (sudah menggunakan data yang benar)
         $usageLockMessage = $this->getUsageLockMessage($suratjalan);
         $soReferenceStats = $this->getSoReferenceStats(
-            $suratjalan->details->pluck('frefso')->filter()->map(fn ($value) => trim((string) $value))->unique()->values()->all(),
+            $suratjalan->details->pluck('frefso')->filter()->map(fn($value) => trim((string) $value))->unique()->values()->all(),
             $suratjalan->fstockmtno
         );
 
@@ -1015,8 +1015,8 @@ class SuratJalanController extends Controller
         $raw = (Auth::guard('sysuser')->user() ?? Auth::user())?->fcabang;
 
         $branch = DB::table('mscabang')
-            ->when(is_numeric($raw), fn ($q) => $q->where('fcabangid', (int) $raw))
-            ->when(! is_numeric($raw), fn ($q) => $q
+            ->when(is_numeric($raw), fn($q) => $q->where('fcabangid', (int) $raw))
+            ->when(! is_numeric($raw), fn($q) => $q
                 ->where('fcabangkode', $raw)
                 ->orWhere('fcabangname', $raw))
             ->first(['fcabangid', 'fcabangkode', 'fcabangname']);
@@ -1052,7 +1052,7 @@ class SuratJalanController extends Controller
 
         // 4. Map the data for savedItems (sudah menggunakan data yang benar)
         $soReferenceStats = $this->getSoReferenceStats(
-            $suratjalan->details->pluck('frefso')->filter()->map(fn ($value) => trim((string) $value))->unique()->values()->all(),
+            $suratjalan->details->pluck('frefso')->filter()->map(fn($value) => trim((string) $value))->unique()->values()->all(),
             $suratjalan->fstockmtno
         );
 
@@ -1202,7 +1202,7 @@ class SuratJalanController extends Controller
 
         $rowCount = count($codes);
         $uniqueCodes = array_values(array_unique(
-            array_filter(array_map(fn ($c) => trim((string) $c), $codes))
+            array_filter(array_map(fn($c) => trim((string) $c), $codes))
         ));
 
         // =========================
@@ -1303,7 +1303,7 @@ class SuratJalanController extends Controller
         $oldInvoiceReferenceDocs = DB::table('trstockdt')
             ->where('fstockmtno', $header->fstockmtno)
             ->pluck('frefso')
-            ->filter(fn ($value) => $this->isInvoiceReferenceDoc((string) $value))
+            ->filter(fn($value) => $this->isInvoiceReferenceDoc((string) $value))
             ->values()
             ->all();
         $newInvoiceReferenceDocs = $this->extractInvoiceReferenceDocs($rowsDt);
@@ -1419,7 +1419,7 @@ class SuratJalanController extends Controller
                     // Update jurnalmt
                     DB::table('jurnalmt')->where('fjurnalmtid', $jurnalmtId)->update([
                         'fjurnaldate' => $fstockmtdate,
-                        'fjurnalnote' => 'Jurnal Penerimaan Barang '.$fstockmtno.' dari Customer: '.$fsupplier,
+                        'fjurnalnote' => 'Jurnal Penerimaan Barang ' . $fstockmtno . ' dari Customer: ' . $fsupplier,
                         'fbalance' => $subtotal + $ppnAmount,
                         'fbalance_rp' => ($subtotal + $ppnAmount) * $frate,
                         'fdatetime' => $now,
@@ -1434,23 +1434,23 @@ class SuratJalanController extends Controller
                 } else {
                     // Buat Jurnal Baru jika belum ada (fallback)
                     $jurnalPrefix = sprintf('%s.%s.%s.%s.', $fjurnaltype, $kodeCabang, $yy, $mm);
-                    $jurnalLockKey = crc32('JURNAL|'.$fjurnaltype.'|'.$kodeCabang.'|'.$fstockmtdate->format('Y-m'));
+                    $jurnalLockKey = crc32('JURNAL|' . $fjurnaltype . '|' . $kodeCabang . '|' . $fstockmtdate->format('Y-m'));
                     DB::statement('SELECT pg_advisory_xact_lock(?)', [$jurnalLockKey]);
 
                     $lastJurnalNo = DB::table('jurnalmt')
-                        ->where('fjurnalno', 'like', $jurnalPrefix.'%')
+                        ->where('fjurnalno', 'like', $jurnalPrefix . '%')
                         ->selectRaw("MAX(CAST(split_part(fjurnalno, '.', 5) AS int)) AS lastno")
                         ->value('lastno');
 
                     $nextJurnalNo = (int) $lastJurnalNo + 1;
-                    $fjurnalno = $jurnalPrefix.str_pad((string) $nextJurnalNo, 4, '0', STR_PAD_LEFT);
+                    $fjurnalno = $jurnalPrefix . str_pad((string) $nextJurnalNo, 4, '0', STR_PAD_LEFT);
 
                     $jurnalHeader = [
                         'fbranchcode' => $kodeCabang,
                         'fjurnalno' => $fjurnalno,
                         'fjurnaltype' => $fjurnaltype,
                         'fjurnaldate' => $fstockmtdate,
-                        'fjurnalnote' => 'Jurnal Penerimaan Barang '.$fstockmtno.' dari Customer: '.$fsupplier,
+                        'fjurnalnote' => 'Jurnal Penerimaan Barang ' . $fstockmtno . ' dari Customer: ' . $fsupplier,
                         'fbalance' => $subtotal + $ppnAmount,
                         'fbalance_rp' => ($subtotal + $ppnAmount) * $frate,
                         'fdatetime' => $now,
@@ -1477,7 +1477,7 @@ class SuratJalanController extends Controller
                         'frate' => $frate,
                         'famount' => $subtotal,
                         'famount_rp' => $subtotalRp,
-                        'faccountnote' => 'Persediaan Barang Dagang '.$fstockmtno,
+                        'faccountnote' => 'Persediaan Barang Dagang ' . $fstockmtno,
                         'fusercreate' => $userid,
                         'fdatetime' => $now,
                     ];
@@ -1496,7 +1496,7 @@ class SuratJalanController extends Controller
                             'frate' => $frate,
                             'famount' => $ppnAmount,
                             'famount_rp' => $ppnAmount * $frate,
-                            'faccountnote' => 'PPN Masukan '.$fstockmtno,
+                            'faccountnote' => 'PPN Masukan ' . $fstockmtno,
                             'fusercreate' => $userid,
                             'fdatetime' => $now,
                         ];
@@ -1516,7 +1516,7 @@ class SuratJalanController extends Controller
                         'frate' => $frate,
                         'famount' => $totalHutang,
                         'famount_rp' => $totalHutang * $frate,
-                        'faccountnote' => 'Hutang Dagang Customer '.$fsupplier.' (Total Pembelian)',
+                        'faccountnote' => 'Hutang Dagang Customer ' . $fsupplier . ' (Total Pembelian)',
                         'fusercreate' => $userid,
                         'fdatetime' => $now,
                     ];
@@ -1545,8 +1545,8 @@ class SuratJalanController extends Controller
         $raw = (Auth::guard('sysuser')->user() ?? Auth::user())?->fcabang;
 
         $branch = DB::table('mscabang')
-            ->when(is_numeric($raw), fn ($q) => $q->where('fcabangid', (int) $raw))
-            ->when(! is_numeric($raw), fn ($q) => $q
+            ->when(is_numeric($raw), fn($q) => $q->where('fcabangid', (int) $raw))
+            ->when(! is_numeric($raw), fn($q) => $q
                 ->where('fcabangkode', $raw)
                 ->orWhere('fcabangname', $raw))
             ->first(['fcabangid', 'fcabangkode', 'fcabangname']);
@@ -1583,7 +1583,7 @@ class SuratJalanController extends Controller
         // 4. Map the data for savedItems (sudah menggunakan data yang benar)
         $usageLockMessage = $this->getUsageLockMessage($suratjalan);
         $soReferenceStats = $this->getSoReferenceStats(
-            $suratjalan->details->pluck('frefso')->filter()->map(fn ($value) => trim((string) $value))->unique()->values()->all(),
+            $suratjalan->details->pluck('frefso')->filter()->map(fn($value) => trim((string) $value))->unique()->values()->all(),
             $suratjalan->fstockmtno
         );
 
@@ -1667,7 +1667,7 @@ class SuratJalanController extends Controller
             $invoiceReferenceDocs = DB::table('trstockdt')
                 ->where('fstockmtno', $suratjalan->fstockmtno)
                 ->pluck('frefso')
-                ->filter(fn ($value) => $this->isInvoiceReferenceDoc((string) $value))
+                ->filter(fn($value) => $this->isInvoiceReferenceDoc((string) $value))
                 ->values()
                 ->all();
 
@@ -1685,7 +1685,7 @@ class SuratJalanController extends Controller
 
             $this->syncInvoiceOutFlags($invoiceReferenceDocs);
 
-            return redirect()->route('suratjalan.index')->with('success', 'Data Surat Jalan '.$suratjalan->fstockmtno.' berhasil dihapus.');
+            return redirect()->route('suratjalan.index')->with('success', 'Data Surat Jalan ' . $suratjalan->fstockmtno . ' berhasil dihapus.');
         } catch (\Exception $e) {
             // Jika terjadi kesalahan saat menghapus, kembali ke halaman delete dengan pesan error
             return redirect()->route('suratjalan.delete', $fstockmtid)->with('error', 'Data belum berhasil dihapus. Silakan coba lagi.');
@@ -1709,8 +1709,8 @@ class SuratJalanController extends Controller
     private function extractSoReferenceDocsFromKeys(array $keys): array
     {
         return collect($keys)
-            ->map(fn ($key) => explode('|', (string) $key)[0] ?? '')
-            ->filter(fn ($value) => trim((string) $value) !== '')
+            ->map(fn($key) => explode('|', (string) $key)[0] ?? '')
+            ->filter(fn($value) => trim((string) $value) !== '')
             ->unique()
             ->values()
             ->all();
@@ -1740,7 +1740,7 @@ class SuratJalanController extends Controller
     private function getSoReferenceStats(array $docNos, ?string $exceptStockMtNo = null): array
     {
         $docNos = collect($docNos)
-            ->map(fn ($value) => trim((string) $value))
+            ->map(fn($value) => trim((string) $value))
             ->filter()
             ->unique()
             ->values()
@@ -1750,8 +1750,8 @@ class SuratJalanController extends Controller
             return [];
         }
 
-        $invoiceDocNos = array_values(array_filter($docNos, fn ($docNo) => $this->isInvoiceReferenceDoc((string) $docNo)));
-        $soDocNos = array_values(array_filter($docNos, fn ($docNo) => ! $this->isInvoiceReferenceDoc((string) $docNo)));
+        $invoiceDocNos = array_values(array_filter($docNos, fn($docNo) => $this->isInvoiceReferenceDoc((string) $docNo)));
+        $soDocNos = array_values(array_filter($docNos, fn($docNo) => ! $this->isInvoiceReferenceDoc((string) $docNo)));
 
         $sourceRows = collect();
 
@@ -1795,7 +1795,7 @@ class SuratJalanController extends Controller
             ->join('trstockmt as h', 'h.fstockmtno', '=', 'd.fstockmtno')
             ->where('h.fstockmtcode', 'SRJ')
             ->whereIn('d.frefso', $docNos)
-            ->when($exceptStockMtNo, fn ($query) => $query->where('h.fstockmtno', '<>', $exceptStockMtNo))
+            ->when($exceptStockMtNo, fn($query) => $query->where('h.fstockmtno', '<>', $exceptStockMtNo))
             ->selectRaw("
                 TRIM(d.frefso) as ref_doc,
                 TRIM(d.fprdcode) as product_code,
@@ -1861,12 +1861,12 @@ class SuratJalanController extends Controller
             $docLabel = $this->isInvoiceReferenceDoc($docNo) ? 'Faktur Penjualan' : 'SO';
             if ($availableQtyKecil <= 0) {
                 $product = trim((string) ($stat['product_name'] ?? $stat['product_code'] ?? $referenceKey));
-                return 'Qty Surat Jalan untuk item '.$product.($docNo !== '' ? ' pada '.$docLabel.' '.$docNo : '').' tidak bisa diinput karena qty sudah habis atau sudah digunakan.';
+                return 'Qty Surat Jalan untuk item ' . $product . ($docNo !== '' ? ' pada ' . $docLabel . ' ' . $docNo : '') . ' tidak bisa diinput karena qty sudah habis atau sudah digunakan.';
             }
 
             if ((float) $requestedQtyKecil - $availableQtyKecil > 0.000001) {
                 $product = trim((string) ($stat['product_name'] ?? $stat['product_code'] ?? $referenceKey));
-                return 'Qty Surat Jalan untuk item '.$product.($docNo !== '' ? ' pada '.$docLabel.' '.$docNo : '').' melebihi sisa qty yang tersedia.';
+                return 'Qty Surat Jalan untuk item ' . $product . ($docNo !== '' ? ' pada ' . $docLabel . ' ' . $docNo : '') . ' melebihi sisa qty yang tersedia.';
             }
         }
 
@@ -1888,7 +1888,7 @@ class SuratJalanController extends Controller
             if ((float) ($stats[$referenceKey]['used_qty_kecil'] ?? 0) > 0) {
                 $refNo = trim((string) ($stats[$referenceKey]['ref_doc'] ?? ''));
                 $transactionNo = trim((string) ($stats[$referenceKey]['used_by_transaction'] ?? ''));
-                return 'Nomor referensi '.$refNo.' sudah pernah dibuat di transaksi nomor '.$transactionNo.'.';
+                return 'Nomor referensi ' . $refNo . ' sudah pernah dibuat di transaksi nomor ' . $transactionNo . '.';
             }
         }
 
@@ -1931,7 +1931,7 @@ class SuratJalanController extends Controller
             ")
             ->groupByRaw("TRIM(COALESCE(d.fprdcode::text, '')), COALESCE(d.frefnosrjacak::text, '')")
             ->get()
-            ->keyBy(fn ($row) => $this->buildSrjRemainKey($row->product_code ?? '', $row->ref_noacak ?? ''));
+            ->keyBy(fn($row) => $this->buildSrjRemainKey($row->product_code ?? '', $row->ref_noacak ?? ''));
 
         $result = [];
         foreach ($sourceRows as $row) {
@@ -1959,21 +1959,21 @@ class SuratJalanController extends Controller
             ->pluck('mt.fsono');
 
         $parts = [];
-        $usedByInvoice = $usedBySalesDocs->filter(fn ($no) => str_starts_with((string) $no, 'INV.'));
+        $usedByInvoice = $usedBySalesDocs->filter(fn($no) => str_starts_with((string) $no, 'INV.'));
         if ($usedByInvoice->isNotEmpty()) {
-            $parts[] = 'Faktur Penjualan: '.$usedByInvoice->implode(', ');
+            $parts[] = 'Faktur Penjualan: ' . $usedByInvoice->implode(', ');
         }
 
-        $usedByRetur = $usedBySalesDocs->filter(fn ($no) => str_starts_with((string) $no, 'REJ.'));
+        $usedByRetur = $usedBySalesDocs->filter(fn($no) => str_starts_with((string) $no, 'REJ.'));
         if ($usedByRetur->isNotEmpty()) {
-            $parts[] = 'Retur Penjualan: '.$usedByRetur->implode(', ');
+            $parts[] = 'Retur Penjualan: ' . $usedByRetur->implode(', ');
         }
 
         if (empty($parts)) {
             return null;
         }
 
-        return 'Surat Jalan '.$fstockmtno.' tidak dapat diubah atau dihapus karena sudah digunakan pada '.implode('; ', $parts).'.';
+        return 'Surat Jalan ' . $fstockmtno . ' tidak dapat diubah atau dihapus karena sudah digunakan pada ' . implode('; ', $parts) . '.';
     }
 
     private function resolveSuratJalanFcode(array $row): string
@@ -1988,14 +1988,14 @@ class SuratJalanController extends Controller
 
     private function buildSrjRemainKey(?string $productCode, ?string $refNoAcak): string
     {
-        return trim((string) ($productCode ?? '')).'|'.trim((string) ($refNoAcak ?? ''));
+        return trim((string) ($productCode ?? '')) . '|' . trim((string) ($refNoAcak ?? ''));
     }
 
     private function extractInvoiceReferenceDocs(array $rowsDt): array
     {
         return collect($rowsDt)
-            ->map(fn ($row) => trim((string) ($row['frefso'] ?? '')))
-            ->filter(fn ($docNo) => $this->isInvoiceReferenceDoc((string) $docNo))
+            ->map(fn($row) => trim((string) ($row['frefso'] ?? '')))
+            ->filter(fn($docNo) => $this->isInvoiceReferenceDoc((string) $docNo))
             ->unique()
             ->values()
             ->all();
@@ -2004,8 +2004,8 @@ class SuratJalanController extends Controller
     private function syncInvoiceOutFlags(array $invoiceNos): void
     {
         $invoiceNos = collect($invoiceNos)
-            ->map(fn ($value) => trim((string) $value))
-            ->filter(fn ($value) => $this->isInvoiceReferenceDoc((string) $value))
+            ->map(fn($value) => trim((string) $value))
+            ->filter(fn($value) => $this->isInvoiceReferenceDoc((string) $value))
             ->unique()
             ->values()
             ->all();

@@ -36,11 +36,11 @@
             </div>
             @endif
 
-            @if($customer->fcity)
+            @if($customer->faddress)
             <div class="grid grid-cols-3 gap-4">
                 <div class="text-sm font-medium text-gray-500">Kota</div>
                 <div class="col-span-2 text-sm font-semibold text-gray-900">
-                    {{ $customer->fcity }}
+                    {{ $customer->faddress }}
                 </div>
             </div>
             @endif
