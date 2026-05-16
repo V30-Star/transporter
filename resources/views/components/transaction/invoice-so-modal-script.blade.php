@@ -61,22 +61,31 @@
                         {
                             data: 'fcustno',
                             name: 'trsomt.fcustno',
-                            className: 'font-mono text-sm'
-                        },
-                        {
-                            data: 'fcustomername',
-                            name: 'fcustomername',
-                            className: 'text-sm'
+                            className: 'text-sm',
+                            render: function(data, type, row) {
+                                const code = (data || '').toString().trim();
+                                const name = (row.fcustomername || '').toString().trim();
+                                if (code && name) return `${code} - ${name}`;
+                                return code || name || '-';
+                            }
                         },
                         {
                             data: 'faddress',
                             name: 'faddress',
                             className: 'text-sm',
+                            defaultContent: '-',
+                            render: function(data) {
+                                return (data || '').toString().trim() || '-';
+                            }
                         },
                         {
                             data: 'frefpo',
                             name: 'trsomt.frefpo',
-                            className: 'text-sm'
+                            className: 'text-sm',
+                            defaultContent: '-',
+                            render: function(data) {
+                                return (data || '').toString().trim() || '-';
+                            }
                         },
                         {
                             data: null,

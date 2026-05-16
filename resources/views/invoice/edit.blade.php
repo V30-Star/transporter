@@ -1304,16 +1304,13 @@
                                                                         {{ 'Tanggal' }}</th>
                                                                     <th
                                                                         class="text-left p-3 font-semibold text-gray-700 border-b-2 border-gray-200">
-                                                                        {{ 'Customer #' }}</th>
+                                                                        {{ 'Customer' }}</th>
                                                                     <th
                                                                         class="text-left p-3 font-semibold text-gray-700 border-b-2 border-gray-200">
-                                                                        {{ 'Nama Customer' }}</th>
+                                                                        {{ 'Alamat' }}</th>
                                                                     <th
                                                                         class="text-left p-3 font-semibold text-gray-700 border-b-2 border-gray-200">
-                                                                        {{ 'Kota' }}</th>
-                                                                    <th
-                                                                        class="text-left p-3 font-semibold text-gray-700 border-b-2 border-gray-200">
-                                                                        {{ 'Ref PO' }}</th>
+                                                                        {{ 'No Ref' }}</th>
                                                                     <th
                                                                         class="text-center p-3 font-semibold text-gray-700 border-b-2 border-gray-200">
                                                                         {{ 'Aksi' }}</th>
@@ -1417,16 +1414,13 @@
                                                                         {{ 'Tanggal' }}</th>
                                                                     <th
                                                                         class="text-left p-3 font-semibold text-gray-700 border-b-2 border-gray-200">
-                                                                        {{ 'Customer #' }}</th>
+                                                                        {{ 'Customer' }}</th>
                                                                     <th
                                                                         class="text-left p-3 font-semibold text-gray-700 border-b-2 border-gray-200">
-                                                                        {{ 'Nama Customer' }}</th>
+                                                                        {{ 'Alamat' }}</th>
                                                                     <th
                                                                         class="text-left p-3 font-semibold text-gray-700 border-b-2 border-gray-200">
-                                                                        {{ 'Kota' }}</th>
-                                                                    <th
-                                                                        class="text-left p-3 font-semibold text-gray-700 border-b-2 border-gray-200">
-                                                                        {{ 'Ref PO' }}</th>
+                                                                        {{ 'No Ref' }}</th>
                                                                     <th
                                                                         class="text-center p-3 font-semibold text-gray-700 border-b-2 border-gray-200">
                                                                         {{ 'Aksi' }}</th>
