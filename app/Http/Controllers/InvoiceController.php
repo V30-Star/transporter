@@ -757,6 +757,7 @@ class InvoiceController extends Controller
             'fprice' => ['required', 'array'],
             'fprice.*' => ['numeric', 'min:0'],
             'fdisc' => ['nullable', 'array'],
+            'fdiscpersen' => ['nullable', 'numeric', 'min:0', 'max:100'],
             'frefcode' => ['nullable', 'string', 'in:SO,SRJ,UM'],
             'frefso' => ['nullable'],
             'frefsrj' => ['nullable'],
@@ -775,6 +776,7 @@ class InvoiceController extends Controller
         $fincludeppn = $request->boolean('fincludeppn') ? '1' : '0';
         $fapplyppn = $request->boolean('fapplyppn') ? '1' : '0';
         $ppnPersen = $request->input('fppnpersen', 0);
+        $headerDiscPercent = max(0, min(100, (float) $request->input('fdiscpersen', 0)));
         $userid = mb_substr(auth('sysuser')->user()->fname ?? 'admin', 0, 10);
         $now = now();
         $fcurrency = $request->input('fcurrency', 'IDR');
@@ -888,7 +890,10 @@ class InvoiceController extends Controller
             return back()->withInput()->with('error', $validationMessage);
         }
 
-        $amountNet = $totalGross - $totalDisc;
+        $amountNetBeforeHeaderDisc = $totalGross - $totalDisc;
+        $headerDiscountAmount = $amountNetBeforeHeaderDisc * ($headerDiscPercent / 100);
+        $totalDisc += $headerDiscountAmount;
+        $amountNet = $amountNetBeforeHeaderDisc - $headerDiscountAmount;
         $ppnPersen = (float) $request->input('fppnpersen', 11);
         $ppnAmount = ($fincludeppn === '1') ? ($amountNet * ($ppnPersen / 100)) : 0;
         $grandTotal = $amountNet + $ppnAmount;
@@ -897,7 +902,7 @@ class InvoiceController extends Controller
 
         // 5. DATABASE TRANSACTION
         try {
-            DB::transaction(function () use ($fapplyppn, $request, $fsodate, $fincludeppn, $userid, $now, $detailRows, $totalGross, $totalDisc, $amountNet, $ppnAmount, $grandTotal, $fcurrency, $frate, $ppnPersen, $creditApproval, $fkodefp, $needsApprovalNotification, &$shouldSendApprovalNotification, &$fsono) {
+            DB::transaction(function () use ($fapplyppn, $request, $fsodate, $fincludeppn, $userid, $now, $detailRows, $totalGross, $totalDisc, $amountNet, $ppnAmount, $grandTotal, $fcurrency, $frate, $ppnPersen, $creditApproval, $fkodefp, $needsApprovalNotification, &$shouldSendApprovalNotification, &$fsono, $headerDiscPercent) {
 
                 // Penomoran Otomatis (Tetap sama)
                 if (empty($fsono)) {
@@ -917,6 +922,7 @@ class InvoiceController extends Controller
                     'fcustno' => mb_substr($request->fcustno, 0, 10),
                     'fkodefp' => $fkodefp,
                     'fsalesman' => mb_substr((string) $request->input('fsalesman', ''), 0, 30),
+                    'fdiscpersen' => round($headerDiscPercent, 2),
                     'fcurrency' => $fcurrency,
                     'frate' => $frate,
                     'fdiscount' => $totalDisc,
@@ -929,6 +935,7 @@ class InvoiceController extends Controller
                     'famountpajak_rp' => $ppnAmount * $frate,
                     'famountso' => $grandTotal,
                     'famountso_rp' => $grandTotal * $frate,
+                    'ftotalsalesnet' => $grandTotal,
                     'famountremain' => $grandTotal,
                     'famountremain_rp' => $grandTotal * $frate,
                     'fket' => $request->fket ?? '',
@@ -1701,6 +1708,7 @@ class InvoiceController extends Controller
             'fqty.*' => ['numeric', 'min:0.01'],
             'fprice' => ['required', 'array'],
             'fprice.*' => ['numeric', 'min:0'],
+            'fdiscpersen' => ['nullable', 'numeric', 'min:0', 'max:100'],
             'fnoacak' => ['nullable', 'array'],
             'fnoacak.*' => ['nullable', 'regex:/^[1-9]{3}$/'],
             'frefnoacak' => ['nullable', 'array'],
@@ -1725,6 +1733,7 @@ class InvoiceController extends Controller
         $fsodate = Carbon::parse($request->fsodate);
         $fincludeppn = $request->boolean('fincludeppn') ? '1' : '0';
         $fapplyppn = $request->boolean('fapplyppn') ? '1' : '0';
+        $headerDiscPercent = max(0, min(100, (float) $request->input('fdiscpersen', 0)));
         $userid = mb_substr(auth('sysuser')->user()->fname ?? 'admin', 0, 10);
         $now = now();
         $frate = (float) $request->input('frate', $header->frate ?? 1);
@@ -1867,7 +1876,10 @@ class InvoiceController extends Controller
         }
 
         // 5. KALKULASI TOTAL AKHIR
-        $amountNet = $totalGross - $totalDisc;
+        $amountNetBeforeHeaderDisc = $totalGross - $totalDisc;
+        $headerDiscountAmount = $amountNetBeforeHeaderDisc * ($headerDiscPercent / 100);
+        $totalDisc += $headerDiscountAmount;
+        $amountNet = $amountNetBeforeHeaderDisc - $headerDiscountAmount;
         $ppnPersen = (float) $request->input('fppnpersen', 11);
         $ppnAmount = ($fincludeppn === '1') ? ($amountNet * ($ppnPersen / 100)) : 0;
         $grandTotal = $amountNet + $ppnAmount;
@@ -1895,6 +1907,7 @@ class InvoiceController extends Controller
                 $grandTotal,
                 $frate,
                 $ppnPersen,
+                $headerDiscPercent,
                 $creditApproval,
                 $fkodefp,
                 $needsApprovalNotification,
@@ -1907,6 +1920,7 @@ class InvoiceController extends Controller
                     'fcustno' => mb_substr((string) $request->fcustno, 0, 10),
                     'fkodefp' => $fkodefp,
                     'fsalesman' => mb_substr((string) $request->input('fsalesman', ''), 0, 30),
+                    'fdiscpersen' => round($headerDiscPercent, 2),
                     'fdiscount' => $totalDisc,
                     'fdiscount_rp' => $totalDisc * $frate,
                     'famountgross' => $totalGross,
@@ -1917,6 +1931,7 @@ class InvoiceController extends Controller
                     'famountpajak_rp' => $ppnAmount * $frate,
                     'famountso' => $grandTotal,
                     'famountso_rp' => $grandTotal * $frate,
+                    'ftotalsalesnet' => $grandTotal,
                     'fket' => $request->fket ?? '',
                     'fuserid' => $userid,
                     'fdatetime' => $now,

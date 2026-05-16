@@ -608,6 +608,27 @@
 
                                         </div>
 
+                                        <div class="flex items-center justify-between gap-3">
+                                            <span class="text-sm text-gray-700">Discount</span>
+                                            <div class="flex items-center gap-2">
+                                                <input type="number" min="0" max="100" step="0.01"
+                                                    name="fdiscpersen" x-model.number="headerDiscPercent" disabled
+                                                    class="w-20 h-9 px-2 text-sm leading-tight text-right border rounded transition-opacity
+                                                            [appearance:textfield]
+                                                            [&::-webkit-outer-spin-button]:appearance-none
+                                                            [&::-webkit-inner-spin-button]:appearance-none
+                                                            disabled:bg-gray-100 disabled:opacity-60 disabled:cursor-not-allowed">
+                                                <span class="text-sm">%</span>
+                                                <span class="min-w-[140px] text-right font-medium"
+                                                    x-text="rupiah(headerDiscAmount)"></span>
+                                            </div>
+                                        </div>
+                                        <div class="flex items-center justify-between">
+                                            <span class="text-sm text-gray-700">Total Setelah Disc</span>
+                                            <span class="min-w-[140px] text-right font-medium"
+                                                x-text="rupiah(totalSetelahDisc)"></span>
+                                        </div>
+
                                         <div class="border-t my-1"></div>
 
                                         <div class="flex items-center justify-between">
@@ -629,6 +650,7 @@
                                     <input type="hidden" name="" :value="ppnAmount">
                                     <input type="hidden" name="famountso" :value="grandTotal">
                                     <input type="hidden" name="famountpopajak" :value="ppnRate">
+                                    <input type="hidden" name="fdiscpersen" :value="headerDiscPercent">
                                 </div>
                             </div>
 
@@ -906,7 +928,7 @@
                                 @enderror
                             </div>
 
-                            <div class="lg:col-span-4">
+                            <div class="lg:col-span-2">
                                 <label class="block text-sm font-medium">TOP (Hari)</label>
                                 <input type="number" id="ftempohr" name="ftempohr"
                                     value="{{ old('ftempohr', $invoice->ftempohr) }}"
@@ -917,7 +939,7 @@
                                 @enderror
                             </div>
 
-                            <div class="lg:col-span-4">
+                            <div class="lg:col-span-2">
                                 <label class="block text-sm font-medium">Tgl. Jatuh Tempo</label>
                                 <input type="date" id="fjatuhtempo" name="fjatuhtempo"
                                     value="{{ old('fjatuhtempo') ?? date('Y-m-d', strtotime($invoice->fjatuhtempo)) }}"
@@ -1536,6 +1558,28 @@
 
                                             </div>
 
+                                            <div class="flex items-center justify-between gap-3">
+                                                <span class="text-sm text-gray-700">Discount</span>
+                                                <div class="flex items-center gap-2">
+                                                    <input type="number" min="0" max="100" step="0.01"
+                                                        name="fdiscpersen" x-model.number="headerDiscPercent"
+                                                        :disabled="action === 'delete' || action === 'view'"
+                                                        class="w-20 h-9 px-2 text-sm leading-tight text-right border rounded transition-opacity
+                                                            [appearance:textfield]
+                                                            [&::-webkit-outer-spin-button]:appearance-none
+                                                            [&::-webkit-inner-spin-button]:appearance-none
+                                                            disabled:bg-gray-100 disabled:opacity-60 disabled:cursor-not-allowed">
+                                                    <span class="text-sm">%</span>
+                                                    <span class="min-w-[140px] text-right font-medium"
+                                                        x-text="rupiah(headerDiscAmount)"></span>
+                                                </div>
+                                            </div>
+                                            <div class="flex items-center justify-between">
+                                                <span class="text-sm text-gray-700">Total Setelah Disc</span>
+                                                <span class="min-w-[140px] text-right font-medium"
+                                                    x-text="rupiah(totalSetelahDisc)"></span>
+                                            </div>
+
                                             <div class="border-t my-1"></div>
 
                                             <div class="flex items-center justify-between">
@@ -1560,6 +1604,7 @@
                                         <input type="hidden" name="famountso" :value="grandTotal">
                                         <input type="hidden" name="famountpopajak" :value="ppnAmount">
                                         <input type="hidden" name="fppnpersen" :value="ppnRate">
+                                        <input type="hidden" name="fdiscount" :value="headerDiscAmount">
                                     </div>
                                 </div>
 
@@ -2102,6 +2147,7 @@
             descTarget: null,
 
             totalHarga: 0,
+            headerDiscPercent: @json((float) old('fdiscpersen', $invoice->fdiscpersen ?? 0)),
             ppnRate: @json($invoice->fppnpersen ?? 11),
 
             initialGrandTotal: @json($invoice->famountso ?? 0),
@@ -2111,22 +2157,33 @@
             fapplyppn: @json((int) ($invoice->fapplyppn ?? 0)),
             action: @js($action ?? 'edit'),
 
-            get ppnIncluded() {
+            get headerDiscAmount() {
                 const total = +this.totalHarga || 0;
+                const percent = Math.min(100, Math.max(0, +this.headerDiscPercent || 0));
+                return +(total * (percent / 100)).toFixed(2);
+            },
+
+            get totalSetelahDisc() {
+                const total = +this.totalHarga || 0;
+                return +(total - this.headerDiscAmount).toFixed(2);
+            },
+
+            get ppnIncluded() {
+                const total = this.totalSetelahDisc;
                 const rate = +this.ppnRate || 0;
                 if (!this.fapplyppn || !this.includePPN) return 0;
                 return Math.round((100 / (100 + rate)) * total * (rate / 100));
             },
 
             get netFromGross() {
-                const total = +this.totalHarga || 0;
+                const total = this.totalSetelahDisc;
                 return total - this.ppnIncluded;
             },
 
             get ppnAdded() {
                 const rate = +this.ppnRate || 0;
                 if (!this.includePPN || this.fapplyppn) return 0;
-                const total = +this.totalHarga || 0;
+                const total = this.totalSetelahDisc;
                 return Math.round(total * (rate / 100));
             },
 
@@ -2139,7 +2196,7 @@
             },
 
             get netTotal() {
-                const total = +this.totalHarga || 0;
+                const total = this.totalSetelahDisc;
                 if (!this.includePPN) return total;
                 if (this.fapplyppn) {
                     return this.netFromGross;
@@ -2148,7 +2205,7 @@
             },
 
             get grandTotal() {
-                const total = +this.totalHarga || 0;
+                const total = this.totalSetelahDisc;
                 if (!this.includePPN || this.fapplyppn) {
                     return total;
                 }
@@ -2519,6 +2576,14 @@
                 this.$watch('includePPN', () => this.recalcTotals());
                 this.$watch('fapplyppn', () => this.recalcTotals());
                 this.$watch('ppnRate', () => this.recalcTotals());
+                this.$watch('headerDiscPercent', (value) => {
+                    const normalized = Math.min(100, Math.max(0, Number(value) || 0));
+                    if (normalized !== Number(value)) {
+                        this.headerDiscPercent = normalized;
+                        return;
+                    }
+                    this.recalcTotals();
+                });
                 window.getCurrentItemKeys = () => this.getCurrentItemKeys();
 
                 this.savedItems.forEach((item) => {
