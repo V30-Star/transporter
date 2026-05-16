@@ -460,6 +460,15 @@
                             </a>
                         </li>
                     @endif
+                    @if ($hasSidebarPermission('createjurnaltransaksi', 'updatejurnaltransaksi', 'deletejurnaltransaksi'))
+                        <li>
+                            <a href="{{ route('jurnalpembelian.index') }}"
+                                class="flex items-center p-2 rounded-lg hover:bg-gray-700">
+                                <x-heroicon-o-banknotes class="w-5 h-5" />
+                                <span class="ml-3">{{ "Jurnal Faktur Pembelian" }}</span>
+                            </a>
+                        </li>
+                    @endif
                 </ul>
             </li>
 
