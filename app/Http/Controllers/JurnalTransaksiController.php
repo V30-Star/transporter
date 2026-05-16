@@ -88,7 +88,7 @@ class JurnalTransaksiController extends Controller
             if ($search = trim((string) $request->input('search.value', ''))) {
                 $query->where(function ($q) use ($search) {
                     $q->where('fjurnalno', 'like', "%{$search}%")
-                        ->orWhere('fjurnaltype', 'like', "%{$search}%")
+                        ->orWhere('fbranchcode', 'like', "%{$search}%")
                         ->orWhere('fjurnalnote', 'like', "%{$search}%")
                         ->orWhereRaw("TO_CHAR(fjurnaldate, 'DD/MM/YYYY') ILIKE ?", ["%{$search}%"]);
                 });
@@ -98,7 +98,7 @@ class JurnalTransaksiController extends Controller
 
             $orderColIdx = $request->input('order.0.column', 0);
             $orderDir = $request->input('order.0.dir', 'asc');
-            $sortableColumns = ['fjurnalno', 'fjurnaldate', 'fjurnaltype', 'fbalance_rp', 'fjurnalnote'];
+            $sortableColumns = ['fjurnalno', 'fjurnaldate', 'fbranchcode', 'fbalance_rp', 'fjurnalnote'];
 
             if (isset($sortableColumns[$orderColIdx])) {
                 $query->orderBy($sortableColumns[$orderColIdx], $orderDir);
@@ -114,7 +114,7 @@ class JurnalTransaksiController extends Controller
                     'fjurnalmtid',
                     'fjurnalno',
                     'fjurnaldate',
-                    'fjurnaltype',
+                    'fbranchcode',
                     'fbalance',
                     'fbalance_rp',
                     'fjurnalnote',
@@ -150,7 +150,7 @@ class JurnalTransaksiController extends Controller
                 return [
                     'fjurnalno' => $row->fjurnalno,
                     'fjurnaldate' => Carbon::parse($row->fjurnaldate)->format('d/m/Y'),
-                    'fjurnaltype' => $row->fjurnaltype,
+                    'fbranchcode' => (string) ($row->fbranchcode ?? ''),
                     'fbalance_rp' => number_format((float) ($row->fbalance_rp ?? $row->fbalance ?? 0), 2, ',', '.'),
                     'fjurnalnote' => $row->fjurnalnote,
                     'actions' => $actions,

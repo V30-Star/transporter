@@ -682,16 +682,22 @@
                                                         <tr class="bg-gradient-to-r from-gray-50 to-gray-100">
                                                             <th
                                                                 class="text-left p-3 font-semibold text-gray-700 border-b-2 border-gray-200">
-                                                                {{ 'No.Transaksi' }}</th>
-                                                            <th
-                                                                class="text-left p-3 font-semibold text-gray-700 border-b-2 border-gray-200">
-                                                                {{ 'No.Ref' }}</th>
+                                                                {{ 'No. SRJ' }}</th>
                                                             <th
                                                                 class="text-left p-3 font-semibold text-gray-700 border-b-2 border-gray-200">
                                                                 {{ 'Tanggal' }}</th>
                                                             <th
                                                                 class="text-left p-3 font-semibold text-gray-700 border-b-2 border-gray-200">
-                                                                {{ 'Customer' }}</th>
+                                                                {{ 'Customer #' }}</th>
+                                                            <th
+                                                                class="text-left p-3 font-semibold text-gray-700 border-b-2 border-gray-200">
+                                                                {{ 'Nama Customer' }}</th>
+                                                            <th
+                                                                class="text-left p-3 font-semibold text-gray-700 border-b-2 border-gray-200">
+                                                                {{ 'Kota' }}</th>
+                                                            <th
+                                                                class="text-left p-3 font-semibold text-gray-700 border-b-2 border-gray-200">
+                                                                {{ 'Ref PO' }}</th>
                                                             <th
                                                                 class="text-center p-3 font-semibold text-gray-700 border-b-2 border-gray-200">
                                                                 {{ 'Aksi' }}</th>

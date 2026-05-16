@@ -175,7 +175,7 @@ class SuratJalanController extends Controller
                 'trstockmt.fstockmtdate',
                 'mscustomer.fcustomercode',
                 'mscustomer.fcustomername as fsuppliername',
-                'mscustomer.fcity'
+                'mscustomer.faddress'
             );
 
         // Filter Search
@@ -186,7 +186,7 @@ class SuratJalanController extends Controller
                     ->orWhere('trstockmt.frefpo', 'ilike', "%{$search}%")
                     ->orWhere('mscustomer.fcustomercode', 'ilike', "%{$search}%")
                     ->orWhere('mscustomer.fcustomername', 'ilike', "%{$search}%")
-                    ->orWhere('mscustomer.fcity', 'ilike', "%{$search}%");
+                    ->orWhere('mscustomer.faddress', 'ilike', "%{$search}%");
             });
         }
 

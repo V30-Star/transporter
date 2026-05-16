@@ -42,19 +42,19 @@
                             className: 'font-mono text-sm'
                         },
                         {
-                            data: 'fsuppliername',
-                            name: 'fsuppliername',
-                            className: 'text-sm',
-                            render: function(data) {
-                                return data || '-';
-                            }
-                        },
-                        {
                             data: 'fprdate',
                             name: 'fprdate',
                             className: 'text-sm',
                             render: function(data) {
                                 return formatDate(data);
+                            }
+                        },
+                        {
+                            data: 'fsuppliername',
+                            name: 'fsuppliername',
+                            className: 'text-sm',
+                            render: function(data) {
+                                return data || '-';
                             }
                         },
                         {
@@ -90,7 +90,7 @@
                         }
                     },
                     order: [
-                        [2, 'desc']
+                        [1, 'desc']
                     ],
                     autoWidth: false,
                     scrollX: true,

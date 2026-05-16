@@ -6,12 +6,12 @@
     <div x-data="{
         showDeleteModal: false,
         deleteUrl: '',
-
+    
         openDelete(url) {
             this.deleteUrl = url;
             this.showDeleteModal = true;
         },
-
+    
         closeDelete() {
             this.showDeleteModal = false;
             this.deleteUrl = '';
@@ -30,9 +30,9 @@
         <table id="mutasiTable" class="min-w-full border text-sm">
             <thead class="bg-gray-100">
                 <tr>
+                    <th class="border px-2 py-1">Cab</th>
                     <th class="border px-2 py-1">No.Jurnal</th>
                     <th class="border px-2 py-1">Tanggal</th>
-                    <th class="border px-2 py-1">Tipe</th>
                     <th class="border px-2 py-1 text-right">Saldo</th>
                     <th class="border px-2 py-1">Keterangan</th>
                     <th class="border px-2 py-1 col-aksi">Aksi</th>
@@ -124,13 +124,12 @@
                 serverSide: true,
                 ajax: '{{ route('jurnaltransaksi.index') }}',
                 columns: [{
+                        data: 'fbranchcode'
+                    }, {
                         data: 'fjurnalno'
                     },
                     {
                         data: 'fjurnaldate'
-                    },
-                    {
-                        data: 'fjurnaltype'
                     },
                     {
                         data: 'fbalance_rp',
