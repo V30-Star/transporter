@@ -712,6 +712,7 @@ class SalesOrderController extends Controller
             'fprice' => ['nullable', 'array'],
             'fprice.*' => ['numeric', 'min:0'],
             'fdisc' => ['nullable', 'array'],
+            'fdiscpersen' => ['nullable', 'numeric', 'min:0', 'max:100'],
             'fnoacak' => ['nullable', 'array'],
             'fnoacak.*' => ['nullable', 'regex:/^[1-9]{3}$/'],
             'frefnoacak' => ['nullable', 'array'],
@@ -734,6 +735,7 @@ class SalesOrderController extends Controller
         $now = now();
         $fincludeppn = $request->boolean('fincludeppn') ? 1 : 0;
         $fapplyppn = $request->boolean('fapplyppn') ? 1 : 0;
+        $headerDiscPercent = max(0, min(100, (float) $request->input('fdiscpersen', 0)));
 
         // DETAIL ARRAYS
         $itemCodes = $request->input('fprdcode', []);
@@ -801,11 +803,26 @@ class SalesOrderController extends Controller
             ];
         }
 
-        $amountNet = $totalGross - $totalDisc;
-        $fppn = $request->boolean('fppn') ? '1' : '0';
-        $fppnpersen = $fppn === '1' ? (float) $request->input('fppnpersen', 11) : 0;
-        $ppnAmount = $amountNet * ($fppnpersen / 100);
-        $grandTotal = $amountNet + $ppnAmount;
+        $amountNetBeforeHeaderDisc = $totalGross - $totalDisc;
+        $headerDiscountAmount = $amountNetBeforeHeaderDisc * ($headerDiscPercent / 100);
+        $totalDisc += $headerDiscountAmount;
+        $amountNet = $amountNetBeforeHeaderDisc - $headerDiscountAmount;
+
+        $fppnpersen = $fapplyppn === 1 ? (float) $request->input('ppn_rate', 11) : 0;
+        if ($fapplyppn === 1) {
+            if ($fincludeppn === 1) {
+                $grandTotal = $amountNet;
+                $ppnAmount = $grandTotal * ($fppnpersen / (100 + $fppnpersen));
+                $amountNet = $grandTotal - $ppnAmount;
+            } else {
+                $ppnAmount = $amountNet * ($fppnpersen / 100);
+                $grandTotal = $amountNet + $ppnAmount;
+            }
+        } else {
+            $ppnAmount = 0;
+            $fppnpersen = 0;
+            $grandTotal = $amountNet;
+        }
         $creditApproval = $this->resolveSalesOrderCreditApproval($request, $grandTotal);
 
         // TRANSACTION
@@ -822,7 +839,9 @@ class SalesOrderController extends Controller
                 $totalGross,
                 $totalDisc,
                 $amountNet,
+                $grandTotal,
                 $ppnAmount,
+                $headerDiscPercent,
                 $creditApproval,
                 $needsApprovalNotification,
                 &$shouldSendApprovalNotification
@@ -878,9 +897,10 @@ class SalesOrderController extends Controller
                     'fdatetime' => $now,
                     'famountgross' => round($totalGross, 2),
                     'fdiscount' => round($totalDisc, 2),
+                    'fdiscpersen' => round($headerDiscPercent, 2),
                     'fincludeppn' => $fincludeppn,
                     'fapplyppn' => $fapplyppn,
-                    'fppnpersen' => $request->input('ppn_rate', 0),
+                    'fppnpersen' => $fppnpersen,
                     'famountsonet' => round($amountNet, 2),
                     'famountpajak' => round($ppnAmount, 2),
                     'famountso' => 0,
@@ -902,7 +922,7 @@ class SalesOrderController extends Controller
                 // E. Final Total Update
                 $totalAmountSo = DB::table('trsodt')->where('fsono', $fsono)->sum('famount');
                 DB::table('trsomt')->where('ftrsomtid', $ftrsomtid)->update([
-                    'famountso' => round($totalAmountSo, 2),
+                    'famountso' => round($grandTotal, 2),
                 ]);
 
                 $shouldSendApprovalNotification = $needsApprovalNotification
@@ -1241,6 +1261,7 @@ class SalesOrderController extends Controller
             'fqty.*' => ['numeric', 'min:0'],
             'fapplyppn' => ['nullable'],
             'fppnpersen' => ['nullable', 'numeric', 'min:0', 'max:100'],
+            'fdiscpersen' => ['nullable', 'numeric', 'min:0', 'max:100'],
 
             'fprice' => ['nullable', 'array'],
             'fprice.*' => ['numeric', 'min:0'],
@@ -1282,6 +1303,7 @@ class SalesOrderController extends Controller
         $fclose = $request->input('fclose') ? '1' : '0';
         $userid = auth('sysuser')->user()->fname ?? 'admin';
         $now = now();
+        $headerDiscPercent = max(0, min(100, (float) $request->input('fdiscpersen', 0)));
 
         // 4. DETAIL ARRAYS
         $itemCodes = $request->input('fprdcode', []);
@@ -1359,7 +1381,10 @@ class SalesOrderController extends Controller
         }
 
         // 6. CALCULATE TOTALS
-        $amountNet = $totalGross - $totalDisc;
+        $amountNetBeforeHeaderDisc = $totalGross - $totalDisc;
+        $headerDiscountAmount = $amountNetBeforeHeaderDisc * ($headerDiscPercent / 100);
+        $totalDisc += $headerDiscountAmount;
+        $amountNet = $amountNetBeforeHeaderDisc - $headerDiscountAmount;
 
         if ($fapplyppn === '1') {
             if ($fincludeppn === '1') {
@@ -1397,6 +1422,7 @@ class SalesOrderController extends Controller
             $ppnAmount,
             $fapplyppn,
             $fppnpersen,
+            $headerDiscPercent,
             $creditApproval,
             $needsApprovalNotification,
             &$shouldSendApprovalNotification
@@ -1420,7 +1446,7 @@ class SalesOrderController extends Controller
                 'fppnpersen' => $fppnpersen,
                 'famountgross' => round($totalGross, 2),
                 'fdiscount' => round($totalDisc, 2),
-                'fdiscpersen' => ($totalGross > 0) ? round(($totalDisc / $totalGross) * 100, 2) : 0,
+                'fdiscpersen' => round($headerDiscPercent, 2),
                 'famountsonet' => round($amountNet, 2),
                 'famountpajak' => round($ppnAmount, 2),
                 'famountso' => round($grandTotal, 2),

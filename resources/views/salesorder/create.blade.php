@@ -642,6 +642,27 @@
 
                                     </div>
 
+                                    <div class="flex items-center justify-between gap-3">
+                                        <span class="text-sm text-gray-700">Discount</span>
+                                        <div class="flex items-center gap-2">
+                                            <input type="number" min="0" max="100" step="0.01"
+                                                name="fdiscpersen" x-model.number="headerDiscPercent"
+                                                class="w-20 h-9 px-2 text-sm leading-tight text-right border rounded transition-opacity
+                                                    [appearance:textfield]
+                                                    [&::-webkit-outer-spin-button]:appearance-none
+                                                    [&::-webkit-inner-spin-button]:appearance-none">
+                                            <span class="text-sm">%</span>
+                                            <span class="min-w-[140px] text-right font-medium"
+                                                x-text="rupiah(headerDiscAmount)"></span>
+                                        </div>
+                                    </div>
+
+                                    <div class="flex items-center justify-between">
+                                        <span class="text-sm text-gray-700">Total Setelah Disc</span>
+                                        <span class="min-w-[140px] text-right font-medium"
+                                            x-text="rupiah(totalSetelahDisc)"></span>
+                                    </div>
+
                                     <div class="border-t my-1"></div>
 
                                     <div class="flex items-center justify-between">
@@ -653,6 +674,7 @@
 
                                 <!-- Hidden inputs for submit -->
                                 <input type="hidden" name="famountgross" :value="totalHarga">
+                                <input type="hidden" name="fdiscount" :value="headerDiscAmount">
                                 <input type="hidden" name="famountpajak" :value="ppnAmount">
                                 <input type="hidden" name="famountso" :value="grandTotal">
                                 <input type="hidden" name="famountsonet" :value="totalDPP">
@@ -793,6 +815,7 @@
             draft: newRow(),
 
             totalHarga: 0,
+            headerDiscPercent: @json((float) old('fdiscpersen', 0)),
             ppnRate: 11,
 
             initialGrandTotal: @json($famountso ?? 0),
@@ -802,9 +825,20 @@
             ppnMode: 0, // 0: Exclude, 1: Include
             ppnRate: 11,
 
-            get totalDPP() {
-                if (!this.includePPN) return 0;
+            get headerDiscAmount() {
                 const total = +this.totalHarga || 0;
+                const percent = Math.min(100, Math.max(0, +this.headerDiscPercent || 0));
+                return +(total * (percent / 100)).toFixed(2);
+            },
+
+            get totalSetelahDisc() {
+                const total = +this.totalHarga || 0;
+                return +(total - this.headerDiscAmount).toFixed(2);
+            },
+
+            get totalDPP() {
+                const total = this.totalSetelahDisc;
+                if (!this.includePPN) return total;
                 const rate = +this.ppnRate || 0;
                 if (this.ppnMode === 1) { // Include
                     return (100 / (100 + rate)) * total;
@@ -820,7 +854,7 @@
             },
 
             get grandTotal() {
-                const total = +this.totalHarga || 0;
+                const total = this.totalSetelahDisc;
                 if (!this.includePPN) return total;
                 if (this.ppnMode === 1) return total; // Include: total already has PPN
                 return total + this.ppnAmount; // Exclude: total + PPN
@@ -1229,6 +1263,14 @@
                 this.$watch('includePPN', () => this.recalcTotals());
                 this.$watch('ppnMode', () => this.recalcTotals());
                 this.$watch('ppnRate', () => this.recalcTotals());
+                this.$watch('headerDiscPercent', (value) => {
+                    const normalized = Math.min(100, Math.max(0, Number(value) || 0));
+                    if (normalized !== Number(value)) {
+                        this.headerDiscPercent = normalized;
+                        return;
+                    }
+                    this.recalcTotals();
+                });
 
                 window.getCurrentItemKeys = () => this.getCurrentItemKeys();
                 window.addEventListener('pr-picked', this.onPrPicked.bind(this), {
