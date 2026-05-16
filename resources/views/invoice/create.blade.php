@@ -2311,10 +2311,13 @@
             async fetchData() {
                 this.loading = true;
                 try {
+                    const customerCode = (document.getElementById('customerCodeHidden')?.value || document
+                        .getElementById('modal_filter_customer_id')?.value || '').toString().trim();
                     const params = new URLSearchParams({
                         search: this.search ?? '',
                         per_page: this.perPage,
                         page: this.currentPage,
+                        customer_code: customerCode,
                     });
 
                     const res = await fetch(`{{ route('penerimaanbarang.pickable') }}?` + params.toString(), {
@@ -2371,6 +2374,10 @@
                         }
                     });
                     const json = await res.json();
+                    window.applyTransactionCustomerSelection?.({
+                        fcustomercode: json.header?.fcustno ?? row.fcustno ?? row.fcustomercode ?? '',
+                        fcustomername: row.fcustomername ?? row.fsuppliername ?? '',
+                    });
 
                     const items = json.items || [];
                     const currentKeys = new Set((window.getCurrentItemKeys?.() || []).map(String));

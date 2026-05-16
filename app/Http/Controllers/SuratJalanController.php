@@ -157,6 +157,8 @@ class SuratJalanController extends Controller
     // Di PenerimaanBarangController
     public function pickable(Request $request)
     {
+        $customerCode = trim((string) $request->input('customer_code', $request->input('fcustno', $request->input('fsupplier', ''))));
+
         $query = DB::table('trstockmt')
             ->leftJoin('mscustomer', 'trstockmt.fsupplier', '=', 'mscustomer.fcustomercode')
             ->where('trstockmt.fstockmtcode', 'SRJ')
@@ -178,6 +180,10 @@ class SuratJalanController extends Controller
                 'mscustomer.faddress'
             );
 
+        if ($customerCode !== '') {
+            $query->whereRaw('TRIM(COALESCE(trstockmt.fsupplier, \'\')) = ?', [$customerCode]);
+        }
+
         // Filter Search
         if ($request->filled('search')) {
             $search = $request->search;
@@ -193,6 +199,9 @@ class SuratJalanController extends Controller
         $recordsTotal = DB::table('trstockmt')
             ->where('trstockmt.fstockmtcode', 'SRJ')
             ->where('trstockmt.fprdout', '0')
+            ->when($customerCode !== '', function ($query) use ($customerCode) {
+                $query->whereRaw('TRIM(COALESCE(trstockmt.fsupplier, \'\')) = ?', [$customerCode]);
+            })
             ->whereNotExists(function ($subQuery) {
                 $subQuery->select(DB::raw(1))
                     ->from('trstockdt as srj_dt')

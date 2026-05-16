@@ -7,6 +7,59 @@
 @endphp
 
 <script>
+    window.applyTransactionCustomerSelection = function(customer = {}) {
+        const normalize = (value) => String(value ?? '').trim();
+        const code = normalize(customer.fcustomercode ?? customer.fcustno ?? customer.customer_code ?? customer
+            .fsupplier);
+
+        if (!code) {
+            return false;
+        }
+
+        const sel = document.getElementById('modal_filter_customer_id');
+        const hid = document.getElementById('customerCodeHidden');
+
+        if (!sel) {
+            return false;
+        }
+
+        const name = normalize(customer.fcustomername ?? customer.customer_name ?? customer.fsuppliername);
+        const label = name ? `${name} (${code})` : code;
+        let opt = [...sel.options].find(o => normalize(o.value) === code);
+
+        if (!opt) {
+            opt = new Option(label, code, true, true);
+            sel.add(opt);
+        } else {
+            opt.text = label;
+            opt.selected = true;
+        }
+
+        opt.dataset.fkodefp = normalize(customer.fkodefp);
+        sel.value = code;
+
+        if (hid) {
+            hid.value = code;
+        }
+
+        window.dispatchEvent(new CustomEvent('customer-selected', {
+            detail: {
+                fcustomercode: code,
+                fcustomername: name,
+                f1: normalize(customer.fkirimaddress1 ?? customer.f1),
+                f2: normalize(customer.fkirimaddress2 ?? customer.f2),
+                f3: normalize(customer.fkirimaddress3 ?? customer.f3),
+                fkodefp: normalize(customer.fkodefp),
+            }
+        }));
+
+        sel.dispatchEvent(new Event('change', {
+            bubbles: true
+        }));
+
+        return true;
+    };
+
     function customerBrowser() {
         const dataTableLanguage = {
             processing: @json("Memuat data..."),
@@ -180,43 +233,10 @@
             },
 
             chooseCustomer(customer) {
-                const sel = document.getElementById('modal_filter_customer_id');
-                const hid = document.getElementById('customerCodeHidden');
-
-                if (!sel) {
+                if (!window.applyTransactionCustomerSelection(customer)) {
                     this.close();
                     return;
                 }
-
-                let opt = [...sel.options].find(o => o.value == String(customer.fcustomercode));
-                const label = `${customer.fcustomername} (${customer.fcustomercode})`;
-
-                if (!opt) {
-                    opt = new Option(label, customer.fcustomercode, true, true);
-                    sel.add(opt);
-                } else {
-                    opt.text = label;
-                    opt.selected = true;
-                }
-                opt.dataset.fkodefp = customer.fkodefp || '';
-
-                sel.value = customer.fcustomercode;
-                if (hid) hid.value = customer.fcustomercode;
-
-                window.dispatchEvent(new CustomEvent('customer-selected', {
-                    detail: {
-                        fcustomercode: customer.fcustomercode || '',
-                        fcustomername: customer.fcustomername || '',
-                        f1: customer.fkirimaddress1 || '',
-                        f2: customer.fkirimaddress2 || '',
-                        f3: customer.fkirimaddress3 || '',
-                        fkodefp: customer.fkodefp || ''
-                    }
-                }));
-
-                sel.dispatchEvent(new Event('change', {
-                    bubbles: true
-                }));
                 this.close();
             },
 

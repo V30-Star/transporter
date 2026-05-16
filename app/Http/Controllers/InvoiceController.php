@@ -423,6 +423,8 @@ class InvoiceController extends Controller
 
     public function pickable(Request $request)
     {
+        $customerCode = trim((string) $request->input('customer_code', $request->input('fcustno', '')));
+
         $query = DB::table('tranmt as mt')
             ->leftJoin('mscustomer as c', 'c.fcustomercode', '=', 'mt.fcustno')
             ->where('mt.ftrcode', 'INV')
@@ -438,9 +440,16 @@ class InvoiceController extends Controller
                 'c.fcustomername'
             );
 
+        if ($customerCode !== '') {
+            $query->whereRaw('TRIM(COALESCE(mt.fcustno, \'\')) = ?', [$customerCode]);
+        }
+
         $recordsTotal = DB::table('tranmt as mt')
             ->where('mt.ftrcode', 'INV')
             ->where('mt.fprdout', '0')
+            ->when($customerCode !== '', function ($query) use ($customerCode) {
+                $query->whereRaw('TRIM(COALESCE(mt.fcustno, \'\')) = ?', [$customerCode]);
+            })
             ->count();
 
         if ($request->filled('search') && $request->search != '') {

@@ -2779,7 +2779,8 @@
                                 search: d.search.value,
                                 // Menambahkan parameter order untuk server-side processing
                                 order_column: d.columns[d.order[0].column].data,
-                                order_dir: d.order[0].dir
+                                order_dir: d.order[0].dir,
+                                customer_code: document.getElementById('customerCodeHidden')?.value || ''
                             };
                         },
                         // Karena kita sudah menggunakan parameter start/length standar DataTables,
@@ -2920,6 +2921,10 @@
                         }
                     });
                     const json = await res.json();
+                    window.applyTransactionCustomerSelection?.({
+                        fcustomercode: json.header?.fcustno ?? row.fcustno ?? row.fcustomercode ?? '',
+                        fcustomername: row.fcustomername ?? row.fsuppliername ?? '',
+                    });
 
                     const items = json.items || [];
                     // Pastikan window.getCurrentItemKeys() tersedia

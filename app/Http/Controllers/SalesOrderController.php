@@ -442,6 +442,8 @@ class SalesOrderController extends Controller
 
     public function pickable(Request $request)
     {
+        $customerCode = trim((string) $request->input('customer_code', $request->input('fcustno', '')));
+
         $query = SalesOrderHeader::leftJoin('mscustomer', 'trsomt.fcustno', '=', 'mscustomer.fcustomercode')
             ->select(
                 'trsomt.ftrsomtid',
@@ -458,10 +460,17 @@ class SalesOrderController extends Controller
             });
         ApprovalState::applyApprovedFilter($query, 'trsomt.');
 
+        if ($customerCode !== '') {
+            $query->whereRaw('TRIM(COALESCE(trsomt.fcustno, \'\')) = ?', [$customerCode]);
+        }
+
         $recordsTotal = SalesOrderHeader::query()
             ->where(function ($q) {
                 $q->whereNull('trsomt.fneedacc')
                     ->orWhereRaw("COALESCE(TRIM(CAST(trsomt.fneedacc AS TEXT)), '0') = '0'");
+            })
+            ->when($customerCode !== '', function ($q) use ($customerCode) {
+                $q->whereRaw('TRIM(COALESCE(trsomt.fcustno, \'\')) = ?', [$customerCode]);
             })
             ->count();
 

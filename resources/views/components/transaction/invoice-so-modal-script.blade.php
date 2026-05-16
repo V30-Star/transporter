@@ -14,6 +14,14 @@
             pendingHeader: null,
             pendingUniques: [],
 
+            getSelectedCustomerCode() {
+                return (
+                    document.getElementById('customerCodeHidden')?.value ||
+                    document.getElementById('modal_filter_customer_id')?.value ||
+                    ''
+                ).toString().trim();
+            },
+
             initDataTable() {
                 if (this.table) {
                     this.table.destroy();
@@ -32,7 +40,8 @@
                                 length: d.length,
                                 search: d.search.value,
                                 order_column: d.columns[d.order[0].column].data,
-                                order_dir: d.order[0].dir
+                                order_dir: d.order[0].dir,
+                                customer_code: document.getElementById('customerCodeHidden')?.value || ''
                             };
                         }
                     },
@@ -211,6 +220,10 @@
 
                     const json = await res.json();
                     const items = json.items || [];
+                    window.applyTransactionCustomerSelection?.({
+                        fcustomercode: json.header?.fcustno ?? row.fcustno ?? '',
+                        fcustomername: row.fcustomername ?? '',
+                    });
                     const currentKeys = new Set((window.getCurrentItemKeys?.() || []).map(String));
                     const keyOf = (src) =>
                         `${(src.fitemcode ?? '').toString().trim()}::${(src.frefdtno ?? '').toString().trim()}`;
