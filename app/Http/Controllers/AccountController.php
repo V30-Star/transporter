@@ -142,6 +142,10 @@ class AccountController extends Controller
     {
         $account = Account::findOrFail($faccid);
 
+        if ($message = $this->getUsageLockMessage($account)) {
+            return redirect()->route('account.view', $account->faccid)->with('error', $message);
+        }
+
         // preload 50 header untuk dropdown view
         $headers = Account::where('fend', 0)
             ->orderBy('faccount')
@@ -164,6 +168,12 @@ class AccountController extends Controller
 
     public function update(Request $request, $faccid)
     {
+        $account = Account::findOrFail($faccid);
+
+        if ($message = $this->getUsageLockMessage($account)) {
+            return redirect()->route('account.view', $account->faccid)->with('error', $message);
+        }
+
         $isSetAccount = DB::table('set_account')
             ->where('faccount_id', $request->faccid) // faccid dari input hidden 'faccid'
             ->exists();
@@ -228,7 +238,6 @@ class AccountController extends Controller
             ? (int) $request->input('faccupline')
             : null;
 
-        $account = Account::findOrFail($faccid);
         $account->update($validated);
 
         return redirect()->route('account.index')->with('success', 'Account berhasil di-update.');
@@ -372,5 +381,14 @@ class AccountController extends Controller
             'recordsFiltered' => (int) $recordsFiltered,
             'data' => $data,
         ]);
+    }
+
+    private function getUsageLockMessage(Account $account): ?string
+    {
+        if (!DB::table('jurnaldt')->where('faccount', $account->faccount)->exists()) {
+            return null;
+        }
+
+        return 'Account ' . $account->faccount . ' - ' . $account->faccname . ' tidak dapat diubah karena sudah digunakan pada transaksi.';
     }
 }
