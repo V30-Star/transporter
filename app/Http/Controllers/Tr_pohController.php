@@ -42,7 +42,7 @@ class Tr_pohController extends Controller
         $canDelete = in_array('deleteTr_poh', explode(',', session('user_restricted_permissions', '')));
         $showActionsColumn = $canEdit || $canDelete;
 
-        $status = $request->query('status');
+        $status = trim((string) $request->query('status', 'all'));
         $year = $request->query('year');
         $month = $request->query('month');
 
@@ -87,11 +87,18 @@ class Tr_pohController extends Controller
                 });
             }
 
-            // Filter status
-            $statusFilter = $request->query('status', 'active');
-            if ($statusFilter === 'active') {
-                $query->where('tr_poh.fclose', '0');
-            } elseif ($statusFilter === 'nonactive') {
+            // Filter status bisnis PO
+            $statusFilter = trim((string) $request->query('status', 'all'));
+            if ($statusFilter === 'open') {
+                $query->where('tr_poh.fclose', '0')
+                    ->whereNotIn('tr_poh.fprdin', ['1', '2']);
+            } elseif ($statusFilter === 'done') {
+                $query->where('tr_poh.fclose', '0')
+                    ->where('tr_poh.fprdin', '1');
+            } elseif ($statusFilter === 'partial') {
+                $query->where('tr_poh.fclose', '0')
+                    ->where('tr_poh.fprdin', '2');
+            } elseif ($statusFilter === 'close') {
                 $query->where('tr_poh.fclose', '1');
             }
 

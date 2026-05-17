@@ -28,9 +28,11 @@
             <div class="flex items-center gap-2" id="statusFilterWrap">
                 <span class="text-sm text-gray-700">Status</span>
                 <select data-role="status-filter" class="border rounded px-2 py-1">
-                    <option value="all">All</option>
-                    <option value="active" selected>Active</option>
-                    <option value="nonactive">Non Active</option>
+                    <option value="all" {{ ($status ?? 'all') === 'all' ? 'selected' : '' }}>Semua</option>
+                    <option value="open" {{ ($status ?? '') === 'open' ? 'selected' : '' }}>Open</option>
+                    <option value="done" {{ ($status ?? '') === 'done' ? 'selected' : '' }}>Done</option>
+                    <option value="partial" {{ ($status ?? '') === 'partial' ? 'selected' : '' }}>Partial</option>
+                    <option value="close" {{ ($status ?? '') === 'close' ? 'selected' : '' }}>Close</option>
                 </select>
             </div>
         </div>
@@ -419,7 +421,7 @@
                         const urlParams = new URLSearchParams(window.location.search);
                         d.year = urlParams.get('year') || '';
                         d.month = urlParams.get('month') || '';
-                        d.status = urlParams.get('status') || 'active';
+                        d.status = urlParams.get('status') || 'all';
                     }
                 },
                 columns: columns,
@@ -454,30 +456,12 @@
                     $monthSelect.attr('id', 'monthFilterDT');
                     $toolbarSearch.append($monthFilter);
 
-                    // Cari kolom fclose
-                    const statusColIdx = api.columns().indexes().toArray()
-                        .find(i => api.column(i).dataSrc() === 'fclose');
-
-                    if (statusColIdx === undefined) {
-                        console.warn('Kolom fclose tidak ditemukan.');
-                        return;
-                    }
-
-                    // Baca status dari URL, default 'active'
+                    // Baca status dari URL, default 'all'
                     const urlParams = new URLSearchParams(window.location.search);
-                    const currentStatus = urlParams.get('status') || 'active';
+                    const currentStatus = urlParams.get('status') || 'all';
 
                     // Set selected option sesuai URL
                     $statusSelect.val(currentStatus);
-
-                    // Apply filter sesuai status dari URL
-                    if (currentStatus === 'active') {
-                        api.column(statusColIdx).search('^0$', true, false).draw();
-                    } else if (currentStatus === 'nonactive') {
-                        api.column(statusColIdx).search('^1$', true, false).draw();
-                    } else {
-                        api.column(statusColIdx).search('', true, false).draw();
-                    }
 
                     const $searchInput = $toolbarSearch.find('.dt-input');
                     $searchInput.css({
@@ -487,16 +471,8 @@
 
                     // Event handler untuk Status Filter
                     $statusSelect.on('change', function() {
-                        const v = this.value;
-                        if (v === 'active') {
-                            api.column(statusColIdx).search('^0$', true, false).draw();
-                        } else if (v === 'nonactive') {
-                            api.column(statusColIdx).search('^1$', true, false).draw();
-                        } else {
-                            api.column(statusColIdx).search('', true, false).draw();
-                        }
-
                         updateUrlParams();
+                        api.ajax.reload();
                     });
 
                     // Event handlers untuk Year dan Month
