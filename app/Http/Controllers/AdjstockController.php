@@ -23,19 +23,68 @@ class AdjstockController extends Controller
         $canEdit = in_array('updatePenerimaanBarang', explode(',', session('user_restricted_permissions', '')));
         $canDelete = in_array('deletePenerimaanBarang', explode(',', session('user_restricted_permissions', '')));
         $showActionsColumn = $canEdit || $canDelete;
+        $year = trim((string) $request->query('year', ''));
+        $month = trim((string) $request->query('month', ''));
+        $availableWarehouses = DB::table('mswh')
+            ->where(function ($query) {
+                $query->whereNull('fnonactive')
+                    ->orWhere('fnonactive', '0')
+                    ->orWhere('fnonactive', '');
+            })
+            ->orderBy('fwhname')
+            ->pluck('fwhname')
+            ->filter()
+            ->map(fn ($value) => trim((string) $value))
+            ->filter(fn ($value) => $value !== '')
+            ->unique()
+            ->values();
+
+        $availableYears = DB::table('trstockmt')
+            ->where('fstockmtcode', 'ADJ')
+            ->whereNotNull('fstockmtdate')
+            ->selectRaw('DISTINCT EXTRACT(YEAR FROM fstockmtdate) as year')
+            ->orderByRaw('EXTRACT(YEAR FROM fstockmtdate) DESC')
+            ->pluck('year');
 
         // --- 2. Handle Request AJAX dari DataTables ---
         if ($request->ajax()) {
 
             // Query dasar HANYA untuk 'ADJ' (Adjustment)
-            $query = PenerimaanPembelianHeader::where('fstockmtcode', 'ADJ');
+            $query = PenerimaanPembelianHeader::query()
+                ->leftJoin('mscabang as c', 'c.fcabangkode', '=', 'trstockmt.fbranchcode')
+                ->leftJoin('mswh as w', 'w.fwhcode', '=', 'trstockmt.ffrom')
+                ->where('trstockmt.fstockmtcode', 'ADJ');
 
             // Total records (dengan filter 'ADJ')
             $totalRecords = PenerimaanPembelianHeader::where('fstockmtcode', 'ADJ')->count();
 
             // Handle Search (cari di No. Adjustment)
             if ($search = $request->input('search.value')) {
-                $query->where('fstockmtno', 'like', "%{$search}%");
+                $query->where(function ($q) use ($search) {
+                    $q->where('trstockmt.fstockmtno', 'like', "%{$search}%")
+                        ->orWhere('trstockmt.fket', 'like', "%{$search}%");
+                });
+            }
+
+            if ($year !== '') {
+                $query->whereRaw('EXTRACT(YEAR FROM trstockmt.fstockmtdate) = ?', [$year]);
+            }
+
+            if ($month !== '') {
+                $query->whereRaw('EXTRACT(MONTH FROM trstockmt.fstockmtdate) = ?', [$month]);
+            }
+
+            $columnSearches = collect($request->input('columns', []))
+                ->mapWithKeys(function ($column) {
+                    $name = trim((string) ($column['name'] ?? ''));
+                    $value = trim((string) data_get($column, 'search.value', ''));
+
+                    return $name !== '' ? [$name => $value] : [];
+                });
+
+            $warehouseSearch = trim((string) ($columnSearches->get('fgudang', '')));
+            if ($warehouseSearch !== '') {
+                $query->whereRaw('LOWER(TRIM(COALESCE(w.fwhname, \'\'))) = LOWER(?)', [$warehouseSearch]);
             }
 
             // Total records setelah filter search
@@ -45,7 +94,14 @@ class AdjstockController extends Controller
             $orderColIdx = $request->input('order.0.column', 0);
             $orderDir = $request->input('order.0.dir', 'desc');
 
-            $sortableColumns = ['fstockmtno', 'fstockmtdate'];
+            $sortableColumns = [
+                'c.fcabangname',
+                'trstockmt.fstockmtno',
+                'trstockmt.fstockmtdate',
+                'trstockmt.ftrancode',
+                'w.fwhname',
+                'trstockmt.fket',
+            ];
 
             if (isset($sortableColumns[$orderColIdx])) {
                 $query->orderBy($sortableColumns[$orderColIdx], $orderDir);
@@ -58,14 +114,27 @@ class AdjstockController extends Controller
             $length = $request->input('length', 10);
             $records = $query->skip($start)
                 ->take($length)
-                ->get(['fstockmtid', 'fstockmtno', 'fstockmtdate']);
+                ->get([
+                    'trstockmt.fstockmtid',
+                    'trstockmt.fstockmtno',
+                    'trstockmt.fstockmtdate',
+                    'trstockmt.ftrancode',
+                    'trstockmt.fket',
+                    'trstockmt.fbranchcode',
+                    'c.fcabangname',
+                    'w.fwhname',
+                ]);
 
             // Format Data - HANYA RETURN DATA MENTAH
             $data = $records->map(function ($row) {
                 return [
                     'fstockmtid' => $row->fstockmtid,
+                    'fcabang' => trim((string) ($row->fcabangname ?? $row->fbranchcode ?? '')),
                     'fstockmtno' => $row->fstockmtno,
                     'fstockmtdate' => Carbon::parse($row->fstockmtdate)->format('d/m/Y'),
+                    'fadjtype' => strtoupper(trim((string) ($row->ftrancode ?? ''))) === 'K' ? 'Keluar' : 'Masuk',
+                    'fgudang' => trim((string) ($row->fwhname ?? '')),
+                    'fket' => trim((string) ($row->fket ?? '')),
                 ];
             });
 
@@ -82,7 +151,11 @@ class AdjstockController extends Controller
             'canCreate',
             'canEdit',
             'canDelete',
-            'showActionsColumn'
+            'showActionsColumn',
+            'availableWarehouses',
+            'availableYears',
+            'year',
+            'month'
         ));
     }
 
