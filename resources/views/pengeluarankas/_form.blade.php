@@ -174,12 +174,6 @@
                 @if ($isReadOnly)
                     <input type="hidden" name="faccountheader" value="{{ $selectedHeader }}">
                 @endif
-                @if (!$isReadOnly && $giroMundurHeaderAccount)
-                    <p x-show="isGiroMundur" class="text-xs text-gray-500 mt-1">
-                        {{ 'Saat Giro Mundur aktif, account header otomatis menjadi' }}
-                        {{ trim($giroMundurHeaderAccount->faccount . ' - ' . $giroMundurHeaderAccount->faccname) }}.
-                    </p>
-                @endif
                 @error('faccountheader')
                     <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                 @enderror
