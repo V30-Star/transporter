@@ -16,6 +16,7 @@ use Illuminate\Support\Facades\DB; // sekalian biar aman untuk tanggal
 
 class JurnalTransaksiController extends Controller
 {
+    private const GENERAL_JOURNAL_TYPE = 'SJU';
     private const REFERENCE_ALLOWED_ACCOUNT_NAMES = [
         'HUTANGDAGANG',
         'PIUTANGDAGANG',
@@ -80,18 +81,36 @@ class JurnalTransaksiController extends Controller
         $canEdit = in_array('updatejurnaltransaksi', explode(',', session('user_restricted_permissions', '')));
         $canDelete = in_array('deletejurnaltransaksi', explode(',', session('user_restricted_permissions', '')));
         $showActionsColumn = $canEdit || $canDelete;
+        $year = trim((string) $request->query('year', ''));
+        $month = trim((string) $request->query('month', ''));
+
+        $availableYears = DB::table('jurnalmt')
+            ->where('fjurnaltype', self::GENERAL_JOURNAL_TYPE)
+            ->whereNotNull('fjurnaldate')
+            ->selectRaw('DISTINCT EXTRACT(YEAR FROM fjurnaldate) as year')
+            ->orderByRaw('EXTRACT(YEAR FROM fjurnaldate) DESC')
+            ->pluck('year');
 
         if ($request->ajax()) {
-            $query = DB::table('jurnalmt');
-            $totalRecords = DB::table('jurnalmt')->count();
+            $query = DB::table('jurnalmt')
+                ->where('fjurnaltype', self::GENERAL_JOURNAL_TYPE);
+            $totalRecords = DB::table('jurnalmt')
+                ->where('fjurnaltype', self::GENERAL_JOURNAL_TYPE)
+                ->count();
 
             if ($search = trim((string) $request->input('search.value', ''))) {
                 $query->where(function ($q) use ($search) {
                     $q->where('fjurnalno', 'like', "%{$search}%")
-                        ->orWhere('fbranchcode', 'like', "%{$search}%")
-                        ->orWhere('fjurnalnote', 'like', "%{$search}%")
-                        ->orWhereRaw("TO_CHAR(fjurnaldate, 'DD/MM/YYYY') ILIKE ?", ["%{$search}%"]);
+                        ->orWhere('fjurnalnote', 'like', "%{$search}%");
                 });
+            }
+
+            if ($year !== '') {
+                $query->whereRaw('EXTRACT(YEAR FROM fjurnaldate) = ?', [$year]);
+            }
+
+            if ($month !== '') {
+                $query->whereRaw('EXTRACT(MONTH FROM fjurnaldate) = ?', [$month]);
             }
 
             $filteredRecords = (clone $query)->count();
@@ -169,7 +188,10 @@ class JurnalTransaksiController extends Controller
             'canCreate',
             'canEdit',
             'canDelete',
-            'showActionsColumn'
+            'showActionsColumn',
+            'availableYears',
+            'year',
+            'month'
         ));
     }
 

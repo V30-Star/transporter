@@ -27,6 +27,41 @@
             </a>
         </div>
 
+        <div id="yearFilterTemplate" class="hidden">
+            <div class="flex items-center gap-2" id="yearFilterWrap">
+                <span class="text-sm text-gray-700">Tahun</span>
+                <select data-role="year-filter" class="border rounded px-2 py-1 w-24">
+                    <option value="">Semua</option>
+                    @foreach ($availableYears as $yr)
+                        <option value="{{ $yr }}" {{ (string) $year === (string) $yr ? 'selected' : '' }}>
+                            {{ $yr }}
+                        </option>
+                    @endforeach
+                </select>
+            </div>
+        </div>
+
+        <div id="monthFilterTemplate" class="hidden">
+            <div class="flex items-center gap-2" id="monthFilterWrap">
+                <span class="text-sm text-gray-700">Bulan</span>
+                <select data-role="month-filter" class="border rounded px-2 py-1">
+                    <option value="">Semua</option>
+                    <option value="1" {{ $month === '1' ? 'selected' : '' }}>Januari</option>
+                    <option value="2" {{ $month === '2' ? 'selected' : '' }}>Februari</option>
+                    <option value="3" {{ $month === '3' ? 'selected' : '' }}>Maret</option>
+                    <option value="4" {{ $month === '4' ? 'selected' : '' }}>April</option>
+                    <option value="5" {{ $month === '5' ? 'selected' : '' }}>Mei</option>
+                    <option value="6" {{ $month === '6' ? 'selected' : '' }}>Juni</option>
+                    <option value="7" {{ $month === '7' ? 'selected' : '' }}>Juli</option>
+                    <option value="8" {{ $month === '8' ? 'selected' : '' }}>Agustus</option>
+                    <option value="9" {{ $month === '9' ? 'selected' : '' }}>September</option>
+                    <option value="10" {{ $month === '10' ? 'selected' : '' }}>Oktober</option>
+                    <option value="11" {{ $month === '11' ? 'selected' : '' }}>November</option>
+                    <option value="12" {{ $month === '12' ? 'selected' : '' }}>Desember</option>
+                </select>
+            </div>
+        </div>
+
         <table id="mutasiTable" class="min-w-full border text-sm">
             <thead class="bg-gray-100">
                 <tr>
@@ -110,6 +145,11 @@
             gap: .75rem;
             flex-wrap: wrap;
         }
+
+        .dataTables_wrapper .dt-search .dt-input {
+            width: 28rem;
+            max-width: 100%;
+        }
     </style>
 @endpush
 
@@ -122,7 +162,15 @@
             $('#mutasiTable').DataTable({
                 processing: true,
                 serverSide: true,
-                ajax: '{{ route('jurnaltransaksi.index') }}',
+                ajax: {
+                    url: '{{ route('jurnaltransaksi.index') }}',
+                    type: 'GET',
+                    data: function(d) {
+                        const urlParams = new URLSearchParams(window.location.search);
+                        d.year = urlParams.get('year') || '';
+                        d.month = urlParams.get('month') || '';
+                    }
+                },
                 columns: [{
                         data: 'fbranchcode'
                     }, {
@@ -152,6 +200,52 @@
                     topEnd: 'pageLength',
                     bottomStart: 'info',
                     bottomEnd: 'paging'
+                },
+                initComplete: function() {
+                    const api = this.api();
+                    const $toolbarSearch = $(api.table().container()).find('.dt-search');
+                    const $searchInput = $toolbarSearch.find('.dt-input');
+                    $searchInput.attr('placeholder', 'Cari No.Jurnal / Keterangan');
+
+                    const $yearFilter = $('#yearFilterTemplate #yearFilterWrap').clone(true, true);
+                    const $yearSelect = $yearFilter.find('select[data-role="year-filter"]');
+                    $yearSelect.attr('id', 'yearFilterDT');
+                    $toolbarSearch.append($yearFilter);
+
+                    const $monthFilter = $('#monthFilterTemplate #monthFilterWrap').clone(true, true);
+                    const $monthSelect = $monthFilter.find('select[data-role="month-filter"]');
+                    $monthSelect.attr('id', 'monthFilterDT');
+                    $toolbarSearch.append($monthFilter);
+
+                    $yearSelect.on('change', function() {
+                        updateUrlParams();
+                        api.ajax.reload();
+                    });
+
+                    $monthSelect.on('change', function() {
+                        updateUrlParams();
+                        api.ajax.reload();
+                    });
+
+                    function updateUrlParams() {
+                        const year = $yearSelect.val();
+                        const month = $monthSelect.val();
+                        const url = new URL(window.location.href);
+
+                        if (year) {
+                            url.searchParams.set('year', year);
+                        } else {
+                            url.searchParams.delete('year');
+                        }
+
+                        if (month) {
+                            url.searchParams.set('month', month);
+                        } else {
+                            url.searchParams.delete('month');
+                        }
+
+                        window.history.pushState({}, '', url.toString());
+                    }
                 }
             });
         });
