@@ -24,19 +24,73 @@ class MutasiController extends Controller
         $canEdit = in_array('updatePenerimaanBarang', explode(',', session('user_restricted_permissions', '')));
         $canDelete = in_array('deletePenerimaanBarang', explode(',', session('user_restricted_permissions', '')));
         $showActionsColumn = $canEdit || $canDelete; // Anda bisa tambahkan $canPrint jika ada
+        $year = trim((string) $request->query('year', ''));
+        $month = trim((string) $request->query('month', ''));
+        $availableWarehouses = DB::table('mswh')
+            ->where(function ($query) {
+                $query->whereNull('fnonactive')
+                    ->orWhere('fnonactive', '0')
+                    ->orWhere('fnonactive', '');
+            })
+            ->orderBy('fwhname')
+            ->pluck('fwhname')
+            ->filter()
+            ->map(fn ($value) => trim((string) $value))
+            ->filter(fn ($value) => $value !== '')
+            ->unique()
+            ->values();
+        $availableYears = DB::table('trstockmt')
+            ->where('fstockmtcode', 'MUT')
+            ->whereNotNull('fstockmtdate')
+            ->selectRaw('DISTINCT EXTRACT(YEAR FROM fstockmtdate) as year')
+            ->orderByRaw('EXTRACT(YEAR FROM fstockmtdate) DESC')
+            ->pluck('year');
 
         // --- 2. Handle Request AJAX dari DataTables ---
         if ($request->ajax()) {
 
             // Query dasar HANYA untuk 'MUT' (Receiving)
-            $query = PenerimaanPembelianHeader::where('fstockmtcode', 'MUT');
+            $query = PenerimaanPembelianHeader::query()
+                ->leftJoin('mscabang as c', 'c.fcabangkode', '=', 'trstockmt.fbranchcode')
+                ->leftJoin('mswh as wf', 'wf.fwhcode', '=', 'trstockmt.ffrom')
+                ->leftJoin('mswh as wt', 'wt.fwhcode', '=', 'trstockmt.fto')
+                ->where('trstockmt.fstockmtcode', 'MUT');
 
             // Total records (dengan filter 'MUT')
             $totalRecords = PenerimaanPembelianHeader::where('fstockmtcode', 'MUT')->count();
 
-            // Handle Search (cari di No. Penerimaan)
-            if ($search = $request->input('search.value')) {
-                $query->where('fstockmtno', 'like', "%{$search}%");
+            // Handle Search
+            if ($search = trim((string) $request->input('search.value'))) {
+                $query->where(function ($q) use ($search) {
+                    $q->where('trstockmt.fstockmtno', 'ilike', "%{$search}%")
+                        ->orWhere('trstockmt.fket', 'ilike', "%{$search}%");
+                });
+            }
+
+            if ($year !== '') {
+                $query->whereRaw('EXTRACT(YEAR FROM trstockmt.fstockmtdate) = ?', [$year]);
+            }
+
+            if ($month !== '') {
+                $query->whereRaw('EXTRACT(MONTH FROM trstockmt.fstockmtdate) = ?', [$month]);
+            }
+
+            $columnSearches = collect($request->input('columns', []))
+                ->mapWithKeys(function ($column) {
+                    $name = trim((string) ($column['name'] ?? ''));
+                    $value = trim((string) data_get($column, 'search.value', ''));
+
+                    return $name !== '' ? [$name => $value] : [];
+                });
+
+            $fromWarehouseSearch = trim((string) ($columnSearches->get('fgudang_dari', '')));
+            if ($fromWarehouseSearch !== '') {
+                $query->whereRaw('LOWER(TRIM(COALESCE(wf.fwhname, \'\'))) = LOWER(?)', [$fromWarehouseSearch]);
+            }
+
+            $toWarehouseSearch = trim((string) ($columnSearches->get('fgudang_ke', '')));
+            if ($toWarehouseSearch !== '') {
+                $query->whereRaw('LOWER(TRIM(COALESCE(wt.fwhname, \'\'))) = LOWER(?)', [$toWarehouseSearch]);
             }
 
             // Total records setelah filter search
@@ -45,13 +99,19 @@ class MutasiController extends Controller
             // Handle Sorting
             $orderColIdx = $request->input('order.0.column', 0);
             $orderDir = $request->input('order.0.dir', 'asc');
-            // Kolom di tabel: 0 = fstockmtno, 1 = fstockmtdate
-            $sortableColumns = ['fstockmtno', 'fstockmtdate'];
+            $sortableColumns = [
+                'c.fcabangname',
+                'trstockmt.fstockmtno',
+                'trstockmt.fstockmtdate',
+                'wf.fwhname',
+                'wt.fwhname',
+                'trstockmt.fket',
+            ];
 
             if (isset($sortableColumns[$orderColIdx])) {
                 $query->orderBy($sortableColumns[$orderColIdx], $orderDir);
             } else {
-                $query->orderBy('fstockmtid', 'desc'); // Default sort
+                $query->orderBy('trstockmt.fstockmtid', 'desc'); // Default sort
             }
 
             // Handle Paginasi
@@ -59,7 +119,18 @@ class MutasiController extends Controller
             $length = $request->input('length', 10);
             $records = $query->skip($start)
                 ->take($length)
-                ->get(['fstockmtid', 'fstockmtno', 'fstockmtdate']); // fstockmtcode tidak perlu, krn sudah pasti RCV
+                ->get([
+                    'trstockmt.fstockmtid',
+                    'trstockmt.fstockmtno',
+                    'trstockmt.fstockmtdate',
+                    'trstockmt.fket',
+                    'trstockmt.fbranchcode',
+                    'c.fcabangname',
+                    'trstockmt.ffrom',
+                    'trstockmt.fto',
+                    'wf.fwhname as from_warehouse_name',
+                    'wt.fwhname as to_warehouse_name',
+                ]);
 
             // Format Data (Tombol dibuat di sini)
             $data = $records->map(function ($row) {
@@ -103,9 +174,12 @@ class MutasiController extends Controller
                 // }
 
                 return [
+                    'fcabang' => trim((string) ($row->fcabangname ?? $row->fbranchcode ?? '')),
                     'fstockmtno' => $row->fstockmtno,
-                    // Format tanggal agar rapi di tabel
                     'fstockmtdate' => Carbon::parse($row->fstockmtdate)->format('d/m/Y'),
+                    'fgudang_dari' => $this->formatWarehouseLabel($row->ffrom ?? '', $row->from_warehouse_name ?? ''),
+                    'fgudang_ke' => $this->formatWarehouseLabel($row->fto ?? '', $row->to_warehouse_name ?? ''),
+                    'fket' => trim((string) ($row->fket ?? '')),
                     'actions' => $actions,
                 ];
             });
@@ -124,8 +198,24 @@ class MutasiController extends Controller
             'canCreate',
             'canEdit',
             'canDelete',
-            'showActionsColumn'
+            'showActionsColumn',
+            'availableWarehouses',
+            'availableYears',
+            'year',
+            'month'
         ));
+    }
+
+    private function formatWarehouseLabel($code, $name): string
+    {
+        $warehouseCode = trim((string) $code);
+        $warehouseName = trim((string) $name);
+
+        if ($warehouseCode !== '' && $warehouseName !== '') {
+            return $warehouseCode.' - '.$warehouseName;
+        }
+
+        return $warehouseCode !== '' ? $warehouseCode : $warehouseName;
     }
 
     public function pickable(Request $request)
