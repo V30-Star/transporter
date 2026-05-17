@@ -150,6 +150,11 @@
             padding: .35rem .5rem;
         }
 
+        .dt-container .dt-search {
+            width: 100%;
+            justify-content: flex-start;
+        }
+
         /* Stabilkan tabel */
         #tr_prhTable {
             width: 100% !important;
@@ -196,8 +201,22 @@
             flex-wrap: wrap;
         }
 
-        #statusFilterWrap {
-            margin-right: .25rem;
+        .dataTables_wrapper .dt-search .dt-input {
+            width: 28rem;
+            max-width: 100%;
+        }
+
+        .dataTables_wrapper .dt-search label,
+        .dataTables_wrapper .dt-length label {
+            margin-bottom: 0;
+        }
+
+        #yearFilterWrap,
+        #monthFilterWrap {
+            display: inline-flex;
+            align-items: center;
+            gap: .5rem;
+            margin-bottom: 0;
         }
     </style>
 @endpush
@@ -431,10 +450,7 @@
                     $toolbarSearch.append($monthFilter);
 
                     const $searchInput = $toolbarSearch.find('.dt-input');
-                    $searchInput.css({
-                        width: '400px',
-                        maxWidth: '100%'
-                    });
+                    $searchInput.attr('placeholder', 'Cari No.Transaksi / No.Ref / SO / Customer');
 
                     // Event handlers untuk Year dan Month
                     $yearSelect.on('change', function() {

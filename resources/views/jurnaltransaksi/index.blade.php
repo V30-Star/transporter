@@ -114,6 +114,11 @@
             padding: .35rem .5rem;
         }
 
+        .dt-container .dt-search {
+            width: 100%;
+            justify-content: flex-start;
+        }
+
         #mutasiTable {
             width: 100% !important;
         }
@@ -149,6 +154,19 @@
         .dataTables_wrapper .dt-search .dt-input {
             width: 28rem;
             max-width: 100%;
+        }
+
+        .dataTables_wrapper .dt-search label,
+        .dataTables_wrapper .dt-length label {
+            margin-bottom: 0;
+        }
+
+        #yearFilterWrap,
+        #monthFilterWrap {
+            display: inline-flex;
+            align-items: center;
+            gap: .5rem;
+            margin-bottom: 0;
         }
     </style>
 @endpush

@@ -151,6 +151,11 @@
             padding: .35rem .5rem;
         }
 
+        .dt-container .dt-search {
+            width: 100%;
+            justify-content: flex-start;
+        }
+
         /* Stabilkan tabel */
         #salesorderTable {
             width: 100% !important;
@@ -194,24 +199,20 @@
             display: flex;
             align-items: center;
             gap: .75rem;
-            flex-wrap: nowrap;
-            width: 100%;
+            flex-wrap: wrap;
         }
 
-        .dataTables_wrapper .dt-layout-row:first-child {
-            display: flex;
+        .dataTables_wrapper .dt-search label,
+        .dataTables_wrapper .dt-length label {
+            margin-bottom: 0;
+        }
+
+        #yearFilterWrap,
+        #monthFilterWrap {
+            display: inline-flex;
             align-items: center;
-            justify-content: space-between;
-            gap: 1rem;
-        }
-
-        .dataTables_wrapper .dt-layout-row:first-child .dt-layout-cell.dt-layout-start {
-            flex: 1 1 auto;
-            min-width: 0;
-        }
-
-        .dataTables_wrapper .dt-layout-row:first-child .dt-layout-cell.dt-layout-end {
-            flex: 0 0 auto;
+            gap: .5rem;
+            margin-bottom: 0;
         }
 
         .dataTables_wrapper .dt-search .so-search-group {
@@ -556,30 +557,6 @@
                         '<div class="flex items-center gap-2"><span>{{ "Bulan" }}</span></div>').append(
                         $monthSelect));
 
-                    $topRow.css({
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'space-between',
-                        gap: '1rem'
-                    });
-
-                    $topStart.css({
-                        flex: '1 1 auto',
-                        minWidth: '0'
-                    });
-
-                    $topEnd.css({
-                        flex: '0 0 auto'
-                    });
-
-                    $toolbarSearch.css({
-                        width: '100%',
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '.75rem',
-                        flexWrap: 'nowrap'
-                    });
-
                     if ($toolbarSearch.find('.so-search-group').length === 0 && $searchLabel.length && $searchInput.length) {
                         const rawLabelText = ($searchLabel.text() || @json("Search".':')).trim();
                         const $searchGroup = $('<div class="so-search-group"></div>');
@@ -609,6 +586,7 @@
                         maxWidth: 'none',
                         verticalAlign: 'middle'
                     });
+                    $searchInput.attr('placeholder', 'Cari No.SO / Customer / User Id');
 
                     // Set nilai awal dari URL agar tampilan Select Box sinkron
                     const urlParams = new URLSearchParams(window.location.search);

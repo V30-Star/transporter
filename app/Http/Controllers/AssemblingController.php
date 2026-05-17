@@ -24,19 +24,42 @@ class AssemblingController extends Controller
         $canEdit = in_array('updateAssembling', explode(',', session('user_restricted_permissions', '')));
         $canDelete = in_array('deleteAssembling', explode(',', session('user_restricted_permissions', '')));
         $showActionsColumn = $canEdit || $canDelete; // Anda bisa tambahkan $canPrint jika ada
+        $year = trim((string) $request->query('year', ''));
+        $month = trim((string) $request->query('month', ''));
+
+        $availableYears = DB::table('trstockmt')
+            ->where('fstockmtcode', 'LHP')
+            ->whereNotNull('fstockmtdate')
+            ->selectRaw('DISTINCT EXTRACT(YEAR FROM fstockmtdate) as year')
+            ->orderByRaw('EXTRACT(YEAR FROM fstockmtdate) DESC')
+            ->pluck('year');
 
         // --- 2. Handle Request AJAX dari DataTables ---
         if ($request->ajax()) {
 
             // Query dasar HANYA untuk 'LHP' (Receiving)
-            $query = PenerimaanPembelianHeader::where('fstockmtcode', 'LHP');
+            $query = PenerimaanPembelianHeader::query()
+                ->leftJoin('mscabang as c', 'c.fcabangkode', '=', 'trstockmt.fbranchcode')
+                ->leftJoin('mswh as w', 'w.fwhcode', '=', 'trstockmt.ffrom')
+                ->where('trstockmt.fstockmtcode', 'LHP');
 
             // Total records (dengan filter 'LHP')
             $totalRecords = PenerimaanPembelianHeader::where('fstockmtcode', 'LHP')->count();
 
-            // Handle Search (cari di No. Penerimaan)
+            // Handle Search
             if ($search = $request->input('search.value')) {
-                $query->where('fstockmtno', 'like', "%{$search}%");
+                $query->where(function ($q) use ($search) {
+                    $q->where('trstockmt.fstockmtno', 'like', "%{$search}%")
+                        ->orWhere('trstockmt.fket', 'like', "%{$search}%");
+                });
+            }
+
+            if ($year !== '') {
+                $query->whereRaw('EXTRACT(YEAR FROM trstockmt.fstockmtdate) = ?', [$year]);
+            }
+
+            if ($month !== '') {
+                $query->whereRaw('EXTRACT(MONTH FROM trstockmt.fstockmtdate) = ?', [$month]);
             }
 
             // Total records setelah filter search
@@ -45,8 +68,14 @@ class AssemblingController extends Controller
             // Handle Sorting
             $orderColIdx = $request->input('order.0.column', 0);
             $orderDir = $request->input('order.0.dir', 'asc');
-            // Kolom di tabel: 0 = fstockmtno, 1 = fstockmtdate
-            $sortableColumns = ['fstockmtno', 'fstockmtdate'];
+            // Kolom di tabel
+            $sortableColumns = [
+                'c.fcabangname',
+                'trstockmt.fstockmtno',
+                'trstockmt.fstockmtdate',
+                'w.fwhname',
+                'trstockmt.fket',
+            ];
 
             if (isset($sortableColumns[$orderColIdx])) {
                 $query->orderBy($sortableColumns[$orderColIdx], $orderDir);
@@ -59,7 +88,15 @@ class AssemblingController extends Controller
             $length = $request->input('length', 10);
             $records = $query->skip($start)
                 ->take($length)
-                ->get(['fstockmtid', 'fstockmtno', 'fstockmtdate']); // fstockmtcode tidak perlu, krn sudah pasti RCV
+                ->get([
+                    'trstockmt.fstockmtid',
+                    'trstockmt.fstockmtno',
+                    'trstockmt.fstockmtdate',
+                    'trstockmt.fket',
+                    'trstockmt.fbranchcode',
+                    'c.fcabangname',
+                    'w.fwhname',
+                ]);
 
             // Format Data (Tombol dibuat di sini)
             $data = $records->map(function ($row) {
@@ -103,9 +140,11 @@ class AssemblingController extends Controller
                 // }
 
                 return [
+                    'fcabang' => trim((string) ($row->fcabangname ?? $row->fbranchcode ?? '')),
                     'fstockmtno' => $row->fstockmtno,
-                    // Format tanggal agar rapi di tabel
                     'fstockmtdate' => Carbon::parse($row->fstockmtdate)->format('d/m/Y'),
+                    'fgudang' => trim((string) ($row->fwhname ?? '')),
+                    'fket' => trim((string) ($row->fket ?? '')),
                     'actions' => $actions,
                 ];
             });
@@ -124,7 +163,10 @@ class AssemblingController extends Controller
             'canCreate',
             'canEdit',
             'canDelete',
-            'showActionsColumn'
+            'showActionsColumn',
+            'availableYears',
+            'year',
+            'month'
         ));
     }
 

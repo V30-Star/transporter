@@ -37,13 +37,37 @@
             @endif
         </div>
 
-        <div id="statusFilterTemplate" class="hidden">
-            <div class="flex items-center gap-2" id="statusFilterWrap">
-                <span class="text-sm text-gray-700">Status</span>
-                <select data-role="status-filter" class="border rounded px-2 py-1">
-                    <option value="all">All</option>
-                    <option value="active" selected>Active</option>
-                    <option value="nonactive">Non Active</option>
+        <div id="yearFilterTemplate" class="hidden">
+            <div class="flex items-center gap-2" id="yearFilterWrap">
+                <span class="text-sm text-gray-700">Tahun</span>
+                <select data-role="year-filter" class="border rounded px-2 py-1 w-24">
+                    <option value="">Semua</option>
+                    @foreach ($availableYears as $yr)
+                        <option value="{{ $yr }}" {{ (string) $year === (string) $yr ? 'selected' : '' }}>
+                            {{ $yr }}
+                        </option>
+                    @endforeach
+                </select>
+            </div>
+        </div>
+
+        <div id="monthFilterTemplate" class="hidden">
+            <div class="flex items-center gap-2" id="monthFilterWrap">
+                <span class="text-sm text-gray-700">Bulan</span>
+                <select data-role="month-filter" class="border rounded px-2 py-1">
+                    <option value="">Semua</option>
+                    <option value="1" {{ $month === '1' ? 'selected' : '' }}>Januari</option>
+                    <option value="2" {{ $month === '2' ? 'selected' : '' }}>Februari</option>
+                    <option value="3" {{ $month === '3' ? 'selected' : '' }}>Maret</option>
+                    <option value="4" {{ $month === '4' ? 'selected' : '' }}>April</option>
+                    <option value="5" {{ $month === '5' ? 'selected' : '' }}>Mei</option>
+                    <option value="6" {{ $month === '6' ? 'selected' : '' }}>Juni</option>
+                    <option value="7" {{ $month === '7' ? 'selected' : '' }}>Juli</option>
+                    <option value="8" {{ $month === '8' ? 'selected' : '' }}>Agustus</option>
+                    <option value="9" {{ $month === '9' ? 'selected' : '' }}>September</option>
+                    <option value="10" {{ $month === '10' ? 'selected' : '' }}>Oktober</option>
+                    <option value="11" {{ $month === '11' ? 'selected' : '' }}>November</option>
+                    <option value="12" {{ $month === '12' ? 'selected' : '' }}>Desember</option>
                 </select>
             </div>
         </div>
@@ -51,8 +75,11 @@
         <table id="mutasiTable" class="min-w-full border text-sm">
             <thead class="bg-gray-100">
                 <tr>
+                    <th class="border px-2 py-1">Cabang</th>
                     <th class="border px-2 py-1">No. Assembling</th>
                     <th class="border px-2 py-1">Tanggal</th>
+                    <th class="border px-2 py-1">Gudang</th>
+                    <th class="border px-2 py-1">Keterangan</th>
 
                     @if ($showActionsColumn)
                         <th class="border px-2 py-1 col-aksi">Aksi</th>
@@ -104,6 +131,11 @@
             padding: .35rem .5rem;
         }
 
+        .dt-container .dt-search {
+            width: 100%;
+            justify-content: flex-start;
+        }
+
         /* Stabilkan tabel */
         #tr_prhTable {
             width: 100% !important;
@@ -150,8 +182,22 @@
             flex-wrap: wrap;
         }
 
-        #statusFilterWrap {
-            margin-right: .25rem;
+        .dataTables_wrapper .dt-search .dt-input {
+            width: 28rem;
+            max-width: 100%;
+        }
+
+        .dataTables_wrapper .dt-search label,
+        .dataTables_wrapper .dt-length label {
+            margin-bottom: 0;
+        }
+
+        #yearFilterWrap,
+        #monthFilterWrap {
+            display: inline-flex;
+            align-items: center;
+            gap: .5rem;
+            margin-bottom: 0;
         }
     </style>
 @endpush
@@ -169,11 +215,20 @@
             // 1. Definisi Kolom (Sangat Penting)
             // 'data' harus cocok dengan key JSON dari Controller
             const columns = [{
+                    data: 'fcabang'
+                },
+                {
                     data: 'fstockmtno'
                 }, // data dari 'fstockmtno'
                 {
                     data: 'fstockmtdate'
-                }, // data dari 'fstockmtdate'
+                },
+                {
+                    data: 'fgudang'
+                },
+                {
+                    data: 'fket'
+                },
             ];
 
             // 2. Tambah Kolom Aksi (jika ada izin)
@@ -194,9 +249,15 @@
                 processing: true, // Tampilkan 'Loading...'
                 serverSide: true, // Aktifkan mode SSP
 
-                // Ambil data dari route ini
-                ajax: '{{ route('assembling.index') }}',
-                // -------------------------
+                ajax: {
+                    url: '{{ route('assembling.index') }}',
+                    type: 'GET',
+                    data: function(d) {
+                        const urlParams = new URLSearchParams(window.location.search);
+                        d.year = urlParams.get('year') || '';
+                        d.month = urlParams.get('month') || '';
+                    }
+                },
 
                 // Terapkan kolom dari langkah 1 & 2
                 columns: columns,
@@ -213,9 +274,52 @@
                     bottomStart: 'info',
                     bottomEnd: 'paging'
                 },
+                initComplete: function() {
+                    const api = this.api();
+                    const $toolbarSearch = $(api.table().container()).find('.dt-search');
+                    const $searchInput = $toolbarSearch.find('.dt-input');
+                    $searchInput.attr('placeholder', 'Cari No.Assembling / Keterangan');
 
-                // Hapus filter status (initComplete) karena tidak dipakai
-                // di controller ini (hanya filter 'RCV')
+                    const $yearFilter = $('#yearFilterTemplate #yearFilterWrap').clone(true, true);
+                    const $yearSelect = $yearFilter.find('select[data-role="year-filter"]');
+                    $yearSelect.attr('id', 'yearFilterDT');
+                    $toolbarSearch.append($yearFilter);
+
+                    const $monthFilter = $('#monthFilterTemplate #monthFilterWrap').clone(true, true);
+                    const $monthSelect = $monthFilter.find('select[data-role="month-filter"]');
+                    $monthSelect.attr('id', 'monthFilterDT');
+                    $toolbarSearch.append($monthFilter);
+
+                    $yearSelect.on('change', function() {
+                        updateUrlParams();
+                        api.ajax.reload();
+                    });
+
+                    $monthSelect.on('change', function() {
+                        updateUrlParams();
+                        api.ajax.reload();
+                    });
+
+                    function updateUrlParams() {
+                        const year = $yearSelect.val();
+                        const month = $monthSelect.val();
+                        const url = new URL(window.location.href);
+
+                        if (year) {
+                            url.searchParams.set('year', year);
+                        } else {
+                            url.searchParams.delete('year');
+                        }
+
+                        if (month) {
+                            url.searchParams.set('month', month);
+                        } else {
+                            url.searchParams.delete('month');
+                        }
+
+                        window.history.pushState({}, '', url.toString());
+                    }
+                }
             });
         });
     </script>
