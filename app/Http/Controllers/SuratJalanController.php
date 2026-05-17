@@ -25,6 +25,19 @@ class SuratJalanController extends Controller
 
         $year = $request->query('year');
         $month = $request->query('month');
+        $availableWarehouses = DB::table('mswh')
+            ->where(function ($query) {
+                $query->whereNull('fnonactive')
+                    ->orWhere('fnonactive', '0')
+                    ->orWhere('fnonactive', '');
+            })
+            ->orderBy('fwhname')
+            ->pluck('fwhname')
+            ->filter()
+            ->map(fn ($value) => trim((string) $value))
+            ->filter(fn ($value) => $value !== '')
+            ->unique()
+            ->values();
 
         // Ambil tahun-tahun yang tersedia dari data
         $availableYears = PenerimaanPembelianHeader::selectRaw('DISTINCT EXTRACT(YEAR FROM fdatetime) as year')
@@ -73,6 +86,19 @@ class SuratJalanController extends Controller
             // Filter bulan
             if ($month) {
                 $query->whereRaw('EXTRACT(MONTH FROM fdatetime) = ?', [$month]);
+            }
+
+            $columnSearches = collect($request->input('columns', []))
+                ->mapWithKeys(function ($column) {
+                    $name = trim((string) ($column['name'] ?? ''));
+                    $value = trim((string) data_get($column, 'search.value', ''));
+
+                    return $name !== '' ? [$name => $value] : [];
+                });
+
+            $warehouseSearch = trim((string) ($columnSearches->get('fgudang', '')));
+            if ($warehouseSearch !== '') {
+                $query->whereRaw('LOWER(TRIM(COALESCE(warehouse.fwhname, \'\'))) = LOWER(?)', [$warehouseSearch]);
             }
 
             // Total records setelah filter
@@ -148,6 +174,7 @@ class SuratJalanController extends Controller
             'canEdit',
             'canDelete',
             'showActionsColumn',
+            'availableWarehouses',
             'availableYears',
             'year',
             'month'

@@ -72,6 +72,15 @@
             </div>
         </div>
 
+        <div id="warehouseColumnFilterTemplate" class="hidden">
+            <select data-role="warehouse-column-filter" class="w-full border rounded px-2 py-1 text-sm">
+                <option value="">Semua Gudang</option>
+                @foreach ($availableWarehouses as $warehouseName)
+                    <option value="{{ $warehouseName }}">{{ $warehouseName }}</option>
+                @endforeach
+            </select>
+        </div>
+
         <table id="mutasiTable" class="min-w-full border text-sm">
             <thead class="bg-gray-100">
                 <tr>
@@ -86,6 +95,18 @@
                     @endif
                 </tr>
             </thead>
+            <tfoot>
+                <tr>
+                    <th class="border px-2 py-1"></th>
+                    <th class="border px-2 py-1"></th>
+                    <th class="border px-2 py-1"></th>
+                    <th class="border px-2 py-1"></th>
+                    <th class="border px-2 py-1"></th>
+                    @if ($showActionsColumn)
+                        <th class="border px-2 py-1"></th>
+                    @endif
+                </tr>
+            </tfoot>
             <tbody>
                 {{-- KOSONGKAN BAGIAN INI --}}
             </tbody>
@@ -215,19 +236,24 @@
             // 1. Definisi Kolom (Sangat Penting)
             // 'data' harus cocok dengan key JSON dari Controller
             const columns = [{
-                    data: 'fcabang'
+                    data: 'fcabang',
+                    name: 'fcabang'
                 },
                 {
-                    data: 'fstockmtno'
+                    data: 'fstockmtno',
+                    name: 'fstockmtno'
                 }, // data dari 'fstockmtno'
                 {
-                    data: 'fstockmtdate'
+                    data: 'fstockmtdate',
+                    name: 'fstockmtdate'
                 },
                 {
-                    data: 'fgudang'
+                    data: 'fgudang',
+                    name: 'fgudang'
                 },
                 {
-                    data: 'fket'
+                    data: 'fket',
+                    name: 'fket'
                 },
             ];
 
@@ -289,6 +315,22 @@
                     const $monthSelect = $monthFilter.find('select[data-role="month-filter"]');
                     $monthSelect.attr('id', 'monthFilterDT');
                     $toolbarSearch.append($monthFilter);
+
+                    const gudangColumnIdx = api.columns().indexes().toArray()
+                        .find(i => api.column(i).dataSrc() === 'fgudang');
+
+                    if (gudangColumnIdx !== undefined) {
+                        const footerCell = api.column(gudangColumnIdx).footer();
+                        if (footerCell) {
+                            const $warehouseFilter = $('#warehouseColumnFilterTemplate select')
+                                .clone(true, true);
+                            $(footerCell).empty().append($warehouseFilter);
+
+                            $warehouseFilter.on('change', function() {
+                                api.column(gudangColumnIdx).search(this.value).draw();
+                            });
+                        }
+                    }
 
                     $yearSelect.on('change', function() {
                         updateUrlParams();

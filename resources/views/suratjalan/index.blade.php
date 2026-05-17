@@ -71,6 +71,15 @@
             </div>
         </div>
 
+        <div id="warehouseColumnFilterTemplate" class="hidden">
+            <select data-role="warehouse-column-filter" class="w-full border rounded px-2 py-1 text-sm">
+                <option value="">{{ "Semua Gudang" }}</option>
+                @foreach ($availableWarehouses as $warehouseName)
+                    <option value="{{ $warehouseName }}">{{ $warehouseName }}</option>
+                @endforeach
+            </select>
+        </div>
+
         <table id="penerimaanbarangTable" class="min-w-full border text-sm">
             <thead class="bg-gray-100">
                 <tr>
@@ -86,6 +95,19 @@
                     @endif
                 </tr>
             </thead>
+            <tfoot>
+                <tr>
+                    <th class="border px-2 py-1"></th>
+                    <th class="border px-2 py-1"></th>
+                    <th class="border px-2 py-1"></th>
+                    <th class="border px-2 py-1"></th>
+                    <th class="border px-2 py-1"></th>
+                    <th class="border px-2 py-1"></th>
+                    @if ($showActionsColumn)
+                        <th class="border px-2 py-1"></th>
+                    @endif
+                </tr>
+            </tfoot>
             <tbody>
                 {{-- KOSONGKAN BAGIAN INI --}}
             </tbody>
@@ -451,6 +473,22 @@
 
                     const $searchInput = $toolbarSearch.find('.dt-input');
                     $searchInput.attr('placeholder', 'Cari No.Transaksi / No.Ref / SO / Customer');
+
+                    const gudangColumnIdx = api.columns().indexes().toArray()
+                        .find(i => api.column(i).dataSrc() === 'fgudang');
+
+                    if (gudangColumnIdx !== undefined) {
+                        const footerCell = api.column(gudangColumnIdx).footer();
+                        if (footerCell) {
+                            const $warehouseFilter = $('#warehouseColumnFilterTemplate select')
+                                .clone(true, true);
+                            $(footerCell).empty().append($warehouseFilter);
+
+                            $warehouseFilter.on('change', function() {
+                                api.column(gudangColumnIdx).search(this.value).draw();
+                            });
+                        }
+                    }
 
                     // Event handlers untuk Year dan Month
                     $yearSelect.on('change', function() {
