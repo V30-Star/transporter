@@ -63,6 +63,7 @@ class Tr_pohController extends Controller
                     'tr_poh.fsupplier',
                     'tr_poh.fpodate',
                     'tr_poh.fclose',
+                    'tr_poh.fprdin',
                     'tr_poh.fusercreate',
                     'tr_poh.fapproval',
                     'tr_poh.fdatetime',
@@ -109,6 +110,7 @@ class Tr_pohController extends Controller
                 'tr_poh.fsupplier',
                 'tr_poh.fpodate',
                 'tr_poh.fclose',
+                'tr_poh.fprdin',
                 'tr_poh.fusercreate',
                 'tr_poh.fapproval',
                 'tr_poh.fdatetime', // Pastikan semua kolom tr_poh masuk atau gunakan agregat
@@ -123,7 +125,7 @@ class Tr_pohController extends Controller
             // Sorting
             $orderColIdx = $request->input('order.0.column', 0);
             $orderDir = $request->input('order.0.dir', 'asc');
-            $sortableColumns = ['fpono', 'fsupplier', 'fpodate', 'fclose', 'fusercreate', 'fapproval', 'fsuppliername'];
+            $sortableColumns = ['fpono', 'fsupplier', 'fpodate', 'fclose', 'fusercreate', 'fprdin', 'fapproval', 'fsuppliername'];
 
             if (isset($sortableColumns[$orderColIdx])) {
                 $query->orderBy($sortableColumns[$orderColIdx], $orderDir);
@@ -141,7 +143,8 @@ class Tr_pohController extends Controller
                     'fpohid' => $row->fpohid,
                     'fsupplier' => $row->fsupplier,
                     'fpodate' => $row->fpodate,
-                    'fclose' => $row->fclose == '1' ? 'Close' : 'Open',
+                    'fprdin' => (string) ($row->fprdin ?? '0'),
+                    'fclose' => (string) ($row->fclose ?? '0'),
                     'fusercreate' => $row->fusercreate,
                     'fapproval' => $row->fapproval,
                     'fsuppliername' => $row->fsuppliername,
@@ -1870,8 +1873,8 @@ class Tr_pohController extends Controller
     {
         $referenceDetailIds = collect($rowsPod)
             ->pluck('frefdtid')
-            ->map(fn ($id) => (int) $id)
-            ->filter(fn ($id) => $id > 0)
+            ->map(fn($id) => (int) $id)
+            ->filter(fn($id) => $id > 0)
             ->unique()
             ->values()
             ->all();
@@ -1907,6 +1910,6 @@ class Tr_pohController extends Controller
             return 'Nomor referensi ini sudah pernah dibuat di transaksi lain.';
         }
 
-        return 'Nomor referensi '.$refNo.' sudah pernah dibuat di transaksi nomor '.$transactionNo.'.';
+        return 'Nomor referensi ' . $refNo . ' sudah pernah dibuat di transaksi nomor ' . $transactionNo . '.';
     }
 }

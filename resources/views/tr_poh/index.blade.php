@@ -316,7 +316,14 @@
                 },
                 {
                     data: 'fclose',
-                    name: 'fclose'
+                    name: 'fclose',
+                    render: function(data, type, row) {
+                        if (type !== 'display') {
+                            return data;
+                        }
+
+                        return renderPoStatus(row);
+                    }
                 },
                 {
                     data: 'fapproval',
@@ -370,6 +377,25 @@
                     }
                 });
             }
+
+            const renderPoStatus = (row) => {
+                const closeValue = (row?.fclose ?? '').toString().trim();
+                const prdinValue = (row?.fprdin ?? '').toString().trim();
+
+                if (closeValue === '1') {
+                    return '<span class="inline-flex items-center rounded-full bg-slate-200 px-2 py-1 text-xs font-semibold text-slate-700">CLOSE</span>';
+                }
+
+                if (prdinValue === '1') {
+                    return '<span class="inline-flex items-center rounded-full bg-green-100 px-2 py-1 text-xs font-semibold text-green-700">DONE</span>';
+                }
+
+                if (prdinValue === '2') {
+                    return '<span class="inline-flex items-center rounded-full bg-amber-100 px-2 py-1 text-xs font-semibold text-amber-700">PARTIAL</span>';
+                }
+
+                return '<span class="inline-flex items-center rounded-full bg-blue-100 px-2 py-1 text-xs font-semibold text-blue-700">Open</span>';
+            };
 
             // 2. Definisi columnDefs
             const columnDefs = [];
