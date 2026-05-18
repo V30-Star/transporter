@@ -163,23 +163,11 @@
                     data-form-draft="true" data-draft-key="salesorder:create" x-data="{
                         showNoItems: false,
                         handleSubmit() {
-                            const count = Number(this.$el.querySelector('input[name=itemsCount]')?.value || 0);
-                            if (count < 1) {
-                                Swal.fire({
-                                    icon: 'warning',
-                                    title: window._soLabels.noItemsTitle,
-                                    text: window._soLabels.noItemsText,
-                                    confirmButtonText: window._soLabels.noItemsBtn,
-                                    customClass: {
-                                        confirmButton: 'bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700'
-                                    }
-                                });
+                            if (window.salesOrderItemsTable?.submitForm) {
+                                window.salesOrderItemsTable.submitForm(this.$el);
                                 return;
                             }
-                            window.salesOrderDuplicateRefPoGuard(this.$el).then(ok => {
-                                if (!ok) return;
-                                window.salesOrderCreditApprovalGuard(this.$el).then(approved => { if (approved) this.$el.submit() });
-                            });
+                            this.$el.submit();
                         }
                     }"
                     @submit.prevent="handleSubmit()">
@@ -786,8 +774,8 @@
     function itemsTable() {
         return {
             showNoItems: false,
-            savedItems: @json($initialSalesOrderItems),
-            draft: newRow(),
+            rows: [],
+            rowsToSubmit: [],
 
             totalHarga: 0,
             headerDiscPercent: @json((float) old('fdiscpersen', 0)),
@@ -799,6 +787,13 @@
             includePPN: false,
             ppnMode: 0, // 0: Exclude, 1: Include
             ppnRate: 11,
+            showWarningModal: false,
+            warningTitle: 'Perhatian',
+            warningMessage: '',
+            warningItems: [],
+            warningCanProceed: false,
+            pendingSubmitForm: null,
+            pendingRowsToSubmit: [],
 
             get headerDiscAmount() {
                 const total = +this.totalHarga || 0;
@@ -908,7 +903,7 @@
 
             // ✅ UPDATE FUNGSI recalc untuk menggunakan parseDiscount
             recalc(row) {
-                row.fqty = Math.max(1, +row.fqty || 1);
+                row.fqty = Math.max(0, +row.fqty || 0);
                 row.fterima = Math.max(0, +row.fterima || 0);
                 row.fprice = Math.max(0, +row.fprice || 0);
 
@@ -924,7 +919,10 @@
             },
 
             recalcTotals() {
-                this.totalHarga = this.savedItems.reduce((sum, item) => sum + item.ftotal, 0);
+                this.totalHarga = this.rows.reduce((sum, item) => {
+                    if (!this.isRowSavable(item)) return sum;
+                    return sum + item.ftotal;
+                }, 0);
             },
 
             productMeta(code) {
@@ -954,9 +952,6 @@
                     row.fitemname = '';
                     row.units = [];
                     row.fsatuan = '';
-                    if (row === this.draft) {
-                        clearDraftUnitSelect();
-                    }
                     return;
                 }
                 row.fitemname = meta.name || '';
@@ -965,22 +960,29 @@
                 if (!units.includes(row.fsatuan)) row.fsatuan = units[0] || '';
                 row.fsatuan = row.fsatuan;
                 if (meta.unit_ratios) row.unit_ratios = meta.unit_ratios;
-
-                if (row === this.draft) {
-                    if (units.length > 1) {
-                        populateDraftUnitSelect(units);
-                    } else {
-                        clearDraftUnitSelect();
-                    }
-                }
             },
 
             onCodeTypedRow(row) {
                 this.hydrateRowFromMeta(row, this.productMeta(row.fprdcode));
+                row.fnoacak = this.normalizeNoAcak(row.fnoacak) || this.generateUniqueNoAcak(row.uid);
+                this.recalc(row);
             },
 
-            isComplete(row) {
+            isRowSavable(row) {
                 return row.fprdcode && row.fitemname && row.fsatuan && Number(row.fqty) > 0;
+            },
+            isRowFilled(row) {
+                return [
+                    row.fprdcode,
+                    row.fitemname,
+                    row.fsatuan,
+                    row.fqty,
+                    row.fprice,
+                    row.fdisc,
+                    row.fdesc,
+                    row.fketdt
+                ].some((value) => String(value ?? '').trim() !== '' && Number(value ?? 0) !== 0)
+                    || Number(row.fqty || 0) > 0;
             },
 
             onPrPicked(e) {
@@ -989,14 +991,7 @@
                     items
                 } = e.detail || {};
                 if (!items || !Array.isArray(items)) return;
-                this.resetDraft();
                 this.addManyFromPR(header, items);
-            },
-
-            resetDraft() {
-                this.draft = newRow();
-                this.draft.fnoacak = this.generateUniqueNoAcak();
-                this.$nextTick(() => this.$refs.draftCode?.focus());
             },
 
             normalizeNoAcak(value) {
@@ -1004,8 +999,10 @@
                 return /^\d{3}$/.test(normalized) ? normalized : '';
             },
 
-            generateUniqueNoAcak() {
-                const used = new Set(this.savedItems.map(item => this.normalizeNoAcak(item.fnoacak)).filter(Boolean));
+            generateUniqueNoAcak(exceptUid = null) {
+                const used = new Set(this.rows
+                    .filter(item => item.uid !== exceptUid)
+                    .map(item => this.normalizeNoAcak(item.fnoacak)).filter(Boolean));
                 let candidate = '';
                 do {
                     candidate = Array.from({
@@ -1018,6 +1015,7 @@
 
             addManyFromPR(header, items) {
                 const existing = new Set(this.getCurrentItemKeys());
+                const incomingRows = [];
 
                 items.forEach(src => {
                     const row = {
@@ -1053,97 +1051,97 @@
                     if (existing.has(key)) return;
 
                     this.recalc(row);
-                    this.savedItems.push(row);
+                    incomingRows.push(row);
                     existing.add(key);
                 });
 
+                if (incomingRows.length > 0) {
+                    const shouldReplaceStarter = this.rows.length === 1 && !this.isRowFilled(this.rows[0]);
+                    if (shouldReplaceStarter) {
+                        this.rows = incomingRows;
+                    } else {
+                        this.rows.push(...incomingRows);
+                    }
+                }
                 this.recalcTotals();
             },
 
-
-            addIfComplete() {
-                const r = this.draft;
-
-                if (!this.isComplete(r)) {
-                    if (!r.fprdcode) return this.$refs.draftCode?.focus();
-                    if (!r.fitemname) return this.$refs.draftCode?.focus();
-                    if (!r.fsatuan) return (r.units.length > 1 ? this.$refs.draftUnit?.focus() : this.$refs.draftCode
-                        ?.focus());
-                    if (!(Number(r.fqty) > 0)) return this.$refs.draftQty?.focus();
-                    return;
-                }
-
-                this.recalc(r);
-
-                const dupe = this.savedItems.find(it =>
-                    it.fprdcode === r.fprdcode &&
-                    it.fsatuan === r.fsatuan
-                );
-
-                if (dupe) {
-                    this.showToast(@json('Item sama sudah ada di daftar'), 'warning');
-                    return;
-                }
-
-                this.savedItems.push({
-                    ...r,
-                    fnoacak: this.normalizeNoAcak(r.fnoacak) || this.generateUniqueNoAcak(),
-                    uid: cryptoRandom()
+            addRow(afterIndex = null, source = {}) {
+                const insertAt = afterIndex === null ? this.rows.length : afterIndex + 1;
+                this.rows.splice(insertAt, 0, this.createRow(source));
+                this.$nextTick(() => {
+                    document.querySelectorAll('tbody input[type="text"]')[insertAt * 2]?.focus?.();
                 });
-                this.showNoItems = false;
-                this.resetDraft();
-                this.$nextTick(() => this.$refs.draftCode?.focus());
-                this.recalcTotals();
             },
-
-
-
-            removeSaved(i) {
-                this.savedItems.splice(i, 1);
-                this.recalcTotals();
-            },
-
-            onSubmit($event) {
-                if (this.savedItems.length === 0) {
-                    $event.preventDefault();
-                    this.showNoItems = true;
+            removeRow(i) {
+                if (this.rows.length === 1) {
+                    this.rows.splice(0, 1, this.createRow());
+                    this.recalcTotals();
                     return;
                 }
+                this.rows.splice(i, 1);
+                this.recalcTotals();
             },
 
-            handleEnterOnCode(where) {
-                if (this.draft.units.length > 1) this.$refs.draftUnit?.focus();
-                else this.$refs.draftQty?.focus();
+            focusRowUnit(row, i) {
+                if (row.units.length > 1) this.$nextTick(() => document.getElementById('unit_row_' + i)?.focus());
+                else this.focusRowQty(i);
+            },
+            focusRowQty(i) {
+                this.$nextTick(() => document.getElementById('qty_row_' + i)?.focus());
+            },
+            focusRowPrice(i) {
+                this.$nextTick(() => document.getElementById('price_row_' + i)?.focus());
+            },
+            focusRowDisc(i) {
+                this.$nextTick(() => document.getElementById('disc_row_' + i)?.focus());
             },
 
             showDescModal: false,
-            descTarget: 'draft',
-            descSavedIndex: null,
             descValue: '',
+            _descTarget: null,
             descReadonly: false,
-            openDesc(target = 'draft', index = null, readonly = false) {
-                this.descTarget = target;
-                this.descSavedIndex = index;
+            openDesc(targetRow, readonly = false) {
+                this._descTarget = targetRow;
                 this.descReadonly = readonly;
-                this.descValue = target === 'saved' && index !== null ?
-                    (this.savedItems[index]?.fdesc || '') :
-                    (this.draft?.fdesc || '');
+                this.descValue = targetRow?.fdesc || '';
                 this.showDescModal = true;
             },
             closeDesc() {
                 this.showDescModal = false;
-                this.descTarget = 'draft';
-                this.descSavedIndex = null;
+                this._descTarget = null;
                 this.descValue = '';
                 this.descReadonly = false;
             },
             applyDesc() {
-                if (this.descTarget === 'saved' && this.descSavedIndex !== null) {
-                    this.savedItems[this.descSavedIndex].fdesc = this.descValue;
-                } else {
-                    this.draft.fdesc = this.descValue;
-                }
+                if (this._descTarget) this._descTarget.fdesc = this.descValue;
                 this.closeDesc();
+            },
+            closeWarning() {
+                this.showWarningModal = false;
+                this.warningTitle = 'Perhatian';
+                this.warningMessage = '';
+                this.warningItems = [];
+                this.warningCanProceed = false;
+                this.pendingSubmitForm = null;
+                this.pendingRowsToSubmit = [];
+            },
+            confirmWarningAndSubmit() {
+                if (!this.warningCanProceed || !this.pendingSubmitForm || this.pendingRowsToSubmit.length < 1) {
+                    this.closeWarning();
+                    return;
+                }
+                this.rowsToSubmit = this.pendingRowsToSubmit;
+                const form = this.pendingSubmitForm;
+                this.closeWarning();
+                this.$nextTick(() => {
+                    window.salesOrderDuplicateRefPoGuard(form).then(ok => {
+                        if (!ok) return;
+                        window.salesOrderCreditApprovalGuard(form).then(approved => {
+                            if (approved) form.submit();
+                        });
+                    });
+                });
             },
 
             itemKey(it) {
@@ -1151,7 +1149,7 @@
             },
 
             getCurrentItemKeys() {
-                return this.savedItems.map(it => this.itemKey(it));
+                return this.rows.map(it => this.itemKey(it));
             },
 
             normalizeRestoredRow(item, index = 0) {
@@ -1189,19 +1187,22 @@
                 return row;
             },
 
-            restoreSavedItems(items = []) {
-                this.savedItems = Array.isArray(items) ?
+            restoreRows(items = []) {
+                this.rows = Array.isArray(items) ?
                     items.map((item, index) => this.normalizeRestoredRow(item, index)) :
                     [];
-                this.syncDescList?.();
+                if (this.rows.length === 0) {
+                    this.rows = [this.createRow()];
+                }
                 this.recalcTotals();
             },
-
-            restoreDraft(draft = {}) {
-                this.draft = this.normalizeRestoredRow(draft, 'draft');
-                if (this.draft.fprdcode) {
-                    this.hydrateRowFromMeta(this.draft, this.productMeta(this.draft.fprdcode));
-                }
+            createRow(source = {}) {
+                const row = this.normalizeRestoredRow({
+                    ...newRow(),
+                    ...source,
+                    fnoacak: source.fnoacak || this.generateUniqueNoAcak(source.uid || null),
+                }, source.uid || cryptoRandom());
+                return row;
             },
 
             // Tambahkan di Alpine data
@@ -1235,6 +1236,7 @@
             },
 
             init() {
+                window.salesOrderItemsTable = this;
                 this.$watch('includePPN', () => this.recalcTotals());
                 this.$watch('ppnMode', () => this.recalcTotals());
                 this.$watch('ppnRate', () => this.recalcTotals());
@@ -1257,35 +1259,75 @@
                         product
                     } = e.detail || {};
                     if (!product) return;
-                    const apply = (row) => {
-                        row.fprdcode = (product.fprdcode || '').toString();
-                        this.hydrateRowFromMeta(row, this.productMeta(row.fprdcode));
-                        row.fnoacak = this.normalizeNoAcak(row.fnoacak) || this.generateUniqueNoAcak();
-                        if (!row.fqty) row.fqty = 1;
-                        this.recalc(row);
-                    };
-                    apply(this.draft);
-                    this.$nextTick(() => this.$refs.draftQty?.focus());
+                    if (typeof this.browseTarget !== 'number') return;
+                    const row = this.rows[this.browseTarget];
+                    if (!row) return;
+                    row.fprdcode = (product.fprdcode || '').toString();
+                    this.hydrateRowFromMeta(row, this.productMeta(row.fprdcode));
+                    row.fnoacak = this.normalizeNoAcak(row.fnoacak) || this.generateUniqueNoAcak(row.uid);
+                    if (!row.fqty) row.fqty = 1;
+                    this.recalc(row);
+                    const i = this.browseTarget;
+                    this.$nextTick(() => document.getElementById('qty_row_' + i)?.focus());
                 }, {
                     passive: true
                 });
 
-                const self = this;
-                this.draft.fnoacak = this.generateUniqueNoAcak();
-                document.addEventListener('change', function(e) {
-                    if (e.target && e.target.id === 'draftUnitSelect') {
-                        self.draft.fsatuan = e.target.value;
-                    }
-                });
+                this.restoreRows(@json($initialSalesOrderItems));
             },
 
-            browseTarget: 'draft',
-            openBrowseFor(where) {
+            browseTarget: null,
+            openBrowseFor(index) {
+                this.browseTarget = index;
                 window.dispatchEvent(new CustomEvent('browse-open', {
                     detail: {
                         forEdit: false
                     }
                 }));
+            },
+            rowWarningLabel(row) {
+                return `Data Produk ${row.fitemname || row.fprdcode || '(tanpa nama)'} qty masih 0, tidak akan tersimpan.`;
+            },
+            submitForm(form) {
+                const validRows = this.rows.filter((row) => this.isRowSavable(row));
+                const warningRows = this.rows.filter((row) => this.isRowFilled(row) && !this.isRowSavable(row));
+
+                if (warningRows.length > 0) {
+                    this.warningTitle = 'Qty Belum Diisi';
+                    this.warningMessage = validRows.length > 0
+                        ? 'Beberapa item tidak akan disimpan karena qty masih 0.'
+                        : 'Tidak ada item yang bisa disimpan karena qty masih 0 atau data belum lengkap.';
+                    this.warningItems = warningRows.map((row) => this.rowWarningLabel(row));
+                    this.warningCanProceed = validRows.length > 0;
+                    this.pendingSubmitForm = form;
+                    this.pendingRowsToSubmit = validRows;
+                    this.showWarningModal = true;
+                    return;
+                }
+
+                if (validRows.length === 0) {
+                    this.showNoItems = true;
+                    Swal.fire({
+                        icon: 'warning',
+                        title: window._soLabels.noItemsTitle,
+                        text: window._soLabels.noItemsText,
+                        confirmButtonText: window._soLabels.noItemsBtn,
+                        customClass: {
+                            confirmButton: 'bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700'
+                        }
+                    });
+                    return;
+                }
+
+                this.rowsToSubmit = validRows;
+                this.$nextTick(() => {
+                    window.salesOrderDuplicateRefPoGuard(form).then(ok => {
+                        if (!ok) return;
+                        window.salesOrderCreditApprovalGuard(form).then(approved => {
+                            if (approved) form.submit();
+                        });
+                    });
+                });
             },
         };
 
@@ -1316,26 +1358,6 @@
                 Math.random().toString(36).slice(2)) + Date.now();
         }
 
-        function getDraftUnitSelect() {
-            return document.getElementById('draftUnitSelect');
-        }
-
-        function populateDraftUnitSelect(units) {
-            const sel = getDraftUnitSelect();
-            if (!sel) return;
-            sel.innerHTML = '';
-            units.forEach(u => {
-                const opt = document.createElement('option');
-                opt.value = u;
-                opt.textContent = u;
-                sel.appendChild(opt);
-            });
-        }
-
-        function clearDraftUnitSelect() {
-            const sel = getDraftUnitSelect();
-            if (sel) sel.innerHTML = '';
-        }
     }
 </script>
 

@@ -425,7 +425,7 @@
                             </div>
                         </div>
 
-                        <div x-data="itemsTable()" x-init="init()" class="mt-6 space-y-2">
+                        <div x-data="salesOrderReadonlyItemsTable()" x-init="init()" class="mt-6 space-y-2">
 
                             {{-- DETAIL ITEM (tabel input) --}}
                             <h3 class="text-base font-semibold text-gray-800">Detail Item</h3>
@@ -448,17 +448,16 @@
                                         </tr>
                                     </thead>
 
-                                    <template x-for="(it, i) in savedItems" :key="it.uid || `item-${i}`">
+                                    <template x-for="(row, i) in rows" :key="row.uid || `item-${i}`">
                                         <tbody>
-                                            <!-- ROW UTAMA - SAVED ITEM (READ ONLY) -->
                                             <tr class="border-t align-top">
                                                 <td class="p-2" x-text="i + 1"></td>
-                                                <td class="p-2 font-mono" x-text="it.fprdcode"></td>
+                                                <td class="p-2 font-mono" x-text="row.fprdcode"></td>
                                                 <td class="p-2">
                                                     <div class="flex w-full max-w-full">
                                                         <div class="min-w-0 flex-1 rounded-l border bg-gray-100 px-2 py-1 text-sm leading-5 text-gray-600 whitespace-normal break-words"
-                                                            x-text="it.fitemname"></div>
-                                                        <button type="button" @click="openDesc('saved', i, true)"
+                                                            x-text="row.fitemname"></div>
+                                                        <button type="button" @click="openDesc(row)"
                                                             class="shrink-0 inline-flex items-center border border-l-0 rounded-r bg-slate-50 px-2 py-1 text-slate-700 hover:bg-slate-100"
                                                             title="Deskripsi">
                                                             <x-heroicon-o-document-text class="w-4 h-4" />
@@ -466,163 +465,49 @@
                                                     </div>
                                                 </td>
                                                 <td class="p-2">
-                                                    <template x-if="it.units && it.units.length > 1">
+                                                    <template x-if="row.units && row.units.length > 1">
                                                         <select
                                                             class="w-full border rounded px-2 py-1 text-xs bg-gray-100 text-gray-600"
-                                                            x-model="it.fsatuan" disabled>
-                                                            <template x-for="u in it.units" :key="u">
+                                                            x-model="row.fsatuan" disabled>
+                                                            <template x-for="u in row.units" :key="u">
                                                                 <option :value="u" x-text="u"
-                                                                    :selected="u === it.fsatuan"></option>
+                                                                    :selected="u === row.fsatuan"></option>
                                                             </template>
                                                         </select>
                                                     </template>
-                                                    <template x-if="!it.units || it.units.length <= 1">
-                                                        <span x-text="it.fsatuan"></span>
+                                                    <template x-if="!row.units || row.units.length <= 1">
+                                                        <span x-text="row.fsatuan"></span>
                                                     </template>
                                                 </td>
-                                                <td class="p-2 text-right font-medium" x-text="formatQtyValue(it.fqty)">
+                                                <td class="p-2 text-right font-medium" x-text="formatQtyValue(row.fqty)">
                                                 </td>
                                                 <td class="p-2 text-right">
                                                     <input type="text"
                                                         class="w-full border rounded px-2 py-1 text-right bg-gray-100 text-gray-600"
-                                                        :value="formatQtyValue(it.fqtysrj)" disabled>
+                                                        :value="formatQtyValue(row.fqtysrj)" disabled>
                                                 </td>
                                                 <td class="p-2 text-right">
                                                     <input type="number"
                                                         class="w-full border rounded px-2 py-1 text-right bg-gray-100 text-gray-600"
-                                                        x-model.number="it.fprice" disabled>
+                                                        x-model.number="row.fprice" disabled>
                                                 </td>
                                                 <td class="p-2 text-right">
                                                     <input type="text"
                                                         class="w-full border rounded px-2 py-1 text-right bg-gray-100 text-gray-600"
-                                                        x-model="it.fdisc" disabled>
+                                                        x-model="row.fdisc" disabled>
                                                 </td>
                                                 <td class="p-2">
                                                     <input type="text"
                                                         class="w-full border rounded px-2 py-1 bg-gray-100 text-gray-600 text-sm text-right"
-                                                        :value="fmt(it.ftotal)" disabled>
+                                                        :value="fmt(row.ftotal)" disabled>
                                                 </td>
                                                 <td class="p-2 text-center">
                                                     <button type="button" disabled
                                                         class="px-3 py-1 rounded text-xs bg-gray-100 text-gray-400 cursor-not-allowed">Hapus</button>
                                                 </td>
                                             </tr>
-
-                                            <!-- Hidden inputs row -->
-                                            <tr class="hidden">
-                                                <td colspan="9">
-                                                    <input type="hidden" name="fitemcode[]" :value="it.fitemcode">
-                                                    <input type="hidden" name="fitemname[]" :value="it.fitemname">
-                                                    <input type="hidden" name="fsatuan[]" :value="it.fsatuan">
-                                                    <input type="hidden" name="fnoacak[]" :value="it.fnoacak">
-                                                    <input type="hidden" name="frefdtno[]" :value="it.frefdtno">
-                                                    <input type="hidden" name="fnouref[]" :value="it.fnouref">
-                                                    <input type="hidden" name="frefpr[]" :value="it.frefpr">
-                                                    <input type="hidden" name="fqty[]" :value="it.fqty">
-                                                    <input type="hidden" name="fterima[]" :value="it.fterima">
-                                                    <input type="hidden" name="fprice[]" :value="it.fprice">
-                                                    <input type="hidden" name="fdisc[]" :value="it.fdisc">
-                                                    <input type="hidden" name="ftotal[]" :value="it.ftotal">
-                                                    <input type="hidden" name="fdesc[]" :value="it.fdesc">
-                                                    <input type="hidden" name="fketdt[]" :value="it.fketdt">
-                                                </td>
-                                            </tr>
-
-                                            <!-- TIDAK ADA TEXTAREA DI SINI! -->
                                         </tbody>
                                     </template>
-
-
-                                    <!-- ROW EDIT UTAMA -->
-                                    <tr x-show="false" class="border-t align-top" x-cloak>
-                                        <!-- # -->
-                                        <td class="p-2" x-text="(editingIndex ?? 0) + 1"></td>
-
-                                        <!-- Kode Produk -->
-                                        <td class="p-2">
-                                            <div class="flex">
-                                                <input type="text" class="flex-1 border rounded-l px-2 py-1 font-mono"
-                                                    x-ref="editCode" x-model.trim="editRow.fitemcode"
-                                                    @input="onCodeTypedRow(editRow)"
-                                                    @keydown.enter.prevent="handleEnterOnCode('edit')">
-                                            </div>
-                                        </td>
-
-                                        <!-- Nama Produk (readonly) -->
-                                        <td class="p-2">
-                                            <div class="w-full border rounded px-2 py-1 bg-gray-100 text-gray-600 text-sm leading-5 whitespace-normal break-words"
-                                                x-text="editRow.fitemname"></div>
-                                        </td>
-
-                                        <!-- Satuan -->
-                                        <td class="p-2">
-                                            <template x-if="editRow.units.length > 1">
-                                                <select class="w-full border rounded px-2 py-1" x-ref="editUnit"
-                                                    x-model="editRow.fsatuan"
-                                                    @keydown.enter.prevent="$refs.editRefPr?.focus()">
-                                                    <template x-for="u in editRow.units" :key="u">
-                                                        <option :value="u" x-text="u"></option>
-                                                    </template>
-                                                </select>
-                                            </template>
-                                            <template x-if="editRow.units.length <= 1">
-                                                <input type="text"
-                                                    class="w-full border rounded px-2 py-1 bg-gray-100 text-gray-600"
-                                                    :value="editRow.fsatuan || '-'" disabled>
-                                            </template>
-                                        </td>
-
-                                        <!-- Qty -->
-                                        <td class="p-2 text-right">
-                                            <input type="number" class="border rounded px-2 py-1 w-24 text-right"
-                                                type="number" x-ref="editQty" x-model.number="editRow.fqty"
-                                                @input="
-                                                    recalc(editRow);
-                                                "
-                                                @keydown.enter.prevent="$refs.editTerima?.focus()">
-                                        </td>
-
-                                        <!-- @ Harga -->
-                                        <td class="p-2 text-right">
-                                            <input type="number" class="border rounded px-2 py-1 w-28 text-right"
-                                                min="0" step="0.01" x-ref="editPrice"
-                                                x-model.number="editRow.fprice" @input="recalc(editRow)"
-                                                @keydown.enter.prevent="$refs.editDisc?.focus()">
-                                        </td>
-
-                                        <!-- Disc.% -->
-                                        <td class="p-2 text-right">
-                                            <input type="text" class="border rounded px-2 py-1 w-24 text-right"
-                                                x-ref="editDisc" x-model="editRow.fdisc" @input="recalc(editRow)"
-                                                @keydown.enter.prevent="applyEdit()" placeholder="10+2">
-                                        </td>
-
-                                        <!-- Total Harga (readonly) -->
-                                        <td class="p-2 text-right" x-text="fmt(editRow.ftotal)"></td>
-                                    </tr>
-
-                                    <!-- ROW EDIT DESC -->
-                                    <tr x-show="false" class="border-b" x-cloak>
-                                        <td class="p-0"></td>
-                                        <td class="p-0"></td>
-                                        <td class="p-0"></td>
-                                        <td class="p-0"></td>
-                                        <td class="p-0"></td>
-                                        <td class="p-0"></td>
-                                        <td class="p-0"></td>
-                                        <td class="p-0"></td>
-                                    </tr>
-
-                                    <!-- ROW DRAFT DESC -->
-                                    <tr x-show="false" class="border-b">
-                                        <td class="p-0"></td>
-                                        <td class="p-0"></td>
-                                        <td class="p-0"></td>
-                                        <td class="p-0"></td>
-                                        <td class="p-0"></td>
-                                        <td class="p-0"></td>
-                                        <td class="p-0"></td>
-                                    </tr>
                                     </tbody>
                                 </table>
                             </div>
@@ -724,7 +609,6 @@
                                     </div>
                                 </div>
 
-                                <input type="hidden" name="itemsCount" :value="savedItems.length">
                             </div>
 
                             @php
@@ -782,23 +666,11 @@
                             <form id="salesOrderForm" action="{{ route('salesorder.update', $salesorder->ftrsomtid) }}"
                                 method="POST" class="mt-6" data-salesorder-id="{{ $salesorder->ftrsomtid }}" x-data="{
                                     handleSubmit() {
-                                        const count = Number(this.$el.querySelector('input[name=itemsCount]')?.value || 0);
-                                        if (count < 1) {
-                                            Swal.fire({
-                                                icon: 'warning',
-                                                title: window._soLabels.noItemsTitle,
-                                                text: window._soLabels.noItemsText,
-                                                confirmButtonText: window._soLabels.noItemsBtn,
-                                                customClass: {
-                                                    confirmButton: 'bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700'
-                                                }
-                                            });
+                                        if (window.salesOrderItemsTable?.submitForm) {
+                                            window.salesOrderItemsTable.submitForm(this.$el);
                                             return;
                                         }
-                                        window.salesOrderDuplicateRefPoGuard(this.$el).then(ok => {
-                                            if (!ok) return;
-                                            window.salesOrderCreditApprovalGuard(this.$el).then(approved => { if (approved) this.$el.submit() });
-                                        });
+                                        this.$el.submit();
                                     }
                                 }" @submit.prevent="handleSubmit()">
                                 @csrf
@@ -1098,18 +970,29 @@
                                                     <th class="p-2 text-center w-24">Aksi</th>
                                                 </tr>
                                             </thead>
-                                            <!-- Loop untuk setiap item yang sudah disimpan -->
-                                            <template x-for="(it, i) in savedItems" :key="it.uid || `item-${i}`">
-                                                <tbody>
-                                                    <!-- ROW UTAMA - SAVED ITEM (READ ONLY) -->
+                                            <tbody>
+                                                <template x-for="(row, i) in rows" :key="row.uid || `item-${i}`">
                                                     <tr class="border-t align-top">
                                                         <td class="p-2" x-text="i + 1"></td>
-                                                        <td class="p-2 font-mono" x-text="it.fprdcode"></td>
+                                                        <td class="p-2">
+                                                            <div class="flex">
+                                                                <input type="text"
+                                                                    class="flex-1 border rounded-l px-2 py-1 font-mono"
+                                                                    x-model.trim="row.fprdcode"
+                                                                    @input="onCodeTypedRow(row)"
+                                                                    @keydown.enter.prevent="focusRowUnit(row, i)">
+                                                                <button type="button" @click="openBrowseFor(i)"
+                                                                    class="border border-l-0 px-2 py-1 bg-white hover:bg-gray-50"
+                                                                    title="Cari Produk">
+                                                                    <x-heroicon-o-magnifying-glass class="w-4 h-4" />
+                                                                </button>
+                                                            </div>
+                                                        </td>
                                                         <td class="p-2">
                                                             <div class="flex w-full max-w-full">
                                                                 <div class="min-w-0 flex-1 rounded-l border bg-gray-100 px-2 py-1 text-sm leading-5 text-gray-600 whitespace-normal break-words"
-                                                                    x-text="it.fitemname"></div>
-                                                                <button type="button" @click="openDesc('saved', i)"
+                                                                    x-text="row.fitemname"></div>
+                                                                <button type="button" @click="openDesc(row)"
                                                                     class="shrink-0 inline-flex items-center border border-l-0 rounded-r bg-slate-50 px-2 py-1 text-slate-700 hover:bg-slate-100"
                                                                     title="Deskripsi">
                                                                     <x-heroicon-o-document-text class="w-4 h-4" />
@@ -1117,175 +1000,74 @@
                                                             </div>
                                                         </td>
                                                         <td class="p-2">
-                                                            <template x-if="it.units && it.units.length > 1">
+                                                            <template x-if="row.units && row.units.length > 1">
                                                                 <select class="w-full border rounded px-2 py-1 text-xs"
-                                                                    x-model="it.fsatuan" @change="recalc(it)">
-                                                                    <template x-for="u in it.units"
-                                                                        :key="u">
-                                                                        <option :value="u" x-text="u"
-                                                                            :selected="u === it.fsatuan"></option>
+                                                                    :id="'unit_row_' + i" x-model="row.fsatuan"
+                                                                    @change="recalc(row)"
+                                                                    @keydown.enter.prevent="focusRowQty(i)">
+                                                                    <template x-for="u in row.units" :key="u">
+                                                                        <option :value="u" x-text="u"></option>
                                                                     </template>
                                                                 </select>
                                                             </template>
-                                                            <template x-if="!it.units || it.units.length <= 1">
-                                                                <span class="text-xs" x-text="it.fsatuan"></span>
+                                                            <template x-if="!row.units || row.units.length <= 1">
+                                                                <span class="text-xs" x-text="row.fsatuan"></span>
                                                             </template>
                                                         </td>
                                                         <td class="p-2 text-right">
                                                             <input type="number"
                                                                 class="w-full border rounded px-2 py-1 text-right"
-                                                                type="number" x-model.number="it.fqty"
-                                                                @input="
-                                                                    recalc(it);
-                                                                    
-                                                                ">
+                                                                :id="'qty_row_' + i" x-model.number="row.fqty"
+                                                                min="0" @input="recalc(row)"
+                                                                @keydown.enter.prevent="focusRowPrice(i)">
                                                         </td>
                                                         <td class="p-2 text-right font-medium"
-                                                            x-text="formatQtyValue(it.fqtysrj)"></td>
+                                                            x-text="formatQtyValue(row.fqtysrj)"></td>
                                                         <td class="p-2 text-right">
                                                             <input type="number"
                                                                 class="w-full border rounded px-2 py-1 text-right"
-                                                                x-model.number="it.fprice" @input="recalc(it)">
+                                                                :id="'price_row_' + i" x-model.number="row.fprice"
+                                                                @input="recalc(row)"
+                                                                @keydown.enter.prevent="focusRowDisc(i)">
                                                         </td>
                                                         <td class="p-2 text-right">
                                                             <input type="text"
                                                                 class="w-full border rounded px-2 py-1 text-right"
-                                                                x-model="it.fdisc" @input="recalc(it)">
+                                                                :id="'disc_row_' + i" x-model="row.fdisc"
+                                                                @input="recalc(row)" @keydown.enter.prevent="addRow(i)">
                                                         </td>
                                                         <td class="p-2">
                                                             <input type="text"
                                                                 class="w-full border rounded px-2 py-1 bg-gray-100 text-gray-600 text-sm text-right"
-                                                                :value="fmt(it.ftotal)" disabled>
+                                                                :value="fmt(row.ftotal)" disabled>
                                                         </td>
                                                         <td class="p-2 text-center">
-                                                            <button type="button" @click="removeSaved(i)"
-                                                                class="px-3 py-1 rounded text-xs bg-red-100 text-red-600 hover:bg-red-200">Hapus</button>
+                                                            <div class="flex items-center justify-center gap-2 flex-wrap">
+                                                                <button type="button" @click="addRow(i)"
+                                                                    class="inline-flex h-8 w-8 items-center justify-center rounded bg-emerald-600 text-white hover:bg-emerald-700">+</button>
+                                                                <button type="button" @click="removeRow(i)"
+                                                                    class="inline-flex h-8 w-8 items-center justify-center rounded bg-red-100 text-red-600 hover:bg-red-200">-</button>
+                                                            </div>
                                                         </td>
                                                     </tr>
-
-                                                    <tr class="hidden">
-                                                        <td colspan="10">
-                                                            <input type="hidden" name="fprdcode[]"
-                                                                :value="it.fprdcode">
-                                                            <input type="hidden" name="fitemname[]"
-                                                                :value="it.fitemname">
-                                                            <input type="hidden" name="fsatuan[]"
-                                                                :value="it.fsatuan">
-                                                            <input type="hidden" name="fqty[]" :value="it.fqty">
-                                                            <input type="hidden" name="fprice[]" :value="it.fprice">
-                                                            <input type="hidden" name="fdisc[]" :value="it.fdisc">
-                                                            <input type="hidden" name="ftotal[]" :value="it.ftotal">
-                                                            <input type="hidden" name="fdesc[]" :value="it.fdesc">
-                                                        </td>
-                                                    </tr>
-
-                                                    <!-- TIDAK ADA TEXTAREA DI SINI! -->
-                                                </tbody>
-                                            </template>
-
-                                            <!-- Row Edit & Draft (di luar loop) -->
-                                            <tbody>
-
-
-                                                <!-- ROW DRAFT UTAMA -->
-                                                <tr class="border-t align-top">
-                                                    <td class="p-2" x-text="savedItems.length + 1"></td>
-
-                                                    <!-- Kode Produk -->
-                                                    <td class="p-2">
-                                                        <div class="flex">
-                                                            <input type="text"
-                                                                class="flex-1 border rounded-l px-2 py-1 font-mono"
-                                                                x-ref="draftCode" x-model.trim="draft.fprdcode"
-                                                                @input="onCodeTypedRow(draft)"
-                                                                @keydown.enter.prevent="handleEnterOnCode('draft')">
-                                                            <button type="button" @click="openBrowseFor('draft')"
-                                                                class="border border-l-0 px-2 py-1 bg-white hover:bg-gray-50"
-                                                                title="Cari Produk">
-                                                                <x-heroicon-o-magnifying-glass class="w-4 h-4" />
-                                                            </button>
-                                                        </div>
-                                                    </td>
-
-                                                    <!-- Nama Produk (readonly) -->
-                                                    <td class="p-2">
-                                                        <div class="flex w-full max-w-full">
-                                                            <div class="min-w-0 flex-1 rounded-l border bg-gray-100 px-2 py-1 text-sm leading-5 text-gray-600 whitespace-normal break-words"
-                                                                x-text="draft.fitemname"></div>
-                                                            <button type="button" @click="openDesc('draft')"
-                                                                class="shrink-0 inline-flex items-center border border-l-0 rounded-r bg-slate-50 px-2 py-1 text-slate-700 hover:bg-slate-100"
-                                                                title="Deskripsi">
-                                                                <x-heroicon-o-document-text class="w-4 h-4" />
-                                                            </button>
-                                                        </div>
-                                                    </td>
-
-                                                    <td class="p-2">
-                                                        <template x-if="draft.units.length > 1">
-                                                            <select id="draftUnitSelect"
-                                                                class="w-full border rounded px-2 py-1 text-xs"
-                                                                x-model="draft.fsatuan" @change="recalc(draft)"
-                                                                @keydown.enter.prevent="$refs.draftQty?.focus()">
-                                                                <template x-for="u in draft.units" :key="u">
-                                                                    <option :value="u" x-text="u">
-                                                                    </option>
-                                                                </template>
-                                                            </select>
-                                                        </template>
-                                                        <template x-if="draft.units.length <= 1">
-                                                            <input type="text"
-                                                                class="w-full border rounded px-2 py-1 bg-gray-100 text-gray-600 text-xs"
-                                                                :value="draft.fsatuan || '-'" disabled>
-                                                        </template>
-                                                    </td>
-
-                                                    <!-- Qty -->
-                                                    <td class="p-2 text-right">
-                                                        <input type="number"
-                                                            class="border rounded px-2 py-1 w-24 text-right"
-                                                            type="number" x-ref="draftQty" x-model.number="draft.fqty"
-                                                            @input="
-                                                                recalc(draft);
-                                                            "
-                                                            @keydown.enter.prevent="$refs.draftPrice?.focus()">
-                                                        <div class="text-xs text-gray-400 mt-0.5 text-right invisible">
-                                                            limit
-                                                        </div>
-                                                    </td>
-                                                    <td class="p-2 text-right font-medium" x-text="formatQtyValue(0)">
-                                                    </td>
-                                                    <!-- @ Harga -->
-                                                    <td class="p-2 text-right">
-                                                        <input type="number"
-                                                            class="border rounded px-2 py-1 w-28 text-right"
-                                                            min="0" step="0.01" x-ref="draftPrice"
-                                                            x-model.number="draft.fprice" @input="recalc(draft)"
-                                                            @keydown.enter.prevent="$refs.draftDisc?.focus()">
-                                                    </td>
-
-                                                    <!-- Disc.% -->
-                                                    <td class="p-2 text-right">
-                                                        <input type="text"
-                                                            class="border rounded px-2 py-1 w-24 text-right"
-                                                            x-ref="draftDisc" x-model="draft.fdisc"
-                                                            @input="recalc(draft)"
-                                                            @keydown.enter.prevent="addIfComplete()" placeholder="10+2">
-                                                    </td>
-
-                                                    <!-- Total Harga (readonly) -->
-                                                    <td class="p-2 text-right" x-text="fmt(draft.ftotal)"></td>
-
-                                                    <!-- Aksi -->
-                                                    <td class="p-2 text-center">
-                                                        <div class="flex items-center justify-center gap-2 flex-wrap">
-                                                            <button type="button" @click="addIfComplete()"
-                                                                class="px-3 py-1 rounded text-xs bg-emerald-600 text-white">Tambah</button>
-                                                        </div>
-                                                    </td>
-                                                </tr>
-
+                                                </template>
                                             </tbody>
                                         </table>
+                                    </div>
+
+                                    <div class="hidden">
+                                        <template x-for="row in rowsToSubmit" :key="'submit-' + row.uid">
+                                            <div>
+                                                <input type="hidden" name="fprdcode[]" :value="row.fprdcode">
+                                                <input type="hidden" name="fitemname[]" :value="row.fitemname">
+                                                <input type="hidden" name="fsatuan[]" :value="row.fsatuan">
+                                                <input type="hidden" name="fqty[]" :value="row.fqty">
+                                                <input type="hidden" name="fprice[]" :value="row.fprice">
+                                                <input type="hidden" name="fdisc[]" :value="row.fdisc">
+                                                <input type="hidden" name="ftotal[]" :value="row.ftotal">
+                                                <input type="hidden" name="fdesc[]" :value="row.fdesc">
+                                            </div>
+                                        </template>
                                     </div>
 
                                     <!-- Kanan: Panel Totals -->
@@ -1416,7 +1198,35 @@
                                         </div>
                                     </div>
 
-                                    <input type="hidden" name="itemsCount" :value="savedItems.length">
+                                    <div x-show="showWarningModal" x-cloak
+                                        class="fixed inset-0 z-[96] flex items-center justify-center" x-transition.opacity>
+                                        <div class="absolute inset-0 bg-black/50" @click="closeWarning()"></div>
+                                        <div class="relative bg-white w-[92vw] max-w-lg rounded-2xl shadow-2xl overflow-hidden"
+                                            x-transition.scale>
+                                            <div class="px-5 py-4 border-b flex items-center">
+                                                <x-heroicon-o-exclamation-triangle class="w-6 h-6 text-amber-500 mr-2" />
+                                                <h3 class="text-lg font-semibold text-gray-800" x-text="warningTitle"></h3>
+                                            </div>
+                                            <div class="px-5 py-4 space-y-3">
+                                                <p class="text-sm text-gray-700" x-text="warningMessage"></p>
+                                                <template x-if="warningItems.length > 0">
+                                                    <ul class="list-disc pl-5 text-sm text-gray-700 space-y-1">
+                                                        <template x-for="item in warningItems" :key="item">
+                                                            <li x-text="item"></li>
+                                                        </template>
+                                                    </ul>
+                                                </template>
+                                            </div>
+                                            <div class="px-5 py-3 border-t flex items-center justify-end gap-2">
+                                                <button type="button" @click="closeWarning()"
+                                                    class="h-9 px-4 rounded-lg bg-gray-100 text-gray-700 text-sm font-medium hover:bg-gray-200">Tutup</button>
+                                                <button type="button" x-show="warningCanProceed" @click="confirmWarningAndSubmit()"
+                                                    class="h-9 px-4 rounded-lg bg-emerald-600 text-white text-sm font-medium hover:bg-emerald-700">Lanjut Simpan</button>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <input type="hidden" name="itemsCount" :value="rowsToSubmit.length">
                                 </div>
 
                                 <x-transaction.browse-customer-modal />
@@ -1616,12 +1426,197 @@
         });
     });
 
+    function salesOrderReadonlyItemsTable() {
+        return {
+            rows: [],
+            totalHarga: 0,
+            ppnRate: 11,
+            includePPN: false,
+            ppnMode: 0,
+            showDescModal: false,
+            descValue: '',
+            _descTarget: null,
+            descReadonly: true,
+
+            get totalDPP() {
+                const total = +this.totalHarga || 0;
+                if (!this.includePPN) return total;
+                const rate = +this.ppnRate || 0;
+                if (this.ppnMode === 1) {
+                    return (100 / (100 + rate)) * total;
+                }
+                return total;
+            },
+
+            get ppnAmount() {
+                if (!this.includePPN) return 0;
+                const dpp = this.totalDPP;
+                const rate = +this.ppnRate || 0;
+                return Math.round(dpp * (rate / 100));
+            },
+
+            get grandTotal() {
+                const total = +this.totalHarga || 0;
+                if (!this.includePPN) return total;
+                if (this.ppnMode === 1) return total;
+                return total + this.ppnAmount;
+            },
+
+            fmt(n) {
+                if (n === null || n === undefined || n === '') return '-';
+                const v = Number(n);
+                if (!isFinite(v)) return '-';
+                return v.toLocaleString('id-ID', {
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2
+                });
+            },
+
+            formatQtyValue(value) {
+                const num = Number(value);
+                if (!Number.isFinite(num)) return '0,00';
+                return num.toLocaleString('id-ID', {
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2
+                });
+            },
+
+            rupiah(n) {
+                const v = Number(n || 0);
+                if (!isFinite(v)) return '-';
+                return v.toLocaleString('id-ID', {
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2
+                });
+            },
+
+            parseDiscount(discStr) {
+                if (!discStr && discStr !== 0) return 0;
+                if (typeof discStr === 'number') return discStr;
+                const str = String(discStr).trim();
+                if (!str) return 0;
+                if (!isNaN(str)) return parseFloat(str) || 0;
+
+                try {
+                    const cleaned = str.replace(/\s/g, '');
+                    if (!/^[\d+\-*/.()]+$/.test(cleaned)) return 0;
+                    const result = new Function('return ' + cleaned)();
+                    return isFinite(result) ? Math.min(100, Math.max(0, result)) : 0;
+                } catch (e) {
+                    console.warn('Invalid discount format:', discStr);
+                    return 0;
+                }
+            },
+
+            recalc(row) {
+                row.fqty = Math.max(0, +row.fqty || 0);
+                row.fqtysrj = Math.max(0, +row.fqtysrj || 0);
+                row.fterima = Math.max(0, +row.fterima || 0);
+                row.fprice = Math.max(0, +row.fprice || 0);
+
+                const discPercent = this.parseDiscount(row.fdisc);
+                const subtotal = row.fqty * row.fprice;
+                const discAmount = subtotal * (discPercent / 100);
+                row.ftotal = +(subtotal - discAmount).toFixed(2);
+            },
+
+            recalcTotals() {
+                this.totalHarga = this.rows.reduce((sum, item) => sum + (+item.ftotal || 0), 0);
+            },
+
+            productMeta(code) {
+                const key = (code || '').trim();
+                return window.PRODUCT_MAP?.[key] || null;
+            },
+
+            hydrateRowFromMeta(row, meta) {
+                if (!meta) {
+                    if (!row.fitemname) row.fitemname = '';
+                    if (!Array.isArray(row.units)) row.units = [];
+                    if (!row.fsatuan) row.fsatuan = '';
+                    return;
+                }
+
+                row.fitemname = row.fitemname || meta.name || '';
+                const units = [...new Set((meta.units || []).map((u) => (u ?? '').toString().trim()).filter(Boolean))];
+                row.units = units;
+                if (!units.includes(row.fsatuan)) {
+                    row.fsatuan = row.fsatuan || units[0] || '';
+                }
+            },
+
+            createRow(item = {}, index = 0) {
+                const row = {
+                    uid: item?.uid || `readonly-row-${index}`,
+                    fprdcode: '',
+                    fitemname: '',
+                    units: [],
+                    fsatuan: '',
+                    fnoacak: '',
+                    frefdtno: '',
+                    fnouref: '',
+                    frefpr: '',
+                    fqty: 0,
+                    fqtysrj: 0,
+                    fterima: 0,
+                    fprice: 0,
+                    fdisc: 0,
+                    ftotal: 0,
+                    fdesc: '',
+                    fketdt: '',
+                    ...item,
+                };
+
+                if (typeof row.units === 'string') {
+                    try {
+                        const parsed = JSON.parse(row.units);
+                        row.units = Array.isArray(parsed) ? parsed : [];
+                    } catch (e) {
+                        row.units = row.units.split(',').map((u) => u.trim()).filter(Boolean);
+                    }
+                } else if (!Array.isArray(row.units)) {
+                    row.units = [];
+                }
+
+                this.hydrateRowFromMeta(row, this.productMeta(row.fprdcode));
+                if (row.fsatuan && !row.units.includes(row.fsatuan)) {
+                    row.units.unshift(row.fsatuan);
+                }
+                this.recalc(row);
+                return row;
+            },
+
+            openDesc(row) {
+                this._descTarget = row;
+                this.descValue = row?.fdesc || '';
+                this.descReadonly = true;
+                this.showDescModal = true;
+            },
+
+            closeDesc() {
+                this.showDescModal = false;
+                this._descTarget = null;
+                this.descValue = '';
+                this.descReadonly = true;
+            },
+
+            init() {
+                this.$watch('includePPN', () => this.recalcTotals());
+                this.$watch('ppnMode', () => this.recalcTotals());
+                this.$watch('ppnRate', () => this.recalcTotals());
+                this.rows = @json($savedItems ?? []);
+                this.rows = this.rows.map((item, index) => this.createRow(item, index));
+                this.recalcTotals();
+            },
+        };
+    }
+
 
     function itemsTable() {
         return {
             showNoItems: false,
-            savedItems: @json(count($initialEditSalesOrderItems) ? $initialEditSalesOrderItems : $savedItems ?? []),
-            draft: newRow(),
+            rows: [],
+            rowsToSubmit: [],
 
             totalHarga: 0,
             headerDiscPercent: @json((float) old('fdiscpersen', $salesorder->fdiscpersen ?? 0)),
@@ -1633,6 +1628,13 @@
             includePPN: false,
             ppnMode: 0, // 0: Exclude, 1: Include
             ppnRate: 11,
+            showWarningModal: false,
+            warningTitle: 'Perhatian',
+            warningMessage: '',
+            warningItems: [],
+            warningCanProceed: false,
+            pendingSubmitForm: null,
+            pendingRowsToSubmit: [],
 
             get headerDiscAmount() {
                 const total = +this.totalHarga || 0;
@@ -1742,7 +1744,7 @@
 
             // ✅ UPDATE FUNGSI recalc untuk menggunakan parseDiscount
             recalc(row) {
-                row.fqty = Math.max(1, +row.fqty || 1);
+                row.fqty = Math.max(0, +row.fqty || 0);
                 row.fterima = Math.max(0, +row.fterima || 0);
                 row.fprice = Math.max(0, +row.fprice || 0);
 
@@ -1758,7 +1760,10 @@
             },
 
             recalcTotals() {
-                this.totalHarga = this.savedItems.reduce((sum, item) => sum + item.ftotal, 0);
+                this.totalHarga = this.rows.reduce((sum, item) => {
+                    if (!this.isRowSavable(item)) return sum;
+                    return sum + item.ftotal;
+                }, 0);
             },
 
             productMeta(code) {
@@ -1788,9 +1793,6 @@
                     row.fitemname = '';
                     row.units = [];
                     row.fsatuan = '';
-                    if (row === this.draft) {
-                        clearDraftUnitSelect();
-                    }
                     return;
                 }
                 row.fitemname = meta.name || '';
@@ -1799,22 +1801,29 @@
                 if (!units.includes(row.fsatuan)) row.fsatuan = units[0] || '';
                 row.fsatuan = row.fsatuan;
                 if (meta.unit_ratios) row.unit_ratios = meta.unit_ratios;
-
-                if (row === this.draft) {
-                    if (units.length > 1) {
-                        populateDraftUnitSelect(units);
-                    } else {
-                        clearDraftUnitSelect();
-                    }
-                }
             },
 
             onCodeTypedRow(row) {
                 this.hydrateRowFromMeta(row, this.productMeta(row.fprdcode));
+                row.fnoacak = this.normalizeNoAcak(row.fnoacak) || this.generateUniqueNoAcak(row.uid);
+                this.recalc(row);
             },
 
-            isComplete(row) {
+            isRowSavable(row) {
                 return row.fprdcode && row.fitemname && row.fsatuan && Number(row.fqty) > 0;
+            },
+            isRowFilled(row) {
+                return [
+                    row.fprdcode,
+                    row.fitemname,
+                    row.fsatuan,
+                    row.fqty,
+                    row.fprice,
+                    row.fdisc,
+                    row.fdesc,
+                    row.fketdt
+                ].some((value) => String(value ?? '').trim() !== '' && Number(value ?? 0) !== 0)
+                    || Number(row.fqty || 0) > 0;
             },
 
             onPrPicked(e) {
@@ -1823,7 +1832,6 @@
                     items
                 } = e.detail || {};
                 if (!items || !Array.isArray(items)) return;
-                this.resetDraft();
                 this.addManyFromPR(header, items);
             },
 
@@ -1832,8 +1840,10 @@
                 return /^\d{3}$/.test(normalized) ? normalized : '';
             },
 
-            generateUniqueNoAcak() {
-                const used = new Set(this.savedItems.map(item => this.normalizeNoAcak(item.fnoacak)).filter(Boolean));
+            generateUniqueNoAcak(exceptUid = null) {
+                const used = new Set(this.rows
+                    .filter(item => item.uid !== exceptUid)
+                    .map(item => this.normalizeNoAcak(item.fnoacak)).filter(Boolean));
                 let candidate = '';
                 do {
                     candidate = Array.from({
@@ -1846,7 +1856,7 @@
 
             addManyFromPR(header, items) {
                 const existing = new Set(this.getCurrentItemKeys());
-                let added = 0;
+                const incomingRows = [];
 
                 items.forEach(src => {
                     const row = {
@@ -1886,113 +1896,95 @@
                     if (existing.has(key)) return;
 
                     this.recalc(row);
-                    this.savedItems.push(row);
+                    incomingRows.push(row);
                     existing.add(key);
-                    added++;
                 });
 
+                if (incomingRows.length > 0) {
+                    const shouldReplaceStarter = this.rows.length === 1 && !this.isRowFilled(this.rows[0]);
+                    if (shouldReplaceStarter) {
+                        this.rows = incomingRows;
+                    } else {
+                        this.rows.push(...incomingRows);
+                    }
+                }
                 this.recalcTotals();
             },
-
-            resetDraft() {
-                this.draft = newRow();
-                this.$nextTick(() => this.$refs.draftCode?.focus());
-            },
-
-
-
-            addIfComplete() {
-                const r = this.draft;
-
-                if (!this.isComplete(r)) {
-                    if (!r.fprdcode) return this.$refs.draftCode?.focus();
-                    if (!r.fitemname) return this.$refs.draftCode?.focus();
-                    if (!r.fsatuan) return (r.units.length > 1 ? this.$refs.draftUnit?.focus() : this.$refs.draftCode
-                        ?.focus());
-                    if (!(Number(r.fqty) > 0)) return this.$refs.draftQty?.focus();
-                    return;
-                }
-
-                this.recalc(r);
-
-                const dupe = this.savedItems.find(it =>
-                    it.fprdcode === r.fprdcode &&
-                    it.fsatuan === r.fsatuan &&
-                    (it.frefpr || '') === (r.frefpr || '')
-                );
-
-                if (dupe) {
-                    this.showToast(@json('Item sama sudah ada di daftar'), 'warning');
-                    return;
-                }
-
-                this.savedItems.push({
-                    ...r,
-                    fnoacak: this.normalizeNoAcak(r.fnoacak) || this.generateUniqueNoAcak(),
-                    uid: cryptoRandom()
+            addRow(afterIndex = null, source = {}) {
+                const insertAt = afterIndex === null ? this.rows.length : afterIndex + 1;
+                this.rows.splice(insertAt, 0, this.createRow(source));
+                this.$nextTick(() => {
+                    document.querySelectorAll('tbody input[type="text"]')[insertAt * 2]?.focus?.();
                 });
-                this.showNoItems = false;
-                this.resetDraft();
-                this.$nextTick(() => this.$refs.draftCode?.focus());
-                this.syncDescList?.();
-                this.recalcTotals();
             },
-
-            removeSaved(i) {
-                this.savedItems.splice(i, 1);
-                this.syncDescList?.();
-                this.recalcTotals();
-            },
-
-            onSubmit($event) {
-                if (this.savedItems.length === 0) {
-                    $event.preventDefault();
-                    this.showNoItems = true;
+            removeRow(i) {
+                if (this.rows.length === 1) {
+                    this.rows.splice(0, 1, this.createRow());
+                    this.recalcTotals();
                     return;
                 }
+                this.rows.splice(i, 1);
+                this.recalcTotals();
             },
-
-            handleEnterOnCode(where) {
-                if (this.draft.units.length > 1) this.$refs.draftUnit?.focus();
-                else this.$refs.draftQty?.focus();
+            focusRowUnit(row, i) {
+                if (row.units.length > 1) this.$nextTick(() => document.getElementById('unit_row_' + i)?.focus());
+                else this.focusRowQty(i);
+            },
+            focusRowQty(i) {
+                this.$nextTick(() => document.getElementById('qty_row_' + i)?.focus());
+            },
+            focusRowPrice(i) {
+                this.$nextTick(() => document.getElementById('price_row_' + i)?.focus());
+            },
+            focusRowDisc(i) {
+                this.$nextTick(() => document.getElementById('disc_row_' + i)?.focus());
             },
 
             showDescModal: false,
-            descTarget: 'draft',
-            descSavedIndex: null,
             descValue: '',
+            _descTarget: null,
             descReadonly: false,
-            openDesc(target = 'draft', index = null, readonly = false) {
-                this.descTarget = target;
-                this.descSavedIndex = index;
+            openDesc(targetRow, readonly = false) {
+                this._descTarget = targetRow;
                 this.descReadonly = readonly;
-
-                if (target === 'saved' && index !== null) {
-                    this.descValue = this.savedItems[index]?.fdesc || '';
-                } else if (target === 'edit') {
-                    this.descValue = this.editRow?.fdesc || '';
-                } else {
-                    this.descValue = this.draft?.fdesc || '';
-                }
-
+                this.descValue = targetRow?.fdesc || '';
                 this.showDescModal = true;
             },
             closeDesc() {
                 this.showDescModal = false;
-                this.descTarget = 'draft';
-                this.descSavedIndex = null;
+                this._descTarget = null;
                 this.descValue = '';
                 this.descReadonly = false;
             },
             applyDesc() {
-                if (this.descTarget === 'saved' && this.descSavedIndex !== null) {
-                    this.savedItems[this.descSavedIndex].fdesc = this.descValue;
-                } else if (this.descTarget === 'edit') {
-                    this.editRow.fdesc = this.descValue;
-                } else {
-                    this.draft.fdesc = this.descValue;
-                }
+                if (this._descTarget) this._descTarget.fdesc = this.descValue;
                 this.closeDesc();
+            },
+            closeWarning() {
+                this.showWarningModal = false;
+                this.warningTitle = 'Perhatian';
+                this.warningMessage = '';
+                this.warningItems = [];
+                this.warningCanProceed = false;
+                this.pendingSubmitForm = null;
+                this.pendingRowsToSubmit = [];
+            },
+            confirmWarningAndSubmit() {
+                if (!this.warningCanProceed || !this.pendingSubmitForm || this.pendingRowsToSubmit.length < 1) {
+                    this.closeWarning();
+                    return;
+                }
+                this.rowsToSubmit = this.pendingRowsToSubmit;
+                const form = this.pendingSubmitForm;
+                this.closeWarning();
+                this.$nextTick(() => {
+                    window.salesOrderDuplicateRefPoGuard(form).then(ok => {
+                        if (!ok) return;
+                        window.salesOrderCreditApprovalGuard(form).then(approved => {
+                            if (approved) form.submit();
+                        });
+                    });
+                });
             },
 
             itemKey(it) {
@@ -2000,7 +1992,7 @@
             },
 
             getCurrentItemKeys() {
-                return this.savedItems.map(it => this.itemKey(it));
+                return this.rows.map(it => this.itemKey(it));
             },
 
             labelOf(row) {
@@ -2009,7 +2001,7 @@
 
             syncDescList() {
                 if (window.Alpine && Alpine.store('trsomt')) {
-                    Alpine.store('trsomt').descList = this.savedItems
+                    Alpine.store('trsomt').descList = this.rows
                         .map((it, i) => ({
                             uid: it.uid,
                             index: i + 1,
@@ -2051,6 +2043,7 @@
             },
 
             init() {
+                window.salesOrderItemsTable = this;
                 this.$watch('includePPN', () => this.recalcTotals());
                 this.$watch('ppnMode', () => this.recalcTotals());
                 this.$watch('ppnRate', () => this.recalcTotals());
@@ -2063,7 +2056,10 @@
                     this.recalcTotals();
                 });
 
-                this.savedItems.forEach((item) => {
+                this.rows = @json(count($initialEditSalesOrderItems) ? $initialEditSalesOrderItems : $savedItems ?? []);
+                this.rows = this.rows.map((item, index) => this.createRow(item, index));
+
+                this.rows.forEach((item) => {
                     item.fnoacak = this.normalizeNoAcak(item.fnoacak) || this.generateUniqueNoAcak();
                     item.hideQtyLimitHint = !((item.frefdtno ?? '').toString().trim());
                     item.units = item.units || [];
@@ -2105,59 +2101,96 @@
                         product
                     } = e.detail || {};
                     if (!product) return;
-                    const apply = (row) => {
-                        row.fprdcode = (product.fprdcode || '').toString();
-                        row.hideQtyLimitHint = true;
-                        row.fnoacak = this.normalizeNoAcak(row.fnoacak) || this.generateUniqueNoAcak();
-
-                        // Gunakan data dari modal sebaga primary, fallback ke PRODUCT_MAP
-                        const meta = {
-                            name: product.fprdname,
-                            units: [product.fsatuankecil, product.fsatuanbesar, product.fsatuanbesar2]
-                                .filter(Boolean),
-                            stock: product.fqty || product.fminstock || 0
-                        };
-
-                        // Jika PRODUCT_MAP punya data lebih lengkap, timpa
-                        const localMeta = this.productMeta(row.fprdcode);
-                        if (localMeta) {
-                            if (localMeta.name) meta.name = localMeta.name;
-                            if (localMeta.units && localMeta.units.length) meta.units = localMeta.units;
-                            if (localMeta.stock) meta.stock = localMeta.stock;
-                        }
-
-                        this.hydrateRowFromMeta(row, meta);
-                        if (!row.fqty) row.fqty = 1;
-                        this.recalc(row);
+                    if (typeof this.browseTarget !== 'number') return;
+                    const row = this.rows[this.browseTarget];
+                    if (!row) return;
+                    row.fprdcode = (product.fprdcode || '').toString();
+                    row.hideQtyLimitHint = true;
+                    row.fnoacak = this.normalizeNoAcak(row.fnoacak) || this.generateUniqueNoAcak(row.uid);
+                    const meta = {
+                        name: product.fprdname,
+                        units: [product.fsatuankecil, product.fsatuanbesar, product.fsatuanbesar2].filter(Boolean),
+                        stock: product.fqty || product.fminstock || 0
                     };
-                    if (this.browseTarget === 'edit') {
-                        apply(this.editRow);
-                        this.$nextTick(() => this.$refs.editQty?.focus());
-                    } else {
-                        apply(this.draft);
-                        this.$nextTick(() => this.$refs.draftQty?.focus());
+                    const localMeta = this.productMeta(row.fprdcode);
+                    if (localMeta) {
+                        if (localMeta.name) meta.name = localMeta.name;
+                        if (localMeta.units && localMeta.units.length) meta.units = localMeta.units;
+                        if (localMeta.stock) meta.stock = localMeta.stock;
                     }
+                    this.hydrateRowFromMeta(row, meta);
+                    if (!row.fqty) row.fqty = 1;
+                    this.recalc(row);
+                    const i = this.browseTarget;
+                    this.$nextTick(() => document.getElementById('qty_row_' + i)?.focus());
                 }, {
                     passive: true
                 });
-
-                const self = this;
-                this.draft.fnoacak = this.generateUniqueNoAcak();
-                document.addEventListener('change', function(e) {
-                    if (e.target && e.target.id === 'draftUnitSelect') {
-                        self.draft.fsatuan = e.target.value;
-                    }
-                });
             },
 
-            browseTarget: 'draft',
-            openBrowseFor(where) {
-                this.browseTarget = (where === 'edit' ? 'edit' : 'draft');
+            browseTarget: null,
+            openBrowseFor(index) {
+                this.browseTarget = index;
                 window.dispatchEvent(new CustomEvent('browse-open', {
                     detail: {
-                        forEdit: this.browseTarget === 'edit'
+                        forEdit: false
                     }
                 }));
+            },
+            rowWarningLabel(row) {
+                return `Data Produk ${row.fitemname || row.fprdcode || '(tanpa nama)'} qty masih 0, tidak akan tersimpan.`;
+            },
+            submitForm(form) {
+                const validRows = this.rows.filter((row) => this.isRowSavable(row));
+                const warningRows = this.rows.filter((row) => this.isRowFilled(row) && !this.isRowSavable(row));
+
+                if (warningRows.length > 0) {
+                    this.warningTitle = 'Qty Belum Diisi';
+                    this.warningMessage = validRows.length > 0
+                        ? 'Beberapa item tidak akan disimpan karena qty masih 0.'
+                        : 'Tidak ada item yang bisa disimpan karena qty masih 0 atau data belum lengkap.';
+                    this.warningItems = warningRows.map((row) => this.rowWarningLabel(row));
+                    this.warningCanProceed = validRows.length > 0;
+                    this.pendingSubmitForm = form;
+                    this.pendingRowsToSubmit = validRows;
+                    this.showWarningModal = true;
+                    return;
+                }
+
+                if (validRows.length === 0) {
+                    this.showNoItems = true;
+                    Swal.fire({
+                        icon: 'warning',
+                        title: window._soLabels.noItemsTitle,
+                        text: window._soLabels.noItemsText,
+                        confirmButtonText: window._soLabels.noItemsBtn,
+                        customClass: {
+                            confirmButton: 'bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700'
+                        }
+                    });
+                    return;
+                }
+
+                this.rowsToSubmit = validRows;
+                this.$nextTick(() => {
+                    window.salesOrderDuplicateRefPoGuard(form).then(ok => {
+                        if (!ok) return;
+                        window.salesOrderCreditApprovalGuard(form).then(approved => {
+                            if (approved) form.submit();
+                        });
+                    });
+                });
+            },
+            createRow(item = {}, index = 0) {
+                const row = {
+                    ...newRow(),
+                    ...(item || {}),
+                    uid: item?.uid || `edit-row-${index}-${Date.now()}`,
+                };
+                row.fnoacak = this.normalizeNoAcak(row.fnoacak) || this.generateUniqueNoAcak(row.uid);
+                if (!Array.isArray(row.units)) row.units = [];
+                this.recalc(row);
+                return row;
             },
         };
 
@@ -2189,26 +2222,6 @@
                 Math.random().toString(36).slice(2)) + Date.now();
         }
 
-        function getDraftUnitSelect() {
-            return document.getElementById('draftUnitSelect');
-        }
-
-        function populateDraftUnitSelect(units) {
-            const sel = getDraftUnitSelect();
-            if (!sel) return;
-            sel.innerHTML = '';
-            units.forEach(u => {
-                const opt = document.createElement('option');
-                opt.value = u;
-                opt.textContent = u;
-                sel.appendChild(opt);
-            });
-        }
-
-        function clearDraftUnitSelect() {
-            const sel = getDraftUnitSelect();
-            if (sel) sel.innerHTML = '';
-        }
     }
 </script>
 

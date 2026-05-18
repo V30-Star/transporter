@@ -1235,8 +1235,14 @@
                                                         :value="fmt(it.ftotprice)" disabled>
                                                 </td>
                                                 <td class="p-2 text-center">
-                                                    <button type="button" @click="removeSaved(i)"
-                                                        class="px-3 py-1 rounded text-xs bg-red-100 text-red-600 hover:bg-red-200">Hapus</button>
+                                                    <div class="flex items-center justify-center gap-2">
+                                                        <button type="button" @click="addRow(i)"
+                                                            class="inline-flex h-8 w-8 items-center justify-center rounded bg-emerald-600 text-white hover:bg-emerald-700"
+                                                            title="Tambah baris">+</button>
+                                                        <button type="button" @click="removeSaved(i)"
+                                                            class="inline-flex h-8 w-8 items-center justify-center rounded bg-red-100 text-red-600 hover:bg-red-200"
+                                                            title="Hapus baris">-</button>
+                                                    </div>
                                                     <div class="hidden">
                                                         <input type="hidden" name="fitemcode[]" :value="it.fitemcode">
                                                         <input type="hidden" name="fitemname[]" :value="it.fitemname">
@@ -1260,129 +1266,6 @@
                                         </tbody>
                                     </template>
 
-                                    <tbody>
-                                        <!-- ROW DRAFT UTAMA -->
-                                        <tr class="border-t align-top">
-                                            <!-- # -->
-                                            <td class="p-2" x-text="savedItems.length + 1"></td>
-
-                                            <!-- Kode Produk -->
-                                            <td class="p-2">
-                                                <div class="flex w-full max-w-full">
-                                                    <input type="text"
-                                                        class="min-w-0 flex-1 border rounded-l px-2 py-1 font-mono"
-                                                        x-ref="draftCode" x-model.trim="draft.fitemcode"
-                                                        @input="onCodeTypedRow(draft)"
-                                                        @keydown.enter.prevent="handleEnterOnCode('draft')">
-                                                    <button type="button" @click="openBrowseFor('draft')"
-                                                        class="shrink-0 border border-l-0 px-2 py-1 bg-white hover:bg-gray-50"
-                                                        title="Cari Produk">
-                                                        <x-heroicon-o-magnifying-glass class="w-4 h-4" />
-                                                    </button>
-
-                                                </div>
-                                            </td>
-
-                                        <!-- Nama Produk (readonly) -->
-                                        <td class="p-2">
-                                            <div class="flex w-full max-w-full">
-                                                <div
-                                                    class="min-w-0 flex-1 rounded-l border bg-gray-100 px-2 py-1 text-sm leading-5 text-gray-600 whitespace-normal break-words"
-                                                    x-text="draft.fitemname"></div>
-                                                <button type="button" @click="openDesc('draft')"
-                                                    class="shrink-0 inline-flex items-center border border-l-0 rounded-r px-2 py-1 transition-colors"
-                                                    :class="descButtonClass(draft.fdesc)"
-                                                    title="Deskripsi">
-                                                        <x-heroicon-o-document-text class="w-4 h-4" />
-                                                    </button>
-                                                </div>
-                                            </td>
-
-                                            <!-- Ref.PR# -->
-                                            <td class="p-2">
-                                                <input type="text"
-                                                    class="w-full border rounded px-2 py-1 bg-gray-100 text-gray-600"
-                                                    :value="draft.frefdtno" disabled placeholder="No Ref">
-                                            </td>
-
-                                            <!-- Satuan -->
-                                            <td class="p-2">
-                                                <template x-if="draft.units.length > 1">
-                                                    <select id="draftUnitSelect" class="w-full border rounded px-2 py-1"
-                                                        x-model="draft.fsatuan"
-                                                        @keydown.enter.prevent="$refs.draftRefPr?.focus()">
-                                                        <template x-for="u in draft.units" :key="u">
-                                                            <option :value="u" x-text="u"></option>
-                                                        </template>
-                                                    </select>
-                                                </template>
-                                                <template x-if="draft.units.length <= 1">
-                                                    <input type="text"
-                                                        class="w-full border rounded px-2 py-1 bg-gray-100 text-gray-600"
-                                                        :value="draft.fsatuan || '-'" disabled>
-                                                </template>
-                                            </td>
-
-                                            <!-- Qty -->
-                                            <td class="p-2 text-right">
-                                                <input type="number" class="border rounded px-2 py-1 w-24 text-right"
-                                                    type="number" x-ref="draftQty" x-model.number="draft.fqty"
-                                                    @input="
-                                                        recalc(draft);
-                                                        enforceQtyRow(draft);
-                                                        recalc(draft);
-                                                    "
-                                                    @keydown.enter.prevent="$refs.draftTerima?.focus()">
-                                                <div class="text-xs mt-0.5 text-right space-y-0.5">
-                                                    <div class="text-gray-400" x-show="draft.fitemcode"
-                                                        x-html="formatStockLimit(draft.fitemcode, draft.fqty, draft.fsatuan, draft.fsource, draft.maxqty, draft.hideQtyLimitHint)">
-                                                    </div>
-                                                </div>
-                                            </td>
-
-                                            <!-- @ Harga -->
-                                            <td class="p-2 text-right">
-                                                <input type="number" class="border rounded px-2 py-1 w-full text-right"
-                                                    min="0" step="0.01" x-ref="draftPrice"
-                                                    x-model.number="draft.fprice" @input="recalc(draft)"
-                                                    @blur="normalizeMoneyInput($event, draft, 'fprice')"
-                                                    @keydown.enter.prevent="$refs.draftDisc?.focus()">
-                                            </td>
-
-                                            <!-- @ Biaya -->
-                                            <td class="p-2 text-right">
-                                                <input type="number" class="border rounded px-2 py-1 w-full text-right"
-                                                    min="0" step="0.01" x-ref="draftBiaya"
-                                                    x-model.number="draft.fbiaya" @input="recalc(draft)" default="0"
-                                                    @blur="normalizeMoneyInput($event, draft, 'fbiaya')"
-                                                    @keydown.enter.prevent="$refs.draftBiaya?.focus()">
-                                            </td>
-
-                                            <!-- Disc.% -->
-                                            <td class="p-2 text-right">
-                                                <input type="number" class="border rounded px-2 py-1 w-16 text-right"
-                                                    min="0" max="100" step="0.01" x-ref="draftDisc"
-                                                    x-model.number="draft.fdiscpersen" @input="recalc(draft)"
-                                                    @keydown.enter.prevent="addIfComplete()">
-                                            </td>
-
-                                            <!-- Total Harga (readonly) -->
-                                            <td class="p-2">
-                                                <input type="text"
-                                                    class="w-full border rounded px-2 py-1 bg-gray-100 text-gray-600 text-sm text-right"
-                                                    :value="fmt(draft.ftotprice)" disabled>
-                                            </td>
-
-                                            <!-- Aksi -->
-                                            <td class="p-2 text-center">
-                                                <div class="flex items-center justify-center gap-2 flex-wrap">
-                                                    <button type="button" @click="addIfComplete()"
-                                                        class="px-3 py-1 rounded text-xs bg-emerald-600 text-white">Tambah</button>
-                                                </div>
-                                            </td>
-                                        </tr>
-
-                                    </tbody>
                                 </table>
                             </div>
 
@@ -1727,7 +1610,7 @@
 
                                     <div class="px-5 py-3 border-t flex items-center justify-end gap-2">
                                         <button type="button"
-                                            @click="showDescCodeRequired = false; $refs.draftCode?.focus()"
+                                            @click="showDescCodeRequired = false"
                                             class="h-9 px-4 rounded-lg bg-blue-600 text-white text-sm font-medium hover:bg-blue-700">
                                             OK
                                         </button>
@@ -1762,6 +1645,40 @@
                                     <button type="button" @click="showNoItems=false"
                                         class="h-9 px-4 rounded-lg bg-blue-600 text-white text-sm font-medium hover:bg-blue-700">
                                         OK
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div x-show="showWarningModal" x-cloak class="fixed inset-0 z-[96] flex items-center justify-center"
+                            x-transition.opacity>
+                            <div class="absolute inset-0 bg-black/50" @click="closeWarning()"></div>
+                            <div class="relative bg-white w-[92vw] max-w-lg rounded-2xl shadow-2xl overflow-hidden"
+                                x-transition.scale>
+                                <div class="px-5 py-4 border-b flex items-center">
+                                    <x-heroicon-o-exclamation-triangle class="w-6 h-6 text-amber-500 mr-2" />
+                                    <h3 class="text-lg font-semibold text-gray-800" x-text="warningTitle"></h3>
+                                </div>
+
+                                <div class="px-5 py-4 space-y-3">
+                                    <p class="text-sm text-gray-700" x-text="warningMessage"></p>
+                                    <template x-if="warningItems.length > 0">
+                                        <ul class="list-disc pl-5 text-sm text-gray-700 space-y-1">
+                                            <template x-for="item in warningItems" :key="item">
+                                                <li x-text="item"></li>
+                                            </template>
+                                        </ul>
+                                    </template>
+                                </div>
+
+                                <div class="px-5 py-3 border-t flex items-center justify-end gap-2">
+                                    <button type="button" @click="closeWarning()"
+                                        class="h-9 px-4 rounded-lg bg-gray-100 text-gray-700 text-sm font-medium hover:bg-gray-200">
+                                        Tutup
+                                    </button>
+                                    <button type="button" x-show="warningCanProceed" @click="confirmWarningAndSubmit()"
+                                        class="h-9 px-4 rounded-lg bg-emerald-600 text-white text-sm font-medium hover:bg-emerald-700">
+                                        Lanjut Simpan
                                     </button>
                                 </div>
                             </div>
@@ -2063,9 +1980,16 @@
             return {
                 showNoItems: false,
                 savedItems: @json($savedItems),
-                draft: newRow(),
                 activeRow: null,
                 browseIndex: null,
+                browseTarget: null,
+                showWarningModal: false,
+                warningTitle: 'Perhatian',
+                warningMessage: '',
+                warningItems: [],
+                warningCanProceed: false,
+                pendingSubmitForm: null,
+                pendingValidRows: [],
 
                 biayaGlobal: @json((float) ($biayaGlobal ?? 0)),
                 totalHarga: 0,
@@ -2136,7 +2060,7 @@
                 },
 
                 recalc(row) {
-                    row.fqty = Math.max(1, +row.fqty || 1);
+                    row.fqty = Math.max(0, +row.fqty || 0);
                     row.fprice = Math.max(0, +row.fprice || 0);
                     row.fbiaya = Math.max(0, +row.fbiaya || 0);
                     row.fdiscpersen = Math.min(100, Math.max(0, +row.fdiscpersen || 0));
@@ -2255,10 +2179,10 @@
                     const isSourceRow = ['PO', 'PB'].includes(sourceType);
                     if (isSourceRow) {
                         if (!Number.isFinite(n)) {
-                            row.fqty = 1;
+                            row.fqty = 0;
                             return;
                         }
-                        if (n < 1) row.fqty = 1;
+                        if (n < 0) row.fqty = 0;
                         return;
                     }
                     const meta = this.productMeta(row.fitemcode);
@@ -2281,10 +2205,10 @@
                     }
 
                     if (!Number.isFinite(n)) {
-                        row.fqty = 1;
+                        row.fqty = 0;
                         return;
                     }
-                    if (n < 1) row.fqty = 1;
+                    if (n < 0) row.fqty = 0;
                 },
 
                 hydrateRowFromMeta(row, meta) {
@@ -2293,9 +2217,6 @@
                         row.units = [];
                         row.fsatuan = '';
                         row.maxqty = 0;
-                        if (row === this.draft) {
-                            clearDraftUnitSelect();
-                        }
                         return;
                     }
                     row.fitemname = meta.name || '';
@@ -2306,14 +2227,6 @@
                     if (meta.unit_ratios) row.unit_ratios = meta.unit_ratios;
                     const stock = Number.isFinite(+meta.stock) && +meta.stock > 0 ? +meta.stock : 0;
                     row.maxqty = stock;
-
-                    if (row === this.draft) {
-                        if (units.length > 1) {
-                            populateDraftUnitSelect(units);
-                        } else {
-                            clearDraftUnitSelect();
-                        }
-                    }
                 },
 
                 getSelectedSupplierCode() {
@@ -2404,7 +2317,6 @@
                     if (!items || !Array.isArray(items)) return;
 
                     this.setSupplierFromReferenceHeader(header);
-                    this.resetDraft();
                     this.addManyFromSource(header, items, 'PO');
                 },
 
@@ -2416,13 +2328,7 @@
                     if (!items || !Array.isArray(items)) return;
 
                     this.setSupplierFromReferenceHeader(header);
-                    this.resetDraft();
                     this.addManyFromSource(header, items, 'PB');
-                },
-
-                resetDraft() {
-                    this.draft = newRow();
-                    this.$nextTick(() => this.$refs.draftCode?.focus());
                 },
 
                 normalizeRefNoAcak(value) {
@@ -2433,9 +2339,7 @@
 
                 addManyFromSource(header, items, sourceType) {
                     const existing = new Set(this.getCurrentItemKeys());
-
-                    let added = 0,
-                        duplicates = [];
+                    const toAdd = [];
 
                     items.forEach(src => {
                         let fnourefVal = src.fnouref ?? src.fnou ?? '';
@@ -2500,74 +2404,105 @@
                         const key = this.itemKey(row);
 
                         if (existing.has(key)) {
-                            duplicates.push({
-                                key,
-                                code: row.fitemcode,
-                                ref: row.frefdtno
-                            });
                             return;
                         }
 
-                        this.savedItems.push(row);
+                        toAdd.push(row);
                         existing.add(key);
-                        added++;
                         this.recalc(row);
                     });
 
-                    this.recalcTotals();
-                    this.syncSupplierLockState();
-                },
-
-                addIfComplete() {
-                    if (!this.requireSupplierBeforeManualProduct()) {
-                        return;
+                    if (toAdd.length > 0) {
+                        const shouldReplaceStarter = this.savedItems.length === 1 && !this.isRowFilled(this.savedItems[0]);
+                        if (shouldReplaceStarter) {
+                            this.savedItems = toAdd;
+                        } else {
+                            this.savedItems.push(...toAdd);
+                        }
                     }
-
-                    const r = this.draft;
-                    if (!this.isComplete(r)) {
-                        if (!r.fitemcode) return this.$refs.draftCode?.focus();
-                        if (!r.fitemname) return this.$refs.draftCode?.focus();
-                        if (!r.fsatuan) return (r.units.length > 1 ? this.$refs.draftUnit?.focus() : this.$refs.draftCode
-                            ?.focus());
-                        if (!(Number(r.fqty) > 0)) return this.$refs.draftQty?.focus();
-                        return;
-                    }
-
-                    this.recalc(r);
-
-                    const dupe = this.savedItems.find(it => it.fitemcode === r.fitemcode && it.fsatuan === r.fsatuan && (it
-                        .frefpr || '') === (r.frefpr || ''));
-                    if (dupe) {
-                        alert('Item sama sudah ada.');
-                        return;
-                    }
-
-                    this.savedItems.push({
-                        ...r,
-                        fdesc: (r.fdesc ?? '').toString(),
-                        fketdt: (r.fketdt ?? '').toString(),
-                        frefnoacak: this.normalizeRefNoAcak(r.frefnoacak),
-                        uid: cryptoRandom()
-                    });
-                    this.showNoItems = false;
-                    this.resetDraft(); // Reset draft setelah item ditambahkan
-                    this.$nextTick(() => this.$refs.draftCode?.focus());
-                    this.syncDescList?.();
-                    this.showNoItems = false;
 
                     this.recalcTotals();
                     this.syncSupplierLockState();
                 },
 
                 removeSaved(i) {
-                    this.savedItems.splice(i, 1);
+                    if (this.savedItems.length === 1) {
+                        this.savedItems.splice(0, 1, this.createRow());
+                    } else {
+                        this.savedItems.splice(i, 1);
+                    }
                     this.syncDescList?.();
                     this.recalcTotals();
                     this.syncSupplierLockState();
                 },
 
-                resetDraft() {
-                    this.draft = newRow();
+                createRow(source = {}) {
+                    return {
+                        ...newRow(),
+                        ...source,
+                        uid: source.uid || cryptoRandom(),
+                        fdesc: (source.fdesc ?? '').toString(),
+                        fketdt: (source.fketdt ?? '').toString(),
+                        frefnoacak: this.normalizeRefNoAcak(source.frefnoacak),
+                    };
+                },
+
+                addRow(afterIndex = null, source = {}) {
+                    if (!this.requireSupplierBeforeManualProduct()) {
+                        return;
+                    }
+                    const insertAt = afterIndex === null ? this.savedItems.length : afterIndex + 1;
+                    this.savedItems.splice(insertAt, 0, this.createRow(source));
+                },
+
+                isRowSavable(row) {
+                    return !!((row.fitemcode || '').trim() && (row.fsatuan || '').trim() && Number(row.fqty) > 0);
+                },
+
+                isRowFilled(row) {
+                    return [
+                        row.fitemcode,
+                        row.fitemname,
+                        row.fsatuan,
+                        row.frefdtno,
+                        row.fsource,
+                        row.fnouref,
+                        row.frefpr,
+                        row.fqty,
+                        row.fprice,
+                        row.fbiaya,
+                        row.fdiscpersen,
+                        row.fdesc,
+                        row.fketdt
+                    ].some((value) => String(value ?? '').trim() !== '' && Number(value ?? 0) !== 0)
+                        || Number(row.fqty || 0) > 0;
+                },
+
+                rowWarningLabel(row) {
+                    return `Data Produk ${row.fitemname || row.fitemcode || '(tanpa nama)'} qty masih 0, tidak akan tersimpan.`;
+                },
+
+                closeWarning() {
+                    this.showWarningModal = false;
+                    this.warningTitle = 'Perhatian';
+                    this.warningMessage = '';
+                    this.warningItems = [];
+                    this.warningCanProceed = false;
+                    this.pendingSubmitForm = null;
+                    this.pendingValidRows = [];
+                },
+
+                confirmWarningAndSubmit() {
+                    if (!this.warningCanProceed || !this.pendingSubmitForm || this.pendingValidRows.length < 1) {
+                        this.closeWarning();
+                        return;
+                    }
+
+                    this.savedItems = this.pendingValidRows.map((row) => ({ ...row }));
+                    this.recalcTotals();
+                    const form = this.pendingSubmitForm;
+                    this.closeWarning();
+                    this.$nextTick(() => form.submit());
                 },
 
                 onSubmit($event) {
@@ -2578,21 +2513,8 @@
                     }
                 },
 
-                handleEnterOnCode(where, index = null) {
-                    if (!this.requireSupplierBeforeManualProduct()) {
-                        return;
-                    }
-                    if (where === 'saved' && index !== null) {
-                        const row = this.savedItems[index];
-                        this.recalc(row);
-                    } else {
-                        if (this.draft.units.length > 1) this.$refs.draftUnit?.focus();
-                        else this.$refs.draftQty?.focus();
-                    }
-                },
-
                 showDescModal: false,
-                descTarget: 'draft',
+                descTarget: 'saved',
                 descSavedIndex: null,
                 descValue: '',
                 descReadonly: false,
@@ -2609,14 +2531,14 @@
                         ? 'border-emerald-200 bg-emerald-50 text-emerald-700 hover:bg-emerald-100'
                         : 'border-slate-200 bg-slate-50 text-slate-700 hover:bg-slate-100';
                 },
-                getDescRow(target = 'draft', index = null) {
+                getDescRow(target = 'saved', index = null) {
                     if (target === 'saved' && index !== null) {
                         return this.savedItems[index] || null;
                     }
 
-                    return this.draft || null;
+                    return null;
                 },
-                openDesc(target = 'draft', index = null, readonly = false) {
+                openDesc(target = 'saved', index = null, readonly = false) {
                     const row = this.getDescRow(target, index);
                     const itemCode = (row?.fitemcode || '').toString().trim();
 
@@ -2638,7 +2560,7 @@
                 },
                 closeDesc() {
                     this.showDescModal = false;
-                    this.descTarget = 'draft';
+                    this.descTarget = 'saved';
                     this.descSavedIndex = null;
                     this.descValue = '';
                     this.descReadonly = false;
@@ -2673,10 +2595,8 @@
                     }
                 },
                 applyDesc() {
-                    if (this.descTarget === 'saved' && this.descSavedIndex !== null) {
+                    if (this.descTarget === 'saved' && this.descSavedIndex !== null && this.savedItems[this.descSavedIndex]) {
                         this.savedItems[this.descSavedIndex].fdesc = this.descValue;
-                    } else {
-                        this.draft.fdesc = this.descValue;
                     }
 
                     this.closeDesc();
@@ -2713,6 +2633,11 @@
                 },
 
                 init() {
+                    this.savedItems = (this.savedItems || []).map((item, index) => this.createRow({
+                        ...item,
+                        uid: item.uid || `old-${index}`
+                    }));
+
                     this.savedItems.forEach(item => {
                         item.units = item.units || [];
                         if (typeof item.units === 'string') {
@@ -2761,6 +2686,9 @@
                         const biaya = +item.fbiaya || 0;
                         item.ftotprice = (price + biaya) * qty - (qty * price * (disc / 100));
                     });
+                    if (this.savedItems.length === 0) {
+                        this.savedItems = [this.createRow()];
+                    }
                     this.recalcTotals();
                     this.$watch('includePPN', () => this.recalcTotals());
                     this.$watch('fapplyppn', () => this.recalcTotals());
@@ -2787,28 +2715,49 @@
                             row.fitemcode = (product.fprdcode || '').toString();
                             row.hideQtyLimitHint = true;
                             this.hydrateRowFromMeta(row, this.productMeta(row.fitemcode));
-                            if (!row.fqty) row.fqty = 1;
+                            if (row.fqty === null || row.fqty === undefined || row.fqty === '') row.fqty = 0;
                             this.recalc(row);
                         };
                         if (this.browseTarget === 'saved' && this.browseIndex !== null) {
                             apply(this.savedItems[this.browseIndex]);
                         } else {
-                            apply(this.draft);
-                            this.$nextTick(() => this.$refs.draftQty?.focus());
+                            const row = typeof this.browseIndex === 'number' ? this.savedItems[this.browseIndex] : null;
+                            if (row) {
+                                apply(row);
+                            }
                         }
                     }, {
                         passive: true
                     });
-
-                    const self = this;
-                    document.addEventListener('change', function(e) {
-                        if (e.target && e.target.id === 'draftUnitSelect') {
-                            self.draft.fsatuan = e.target.value;
-                        }
-                    });
                 },
 
-                browseTarget: 'draft',
+                submitForm(form) {
+                    const validRows = this.savedItems.filter((row) => this.isRowSavable(row));
+                    const warningRows = this.savedItems.filter((row) => this.isRowFilled(row) && !this.isRowSavable(row));
+
+                    if (warningRows.length > 0) {
+                        this.warningTitle = 'Qty Belum Diisi';
+                        this.warningMessage = validRows.length > 0
+                            ? 'Beberapa item tidak akan disimpan karena qty masih 0.'
+                            : 'Tidak ada item yang bisa disimpan karena qty masih 0 atau data belum lengkap.';
+                        this.warningItems = warningRows.map((row) => this.rowWarningLabel(row));
+                        this.warningCanProceed = validRows.length > 0;
+                        this.pendingSubmitForm = form;
+                        this.pendingValidRows = validRows;
+                        this.showWarningModal = true;
+                        return;
+                    }
+
+                    if (validRows.length < 1) {
+                        this.showNoItems = true;
+                        return;
+                    }
+
+                    this.savedItems = validRows.map((row) => ({ ...row }));
+                    this.recalcTotals();
+                    this.$nextTick(() => form.submit());
+                },
+
                 openBrowseFor(where, index = null) {
                     if (!this.requireSupplierBeforeManualProduct()) {
                         return;
@@ -2817,7 +2766,7 @@
                     this.browseIndex = index;
                     window.dispatchEvent(new CustomEvent('browse-open', {
                         detail: {
-                            forEdit: where !== 'draft',
+                            forEdit: false,
                             productCodeFilter: document.querySelector('select[name="ftypebuy"]')?.value ===
                                 '2' ? 'UM' : ''
                         }
@@ -2855,27 +2804,6 @@
             function cryptoRandom() {
                 return (window.crypto?.getRandomValues ? [...window.crypto.getRandomValues(new Uint32Array(2))].map(n => n
                     .toString(16)).join('') : Math.random().toString(36).slice(2)) + Date.now();
-            }
-
-            function getDraftUnitSelect() {
-                return document.getElementById('draftUnitSelect');
-            }
-
-            function populateDraftUnitSelect(units) {
-                const sel = getDraftUnitSelect();
-                if (!sel) return;
-                sel.innerHTML = '';
-                units.forEach(u => {
-                    const opt = document.createElement('option');
-                    opt.value = u;
-                    opt.textContent = u;
-                    sel.appendChild(opt);
-                });
-            }
-
-            function clearDraftUnitSelect() {
-                const sel = getDraftUnitSelect();
-                if (sel) sel.innerHTML = '';
             }
         }
     </script>

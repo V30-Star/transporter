@@ -73,33 +73,6 @@
             -moz-appearance: textfield;
         }
     </style>
-    @if ($errors->any())
-        <div class="alert alert-danger alert-dismissible fade show border-0 shadow p-0 overflow-hidden" role="alert">
-            {{-- Header Strip --}}
-            <div class="d-flex align-items-center px-4 py-3" style="background-color: #c0392b;">
-                <i class="bi bi-exclamation-triangle-fill text-white me-2 fs-5"></i>
-                <strong class="text-white fs-6">Gagal Menyimpan Data!</strong>
-                <button type="button" class="btn-close btn-close-white ms-auto" data-bs-dismiss="alert"
-                    aria-label="Close"></button>
-            </div>
-
-            {{-- Body --}}
-            <div class="px-4 py-3" style="background-color: #fdeded; border-left: 5px solid #c0392b;">
-                <p class="mb-2 text-danger fw-semibold">
-                    <i class="bi bi-info-circle me-1"></i>
-                    Periksa kembali data berikut sebelum menyimpan:
-                </p>
-                <ul class="mb-0 ps-3">
-                    @foreach ($errors->all() as $error)
-                        <li class="text-danger mb-1">
-                            <i class="bi bi-dot fs-5 align-middle"></i>
-                            {{ $error }}
-                        </li>
-                    @endforeach
-                </ul>
-            </div>
-        </div>
-    @endif
     @php
         $usageLocked = !empty($isUsageLocked);
     @endphp
@@ -429,10 +402,14 @@
                                     {{-- Aksi --}}
                                     <td class="p-2 text-center {{ $action === 'delete' ? 'hidden' : '' }}">
                                         @if ($action !== 'delete')
-                                            <button type="button" @click="removeSaved(i)"
-                                                class="px-3 py-1 rounded text-xs bg-red-100 text-red-600 hover:bg-red-200 whitespace-nowrap">
-                                                Hapus
-                                            </button>
+                                            <div class="flex items-center justify-center gap-2">
+                                                <button type="button" @click="addRow(i)"
+                                                    class="inline-flex h-8 w-8 items-center justify-center rounded bg-emerald-600 text-white hover:bg-emerald-700"
+                                                    title="Tambah baris">+</button>
+                                                <button type="button" @click="removeSaved(i)"
+                                                    class="inline-flex h-8 w-8 items-center justify-center rounded bg-red-100 text-red-600 hover:bg-red-200"
+                                                    title="Hapus baris">-</button>
+                                            </div>
                                         @else
                                             <span class="text-gray-300 text-xs">â€”</span>
                                         @endif
@@ -460,89 +437,7 @@
                             </template>
 
                             {{-- BARIS DRAFT â€” hanya tampil saat mode edit --}}
-                            @if ($action !== 'delete')
-                                <tr class="border-t bg-green-50 align-top">
-                                    <td class="p-2 text-gray-400" x-text="savedItems.length + 1"></td>
-
-                                    <td class="p-2">
-                                        <div class="flex">
-                                            <input type="text"
-                                                class="flex-1 border rounded-l px-2 py-1 font-mono text-sm min-w-0"
-                                                x-ref="draftCode" x-model.trim="draft.fitemcode"
-                                                @input="onCodeTypedRow(draft)"
-                                                @keydown.enter.prevent="handleEnterOnCode()">
-                                            <button type="button" @click="openBrowseFor('draft')"
-                                                class="border border-l-0 px-2 py-1 bg-white hover:bg-gray-50"
-                                                title="Cari Produk">
-                                                <x-heroicon-o-magnifying-glass class="w-4 h-4" />
-                                            </button>
-
-                                        </div>
-                                    </td>
-
-                                    <td class="p-2">
-                                        <div class="flex w-full max-w-full">
-                                            <div
-                                                class="min-w-0 flex-1 rounded-l border bg-gray-100 px-2 py-1 text-sm leading-5 text-gray-600 whitespace-normal break-words"
-                                                x-text="draft.fitemname"></div>
-                                            <button type="button" @click="openDesc(draft)"
-                                                class="shrink-0 inline-flex items-center border border-l-0 rounded-r px-2 py-1 transition-colors"
-                                                :class="draft.fdesc ? 'border-emerald-300 bg-emerald-50 text-emerald-600 hover:bg-emerald-100' : 'bg-white text-gray-500 hover:bg-gray-50'"
-                                                title="Deskripsi item">
-                                                <x-heroicon-o-document-text class="h-4 w-4" />
-                                            </button>
-                                        </div>
-                                    </td>
-
-                                    {{-- Satuan Draft --}}
-                                    <td class="p-2 align-top">
-                                        <select id="draftUnitSelect" class="w-full border rounded px-2 py-1 text-sm"
-                                            x-show="draft.units.length > 1"
-                                            @keydown.enter.prevent="$refs.draftQty?.focus()">
-                                        </select>
-                                        <input type="text" x-show="draft.units.length <= 1"
-                                            class="w-full border rounded px-2 py-1 bg-gray-100 text-gray-600 text-sm"
-                                            :value="draft.fsatuan || '-'" disabled>
-                                    </td>
-
-                                    <td class="p-2">
-                                        <input type="text"
-                                            class="w-full border rounded px-2 py-1 bg-gray-100 text-gray-600 text-sm"
-                                            :value="draft.frefdtno || ''" disabled placeholder="Ref PO">
-                                    </td>
-
-                                    <td class="p-2 text-right">
-                                        <input type="number" class="border rounded px-2 py-1 w-20 text-right text-sm"
-                                                min="0" step="0.01" x-ref="draftQty" x-model.number="draft.fqty"
-                                        @input="recalc(draft)" @blur="enforcePoQtyRow(draft);"
-                                        @keydown.enter.prevent="$refs.draftPrice?.focus()">
-                                        <div class="text-[10px] text-amber-700 font-medium text-right mt-0.5"
-                                            x-show="draft.frefdtid && calcMaxQty(draft) > 0"
-                                            x-html="formatPoRemainHint(draft)">
-                                        </div>
-                                    </td>
-
-                                    <td class="p-2 text-right">
-                                        <input type="number" class="border rounded px-2 py-1 w-28 text-right text-sm"
-                                            min="0" step="0.01" x-ref="draftPrice"
-                                            x-model.number="draft.fprice" @input="recalc(draft)"
-                                            @keydown.enter.prevent="$refs.draftDisc?.focus()">
-                                    </td>
-
-                                    <td class="p-2">
-                                        <input type="text"
-                                            class="w-full border rounded px-2 py-1 bg-gray-100 text-gray-600 text-sm text-right"
-                                            :value="formatTransactionAmount(draft.ftotal)" disabled>
-                                    </td>
-
-                                    <td class="p-2 text-center">
-                                        <button type="button" @click="addIfComplete()"
-                                            class="px-3 py-1 rounded text-xs bg-emerald-600 text-white hover:bg-emerald-700 whitespace-nowrap">
-                                            Tambah
-                                        </button>
-                                    </td>
-                                </tr>
-                            @endif
+                            
                         </tbody>
                     </table>
                 </div>
@@ -707,6 +602,34 @@
                                 class="h-9 px-4 rounded-lg bg-emerald-600 text-white text-sm font-medium hover:bg-emerald-700">
                                 Simpan
                             </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div x-show="showWarningModal" x-cloak class="fixed inset-0 z-[96] flex items-center justify-center"
+                    x-transition.opacity>
+                    <div class="absolute inset-0 bg-black/50" @click="closeWarning()"></div>
+                    <div class="relative bg-white w-[92vw] max-w-lg rounded-2xl shadow-2xl overflow-hidden"
+                        x-transition.scale>
+                        <div class="px-5 py-4 border-b flex items-center">
+                            <x-heroicon-o-exclamation-triangle class="w-6 h-6 text-amber-500 mr-2" />
+                            <h3 class="text-lg font-semibold text-gray-800" x-text="warningTitle"></h3>
+                        </div>
+                        <div class="px-5 py-4 space-y-3">
+                            <p class="text-sm text-gray-700" x-text="warningMessage"></p>
+                            <template x-if="warningItems.length > 0">
+                                <ul class="list-disc pl-5 text-sm text-gray-700 space-y-1">
+                                    <template x-for="item in warningItems" :key="item">
+                                        <li x-text="item"></li>
+                                    </template>
+                                </ul>
+                            </template>
+                        </div>
+                        <div class="px-5 py-3 border-t flex items-center justify-end gap-2">
+                            <button type="button" @click="closeWarning()"
+                                class="h-9 px-4 rounded-lg bg-gray-100 text-gray-700 text-sm font-medium hover:bg-gray-200">Tutup</button>
+                            <button type="button" x-show="warningCanProceed" @click="confirmWarningAndSubmit()"
+                                class="h-9 px-4 rounded-lg bg-emerald-600 text-white text-sm font-medium hover:bg-emerald-700">Lanjut Simpan</button>
                         </div>
                     </div>
                 </div>
@@ -973,9 +896,8 @@
                 ppnRate: 11,
                 // â”€â”€ Diisi dari DB (perbedaan utama vs create) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
                 savedItems: @json($savedItems),
-                draft: newRow(),
                 activeRow: null,
-                browseTarget: 'draft',
+                browseTarget: null,
                 showNoItems: false,
                 showNoSupplier: false,
                 showDupItemModal: false,
@@ -985,6 +907,13 @@
                 descValue: '',
                 descReadonly: false,
                 _descTarget: null,
+                showWarningModal: false,
+                warningTitle: 'Perhatian',
+                warningMessage: '',
+                warningItems: [],
+                warningCanProceed: false,
+                pendingSubmitForm: null,
+                pendingValidRows: [],
 
                 get totalHarga() {
                     return this.savedItems.reduce((s, it) => s + (it.ftotal || 0), 0);
@@ -1057,9 +986,6 @@
                         row.units = [];
                         row.fsatuan = '';
                         if (!keepMaxqty) row.maxqty = 0;
-                        if (row === this.draft) {
-                            clearDraftUnitSelect();
-                        }
                         return;
                     }
                     row.fitemname = meta.name || '';
@@ -1070,14 +996,6 @@
                     if (!currentSatuan) row.fsatuan = units[0] || '';
                     if (meta.unit_ratios) row.unit_ratios = meta.unit_ratios;
                     if (!keepMaxqty) row.maxqty = 0;
-                    
-                    if (row === this.draft) {
-                        if (units.length > 1) {
-                            populateDraftUnitSelect(units);
-                        } else {
-                            clearDraftUnitSelect();
-                        }
-                    }
                 },
 
                 onCodeTypedRow(row) {
@@ -1200,54 +1118,59 @@
                 focusSavedDisc(i) {
                     this.$nextTick(() => document.getElementById('disc_saved_' + i)?.focus());
                 },
-                focusDraftCode() {
-                    this.$nextTick(() => this.$refs.draftCode?.focus());
-                },
-
-                addIfComplete() {
+                addRow(afterIndex = null, source = {}) {
                     if (!this.getSupplier()) {
                         this.showNoSupplier = true;
                         return;
                     }
-                    const r = this.draft;
-                    if (!this.isComplete(r)) {
-                        if (!r.fitemcode) return this.$refs.draftCode?.focus();
-                        if (!r.fitemname) return this.$refs.draftCode?.focus();
-                        if (!r.fsatuan) return r.units.length > 1 ? this.$refs.draftUnit?.focus() : this.$refs.draftCode
-                            ?.focus();
-                        if (!(Number(r.fqty) > 0)) return this.$refs.draftQty?.focus();
-                        return;
-                    }
-                    this.recalc(r);
-                    if (this.isDupeItem(r)) {
-                        this.showDupItemModal = true;
-                        this.dupItemName = r.fitemname || r.fitemcode;
-                        this.dupItemSatuan = r.fsatuan;
-                        return;
-                    }
-                    this.savedItems.push({
-                        ...r,
-                        fnoacak: this.normalizeNoAcak(r.fnoacak) || this.generateUniqueNoAcak(),
-                        frefnoacak: this.normalizeNoAcak(r.frefnoacak),
-                        uid: cryptoRandom()
-                    });
-                    this.showNoItems = false;
-                    this.draft = newRow();
-                    this.draft.fnoacak = this.generateUniqueNoAcak();
-                    this.$nextTick(() => this.$refs.draftCode?.focus());
+                    const insertAt = afterIndex === null ? this.savedItems.length : afterIndex + 1;
+                    this.savedItems.splice(insertAt, 0, this.createRow(source));
                 },
 
                 removeSaved(i) {
-                    this.savedItems.splice(i, 1);
-                },
-
-                handleEnterOnCode() {
-                    if (!this.getSupplier()) {
-                        this.showNoSupplier = true;
+                    if (this.savedItems.length === 1) {
+                        this.savedItems.splice(0, 1, this.createRow());
                         return;
                     }
-                    if (this.draft.units.length > 1) this.$refs.draftUnit?.focus();
-                    else this.$refs.draftQty?.focus();
+                    this.savedItems.splice(i, 1);
+                },
+                isRowSavable(row) {
+                    return !!((row.fitemcode || '').trim() && (row.fsatuan || '').trim() && Number(row.fqty) > 0);
+                },
+                isRowFilled(row) {
+                    return [
+                        row.fitemcode,
+                        row.fitemname,
+                        row.fsatuan,
+                        row.frefdtno,
+                        row.fqty,
+                        row.fprice,
+                        row.fdesc,
+                        row.fketdt
+                    ].some((value) => String(value ?? '').trim() !== '' && Number(value ?? 0) !== 0)
+                        || Number(row.fqty || 0) > 0;
+                },
+                rowWarningLabel(row) {
+                    return `Data Produk ${row.fitemname || row.fitemcode || '(tanpa nama)'} qty masih 0, tidak akan tersimpan.`;
+                },
+                closeWarning() {
+                    this.showWarningModal = false;
+                    this.warningTitle = 'Perhatian';
+                    this.warningMessage = '';
+                    this.warningItems = [];
+                    this.warningCanProceed = false;
+                    this.pendingSubmitForm = null;
+                    this.pendingValidRows = [];
+                },
+                confirmWarningAndSubmit() {
+                    if (!this.warningCanProceed || !this.pendingSubmitForm || this.pendingValidRows.length < 1) {
+                        this.closeWarning();
+                        return;
+                    }
+                    this.savedItems = this.pendingValidRows.map((row) => ({ ...row }));
+                    const form = this.pendingSubmitForm;
+                    this.closeWarning();
+                    this.$nextTick(() => form.submit());
                 },
 
                 onPrPicked(e) {
@@ -1318,10 +1241,18 @@
                         if (!row.ftotal && row.fqty && row.fprice)
                             row.ftotal = +(row.fqty * row.fprice * (1 - (row.fdisc || 0) / 100)).toFixed(2);
                         toAdd.push(row);
-                        this.savedItems.push(row);
                         if (!row.fprice || row.fprice === 0)
                             this.$nextTick(() => this.applyLastPrice(row));
                     });
+
+                    if (toAdd.length > 0) {
+                        const shouldReplaceStarter = this.savedItems.length === 1 && !this.isRowFilled(this.savedItems[0]);
+                        if (shouldReplaceStarter) {
+                            this.savedItems = toAdd;
+                        } else {
+                            this.savedItems.push(...toAdd);
+                        }
+                    }
 
                     if (skipped.length > 0 && toAdd.length === 0) {
                         this.showDupItemModal = true;
@@ -1344,7 +1275,7 @@
                         this.showNoSupplier = true;
                         return;
                     }
-                    this.browseTarget = (where === 'saved' && idx !== null) ? idx : 'draft';
+                    this.browseTarget = (where === 'saved' && idx !== null) ? idx : null;
                     window.dispatchEvent(new CustomEvent('browse-open', {
                         detail: {
                             forEdit: false
@@ -1353,11 +1284,38 @@
                 },
 
                 submitForm(form) {
-                    if (this.savedItems.length < 1) {
+                    const validRows = this.savedItems.filter((row) => this.isRowSavable(row));
+                    const warningRows = this.savedItems.filter((row) => this.isRowFilled(row) && !this.isRowSavable(row));
+
+                    if (warningRows.length > 0) {
+                        this.warningTitle = 'Qty Belum Diisi';
+                        this.warningMessage = validRows.length > 0
+                            ? 'Beberapa item tidak akan disimpan karena qty masih 0.'
+                            : 'Tidak ada item yang bisa disimpan karena qty masih 0 atau data belum lengkap.';
+                        this.warningItems = warningRows.map((row) => this.rowWarningLabel(row));
+                        this.warningCanProceed = validRows.length > 0;
+                        this.pendingSubmitForm = form;
+                        this.pendingValidRows = validRows;
+                        this.showWarningModal = true;
+                        return;
+                    }
+
+                    if (validRows.length < 1) {
                         this.showNoItems = true;
                         return;
                     }
-                    form.submit();
+                    this.savedItems = validRows.map((row) => ({ ...row }));
+                    this.$nextTick(() => form.submit());
+                },
+                createRow(source = {}) {
+                    const row = {
+                        ...newRow(),
+                        ...source,
+                        uid: source.uid || cryptoRandom(),
+                        fnoacak: this.normalizeNoAcak(source.fnoacak) || this.generateUniqueNoAcak(),
+                        frefnoacak: this.normalizeNoAcak(source.frefnoacak),
+                    };
+                    return row;
                 },
 
                 init() {
@@ -1399,8 +1357,6 @@
 
                     window.getCurrentItemKeys = () => this.getCurrentItemKeys();
                     window.isDupeItem = (candidate) => this.isDupeItem(candidate);
-                    this.draft.fnoacak = this.generateUniqueNoAcak();
-
                     if (this._ac) this._ac.abort();
                     this._ac = new AbortController();
                     const sig = {
@@ -1432,41 +1388,14 @@
                                 const i = this.browseTarget;
                                 this.$nextTick(() => document.getElementById('qty_saved_' + i)?.focus());
                             }
-                        } else {
-                            apply(this.draft);
-                            this.$nextTick(() => this.$refs.draftQty?.focus());
                         }
                     }, sig);
 
-                    const self = this;
-                    document.addEventListener('change', function(e) {
-                        if (e.target && e.target.id === 'draftUnitSelect') {
-                            self.draft.fsatuan = e.target.value;
-                        }
-                    });
+                    if (this.savedItems.length === 0) {
+                        this.savedItems = [this.createRow()];
+                    }
                 }
             };
-        }
-
-        function getDraftUnitSelect() {
-            return document.getElementById('draftUnitSelect');
-        }
-
-        function populateDraftUnitSelect(units) {
-            const sel = getDraftUnitSelect();
-            if (!sel) return;
-            sel.innerHTML = '';
-            units.forEach(u => {
-                const opt = document.createElement('option');
-                opt.value = u;
-                opt.textContent = u;
-                sel.appendChild(opt);
-            });
-        }
-
-        function clearDraftUnitSelect() {
-            const sel = getDraftUnitSelect();
-            if (sel) sel.innerHTML = '';
         }
 
         // â”€â”€â”€ pohFormModal â€” identik create â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
@@ -1731,7 +1660,3 @@
         });
     </script>
 @endpush
-
-
-
-

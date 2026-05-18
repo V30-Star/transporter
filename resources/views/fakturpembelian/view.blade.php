@@ -216,22 +216,19 @@
                                         </option>
                                     @endforeach
                                 </select>
-                                <div class="absolute inset-0" role="button" aria-label="Browse supplier"
-                                    @click="window.dispatchEvent(new CustomEvent('supplier-browse-open'))"></div>
                             </div>
                             {{-- kirim ID supplier ke server --}}
                             <input type="hidden" name="fsupplier" id="supplierCodeHidden"
                                 value="{{ old('fsupplier', $fakturpembelian->fsupplier) }}">
-                            <button disabled type="button"
-                                @click="window.dispatchEvent(new CustomEvent('supplier-browse-open'))"
-                                class="border -ml-px px-3 py-2 bg-white hover:bg-gray-50 rounded-r-none"
-                                title="Browse Supplier">
+                            <span
+                                class="border -ml-px px-3 py-2 bg-gray-100 text-gray-400 rounded-r-none flex items-center"
+                                title="Browse Supplier nonaktif">
                                 <x-heroicon-o-magnifying-glass class="w-5 h-5" />
-                            </button>
-                            <button disabled href="{{ route('supplier.create') }}" target="_blank" rel="noopener"
-                                class="border -ml-px rounded-r px-3 py-2 bg-white hover:bg-gray-50" title="Tambah Supplier">
+                            </span>
+                            <span class="border -ml-px rounded-r px-3 py-2 bg-gray-100 text-gray-400 flex items-center"
+                                title="Tambah Supplier nonaktif">
                                 <x-heroicon-o-plus class="w-5 h-5" />
-                            </button>
+                            </span>
                         </div>
                         @error('fsupplier')
                             <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
@@ -254,25 +251,19 @@
                                         </option>
                                     @endforeach
                                 </select>
-
-                                {{-- Overlay untuk buka browser gudang --}}
-                                <div class="absolute inset-0" role="button" aria-label="Browse warehouse"
-                                    @click="window.dispatchEvent(new CustomEvent('warehouse-browse-open'))"></div>
                             </div>
                             <input type="hidden" name="ffrom" id="warehouseCodeHidden"
                                 value="{{ old('ffrom', $fakturpembelian->ffrom) }}">
 
-                            {{-- Tombol-tombol Anda --}}
-                            <button disabled type="button"
-                                @click="window.dispatchEvent(new CustomEvent('warehouse-browse-open'))"
-                                class="border -ml-px px-3 py-2 bg-white hover:bg-gray-50 rounded-r-none"
-                                title="Browse Gudang">
+                            <span
+                                class="border -ml-px px-3 py-2 bg-gray-100 text-gray-400 rounded-r-none flex items-center"
+                                title="Browse Gudang nonaktif">
                                 <x-heroicon-o-magnifying-glass class="w-5 h-5" />
-                            </button>
-                            <button disabled href="{{ route('gudang.create') }}" target="_blank" rel="noopener"
-                                class="border -ml-px rounded-r px-3 py-2 bg-white hover:bg-gray-50" title="Tambah Gudang">
+                            </span>
+                            <span class="border -ml-px rounded-r px-3 py-2 bg-gray-100 text-gray-400 flex items-center"
+                                title="Tambah Gudang nonaktif">
                                 <x-heroicon-o-plus class="w-5 h-5" />
-                            </button>
+                            </span>
                         </div>
                     </div>
 
@@ -509,132 +500,6 @@
                                 </tbody>
                             </template>
 
-                            <tbody>
-
-                                <!-- ROW EDIT UTAMA -->
-                                <tr x-show="editingIndex !== null" class="border-t align-top" x-cloak>
-                                    <!-- # -->
-                                    <td class="p-2" x-text="(editingIndex ?? 0) + 1"></td>
-
-                                    <!-- Kode Produk -->
-                                    <td class="p-2">
-                                        <div class="flex">
-                                            <input type="text" class="flex-1 border rounded-l px-2 py-1 font-mono"
-                                                x-ref="editCode" x-model.trim="editRow.fitemcode"
-                                                @input="onCodeTypedRow(editRow)"
-                                                @keydown.enter.prevent="handleEnterOnCode('edit')">
-                                            <button type="button" @click="openBrowseFor('edit')"
-                                                class="border border-l-0 px-2 py-1 bg-white hover:bg-gray-50"
-                                                title="Cari Produk">
-                                                <x-heroicon-o-magnifying-glass class="w-4 h-4" />
-                                            </button>
-                                           
-                                        </div>
-                                    </td>
-
-                                    <!-- Nama Produk (readonly) -->
-                                    <td class="p-2">
-                                        <div
-                                            class="w-full border rounded px-2 py-1 bg-gray-100 text-gray-600 text-sm leading-5 whitespace-normal break-words"
-                                            x-text="editRow.fitemname"></div>
-                                    </td>
-
-                                    <!-- Ref.PR# -->
-                                    <td class="p-2">
-                                        <input type="text"
-                                            class="w-full border rounded px-2 py-1 bg-gray-100 text-gray-600"
-                                            :value="editRow.frefdtno" disabled placeholder="No Ref">
-                                    </td>
-
-                                    <!-- Satuan -->
-                                    <td class="p-2">
-                                        <template x-if="editRow.units.length > 1">
-                                            <select class="w-full border rounded px-2 py-1" x-ref="editUnit"
-                                                x-model="editRow.fsatuan"
-                                                @keydown.enter.prevent="$refs.editRefPr?.focus()">
-                                                <template x-for="u in editRow.units" :key="u">
-                                                    <option :value="u" x-text="u"></option>
-                                                </template>
-                                            </select>
-                                        </template>
-                                        <template x-if="editRow.units.length <= 1">
-                                            <input type="text"
-                                                class="w-full border rounded px-2 py-1 bg-gray-100 text-gray-600"
-                                                :value="editRow.fsatuan || '-'" disabled>
-                                        </template>
-                                    </td>
-
-                                    <!-- Qty -->
-                                    <td class="p-2 text-right">
-                                        <input type="number" class="border rounded px-2 py-1 w-24 text-right"
-                                                min="0" step="0.01" x-ref="editQty" x-model.number="editRow.fqty"
-                                            @input="recalc(editRow)" @keydown.enter.prevent="$refs.editTerima?.focus()">
-                                    </td>
-
-                                    <!-- @ Harga -->
-                                    <td class="p-2 text-right">
-                                        <input type="number" class="border rounded px-2 py-1 w-28 text-right"
-                                            min="0" step="0.01" x-ref="editPrice"
-                                            x-model.number="editRow.fprice" @input="recalc(editRow)"
-                                            @keydown.enter.prevent="$refs.editDisc?.focus()">
-                                    </td>
-
-                                    <!-- @ Biaya -->
-                                    <td class="p-2 text-right">
-                                        <input type="number" class="border rounded px-2 py-1 w-28 text-right"
-                                            min="0" step="0.01" x-ref="editBiaya"
-                                            x-model.number="editRow.fbiaya" default="0"
-                                            @keydown.enter.prevent="$refs.editDisc?.focus()">
-                                    </td>
-
-                                    <!-- Disc.% -->
-                                    <td class="p-2 text-right">
-                                        <input type="number" class="border rounded px-2 py-1 w-24 text-right"
-                                            min="0" max="100" step="0.01" x-ref="editDisc"
-                                            x-model.number="editRow.fdiscpersen" @input="recalc(editRow)"
-                                            @keydown.enter.prevent="applyEdit()">
-                                    </td>
-
-                                    <!-- Total Harga (readonly) -->
-                                    <td class="p-2">
-                                        <input type="text"
-                                            class="w-full border rounded px-2 py-1 bg-gray-100 text-gray-600 text-sm text-right"
-                                            :value="fmt(editRow.ftotprice)" disabled>
-                                    </td>
-
-                                    <!-- Aksi -->
-                                    <td class="p-2 text-center">
-                                        <div class="flex items-center justify-center gap-2 flex-wrap">
-                                            <button type="button" @click="applyEdit()"
-                                                class="px-3 py-1 rounded text-xs bg-emerald-600 text-white">Simpan</button>
-                                            <button type="button" @click="cancelEdit()"
-                                                class="px-3 py-1 rounded text-xs bg-gray-100">Batal</button>
-                                        </div>
-                                    </td>
-                                </tr>
-
-                                <!-- ROW EDIT DESC -->
-                                <tr x-show="editingIndex !== null" class="border-b" x-cloak>
-                                    <td class="p-0"></td>
-                                    <td class="p-0"></td>
-                                    <td class="p-0"></td>
-                                    <td class="p-0"></td>
-                                    <td class="p-0"></td>
-                                    <td class="p-0"></td>
-                                    <td class="p-0"></td>
-                                </tr>
-
-                                <!-- ROW DRAFT DESC -->
-                                <tr class="border-b">
-                                    <td class="p-0"></td>
-                                    <td class="p-0"></td>
-                                    <td class="p-0"></td>
-                                    <td class="p-0"></td>
-                                    <td class="p-0"></td>
-                                    <td class="p-0"></td>
-                                    <td class="p-0"></td>
-                                </tr>
-                            </tbody>
                         </table>
                     </div>
 
@@ -1000,10 +865,6 @@
                 return {
                     showNoItems: false,
                     savedItems: @json($savedItems),
-                    draft: newRow(),
-                    editingIndex: null,
-                    editRow: newRow(),
-
                     biayaGlobal: @json((float) ($biayaGlobal ?? 0)),
                     totalHarga: 0,
                     ppnRate: 11,
@@ -1084,193 +945,8 @@
                         this.biayaGlobal = this.savedItems.reduce((sum, item) => sum + (item.fbiaya * item.fqty || 0), 0);
                     },
 
-                    productMeta(code) {
-                        const key = (code || '').trim();
-                        return window.PRODUCT_MAP?.[key] || null;
-                    },
-
-                    hydrateRowFromMeta(row, meta) {
-                        if (!meta) {
-                            row.fitemname = '';
-                            row.units = [];
-                            row.fsatuan = '';
-                            row.maxqty = 0;
-                            return;
-                        }
-                        row.fitemname = meta.name || '';
-                        const units = [...new Set((meta.units || []).map(u => (u ?? '').toString().trim()).filter(Boolean))];
-                        row.units = units;
-                        if (!units.includes(row.fsatuan)) row.fsatuan = units[0] || '';
-                        row.fsatuan = row.fsatuan;
-                        const stock = Number.isFinite(+meta.stock) && +meta.stock > 0 ? +meta.stock : 0;
-                        row.maxqty = stock;
-                    },
-
-                    onCodeTypedRow(row) {
-                        this.hydrateRowFromMeta(row, this.productMeta(row.fitemcode));
-                    },
-
-                    isComplete(row) {
-                        return row.fitemcode && row.fitemname && row.fsatuan && Number(row.fqty) > 0;
-                    },
-
-                    onPrPicked(e) {
-                        const {
-                            header,
-                            items
-                        } = e.detail || {};
-                        if (!items || !Array.isArray(items)) return;
-
-                        this.resetDraft();
-
-                        this.addManyFromPR(header, items);
-                    },
-                    resetDraft() {
-                        this.draft = newRow();
-                        this.$nextTick(() => this.$refs.draftCode?.focus());
-                    },
-
-                    addManyFromPR(header, items) {
-                        const existing = new Set(this.getCurrentItemKeys()); // gunakan helper
-
-                        let added = 0,
-                            duplicates = [];
-
-                        items.forEach(src => {
-                            const row = {
-                                uid: cryptoRandom(),
-                                fitemcode: src.fitemcode ?? '',
-                                fitemname: src.fitemname ?? '',
-                                fsatuan: src.fsatuan ?? '',
-                                frefdtno: src.frefdtno ?? '',
-                                fnouref: src.fnouref ?? '',
-                                frefpr: src.frefpr ?? (header?.fpono ?? ''),
-                                fprhid: src.fprhid ?? header?.fprhid ?? '',
-                                fqty: Number(src.fqty ?? 0),
-                                fterima: Number(src.fterima ?? 0),
-                                fprice: Number(src.fprice ?? 0),
-                                fdiscpersen: Number(src.fdiscpersen ?? 0),
-                                ftotprice: Number(src.ftotprice ?? 0),
-                                fdesc: src.fdesc ?? '',
-                                fketdt: src.fketdt ?? '',
-                                units: Array.isArray(src.units) && src.units.length ? src.units : [src.fsatuan]
-                                    .filter(Boolean),
-                            };
-                            const key = this.itemKey({
-                                fitemcode: row.fitemcode,
-                                frefdtno: row.frefdtno
-                            });
-
-                            if (existing.has(key)) {
-                                duplicates.push({
-                                    key,
-                                    code: row.fitemcode,
-                                    ref: row.frefdtno
-                                });
-                                return;
-                            }
-
-                            this.savedItems.push(row);
-                            existing.add(key);
-                            added++;
-                        });
-
-                        this.recalcTotals();
-                    },
-
-                    addIfComplete() {
-                        const r = this.draft;
-                        if (!this.isComplete(r)) {
-                            if (!r.fitemcode) return this.$refs.draftCode?.focus();
-                            if (!r.fitemname) return this.$refs.draftCode?.focus();
-                            if (!r.fsatuan) return (r.units.length > 1 ? this.$refs.draftUnit?.focus() : this.$refs.draftCode
-                                ?.focus());
-                            if (!(Number(r.fqty) > 0)) return this.$refs.draftQty?.focus();
-                            return;
-                        }
-
-                        this.recalc(r);
-
-                        const dupe = this.savedItems.find(it => it.fitemcode === r.fitemcode && it.fsatuan === r.fsatuan && (it
-                            .frefpr || '') === (r.frefpr || ''));
-                        if (dupe) {
-                            alert('Item sama sudah ada.');
-                            return;
-                        }
-
-                        this.savedItems.push({
-                            ...r,
-                            uid: cryptoRandom()
-                        });
-                        this.showNoItems = false;
-                        this.resetDraft(); // Reset draft setelah item ditambahkan
-                        this.$nextTick(() => this.$refs.draftCode?.focus());
-                        this.syncDescList?.();
-                        this.showNoItems = false;
-
-                        this.recalcTotals();
-                    },
-
-                    edit(i) {
-                        this.editingIndex = i;
-                        this.editRow = {
-                            ...this.savedItems[i]
-                        };
-                        this.hydrateRowFromMeta(this.editRow, this.productMeta(this.editRow.fitemcode));
-                        this.$nextTick(() => this.$refs.editQty?.focus());
-                    },
-
-                    applyEdit() {
-                        const r = this.editRow;
-                        if (!this.isComplete(r)) {
-                            alert('Lengkapi data item.');
-                            return;
-                        }
-                        this.recalc(r);
-                        this.savedItems.splice(this.editingIndex, 1, {
-                            ...r
-                        });
-                        this.cancelEdit();
-                        this.syncDescList?.();
-
-                        // Recalculate totals after applying edit
-                        this.recalcTotals();
-                    },
-
-                    cancelEdit() {
-                        this.editingIndex = null;
-                        this.editRow = newRow();
-                    },
-
-                    removeSaved(i) {
-                        this.savedItems.splice(i, 1);
-                        this.syncDescList?.();
-                    },
-
-                    resetDraft() {
-                        this.draft = newRow();
-                    },
-
-                    onSubmit($event) {
-                        if (this.savedItems.length === 0) {
-                            $event.preventDefault();
-                            this.showNoItems = true;
-                            return;
-                        }
-                    },
-
-                    handleEnterOnCode(where) {
-                        if (where === 'edit') {
-                            if (this.editRow.units.length > 1) this.$refs.editUnit?.focus();
-                            else this.$refs.editQty?.focus();
-                        } else {
-                            if (this.draft.units.length > 1) this.$refs.draftUnit?.focus();
-                            else this.$refs.draftQty?.focus();
-                        }
-                    },
-
                     showDescModal: false,
-                    descTarget: 'draft',
+                    descTarget: 'saved',
                     descSavedIndex: null,
                     descValue: '',
                     descReadonly: false,
@@ -1283,21 +959,13 @@
                     },
                     closeDesc() {
                         this.showDescModal = false;
-                        this.descTarget = 'draft';
+                        this.descTarget = 'saved';
                         this.descSavedIndex = null;
                         this.descValue = '';
                         this.descReadonly = false;
                     },
                     applyDesc() {
                         this.closeDesc();
-                    },
-
-                    itemKey(it) {
-                        return `${(it.fitemcode ?? '').toString().trim()}::${(it.frefdtno ?? '').toString().trim()}`;
-                    },
-
-                    getCurrentItemKeys() {
-                        return this.savedItems.map(it => this.itemKey(it));
                     },
 
                     alokasiBiaya() {
@@ -1319,88 +987,40 @@
                     },
 
                     init() {
-                        this.savedItems.forEach(item => {
-                            // Jika data dari DB tidak punya ftotprice, jalankan rumus ini
+                        this.savedItems = (this.savedItems || []).map((item, index) => {
+                            const row = {
+                                uid: item?.uid || `view-row-${index}`,
+                                fitemcode: '',
+                                fitemname: '',
+                                units: [],
+                                fsatuan: '',
+                                frefdtno: '',
+                                fnouref: '',
+                                frefpr: '',
+                                fqty: 0,
+                                fterima: 0,
+                                fprice: 0,
+                                fdiscpersen: 0,
+                                fbiaya: 0,
+                                ftotprice: 0,
+                                fdesc: '',
+                                fketdt: '',
+                                maxqty: 0,
+                                ...item,
+                            };
                             const qty = +item.fqty || 0;
                             const price = +item.fprice || 0;
                             const disc = +item.fdiscpersen || 0;
                             const biaya = +item.fbiaya || 0;
-
-                            // Pastikan ftotprice dihitung di awal
-                            item.ftotprice = (price + biaya) * qty - (qty * price * (disc / 100));
+                            row.ftotprice = (price + biaya) * qty - (qty * price * (disc / 100));
+                            return row;
                         });
                         this.recalcTotals();
                         this.$watch('includePPN', () => this.recalcTotals());
                         this.$watch('fapplyppn', () => this.recalcTotals());
                         this.$watch('ppnRate', () => this.recalcTotals());
-
-                        // Listen for PR picked from modal PR
-                        window.getCurrentItemKeys = () => this.getCurrentItemKeys();
-                        window.addEventListener('pr-picked', this.onPrPicked.bind(this), {
-                            passive: true
-                        });
-
-                        // Listen for product picked from product modal
-                        window.addEventListener('product-chosen', (e) => {
-                            const {
-                                product
-                            } = e.detail || {};
-                            if (!product) return;
-                            const apply = (row) => {
-                                row.fitemcode = (product.fprdcode || '').toString();
-                                this.hydrateRowFromMeta(row, this.productMeta(row.fitemcode));
-                                if (!row.fqty) row.fqty = 1;
-                                this.recalc(row);
-                            };
-                            if (this.browseTarget === 'edit') {
-                                apply(this.editRow);
-                                this.$nextTick(() => this.$refs.editQty?.focus());
-                            } else {
-                                apply(this.draft);
-                                this.$nextTick(() => this.$refs.draftQty?.focus());
-                            }
-                        }, {
-                            passive: true
-                        });
-                    },
-
-                    browseTarget: 'draft',
-                    openBrowseFor(where) {
-                        this.browseTarget = (where === 'edit' ? 'edit' : 'draft');
-                        window.dispatchEvent(new CustomEvent('browse-open', {
-                            detail: {
-                                forEdit: this.browseTarget === 'edit'
-                            }
-                        }));
                     },
                 };
-
-                function newRow() {
-                    return {
-                        uid: null,
-                        fitemcode: '',
-                        fitemname: '',
-                        units: [],
-                        fsatuan: '',
-                        frefdtno: '',
-                        fnouref: '',
-                        frefpr: '',
-                        fqty: 0,
-                        fterima: 0,
-                        fprice: 0,
-                        fdiscpersen: 0,
-                        fbiaya: 0,
-                        ftotprice: 0,
-                        fdesc: '',
-                        fketdt: '',
-                        maxqty: 0,
-                    };
-                }
-
-                function cryptoRandom() {
-                    return (window.crypto?.getRandomValues ? [...window.crypto.getRandomValues(new Uint32Array(2))].map(n => n
-                        .toString(16)).join('') : Math.random().toString(36).slice(2)) + Date.now();
-                }
             }
         </script>
 
@@ -2139,7 +1759,4 @@
                 }
             </script>
         @endpush
-
-
-
 
