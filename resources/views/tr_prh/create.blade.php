@@ -254,7 +254,7 @@
                                                 <input type="text"
                                                     class="flex-1 border rounded-l px-2 py-1 font-mono text-sm min-w-0"
                                                     x-model.trim="row.fitemcode"
-                                                    @input="onCodeTyped(row)"
+                                                    @input="onCodeTyped(row, i)"
                                                     @keydown.enter.prevent="focusNextField(row, i)">
                                                 <button type="button" @click="openBrowseFor(i)"
                                                     class="border border-l-0 px-2 py-1 bg-white hover:bg-gray-50"
@@ -281,7 +281,8 @@
                                         </td>
                                         <td class="p-2">
                                             <template x-if="row.units.length > 1">
-                                                <select class="w-full border rounded px-2 py-1 text-sm" x-model="row.fsatuan">
+                                                <select class="w-full border rounded px-2 py-1 text-sm" x-model="row.fsatuan"
+                                                    @change="onRowUpdated(i)">
                                                     <template x-for="unit in row.units" :key="unit">
                                                         <option :value="unit" x-text="unit"></option>
                                                     </template>
@@ -295,11 +296,11 @@
                                         </td>
                                         <td class="p-2 text-right">
                                             <input type="number" class="w-full border rounded px-2 py-1 text-right"
-                                                x-model.number="row.fqty" min="0">
+                                                x-model.number="row.fqty" min="0" @input="onRowUpdated(i)">
                                         </td>
                                         <td class="p-2">
                                             <input type="text" class="w-full border rounded px-2 py-1 text-sm"
-                                                x-model="row.fketdt">
+                                                x-model="row.fketdt" @input="onRowUpdated(i)">
                                         </td>
                                         <td class="p-2 text-center">
                                             <div class="flex items-center justify-center gap-2">
@@ -1135,6 +1136,7 @@
             warningMessage: '',
             warningItems: [],
             warningCanProceed: false,
+            minimumVisibleRows: 5,
 
             emptyRow() {
                 return {
@@ -1148,6 +1150,42 @@
                     fdesc: '',
                     fketdt: ''
                 };
+            },
+
+            rowHasContent(row) {
+                if (!row) return false;
+                return [
+                    row.fitemcode,
+                    row.fitemname,
+                    row.fsatuan,
+                    row.fqty,
+                    row.fdesc,
+                    row.fketdt
+                ].some((value) => String(value ?? '').trim() !== '' && Number(value ?? 0) !== 0) || Number(row.fqty || 0) > 0;
+            },
+
+            ensureMinimumRows() {
+                while (this.rows.length < this.minimumVisibleRows) {
+                    this.rows.push(this.emptyRow());
+                }
+            },
+
+            ensureTrailingRow(index = null) {
+                if (!this.rows.length) {
+                    this.ensureMinimumRows();
+                    return;
+                }
+
+                const targetIndex = index === null ? this.rows.length - 1 : index;
+                if (targetIndex !== this.rows.length - 1) return;
+
+                if (this.rowHasContent(this.rows[targetIndex])) {
+                    this.rows.push(this.emptyRow());
+                }
+            },
+
+            onRowUpdated(index) {
+                this.ensureTrailingRow(index);
             },
 
             normalizeNoAcak(value) {
@@ -1198,8 +1236,9 @@
                 row.fnoacak = this.normalizeNoAcak(row.fnoacak) || this.generateUniqueNoAcak();
             },
 
-            onCodeTyped(row) {
+            onCodeTyped(row, index = null) {
                 this.hydrateRowFromMeta(row, this.productMeta(row.fitemcode));
+                this.onRowUpdated(index);
             },
 
             openDesc(index = null) {
@@ -1221,6 +1260,7 @@
             applyDesc() {
                 if (this.descRowIndex !== null && this.rows[this.descRowIndex]) {
                     this.rows[this.descRowIndex].fdesc = (this.descValue || '').trim();
+                    this.onRowUpdated(this.descRowIndex);
                 }
                 this.closeDesc();
             },
@@ -1255,11 +1295,8 @@
             },
 
             removeRow(index) {
-                if (this.rows.length === 1) {
-                    this.rows.splice(0, 1, this.emptyRow());
-                    return;
-                }
                 this.rows.splice(index, 1);
+                this.ensureMinimumRows();
             },
 
             openBrowseFor(index) {
@@ -1354,7 +1391,8 @@
             },
 
             init() {
-                this.rows = [this.emptyRow()];
+                this.rows = [];
+                this.ensureMinimumRows();
 
                 window.addEventListener('product-chosen', (e) => {
                     const { product } = e.detail || {};
@@ -1365,6 +1403,7 @@
 
                     row.fitemcode = (product.fprdcode || '').toString();
                     this.hydrateRowFromMeta(row, this.productMeta(row.fitemcode));
+                    this.onRowUpdated(this.browseTargetIndex);
                 }, {
                     passive: true
                 });
