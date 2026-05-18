@@ -388,7 +388,7 @@ class Tr_prhController extends Controller
         $tr_prh = $this->findPrWithSupplier($fprhid);
         $pageData = $this->buildPrPageData($tr_prh, true);
 
-        return view('tr_prh.view', [
+        return view('tr_prh.edit', [
             'suppliers' => $pageData['suppliers'],
             'fcabang' => $branchInfo['fcabang'],
             'fbranchcode' => $branchInfo['fbranchcode'],
@@ -398,6 +398,8 @@ class Tr_prhController extends Controller
             'savedItems' => $pageData['savedItems'],
             'blockedByPO' => $pageData['blockedByPO'],
             'existingPO' => $pageData['existingPO'],
+            'usageLockMessage' => $pageData['blockedByPO'] ? $this->getUsageLockMessage($tr_prh) : null,
+            'action' => 'view',
             'filterSupplierId' => $request->query('filter_supplier_id'),
         ]);
     }

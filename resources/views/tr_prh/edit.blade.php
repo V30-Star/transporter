@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', $action === 'delete' ? 'Hapus Permintaan Pembelian' : 'Edit Permintaan Pembelian')
+@section('title', $action === 'delete' ? 'Hapus Permintaan Pembelian' : ($action === 'view' ? 'Detail Permintaan Pembelian' : 'Edit Permintaan Pembelian'))
 
 @section('content')
     <style>
@@ -131,15 +131,20 @@
         $permissions = explode(',', session('user_restricted_permissions', ''));
         $canEditPermission = in_array('updateTr_prh', $permissions, true);
         $canDeletePermission = in_array('deleteTr_prh', $permissions, true);
+        $canPrint = in_array('viewTr_prh', $permissions, true) || in_array('updateTr_prh', $permissions, true) || in_array('deleteTr_prh', $permissions, true) || in_array('createTr_prh', $permissions, true);
+        $isDelete = $action === 'delete';
+        $isView = $action === 'view';
+        $isEdit = $action === 'edit';
+        $isReadOnly = $isDelete || $isView;
     @endphp
     @php
         $isUsageLocked = !empty($blockedByPO) && $blockedByPO;
-        $canClosePr = $action === 'edit' && $tr_prh->fclose != '1' && $isUsageLocked && (string) ($tr_prh->fprdin ?? '') === '0';
+        $canClosePr = $isEdit && $tr_prh->fclose != '1' && $isUsageLocked && (string) ($tr_prh->fprdin ?? '') === '0';
     @endphp
     {{-- ═══════════════════════════════════════════════════════════════════
      MODAL BLOCKED BY PO
 ════════════════════════════════════════════════════════════════════ --}}
-    @if ((!empty($blockedByPO) && $blockedByPO) || session('blocked_by_po'))
+    @if ($isEdit && ((!empty($blockedByPO) && $blockedByPO) || session('blocked_by_po')))
         <div x-data="{ open: true }" x-show="open" x-cloak class="fixed inset-0 z-[99] flex items-center justify-center"
             x-transition.opacity>
             <div class="absolute inset-0 bg-black/60 backdrop-blur-sm"></div>
@@ -153,7 +158,7 @@
                     </div>
                     <div class="flex-1">
                         <h3 class="text-base font-bold text-red-700">
-                            PR Tidak Dapat {{ $action === 'delete' ? 'Dihapus' : 'Diedit' }}
+                            PR Tidak Dapat {{ $isDelete ? 'Dihapus' : 'Diedit' }}
                         </h3>
                         <p class="text-sm text-red-500 mt-0.5">
                             PR <strong>{{ $tr_prh->fprno }}</strong> sudah terikat dengan Purchase Order berikut:
@@ -204,7 +209,7 @@
                 {{-- Footer --}}
                 <div class="px-6 py-4 border-t bg-gray-50 flex justify-between items-center gap-3">
                     <p class="text-xs text-gray-500">
-                        Batalkan PO terkait terlebih dahulu sebelum {{ $action === 'delete' ? 'menghapus' : 'mengedit' }} PR
+                        Batalkan PO terkait terlebih dahulu sebelum {{ $isDelete ? 'menghapus' : 'mengedit' }} PR
                         ini.
                     </p>
                     <button type="button" @click="open = false"
@@ -219,7 +224,7 @@
 
     <div x-data="{ open: true }">
         <div class="bg-white rounded shadow p-6 md:p-8 max-w-[1600px] w-full mx-auto">
-            @if ($action === 'delete')
+            @if ($isReadOnly)
                 <div class="space-y-4">
                     @php
                         $fmt = fn($d) => $d ? \Illuminate\Support\Carbon::parse($d)->format('Y-m-d') : '';
@@ -343,7 +348,7 @@
                     </div>
 
                     <div class="mt-6 flex justify-center space-x-4">
-                        @if ($canDeletePermission)
+                        @if ($isDelete && $canDeletePermission)
                             @if (!empty($blockedByPO) && $blockedByPO)
                                 <button type="button" disabled
                                     class="bg-red-300 text-white px-6 py-2 rounded cursor-not-allowed flex items-center gap-2">
@@ -356,6 +361,17 @@
                                     <x-heroicon-o-trash class="w-5 h-5 mr-2" /> Hapus
                                 </button>
                             @endif
+                        @endif
+                        @if ($isView && $canPrint)
+                            <a href="{{ route('tr_prh.print', $tr_prh->fprno) }}" target="_blank"
+                                class="bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700 flex items-center">
+                                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m10 0v-5a2 2 0 00-2-2H9a2 2 0 00-2 2v5m10 0v5H7v-5">
+                                    </path>
+                                </svg>
+                                Print
+                            </a>
                         @endif
                         <button type="button" onclick="window.location.href='{{ route('tr_prh.index') }}'"
                             class="bg-gray-500 text-white px-6 py-2 rounded hover:bg-gray-600 flex items-center">

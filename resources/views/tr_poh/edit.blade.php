@@ -103,27 +103,41 @@
     {{-- ═══════════════════════════════════════════════════════════════════
      MODAL BLOCKED BY PENERIMAAN BARANG (QTY TERIMA)
 ════════════════════════════════════════════════════════════════════ --}}
-    @if ((!empty($blockedByTerima) && $blockedByTerima) || session('blocked_by_terima'))
+    @php
+        $isDelete = $action === 'delete';
+        $isEdit = $action === 'edit';
+        $isView = $action === 'view';
+        $isReadOnly = $isDelete || $isView;
+        $disabled = $isReadOnly ? 'disabled' : '';
+        $readonly = $isReadOnly ? 'readonly' : '';
+        $bgDisabled = $isReadOnly ? 'bg-gray-100 cursor-not-allowed text-gray-500' : '';
+        $canClosePo = $isEdit && $tr_poh->fclose != '1' && (string) ($tr_poh->fprdin ?? '') !== '1';
+        $canPrint = in_array('viewTr_poh', $permissions, true) || in_array('updateTr_poh', $permissions, true) || in_array('deleteTr_poh', $permissions, true) || in_array('createTr_poh', $permissions, true);
+        $fmtQty = function ($value) {
+            $num = (float) ($value ?? 0);
+            return number_format($num, 2, ',', '.');
+        };
+    @endphp
+
+    @if ($isEdit && ((!empty($blockedByTerima) && $blockedByTerima) || session('blocked_by_terima')))
         <div x-data="{ open: true }" x-show="open" x-cloak class="fixed inset-0 z-[99] flex items-center justify-center"
             x-transition.opacity>
             <div class="absolute inset-0 bg-black/60 backdrop-blur-sm"></div>
 
             <div class="relative bg-white w-[92vw] max-w-2xl rounded-2xl shadow-2xl overflow-hidden">
 
-                {{-- Header --}}
                 <div class="px-6 py-4 border-b border-orange-100 bg-orange-50 flex items-center gap-3">
                     <div class="flex-shrink-0 w-10 h-10 rounded-full bg-orange-100 flex items-center justify-center">
                         <x-heroicon-o-truck class="w-5 h-5 text-orange-600" />
                     </div>
                     <div class="flex-1">
                         <h3 class="text-base font-bold text-orange-700">
-                            PO Tidak Dapat {{ $action === 'delete' ? 'Dihapus' : 'Diedit' }}
+                            PO Tidak Dapat {{ $isDelete ? 'Dihapus' : 'Diedit' }}
                         </h3>
                         <p class="text-sm text-orange-500 mt-0.5">
                             PO <strong>{{ $tr_poh->fpono }}</strong> sudah memiliki transaksi Penerimaan Barang:
                         </p>
                     </div>
-                    {{-- Tombol X tutup modal --}}
                     <button type="button" @click="open = false"
                         class="flex-shrink-0 w-8 h-8 rounded-full bg-orange-100 hover:bg-orange-200 flex items-center justify-center transition-colors"
                         title="Tutup">
@@ -131,7 +145,6 @@
                     </button>
                 </div>
 
-                {{-- Body: tabel daftar penerimaan --}}
                 <div class="px-6 py-4 max-h-72 overflow-y-auto">
                     @if (!empty($existingTerima) && $existingTerima->isNotEmpty())
                         <table class="w-full text-sm border rounded overflow-hidden">
@@ -165,11 +178,9 @@
                     @endif
                 </div>
 
-                {{-- Footer --}}
                 <div class="px-6 py-4 border-t bg-gray-50 flex justify-between items-center gap-3">
                     <p class="text-xs text-gray-500">
-                        Batalkan transaksi Penerimaan Barang terkait terlebih dahulu sebelum
-                        {{ $action === 'delete' ? 'menghapus' : 'mengedit' }} PO ini.
+                        Batalkan transaksi Penerimaan Barang terkait terlebih dahulu sebelum mengedit PO ini.
                     </p>
                     <button type="button" @click="open = false"
                         class="bg-gray-500 text-white px-6 py-2 rounded hover:bg-gray-600 flex items-center gap-2">
@@ -180,22 +191,6 @@
             </div>
         </div>
     @endif
-
-    @php
-        $isDelete = $action === 'delete';
-        $isEdit = $action === 'edit';
-        $isView = $action === 'view';
-        $isReadOnly = $isDelete || $isView;
-        $disabled = $isReadOnly ? 'disabled' : '';
-        $readonly = $isReadOnly ? 'readonly' : '';
-        $bgDisabled = $isReadOnly ? 'bg-gray-100 cursor-not-allowed text-gray-500' : '';
-        $canClosePo = $isEdit && $tr_poh->fclose != '1' && (string) ($tr_poh->fprdin ?? '') !== '1';
-        $canPrint = in_array('viewTr_poh', $permissions, true) || in_array('updateTr_poh', $permissions, true) || in_array('deleteTr_poh', $permissions, true) || in_array('createTr_poh', $permissions, true);
-        $fmtQty = function ($value) {
-            $num = (float) ($value ?? 0);
-            return number_format($num, 2, ',', '.');
-        };
-    @endphp
 
     <div class="bg-white rounded shadow p-6 md:p-8 max-w-[1600px] w-full mx-auto" x-data="mainForm()"
         x-init="init()">

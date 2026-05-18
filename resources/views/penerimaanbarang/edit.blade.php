@@ -83,7 +83,7 @@
         $isReadOnly = $isDelete || $isView;
         $canPrint = in_array('viewTr_prh', $permissions, true) || in_array('updatePenerimaanBarang', $permissions, true) || in_array('deletePenerimaanBarang', $permissions, true) || in_array('createPenerimaanBarang', $permissions, true);
     @endphp
-    @if ($usageLocked)
+    @if ($usageLocked && !$isView)
         <div x-data="{ open: true }" x-show="open" x-cloak class="fixed inset-0 z-[99] flex items-center justify-center"
             x-transition.opacity>
             <div class="absolute inset-0 bg-black/60 backdrop-blur-sm"></div>
