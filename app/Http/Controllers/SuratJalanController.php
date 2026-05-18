@@ -1145,7 +1145,7 @@ class SuratJalanController extends Controller
             ];
         })->toArray();
 
-        return view('suratjalan.view', [
+        return view('suratjalan.edit', [
             'customers' => $customers,
             'selectedSupplierCode' => $selectedSupplierCode,
             'fcabang' => $fcabang,
@@ -1159,6 +1159,9 @@ class SuratJalanController extends Controller
             'famountponet' => (float) ($suratjalan->famountponet ?? 0),
             'famountpo' => (float) ($suratjalan->famountpo ?? 0),
             'filterSupplierId' => $request->query('filter_supplier_id'),
+            'isUsageLocked' => false,
+            'usageLockMessage' => null,
+            'action' => 'view',
         ]);
     }
 

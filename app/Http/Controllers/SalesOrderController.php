@@ -1270,7 +1270,7 @@ class SalesOrderController extends Controller
             ];
         })->toArray();
 
-        return view('salesorder.view', [
+        return view('salesorder.edit', [
             'customers' => $customers,
             'salesmans' => $salesmans,
             'selectedSupplierCode' => $selectedSupplierCode,
@@ -1287,6 +1287,7 @@ class SalesOrderController extends Controller
             'approvalLockMessage' => $approvalLockMessage,
             'filterSupplierId' => $request->query('filter_supplier_id'),
             'filterSalesmanId' => $request->query('filter_salesman_id'),
+            'action' => 'view',
         ]);
     }
 
