@@ -109,7 +109,7 @@ class Tr_prhController extends Controller
                     'fsuppliername' => $record->fsuppliername,
                     'display_user' => $record->fuserupdate ?: $record->fusercreate,
                     'fuserupdate' => $record->fuserupdate,
-                    'fclose' => $record->fclose == '1' ? 'Done' : 'Not Done',
+                    'fclose' => $record->fclose == '1' ? 'Done' : 'Open',
                     'fprhid' => $record->fprhid,
                     'DT_RowId' => 'row_'.$record->fprhid,
                 ];
