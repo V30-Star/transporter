@@ -12,6 +12,8 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Str;
+use App\Support\ApprovalState;
 
 class Tr_prhController extends Controller
 {
@@ -26,6 +28,48 @@ class Tr_prhController extends Controller
             trim((string) config('approval.purchase_request.stage1', '')),
             trim((string) config('approval.purchase_request.stage2', '')),
         ]));
+    }
+
+    private function generateApprovalToken(): string
+    {
+        return Str::random(64);
+    }
+
+    private function initializeApprovalState(): array
+    {
+        return ApprovalState::initializeApprovalColumns(
+            array_slice($this->getApprovalRecipients(), 0, 2),
+            fn () => $this->generateApprovalToken()
+        );
+    }
+
+    private function sendApprovalNotifications(Tr_prh $tr_prh, $dt, string $productNameList, string $approver): void
+    {
+        $recipients = array_slice($this->getApprovalRecipients(), 0, 2);
+
+        if (! empty($recipients[0]) && ! empty($tr_prh->fapproval_token)) {
+            Mail::to($recipients[0])->send(
+                new ApprovalEmail($tr_prh, $dt, $productNameList, $approver, 'Permintaan Pembelian (PR)', $tr_prh->fapproval_token)
+            );
+        }
+
+        if (! empty($recipients[1]) && ! empty($tr_prh->fapproval_token2)) {
+            Mail::to($recipients[1])->send(
+                new ApprovalEmail($tr_prh, $dt, $productNameList, $approver, 'Permintaan Pembelian (PR)', $tr_prh->fapproval_token2)
+            );
+        }
+    }
+
+    private function shouldRequestPrApproval(Request $request): bool
+    {
+        return $request->boolean('fapproval');
+    }
+
+    private function getApprovalLockMessage(Tr_prh $header): ?string
+    {
+        return ApprovalState::isEditBlockedRecord($header)
+            ? 'Permintaan Pembelian belum dapat diubah karena status approval saat ini belum mengizinkan edit.'
+            : null;
     }
 
     public function index(Request $request)
@@ -100,7 +144,7 @@ class Tr_prhController extends Controller
                 $query->skip($start)->take($length);
             }
 
-            $records = $query->get(['fprhid', 'fprno', 'fprdate', 'fsupplier', 'fusercreate', 'fuserupdate', 'fclose', 'mssupplier.fsuppliername']);
+            $records = $query->get(['fprhid', 'fprno', 'fprdate', 'fsupplier', 'fusercreate', 'fuserupdate', 'fprdin', 'fclose', 'fapproval', 'fapproval2', 'mssupplier.fsuppliername']);
 
             $data = $records->map(function ($record) {
                 return [
@@ -109,8 +153,11 @@ class Tr_prhController extends Controller
                     'fsuppliername' => $record->fsuppliername,
                     'display_user' => $record->fuserupdate ?: $record->fusercreate,
                     'fuserupdate' => $record->fuserupdate,
-                    'fclose' => $record->fclose == '1' ? 'Done' : 'Not Done',
+                    'fprdin' => (string) ($record->fprdin ?? '0'),
+                    'fclose' => (string) ($record->fclose ?? '0'),
                     'fprhid' => $record->fprhid,
+                    'fapproval' => $record->fapproval,
+                    'fapproval2' => $record->fapproval2,
                     'DT_RowId' => 'row_'.$record->fprhid,
                 ];
             });
@@ -206,7 +253,7 @@ class Tr_prhController extends Controller
         abort_if(! $hdr, 404);
 
         $dt = Tr_prd::query()
-            ->leftJoin('msprd as p', 'p.fprdid', '=', 'tr_prd.fprdcodeid')
+            ->leftJoin('msprd as p', 'p.fprdcode', '=', 'tr_prd.fprdcode')
             ->where('tr_prd.fprno', $hdr->fprno)
             ->orderBy('p.fprdname')
             ->get([
@@ -254,6 +301,7 @@ class Tr_prhController extends Controller
 
     public function store(Request $request)
     {
+        $needsApprovalNotification = $this->shouldRequestPrApproval($request);
         $this->validateStoreRequest($request);
 
         $fprdate = $request->filled('fprdate')
@@ -291,9 +339,10 @@ class Tr_prhController extends Controller
             $noacaks,
             $descs,
             $ketdts,
-            $productMap
+            $productMap,
+            $needsApprovalNotification
         ) {
-            $isApproval = $this->canApprovePurchaseRequest() ? (int) ($request->input('fapproval', 0)) : 0;
+            $approvalState = $this->initializeApprovalState();
 
             $tr_prh = Tr_prh::create([
                 'fprno' => $fprno,
@@ -307,10 +356,8 @@ class Tr_prhController extends Controller
                 'fneeddate' => $fneeddate,
                 'fduedate' => $fduedate,
                 'fusercreate' => $userName,
-                'fuserapproved' => $request->has('fuserapproved') ? $userName : null,
-                'fdateapproved' => $request->has('fuserapproved') ? now() : null,
                 'fupdatedat' => null,
-                'fapproval' => $isApproval,
+                ...$approvalState,
             ]);
 
             $detailRows = [];
@@ -328,15 +375,13 @@ class Tr_prhController extends Controller
 
                 if ($code !== '' && $sat !== '' && is_numeric($qty) && $qty >= 1) {
                     $product = $productMap[$code] ?? null;
-                    $productId = (int) ($product->fprdid ?? 0);
-                    if ($productId === 0) {
+                    if (trim((string) ($product->fprdcode ?? '')) === '') {
                         continue;
                     }
 
                     $qtyKecil = $this->convertQtyToSmallUnit($product, $sat, $qty);
 
                     $detailRows[] = [
-                        'fprdcodeid' => $productId,
                         'fprdcode' => $product->fprdcode ?? '',
                         'fqty' => (int) $qty,
                         'fqtykecil' => $qtyKecil,
@@ -355,9 +400,9 @@ class Tr_prhController extends Controller
 
             Tr_prd::insert($detailRows);
 
-            if ($isApproval === 1) {
+            if ($needsApprovalNotification && ApprovalState::hasApprovalProgress($tr_prh)) {
                 $dt = Tr_prd::query()
-                    ->leftJoin('msprd as p', 'p.fprdid', '=', 'tr_prd.fprdcodeid')
+                    ->leftJoin('msprd as p', 'p.fprdcode', '=', 'tr_prd.fprdcode')
                     ->where('tr_prd.fprno', $tr_prh->fprno)
                     ->orderBy('p.fprdname')
                     ->get([
@@ -369,13 +414,7 @@ class Tr_prhController extends Controller
 
                 $productNameList = $dt->pluck('product_name')->implode(', ');
                 $approver = auth('sysuser')->user()->fname ?? $tr_prh->fusercreate ?? 'System';
-
-                $approvalRecipients = $this->getApprovalRecipients();
-                if ($approvalRecipients !== []) {
-                    Mail::to($approvalRecipients[0])
-                        ->cc(array_slice($approvalRecipients, 1))
-                        ->send(new ApprovalEmail($tr_prh, $dt, $productNameList, $approver, 'Permintaan Pembelian (PR)'));
-                }
+                $this->sendApprovalNotifications($tr_prh, $dt, $productNameList, $approver);
             }
         });
 
@@ -388,6 +427,7 @@ class Tr_prhController extends Controller
         $branchInfo = $this->getCurrentBranchInfo();
         $tr_prh = $this->findPrWithSupplier($fprhid);
         $pageData = $this->buildPrPageData($tr_prh, true);
+        $approvalLockMessage = $this->getApprovalLockMessage($tr_prh);
 
         return view('tr_prh.view', [
             'suppliers' => $pageData['suppliers'],
@@ -399,6 +439,7 @@ class Tr_prhController extends Controller
             'savedItems' => $pageData['savedItems'],
             'blockedByPO' => $pageData['blockedByPO'],
             'existingPO' => $pageData['existingPO'],
+            'approvalLockMessage' => $approvalLockMessage,
             'filterSupplierId' => $request->query('filter_supplier_id'),
         ]);
     }
@@ -407,6 +448,9 @@ class Tr_prhController extends Controller
     {
         $branchInfo = $this->getCurrentBranchInfo();
         $tr_prh = $this->findPrWithSupplier($fprhid);
+        if ($message = $this->getApprovalLockMessage($tr_prh)) {
+            return redirect()->route('tr_prh.view', $tr_prh->fprhid)->with('error', $message);
+        }
         $pageData = $this->buildPrPageData($tr_prh, true);
 
         return view('tr_prh.edit', [
@@ -428,6 +472,9 @@ class Tr_prhController extends Controller
     public function update(Request $request, int $fprhid)
     {
         $header = Tr_prh::where('fprhid', $fprhid)->firstOrFail();
+        if ($message = $this->getApprovalLockMessage($header)) {
+            return redirect()->route('tr_prh.view', $header->fprhid)->with('error', $message);
+        }
 
         $isCloseOnly = $request->boolean('close_only');
         $hasReference = DB::table('tr_pod')->where('frefdtno', $header->fprno)->exists();
@@ -566,6 +613,9 @@ class Tr_prhController extends Controller
                 $headerUpdate['fapproval'] = 1;
                 $headerUpdate['fuserapproved'] = $userName;
                 $headerUpdate['fdateapproved'] = $now;
+                $headerUpdate['fapproval_token'] = trim((string) ($header->fapproval_token ?? '')) !== ''
+                    ? $header->fapproval_token
+                    : $this->generateApprovalToken();
             }
             Tr_prh::where('fprhid', $header->fprhid)->update($headerUpdate);
 
@@ -589,12 +639,9 @@ class Tr_prhController extends Controller
                 $desc = $descs[$i] ?? null;
                 $ket = $ketdts[$i] ?? null;
                 $product = $productMap[$code] ?? null;
-                $prodId = (int) ($product->fprdid ?? 0);
-
                 $qtyKecil = $this->convertQtyToSmallUnit($product, $sat, $qty);
 
                 $data = [
-                    'fprdcodeid' => $prodId,
                     'fprdcode' => $code,
                     'fqty' => $qty,
                     'fqtykecil' => $qtyKecil,
@@ -649,7 +696,6 @@ class Tr_prhController extends Controller
     {
         try {
             $tr_prh = Tr_prh::findOrFail($fprhid);
-
             if ($message = $this->getUsageLockMessage($tr_prh)) {
                 return redirect()->route('tr_prh.index')->with('error', $message);
             }
@@ -663,7 +709,7 @@ class Tr_prhController extends Controller
 
             return redirect()->route('tr_prh.index')->with('success', 'Data Permintaan Pembelian '.$tr_prh->fprno.' berhasil dihapus.');
         } catch (\Exception $e) {
-            return redirect()->route('tr_prh.delete', $fprhid)->with('error', 'Gakey: gal menghapus data: '.$e->getMessage());
+            return redirect()->route('tr_prh.delete', $fprhid)->with('error', 'Data belum berhasil dihapus. Silakan coba lagi.');
         }
     }
 
@@ -819,7 +865,7 @@ class Tr_prhController extends Controller
         }
 
         return Tr_prh::with(['details' => function ($q) {
-            $q->leftJoin('msprd as p', 'p.fprdid', '=', 'tr_prd.fprdcodeid')
+            $q->leftJoin('msprd as p', 'p.fprdcode', '=', 'tr_prd.fprdcode')
                 ->orderBy('p.fprdname')
                 ->select(
                     'tr_prd.*',
@@ -873,6 +919,7 @@ class Tr_prhController extends Controller
             'fqtykecil2',
             'fminstock'
         )
+            ->whereRaw(ApprovalState::approvedSql('msprd.'))
             ->orderBy('fprdname')
             ->get();
     }
@@ -939,7 +986,7 @@ class Tr_prhController extends Controller
         return $details->map(function ($detail) use ($includePricing) {
             $item = [
                 'uid' => (string) \Illuminate\Support\Str::uuid(),
-                'fprdid' => (int) ($detail->fprdcodeid ?? 0),
+                'fprdcode' => (string) ($detail->fprdcode ?? ''),
                 'fitemcode' => (string) ($detail->fprdcode_master ?? ''),
                 'fitemname' => (string) ($detail->fprdname ?? ''),
                 'fsatuan' => (string) ($detail->fsatuan ?? ''),

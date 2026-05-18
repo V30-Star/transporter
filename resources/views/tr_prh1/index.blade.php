@@ -282,6 +282,56 @@
             const canEdit = {{ $canEdit ? 'true' : 'false' }};
             const canDelete = {{ $canDelete ? 'true' : 'false' }};
 
+            const isApprovedValue = (value) => {
+                const normalized = (value ?? '').toString().trim();
+                return normalized === '2' || (normalized !== '' && !['0', '1', '2'].includes(normalized));
+            };
+
+            const isEditBlockedApproval = (row) => {
+                const left = (row?.fapproval ?? '').toString().trim();
+                const right = (row?.fapproval2 ?? '').toString().trim();
+
+                if (isApprovedValue(left) || isApprovedValue(right)) {
+                    return false;
+                }
+
+                return left === '1' || right === '1';
+            };
+
+            const renderPrStatus = (row) => {
+                const closeValue = (row?.fclose ?? '').toString().trim();
+                const prdinValue = (row?.fprdin ?? '').toString().trim();
+
+                if (closeValue === '1') {
+                    return '<span class="inline-flex items-center rounded-full bg-slate-200 px-2 py-1 text-xs font-semibold text-slate-700">CLOSE</span>';
+                }
+
+                if (prdinValue === '1') {
+                    return '<span class="inline-flex items-center rounded-full bg-green-100 px-2 py-1 text-xs font-semibold text-green-700">DONE</span>';
+                }
+
+                if (prdinValue === '2') {
+                    return '<span class="inline-flex items-center rounded-full bg-amber-100 px-2 py-1 text-xs font-semibold text-amber-700">PARTIAL</span>';
+                }
+
+                return '<span class="inline-flex items-center rounded-full bg-blue-100 px-2 py-1 text-xs font-semibold text-blue-700">Open</span>';
+            };
+
+            window.showPrApprovalLocked = function() {
+                const message = 'Permintaan Pembelian belum dapat diedit karena status approval saat ini belum mengizinkan edit.';
+                if (window.Swal?.fire) {
+                    window.Swal.fire({
+                        icon: 'info',
+                        title: 'Edit Belum Tersedia',
+                        text: message,
+                        confirmButtonText: 'Tutup'
+                    });
+                    return;
+                }
+
+                window.alert(message);
+            };
+
             // --- 1. Definisi columnDefs ---
             // Kita hanya perlu menonaktifkan sort di kolom 'fprdin' (index 1)
             // Kolom Aksi akan ditambahkan di bawah
@@ -310,7 +360,14 @@
                 },
                 {
                     data: 'fclose',
-                    name: 'fclose'
+                    name: 'fclose',
+                    render: function(data, type, row) {
+                        if (type !== 'display') {
+                            return data;
+                        }
+
+                        return renderPrStatus(row);
+                    }
                 },
             ];
 
@@ -323,11 +380,12 @@
                     searchable: false,
                     // Gunakan 'render' untuk membuat HTML tombol
                     render: function(data, type, row) {
-                        let html = '<div class="space-x-2">';
+                        let html = '<div class="flex justify-end gap-1.5 flex-nowrap">';
+                        const editBlocked = isEditBlockedApproval(row);
 
                         if (canView) {
                             html += `<a href="tr_prh/${data}/view">
-                        <button class="inline-flex items-center bg-slate-500 text-white px-4 py-2 rounded hover:bg-slate-600">
+                        <button class="inline-flex items-center bg-slate-500 text-white px-3 py-1.5 text-xs rounded hover:bg-slate-600">
                             <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
                             </svg>
@@ -337,20 +395,29 @@
                         }
 
                         if (canEdit) {
-                            html += `<a href="tr_prh/${data}/edit">
-                        <button class="inline-flex items-center bg-yellow-500 text-white px-4 py-2 rounded hover:bg-yellow-600">
+                            if (editBlocked) {
+                                html += `<button type="button" onclick="showPrApprovalLocked()" class="inline-flex items-center bg-yellow-500 text-white px-3 py-1.5 text-xs rounded hover:bg-yellow-600">
                             <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
                             </svg>
                             Edit
-                        </button>
-                    </a>`;
+                        </button>`;
+                            } else {
+                                html += `<a href="tr_prh/${data}/edit">
+                            <button class="inline-flex items-center bg-yellow-500 text-white px-3 py-1.5 text-xs rounded hover:bg-yellow-600">
+                                <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+                                </svg>
+                                Edit
+                            </button>
+                        </a>`;
+                            }
                         }
 
                         if (canDelete) {
                             let deleteUrl = '{{ route('tr_prh.index') }}/' + data + '/delete';
                             html += `<a href="${deleteUrl}">
-                                <button class="inline-flex items-center bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700">
+                                <button class="inline-flex items-center bg-red-600 text-white px-3 py-1.5 text-xs rounded hover:bg-red-700">
                                     <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
                                     </svg>
