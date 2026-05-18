@@ -627,30 +627,34 @@
                                                         class="inline-flex h-8 w-8 items-center justify-center rounded bg-red-100 text-red-600 hover:bg-red-200"
                                                         title="Hapus baris">-</button>
                                                 </div>
-                                                <div class="hidden">
-                                                    <input type="hidden" name="fitemcode[]" :value="it.fitemcode">
-                                                    <input type="hidden" name="fitemname[]" :value="it.fitemname">
-                                                    <input type="hidden" name="fsatuan[]" :value="it.fsatuan">
-                                                    <input type="hidden" name="fqty[]" :value="it.fqty">
-                                                    <input type="hidden" name="fprice[]" :value="it.fprice">
-                                                    <input type="hidden" name="fbiaya[]" :value="it.fbiaya">
-                                                    <input type="hidden" name="fdiscpersen[]" :value="it.fdiscpersen">
-                                                    <input type="hidden" name="ftotprice[]" :value="it.ftotprice">
-                                                    <input type="hidden" name="fdesc[]" :value="it.fdesc">
-                                                    <input type="hidden" name="fketdt[]" :value="it.fketdt">
-                                                    <input type="hidden" name="frefdtno[]" :value="it.frefdtno">
-                                                    <input type="hidden" name="frefdtid[]" :value="it.frefdtid">
-                                                    <input type="hidden" name="frefnoacak[]" :value="it.frefnoacak">
-                                                    <input type="hidden" name="fsource[]" :value="it.fsource">
-                                                    <input type="hidden" name="fnouref[]" :value="it.fnouref">
-                                                    <input type="hidden" name="frefpr[]" :value="it.frefpr">
-                                                </div>
                                             </td>
                                         </tr>
                                         </tbody>
                                     </template>
 
                             </table>
+                        </div>
+                        <div class="hidden">
+                            <template x-for="(it, i) in submitItems" :key="'submit-' + (it.uid || i)">
+                                <div>
+                                    <input type="hidden" name="fitemcode[]" :value="it.fitemcode">
+                                    <input type="hidden" name="fitemname[]" :value="it.fitemname">
+                                    <input type="hidden" name="fsatuan[]" :value="it.fsatuan">
+                                    <input type="hidden" name="fqty[]" :value="it.fqty">
+                                    <input type="hidden" name="fprice[]" :value="it.fprice">
+                                    <input type="hidden" name="fbiaya[]" :value="it.fbiaya">
+                                    <input type="hidden" name="fdiscpersen[]" :value="it.fdiscpersen">
+                                    <input type="hidden" name="ftotprice[]" :value="it.ftotprice">
+                                    <input type="hidden" name="fdesc[]" :value="it.fdesc">
+                                    <input type="hidden" name="fketdt[]" :value="it.fketdt">
+                                    <input type="hidden" name="frefdtno[]" :value="it.frefdtno">
+                                    <input type="hidden" name="frefdtid[]" :value="it.frefdtid">
+                                    <input type="hidden" name="frefnoacak[]" :value="it.frefnoacak">
+                                    <input type="hidden" name="fsource[]" :value="it.fsource">
+                                    <input type="hidden" name="fnouref[]" :value="it.fnouref">
+                                    <input type="hidden" name="frefpr[]" :value="it.frefpr">
+                                </div>
+                            </template>
                         </div>
 
                         <!-- ===== Trigger: Add PO & PB dari panel kanan ===== -->
@@ -939,7 +943,7 @@
                             </div>
                         </div>
 
-                        <input type="hidden" id="itemsCount" :value="savedItems.length">
+                        <input type="hidden" id="itemsCount" :value="submitItems.length">
                     </div>
 
                     {{-- MODAL ERROR: belum ada item --}}
@@ -1693,6 +1697,10 @@
 
             isRowSavable(row) {
                 return !!((row.fitemcode || '').trim() && (row.fsatuan || '').trim() && Number(row.fqty) > 0);
+            },
+
+            get submitItems() {
+                return this.savedItems.filter((row) => this.isRowSavable(row));
             },
 
             isRowFilled(row) {
