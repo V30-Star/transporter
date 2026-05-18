@@ -821,7 +821,7 @@ class FakturpembelianController extends Controller
         }
 
         $dt = PenerimaanPembelianDetail::query()
-            ->leftJoin('msprd as p', 'p.fprdid', '=', 'trstockdt.fprdcodeid')
+            ->leftJoin('msprd as p', 'p.fprdcode', '=', 'trstockdt.fprdcode')
             ->where('trstockdt.fstockmtno', $fstockmtno)
             ->orderBy('trstockdt.fprdcode')
             ->get([
@@ -1023,7 +1023,6 @@ class FakturpembelianController extends Controller
 
                 $rowsDt[] = [
                     'fprdcode' => $code,
-                    'fprdcodeid' => $meta->fprdid,
                     'fnoacak' => $this->normalizeRandomNumber(null, $usedNoAcaks),
                     'frefdtno' => trim((string) ($refdtnos[$i] ?? '')) ?: null,
                     'frefso' => $sourceType === 'PO' ? (trim((string) ($refdtnos[$i] ?? '')) ?: null) : null,
@@ -1179,7 +1178,7 @@ class FakturpembelianController extends Controller
         $fakturpembelian = PenerimaanPembelianHeader::with([
             'details' => function ($query) {
                 $query
-                    ->join('msprd', 'msprd.fprdid', '=', 'trstockdt.fprdcodeid')
+                    ->join('msprd', 'msprd.fprdcode', '=', 'trstockdt.fprdcode')
                     ->select(
                         'trstockdt.*',
                         'msprd.fprdname',
@@ -1351,7 +1350,7 @@ class FakturpembelianController extends Controller
         $fakturpembelian = PenerimaanPembelianHeader::with([
             'details' => function ($query) {
                 $query
-                    ->join('msprd', 'msprd.fprdid', '=', 'trstockdt.fprdcodeid')
+                    ->join('msprd', 'msprd.fprdcode', '=', 'trstockdt.fprdcode')
                     ->select(
                         'trstockdt.*',
                         'msprd.fprdname',
@@ -1663,7 +1662,6 @@ class FakturpembelianController extends Controller
 
                 $rowsDt[] = [
                     'fprdcode' => $code,
-                    'fprdcodeid' => $meta->fprdid,
                     'fnoacak' => $this->normalizeRandomNumber(null, $usedNoAcaks),
                     'frefdtno' => ! empty($refdtno[$i]) ? $refdtno[$i] : null,
                     'frefso' => $sourceType === 'PO' ? (! empty($refdtno[$i]) ? $refdtno[$i] : null) : null,
@@ -1811,7 +1809,7 @@ class FakturpembelianController extends Controller
         $fakturpembelian = PenerimaanPembelianHeader::with([
             'details' => function ($query) {
                 $query
-                    ->join('msprd', 'msprd.fprdid', '=', 'trstockdt.fprdcodeid')
+                    ->join('msprd', 'msprd.fprdcode', '=', 'trstockdt.fprdcode')
                     ->select(
                         'trstockdt.*',
                         'msprd.fprdname',
