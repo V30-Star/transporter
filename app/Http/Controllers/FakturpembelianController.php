@@ -901,8 +901,6 @@ class FakturpembelianController extends Controller
                 'fsupplier' => ['required', 'string', 'max:30'],
                 'ftypebuy' => ['nullable', 'integer'],
                 'fprdjadi' => ['required_if:ftypebuy,1'],
-                'fitemcode' => ['required', 'array', 'min:1'],
-                'fitemcode.*' => ['required', 'string', 'max:50'],
                 'fqty' => ['required', 'array'],
                 'fqty.*' => ['numeric', 'min:0.001'],
                 'fprice' => ['required', 'array'],
@@ -1472,8 +1470,6 @@ class FakturpembelianController extends Controller
                 'fket' => ['nullable', 'string', 'max:50'],
                 'fbranchcode' => ['nullable', 'string', 'max:20'],
                 'faccid' => ['nullable', 'integer'],
-                'fitemcode' => ['required', 'array', 'min:1'],
-                'fitemcode.*' => ['required', 'string', 'max:50'],
                 'fsatuan' => ['nullable', 'array'],
                 'fsatuan.*' => ['nullable', 'string', 'max:20'],
                 'frefdtno' => ['nullable', 'array'],
@@ -1508,7 +1504,6 @@ class FakturpembelianController extends Controller
             ], [
                 'fstockmtdate.required' => 'Tanggal transaksi wajib diisi.',
                 'fsupplier.required' => 'Supplier wajib diisi.',
-                'fitemcode.required' => 'Minimal 1 item.',
                 'fsatuan.*.max' => 'Satuan di salah satu baris tidak boleh lebih dari 5 karakter.',
                 'fprdjadi.required_if' => 'Account wajib diisi ketika tipe pembelian adalah Non Stok.',
             ]);
