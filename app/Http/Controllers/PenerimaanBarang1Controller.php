@@ -12,6 +12,7 @@ use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use App\Support\ApprovalState;
 
 class PenerimaanBarangController extends Controller
 {
@@ -132,6 +133,7 @@ class PenerimaanBarangController extends Controller
             ->leftJoin('mssupplier', 'tr_poh.fsupplier', '=', 'mssupplier.fsuppliercode')
             ->select('tr_poh.*', 'mssupplier.fsuppliername', 'mssupplier.fsuppliercode')
             ->where('tr_poh.fprdin', '0');
+        ApprovalState::applyApprovedFilter($query, 'tr_poh.');
 
         $recordsTotal = DB::table('tr_poh')->count();
 
@@ -183,6 +185,9 @@ class PenerimaanBarangController extends Controller
         if (! $header) {
             return response()->json(['message' => 'PO tidak ditemukan'], 404);
         }
+        if (! ApprovalState::isApprovedRecord($header)) {
+            return response()->json(['message' => 'PO belum di-approve.'], 422);
+        }
 
         $receiptSub = DB::table('trstockdt')
             ->selectRaw('frefdtno, fprdcode, frefnoacak, SUM(COALESCE(fqtykecil, 0)) AS fqtykecilterima')
@@ -199,7 +204,6 @@ class PenerimaanBarangController extends Controller
             })
             ->select([
                 'd.fpodid as frefdtid',
-                'm.fprdid as fprdcodeid',
                 'm.fprdcode as fitemcode',
                 'm.fprdname as fitemname',
                 'd.fqty',
@@ -574,6 +578,8 @@ class PenerimaanBarangController extends Controller
             return redirect()->back()->with('error', 'PO tidak ditemukan.');
         }
 
+        DB::table('trstockmt')->where('fstockmtno', $hdr->fstockmtno)->update(['fprint' => 1]);
+
         $dt = PenerimaanPembelianDetail::query()
             ->leftJoin('msprd as p', 'p.fprdcode', '=', 'trstockdt.fprdcode') // join by varchar code
             ->where('trstockdt.fstockmtno', $fstockmtno)
@@ -667,7 +673,6 @@ class PenerimaanBarangController extends Controller
 
         // 3) DETAIL ARRAYS
         $codes = $request->input('fitemcode', []);
-        $prdIds = $request->input('fprdcodeid', []);
         $satuans = $request->input('fsatuan', []);
         $fponos = $request->input('fpono', []);
         $refdtids = $request->input('frefdtid', []);
@@ -713,7 +718,6 @@ class PenerimaanBarangController extends Controller
 
             $rowsDt[] = [
                 'fprdcode' => $code,
-                'fprdcodeid' => isset($prdIds[$i]) ? (int) $prdIds[$i] : (int) $meta->fprdid,
                 'frefdtno' => trim((string) ($fponos[$i] ?? '')),
                 'frefso' => trim((string) ($fponos[$i] ?? '')),
                 'frefdtid' => $frefdtid,
@@ -736,7 +740,7 @@ class PenerimaanBarangController extends Controller
         }
 
         if (empty($rowsDt)) {
-            return back()->withInput()->withErrors(['detail' => 'Minimal satu item valid diperlukan.']);
+            return back()->withInput()->withErrors(['detail' => 'Minimal harus ada 1 item yang lengkap dan jumlahnya lebih dari 0.']);
         }
 
         if ($validationMessage = $this->validateUniqueReferenceUsage($rowsDt)) {
@@ -870,9 +874,9 @@ class PenerimaanBarangController extends Controller
                 DB::table('jurnaldt')->insert($jurnalDt);
             });
         } catch (\RuntimeException $e) {
-            return back()->withInput()->withErrors(['detail' => $e->getMessage()]);
+            return back()->withInput()->withErrors(['detail' => 'Data belum berhasil disimpan. Silakan cek kembali isian transaksi.']);
         } catch (Exception $e) {
-            return back()->withInput()->withErrors(['detail' => 'Gagal simpan: ' . $e->getMessage()]);
+            return back()->withInput()->withErrors(['detail' => 'Data belum berhasil disimpan. Silakan cek kembali isian transaksi.']);
         }
 
         return redirect()->route('penerimaanbarang.create')->with('success', "Transaksi {$fstockmtno} berhasil disimpan.");
@@ -963,7 +967,7 @@ class PenerimaanBarangController extends Controller
                 'uid' => $d->fstockdtid,
                 'fitemcode' => $d->fitemcode_text ?? $d->fprdcode ?? '',
                 'fitemname' => $d->fprdname ?? '',
-                'fprdcodeid' => $d->fprdcodeid ?? null,
+                'fprdcode' => $d->fprdcode ?? null,
                 'fsatuan' => $d->fsatuan ?? '',
                 'fprno' => $d->frefpr ?? '-',
                 'frefdtno' => $d->frefdtno ?? null,
@@ -1027,8 +1031,6 @@ class PenerimaanBarangController extends Controller
             'fbranchcode' => ['nullable', 'string', 'max:20'],
             'fitemcode' => ['required', 'array', 'min:1'],
             'fitemcode.*' => ['required', 'string', 'max:50'],
-            'fprdcodeid' => ['nullable', 'array'],
-            'fprdcodeid.*' => ['nullable', 'integer'],
             'frefdtno' => ['nullable', 'array'],
             'frefdtno.*' => ['nullable', 'string', 'max:50'],
             'frefdtid' => ['nullable', 'array'],
@@ -1067,7 +1069,6 @@ class PenerimaanBarangController extends Controller
         $now = now();
 
         $codes = $request->input('fitemcode', []);
-        $prdIds = $request->input('fprdcodeid', []);
         $satuans = $request->input('fsatuan', []);
         $refdtnos = $request->input('frefdtno', []);
         $refdtids = $request->input('frefdtid', []);
@@ -1118,8 +1119,6 @@ class PenerimaanBarangController extends Controller
                 continue;
             }
 
-            $prdCodeId = isset($prdIds[$i]) && $prdIds[$i] !== '' ? (int) $prdIds[$i] : (int) $meta->fprdid;
-
             if ($sat === '') {
                 $sat = $pickDefaultSat($meta);
             }
@@ -1135,13 +1134,11 @@ class PenerimaanBarangController extends Controller
 
             $rowsDt[] = [
                 'fprdcode' => $code,
-                'fprdcodeid' => $prdCodeId,
                 'frefdtno' => $rno ?: null,
                 'frefso' => $rno ?: null,
                 'frefdtid' => $rid,
                 'fnoacak' => $this->normalizeRandomNumber($fnoacaks[$i] ?? null, $usedNoAcaks),
                 'frefnoacak' => $rid ? $this->normalizeReferenceRandomNumber($frefnoacaks[$i] ?? null) : null,
-                'frefsoid' => null,
                 'fqty' => $qty,
                 'fqtykecil' => $qtyKecil,
                 'fqtyremain' => $qtyKecil,
@@ -1162,7 +1159,7 @@ class PenerimaanBarangController extends Controller
         }
 
         if (empty($rowsDt)) {
-            return back()->withInput()->withErrors(['detail' => 'Minimal satu item valid (Kode, Satuan, Qty > 0).']);
+            return back()->withInput()->withErrors(['detail' => 'Minimal harus ada 1 item yang lengkap dan jumlahnya lebih dari 0.']);
         }
 
         if ($validationMessage = $this->validateUniqueReferenceUsage($rowsDt, $header->fstockmtno)) {
@@ -1240,7 +1237,7 @@ class PenerimaanBarangController extends Controller
                 $this->adjustPoReferenceQtyKecil($podAgg, -1);
             });
         } catch (\RuntimeException $e) {
-            return back()->withInput()->withErrors(['detail' => $e->getMessage()]);
+            return back()->withInput()->withErrors(['detail' => 'Data belum berhasil diperbarui. Silakan cek kembali isian transaksi.']);
         }
 
         return redirect()->route('penerimaanbarang.index')
@@ -1288,7 +1285,7 @@ class PenerimaanBarangController extends Controller
                 ->with('success', 'Data Penerimaan Barang ' . $penerimaanbarang->fstockmtno . ' berhasil dihapus.');
         } catch (\Exception $e) {
             return redirect()->route('penerimaanbarang.delete', $fstockmtid)
-                ->with('error', 'Gagal menghapus data: ' . $e->getMessage());
+                ->with('error', 'Data belum berhasil dihapus. Silakan coba lagi.');
         }
     }
 

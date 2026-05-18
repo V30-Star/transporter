@@ -141,46 +141,46 @@
                         </tr>
                     </thead>
                     <tbody>
-                        <template x-for="(it, i) in savedItems" :key="it.uid">
+                        <template x-for="(row, i) in rows" :key="row.uid">
                             <tr class="border-t align-top hover:bg-gray-50">
                                 <td class="p-2 text-gray-500" x-text="i + 1"></td>
-                                <td class="p-2 font-mono text-sm" x-text="it.fitemcode"></td>
+                                <td class="p-2 font-mono text-sm" x-text="row.fitemcode"></td>
                                 <td class="p-2">
                                     <div class="flex w-full max-w-full">
-                                        <div class="min-w-0 flex-1 rounded-l border bg-gray-100 px-2 py-1 text-sm leading-5 text-gray-600 whitespace-normal break-words" x-text="it.fitemname"></div>
-                                        <button type="button" @click="openDesc(it)"
+                                        <div class="min-w-0 flex-1 rounded-l border bg-gray-100 px-2 py-1 text-sm leading-5 text-gray-600 whitespace-normal break-words" x-text="row.fitemname"></div>
+                                        <button type="button" @click="openDesc(row)"
                                             class="shrink-0 inline-flex items-center border border-l-0 rounded-r px-2 py-1 transition-colors"
-                                            :class="it.fdesc ? 'border-emerald-300 bg-emerald-50 text-emerald-600 hover:bg-emerald-100' : 'bg-white text-gray-500 hover:bg-gray-50'"
+                                            :class="row.fdesc ? 'border-emerald-300 bg-emerald-50 text-emerald-600 hover:bg-emerald-100' : 'bg-white text-gray-500 hover:bg-gray-50'"
                                             title="Deskripsi item">
                                             <x-heroicon-o-document-text class="h-4 w-4" />
                                         </button>
                                     </div>
                                 </td>
-                                <td class="p-2 text-sm" x-text="it.fsatuan || '-'"></td>
-                                <td class="p-2 text-sm text-gray-600" x-text="it.fprno || it.frefdtno || '-'"></td>
+                                <td class="p-2 text-sm" x-text="row.fsatuan || '-'"></td>
+                                <td class="p-2 text-sm text-gray-600" x-text="row.fprno || row.frefdtno || '-'"></td>
                                 <td class="p-2 text-right text-sm">
-                                    <div x-text="formatQtyValue(it.fqty)"></div>
+                                    <div x-text="formatQtyValue(row.fqty)"></div>
                                 </td>
                                 <td class="p-2 text-right text-sm">
-                                    <div x-text="formatQtyValue(it.fqtyterima ?? 0)"></div>
+                                    <div x-text="formatQtyValue(row.fqtyterima ?? 0)"></div>
                                 </td>
-                                <td class="p-2 text-right text-sm" x-text="fmtCurr(it.fprice)"></td>
-                                <td class="p-2 text-right text-sm" x-text="it.fdisc"></td>
+                                <td class="p-2 text-right text-sm" x-text="fmtCurr(row.fprice)"></td>
+                                <td class="p-2 text-right text-sm" x-text="row.fdisc"></td>
                                 <td class="p-2">
                                     <input type="text"
                                         class="w-full border rounded px-2 py-1 bg-gray-100 text-gray-600 text-sm text-right"
-                                        :value="fmtCurr(it.ftotal)" disabled>
+                                        :value="fmtCurr(row.ftotal)" disabled>
                                 </td>
                                 <td class="p-2">
                                     <input type="text"
                                         class="w-full border rounded px-2 py-1 bg-gray-100 text-gray-600 text-sm text-right"
-                                        :value="rupiah(itemTotalRp(it.ftotal))" disabled>
+                                        :value="rupiah(itemTotalRp(row.ftotal))" disabled>
                                 </td>
                             </tr>
                         </template>
 
                         {{-- Empty state --}}
-                        <template x-if="savedItems.length === 0">
+                        <template x-if="rows.length === 0">
                             <tr>
                                 <td colspan="11" class="p-6 text-center text-gray-400 text-sm">Tidak ada item</td>
                             </tr>
@@ -356,7 +356,7 @@
 
     function viewForm() {
         return {
-            savedItems: @json($savedItems ?? []),
+            rows: @json($savedItems ?? []),
             showDescModal: false,
             descValue: '',
             _descTarget: null,
@@ -371,7 +371,7 @@
             ppnRate: {{ $tr_poh->fppnpersen ?? 11 }},
 
             get totalHarga() {
-                return this.savedItems.reduce((s, it) => s + (it.ftotal || 0), 0);
+                return this.rows.reduce((s, row) => s + (row.ftotal || 0), 0);
             },
             get ppnNominal() {
                 if (!this.includePPN) return 0;
@@ -434,14 +434,12 @@
             },
 
             init() {
-                // Hydrate uid jika tidak ada
-                this.savedItems = this.savedItems.map((it, i) => {
-                    if (!it.uid) it.uid = 'view_' + i;
-                    if (!it.fprno) it.fprno = it.frefdtno || '';
-                    return it;
+                this.rows = this.rows.map((row, i) => {
+                    if (!row.uid) row.uid = 'view_' + i;
+                    if (!row.fprno) row.fprno = row.frefdtno || '';
+                    return row;
                 });
 
-                // Sync currency code dari CURRENCY_MAP
                 const currId = {{ $currentCurrency->fcurrid ?? 'null' }};
                 if (currId && window.CURRENCY_MAP[currId]) {
                     this.selectedCurrCode = window.CURRENCY_MAP[currId].code;
