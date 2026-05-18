@@ -201,7 +201,7 @@
                 </div>
 
                 {{-- DETAIL ITEM (tabel inline, sama seperti create, tapi prefill dari details) --}}
-                <div x-data="itemsTable()" x-init="init()" class="mt-6 space-y-2">
+                <div x-data="readOnlyItemsTable(@js($savedItems ?? []))" x-init="init()" class="mt-6 space-y-2">
                     <h3 class="text-base font-semibold text-gray-800">Detail Item</h3>
 
                     <div class="overflow-auto border rounded">
@@ -246,96 +246,10 @@
                                         <td class="p-2 text-right" x-text="formatQtyValue(it.fqtypo)"></td>
                                         <td class="p-2" x-text="it.fketdt || '-'"></td>
 
-                                        <!-- hidden inputs -->
-                                        <td class="hidden">
-                                            <input type="hidden" name="fitemcode[]" x-model="it.fitemcode">
-                                            <input type="hidden" name="fitemname[]" x-model="it.fitemname">
-                                            <input type="hidden" name="fsatuan[]" x-model="it.fsatuan">
-                                            <input type="hidden" name="fqty[]" x-model="it.fqty">
-                                            <input type="hidden" name="fqtypo[]" x-model="it.fqtypo">
-                                            <input type="hidden" name="fprdid[]" :value="it.fprdid ?? ''">
-                                            <input type="hidden" name="fprdid[]" x-model="it.fprdid">
-                                            <input type="hidden" name="fdesc[]" x-model="it.fdesc">
-                                            <input type="hidden" name="fketdt[]" x-model="it.fketdt">
-                                        </td>
                                     </tr>
-
-                                </template>
-
-                                <!-- ROW EDIT UTAMA -->
-                                <tr x-show="editingIndex !== null" class="border-t bg-amber-50 align-top" x-cloak>
-                                    <td class="p-2" x-text="(editingIndex ?? 0) + 1"></td>
-
-                                    <td class="p-2">
-                                        <div class="flex">
-                                            <input type="text" class="flex-1 border rounded-l px-2 py-1 font-mono"
-                                                x-ref="editCode" x-model.trim="editRow.fitemcode"
-                                                @input="onCodeTypedRow(editRow)"
-                                                @keydown.enter.prevent="handleEnterOnCode('edit')">
-                                            <button type="button" @click="openBrowseFor('edit')"
-                                                class="border border-l-0 px-2 py-1 bg-white hover:bg-gray-50"
-                                                title="Cari Produk">
-                                                <x-heroicon-o-magnifying-glass class="w-4 h-4" />
-                                            </button>
-
-                                        </div>
-                                    </td>
-
-                                    <td class="p-2" style="width: 20rem; min-width: 20rem;">
-                                        <div class="desc-inline-field flex w-full min-w-0 flex-nowrap items-stretch"
-                                            style="display:flex !important; width:100% !important; min-width:0 !important; flex-wrap:nowrap !important; align-items:stretch !important;">
-                                            <div
-                                                class="desc-inline-field__text min-w-0 flex-1 rounded-l border bg-gray-100 px-2 py-1 text-sm leading-5 text-gray-600 whitespace-normal break-words"
-                                                style="flex:1 1 auto !important; min-width:0 !important;"
-                                                x-text="editRow.fitemname"></div>
-                                        <button type="button" @click="openDesc('edit', null, editRow.fdesc)"
-                                            class="desc-inline-field__button inline-flex w-10 shrink-0 items-center justify-center border border-l-0 rounded-r px-2 py-1 transition-colors"
-                                            style="display:inline-flex !important; flex:0 0 2.5rem !important; width:2.5rem !important; justify-content:center !important; align-items:center !important;"
-                                            :class="editRow.fdesc ? 'border-emerald-300 bg-emerald-50 text-emerald-600 hover:bg-emerald-100' : 'border-gray-300 bg-white text-gray-500 hover:bg-gray-50'"
-                                            title="Deskripsi item">
-                                            <x-heroicon-o-document-text class="w-4 h-4" />
-                                        </button>
-                                        </div>
-                                    </td>
-
-                                    <td class="p-2">
-                                        <template x-if="editRow.units.length > 1">
-                                            <select class="w-full border rounded px-2 py-1" x-ref="editUnit"
-                                                x-model="editRow.fsatuan" @keydown.enter.prevent="$refs.editQty?.focus()">
-                                                <template x-for="u in editRow.units" :key="u">
-                                                    <option :value="u" x-text="u"></option>
-                                                </template>
-                                            </select>
-                                        </template>
-                                        <template x-if="editRow.units.length <= 1">
-                                            <input type="text"
-                                                class="w-full border rounded px-2 py-1 bg-gray-100 text-gray-600"
-                                                :value="editRow.fsatuan || '-'" disabled>
-                                        </template>
-                                    </td>
-
-                                    <td class="p-2 text-right">
-                                        <input type="number" class="border rounded px-2 py-1 w-24 text-right"
-                                            min="1" step="0.01"
-                                            x-model.number="editRow.fqty" x-ref="editQty" @focus="$event.target.select()"
-                                            @keydown.enter.prevent="$refs.editKet?.focus()">
-                                                <div class="text-xs text-gray-400 mt-0.5 flex justify-between items-center" x-show="editRow.fitemcode">
-                                                    <div>(<span x-text="productMeta(editRow.fitemcode).stock"></span>) in stock</div>
-                                                </div>
-                                    </td>
-
-                                    <td class="p-2 text-right" x-text="it.fqtypo > 0 ? formatQtyValue(it.fqtypo) : '-'"></td>
-
-                                    <td class="p-2">
-                                        <input type="text" class="border rounded px-2 py-1 w-full"
-                                            x-model="editRow.fketdt" x-ref="editKet"
-                                            @keydown.enter.prevent="applyEdit()">
-                                    </td>
-                                </tr>
-
-                            </tbody>
-                        </table>
-                    </div>
+                                </tbody>
+                            </table>
+                        </div>
 
                     <!-- MODAL DESC -->
                     <div x-show="showDescModal" x-cloak class="fixed inset-0 z-[95] flex items-center justify-center"
@@ -360,8 +274,6 @@
                             </div>
                         </div>
                     </div>
-
-                    <input type="hidden" id="itemsCount" :value="savedItems.length">
                 </div>
 
                 {{-- MODAL SUPPLIER --}}
@@ -822,6 +734,57 @@
                     descList: []
                 });
             });
+
+            function readOnlyItemsTable(initialItems = []) {
+                const items = Array.isArray(initialItems) ? initialItems : [];
+
+                return {
+                    savedItems: items.map((it) => ({
+                        ...it,
+                        uid: it.uid || cryptoRandom(),
+                        fqty: Number(it.fqty || 0),
+                        fqtypo: Number(it.fqtypo || 0),
+                    })),
+                    showDescModal: false,
+                    descSavedIndex: null,
+                    descValue: '',
+                    descItemLabel: '',
+                    formatQtyValue(value) {
+                        const num = Number(value);
+                        if (!Number.isFinite(num)) return '0,00';
+                        return new Intl.NumberFormat('id-ID', {
+                            minimumFractionDigits: 2,
+                            maximumFractionDigits: 2
+                        }).format(num);
+                    },
+                    hasDesc(value) {
+                        return String(value ?? '').trim() !== '';
+                    },
+                    descButtonClass(value) {
+                        return this.hasDesc(value)
+                            ? 'border-emerald-300 bg-emerald-50 text-emerald-600 hover:bg-emerald-100'
+                            : 'border-gray-300 bg-white text-gray-500 hover:bg-gray-50';
+                    },
+                    openDesc(target = 'saved', index = null, currentVal = '') {
+                        if (target !== 'saved' || index === null || !this.savedItems[index]) return;
+                        const row = this.savedItems[index];
+                        this.descSavedIndex = index;
+                        this.descValue = currentVal || (row.fdesc || '').toString();
+                        this.descItemLabel = [row.fitemcode, row.fitemname].filter(Boolean).join(' - ');
+                        this.showDescModal = true;
+                    },
+                    closeDesc() {
+                        this.showDescModal = false;
+                        this.descSavedIndex = null;
+                        this.descValue = '';
+                        this.descItemLabel = '';
+                    },
+                    applyDesc() {
+                        this.closeDesc();
+                    },
+                    init() {}
+                };
+            }
 
             // Tabel inline (re-use dari create, plus initFromServer)
             function itemsTable() {

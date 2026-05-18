@@ -271,7 +271,7 @@
                     </div>
 
                     {{-- DETAIL ITEM READONLY --}}
-                    <div x-data="itemsTable()" x-init="init()" class="mt-6 space-y-2">
+                    <div x-data="readOnlyItemsTable(@js($savedItems ?? []))" x-init="init()" class="mt-6 space-y-2">
                         <h3 class="text-base font-semibold text-gray-800">Detail Item</h3>
                         <div class="overflow-auto border rounded">
                             <table class="min-w-full text-sm">
@@ -369,12 +369,8 @@
                 @endif
             @else
                 {{-- MODE EDIT --}}
-                <form action="{{ route('tr_prh.update', $tr_prh->fprhid) }}" method="POST" x-data="{ showNoItems: false, blockedByPO: {{ $blockedByPO ? 'true' : 'false' }} }"
-                    @submit.prevent="
-                        const n = Number(document.getElementById('itemsCount')?.value || 0);
-                        if (n < 1) { showNoItems = true; return; }
-                        $el.submit();
-                    ">
+                <form action="{{ route('tr_prh.update', $tr_prh->fprhid) }}" method="POST" x-data="{ blockedByPO: {{ $blockedByPO ? 'true' : 'false' }} }"
+                    @submit.prevent="window.dispatchEvent(new CustomEvent('tr-prh-edit-submit-request'))">
                     @csrf
                     @method('PATCH')
 
@@ -459,7 +455,7 @@
                     </div>
 
                     {{-- DETAIL ITEM INLINE EDITABLE --}}
-                    <div x-data="itemsTable()" x-init="init()" class="mt-6 space-y-2">
+                    <div x-data="itemsTableRowsEdit()" x-init="init()" class="mt-6 space-y-2">
                         <h3 class="text-base font-semibold text-gray-800">Detail Item</h3>
                         <div class="overflow-auto border rounded">
                             <table class="min-w-full text-sm">
@@ -476,19 +472,16 @@
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    {{-- SAVED ITEMS --}}
-                                    <template x-for="(it, i) in savedItems" :key="it.uid">
-                                        <tr class="border-t align-top transition-colors"
-                                            :class="activeRow === it.uid ? 'bg-amber-50' : 'hover:bg-gray-50'">
+                                    <template x-for="(row, i) in rows" :key="row.uid">
+                                        <tr class="border-t align-top" :class="i === 0 ? 'bg-green-50' : 'bg-white'">
                                             <td class="p-2 text-gray-400" x-text="i + 1"></td>
-                                            <td class="p-2" style="width: 20rem; min-width: 20rem;">
+                                            <td class="p-2">
                                                 <div class="flex">
                                                     <input type="text"
                                                         class="flex-1 border rounded-l px-2 py-1 font-mono text-sm min-w-0"
-                                                        x-model.trim="it.fitemcode" @input="onCodeTypedSaved(it)"
-                                                        @focus="activeRow = it.uid" @blur="activeRow = null"
+                                                        x-model.trim="row.fitemcode" @input="onCodeTyped(row)"
                                                         :disabled="blockedByPO">
-                                                    <button type="button" @click="openBrowseFor('saved', i)"
+                                                    <button type="button" @click="openBrowseFor(i)"
                                                         class="border border-l-0 px-2 py-1 bg-white hover:bg-gray-50"
                                                         :disabled="blockedByPO">
                                                         <x-heroicon-o-magnifying-glass class="w-4 h-4" />
@@ -501,140 +494,74 @@
                                                     <div
                                                         class="desc-inline-field__text min-w-0 flex-1 rounded-l border bg-gray-100 px-2 py-1 text-sm leading-5 text-gray-600 whitespace-normal break-words"
                                                         style="flex:1 1 auto !important; min-width:0 !important;"
-                                                        x-text="it.fitemname"></div>
-                                                <button type="button" @click="openDesc('saved', i)"
-                                                    class="desc-inline-field__button inline-flex w-10 shrink-0 items-center justify-center border border-l-0 rounded-r px-2 py-1 transition-colors"
-                                                    style="display:inline-flex !important; flex:0 0 2.5rem !important; width:2.5rem !important; justify-content:center !important; align-items:center !important;"
-                                                    :class="descButtonClass(it.fdesc)" :disabled="blockedByPO"
-                                                    title="Deskripsi item">
-                                                    <x-heroicon-o-document-text class="w-4 h-4" />
-                                                </button>
+                                                        x-text="row.fitemname || '-'"></div>
+                                                    <button type="button" @click="openDesc(i)"
+                                                        class="desc-inline-field__button inline-flex w-10 shrink-0 items-center justify-center border border-l-0 rounded-r px-2 py-1 transition-colors"
+                                                        style="display:inline-flex !important; flex:0 0 2.5rem !important; width:2.5rem !important; justify-content:center !important; align-items:center !important;"
+                                                        :class="descButtonClass(row.fdesc)" :disabled="blockedByPO"
+                                                        title="Deskripsi item">
+                                                        <x-heroicon-o-document-text class="w-4 h-4" />
+                                                    </button>
                                                 </div>
                                             </td>
                                             <td class="p-2">
-                                                <template x-if="(it.units?.length || 0) > 1">
-                                                    <select class="w-full border rounded px-2 py-1 text-sm"
-                                                        :id="'unit_saved_' + i"
-                                                        x-effect="$nextTick(() => { const el = document.getElementById('unit_saved_' + i); if (el) el.value = it.fsatuan; })"
-                                                        @change="it.fsatuan = $event.target.value" :disabled="blockedByPO"
-                                                        @focus="activeRow = it.uid" @blur="activeRow = null">
-                                                        <template x-for="u in it.units" :key="u">
-                                                            <option :value="u" x-text="u"></option>
+                                                <template x-if="row.units.length > 1">
+                                                    <select class="w-full border rounded px-2 py-1 text-sm" x-model="row.fsatuan"
+                                                        :disabled="blockedByPO">
+                                                        <template x-for="unit in row.units" :key="unit">
+                                                            <option :value="unit" x-text="unit"></option>
                                                         </template>
                                                     </select>
                                                 </template>
-                                                <template x-if="(it.units?.length || 0) <= 1">
+                                                <template x-if="row.units.length <= 1">
                                                     <input type="text"
                                                         class="w-full border rounded px-2 py-1 bg-gray-100 text-gray-600 text-sm"
-                                                        :value="it.fsatuan || '-'" disabled>
+                                                        :value="row.fsatuan || '-'" disabled>
                                                 </template>
                                             </td>
                                             <td class="p-2 text-right">
                                                 <input type="number" class="w-full border rounded px-2 py-1 text-right"
-                                                    x-model.number="it.fqty" min="1" :disabled="blockedByPO"
-                                                    @focus="activeRow = it.uid; $event.target.select()"
-                                                    @blur="activeRow = null">
+                                                    x-model.number="row.fqty" min="0" :disabled="blockedByPO">
                                             </td>
                                             <td class="p-2 text-right">
                                                 <input type="text"
                                                     class="w-full border rounded px-2 py-1 text-right bg-gray-100 text-gray-500"
-                                                    :value="formatQtyValue(it.fqtypo)" disabled>
+                                                    :value="formatQtyValue(row.fqtypo)" disabled>
                                             </td>
                                             <td class="p-2">
                                                 <input type="text" class="w-full border rounded px-2 py-1"
-                                                    x-model="it.fketdt" :disabled="blockedByPO"
-                                                    @focus="activeRow = it.uid" @blur="activeRow = null">
+                                                    x-model="row.fketdt" :disabled="blockedByPO">
                                             </td>
                                             <td class="p-2 text-center">
-                                                <button type="button" @click="removeSaved(i)"
-                                                    class="px-3 py-1 rounded text-xs bg-red-100 text-red-600 hover:bg-red-200 whitespace-nowrap"
-                                                    :disabled="blockedByPO">
-                                                    Hapus
-                                                </button>
-                                            </td>
-                                            {{-- HIDDEN INPUTS FOR POST --}}
-                                            <td class="hidden">
-                                                <input type="hidden" name="fprdid[]" :value="it.fprdid">
-                                                <input type="hidden" name="fitemcode[]" :value="it.fitemcode">
-                                                <input type="hidden" name="fitemname[]" :value="it.fitemname">
-                                                <input type="hidden" name="fnoacak[]" :value="it.fnoacak">
-                                                <input type="hidden" name="fsatuan[]" :value="it.fsatuan">
-                                                <input type="hidden" name="fqty[]" :value="it.fqty">
-                                                <input type="hidden" name="fqtypo[]" :value="it.fqtypo">
-                                                <input type="hidden" name="fdesc[]" :value="it.fdesc">
-                                                <input type="hidden" name="fketdt[]" :value="it.fketdt">
+                                                <div class="flex items-center justify-center gap-2">
+                                                    <button type="button" @click="addRow(i)"
+                                                        class="inline-flex h-8 w-8 items-center justify-center rounded bg-emerald-600 text-white hover:bg-emerald-700"
+                                                        :disabled="blockedByPO" title="Tambah baris">+</button>
+                                                    <button type="button" @click="removeRow(i)"
+                                                        class="inline-flex h-8 w-8 items-center justify-center rounded bg-red-100 text-red-600 hover:bg-red-200"
+                                                        :disabled="blockedByPO" title="Hapus baris">-</button>
+                                                </div>
                                             </td>
                                         </tr>
                                     </template>
-
-                                    {{-- DRAFT ROW --}}
-                                    <tr class="border-t bg-green-50 align-top" x-show="!blockedByPO">
-                                        <td class="p-2 text-gray-400" x-text="savedItems.length + 1"></td>
-                                        <td class="p-2" style="width: 20rem; min-width: 20rem;">
-                                            <div class="flex">
-                                                <input type="text"
-                                                    class="flex-1 border rounded-l px-2 py-1 font-mono text-sm min-w-0"
-                                                    x-ref="draftCode" x-model.trim="draft.fitemcode"
-                                                    @input="onCodeTypedDraft()"
-                                                    @keydown.enter.prevent="handleEnterOnDraftCode()">
-                                                <button type="button" @click="openBrowseFor('draft')"
-                                                    class="border border-l-0 px-2 py-1 bg-white hover:bg-gray-50">
-                                                    <x-heroicon-o-magnifying-glass class="w-4 h-4" />
-                                                </button>
-                                            </div>
-                                        </td>
-                                        <td class="p-2" style="width: 20rem; min-width: 20rem;">
-                                            <div class="desc-inline-field flex w-full min-w-0 flex-nowrap items-stretch"
-                                                style="display:flex !important; width:100% !important; min-width:0 !important; flex-wrap:nowrap !important; align-items:stretch !important;">
-                                                <div
-                                                    class="desc-inline-field__text min-w-0 flex-1 rounded-l border bg-gray-100 px-2 py-1 text-sm leading-5 text-gray-600 whitespace-normal break-words"
-                                                    style="flex:1 1 auto !important; min-width:0 !important;"
-                                                    x-text="draft.fitemname"></div>
-                                            <button type="button" @click="openDesc('draft')"
-                                                class="desc-inline-field__button inline-flex w-10 shrink-0 items-center justify-center border border-l-0 rounded-r px-2 py-1 transition-colors"
-                                                style="display:inline-flex !important; flex:0 0 2.5rem !important; width:2.5rem !important; justify-content:center !important; align-items:center !important;"
-                                                :class="descButtonClass(draft.fdesc)"
-                                                title="Deskripsi item">
-                                                <x-heroicon-o-document-text class="w-4 h-4" />
-                                            </button>
-                                            </div>
-                                        </td>
-                                        <td class="p-2">
-                                            <template x-if="draft.units.length > 1">
-                                                <select class="w-full border rounded px-2 py-1" x-model="draft.fsatuan"
-                                                    x-ref="draftUnit">
-                                                    <template x-for="u in draft.units" :key="u">
-                                                        <option :value="u" x-text="u"></option>
-                                                    </template>
-                                                </select>
-                                            </template>
-                                            <template x-if="draft.units.length <= 1">
-                                                <input type="text"
-                                                    class="w-full border rounded px-2 py-1 bg-gray-100 text-gray-600"
-                                                    :value="draft.fsatuan || '-'" disabled>
-                                            </template>
-                                        </td>
-                                        <td class="p-2">
-                                            <input type="number" class="w-full border rounded px-2 py-1 text-right"
-                                                x-model.number="draft.fqty" min="1" x-ref="draftQty"
-                                                @keydown.enter.prevent="addIfComplete()">
-                                        </td>
-                                        <td class="p-2 text-right">-</td>
-                                        <td class="p-2">
-                                            <input type="text" class="w-full border rounded px-2 py-1"
-                                                x-model="draft.fketdt" @keydown.enter.prevent="addIfComplete()">
-                                        </td>
-                                        <td class="p-2 text-center">
-                                            <button type="button" @click="addIfComplete()"
-                                                class="px-3 py-1 rounded text-xs bg-emerald-600 text-white hover:bg-emerald-700 whitespace-nowrap">
-                                                Tambah
-                                            </button>
-                                        </td>
-                                    </tr>
                                 </tbody>
                             </table>
                         </div>
-                        <input type="hidden" id="itemsCount" :value="savedItems.length">
+                        <div class="hidden">
+                            <template x-for="row in rowsToSubmit" :key="'submit-' + row.uid">
+                                <div>
+                                    <input type="hidden" name="fprdid[]" :value="row.fprdid || ''">
+                                    <input type="hidden" name="fitemcode[]" :value="row.fitemcode">
+                                    <input type="hidden" name="fitemname[]" :value="row.fitemname">
+                                    <input type="hidden" name="fnoacak[]" :value="row.fnoacak">
+                                    <input type="hidden" name="fsatuan[]" :value="row.fsatuan">
+                                    <input type="hidden" name="fqty[]" :value="row.fqty">
+                                    <input type="hidden" name="fdesc[]" :value="row.fdesc">
+                                    <input type="hidden" name="fketdt[]" :value="row.fketdt">
+                                </div>
+                            </template>
+                        </div>
+                        <input type="hidden" id="itemsCount" :value="rowsToSubmit.length">
                         <div x-show="showDescModal" x-cloak class="fixed inset-0 z-[95] flex items-center justify-center"
                             x-transition.opacity>
                             <div class="absolute inset-0 bg-black/50" @click="closeDesc()"></div>
@@ -650,7 +577,7 @@
                                 <div class="px-5 py-4 space-y-2">
                                     <label class="block text-sm text-gray-700">Deskripsi</label>
                                     <textarea x-model="descValue" rows="5" class="w-full border rounded px-3 py-2"
-                                        placeholder="Tulis deskripsi item di sini..." :readonly="descReadOnly || (blockedByPO && descTarget === 'saved')"></textarea>
+                                        placeholder="Tulis deskripsi item di sini..." :readonly="blockedByPO"></textarea>
                                 </div>
                                 <div class="px-5 py-3 border-t flex items-center justify-end gap-2">
                                     <button type="button" @click="closeDesc()"
@@ -658,7 +585,7 @@
                                         Tutup
                                     </button>
                                     <button type="button" @click="applyDesc()"
-                                        x-show="!(descReadOnly || (blockedByPO && descTarget === 'saved'))"
+                                        x-show="!blockedByPO"
                                         class="h-9 px-4 rounded-lg bg-emerald-600 text-white text-sm font-medium hover:bg-emerald-700">
                                         Simpan
                                     </button>
@@ -699,9 +626,29 @@
                         class="fixed inset-0 z-[100] flex items-center justify-center bg-black/50" x-transition.opacity>
                         <div class="bg-white p-6 rounded-xl shadow-2xl max-w-sm w-full text-center">
                             <h4 class="text-lg font-bold text-red-600 mb-2">Item Kosong</h4>
-                            <p class="text-sm text-gray-600 mb-4">Harap tambahkan minimal satu item sebelum mensimpan.</p>
+                            <p class="text-sm text-gray-600 mb-4">Belum ada item dengan Qty lebih dari 0 yang bisa disimpan.</p>
                             <button @click="showNoItems = false" type="button"
                                 class="w-full py-2 bg-gray-100 hover:bg-gray-200 rounded font-medium">OK</button>
+                        </div>
+                    </div>
+                    <div x-show="showWarningModal" x-cloak
+                        class="fixed inset-0 z-[101] flex items-center justify-center bg-black/50" x-transition.opacity>
+                        <div class="bg-white p-6 rounded-xl shadow-2xl max-w-lg w-full">
+                            <h4 class="text-lg font-bold text-amber-600 mb-2" x-text="warningTitle"></h4>
+                            <p class="text-sm text-gray-600 mb-3" x-text="warningMessage"></p>
+                            <template x-if="warningItems.length > 0">
+                                <ul class="list-disc pl-5 text-sm text-gray-700 mb-4 space-y-1">
+                                    <template x-for="item in warningItems" :key="item">
+                                        <li x-text="item"></li>
+                                    </template>
+                                </ul>
+                            </template>
+                            <div class="flex justify-end gap-2">
+                                <button @click="closeWarning()" type="button"
+                                    class="px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded font-medium">Tutup</button>
+                                <button x-show="warningCanProceed" @click="confirmWarningAndSubmit()" type="button"
+                                    class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded font-medium">Lanjut Simpan</button>
+                            </div>
                         </div>
                     </div>
                 </form>
@@ -1167,6 +1114,57 @@
             }
         }
 
+        function readOnlyItemsTable(initialItems = []) {
+            const items = Array.isArray(initialItems) ? initialItems : [];
+
+            return {
+                savedItems: items.map((it) => ({
+                    ...it,
+                    uid: it.uid || cryptoRandom(),
+                    fqty: Number(it.fqty || 0),
+                    fqtypo: Number(it.fqtypo || 0),
+                })),
+                showDescModal: false,
+                descSavedIndex: null,
+                descValue: '',
+                descItemLabel: '',
+                formatQtyValue(value) {
+                    const num = Number(value);
+                    if (!Number.isFinite(num)) return '0,00';
+                    return new Intl.NumberFormat('id-ID', {
+                        minimumFractionDigits: 2,
+                        maximumFractionDigits: 2
+                    }).format(num);
+                },
+                hasDesc(value) {
+                    return String(value ?? '').trim() !== '';
+                },
+                descButtonClass(value) {
+                    return this.hasDesc(value)
+                        ? 'border-emerald-300 bg-emerald-50 text-emerald-600 hover:bg-emerald-100'
+                        : 'border-gray-300 bg-white text-gray-500 hover:bg-gray-50';
+                },
+                openDesc(target = 'saved', index = null) {
+                    if (target !== 'saved' || index === null || !this.savedItems[index]) return;
+                    const row = this.savedItems[index];
+                    this.descSavedIndex = index;
+                    this.descValue = (row.fdesc || '').toString();
+                    this.descItemLabel = [row.fitemcode, row.fitemname].filter(Boolean).join(' - ');
+                    this.showDescModal = true;
+                },
+                closeDesc() {
+                    this.showDescModal = false;
+                    this.descSavedIndex = null;
+                    this.descValue = '';
+                    this.descItemLabel = '';
+                },
+                applyDesc() {
+                    this.closeDesc();
+                },
+                init() {}
+            };
+        }
+
         function itemsTable() {
             // Hydrate savedItems BEFORE passing to Alpine
             const rawItems = @json($savedItems ?? []);
@@ -1417,6 +1415,294 @@
                     });
                 }
             }
+        }
+
+        function itemsTableRowsEdit() {
+            const rawItems = @json($savedItems ?? []);
+            const hydratedItems = rawItems.map((it) => {
+                const code = (it.fitemcode || '').trim();
+                const meta = window.PRODUCT_MAP?.[code] || null;
+                const units = meta?.units?.length ? meta.units : (it.fsatuan ? [it.fsatuan] : []);
+
+                return {
+                    ...it,
+                    uid: it.uid || cryptoRandom(),
+                    units,
+                    fsatuan: it.fsatuan || (units[0] || ''),
+                    fqty: Number(it.fqty || 0),
+                    fqtypo: Number(it.fqtypo || 0),
+                    fnoacak: (it.fnoacak || '').toString()
+                };
+            });
+
+            return {
+                rows: hydratedItems.length ? hydratedItems : [],
+                rowsToSubmit: [],
+                browseTargetIndex: null,
+                showDescModal: false,
+                descRowIndex: null,
+                descValue: '',
+                descItemLabel: '',
+                showNoItems: false,
+                showWarningModal: false,
+                warningTitle: '',
+                warningMessage: '',
+                warningItems: [],
+                warningCanProceed: false,
+
+                emptyRow() {
+                    return {
+                        uid: cryptoRandom(),
+                        fprdid: '',
+                        fitemcode: '',
+                        fitemname: '',
+                        fnoacak: this.generateUniqueNoAcak(),
+                        units: [],
+                        fsatuan: '',
+                        fqty: 0,
+                        fqtypo: 0,
+                        fdesc: '',
+                        fketdt: ''
+                    };
+                },
+
+                normalizeNoAcak(value) {
+                    return (value || '').toString().replace(/\D/g, '').slice(0, 3);
+                },
+
+                formatQtyValue(value) {
+                    const num = Number(value);
+                    if (!Number.isFinite(num)) return '0,00';
+                    return new Intl.NumberFormat('id-ID', {
+                        minimumFractionDigits: 2,
+                        maximumFractionDigits: 2
+                    }).format(num);
+                },
+
+                generateUniqueNoAcak() {
+                    const used = new Set(this.rows.map(item => this.normalizeNoAcak(item.fnoacak)).filter(Boolean));
+                    let candidate = '';
+
+                    do {
+                        candidate = Array.from({ length: 3 }, () => '123456789'[Math.floor(Math.random() * 9)]).join('');
+                    } while (used.has(candidate));
+
+                    return candidate;
+                },
+
+                hasDesc(value) {
+                    return String(value ?? '').trim() !== '';
+                },
+
+                descButtonClass(value) {
+                    return this.hasDesc(value)
+                        ? 'border-emerald-300 bg-emerald-50 text-emerald-600 hover:bg-emerald-100'
+                        : 'border-gray-300 bg-white text-gray-500 hover:bg-gray-50';
+                },
+
+                productMeta(code) {
+                    const key = (code || '').trim();
+                    return window.PRODUCT_MAP?.[key] || { name: '', units: [] };
+                },
+
+                hydrateRowFromMeta(row, meta) {
+                    if (!meta) {
+                        row.fitemname = '';
+                        row.units = [];
+                        row.fsatuan = '';
+                        return;
+                    }
+
+                    row.fprdid = meta.id || row.fprdid || '';
+                    row.fitemname = meta.name || '';
+                    const units = [...new Set((meta.units || []).map(unit => (unit ?? '').toString().trim()).filter(Boolean))];
+                    row.units = units;
+                    row.fsatuan = units.includes(row.fsatuan) ? row.fsatuan : (units[0] || '');
+                    row.fnoacak = this.normalizeNoAcak(row.fnoacak) || this.generateUniqueNoAcak();
+                },
+
+                onCodeTyped(row) {
+                    this.hydrateRowFromMeta(row, this.productMeta(row.fitemcode));
+                },
+
+                openDesc(index = null) {
+                    const row = this.rows[index] || null;
+                    if (!row) return;
+                    this.descRowIndex = index;
+                    this.descValue = (row.fdesc || '').toString();
+                    this.descItemLabel = [row.fitemcode, row.fitemname].filter(Boolean).join(' - ');
+                    this.showDescModal = true;
+                },
+
+                closeDesc() {
+                    this.showDescModal = false;
+                    this.descRowIndex = null;
+                    this.descValue = '';
+                    this.descItemLabel = '';
+                },
+
+                applyDesc() {
+                    if (this.descRowIndex !== null && this.rows[this.descRowIndex]) {
+                        this.rows[this.descRowIndex].fdesc = (this.descValue || '').trim();
+                    }
+                    this.closeDesc();
+                },
+
+                showWarning(title, message, items = [], canProceed = false) {
+                    this.warningTitle = title;
+                    this.warningMessage = message;
+                    this.warningItems = items;
+                    this.warningCanProceed = canProceed;
+                    this.showWarningModal = true;
+                },
+
+                closeWarning() {
+                    this.showWarningModal = false;
+                    this.warningTitle = '';
+                    this.warningMessage = '';
+                    this.warningItems = [];
+                    this.warningCanProceed = false;
+                },
+
+                addRow(index) {
+                    const row = this.rows[index];
+                    if (!String(row?.fitemcode || '').trim()) {
+                        this.showWarning('Kode Produk Belum Diisi', 'Isi kode produk terlebih dahulu sebelum menambah baris baru.');
+                        return;
+                    }
+                    if (!String(row?.fitemname || '').trim()) {
+                        this.showWarning('Produk Belum Valid', 'Produk pada baris ini belum ditemukan. Pilih produk yang valid terlebih dahulu.');
+                        return;
+                    }
+                    this.rows.splice(index + 1, 0, this.emptyRow());
+                },
+
+                removeRow(index) {
+                    if (this.rows.length === 1) {
+                        this.rows.splice(0, 1, this.emptyRow());
+                        return;
+                    }
+                    this.rows.splice(index, 1);
+                },
+
+                openBrowseFor(index) {
+                    this.browseTargetIndex = index;
+                    window.dispatchEvent(new CustomEvent('browse-product', {
+                        detail: {
+                            target: 'row',
+                            index
+                        }
+                    }));
+                },
+
+                prepareRowsForSubmit() {
+                    const validRows = [];
+                    const zeroQtyRows = [];
+
+                    for (const row of this.rows) {
+                        const code = String(row.fitemcode || '').trim();
+                        const name = String(row.fitemname || '').trim();
+                        const sat = String(row.fsatuan || '').trim();
+                        const qty = Number(row.fqty || 0);
+                        const ket = String(row.fketdt || '').trim();
+                        const desc = String(row.fdesc || '').trim();
+
+                        if (!code && !name && !sat && !qty && !ket && !desc) {
+                            continue;
+                        }
+
+                        if (!code) {
+                            return { invalidMessage: 'Masih ada baris detail item tanpa kode produk.', validRows: [], zeroQtyRows: [] };
+                        }
+
+                        if (!name) {
+                            return { invalidMessage: `Kode produk ${code} belum valid atau belum dipilih dari daftar produk.`, validRows: [], zeroQtyRows: [] };
+                        }
+
+                        if (!sat) {
+                            return { invalidMessage: `Satuan untuk produk ${name} belum dipilih.`, validRows: [], zeroQtyRows: [] };
+                        }
+
+                        if (!(qty > 0)) {
+                            zeroQtyRows.push(name || code);
+                            continue;
+                        }
+
+                        validRows.push({
+                            ...row,
+                            fitemcode: code,
+                            fitemname: name,
+                            fsatuan: sat,
+                            fqty: qty,
+                            fketdt: ket,
+                            fdesc: desc,
+                            fnoacak: this.normalizeNoAcak(row.fnoacak) || this.generateUniqueNoAcak()
+                        });
+                    }
+
+                    return { invalidMessage: '', validRows, zeroQtyRows };
+                },
+
+                handleSubmit(forceSubmit = false) {
+                    this.showNoItems = false;
+                    const prepared = this.prepareRowsForSubmit();
+
+                    if (prepared.invalidMessage) {
+                        this.showWarning('Data Item Belum Lengkap', prepared.invalidMessage);
+                        return;
+                    }
+
+                    if (prepared.validRows.length < 1) {
+                        this.showNoItems = true;
+                        return;
+                    }
+
+                    this.rowsToSubmit = prepared.validRows;
+
+                    if (prepared.zeroQtyRows.length > 0 && !forceSubmit) {
+                        this.showWarning(
+                            'Qty Produk Masih 0',
+                            'Data produk berikut qty-nya masih 0, tidak akan tersimpan:',
+                            prepared.zeroQtyRows,
+                            true
+                        );
+                        return;
+                    }
+
+                    this.$nextTick(() => this.$root.closest('form')?.submit());
+                },
+
+                confirmWarningAndSubmit() {
+                    this.closeWarning();
+                    this.handleSubmit(true);
+                },
+
+                init() {
+                    if (!this.rows.length) {
+                        this.rows = [this.emptyRow()];
+                    }
+
+                    this.rows = this.rows.map(row => ({
+                        ...row,
+                        fnoacak: this.normalizeNoAcak(row.fnoacak) || this.generateUniqueNoAcak()
+                    }));
+
+                    window.addEventListener('product-chosen', (e) => {
+                        const { code, target, index } = e.detail || {};
+                        if (target !== 'row') return;
+
+                        const row = this.rows[index];
+                        if (!row) return;
+
+                        row.fitemcode = (code || '').toString();
+                        this.hydrateRowFromMeta(row, this.productMeta(row.fitemcode));
+                    });
+
+                    window.addEventListener('tr-prh-edit-submit-request', () => this.handleSubmit(), {
+                        passive: true
+                    });
+                }
+            };
         }
     </script>
 @endpush

@@ -206,7 +206,7 @@ class Tr_prhController extends Controller
         abort_if(! $hdr, 404);
 
         $dt = Tr_prd::query()
-            ->leftJoin('msprd as p', 'p.fprdid', '=', 'tr_prd.fprdcodeid')
+            ->leftJoin('msprd as p', 'p.fprdcode', '=', 'tr_prd.fprdcode')
             ->where('tr_prd.fprno', $hdr->fprno)
             ->orderBy('p.fprdname')
             ->get([
@@ -336,7 +336,6 @@ class Tr_prhController extends Controller
                     $qtyKecil = $this->convertQtyToSmallUnit($product, $sat, $qty);
 
                     $detailRows[] = [
-                        'fprdcodeid' => $productId,
                         'fprdcode' => $product->fprdcode ?? '',
                         'fqty' => (int) $qty,
                         'fqtykecil' => $qtyKecil,
@@ -357,7 +356,7 @@ class Tr_prhController extends Controller
 
             if ($isApproval === 1) {
                 $dt = Tr_prd::query()
-                    ->leftJoin('msprd as p', 'p.fprdid', '=', 'tr_prd.fprdcodeid')
+                    ->leftJoin('msprd as p', 'p.fprdcode', '=', 'tr_prd.fprdcode')
                     ->where('tr_prd.fprno', $tr_prh->fprno)
                     ->orderBy('p.fprdname')
                     ->get([
@@ -589,12 +588,10 @@ class Tr_prhController extends Controller
                 $desc = $descs[$i] ?? null;
                 $ket = $ketdts[$i] ?? null;
                 $product = $productMap[$code] ?? null;
-                $prodId = (int) ($product->fprdid ?? 0);
 
                 $qtyKecil = $this->convertQtyToSmallUnit($product, $sat, $qty);
 
                 $data = [
-                    'fprdcodeid' => $prodId,
                     'fprdcode' => $code,
                     'fqty' => $qty,
                     'fqtykecil' => $qtyKecil,
@@ -819,7 +816,7 @@ class Tr_prhController extends Controller
         }
 
         return Tr_prh::with(['details' => function ($q) {
-            $q->leftJoin('msprd as p', 'p.fprdid', '=', 'tr_prd.fprdcodeid')
+            $q->leftJoin('msprd as p', 'p.fprdcode', '=', 'tr_prd.fprdcode')
                 ->orderBy('p.fprdname')
                 ->select(
                     'tr_prd.*',
@@ -939,7 +936,6 @@ class Tr_prhController extends Controller
         return $details->map(function ($detail) use ($includePricing) {
             $item = [
                 'uid' => (string) \Illuminate\Support\Str::uuid(),
-                'fprdid' => (int) ($detail->fprdcodeid ?? 0),
                 'fitemcode' => (string) ($detail->fprdcode_master ?? ''),
                 'fitemname' => (string) ($detail->fprdname ?? ''),
                 'fsatuan' => (string) ($detail->fsatuan ?? ''),
