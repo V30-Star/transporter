@@ -299,7 +299,7 @@
         <div class="sign-container">
             <table class="sign-table">
                 <tr>
-                    <td>{{ "User Id" }}</td>
+                    <td>{{ "User Create" }}</td>
                     <td>{{ "User" }}</td>
                     <td>{{ "Plant Manager" }}</td>
                 </tr>

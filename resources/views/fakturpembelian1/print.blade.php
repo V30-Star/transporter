@@ -1,9 +1,9 @@
 <!doctype html>
-<html lang="id">
+<html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
 
 <head>
     <meta charset="utf-8">
-    <title>Penerimaan Barang - {{ $hdr->fsono ?? '-' }}</title>
+    <title>{{ "Faktur Pembelian" }} - {{ $hdr->fstockmtno ?? '-' }}</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <style>
         :root {
@@ -64,7 +64,7 @@
             text-align: right;
         }
 
-        /* Customer Box */
+        /* Box Container (Supplier/Info) */
         .customer-container {
             border: 1px solid #000;
             border-radius: 10px;
@@ -114,13 +114,19 @@
             vertical-align: top;
         }
 
-        .text-right { text-align: right; }
-        .text-center { text-align: center; }
+        .text-right {
+            text-align: right;
+        }
+
+        .text-center {
+            text-align: center;
+        }
 
         /* Footer Section */
         .footer-line {
             border-top: 1.5px solid #000;
-            margin-top: 150px; /* Adjust based on content */
+            margin-top: 40px;
+            /* Jarak disesuaikan untuk Faktur Pembelian */
         }
 
         .terbilang-box {
@@ -165,12 +171,13 @@
 
         .sign-table {
             border-collapse: collapse;
-            width: 350px;
+            width: 450px;
+            /* Lebar ditambah untuk 3 kolom */
         }
 
         .sign-table td {
             border: 1px solid #000;
-            width: 50%;
+            width: 33.33%;
             height: 25px;
             text-align: center;
         }
@@ -187,63 +194,62 @@
         }
 
         @media print {
-            body { background: #fff; }
-            .sheet { margin: 0; border: none; box-shadow: none; }
-            .print-hide { display: none; }
-            @page { size: A4; margin: 0; }
+            body {
+                background: #fff;
+            }
+
+            .sheet {
+                margin: 0;
+                border: none;
+                box-shadow: none;
+            }
+
+            .print-hide {
+                display: none;
+            }
+
+            @page {
+                size: A4;
+                margin: 0;
+            }
         }
     </style>
 </head>
 
 <body>
     <div class="print-hide" style="position:fixed; top:10px; left:10px; z-index:999;">
-        <button onclick="window.print()" style="padding:10px 20px; cursor:pointer;">PRINT</button>
+        <button onclick="window.print()" style="padding:10px 20px; cursor:pointer;">{{ "Print" }}</button>
     </div>
 
     <div class="sheet">
         <div class="header-row">
             <div>
-                <div class="comp-name">{{ strtoupper($company_name ?? 'PT.DEMO VERSION') }}</div>
-                <div>{{ $company_city ?? 'Lampung' }}</div>
+                <div class="comp-name">{{ strtoupper($company_name) }}</div>
+                <div>{{ $company_city }}</div>
             </div>
             <div>
-                <div class="title-so">Penerimaan Barang</div>
-                <div class="so-no">No. {{ $hdr->fsono ?? 'SO2601.0001' }}</div>
+                <div class="title-so">{{ "Faktur Pembelian" }}</div>
+                <div class="so-no">{{ "No" }}. {{ $hdr->fstockmtno ?? '-' }}</div>
             </div>
         </div>
 
         <div style="overflow: hidden; margin-top: 10px;">
             <div class="customer-container">
-                <span class="customer-label">Customer</span>
-                <div style="font-weight: bold;">{{ $hdr->customer_name ?? 'PT. DWIBROS MULTI ENERGI' }}</div>
-                <div style="font-size: 11px; width: 350px;">
-                    {{ $hdr->customer_address ?? 'MENARA CAKRAWALA LT 12, UNIT 1205A, JL. M. H. THAMRIN NO. 1 KOTA ADM. JAKARTA PUSAT' }}
+                <span class="customer-label">{{ "Supplier" }}</span>
+                <div style="font-weight: bold;">{{ $hdr->supplier_name ?? '-' }}</div>
+                <div style="font-size: 11px;">
+                    {{ "Gudang" }} : {{ $hdr->fwhnamen ?? '-' }}
                 </div>
             </div>
 
             <table class="info-table">
                 <tr>
-                    <td>Tanggal</td>
+                    <td>{{ "Tanggal" }}</td>
                     <td>:</td>
-                    <td>{{ $fmt($hdr->fsodate) ?? '21 Januari 2026' }}</td>
+                    <td>{{ $fmt($hdr->fstockmtdate) }}</td>
                 </tr>
                 <tr>
-                    <td>Tempo</td>
-                    <td>:</td>
-                    <td>{{ $hdr->ftempohr ?? '0' }} Hari</td>
-                </tr>
-                <tr>
-                    <td>Ref.PO</td>
-                    <td>:</td>
-                    <td>{{ $hdr->frefno ?? '001/SRI/-DME-PKS/I/' }}</td>
-                </tr>
-                <tr>
-                    <td>Sales</td>
-                    <td>:</td>
-                    <td>{{ $hdr->fsalesname ?? '' }}</td>
-                </tr>
-                <tr>
-                    <td colspan="3" style="text-align: right; font-size: 10px;">Hal : 1 / 1</td>
+                    <td colspan="3" style="text-align: right; font-size: 10px; padding-top: 20px;">{{ "Hal" }} : 1 / 1</td>
                 </tr>
             </table>
         </div>
@@ -251,67 +257,55 @@
         <table class="tb">
             <thead>
                 <tr>
-                    <th style="width: 5%;">No.</th>
-                    <th style="width: 45%;">Nama Produk</th>
-                    <th style="width: 15%; text-align: right;">Quantity</th>
-                    <th style="width: 15%; text-align: right;">@ Harga</th>
-                    <th style="width: 5%; text-align: center;">Disc.%</th>
-                    <th style="width: 15%; text-align: right;">Total Harga</th>
+                    <th style="width: 5%;">{{ "No" }}.</th>
+                    <th style="width: 20%;">{{ "Kode Barang" }}</th>
+                    <th style="width: 50%;">{{ "Nama Barang" }}</th>
+                    <th style="width: 10%; text-align: center;">{{ "Qty." }}</th>
+                    <th style="width: 15%; text-align: center;">{{ "Satuan" }}</th>
                 </tr>
             </thead>
             <tbody>
                 @foreach ($dt as $i => $r)
-                <tr>
-                    
-                    <td class="text-center">{{ $i + 1 }}</td>
-                    <td>{{ $r->product_name ?? '-' }}</td>
-                    <td class="text-right">{{ number_format($r->fqty ?? 100000, 2, ',', '.') }} {{ $r->funit ?? 'KG' }}</td>
-                    <td class="text-right">{{ number_format($r->fprice ?? 1115, 2, '.', ',') }}</td>
-                    <td class="text-center">{{ $r->fdiscpersen ?? 0 }}</td>
-                    <td class="text-right">{{ number_format($r->ftotprice ?? 0, 2, '.', ',') }}</td>
-                </tr>
+                    <tr>
+                        <td class="text-center">{{ $i + 1 }}</td>
+                        <td>{{ $r->product_code ?? '-' }}</td>
+                        <td>
+                            <div>{{ $r->product_name ?? '-' }}</div>
+                            @if (!empty($r->fdesc))
+                                <div style="font-size: 10px; color: #555;">({{ $r->fdesc }})</div>
+                            @endif
+                        </td>
+                        <td class="text-center">{{ number_format((float) ($r->fqty ?? 0), 2, ',', '.') }}</td>
+                        <td class="text-center">{{ $r->fsatuan ?? '-' }}</td>
+                    </tr>
                 @endforeach
             </tbody>
         </table>
 
         <div class="footer-line"></div>
-        
+
         <div class="terbilang-box">
-            Terbilang : <br>
-            # {{ strtoupper(terbilang($hdr->famountmt ?? 0)) }} RUPIAH #
+            {{ "Note" }} : <br>
+            <span
+                style="font-weight: normal; text-decoration: none; font-style: normal;">{{ $hdr->fket ?? '-' }}</span>
         </div>
 
         <div class="summary-box">
-            <div class="summary-row">
-                <span>Total Harga :</span>
-                <span>{{ number_format($hdr->famount ?? 0, 2, '.', ',') }}</span>
-            </div>
-            <div class="summary-row">
-                <span>Discount :</span>
-                <span>0.00</span>
-            </div>
-            <div class="summary-row">
-                <span>Total Setelah Disc :</span>
-                <span>{{ number_format($hdr->famount ?? 0, 2, '.', ',') }}</span>
-            </div>
-            <div class="summary-row">
-                <span>PPN :</span>
-                <span>{{ number_format($hdr->famountpajak ?? 0, 2, '.', ',') }}</span>
-            </div>
-            <div class="summary-row grand-total">
-                <span>Grand Total :</span>
-                <span>{{ number_format($hdr->famountmt ?? 0, 2, '.', ',') }}</span>
+            <div style="text-align: right; font-style: italic; font-size: 10px; color: #555;">
+                * {{ "Dokumen ini sah sebagai bukti penerimaan stok." }}
             </div>
         </div>
 
         <div class="sign-container">
             <table class="sign-table">
                 <tr>
-                    <td>Dibuat</td>
-                    <td>Mengetahui</td>
+                    <td>{{ "User Id" }}</td>
+                    <td>{{ "User" }}</td>
+                    <td>{{ "Plant Manager" }}</td>
                 </tr>
                 <tr>
-                    <td class="box-content">{{ strtoupper($hdr->fusercreate ?? 'STEPHANUS') }}</td>
+                    <td class="box-content">{{ strtoupper($hdr->fusercreate ?? '') }}</td>
+                    <td class="box-content"></td>
                     <td class="box-content"></td>
                 </tr>
             </table>
@@ -323,3 +317,5 @@
 </body>
 
 </html>
+
+
