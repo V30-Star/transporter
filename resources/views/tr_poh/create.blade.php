@@ -335,7 +335,7 @@
                                             <input type="text"
                                                 class="w-32 border rounded-l px-2 py-1 font-mono text-sm min-w-0"
                                                 x-model.trim="row.fitemcode" @focus="activeRow = row.uid"
-                                                @blur="activeRow = null" @input="onCodeTypedRow(row)"
+                                                @blur="activeRow = null" @input="onCodeTypedRow(row, i)"
                                                 @keydown.enter.prevent="focusRowUnit(row, i)">
                                             <button type="button" @click="openBrowseFor(i)"
                                                 class="border border-l-0 px-2 py-1 bg-white hover:bg-gray-50"
@@ -365,7 +365,7 @@
                                             <select class="w-full border rounded px-2 py-1 text-sm"
                                                 :id="'unit_row_' + i" x-model="row.fsatuan"
                                                 @focus="activeRow = row.uid" @blur="activeRow = null"
-                                                @change="row.maxqty = calcMaxQty(row); recalc(row)"
+                                                @change="onRowUpdated(i)"
                                                 @keydown.enter.prevent="focusRowQty(i)">
                                                 <template x-for="unit in row.units" :key="unit">
                                                     <option :value="unit" x-text="unit"></option>
@@ -390,8 +390,8 @@
                                             :id="'qty_row_' + i" x-model.number="row.fqty" min="0"
                                             @focus="activeRow = row.uid; $event.target.select()"
                                             @blur="activeRow = null; enforcePrQtyRow(row)"
-                                            @input="recalc(row); row.maxqty = calcMaxQty(row)"
-                                            @change="recalc(row); row.maxqty = calcMaxQty(row)"
+                                            @input="onRowUpdated(i)"
+                                            @change="onRowUpdated(i)"
                                             @keydown.enter.prevent="focusRowPrice(i)">
                                         <div class="text-[10px] text-amber-700 font-medium text-right mt-0.5"
                                             x-show="row.frefdtid && formatPrRemainHint(row)"
@@ -414,7 +414,7 @@
                                             :id="'disc_row_' + i"
                                             @focus="activeRow = row.uid; $event.target.select()"
                                             @blur="activeRow = null" @input="recalc(row)"
-                                            @change="recalc(row)" @keydown.enter.prevent="addRow(i)">
+                                            @change="recalc(row)" @keydown.enter.prevent="onRowUpdated(i)">
                                     </td>
 
                                     <td class="p-2">
@@ -430,12 +430,7 @@
                                     </td>
 
                                     <td class="p-2 text-center">
-                                        <div class="flex items-center justify-center gap-2">
-                                            <button type="button" @click="addRow(i)"
-                                                class="inline-flex h-8 w-8 items-center justify-center rounded bg-emerald-600 text-white hover:bg-emerald-700"
-                                                title="Tambah baris">
-                                                +
-                                            </button>
+                                        <div class="flex items-center justify-center">
                                             <button type="button" @click="removeRow(i)"
                                                 class="inline-flex h-8 w-8 items-center justify-center rounded bg-red-100 text-red-600 hover:bg-red-200"
                                                 title="Hapus baris">
@@ -933,6 +928,41 @@
             warningCanProceed: false,
             pendingSubmitForm: null,
             pendingRowsToSubmit: [],
+            minimumVisibleRows: 5,
+
+            rowHasContent(row) {
+                if (!row) return false;
+                return this.isRowFilled(row);
+            },
+
+            ensureMinimumRows() {
+                while (this.rows.length < this.minimumVisibleRows) {
+                    this.rows.push(this.createEmptyRow());
+                }
+            },
+
+            ensureTrailingRow(index = null) {
+                if (!this.rows.length) {
+                    this.ensureMinimumRows();
+                    return;
+                }
+
+                const targetIndex = index === null ? this.rows.length - 1 : index;
+                if (targetIndex !== this.rows.length - 1) return;
+
+                if (this.rowHasContent(this.rows[targetIndex])) {
+                    this.rows.push(this.createEmptyRow());
+                }
+            },
+
+            onRowUpdated(index = null) {
+                const row = typeof index === 'number' ? this.rows[index] : null;
+                if (row) {
+                    row.maxqty = this.calcMaxQty(row);
+                    this.recalc(row);
+                }
+                this.ensureTrailingRow(index);
+            },
 
             normalizeNoAcak(value) {
                 return (value || '').toString().replace(/\D/g, '').slice(0, 3);
@@ -1008,7 +1038,11 @@
                 this._descTarget = null;
             },
             applyDesc() {
-                if (this._descTarget) this._descTarget.fdesc = this.descValue;
+                if (this._descTarget) {
+                    this._descTarget.fdesc = this.descValue;
+                    const index = this.rows.findIndex((row) => row.uid === this._descTarget.uid);
+                    this.onRowUpdated(index >= 0 ? index : null);
+                }
                 this.closeDesc();
             },
 
@@ -1115,12 +1149,13 @@
                 if (!keepMaxqty) row.maxqty = 0;
             },
 
-            onCodeTypedRow(row) {
+            onCodeTypedRow(row, index = null) {
                 this.hydrateRowFromMeta(row, this.productMeta(row.fitemcode));
                 row.fnoacak = this.normalizeNoAcak(row.fnoacak) || this.generateUniqueNoAcak(row.uid);
                 row.maxqty = this.calcMaxQty(row);
                 this.recalc(row);
                 this.$nextTick(() => this.applyLastPrice(row));
+                this.onRowUpdated(index);
             },
 
             getSupplier() {
@@ -1200,6 +1235,9 @@
                 if (this.rows.length === 0) {
                     this.rows = [this.createEmptyRow()];
                 }
+
+                this.ensureMinimumRows();
+                this.ensureTrailingRow();
             },
 
             async applyLastPrice(row) {
@@ -1253,20 +1291,14 @@
                 });
             },
 
-            addRow(afterIndex = null, source = {}) {
-                const insertAt = afterIndex === null ? this.rows.length : afterIndex + 1;
-                this.rows.splice(insertAt, 0, this.createEmptyRow(source));
-                this.$nextTick(() => {
-                    document.querySelectorAll('tbody input[type="text"]')[insertAt * 2]?.focus?.();
-                });
-            },
-
             removeRow(index) {
                 if (this.rows.length === 1) {
                     this.rows.splice(0, 1, this.createEmptyRow());
+                    this.ensureMinimumRows();
                     return;
                 }
                 this.rows.splice(index, 1);
+                this.ensureMinimumRows();
             },
 
             isDupeItem(candidate, exceptUid = null) {
@@ -1412,12 +1444,15 @@
                 });
 
                 if (addedRows.length > 0) {
-                    const shouldReplaceStarter = this.rows.length === 1 && !this.isRowFilled(this.rows[0]);
+                    const shouldReplaceStarter = this.rows.every((row) => !this.isRowFilled(row));
                     if (shouldReplaceStarter) {
                         this.rows = addedRows;
                     } else {
                         this.rows.push(...addedRows);
                     }
+
+                    this.ensureMinimumRows();
+                    this.ensureTrailingRow();
 
                     addedRows.forEach((row) => {
                         if (!row.fprice || row.fprice === 0) {
@@ -1541,6 +1576,7 @@
                     this.recalc(row);
 
                     const targetIndex = this.browseTarget;
+                    this.onRowUpdated(targetIndex);
                     this.$nextTick(() => {
                         this.applyLastPrice(row);
                         document.getElementById('qty_row_' + targetIndex)?.focus();

@@ -522,7 +522,7 @@
                                                     <input type="text"
                                                         class="min-w-0 flex-1 border rounded-l px-2 py-1 font-mono text-sm"
                                                         x-model.trim="it.fitemcode" @focus="activeRow = it.uid"
-                                                        @blur="activeRow = null" @input="onCodeTypedRow(it)"
+                                                        @blur="activeRow = null" @input="onCodeTypedRow(it, i)"
                                                         @keydown.enter.prevent="$refs['qty_saved_' + i]?.focus()">
                                                     <button type="button" @click="openBrowseFor('saved', i)"
                                                         class="shrink-0 border border-l-0 px-2 py-1 bg-white hover:bg-gray-50"
@@ -577,12 +577,8 @@
                                                 <input type="number" class="border rounded px-2 py-1 w-full text-right"
                                                     x-model.number="it.fqty" :id="'qty_saved_' + i"
                                                     @focus="activeRow = it.uid; $event.target.select()" @blur="activeRow = null; enforceQtyRow(it);"
-                                                    @input="
-                                                        recalc(it);
-                                                    "
-                                                    @change="
-                                                        recalc(it);
-                                                    "
+                                                    @input="onRowUpdated(i)"
+                                                    @change="onRowUpdated(i)"
                                                     @keydown.enter.prevent="$refs['price_saved_' + i]?.focus()">
                                                 <div class="text-[10px] text-slate-500 text-right mt-0.5"
                                                     x-show="it.fsource === 'PO' || it.fsource === 'PB'"
@@ -627,9 +623,6 @@
                                             <!-- Aksi -->
                                             <td class="p-2 text-center">
                                                 <div class="flex items-center justify-center gap-2">
-                                                    <button type="button" @click="addRow(i)"
-                                                        class="inline-flex h-8 w-8 items-center justify-center rounded bg-emerald-600 text-white hover:bg-emerald-700"
-                                                        title="Tambah baris">+</button>
                                                     <button type="button" @click="removeSaved(i)"
                                                         class="inline-flex h-8 w-8 items-center justify-center rounded bg-red-100 text-red-600 hover:bg-red-200"
                                                         title="Hapus baris">-</button>
@@ -1512,13 +1505,50 @@
                 }
             },
 
-            onCodeTypedRow(row) {
+            minimumVisibleRows: 5,
+
+            rowHasContent(row) {
+                if (!row) return false;
+                return this.isRowFilled(row);
+            },
+
+            ensureMinimumRows() {
+                while (this.savedItems.length < this.minimumVisibleRows) {
+                    this.savedItems.push(this.createRow());
+                }
+            },
+
+            ensureTrailingRow(index = null) {
+                if (!this.savedItems.length) {
+                    this.ensureMinimumRows();
+                    return;
+                }
+
+                const targetIndex = index === null ? this.savedItems.length - 1 : index;
+                if (targetIndex !== this.savedItems.length - 1) return;
+
+                if (this.rowHasContent(this.savedItems[targetIndex])) {
+                    this.savedItems.push(this.createRow());
+                }
+            },
+
+            onRowUpdated(index = null) {
+                const row = typeof index === 'number' ? this.savedItems[index] : null;
+                if (row) {
+                    this.recalc(row);
+                }
+                this.recalcTotals();
+                this.ensureTrailingRow(index);
+            },
+
+            onCodeTypedRow(row, index = null) {
                 if ((row.fitemcode || '').toString().trim() !== '' && !this.requireSupplierBeforeManualProduct()) {
                     row.fitemcode = '';
                     this.hydrateRowFromMeta(row, null);
                     return;
                 }
                 this.hydrateRowFromMeta(row, this.productMeta(row.fitemcode));
+                this.onRowUpdated(index);
             },
 
             isComplete(row) {
@@ -1624,7 +1654,7 @@
                 });
 
                 if (toAdd.length > 0) {
-                    const shouldReplaceStarter = this.savedItems.length === 1 && !this.isRowFilled(this.savedItems[0]);
+                    const shouldReplaceStarter = this.savedItems.every((row) => !this.isRowFilled(row));
                     if (shouldReplaceStarter) {
                         this.savedItems = toAdd;
                     } else {
@@ -1633,6 +1663,8 @@
                 }
 
                 this.recalcTotals();
+                this.ensureMinimumRows();
+                this.ensureTrailingRow();
                 this.syncSupplierLockState();
             },
 
@@ -1642,6 +1674,7 @@
                 } else {
                     this.savedItems.splice(i, 1);
                 }
+                this.ensureMinimumRows();
                 this.syncDescList?.();
                 this.recalcTotals();
                 this.syncSupplierLockState();
@@ -1656,14 +1689,6 @@
                     fketdt: (source.fketdt ?? '').toString(),
                     frefnoacak: this.normalizeRefNoAcak(source.frefnoacak),
                 };
-            },
-
-            addRow(afterIndex = null, source = {}) {
-                if (!this.requireSupplierBeforeManualProduct()) {
-                    return;
-                }
-                const insertAt = afterIndex === null ? this.savedItems.length : afterIndex + 1;
-                this.savedItems.splice(insertAt, 0, this.createRow(source));
             },
 
             isRowSavable(row) {
@@ -1808,6 +1833,7 @@
             applyDesc() {
                 if (this.descTarget === 'saved' && this.descSavedIndex !== null && this.savedItems[this.descSavedIndex]) {
                     this.savedItems[this.descSavedIndex].fdesc = this.descValue;
+                    this.onRowUpdated(this.descSavedIndex);
                 }
 
                 this.closeDesc();
@@ -1860,6 +1886,8 @@
                 if (this.savedItems.length === 0) {
                     this.savedItems = [this.createRow()];
                 }
+                this.ensureMinimumRows();
+                this.ensureTrailingRow();
                 this.recalcTotals();
                 this.syncSupplierLockState();
 
@@ -1883,6 +1911,8 @@
                         this.hydrateRowFromMeta(row, this.productMeta(row.fitemcode));
                         if (row.fqty === null || row.fqty === undefined || row.fqty === '') row.fqty = 0;
                         this.recalc(row);
+                        const index = this.savedItems.findIndex((item) => item.uid === row.uid);
+                        this.onRowUpdated(index >= 0 ? index : null);
                     };
                     if (typeof this.browseIndex === 'number' && this.savedItems[this.browseIndex]) {
                         apply(this.savedItems[this.browseIndex]);

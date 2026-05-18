@@ -1,12 +1,16 @@
 @extends('layouts.app')
 
-@section('title', $action === 'delete' ? 'Hapus' . ' ' . 'Faktur Pembelian' : 'Edit' . ' ' . 'Faktur Pembelian')
+@section('title', $action === 'delete' ? 'Hapus Faktur Pembelian' : ($action === 'view' ? 'View Faktur Pembelian' : 'Edit Faktur Pembelian'))
 
 @section('content')
     @php
         $permissions = explode(',', session('user_restricted_permissions', ''));
         $canEditPermission = in_array('updateFakturPembelian', $permissions, true);
         $canDeletePermission = in_array('deleteFakturPembelian', $permissions, true);
+        $canPrintPermission = in_array('printFakturPembelian', $permissions, true) || in_array('viewTr_prh', $permissions, true) || in_array('updateFakturPembelian', $permissions, true) || in_array('deleteFakturPembelian', $permissions, true) || in_array('createFakturPembelian', $permissions, true);
+        $isDelete = $action === 'delete';
+        $isView = $action === 'view';
+        $isReadOnly = $isDelete || $isView;
     @endphp
     <style>
         input:focus,
@@ -152,7 +156,7 @@
         $usageLocked = !empty($isUsageLocked);
     @endphp
 
-    @if ($usageLocked)
+    @if ($usageLocked && !$isView)
         <div x-data="{ open: true }" x-show="open" x-cloak class="fixed inset-0 z-[99] flex items-center justify-center"
             x-transition.opacity>
             <div class="absolute inset-0 bg-black/60 backdrop-blur-sm"></div>
@@ -164,7 +168,7 @@
                     <div class="flex-1">
                         <h3 class="text-base font-bold text-red-700">
                             {{ 'Faktur Pembelian' }}
-                            {{ $action === 'delete' ? 'Tidak Dapat Dihapus' : 'Tidak Dapat Diedit' }}
+                            {{ $isDelete ? 'Tidak Dapat Dihapus' : 'Tidak Dapat Diedit' }}
                         </h3>
                         <p class="text-sm text-red-500 mt-0.5">{{ $usageLockMessage }}</p>
                     </div>
@@ -209,7 +213,7 @@
             {{-- ============================================ --}}
             {{-- MODE DELETE: VIEW ONLY + BUTTON HAPUS       --}}
             {{-- ============================================ --}}
-            @if ($action === 'delete')
+            @if ($isReadOnly)
                 <div class="space-y-4">
 
                     {{-- HEADER FORM --}}
@@ -726,7 +730,7 @@
                     </div>
 
                     <div class="mt-6 flex justify-center space-x-4">
-                        @if ($canDeletePermission)
+                        @if ($isDelete && $canDeletePermission)
                             @if ($usageLocked)
                                 <button type="button" disabled title="{{ $usageLockMessage }}"
                                     class="bg-red-300 text-white px-6 py-2 rounded flex items-center cursor-not-allowed opacity-70">
@@ -740,6 +744,17 @@
                                     Hapus
                                 </button>
                             @endif
+                        @endif
+                        @if ($isView && $canPrintPermission)
+                            <a href="{{ route('fakturpembelian.print', $fakturpembelian->fstockmtno) }}" target="_blank"
+                                class="bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700 flex items-center">
+                                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m10 0v-5a2 2 0 00-2-2H9a2 2 0 00-2 2v5m10 0v5H7v-5">
+                                    </path>
+                                </svg>
+                                Print
+                            </a>
                         @endif
                         <button type="button" onclick="window.location.href='{{ route('fakturpembelian.index') }}'"
                             class="bg-gray-500 text-white px-6 py-2 rounded hover:bg-gray-600 flex items-center">
@@ -1148,7 +1163,7 @@
                                                     <div class="flex w-full max-w-full">
                                                         <input type="text"
                                                             class="min-w-0 flex-1 border rounded-l px-2 py-1 font-mono text-sm"
-                                                            x-model="it.fitemcode" @input="onCodeTypedRow(it)"
+                                                            x-model="it.fitemcode" @input="onCodeTypedRow(it, i)"
                                                             @focus="activeRow = it.uid" @blur="activeRow = null">
                                                         <button type="button" @click="openBrowseFor('saved', i)"
                                                             class="shrink-0 border border-l-0 px-2 py-1 bg-white hover:bg-gray-50">
@@ -1178,7 +1193,7 @@
                                                     <template x-if="(it.units?.length || 0) > 1">
                                                         <select class="w-full border rounded px-2 py-1 text-sm"
                                                             x-model="it.fsatuan" @focus="activeRow = it.uid"
-                                                            @blur="activeRow = null" @change="recalc(it)">
+                                                            @blur="activeRow = null" @change="onRowUpdated(i)">
                                                             <template x-for="u in it.units" :key="u">
                                                                 <option :value="u" x-text="u"></option>
                                                             </template>
@@ -1196,8 +1211,8 @@
                                                         x-model.number="it.fqty"
                                                         @focus="activeRow = it.uid; $event.target.select()"
                                                         @blur="activeRow = null; enforceQtyRow(it); recalc(it);"
-                                                        @input="enforceQtyRow(it); recalc(it);"
-                                                        @change="enforceQtyRow(it); recalc(it);">
+                                                        @input="enforceQtyRow(it); onRowUpdated(i);"
+                                                        @change="enforceQtyRow(it); onRowUpdated(i);">
                                                     <div class="text-[10px] text-slate-500 mt-0.5 text-right"
                                                         x-show="it.fsource === 'PO' || it.fsource === 'PB'"
                                                         x-text="formatSourceSummary(it)"></div>
@@ -1236,9 +1251,6 @@
                                                 </td>
                                                 <td class="p-2 text-center">
                                                     <div class="flex items-center justify-center gap-2">
-                                                        <button type="button" @click="addRow(i)"
-                                                            class="inline-flex h-8 w-8 items-center justify-center rounded bg-emerald-600 text-white hover:bg-emerald-700"
-                                                            title="Tambah baris">+</button>
                                                         <button type="button" @click="removeSaved(i)"
                                                             class="inline-flex h-8 w-8 items-center justify-center rounded bg-red-100 text-red-600 hover:bg-red-200"
                                                             title="Hapus baris">-</button>
@@ -2296,13 +2308,51 @@
                     });
                 },
 
-                onCodeTypedRow(row) {
+                minimumVisibleRows: 5,
+
+                rowHasContent(row) {
+                    if (!row) return false;
+                    return this.isRowFilled(row);
+                },
+
+                ensureMinimumRows() {
+                    while (this.savedItems.length < this.minimumVisibleRows) {
+                        this.savedItems.push(this.createRow());
+                    }
+                },
+
+                ensureTrailingRow(index = null) {
+                    if (ACTION === 'delete' || ACTION === 'view') return;
+                    if (!this.savedItems.length) {
+                        this.ensureMinimumRows();
+                        return;
+                    }
+
+                    const targetIndex = index === null ? this.savedItems.length - 1 : index;
+                    if (targetIndex !== this.savedItems.length - 1) return;
+
+                    if (this.rowHasContent(this.savedItems[targetIndex])) {
+                        this.savedItems.push(this.createRow());
+                    }
+                },
+
+                onRowUpdated(index = null) {
+                    const row = typeof index === 'number' ? this.savedItems[index] : null;
+                    if (row) {
+                        this.recalc(row);
+                    }
+                    this.recalcTotals();
+                    this.ensureTrailingRow(index);
+                },
+
+                onCodeTypedRow(row, index = null) {
                     if ((row.fitemcode || '').toString().trim() !== '' && !this.requireSupplierBeforeManualProduct()) {
                         row.fitemcode = '';
                         this.hydrateRowFromMeta(row, null);
                         return;
                     }
                     this.hydrateRowFromMeta(row, this.productMeta(row.fitemcode));
+                    this.onRowUpdated(index);
                 },
 
                 isComplete(row) {
@@ -2413,7 +2463,7 @@
                     });
 
                     if (toAdd.length > 0) {
-                        const shouldReplaceStarter = this.savedItems.length === 1 && !this.isRowFilled(this.savedItems[0]);
+                        const shouldReplaceStarter = this.savedItems.every((row) => !this.isRowFilled(row));
                         if (shouldReplaceStarter) {
                             this.savedItems = toAdd;
                         } else {
@@ -2422,6 +2472,8 @@
                     }
 
                     this.recalcTotals();
+                    this.ensureMinimumRows();
+                    this.ensureTrailingRow();
                     this.syncSupplierLockState();
                 },
 
@@ -2431,6 +2483,7 @@
                     } else {
                         this.savedItems.splice(i, 1);
                     }
+                    this.ensureMinimumRows();
                     this.syncDescList?.();
                     this.recalcTotals();
                     this.syncSupplierLockState();
@@ -2445,14 +2498,6 @@
                         fketdt: (source.fketdt ?? '').toString(),
                         frefnoacak: this.normalizeRefNoAcak(source.frefnoacak),
                     };
-                },
-
-                addRow(afterIndex = null, source = {}) {
-                    if (!this.requireSupplierBeforeManualProduct()) {
-                        return;
-                    }
-                    const insertAt = afterIndex === null ? this.savedItems.length : afterIndex + 1;
-                    this.savedItems.splice(insertAt, 0, this.createRow(source));
                 },
 
                 isRowSavable(row) {
@@ -2597,6 +2642,7 @@
                 applyDesc() {
                     if (this.descTarget === 'saved' && this.descSavedIndex !== null && this.savedItems[this.descSavedIndex]) {
                         this.savedItems[this.descSavedIndex].fdesc = this.descValue;
+                        this.onRowUpdated(this.descSavedIndex);
                     }
 
                     this.closeDesc();
@@ -2689,6 +2735,10 @@
                     if (this.savedItems.length === 0) {
                         this.savedItems = [this.createRow()];
                     }
+                    if (ACTION !== 'delete' && ACTION !== 'view') {
+                        this.ensureMinimumRows();
+                        this.ensureTrailingRow();
+                    }
                     this.recalcTotals();
                     this.$watch('includePPN', () => this.recalcTotals());
                     this.$watch('fapplyppn', () => this.recalcTotals());
@@ -2717,6 +2767,8 @@
                             this.hydrateRowFromMeta(row, this.productMeta(row.fitemcode));
                             if (row.fqty === null || row.fqty === undefined || row.fqty === '') row.fqty = 0;
                             this.recalc(row);
+                            const index = this.savedItems.findIndex((item) => item.uid === row.uid);
+                            this.onRowUpdated(index >= 0 ? index : null);
                         };
                         if (this.browseTarget === 'saved' && this.browseIndex !== null) {
                             apply(this.savedItems[this.browseIndex]);

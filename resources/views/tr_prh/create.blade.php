@@ -303,12 +303,7 @@
                                                 x-model="row.fketdt" @input="onRowUpdated(i)">
                                         </td>
                                         <td class="p-2 text-center">
-                                            <div class="flex items-center justify-center gap-2">
-                                                <button type="button" @click="addRow(i)"
-                                                    class="inline-flex h-8 w-8 items-center justify-center rounded bg-emerald-600 text-white hover:bg-emerald-700"
-                                                    title="Tambah baris">
-                                                    +
-                                                </button>
+                                            <div class="flex items-center justify-center">
                                                 <button type="button" @click="removeRow(i)"
                                                     class="inline-flex h-8 w-8 items-center justify-center rounded bg-red-100 text-red-600 hover:bg-red-200"
                                                     title="Hapus baris">

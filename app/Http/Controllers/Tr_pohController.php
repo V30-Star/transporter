@@ -1317,11 +1317,14 @@ class Tr_pohController extends Controller
             ];
         })->values();
 
-        return view('tr_poh.view', [
+        return view('tr_poh.edit', [
             'suppliers' => $suppliers,
             'selectedSupplierCode' => $tr_poh->fsupplier,
             'fcabang' => $fcabang,
             'fbranchcode' => $fbranchcode,
+            'existingTerima' => collect(),
+            'blockedByTerima' => false,
+            'usageLockMessage' => null,
             'products' => $products,
             'productMap' => $productMap,
             'tr_poh' => $tr_poh,
@@ -1332,6 +1335,7 @@ class Tr_pohController extends Controller
             'famountponet' => (float) ($tr_poh->famountponet ?? 0),
             'famountpo' => (float) ($tr_poh->famountpo ?? 0),
             'filterSupplierId' => $request->query('filter_supplier_id'),
+            'action' => 'view',
         ]);
     }
 

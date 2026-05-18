@@ -885,7 +885,7 @@ class PenerimaanBarangController extends Controller
 
     public function view(Request $request, $fstockmtid)
     {
-        return $this->loadFormView($request, $fstockmtid, 'penerimaanbarang.view', 'view');
+        return $this->loadFormView($request, $fstockmtid, 'penerimaanbarang.edit', 'view');
     }
 
     public function delete(Request $request, $fstockmtid)

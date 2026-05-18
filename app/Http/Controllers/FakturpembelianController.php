@@ -1435,7 +1435,7 @@ class FakturpembelianController extends Controller
             return ((float) ($item['fbiaya'] ?? 0)) * ((float) ($item['fqty'] ?? 0));
         });
 
-        return view('fakturpembelian.view', [
+        return view('fakturpembelian.edit', [
             'suppliers' => $suppliers,
             'selectedSupplierCode' => $selectedSupplierCode,
             'fcabang' => $savedBranchName ?? $defaultCabang,
@@ -1454,7 +1454,9 @@ class FakturpembelianController extends Controller
             'famountponet' => (float) ($fakturpembelian->famountponet ?? 0),
             'famountpo' => (float) ($fakturpembelian->famountpo ?? 0),
             'filterSupplierId' => $request->query('filter_supplier_id'),
-            'action' => 'edit',
+            'isUsageLocked' => ! empty($this->getUsageLockMessage($fakturpembelian)),
+            'usageLockMessage' => $this->getUsageLockMessage($fakturpembelian),
+            'action' => 'view',
         ]);
     }
 

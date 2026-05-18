@@ -259,18 +259,20 @@
                             x-transition.scale>
                             <div class="px-5 py-4 border-b flex items-center">
                                 <x-heroicon-o-document-text class="w-6 h-6 text-blue-600 mr-2" />
-                                <h3 class="text-lg font-semibold text-gray-800">Isi Deskripsi Item</h3>
+                                <div>
+                                    <h3 class="text-lg font-semibold text-gray-800">Deskripsi Item</h3>
+                                    <p class="text-xs text-gray-500" x-text="descItemLabel"></p>
+                                </div>
                             </div>
                             <div class="px-5 py-4 space-y-2">
                                 <label class="block text-sm text-gray-700">Deskripsi</label>
-                                <textarea x-model="descValue" rows="5" class="w-full border rounded px-3 py-2"
-                                    placeholder="Tulis deskripsi item di sini..."></textarea>
+                                <textarea x-model="descValue" rows="5"
+                                    class="w-full border rounded px-3 py-2 bg-gray-100 text-gray-600 cursor-not-allowed"
+                                    readonly></textarea>
                             </div>
                             <div class="px-5 py-3 border-t flex items-center justify-end gap-2">
                                 <button type="button" @click="closeDesc()"
-                                    class="h-9 px-4 rounded-lg bg-gray-100 text-gray-700 text-sm font-medium hover:bg-gray-200">Batal</button>
-                                <button type="button" @click="applyDesc()"
-                                    class="h-9 px-4 rounded-lg bg-emerald-600 text-white text-sm font-medium hover:bg-emerald-700">Simpan</button>
+                                    class="h-9 px-4 rounded-lg bg-gray-100 text-gray-700 text-sm font-medium hover:bg-gray-200">Tutup</button>
                             </div>
                         </div>
                     </div>

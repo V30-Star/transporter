@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', $action === 'delete' ? 'Hapus Order Pembelian' : 'Edit Order Pembelian')
+@section('title', $action === 'delete' ? 'Hapus Order Pembelian' : ($action === 'view' ? 'Detail Order Pembelian' : 'Edit Order Pembelian'))
 
 @section('content')
     <style>
@@ -184,10 +184,13 @@
     @php
         $isDelete = $action === 'delete';
         $isEdit = $action === 'edit';
-        $disabled = $isDelete ? 'disabled' : '';
-        $readonly = $isDelete ? 'readonly' : '';
-        $bgDisabled = $isDelete ? 'bg-gray-100 cursor-not-allowed text-gray-500' : '';
+        $isView = $action === 'view';
+        $isReadOnly = $isDelete || $isView;
+        $disabled = $isReadOnly ? 'disabled' : '';
+        $readonly = $isReadOnly ? 'readonly' : '';
+        $bgDisabled = $isReadOnly ? 'bg-gray-100 cursor-not-allowed text-gray-500' : '';
         $canClosePo = $isEdit && $tr_poh->fclose != '1' && (string) ($tr_poh->fprdin ?? '') !== '1';
+        $canPrint = in_array('viewTr_poh', $permissions, true) || in_array('updateTr_poh', $permissions, true) || in_array('deleteTr_poh', $permissions, true) || in_array('createTr_poh', $permissions, true);
         $fmtQty = function ($value) {
             $num = (float) ($value ?? 0);
             return number_format($num, 2, ',', '.');
@@ -435,7 +438,7 @@
                                             <input type="text"
                                                 class="w-32 border rounded-l px-2 py-1 font-mono text-sm min-w-0"
                                                 x-model.trim="row.fitemcode" @focus="activeRow = row.uid"
-                                                @blur="activeRow = null" @input="onCodeTypedRow(row)"
+                                                @blur="activeRow = null" @input="onCodeTypedRow(row, i)"
                                                 @keydown.enter.prevent="focusRowUnit(row, i)">
                                             <button type="button" @click="openBrowseFor(i)"
                                                 class="border border-l-0 px-2 py-1 bg-white hover:bg-gray-50"
@@ -484,7 +487,7 @@
                                         <template x-if="row.units.length > 1">
                                             <select class="w-full border rounded px-2 py-1 text-sm" :id="'unit_row_' + i"
                                                 x-model="row.fsatuan" @focus="activeRow = row.uid"
-                                                @blur="activeRow = null" @change="row.maxqty = calcMaxQty(row); recalc(row)"
+                                                @blur="activeRow = null" @change="onRowUpdated(i)"
                                                 @keydown.enter.prevent="focusRowQty(i)">
                                                 <template x-for="u in row.units" :key="u">
                                                     <option :value="u" x-text="u"></option>
@@ -511,14 +514,8 @@
                                         <input type="number" class="border rounded px-2 py-1 w-20 text-right text-sm"
                                             x-model.number="row.fqty" :id="'qty_row_' + i"
                                             @focus="activeRow = row.uid; $event.target.select()" @blur="activeRow = null; enforcePrQtyRow(row);"
-                                            @input="
-                                                recalc(row);
-                                                row.maxqty = calcMaxQty(row);
-                                            "
-                                            @change="
-                                                recalc(row);
-                                                row.maxqty = calcMaxQty(row);
-                                            "
+                                            @input="onRowUpdated(i)"
+                                            @change="onRowUpdated(i)"
                                             @keydown.enter.prevent="focusRowPrice(i)">
                                         <div class="text-[10px] text-amber-700 font-medium text-right mt-0.5"
                                             x-show="row.frefdtid && formatPrRemainHint(row)"
@@ -555,7 +552,7 @@
                                             min="0" max="100" step="0.01" x-model.number="row.fdisc"
                                             :id="'disc_row_' + i" @focus="activeRow = row.uid; $event.target.select()"
                                             @blur="activeRow = null" @input="recalc(row)" @change="recalc(row)"
-                                            @keydown.enter.prevent="addRow(i)">
+                                            @keydown.enter.prevent="onRowUpdated(i)">
                                     @else
                                         <span class="text-sm" x-text="row.fdisc"></span>
                                     @endif
@@ -575,12 +572,7 @@
 
                                 @if ($isEdit && (empty($blockedByTerima) || !$blockedByTerima))
                                     <td class="p-2 text-center">
-                                        <div class="flex items-center justify-center gap-2">
-                                            <button type="button" @click="addRow(i)"
-                                                class="inline-flex h-8 w-8 items-center justify-center rounded bg-emerald-600 text-white hover:bg-emerald-700"
-                                                title="Tambah baris">
-                                                +
-                                            </button>
+                                        <div class="flex items-center justify-center">
                                             <button type="button" @click="removeRow(i)"
                                                 class="inline-flex h-8 w-8 items-center justify-center rounded bg-red-100 text-red-600 hover:bg-red-200"
                                                 title="Hapus baris">
@@ -898,11 +890,11 @@
 
         <div class="flex justify-center items-center space-x-2 mt-6">
             @if ($canApproval)
-                <label class="block text-sm font-medium">{{ $isDelete ? 'Status Persetujuan' : 'Setujui Sekarang' }}</label>
+                <label class="block text-sm font-medium">{{ $isEdit ? 'Setujui Sekarang' : 'Status Persetujuan' }}</label>
                 <input type="hidden" name="fapproval" value="0">
                 <label class="switch">
                     <input type="checkbox" name="fapproval" id="approvalToggle" value="1"
-                        {{ $isDelete ? 'disabled' : '' }}
+                        {{ $isReadOnly ? 'disabled' : '' }}
                         {{ old('fapproval', $tr_poh->fapproval ?? 0) ? 'checked' : '' }}>
                     <span class="slider"></span>
                 </label>
@@ -929,7 +921,7 @@
                         <x-heroicon-o-lock-closed class="w-5 h-5 mr-2" /> Close
                     </button>
                 @endif
-            @elseif (!$isEdit && $canDeletePermission)
+            @elseif ($isDelete && $canDeletePermission)
                 @if (!empty($blockedByTerima) && $blockedByTerima)
                     {{-- Hapus di-disable karena ada penerimaan barang --}}
                     <button type="button" disabled title="Tidak dapat dihapus karena sudah ada penerimaan barang"
@@ -942,6 +934,16 @@
                         <x-heroicon-o-trash class="w-5 h-5 mr-2" /> Hapus
                     </button>
                 @endif
+            @elseif ($isView && $canPrint)
+                <a href="{{ route('tr_poh.print', $tr_poh->fpono) }}" target="_blank"
+                    class="bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700 flex items-center">
+                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m10 0v-5a2 2 0 00-2-2H9a2 2 0 00-2 2v5m10 0v5H7v-5">
+                        </path>
+                    </svg>
+                    Print
+                </a>
             @endif
             <button type="button" onclick="window.location.href='{{ route('tr_poh.index') }}'"
                 class="bg-gray-500 text-white px-6 py-2 rounded hover:bg-gray-600 flex items-center">
@@ -1196,6 +1198,42 @@
             warningCanProceed: false,
             pendingSubmitForm: null,
             pendingRowsToSubmit: [],
+            minimumVisibleRows: 5,
+
+            rowHasContent(row) {
+                if (!row) return false;
+                return this.isRowFilled(row);
+            },
+
+            ensureMinimumRows() {
+                while (this.rows.length < this.minimumVisibleRows) {
+                    this.rows.push(this.createRow());
+                }
+            },
+
+            ensureTrailingRow(index = null) {
+                if (!IS_EDIT || BLOCKED_BY_TERIMA) return;
+                if (!this.rows.length) {
+                    this.ensureMinimumRows();
+                    return;
+                }
+
+                const targetIndex = index === null ? this.rows.length - 1 : index;
+                if (targetIndex !== this.rows.length - 1) return;
+
+                if (this.rowHasContent(this.rows[targetIndex])) {
+                    this.rows.push(this.createRow());
+                }
+            },
+
+            onRowUpdated(index = null) {
+                const row = typeof index === 'number' ? this.rows[index] : null;
+                if (row) {
+                    row.maxqty = this.calcMaxQty(row);
+                    this.recalc(row);
+                }
+                this.ensureTrailingRow(index);
+            },
 
             normalizeNoAcak(value) {
                 return (value || '').toString().replace(/\D/g, '').slice(0, 3);
@@ -1276,7 +1314,11 @@
                 this.descReadonly = false;
             },
             applyDesc() {
-                if (this._descTarget) this._descTarget.fdesc = this.descValue;
+                if (this._descTarget) {
+                    this._descTarget.fdesc = this.descValue;
+                    const index = this.rows.findIndex((row) => row.uid === this._descTarget.uid);
+                    this.onRowUpdated(index >= 0 ? index : null);
+                }
                 this.closeDesc();
             },
             closeWarning() {
@@ -1382,12 +1424,13 @@
                 if (!keepMaxqty) row.maxqty = 0;
             },
 
-            onCodeTypedRow(row) {
+            onCodeTypedRow(row, index = null) {
                 this.hydrateRowFromMeta(row, this.productMeta(row.fitemcode));
                 row.fnoacak = this.normalizeNoAcak(row.fnoacak) || this.generateUniqueNoAcak(row.uid);
                 row.maxqty = this.calcMaxQty(row);
                 this.recalc(row);
                 this.$nextTick(() => this.applyLastPrice(row));
+                this.onRowUpdated(index);
             },
 
             getSupplier() {
@@ -1534,24 +1577,21 @@
                 if (this.rows.length === 0) {
                     this.rows = [this.createRow()];
                 }
-            },
-
-            addRow(afterIndex = null, source = {}) {
-                if (!IS_EDIT || BLOCKED_BY_TERIMA) return;
-                const insertAt = afterIndex === null ? this.rows.length : afterIndex + 1;
-                this.rows.splice(insertAt, 0, this.createRow(source));
-                this.$nextTick(() => {
-                    document.querySelectorAll('tbody input[type="text"]')[insertAt * 2]?.focus?.();
-                });
+                if (IS_EDIT && !BLOCKED_BY_TERIMA) {
+                    this.ensureMinimumRows();
+                    this.ensureTrailingRow();
+                }
             },
 
             removeRow(index) {
                 if (!IS_EDIT || BLOCKED_BY_TERIMA) return;
                 if (this.rows.length === 1) {
                     this.rows.splice(0, 1, this.createRow());
+                    this.ensureMinimumRows();
                     return;
                 }
                 this.rows.splice(index, 1);
+                this.ensureMinimumRows();
             },
 
             isDupeItem(candidate, exceptUid = null) {
@@ -1666,12 +1706,14 @@
                     existingSet.add(key);
                 });
                 if (toAdd.length > 0) {
-                    const shouldReplaceStarter = this.rows.length === 1 && !this.isRowFilled(this.rows[0]);
+                    const shouldReplaceStarter = this.rows.every((row) => !this.isRowFilled(row));
                     if (shouldReplaceStarter) {
                         this.rows = toAdd;
                     } else {
                         this.rows.push(...toAdd);
                     }
+                    this.ensureMinimumRows();
+                    this.ensureTrailingRow();
                 }
                 toAdd.forEach(row => {
                     if (!row.fprice || row.fprice === 0)
@@ -1777,11 +1819,11 @@
                         return;
                     }
                     row.fnoacak = this.normalizeNoAcak(row.fnoacak) || this.generateUniqueNoAcak(row.uid);
-                    if (!(Number(row.maxqty) > 0)) return;
                     row.maxqty = this.calcMaxQty(row);
                     if (!row.fqty && !row.frefdtid) row.fqty = 1;
                     this.recalc(row);
                     const i = this.browseTarget;
+                    this.onRowUpdated(i);
                     this.$nextTick(() => {
                         this.applyLastPrice(row);
                         document.getElementById('qty_row_' + i)?.focus();

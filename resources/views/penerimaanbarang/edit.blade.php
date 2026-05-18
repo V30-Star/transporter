@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', $action === 'delete' ? 'Hapus Penerimaan Barang' : 'Edit Penerimaan Barang')
+@section('title', $action === 'delete' ? 'Hapus Penerimaan Barang' : ($action === 'view' ? 'Detail Penerimaan Barang' : 'Edit Penerimaan Barang'))
 
 @section('content')
     @php
@@ -76,6 +76,13 @@
     @php
         $usageLocked = !empty($isUsageLocked);
     @endphp
+    @php
+        $isDelete = $action === 'delete';
+        $isView = $action === 'view';
+        $isEdit = $action === 'edit';
+        $isReadOnly = $isDelete || $isView;
+        $canPrint = in_array('viewTr_prh', $permissions, true) || in_array('updatePenerimaanBarang', $permissions, true) || in_array('deletePenerimaanBarang', $permissions, true) || in_array('createPenerimaanBarang', $permissions, true);
+    @endphp
     @if ($usageLocked)
         <div x-data="{ open: true }" x-show="open" x-cloak class="fixed inset-0 z-[99] flex items-center justify-center"
             x-transition.opacity>
@@ -87,7 +94,7 @@
                     </div>
                     <div class="flex-1">
                         <h3 class="text-base font-bold text-orange-700">
-                            {{ $action === 'delete' ? 'Penerimaan Barang Tidak Dapat Dihapus' : 'Penerimaan Barang Tidak Dapat Diedit' }}
+                            {{ $isDelete ? 'Penerimaan Barang Tidak Dapat Dihapus' : 'Penerimaan Barang Tidak Dapat Diedit' }}
                         </h3>
                         <p class="text-sm text-orange-500 mt-0.5">{{ $usageLockMessage }}</p>
                     </div>
@@ -108,11 +115,11 @@
         </div>
     @endif
     <div class="bg-white rounded shadow p-6 md:p-8 max-w-[1600px] w-full mx-auto">
-        <form action="{{ $action === 'delete' ? '#' : route('penerimaanbarang.update', $penerimaanbarang->fstockmtid) }}"
+        <form action="{{ $isEdit ? route('penerimaanbarang.update', $penerimaanbarang->fstockmtid) : '#' }}"
             method="POST" class="mt-6" x-data="mainForm()" x-init="init()" @submit.prevent="submitForm($el)">
 
             @csrf
-            @if ($action !== 'delete')
+            @if ($isEdit)
                 @method('PATCH')
             @endif
 
@@ -165,14 +172,14 @@
                                     </option>
                                 @endforeach
                             </select>
-                            @if ($action !== 'delete')
+                            @if ($isEdit)
                                 <div class="absolute inset-0" role="button" aria-label="Browse supplier"
                                     @click="window.dispatchEvent(new CustomEvent('supplier-browse-open'))"></div>
                             @endif
                         </div>
                         <input type="hidden" name="fsupplier" id="supplierCodeHidden"
                             value="{{ old('fsupplier', $penerimaanbarang->fsupplier) }}">
-                        @if ($action !== 'delete')
+                        @if ($isEdit)
                             <button type="button" @click="window.dispatchEvent(new CustomEvent('supplier-browse-open'))"
                                 class="border -ml-px px-3 py-2 bg-white hover:bg-gray-50 rounded-r-none"
                                 title="Browse Supplier">
@@ -206,14 +213,14 @@
                                     </option>
                                 @endforeach
                             </select>
-                            @if ($action !== 'delete')
+                            @if ($isEdit)
                                 <div class="absolute inset-0" role="button" aria-label="Browse warehouse"
                                     @click="window.dispatchEvent(new CustomEvent('penerimaanbarang-warehouse-browse-open'))"></div>
                             @endif
                         </div>
                         <input type="hidden" name="ffrom" id="warehouseCodeHidden"
                             value="{{ old('ffrom', $penerimaanbarang->ffrom) }}">
-                        @if ($action !== 'delete')
+                        @if ($isEdit)
                             <button type="button" @click="window.dispatchEvent(new CustomEvent('penerimaanbarang-warehouse-browse-open'))"
                                 class="border -ml-px px-3 py-2 bg-white hover:bg-gray-50 rounded-r-none"
                                 title="Browse Gudang">
@@ -235,9 +242,9 @@
                     <label class="block text-sm font-medium">Tanggal</label>
                     <input type="date" name="fstockmtdate"
                         value="{{ old('fstockmtdate', \Carbon\Carbon::parse($penerimaanbarang->fstockmtdate)->format('Y-m-d')) }}"
-                        {{ $action === 'delete' ? 'disabled' : '' }}
+                        {{ $isReadOnly ? 'disabled' : '' }}
                         class="w-full border rounded px-3 py-2
-                            {{ $action === 'delete' ? 'bg-gray-100 cursor-not-allowed' : '' }}
+                            {{ $isReadOnly ? 'bg-gray-100 cursor-not-allowed' : '' }}
                             @error('fstockmtdate') border-red-500 @enderror">
                     @error('fstockmtdate')
                         <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
@@ -247,9 +254,9 @@
                 {{-- Keterangan --}}
                 <div class="lg:col-span-12">
                     <label class="block text-sm font-medium">Keterangan</label>
-                    <textarea name="fket" rows="3" {{ $action === 'delete' ? 'disabled' : '' }}
+                    <textarea name="fket" rows="3" {{ $isReadOnly ? 'disabled' : '' }}
                         class="w-full border rounded px-3 py-2
-                            {{ $action === 'delete' ? 'bg-gray-100 cursor-not-allowed' : '' }}
+                            {{ $isReadOnly ? 'bg-gray-100 cursor-not-allowed' : '' }}
                             @error('fket') border-red-500 @enderror"
                         placeholder="Tulis keterangan tambahan di sini...">{{ old('fket', $penerimaanbarang->fket) }}</textarea>
                     @error('fket')
@@ -294,15 +301,15 @@
                                                     {{ $action === 'delete' ? 'bg-gray-100 cursor-not-allowed' : '' }}"
                                                 x-model.trim="it.fitemcode" @focus="activeRow = it.uid"
                                                 @blur="activeRow = null"
-                                                @if ($action !== 'delete') @input="onCodeTypedSaved(it)"
+                                                @if ($isEdit) @input="onCodeTypedSaved(it, i)"
                                                     @keydown.enter.prevent="focusSavedUnit(it, i)" @endif
-                                                {{ $action === 'delete' ? 'disabled' : '' }}>
-                                            @if ($action !== 'delete')
+                                                {{ $isReadOnly ? 'disabled' : '' }}>
+                                            @if ($isEdit)
                                                 <button type="button" @click="openBrowseFor('saved', i)"
                                                     class="border border-l-0 px-2 py-1 bg-white hover:bg-gray-50"
                                                     title="Cari Produk">
                                                     <x-heroicon-o-magnifying-glass class="w-4 h-4" />
-                                                </button>
+                                            </button>
                                             @else
                                                 <span
                                                     class="border border-l-0 rounded-r px-2 py-1 bg-gray-100 text-gray-400 text-xs flex items-center">â€”</span>
@@ -317,7 +324,7 @@
                                                 class="min-w-0 flex-1 rounded-l border bg-gray-100 px-2 py-1 text-sm leading-5 text-gray-600 whitespace-normal break-words"
                                                 x-text="it.fitemname"></div>
                                             <button type="button"
-                                                @click="openDesc(it, {{ $action === 'delete' ? 'true' : 'false' }})"
+                                                @click="openDesc(it, {{ $isReadOnly ? 'true' : 'false' }})"
                                                 class="shrink-0 inline-flex items-center border border-l-0 rounded-r px-2 py-1 transition-colors"
                                                 :class="it.fdesc ? 'border-emerald-300 bg-emerald-50 text-emerald-600 hover:bg-emerald-100' : 'bg-white text-gray-500 hover:bg-gray-50'"
                                                 title="Deskripsi item">
@@ -328,13 +335,13 @@
 
                                     {{-- Satuan --}}
                                     <td class="p-2 align-top">
-                                        @if ($action !== 'delete')
+                                        @if ($isEdit)
                                             <template x-if="it.units.length > 1">
                                                 <select class="w-full border rounded px-2 py-1 text-sm"
                                                     :id="'unit_saved_' + i" x-model="it.fsatuan"
                                                     @focus="activeRow = it.uid" @blur="activeRow = null"
                                                     @keydown.enter.prevent="focusSavedQty(i)"
-                                                    @change="enforcePoQtyRow(it);">
+                                                    @change="onRowUpdated(i)">
                                                     <template x-for="u in it.units" :key="u">
                                                         <option :value="u" x-text="u"></option>
                                                     </template>
@@ -342,7 +349,7 @@
                                             </template>
                                         @endif
                                         <input type="text"
-                                            x-show="{{ $action === 'delete' ? 'true' : 'it.units.length <= 1' }}"
+                                            x-show="{{ $isReadOnly ? 'true' : 'it.units.length <= 1' }}"
                                             class="w-full border rounded px-2 py-1 bg-gray-100 text-gray-600 text-sm"
                                             :value="it.fsatuan || '-'" disabled>
                                     </td>
@@ -356,18 +363,12 @@
 
                                     {{-- Qty --}}
                                     <td class="p-2 text-right">
-                                        @if ($action !== 'delete')
+                                        @if ($isEdit)
                                             <input type="number" class="border rounded px-2 py-1 w-20 text-right text-sm"
                                                 x-model.number="it.fqty" :id="'qty_saved_' + i"
                                                 @focus="activeRow = it.uid; $event.target.select()" @blur="activeRow = null"
-                                                @input="
-                                                    recalc(it);
-                                                    calcMaxQty(it);
-                                                "
-                                                @change="
-                                                    recalc(it);
-                                                    calcMaxQty(it);
-                                                "
+                                                @input="onRowUpdated(i)"
+                                                @change="onRowUpdated(i)"
                                                 @keydown.enter.prevent="focusSavedPrice(i)">
                                             <div class="text-[10px] text-amber-700 font-medium text-right mt-0.5"
                                                 x-show="it.frefdtid && calcMaxQty(it) > 0"
@@ -382,14 +383,14 @@
                                     <td class="p-2 text-right">
                                         <input type="number"
                                             class="border rounded px-2 py-1 w-28 text-right text-sm
-                                                {{ $action === 'delete' ? 'bg-gray-100 cursor-not-allowed' : '' }}"
+                                                {{ $isReadOnly ? 'bg-gray-100 cursor-not-allowed' : '' }}"
                                             min="0" step="0.01" x-model.number="it.fprice"
                                             :id="'price_saved_' + i" @focus="activeRow = it.uid; $event.target.select()"
                                             @blur="activeRow = null"
-                                            @if ($action !== 'delete') @input="recalc(it)"
+                                            @if ($isEdit) @input="recalc(it)"
                                                 @change="recalc(it)"
                                                 @keydown.enter.prevent="focusSavedDisc(i)" @endif
-                                            {{ $action === 'delete' ? 'disabled' : '' }}>
+                                            {{ $isReadOnly ? 'disabled' : '' }}>
                                     </td>
 
                                     {{-- Total Harga --}}
@@ -400,12 +401,9 @@
                                     </td>
 
                                     {{-- Aksi --}}
-                                    <td class="p-2 text-center {{ $action === 'delete' ? 'hidden' : '' }}">
-                                        @if ($action !== 'delete')
-                                            <div class="flex items-center justify-center gap-2">
-                                                <button type="button" @click="addRow(i)"
-                                                    class="inline-flex h-8 w-8 items-center justify-center rounded bg-emerald-600 text-white hover:bg-emerald-700"
-                                                    title="Tambah baris">+</button>
+                                    <td class="p-2 text-center {{ $isDelete ? 'hidden' : '' }}">
+                                        @if ($isEdit)
+                                            <div class="flex items-center justify-center">
                                                 <button type="button" @click="removeSaved(i)"
                                                     class="inline-flex h-8 w-8 items-center justify-center rounded bg-red-100 text-red-600 hover:bg-red-200"
                                                     title="Hapus baris">-</button>
@@ -446,7 +444,7 @@
                 <div x-data="pohFormModal()">
                     <div class="mt-3 flex justify-between items-start gap-4">
                         <div class="flex justify-start">
-                            @if ($action !== 'delete')
+                            @if ($isEdit)
                                 <button type="button" @click="openModal()"
                                     class="inline-flex items-center gap-2 rounded-lg bg-emerald-600 px-3 py-2 text-white hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-emerald-500">
                                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none"
@@ -472,7 +470,7 @@
                     </div>
 
                     {{-- MODAL PO â€” hanya mode edit --}}
-                    @if ($action !== 'delete')
+                    @if ($isEdit)
                         <div x-show="show" x-cloak x-transition.opacity
                             class="fixed inset-0 z-50 flex items-center justify-center p-4 md:p-8" aria-modal="true"
                             role="dialog">
@@ -584,7 +582,7 @@
                         x-transition.scale>
                         <div class="px-5 py-4 border-b flex items-center">
                             <x-heroicon-o-document-text class="w-6 h-6 text-blue-600 mr-2" />
-                            <h3 class="text-lg font-semibold text-gray-800">Isi Deskripsi Item</h3>
+                            <h3 class="text-lg font-semibold text-gray-800" x-text="descReadonly ? 'Deskripsi Item' : 'Isi Deskripsi Item'"></h3>
                         </div>
                         <div class="px-5 py-4 space-y-2">
                             <label class="block text-sm text-gray-700">Deskripsi</label>
@@ -658,7 +656,7 @@
             </div>
 
             {{-- MODAL: supplier belum dipilih (hanya edit) --}}
-            @if ($action !== 'delete')
+            @if ($isEdit)
                 <div x-show="showNoSupplier" x-cloak class="fixed inset-0 z-[90] flex items-center justify-center"
                     x-transition.opacity>
                     <div class="absolute inset-0 bg-black/50" @click="showNoSupplier=false"></div>
@@ -716,7 +714,7 @@
 
             {{-- TOMBOL AKSI --}}
             <div class="mt-8 flex justify-center gap-4">
-                @if ($action === 'delete')
+                @if ($isDelete)
                     @if ($canDeletePermission)
                         @if ($usageLocked)
                             <button type="button" disabled title="{{ $usageLockMessage }}"
@@ -729,6 +727,22 @@
                                 <x-heroicon-o-trash class="w-5 h-5 mr-2" /> Hapus
                             </button>
                         @endif
+                    @endif
+                    <button type="button" onclick="window.location.href='{{ route('penerimaanbarang.index') }}'"
+                        class="bg-gray-500 text-white px-6 py-2 rounded hover:bg-gray-600 flex items-center">
+                        <x-heroicon-o-arrow-left class="w-5 h-5 mr-2" /> Kembali
+                    </button>
+                @elseif ($isView)
+                    @if ($canPrint)
+                        <a href="{{ route('penerimaanbarang.print', $penerimaanbarang->fstockmtno) }}" target="_blank"
+                            class="bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700 flex items-center">
+                            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m10 0v-5a2 2 0 00-2-2H9a2 2 0 00-2 2v5m10 0v5H7v-5">
+                                </path>
+                            </svg>
+                            Print
+                        </a>
                     @endif
                     <button type="button" onclick="window.location.href='{{ route('penerimaanbarang.index') }}'"
                         class="bg-gray-500 text-white px-6 py-2 rounded hover:bg-gray-600 flex items-center">
@@ -914,6 +928,42 @@
                 warningCanProceed: false,
                 pendingSubmitForm: null,
                 pendingValidRows: [],
+                minimumVisibleRows: 5,
+
+                rowHasContent(row) {
+                    if (!row) return false;
+                    return this.isRowFilled(row);
+                },
+
+                ensureMinimumRows() {
+                    while (this.savedItems.length < this.minimumVisibleRows) {
+                        this.savedItems.push(this.createRow());
+                    }
+                },
+
+                ensureTrailingRow(index = null) {
+                    if ($action === 'delete') return;
+                    if (!this.savedItems.length) {
+                        this.ensureMinimumRows();
+                        return;
+                    }
+
+                    const targetIndex = index === null ? this.savedItems.length - 1 : index;
+                    if (targetIndex !== this.savedItems.length - 1) return;
+
+                    if (this.rowHasContent(this.savedItems[targetIndex])) {
+                        this.savedItems.push(this.createRow());
+                    }
+                },
+
+                onRowUpdated(index = null) {
+                    const row = typeof index === 'number' ? this.savedItems[index] : null;
+                    if (row) {
+                        this.recalc(row);
+                        this.calcMaxQty(row);
+                    }
+                    this.ensureTrailingRow(index);
+                },
 
                 get totalHarga() {
                     return this.savedItems.reduce((s, it) => s + (it.ftotal || 0), 0);
@@ -1002,9 +1052,10 @@
                     this.hydrateRowFromMeta(row, this.productMeta(row.fitemcode));
                     this.$nextTick(() => this.applyLastPrice(row));
                 },
-                onCodeTypedSaved(item) {
+                onCodeTypedSaved(item, index = null) {
                     this.hydrateRowFromMeta(item, this.productMeta(item.fitemcode));
                     this.$nextTick(() => this.applyLastPrice(item));
+                    this.onRowUpdated(index);
                 },
 
                 getSupplier() {
@@ -1101,7 +1152,11 @@
                     this.descReadonly = false;
                 },
                 applyDesc() {
-                    if (this._descTarget) this._descTarget.fdesc = this.descValue;
+                    if (this._descTarget) {
+                        this._descTarget.fdesc = this.descValue;
+                        const index = this.savedItems.findIndex((row) => row.uid === this._descTarget.uid);
+                        this.onRowUpdated(index >= 0 ? index : null);
+                    }
                     this.closeDesc();
                 },
 
@@ -1118,21 +1173,14 @@
                 focusSavedDisc(i) {
                     this.$nextTick(() => document.getElementById('disc_saved_' + i)?.focus());
                 },
-                addRow(afterIndex = null, source = {}) {
-                    if (!this.getSupplier()) {
-                        this.showNoSupplier = true;
-                        return;
-                    }
-                    const insertAt = afterIndex === null ? this.savedItems.length : afterIndex + 1;
-                    this.savedItems.splice(insertAt, 0, this.createRow(source));
-                },
-
                 removeSaved(i) {
                     if (this.savedItems.length === 1) {
                         this.savedItems.splice(0, 1, this.createRow());
+                        this.ensureMinimumRows();
                         return;
                     }
                     this.savedItems.splice(i, 1);
+                    this.ensureMinimumRows();
                 },
                 isRowSavable(row) {
                     return !!((row.fitemcode || '').trim() && (row.fsatuan || '').trim() && Number(row.fqty) > 0);
@@ -1246,12 +1294,14 @@
                     });
 
                     if (toAdd.length > 0) {
-                        const shouldReplaceStarter = this.savedItems.length === 1 && !this.isRowFilled(this.savedItems[0]);
+                        const shouldReplaceStarter = this.savedItems.every((row) => !this.isRowFilled(row));
                         if (shouldReplaceStarter) {
                             this.savedItems = toAdd;
                         } else {
                             this.savedItems.push(...toAdd);
                         }
+                        this.ensureMinimumRows();
+                        this.ensureTrailingRow();
                     }
 
                     if (skipped.length > 0 && toAdd.length === 0) {
@@ -1379,6 +1429,9 @@
                             row.fnoacak = this.normalizeNoAcak(row.fnoacak) || this.generateUniqueNoAcak();
                             if (!row.fqty) row.fqty = 1;
                             this.recalc(row);
+                            if (typeof this.browseTarget === 'number') {
+                                this.onRowUpdated(this.browseTarget);
+                            }
                             this.$nextTick(() => this.applyLastPrice(row));
                         };
                         if (typeof this.browseTarget === 'number') {
@@ -1393,6 +1446,10 @@
 
                     if (this.savedItems.length === 0) {
                         this.savedItems = [this.createRow()];
+                    }
+                    if ('{{ $action }}' !== 'delete') {
+                        this.ensureMinimumRows();
+                        this.ensureTrailingRow();
                     }
                 }
             };

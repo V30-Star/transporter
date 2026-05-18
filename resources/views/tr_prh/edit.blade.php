@@ -315,6 +315,31 @@
                                 </tbody>
                             </table>
                         </div>
+
+                        <div x-show="showDescModal" x-cloak class="fixed inset-0 z-[95] flex items-center justify-center"
+                            x-transition.opacity>
+                            <div class="absolute inset-0 bg-black/50" @click="closeDesc()"></div>
+                            <div class="relative bg-white w-[92vw] max-w-lg rounded-2xl shadow-2xl overflow-hidden"
+                                x-transition.scale>
+                                <div class="px-5 py-4 border-b flex items-center">
+                                    <x-heroicon-o-document-text class="w-6 h-6 text-blue-600 mr-2" />
+                                    <div>
+                                        <h3 class="text-lg font-semibold text-gray-800">Deskripsi Item</h3>
+                                        <p class="text-xs text-gray-500" x-text="descItemLabel"></p>
+                                    </div>
+                                </div>
+                                <div class="px-5 py-4 space-y-2">
+                                    <label class="block text-sm text-gray-700">Deskripsi</label>
+                                    <textarea x-model="descValue" rows="5"
+                                        class="w-full border rounded px-3 py-2 bg-gray-100 text-gray-600 cursor-not-allowed"
+                                        readonly></textarea>
+                                </div>
+                                <div class="px-5 py-3 border-t flex items-center justify-end gap-2">
+                                    <button type="button" @click="closeDesc()"
+                                        class="h-9 px-4 rounded-lg bg-gray-100 text-gray-700 text-sm font-medium hover:bg-gray-200">Tutup</button>
+                                </div>
+                            </div>
+                        </div>
                     </div>
 
                     <div class="mt-6 flex justify-center space-x-4">
@@ -535,10 +560,7 @@
                                                     x-model="row.fketdt" :disabled="blockedByPO" @input="onRowUpdated(i)">
                                             </td>
                                             <td class="p-2 text-center">
-                                                <div class="flex items-center justify-center gap-2">
-                                                    <button type="button" @click="addRow(i)"
-                                                        class="inline-flex h-8 w-8 items-center justify-center rounded bg-emerald-600 text-white hover:bg-emerald-700"
-                                                        :disabled="blockedByPO" title="Tambah baris">+</button>
+                                                <div class="flex items-center justify-center">
                                                     <button type="button" @click="removeRow(i)"
                                                         class="inline-flex h-8 w-8 items-center justify-center rounded bg-red-100 text-red-600 hover:bg-red-200"
                                                         :disabled="blockedByPO" title="Hapus baris">-</button>

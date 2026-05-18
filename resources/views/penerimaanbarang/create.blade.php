@@ -275,7 +275,7 @@
                                             <input type="text"
                                                 class="flex-1 border rounded-l px-2 py-1 font-mono text-sm min-w-0"
                                                 x-model.trim="it.fitemcode" @focus="activeRow = it.uid"
-                                                @blur="activeRow = null" @input="onCodeTypedSaved(it)"
+                                                @blur="activeRow = null" @input="onCodeTypedSaved(it, i)"
                                                 @keydown.enter.prevent="focusSavedUnit(it, i)">
                                             <button type="button" @click="openBrowseFor('saved', i)"
                                                 class="border border-l-0 px-2 py-1 bg-white hover:bg-gray-50"
@@ -306,7 +306,7 @@
                                             <select class="w-full border rounded px-2 py-1 text-sm" :id="'unit_saved_' + i"
                                                 x-model="it.fsatuan" @focus="activeRow = it.uid" @blur="activeRow = null"
                                                 @keydown.enter.prevent="focusSavedQty(i)"
-                                                @change="it.maxqty = calcMaxQty(it); enforcePoQtyRow(it);">
+                                                @change="onRowUpdated(i)">
                                                 <template x-for="u in it.units" :key="u">
                                                     <option :value="u" x-text="u"></option>
                                                 </template>
@@ -330,14 +330,8 @@
                                             x-model.number="it.fqty" :id="'qty_saved_' + i"
                                             @focus="activeRow = it.uid; $event.target.select()"
                                             @blur="activeRow = null; enforceQtyRow(it);"
-                                            @input="
-                                                recalc(it);
-                                                calcMaxQty(it);
-                                            "
-                                            @change="
-                                                recalc(it);
-                                                calcMaxQty(it);
-                                            "
+                                            @input="onRowUpdated(i)"
+                                            @change="onRowUpdated(i)"
                                             @keydown.enter.prevent="focusSavedPrice(i)">
                                     </td>
 
@@ -358,10 +352,7 @@
                                     </td>
 
                                     <td class="p-2 text-center">
-                                        <div class="flex items-center justify-center gap-2">
-                                            <button type="button" @click="addRow(i)"
-                                                class="inline-flex h-8 w-8 items-center justify-center rounded bg-emerald-600 text-white hover:bg-emerald-700"
-                                                title="Tambah baris">+</button>
+                                        <div class="flex items-center justify-center">
                                             <button type="button" @click="removeSaved(i)"
                                                 class="inline-flex h-8 w-8 items-center justify-center rounded bg-red-100 text-red-600 hover:bg-red-200"
                                                 title="Hapus baris">-</button>
@@ -759,6 +750,42 @@
                 warningCanProceed: false,
                 pendingSubmitForm: null,
                 pendingValidRows: [],
+                minimumVisibleRows: 5,
+
+                rowHasContent(row) {
+                    if (!row) return false;
+                    return this.isRowFilled(row);
+                },
+
+                ensureMinimumRows() {
+                    while (this.savedItems.length < this.minimumVisibleRows) {
+                        this.savedItems.push(this.createRow());
+                    }
+                },
+
+                ensureTrailingRow(index = null) {
+                    if (!this.savedItems.length) {
+                        this.ensureMinimumRows();
+                        return;
+                    }
+
+                    const targetIndex = index === null ? this.savedItems.length - 1 : index;
+                    if (targetIndex !== this.savedItems.length - 1) return;
+
+                    if (this.rowHasContent(this.savedItems[targetIndex])) {
+                        this.savedItems.push(this.createRow());
+                    }
+                },
+
+                onRowUpdated(index = null) {
+                    const row = typeof index === 'number' ? this.savedItems[index] : null;
+                    if (row) {
+                        this.recalc(row);
+                        this.calcMaxQty(row);
+                    }
+                    this.ensureTrailingRow(index);
+                },
+
                 get totalHarga() {
                     return this.savedItems.reduce((sum, item) => sum + Number(item.ftotal || 0), 0);
                 },
@@ -828,7 +855,11 @@
                     this._descTarget = null;
                 },
                 applyDesc() {
-                    if (this._descTarget) this._descTarget.fdesc = this.descValue;
+                    if (this._descTarget) {
+                        this._descTarget.fdesc = this.descValue;
+                        const index = this.savedItems.findIndex((row) => row.uid === this._descTarget.uid);
+                        this.onRowUpdated(index >= 0 ? index : null);
+                    }
                     this.closeDesc();
                 },
 
@@ -902,8 +933,9 @@
                 onCodeTypedRow(row) {
                     this.hydrateRowFromMeta(row, this.productMeta(row.fitemcode));
                 },
-                onCodeTypedSaved(item) {
+                onCodeTypedSaved(item, index = null) {
                     this.hydrateRowFromMeta(item, this.productMeta(item.fitemcode));
+                    this.onRowUpdated(index);
                 },
 
                 getSupplier() { return (document.getElementById('supplierCodeHidden')?.value || '').trim(); },
@@ -927,6 +959,8 @@
                     if (this.savedItems.length === 0) {
                         this.savedItems = [this.createRow()];
                     }
+                    this.ensureMinimumRows();
+                    this.ensureTrailingRow();
                     this.showNoItems = false;
                 },
                 createRow(source = {}) {
@@ -936,14 +970,6 @@
                         uid: source.uid || cryptoRandom(),
                         fnoacak: this.normalizeNoAcak(source.fnoacak) || this.generateUniqueNoAcak(),
                     };
-                },
-                addRow(afterIndex = null, source = {}) {
-                    if (!this.getSupplier()) {
-                        this.showNoSupplier = true;
-                        return;
-                    }
-                    const insertAt = afterIndex === null ? this.savedItems.length : afterIndex + 1;
-                    this.savedItems.splice(insertAt, 0, this.createRow(source));
                 },
                 isRowSavable(row) {
                     return !!((row.fitemcode || '').trim() && (row.fsatuan || '').trim() && Number(row.fqty) > 0);
@@ -983,6 +1009,15 @@
                     const form = this.pendingSubmitForm;
                     this.closeWarning();
                     this.$nextTick(() => form.submit());
+                },
+                removeSaved(i) {
+                    if (this.savedItems.length === 1) {
+                        this.savedItems.splice(0, 1, this.createRow());
+                        this.ensureMinimumRows();
+                        return;
+                    }
+                    this.savedItems.splice(i, 1);
+                    this.ensureMinimumRows();
                 },
                 isDupeItem(candidate) {
                     const cPod = String(candidate.frefdtid ?? '').trim();
@@ -1057,12 +1092,14 @@
                     });
 
                     if (incomingRows.length > 0) {
-                        const shouldReplaceStarter = this.savedItems.length === 1 && !this.isRowFilled(this.savedItems[0]);
+                        const shouldReplaceStarter = this.savedItems.every((row) => !this.isRowFilled(row));
                         if (shouldReplaceStarter) {
                             this.savedItems = incomingRows;
                         } else {
                             this.savedItems.push(...incomingRows);
                         }
+                        this.ensureMinimumRows();
+                        this.ensureTrailingRow();
                     }
 
                     if (skipped.length > 0 && this.savedItems.length === 0) {
@@ -1135,6 +1172,7 @@
                         row.fnoacak = this.normalizeNoAcak(row.fnoacak) || this.generateUniqueNoAcak();
                         if (!row.fqty) row.fqty = 1;
                         this.recalc(row);
+                        this.onRowUpdated(this.browseTarget);
                         this.$nextTick(() => this.applyLastPrice(row));
                     }, { passive: true });
                 }
