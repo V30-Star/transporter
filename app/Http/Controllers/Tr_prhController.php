@@ -35,7 +35,7 @@ class Tr_prhController extends Controller
         $canDelete = in_array('deleteTr_prh', explode(',', session('user_restricted_permissions', '')));
         $showActionsColumn = $canEdit || $canDelete;
 
-        $status = $request->query('status');
+        $status = trim((string) $request->query('status', 'all'));
         $year = $request->query('year');
         $month = $request->query('month');
 
@@ -59,11 +59,26 @@ class Tr_prhController extends Controller
                 });
             }
 
-            $statusFilter = $request->query('status', 'active');
-            if ($statusFilter === 'active') {
-                $query->where('fclose', '0');
+            $statusFilter = trim((string) $request->query('status', 'all'));
+            if ($statusFilter === 'open') {
+                $query->where('tr_prh.fclose', '0')
+                    ->where(function ($statusQuery) {
+                        $statusQuery->whereNull('tr_prh.fprdin')
+                            ->orWhere('tr_prh.fprdin', '')
+                            ->orWhere('tr_prh.fprdin', '0');
+                    });
+            } elseif ($statusFilter === 'done') {
+                $query->where('tr_prh.fclose', '0')
+                    ->where('tr_prh.fprdin', '1');
+            } elseif ($statusFilter === 'partial') {
+                $query->where('tr_prh.fclose', '0')
+                    ->where('tr_prh.fprdin', '2');
+            } elseif ($statusFilter === 'close') {
+                $query->where('tr_prh.fclose', '1');
+            } elseif ($statusFilter === 'active') {
+                $query->where('tr_prh.fclose', '0');
             } elseif ($statusFilter === 'nonactive') {
-                $query->where('fclose', '1');
+                $query->where('tr_prh.fclose', '1');
             }
             if ($year) {
                 $query->whereRaw('EXTRACT(YEAR FROM fcreatedat) = ?', [$year]);
@@ -100,7 +115,7 @@ class Tr_prhController extends Controller
                 $query->skip($start)->take($length);
             }
 
-            $records = $query->get(['fprhid', 'fprno', 'fprdate', 'fsupplier', 'fusercreate', 'fuserupdate', 'fclose', 'mssupplier.fsuppliername']);
+            $records = $query->get(['fprhid', 'fprno', 'fprdate', 'fsupplier', 'fusercreate', 'fuserupdate', 'fclose', 'fprdin', 'mssupplier.fsuppliername']);
 
             $data = $records->map(function ($record) {
                 return [
@@ -109,7 +124,8 @@ class Tr_prhController extends Controller
                     'fsuppliername' => $record->fsuppliername,
                     'display_user' => $record->fuserupdate ?: $record->fusercreate,
                     'fuserupdate' => $record->fuserupdate,
-                    'fclose' => $record->fclose == '1' ? 'Done' : 'Open',
+                    'fclose' => $record->fclose,
+                    'fprdin' => $record->fprdin,
                     'fprhid' => $record->fprhid,
                     'DT_RowId' => 'row_'.$record->fprhid,
                 ];
