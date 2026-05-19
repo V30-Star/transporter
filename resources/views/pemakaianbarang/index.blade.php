@@ -213,9 +213,16 @@
                     bottomStart: 'info',
                     bottomEnd: 'paging'
                 },
+                initComplete: function() {
+                    const api = this.api();
+                    const $toolbarSearch = $(api.table().container()).find('.dt-search');
 
-                // Hapus filter status (initComplete) karena tidak dipakai
-                // di controller ini (hanya filter 'RCV')
+                    const $searchInput = $toolbarSearch.find('.dt-input');
+                    $searchInput.css({
+                        width: '500px',
+                        maxWidth: '100%'
+                    });
+                }
             });
         });
     </script>

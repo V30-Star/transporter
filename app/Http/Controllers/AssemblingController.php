@@ -26,20 +26,6 @@ class AssemblingController extends Controller
         $showActionsColumn = $canEdit || $canDelete; // Anda bisa tambahkan $canPrint jika ada
         $year = trim((string) $request->query('year', ''));
         $month = trim((string) $request->query('month', ''));
-        $availableWarehouses = DB::table('mswh')
-            ->where(function ($query) {
-                $query->whereNull('fnonactive')
-                    ->orWhere('fnonactive', '0')
-                    ->orWhere('fnonactive', '');
-            })
-            ->orderBy('fwhname')
-            ->pluck('fwhname')
-            ->filter()
-            ->map(fn ($value) => trim((string) $value))
-            ->filter(fn ($value) => $value !== '')
-            ->unique()
-            ->values();
-
         $availableYears = DB::table('trstockmt')
             ->where('fstockmtcode', 'LHP')
             ->whereNotNull('fstockmtdate')
@@ -85,7 +71,11 @@ class AssemblingController extends Controller
 
             $warehouseSearch = trim((string) ($columnSearches->get('fgudang', '')));
             if ($warehouseSearch !== '') {
-                $query->whereRaw('LOWER(TRIM(COALESCE(w.fwhname, \'\'))) = LOWER(?)', [$warehouseSearch]);
+                $query->where(function ($warehouseQuery) use ($warehouseSearch) {
+                    $warehouseQuery
+                        ->whereRaw('LOWER(TRIM(COALESCE(w.fwhname, \'\'))) LIKE LOWER(?)', ['%'.$warehouseSearch.'%'])
+                        ->orWhereRaw('LOWER(TRIM(COALESCE(trstockmt.ffrom, \'\'))) LIKE LOWER(?)', ['%'.$warehouseSearch.'%']);
+                });
             }
 
             // Total records setelah filter search
@@ -190,7 +180,6 @@ class AssemblingController extends Controller
             'canEdit',
             'canDelete',
             'showActionsColumn',
-            'availableWarehouses',
             'availableYears',
             'year',
             'month'

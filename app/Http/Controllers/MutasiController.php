@@ -26,19 +26,6 @@ class MutasiController extends Controller
         $showActionsColumn = $canEdit || $canDelete; // Anda bisa tambahkan $canPrint jika ada
         $year = trim((string) $request->query('year', ''));
         $month = trim((string) $request->query('month', ''));
-        $availableWarehouses = DB::table('mswh')
-            ->where(function ($query) {
-                $query->whereNull('fnonactive')
-                    ->orWhere('fnonactive', '0')
-                    ->orWhere('fnonactive', '');
-            })
-            ->orderBy('fwhname')
-            ->pluck('fwhname')
-            ->filter()
-            ->map(fn ($value) => trim((string) $value))
-            ->filter(fn ($value) => $value !== '')
-            ->unique()
-            ->values();
         $availableYears = DB::table('trstockmt')
             ->where('fstockmtcode', 'MUT')
             ->whereNotNull('fstockmtdate')
@@ -85,12 +72,20 @@ class MutasiController extends Controller
 
             $fromWarehouseSearch = trim((string) ($columnSearches->get('fgudang_dari', '')));
             if ($fromWarehouseSearch !== '') {
-                $query->whereRaw('LOWER(TRIM(COALESCE(wf.fwhname, \'\'))) = LOWER(?)', [$fromWarehouseSearch]);
+                $query->where(function ($warehouseQuery) use ($fromWarehouseSearch) {
+                    $warehouseQuery
+                        ->whereRaw('LOWER(TRIM(COALESCE(wf.fwhname, \'\'))) LIKE LOWER(?)', ['%'.$fromWarehouseSearch.'%'])
+                        ->orWhereRaw('LOWER(TRIM(COALESCE(trstockmt.ffrom, \'\'))) LIKE LOWER(?)', ['%'.$fromWarehouseSearch.'%']);
+                });
             }
 
             $toWarehouseSearch = trim((string) ($columnSearches->get('fgudang_ke', '')));
             if ($toWarehouseSearch !== '') {
-                $query->whereRaw('LOWER(TRIM(COALESCE(wt.fwhname, \'\'))) = LOWER(?)', [$toWarehouseSearch]);
+                $query->where(function ($warehouseQuery) use ($toWarehouseSearch) {
+                    $warehouseQuery
+                        ->whereRaw('LOWER(TRIM(COALESCE(wt.fwhname, \'\'))) LIKE LOWER(?)', ['%'.$toWarehouseSearch.'%'])
+                        ->orWhereRaw('LOWER(TRIM(COALESCE(trstockmt.fto, \'\'))) LIKE LOWER(?)', ['%'.$toWarehouseSearch.'%']);
+                });
             }
 
             // Total records setelah filter search
@@ -199,7 +194,6 @@ class MutasiController extends Controller
             'canEdit',
             'canDelete',
             'showActionsColumn',
-            'availableWarehouses',
             'availableYears',
             'year',
             'month'

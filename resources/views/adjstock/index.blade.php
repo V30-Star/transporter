@@ -53,7 +53,7 @@
         <div id="monthFilterTemplate" class="hidden">
             <div class="flex items-center gap-2" id="monthFilterWrap">
                 <span class="text-sm text-gray-700">Bulan</span>
-                <select data-role="month-filter" class="border rounded px-2 py-1">
+                <select data-role="month-filter" class="border rounded px-2 py-1 w-24">
                     <option value="">Semua</option>
                     <option value="1" {{ $month === '1' ? 'selected' : '' }}>Januari</option>
                     <option value="2" {{ $month === '2' ? 'selected' : '' }}>Februari</option>
@@ -72,12 +72,8 @@
         </div>
 
         <div id="warehouseColumnFilterTemplate" class="hidden">
-            <select data-role="warehouse-column-filter" class="w-full border rounded px-2 py-1 text-sm">
-                <option value="">Semua Gudang</option>
-                @foreach ($availableWarehouses as $warehouseName)
-                    <option value="{{ $warehouseName }}">{{ $warehouseName }}</option>
-                @endforeach
-            </select>
+            <input type="search" data-role="warehouse-column-filter"
+                class="w-full border rounded px-3 py-2 text-sm" placeholder="Cari gudang...">
         </div>
 
         <table id="adjstockTable" class="min-w-full border text-sm">
@@ -87,7 +83,21 @@
                     <th class="border px-2 py-1">No. Adj Stock</th>
                     <th class="border px-2 py-1">Tanggal</th>
                     <th class="border px-2 py-1">Tipe Adj</th>
-                    <th class="border px-2 py-1">Gudang</th>
+                    <th class="border px-2 py-1">
+                        <div class="column-filter-header-block" data-column-filter="gudang">
+                            <div class="column-filter-header">
+                                <span>Gudang</span>
+                                <span class="column-filter-icons">
+                                    <button type="button" class="column-filter-search-trigger"
+                                        aria-label="Tampilkan pencarian Gudang">
+                                        <x-heroicon-o-magnifying-glass class="w-4 h-4" />
+                                    </button>
+                                    <x-heroicon-o-arrows-up-down class="w-4 h-4" />
+                                </span>
+                            </div>
+                            <div class="mt-2 hidden" id="gudangFilterHost"></div>
+                        </div>
+                    </th>
                     <th class="border px-2 py-1">Keterangan</th>
 
                     @if ($showActionsColumn)
@@ -95,19 +105,6 @@
                     @endif
                 </tr>
             </thead>
-            <tfoot>
-                <tr>
-                    <th class="border px-2 py-1"></th>
-                    <th class="border px-2 py-1"></th>
-                    <th class="border px-2 py-1"></th>
-                    <th class="border px-2 py-1"></th>
-                    <th class="border px-2 py-1"></th>
-                    <th class="border px-2 py-1"></th>
-                    @if ($showActionsColumn)
-                        <th class="border px-2 py-1"></th>
-                    @endif
-                </tr>
-            </tfoot>
             <tbody>
                 {{-- KOSONGKAN BAGIAN INI --}}
             </tbody>
@@ -230,16 +227,51 @@
             margin-bottom: 0;
         }
 
-        #adjstockTable tfoot th {
-            background: #f9fafb;
-        }
-
         #yearFilterWrap,
         #monthFilterWrap {
             display: inline-flex;
             align-items: center;
             gap: .5rem;
             margin-bottom: 0;
+        }
+
+        .column-filter-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: .5rem;
+        }
+
+        .column-filter-header-block {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .column-filter-icons {
+            display: inline-flex;
+            align-items: center;
+            gap: .35rem;
+            color: #6b7280;
+        }
+
+        .column-filter-search-trigger {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border: 0;
+            background: transparent;
+            color: inherit;
+            padding: 0;
+            line-height: 1;
+        }
+
+        .column-filter-search-trigger:hover {
+            color: #374151;
+        }
+
+        .column-filter-header-block input[type="search"] {
+            width: 100%;
+            min-width: 12rem;
         }
     </style>
 @endpush
@@ -454,7 +486,10 @@
                     const api = this.api();
                     const $toolbarSearch = $(api.table().container()).find('.dt-search');
                     const $searchInput = $toolbarSearch.find('.dt-input');
-                    $searchInput.attr('placeholder', 'Cari No.Adj Stock / Keterangan');
+                    $searchInput.attr('placeholder', 'Cari...').css({
+                        width: '500px',
+                        maxWidth: '100%'
+                    });
 
                     const $yearFilter = $('#yearFilterTemplate #yearFilterWrap').clone(true, true);
                     const $yearSelect = $yearFilter.find('select[data-role="year-filter"]');
@@ -470,16 +505,26 @@
                         .find(i => api.column(i).dataSrc() === 'fgudang');
 
                     if (gudangColumnIdx !== undefined) {
-                        const footerCell = api.column(gudangColumnIdx).footer();
-                        if (footerCell) {
-                            const $warehouseFilter = $('#warehouseColumnFilterTemplate select')
-                                .clone(true, true);
-                            $(footerCell).empty().append($warehouseFilter);
+                        const $filterBlock = $('[data-column-filter="gudang"]');
+                        const $filterHost = $('#gudangFilterHost');
+                        const $filterTrigger = $filterBlock.find('.column-filter-search-trigger');
+                        const $warehouseFilter = $('#warehouseColumnFilterTemplate input')
+                            .clone(true, true);
 
-                            $warehouseFilter.on('change', function() {
-                                api.column(gudangColumnIdx).search(this.value).draw();
-                            });
-                        }
+                        $filterHost.empty().append($warehouseFilter);
+
+                        $filterTrigger.on('click', function() {
+                            const shouldShow = $filterHost.hasClass('hidden');
+                            $('#gudangFilterHost').addClass('hidden');
+                            if (shouldShow) {
+                                $filterHost.removeClass('hidden');
+                                $warehouseFilter.trigger('focus');
+                            }
+                        });
+
+                        $warehouseFilter.on('input', function() {
+                            api.column(gudangColumnIdx).search(this.value || '').draw();
+                        });
                     }
 
                     $yearSelect.on('change', function() {

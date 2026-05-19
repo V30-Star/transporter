@@ -73,21 +73,13 @@
         </div>
 
         <div id="fromWarehouseColumnFilterTemplate" class="hidden">
-            <select data-role="from-warehouse-column-filter" class="w-full border rounded px-2 py-1 text-sm">
-                <option value="">Semua Gudang Dari</option>
-                @foreach ($availableWarehouses as $warehouseName)
-                    <option value="{{ $warehouseName }}">{{ $warehouseName }}</option>
-                @endforeach
-            </select>
+            <input type="search" data-role="from-warehouse-column-filter"
+                class="w-full border rounded px-3 py-2 text-sm" placeholder="Cari gudang dari...">
         </div>
 
         <div id="toWarehouseColumnFilterTemplate" class="hidden">
-            <select data-role="to-warehouse-column-filter" class="w-full border rounded px-2 py-1 text-sm">
-                <option value="">Semua Gudang Ke</option>
-                @foreach ($availableWarehouses as $warehouseName)
-                    <option value="{{ $warehouseName }}">{{ $warehouseName }}</option>
-                @endforeach
-            </select>
+            <input type="search" data-role="to-warehouse-column-filter"
+                class="w-full border rounded px-3 py-2 text-sm" placeholder="Cari gudang ke...">
         </div>
 
         <table id="mutasiTable" class="min-w-full border text-sm">
@@ -96,8 +88,36 @@
                     <th class="border px-2 py-1">Cabang</th>
                     <th class="border px-2 py-1">No. Mutasi</th>
                     <th class="border px-2 py-1">Tanggal</th>
-                    <th class="border px-2 py-1">Gudang Dari</th>
-                    <th class="border px-2 py-1">Gudang Ke</th>
+                    <th class="border px-2 py-1">
+                        <div class="column-filter-header-block" data-column-filter="gudang-dari">
+                            <div class="column-filter-header">
+                                <span>Gudang Dari</span>
+                                <span class="column-filter-icons">
+                                    <button type="button" class="column-filter-search-trigger"
+                                        aria-label="Tampilkan pencarian Gudang Dari">
+                                        <x-heroicon-o-magnifying-glass class="w-4 h-4" />
+                                    </button>
+                                    <x-heroicon-o-arrows-up-down class="w-4 h-4" />
+                                </span>
+                            </div>
+                            <div class="mt-2 hidden" id="gudangDariFilterHost"></div>
+                        </div>
+                    </th>
+                    <th class="border px-2 py-1">
+                        <div class="column-filter-header-block" data-column-filter="gudang-ke">
+                            <div class="column-filter-header">
+                                <span>Gudang Ke</span>
+                                <span class="column-filter-icons">
+                                    <button type="button" class="column-filter-search-trigger"
+                                        aria-label="Tampilkan pencarian Gudang Ke">
+                                        <x-heroicon-o-magnifying-glass class="w-4 h-4" />
+                                    </button>
+                                    <x-heroicon-o-arrows-up-down class="w-4 h-4" />
+                                </span>
+                            </div>
+                            <div class="mt-2 hidden" id="gudangKeFilterHost"></div>
+                        </div>
+                    </th>
                     <th class="border px-2 py-1">Keterangan</th>
 
                     @if ($showActionsColumn)
@@ -105,19 +125,6 @@
                     @endif
                 </tr>
             </thead>
-            <tfoot>
-                <tr>
-                    <th class="border px-2 py-1"></th>
-                    <th class="border px-2 py-1"></th>
-                    <th class="border px-2 py-1"></th>
-                    <th class="border px-2 py-1"></th>
-                    <th class="border px-2 py-1"></th>
-                    <th class="border px-2 py-1"></th>
-                    @if ($showActionsColumn)
-                        <th class="border px-2 py-1"></th>
-                    @endif
-                </tr>
-            </tfoot>
             <tbody>
                 {{-- KOSONGKAN BAGIAN INI --}}
             </tbody>
@@ -226,6 +233,45 @@
             gap: .5rem;
             margin-bottom: 0;
         }
+
+        .column-filter-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: .5rem;
+        }
+
+        .column-filter-header-block {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .column-filter-icons {
+            display: inline-flex;
+            align-items: center;
+            gap: .35rem;
+            color: #6b7280;
+        }
+
+        .column-filter-search-trigger {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border: 0;
+            background: transparent;
+            color: inherit;
+            padding: 0;
+            line-height: 1;
+        }
+
+        .column-filter-search-trigger:hover {
+            color: #374151;
+        }
+
+        .column-filter-header-block input[type="search"] {
+            width: 100%;
+            min-width: 12rem;
+        }
     </style>
 @endpush
 
@@ -314,7 +360,10 @@
                     const api = this.api();
                     const $toolbarSearch = $(api.table().container()).find('.dt-search');
                     const $searchInput = $toolbarSearch.find('.dt-input');
-                    $searchInput.attr('placeholder', 'Cari No.Mutasi / Keterangan');
+                    $searchInput.attr('placeholder', 'Cari...').css({
+                        width: '500px',
+                        maxWidth: '100%'
+                    });
 
                     const $yearFilter = $('#yearFilterTemplate #yearFilterWrap').clone(true, true);
                     const $yearSelect = $yearFilter.find('select[data-role="year-filter"]');
@@ -330,32 +379,54 @@
                         .find(i => api.column(i).dataSrc() === 'fgudang_dari');
 
                     if (gudangDariColumnIdx !== undefined) {
-                        const footerCell = api.column(gudangDariColumnIdx).footer();
-                        if (footerCell) {
-                            const $warehouseFilter = $('#fromWarehouseColumnFilterTemplate select')
-                                .clone(true, true);
-                            $(footerCell).empty().append($warehouseFilter);
+                        const $filterBlock = $('[data-column-filter="gudang-dari"]');
+                        const $filterHost = $('#gudangDariFilterHost');
+                        const $filterTrigger = $filterBlock.find('.column-filter-search-trigger');
+                        const $warehouseFilter = $('#fromWarehouseColumnFilterTemplate input')
+                            .clone(true, true);
 
-                            $warehouseFilter.on('change', function() {
-                                api.column(gudangDariColumnIdx).search(this.value).draw();
-                            });
-                        }
+                        $filterHost.empty().append($warehouseFilter);
+
+                        $filterTrigger.on('click', function() {
+                            const shouldShow = $filterHost.hasClass('hidden');
+                            $('[id="gudangDariFilterHost"], [id="gudangKeFilterHost"]').addClass('hidden');
+                            if (shouldShow) {
+                                $filterHost.removeClass('hidden');
+                                $warehouseFilter.trigger('focus');
+                            }
+                        });
+
+                        $warehouseFilter.on('input', function() {
+                            const value = this.value || '';
+                            api.column(gudangDariColumnIdx).search(value).draw();
+                        });
                     }
 
                     const gudangKeColumnIdx = api.columns().indexes().toArray()
                         .find(i => api.column(i).dataSrc() === 'fgudang_ke');
 
                     if (gudangKeColumnIdx !== undefined) {
-                        const footerCell = api.column(gudangKeColumnIdx).footer();
-                        if (footerCell) {
-                            const $warehouseFilter = $('#toWarehouseColumnFilterTemplate select')
-                                .clone(true, true);
-                            $(footerCell).empty().append($warehouseFilter);
+                        const $filterBlock = $('[data-column-filter="gudang-ke"]');
+                        const $filterHost = $('#gudangKeFilterHost');
+                        const $filterTrigger = $filterBlock.find('.column-filter-search-trigger');
+                        const $warehouseFilter = $('#toWarehouseColumnFilterTemplate input')
+                            .clone(true, true);
 
-                            $warehouseFilter.on('change', function() {
-                                api.column(gudangKeColumnIdx).search(this.value).draw();
-                            });
-                        }
+                        $filterHost.empty().append($warehouseFilter);
+
+                        $filterTrigger.on('click', function() {
+                            const shouldShow = $filterHost.hasClass('hidden');
+                            $('[id="gudangDariFilterHost"], [id="gudangKeFilterHost"]').addClass('hidden');
+                            if (shouldShow) {
+                                $filterHost.removeClass('hidden');
+                                $warehouseFilter.trigger('focus');
+                            }
+                        });
+
+                        $warehouseFilter.on('input', function() {
+                            const value = this.value || '';
+                            api.column(gudangKeColumnIdx).search(value).draw();
+                        });
                     }
 
                     $yearSelect.on('change', function() {
