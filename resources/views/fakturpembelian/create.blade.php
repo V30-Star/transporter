@@ -453,7 +453,7 @@
                             <div class="min-w-0">
                                 <label class="block text-sm font-medium">Keterangan</label>
                                 <textarea name="fket" rows="3"
-                                    class="w-full border rounded px-3 py-2 @error('fket') border-red-500 @enderror"
+                                    class="w-full h-[96px] resize-none border rounded px-3 py-2 @error('fket') border-red-500 @enderror"
                                     placeholder="Tulis keterangan tambahan di sini...">{{ old('fket') }}</textarea>
                                 @error('fket')
                                     <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
@@ -463,7 +463,7 @@
                             <div class="min-w-0 overflow-hidden">
                                 <label class="block text-sm font-medium mb-2">Hitung Biaya</label>
                                 <div
-                                    class="hpp-box min-h-[96px] bg-gray-50 p-3 rounded-lg border border-gray-200 shadow-sm flex items-center gap-3">
+                                    class="hpp-box h-[96px] bg-gray-50 p-3 rounded-lg border border-gray-200 shadow-sm flex items-center gap-3">
                                     <input type="number" x-model.number="biayaGlobal"
                                         placeholder="Masukkan Total Ongkir"
                                         class="flex-1 border rounded px-3 py-2 text-right font-mono bg-white">

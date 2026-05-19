@@ -443,7 +443,7 @@
                         <div class="min-w-0">
                             <label class="block text-sm font-medium">Keterangan</label>
                             <textarea name="fket" rows="3" readonly disabled
-                                class="w-full border rounded px-3 py-2 bg-gray-100 cursor-not-allowed text-gray-700 @error('fket') border-red-500 @enderror"
+                                class="w-full h-[96px] resize-none border rounded px-3 py-2 bg-gray-100 cursor-not-allowed text-gray-700 @error('fket') border-red-500 @enderror"
                                 placeholder="Tulis keterangan tambahan di sini...">{{ old('fket', $fakturpembelian->fket) }}</textarea>
                             @error('fket')
                                 <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
@@ -453,7 +453,7 @@
                         <div class="min-w-0 overflow-hidden">
                             <label class="block text-sm font-medium mb-2">Hitung Biaya</label>
                             <div
-                                class="hpp-box h-full min-h-[96px] bg-gray-50 p-3 rounded-lg border border-gray-200 shadow-sm flex items-center gap-3">
+                                class="hpp-box h-[96px] bg-gray-50 p-3 rounded-lg border border-gray-200 shadow-sm flex items-center gap-3">
                                 <input type="text"
                                     value="{{ number_format((float) ($biayaGlobal ?? 0), 2, ',', '.') }}" readonly
                                     disabled
@@ -995,7 +995,7 @@
                             <div class="min-w-0">
                                 <label class="block text-sm font-medium">Keterangan</label>
                                 <textarea name="fket" rows="3"
-                                    class="w-full border rounded px-3 py-2 @error('fket') border-red-500 @enderror"
+                                    class="w-full h-[96px] resize-none border rounded px-3 py-2 @error('fket') border-red-500 @enderror"
                                     placeholder="Tulis keterangan tambahan di sini...">{{ old('fket', $fakturpembelian->fket) }}</textarea>
                                 @error('fket')
                                     <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
@@ -1005,7 +1005,7 @@
                             <div class="min-w-0 overflow-hidden">
                                 <label class="block text-sm font-medium mb-2">Hitung Biaya</label>
                                 <div
-                                    class="hpp-box h-full min-h-[96px] bg-gray-50 p-3 rounded-lg border border-gray-200 shadow-sm flex items-center gap-3">
+                                    class="hpp-box h-[96px] bg-gray-50 p-3 rounded-lg border border-gray-200 shadow-sm flex items-center gap-3">
                                     <input type="number" id="editBiayaGlobalInput"
                                         value="{{ number_format((float) ($biayaGlobal ?? 0), 2, '.', '') }}"
                                         placeholder="Masukkan Total Ongkir"
