@@ -41,15 +41,14 @@ class FakturpembelianController extends Controller
                 ->leftJoin('mssupplier', 'trstockmt.fsupplier', '=', 'mssupplier.fsuppliercode')
                 ->leftJoin('mswh', 'trstockmt.ffrom', '=', 'mswh.fwhcode');
             $totalRecords = PenerimaanPembelianHeader::where('fstockmtcode', 'BUY')->count();
-            if ($search = $request->input('search.value')) {
+            if ($search = trim((string) $request->input('search.value'))) {
                 $likeOp = DB::getDriverName() === 'pgsql' ? 'ILIKE' : 'LIKE';
                 $query->where(function ($q) use ($search, $likeOp) {
                     $q->where('trstockmt.fstockmtno', $likeOp, "%{$search}%")
                         ->orWhere('trstockmt.frefno', $likeOp, "%{$search}%")
                         ->orWhere('trstockmt.frefpo', $likeOp, "%{$search}%")
                         ->orWhere('mssupplier.fsuppliername', $likeOp, "%{$search}%")
-                        ->orWhere('mswh.fwhname', $likeOp, "%{$search}%")
-                        ->orWhere('mswh.fwhcode', $likeOp, "%{$search}%");
+                        ->orWhere('mssupplier.fsuppliercode', $likeOp, "%{$search}%");
                 });
             }
             if ($year) {

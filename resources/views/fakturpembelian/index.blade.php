@@ -458,6 +458,7 @@
                         width: '400px',
                         maxWidth: '100%'
                     });
+                    $searchInput.attr('placeholder', 'Cari');
 
                     // Event handlers untuk Year dan Month
                     $yearSelect.on('change', function() {
@@ -495,4 +496,3 @@
         });
     </script>
 @endpush
-
