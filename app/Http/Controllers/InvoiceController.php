@@ -1682,7 +1682,7 @@ class InvoiceController extends Controller
         })->toArray();
 
         // Pass the data to the view
-        return view('invoice.view', [
+        return view('invoice.edit', [
             'customers' => $customers,
             'salesmans' => $salesmans,
             'selectedSupplierCode' => $selectedSupplierCode, // Kirim kode supplier ke view
@@ -1698,6 +1698,9 @@ class InvoiceController extends Controller
             'famountso' => (float) ($invoice->famountso ?? 0),  // nilai Grand Total dari DB
             'filterSupplierId' => $request->query('filter_supplier_id'),
             'filterSalesmanId' => $request->query('filter_salesman_id'),
+            'isUsageLocked' => false,
+            'usageLockMessage' => null,
+            'action' => 'view',
         ]);
     }
 

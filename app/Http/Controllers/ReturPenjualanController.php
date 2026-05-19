@@ -1443,7 +1443,7 @@ class ReturPenjualanController extends Controller
         })->toArray();
 
         // Pass the data to the view
-        return view('returpenjualan.view', [
+        return view('returpenjualan.edit', [
             'customers' => $customers,
             'salesmans' => $salesmans,
             'selectedSupplierCode' => $selectedSupplierCode, // Kirim kode supplier ke view
@@ -1458,6 +1458,9 @@ class ReturPenjualanController extends Controller
             'famountso' => (float) ($returpenjualan->famountso ?? 0),  // nilai Grand Total dari DB
             'filterSupplierId' => $request->query('filter_supplier_id'),
             'filterSalesmanId' => $request->query('filter_salesman_id'),
+            'isUsageLocked' => false,
+            'usageLockMessage' => null,
+            'action' => 'view',
         ]);
     }
 

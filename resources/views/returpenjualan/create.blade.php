@@ -341,7 +341,21 @@
                                     <template x-for="(it, i) in savedItems" :key="it.uid || `item-${i}`">
                                         <tr class="border-t align-top transition-colors hover:bg-gray-50">
                                             <td class="p-2" x-text="i + 1"></td>
-                                            <td class="p-2 font-mono" x-text="it.fitemcode"></td>
+                                            <td class="p-2">
+                                                <div class="flex">
+                                                    <input type="text"
+                                                        class="flex-1 border rounded-l px-2 py-1 font-mono text-sm"
+                                                        :id="'code_row_' + i"
+                                                        x-model.trim="it.fitemcode"
+                                                        @input="onCodeTypedRow(it, i)"
+                                                        @keydown.enter.prevent="focusRowUnit(it, i)">
+                                                    <button type="button" @click="openBrowseFor(i)"
+                                                        class="border border-l-0 px-2 py-1 bg-white hover:bg-gray-50"
+                                                        title="Cari Produk">
+                                                        <x-heroicon-o-magnifying-glass class="w-4 h-4" />
+                                                    </button>
+                                                </div>
+                                            </td>
                                             <td class="p-2">
                                                 <div class="flex w-full max-w-full">
                                                     <div class="min-w-0 flex-1 rounded-l border bg-gray-100 px-2 py-1 text-sm leading-5 text-gray-600 whitespace-normal break-words"
@@ -359,36 +373,65 @@
                                             <td class="p-2">
                                                 <template x-if="it.units && it.units.length > 1">
                                                     <select class="w-full border rounded px-2 py-1 text-xs"
-                                                        x-model="it.fsatuan">
+                                                        :id="'unit_row_' + i"
+                                                        x-model="it.fsatuan"
+                                                        @change="onRowUpdated(i)"
+                                                        @keydown.enter.prevent="focusRowQty(i)">
                                                         <template x-for="u in it.units" :key="u">
-                                                            <option :value="u" x-text="u"
-                                                                :selected="u === it.fsatuan"></option>
+                                                            <option :value="u" x-text="u"></option>
                                                         </template>
                                                     </select>
                                                 </template>
                                                 <template x-if="!it.units || it.units.length <= 1">
-                                                    <span x-text="it.fsatuan"></span>
+                                                    <div class="px-2 py-1 text-sm text-gray-600 bg-gray-50 border rounded"
+                                                        x-text="it.fsatuan || '-'"></div>
                                                 </template>
                                             </td>
-                                            <td class="p-2 text-blue-600 font-semibold" x-text="it.frefcode || '-'">
-                                            </td>
-                                            <td class="p-2 text-right">
-                                                <input type="number" class="w-full border rounded px-2 py-1 text-right"
-                                                    x-model.number="it.fqty"
-                                                    @input="recalc(it); enforceQtyRow(it); recalc(it);">
-                                                <div class="text-xs text-gray-400 mt-0.5 flex justify-end items-center"
-                                                    x-show="it.fitemcode">
-                                                    <div x-html="formatStockLimit(it)">
-                                                    </div>
+                                            <td class="p-2">
+                                                <div class="flex w-full max-w-full">
+                                                    <input type="text"
+                                                        class="min-w-0 flex-1 border rounded-l px-2 py-1 bg-gray-100 text-gray-600 text-sm"
+                                                        :value="it.frefcode || '-'"
+                                                        disabled>
+                                                    <button type="button" @click="openProductHistory(it)"
+                                                        class="shrink-0 border border-l-0 px-2 py-1 bg-white hover:bg-gray-50 rounded-r"
+                                                        :disabled="!canOpenHistory(it)"
+                                                        :class="!canOpenHistory(it) ? 'opacity-50 cursor-not-allowed' : ''"
+                                                        title="Riwayat produk">
+                                                        <x-heroicon-o-clock class="w-4 h-4" />
+                                                    </button>
                                                 </div>
                                             </td>
                                             <td class="p-2 text-right">
-                                                <input type="number" class="w-full border rounded px-2 py-1 text-right"
-                                                    x-model.number="it.fprice" @input="recalc(it)">
+                                                <input type="number"
+                                                    class="w-full border rounded px-2 py-1 text-right text-sm"
+                                                    min="0" step="0.01"
+                                                    :id="'qty_row_' + i"
+                                                    x-model.number="it.fqty"
+                                                    @input="enforceQtyRow(it); onRowUpdated(i)"
+                                                    @change="enforceQtyRow(it); onRowUpdated(i)"
+                                                    @keydown.enter.prevent="focusRowPrice(i)">
+                                                <div class="text-xs text-gray-400 mt-0.5 flex justify-end items-center"
+                                                    x-show="it.fitemcode">
+                                                    <div x-html="formatStockLimit(it)"></div>
+                                                </div>
                                             </td>
                                             <td class="p-2 text-right">
-                                                <input type="text" class="w-full border rounded px-2 py-1 text-right"
-                                                    x-model="it.fdisc" @input="recalc(it)">
+                                                <input type="number"
+                                                    class="w-full border rounded px-2 py-1 text-right text-sm"
+                                                    min="0" step="0.01"
+                                                    :id="'price_row_' + i"
+                                                    x-model.number="it.fprice"
+                                                    @input="onRowUpdated(i)"
+                                                    @keydown.enter.prevent="focusRowDisc(i)">
+                                            </td>
+                                            <td class="p-2 text-right">
+                                                <input type="text"
+                                                    class="w-full border rounded px-2 py-1 text-right text-sm"
+                                                    :id="'disc_row_' + i"
+                                                    x-model="it.fdisc"
+                                                    @input="onRowUpdated(i)"
+                                                    @keydown.enter.prevent="onRowUpdated(i)">
                                             </td>
                                             <td class="p-2">
                                                 <input type="text"
@@ -397,162 +440,41 @@
                                             </td>
                                             <td class="p-2 text-center">
                                                 <button type="button" @click="removeSaved(i)"
-                                                    class="px-3 py-1 rounded text-xs bg-red-100 text-red-600 hover:bg-red-200">Hapus</button>
-
-                                                <!-- Hidden inputs moved here to ensure they are submitted -->
-                                                <input type="hidden" name="fitemcode[]" :value="it.fitemcode">
-                                                <input type="hidden" name="fitemname[]" :value="it.fitemname">
-                                                <input type="hidden" name="fsatuan[]" :value="it.fsatuan">
-                                                <input type="hidden" name="frefcode[]" :value="it.frefcode">
-                                                <input type="hidden" name="frefdtno[]" :value="it.frefdtno">
-                                                <input type="hidden" name="fnouref[]" :value="it.fnouref">
-                                                <input type="hidden" name="frefpr[]" :value="it.frefpr">
-                                                <input type="hidden" name="frefso[]" :value="it.frefso">
-                                                <input type="hidden" name="frefsrj[]" :value="it.frefsrj">
-                                                <input type="hidden" name="fnoacak[]" :value="it.fnoacak">
-                                                <input type="hidden" name="frefnoacak[]" :value="it.frefnoacak">
-                                                <input type="hidden" name="fqty[]" :value="it.fqty">
-                                                <input type="hidden" name="fterima[]" :value="it.fterima">
-                                                <input type="hidden" name="fprice[]" :value="it.fprice">
-                                                <input type="hidden" name="fdisc[]" :value="it.fdisc">
-                                                <input type="hidden" name="ftotal[]" :value="it.ftotal">
-                                                <input type="hidden" name="fdesc[]" :value="it.fdesc">
-                                                <input type="hidden" name="fketdt[]" :value="it.fketdt">
+                                                    class="inline-flex h-8 w-8 items-center justify-center rounded bg-red-100 text-red-600 hover:bg-red-200"
+                                                    title="Hapus baris">-</button>
                                             </td>
                                         </tr>
-
                                     </template>
-
-
-
-                                    <!-- ROW DRAFT UTAMA -->
-                                    <tr class="border-t align-top">
-                                        <!-- # -->
-                                        <td class="p-2" x-text="savedItems.length + 1"></td>
-
-                                        <!-- Kode Produk -->
-                                        <td class="p-2">
-                                            <div class="flex">
-                                                <input type="text" class="flex-1 border rounded-l px-2 py-1 font-mono"
-                                                    x-ref="draftCode" x-model.trim="draft.fitemcode"
-                                                    @input="onCodeTypedRow(draft)"
-                                                    @keydown.enter.prevent="handleEnterOnCode('draft')">
-                                                <button type="button" @click="openBrowseFor('draft')"
-                                                    class="border border-l-0 px-2 py-1 bg-white hover:bg-gray-50"
-                                                    title="Cari Produk">
-                                                    <x-heroicon-o-magnifying-glass class="w-4 h-4" />
-                                                </button>
-                                            </div>
-                                        </td>
-
-                                        <!-- Nama Produk (readonly) -->
-                                        <td class="p-2">
-                                            <div class="flex w-full max-w-full">
-                                                <div class="min-w-0 flex-1 rounded-l border bg-gray-100 px-2 py-1 text-sm leading-5 text-gray-600 whitespace-normal break-words"
-                                                    x-text="draft.fitemname"></div>
-                                                <button type="button" @click="openDesc(draft)"
-                                                    class="shrink-0 inline-flex items-center border border-l-0 rounded-r px-2 py-1 transition-colors"
-                                                    :class="draft.fdesc ?
-                                                        'border-emerald-300 bg-emerald-50 text-emerald-600 hover:bg-emerald-100' :
-                                                        'border-gray-300 bg-white text-gray-500 hover:bg-gray-50'"
-                                                    title="Deskripsi item">
-                                                    <x-heroicon-o-document-text class="h-4 w-4" />
-                                                </button>
-                                            </div>
-                                        </td>
-
-                                        <!-- Satuan -->
-                                        <td class="p-2">
-                                            <template x-if="draft.units.length > 1">
-                                                <select id="draftUnitSelect" class="w-full border rounded px-2 py-1"
-                                                    x-model="draft.fsatuan"
-                                                    @keydown.enter.prevent="$refs.draftRefPr?.focus()">
-                                                    <template x-for="u in draft.units" :key="u">
-                                                        <option :value="u" x-text="u"></option>
-                                                    </template>
-                                                </select>
-                                            </template>
-                                            <template x-if="draft.units.length <= 1">
-                                                <input type="text"
-                                                    class="w-full border rounded px-2 py-1 bg-gray-100 text-gray-600"
-                                                    :value="draft.fsatuan || '-'" disabled>
-                                            </template>
-                                        </td>
-
-                                        <!-- Ref.PR# -->
-                                        <td class="p-2">
-                                            <div class="flex w-full max-w-full">
-                                                <input type="text"
-                                                    class="min-w-0 flex-1 border rounded-l px-2 py-1 bg-gray-100 text-gray-600"
-                                                    :value="draft.frefcode" disabled placeholder="Ref PR">
-                                                <button type="button" @click="openProductHistory(draft)"
-                                                    class="shrink-0 border border-l-0 px-2 py-1 bg-white hover:bg-gray-50 rounded-r"
-                                                    :disabled="!canOpenHistory(draft)"
-                                                    :class="!canOpenHistory(draft) ? 'opacity-50 cursor-not-allowed' : ''"
-                                                    title="Riwayat produk">
-                                                    <x-heroicon-o-clock class="w-4 h-4" />
-                                                </button>
-                                            </div>
-                                        </td>
-
-                                        <!-- Qty -->
-                                        <td class="p-2 text-right">
-                                            <input type="number" class="border rounded px-2 py-1 w-24 text-right"
-                                                min="0" step="0.01" x-ref="draftQty"
-                                                x-model.number="draft.fqty"
-                                                @input="
-                                                    recalc(draft);
-                                                    enforceQtyRow(draft);
-                                                    recalc(draft);
-                                                "
-                                                @keydown.enter.prevent="$refs.draftTerima?.focus()">
-                                            <div class="text-xs text-gray-400 mt-0.5 flex justify-end items-center"
-                                                x-show="draft.fitemcode">
-                                                <div x-html="formatStockLimit(draft)">
-                                                </div>
-                                            </div>
-                                        </td>
-
-                                        <!-- @ Harga -->
-                                        <td class="p-2 text-right">
-                                            <input type="number" class="border rounded px-2 py-1 w-28 text-right"
-                                                min="0" step="0.01" x-ref="draftPrice"
-                                                x-model.number="draft.fprice" @input="recalc(draft)"
-                                                @keydown.enter.prevent="$refs.draftDisc?.focus()">
-                                        </td>
-
-                                        <!-- Disc.% -->
-                                        <td class="p-2 text-right">
-                                            <input type="text" class="border rounded px-2 py-1 w-24 text-right"
-                                                x-ref="draftDisc" x-model="draft.fdisc" @input="recalc(draft)"
-                                                @keydown.enter.prevent="addIfComplete()" placeholder="10+2">
-                                        </td>
-
-                                        <!-- Total Harga (readonly) -->
-                                        <td class="p-2 text-right" x-text="fmt(draft.ftotal)"></td>
-
-                                        <!-- Aksi -->
-                                        <td class="p-2 text-center">
-                                            <div class="flex items-center justify-center gap-2 flex-wrap">
-                                                <button type="button" @click="addIfComplete()"
-                                                    class="px-3 py-1 rounded text-xs bg-emerald-600 text-white">Tambah</button>
-                                            </div>
-                                        </td>
-                                    </tr>
-
-                                    <!-- ROW DRAFT DESC -->
-                                    <tr class="border-b">
-                                        <td class="p-0"></td>
-                                        <td class="p-0"></td>
-                                        <td class="p-0"></td>
-                                        <td class="p-0"></td>
-                                        <td class="p-0" colspan="6"></td>
-                                    </tr>
                                 </tbody>
                             </table>
                         </div>
 
-                        <input type="hidden" id="itemsCount" :value="savedItems.length">
+                        <div class="hidden">
+                            <template x-for="(it, i) in submitItems" :key="'submit-' + (it.uid || i)">
+                                <div>
+                                    <input type="hidden" name="fitemcode[]" :value="it.fitemcode">
+                                    <input type="hidden" name="fitemname[]" :value="it.fitemname">
+                                    <input type="hidden" name="fsatuan[]" :value="it.fsatuan">
+                                    <input type="hidden" name="frefcode[]" :value="it.frefcode">
+                                    <input type="hidden" name="frefdtno[]" :value="it.frefdtno">
+                                    <input type="hidden" name="fnouref[]" :value="it.fnouref">
+                                    <input type="hidden" name="frefpr[]" :value="it.frefpr">
+                                    <input type="hidden" name="frefso[]" :value="it.frefso">
+                                    <input type="hidden" name="frefsrj[]" :value="it.frefsrj">
+                                    <input type="hidden" name="fnoacak[]" :value="it.fnoacak">
+                                    <input type="hidden" name="frefnoacak[]" :value="it.frefnoacak">
+                                    <input type="hidden" name="fqty[]" :value="it.fqty">
+                                    <input type="hidden" name="fterima[]" :value="it.fterima">
+                                    <input type="hidden" name="fprice[]" :value="it.fprice">
+                                    <input type="hidden" name="fdisc[]" :value="it.fdisc">
+                                    <input type="hidden" name="ftotal[]" :value="it.ftotal">
+                                    <input type="hidden" name="fdesc[]" :value="it.fdesc">
+                                    <input type="hidden" name="fketdt[]" :value="it.fketdt">
+                                </div>
+                            </template>
+                        </div>
+
+                        <input type="hidden" id="itemsCount" :value="submitItems.length">
                         <input type="hidden" name="frefcode" id="frefcode" value="{{ old('frefcode') }}">
                         <input type="hidden" name="frefso" id="frefso" value="{{ old('frefso') }}">
                         <input type="hidden" name="frefsrj" id="frefsrj" value="{{ old('frefsrj') }}">
@@ -1081,8 +1003,6 @@
                                 </div>
                             </div>
                         </div>
-
-                        <input type="hidden" id="itemsCount" :value="savedItems.length">
                     </div>
 
                     {{-- MODAL ERROR: belum ada item --}}
@@ -1843,7 +1763,10 @@
         return {
             showNoItems: false,
             savedItems: @json($initialReturPenjualanItems),
-            draft: newRow(),
+            minimumVisibleRows: 5,
+            browseTarget: null,
+            editingIndex: null,
+            editRow: newRow(),
 
             totalHarga: 0,
             ppnRate: 11,
@@ -1971,11 +1894,9 @@
 
             // ✅ UPDATE FUNGSI recalc untuk menggunakan parseDiscount
             recalc(row) {
-                row.fqty = Math.max(1, +row.fqty || 1);
+                row.fqty = Math.max(0, +row.fqty || 0);
                 row.fterima = Math.max(0, +row.fterima || 0);
                 row.fprice = Math.max(0, +row.fprice || 0);
-
-                if (row.fqty < 1) row.fqty = 1;
                 if (row.fprice < 0) row.fprice = 0;
 
                 // Parse discount menggunakan fungsi baru
@@ -2070,10 +1991,10 @@
                 }
 
                 if (!Number.isFinite(n)) {
-                    row.fqty = 1;
+                    row.fqty = 0;
                     return;
                 }
-                if (n < 1) row.fqty = 1;
+                if (n < 0) row.fqty = 0;
                 this.validateReferenceQty(row, false);
             },
 
@@ -2084,9 +2005,6 @@
                     row.fsatuan = '';
                     row.frefcode = '';
                     row.maxqty = 0;
-                    if (row === this.draft) {
-                        clearDraftUnitSelect();
-                    }
                     return;
                 }
                 row.fitemname = meta.name || '';
@@ -2098,17 +2016,57 @@
                 if (meta.unit_ratios) row.unit_ratios = meta.unit_ratios;
                 row.maxqty = Number.isFinite(+row.maxqty) ? +row.maxqty : 0;
 
-                if (row === this.draft) {
-                    if (units.length > 1) {
-                        populateDraftUnitSelect(units);
-                    } else {
-                        clearDraftUnitSelect();
-                    }
+            },
+
+            rowHasContent(row) {
+                if (!row) return false;
+                return [
+                    row.fitemcode,
+                    row.fitemname,
+                    row.frefcode,
+                    row.frefpr,
+                    row.frefso,
+                    row.frefsrj,
+                    row.fdesc,
+                    row.fketdt,
+                ].some(value => String(value ?? '').trim() !== '') ||
+                    Number(row.fqty ?? 0) > 0 ||
+                    Number(row.fprice ?? 0) > 0 ||
+                    String(row.fdisc ?? '').trim() !== '';
+            },
+
+            isRowSavable(row) {
+                if (!row) return false;
+                return String(row.fitemcode ?? '').trim() !== '' && Number(row.fqty ?? 0) > 0;
+            },
+
+            ensureMinimumRows() {
+                while (this.savedItems.length < this.minimumVisibleRows) {
+                    this.savedItems.push(this.createRow());
                 }
             },
 
-            onCodeTypedRow(row) {
+            ensureTrailingRow(index = null) {
+                if (!this.savedItems.length) {
+                    this.ensureMinimumRows();
+                    return;
+                }
+
+                const targetIndex = index === null ? this.savedItems.length - 1 : index;
+                if (targetIndex !== this.savedItems.length - 1) return;
+
+                if (this.rowHasContent(this.savedItems[targetIndex])) {
+                    this.savedItems.push(this.createRow());
+                }
+            },
+
+            onCodeTypedRow(row, index = null) {
                 this.hydrateRowFromMeta(row, this.productMeta(row.fitemcode));
+                if (!this.normalizeNoAcak(row.fnoacak)) {
+                    row.fnoacak = this.generateUniqueNoAcak();
+                }
+                this.recalc(row);
+                this.onRowUpdated(index);
             },
 
             isComplete(row) {
@@ -2144,12 +2102,6 @@
                 if (!items || !Array.isArray(items)) return;
                 this.resetDraft();
                 this.addManyFromPR(header, items, source);
-            },
-
-            resetDraft() {
-                this.draft = newRow();
-                this.draft.fnoacak = this.generateUniqueNoAcak();
-                this.$nextTick(() => this.$refs.draftCode?.focus());
             },
 
             addManyFromPR(header, items, source) {
@@ -2208,98 +2160,80 @@
                         row.fqty = Number(rowLimit);
                     }
                     this.validateReferenceQty(row, false);
-                    this.savedItems.push(row);
+                    this.savedItems.push({
+                        ...this.createRow(),
+                        ...row,
+                        uid: cryptoRandom(),
+                    });
                     existing.add(key);
                     added++;
+                    this.onRowUpdated(this.savedItems.length - 1);
+                });
+
+                this.pruneEmptyRows();
+                this.ensureMinimumRows();
+                this.ensureTrailingRow();
+                this.recalcTotals();
+            },
+
+            onRowUpdated(index = null) {
+                const row = typeof index === 'number' ? this.savedItems[index] : null;
+                if (row) {
+                    if (row.fitemcode === 'UM' && this.ftypesales === 0) {
+                        this.showToast('Produk UM hanya untuk tipe Uang Muka!', 'error');
+                        row.fitemcode = '';
+                        row.fitemname = '';
+                        row.fsatuan = '';
+                        row.units = [];
+                    }
+
+                    if (Number(row.fprice) < 0) {
+                        row.fprice = 0;
+                    }
+
+                    row.fnoacak = this.normalizeNoAcak(row.fnoacak) || this.generateUniqueNoAcak();
+                    row.frefnoacak = this.normalizeRefNoAcak(row.frefnoacak);
                     this.recalc(row);
-                });
-
-                this.recalcTotals();
-            },
-
-            addIfComplete() {
-                const r = this.draft;
-
-                if (r.fitemcode === 'UM' && this.ftypesales === 0) {
-                    this.showToast('Produk UM hanya untuk tipe Uang Muka!', 'error');
-                    return;
                 }
 
-                if (Number(r.fqty) <= 0) {
-                    this.showToast('Quantity harus lebih besar dari 0!', 'warning');
-                    this.$refs.draftQty?.focus();
-                    return;
-                }
-
-                // 3. Validasi Harga Tidak Boleh Minus
-                if (Number(r.fprice) < 0) {
-                    this.showToast('Harga tidak boleh minus!', 'warning');
-                    this.$refs.draftPrice?.focus(); // Pastikan ref="draftPrice" ada di input harga
-                    return;
-                }
-
-                if (!this.isComplete(r)) {
-                    if (!r.fitemcode) return this.$refs.draftCode?.focus();
-                    if (!r.fitemname) return this.$refs.draftCode?.focus();
-                    if (!r.fsatuan) return (r.units.length > 1 ? this.$refs.draftUnit?.focus() : this.$refs.draftCode
-                        ?.focus());
-                    if (!(Number(r.fqty) > 0)) return this.$refs.draftQty?.focus();
-                    return;
-                }
-
-                this.recalc(r);
-
-                const dupe = this.savedItems.find(it =>
-                    it.fitemcode === r.fitemcode &&
-                    it.fsatuan === r.fsatuan &&
-                    (it.frefpr || '') === (r.frefpr || '')
-                );
-
-                if (dupe) {
-                    this.showToast('Item sama sudah ada di daftar', 'warning');
-                    return;
-                }
-
-                if (!this.validateReferenceQty(r, true)) {
-                    return this.$refs.draftQty?.focus();
-                }
-
-                this.savedItems.push({
-                    ...r,
-                    fnoacak: this.normalizeNoAcak(r.fnoacak) || this.generateUniqueNoAcak(),
-                    frefnoacak: this.normalizeRefNoAcak(r.frefnoacak),
-                    uid: cryptoRandom()
-                });
                 this.showNoItems = false;
-                this.resetDraft();
-                this.$nextTick(() => this.$refs.draftCode?.focus());
-                this.syncDescList?.();
+                this.ensureTrailingRow(index);
                 this.recalcTotals();
             },
-
 
             removeSaved(i) {
                 this.savedItems.splice(i, 1);
-                this.syncDescList?.();
+                this.ensureMinimumRows();
+                this.ensureTrailingRow();
                 this.recalcTotals();
             },
 
             onSubmit($event) {
-                if (this.savedItems.length === 0) {
+                if (this.submitItems.length === 0) {
                     $event.preventDefault();
                     this.showNoItems = true;
                     return;
                 }
             },
 
-            handleEnterOnCode(where) {
-                if (where === 'edit') {
-                    if (this.editRow.units.length > 1) this.$refs.editUnit?.focus();
-                    else this.$refs.editQty?.focus();
-                } else {
-                    if (this.draft.units.length > 1) this.$refs.draftUnit?.focus();
-                    else this.$refs.draftQty?.focus();
+            focusRowUnit(row, index) {
+                if (row?.units?.length > 1) {
+                    document.getElementById(`unit_row_${index}`)?.focus();
+                    return;
                 }
+                this.focusRowQty(index);
+            },
+
+            focusRowQty(index) {
+                document.getElementById(`qty_row_${index}`)?.focus();
+            },
+
+            focusRowPrice(index) {
+                document.getElementById(`price_row_${index}`)?.focus();
+            },
+
+            focusRowDisc(index) {
+                document.getElementById(`disc_row_${index}`)?.focus();
             },
 
             showDescModal: false,
@@ -2383,7 +2317,24 @@
             },
 
             getCurrentItemKeys() {
-                return this.savedItems.map(it => this.itemKey(it));
+                return this.submitItems.map(it => this.itemKey(it));
+            },
+
+            get submitItems() {
+                return this.savedItems.filter(row => this.isRowSavable(row));
+            },
+
+            createRow() {
+                return {
+                    ...newRow(),
+                    uid: cryptoRandom(),
+                    fnoacak: this.generateUniqueNoAcak(),
+                };
+            },
+
+            pruneEmptyRows() {
+                const filled = this.savedItems.filter(row => this.rowHasContent(row));
+                this.savedItems = filled.length ? filled : [];
             },
 
             // Tambahkan di Alpine data
@@ -2423,11 +2374,11 @@
 
                 window.getCurrentItemKeys = () => this.getCurrentItemKeys();
                 this.savedItems = (this.savedItems || []).map(item => ({
+                    ...this.createRow(),
                     ...item,
                     fnoacak: this.normalizeNoAcak(item.fnoacak) || this.generateUniqueNoAcak(),
                     frefnoacak: this.normalizeRefNoAcak(item.frefnoacak),
                 }));
-                this.draft.fnoacak = this.generateUniqueNoAcak();
                 window.addEventListener('pr-picked', (e) => this.onPrPicked(e, 'SO'), {
                     passive: true
                 });
@@ -2445,36 +2396,30 @@
                         row.frefcode = product.fprdid || product.id || '';
                         this.hydrateRowFromMeta(row, this.productMeta(row.fitemcode));
                         row.fnoacak = this.normalizeNoAcak(row.fnoacak) || this.generateUniqueNoAcak();
-                        if (!row.fqty) row.fqty = 1;
+                        if (!row.fqty) row.fqty = 0;
                         this.recalc(row);
                     };
-                    if (this.browseTarget === 'edit') {
-                        apply(this.editRow);
-                        this.$nextTick(() => this.$refs.editQty?.focus());
-                    } else {
-                        apply(this.draft);
-                        this.$nextTick(() => this.$refs.draftQty?.focus());
-                    }
+                    const index = typeof this.browseTarget === 'number' ? this.browseTarget : this.savedItems.length - 1;
+                    if (index < 0 || !this.savedItems[index]) return;
+                    const row = this.savedItems[index];
+                    apply(row);
+                    this.onRowUpdated(index);
+                    this.$nextTick(() => this.focusRowQty(index));
                 }, {
                     passive: true
                 });
 
-                const self = this;
-                document.addEventListener('change', function(e) {
-                    if (e.target && e.target.id === 'draftUnitSelect') {
-                        self.draft.fsatuan = e.target.value;
-                    }
-                });
-
+                this.pruneEmptyRows();
+                this.ensureMinimumRows();
+                this.ensureTrailingRow();
                 this.recalcTotals();
             },
 
-            browseTarget: 'draft',
-            openBrowseFor(where) {
-                this.browseTarget = (where === 'edit' ? 'edit' : 'draft');
+            openBrowseFor(index) {
+                this.browseTarget = typeof index === 'number' ? index : this.savedItems.length - 1;
                 window.dispatchEvent(new CustomEvent('browse-open', {
                     detail: {
-                        forEdit: this.browseTarget === 'edit'
+                        forEdit: false
                     }
                 }));
             },
@@ -2512,26 +2457,6 @@
                 Math.random().toString(36).slice(2)) + Date.now();
         }
 
-        function getDraftUnitSelect() {
-            return document.getElementById('draftUnitSelect');
-        }
-
-        function populateDraftUnitSelect(units) {
-            const sel = getDraftUnitSelect();
-            if (!sel) return;
-            sel.innerHTML = '';
-            units.forEach(u => {
-                const opt = document.createElement('option');
-                opt.value = u;
-                opt.textContent = u;
-                sel.appendChild(opt);
-            });
-        }
-
-        function clearDraftUnitSelect() {
-            const sel = getDraftUnitSelect();
-            if (sel) sel.innerHTML = '';
-        }
     }
 </script>
 <script>

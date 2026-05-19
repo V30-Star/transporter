@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', $action === 'delete' ? 'Hapus' . ' ' . 'Faktur Penjualan' : 'Edit' . ' ' . 'Faktur Penjualan')
+@section('title', $action === 'delete' ? 'Hapus Faktur Penjualan' : ($action === 'view' ? 'View Faktur Penjualan' : 'Edit Faktur Penjualan'))
 
 @section('content')
     @php
@@ -766,6 +766,7 @@
                     <form id="invoiceForm" action="{{ route('invoice.update', parameters: $invoice->ftranmtid) }}"
                         method="POST" class="mt-6" data-tranmtid="{{ $invoice->ftranmtid }}" x-data="{ showNoItems: false }"
                         @submit.prevent="
+        if ('{{ $action }}' === 'view') { return }
         const n = Number(document.getElementById('itemsCount')?.value || 0);
         if (n < 1) { showNoItems = true } else { window.invoiceCreditApprovalGuard($el).then(ok => { if (ok) $el.submit() }) }
       ">
@@ -775,6 +776,7 @@
                             value="{{ old('fneedacc', $invoice->fneedacc ?? '0') }}">
                         <input type="hidden" name="fuseracc" id="invoiceUserAcc"
                             value="{{ old('fuseracc', $invoice->fuseracc ?? '') }}">
+                        <fieldset {{ $action === 'view' ? 'disabled' : '' }}>
 
                         {{-- HEADER FORM --}}
                         <div class="grid grid-cols-1 lg:grid-cols-12 gap-4">
@@ -855,23 +857,27 @@
                                                 </option>
                                             @endforeach
                                         </select>
-                                        <div class="absolute inset-0" role="button" aria-label="Browse Customer"
-                                            @click="window.dispatchEvent(new CustomEvent('customer-browse-open'))">
-                                        </div>
+                                        @if ($action !== 'view')
+                                            <div class="absolute inset-0" role="button" aria-label="Browse Customer"
+                                                @click="window.dispatchEvent(new CustomEvent('customer-browse-open'))">
+                                            </div>
+                                        @endif
                                     </div>
                                     <input type="hidden" name="fcustno" id="customerCodeHidden"
                                         value="{{ old('fcustno', $invoice->fcustno) }}">
-                                    <button type="button"
-                                        @click="window.dispatchEvent(new CustomEvent('customer-browse-open'))"
-                                        class="border -ml-px px-3 py-2 bg-white hover:bg-gray-50 rounded-r-none"
-                                        title="Browse Customer">
-                                        <x-heroicon-o-magnifying-glass class="w-5 h-5" />
-                                    </button>
-                                    <a href="{{ route('customer.create') }}" target="_blank" rel="noopener"
-                                        class="border -ml-px rounded-r px-3 py-2 bg-white hover:bg-gray-50"
-                                        title="Tambah Customer">
-                                        <x-heroicon-o-plus class="w-5 h-5" />
-                                    </a>
+                                    @if ($action !== 'view')
+                                        <button type="button"
+                                            @click="window.dispatchEvent(new CustomEvent('customer-browse-open'))"
+                                            class="border -ml-px px-3 py-2 bg-white hover:bg-gray-50 rounded-r-none"
+                                            title="Browse Customer">
+                                            <x-heroicon-o-magnifying-glass class="w-5 h-5" />
+                                        </button>
+                                        <a href="{{ route('customer.create') }}" target="_blank" rel="noopener"
+                                            class="border -ml-px rounded-r px-3 py-2 bg-white hover:bg-gray-50"
+                                            title="Tambah Customer">
+                                            <x-heroicon-o-plus class="w-5 h-5" />
+                                        </a>
+                                    @endif
                                 </div>
                                 @error('fcustno')
                                     <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
@@ -905,23 +911,27 @@
                                                 </option>
                                             @endforeach
                                         </select>
-                                        <div class="absolute inset-0" role="button" aria-label="Browse Salesman"
-                                            @click="window.dispatchEvent(new CustomEvent('salesman-browse-open'))">
-                                        </div>
+                                        @if ($action !== 'view')
+                                            <div class="absolute inset-0" role="button" aria-label="Browse Salesman"
+                                                @click="window.dispatchEvent(new CustomEvent('salesman-browse-open'))">
+                                            </div>
+                                        @endif
                                     </div>
                                     <input type="hidden" name="fsalesman" id="salesmanCodeHidden"
                                         value="{{ old('fsalesman', $invoice->fsalesman) }}">
-                                    <button type="button"
-                                        @click="window.dispatchEvent(new CustomEvent('salesman-browse-open'))"
-                                        class="border -ml-px px-3 py-2 bg-white hover:bg-gray-50 rounded-r-none"
-                                        title="Browse Salesman">
-                                        <x-heroicon-o-magnifying-glass class="w-5 h-5" />
-                                    </button>
-                                    <a href="{{ route('salesman.create') }}" target="_blank" rel="noopener"
-                                        class="border -ml-px rounded-r px-3 py-2 bg-white hover:bg-gray-50"
-                                        title="Tambah Salesman">
-                                        <x-heroicon-o-plus class="w-5 h-5" />
-                                    </a>
+                                    @if ($action !== 'view')
+                                        <button type="button"
+                                            @click="window.dispatchEvent(new CustomEvent('salesman-browse-open'))"
+                                            class="border -ml-px px-3 py-2 bg-white hover:bg-gray-50 rounded-r-none"
+                                            title="Browse Salesman">
+                                            <x-heroicon-o-magnifying-glass class="w-5 h-5" />
+                                        </button>
+                                        <a href="{{ route('salesman.create') }}" target="_blank" rel="noopener"
+                                            class="border -ml-px rounded-r px-3 py-2 bg-white hover:bg-gray-50"
+                                            title="Tambah Salesman">
+                                            <x-heroicon-o-plus class="w-5 h-5" />
+                                        </a>
+                                    @endif
                                 </div>
                                 @error('fsalesman')
                                     <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
@@ -1022,7 +1032,9 @@
                                             <th class="p-2 text-right w-32 whitespace-nowrap">@ Harga</th>
                                             <th class="p-2 text-right w-36 whitespace-nowrap">Disc. %</th>
                                             <th class="p-2 text-right w-36 whitespace-nowrap">Total Harga</th>
-                                            <th class="p-2 text-center w-28">Aksi</th>
+                                            @if ($action !== 'view')
+                                                <th class="p-2 text-center w-28">Aksi</th>
+                                            @endif
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -1036,11 +1048,13 @@
                                                             x-model.trim="it.fitemcode"
                                                             @input="onCodeTypedRow(it, i)"
                                                             @keydown.enter.prevent="focusRowUnit(it, i)">
-                                                        <button type="button" @click="openBrowseFor(i)"
-                                                            class="border border-l-0 px-2 py-1 bg-white hover:bg-gray-50"
-                                                            title="Cari Produk">
-                                                            <x-heroicon-o-magnifying-glass class="w-4 h-4" />
-                                                        </button>
+                                                        @if ($action !== 'view')
+                                                            <button type="button" @click="openBrowseFor(i)"
+                                                                class="border border-l-0 px-2 py-1 bg-white hover:bg-gray-50"
+                                                                title="Cari Produk">
+                                                                <x-heroicon-o-magnifying-glass class="w-4 h-4" />
+                                                            </button>
+                                                        @endif
                                                     </div>
                                                 </td>
                                                 <td class="p-2">
@@ -1110,11 +1124,13 @@
                                                         class="w-full border rounded px-2 py-1 bg-gray-100 text-gray-600 text-sm text-right"
                                                         :value="fmt(it.ftotal)" disabled>
                                                 </td>
-                                                <td class="p-2 text-center">
-                                                    <button type="button" @click="removeSaved(i)"
-                                                        class="inline-flex h-8 w-8 items-center justify-center rounded bg-red-100 text-red-600 hover:bg-red-200"
-                                                        title="Hapus baris">-</button>
-                                                </td>
+                                                @if ($action !== 'view')
+                                                    <td class="p-2 text-center">
+                                                        <button type="button" @click="removeSaved(i)"
+                                                            class="inline-flex h-8 w-8 items-center justify-center rounded bg-red-100 text-red-600 hover:bg-red-200"
+                                                            title="Hapus baris">-</button>
+                                                    </td>
+                                                @endif
                                             </tr>
                                         </template>
                                     </tbody>
@@ -1147,7 +1163,8 @@
 
                             <div class="mt-3 flex justify-between items-start gap-4">
                                 <div class="flex flex-wrap items-center gap-3 flex-shrink-0">
-                                    <div x-data="srjFormModal()" class="mt-3">
+                                    @if ($action !== 'view')
+                                        <div x-data="srjFormModal()" class="mt-3">
                                         <button type="button" @click="openSrjModal()"
                                             class="inline-flex items-center gap-2 rounded-lg bg-indigo-600 px-3 py-2 text-white hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 ml-4">
                                             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none"
@@ -1392,7 +1409,8 @@
                                                 </div>
                                             </div>
                                         </div>
-                                    </div>
+                                        </div>
+                                    @endif
                                 </div>
                             </div>
 
@@ -1538,6 +1556,7 @@
 
                                 <input type="hidden" id="itemsCount" :value="submitItems.length">
                             </div>
+                        </fieldset>
 
                             {{-- MODAL ERROR: belum ada item --}}
                             <div x-show="showNoItems && submitItems.length === 0" x-cloak
@@ -1613,7 +1632,7 @@
                             @endphp
 
                             <div class="mt-8 flex justify-center gap-4">
-                                @if ($canEditPermission)
+                                @if ($action !== 'view' && $canEditPermission)
                                     @if ($usageLocked)
                                         <button type="button" disabled title="{{ $usageLockMessage }}"
                                             class="bg-blue-300 text-white px-6 py-2 rounded flex items-center cursor-not-allowed opacity-70">
@@ -1628,7 +1647,7 @@
                                 @endif
                                 <button type="button" @click="window.location.href='{{ route('invoice.index') }}'"
                                     class="bg-gray-500 text-white px-6 py-2 rounded hover:bg-gray-600 flex items-center">
-                                    <x-heroicon-o-arrow-left class="w-5 h-5 mr-2" /> Keluar
+                                    <x-heroicon-o-arrow-left class="w-5 h-5 mr-2" /> {{ $action === 'view' ? 'Kembali' : 'Keluar' }}
                                 </button>
                             </div>
                     </form>
