@@ -298,7 +298,11 @@
                                 <x-heroicon-o-document-text class="w-6 h-6 text-blue-600 mr-2" />
                                 <h3 class="text-lg font-semibold text-gray-800">Deskripsi Item</h3>
                             </div>
-                            <div class="px-5 py-4 space-y-2">
+                            <div class="px-5 py-4 space-y-4">
+                                <div>
+                                    <div class="mb-1 text-sm text-gray-700">Nama Produk</div>
+                                    <div class="rounded-lg border bg-gray-50 px-3 py-2 text-sm text-gray-800" x-text="descItemName || '-'"></div>
+                                </div>
                                 <label class="block text-sm text-gray-700">Deskripsi</label>
                                 <textarea x-model="descValue" rows="5"
                                     class="w-full border rounded px-3 py-2 bg-gray-100 cursor-not-allowed text-gray-600"
@@ -591,15 +595,19 @@
                                 descTarget: 'draft',
                                 descSavedIndex: null,
                                 descValue: '',
+                                descItemName: '',
                                 _descTarget: null,
                                 openDesc(targetRow) {
                                     this._descTarget = targetRow;
+                                    this.descItemName = targetRow?.fitemname || '';
                                     this.descValue = targetRow?.fdesc || '';
                                     this.showDescModal = true;
                                 },
                                 closeDesc() {
                                     this.showDescModal = false;
                                     this._descTarget = null;
+                                    this.descItemName = '';
+                                    this.descValue = '';
                                 },
                                 applyDesc() {
                                     this.closeDesc();

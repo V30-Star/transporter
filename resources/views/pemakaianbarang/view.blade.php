@@ -327,7 +327,11 @@
                                 <x-heroicon-o-document-text class="w-6 h-6 text-blue-600 mr-2" />
                                 <h3 class="text-lg font-semibold text-gray-800">Deskripsi Item</h3>
                             </div>
-                            <div class="px-5 py-4 space-y-2">
+                            <div class="px-5 py-4 space-y-4">
+                                <div>
+                                    <div class="mb-1 text-sm text-gray-700">Nama Produk</div>
+                                    <div class="rounded-lg border bg-gray-50 px-3 py-2 text-sm text-gray-800" x-text="$store.pemakaianDesc.itemName || '-'"></div>
+                                </div>
                                 <label class="block text-sm text-gray-700">Deskripsi</label>
                                 <textarea x-model="$store.pemakaianDesc.value" rows="5"
                                     class="w-full border rounded px-3 py-2 bg-gray-100 cursor-not-allowed text-gray-600"
@@ -462,18 +466,21 @@
             Alpine.store('pemakaianDesc', {
                 show: false,
                 value: '',
+                itemName: '',
                 readonly: false,
                 target: null,
                 open(targetRow, readonly = true) {
                     if (!targetRow) return;
                     this.target = targetRow;
                     this.value = (targetRow?.fdesc || '').toString();
+                    this.itemName = (targetRow?.fitemname || '').toString();
                     this.readonly = !!readonly;
                     this.show = true;
                 },
                 close() {
                     this.show = false;
                     this.value = '';
+                    this.itemName = '';
                     this.readonly = false;
                     this.target = null;
                 },

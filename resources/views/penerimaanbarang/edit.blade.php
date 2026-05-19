@@ -584,7 +584,11 @@
                             <x-heroicon-o-document-text class="w-6 h-6 text-blue-600 mr-2" />
                             <h3 class="text-lg font-semibold text-gray-800" x-text="descReadonly ? 'Deskripsi Item' : 'Isi Deskripsi Item'"></h3>
                         </div>
-                        <div class="px-5 py-4 space-y-2">
+                        <div class="px-5 py-4 space-y-4">
+                            <div>
+                                <div class="mb-1 text-sm text-gray-700">Nama Produk</div>
+                                <div class="rounded-lg border bg-gray-50 px-3 py-2 text-sm text-gray-800" x-text="descItemName || '-'"></div>
+                            </div>
                             <label class="block text-sm text-gray-700">Deskripsi</label>
                             <textarea x-model="descValue" rows="5" class="w-full border rounded px-3 py-2"
                                 :readonly="descReadonly"
@@ -592,6 +596,10 @@
                                 placeholder="Tulis deskripsi item di sini..."></textarea>
                         </div>
                         <div class="px-5 py-3 border-t flex items-center justify-end gap-2">
+                            <button x-show="!descReadonly" type="button" @click="copyDescName()"
+                                class="h-9 px-4 rounded-lg bg-blue-50 text-blue-700 text-sm font-medium hover:bg-blue-100">
+                                Copy
+                            </button>
                             <button type="button" @click="closeDesc()"
                                 class="h-9 px-4 rounded-lg bg-gray-100 text-gray-700 text-sm font-medium hover:bg-gray-200">
                                 Tutup
@@ -919,6 +927,7 @@
                 dupItemSatuan: '',
                 showDescModal: false,
                 descValue: '',
+                descItemName: '',
                 descReadonly: false,
                 _descTarget: null,
                 showWarningModal: false,
@@ -1142,13 +1151,19 @@
 
                 openDesc(targetRow, readonly = false) {
                     this._descTarget = targetRow;
+                    this.descItemName = targetRow.fitemname || '';
                     this.descValue = targetRow.fdesc || '';
                     this.descReadonly = readonly;
                     this.showDescModal = true;
                 },
+                copyDescName() {
+                    this.descValue = this.descItemName || '';
+                },
                 closeDesc() {
                     this.showDescModal = false;
                     this._descTarget = null;
+                    this.descItemName = '';
+                    this.descValue = '';
                     this.descReadonly = false;
                 },
                 applyDesc() {

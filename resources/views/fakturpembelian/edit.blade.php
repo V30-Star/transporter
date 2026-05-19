@@ -1541,23 +1541,10 @@
                                     </div>
 
                                     <div class="px-5 py-4 space-y-4">
-                                        <div class="rounded-lg border border-slate-200 bg-slate-50 px-4 py-3">
-                                            <div class="flex items-start justify-between gap-3">
-                                                <div class="space-y-2 text-sm text-slate-700">
-                                                    <div>
-                                                        <span class="font-medium text-slate-900">Kode Produk:</span>
-                                                        <span x-text="descItemCode || '-'"></span>
-                                                    </div>
-                                                    <div>
-                                                        <span class="font-medium text-slate-900">Nama Produk:</span>
-                                                        <span x-text="descItemName || '-'"></span>
-                                                    </div>
-                                                </div>
-                                                <button type="button" @click="copyDescPayload()"
-                                                    class="inline-flex h-9 items-center rounded-lg border border-slate-200 bg-white px-3 text-sm font-medium text-slate-700 hover:bg-slate-100">
-                                                    <span x-text="descCopied ? 'Tersalin' : 'Copy'"></span>
-                                                </button>
-                                            </div>
+                                        <div>
+                                            <div class="mb-1 text-sm text-gray-700">Nama Produk</div>
+                                            <div class="rounded-lg border bg-gray-50 px-3 py-2 text-sm text-gray-800"
+                                                x-text="descItemName || '-'"></div>
                                         </div>
                                         <label class="block text-sm text-gray-700">Deskripsi</label>
                                         <textarea x-model="descValue" rows="5" class="w-full border rounded px-3 py-2"
@@ -1566,6 +1553,10 @@
                                     </div>
 
                             <div class="px-5 py-3 border-t flex items-center justify-end gap-2">
+                                <button x-show="!descReadonly" type="button" @click="copyDescPayload()"
+                                    class="h-9 px-4 rounded-lg bg-blue-50 text-blue-700 text-sm font-medium hover:bg-blue-100">
+                                    Copy
+                                </button>
                                 <button type="button" @click="closeDesc()"
                                     class="h-9 px-4 rounded-lg bg-gray-100 text-gray-700 text-sm font-medium hover:bg-gray-200">
                                     Batal
@@ -2621,30 +2612,7 @@
                     this.descCopied = false;
                 },
                 async copyDescPayload() {
-                    const text = [
-                        `Kode Produk: ${this.descItemCode || '-'}`,
-                        `Nama Produk: ${this.descItemName || '-'}`,
-                        `Deskripsi: ${this.descValue || '-'}`
-                    ].join('\n');
-
-                    try {
-                        if (navigator?.clipboard?.writeText) {
-                            await navigator.clipboard.writeText(text);
-                        } else {
-                            const temp = document.createElement('textarea');
-                            temp.value = text;
-                            document.body.appendChild(temp);
-                            temp.select();
-                            document.execCommand('copy');
-                            temp.remove();
-                        }
-                        this.descCopied = true;
-                        setTimeout(() => {
-                            this.descCopied = false;
-                        }, 1500);
-                    } catch (error) {
-                        console.error(error);
-                    }
+                    this.descValue = this.descItemName || '';
                 },
                 applyDesc() {
                     if (this.descTarget === 'saved' && this.descSavedIndex !== null && this.savedItems[this.descSavedIndex]) {
