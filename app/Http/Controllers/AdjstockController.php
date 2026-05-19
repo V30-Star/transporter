@@ -837,7 +837,7 @@ class AdjstockController extends Controller
             ];
         })->toArray();
 
-        return view('adjstock.view', [
+        return view('adjstock.edit', [
             'supplier' => $supplier,
             'selectedSupplierCode' => $selectedSupplierCode,
             'fcabang' => $fcabang,
@@ -851,6 +851,9 @@ class AdjstockController extends Controller
             'ppnAmount' => (float) ($adjstock->famountpopajak ?? 0),
             'famountponet' => (float) ($adjstock->famountponet ?? 0),
             'famountpo' => (float) ($adjstock->famountpo ?? 0),
+            'isUsageLocked' => false,
+            'usageLockMessage' => null,
+            'action' => 'view',
         ]);
     }
 
