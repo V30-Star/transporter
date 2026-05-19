@@ -63,7 +63,7 @@
         <div id="statusFilterTemplate" class="hidden">
             <div class="flex items-center gap-2" id="statusFilterWrap">
                 <span class="text-sm text-gray-700">Status</span>
-                <select data-role="status-filter" class="border rounded px-2 py-1">
+                <select data-role="status-filter" class="border rounded px-2 py-1 w-24">
                     <option value="all" {{ $status === 'all' ? 'selected' : '' }}>Semua</option>
                     <option value="open" {{ $status === 'open' ? 'selected' : '' }}>Open</option>
                     <option value="done" {{ $status === 'done' ? 'selected' : '' }}>Done</option>

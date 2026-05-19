@@ -28,7 +28,7 @@
         <div id="statusFilterTemplate" class="hidden">
             <div class="flex items-center gap-2" id="statusFilterWrap">
                 <span class="text-sm text-gray-700">{{ "Close" }}</span>
-                <select data-role="status-filter" class="border rounded px-2 py-1">
+                <select data-role="status-filter" class="border rounded px-2 py-1 w-24">
                     <option value="all">{{ "Semua" }}</option>
                     <option value="active" selected>Active</option>
                     <option value="nonactive">{{ "Non Active" }}</option>
@@ -469,7 +469,10 @@
                     $toolbarSearch.append($monthFilter);
 
                     const $searchInput = $toolbarSearch.find('.dt-input');
-                    $searchInput.attr('placeholder', 'Cari No.Transaksi / No.Ref / SO / Customer');
+                    $searchInput.attr('placeholder', 'Cari...').css({
+                        width: '500px',
+                        maxWidth: '100%'
+                    });
 
                     // Event handlers untuk Year dan Month
                     $yearSelect.on('change', function() {
