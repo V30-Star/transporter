@@ -839,7 +839,7 @@ class Tr_prhController extends Controller
 
     private function findPrWithSupplier($fprhid, bool $includeSupplierCode = false)
     {
-        $selectColumns = ['tr_prh.*', 's.fsuppliername'];
+        $selectColumns = ['tr_prh.*', 's.fsuppliername', 's.fsuppliercode'];
 
         if ($includeSupplierCode) {
             $selectColumns[] = 's.fsuppliercode';
