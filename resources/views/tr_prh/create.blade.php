@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'Permintaan Pembelian')
+@section('title', 'Permintaan Pembelian - New')
 
 @section('content')
     <style>
@@ -134,6 +134,7 @@
     <div x-data="{ open: true }">
         <div class="bg-white rounded shadow p-6 md:p-8 max-w-[1600px] w-full mx-auto">
             <form action="{{ route('tr_prh.store') }}" method="POST" class="mt-6"
+                data-form-draft="true" data-draft-key="tr_prh:create"
                 @submit.prevent="window.dispatchEvent(new CustomEvent('tr-prh-submit-request'))">
                 @csrf
                 {{-- HEADER FORM --}}

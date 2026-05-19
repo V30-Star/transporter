@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', $action === 'delete' ? 'Hapus Order Pembelian' : ($action === 'view' ? 'Detail Order Pembelian' : 'Edit Order Pembelian'))
+@section('title', $action === 'delete' ? 'Order Pembelian - Delete' : ($action === 'view' ? 'Order Pembelian - View' : 'Order Pembelian - Edit'))
 
 @section('content')
     <style>

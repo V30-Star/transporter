@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'Mutasi Stock')
+@section('title', 'Mutasi Stock - New')
 
 @section('content')
     @php

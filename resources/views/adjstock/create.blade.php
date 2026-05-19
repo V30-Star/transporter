@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'Adjsustment Stock')
+@section('title', 'Adjsustment Stock - New')
 
 @section('content')
     <style>

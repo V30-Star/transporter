@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'Tambah Assembling')
+@section('title', 'Assembling - New')
 
 @section('content')
     @php

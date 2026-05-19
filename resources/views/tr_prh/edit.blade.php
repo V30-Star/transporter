@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', $action === 'delete' ? 'Hapus Permintaan Pembelian' : ($action === 'view' ? 'Detail Permintaan Pembelian' : 'Edit Permintaan Pembelian'))
+@section('title', $action === 'delete' ? 'Permintaan Pembelian - Delete' : ($action === 'view' ? 'Permintaan Pembelian - View' : 'Permintaan Pembelian - Edit'))
 
 @section('content')
     <style>
@@ -410,7 +410,9 @@
                 @endif
             @else
                 {{-- MODE EDIT --}}
-                <form action="{{ route('tr_prh.update', $tr_prh->fprhid) }}" method="POST" x-data="{ blockedByPO: {{ $blockedByPO ? 'true' : 'false' }} }"
+                <form action="{{ route('tr_prh.update', $tr_prh->fprhid) }}" method="POST"
+                    data-form-draft="true" data-draft-key="tr_prh:edit:{{ $tr_prh->fprhid }}"
+                    x-data="{ blockedByPO: {{ $blockedByPO ? 'true' : 'false' }} }"
                     @submit.prevent="window.dispatchEvent(new CustomEvent('tr-prh-edit-submit-request'))">
                     @csrf
                     @method('PATCH')
