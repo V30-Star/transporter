@@ -1117,8 +1117,6 @@ class PenerimaanBarangController extends Controller
                 continue;
             }
 
-            $prdCodeId = isset($prdIds[$i]) && $prdIds[$i] !== '' ? (int) $prdIds[$i] : (int) $meta->fprdid;
-
             if ($sat === '') {
                 $sat = $pickDefaultSat($meta);
             }
