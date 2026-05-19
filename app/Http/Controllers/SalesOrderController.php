@@ -940,6 +940,7 @@ class SalesOrderController extends Controller
                 $nextRefNo = $lastRefNo + 1;
 
                 $approvalState = $this->initializeApprovalState();
+                $fppnpersen = $fapplyppn === 1 ? (float) $request->input('ppn_rate', 11) : 0;
 
                 // C. Insert Header
                 $ftrsomtid = DB::table('trsomt')->insertGetId([
