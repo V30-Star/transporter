@@ -1072,7 +1072,7 @@
                             <p style="margin:0; color:#6b7280;">Silakan cek poin di atas lalu simpan lagi.</p>
                         </div>
                     `,
-                    confirmButtonText: 'Mengerti',
+                    confirmButtonText: 'Ok',
                     confirmButtonColor: '#f59e0b',
                     width: 560
                 });
