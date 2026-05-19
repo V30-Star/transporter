@@ -1087,6 +1087,12 @@ class SalesOrderController extends Controller
 
         $usageLockMessage = $this->getUsageLockMessage($salesorder);
 
+        if (! empty($usageLockMessage)) {
+            return redirect()
+                ->route('salesorder.view', $salesorder->ftrsomtid)
+                ->with('error', $usageLockMessage);
+        }
+
         $soRemainMap = $this->getSoRemainByIds($salesorder->details->pluck('ftrsodtid')->all());
 
         $savedItems = $salesorder->details->map(function ($d) use ($soRemainMap) {
@@ -1574,6 +1580,12 @@ class SalesOrderController extends Controller
         }
 
         $usageLockMessage = $this->getUsageLockMessage($salesorder);
+
+        if (! empty($usageLockMessage)) {
+            return redirect()
+                ->route('salesorder.view', $salesorder->ftrsomtid)
+                ->with('error', $usageLockMessage);
+        }
 
         $soRemainMap = $this->getSoRemainByIds($salesorder->details->pluck('ftrsodtid')->all());
 

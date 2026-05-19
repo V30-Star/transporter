@@ -1313,6 +1313,13 @@ class FakturpembelianController extends Controller
         $biayaGlobal = (float) $savedItems->sum(function ($item) {
             return ((float) ($item['fbiaya'] ?? 0)) * ((float) ($item['fqty'] ?? 0));
         });
+        $usageLockMessage = $this->getUsageLockMessage($fakturpembelian);
+
+        if (! empty($usageLockMessage)) {
+            return redirect()
+                ->route('fakturpembelian.view', $fakturpembelian->fstockmtid)
+                ->with('error', $usageLockMessage);
+        }
 
         return view('fakturpembelian.edit', [
             'suppliers' => $suppliers,
@@ -1333,8 +1340,8 @@ class FakturpembelianController extends Controller
             'famountponet' => (float) ($fakturpembelian->famountponet ?? 0),
             'famountpo' => (float) ($fakturpembelian->famountpo ?? 0),
             'filterSupplierId' => $request->query('filter_supplier_id'),
-            'isUsageLocked' => ! empty($this->getUsageLockMessage($fakturpembelian)),
-            'usageLockMessage' => $this->getUsageLockMessage($fakturpembelian),
+            'isUsageLocked' => false,
+            'usageLockMessage' => null,
             'action' => 'edit',
         ]);
     }
@@ -1430,6 +1437,13 @@ class FakturpembelianController extends Controller
         $biayaGlobal = (float) $savedItems->sum(function ($item) {
             return ((float) ($item['fbiaya'] ?? 0)) * ((float) ($item['fqty'] ?? 0));
         });
+        $usageLockMessage = $this->getUsageLockMessage($fakturpembelian);
+
+        if (! empty($usageLockMessage)) {
+            return redirect()
+                ->route('fakturpembelian.view', $fakturpembelian->fstockmtid)
+                ->with('error', $usageLockMessage);
+        }
 
         return view('fakturpembelian.edit', [
             'suppliers' => $suppliers,
@@ -1906,8 +1920,8 @@ class FakturpembelianController extends Controller
             'famountponet' => (float) ($fakturpembelian->famountponet ?? 0),
             'famountpo' => (float) ($fakturpembelian->famountpo ?? 0),
             'filterSupplierId' => $request->query('filter_supplier_id'),
-            'isUsageLocked' => ! empty($this->getUsageLockMessage($fakturpembelian)),
-            'usageLockMessage' => $this->getUsageLockMessage($fakturpembelian),
+            'isUsageLocked' => false,
+            'usageLockMessage' => null,
             'action' => 'delete',
         ]);
     }

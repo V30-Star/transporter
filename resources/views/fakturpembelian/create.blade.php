@@ -385,7 +385,7 @@
                         </div>
 
                         <div class="lg:col-span-4">
-                            <label class="block text-npsm font-medium mb-1">Faktur</label>
+                            <label class="block text-npsm font-medium">Faktur</label>
                             <div class="flex items-center gap-3">
                                 <input type="number" name="frefno" class="w-full border rounded px-3 py-2">
                                 <label class="inline-flex items-center select-none">
@@ -452,7 +452,7 @@
                         <div class="fpb-ket-biaya">
                             <div class="min-w-0">
                                 <label class="block text-sm font-medium">Keterangan</label>
-                                <textarea name="fket" rows="3"
+                                <textarea name="fket" rows="2"
                                     class="w-full h-[96px] resize-none border rounded px-3 py-2 @error('fket') border-red-500 @enderror"
                                     placeholder="Tulis keterangan tambahan di sini...">{{ old('fket') }}</textarea>
                                 @error('fket')
@@ -461,7 +461,7 @@
                             </div>
 
                             <div class="min-w-0 overflow-hidden">
-                                <label class="block text-sm font-medium mb-2">Hitung Biaya</label>
+                                <label class="block text-sm font-medium">Hitung Biaya</label>
                                 <div
                                     class="hpp-box h-[96px] bg-gray-50 p-3 rounded-lg border border-gray-200 shadow-sm flex items-center gap-3">
                                     <input type="number" x-model.number="biayaGlobal"

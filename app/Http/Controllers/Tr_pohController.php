@@ -1120,6 +1120,12 @@ class Tr_pohController extends Controller
 
         $blockedByTerima = $existingTerima->isNotEmpty();
 
+        if ($blockedByTerima) {
+            return redirect()
+                ->route('tr_poh.view', $tr_poh->fpohid)
+                ->with('error', $this->getUsageLockMessage($tr_poh));
+        }
+
         // Lookup currency berdasarkan fcurrency (integer ID) di tr_poh
         $currentCurrency = DB::table('mscurrency')
             ->where('fcurrid', $tr_poh->fcurrency)
@@ -1709,6 +1715,12 @@ class Tr_pohController extends Controller
             ->get();
 
         $blockedByTerima = $existingTerima->isNotEmpty();
+
+        if ($blockedByTerima) {
+            return redirect()
+                ->route('tr_poh.view', $tr_poh->fpohid)
+                ->with('error', $this->getUsageLockMessage($tr_poh));
+        }
 
         // Lookup currency berdasarkan fcurrency (integer ID) di tr_poh
         $currentCurrency = DB::table('mscurrency')

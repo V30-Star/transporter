@@ -426,6 +426,12 @@ class Tr_prhController extends Controller
         $tr_prh = $this->findPrWithSupplier($fprhid);
         $pageData = $this->buildPrPageData($tr_prh, true);
 
+        if ($pageData['blockedByPO']) {
+            return redirect()
+                ->route('tr_prh.view', $tr_prh->fprhid)
+                ->with('error', $this->getUsageLockMessage($tr_prh));
+        }
+
         return view('tr_prh.edit', [
             'suppliers' => $pageData['suppliers'],
             'fcabang' => $branchInfo['fcabang'],
@@ -643,6 +649,12 @@ class Tr_prhController extends Controller
         $branchInfo = $this->getCurrentBranchInfo();
         $tr_prh = $this->findPrWithSupplier($fprhid, true);
         $pageData = $this->buildPrPageData($tr_prh, false);
+
+        if ($pageData['blockedByPO']) {
+            return redirect()
+                ->route('tr_prh.view', $tr_prh->fprhid)
+                ->with('error', $this->getUsageLockMessage($tr_prh));
+        }
 
         return view('tr_prh.edit', [
             'suppliers' => $pageData['suppliers'],

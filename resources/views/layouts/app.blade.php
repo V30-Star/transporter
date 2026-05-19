@@ -1085,7 +1085,7 @@
 
                 Swal.fire({
                     icon: 'warning',
-                    title: options.title || 'Data Belum Bisa Disimpan',
+                    title: options.title || 'Information',
                     html: `
                         <div style="text-align:left; font-size:14px; line-height:1.6;">
                             <p style="margin:0 0 10px 0;">${escapeHtml(options.reason || inferReason(normalizedMessages))}</p>

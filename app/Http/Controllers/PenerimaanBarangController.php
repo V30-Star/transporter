@@ -939,6 +939,12 @@ class PenerimaanBarangController extends Controller
             : null;
         $usageLockMessage = $action === 'view' ? null : $this->getUsageLockMessage($penerimaanbarang);
 
+        if (in_array($action, ['edit', 'delete'], true) && ! empty($usageLockMessage)) {
+            return redirect()
+                ->route('penerimaanbarang.view', $penerimaanbarang->fstockmtid)
+                ->with('error', $usageLockMessage);
+        }
+
         $oldUsageByPod = $penerimaanbarang->details
             ->groupBy(fn($d) => (int) ($d->frefdtid ?? 0))
             ->map(fn($rows) => (float) $rows->sum(fn($r) => (float) ($r->fqtykecil ?? 0)))
