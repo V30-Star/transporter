@@ -439,7 +439,7 @@
 
                     </div>
 
-                    <div class="fpb-ket-biaya mt-4">
+                    <div class="fpb-ket-biaya">
                         <div class="min-w-0">
                             <label class="block text-sm font-medium">Keterangan</label>
                             <textarea name="fket" rows="3" readonly disabled
