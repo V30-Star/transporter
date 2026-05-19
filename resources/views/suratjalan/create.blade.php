@@ -129,6 +129,25 @@
         input[type=number] {
             -moz-appearance: textfield;
         }
+
+        .desc-inline-field {
+            display: flex !important;
+            width: 100%;
+            min-width: 0;
+            align-items: stretch;
+            flex-wrap: nowrap !important;
+        }
+
+        .desc-inline-field__text {
+            min-width: 0;
+            flex: 1 1 auto;
+        }
+
+        .desc-inline-field__button {
+            flex: 0 0 auto;
+            width: 2.5rem;
+            justify-content: center;
+        }
     </style>
     @if ($errors->any())
         <div class="alert alert-danger alert-dismissible fade show border-0 shadow p-0 overflow-hidden" role="alert">
@@ -342,11 +361,11 @@
                                                 </div>
                                             </td>
                                             <td class="p-2">
-                                                <div class="flex w-full max-w-full">
-                                                    <div class="min-w-0 flex-1 rounded-l border bg-gray-100 px-2 py-1 text-sm leading-5 text-gray-600 whitespace-normal break-words"
+                                                <div class="desc-inline-field">
+                                                    <div class="desc-inline-field__text rounded-l border bg-gray-100 px-2 py-1 text-sm leading-5 text-gray-600 whitespace-normal break-words"
                                                         x-text="it.fitemname"></div>
                                                     <button type="button" @click="openDesc(i)"
-                                                        class="shrink-0 inline-flex items-center border border-l-0 rounded-r bg-slate-50 px-2 py-1 text-slate-700 hover:bg-slate-100"
+                                                        class="desc-inline-field__button inline-flex items-center rounded-r border border-l-0 bg-slate-50 px-2 py-1 text-slate-700 hover:bg-slate-100"
                                                         title="Deskripsi">
                                                         <x-heroicon-o-document-text class="w-4 h-4" />
                                                     </button>
@@ -925,8 +944,6 @@
                     row?.frefdtno,
                     row?.frefpr,
                     row?.frefso,
-                    row?.fnoacak,
-                    row?.frefnoacak,
                     row?.fqty,
                     row?.fprice,
                     row?.ftotal,

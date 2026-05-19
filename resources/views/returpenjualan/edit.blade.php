@@ -2806,7 +2806,6 @@
                 return [
                     row.fitemcode,
                     row.fitemname,
-                    row.frefcode,
                     row.frefpr,
                     row.frefso,
                     row.frefsrj,
@@ -2815,7 +2814,7 @@
                 ].some(value => String(value ?? '').trim() !== '') ||
                     Number(row.fqty ?? 0) > 0 ||
                     Number(row.fprice ?? 0) > 0 ||
-                    String(row.fdisc ?? '').trim() !== '';
+                    Number(row.fdisc ?? 0) > 0;
             },
 
             isRowSavable(row) {

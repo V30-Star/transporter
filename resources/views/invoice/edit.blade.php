@@ -2262,8 +2262,6 @@
                     row?.frefpr,
                     row?.frefso,
                     row?.frefsrj,
-                    row?.fnoacak,
-                    row?.frefnoacak,
                     row?.fqty,
                     row?.fterima,
                     row?.fprice,
