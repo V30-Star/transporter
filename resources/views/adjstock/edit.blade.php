@@ -2618,6 +2618,7 @@
                                 start: d.start,
                                 length: d.length,
                                 search: d.search.value,
+                                fend: 1,
                                 // Menambahkan parameter order untuk sorting (diperlukan serverSide)
                                 order_column: d.columns[d.order[0].column].data,
                                 order_dir: d.order[0].dir
@@ -2952,4 +2953,3 @@
         });
     </script>
 @endpush
-

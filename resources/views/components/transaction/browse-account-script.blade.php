@@ -4,6 +4,7 @@
     $paginationId = $paginationId ?? 'accountTablePagination';
     $routeName = $routeName ?? 'accounts.browse';
     $openDelay = $openDelay ?? 0;
+    $fend = $fend ?? 1;
 @endphp
 
 <script>
@@ -32,7 +33,8 @@
                                 length: d.length,
                                 search: d.search.value,
                                 order_column: d.columns[d.order[0].column].data,
-                                order_dir: d.order[0].dir
+                                order_dir: d.order[0].dir,
+                                fend: @json($fend)
                             };
                         }
                     },
