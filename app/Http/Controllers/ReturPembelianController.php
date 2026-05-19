@@ -698,6 +698,12 @@ class ReturPembelianController extends Controller
 
         $usageLockMessage = $this->getUsageLockMessage($returpembelian);
 
+        if (! empty($usageLockMessage)) {
+            return redirect()
+                ->route('returpembelian.view', $returpembelian->fstockmtid)
+                ->with('error', $usageLockMessage);
+        }
+
         // 2. Ambil kode akun yang tersimpan dari faktur
         $savedAccountCode = $returpembelian->fprdjadi;
 
@@ -1202,6 +1208,12 @@ class ReturPembelianController extends Controller
             ->findOrFail($fstockmtid); // Temukan header berdasarkan $fstockmtid
 
         $usageLockMessage = $this->getUsageLockMessage($returpembelian);
+
+        if (! empty($usageLockMessage)) {
+            return redirect()
+                ->route('returpembelian.view', $returpembelian->fstockmtid)
+                ->with('error', $usageLockMessage);
+        }
 
         // 2. Ambil kode akun yang tersimpan dari faktur
         $savedAccountCode = $returpembelian->fprdjadi;

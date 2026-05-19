@@ -724,6 +724,12 @@ class MutasiController extends Controller
 
         $usageLockMessage = $this->getUsageLockMessage($mutasi);
 
+        if (! empty($usageLockMessage)) {
+            return redirect()
+                ->route('mutasi.view', $mutasi->fstockmtid)
+                ->with('error', $usageLockMessage);
+        }
+
         $savedItems = $mutasi->details->map(function ($d) {
             return [
                 'uid' => $d->fstockdtid,
@@ -1037,6 +1043,12 @@ class MutasiController extends Controller
             ->findOrFail($fstockmtid);
 
         $usageLockMessage = $this->getUsageLockMessage($mutasi);
+
+        if (! empty($usageLockMessage)) {
+            return redirect()
+                ->route('mutasi.view', $mutasi->fstockmtid)
+                ->with('error', $usageLockMessage);
+        }
 
         $savedItems = $mutasi->details->map(function ($d) {
             return [

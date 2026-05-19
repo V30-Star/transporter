@@ -25,8 +25,12 @@
                         <label class="block text-sm font-medium">Kode Salesman</label>
                         <input type="text" name="fsalesmancode"
                             value="{{ old('fsalesmancode', $salesman->fsalesmancode) }}"
-                            class="w-full border rounded px-3 py-2 uppercase @error('fsalesmancode') border-red-500 @enderror"
+                            class="w-full border rounded px-3 py-2 uppercase @error('fsalesmancode') border-red-500 @enderror {{ !empty($isTransactionLocked) ? 'bg-gray-100 text-gray-500 cursor-not-allowed' : '' }}"
+                            {{ !empty($isTransactionLocked) ? 'readonly' : '' }}
                             autofocus>
+                        @if (!empty($isTransactionLocked))
+                            <p class="text-amber-600 text-sm mt-1">Kode Salesman dikunci karena salesman ini sudah dipakai transaksi.</p>
+                        @endif
                         @error('fsalesmancode')
                             <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                         @enderror
@@ -71,4 +75,3 @@
         </div>
     </div>
 @endsection
-

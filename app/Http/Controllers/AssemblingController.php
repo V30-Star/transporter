@@ -724,6 +724,12 @@ class AssemblingController extends Controller
 
         $usageLockMessage = $this->getUsageLockMessage($assembling);
 
+        if (! empty($usageLockMessage)) {
+            return redirect()
+                ->route('assembling.view', $assembling->fstockmtid)
+                ->with('error', $usageLockMessage);
+        }
+
         // 4. Map the data for savedItems (sudah menggunakan data yang benar)
         $savedItems = $assembling->details->map(function ($d) {
             $fitemtype = 'barang_jadi'; // default
@@ -1233,6 +1239,12 @@ class AssemblingController extends Controller
         ])->findOrFail($fstockmtid);
 
         $usageLockMessage = $this->getUsageLockMessage($assembling);
+
+        if (! empty($usageLockMessage)) {
+            return redirect()
+                ->route('assembling.view', $assembling->fstockmtid)
+                ->with('error', $usageLockMessage);
+        }
 
         // 4. Map the data for savedItems (sudah menggunakan data yang benar)
         $savedItems = $assembling->details->map(function ($d) {

@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Salesman;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class SalesmanController extends Controller
 {
@@ -62,9 +63,11 @@ class SalesmanController extends Controller
     public function edit($fsalesmanid)
     {
         $salesman = Salesman::findOrFail($fsalesmanid);
+        $isTransactionLocked = $this->hasTransactionUsage($salesman);
 
         return view('salesman.edit', [
             'salesman' => $salesman,
+            'isTransactionLocked' => $isTransactionLocked,
             'action' => 'edit',
         ]);
     }
@@ -80,8 +83,11 @@ class SalesmanController extends Controller
 
     public function update(Request $request, $fsalesmanid)
     {
+        $salesman = Salesman::findOrFail($fsalesmanid);
+        $isTransactionLocked = $this->hasTransactionUsage($salesman);
+
         $request->merge([
-            'fsalesmancode' => strtoupper($request->fsalesmancode),
+            'fsalesmancode' => strtoupper($isTransactionLocked ? $salesman->fsalesmancode : $request->fsalesmancode),
         ]);
 
         $validated = $request->validate(
@@ -103,7 +109,10 @@ class SalesmanController extends Controller
         $validated['fupdatedby'] = auth('sysuser')->user()->fname ?? null;
         $validated['fupdatedat'] = now();
 
-        $salesman = Salesman::findOrFail($fsalesmanid);
+        if ($isTransactionLocked) {
+            $validated['fsalesmancode'] = $salesman->fsalesmancode;
+        }
+
         $salesman->update($validated);
 
         return redirect()
@@ -115,6 +124,10 @@ class SalesmanController extends Controller
     {
         $salesman = Salesman::findOrFail($fsalesmanid);
 
+        if ($message = $this->getUsageLockMessage($salesman)) {
+            return redirect()->route('salesman.view', $salesman->fsalesmanid)->with('error', $message);
+        }
+
         return view('salesman.delete', [
             'salesman' => $salesman,
         ]);
@@ -125,11 +138,16 @@ class SalesmanController extends Controller
         try {
             $salesman = Salesman::findOrFail($fsalesmanid);
 
-            if (\Illuminate\Support\Facades\DB::table('mscustomer')->where('fsalesman', $salesman->fsalesmanid)->exists()) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Salesman sudah digunakan dalam data Customer.',
-                ], 422);
+            if ($message = $this->getUsageLockMessage($salesman)) {
+                if (request()->expectsJson()) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => $message,
+                        'redirect' => route('salesman.view', $salesman->fsalesmanid),
+                    ], 422);
+                }
+
+                return redirect()->route('salesman.view', $salesman->fsalesmanid)->with('error', $message);
             }
 
             $salesman->delete();
@@ -186,5 +204,19 @@ class SalesmanController extends Controller
             'recordsFiltered' => (int) $recordsFiltered,
             'data' => $data,
         ]);
+    }
+
+    private function hasTransactionUsage(Salesman $salesman): bool
+    {
+        return DB::table('mscustomer')->where('fsalesman', $salesman->fsalesmanid)->exists();
+    }
+
+    private function getUsageLockMessage(Salesman $salesman): ?string
+    {
+        if (! $this->hasTransactionUsage($salesman)) {
+            return null;
+        }
+
+        return 'Salesman '.$salesman->fsalesmancode.' tidak bisa dihapus karena sudah dipakai transaksi.';
     }
 }

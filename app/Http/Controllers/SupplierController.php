@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Supplier;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class SupplierController extends Controller
 {
@@ -82,9 +83,11 @@ class SupplierController extends Controller
     public function edit($fsupplierid)
     {
         $supplier = Supplier::findOrFail($fsupplierid);
+        $isTransactionLocked = $this->hasTransactionUsage($supplier);
 
         return view('supplier.edit', [
             'supplier' => $supplier,
+            'isTransactionLocked' => $isTransactionLocked,
             'action' => 'edit',
         ]);
     }
@@ -100,8 +103,11 @@ class SupplierController extends Controller
 
     public function update(Request $request, $fsupplierid)
     {
+        $supplier = Supplier::findOrFail($fsupplierid);
+        $isTransactionLocked = $this->hasTransactionUsage($supplier);
+
         $request->merge([
-            'fsuppliercode' => strtoupper($request->fsuppliercode),
+            'fsuppliercode' => strtoupper($isTransactionLocked ? $supplier->fsuppliercode : $request->fsuppliercode),
         ]);
 
         $validated = $request->validate(
@@ -138,7 +144,10 @@ class SupplierController extends Controller
         $validated['fupdatedby'] = auth('sysuser')->user()->fname ?? null; // Use the authenticated user's name or 'system' as default
         $validated['fupdatedat'] = now(); // Use the current time
 
-        $supplier = Supplier::findOrFail($fsupplierid);
+        if ($isTransactionLocked) {
+            $validated['fsuppliercode'] = $supplier->fsuppliercode;
+        }
+
         $supplier->update($validated);
 
         return redirect()
@@ -150,6 +159,10 @@ class SupplierController extends Controller
     {
         $supplier = Supplier::findOrFail($fsupplierid);
 
+        if ($message = $this->getUsageLockMessage($supplier)) {
+            return redirect()->route('supplier.view', $supplier->fsupplierid)->with('error', $message);
+        }
+
         return view('supplier.delete', [
             'supplier' => $supplier,
         ]);
@@ -160,11 +173,16 @@ class SupplierController extends Controller
         try {
             $supplier = Supplier::findOrFail($fsupplierid);
 
-            if (\Illuminate\Support\Facades\DB::table('tr_poh')->where('fsupplier', $supplier->fsupplierid)->exists()) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Supplier sudah digunakan dalam data PO (Purchase Order).',
-                ], 422);
+            if ($message = $this->getUsageLockMessage($supplier)) {
+                if (request()->expectsJson()) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => $message,
+                        'redirect' => route('supplier.view', $supplier->fsupplierid),
+                    ], 422);
+                }
+
+                return redirect()->route('supplier.view', $supplier->fsupplierid)->with('error', $message);
             }
 
             $supplier->delete();
@@ -223,5 +241,27 @@ class SupplierController extends Controller
             'recordsFiltered' => (int) $recordsFiltered,
             'data' => $data,
         ]);
+    }
+
+    private function hasTransactionUsage(Supplier $supplier): bool
+    {
+        $supplierCode = trim((string) $supplier->fsuppliercode);
+
+        if ($supplierCode === '') {
+            return false;
+        }
+
+        return DB::table('tr_prh')->where('fsupplier', $supplierCode)->exists()
+            || DB::table('tr_poh')->where('fsupplier', $supplierCode)->exists()
+            || DB::table('trstockmt')->where('fsupplier', $supplierCode)->exists();
+    }
+
+    private function getUsageLockMessage(Supplier $supplier): ?string
+    {
+        if (! $this->hasTransactionUsage($supplier)) {
+            return null;
+        }
+
+        return 'Supplier ' . $supplier->fsuppliercode . ' tidak bisa dihapus karena sudah dipakai transaksi.';
     }
 }

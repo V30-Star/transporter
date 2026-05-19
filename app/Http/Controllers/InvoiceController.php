@@ -1472,16 +1472,24 @@ class InvoiceController extends Controller
                 ->orderBy('trandt.ftrandtid', 'asc');
         }])->findOrFail($ftranmtid);
 
+        if ($message = $this->getApprovalLockMessage($invoice)) {
+            return redirect()->route('invoice.view', $invoice->ftranmtid)->with('error', $message);
+        }
+
         if (! $invoice->customer) {
             $invoice->setRelation('customer', Customer::where('fcustomercode', trim((string) $invoice->fcustno))->first());
         }
 
         $usageLockMessage = $this->getUsageLockMessage($invoice);
 
+        if (! empty($usageLockMessage)) {
+            return redirect()->route('invoice.view', $invoice->ftranmtid)->with('error', $usageLockMessage);
+        }
+
         $referenceSummary = $this->getReferenceSummaryByTranNo((string) $invoice->fsono);
 
         $savedItems = $invoice->details->map(function ($d) use ($referenceSummary) {
-            $refCode = trim($d->frefcode ?? '');
+            $refCode = trim($d->frefcode ?? '');    
             if (empty($refCode)) {
                 if (! empty(trim($d->frefso ?? ''))) {
                     $refCode = 'SO';
@@ -2022,6 +2030,10 @@ class InvoiceController extends Controller
         }
 
         $usageLockMessage = $this->getUsageLockMessage($invoice);
+
+        if (! empty($usageLockMessage)) {
+            return redirect()->route('invoice.view', $invoice->ftranmtid)->with('error', $usageLockMessage);
+        }
 
         $referenceSummary = $this->getReferenceSummaryByTranNo((string) $invoice->fsono);
 

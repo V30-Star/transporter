@@ -954,6 +954,12 @@ class SuratJalanController extends Controller
 
         // 4. Map the data for savedItems (sudah menggunakan data yang benar)
         $usageLockMessage = $this->getUsageLockMessage($suratjalan);
+
+        if (! empty($usageLockMessage)) {
+            return redirect()
+                ->route('suratjalan.view', $suratjalan->fstockmtid)
+                ->with('error', $usageLockMessage);
+        }
         $soReferenceStats = $this->getSoReferenceStats(
             $suratjalan->details->pluck('frefso')->filter()->map(fn($value) => trim((string) $value))->unique()->values()->all(),
             $suratjalan->fstockmtno
@@ -1621,6 +1627,12 @@ class SuratJalanController extends Controller
 
         // 4. Map the data for savedItems (sudah menggunakan data yang benar)
         $usageLockMessage = $this->getUsageLockMessage($suratjalan);
+
+        if (! empty($usageLockMessage)) {
+            return redirect()
+                ->route('suratjalan.view', $suratjalan->fstockmtid)
+                ->with('error', $usageLockMessage);
+        }
         $soReferenceStats = $this->getSoReferenceStats(
             $suratjalan->details->pluck('frefso')->filter()->map(fn($value) => trim((string) $value))->unique()->values()->all(),
             $suratjalan->fstockmtno

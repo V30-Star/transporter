@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Cabang;
 use App\Models\Wh;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class WhController extends Controller
 {
@@ -84,6 +85,7 @@ class WhController extends Controller
     public function edit($fwhid)
     {
         $gudang = Wh::findOrFail($fwhid);
+        $isTransactionLocked = $this->hasTransactionUsage($gudang);
 
         $cabangOptions = Cabang::query()
             ->selectRaw('TRIM(BOTH FROM fcabangkode) AS fbranchcode, fcabangname')
@@ -95,6 +97,7 @@ class WhController extends Controller
         return view('gudang.edit', [
             'gudang' => $gudang,
             'cabangOptions' => $cabangOptions,
+            'isTransactionLocked' => $isTransactionLocked,
             'action' => 'edit',
         ]);
     }
@@ -121,8 +124,11 @@ class WhController extends Controller
      */
     public function update(Request $request, $fwhid)
     {
+        $gudang = Wh::findOrFail($fwhid);
+        $isTransactionLocked = $this->hasTransactionUsage($gudang);
+
         $request->merge([
-            'fwhcode' => strtoupper($request->fwhcode),
+            'fwhcode' => strtoupper($isTransactionLocked ? $gudang->fwhcode : $request->fwhcode),
         ]);
 
         $validated = $request->validate(
@@ -150,7 +156,10 @@ class WhController extends Controller
         $validated['fupdatedat'] = now(); // Use the current time
 
         // Cari dan update
-        $gudang = Wh::findOrFail($fwhid);
+        if ($isTransactionLocked) {
+            $validated['fwhcode'] = $gudang->fwhcode;
+        }
+
         $gudang->update($validated);
 
         return redirect()
@@ -162,6 +171,10 @@ class WhController extends Controller
     {
         $gudang = Wh::findOrFail($fwhid);
 
+        if ($message = $this->getUsageLockMessage($gudang)) {
+            return redirect()->route('gudang.view', $gudang->fwhid)->with('error', $message);
+        }
+
         return view('gudang.delete', [
             'gudang' => $gudang,
         ]);
@@ -172,11 +185,16 @@ class WhController extends Controller
         try {
             $gudang = Wh::findOrFail($fwhid);
 
-            if (\Illuminate\Support\Facades\DB::table('trstockmt')->where('ffrom', $gudang->fwhid)->exists()) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Gudang sudah digunakan dalam Transaksi Stok.',
-                ], 422);
+            if ($message = $this->getUsageLockMessage($gudang)) {
+                if (request()->expectsJson()) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => $message,
+                        'redirect' => route('gudang.view', $gudang->fwhid),
+                    ], 422);
+                }
+
+                return redirect()->route('gudang.view', $gudang->fwhid)->with('error', $message);
             }
 
             $gudang->delete();
@@ -261,5 +279,26 @@ class WhController extends Controller
             'recordsFiltered' => (int) $recordsFiltered,
             'data' => $data,
         ]);
+    }
+
+    private function hasTransactionUsage(Wh $gudang): bool
+    {
+        $warehouseCode = trim((string) $gudang->fwhcode);
+
+        if ($warehouseCode === '') {
+            return false;
+        }
+
+        return DB::table('trstockmt')->where('ffrom', $warehouseCode)->exists()
+            || DB::table('trstockmt')->where('fto', $warehouseCode)->exists();
+    }
+
+    private function getUsageLockMessage(Wh $gudang): ?string
+    {
+        if (! $this->hasTransactionUsage($gudang)) {
+            return null;
+        }
+
+        return 'Gudang '.$gudang->fwhcode.' tidak bisa dihapus karena sudah dipakai transaksi.';
     }
 }

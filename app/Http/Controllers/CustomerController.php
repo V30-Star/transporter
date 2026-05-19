@@ -271,6 +271,7 @@ class CustomerController extends Controller
     {
         // Find Customer by primary key
         $customer = Customer::findOrFail($fcustomerid);
+        $isTransactionLocked = $this->hasTransactionUsage($customer);
         $groups = Groupcustomer::where('fnonactive', 0)->get();
         $salesman = Salesman::where('fnonactive', 0)->get();
         $wilayah = Wilayah::where('fnonactive', 0)->get();
@@ -284,6 +285,7 @@ class CustomerController extends Controller
             'wilayah' => $wilayah,
             'rekening' => $rekening,
             'newCustomerCode' => $newCustomerCode,
+            'isTransactionLocked' => $isTransactionLocked,
             'action' => 'edit',
         ]);
     }
@@ -313,11 +315,12 @@ class CustomerController extends Controller
     {
         // 1. Ambil data customer yang lama
         $customer = Customer::findOrFail($fcustomerid);
+        $isTransactionLocked = $this->hasTransactionUsage($customer);
 
         // 2. LOGIKA PENANGANAN fcustomercode
 
         // Kondisi: Jika input 'fcustomercode' kosong atau NULL
-        if (empty($request->fcustomercode)) {
+        if ($isTransactionLocked || empty($request->fcustomercode)) {
 
             // JIKA KOSONG: Ambil dan gunakan nilai yang lama dari database
             $request->merge([
@@ -395,6 +398,9 @@ class CustomerController extends Controller
         $validated['fnonactive'] = $request->has('fnonactive') ? '1' : '0';
 
         $validated['fcurrency'] = 'IDR';
+        if ($isTransactionLocked) {
+            $validated['fcustomercode'] = $customer->fcustomercode;
+        }
         $customer->update($validated);
 
         return redirect()
@@ -406,6 +412,10 @@ class CustomerController extends Controller
     {
         $customer = Customer::findOrFail($fcustomerid);
 
+        if ($message = $this->getUsageLockMessage($customer)) {
+            return redirect()->route('customer.view', $customer->fcustomerid)->with('error', $message);
+        }
+
         return view('customer.delete', [
             'customer' => $customer,
         ]);
@@ -416,11 +426,16 @@ class CustomerController extends Controller
         try {
             $customer = Customer::findOrFail($fcustomerid);
 
-            if (\Illuminate\Support\Facades\DB::table('trsomt')->where('fcustno', $customer->fcustomerid)->exists()) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Customer sudah digunakan dalam transaksi Sales Order.',
-                ], 422);
+            if ($message = $this->getUsageLockMessage($customer)) {
+                if (request()->expectsJson()) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => $message,
+                        'redirect' => route('customer.view', $customer->fcustomerid),
+                    ], 422);
+                }
+
+                return redirect()->route('customer.view', $customer->fcustomerid)->with('error', $message);
             }
 
             $customer->delete();
@@ -536,5 +551,27 @@ class CustomerController extends Controller
             'recordsFiltered' => (int) $recordsFiltered,
             'data' => $data,
         ]);
+    }
+
+    private function hasTransactionUsage(Customer $customer): bool
+    {
+        $customerCode = trim((string) $customer->fcustomercode);
+
+        if ($customerCode === '') {
+            return false;
+        }
+
+        return DB::table('trsomt')->where('fcustno', $customerCode)->exists()
+            || DB::table('tranmt')->where('fcustno', $customerCode)->exists()
+            || DB::table('trstockmt')->where('fsupplier', $customerCode)->exists();
+    }
+
+    private function getUsageLockMessage(Customer $customer): ?string
+    {
+        if (! $this->hasTransactionUsage($customer)) {
+            return null;
+        }
+
+        return 'Customer '.$customer->fcustomercode.' tidak bisa dihapus karena sudah dipakai transaksi.';
     }
 }

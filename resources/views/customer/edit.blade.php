@@ -121,17 +121,21 @@
                 @method('PATCH')
 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
-                    <div x-data="{ autoCode: true }" class="flex items-center gap-4">
+                    <div x-data="{ autoCode: {{ !empty($isTransactionLocked) ? 'true' : 'true' }} }" class="flex items-center gap-4">
                         <div class="flex-1">
                             <label class="block text-sm font-medium">Kode Customer</label>
                             <input type="text" name="fcustomercode" class="w-full border rounded px-3 py-2 uppercase"
-                                placeholder="Masukkan Kode Customer" :disabled="autoCode"
+                                placeholder="Masukkan Kode Customer" :disabled="autoCode || {{ !empty($isTransactionLocked) ? 'true' : 'false' }}"
                                 :value="autoCode ? '{{ $customer->fcustomercode }}' : '{{ old('fcustomercode', $customer->fcustomercode) }}'"
-                                :class="autoCode ? 'bg-gray-200 cursor-not-allowed' : 'bg-white'">
+                                :class="(autoCode || {{ !empty($isTransactionLocked) ? 'true' : 'false' }}) ? 'bg-gray-200 cursor-not-allowed' : 'bg-white'">
+                            @if (!empty($isTransactionLocked))
+                                <p class="text-amber-600 text-sm mt-1">Kode Customer dikunci karena customer ini sudah dipakai transaksi.</p>
+                            @endif
                         </div>
 
-                        <label class="inline-flex items-center mt-6">
+                        <label class="inline-flex items-center mt-6 {{ !empty($isTransactionLocked) ? 'opacity-60 cursor-not-allowed' : '' }}">
                             <input type="checkbox" x-model="autoCode" class="form-checkbox text-indigo-600 uppercase"
+                                {{ !empty($isTransactionLocked) ? 'disabled' : '' }}
                                 {{ old('fcustomercode', $customer->fcustomercode) ? 'checked' : '' }}>
                             <span class="ml-2 text-sm text-gray-700">Auto</span>
                         </label>
@@ -557,4 +561,3 @@
         });
     });
 </script>
-

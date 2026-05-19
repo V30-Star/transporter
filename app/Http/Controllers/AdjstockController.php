@@ -666,6 +666,12 @@ class AdjstockController extends Controller
 
         $usageLockMessage = $this->getUsageLockMessage($adjstock);
 
+        if (! empty($usageLockMessage)) {
+            return redirect()
+                ->route('adjstock.view', $adjstock->fstockmtid)
+                ->with('error', $usageLockMessage);
+        }
+
         // 4. Map the data for savedItems (sudah menggunakan data yang benar)
         $savedItems = $adjstock->details->map(function ($d) {
             return [
@@ -1144,6 +1150,12 @@ class AdjstockController extends Controller
             ->findOrFail($fstockmtid); // Temukan header berdasarkan $fstockmtid dari URL
 
         $usageLockMessage = $this->getUsageLockMessage($adjstock);
+
+        if (! empty($usageLockMessage)) {
+            return redirect()
+                ->route('adjstock.view', $adjstock->fstockmtid)
+                ->with('error', $usageLockMessage);
+        }
 
         // 4. Map the data for savedItems (sudah menggunakan data yang benar)
         $savedItems = $adjstock->details->map(function ($d) {

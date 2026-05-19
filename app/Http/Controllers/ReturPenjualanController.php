@@ -1233,6 +1233,12 @@ class ReturPenjualanController extends Controller
 
         $usageLockMessage = $this->getUsageLockMessage($returpenjualan);
 
+        if (! empty($usageLockMessage)) {
+            return redirect()
+                ->route('returpenjualan.view', $returpenjualan->ftranmtid)
+                ->with('error', $usageLockMessage);
+        }
+
         $referenceSummary = $this->getReferenceSummaryByTranNo((string) $returpenjualan->fsono);
 
         $savedItems = $returpenjualan->details->map(function ($d) use ($referenceSummary) {
@@ -1795,6 +1801,13 @@ class ReturPenjualanController extends Controller
         }
 
         $usageLockMessage = $this->getUsageLockMessage($returpenjualan);
+
+        if (! empty($usageLockMessage)) {
+            return redirect()
+                ->route('returpenjualan.view', $returpenjualan->ftranmtid)
+                ->with('error', $usageLockMessage);
+        }
+
         $referenceSummary = $this->getReferenceSummaryByTranNo((string) $returpenjualan->fsono);
 
         $savedItems = $returpenjualan->details->map(function ($d) use ($referenceSummary) {

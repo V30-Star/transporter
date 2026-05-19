@@ -748,6 +748,12 @@ class PemakaianbarangController extends Controller
 
         $usageLockMessage = $this->getUsageLockMessage($pemakaianbarang);
 
+        if (! empty($usageLockMessage)) {
+            return redirect()
+                ->route('pemakaianbarang.view', $pemakaianbarang->fstockmtid)
+                ->with('error', $usageLockMessage);
+        }
+
         // 4. Map the data for savedItems (sudah menggunakan data yang benar)
         $savedItems = $pemakaianbarang->details->map(function ($d) {
             $accountCode = trim((string) ($d->frefdtno ?? '')) ?: null;
@@ -1260,6 +1266,12 @@ class PemakaianbarangController extends Controller
         ])->findOrFail($fstockmtid);
 
         $usageLockMessage = $this->getUsageLockMessage($pemakaianbarang);
+
+        if (! empty($usageLockMessage)) {
+            return redirect()
+                ->route('pemakaianbarang.view', $pemakaianbarang->fstockmtid)
+                ->with('error', $usageLockMessage);
+        }
 
         // 4. Map the data for savedItems (sudah menggunakan data yang benar)
         $savedItems = $pemakaianbarang->details->map(function ($d) {
