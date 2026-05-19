@@ -71,15 +71,6 @@
             </div>
         </div>
 
-        <div id="warehouseColumnFilterTemplate" class="hidden">
-            <select data-role="warehouse-column-filter" class="w-full border rounded px-2 py-1 text-sm">
-                <option value="">{{ "Semua Gudang" }}</option>
-                @foreach ($availableWarehouses as $warehouseName)
-                    <option value="{{ $warehouseName }}">{{ $warehouseName }}</option>
-                @endforeach
-            </select>
-        </div>
-
         <table id="penerimaanbarangTable" class="min-w-full border text-sm">
             <thead class="bg-gray-100">
                 <tr>
@@ -87,7 +78,24 @@
                     <th class="border px-2 py-1">{{ "Tanggal" }}</th>
                     <th class="border px-2 py-1">{{ "No.Ref" }}</th>
                     <th class="border px-2 py-1">{{ "SO#" }}</th>
-                    <th class="border px-2 py-1">{{ "Gudang" }}</th>
+                    <th class="border px-2 py-1">
+                        <div class="flex items-center justify-between">
+                            <span>{{ "Gudang" }}</span>
+                            <button type="button" class="col-search-btn p-1 hover:bg-gray-200 rounded"
+                                data-column="4" title="Cari Gudang">
+                                <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor"
+                                    viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                                </svg>
+                            </button>
+                        </div>
+                        <div class="col-search-input mt-2 hidden">
+                            <input type="text"
+                                class="dt-column-search w-full px-2 py-1.5 border border-gray-300 rounded text-sm focus:outline-none focus:ring-1 focus:ring-blue-500"
+                                data-column="4" placeholder="Cari gudang...">
+                        </div>
+                    </th>
                     <th class="border px-2 py-1">{{ "Nama Customer" }}</th>
 
                     @if ($showActionsColumn)
@@ -95,19 +103,6 @@
                     @endif
                 </tr>
             </thead>
-            <tfoot>
-                <tr>
-                    <th class="border px-2 py-1"></th>
-                    <th class="border px-2 py-1"></th>
-                    <th class="border px-2 py-1"></th>
-                    <th class="border px-2 py-1"></th>
-                    <th class="border px-2 py-1"></th>
-                    <th class="border px-2 py-1"></th>
-                    @if ($showActionsColumn)
-                        <th class="border px-2 py-1"></th>
-                    @endif
-                </tr>
-            </tfoot>
             <tbody>
                 {{-- KOSONGKAN BAGIAN INI --}}
             </tbody>
@@ -338,6 +333,7 @@
             const canView = {{ $canView ? 'true' : 'false' }};
             const canEdit = {{ $canEdit ? 'true' : 'false' }};
             const canDelete = {{ $canDelete ? 'true' : 'false' }};
+            let activeColumnSearch = null;
 
             // 1. Definisi Kolom
             const columns = [{
@@ -457,6 +453,7 @@
                 },
                 initComplete: function() {
                     const api = this.api();
+                    const $container = $(api.table().container());
                     const $toolbarSearch = $(api.table().container()).find('.dt-search');
 
                     // Clone year filter
@@ -473,22 +470,6 @@
 
                     const $searchInput = $toolbarSearch.find('.dt-input');
                     $searchInput.attr('placeholder', 'Cari No.Transaksi / No.Ref / SO / Customer');
-
-                    const gudangColumnIdx = api.columns().indexes().toArray()
-                        .find(i => api.column(i).dataSrc() === 'fgudang');
-
-                    if (gudangColumnIdx !== undefined) {
-                        const footerCell = api.column(gudangColumnIdx).footer();
-                        if (footerCell) {
-                            const $warehouseFilter = $('#warehouseColumnFilterTemplate select')
-                                .clone(true, true);
-                            $(footerCell).empty().append($warehouseFilter);
-
-                            $warehouseFilter.on('change', function() {
-                                api.column(gudangColumnIdx).search(this.value).draw();
-                            });
-                        }
-                    }
 
                     // Event handlers untuk Year dan Month
                     $yearSelect.on('change', function() {
@@ -521,6 +502,63 @@
 
                         window.history.pushState({}, '', url.toString());
                     }
+
+                    function hasColumnSearchValue(columnIndex) {
+                        const $input = $container.find(`.dt-column-search[data-column="${columnIndex}"]`);
+                        return ($input.val() || '').trim() !== '';
+                    }
+
+                    function syncColumnSearchVisibility() {
+                        $container.find('.col-search-input').each(function() {
+                            const $wrapper = $(this);
+                            const $input = $wrapper.find('.dt-column-search');
+                            const columnIndex = Number($input.data('column'));
+                            const shouldShow = activeColumnSearch === columnIndex || hasColumnSearchValue(
+                                columnIndex);
+                            $wrapper.toggleClass('hidden', !shouldShow);
+                        });
+                    }
+
+                    $container.on('click', '.col-search-btn', function(e) {
+                        e.stopPropagation();
+                        const columnIndex = Number($(this).data('column'));
+                        const $th = $(this).closest('th');
+                        const $searchInputWrap = $th.find('.col-search-input');
+
+                        if (activeColumnSearch === columnIndex && !$searchInputWrap.hasClass('hidden')) {
+                            activeColumnSearch = null;
+                            syncColumnSearchVisibility();
+                            return;
+                        }
+
+                        activeColumnSearch = columnIndex;
+                        syncColumnSearchVisibility();
+
+                        if (!$searchInputWrap.hasClass('hidden')) {
+                            $searchInputWrap.find('input').focus();
+                        }
+                    });
+
+                    $container.on('input', '.dt-column-search', function() {
+                        const columnIndex = Number($(this).data('column'));
+                        const searchValue = $(this).val();
+                        api.column(columnIndex).search(searchValue).draw();
+                    });
+
+                    $(document).on('click.suratjalan-column-search', function(e) {
+                        if (!$(e.target).closest('.col-search-btn').length && !$(e.target).closest(
+                                '.col-search-input').length) {
+                            if (activeColumnSearch !== null && hasColumnSearchValue(activeColumnSearch)) {
+                                syncColumnSearchVisibility();
+                                return;
+                            }
+
+                            activeColumnSearch = null;
+                            syncColumnSearchVisibility();
+                        }
+                    });
+
+                    syncColumnSearchVisibility();
                 }
             });
         });
