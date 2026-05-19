@@ -486,7 +486,7 @@
                             x-transition.scale>
                             <div class="px-5 py-4 border-b flex items-center">
                                 <x-heroicon-o-document-text class="w-6 h-6 text-blue-600 mr-2" />
-                                <h3 class="text-lg font-semibold text-gray-800">Isi Deskripsi Item</h3>
+                                <h3 class="text-lg font-semibold text-gray-800">Deskripsi Item</h3>
                             </div>
 
                             <div class="px-5 py-4 space-y-4">

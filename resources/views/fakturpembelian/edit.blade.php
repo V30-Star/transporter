@@ -696,23 +696,10 @@
                                 </div>
 
                                 <div class="px-5 py-4 space-y-4">
-                                    <div class="rounded-lg border border-slate-200 bg-slate-50 px-4 py-3">
-                                        <div class="flex items-start justify-between gap-3">
-                                            <div class="space-y-2 text-sm text-slate-700">
-                                                <div>
-                                                    <span class="font-medium text-slate-900">Kode Produk:</span>
-                                                    <span x-text="descItemCode || '-'"></span>
-                                                </div>
-                                                <div>
-                                                    <span class="font-medium text-slate-900">Nama Produk:</span>
-                                                    <span x-text="descItemName || '-'"></span>
-                                                </div>
-                                            </div>
-                                            <button type="button" @click="copyDescPayload()"
-                                                class="inline-flex h-9 items-center rounded-lg border border-slate-200 bg-white px-3 text-sm font-medium text-slate-700 hover:bg-slate-100">
-                                                <span x-text="descCopied ? 'Tersalin' : 'Copy'"></span>
-                                            </button>
-                                        </div>
+                                    <div>
+                                        <div class="mb-1 text-sm text-gray-700">Nama Produk</div>
+                                        <div class="rounded-lg border bg-gray-50 px-3 py-2 text-sm text-gray-800"
+                                            x-text="descItemName || '-'"></div>
                                     </div>
                                     <label class="block text-sm text-gray-700">Deskripsi</label>
                                     <textarea x-model="descValue" rows="5" class="w-full border rounded px-3 py-2" readonly

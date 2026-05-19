@@ -1188,7 +1188,7 @@
                                 </div>
 
                                 <div class="px-5 py-3 border-t flex items-center justify-end gap-2">
-                                    <button type="button" @click="$store.mutasiDesc.copyName()"
+                                    <button x-show="!$store.mutasiDesc.readonly" type="button" @click="$store.mutasiDesc.copyName()"
                                         class="h-9 px-4 rounded-lg bg-blue-50 text-blue-700 text-sm font-medium hover:bg-blue-100">
                                         Copy
                                     </button>
