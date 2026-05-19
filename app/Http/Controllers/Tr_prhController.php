@@ -39,9 +39,9 @@ class Tr_prhController extends Controller
         $year = $request->query('year');
         $month = $request->query('month');
 
-        $availableYears = Tr_prh::selectRaw('DISTINCT EXTRACT(YEAR FROM fcreatedat) as year')
-            ->whereNotNull('fcreatedat')
-            ->orderByRaw('EXTRACT(YEAR FROM fcreatedat) DESC')
+        $availableYears = Tr_prh::selectRaw('DISTINCT EXTRACT(YEAR FROM tr_prh.fcreatedat) as year')
+            ->whereNotNull('tr_prh.fcreatedat')
+            ->orderByRaw('EXTRACT(YEAR FROM tr_prh.fcreatedat) DESC')
             ->pluck('year');
 
         if ($request->ajax()) {
@@ -81,11 +81,11 @@ class Tr_prhController extends Controller
                 $query->where('tr_prh.fclose', '1');
             }
             if ($year) {
-                $query->whereRaw('EXTRACT(YEAR FROM fcreatedat) = ?', [$year]);
+                $query->whereRaw('EXTRACT(YEAR FROM tr_prh.fcreatedat) = ?', [$year]);
             }
 
             if ($month) {
-                $query->whereRaw('EXTRACT(MONTH FROM fcreatedat) = ?', [$month]);
+                $query->whereRaw('EXTRACT(MONTH FROM tr_prh.fcreatedat) = ?', [$month]);
             }
 
             $filteredRecords = (clone $query)->count();
