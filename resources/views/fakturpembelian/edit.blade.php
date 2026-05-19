@@ -148,11 +148,12 @@
         $currentType = old('ftypebuy', $fakturpembelian->ftypebuy);
         $currentAccount = trim((string) old('fprdjadi', $fakturpembelian->fprdjadi));
         $currentAccountId = old('faccid', $fakturpembelian->fprdjadiid);
-        $currentPpnAmount = old('famountpajak', $fakturpembelian->famountpajak ?? 0);
+        $currentPpnAmount = old('famountpajak', $ppnAmount ?? $fakturpembelian->famountpopajak ?? $fakturpembelian->famountpajak ?? 0);
         $currentSubtotal = old('famount', $fakturpembelian->famount ?? 0);
         $includePPN = old('fapplyppn', $fakturpembelian->fapplyppn ?? 0);
         $ppnMode = old('fincludeppn', $fakturpembelian->fincludeppn ?? 0);
-        $ppnRate = old('ppn_rate', $fakturpembelian->fppnpersen ?? 11);
+        $storedPpnRate = (float) ($fakturpembelian->fppnpersen ?? 0);
+        $ppnRate = old('ppn_rate', $storedPpnRate > 0 ? $storedPpnRate : 11);
         $usageLocked = !empty($isUsageLocked);
     @endphp
 
@@ -632,13 +633,13 @@
                                             x-text="rupiah(totalDPP)"></span>
                                     </div>
 
-                                    <div class="flex items-center justify-between gap-6">
+                                    <div class="flex items-center gap-3">
                                         <!-- Checkbox -->
                                         <div class="flex items-center">
                                             <input disabled id="fapplyppn" type="checkbox" name="fapplyppn"
                                                 value="1" x-model="includePPN"
                                                 class="h-4 w-4 text-blue-600 border-gray-300 rounded">
-                                            <label for="fapplyppn" class="ml-2 text-sm font-medium text-gray-700">
+                                            <label for="fapplyppn" class="text-sm font-medium text-gray-700">
                                                 <span class="font-bold">PPN</span>
                                             </label>
                                         </div>
@@ -654,9 +655,10 @@
                                                             [&::-webkit-inner-spin-button]:appearance-none
                                                             disabled:bg-gray-100 disabled:opacity-60 disabled:cursor-not-allowed">
                                             <span class="text-sm">%</span>
-                                            <span class="min-w-[140px] text-right font-medium"
-                                                x-text="rupiah(ppnAmount)"></span>
                                         </div>
+
+                                        <span class="ml-auto min-w-[140px] text-right font-medium"
+                                            x-text="rupiah(ppnAmount)"></span>
 
                                     </div>
 
@@ -1443,13 +1445,13 @@
                                                 x-text="rupiah(totalDPP)"></span>
                                         </div>
 
-                                        <div class="flex items-center justify-between gap-6">
+                                        <div class="flex items-center gap-3">
                                             <!-- Checkbox -->
                                             <div class="flex items-center">
                                                 <input id="fapplyppn" type="checkbox" name="fapplyppn"
                                                     value="1" x-model="includePPN"
                                                     class="h-4 w-4 text-blue-600 border-gray-300 rounded">
-                                                <label for="fapplyppn" class="ml-2 text-sm font-medium text-gray-700">
+                                                <label for="fapplyppn" class="text-sm font-medium text-gray-700">
                                                     <span class="font-bold">PPN</span>
                                                 </label>
                                             </div>
@@ -1464,9 +1466,10 @@
                                                             [&::-webkit-inner-spin-button]:appearance-none
                                                             disabled:bg-gray-100 disabled:opacity-60 disabled:cursor-not-allowed">
                                                 <span class="text-sm">%</span>
-                                                <span class="min-w-[140px] text-right font-medium"
-                                                    x-text="rupiah(ppnAmount)"></span>
                                             </div>
+
+                                            <span class="ml-auto min-w-[140px] text-right font-medium"
+                                                x-text="rupiah(ppnAmount)"></span>
 
                                         </div>
 

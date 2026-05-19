@@ -786,19 +786,19 @@
                                                 x-text="rupiah(totalDPP)"></span>
                                         </div>
 
-                                        <div class="flex items-center justify-between gap-6">
+                                        <div class="flex items-center">
                                             <!-- Checkbox -->
-                                            <div class="flex items-center">
+                                            <div class="flex items-center gap-1">
                                                 <input id="fapplyppn" type="checkbox" name="fapplyppn" value="1"
                                                     x-model="includePPN"
                                                     class="h-4 w-4 text-blue-600 border-gray-300 rounded">
-                                                <label for="fapplyppn" class="ml-2 text-sm font-medium text-gray-700">
+                                                <label for="fapplyppn" class="text-sm font-medium text-gray-700">
                                                     <span class="font-bold">PPN</span>
                                                 </label>
                                             </div>
 
                                             <!-- Input Rate + Nominal (kanan) -->
-                                            <div class="flex items-center gap-2">
+                                            <div class="ml-2 flex items-center gap-1">
                                                 <input type="number" min="0" max="100" step="0.01" name="ppn_rate"
                                                     x-model.number="ppnRate" :disabled="!includePPN"
                                                     class="w-20 h-9 px-2 text-sm leading-tight text-right border rounded transition-opacity
@@ -807,9 +807,10 @@
                                                             [&::-webkit-inner-spin-button]:appearance-none
                                                             disabled:bg-gray-100 disabled:opacity-60 disabled:cursor-not-allowed">
                                                 <span class="text-sm">%</span>
-                                                <span class="min-w-[140px] text-right font-medium"
-                                                    x-text="rupiah(ppnAmount)"></span>
                                             </div>
+
+                                            <span class="ml-auto min-w-[140px] text-right font-medium"
+                                                x-text="rupiah(ppnAmount)"></span>
                                         </div>
 
                                         <div class="border-t my-1"></div>
