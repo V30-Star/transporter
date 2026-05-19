@@ -273,7 +273,7 @@
                 <table class="min-w-full text-sm balanced-detail-table" data-skip-auto-detail-style="true">
                         <thead class="bg-gray-100">
                             <tr>
-                                <th class="p-2 text-left w-10">#</th>
+                            <th class="p-2 text-left w-10">#</th>
                             <th class="p-2 text-left w-48">Kode Produk</th>
                             <th class="p-2 text-left w-[26rem]">Nama Produk</th>
                             <th class="p-2 text-left w-28">Satuan</th>

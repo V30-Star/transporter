@@ -525,7 +525,7 @@
 
                     const $searchInput = $toolbarSearch.find('.dt-input');
                     $searchInput.css({
-                        width: '400px',
+                        width: '500px',
                         maxWidth: '100%'
                     });
 

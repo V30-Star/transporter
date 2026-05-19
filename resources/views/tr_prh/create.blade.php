@@ -295,8 +295,10 @@
                                             </template>
                                         </td>
                                         <td class="p-2 text-right">
-                                            <input type="number" class="w-full border rounded px-2 py-1 text-right"
-                                                x-model.number="row.fqty" min="0" @input="onRowUpdated(i)">
+                                            <input type="text" inputmode="decimal"
+                                                class="w-full border rounded px-2 py-1 text-right"
+                                                x-model="row.fqty" @focus="unformatQtyInput(row)"
+                                                @input="onQtyInput(row, i)" @blur="formatQtyInput(row, i)">
                                         </td>
                                         <td class="p-2">
                                             <input type="text" class="w-full border rounded px-2 py-1 text-sm"
@@ -1150,10 +1152,39 @@
                     fnoacak: this.generateUniqueNoAcak(),
                     units: [],
                     fsatuan: '',
-                    fqty: 0,
+                    fqty: '',
                     fdesc: '',
                     fketdt: ''
                 };
+            },
+
+            sanitizeQtyValue(value) {
+                const raw = (value ?? '').toString().replace(',', '.').replace(/[^0-9.]/g, '');
+                const parts = raw.split('.');
+                if (parts.length <= 1) return raw;
+                return `${parts.shift()}.${parts.join('')}`;
+            },
+
+            formatQtyDisplay(value) {
+                const raw = this.sanitizeQtyValue(value);
+                if (raw === '') return '';
+                const numeric = Number(raw);
+                return Number.isFinite(numeric) ? numeric.toFixed(2) : '';
+            },
+
+            unformatQtyInput(row) {
+                const raw = this.sanitizeQtyValue(row?.fqty);
+                row.fqty = raw === '' ? '' : String(Number(raw));
+            },
+
+            onQtyInput(row, index) {
+                row.fqty = this.sanitizeQtyValue(row?.fqty);
+                this.onRowUpdated(index);
+            },
+
+            formatQtyInput(row, index = null) {
+                row.fqty = this.formatQtyDisplay(row?.fqty);
+                this.onRowUpdated(index);
             },
 
             rowHasContent(row) {
@@ -1397,6 +1428,9 @@
             init() {
                 this.rows = [];
                 this.ensureMinimumRows();
+                this.rows.forEach(row => {
+                    row.fqty = this.formatQtyDisplay(row.fqty);
+                });
 
                 window.addEventListener('product-chosen', (e) => {
                     const { product } = e.detail || {};

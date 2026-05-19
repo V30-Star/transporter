@@ -562,9 +562,11 @@
                                                 </template>
                                             </td>
                                             <td class="p-2 text-right">
-                                                <input type="number" class="w-full border rounded px-2 py-1 text-right"
-                                                    x-model.number="row.fqty" min="0" :disabled="blockedByPO"
-                                                    @input="onRowUpdated(i)">
+                                                <input type="text" inputmode="decimal"
+                                                    class="w-full border rounded px-2 py-1 text-right"
+                                                    x-model="row.fqty" :disabled="blockedByPO"
+                                                    @focus="unformatQtyInput(row)"
+                                                    @input="onQtyInput(row, i)" @blur="formatQtyInput(row, i)">
                                             </td>
                                             <td class="p-2 text-right">
                                                 <input type="text"
@@ -1509,11 +1511,40 @@
                         fnoacak: this.generateUniqueNoAcak(),
                         units: [],
                         fsatuan: '',
-                        fqty: 0,
+                        fqty: '',
                         fqtypo: 0,
                         fdesc: '',
                         fketdt: ''
                     };
+                },
+
+                sanitizeQtyValue(value) {
+                    const raw = (value ?? '').toString().replace(',', '.').replace(/[^0-9.]/g, '');
+                    const parts = raw.split('.');
+                    if (parts.length <= 1) return raw;
+                    return `${parts.shift()}.${parts.join('')}`;
+                },
+
+                formatQtyDisplay(value) {
+                    const raw = this.sanitizeQtyValue(value);
+                    if (raw === '') return '';
+                    const numeric = Number(raw);
+                    return Number.isFinite(numeric) ? numeric.toFixed(2) : '';
+                },
+
+                unformatQtyInput(row) {
+                    const raw = this.sanitizeQtyValue(row?.fqty);
+                    row.fqty = raw === '' ? '' : String(Number(raw));
+                },
+
+                onQtyInput(row, index) {
+                    row.fqty = this.sanitizeQtyValue(row?.fqty);
+                    this.onRowUpdated(index);
+                },
+
+                formatQtyInput(row, index = null) {
+                    row.fqty = this.formatQtyDisplay(row?.fqty);
+                    this.onRowUpdated(index);
                 },
 
                 rowHasContent(row) {
@@ -1765,7 +1796,8 @@
                 init() {
                     this.rows = this.rows.map(row => ({
                         ...row,
-                        fnoacak: this.normalizeNoAcak(row.fnoacak) || this.generateUniqueNoAcak()
+                        fnoacak: this.normalizeNoAcak(row.fnoacak) || this.generateUniqueNoAcak(),
+                        fqty: this.formatQtyDisplay(row.fqty)
                     }));
                     this.ensureMinimumRows();
 
