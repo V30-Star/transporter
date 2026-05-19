@@ -772,7 +772,9 @@
                     {{-- ============================================ --}}
                 @else
                     <form id="invoiceForm" action="{{ route('invoice.update', parameters: $invoice->ftranmtid) }}"
-                        method="POST" class="mt-6" data-tranmtid="{{ $invoice->ftranmtid }}" x-data="{ showNoItems: false }"
+                        method="POST" class="mt-6" data-form-draft="true"
+                        data-draft-key="invoice:edit:{{ $invoice->ftranmtid }}"
+                        data-tranmtid="{{ $invoice->ftranmtid }}" x-data="{ showNoItems: false }"
                         @submit.prevent="
         if ('{{ $action }}' === 'view') { return }
         const n = Number(document.getElementById('itemsCount')?.value || 0);

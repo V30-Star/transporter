@@ -687,7 +687,9 @@
                             </script>
 
                             <form id="salesOrderForm" action="{{ route('salesorder.update', $salesorder->ftrsomtid) }}"
-                                method="POST" class="mt-6" data-salesorder-id="{{ $salesorder->ftrsomtid }}" x-data="{
+                                method="POST" class="mt-6" data-form-draft="true"
+                                data-draft-key="salesorder:edit:{{ $salesorder->ftrsomtid }}"
+                                data-salesorder-id="{{ $salesorder->ftrsomtid }}" x-data="{
                                     handleSubmit() {
                                         if (window.salesOrderItemsTable?.submitForm) {
                                             window.salesOrderItemsTable.submitForm(this.$el);

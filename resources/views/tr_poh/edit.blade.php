@@ -197,6 +197,7 @@
 
         @if ($isEdit)
             <form action="{{ route('tr_poh.update', $tr_poh->fpohid) }}" method="POST" class="mt-6"
+                data-form-draft="true" data-draft-key="tr_poh:edit:{{ $tr_poh->fpohid }}"
                 @submit.prevent="submitForm($el)">
                 @csrf
                 @method('PATCH')

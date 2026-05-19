@@ -116,7 +116,9 @@
     @endif
     <div class="bg-white rounded shadow p-6 md:p-8 max-w-[1600px] w-full mx-auto">
         <form action="{{ $isEdit ? route('penerimaanbarang.update', $penerimaanbarang->fstockmtid) : '#' }}"
-            method="POST" class="mt-6" x-data="mainForm()" x-init="init()" @submit.prevent="submitForm($el)">
+            method="POST" class="mt-6" data-form-draft="true"
+            data-draft-key="penerimaanbarang:edit:{{ $penerimaanbarang->fstockmtid }}" x-data="mainForm()"
+            x-init="init()" @submit.prevent="submitForm($el)">
 
             @csrf
             @if ($isEdit)

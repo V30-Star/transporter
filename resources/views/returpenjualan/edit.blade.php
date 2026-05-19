@@ -768,7 +768,8 @@
                     {{-- ============================================ --}}
                 @else
                     <form action="{{ route('returpenjualan.update', $returpenjualan->ftranmtid) }}" method="POST"
-                        class="mt-6 {{ $action === 'view' ? 'view-readonly' : '' }}"
+                        class="mt-6 {{ $action === 'view' ? 'view-readonly' : '' }}" data-form-draft="true"
+                        data-draft-key="returpenjualan:edit:{{ $returpenjualan->ftranmtid }}"
                         @submit.prevent="
                         if ('{{ $action }}' === 'view') { return }
                         const n = Number(document.getElementById('itemsCount')?.value || 0);

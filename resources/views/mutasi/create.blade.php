@@ -156,7 +156,8 @@
             savedItems: []
         }" class="lg:col-span-5">
             <div class="bg-white rounded shadow p-6 md:p-8 max-w-[96rem] mx-auto">
-                <form action="{{ route('mutasi.store') }}" method="POST" class="mt-6" @submit="onSubmit($event)">
+                <form action="{{ route('mutasi.store') }}" method="POST" class="mt-6"
+                    data-form-draft="true" data-draft-key="mutasi:create" @submit="onSubmit($event)">
                     @csrf
 
                     {{-- HEADER FORM --}}

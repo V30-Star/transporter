@@ -971,7 +971,9 @@
                     {{-- ============================================ --}}
                 @else
                     <form action="{{ route('assembling.update', $assembling->fstockmtid) }}" method="POST"
-                        class="mt-6" @submit="onSubmit($event)" x-data="{ showNoItems: false }">
+                        class="mt-6" data-form-draft="true"
+                        data-draft-key="assembling:edit:{{ $assembling->fstockmtid }}" @submit="onSubmit($event)"
+                        x-data="{ showNoItems: false }">
                         @csrf
                         @method('PATCH')
 

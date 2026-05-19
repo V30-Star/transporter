@@ -489,6 +489,7 @@
         {{-- ============================================ --}}
     @else
         <form action="{{ route('adjstock.update', $adjstock->fstockmtid) }}" method="POST" class="mt-6"
+            data-form-draft="true" data-draft-key="adjstock:edit:{{ $adjstock->fstockmtid }}"
             @submit="onSubmit($event)">
             @csrf
             @method('PATCH')

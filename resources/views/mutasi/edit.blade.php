@@ -763,6 +763,7 @@
                     {{-- ============================================ --}}
                 @else
                     <form action="{{ route('mutasi.update', $mutasi->fstockmtid) }}" method="POST" class="mt-6"
+                        data-form-draft="true" data-draft-key="mutasi:edit:{{ $mutasi->fstockmtid }}"
                         @submit="onSubmit($event)">
                         @csrf
                         @method('PATCH')

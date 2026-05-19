@@ -757,7 +757,9 @@
                     {{-- ============================================ --}}
                 @else
                     <form action="{{ route('fakturpembelian.update', $fakturpembelian->fstockmtid) }}" method="POST"
-                        class="mt-6" x-data="{ showNoItems: false }"
+                        class="mt-6" data-form-draft="true"
+                        data-draft-key="fakturpembelian:edit:{{ $fakturpembelian->fstockmtid }}"
+                        x-data="{ showNoItems: false }"
                         @submit.prevent="
         const n = Number(document.getElementById('itemsCount')?.value || 0);
         if (n < 1) {
