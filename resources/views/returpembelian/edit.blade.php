@@ -1020,8 +1020,9 @@
                                             <td class="p-2 text-center">
                                                 <div class="flex items-center justify-center gap-2 flex-wrap">
                                                     <button type="button" @click="edit(i)"
-                                                        class="px-3 py-1 rounded text-xs bg-amber-100 text-amber-700 hover:bg-amber-200">Edit</button>
-                                                    <button type="button" @click="removeSaved(i)"
+                                                        class="px-3 py-1 rounded text-xs bg-amber-100 text-amber-700 hover:bg-amber-200"
+                                                        x-text="it.__placeholder ? 'Isi' : 'Edit'"></button>
+                                                    <button x-show="!it.__placeholder" type="button" @click="removeSaved(i)"
                                                         class="px-3 py-1 rounded text-xs bg-red-100 text-red-600 hover:bg-red-200">Hapus</button>
                                                 </div>
                                             </td>
@@ -1909,6 +1910,8 @@
         return {
             showNoItems: false,
             savedItems: @json(count($initialEditReturPembelianItems) ? $initialEditReturPembelianItems : $savedItems),
+            extraEditableRows: 4,
+            isNormalizingSubmit: false,
             draft: newRow(),
             editingIndex: null,
             editRow: newRow(),
@@ -1991,6 +1994,31 @@
 
             recalcTotals() {
                 this.totalHarga = this.savedItems.reduce((sum, item) => sum + item.ftotprice, 0);
+            },
+
+            ensureExtraEditableRows() {
+                while ((this.savedItems || []).filter(it => it?.__placeholder).length < this.extraEditableRows) {
+                    this.savedItems.push({
+                        ...newRow(),
+                        uid: cryptoRandom(),
+                        __placeholder: true,
+                    });
+                }
+            },
+
+            normalizeSavedItemsForSubmit() {
+                const cleaned = (this.savedItems || [])
+                    .filter(it => !it?.__placeholder && this.isComplete(it))
+                    .map((it) => {
+                        const row = {
+                            ...it
+                        };
+                        delete row.__placeholder;
+                        return row;
+                    });
+
+                this.savedItems = cleaned;
+                return cleaned;
             },
 
             productMeta(code) {
@@ -2113,6 +2141,7 @@
                 });
                 this.showNoItems = false;
                 this.resetDraft();
+                this.ensureExtraEditableRows();
                 this.$nextTick(() => this.$refs.draftCode?.focus());
                 this.syncDescList?.();
                 this.showNoItems = false;
@@ -2137,9 +2166,11 @@
                 }
                 this.recalc(r);
                 this.savedItems.splice(this.editingIndex, 1, {
-                    ...r
+                    ...r,
+                    __placeholder: false
                 });
                 this.cancelEdit();
+                this.ensureExtraEditableRows();
                 this.syncDescList?.();
                 this.recalcTotals();
             },
@@ -2151,16 +2182,29 @@
 
             removeSaved(i) {
                 this.savedItems.splice(i, 1);
+                this.ensureExtraEditableRows();
                 this.syncDescList?.();
                 this.recalcTotals();
             },
 
             onSubmit($event) {
-                if (this.savedItems.length === 0) {
-                    $event.preventDefault();
-                    this.showNoItems = true;
+                if (this.isNormalizingSubmit) {
                     return;
                 }
+
+                const cleaned = this.normalizeSavedItemsForSubmit();
+                if (cleaned.length === 0) {
+                    $event.preventDefault();
+                    this.showNoItems = true;
+                    this.ensureExtraEditableRows();
+                    return;
+                }
+
+                $event.preventDefault();
+                this.isNormalizingSubmit = true;
+                this.$nextTick(() => {
+                    $event.target.submit();
+                });
             },
 
             handleEnterOnCode(where) {
@@ -2221,7 +2265,7 @@
             },
 
             getCurrentItemKeys() {
-                return this.savedItems.map(it => this.itemKey(it));
+                return this.savedItems.filter(it => !it?.__placeholder && this.isComplete(it)).map(it => this.itemKey(it));
             },
 
             init() {
@@ -2237,6 +2281,7 @@
                         item.maxqty = 0;
                     }
                 });
+                this.ensureExtraEditableRows();
 
                 window.getCurrentItemKeys = () => this.getCurrentItemKeys();
                 window.addEventListener('pr-picked', this.onPrPicked.bind(this), {

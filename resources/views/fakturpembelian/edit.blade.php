@@ -2294,7 +2294,7 @@
                     });
                 },
 
-                minimumVisibleRows: 5,
+                minimumVisibleRows: @json(count($savedItems ?? []) + 5),
 
                 rowHasContent(row) {
                     if (!row) return false;

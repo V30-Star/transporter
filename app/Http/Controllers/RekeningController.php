@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Rekening;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class RekeningController extends Controller
 {
@@ -57,9 +58,11 @@ class RekeningController extends Controller
     public function edit($frekeningid)
     {
         $rekening = Rekening::findOrFail($frekeningid);
+        $isTransactionLocked = $this->hasTransactionUsage($rekening);
 
         return view('rekening.edit', [
             'rekening' => $rekening,
+            'isTransactionLocked' => $isTransactionLocked,
             'action' => 'edit',
         ]);
     }
@@ -108,6 +111,10 @@ class RekeningController extends Controller
     {
         $rekening = Rekening::findOrFail($frekeningid);
 
+        if ($message = $this->getUsageLockMessage($rekening)) {
+            return redirect()->route('rekening.view', $rekening->frekeningid)->with('error', $message);
+        }
+
         return view('rekening.delete', [
             'rekening' => $rekening,
         ]);
@@ -117,6 +124,18 @@ class RekeningController extends Controller
     {
         try {
             $rekening = Rekening::findOrFail($frekeningid);
+
+            if ($message = $this->getUsageLockMessage($rekening)) {
+                if (request()->expectsJson()) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => $message,
+                        'redirect' => route('rekening.view', $rekening->frekeningid),
+                    ], 422);
+                }
+
+                return redirect()->route('rekening.view', $rekening->frekeningid)->with('error', $message);
+            }
 
             $rekening->delete();
 
@@ -131,5 +150,19 @@ class RekeningController extends Controller
                 'message' => 'Data belum berhasil dihapus. Silakan coba lagi.',
             ], 500);
         }
+    }
+
+    private function hasTransactionUsage(Rekening $rekening): bool
+    {
+        return DB::table('mscustomer')->where('frekening', $rekening->frekeningid)->exists();
+    }
+
+    private function getUsageLockMessage(Rekening $rekening): ?string
+    {
+        if (! $this->hasTransactionUsage($rekening)) {
+            return null;
+        }
+
+        return 'Rekening '.$rekening->frekeningname.' tidak bisa dihapus karena sudah dipakai transaksi.';
     }
 }

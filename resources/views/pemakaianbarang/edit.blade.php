@@ -1235,6 +1235,8 @@
         return {
             showNoItems: false,
             savedItems: @json(count($initialEditPemakaianItems) ? $initialEditPemakaianItems : $savedItems),
+            extraEditableRows: 4,
+            isNormalizingSubmit: false,
             draft: newRow(),
                 totalHarga: 0,
 
@@ -1299,8 +1301,34 @@
 
                 removeSaved(i) {
                     this.savedItems.splice(i, 1);
+                    this.ensureExtraEditableRows();
                     this.syncDescList?.();
                     this.recalcTotals();
+                },
+
+                ensureExtraEditableRows() {
+                    while ((this.savedItems || []).filter(it => it?.__placeholder).length < this.extraEditableRows) {
+                        this.savedItems.push({
+                            ...newRow(),
+                            uid: cryptoRandom(),
+                            __placeholder: true,
+                        });
+                    }
+                },
+
+                normalizeSavedItemsForSubmit() {
+                    const cleaned = (this.savedItems || [])
+                        .filter(it => !it?.__placeholder && this.isComplete(it))
+                        .map((it) => {
+                            const row = {
+                                ...it
+                            };
+                            delete row.__placeholder;
+                            return row;
+                        });
+
+                    this.savedItems = cleaned;
+                    return cleaned;
                 },
 
                 productMeta(code) {
@@ -1424,6 +1452,7 @@
 
                     this.showNoItems = false;
                     this.resetDraft();
+                    this.ensureExtraEditableRows();
                     this.$nextTick(() => {
                         this.$refs.draftCode?.focus();
                     });
@@ -1434,11 +1463,23 @@
 
 
                 onSubmit($event) {
-                    if (this.savedItems.length === 0) {
-                        $event.preventDefault();
-                        this.showNoItems = true;
+                    if (this.isNormalizingSubmit) {
                         return;
                     }
+
+                    const cleaned = this.normalizeSavedItemsForSubmit();
+                    if (cleaned.length === 0) {
+                        $event.preventDefault();
+                        this.showNoItems = true;
+                        this.ensureExtraEditableRows();
+                        return;
+                    }
+
+                    $event.preventDefault();
+                    this.isNormalizingSubmit = true;
+                    this.$nextTick(() => {
+                        $event.target.submit();
+                    });
                 },
 
                 handleEnterOnCode(where) {
@@ -1467,7 +1508,7 @@
                 },
 
                 getCurrentItemKeys() {
-                    return this.savedItems.map(it => this.itemKey(it));
+                    return this.savedItems.filter(it => !it?.__placeholder && this.isComplete(it)).map(it => this.itemKey(it));
                 },
 
                 init() {
@@ -1512,6 +1553,7 @@
                                 : '',
                         };
                     });
+                    this.ensureExtraEditableRows();
 
                     window.getCurrentItemKeys = () => this.getCurrentItemKeys();
 

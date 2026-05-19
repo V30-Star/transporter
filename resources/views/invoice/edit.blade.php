@@ -2073,7 +2073,7 @@
     function itemsTable() {
         return {
             savedItems: @json(count($initialEditInvoiceItems) ? $initialEditInvoiceItems : $savedItems ?? []),
-            minimumVisibleRows: 5,
+            minimumVisibleRows: @json(count($initialEditInvoiceItems) ? count($initialEditInvoiceItems) + 5 : count($savedItems ?? []) + 5),
             browseTarget: null,
             editingIndex: null,
             editRow: newRow(),

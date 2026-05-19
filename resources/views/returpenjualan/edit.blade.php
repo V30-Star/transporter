@@ -2552,7 +2552,7 @@
         return {
             showNoItems: false,
             savedItems: @json(count($initialEditReturPenjualanItems) ? $initialEditReturPenjualanItems : $savedItems ?? []),
-            minimumVisibleRows: 5,
+            minimumVisibleRows: @json(count($initialEditReturPenjualanItems) ? count($initialEditReturPenjualanItems) + 5 : count($savedItems ?? []) + 5),
             browseTarget: null,
             editingIndex: null,
             editRow: newRow(),

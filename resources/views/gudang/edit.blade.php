@@ -107,8 +107,12 @@
                     <div>
                         <label class="block text-sm font-medium">Kode Gudang</label>
                         <input type="text" name="fwhcode" value="{{ old('fwhcode', $gudang->fwhcode) }}"
-                            class="w-full border rounded px-3 py-2 uppercase @error('fwhcode') border-red-500 @enderror"
+                            class="w-full border rounded px-3 py-2 uppercase @error('fwhcode') border-red-500 @enderror {{ !empty($isTransactionLocked) ? 'bg-gray-100 text-gray-500 cursor-not-allowed' : '' }}"
+                            {{ !empty($isTransactionLocked) ? 'readonly' : '' }}
                             autofocus>
+                        @if (!empty($isTransactionLocked))
+                            <p class="text-amber-600 text-sm mt-1">Kode Gudang dikunci karena gudang ini sudah dipakai transaksi.</p>
+                        @endif
                         @error('fwhcode')
                             <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                         @enderror

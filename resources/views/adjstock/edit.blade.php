@@ -1560,7 +1560,7 @@
         return {
             showNoItems: false,
             savedItems: @json($savedItems),
-            minimumVisibleRows: 5,
+            minimumVisibleRows: @json(count($savedItems ?? []) + 5),
             browseTarget: null,
 
             totalHarga: 0,
@@ -1946,7 +1946,7 @@
         return {
             showNoItems: false,
             savedItems: @json($savedItems),
-            minimumVisibleRows: 5,
+            minimumVisibleRows: @json(count($savedItems ?? []) + 5),
             browseTarget: null,
 
             totalHarga: 0,

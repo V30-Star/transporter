@@ -1641,7 +1641,7 @@
             showNoItems: false,
             rows: [],
             rowsToSubmit: [],
-            minimumVisibleRows: 5,
+            minimumVisibleRows: @json(count($initialEditSalesOrderItems) ? count($initialEditSalesOrderItems) + 5 : count($savedItems ?? []) + 5),
 
             totalHarga: 0,
             headerDiscPercent: @json((float) old('fdiscpersen', $salesorder->fdiscpersen ?? 0)),

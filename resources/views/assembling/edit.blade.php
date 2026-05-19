@@ -432,6 +432,8 @@
                                     // === ORIGINAL PROPERTIES ===
                                     showNoItems: false,
                             savedItems: @json(count($initialEditAssemblingItems) ? $initialEditAssemblingItems : $savedItems),
+                                    extraEditableRows: 4,
+                                    isNormalizingSubmit: false,
                                     draft: newRow(),
                                     editingIndex: null,
                                     editRow: newRow(),
@@ -493,11 +495,40 @@
                                         }, 0);
                                     },
 
+                                    ensureExtraEditableRows() {
+                                        ['bahan_baku', 'barang_jadi'].forEach((tab) => {
+                                            while ((this.savedItems || []).filter(it => it?.__placeholder && it.fitemtype === tab).length < this.extraEditableRows) {
+                                                this.savedItems.push({
+                                                    ...newRow(),
+                                                    uid: cryptoRandom(),
+                                                    __placeholder: true,
+                                                    fitemtype: tab,
+                                                });
+                                            }
+                                        });
+                                    },
+
+                                    normalizeSavedItemsForSubmit() {
+                                        const cleaned = (this.savedItems || [])
+                                            .filter(it => !it?.__placeholder && this.isComplete(it))
+                                            .map((it) => {
+                                                const row = {
+                                                    ...it
+                                                };
+                                                delete row.__placeholder;
+                                                return row;
+                                            });
+
+                                        this.savedItems = cleaned;
+                                        return cleaned;
+                                    },
+
                                     // === MODIFIED: removeSaved ===
                                     removeSaved(i) {
                                         const items = this.getItemsByTab(this.activeTab);
                                         const actualIndex = this.savedItems.indexOf(items[i]);
                                         this.savedItems.splice(actualIndex, 1);
+                                        this.ensureExtraEditableRows();
                                         this.syncDescList?.();
                                         this.recalcTotals();
                                     },
@@ -622,6 +653,7 @@
 
                                         this.showNoItems = false;
                                         this.resetDraft();
+                                        this.ensureExtraEditableRows();
                                         this.$nextTick(() => this.$refs.draftCode?.focus());
                                         this.syncDescList?.();
                                         this.recalcTotals();
@@ -655,9 +687,11 @@
                                         const actualIndex = this.savedItems.indexOf(items[this.editingIndex]);
 
                                         this.savedItems.splice(actualIndex, 1, {
-                                            ...r
+                                            ...r,
+                                            __placeholder: false
                                         });
                                         this.cancelEdit();
+                                        this.ensureExtraEditableRows();
                                         this.syncDescList?.();
                                         this.recalcTotals();
                                     },
@@ -670,11 +704,23 @@
                                     },
 
                                     onSubmit($event) {
-                                        if (this.savedItems.length === 0) {
-                                            $event.preventDefault();
-                                            this.showNoItems = true;
+                                        if (this.isNormalizingSubmit) {
                                             return;
                                         }
+
+                                        const cleaned = this.normalizeSavedItemsForSubmit();
+                                        if (cleaned.length === 0) {
+                                            $event.preventDefault();
+                                            this.showNoItems = true;
+                                            this.ensureExtraEditableRows();
+                                            return;
+                                        }
+
+                                        $event.preventDefault();
+                                        this.isNormalizingSubmit = true;
+                                        this.$nextTick(() => {
+                                            $event.target.submit();
+                                        });
                                     },
 
                                     handleEnterOnCode(where) {
@@ -725,10 +771,11 @@
                                     },
 
                                     getCurrentItemKeys() {
-                                        return this.savedItems.map(it => this.itemKey(it));
+                                        return this.savedItems.filter(it => !it?.__placeholder && this.isComplete(it)).map(it => this.itemKey(it));
                                     },
 
                                     init() {
+                                        this.ensureExtraEditableRows();
                                         window.getCurrentItemKeys = () => this.getCurrentItemKeys();
 
                                         window.addEventListener('pr-picked', this.onPrPicked.bind(this), {
@@ -1132,8 +1179,9 @@
                                                 <td class="p-2 text-center">
                                                     <div class="flex items-center justify-center gap-2 flex-wrap">
                                                         <button type="button" @click="edit(i)"
-                                                            class="px-3 py-1 rounded text-xs bg-amber-100 text-amber-700 hover:bg-amber-200">Edit</button>
-                                                        <button type="button" @click="removeSaved(i)"
+                                                            class="px-3 py-1 rounded text-xs bg-amber-100 text-amber-700 hover:bg-amber-200"
+                                                            x-text="it.__placeholder ? 'Isi' : 'Edit'"></button>
+                                                        <button x-show="!it.__placeholder" type="button" @click="removeSaved(i)"
                                                             class="px-3 py-1 rounded text-xs bg-red-100 text-red-600 hover:bg-red-200">Hapus</button>
                                                     </div>
                                                 </td>
@@ -1337,6 +1385,8 @@
                                     // === ORIGINAL PROPERTIES ===
                                     showNoItems: false,
                                         savedItems: @json(count($initialEditAssemblingItems) ? $initialEditAssemblingItems : $savedItems),
+                                        extraEditableRows: 4,
+                                        isNormalizingSubmit: false,
                                     draft: newRow(),
                                     editingIndex: null,
                                     editRow: newRow(),
@@ -1398,11 +1448,40 @@
                                         }, 0);
                                     },
 
+                                    ensureExtraEditableRows() {
+                                        ['bahan_baku', 'barang_jadi'].forEach((tab) => {
+                                            while ((this.savedItems || []).filter(it => it?.__placeholder && it.fitemtype === tab).length < this.extraEditableRows) {
+                                                this.savedItems.push({
+                                                    ...newRow(),
+                                                    uid: cryptoRandom(),
+                                                    __placeholder: true,
+                                                    fitemtype: tab,
+                                                });
+                                            }
+                                        });
+                                    },
+
+                                    normalizeSavedItemsForSubmit() {
+                                        const cleaned = (this.savedItems || [])
+                                            .filter(it => !it?.__placeholder && this.isComplete(it))
+                                            .map((it) => {
+                                                const row = {
+                                                    ...it
+                                                };
+                                                delete row.__placeholder;
+                                                return row;
+                                            });
+
+                                        this.savedItems = cleaned;
+                                        return cleaned;
+                                    },
+
                                     // === MODIFIED: removeSaved ===
                                     removeSaved(i) {
                                         const items = this.getItemsByTab(this.activeTab);
                                         const actualIndex = this.savedItems.indexOf(items[i]);
                                         this.savedItems.splice(actualIndex, 1);
+                                        this.ensureExtraEditableRows();
                                         this.syncDescList?.();
                                         this.recalcTotals();
                                     },
@@ -1527,6 +1606,7 @@
 
                                         this.showNoItems = false;
                                         this.resetDraft();
+                                        this.ensureExtraEditableRows();
                                         this.$nextTick(() => this.$refs.draftCode?.focus());
                                         this.syncDescList?.();
                                         this.recalcTotals();
@@ -1560,9 +1640,11 @@
                                         const actualIndex = this.savedItems.indexOf(items[this.editingIndex]);
 
                                         this.savedItems.splice(actualIndex, 1, {
-                                            ...r
+                                            ...r,
+                                            __placeholder: false
                                         });
                                         this.cancelEdit();
+                                        this.ensureExtraEditableRows();
                                         this.syncDescList?.();
                                         this.recalcTotals();
                                     },
@@ -1575,11 +1657,23 @@
                                     },
 
                                     onSubmit($event) {
-                                        if (this.savedItems.length === 0) {
-                                            $event.preventDefault();
-                                            this.showNoItems = true;
+                                        if (this.isNormalizingSubmit) {
                                             return;
                                         }
+
+                                        const cleaned = this.normalizeSavedItemsForSubmit();
+                                        if (cleaned.length === 0) {
+                                            $event.preventDefault();
+                                            this.showNoItems = true;
+                                            this.ensureExtraEditableRows();
+                                            return;
+                                        }
+
+                                        $event.preventDefault();
+                                        this.isNormalizingSubmit = true;
+                                        this.$nextTick(() => {
+                                            $event.target.submit();
+                                        });
                                     },
 
                                     handleEnterOnCode(where) {
@@ -1624,10 +1718,11 @@
                                     },
 
                                     getCurrentItemKeys() {
-                                        return this.savedItems.map(it => this.itemKey(it));
+                                        return this.savedItems.filter(it => !it?.__placeholder && this.isComplete(it)).map(it => this.itemKey(it));
                                     },
 
                                     init() {
+                                        this.ensureExtraEditableRows();
                                         window.getCurrentItemKeys = () => this.getCurrentItemKeys();
 
                                         window.addEventListener('pr-picked', this.onPrPicked.bind(this), {

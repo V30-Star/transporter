@@ -1502,7 +1502,7 @@
                 warningMessage: '',
                 warningItems: [],
                 warningCanProceed: false,
-                minimumVisibleRows: 5,
+                minimumVisibleRows: @json(count($savedItems ?? []) + 5),
 
                 emptyRow() {
                     return {

@@ -104,9 +104,12 @@
         </div>
 
         @php
+            $supplierCode = trim((string) ($supplier->fsuppliercode ?? ''));
             $hasRelatedData = \Illuminate\Support\Facades\DB::table('tr_poh')
-                ->where('fsupplier', $supplier->fsupplierid)
-                ->exists();
+                ->where('fsupplier', $supplierCode)
+                ->exists()
+                || \Illuminate\Support\Facades\DB::table('tr_prh')->where('fsupplier', $supplierCode)->exists()
+                || \Illuminate\Support\Facades\DB::table('trstockmt')->where('fsupplier', $supplierCode)->exists();
         @endphp
 
         @if($hasRelatedData)
@@ -116,7 +119,7 @@
                 <div>
                     <h4 class="text-sm font-semibold text-red-700">Supplier Tidak Dapat Dihapus</h4>
                     <ul class="mt-2 text-sm text-red-600 list-disc list-inside space-y-1">
-                        <li>Supplier sudah digunakan dalam data PO (Purchase Order)</li>
+                        <li>Supplier sudah digunakan dalam transaksi</li>
                     </ul>
                 </div>
             </div>
@@ -254,7 +257,7 @@
                 
                 if (data.success || data.redirect) {
                     setTimeout(() => {
-                        window.location.href = '{{ route('supplier.index') }}';
+                        window.location.href = data.redirect || '{{ route('supplier.index') }}';
                     }, 1000);
                 }
             })
@@ -272,4 +275,3 @@
     </script>
     @endif
 @endsection
-

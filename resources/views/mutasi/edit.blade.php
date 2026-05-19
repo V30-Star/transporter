@@ -1634,7 +1634,7 @@
         return {
             showNoItems: false,
             savedItems: @json(count($initialEditMutasiItems) ? $initialEditMutasiItems : $savedItems),
-            minimumVisibleRows: 5,
+            minimumVisibleRows: @json(count($initialEditMutasiItems) ? count($initialEditMutasiItems) + 5 : count($savedItems ?? []) + 5),
             browseTarget: null,
 
             totalHarga: 0,

@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Wilayah;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class WilayahController extends Controller
 {
@@ -67,9 +68,11 @@ class WilayahController extends Controller
     public function edit($fwilayahid)
     {
         $wilayah = Wilayah::findOrFail($fwilayahid);
+        $isTransactionLocked = $this->hasTransactionUsage($wilayah);
 
         return view('wilayah.edit', [
             'wilayah' => $wilayah,
+            'isTransactionLocked' => $isTransactionLocked,
             'action' => 'edit',
         ]);
     }
@@ -85,8 +88,11 @@ class WilayahController extends Controller
 
     public function update(Request $request, $fwilayahid)
     {
+        $wilayah = Wilayah::findOrFail($fwilayahid);
+        $isTransactionLocked = $this->hasTransactionUsage($wilayah);
+
         $request->merge([
-            'fwilayahcode' => strtoupper($request->fwilayahcode),
+            'fwilayahcode' => strtoupper($isTransactionLocked ? $wilayah->fwilayahcode : $request->fwilayahcode),
         ]);
 
         $validated = $request->validate([
@@ -106,7 +112,10 @@ class WilayahController extends Controller
         $validated['fupdatedby'] = auth('sysuser')->user()->fname ?? null;
         $validated['fupdatedat'] = now();
 
-        $wilayah = Wilayah::findOrFail($fwilayahid);
+        if ($isTransactionLocked) {
+            $validated['fwilayahcode'] = $wilayah->fwilayahcode;
+        }
+
         $wilayah->update($validated);
 
         return redirect()
@@ -118,6 +127,10 @@ class WilayahController extends Controller
     {
         $wilayah = Wilayah::findOrFail($fwilayahid);
 
+        if ($message = $this->getUsageLockMessage($wilayah)) {
+            return redirect()->route('wilayah.view', $wilayah->fwilayahid)->with('error', $message);
+        }
+
         return view('wilayah.delete', [
             'wilayah' => $wilayah,
         ]);
@@ -128,11 +141,16 @@ class WilayahController extends Controller
         try {
             $wilayah = Wilayah::findOrFail($fwilayahid);
 
-            if (\Illuminate\Support\Facades\DB::table('mscustomer')->where('fwilayah', $wilayah->fwilayahid)->exists()) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Wilayah sudah digunakan dalam data Customer.',
-                ], 422);
+            if ($message = $this->getUsageLockMessage($wilayah)) {
+                if (request()->expectsJson()) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => $message,
+                        'redirect' => route('wilayah.view', $wilayah->fwilayahid),
+                    ], 422);
+                }
+
+                return redirect()->route('wilayah.view', $wilayah->fwilayahid)->with('error', $message);
             }
 
             $wilayah->delete();
@@ -148,5 +166,19 @@ class WilayahController extends Controller
                 'message' => 'Data belum berhasil dihapus. Silakan coba lagi.',
             ], 500);
         }
+    }
+
+    private function hasTransactionUsage(Wilayah $wilayah): bool
+    {
+        return DB::table('mscustomer')->where('fwilayah', $wilayah->fwilayahid)->exists();
+    }
+
+    private function getUsageLockMessage(Wilayah $wilayah): ?string
+    {
+        if (! $this->hasTransactionUsage($wilayah)) {
+            return null;
+        }
+
+        return 'Wilayah '.$wilayah->fwilayahcode.' tidak bisa dihapus karena sudah dipakai transaksi.';
     }
 }

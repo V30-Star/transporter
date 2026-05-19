@@ -1233,7 +1233,7 @@
     function itemsTable() {
         return {
             savedItems: @json(count($initialEditSuratJalanItems) ? $initialEditSuratJalanItems : $savedItems),
-            minimumVisibleRows: 5,
+            minimumVisibleRows: @json(count($initialEditSuratJalanItems) ? count($initialEditSuratJalanItems) + 5 : count($savedItems ?? []) + 5),
             browseTarget: null,
             showDescModal: false,
             descSavedIndex: null,
