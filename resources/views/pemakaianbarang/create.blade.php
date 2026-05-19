@@ -159,7 +159,8 @@
             savedItems: []
         }" class="lg:col-span-5">
             <div class="bg-white rounded shadow p-6 md:p-8 max-w-[96rem] mx-auto">
-                <form action="{{ route('pemakaianbarang.store') }}" method="POST" class="mt-6" @submit="onSubmit($event)"
+                <form action="{{ route('pemakaianbarang.store') }}" method="POST" class="mt-6"
+                    data-form-draft="true" data-draft-key="pemakaianbarang:create" @submit="onSubmit($event)"
                     x-data="{ showNoItems: false }">
                     @csrf
 

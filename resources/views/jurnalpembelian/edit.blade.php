@@ -118,7 +118,9 @@
                 </div>
             </div>
         @else
-            <form action="{{ route('jurnalpembelian.update', $jurnaltransaksi->fjurnalmtid) }}" method="POST" class="space-y-6">
+            <form action="{{ route('jurnalpembelian.update', $jurnaltransaksi->fjurnalmtid) }}" method="POST"
+                class="space-y-6" data-form-draft="true"
+                data-draft-key="jurnalpembelian:edit:{{ $jurnaltransaksi->fjurnalmtid }}">
                 @csrf
                 @method('PATCH')
 

@@ -36,7 +36,8 @@
     <div x-data="{ open: true }">
         <div class="bg-white rounded shadow p-6 md:p-8 max-w-[96rem] mx-auto">
 
-            <form action="{{ route('jurnalpembelian.store') }}" method="POST" x-data="itemsTable()" x-init="init()"
+            <form action="{{ route('jurnalpembelian.store') }}" method="POST" data-form-draft="true"
+                data-draft-key="jurnalpembelian:create" x-data="itemsTable()" x-init="init()"
                 @submit="onSubmit($event)"> @csrf
 
                 {{-- ── HEADER jurnalmt ── --}}

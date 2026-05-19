@@ -118,7 +118,9 @@
                 </div>
             </div>
         @else
-            <form action="{{ route('jurnaltransaksi.update', $jurnaltransaksi->fjurnalmtid) }}" method="POST" class="space-y-6">
+            <form action="{{ route('jurnaltransaksi.update', $jurnaltransaksi->fjurnalmtid) }}" method="POST"
+                class="space-y-6" data-form-draft="true"
+                data-draft-key="jurnaltransaksi:edit:{{ $jurnaltransaksi->fjurnalmtid }}">
                 @csrf
                 @method('PATCH')
 
@@ -531,4 +533,3 @@
         }
     </script>
 @endpush
-

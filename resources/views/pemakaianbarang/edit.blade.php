@@ -446,11 +446,13 @@
                     {{-- ============================================ --}}
                     {{-- MODE EDIT: FORM EDITABLE                    --}}
                     {{-- ============================================ --}}
-                @else
-                    <form action="{{ route('pemakaianbarang.update', $pemakaianbarang->fstockmtid) }}" method="POST"
-                        class="mt-6" @submit="onSubmit($event)" x-data="{ showNoItems: false }">
-                        @csrf
-                        @method('PATCH')
+            @else
+                <form action="{{ route('pemakaianbarang.update', $pemakaianbarang->fstockmtid) }}" method="POST"
+                    class="mt-6" data-form-draft="true"
+                    data-draft-key="pemakaianbarang:edit:{{ $pemakaianbarang->fstockmtid }}"
+                    @submit="onSubmit($event)" x-data="{ showNoItems: false }">
+                    @csrf
+                    @method('PATCH')
 
                         {{-- HEADER FORM --}}
                         <div class="grid grid-cols-1 lg:grid-cols-12 gap-4">
