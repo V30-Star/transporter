@@ -1378,6 +1378,6 @@ class PenerimaanBarangController extends Controller
             return null;
         }
 
-        return 'Penerimaan Barang ' . $header->fstockmtno . ' tidak dapat diubah atau dihapus karena sudah digunakan pada Faktur Pembelian: ' . $usedBy->implode(', ') . '.';
+        return "Information\nPenerimaan ini tidak dapat di-Edit/Delete.\nMasih ada Refrensi di Transaksi:\n" . $usedBy->implode(', ');
     }
 }

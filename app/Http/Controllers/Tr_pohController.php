@@ -1889,7 +1889,7 @@ class Tr_pohController extends Controller
             return null;
         }
 
-        return 'Order Pembelian ' . $header->fpono . ' tidak dapat diubah atau dihapus karena sudah digunakan pada Penerimaan Barang / Faktur Pembelian: ' . $usedBy->implode(', ') . '.';
+        return "Information\nOrder ini tidak dapat di-Edit/Delete.\nMasih ada Refrensi di Transaksi:\n" . $usedBy->implode(', ');
     }
 
     private function validateUniqueReferenceUsage(array $rowsPod, ?string $exceptPono = null): ?string

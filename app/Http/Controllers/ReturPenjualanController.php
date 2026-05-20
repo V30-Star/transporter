@@ -873,7 +873,8 @@ class ReturPenjualanController extends Controller
                 if ((float) $qtyKecil - $available > 0.000001) {
                     $label = trim((string) ($stat['product_name'] ?? $stat['product_code'] ?? $referenceKey));
                     $refno = trim((string) ($stat['ref_doc'] ?? ''));
-                    return 'Qty referensi SO untuk item ' . $label . ($refno !== '' ? ' pada ' . $refno : '') . ' melebihi qty yang masih tersedia.';
+                    $unit = trim((string) ($stat['source_unit'] ?? 'Qty'));
+                    return "Warning\nProduk {$label} @" . number_format((float) $qtyKecil, 2, ',', '.') . " {$unit}\nMelebihi Qty Sales Order" . ($refno !== '' ? " ({$refno})" : '') . " !!!";
                 }
             }
         }
@@ -887,7 +888,8 @@ class ReturPenjualanController extends Controller
                 if ((float) $qtyKecil - $available > 0.000001) {
                     $label = trim((string) ($stat['product_name'] ?? $stat['product_code'] ?? $referenceKey));
                     $refno = trim((string) ($stat['ref_doc'] ?? ''));
-                    return 'Qty referensi SRJ untuk item ' . $label . ($refno !== '' ? ' pada ' . $refno : '') . ' melebihi qty yang masih tersedia.';
+                    $unit = trim((string) ($stat['source_unit'] ?? 'Qty'));
+                    return "Warning\nProduk {$label} @" . number_format((float) $qtyKecil, 2, ',', '.') . " {$unit}\nMelebihi Qty Surat Jalan" . ($refno !== '' ? " ({$refno})" : '') . " !!!";
                 }
             }
         }
@@ -1033,6 +1035,7 @@ class ReturPenjualanController extends Controller
                     TRIM(d.fprdcode) as product_code,
                     COALESCE(d.frefnosoacak::text, d.fnoacak::text, '') as ref_noacak,
                     MAX(COALESCE(p.fprdname, d.fprdcode)) as product_name,
+                    MAX(COALESCE(d.fsatuan, '')) as source_unit,
                     SUM(COALESCE(d.fqtykecil, 0)) as source_qty_kecil
                 ")
                 ->groupByRaw("TRIM(d.fsono), TRIM(d.fprdcode), COALESCE(d.frefnosoacak::text, d.fnoacak::text, '')")
@@ -1061,6 +1064,7 @@ class ReturPenjualanController extends Controller
                     TRIM(d.fprdcode) as product_code,
                     COALESCE(d.frefnoacak::text, d.fnoacak::text, '') as ref_noacak,
                     MAX(COALESCE(p.fprdname, d.fprdcode)) as product_name,
+                    MAX(COALESCE(d.fsatuan, '')) as source_unit,
                     SUM(COALESCE(d.fqtykecil, 0)) as source_qty_kecil
                 ")
                 ->groupByRaw("TRIM(d.fstockmtno), TRIM(d.fprdcode), COALESCE(d.frefnoacak::text, d.fnoacak::text, '')")
@@ -1090,6 +1094,7 @@ class ReturPenjualanController extends Controller
                 'ref_doc' => trim((string) ($row->ref_doc ?? '')),
                 'product_code' => trim((string) ($row->product_code ?? '')),
                 'product_name' => trim((string) ($row->product_name ?? '')),
+                'source_unit' => trim((string) ($row->source_unit ?? '')),
                 'source_qty_kecil' => (float) ($row->source_qty_kecil ?? 0),
                 'used_qty_kecil' => 0.0,
                 'remain_qty_kecil' => (float) ($row->source_qty_kecil ?? 0),
@@ -1104,6 +1109,7 @@ class ReturPenjualanController extends Controller
                     'ref_doc' => trim((string) ($row->ref_doc ?? '')),
                     'product_code' => trim((string) ($row->product_code ?? '')),
                     'product_name' => trim((string) ($row->product_code ?? '')),
+                    'source_unit' => '',
                     'source_qty_kecil' => 0.0,
                     'used_qty_kecil' => 0.0,
                     'remain_qty_kecil' => 0.0,

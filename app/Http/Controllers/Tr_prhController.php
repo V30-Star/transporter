@@ -708,7 +708,7 @@ class Tr_prhController extends Controller
             return null;
         }
 
-        return 'Permintaan Pembelian '.$header->fprno.' tidak dapat diubah atau dihapus karena sudah digunakan pada Order Pembelian: '.$usedBy->implode(', ').'.';
+        return "Information\nPermintaan ini tidak dapat di-Edit/Delete.\nMasih ada Refrensi di Transaksi:\n" . $usedBy->implode(', ');
     }
 
     private function validateStoreRequest(Request $request): void

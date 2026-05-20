@@ -1071,7 +1071,29 @@
             }
 
             window.showTransactionErrorModal = function(messages, options = {}) {
-                const normalizedMessages = (Array.isArray(messages) ? messages : [messages])
+                const rawMessages = (Array.isArray(messages) ? messages : [messages])
+                    .map((message) => String(message ?? '').trim())
+                    .filter(Boolean);
+
+                const simpleSingleMessage = rawMessages.length === 1 ? rawMessages[0] : '';
+                const simpleLines = simpleSingleMessage !== '' ? simpleSingleMessage.split(/\r?\n/).map((line) => line.trim()).filter(Boolean) : [];
+                const simpleTitle = simpleLines.length > 1 && ['information', 'warning'].includes(simpleLines[0].toLowerCase())
+                    ? simpleLines[0]
+                    : '';
+
+                if (simpleTitle !== '') {
+                    Swal.fire({
+                        icon: simpleTitle.toLowerCase() === 'warning' ? 'warning' : 'info',
+                        title: simpleTitle,
+                        html: `<div class="text-left whitespace-pre-line" style="font-size:14px; line-height:1.7;">${escapeHtml(simpleLines.slice(1).join('\n'))}</div>`,
+                        confirmButtonText: 'Ok',
+                        confirmButtonColor: '#f59e0b',
+                        width: 560
+                    });
+                    return;
+                }
+
+                const normalizedMessages = rawMessages
                     .map((message) => simplifyMessage(message))
                     .filter(Boolean);
 
