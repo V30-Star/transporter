@@ -275,6 +275,7 @@ class Tr_prhController extends Controller
         $fprdate = $request->filled('fprdate')
             ? Carbon::parse($request->fprdate)->startOfDay()
             : now()->startOfDay();
+        $this->ensureCreateDateWithinEditPeriod($fprdate);
 
         $branchFromForm = $request->input('fbranchcode');
         $fprno = $request->filled('fprno')
@@ -426,6 +427,12 @@ class Tr_prhController extends Controller
         $tr_prh = $this->findPrWithSupplier($fprhid);
         $pageData = $this->buildPrPageData($tr_prh, true);
 
+        if ($message = $this->getPostedPeriodLockMessage($tr_prh->fprdate, 'Data ini')) {
+            return redirect()
+                ->route('tr_prh.view', $tr_prh->fprhid)
+                ->with('error', $message);
+        }
+
         if ($pageData['blockedByPO']) {
             return redirect()
                 ->route('tr_prh.view', $tr_prh->fprhid)
@@ -451,6 +458,10 @@ class Tr_prhController extends Controller
     public function update(Request $request, int $fprhid)
     {
         $header = Tr_prh::where('fprhid', $fprhid)->firstOrFail();
+
+        if ($message = $this->getPostedPeriodLockMessage($header->fprdate, 'Data ini')) {
+            return redirect()->route('tr_prh.view', $header->fprhid)->with('error', $message);
+        }
 
         $isCloseOnly = $request->boolean('close_only');
         $hasReference = DB::table('tr_pod')->where('frefdtno', $header->fprno)->exists();
@@ -490,6 +501,7 @@ class Tr_prhController extends Controller
         $fprdate = $request->filled('fprdate')
             ? \Carbon\Carbon::parse($request->fprdate)->startOfDay()
             : $header->fprdate;
+        $this->ensureCreateDateWithinEditPeriod($fprdate);
 
         $fneeddate = $request->filled('fneeddate')
             ? \Carbon\Carbon::parse($request->fneeddate)->startOfDay()
@@ -650,6 +662,12 @@ class Tr_prhController extends Controller
         $tr_prh = $this->findPrWithSupplier($fprhid, true);
         $pageData = $this->buildPrPageData($tr_prh, false);
 
+        if ($message = $this->getPostedPeriodLockMessage($tr_prh->fprdate, 'Data ini')) {
+            return redirect()
+                ->route('tr_prh.view', $tr_prh->fprhid)
+                ->with('error', $message);
+        }
+
         if ($pageData['blockedByPO']) {
             return redirect()
                 ->route('tr_prh.view', $tr_prh->fprhid)
@@ -676,6 +694,10 @@ class Tr_prhController extends Controller
     {
         try {
             $tr_prh = Tr_prh::findOrFail($fprhid);
+
+            if ($message = $this->getPostedPeriodLockMessage($tr_prh->fprdate, 'Data ini')) {
+                return redirect()->route('tr_prh.view', $tr_prh->fprhid)->with('error', $message);
+            }
 
             if ($message = $this->getUsageLockMessage($tr_prh)) {
                 return redirect()->route('tr_prh.index')->with('error', $message);

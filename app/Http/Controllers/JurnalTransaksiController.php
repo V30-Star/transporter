@@ -510,6 +510,7 @@ class JurnalTransaksiController extends Controller
         // 2) AMBIL DATA HEADER
         // =========================================================
         $fjurnaldate = Carbon::parse($request->fjurnaldate)->startOfDay();
+        $this->ensureCreateDateWithinEditPeriod($fjurnaldate);
         $fjurnaltype = strtoupper(trim((string) $request->input('fjurnaltype', 'SJU')));
         $fjurnalnote = trim((string) $request->input('fjurnalnote', ''));
         $fbranchcode = $request->input('fbranchcode');
@@ -757,6 +758,9 @@ class JurnalTransaksiController extends Controller
         $fbranchcode = $branch->fcabangkode ?? (string) $raw;
 
         [$jurnaltransaksi, $savedItems] = $this->getJournalTransactionFormData($fstockmtid);
+        if ($message = $this->getPostedPeriodLockMessage($jurnaltransaksi->fjurnaldate, 'Jurnal ini')) {
+            return redirect()->route('jurnaltransaksi.view', ['fcurrid' => $fstockmtid] + $this->resolveJournalIndexRouteParams($jurnaltransaksi->fjurnaltype))->with('error', $message);
+        }
         $selectedSupplierCode = null;
 
         $products = Product::select(
@@ -929,7 +933,12 @@ class JurnalTransaksiController extends Controller
             abort(404);
         }
 
+        if ($message = $this->getPostedPeriodLockMessage($header->fjurnaldate, 'Jurnal ini')) {
+            return redirect()->route('jurnaltransaksi.view', ['fcurrid' => $fstockmtid] + $this->resolveJournalIndexRouteParams($header->fjurnaltype))->with('error', $message);
+        }
+
         $fjurnaldate = Carbon::parse($request->fjurnaldate)->startOfDay();
+        $this->ensureCreateDateWithinEditPeriod($fjurnaldate);
         $fjurnaltype = $header->fjurnaltype === self::PURCHASE_JOURNAL_TYPE
             ? self::PURCHASE_JOURNAL_TYPE
             : strtoupper(trim((string) $request->input('fjurnaltype', 'JV')));
@@ -1127,6 +1136,9 @@ class JurnalTransaksiController extends Controller
         $fbranchcode = $branch->fcabangkode ?? (string) $raw;
 
         [$jurnaltransaksi, $savedItems] = $this->getJournalTransactionFormData($fstockmtid);
+        if ($message = $this->getPostedPeriodLockMessage($jurnaltransaksi->fjurnaldate, 'Jurnal ini')) {
+            return redirect()->route('jurnaltransaksi.view', ['fcurrid' => $fstockmtid] + $this->resolveJournalIndexRouteParams($jurnaltransaksi->fjurnaltype))->with('error', $message);
+        }
         $selectedSupplierCode = null;
 
         $products = Product::select(
@@ -1181,6 +1193,10 @@ class JurnalTransaksiController extends Controller
 
             if (! $jurnaltransaksi) {
                 abort(404);
+            }
+
+            if ($message = $this->getPostedPeriodLockMessage($jurnaltransaksi->fjurnaldate, 'Jurnal ini')) {
+                return redirect()->route('jurnaltransaksi.view', ['fcurrid' => $fstockmtid] + $this->resolveJournalIndexRouteParams($jurnaltransaksi->fjurnaltype))->with('error', $message);
             }
 
             DB::transaction(function () use ($fstockmtid) {

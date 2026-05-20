@@ -597,6 +597,7 @@ class MutasiController extends Controller
             // TAHAP 4: PERSIAPAN HEADER
             // =========================
             $fstockmtdate = \Carbon\Carbon::parse($request->fstockmtdate)->startOfDay();
+            $this->ensureCreateDateWithinEditPeriod($fstockmtdate);
             $ppnAmount = (float) $request->input('famountpopajak', 0);
             $grandTotal = $subtotal + $ppnAmount;
 
@@ -721,6 +722,12 @@ class MutasiController extends Controller
             },
         ])
             ->findOrFail($fstockmtid);
+
+        if ($message = $this->getPostedPeriodLockMessage($mutasi->fstockmtdate, 'Mutasi ini')) {
+            return redirect()
+                ->route('mutasi.view', $mutasi->fstockmtid)
+                ->with('error', $message);
+        }
 
         $usageLockMessage = $this->getUsageLockMessage($mutasi);
 
@@ -853,6 +860,9 @@ class MutasiController extends Controller
             // =========================
             // Pastikan nama model ini benar merujuk ke tabel trstockmt
             $header = PenerimaanPembelianHeader::findOrFail($fstockmtid);
+            if ($message = $this->getPostedPeriodLockMessage($header->fstockmtdate, 'Mutasi ini')) {
+                return redirect()->route('mutasi.view', $header->fstockmtid)->with('error', $message);
+            }
             if ($message = $this->getUsageLockMessage($header)) {
                 return redirect()->route('mutasi.index')->with('error', $message);
             }
@@ -965,6 +975,7 @@ class MutasiController extends Controller
             // 4) TAHAP UPDATE DB
             // =========================
             $fstockmtdate = Carbon::parse($request->fstockmtdate)->startOfDay();
+            $this->ensureCreateDateWithinEditPeriod($fstockmtdate);
             $ppnAmount = (float) $request->input('famountpopajak', 0);
             $grandTotal = $subtotal + $ppnAmount;
 
@@ -1041,6 +1052,12 @@ class MutasiController extends Controller
             },
         ])
             ->findOrFail($fstockmtid);
+
+        if ($message = $this->getPostedPeriodLockMessage($mutasi->fstockmtdate, 'Mutasi ini')) {
+            return redirect()
+                ->route('mutasi.view', $mutasi->fstockmtid)
+                ->with('error', $message);
+        }
 
         $usageLockMessage = $this->getUsageLockMessage($mutasi);
 
@@ -1142,6 +1159,12 @@ class MutasiController extends Controller
                 DB::rollBack();
 
                 return redirect()->route('mutasi.index')->with('error', 'Data Mutasi tidak ditemukan.');
+            }
+
+            if ($message = $this->getPostedPeriodLockMessage($mutasi->fstockmtdate, 'Mutasi ini')) {
+                DB::rollBack();
+
+                return redirect()->route('mutasi.view', $fstockmtid)->with('error', $message);
             }
 
             if ($message = $this->getUsageLockMessage(PenerimaanPembelianHeader::findOrFail($fstockmtid))) {

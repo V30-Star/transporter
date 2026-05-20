@@ -529,6 +529,7 @@ class AdjstockController extends Controller
             // TAHAP 4: PERSIAPAN DATA HEADER
             // =========================
             $fstockmtdate = \Carbon\Carbon::parse($request->fstockmtdate)->startOfDay();
+            $this->ensureCreateDateWithinEditPeriod($fstockmtdate);
             $ppnAmount = (float) $request->input('famountpopajak', 0);
             $grandTotal = $subtotal + $ppnAmount;
 
@@ -663,6 +664,12 @@ class AdjstockController extends Controller
             },
         ])
             ->findOrFail($fstockmtid); // Temukan header berdasarkan $fstockmtid dari URL
+
+        if ($message = $this->getPostedPeriodLockMessage($adjstock->fstockmtdate, 'Adjustment Stock ini')) {
+            return redirect()
+                ->route('adjstock.view', $adjstock->fstockmtid)
+                ->with('error', $message);
+        }
 
         $usageLockMessage = $this->getUsageLockMessage($adjstock);
 
@@ -892,11 +899,15 @@ class AdjstockController extends Controller
         // 2) AMBIL DATA MASTER & HEADER
         // =========================
         $header = PenerimaanPembelianHeader::findOrFail($fstockmtid);
+        if ($message = $this->getPostedPeriodLockMessage($header->fstockmtdate, 'Adjustment Stock ini')) {
+            return redirect()->route('adjstock.view', $header->fstockmtid)->with('error', $message);
+        }
         if ($message = $this->getUsageLockMessage($header)) {
             return redirect()->route('adjstock.index')->with('error', $message);
         }
 
         $fstockmtdate = Carbon::parse($request->fstockmtdate)->startOfDay();
+        $this->ensureCreateDateWithinEditPeriod($fstockmtdate);
         $ffrom = $request->input('ffrom');
         $fprdjadi = $request->input('fprdjadi');
         $ftrancode = $request->input('ftrancode');
@@ -1149,6 +1160,12 @@ class AdjstockController extends Controller
         ])
             ->findOrFail($fstockmtid); // Temukan header berdasarkan $fstockmtid dari URL
 
+        if ($message = $this->getPostedPeriodLockMessage($adjstock->fstockmtdate, 'Adjustment Stock ini')) {
+            return redirect()
+                ->route('adjstock.view', $adjstock->fstockmtid)
+                ->with('error', $message);
+        }
+
         $usageLockMessage = $this->getUsageLockMessage($adjstock);
 
         if (! empty($usageLockMessage)) {
@@ -1228,6 +1245,9 @@ class AdjstockController extends Controller
     {
         try {
             $adjstock = PenerimaanPembelianHeader::findOrFail($fstockmtid);
+            if ($message = $this->getPostedPeriodLockMessage($adjstock->fstockmtdate, 'Adjustment Stock ini')) {
+                return redirect()->route('adjstock.view', $adjstock->fstockmtid)->with('error', $message);
+            }
             if ($message = $this->getUsageLockMessage($adjstock)) {
                 return redirect()->route('adjstock.index')->with('error', $message);
             }

@@ -419,6 +419,7 @@ class PemakaianbarangController extends Controller
         // =========================
         $fstockmtno = trim((string) $request->input('fstockmtno'));
         $fstockmtdate = Carbon::parse($request->fstockmtdate)->startOfDay();
+        $this->ensureCreateDateWithinEditPeriod($fstockmtdate);
         $ffrom = $request->input('ffrom');
         $fket = trim((string) $request->input('fket', ''));
         $fbranchcode = $request->input('fbranchcode');
@@ -746,6 +747,12 @@ class PemakaianbarangController extends Controller
             },
         ])->findOrFail($fstockmtid);
 
+        if ($message = $this->getPostedPeriodLockMessage($pemakaianbarang->fstockmtdate, 'Pemakaian barang ini')) {
+            return redirect()
+                ->route('pemakaianbarang.view', $pemakaianbarang->fstockmtid)
+                ->with('error', $message);
+        }
+
         $usageLockMessage = $this->getUsageLockMessage($pemakaianbarang);
 
         if (! empty($usageLockMessage)) {
@@ -1017,11 +1024,15 @@ class PemakaianbarangController extends Controller
         // 2) AMBIL DATA MASTER & HEADER
         // =========================
         $header = PenerimaanPembelianHeader::findOrFail($fstockmtid);
+        if ($message = $this->getPostedPeriodLockMessage($header->fstockmtdate, 'Pemakaian barang ini')) {
+            return redirect()->route('pemakaianbarang.view', $header->fstockmtid)->with('error', $message);
+        }
         if ($message = $this->getUsageLockMessage($header)) {
             return redirect()->route('pemakaianbarang.index')->with('error', $message);
         }
 
         $fstockmtdate = Carbon::parse($request->fstockmtdate)->startOfDay();
+        $this->ensureCreateDateWithinEditPeriod($fstockmtdate);
         $ffrom = $request->input('ffrom');
         $fket = trim((string) $request->input('fket', ''));
         $fbranchcode = $request->input('fbranchcode');
@@ -1265,6 +1276,12 @@ class PemakaianbarangController extends Controller
             },
         ])->findOrFail($fstockmtid);
 
+        if ($message = $this->getPostedPeriodLockMessage($pemakaianbarang->fstockmtdate, 'Pemakaian barang ini')) {
+            return redirect()
+                ->route('pemakaianbarang.view', $pemakaianbarang->fstockmtid)
+                ->with('error', $message);
+        }
+
         $usageLockMessage = $this->getUsageLockMessage($pemakaianbarang);
 
         if (! empty($usageLockMessage)) {
@@ -1360,6 +1377,9 @@ class PemakaianbarangController extends Controller
     {
         try {
             $pemakaianbarang = PenerimaanPembelianHeader::findOrFail($fstockmtid);
+            if ($message = $this->getPostedPeriodLockMessage($pemakaianbarang->fstockmtdate, 'Pemakaian barang ini')) {
+                return redirect()->route('pemakaianbarang.view', $pemakaianbarang->fstockmtid)->with('error', $message);
+            }
             if ($message = $this->getUsageLockMessage($pemakaianbarang)) {
                 return redirect()->route('pemakaianbarang.index')->with('error', $message);
             }

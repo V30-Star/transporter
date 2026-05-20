@@ -83,6 +83,7 @@ class PengeluaranKasController extends Controller
     public function store(Request $request)
     {
         $payload = $this->validatePayload($request);
+        $this->ensureCreateDateWithinEditPeriod($payload['fkasmtdate']);
         $savedHeaderId = null;
 
         $header = DB::transaction(function () use ($payload, &$savedHeaderId) {
@@ -177,6 +178,10 @@ class PengeluaranKasController extends Controller
     {
         $header = $this->findHeader($fkasmtno);
 
+        if ($message = $this->getPostedPeriodLockMessage($header->fkasmtdate, 'Pengeluaran kas ini')) {
+            return redirect()->route('pengeluarankas.view', $header->fkasmtno)->with('error', $message);
+        }
+
         return view('pengeluarankas.edit', $this->formViewData($header, $header->details, [
             'pageTitle' => 'Edit Pengeluaran Kas',
             'formAction' => route('pengeluarankas.update', $header->fkasmtno),
@@ -189,6 +194,10 @@ class PengeluaranKasController extends Controller
     {
         $header = $this->findHeader($fkasmtno);
 
+        if ($message = $this->getPostedPeriodLockMessage($header->fkasmtdate, 'Pengeluaran kas ini')) {
+            return redirect()->route('pengeluarankas.view', $header->fkasmtno)->with('error', $message);
+        }
+
         return view('pengeluarankas.delete', $this->formViewData($header, $header->details, [
             'pageTitle' => 'Hapus Pengeluaran Kas',
             'formAction' => route('pengeluarankas.destroy', $header->fkasmtno),
@@ -200,7 +209,12 @@ class PengeluaranKasController extends Controller
     public function update(Request $request, $fkasmtno)
     {
         $header = $this->findHeader($fkasmtno);
+
+        if ($message = $this->getPostedPeriodLockMessage($header->fkasmtdate, 'Pengeluaran kas ini')) {
+            return redirect()->route('pengeluarankas.view', $header->fkasmtno)->with('error', $message);
+        }
         $payload = $this->validatePayload($request, $header);
+        $this->ensureCreateDateWithinEditPeriod($payload['fkasmtdate']);
 
         DB::transaction(function () use ($payload, $header) {
             $now = now();
@@ -272,6 +286,10 @@ class PengeluaranKasController extends Controller
     public function destroy($fkasmtno)
     {
         $header = $this->findHeader($fkasmtno);
+
+        if ($message = $this->getPostedPeriodLockMessage($header->fkasmtdate, 'Pengeluaran kas ini')) {
+            return redirect()->route('pengeluarankas.view', $header->fkasmtno)->with('error', $message);
+        }
         $deletedNo = $header->fkasmtno;
 
         DB::transaction(function () use ($header) {

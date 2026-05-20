@@ -482,6 +482,7 @@ class ReturPenjualanController extends Controller
 
         // 2. INISIALISASI
         $fsodate = Carbon::parse($request->fsodate);
+        $this->ensureCreateDateWithinEditPeriod($fsodate);
         $fincludeppn = $request->boolean('fincludeppn') ? '1' : '0';
         $userid = mb_substr(auth('sysuser')->user()->fname ?? 'admin', 0, 10);
         $now = now();
@@ -1233,6 +1234,10 @@ class ReturPenjualanController extends Controller
                 ->orderBy('trandt.ftrandtid', 'asc');
         }])->findOrFail($ftranmtid);
 
+        if ($message = $this->getPostedPeriodLockMessage($returpenjualan->fsodate, 'Retur ini')) {
+            return redirect()->route('returpenjualan.view', $returpenjualan->ftranmtid)->with('error', $message);
+        }
+
         if (! $returpenjualan->customer) {
             $returpenjualan->setRelation('customer', Customer::where('fcustomercode', trim((string) $returpenjualan->fcustno))->first());
         }
@@ -1382,6 +1387,10 @@ class ReturPenjualanController extends Controller
                 ->orderBy('trandt.ftrandtid', 'asc');
         }])->findOrFail($ftranmtid);
 
+        if ($message = $this->getPostedPeriodLockMessage($returpenjualan->fsodate, 'Retur ini')) {
+            return redirect()->route('returpenjualan.view', $returpenjualan->ftranmtid)->with('error', $message);
+        }
+
         if (! $returpenjualan->customer) {
             $returpenjualan->setRelation('customer', Customer::where('fcustomercode', trim((string) $returpenjualan->fcustno))->first());
         }
@@ -1504,12 +1513,17 @@ class ReturPenjualanController extends Controller
             return abort(404, 'Faktur Penjualan tidak ditemukan.');
         }
 
+        if ($message = $this->getPostedPeriodLockMessage($header->fsodate, 'Retur ini')) {
+            return redirect()->route('returpenjualan.view', $ftranmtid)->with('error', $message);
+        }
+
         if ($message = $this->getUsageLockMessage((object) $header)) {
             return redirect()->route('returpenjualan.index')->with('error', $message);
         }
 
         // 3. INISIALISASI DATA
         $fsodate = Carbon::parse($request->fsodate);
+        $this->ensureCreateDateWithinEditPeriod($fsodate);
         $fincludeppn = $request->boolean('fincludeppn') ? '1' : '0';
         $userid = mb_substr(auth('sysuser')->user()->fname ?? 'admin', 0, 10);
         $now = now();
@@ -1802,6 +1816,10 @@ class ReturPenjualanController extends Controller
                 ->orderBy('trandt.ftrandtid', 'asc');
         }])->findOrFail($ftranmtid);
 
+        if ($message = $this->getPostedPeriodLockMessage($returpenjualan->fsodate, 'Retur ini')) {
+            return redirect()->route('returpenjualan.view', $returpenjualan->ftranmtid)->with('error', $message);
+        }
+
         if (! $returpenjualan->customer) {
             $returpenjualan->setRelation('customer', Customer::where('fcustomercode', trim((string) $returpenjualan->fcustno))->first());
         }
@@ -1907,6 +1925,10 @@ class ReturPenjualanController extends Controller
         try {
             DB::transaction(function () use ($ftranmtid) {
                 $returpenjualan = Tranmt::findOrFail($ftranmtid);
+
+                if ($message = $this->getPostedPeriodLockMessage($returpenjualan->fsodate, 'Retur ini')) {
+                    throw new \RuntimeException($message);
+                }
 
                 if ($message = $this->getUsageLockMessage($returpenjualan)) {
                     throw new \RuntimeException($message);

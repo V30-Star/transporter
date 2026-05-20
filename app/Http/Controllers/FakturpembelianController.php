@@ -958,6 +958,7 @@ class FakturpembelianController extends Controller
             // 2) HEADER FIELDS
             $fstockmtno = trim((string) $request->input('fstockmtno'));
             $fstockmtdate = Carbon::parse($request->fstockmtdate)->startOfDay();
+            $this->ensureCreateDateWithinEditPeriod($fstockmtdate);
             $fsupplier = trim((string) $request->input('fsupplier'));
             $ffrom = trim((string) $request->input('ffrom'));
             $fket = trim((string) $request->input('fket', ''));
@@ -1265,6 +1266,12 @@ class FakturpembelianController extends Controller
             },
         ])
             ->findOrFail($fstockmtid);
+
+        if ($message = $this->getPostedPeriodLockMessage($fakturpembelian->fstockmtdate)) {
+            return redirect()
+                ->route('fakturpembelian.view', $fakturpembelian->fstockmtid)
+                ->with('error', $message);
+        }
 
         $savedAccountCode = $fakturpembelian->fprdjadi;
 
@@ -1613,6 +1620,10 @@ class FakturpembelianController extends Controller
             // 2. Muat header yang ada
             $header = PenerimaanPembelianHeader::findOrFail($fstockmtid);
 
+            if ($message = $this->getPostedPeriodLockMessage($header->fstockmtdate)) {
+                return redirect()->route('fakturpembelian.view', $header->fstockmtid)->with('error', $message);
+            }
+
             if ($message = $this->getUsageLockMessage($header)) {
                 return redirect()->route('fakturpembelian.index')->with('error', $message);
             }
@@ -1620,6 +1631,7 @@ class FakturpembelianController extends Controller
             // HEADER FIELDS
             $fstockmtno = $header->fstockmtno;
             $fstockmtdate = Carbon::parse($request->fstockmtdate)->startOfDay();
+            $this->ensureCreateDateWithinEditPeriod($fstockmtdate);
             $fsupplier = trim((string) $request->input('fsupplier'));
             $ffrom = trim((string) $request->input('ffrom'));
             $fket = trim((string) $request->input('fket', ''));
@@ -1952,6 +1964,12 @@ class FakturpembelianController extends Controller
         ])
             ->findOrFail($fstockmtid); // Temukan header berdasarkan $fstockmtid
 
+        if ($message = $this->getPostedPeriodLockMessage($fakturpembelian->fstockmtdate)) {
+            return redirect()
+                ->route('fakturpembelian.view', $fakturpembelian->fstockmtid)
+                ->with('error', $message);
+        }
+
         // 2. Ambil kode akun yang tersimpan dari faktur
         $savedAccountCode = $fakturpembelian->fprdjadi;
 
@@ -2055,6 +2073,10 @@ class FakturpembelianController extends Controller
         try {
 
             $fakturpembelian = PenerimaanPembelianHeader::findOrFail($fstockmtid);
+
+            if ($message = $this->getPostedPeriodLockMessage($fakturpembelian->fstockmtdate)) {
+                return redirect()->route('fakturpembelian.view', $fakturpembelian->fstockmtid)->with('error', $message);
+            }
 
             if ($message = $this->getUsageLockMessage($fakturpembelian)) {
                 return redirect()->route('fakturpembelian.index')->with('error', $message);

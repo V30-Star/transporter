@@ -893,6 +893,7 @@ class InvoiceController extends Controller
 
         // 2. INISIALISASI DATA HEADER (Tetap sama)
         $fsodate = Carbon::parse($request->fsodate);
+        $this->ensureCreateDateWithinEditPeriod($fsodate);
         $fincludeppn = $request->boolean('fincludeppn') ? '1' : '0';
         $fapplyppn = $request->boolean('fapplyppn') ? '1' : '0';
         $ppnPersen = $request->input('fppnpersen', 0);
@@ -1610,6 +1611,10 @@ class InvoiceController extends Controller
                 ->orderBy('trandt.ftrandtid', 'asc');
         }])->findOrFail($ftranmtid);
 
+        if ($message = $this->getPostedPeriodLockMessage($invoice->fsodate, 'Faktur ini')) {
+            return redirect()->route('invoice.view', $invoice->ftranmtid)->with('error', $message);
+        }
+
         if ($message = $this->getApprovalLockMessage($invoice)) {
             return redirect()->route('invoice.view', $invoice->ftranmtid)->with('error', $message);
         }
@@ -1879,6 +1884,9 @@ class InvoiceController extends Controller
 
             return abort(404, 'Faktur Penjualan tidak ditemukan.');
         }
+        if ($message = $this->getPostedPeriodLockMessage($header->fsodate, 'Faktur ini')) {
+            return redirect()->route('invoice.view', $ftranmtid)->with('error', $message);
+        }
         if ($message = $this->getApprovalLockMessage((object) $header)) {
             return redirect()->route('invoice.view', $ftranmtid)->with('error', $message);
         }
@@ -1889,6 +1897,7 @@ class InvoiceController extends Controller
 
         // 3. INISIALISASI DATA
         $fsodate = Carbon::parse($request->fsodate);
+        $this->ensureCreateDateWithinEditPeriod($fsodate);
         $fincludeppn = $request->boolean('fincludeppn') ? '1' : '0';
         $fapplyppn = $request->boolean('fapplyppn') ? '1' : '0';
         $headerDiscPercent = max(0, min(100, (float) $request->input('fdiscpersen', 0)));
@@ -2180,6 +2189,10 @@ class InvoiceController extends Controller
                 ->orderBy('trandt.ftrandtid', 'asc');
         }])->findOrFail($ftranmtid);
 
+        if ($message = $this->getPostedPeriodLockMessage($invoice->fsodate, 'Faktur ini')) {
+            return redirect()->route('invoice.view', $invoice->ftranmtid)->with('error', $message);
+        }
+
         if ($message = $this->getApprovalLockMessage($invoice)) {
             return redirect()->route('invoice.view', $invoice->ftranmtid)->with('error', $message);
         }
@@ -2274,6 +2287,10 @@ class InvoiceController extends Controller
     {
         try {
             $invoice = Tranmt::findOrFail($ftranmtid);
+
+            if ($message = $this->getPostedPeriodLockMessage($invoice->fsodate, 'Faktur ini')) {
+                return redirect()->route('invoice.view', $invoice->ftranmtid)->with('error', $message);
+            }
 
             if ($message = $this->getUsageLockMessage($invoice)) {
                 return redirect()->route('invoice.index')->with('error', $message);

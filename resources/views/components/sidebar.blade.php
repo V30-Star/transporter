@@ -78,6 +78,13 @@
                 </a>
             </li>
 
+            <li>
+                <a href="{{ route('editperiode.edit') }}" class="flex items-center p-2 rounded-lg hover:bg-gray-700">
+                    <x-heroicon-o-calendar-days class="w-5 h-5 flex-shrink-0" />
+                    <span class="ml-3" x-show="openSidebar" x-transition.opacity.duration.150>{{ "Edit Periode" }}</span>
+                </a>
+            </li>
+
             <!-- Master Accounting -->
             <li x-data="{ open: false }" x-effect="if(!openSidebar) open = false">
                 <button @click="open = !open"

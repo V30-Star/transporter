@@ -6,6 +6,7 @@ use App\Http\Controllers\ApprovalController;
 use App\Http\Controllers\AssemblingController;
 use App\Http\Controllers\CurrencyController;
 use App\Http\Controllers\CustomerController;
+use App\Http\Controllers\EditPeriodeController;
 use App\Http\Controllers\FakturpembelianController;
 use App\Http\Controllers\GroupcustomerController;
 use App\Http\Controllers\GroupproductController;
@@ -72,6 +73,8 @@ Route::middleware('auth')->group(function () {
     Route::get('/settings', function () {
         return view('settings');
     })->name('settings');
+    Route::get('/settings/edit-periode', [EditPeriodeController::class, 'edit'])->name('editperiode.edit');
+    Route::patch('/settings/edit-periode', [EditPeriodeController::class, 'update'])->name('editperiode.update');
 
     // Profile routes
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile');

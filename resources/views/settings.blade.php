@@ -38,6 +38,17 @@
                         {{ "Tampilan gelap untuk mengurangi silau saat dipakai di malam hari atau layar terang." }}
                     </p>
                 </button>
+
+                <a href="{{ route('editperiode.edit') }}"
+                    class="text-left rounded-xl border border-gray-200 bg-white p-5 transition hover:shadow-md">
+                    <div class="flex items-center justify-between">
+                        <span class="text-lg font-semibold text-gray-800">{{ "Edit Periode" }}</span>
+                        <span class="text-sm font-semibold text-gray-500">YYYYMM</span>
+                    </div>
+                    <p class="mt-3 text-sm text-gray-600">
+                        {{ "Atur batas periode posting untuk create, edit, dan delete transaksi." }}
+                    </p>
+                </a>
             </div>
 
         </div>

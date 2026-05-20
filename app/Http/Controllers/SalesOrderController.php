@@ -789,6 +789,7 @@ class SalesOrderController extends Controller
 
         // HEADER VALUES
         $fsodate = Carbon::parse($request->fsodate)->startOfDay();
+        $this->ensureCreateDateWithinEditPeriod($fsodate);
         $fsono = $request->input('fsono');
         $fincludeppn = $request->boolean('fincludeppn') ? '1' : '0';
         $userid = auth('sysuser')->user()->fname ?? 'admin';
@@ -1078,6 +1079,10 @@ class SalesOrderController extends Controller
                 );
         }])->findOrFail($ftrsomtid);
 
+        if ($message = $this->getPostedPeriodLockMessage($salesorder->fsodate, 'Sales Order ini')) {
+            return redirect()->route('salesorder.view', $salesorder->ftrsomtid)->with('error', $message);
+        }
+
         if ($message = $this->getApprovalLockMessage($salesorder)) {
             return redirect()->route('salesorder.view', $salesorder->ftrsomtid)->with('error', $message);
         }
@@ -1355,6 +1360,9 @@ class SalesOrderController extends Controller
         if (! $header) {
             return abort(404, 'Data Sales Order tidak ditemukan.');
         }
+        if ($message = $this->getPostedPeriodLockMessage($header->fsodate, 'Sales Order ini')) {
+            return redirect()->route('salesorder.view', $ftrsomtid)->with('error', $message);
+        }
         if ($message = $this->getApprovalLockMessage((object) $header)) {
             return redirect()->route('salesorder.view', $ftrsomtid)->with('error', $message);
         }
@@ -1365,6 +1373,7 @@ class SalesOrderController extends Controller
 
         // 3. HEADER VALUES
         $fsodate = Carbon::parse($request->fsodate)->startOfDay();
+        $this->ensureCreateDateWithinEditPeriod($fsodate);
         $fincludeppn = $request->input('fincludeppn', '0'); // 0: Exclude, 1: Include
         $fapplyppn = $request->input('fapplyppn') == '1' ? '1' : '0';
         $fppnpersen = (float) $request->input('fppnpersen', 11);
@@ -1576,6 +1585,10 @@ class SalesOrderController extends Controller
                 );
         }])->findOrFail($ftrsomtid);
 
+        if ($message = $this->getPostedPeriodLockMessage($salesorder->fsodate, 'Sales Order ini')) {
+            return redirect()->route('salesorder.view', $salesorder->ftrsomtid)->with('error', $message);
+        }
+
         if (! $salesorder->customer) {
             $salesorder->setRelation('customer', Customer::where('fcustomercode', trim((string) $salesorder->fcustno))->first());
         }
@@ -1668,6 +1681,10 @@ class SalesOrderController extends Controller
     {
         try {
             $salesorder = SalesOrderHeader::findOrFail($ftrsomtid);
+
+            if ($message = $this->getPostedPeriodLockMessage($salesorder->fsodate, 'Sales Order ini')) {
+                return redirect()->route('salesorder.view', $salesorder->ftrsomtid)->with('error', $message);
+            }
 
             if ($message = $this->getUsageLockMessage($salesorder)) {
                 return redirect()->route('salesorder.index')->with('error', $message);

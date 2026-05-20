@@ -784,6 +784,7 @@ class Tr_pohController extends Controller
 
         // HEADER VALUES
         $fpodate = Carbon::parse($request->fpodate)->startOfDay();
+        $this->ensureCreateDateWithinEditPeriod($fpodate);
         $fkirimdate = $request->filled('fkirimdate') ? Carbon::parse($request->fkirimdate)->startOfDay() : null;
         $fpohid = $request->input('fpohid'); // can be null; we will generate if empty
         $fincludeppn = $request->boolean('fincludeppn') ? 1 : 0;
@@ -1105,6 +1106,12 @@ class Tr_pohController extends Controller
                     DB::raw('COALESCE(r.total_terima, 0) AS fqtyterima')
                 );
         }])->findOrFail($fpohid);
+
+        if ($message = $this->getPostedPeriodLockMessage($tr_poh->fpodate, 'Data ini')) {
+            return redirect()
+                ->route('tr_poh.view', $tr_poh->fpohid)
+                ->with('error', $message);
+        }
         $details = $this->getPoDetailsWithTerimaUsage($tr_poh->fpono);
 
         $existingTerima = DB::table('trstockdt')
@@ -1348,6 +1355,10 @@ class Tr_pohController extends Controller
     public function update(Request $request, $fpohid)
     {
         $header = Tr_poh::where('fpohid', $fpohid)->firstOrFail();
+
+        if ($message = $this->getPostedPeriodLockMessage($header->fpodate, 'Data ini')) {
+            return redirect()->route('tr_poh.view', $header->fpohid)->with('error', $message);
+        }
         $isCloseOnly = $request->boolean('close_only');
         $canClosePo = $isCloseOnly
             && $request->has('fclose')
@@ -1421,6 +1432,7 @@ class Tr_pohController extends Controller
         $fponoId = (int) $header->fpohid;
 
         $fpodate = \Carbon\Carbon::parse($request->fpodate)->startOfDay();
+        $this->ensureCreateDateWithinEditPeriod($fpodate);
         $fkirimdate = $request->filled('fkirimdate')
             ? \Carbon\Carbon::parse($request->fkirimdate)->startOfDay()
             : null;
@@ -1705,6 +1717,12 @@ class Tr_pohController extends Controller
                     DB::raw('COALESCE(r.total_terima, 0) AS fqtyterima'),
                 );
         }])->findOrFail($fpohid);
+
+        if ($message = $this->getPostedPeriodLockMessage($tr_poh->fpodate, 'Data ini')) {
+            return redirect()
+                ->route('tr_poh.view', $tr_poh->fpohid)
+                ->with('error', $message);
+        }
         $details = $this->getPoDetailsWithTerimaUsage($tr_poh->fpono);
 
         // Cek apakah PO sudah ada penerimaan barang
@@ -1799,6 +1817,10 @@ class Tr_pohController extends Controller
     {
         try {
             $tr_poh = Tr_poh::findOrFail($fpohid);
+
+            if ($message = $this->getPostedPeriodLockMessage($tr_poh->fpodate, 'Data ini')) {
+                return redirect()->route('tr_poh.view', $tr_poh->fpohid)->with('error', $message);
+            }
 
             if ($message = $this->getUsageLockMessage($tr_poh)) {
                 return redirect()->route('tr_poh.index')->with('error', $message);

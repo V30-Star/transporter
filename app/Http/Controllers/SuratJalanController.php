@@ -547,6 +547,7 @@ class SuratJalanController extends Controller
         // =========================
         $fstockmtno = trim((string) $request->input('fstockmtno'));
         $fstockmtdate = Carbon::parse($request->fstockmtdate)->startOfDay();
+        $this->ensureCreateDateWithinEditPeriod($fstockmtdate);
         $fsupplier = trim((string) $request->input('fsupplier'));
         $ffrom = trim((string) $request->input('ffrom'));
         $fket = trim((string) $request->input('fket', ''));
@@ -952,6 +953,12 @@ class SuratJalanController extends Controller
             ->select('trstockmt.*', 'mswh.fwhcode as ffrom_code')
             ->findOrFail($fstockmtid); // Temukan header berdasarkan $fstockmtid dari URL
 
+        if ($message = $this->getPostedPeriodLockMessage($suratjalan->fstockmtdate, 'Surat Jalan ini')) {
+            return redirect()
+                ->route('suratjalan.view', $suratjalan->fstockmtid)
+                ->with('error', $message);
+        }
+
         // 4. Map the data for savedItems (sudah menggunakan data yang benar)
         $usageLockMessage = $this->getUsageLockMessage($suratjalan);
 
@@ -1212,12 +1219,17 @@ class SuratJalanController extends Controller
         // =========================
         $header = PenerimaanPembelianHeader::findOrFail($fstockmtid);
 
+        if ($message = $this->getPostedPeriodLockMessage($header->fstockmtdate, 'Surat Jalan ini')) {
+            return redirect()->route('suratjalan.view', $header->fstockmtid)->with('error', $message);
+        }
+
         if ($message = $this->getUsageLockMessage($header)) {
             return redirect()->route('suratjalan.index')->with('error', $message);
         }
 
         $fstockmtno = $header->fstockmtno;
         $fstockmtdate = Carbon::parse($request->fstockmtdate)->startOfDay();
+        $this->ensureCreateDateWithinEditPeriod($fstockmtdate);
         $fsupplier = trim((string) $request->input('fsupplier'));
         $ffrom = trim((string) $request->input('ffrom'));
         $fket = trim((string) $request->input('fket', ''));
@@ -1625,6 +1637,12 @@ class SuratJalanController extends Controller
             ->select('trstockmt.*', 'mswh.fwhcode as ffrom_code')
             ->findOrFail($fstockmtid); // Temukan header berdasarkan $fstockmtid dari URL
 
+        if ($message = $this->getPostedPeriodLockMessage($suratjalan->fstockmtdate, 'Surat Jalan ini')) {
+            return redirect()
+                ->route('suratjalan.view', $suratjalan->fstockmtid)
+                ->with('error', $message);
+        }
+
         // 4. Map the data for savedItems (sudah menggunakan data yang benar)
         $usageLockMessage = $this->getUsageLockMessage($suratjalan);
 
@@ -1715,6 +1733,11 @@ class SuratJalanController extends Controller
     {
         try {
             $suratjalan = PenerimaanPembelianHeader::findOrFail($fstockmtid);
+
+            if ($message = $this->getPostedPeriodLockMessage($suratjalan->fstockmtdate, 'Surat Jalan ini')) {
+                return redirect()->route('suratjalan.view', $suratjalan->fstockmtid)->with('error', $message);
+            }
+
             $invoiceReferenceDocs = DB::table('trstockdt')
                 ->where('fstockmtno', $suratjalan->fstockmtno)
                 ->pluck('frefso')

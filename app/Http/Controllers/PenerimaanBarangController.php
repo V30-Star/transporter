@@ -654,6 +654,7 @@ class PenerimaanBarangController extends Controller
         // 2) HEADER FIELDS
         $fstockmtno = trim((string) $request->input('fstockmtno', ''));
         $fstockmtdate = Carbon::parse($request->fstockmtdate)->startOfDay();
+        $this->ensureCreateDateWithinEditPeriod($fstockmtdate);
         $fsupplier = trim((string) $request->input('fsupplier'));
         $ffrom = trim((string) $request->input('ffrom'));
         $fket = trim((string) $request->input('fket', ''));
@@ -933,6 +934,14 @@ class PenerimaanBarangController extends Controller
             },
         ])->findOrFail($fstockmtid);
 
+        if (in_array($action, ['edit', 'delete'], true)) {
+            if ($message = $this->getPostedPeriodLockMessage($penerimaanbarang->fstockmtdate)) {
+                return redirect()
+                    ->route('penerimaanbarang.view', $penerimaanbarang->fstockmtid)
+                    ->with('error', $message);
+            }
+        }
+
         $selectedBranchCode = trim((string) ($penerimaanbarang->fbranchcode ?? ''));
         $selectedBranchName = $selectedBranchCode !== ''
             ? DB::table('mscabang')->where('fcabangkode', $selectedBranchCode)->value('fcabangname')
@@ -1052,11 +1061,16 @@ class PenerimaanBarangController extends Controller
 
         $header = PenerimaanPembelianHeader::findOrFail($fstockmtid);
 
+        if ($message = $this->getPostedPeriodLockMessage($header->fstockmtdate)) {
+            return redirect()->route('penerimaanbarang.view', $header->fstockmtid)->with('error', $message);
+        }
+
         if ($message = $this->getUsageLockMessage($header)) {
             return redirect()->route('penerimaanbarang.index')->with('error', $message);
         }
 
         $fstockmtdate = Carbon::parse($request->fstockmtdate)->startOfDay();
+        $this->ensureCreateDateWithinEditPeriod($fstockmtdate);
         $fsupplier = trim((string) $request->input('fsupplier'));
         $ffrom = trim((string) $request->input('ffrom'));
         $fket = trim((string) $request->input('fket', ''));
@@ -1247,6 +1261,10 @@ class PenerimaanBarangController extends Controller
     {
         try {
             $penerimaanbarang = PenerimaanPembelianHeader::findOrFail($fstockmtid);
+
+            if ($message = $this->getPostedPeriodLockMessage($penerimaanbarang->fstockmtdate)) {
+                return redirect()->route('penerimaanbarang.view', $penerimaanbarang->fstockmtid)->with('error', $message);
+            }
 
             if ($message = $this->getUsageLockMessage($penerimaanbarang)) {
                 return redirect()->route('penerimaanbarang.index')->with('error', $message);
