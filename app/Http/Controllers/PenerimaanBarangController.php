@@ -12,6 +12,7 @@ use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\ValidationException;
 
 class PenerimaanBarangController extends Controller
 {
@@ -346,6 +347,37 @@ class PenerimaanBarangController extends Controller
         return $agg;
     }
 
+    private function ensureNoDuplicateDetailCodes(array $codes): void
+    {
+        $seen = [];
+        $duplicates = [];
+
+        foreach ($codes as $index => $rawCode) {
+            $code = strtoupper(trim((string) $rawCode));
+            if ($code === '') {
+                continue;
+            }
+
+            if (isset($seen[$code])) {
+                $duplicates[$index] = $code;
+                continue;
+            }
+
+            $seen[$code] = true;
+        }
+
+        if ($duplicates === []) {
+            return;
+        }
+
+        $messages = [];
+        foreach ($duplicates as $index => $code) {
+            $messages["fitemcode.$index"] = "Kode produk {$code} tidak boleh sama dalam satu Penerimaan Barang.";
+        }
+
+        throw ValidationException::withMessages($messages);
+    }
+
     /**
      * Hitung sisa PO dinamis dalam satuan kecil berdasarkan detail PO dikurangi transaksi turunan.
      *
@@ -650,6 +682,8 @@ class PenerimaanBarangController extends Controller
             'frefnoacak' => ['nullable', 'array'],
             'frefnoacak.*' => ['nullable', 'regex:/^\d{3}$/'],
         ]);
+
+        $this->ensureNoDuplicateDetailCodes($request->input('fitemcode', []));
 
         // 2) HEADER FIELDS
         $fstockmtno = trim((string) $request->input('fstockmtno', ''));
@@ -1058,6 +1092,8 @@ class PenerimaanBarangController extends Controller
             'frate' => ['nullable', 'numeric', 'min:0'],
             'famountpopajak' => ['nullable', 'numeric', 'min:0'],
         ]);
+
+        $this->ensureNoDuplicateDetailCodes($request->input('fitemcode', []));
 
         $header = PenerimaanPembelianHeader::findOrFail($fstockmtid);
 

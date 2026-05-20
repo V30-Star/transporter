@@ -1492,6 +1492,17 @@
             },
 
             prepareRowsForSubmit() {
+                const seenCodes = new Set();
+                for (const row of this.rows) {
+                    const code = (row.fitemcode || '').trim().toUpperCase();
+                    if (!code) continue;
+                    if (seenCodes.has(code)) {
+                        this.showWarning('Produk Duplikat', `Kode produk ${code} tidak boleh sama dalam satu Order Pembelian.`);
+                        return null;
+                    }
+                    seenCodes.add(code);
+                }
+
                 return this.rows.map((row) => {
                     row.fnoacak = this.normalizeNoAcak(row.fnoacak) || this.generateUniqueNoAcak(row.uid);
                     row.frefnoacak = this.normalizeNoAcak(row.frefnoacak);
@@ -1620,7 +1631,7 @@
                     const rowName = (row.fitemname || '').trim().toLowerCase();
                     const rowMeta = this.productMeta(row.fitemcode);
                     const rowId = rowMeta?.id ?? null;
-                    if (rowCode === cCode && rowSatuan && cSatuan && rowSatuan === cSatuan) return true;
+                    if (rowCode === cCode) return true;
                     if (cId && rowId && cId === rowId && (!cSatuan || rowSatuan === cSatuan)) return true;
                     if (cName && rowName && cName === rowName && (!cSatuan || rowSatuan === cSatuan)) return true;
                     return false;
@@ -1761,6 +1772,7 @@
             submitForm(form) {
                 if (!IS_EDIT || BLOCKED_BY_TERIMA) return;
                 const preparedRows = this.prepareRowsForSubmit();
+                if (!preparedRows) return;
                 const validRows = preparedRows.filter((row) => this.isRowSavable(row));
                 const warningRows = preparedRows.filter((row) => this.isRowFilled(row) && !this.isRowSavable(row));
 

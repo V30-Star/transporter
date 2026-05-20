@@ -1062,9 +1062,7 @@
                     const cPod = String(candidate.frefdtid ?? '').trim();
                     if (cPod) return this.savedItems.some(it => String(it.frefdtid ?? '').trim() === cPod);
                     const cCode = (candidate.fitemcode || '').trim().toLowerCase();
-                    const cSatuan = (candidate.fsatuan || '').trim().toLowerCase();
-                    return this.savedItems.some(it => (it.fitemcode || '').trim().toLowerCase() === cCode && (it.fsatuan ||
-                        '').trim().toLowerCase() === cSatuan);
+                    return this.savedItems.some(it => (it.fitemcode || '').trim().toLowerCase() === cCode);
                 },
                 onPrPicked(e) {
                     const {
@@ -1174,6 +1172,23 @@
                     }));
                 },
                 submitForm(form) {
+                    const seenCodes = new Set();
+                    for (const row of this.savedItems) {
+                        const code = (row.fitemcode || '').trim().toUpperCase();
+                        if (!code) continue;
+                        if (seenCodes.has(code)) {
+                            this.warningTitle = 'Produk Duplikat';
+                            this.warningMessage = `Kode produk ${code} tidak boleh sama dalam satu Penerimaan Barang.`;
+                            this.warningItems = [];
+                            this.warningCanProceed = false;
+                            this.pendingSubmitForm = null;
+                            this.pendingValidRows = [];
+                            this.showWarningModal = true;
+                            return;
+                        }
+                        seenCodes.add(code);
+                    }
+
                     const validRows = this.savedItems.filter((row) => this.isRowSavable(row));
                     const warningRows = this.savedItems.filter((row) => this.isRowFilled(row) && !this.isRowSavable(row));
 

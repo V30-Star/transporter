@@ -2896,6 +2896,23 @@
                 submitForm(form) {
                     const validRows = this.savedItems.filter((row) => this.isRowSavable(row));
                     const warningRows = this.savedItems.filter((row) => this.isRowFilled(row) && !this.isRowSavable(row));
+                    const seenCodes = new Set();
+
+                    for (const row of validRows) {
+                        const code = (row.fitemcode || '').toString().trim().toUpperCase();
+                        if (!code) continue;
+                        if (seenCodes.has(code)) {
+                            if (window.showTransactionErrorModal) {
+                                window.showTransactionErrorModal(`Kode produk ${code} tidak boleh sama dalam satu Faktur Pembelian.`, {
+                                    title: 'Produk Duplikat'
+                                });
+                            } else {
+                                alert(`Kode produk ${code} tidak boleh sama dalam satu Faktur Pembelian.`);
+                            }
+                            return;
+                        }
+                        seenCodes.add(code);
+                    }
 
                     if (this.hasMixedOpeningBalanceAndSourceRows(validRows)) {
                         this.showOpeningBalanceMixWarning();

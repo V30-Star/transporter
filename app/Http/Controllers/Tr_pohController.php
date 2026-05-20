@@ -16,6 +16,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Mail; // sekalian biar aman untuk tanggal
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Validation\ValidationException;
 
 class Tr_pohController extends Controller
 {
@@ -429,6 +430,37 @@ class Tr_pohController extends Controller
         return $agg;
     }
 
+    private function ensureNoDuplicateDetailCodes(array $codes): void
+    {
+        $seen = [];
+        $duplicates = [];
+
+        foreach ($codes as $index => $rawCode) {
+            $code = strtoupper(trim((string) $rawCode));
+            if ($code === '') {
+                continue;
+            }
+
+            if (isset($seen[$code])) {
+                $duplicates[$index] = $code;
+                continue;
+            }
+
+            $seen[$code] = true;
+        }
+
+        if ($duplicates === []) {
+            return;
+        }
+
+        $messages = [];
+        foreach ($duplicates as $index => $code) {
+            $messages["fitemcode.$index"] = "Kode produk {$code} tidak boleh sama dalam satu Order Pembelian.";
+        }
+
+        throw ValidationException::withMessages($messages);
+    }
+
     /**
      * Hitung sisa PR dinamis dalam satuan kecil berdasarkan fqtykecil dikurangi pemakaian PO.
      *
@@ -781,6 +813,8 @@ class Tr_pohController extends Controller
                 ->withErrors($validator)
                 ->withInput();
         }
+
+        $this->ensureNoDuplicateDetailCodes($request->input('fitemcode', []));
 
         // HEADER VALUES
         $fpodate = Carbon::parse($request->fpodate)->startOfDay();
@@ -1428,6 +1462,8 @@ class Tr_pohController extends Controller
                 ->withErrors($validator)
                 ->withInput();
         }
+
+        $this->ensureNoDuplicateDetailCodes($request->input('fitemcode', []));
 
         $fponoId = (int) $header->fpohid;
 

@@ -14,6 +14,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Validation\ValidationException;
 
 class FakturpembelianController extends Controller
 {
@@ -482,6 +483,37 @@ class FakturpembelianController extends Controller
         }
 
         return false;
+    }
+
+    private function ensureNoDuplicateDetailCodes(array $codes): void
+    {
+        $seen = [];
+        $duplicates = [];
+
+        foreach ($codes as $index => $rawCode) {
+            $code = strtoupper(trim((string) $rawCode));
+            if ($code === '') {
+                continue;
+            }
+
+            if (isset($seen[$code])) {
+                $duplicates[$index] = $code;
+                continue;
+            }
+
+            $seen[$code] = true;
+        }
+
+        if ($duplicates === []) {
+            return;
+        }
+
+        $messages = [];
+        foreach ($duplicates as $index => $code) {
+            $messages["fitemcode.$index"] = "Kode produk {$code} tidak boleh sama dalam satu Faktur Pembelian.";
+        }
+
+        throw ValidationException::withMessages($messages);
     }
 
     private function getSourceRemainMap(string $sourceType, array $detailIds): array
@@ -959,6 +991,8 @@ class FakturpembelianController extends Controller
                 'fprdjadi.required_if' => 'Account wajib diisi ketika tipe pembelian adalah Non Stok.',
                 'fdiscpersen.*.regex' => 'Format diskon item harus angka atau format seperti 10+2.',
             ]);
+
+            $this->ensureNoDuplicateDetailCodes($request->input('fitemcode', []));
 
             // 2) HEADER FIELDS
             $fstockmtno = trim((string) $request->input('fstockmtno'));
@@ -1624,6 +1658,8 @@ class FakturpembelianController extends Controller
                 'fprdjadi.required_if' => 'Account wajib diisi ketika tipe pembelian adalah Non Stok.',
                 'fdiscpersen.*.regex' => 'Format diskon item harus angka atau format seperti 10+2.',
             ]);
+
+            $this->ensureNoDuplicateDetailCodes($request->input('fitemcode', []));
 
             // 2. Muat header yang ada
             $header = PenerimaanPembelianHeader::findOrFail($fstockmtid);

@@ -1134,17 +1134,15 @@
                         return this.savedItems.some(it => String(it.frefdtid ?? '').trim() === cPod);
                     }
                     const cCode = (candidate.fitemcode || '').trim().toLowerCase();
-                    const cSatuan = (candidate.fsatuan || '').trim().toLowerCase();
                     const cName = (candidate.fitemname || '').trim().toLowerCase();
                     const cMeta = this.productMeta(candidate.fitemcode);
                     const cId = cMeta?.id ?? null;
                     return this.savedItems.some(it => {
                         const itCode = (it.fitemcode || '').trim().toLowerCase();
-                        const itSatuan = (it.fsatuan || '').trim().toLowerCase();
                         const itName = (it.fitemname || '').trim().toLowerCase();
                         const itMeta = this.productMeta(it.fitemcode);
                         const itId = itMeta?.id ?? null;
-                        if (itCode === cCode && itSatuan === cSatuan) return true;
+                        if (itCode === cCode) return true;
                         if (cId && itId && cId === itId) return true;
                         if (cName && itName && cName === itName) return true;
                         return false;
@@ -1351,6 +1349,23 @@
                 },
 
                 submitForm(form) {
+                    const seenCodes = new Set();
+                    for (const row of this.savedItems) {
+                        const code = (row.fitemcode || '').trim().toUpperCase();
+                        if (!code) continue;
+                        if (seenCodes.has(code)) {
+                            this.warningTitle = 'Produk Duplikat';
+                            this.warningMessage = `Kode produk ${code} tidak boleh sama dalam satu Penerimaan Barang.`;
+                            this.warningItems = [];
+                            this.warningCanProceed = false;
+                            this.pendingSubmitForm = null;
+                            this.pendingValidRows = [];
+                            this.showWarningModal = true;
+                            return;
+                        }
+                        seenCodes.add(code);
+                    }
+
                     const validRows = this.savedItems.filter((row) => this.isRowSavable(row));
                     const warningRows = this.savedItems.filter((row) => this.isRowFilled(row) && !this.isRowSavable(row));
 

@@ -2210,6 +2210,25 @@
             submitForm(form) {
                 const validRows = this.rows.filter((row) => this.isRowSavable(row));
                 const warningRows = this.rows.filter((row) => this.isRowFilled(row) && !this.isRowSavable(row));
+                const seenCodes = new Set();
+
+                for (const row of validRows) {
+                    const code = (row.fprdcode || '').toString().trim().toUpperCase();
+                    if (!code) continue;
+                    if (seenCodes.has(code)) {
+                        Swal.fire({
+                            icon: 'warning',
+                            title: 'Produk Duplikat',
+                            text: `Kode produk ${code} tidak boleh sama dalam satu Sales Order.`,
+                            confirmButtonText: 'OK',
+                            customClass: {
+                                confirmButton: 'bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700'
+                            }
+                        });
+                        return;
+                    }
+                    seenCodes.add(code);
+                }
 
                 if (warningRows.length > 0) {
                     this.warningTitle = 'Qty Belum Diisi';

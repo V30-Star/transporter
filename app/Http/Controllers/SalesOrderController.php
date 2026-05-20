@@ -18,6 +18,37 @@ use App\Support\ApprovalState;
 
 class SalesOrderController extends Controller
 {
+    private function ensureNoDuplicateDetailCodes(array $codes): void
+    {
+        $seen = [];
+        $duplicates = [];
+
+        foreach ($codes as $index => $rawCode) {
+            $code = strtoupper(trim((string) $rawCode));
+            if ($code === '') {
+                continue;
+            }
+
+            if (isset($seen[$code])) {
+                $duplicates[$index] = $code;
+                continue;
+            }
+
+            $seen[$code] = true;
+        }
+
+        if ($duplicates === []) {
+            return;
+        }
+
+        $messages = [];
+        foreach ($duplicates as $index => $code) {
+            $messages["fprdcode.$index"] = "Kode produk {$code} tidak boleh sama dalam satu Sales Order.";
+        }
+
+        throw ValidationException::withMessages($messages);
+    }
+
     private function canApproveCreditLimit(): bool
     {
         return in_array('approveSalesOrder', explode(',', session('user_restricted_permissions', '')));
@@ -787,6 +818,8 @@ class SalesOrderController extends Controller
             'frefnoacak.*.regex' => 'Nomor referensi acak harus 3 digit angka.',
         ]);
 
+        $this->ensureNoDuplicateDetailCodes($request->input('fprdcode', []));
+
         // HEADER VALUES
         $fsodate = Carbon::parse($request->fsodate)->startOfDay();
         $this->ensureCreateDateWithinEditPeriod($fsodate);
@@ -1354,6 +1387,8 @@ class SalesOrderController extends Controller
             'fnoacak.*.regex' => 'Nomor acak harus 3 digit angka 1 sampai 9.',
             'frefnoacak.*.regex' => 'Nomor referensi acak harus 3 digit angka.',
         ]);
+
+        $this->ensureNoDuplicateDetailCodes($request->input('fprdcode', []));
 
         // 2. LOAD HEADER
         $header = DB::table('trsomt')->where('ftrsomtid', $ftrsomtid)->first();
