@@ -448,6 +448,11 @@ class FakturpembelianController extends Controller
         return $qty;
     }
 
+    private function isOpeningBalanceProductCode(?string $code): bool
+    {
+        return strtoupper(trim((string) $code)) === 'AWAL';
+    }
+
     private function getSourceRemainMap(string $sourceType, array $detailIds): array
     {
         $ids = collect($detailIds)
@@ -894,6 +899,15 @@ class FakturpembelianController extends Controller
     public function store(Request $request)
     {
         try {
+            $rawCodes = collect($request->input('fitemcode', []));
+            $hasOpeningBalanceItem = $rawCodes->contains(fn ($code) => $this->isOpeningBalanceProductCode($code));
+
+            if ($hasOpeningBalanceItem) {
+                $request->merge([
+                    'ftypebuy' => '1',
+                ]);
+            }
+
             // 1) VALIDASI
             $request->validate([
                 'fstockmtdate' => ['required', 'date'],
@@ -981,7 +995,32 @@ class FakturpembelianController extends Controller
                 $extraAvailableBySourceRef[$sourceType . ':' . $detailId] = (float) ($oldUsageByRefId[$detailId] ?? 0);
             }
 
-            $errors = $this->validateSourceRemainForRows($codes, $qtys, $sources, $refdtids, $satuans, $extraAvailableBySourceRef);
+            $sourceValidationCodes = [];
+            $sourceValidationQtys = [];
+            $sourceValidationSources = [];
+            $sourceValidationRefdtids = [];
+            $sourceValidationSatuans = [];
+
+            foreach ($codes as $i => $code) {
+                if ($this->isOpeningBalanceProductCode($code)) {
+                    continue;
+                }
+
+                $sourceValidationCodes[] = $code;
+                $sourceValidationQtys[] = $qtys[$i] ?? null;
+                $sourceValidationSources[] = $sources[$i] ?? null;
+                $sourceValidationRefdtids[] = $refdtids[$i] ?? null;
+                $sourceValidationSatuans[] = $satuans[$i] ?? null;
+            }
+
+            $errors = $this->validateSourceRemainForRows(
+                $sourceValidationCodes,
+                $sourceValidationQtys,
+                $sourceValidationSources,
+                $sourceValidationRefdtids,
+                $sourceValidationSatuans,
+                $extraAvailableBySourceRef
+            );
 
             if ($errors->isNotEmpty()) {
                 return back()->withErrors($errors)->withInput();
@@ -1006,13 +1045,17 @@ class FakturpembelianController extends Controller
                     continue;
                 }
 
+                $isSaldoAwal = $this->isOpeningBalanceProductCode($code);
                 $sat = mb_substr(trim((string) ($satuans[$i] ?? $meta->fsatuankecil ?? '')), 0, 5);
                 $qtyKecil = ($sat === $meta->fsatuanbesar && ($meta->fqtykecil ?? 0) > 0) ? $qty * (float) $meta->fqtykecil : $qty;
+                if ($isSaldoAwal) {
+                    $qtyKecil = 0;
+                }
 
                 $price = (float) ($prices[$i] ?? 0);
                 $biaya = (float) ($biayas[$i] ?? 0);
                 $discP = (float) ($discs[$i] ?? 0);
-                $sourceType = strtoupper(trim((string) ($sources[$i] ?? '')));
+                $sourceType = $isSaldoAwal ? '' : strtoupper(trim((string) ($sources[$i] ?? '')));
 
                 $priceNet = ($price + $biaya) * (1 - ($discP / 100));
                 $amount = $qty * $priceNet;
@@ -1021,10 +1064,10 @@ class FakturpembelianController extends Controller
                 $rowsDt[] = [
                     'fprdcode' => $code,
                     'fnoacak' => $this->normalizeRandomNumber(null, $usedNoAcaks),
-                    'frefdtno' => trim((string) ($refdtnos[$i] ?? '')) ?: null,
+                    'frefdtno' => $isSaldoAwal ? null : (trim((string) ($refdtnos[$i] ?? '')) ?: null),
                     'frefso' => $sourceType === 'PO' ? (trim((string) ($refdtnos[$i] ?? '')) ?: null) : null,
-                    'frefdtid' => isset($refdtids[$i]) ? (int) $refdtids[$i] : null,
-                    'frefnoacak' => $this->normalizeReferenceRandomNumberSingle($frefnoacaks[$i] ?? null),
+                    'frefdtid' => $isSaldoAwal ? null : (isset($refdtids[$i]) ? (int) $refdtids[$i] : null),
+                    'frefnoacak' => $isSaldoAwal ? null : $this->normalizeReferenceRandomNumberSingle($frefnoacaks[$i] ?? null),
                     'fqty' => $qty,
                     'fqtykecil' => $qtyKecil,
                     'fqtyremain' => $qtyKecil,
@@ -1474,6 +1517,15 @@ class FakturpembelianController extends Controller
     {
 
         try {
+            $rawCodes = collect($request->input('fitemcode', []));
+            $hasOpeningBalanceItem = $rawCodes->contains(fn ($code) => $this->isOpeningBalanceProductCode($code));
+
+            if ($hasOpeningBalanceItem) {
+                $request->merge([
+                    'ftypebuy' => '1',
+                ]);
+            }
+
             // VALIDASI
             $validatedData = $request->validate([
                 'fstockmtno' => ['nullable', 'string', 'max:100'],
@@ -1626,7 +1678,32 @@ class FakturpembelianController extends Controller
                 $oldUsageBySourceRef[$sourceKey] = ($oldUsageBySourceRef[$sourceKey] ?? 0) + $qtyUsed;
             }
 
-            $errors = $this->validateSourceRemainForRows($codes, $qtys, $sources, $refdtids, $satuans, $oldUsageBySourceRef);
+            $sourceValidationCodes = [];
+            $sourceValidationQtys = [];
+            $sourceValidationSources = [];
+            $sourceValidationRefdtids = [];
+            $sourceValidationSatuans = [];
+
+            foreach ($codes as $i => $code) {
+                if ($this->isOpeningBalanceProductCode($code)) {
+                    continue;
+                }
+
+                $sourceValidationCodes[] = $code;
+                $sourceValidationQtys[] = $qtys[$i] ?? null;
+                $sourceValidationSources[] = $sources[$i] ?? null;
+                $sourceValidationRefdtids[] = $refdtids[$i] ?? null;
+                $sourceValidationSatuans[] = $satuans[$i] ?? null;
+            }
+
+            $errors = $this->validateSourceRemainForRows(
+                $sourceValidationCodes,
+                $sourceValidationQtys,
+                $sourceValidationSources,
+                $sourceValidationRefdtids,
+                $sourceValidationSatuans,
+                $oldUsageBySourceRef
+            );
 
             if ($errors->isNotEmpty()) {
                 return back()->withErrors($errors)->withInput();
@@ -1651,17 +1728,21 @@ class FakturpembelianController extends Controller
                     continue;
                 }
 
+                $isSaldoAwal = $this->isOpeningBalanceProductCode($code);
                 $sat = trim((string) ($satuans[$i] ?? ''));
                 $price = (float) ($prices[$i] ?? 0);
                 $biaya = (float) ($biayas[$i] ?? 0);
                 $discP = (float) ($discs[$i] ?? 0);
                 $desc = trim((string) ($descs[$i] ?? ''));
-                $sourceType = strtoupper(trim((string) ($sources[$i] ?? '')));
+                $sourceType = $isSaldoAwal ? '' : strtoupper(trim((string) ($sources[$i] ?? '')));
 
                 // Konversi Satuan & Qty Kecil
                 $qtyKecil = $qty;
                 if ($sat === $meta->fsatuanbesar) {
                     $qtyKecil = $qty * (float) ($meta->fqtykecil ?? 1);
+                }
+                if ($isSaldoAwal) {
+                    $qtyKecil = 0;
                 }
 
                 $priceNet = $price * (1 - ($discP / 100));
@@ -1671,10 +1752,10 @@ class FakturpembelianController extends Controller
                 $rowsDt[] = [
                     'fprdcode' => $code,
                     'fnoacak' => $this->normalizeRandomNumber(null, $usedNoAcaks),
-                    'frefdtno' => ! empty($refdtno[$i]) ? $refdtno[$i] : null,
+                    'frefdtno' => $isSaldoAwal ? null : (! empty($refdtno[$i]) ? $refdtno[$i] : null),
                     'frefso' => $sourceType === 'PO' ? (! empty($refdtno[$i]) ? $refdtno[$i] : null) : null,
-                    'frefdtid' => isset($refdtids[$i]) ? (int) $refdtids[$i] : null,
-                    'frefnoacak' => $this->normalizeReferenceRandomNumberSingle($frefnoacaks[$i] ?? null),
+                    'frefdtid' => $isSaldoAwal ? null : (isset($refdtids[$i]) ? (int) $refdtids[$i] : null),
+                    'frefnoacak' => $isSaldoAwal ? null : $this->normalizeReferenceRandomNumberSingle($frefnoacaks[$i] ?? null),
                     'fqty' => $qty,
                     'fqtykecil' => $qtyKecil,
                     'fqtyremain' => $qtyKecil,

@@ -1287,8 +1287,9 @@
 
                                     <!-- Trigger: Add PO -->
                                     <div x-data="poFormModal()">
-                                        <button type="button" @click="openModal()"
-                                            class="inline-flex items-center gap-2 rounded-lg bg-emerald-600 px-3 py-2 text-white hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-emerald-500">
+                                        <button type="button" @click="openModal()" :disabled="isLocked()"
+                                            :class="isLocked() ? 'cursor-not-allowed opacity-50' : 'hover:bg-emerald-700 focus:ring-2 focus:ring-emerald-500'"
+                                            class="inline-flex items-center gap-2 rounded-lg bg-emerald-600 px-3 py-2 text-white focus:outline-none">
                                             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none"
                                                 viewBox="0 0 24 24" stroke="currentColor">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
@@ -1363,8 +1364,9 @@
 
                                     <!-- Trigger: Add PB -->
                                     <div x-data="pbFormModal()">
-                                        <button type="button" @click="openModal()"
-                                            class="inline-flex items-center gap-2 rounded-lg bg-blue-600 px-3 py-2 text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                        <button type="button" @click="openModal()" :disabled="isLocked()"
+                                            :class="isLocked() ? 'cursor-not-allowed opacity-50' : 'hover:bg-blue-700 focus:ring-2 focus:ring-blue-500'"
+                                            class="inline-flex items-center gap-2 rounded-lg bg-blue-600 px-3 py-2 text-white focus:outline-none">
                                             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none"
                                                 viewBox="0 0 24 24" stroke="currentColor">
                                                 <path stroke-linecap="round" stroke-linejoin="round"
@@ -2337,6 +2339,7 @@
                     if (row) {
                         this.recalc(row);
                     }
+                    this.syncOpeningBalanceMode();
                     this.recalcTotals();
                     this.ensureTrailingRow(index);
                 },
@@ -2471,6 +2474,7 @@
                     this.ensureMinimumRows();
                     this.ensureTrailingRow();
                     this.syncSupplierLockState();
+                    this.syncOpeningBalanceMode();
                 },
 
                 removeSaved(i) {
@@ -2637,6 +2641,28 @@
                     return this.savedItems.map(it => this.itemKey(it));
                 },
 
+                isOpeningBalanceCode(code) {
+                    return (code || '').toString().trim().toUpperCase() === 'AWAL';
+                },
+
+                hasOpeningBalanceRows() {
+                    return (this.savedItems || []).some((row) => this.isOpeningBalanceCode(row?.fitemcode));
+                },
+
+                syncOpeningBalanceMode() {
+                    const hasOpeningBalanceRows = this.hasOpeningBalanceRows();
+                    window.fpbOpeningBalanceLocked = hasOpeningBalanceRows;
+
+                    if (!hasOpeningBalanceRows) return;
+
+                    const typeSelect = document.querySelector('select[name="ftypebuy"]');
+                    if (typeSelect && typeSelect.value !== '1') {
+                        typeSelect.value = '1';
+                        typeSelect.dispatchEvent(new Event('input', { bubbles: true }));
+                        typeSelect.dispatchEvent(new Event('change', { bubbles: true }));
+                    }
+                },
+
                 alokasiBiaya() {
                     if (this.hasTerSourceItems) {
                         return;
@@ -2725,6 +2751,7 @@
                     this.$watch('ppnRate', () => this.recalcTotals());
                     this.$nextTick(() => window.syncFpbBiayaGlobalHeader?.());
                     this.syncSupplierLockState();
+                    this.syncOpeningBalanceMode();
 
                     // Listen for PO and PB picked
                     window.getCurrentItemKeys = () => this.getCurrentItemKeys();
@@ -2852,6 +2879,21 @@
                 pendingHeader: null,
                 pendingUniques: [],
 
+                isLocked() {
+                    return !!window.fpbOpeningBalanceLocked;
+                },
+
+                showLockedWarning() {
+                    const message = 'Item AWAL untuk saldo awal tidak boleh ambil referensi PO atau TER.';
+                    if (window.showTransactionErrorModal) {
+                        window.showTransactionErrorModal(message, {
+                            title: 'Referensi Tidak Bisa Dipakai'
+                        });
+                        return;
+                    }
+                    alert(message);
+                },
+
                 initDataTable() {
                     if (this.table) {
                         this.table.destroy();
@@ -2929,6 +2971,10 @@
                 },
 
                 openModal() {
+                    if (this.isLocked()) {
+                        this.showLockedWarning();
+                        return;
+                    }
                     this.show = true;
                     this.$nextTick(() => {
                         this.initDataTable();
@@ -3003,6 +3049,21 @@
                 dupSample: [],
                 pendingHeader: null,
                 pendingUniques: [],
+
+                isLocked() {
+                    return !!window.fpbOpeningBalanceLocked;
+                },
+
+                showLockedWarning() {
+                    const message = 'Item AWAL untuk saldo awal tidak boleh ambil referensi PO atau TER.';
+                    if (window.showTransactionErrorModal) {
+                        window.showTransactionErrorModal(message, {
+                            title: 'Referensi Tidak Bisa Dipakai'
+                        });
+                        return;
+                    }
+                    alert(message);
+                },
 
                 initDataTable() {
                     if (this.table) {
@@ -3081,6 +3142,10 @@
                 },
 
                 openModal() {
+                    if (this.isLocked()) {
+                        this.showLockedWarning();
+                        return;
+                    }
                     this.show = true;
                     this.$nextTick(() => {
                         this.initDataTable();
