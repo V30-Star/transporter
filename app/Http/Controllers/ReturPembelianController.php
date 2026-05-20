@@ -444,6 +444,7 @@ class ReturPembelianController extends Controller
             // HEADER FIELDS
             $fstockmtno = trim((string) $request->input('fstockmtno'));
             $fstockmtdate = Carbon::parse($request->fstockmtdate)->startOfDay();
+            $this->ensureCreateDateWithinEditPeriod($fstockmtdate);
             $fsupplier = trim((string) $request->input('fsupplier'));
             $ffrom = $request->input('ffrom');
             $fket = trim((string) $request->input('fket', ''));
@@ -695,6 +696,12 @@ class ReturPembelianController extends Controller
             },
         ])
             ->findOrFail($fstockmtid); // Temukan header berdasarkan $fstockmtid
+
+        if ($message = $this->getPostedPeriodLockMessage($returpembelian->fstockmtdate, 'Retur Pembelian ini')) {
+            return redirect()
+                ->route('returpembelian.view', $returpembelian->fstockmtid)
+                ->with('error', $message);
+        }
 
         $usageLockMessage = $this->getUsageLockMessage($returpembelian);
 
@@ -959,6 +966,9 @@ class ReturPembelianController extends Controller
 
             // 1. Muat header yang ada
             $header = PenerimaanPembelianHeader::findOrFail($fstockmtid);
+            if ($message = $this->getPostedPeriodLockMessage($header->fstockmtdate, 'Retur Pembelian ini')) {
+                return redirect()->route('returpembelian.view', $header->fstockmtid)->with('error', $message);
+            }
             if ($message = $this->getUsageLockMessage($header)) {
                 return redirect()->route('returpembelian.index')->with('error', $message);
             }
@@ -966,6 +976,7 @@ class ReturPembelianController extends Controller
             // HEADER FIELDS
             $fstockmtno = $header->fstockmtno;
             $fstockmtdate = Carbon::parse($request->fstockmtdate)->startOfDay();
+            $this->ensureCreateDateWithinEditPeriod($fstockmtdate);
             $fsupplier = trim((string) $request->input('fsupplier'));
             $ffrom = $request->input('ffrom');
             $fket = trim((string) $request->input('fket', ''));
@@ -1207,6 +1218,12 @@ class ReturPembelianController extends Controller
         ])
             ->findOrFail($fstockmtid); // Temukan header berdasarkan $fstockmtid
 
+        if ($message = $this->getPostedPeriodLockMessage($returpembelian->fstockmtdate, 'Retur Pembelian ini')) {
+            return redirect()
+                ->route('returpembelian.view', $returpembelian->fstockmtid)
+                ->with('error', $message);
+        }
+
         $usageLockMessage = $this->getUsageLockMessage($returpembelian);
 
         if (! empty($usageLockMessage)) {
@@ -1319,6 +1336,9 @@ class ReturPembelianController extends Controller
     {
         try {
             $returpembelian = PenerimaanPembelianHeader::findOrFail($fstockmtid);
+            if ($message = $this->getPostedPeriodLockMessage($returpembelian->fstockmtdate, 'Retur Pembelian ini')) {
+                return redirect()->route('returpembelian.view', $returpembelian->fstockmtid)->with('error', $message);
+            }
             if ($message = $this->getUsageLockMessage($returpembelian)) {
                 return redirect()->route('returpembelian.index')->with('error', $message);
             }

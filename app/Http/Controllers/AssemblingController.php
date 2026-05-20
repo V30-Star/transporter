@@ -459,6 +459,7 @@ class AssemblingController extends Controller
         // =========================
         $fstockmtno = trim((string) $request->input('fstockmtno'));
         $fstockmtdate = Carbon::parse($request->fstockmtdate)->startOfDay();
+        $this->ensureCreateDateWithinEditPeriod($fstockmtdate);
         $ffrom = $request->input('ffrom');
         $fket = trim((string) $request->input('fket', ''));
         $fbranchcode = $request->input('fbranchcode');
@@ -722,6 +723,12 @@ class AssemblingController extends Controller
             },
         ])->findOrFail($fstockmtid);
 
+        if ($message = $this->getPostedPeriodLockMessage($assembling->fstockmtdate, 'Assembling ini')) {
+            return redirect()
+                ->route('assembling.view', $assembling->fstockmtid)
+                ->with('error', $message);
+        }
+
         $usageLockMessage = $this->getUsageLockMessage($assembling);
 
         if (! empty($usageLockMessage)) {
@@ -982,11 +989,15 @@ class AssemblingController extends Controller
         // 2) AMBIL DATA MASTER & HEADER
         // =========================
         $header = PenerimaanPembelianHeader::findOrFail($fstockmtid);
+        if ($message = $this->getPostedPeriodLockMessage($header->fstockmtdate, 'Assembling ini')) {
+            return redirect()->route('assembling.view', $header->fstockmtid)->with('error', $message);
+        }
         if ($message = $this->getUsageLockMessage($header)) {
             return redirect()->route('assembling.index')->with('error', $message);
         }
 
         $fstockmtdate = Carbon::parse($request->fstockmtdate)->startOfDay();
+        $this->ensureCreateDateWithinEditPeriod($fstockmtdate);
         $ffrom = $request->input('ffrom');
         $fket = trim((string) $request->input('fket', ''));
         $fbranchcode = $request->input('fbranchcode');
@@ -1238,6 +1249,12 @@ class AssemblingController extends Controller
             },
         ])->findOrFail($fstockmtid);
 
+        if ($message = $this->getPostedPeriodLockMessage($assembling->fstockmtdate, 'Assembling ini')) {
+            return redirect()
+                ->route('assembling.view', $assembling->fstockmtid)
+                ->with('error', $message);
+        }
+
         $usageLockMessage = $this->getUsageLockMessage($assembling);
 
         if (! empty($usageLockMessage)) {
@@ -1337,6 +1354,9 @@ class AssemblingController extends Controller
     {
         try {
             $assembling = PenerimaanPembelianHeader::findOrFail($fstockmtid);
+            if ($message = $this->getPostedPeriodLockMessage($assembling->fstockmtdate, 'Assembling ini')) {
+                return redirect()->route('assembling.view', $assembling->fstockmtid)->with('error', $message);
+            }
             if ($message = $this->getUsageLockMessage($assembling)) {
                 return redirect()->route('assembling.index')->with('error', $message);
             }
