@@ -12,6 +12,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Validation\ValidationException;
 
 class Tr_prhController extends Controller
 {
@@ -271,6 +272,7 @@ class Tr_prhController extends Controller
     public function store(Request $request)
     {
         $this->validateStoreRequest($request);
+        $this->ensureNoDuplicateDetailCodes($request->input('fitemcode', []));
 
         $fprdate = $request->filled('fprdate')
             ? Carbon::parse($request->fprdate)->startOfDay()
@@ -497,6 +499,7 @@ class Tr_prhController extends Controller
         }
 
         $this->validateUpdateRequest($request);
+        $this->ensureNoDuplicateDetailCodes($request->input('fitemcode', []));
 
         $fprdate = $request->filled('fprdate')
             ? \Carbon\Carbon::parse($request->fprdate)->startOfDay()
@@ -857,6 +860,37 @@ class Tr_prhController extends Controller
         }
 
         return false;
+    }
+
+    private function ensureNoDuplicateDetailCodes(array $codes): void
+    {
+        $seen = [];
+        $duplicates = [];
+
+        foreach ($codes as $index => $rawCode) {
+            $code = strtoupper(trim((string) $rawCode));
+            if ($code === '') {
+                continue;
+            }
+
+            if (isset($seen[$code])) {
+                $duplicates[$index] = $code;
+                continue;
+            }
+
+            $seen[$code] = true;
+        }
+
+        if ($duplicates === []) {
+            return;
+        }
+
+        $messages = [];
+        foreach ($duplicates as $index => $code) {
+            $messages["fitemcode.$index"] = "Kode produk {$code} tidak boleh sama dalam satu Permintaan Pembelian.";
+        }
+
+        throw ValidationException::withMessages($messages);
     }
 
     private function findPrWithSupplier($fprhid, bool $includeSupplierCode = false)

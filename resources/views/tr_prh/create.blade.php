@@ -1344,14 +1344,15 @@
                 }));
             },
 
-            prepareRowsForSubmit() {
-                const validRows = [];
-                const zeroQtyRows = [];
+                prepareRowsForSubmit() {
+                    const validRows = [];
+                    const zeroQtyRows = [];
+                    const seenCodes = new Set();
 
-                for (const row of this.rows) {
-                    const code = String(row.fitemcode || '').trim();
-                    const name = String(row.fitemname || '').trim();
-                    const sat = String(row.fsatuan || '').trim();
+                    for (const row of this.rows) {
+                        const code = String(row.fitemcode || '').trim();
+                        const name = String(row.fitemname || '').trim();
+                        const sat = String(row.fsatuan || '').trim();
                     const qty = Number(row.fqty || 0);
                     const ket = String(row.fketdt || '').trim();
                     const desc = String(row.fdesc || '').trim();
@@ -1368,17 +1369,24 @@
                         return { invalidMessage: `Kode produk ${code} belum valid atau belum dipilih dari daftar produk.`, validRows: [], zeroQtyRows: [] };
                     }
 
-                    if (!sat) {
-                        return { invalidMessage: `Satuan untuk produk ${name} belum dipilih.`, validRows: [], zeroQtyRows: [] };
-                    }
+                        if (!sat) {
+                            return { invalidMessage: `Satuan untuk produk ${name} belum dipilih.`, validRows: [], zeroQtyRows: [] };
+                        }
 
-                    if (!(qty > 0)) {
-                        zeroQtyRows.push(name || code);
-                        continue;
-                    }
+                        const normalizedCode = code.toUpperCase();
+                        if (seenCodes.has(normalizedCode)) {
+                            return { invalidMessage: `Produk ${name || code} sudah diinput. Kode produk yang sama tidak boleh dipakai lebih dari 1 kali.`, validRows: [], zeroQtyRows: [] };
+                        }
 
-                    validRows.push({
-                        ...row,
+                        seenCodes.add(normalizedCode);
+
+                        if (!(qty > 0)) {
+                            zeroQtyRows.push(name || code);
+                            continue;
+                        }
+
+                        validRows.push({
+                            ...row,
                         fitemcode: code,
                         fitemname: name,
                         fsatuan: sat,

@@ -1716,6 +1716,7 @@
                 prepareRowsForSubmit() {
                     const validRows = [];
                     const zeroQtyRows = [];
+                    const seenCodes = new Set();
 
                     for (const row of this.rows) {
                         const code = String(row.fitemcode || '').trim();
@@ -1740,6 +1741,13 @@
                         if (!sat) {
                             return { invalidMessage: `Satuan untuk produk ${name} belum dipilih.`, validRows: [], zeroQtyRows: [] };
                         }
+
+                        const normalizedCode = code.toUpperCase();
+                        if (seenCodes.has(normalizedCode)) {
+                            return { invalidMessage: `Produk ${name || code} sudah diinput. Kode produk yang sama tidak boleh dipakai lebih dari 1 kali.`, validRows: [], zeroQtyRows: [] };
+                        }
+
+                        seenCodes.add(normalizedCode);
 
                         if (!(qty > 0)) {
                             zeroQtyRows.push(name || code);
