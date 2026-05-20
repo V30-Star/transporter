@@ -907,13 +907,13 @@ class FakturpembelianController extends Controller
                 'frefnoacak' => ['nullable', 'array'],
                 'frefnoacak.*' => ['nullable', 'regex:/^\d{3}(,\s*\d{3})*$/'],
             ], [
-                'fstockmtdate.required' => 'Tanggal transaksi wajib diisi.',
-                'fsupplier.required' => 'Supplier wajib dipilih.',
-                'fitemcode.required' => 'Minimal harus ada 1 item.',
-                'fqty.*.min' => 'Jumlah item harus lebih dari 0.',
-                'fprice.*.min' => 'Harga item tidak boleh minus.',
-                'frefnoacak.*.regex' => 'Nomor acak harus berisi 3 digit angka.',
-                'fprdjadi.required_if' => 'Account wajib dipilih jika tipe pembelian Non Stok.',
+                'fstockmtdate.required' => 'TANGGAL TRANSAKSI WAJIB DIISI.',
+                'fsupplier.required' => 'SUPPLIER WAJIB DIPILIH.',
+                'fitemcode.required' => 'MINIMAL 1 ITEM.',
+                'fqty.*.min' => 'JUMLAH ITEM HARUS > 0.',
+                'fprice.*.min' => 'HARGA ITEM TIDAK BOLEH MINUS.',
+                'frefnoacak.*.regex' => 'NOMOR ACAK HARUS 3 DIGIT.',
+                'fprdjadi.required_if' => 'ACCOUNT WAJIB DIPILIH.',
             ]);
 
             // 2) HEADER FIELDS
@@ -1507,15 +1507,15 @@ class FakturpembelianController extends Controller
                 'frefnoacak.*' => ['nullable', 'regex:/^\d{3}(,\s*\d{3})*$/'],
                 'fprdjadi' => ['required_if:ftypebuy,1'],
             ], [
-                'fstockmtdate.required' => 'Tanggal transaksi wajib diisi.',
-                'fsupplier.required' => 'Supplier wajib dipilih.',
-                'fitemcode.required' => 'Minimal harus ada 1 item.',
-                'fsatuan.*.max' => 'Satuan item terlalu panjang.',
-                'fqty.*.min' => 'Jumlah item tidak boleh minus.',
-                'fprice.*.min' => 'Harga item tidak boleh minus.',
-                'fbiaya.*.min' => 'Biaya item tidak boleh minus.',
-                'frefnoacak.*.regex' => 'Nomor acak harus berisi 3 digit angka.',
-                'fprdjadi.required_if' => 'Account wajib dipilih jika tipe pembelian Non Stok.',
+                'fstockmtdate.required' => 'TANGGAL TRANSAKSI WAJIB DIISI.',
+                'fsupplier.required' => 'SUPPLIER WAJIB DIPILIH.',
+                'fitemcode.required' => 'MINIMAL 1 ITEM.',
+                'fsatuan.*.max' => 'SATUAN ITEM TERLALU PANJANG.',
+                'fqty.*.min' => 'JUMLAH ITEM TIDAK BOLEH MINUS.',
+                'fprice.*.min' => 'HARGA ITEM TIDAK BOLEH MINUS.',
+                'fbiaya.*.min' => 'BIAYA ITEM TIDAK BOLEH MINUS.',
+                'frefnoacak.*.regex' => 'NOMOR ACAK HARUS 3 DIGIT.',
+                'fprdjadi.required_if' => 'ACCOUNT WAJIB DIPILIH.',
             ]);
 
             // 2. Muat header yang ada
@@ -2021,7 +2021,7 @@ class FakturpembelianController extends Controller
                 ->first();
 
             if ($existing) {
-                return 'Nomor referensi '.$referenceNo.' sudah pernah dibuat di transaksi nomor '.trim((string) ($existing->fstockmtno ?? '')).'.';
+                return 'NO. REFERENSI ' . strtoupper((string) $referenceNo) . ' SUDAH ADA DI TRANSAKSI ' . strtoupper(trim((string) ($existing->fstockmtno ?? ''))) . '.';
             }
         }
 

@@ -433,7 +433,7 @@ class AdjstockController extends Controller
                     'numeric',
                     function ($attribute, $value, $fail) use ($allowNegativeStockQty) {
                         if ($allowNegativeStockQty ? (float) $value == 0.0 : (float) $value <= 0) {
-                            $fail($allowNegativeStockQty ? 'Qty tidak boleh 0.' : 'Qty harus lebih besar dari 0.');
+                            $fail($allowNegativeStockQty ? 'QTY TIDAK BOLEH 0.' : 'QTY HARUS > 0.');
                         }
                     },
                 ],
@@ -550,8 +550,8 @@ class AdjstockController extends Controller
             if (empty($rowsDt)) {
                 return back()->withInput()->withErrors([
                     'detail' => $allowNegativeStockQty
-                        ? 'Minimal satu item valid harus diisi dengan qty tidak sama dengan 0.'
-                        : 'Minimal satu item valid harus diisi.',
+                        ? 'MINIMAL 1 ITEM VALID HARUS DIISI. QTY TIDAK BOLEH 0.'
+                        : 'MINIMAL 1 ITEM VALID HARUS DIISI.',
                 ]);
             }
 
@@ -917,7 +917,7 @@ class AdjstockController extends Controller
                 'numeric',
                 function ($attribute, $value, $fail) use ($allowNegativeStockQty) {
                     if ($allowNegativeStockQty ? (float) $value == 0.0 : (float) $value <= 0) {
-                        $fail($allowNegativeStockQty ? 'Qty tidak boleh 0.' : 'Qty harus lebih besar dari 0.');
+                        $fail($allowNegativeStockQty ? 'QTY TIDAK BOLEH 0.' : 'QTY HARUS > 0.');
                     }
                 },
             ],
@@ -1055,8 +1055,8 @@ class AdjstockController extends Controller
         if (empty($rowsDt)) {
             return back()->withInput()->withErrors([
                 'detail' => $allowNegativeStockQty
-                    ? 'Minimal satu item valid (Kode, Satuan, Qty tidak boleh 0).'
-                    : 'Minimal satu item valid (Kode, Satuan, Qty > 0).',
+                    ? 'MINIMAL 1 ITEM VALID (KODE, SATUAN, QTY TIDAK BOLEH 0).'
+                    : 'MINIMAL 1 ITEM VALID (KODE, SATUAN, QTY > 0).',
             ]);
         }
 
@@ -1318,7 +1318,7 @@ class AdjstockController extends Controller
             return null;
         }
 
-        return 'Adjustment Stock '.$header->fstockmtno.' tidak dapat diubah atau dihapus karena sudah digunakan pada transaksi lain: '.$usedBy->implode(', ').'.';
+        return 'ADJUSTMENT STOCK ' . strtoupper((string) $header->fstockmtno) . ' SUDAH DIPAKAI: ' . strtoupper($usedBy->implode(', ')) . '.';
     }
 
     private function validateUniqueReferenceUsage(array $rowsDt, ?string $exceptStockMtNo = null): ?string
@@ -1351,7 +1351,7 @@ class AdjstockController extends Controller
                 ->first();
 
             if ($existing) {
-                return 'Nomor referensi '.$referenceNo.' sudah pernah dibuat di transaksi nomor '.trim((string) ($existing->transaction_no ?? '')).'.';
+                return 'NO. REFERENSI ' . strtoupper((string) $referenceNo) . ' SUDAH ADA DI TRANSAKSI ' . strtoupper(trim((string) ($existing->transaction_no ?? ''))) . '.';
             }
         }
 

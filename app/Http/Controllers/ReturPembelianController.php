@@ -467,10 +467,10 @@ class ReturPembelianController extends Controller
                 'frefno' => ['nullable', 'string', 'max:100'],
                 'frefpo' => ['nullable', 'string', 'max:100'],
             ], [
-                'fstockmtdate.required' => 'Tanggal transaksi wajib diisi.',
-                'fsupplier.required' => 'Supplier wajib diisi.',
-                'fitemcode.required' => 'Minimal 1 item.',
-                'fsatuan.*.max' => 'Satuan di salah satu baris tidak boleh lebih dari 5 karakter.',
+                'fstockmtdate.required' => 'TANGGAL TRANSAKSI WAJIB DIISI.',
+                'fsupplier.required' => 'SUPPLIER WAJIB DIISI.',
+                'fitemcode.required' => 'MINIMAL 1 ITEM.',
+                'fsatuan.*.max' => 'SATUAN MAX 5 KARAKTER.',
             ]);
 
             $this->ensureNoDuplicateDetailCodes($request->input('fitemcode', []));
@@ -601,7 +601,7 @@ class ReturPembelianController extends Controller
 
             if (empty($rowsDt)) {
                 return back()->withInput()->withErrors([
-                    'detail' => 'Minimal satu item valid (Kode, Satuan, Qty > 0).',
+                    'detail' => 'MINIMAL 1 ITEM VALID (KODE, SATUAN, QTY > 0).',
                 ]);
             }
 
@@ -991,11 +991,11 @@ class ReturPembelianController extends Controller
                 'frefno' => ['nullable', 'string'],
                 'frefpo' => ['nullable', 'string'],
             ], [
-                'fstockmtdate.required' => 'Tanggal transaksi wajib diisi.',
-                'fsupplier.required' => 'Supplier wajib diisi.',
-                'fitemcode.required' => 'Minimal 1 item.',
-                'fsatuan.*.max' => 'Satuan di salah satu baris tidak boleh lebih dari 5 karakter.',
-                'faccid.required_if' => 'Account wajib dipilih untuk tipe Non Stok.',
+                'fstockmtdate.required' => 'TANGGAL TRANSAKSI WAJIB DIISI.',
+                'fsupplier.required' => 'SUPPLIER WAJIB DIISI.',
+                'fitemcode.required' => 'MINIMAL 1 ITEM.',
+                'fsatuan.*.max' => 'SATUAN MAX 5 KARAKTER.',
+                'faccid.required_if' => 'ACCOUNT WAJIB DIPILIH.',
             ]);
 
             $this->ensureNoDuplicateDetailCodes($request->input('fitemcode', []));
@@ -1132,7 +1132,7 @@ class ReturPembelianController extends Controller
 
             if (empty($rowsDt)) {
                 return back()->withInput()->withErrors([
-                    'detail' => 'Minimal satu item valid (Kode, Satuan, Qty > 0).',
+                    'detail' => 'MINIMAL 1 ITEM VALID (KODE, SATUAN, QTY > 0).',
                 ]);
             }
 
@@ -1410,7 +1410,7 @@ class ReturPembelianController extends Controller
             return null;
         }
 
-        return 'Retur Pembelian '.$header->fstockmtno.' tidak dapat diubah atau dihapus karena sudah digunakan pada transaksi lain: '.$usedBy->implode(', ').'.';
+        return 'RETUR PEMBELIAN ' . strtoupper((string) $header->fstockmtno) . ' SUDAH DIPAKAI: ' . strtoupper($usedBy->implode(', ')) . '.';
     }
 
     private function validateUniqueHeaderReference($frefno, $frefpo, ?string $exceptStockMtNo = null): ?string
@@ -1443,7 +1443,7 @@ class ReturPembelianController extends Controller
                 ->first();
 
             if ($existing) {
-                return 'Nomor referensi '.$referenceNo.' sudah pernah dibuat di transaksi nomor '.trim((string) ($existing->fstockmtno ?? '')).'.';
+                return 'NO. REFERENSI ' . strtoupper((string) $referenceNo) . ' SUDAH ADA DI TRANSAKSI ' . strtoupper(trim((string) ($existing->fstockmtno ?? ''))) . '.';
             }
         }
 

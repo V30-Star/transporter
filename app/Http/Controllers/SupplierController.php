@@ -52,14 +52,14 @@ class SupplierController extends Controller
                 'fmemo' => '',
             ],
             [
-                'fsuppliercode.unique' => 'Kode Supplier sudah ada.',
-                'fsuppliercode.required' => 'Kode Supplier harus diisi.',
-                'fsuppliername.required' => 'Nama Supplier harus diisi.',
-                'fnpwp.required' => 'NPWP harus diisi.',
-                'faddress.required' => 'Alamat harus diisi.',
-                'ftelp.required' => 'Telepon harus diisi.',
-                'ffax.required' => 'Fax harus diisi.',
-                'fcurr.required' => 'Mata Uang harus diisi.',
+                'fsuppliercode.unique' => 'KODE SUPPLIER SUDAH ADA.',
+                'fsuppliercode.required' => 'KODE SUPPLIER WAJIB DIISI.',
+                'fsuppliername.required' => 'NAMA SUPPLIER WAJIB DIISI.',
+                'fnpwp.required' => 'NPWP WAJIB DIISI.',
+                'faddress.required' => 'ALAMAT WAJIB DIISI.',
+                'ftelp.required' => 'TELEPON WAJIB DIISI.',
+                'ffax.required' => 'FAX WAJIB DIISI.',
+                'fcurr.required' => 'MATA UANG WAJIB DIISI.',
             ]
         );
 
@@ -126,14 +126,14 @@ class SupplierController extends Controller
                 'faddress' => '',
             ],
             [
-                'fsuppliercode.unique' => 'Kode Supplier sudah ada.',
-                'fsuppliercode.required' => 'Kode Supplier harus diisi.',
-                'fsuppliername.required' => 'Nama Supplier harus diisi.',
-                'fnpwp.required' => 'NPWP harus diisi.',
-                'faddress.required' => 'Alamat harus diisi.',
-                'ftelp.required' => 'Telepon harus diisi.',
-                'ffax.required' => 'Fax harus diisi.',
-                'fcurr.required' => 'Mata Uang harus diisi.',
+                'fsuppliercode.unique' => 'KODE SUPPLIER SUDAH ADA.',
+                'fsuppliercode.required' => 'KODE SUPPLIER WAJIB DIISI.',
+                'fsuppliername.required' => 'NAMA SUPPLIER WAJIB DIISI.',
+                'fnpwp.required' => 'NPWP WAJIB DIISI.',
+                'faddress.required' => 'ALAMAT WAJIB DIISI.',
+                'ftelp.required' => 'TELEPON WAJIB DIISI.',
+                'ffax.required' => 'FAX WAJIB DIISI.',
+                'fcurr.required' => 'MATA UANG WAJIB DIISI.',
             ]
         );
 
@@ -262,6 +262,6 @@ class SupplierController extends Controller
             return null;
         }
 
-        return 'Supplier ' . $supplier->fsuppliercode . ' tidak bisa dihapus karena sudah dipakai transaksi.';
+        return 'SUPPLIER ' . strtoupper((string) $supplier->fsuppliercode) . ' SUDAH DIPAKAI TRANSAKSI.';
     }
 }

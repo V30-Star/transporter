@@ -939,7 +939,7 @@ class ReturPenjualanController extends Controller
                 if ((float) ($soStats[$referenceKey]['used_qty_kecil'] ?? 0) > 0) {
                     $refNo = trim((string) ($soStats[$referenceKey]['ref_doc'] ?? ''));
                     $transactionNo = trim((string) ($soStats[$referenceKey]['used_by_transaction'] ?? ''));
-                    return 'Nomor referensi ' . $refNo . ' sudah pernah dibuat di transaksi nomor ' . $transactionNo . '.';
+                    return 'NO. REFERENSI ' . strtoupper((string) $refNo) . ' SUDAH ADA DI TRANSAKSI ' . strtoupper((string) $transactionNo) . '.';
                 }
             }
         }
@@ -950,7 +950,7 @@ class ReturPenjualanController extends Controller
                 if ((float) ($srjStats[$referenceKey]['used_qty_kecil'] ?? 0) > 0) {
                     $refNo = trim((string) ($srjStats[$referenceKey]['ref_doc'] ?? ''));
                     $transactionNo = trim((string) ($srjStats[$referenceKey]['used_by_transaction'] ?? ''));
-                    return 'Nomor referensi ' . $refNo . ' sudah pernah dibuat di transaksi nomor ' . $transactionNo . '.';
+                    return 'NO. REFERENSI ' . strtoupper((string) $refNo) . ' SUDAH ADA DI TRANSAKSI ' . strtoupper((string) $transactionNo) . '.';
                 }
             }
         }

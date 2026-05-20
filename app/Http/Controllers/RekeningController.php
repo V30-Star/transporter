@@ -163,6 +163,6 @@ class RekeningController extends Controller
             return null;
         }
 
-        return 'Rekening '.$rekening->frekeningname.' tidak bisa dihapus karena sudah dipakai transaksi.';
+        return 'REKENING ' . strtoupper((string) $rekening->frekeningname) . ' SUDAH DIPAKAI TRANSAKSI.';
     }
 }

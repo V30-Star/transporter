@@ -299,6 +299,6 @@ class WhController extends Controller
             return null;
         }
 
-        return 'Gudang '.$gudang->fwhcode.' tidak bisa dihapus karena sudah dipakai transaksi.';
+        return 'GUDANG ' . strtoupper((string) $gudang->fwhcode) . ' SUDAH DIPAKAI TRANSAKSI.';
     }
 }

@@ -1997,7 +1997,7 @@ class SuratJalanController extends Controller
             if ((float) ($stats[$referenceKey]['used_qty_kecil'] ?? 0) > 0) {
                 $refNo = trim((string) ($stats[$referenceKey]['ref_doc'] ?? ''));
                 $transactionNo = trim((string) ($stats[$referenceKey]['used_by_transaction'] ?? ''));
-                return 'Nomor referensi ' . $refNo . ' sudah pernah dibuat di transaksi nomor ' . $transactionNo . '.';
+                return 'NO. REFERENSI ' . strtoupper((string) $refNo) . ' SUDAH ADA DI TRANSAKSI ' . strtoupper((string) $transactionNo) . '.';
             }
         }
 

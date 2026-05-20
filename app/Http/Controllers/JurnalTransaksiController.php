@@ -1349,7 +1349,7 @@ class JurnalTransaksiController extends Controller
                 ->first();
 
             if ($existing) {
-                return 'Nomor referensi '.$referenceNo.' sudah pernah dibuat di transaksi nomor '.trim((string) ($existing->transaction_no ?? '')).'.';
+                return 'NO. REFERENSI ' . strtoupper((string) $referenceNo) . ' SUDAH ADA DI TRANSAKSI ' . strtoupper(trim((string) ($existing->transaction_no ?? ''))) . '.';
             }
         }
 

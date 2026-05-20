@@ -572,6 +572,6 @@ class CustomerController extends Controller
             return null;
         }
 
-        return 'Customer '.$customer->fcustomercode.' tidak bisa dihapus karena sudah dipakai transaksi.';
+        return 'CUSTOMER ' . strtoupper((string) $customer->fcustomercode) . ' SUDAH DIPAKAI TRANSAKSI.';
     }
 }

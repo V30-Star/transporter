@@ -463,7 +463,7 @@ class AssemblingController extends Controller
                 'numeric',
                 function ($attribute, $value, $fail) use ($allowNegativeStockQty) {
                     if ($allowNegativeStockQty ? (float) $value == 0.0 : (float) $value <= 0) {
-                        $fail($allowNegativeStockQty ? 'Qty tidak boleh 0.' : 'Qty harus lebih besar dari 0.');
+                        $fail($allowNegativeStockQty ? 'QTY TIDAK BOLEH 0.' : 'QTY HARUS > 0.');
                     }
                 },
             ],
@@ -479,11 +479,11 @@ class AssemblingController extends Controller
             'frate' => ['nullable', 'numeric', 'min:0'],
             'famountpopajak' => ['nullable', 'numeric', 'min:0'],
         ], [
-            'fstockmtdate.required' => 'Tanggal transaksi wajib diisi.',
-            'fsupplier.required' => 'Supplier wajib diisi.',
-            'fitemcode.required' => 'Minimal 1 item.',
-            'fsatuan.*.max' => 'Satuan di salah satu baris tidak boleh lebih dari 5 karakter.',
-            'fitemtype.*.in' => 'Tipe item tidak valid.',
+            'fstockmtdate.required' => 'TANGGAL TRANSAKSI WAJIB DIISI.',
+            'fsupplier.required' => 'SUPPLIER WAJIB DIISI.',
+            'fitemcode.required' => 'MINIMAL 1 ITEM.',
+            'fsatuan.*.max' => 'SATUAN MAX 5 KARAKTER.',
+            'fitemtype.*.in' => 'TIPE ITEM TIDAK VALID.',
         ]);
 
         $this->ensureNoDuplicateDetailCodes($request->input('fitemcode', []));
@@ -612,8 +612,8 @@ class AssemblingController extends Controller
         if (empty($rowsDt)) {
             return back()->withInput()->withErrors([
                 'detail' => $allowNegativeStockQty
-                    ? 'Minimal satu item valid (Kode, Satuan, Qty tidak boleh 0).'
-                    : 'Minimal satu item valid (Kode, Satuan, Qty > 0).',
+                    ? 'MINIMAL 1 ITEM VALID (KODE, SATUAN, QTY TIDAK BOLEH 0).'
+                    : 'MINIMAL 1 ITEM VALID (KODE, SATUAN, QTY > 0).',
             ]);
         }
 
@@ -1004,7 +1004,7 @@ class AssemblingController extends Controller
                 'numeric',
                 function ($attribute, $value, $fail) use ($allowNegativeStockQty) {
                     if ($allowNegativeStockQty ? (float) $value == 0.0 : (float) $value <= 0) {
-                        $fail($allowNegativeStockQty ? 'Qty tidak boleh 0.' : 'Qty harus lebih besar dari 0.');
+                        $fail($allowNegativeStockQty ? 'QTY TIDAK BOLEH 0.' : 'QTY HARUS > 0.');
                     }
                 },
             ],
@@ -1013,10 +1013,10 @@ class AssemblingController extends Controller
             'fitemtype' => ['nullable', 'array'],
             'fitemtype.*' => ['nullable', 'string', 'in:bahan_baku,barang_jadi'],
         ], [
-            'fstockmtdate.required' => 'Tanggal transaksi wajib diisi.',
-            'fitemcode.required' => 'Minimal 1 item.',
-            'fqty.*.min' => 'Qty tidak boleh 0.',
-            'ffrom.max' => 'Gudang tidak boleh lebih dari 10 karakter.',
+            'fstockmtdate.required' => 'TANGGAL TRANSAKSI WAJIB DIISI.',
+            'fitemcode.required' => 'MINIMAL 1 ITEM.',
+            'fqty.*.min' => 'QTY TIDAK BOLEH 0.',
+            'ffrom.max' => 'GUDANG MAX 10 KARAKTER.',
         ]);
 
         $this->ensureNoDuplicateDetailCodes($request->input('fitemcode', []));
@@ -1150,8 +1150,8 @@ class AssemblingController extends Controller
         if (empty($rowsDt)) {
             return back()->withInput()->withErrors([
                 'detail' => $allowNegativeStockQty
-                    ? 'Minimal satu item valid (Kode, Satuan, Qty tidak boleh 0).'
-                    : 'Minimal satu item valid (Kode, Satuan, Qty > 0).',
+                    ? 'MINIMAL 1 ITEM VALID (KODE, SATUAN, QTY TIDAK BOLEH 0).'
+                    : 'MINIMAL 1 ITEM VALID (KODE, SATUAN, QTY > 0).',
             ]);
         }
 
@@ -1428,7 +1428,7 @@ class AssemblingController extends Controller
             return null;
         }
 
-        return 'Assembling '.$header->fstockmtno.' tidak dapat diubah atau dihapus karena sudah digunakan pada transaksi lain: '.$usedBy->implode(', ').'.';
+        return 'ASSEMBLING ' . strtoupper((string) $header->fstockmtno) . ' SUDAH DIPAKAI: ' . strtoupper($usedBy->implode(', ')) . '.';
     }
 
     private function validateUniqueReferenceUsage(array $rowsDt, ?string $exceptStockMtNo = null): ?string
@@ -1461,7 +1461,7 @@ class AssemblingController extends Controller
                 ->first();
 
             if ($existing) {
-                return 'Nomor referensi '.$referenceNo.' sudah pernah dibuat di transaksi nomor '.trim((string) ($existing->transaction_no ?? '')).'.';
+                return 'NO. REFERENSI ' . strtoupper((string) $referenceNo) . ' SUDAH ADA DI TRANSAKSI ' . strtoupper(trim((string) ($existing->transaction_no ?? ''))) . '.';
             }
         }
 

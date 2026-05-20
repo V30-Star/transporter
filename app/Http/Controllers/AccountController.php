@@ -389,6 +389,6 @@ class AccountController extends Controller
             return null;
         }
 
-        return 'Account ' . $account->faccount . ' - ' . $account->faccname . ' tidak dapat diubah karena sudah digunakan pada transaksi.';
+        return 'ACCOUNT ' . strtoupper((string) $account->faccount) . ' SUDAH DIPAKAI TRANSAKSI.';
     }
 }

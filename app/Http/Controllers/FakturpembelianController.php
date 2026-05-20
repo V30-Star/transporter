@@ -1651,12 +1651,12 @@ class FakturpembelianController extends Controller
                 'frefnoacak.*' => ['nullable', 'regex:/^\d{3}(,\s*\d{3})*$/'],
                 'fprdjadi' => ['required_if:ftypebuy,1'],
             ], [
-                'fstockmtdate.required' => 'Tanggal transaksi wajib diisi.',
-                'fsupplier.required' => 'Supplier wajib diisi.',
-                'frefno.required' => 'No faktur wajib diisi.',
-                'fsatuan.*.max' => 'Satuan di salah satu baris tidak boleh lebih dari 5 karakter.',
-                'fprdjadi.required_if' => 'Account wajib diisi ketika tipe pembelian adalah Non Stok.',
-                'fdiscpersen.*.regex' => 'Format diskon item harus angka atau format seperti 10+2.',
+                'fstockmtdate.required' => 'TANGGAL TRANSAKSI WAJIB DIISI.',
+                'fsupplier.required' => 'SUPPLIER WAJIB DIISI.',
+                'frefno.required' => 'NO FAKTUR WAJIB DIISI.',
+                'fsatuan.*.max' => 'SATUAN MAX 5 KARAKTER.',
+                'fprdjadi.required_if' => 'ACCOUNT WAJIB DIISI.',
+                'fdiscpersen.*.regex' => 'FORMAT DISKON HARUS ANGKA ATAU 10+2.',
             ]);
 
             $this->ensureNoDuplicateDetailCodes($request->input('fitemcode', []));
@@ -2251,7 +2251,7 @@ class FakturpembelianController extends Controller
                 ->first();
 
             if ($existing) {
-                return 'Nomor referensi '.$referenceNo.' sudah pernah dibuat di transaksi nomor '.trim((string) ($existing->fstockmtno ?? '')).'.';
+                return 'NO. REFERENSI ' . strtoupper((string) $referenceNo) . ' SUDAH ADA DI TRANSAKSI ' . strtoupper(trim((string) ($existing->fstockmtno ?? ''))) . '.';
             }
         }
 

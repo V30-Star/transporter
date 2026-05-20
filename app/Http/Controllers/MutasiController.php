@@ -511,7 +511,7 @@ class MutasiController extends Controller
                     'numeric',
                     function ($attribute, $value, $fail) use ($allowNegativeStockQty) {
                         if ($allowNegativeStockQty ? (float) $value == 0.0 : (float) $value <= 0) {
-                            $fail($allowNegativeStockQty ? 'Qty tidak boleh 0.' : 'Qty harus lebih besar dari 0.');
+                            $fail($allowNegativeStockQty ? 'QTY TIDAK BOLEH 0.' : 'QTY HARUS > 0.');
                         }
                     },
                 ],
@@ -873,7 +873,7 @@ class MutasiController extends Controller
                     'numeric',
                     function ($attribute, $value, $fail) use ($allowNegativeStockQty) {
                         if ($allowNegativeStockQty ? (float) $value == 0.0 : (float) $value <= 0) {
-                            $fail($allowNegativeStockQty ? 'Qty tidak boleh 0.' : 'Qty harus lebih besar dari 0.');
+                            $fail($allowNegativeStockQty ? 'QTY TIDAK BOLEH 0.' : 'QTY HARUS > 0.');
                         }
                     },
                 ],
@@ -1250,7 +1250,7 @@ class MutasiController extends Controller
             return null;
         }
 
-        return 'Mutasi Stock '.$header->fstockmtno.' tidak dapat diubah atau dihapus karena sudah digunakan pada transaksi lain: '.$usedBy->implode(', ').'.';
+        return 'MUTASI STOCK ' . strtoupper((string) $header->fstockmtno) . ' SUDAH DIPAKAI: ' . strtoupper($usedBy->implode(', ')) . '.';
     }
 
     private function buildMutasiReferenceUsageKey(?string $docNo, ?string $productCode, ?string $refNoAcak = null): string
@@ -1319,7 +1319,7 @@ class MutasiController extends Controller
                 );
 
                 if (isset($referenceUsage[$key])) {
-                    return 'Nomor referensi '.trim((string) ($existing->ref_no ?? '')).' sudah pernah dibuat di transaksi nomor '.trim((string) ($existing->transaction_no ?? '')).'.';
+                    return 'NO. REFERENSI ' . strtoupper(trim((string) ($existing->ref_no ?? ''))) . ' SUDAH ADA DI TRANSAKSI ' . strtoupper(trim((string) ($existing->transaction_no ?? ''))) . '.';
                 }
             }
         }
@@ -1352,7 +1352,7 @@ class MutasiController extends Controller
                 ->first();
 
             if ($existing) {
-                return 'Nomor referensi '.$referenceNo.' sudah pernah dibuat di transaksi nomor '.trim((string) ($existing->transaction_no ?? '')).'.';
+                return 'NO. REFERENSI ' . strtoupper((string) $referenceNo) . ' SUDAH ADA DI TRANSAKSI ' . strtoupper(trim((string) ($existing->transaction_no ?? ''))) . '.';
             }
         }
 

@@ -217,6 +217,6 @@ class SalesmanController extends Controller
             return null;
         }
 
-        return 'Salesman '.$salesman->fsalesmancode.' tidak bisa dihapus karena sudah dipakai transaksi.';
+        return 'SALESMAN ' . strtoupper((string) $salesman->fsalesmancode) . ' SUDAH DIPAKAI TRANSAKSI.';
     }
 }

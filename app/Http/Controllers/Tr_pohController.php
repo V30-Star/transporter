@@ -800,12 +800,12 @@ class Tr_pohController extends Controller
 
             'ppn_rate' => ['nullable', 'numeric', 'min:0', 'max:100'],
         ], [
-            'fpodate.required' => 'Tanggal PO wajib diisi.',
-            'fsupplier.required' => 'Supplier wajib diisi.',
-            'fitemcode.required' => 'Minimal 1 item.',
-            'fqty.*.gt' => 'Harap hapus data atau isi qty data pada detail item (Qty tidak boleh 0).',
-            'fnoacak.*.regex' => 'No acak PO harus terdiri dari 3 digit angka 1-9 tanpa 0.',
-            'frefnoacak.*.regex' => 'No referensi acak harus terdiri dari 3 digit angka.',
+            'fpodate.required' => 'TANGGAL PO WAJIB DIISI.',
+            'fsupplier.required' => 'SUPPLIER WAJIB DIISI.',
+            'fitemcode.required' => 'MINIMAL 1 ITEM.',
+            'fqty.*.gt' => 'HAPUS BARIS ATAU ISI QTY. QTY TIDAK BOLEH 0.',
+            'fnoacak.*.regex' => 'NO ACAK PO HARUS 3 DIGIT 1-9.',
+            'frefnoacak.*.regex' => 'NO REFERENSI ACAK HARUS 3 DIGIT.',
         ]);
 
         if ($validator->fails()) {
@@ -1988,9 +1988,9 @@ class Tr_pohController extends Controller
         $transactionNo = trim((string) ($existing->transaction_no ?? ''));
 
         if ($refNo === '' || $transactionNo === '') {
-            return 'Nomor referensi ini sudah pernah dibuat di transaksi lain.';
+            return 'NO. REFERENSI SUDAH ADA DI TRANSAKSI LAIN.';
         }
 
-        return 'Nomor referensi ' . $refNo . ' sudah pernah dibuat di transaksi nomor ' . $transactionNo . '.';
+        return 'NO. REFERENSI ' . strtoupper((string) $refNo) . ' SUDAH ADA DI TRANSAKSI ' . strtoupper((string) $transactionNo) . '.';
     }
 }

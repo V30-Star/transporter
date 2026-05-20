@@ -179,6 +179,6 @@ class WilayahController extends Controller
             return null;
         }
 
-        return 'Wilayah '.$wilayah->fwilayahcode.' tidak bisa dihapus karena sudah dipakai transaksi.';
+        return 'WILAYAH ' . strtoupper((string) $wilayah->fwilayahcode) . ' SUDAH DIPAKAI TRANSAKSI.';
     }
 }
