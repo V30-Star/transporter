@@ -2649,6 +2649,28 @@
                     return (this.savedItems || []).some((row) => this.isOpeningBalanceCode(row?.fitemcode));
                 },
 
+                hasSourceReferenceRows() {
+                    return (this.savedItems || []).some((row) => ['PO', 'PB'].includes((row?.fsource || '').toString().trim().toUpperCase()));
+                },
+
+                hasMixedOpeningBalanceAndSourceRows(rows = this.savedItems) {
+                    const activeRows = (rows || []).filter((row) => this.isRowSavable(row));
+                    const hasOpeningBalance = activeRows.some((row) => this.isOpeningBalanceCode(row?.fitemcode));
+                    const hasSourceReference = activeRows.some((row) => ['PO', 'PB'].includes((row?.fsource || '').toString().trim().toUpperCase()));
+                    return hasOpeningBalance && hasSourceReference;
+                },
+
+                showOpeningBalanceMixWarning() {
+                    const message = 'Item AWAL tidak boleh digabung dengan item referensi PO atau TER dalam satu faktur pembelian.';
+                    if (window.showTransactionErrorModal) {
+                        window.showTransactionErrorModal(message, {
+                            title: 'Kombinasi Item Tidak Diizinkan'
+                        });
+                        return;
+                    }
+                    alert(message);
+                },
+
                 syncOpeningBalanceMode() {
                     const hasOpeningBalanceRows = this.hasOpeningBalanceRows();
                     window.fpbOpeningBalanceLocked = hasOpeningBalanceRows;
@@ -2793,6 +2815,11 @@
                 submitForm(form) {
                     const validRows = this.savedItems.filter((row) => this.isRowSavable(row));
                     const warningRows = this.savedItems.filter((row) => this.isRowFilled(row) && !this.isRowSavable(row));
+
+                    if (this.hasMixedOpeningBalanceAndSourceRows(validRows)) {
+                        this.showOpeningBalanceMixWarning();
+                        return;
+                    }
 
                     if (warningRows.length > 0) {
                         this.warningTitle = 'Qty Belum Diisi';

@@ -21,6 +21,117 @@ use App\Support\ApprovalState;
 
 class InvoiceController extends Controller
 {
+    private function getReverseJournalBaseAmountByStockDocs(array $stockDocNos): float
+    {
+        $docNos = collect($stockDocNos)
+            ->map(fn($value) => trim((string) $value))
+            ->filter()
+            ->unique()
+            ->values()
+            ->all();
+
+        if (empty($docNos)) {
+            return 0.0;
+        }
+
+        return (float) DB::table('trstockdt')
+            ->whereIn('fstockmtno', $docNos)
+            ->where('fcode', 'T')
+            ->sum(DB::raw('COALESCE(ftotprice_rp, 0)'));
+    }
+
+    private function validateReverseJournalBaseAmount(array $stockDocNos, float $invoiceGrandTotalRp): ?string
+    {
+        if (empty($stockDocNos)) {
+            return null;
+        }
+
+        $reverseJournalBaseAmount = $this->getReverseJournalBaseAmountByStockDocs($stockDocNos);
+
+        if ($reverseJournalBaseAmount <= 0) {
+            return 'Referensi Surat Jalan belum memiliki nilai dasar jurnal balik. Periksa nilai barang pada Surat Jalan yang dipilih.';
+        }
+
+        if (($invoiceGrandTotalRp - $reverseJournalBaseAmount) > 0.000001) {
+            return 'Total faktur penjualan melebihi nilai referensi Surat Jalan untuk jurnal balik. Maksimal Rp ' . number_format($reverseJournalBaseAmount, 2, ',', '.') . '.';
+        }
+
+        return null;
+    }
+
+    private function getInventoryBaseAmountByStockDocs(array $stockDocNos): float
+    {
+        $docNos = collect($stockDocNos)
+            ->map(fn($value) => trim((string) $value))
+            ->filter()
+            ->unique()
+            ->values()
+            ->all();
+
+        if (empty($docNos)) {
+            return 0.0;
+        }
+
+        return (float) DB::table('trstockdt')
+            ->whereIn('fstockmtno', $docNos)
+            ->where('fprdcode', '<>', 'UM')
+            ->where(function ($query) {
+                $query->where('fcode', 'P')
+                    ->orWhereNull('fcode')
+                    ->orWhereRaw("COALESCE(TRIM(CAST(fcode AS TEXT)), '') = ''");
+            })
+            ->sum(DB::raw('COALESCE(ftotprice_rp, 0)'));
+    }
+
+    private function validateInventoryBaseAmount(array $stockDocNos): ?string
+    {
+        if (empty($stockDocNos)) {
+            return null;
+        }
+
+        $inventoryBaseAmount = $this->getInventoryBaseAmountByStockDocs($stockDocNos);
+
+        if ($inventoryBaseAmount <= 0) {
+            return 'Referensi Surat Jalan belum memiliki nilai persediaan. Periksa nilai barang selain UM pada Surat Jalan yang dipilih.';
+        }
+
+        return null;
+    }
+
+    private function getAdvanceReductionAmountByStockDocs(array $stockDocNos): float
+    {
+        $docNos = collect($stockDocNos)
+            ->map(fn($value) => trim((string) $value))
+            ->filter()
+            ->unique()
+            ->values()
+            ->all();
+
+        if (empty($docNos)) {
+            return 0.0;
+        }
+
+        return (float) DB::table('trstockdt')
+            ->whereIn('fstockmtno', $docNos)
+            ->where('fprdcode', 'UM')
+            ->sum(DB::raw('ABS(COALESCE(ftotprice_rp, 0))'));
+    }
+
+    private function validateAdvanceReductionAmount(array $stockDocNos): ?string
+    {
+        if (empty($stockDocNos)) {
+            return null;
+        }
+
+        $advanceReductionAmount = $this->getAdvanceReductionAmountByStockDocs($stockDocNos);
+
+        if ($advanceReductionAmount <= 0) {
+            return 'Referensi Surat Jalan belum memiliki nilai pengurang uang muka. Periksa item UM pada Surat Jalan yang dipilih.';
+        }
+
+        return null;
+    }
+
     private function getCustomerTaxCode(string $customerCode): ?string
     {
         $customerCode = trim($customerCode);
@@ -899,6 +1010,14 @@ class InvoiceController extends Controller
             return back()->withInput()->with('error', $validationMessage);
         }
 
+        $srjReferenceDocs = collect($detailRows)
+            ->pluck('frefsrj')
+            ->map(fn($value) => trim((string) $value))
+            ->filter()
+            ->unique()
+            ->values()
+            ->all();
+
         $amountNetBeforeHeaderDisc = $totalGross - $totalDisc;
         $headerDiscountAmount = $amountNetBeforeHeaderDisc * ($headerDiscPercent / 100);
         $totalDisc += $headerDiscountAmount;
@@ -906,6 +1025,19 @@ class InvoiceController extends Controller
         $ppnPersen = (float) $request->input('fppnpersen', 11);
         $ppnAmount = ($fincludeppn === '1') ? ($amountNet * ($ppnPersen / 100)) : 0;
         $grandTotal = $amountNet + $ppnAmount;
+
+        if ($validationMessage = $this->validateReverseJournalBaseAmount($srjReferenceDocs, $grandTotal * $frate)) {
+            return back()->withInput()->with('error', $validationMessage);
+        }
+
+        if ($validationMessage = $this->validateInventoryBaseAmount($srjReferenceDocs)) {
+            return back()->withInput()->with('error', $validationMessage);
+        }
+
+        if ($validationMessage = $this->validateAdvanceReductionAmount($srjReferenceDocs)) {
+            return back()->withInput()->with('error', $validationMessage);
+        }
+
         $creditApproval = $this->resolveInvoiceCreditApproval($request, $grandTotal);
         $fsono = trim((string) $request->input('fsono', ''));
 
@@ -1895,6 +2027,14 @@ class InvoiceController extends Controller
             return back()->withInput()->with('error', $validationMessage);
         }
 
+        $srjReferenceDocs = collect($detailRows)
+            ->pluck('frefsrj')
+            ->map(fn($value) => trim((string) $value))
+            ->filter()
+            ->unique()
+            ->values()
+            ->all();
+
         // 5. KALKULASI TOTAL AKHIR
         $amountNetBeforeHeaderDisc = $totalGross - $totalDisc;
         $headerDiscountAmount = $amountNetBeforeHeaderDisc * ($headerDiscPercent / 100);
@@ -1903,6 +2043,19 @@ class InvoiceController extends Controller
         $ppnPersen = (float) $request->input('fppnpersen', 11);
         $ppnAmount = ($fincludeppn === '1') ? ($amountNet * ($ppnPersen / 100)) : 0;
         $grandTotal = $amountNet + $ppnAmount;
+
+        if ($validationMessage = $this->validateReverseJournalBaseAmount($srjReferenceDocs, $grandTotal * $frate)) {
+            return back()->withInput()->with('error', $validationMessage);
+        }
+
+        if ($validationMessage = $this->validateInventoryBaseAmount($srjReferenceDocs)) {
+            return back()->withInput()->with('error', $validationMessage);
+        }
+
+        if ($validationMessage = $this->validateAdvanceReductionAmount($srjReferenceDocs)) {
+            return back()->withInput()->with('error', $validationMessage);
+        }
+
         $creditApproval = $this->resolveInvoiceCreditApproval($request, $grandTotal, (int) $ftranmtid);
         $fsono = trim((string) $request->input('fsono', ''));
 

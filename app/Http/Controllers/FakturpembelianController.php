@@ -453,6 +453,37 @@ class FakturpembelianController extends Controller
         return strtoupper(trim((string) $code)) === 'AWAL';
     }
 
+    private function hasMixedOpeningBalanceAndSourceRows(array $codes, array $qtys, array $sources): bool
+    {
+        $hasOpeningBalance = false;
+        $hasSourceReference = false;
+        $rowCount = max(count($codes), count($qtys), count($sources));
+
+        for ($i = 0; $i < $rowCount; $i++) {
+            $code = trim((string) ($codes[$i] ?? ''));
+            $qty = (float) ($qtys[$i] ?? 0);
+            $sourceType = strtoupper(trim((string) ($sources[$i] ?? '')));
+
+            if ($code === '' || $qty <= 0) {
+                continue;
+            }
+
+            if ($this->isOpeningBalanceProductCode($code)) {
+                $hasOpeningBalance = true;
+            }
+
+            if (in_array($sourceType, ['PO', 'PB'], true)) {
+                $hasSourceReference = true;
+            }
+
+            if ($hasOpeningBalance && $hasSourceReference) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
     private function getSourceRemainMap(string $sourceType, array $detailIds): array
     {
         $ids = collect($detailIds)
@@ -969,6 +1000,12 @@ class FakturpembelianController extends Controller
                         'detail' => 'Untuk tipe pembelian Uang Muka, hanya produk dengan kode UM yang diperbolehkan. Kode tidak valid: ' . implode(', ', $invalidAdvanceCodes) . '.',
                     ]);
                 }
+            }
+
+            if ($this->hasMixedOpeningBalanceAndSourceRows($codes, $qtys, $sources)) {
+                return back()->withInput()->withErrors([
+                    'detail' => 'Item AWAL tidak boleh digabung dengan item referensi PO atau TER dalam satu faktur pembelian.',
+                ]);
             }
 
             // 4) BUILD ROWS
@@ -1631,6 +1668,12 @@ class FakturpembelianController extends Controller
                         'detail' => 'Untuk tipe pembelian Uang Muka, hanya produk dengan kode UM yang diperbolehkan. Kode tidak valid: ' . implode(', ', $invalidAdvanceCodes) . '.',
                     ]);
                 }
+            }
+
+            if ($this->hasMixedOpeningBalanceAndSourceRows($codes, $qtys, $sources)) {
+                return back()->withInput()->withErrors([
+                    'detail' => 'Item AWAL tidak boleh digabung dengan item referensi PO atau TER dalam satu faktur pembelian.',
+                ]);
             }
 
             // LOAD PRODUCT METADATA
