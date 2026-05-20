@@ -759,6 +759,20 @@
                             },
 
                             onSubmit($event) {
+                                const duplicateCode = window.getAssemblingDuplicateCode?.($event.target);
+                                if (duplicateCode) {
+                                    $event.preventDefault();
+                                    Swal.fire({
+                                        icon: 'warning',
+                                        title: 'Produk Duplikat',
+                                        text: `Kode produk ${duplicateCode} tidak boleh sama dalam satu Assembling.`,
+                                        confirmButtonText: 'OK',
+                                        customClass: {
+                                            confirmButton: 'bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700'
+                                        }
+                                    });
+                                    return;
+                                }
                                 if (this.savedItems.length === 0) {
                                     $event.preventDefault();
                                     this.showNoItems = true;
@@ -883,6 +897,26 @@
                                     .toString(16)).join('') :
                                 Math.random().toString(36).slice(2)) + Date.now();
                         }
+
+                        window.getAssemblingDuplicateCode = function(form) {
+                            const seen = new Set();
+                            const inputs = Array.from(form.querySelectorAll('input[name="fitemcode[]"]'));
+
+                            for (const input of inputs) {
+                                const code = (input.value || '').toString().trim().toUpperCase();
+                                if (!code) {
+                                    continue;
+                                }
+
+                                if (seen.has(code)) {
+                                    return code;
+                                }
+
+                                seen.add(code);
+                            }
+
+                            return '';
+                        };
                     }
                 </script>
                 {{-- MODAL ERROR: belum ada item --}}

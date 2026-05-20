@@ -1093,6 +1093,26 @@
         return 'r' + (Date.now().toString(16) + Math.random().toString(16).slice(2));
     };
 
+    window.getAdjstockDuplicateCode = function(form) {
+        const seen = new Set();
+        const inputs = Array.from(form.querySelectorAll('input[name="fitemcode[]"]'));
+
+        for (const input of inputs) {
+            const code = (input.value || '').toString().trim().toUpperCase();
+            if (!code) {
+                continue;
+            }
+
+            if (seen.has(code)) {
+                return code;
+            }
+
+            seen.add(code);
+        }
+
+        return '';
+    };
+
     document.addEventListener('alpine:init', () => {
         Alpine.store('prh', {
             // desc yang sedang dipreview
@@ -1311,6 +1331,20 @@
             },
 
             onSubmit($event) {
+                const duplicateCode = window.getAdjstockDuplicateCode?.($event.target);
+                if (duplicateCode) {
+                    $event.preventDefault();
+                    Swal.fire({
+                        icon: 'warning',
+                        title: 'Produk Duplikat',
+                        text: `Kode produk ${duplicateCode} tidak boleh sama dalam satu Adjustment Stock.`,
+                        confirmButtonText: 'OK',
+                        customClass: {
+                            confirmButton: 'bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700'
+                        }
+                    });
+                    return;
+                }
                 if (this.submitItems.length === 0) {
                     $event.preventDefault();
                     this.showNoItems = true;
@@ -1686,6 +1720,20 @@
             },
 
             onSubmit($event) {
+                const duplicateCode = window.getAdjstockDuplicateCode?.($event.target);
+                if (duplicateCode) {
+                    $event.preventDefault();
+                    Swal.fire({
+                        icon: 'warning',
+                        title: 'Produk Duplikat',
+                        text: `Kode produk ${duplicateCode} tidak boleh sama dalam satu Adjustment Stock.`,
+                        confirmButtonText: 'OK',
+                        customClass: {
+                            confirmButton: 'bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700'
+                        }
+                    });
+                    return;
+                }
                 if (this.submitItems.length === 0) {
                     $event.preventDefault();
                     this.showNoItems = true;

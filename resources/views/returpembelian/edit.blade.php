@@ -849,6 +849,19 @@
                     data-draft-key="returpembelian:edit:{{ $returpembelian->fstockmtid }}"
                     x-data="{ showNoItems: false }"
                     @submit.prevent="
+        const duplicateCode = window.getReturPembelianDuplicateCode?.($el);
+        if (duplicateCode) {
+            Swal.fire({
+                icon: 'warning',
+                title: 'Produk Duplikat',
+                text: `Kode produk ${duplicateCode} tidak boleh sama dalam satu Retur Pembelian.`,
+                confirmButtonText: 'OK',
+                customClass: {
+                    confirmButton: 'bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700'
+                }
+            });
+            return;
+        }
         const n = Number(document.getElementById('itemsCount')?.value || 0);
         if (n < 1) { showNoItems = true } else { $el.submit() }
       ">
@@ -1891,6 +1904,26 @@
             }
         } catch (e) {}
         return 'r' + (Date.now().toString(16) + Math.random().toString(16).slice(2));
+    };
+
+    window.getReturPembelianDuplicateCode = function(form) {
+        const seen = new Set();
+        const inputs = Array.from(form.querySelectorAll('input[name="fitemcode[]"]'));
+
+        for (const input of inputs) {
+            const code = (input.value || '').toString().trim().toUpperCase();
+            if (!code) {
+                continue;
+            }
+
+            if (seen.has(code)) {
+                return code;
+            }
+
+            seen.add(code);
+        }
+
+        return '';
     };
 
     document.addEventListener('alpine:init', () => {

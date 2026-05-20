@@ -18,6 +18,37 @@ use Illuminate\Validation\ValidationException;
 
 class ReturPenjualanController extends Controller
 {
+    private function ensureNoDuplicateDetailCodes(array $codes): void
+    {
+        $seen = [];
+        $duplicates = [];
+
+        foreach ($codes as $index => $rawCode) {
+            $code = strtoupper(trim((string) $rawCode));
+            if ($code === '') {
+                continue;
+            }
+
+            if (isset($seen[$code])) {
+                $duplicates[$index] = $code;
+                continue;
+            }
+
+            $seen[$code] = true;
+        }
+
+        if ($duplicates === []) {
+            return;
+        }
+
+        $messages = [];
+        foreach ($duplicates as $index => $code) {
+            $messages["fitemcode.$index"] = "Kode produk {$code} tidak boleh sama dalam satu Retur Penjualan.";
+        }
+
+        throw ValidationException::withMessages($messages);
+    }
+
     public function index(Request $request)
     {
         // Ambil izin (permissions)
@@ -479,6 +510,8 @@ class ReturPenjualanController extends Controller
         } catch (\Illuminate\Validation\ValidationException $e) {
             throw $e; // tetap lempar agar Laravel handle redirect
         }
+
+        $this->ensureNoDuplicateDetailCodes($request->input('fitemcode', []));
 
         // 2. INISIALISASI
         $fsodate = Carbon::parse($request->fsodate);
@@ -1506,6 +1539,8 @@ class ReturPenjualanController extends Controller
             'frefnoacak' => ['nullable', 'array'],
             'frefnoacak.*' => ['nullable', 'regex:/^\d{3}$/'],
         ]);
+
+        $this->ensureNoDuplicateDetailCodes($request->input('fitemcode', []));
 
         // 2. LOAD HEADER
         $header = DB::table('tranmt')->where('ftranmtid', $ftranmtid)->first();

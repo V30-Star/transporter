@@ -772,6 +772,19 @@
                         data-draft-key="returpenjualan:edit:{{ $returpenjualan->ftranmtid }}"
                         @submit.prevent="
                         if ('{{ $action }}' === 'view') { return }
+                        const duplicateCode = window.getReturPenjualanDuplicateCode?.($el);
+                        if (duplicateCode) {
+                            Swal.fire({
+                                icon: 'warning',
+                                title: 'Produk Duplikat',
+                                text: `Kode produk ${duplicateCode} tidak boleh sama dalam satu Retur Penjualan.`,
+                                confirmButtonText: 'OK',
+                                customClass: {
+                                    confirmButton: 'bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700'
+                                }
+                            });
+                            return;
+                        }
                         const n = Number(document.getElementById('itemsCount')?.value || 0);
                         if (n < 1) { window.dispatchEvent(new CustomEvent('returpenjualan-show-no-items')) } else { $el.submit() }
                     ">
@@ -4162,5 +4175,25 @@
                 descList: []
             });
         });
+
+        window.getReturPenjualanDuplicateCode = function(form) {
+            const seen = new Set();
+            const inputs = Array.from(form.querySelectorAll('input[name="fitemcode[]"]'));
+
+            for (const input of inputs) {
+                const code = (input.value || '').toString().trim().toUpperCase();
+                if (!code) {
+                    continue;
+                }
+
+                if (seen.has(code)) {
+                    return code;
+                }
+
+                seen.add(code);
+            }
+
+            return '';
+        };
     </script>
 @endpush

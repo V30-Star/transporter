@@ -13,9 +13,41 @@ use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth; // Pastikan ini ada jika menggunakan throw new \Exception
 use Illuminate\Support\Facades\DB; // sekalian biar aman untuk tanggal
+use Illuminate\Validation\ValidationException;
 
 class AssemblingController extends Controller
 {
+    private function ensureNoDuplicateDetailCodes(array $codes): void
+    {
+        $seen = [];
+        $duplicates = [];
+
+        foreach ($codes as $index => $rawCode) {
+            $code = strtoupper(trim((string) $rawCode));
+            if ($code === '') {
+                continue;
+            }
+
+            if (isset($seen[$code])) {
+                $duplicates[$index] = $code;
+                continue;
+            }
+
+            $seen[$code] = true;
+        }
+
+        if ($duplicates === []) {
+            return;
+        }
+
+        $messages = [];
+        foreach ($duplicates as $index => $code) {
+            $messages["fitemcode.$index"] = "Kode produk {$code} tidak boleh sama dalam satu Assembling.";
+        }
+
+        throw ValidationException::withMessages($messages);
+    }
+
     public function index(Request $request)
     {
         // --- 1. PERBAIKAN PERMISSIONS ---
@@ -453,6 +485,8 @@ class AssemblingController extends Controller
             'fsatuan.*.max' => 'Satuan di salah satu baris tidak boleh lebih dari 5 karakter.',
             'fitemtype.*.in' => 'Tipe item tidak valid.',
         ]);
+
+        $this->ensureNoDuplicateDetailCodes($request->input('fitemcode', []));
 
         // =========================
         // 2) HEADER FIELDS
@@ -984,6 +1018,8 @@ class AssemblingController extends Controller
             'fqty.*.min' => 'Qty tidak boleh 0.',
             'ffrom.max' => 'Gudang tidak boleh lebih dari 10 karakter.',
         ]);
+
+        $this->ensureNoDuplicateDetailCodes($request->input('fitemcode', []));
 
         // =========================
         // 2) AMBIL DATA MASTER & HEADER

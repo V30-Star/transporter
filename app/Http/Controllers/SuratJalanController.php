@@ -15,6 +15,37 @@ use Illuminate\Validation\ValidationException;
 
 class SuratJalanController extends Controller
 {
+    private function ensureNoDuplicateDetailCodes(array $codes): void
+    {
+        $seen = [];
+        $duplicates = [];
+
+        foreach ($codes as $index => $rawCode) {
+            $code = strtoupper(trim((string) $rawCode));
+            if ($code === '') {
+                continue;
+            }
+
+            if (isset($seen[$code])) {
+                $duplicates[$index] = $code;
+                continue;
+            }
+
+            $seen[$code] = true;
+        }
+
+        if ($duplicates === []) {
+            return;
+        }
+
+        $messages = [];
+        foreach ($duplicates as $index => $code) {
+            $messages["fitemcode.$index"] = "Kode produk {$code} tidak boleh sama dalam satu Surat Jalan.";
+        }
+
+        throw ValidationException::withMessages($messages);
+    }
+
     public function index(Request $request)
     {
         // --- 1. PERMISSIONS ---
@@ -541,6 +572,8 @@ class SuratJalanController extends Controller
             'frefnoacak' => ['nullable', 'array'],
             'frefnoacak.*' => ['nullable', 'regex:/^\d{3}$/'],
         ]);
+
+        $this->ensureNoDuplicateDetailCodes($request->input('fitemcode', []));
 
         // =========================
         // 2) HEADER FIELDS
@@ -1213,6 +1246,8 @@ class SuratJalanController extends Controller
             'frefnoacak' => ['nullable', 'array'],
             'frefnoacak.*' => ['nullable', 'regex:/^\d{3}$/'],
         ]);
+
+        $this->ensureNoDuplicateDetailCodes($request->input('fitemcode', []));
 
         // =========================
         // 2) AMBIL DATA HEADER

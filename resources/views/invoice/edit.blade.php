@@ -777,6 +777,19 @@
                         data-tranmtid="{{ $invoice->ftranmtid }}" x-data="{ showNoItems: false }"
                         @submit.prevent="
         if ('{{ $action }}' === 'view') { return }
+        const duplicateCode = window.getInvoiceDuplicateCode?.($el);
+        if (duplicateCode) {
+            Swal.fire({
+                icon: 'warning',
+                title: 'Produk Duplikat',
+                text: `Kode produk ${duplicateCode} tidak boleh sama dalam satu Faktur Penjualan.`,
+                confirmButtonText: 'OK',
+                customClass: {
+                    confirmButton: 'bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700'
+                }
+            });
+            return;
+        }
         const n = Number(document.getElementById('itemsCount')?.value || 0);
         if (n < 1) { showNoItems = true } else { window.invoiceCreditApprovalGuard($el).then(ok => { if (ok) $el.submit() }) }
       ">
@@ -1878,6 +1891,22 @@
 
         window.syncInvoiceCustomerTaxCode();
     });
+
+    window.getInvoiceDuplicateCode = function(form) {
+        const seen = new Set();
+        const inputs = Array.from(form.querySelectorAll('input[name="fitemcode[]"]'));
+
+        for (const input of inputs) {
+            const code = (input.value || '').toString().trim().toUpperCase();
+            if (!code) continue;
+            if (seen.has(code)) {
+                return code;
+            }
+            seen.add(code);
+        }
+
+        return '';
+    };
 
     window.invoiceCreditApprovalGuard = async function(form) {
         const customerCode = form.querySelector('[name="fcustno"]')?.value?.trim() || '';

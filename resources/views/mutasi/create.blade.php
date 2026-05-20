@@ -918,6 +918,26 @@
         });
     });
 
+    window.getMutasiDuplicateCode = function(form) {
+        const seen = new Set();
+        const inputs = Array.from(form.querySelectorAll('input[name="fitemcode[]"]'));
+
+        for (const input of inputs) {
+            const code = (input.value || '').toString().trim().toUpperCase();
+            if (!code) {
+                continue;
+            }
+
+            if (seen.has(code)) {
+                return code;
+            }
+
+            seen.add(code);
+        }
+
+        return '';
+    };
+
     function itemsTable() {
         return {
             showNoItems: false,
@@ -1133,6 +1153,20 @@
             },
 
             onSubmit($event) {
+                const duplicateCode = window.getMutasiDuplicateCode?.($event.target);
+                if (duplicateCode) {
+                    $event.preventDefault();
+                    Swal.fire({
+                        icon: 'warning',
+                        title: 'Produk Duplikat',
+                        text: `Kode produk ${duplicateCode} tidak boleh sama dalam satu Mutasi.`,
+                        confirmButtonText: 'OK',
+                        customClass: {
+                            confirmButton: 'bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700'
+                        }
+                    });
+                    return;
+                }
                 if (this.submitItems.length === 0) {
                     $event.preventDefault();
                     this.showNoItems = true;

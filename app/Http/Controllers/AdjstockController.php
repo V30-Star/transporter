@@ -13,9 +13,41 @@ use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB; // sekalian biar aman untuk tanggal
+use Illuminate\Validation\ValidationException;
 
 class AdjstockController extends Controller
 {
+    private function ensureNoDuplicateDetailCodes(array $codes): void
+    {
+        $seen = [];
+        $duplicates = [];
+
+        foreach ($codes as $index => $rawCode) {
+            $code = strtoupper(trim((string) $rawCode));
+            if ($code === '') {
+                continue;
+            }
+
+            if (isset($seen[$code])) {
+                $duplicates[$index] = $code;
+                continue;
+            }
+
+            $seen[$code] = true;
+        }
+
+        if ($duplicates === []) {
+            return;
+        }
+
+        $messages = [];
+        foreach ($duplicates as $index => $code) {
+            $messages["fitemcode.$index"] = "Kode produk {$code} tidak boleh sama dalam satu Adjustment Stock.";
+        }
+
+        throw ValidationException::withMessages($messages);
+    }
+
     public function index(Request $request)
     {
         // --- 1. PERMISSIONS ---
@@ -413,6 +445,8 @@ class AdjstockController extends Controller
                 'frate' => ['nullable', 'numeric', 'min:0'],
                 'famountpopajak' => ['nullable', 'numeric', 'min:0'],
             ]);
+
+            $this->ensureNoDuplicateDetailCodes($request->input('fitemcode', []));
 
             // =========================
             // TAHAP 2: AMBIL DATA MASTER PRODUK
@@ -895,6 +929,7 @@ class AdjstockController extends Controller
             'frate' => ['nullable', 'numeric', 'min:0'],
             'famountpopajak' => ['nullable', 'numeric', 'min:0'],
         ]);
+        $this->ensureNoDuplicateDetailCodes($request->input('fitemcode', []));
         // =========================
         // 2) AMBIL DATA MASTER & HEADER
         // =========================

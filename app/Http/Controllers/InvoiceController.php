@@ -21,6 +21,37 @@ use App\Support\ApprovalState;
 
 class InvoiceController extends Controller
 {
+    private function ensureNoDuplicateDetailCodes(array $codes): void
+    {
+        $seen = [];
+        $duplicates = [];
+
+        foreach ($codes as $index => $rawCode) {
+            $code = strtoupper(trim((string) $rawCode));
+            if ($code === '') {
+                continue;
+            }
+
+            if (isset($seen[$code])) {
+                $duplicates[$index] = $code;
+                continue;
+            }
+
+            $seen[$code] = true;
+        }
+
+        if ($duplicates === []) {
+            return;
+        }
+
+        $messages = [];
+        foreach ($duplicates as $index => $code) {
+            $messages["fitemcode.$index"] = "Kode produk {$code} tidak boleh sama dalam satu Faktur Penjualan.";
+        }
+
+        throw ValidationException::withMessages($messages);
+    }
+
     private function getReverseJournalBaseAmountByStockDocs(array $stockDocNos): float
     {
         $docNos = collect($stockDocNos)
@@ -890,6 +921,8 @@ class InvoiceController extends Controller
             'fcustno.required' => 'Customer wajib diisi.',
             'fitemcode.required' => 'Minimal harus ada 1 item barang.',
         ]);
+
+        $this->ensureNoDuplicateDetailCodes($request->input('fitemcode', []));
 
         // 2. INISIALISASI DATA HEADER (Tetap sama)
         $fsodate = Carbon::parse($request->fsodate);
@@ -1877,6 +1910,8 @@ class InvoiceController extends Controller
             'frefnoacak' => ['nullable', 'array'],
             'frefnoacak.*' => ['nullable', 'regex:/^\d{3}$/'],
         ]);
+
+        $this->ensureNoDuplicateDetailCodes($request->input('fitemcode', []));
 
         // 2. LOAD HEADER
         $header = DB::table('tranmt')->where('ftranmtid', $ftranmtid)->first();

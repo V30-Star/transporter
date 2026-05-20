@@ -12,9 +12,41 @@ use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\ValidationException;
 
 class ReturPembelianController extends Controller
 {
+    private function ensureNoDuplicateDetailCodes(array $codes): void
+    {
+        $seen = [];
+        $duplicates = [];
+
+        foreach ($codes as $index => $rawCode) {
+            $code = strtoupper(trim((string) $rawCode));
+            if ($code === '') {
+                continue;
+            }
+
+            if (isset($seen[$code])) {
+                $duplicates[$index] = $code;
+                continue;
+            }
+
+            $seen[$code] = true;
+        }
+
+        if ($duplicates === []) {
+            return;
+        }
+
+        $messages = [];
+        foreach ($duplicates as $index => $code) {
+            $messages["fitemcode.$index"] = "Kode produk {$code} tidak boleh sama dalam satu Retur Pembelian.";
+        }
+
+        throw ValidationException::withMessages($messages);
+    }
+
     public function index(Request $request)
     {
         // --- 1. PERMISSIONS ---
@@ -440,6 +472,8 @@ class ReturPembelianController extends Controller
                 'fitemcode.required' => 'Minimal 1 item.',
                 'fsatuan.*.max' => 'Satuan di salah satu baris tidak boleh lebih dari 5 karakter.',
             ]);
+
+            $this->ensureNoDuplicateDetailCodes($request->input('fitemcode', []));
 
             // HEADER FIELDS
             $fstockmtno = trim((string) $request->input('fstockmtno'));
@@ -963,6 +997,8 @@ class ReturPembelianController extends Controller
                 'fsatuan.*.max' => 'Satuan di salah satu baris tidak boleh lebih dari 5 karakter.',
                 'faccid.required_if' => 'Account wajib dipilih untuk tipe Non Stok.',
             ]);
+
+            $this->ensureNoDuplicateDetailCodes($request->input('fitemcode', []));
 
             // 1. Muat header yang ada
             $header = PenerimaanPembelianHeader::findOrFail($fstockmtid);
