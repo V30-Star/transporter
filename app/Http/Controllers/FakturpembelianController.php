@@ -943,16 +943,21 @@ class FakturpembelianController extends Controller
             $request->validate([
                 'fstockmtdate' => ['required', 'date'],
                 'fsupplier' => ['required', 'string', 'max:30'],
+                'frefno' => ['required', 'string', 'max:100'],
                 'ftypebuy' => ['nullable', 'integer'],
                 'fprdjadi' => ['required_if:ftypebuy,1'],
                 'fqty' => ['required', 'array'],
                 'fqty.*' => ['numeric', 'min:0.001'],
                 'fprice' => ['required', 'array'],
                 'fprice.*' => ['numeric', 'min:0'],
+                'fdiscpersen' => ['nullable', 'array'],
+                'fdiscpersen.*' => ['nullable', 'string', 'regex:/^\s*\d+(?:\.\d+)?(?:\s*\+\s*\d+(?:\.\d+)?)*\s*$/'],
                 'frefnoacak' => ['nullable', 'array'],
                 'frefnoacak.*' => ['nullable', 'regex:/^\d{3}(,\s*\d{3})*$/'],
             ], [
+                'frefno.required' => 'No faktur wajib diisi.',
                 'fprdjadi.required_if' => 'Account wajib diisi ketika tipe pembelian adalah Non Stok.',
+                'fdiscpersen.*.regex' => 'Format diskon item harus angka atau format seperti 10+2.',
             ]);
 
             // 2) HEADER FIELDS
@@ -1092,10 +1097,11 @@ class FakturpembelianController extends Controller
 
                 $price = (float) ($prices[$i] ?? 0);
                 $biaya = (float) ($biayas[$i] ?? 0);
-                $discP = (float) ($discs[$i] ?? 0);
+                $discRaw = $this->normalizeDiscountInput($discs[$i] ?? 0);
+                $discP = $this->parseDiscountExpression($discRaw);
                 $sourceType = $isSaldoAwal ? '' : strtoupper(trim((string) ($sources[$i] ?? '')));
 
-                $priceNet = ($price + $biaya) * (1 - ($discP / 100));
+                $priceNet = ($price + $biaya) - ($price * ($discP / 100));
                 $amount = $qty * $priceNet;
                 $subtotal += $amount;
 
@@ -1119,7 +1125,7 @@ class FakturpembelianController extends Controller
                     'fdatetime' => $now,
                     'fcode' => $sourceType === 'PO' ? 'P' : 'T',
                     'fdesc' => trim((string) ($descs[$i] ?? '')) ?: null,
-                    'fdiscpersen' => (string) $discP,
+                    'fdiscpersen' => $discRaw,
                     'fsatuan' => $sat,
                     'fclosedt' => '0',
                 ];
@@ -1380,7 +1386,7 @@ class FakturpembelianController extends Controller
                 'fqty' => (float) ($d->fqty ?? 0),
                 'fterima' => (float) ($d->fterima ?? 0),
                 'fprice' => (float) ($d->fprice ?? 0),
-                'fdiscpersen' => (float) ($d->fdiscpersen ?? 0),
+                'fdiscpersen' => $this->normalizeDiscountInput($d->fdiscpersen ?? 0),
                 'fbiaya' => (float) ($d->fbiaya ?? 0),
                 'ftotprice' => (float) ($d->ftotprice ?? 0),
                 'ftotal' => (float) ($d->ftotprice ?? 0),
@@ -1505,7 +1511,7 @@ class FakturpembelianController extends Controller
                 'fqty' => (float) ($d->fqty ?? 0),
                 'fterima' => (float) ($d->fterima ?? 0),
                 'fprice' => (float) ($d->fprice ?? 0),
-                'fdiscpersen' => (float) ($d->fdiscpersen ?? 0),
+                'fdiscpersen' => $this->normalizeDiscountInput($d->fdiscpersen ?? 0),
                 'fbiaya' => (float) ($d->fbiaya ?? 0),
                 'ftotprice' => (float) ($d->ftotprice ?? 0),
                 'ftotal' => (float) ($d->ftotprice ?? 0),
@@ -1588,7 +1594,7 @@ class FakturpembelianController extends Controller
                 'fprice' => ['required', 'array'],
                 'fprice.*' => ['numeric', 'min:0'],
                 'fdiscpersen' => ['nullable', 'array'],
-                'fdiscpersen.*' => ['nullable', 'numeric', 'min:0'],
+                'fdiscpersen.*' => ['nullable', 'string', 'regex:/^\s*\d+(?:\.\d+)?(?:\s*\+\s*\d+(?:\.\d+)?)*\s*$/'],
                 'fbiaya' => ['required', 'array'],
                 'fbiaya.*' => ['nullable', 'numeric', 'min:0'],
                 'fdesc' => ['nullable', 'array'],
@@ -1605,7 +1611,7 @@ class FakturpembelianController extends Controller
                 'fjatuhtempo' => ['nullable', 'date'],
                 'ftempohr' => ['nullable', 'integer'],
                 'ftypebuy' => ['nullable', 'integer'],
-                'frefno' => ['nullable', 'string'],
+                'frefno' => ['required', 'string', 'max:100'],
                 'frefpo' => ['nullable', 'string'],
                 'frefnoacak' => ['nullable', 'array'],
                 'frefnoacak.*' => ['nullable', 'regex:/^\d{3}(,\s*\d{3})*$/'],
@@ -1613,8 +1619,10 @@ class FakturpembelianController extends Controller
             ], [
                 'fstockmtdate.required' => 'Tanggal transaksi wajib diisi.',
                 'fsupplier.required' => 'Supplier wajib diisi.',
+                'frefno.required' => 'No faktur wajib diisi.',
                 'fsatuan.*.max' => 'Satuan di salah satu baris tidak boleh lebih dari 5 karakter.',
                 'fprdjadi.required_if' => 'Account wajib diisi ketika tipe pembelian adalah Non Stok.',
+                'fdiscpersen.*.regex' => 'Format diskon item harus angka atau format seperti 10+2.',
             ]);
 
             // 2. Muat header yang ada
@@ -1787,7 +1795,8 @@ class FakturpembelianController extends Controller
                 $sat = trim((string) ($satuans[$i] ?? ''));
                 $price = (float) ($prices[$i] ?? 0);
                 $biaya = (float) ($biayas[$i] ?? 0);
-                $discP = (float) ($discs[$i] ?? 0);
+                $discRaw = $this->normalizeDiscountInput($discs[$i] ?? 0);
+                $discP = $this->parseDiscountExpression($discRaw);
                 $desc = trim((string) ($descs[$i] ?? ''));
                 $sourceType = $isSaldoAwal ? '' : strtoupper(trim((string) ($sources[$i] ?? '')));
 
@@ -1800,7 +1809,7 @@ class FakturpembelianController extends Controller
                     $qtyKecil = 0;
                 }
 
-                $priceNet = $price * (1 - ($discP / 100));
+                $priceNet = ($price + $biaya) - ($price * ($discP / 100));
                 $amount = $qty * $priceNet;
                 $subtotal += $amount;
 
@@ -1816,7 +1825,7 @@ class FakturpembelianController extends Controller
                     'fqtyremain' => $qtyKecil,
                     'fprice' => $price,
                     'fbiaya' => $biaya,
-                    'fpricenet' => $price + $biaya,
+                    'fpricenet' => $priceNet,
                     'fprice_rp' => $price * $frate,
                     'ftotprice' => $amount,
                     'ftotprice_rp' => $amount * $frate,
@@ -1825,7 +1834,7 @@ class FakturpembelianController extends Controller
                     'fdesc' => $desc ?: null,
                     'fketdt' => $desc ?: null,
                     'fcode' => $sourceType === 'PO' ? 'P' : 'T',
-                    'fdiscpersen' => (string) $discP,
+                    'fdiscpersen' => $discRaw,
                     'fsatuan' => $sat,
                     'fclosedt' => '0',
                 ];
@@ -2023,7 +2032,7 @@ class FakturpembelianController extends Controller
                 'fqty' => (float) ($d->fqty ?? 0),
                 'fterima' => (float) ($d->fterima ?? 0),
                 'fprice' => (float) ($d->fprice ?? 0),
-                'fdiscpersen' => (float) ($d->fdiscpersen ?? 0),
+                'fdiscpersen' => $this->normalizeDiscountInput($d->fdiscpersen ?? 0),
                 'fbiaya' => (float) ($d->fbiaya ?? 0),
                 'ftotprice' => (float) ($d->ftotprice ?? 0),
                 'ftotal' => (float) ($d->ftotprice ?? 0),
@@ -2138,6 +2147,42 @@ class FakturpembelianController extends Controller
         }
 
         return 'Faktur Pembelian ' . $header->fstockmtno . ' tidak dapat diubah atau dihapus karena sudah digunakan pada Retur Pembelian: ' . $usedBy->implode(', ') . '.';
+    }
+
+    private function normalizeDiscountInput($discInput): string
+    {
+        $value = trim((string) ($discInput ?? ''));
+        if ($value === '') {
+            return '0';
+        }
+
+        $value = preg_replace('/\s+/', '', $value) ?? '0';
+
+        return $value === '' ? '0' : mb_substr($value, 0, 50);
+    }
+
+    private function parseDiscountExpression($discInput): float
+    {
+        $normalized = $this->normalizeDiscountInput($discInput);
+
+        if ($normalized === '0') {
+            return 0;
+        }
+
+        $parts = array_filter(explode('+', $normalized), fn ($part) => $part !== '');
+        if (empty($parts)) {
+            return 0;
+        }
+
+        $total = 0.0;
+        foreach ($parts as $part) {
+            if (! is_numeric($part)) {
+                return 0;
+            }
+            $total += (float) $part;
+        }
+
+        return max(0, min(100, round($total, 4)));
     }
 
     private function validateUniqueHeaderReference($frefno, $frefpo, ?string $exceptStockMtNo = null): ?string

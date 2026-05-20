@@ -106,6 +106,28 @@
             border-color: #2563eb;
             box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
         }
+
+        .hpp-box button,
+        .hpp-box button:hover,
+        .hpp-box button:focus,
+        .hpp-box button:disabled {
+            background: #2563eb !important;
+            background-color: #2563eb !important;
+            color: #ffffff !important;
+            border: 1px solid #2563eb !important;
+            min-width: 120px;
+            height: 42px;
+            padding: 0.5rem 1rem;
+            border-radius: 0.375rem;
+            display: inline-flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            appearance: none !important;
+            -webkit-appearance: none !important;
+            -moz-appearance: none !important;
+            opacity: 1 !important;
+            box-shadow: none !important;
+        }
     </style>
     @if ($errors->any())
         <div class="alert alert-danger alert-dismissible fade show border-0 shadow p-0 overflow-hidden" role="alert">
@@ -180,7 +202,7 @@
                 'fqty' => (float) ($oldQtys[$i] ?? 0),
                 'fprice' => (float) ($oldPrices[$i] ?? 0),
                 'fbiaya' => (float) ($oldBiayas[$i] ?? 0),
-                'fdiscpersen' => (float) ($oldDiscs[$i] ?? 0),
+                'fdiscpersen' => (string) ($oldDiscs[$i] ?? 0),
                 'ftotprice' => (float) ($oldTotals[$i] ?? 0),
                 'fdesc' => (string) ($oldDescs[$i] ?? ''),
                 'fketdt' => (string) ($oldKetdts[$i] ?? ''),
@@ -387,7 +409,7 @@
                         <div class="lg:col-span-4">
                             <label class="block text-npsm font-medium">Faktur</label>
                             <div class="flex items-center gap-3">
-                                <input type="number" name="frefno" class="w-full border rounded px-3 py-2">
+                                <input type="number" name="frefno" required class="w-full border rounded px-3 py-2">
                                 <label class="inline-flex items-center select-none">
                                 </label>
                             </div>
@@ -469,7 +491,8 @@
                                         :class="hasTerSourceItems ? 'flex-1 border rounded px-3 py-2 text-right font-mono bg-gray-100 cursor-not-allowed text-gray-600' : 'flex-1 border rounded px-3 py-2 text-right font-mono bg-white'">
 
                                     <button type="button" @click="alokasiBiaya()" :disabled="hasTerSourceItems"
-                                        :class="hasTerSourceItems ? 'shrink-0 min-w-[120px] bg-blue-300 text-white font-medium py-2 px-4 rounded transition flex items-center justify-center gap-2 cursor-not-allowed opacity-70' : 'shrink-0 min-w-[120px] bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded transition flex items-center justify-center gap-2'">
+                                        style="background-color: #2563eb; color: #ffffff;"
+                                        :class="hasTerSourceItems ? 'shrink-0 min-w-[120px] text-white font-medium py-2 px-4 rounded transition flex items-center justify-center gap-2 cursor-not-allowed opacity-80' : 'shrink-0 min-w-[120px] hover:bg-blue-700 text-white font-medium py-2 px-4 rounded transition flex items-center justify-center gap-2'">
                                         Hitung
                                     </button>
                                 </div>
@@ -611,12 +634,12 @@
 
                                             <!-- Disc.% -->
                                             <td class="p-2 text-right">
-                                                <input type="number" class="border rounded px-2 py-1 w-16 text-right text-sm"
+                                                <input type="text" class="border rounded px-2 py-1 w-20 text-right text-sm"
                                                     :disabled="hasTerSourceItems"
-                                                    :class="hasTerSourceItems ? 'border rounded px-2 py-1 w-16 text-right text-sm bg-gray-100 cursor-not-allowed text-gray-600' : 'border rounded px-2 py-1 w-16 text-right text-sm'"
-                                                    min="0" max="100" step="0.01" x-model.number="it.fdiscpersen"
+                                                    :class="hasTerSourceItems ? 'border rounded px-2 py-1 w-20 text-right text-sm bg-gray-100 cursor-not-allowed text-gray-600' : 'border rounded px-2 py-1 w-20 text-right text-sm'"
+                                                    placeholder="10+2" x-model="it.fdiscpersen"
                                                     :id="'disc_saved_' + i" @focus="activeRow = it.uid; $event.target.select()"
-                                                    @blur="activeRow = null" @input="recalc(it)" @change="recalc(it)">
+                                                    @blur="activeRow = null; normalizeDiscountInput($event, it)" @input="recalc(it)" @change="recalc(it)">
                                             </td>
 
                                             <!-- Total Harga -->
@@ -640,28 +663,7 @@
 
                             </table>
                         </div>
-                        <div class="hidden">
-                            <template x-for="(it, i) in submitItems" :key="'submit-' + (it.uid || i)">
-                                <div>
-                                    <input type="hidden" name="fitemcode[]" :value="it.fitemcode">
-                                    <input type="hidden" name="fitemname[]" :value="it.fitemname">
-                                    <input type="hidden" name="fsatuan[]" :value="it.fsatuan">
-                                    <input type="hidden" name="fqty[]" :value="it.fqty">
-                                    <input type="hidden" name="fprice[]" :value="it.fprice">
-                                    <input type="hidden" name="fbiaya[]" :value="it.fbiaya">
-                                    <input type="hidden" name="fdiscpersen[]" :value="it.fdiscpersen">
-                                    <input type="hidden" name="ftotprice[]" :value="it.ftotprice">
-                                    <input type="hidden" name="fdesc[]" :value="it.fdesc">
-                                    <input type="hidden" name="fketdt[]" :value="it.fketdt">
-                                    <input type="hidden" name="frefdtno[]" :value="it.frefdtno">
-                                    <input type="hidden" name="frefdtid[]" :value="it.frefdtid">
-                                    <input type="hidden" name="frefnoacak[]" :value="it.frefnoacak">
-                                    <input type="hidden" name="fsource[]" :value="it.fsource">
-                                    <input type="hidden" name="fnouref[]" :value="it.fnouref">
-                                    <input type="hidden" name="frefpr[]" :value="it.frefpr">
-                                </div>
-                            </template>
-                        </div>
+                        <div class="hidden" data-detail-payload></div>
 
                         <!-- ===== Trigger: Add PO & PB dari panel kanan ===== -->
                         <div>
@@ -1309,14 +1311,48 @@
                 }
             },
 
+            parseDiscount(value) {
+                if (value === null || value === undefined || value === '') return 0;
+                const cleaned = String(value).replace(/\s+/g, '');
+                if (!cleaned) return 0;
+                const parts = cleaned.split('+').filter(Boolean);
+                if (!parts.length) return 0;
+
+                let total = 0;
+                for (const part of parts) {
+                    const parsed = Number(part);
+                    if (!Number.isFinite(parsed)) return 0;
+                    total += parsed;
+                }
+
+                return Math.min(100, Math.max(0, total));
+            },
+
+            normalizeDiscountValue(value) {
+                const cleaned = String(value ?? '').replace(/\s+/g, '');
+                return cleaned === '' ? '0' : cleaned;
+            },
+
+            normalizeDiscountInput(event, row) {
+                const normalized = this.normalizeDiscountValue(row?.fdiscpersen);
+                if (row) {
+                    row.fdiscpersen = normalized;
+                    this.recalc(row);
+                }
+                if (event?.target) {
+                    event.target.value = normalized;
+                }
+            },
+
             recalc(row) {
                 row.fqty = Math.max(0, +row.fqty || 0);
                 row.fprice = Math.max(0, +row.fprice || 0);
                 row.fbiaya = Math.max(0, +row.fbiaya || 0);
-                row.fdiscpersen = Math.min(100, Math.max(0, +row.fdiscpersen || 0));
+                row.fdiscpersen = this.normalizeDiscountValue(row.fdiscpersen);
+                const discPercent = this.parseDiscount(row.fdiscpersen);
 
                 const basePrice = (row.fprice + row.fbiaya) * row.fqty;
-                const diskon = (row.fqty * row.fprice) * (row.fdiscpersen / 100);
+                const diskon = (row.fqty * row.fprice) * (discPercent / 100);
 
                 row.ftotprice = +(basePrice - diskon).toFixed(2);
 
@@ -1326,7 +1362,7 @@
             get totalDPP() {
                 return this.savedItems.reduce((sum, item) => {
                     const hargaBarang = (item.fqty * item.fprice);
-                    const diskon = hargaBarang * (item.fdiscpersen / 100);
+                    const diskon = hargaBarang * (this.parseDiscount(item.fdiscpersen) / 100);
                     return sum + (hargaBarang - diskon);
                 }, 0);
             },
@@ -1643,7 +1679,7 @@
 
                         // Financial
                         fprice: +(src.fprice || 0),
-                        fdiscpersen: +((src.fdiscpersen ?? src.fdisc) || 0),
+                        fdiscpersen: this.normalizeDiscountValue(src.fdiscpersen ?? src.fdisc ?? 0),
                         fbiaya: +(src.fbiaya || 0),
                         ftotprice: +(src.fharga || 0),
 
@@ -1708,6 +1744,7 @@
                     ...newRow(),
                     ...source,
                     uid: source.uid || cryptoRandom(),
+                    fdiscpersen: this.normalizeDiscountValue(source.fdiscpersen ?? '0'),
                     fdesc: (source.fdesc ?? '').toString(),
                     fketdt: (source.fketdt ?? '').toString(),
                     frefnoacak: this.normalizeRefNoAcak(source.frefnoacak),
@@ -1720,6 +1757,46 @@
 
             get submitItems() {
                 return this.savedItems.filter((row) => this.isRowSavable(row));
+            },
+
+            syncDetailPayload(form, rows = null) {
+                const targetForm = form || document.querySelector('form[data-form-draft="true"]');
+                if (!targetForm) return;
+
+                const container = targetForm.querySelector('[data-detail-payload]');
+                if (!container) return;
+
+                const payloadRows = Array.isArray(rows) ? rows : this.submitItems;
+                const fields = [
+                    'fitemcode',
+                    'fitemname',
+                    'fsatuan',
+                    'fqty',
+                    'fprice',
+                    'fbiaya',
+                    'fdiscpersen',
+                    'ftotprice',
+                    'fdesc',
+                    'fketdt',
+                    'frefdtno',
+                    'frefdtid',
+                    'frefnoacak',
+                    'fsource',
+                    'fnouref',
+                    'frefpr',
+                ];
+
+                container.innerHTML = '';
+
+                payloadRows.forEach((row) => {
+                    fields.forEach((field) => {
+                        const input = document.createElement('input');
+                        input.type = 'hidden';
+                        input.name = `${field}[]`;
+                        input.value = row?.[field] ?? '';
+                        container.appendChild(input);
+                    });
+                });
             },
 
             isRowFilled(row) {
@@ -1765,7 +1842,10 @@
                 this.recalcTotals();
                 const form = this.pendingSubmitForm;
                 this.closeWarning();
-                this.$nextTick(() => form.submit());
+                this.$nextTick(() => {
+                    this.syncDetailPayload(form, this.savedItems);
+                    form.submit();
+                });
             },
 
             onSubmit($event) {
@@ -2003,7 +2083,10 @@
 
                 this.savedItems = validRows.map((row) => ({ ...row }));
                 this.recalcTotals();
-                this.$nextTick(() => form.submit());
+                this.$nextTick(() => {
+                    this.syncDetailPayload(form, this.savedItems);
+                    form.submit();
+                });
             },
 
             openBrowseFor(where, index = null) {
@@ -2037,7 +2120,7 @@
                 fqty: 0,
                 fterima: 0,
                 fprice: 0,
-                fdiscpersen: 0,
+                    fdiscpersen: '0',
                 fbiaya: 0,
                 ftotprice: 0,
                 fdesc: '',
