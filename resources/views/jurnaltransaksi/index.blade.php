@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'Jurnal Transaksi')
+@section('title', $pageMeta['pageTitle'] ?? (($journalType ?? '') === 'JBL' ? 'Jurnal Faktur Pembelian' : 'Jurnal Transaksi'))
 
 @section('content')
     <div x-data="{
@@ -21,10 +21,12 @@
         <div class="flex justify-end items-center mb-4">
             <div></div>
 
-            <a href="{{ route('jurnaltransaksi.create') }}"
-                class="inline-flex items-center bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
-                <x-heroicon-o-plus class="w-4 h-4 mr-1" /> Tambah Baru
-            </a>
+            @if ($canCreate)
+                <a href="{{ ($journalType ?? '') === 'JBL' ? route('jurnaltransaksi.create', ['journal_type' => 'JBL']) : route('jurnaltransaksi.create') }}"
+                    class="inline-flex items-center bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
+                    <x-heroicon-o-plus class="w-4 h-4 mr-1" /> Tambah Baru
+                </a>
+            @endif
         </div>
 
         <div id="yearFilterTemplate" class="hidden">
@@ -187,6 +189,7 @@
                         const urlParams = new URLSearchParams(window.location.search);
                         d.year = urlParams.get('year') || '';
                         d.month = urlParams.get('month') || '';
+                        d.journal_type = urlParams.get('journal_type') || '';
                     }
                 },
                 columns: [{

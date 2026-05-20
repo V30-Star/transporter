@@ -10,7 +10,6 @@ use App\Http\Controllers\FakturpembelianController;
 use App\Http\Controllers\GroupcustomerController;
 use App\Http\Controllers\GroupproductController;
 use App\Http\Controllers\InvoiceController;
-use App\Http\Controllers\JurnalPembelianController;
 use App\Http\Controllers\JurnalTransaksiController;
 use App\Http\Controllers\ListingFakturPembelianController;
 use App\Http\Controllers\ListingPenerimaanBarangController;
@@ -218,14 +217,14 @@ Route::middleware('auth')->group(function () {
         Route::patch('/jurnaltransaksi/{fcurrid}', [JurnalTransaksiController::class, 'update'])->name('jurnaltransaksi.update');
         Route::delete('/jurnaltransaksi/{fcurrid}', [JurnalTransaksiController::class, 'destroy'])->name('jurnaltransaksi.destroy');
 
-        Route::get('/jurnalpembelian', [JurnalPembelianController::class, 'index'])->name('jurnalpembelian.index');
-        Route::post('/jurnalpembelian', [JurnalPembelianController::class, 'store'])->name('jurnalpembelian.store');
-        Route::get('/jurnalpembelian/create', [JurnalPembelianController::class, 'create'])->name('jurnalpembelian.create');
-        Route::get('/jurnalpembelian/{fcurrid}/view', [JurnalPembelianController::class, 'view'])->name('jurnalpembelian.view');
-        Route::get('/jurnalpembelian/{fcurrid}/edit', [JurnalPembelianController::class, 'edit'])->name('jurnalpembelian.edit');
-        Route::get('/jurnalpembelian/{fcurrid}/delete', [JurnalPembelianController::class, 'delete'])->name('jurnalpembelian.delete');
-        Route::patch('/jurnalpembelian/{fcurrid}', [JurnalPembelianController::class, 'update'])->name('jurnalpembelian.update');
-        Route::delete('/jurnalpembelian/{fcurrid}', [JurnalPembelianController::class, 'destroy'])->name('jurnalpembelian.destroy');
+        Route::get('/jurnalpembelian', fn () => redirect()->route('jurnaltransaksi.index', ['journal_type' => 'JBL']))->name('jurnalpembelian.index');
+        Route::post('/jurnalpembelian', [JurnalTransaksiController::class, 'store'])->name('jurnalpembelian.store');
+        Route::get('/jurnalpembelian/create', fn () => redirect()->route('jurnaltransaksi.create', ['journal_type' => 'JBL']))->name('jurnalpembelian.create');
+        Route::get('/jurnalpembelian/{fcurrid}/view', fn ($fcurrid) => redirect()->route('jurnaltransaksi.view', ['fcurrid' => $fcurrid, 'journal_type' => 'JBL']))->name('jurnalpembelian.view');
+        Route::get('/jurnalpembelian/{fcurrid}/edit', fn ($fcurrid) => redirect()->route('jurnaltransaksi.edit', ['fcurrid' => $fcurrid, 'journal_type' => 'JBL']))->name('jurnalpembelian.edit');
+        Route::get('/jurnalpembelian/{fcurrid}/delete', fn ($fcurrid) => redirect()->route('jurnaltransaksi.delete', ['fcurrid' => $fcurrid, 'journal_type' => 'JBL']))->name('jurnalpembelian.delete');
+        Route::patch('/jurnalpembelian/{fcurrid}', [JurnalTransaksiController::class, 'update'])->name('jurnalpembelian.update');
+        Route::delete('/jurnalpembelian/{fcurrid}', [JurnalTransaksiController::class, 'destroy'])->name('jurnalpembelian.destroy');
 
         Route::get('/pengeluarankas', [PengeluaranKasController::class, 'index'])->name('pengeluarankas.index');
         Route::post('/pengeluarankas', [PengeluaranKasController::class, 'store'])->name('pengeluarankas.store');

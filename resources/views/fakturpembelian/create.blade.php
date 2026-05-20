@@ -464,12 +464,12 @@
                                 <label class="block text-sm font-medium">Hitung Biaya</label>
                                 <div
                                     class="hpp-box h-[96px] bg-gray-50 p-3 rounded-lg border border-gray-200 shadow-sm flex items-center gap-3">
-                                    <input type="number" x-model.number="biayaGlobal"
+                                    <input type="number" x-model.number="biayaGlobal" :disabled="hasTerSourceItems"
                                         placeholder="Masukkan Total Ongkir"
-                                        class="flex-1 border rounded px-3 py-2 text-right font-mono bg-white">
+                                        :class="hasTerSourceItems ? 'flex-1 border rounded px-3 py-2 text-right font-mono bg-gray-100 cursor-not-allowed text-gray-600' : 'flex-1 border rounded px-3 py-2 text-right font-mono bg-white'">
 
-                                    <button type="button" @click="alokasiBiaya()"
-                                        class="shrink-0 min-w-[120px] bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded transition flex items-center justify-center gap-2">
+                                    <button type="button" @click="alokasiBiaya()" :disabled="hasTerSourceItems"
+                                        :class="hasTerSourceItems ? 'shrink-0 min-w-[120px] bg-blue-300 text-white font-medium py-2 px-4 rounded transition flex items-center justify-center gap-2 cursor-not-allowed opacity-70' : 'shrink-0 min-w-[120px] bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded transition flex items-center justify-center gap-2'">
                                         Hitung
                                     </button>
                                 </div>
@@ -590,6 +590,8 @@
                                             <!-- @ Harga -->
                                             <td class="p-2 text-right">
                                                 <input type="number" class="border rounded px-2 py-1 w-full text-right"
+                                                    :disabled="hasTerSourceItems"
+                                                    :class="hasTerSourceItems ? 'border rounded px-2 py-1 w-full text-right bg-gray-100 cursor-not-allowed text-gray-600' : 'border rounded px-2 py-1 w-full text-right'"
                                                     min="0" step="0.01" x-model.number="it.fprice"
                                                     :id="'price_saved_' + i" @focus="activeRow = it.uid; $event.target.select()"
                                                     @blur="activeRow = null; normalizeMoneyInput($event, it, 'fprice')" @input="recalc(it)" @change="recalc(it)"
@@ -599,6 +601,8 @@
                                             <!-- @ Biaya -->
                                             <td class="p-2 text-right">
                                                 <input type="number" class="border rounded px-2 py-1 w-full text-right"
+                                                    :disabled="hasTerSourceItems"
+                                                    :class="hasTerSourceItems ? 'border rounded px-2 py-1 w-full text-right bg-gray-100 cursor-not-allowed text-gray-600' : 'border rounded px-2 py-1 w-full text-right'"
                                                     min="0" step="0.01" x-model.number="it.fbiaya"
                                                     :id="'biaya_saved_' + i" @focus="activeRow = it.uid; $event.target.select()"
                                                     @blur="activeRow = null; normalizeMoneyInput($event, it, 'fbiaya')" @input="recalc(it)" @change="recalc(it)"
@@ -608,6 +612,8 @@
                                             <!-- Disc.% -->
                                             <td class="p-2 text-right">
                                                 <input type="number" class="border rounded px-2 py-1 w-16 text-right text-sm"
+                                                    :disabled="hasTerSourceItems"
+                                                    :class="hasTerSourceItems ? 'border rounded px-2 py-1 w-16 text-right text-sm bg-gray-100 cursor-not-allowed text-gray-600' : 'border rounded px-2 py-1 w-16 text-right text-sm'"
                                                     min="0" max="100" step="0.01" x-model.number="it.fdiscpersen"
                                                     :id="'disc_saved_' + i" @focus="activeRow = it.uid; $event.target.select()"
                                                     @blur="activeRow = null" @input="recalc(it)" @change="recalc(it)">
@@ -1258,6 +1264,10 @@
                 return total + this.ppnAmount;
             },
 
+            get hasTerSourceItems() {
+                return (this.savedItems || []).some((item) => (item?.fsource || '').toString().trim().toUpperCase() === 'PB');
+            },
+
             fmt(n) {
                 if (n === null || n === undefined || n === '') return '-';
                 const v = Number(n);
@@ -1829,6 +1839,9 @@
             },
 
             alokasiBiaya() {
+                if (this.hasTerSourceItems) {
+                    return;
+                }
                 if (this.biayaGlobal <= 0 || this.totalHarga <= 0) {
                     alert("Masukkan total ongkir dan pastikan item sudah ada.");
                     return;

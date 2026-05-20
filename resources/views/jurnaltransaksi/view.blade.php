@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'View Jurnal Transaksi')
+@section('title', $pageTitle ?? 'View Jurnal Transaksi')
 
 @section('content')
     @php
@@ -97,12 +97,12 @@
         </div>
 
         <div class="flex justify-center gap-4">
-            <a href="{{ route('jurnaltransaksi.edit', $jurnaltransaksi->fjurnalmtid) }}"
+            <a href="{{ route('jurnaltransaksi.edit', array_merge(['fcurrid' => $jurnaltransaksi->fjurnalmtid], ($jurnaltransaksi->fjurnaltype ?? null) === 'JBL' ? ['journal_type' => 'JBL'] : [])) }}"
                 class="inline-flex items-center bg-yellow-500 text-white px-6 py-2 rounded hover:bg-yellow-600">
                 <x-heroicon-o-pencil-square class="w-5 h-5 mr-2" />
                 Edit
             </a>
-            <a href="{{ route('jurnaltransaksi.index') }}"
+            <a href="{{ $indexUrl ?? route('jurnaltransaksi.index') }}"
                 class="inline-flex items-center bg-gray-500 text-white px-6 py-2 rounded hover:bg-gray-600">
                 <x-heroicon-o-arrow-left class="w-5 h-5 mr-2" />
                 Kembali

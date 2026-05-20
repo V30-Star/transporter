@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'Jurnal Transaksi')
+@section('title', $pageTitle ?? 'Jurnal Transaksi')
 
 @section('content')
     <style>
@@ -67,11 +67,17 @@
                     {{-- fjurnaltype --}}
                     <div class="lg:col-span-2">
                         <label class="block text-sm font-medium">Tipe Jurnal</label>
-                        <select name="fjurnaltype" class="w-full border rounded px-3 py-2">
-                            <option value="JV" selected>JV – Journal Voucher</option>
-                            <option value="AP">AP – Accounts Payable</option>
-                            <option value="AR">AR – Accounts Receivable</option>
-                        </select>
+                        @if (!empty($fixedJournalType))
+                            <input type="text" value="{{ $fixedJournalType }}"
+                                class="w-full border rounded px-3 py-2 bg-gray-100 cursor-not-allowed" disabled>
+                            <input type="hidden" name="fjurnaltype" value="{{ $fixedJournalType }}">
+                        @else
+                            <select name="fjurnaltype" class="w-full border rounded px-3 py-2">
+                                <option value="JV" @selected(old('fjurnaltype', $journalType ?? 'JV') === 'JV')>JV - Journal Voucher</option>
+                                <option value="AP" @selected(old('fjurnaltype', $journalType) === 'AP')>AP - Accounts Payable</option>
+                                <option value="AR" @selected(old('fjurnaltype', $journalType) === 'AR')>AR - Accounts Receivable</option>
+                            </select>
+                        @endif
                     </div>
 
                     {{-- fjurnaldate --}}
@@ -402,7 +408,7 @@
                         class="bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700 flex items-center">
                         <x-heroicon-o-check class="w-5 h-5 mr-2" /> Simpan
                     </button>
-                    <button type="button" onclick="window.location='{{ route('jurnaltransaksi.index') }}'"
+                    <button type="button" onclick="window.location='{{ $indexUrl ?? route('jurnaltransaksi.index') }}'"
                         class="bg-gray-500 text-white px-6 py-2 rounded hover:bg-gray-600 flex items-center">
                         <x-heroicon-o-arrow-left class="w-5 h-5 mr-2" /> Keluar
                     </button>

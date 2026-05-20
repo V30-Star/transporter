@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', $action === 'delete' ? 'Hapus Jurnal Transaksi' : 'Edit Jurnal Transaksi')
+@section('title', $pageTitle ?? ($action === 'delete' ? 'Hapus Jurnal Transaksi' : 'Edit Jurnal Transaksi'))
 
 @section('content')
     @php
@@ -15,7 +15,7 @@
             subaccounts: @js($subaccounts),
             referenceAllowedAccountCodes: @js($referenceAllowedAccountCodes ?? []),
             deleteUrl: @js(route('jurnaltransaksi.destroy', $jurnaltransaksi->fjurnalmtid)),
-            indexUrl: @js(route('jurnaltransaksi.index')),
+            indexUrl: @js($indexUrl ?? route('jurnaltransaksi.index')),
             csrfToken: @js(csrf_token()),
         })"
         x-init="init()">
@@ -110,7 +110,7 @@
                         <x-heroicon-o-trash class="w-5 h-5 mr-2" />
                         Hapus
                     </button>
-                    <a href="{{ route('jurnaltransaksi.index') }}"
+                    <a href="{{ $indexUrl ?? route('jurnaltransaksi.index') }}"
                         class="inline-flex items-center bg-gray-500 text-white px-6 py-2 rounded hover:bg-gray-600">
                         <x-heroicon-o-arrow-left class="w-5 h-5 mr-2" />
                         Kembali
@@ -140,11 +140,17 @@
 
                     <div class="lg:col-span-2">
                         <label class="block text-sm font-medium mb-1">Tipe Jurnal</label>
-                        <select name="fjurnaltype" class="w-full border rounded px-3 py-2">
-                            @foreach (['JV' => 'JV - Journal Voucher', 'AP' => 'AP - Accounts Payable', 'AR' => 'AR - Accounts Receivable'] as $code => $label)
-                                <option value="{{ $code }}" @selected(old('fjurnaltype', $jurnaltransaksi->fjurnaltype) === $code)>{{ $label }}</option>
-                            @endforeach
-                        </select>
+                        @if (!empty($lockJournalType))
+                            <input type="text" value="{{ old('fjurnaltype', $jurnaltransaksi->fjurnaltype) }}"
+                                class="w-full border rounded px-3 py-2 bg-gray-100 cursor-not-allowed" disabled>
+                            <input type="hidden" name="fjurnaltype" value="{{ old('fjurnaltype', $jurnaltransaksi->fjurnaltype) }}">
+                        @else
+                            <select name="fjurnaltype" class="w-full border rounded px-3 py-2">
+                                @foreach (['JV' => 'JV - Journal Voucher', 'AP' => 'AP - Accounts Payable', 'AR' => 'AR - Accounts Receivable'] as $code => $label)
+                                    <option value="{{ $code }}" @selected(old('fjurnaltype', $jurnaltransaksi->fjurnaltype) === $code)>{{ $label }}</option>
+                                @endforeach
+                            </select>
+                        @endif
                     </div>
 
                     <div class="lg:col-span-2">
@@ -274,7 +280,7 @@
                         <x-heroicon-o-check class="w-5 h-5 mr-2" />
                         Simpan
                     </button>
-                    <a href="{{ route('jurnaltransaksi.index') }}"
+                    <a href="{{ $indexUrl ?? route('jurnaltransaksi.index') }}"
                         class="inline-flex items-center bg-gray-500 text-white px-6 py-2 rounded hover:bg-gray-600">
                         <x-heroicon-o-arrow-left class="w-5 h-5 mr-2" />
                         Kembali
