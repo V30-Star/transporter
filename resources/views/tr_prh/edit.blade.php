@@ -1624,7 +1624,7 @@
                     return window.PRODUCT_MAP?.[key] || { name: '', units: [] };
                 },
 
-                hydrateRowFromMeta(row, meta) {
+                hydrateRowFromMeta(row, meta, forceDefaultUnit = false) {
                     if (!meta) {
                         row.fitemname = '';
                         row.units = [];
@@ -1636,12 +1636,14 @@
                     row.fitemname = meta.name || '';
                     const units = [...new Set((meta.units || []).map(unit => (unit ?? '').toString().trim()).filter(Boolean))];
                     row.units = units;
-                    row.fsatuan = units.includes(row.fsatuan) ? row.fsatuan : (units[0] || '');
+                    row.fsatuan = forceDefaultUnit
+                        ? (units[0] || '')
+                        : (units.includes(row.fsatuan) ? row.fsatuan : (units[0] || ''));
                     row.fnoacak = this.normalizeNoAcak(row.fnoacak) || this.generateUniqueNoAcak();
                 },
 
                 onCodeTyped(row, index = null) {
-                    this.hydrateRowFromMeta(row, this.productMeta(row.fitemcode));
+                    this.hydrateRowFromMeta(row, this.productMeta(row.fitemcode), true);
                     this.onRowUpdated(index);
                 },
 

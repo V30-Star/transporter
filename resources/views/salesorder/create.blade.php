@@ -953,7 +953,7 @@
                 return '';
             },
 
-            hydrateRowFromMeta(row, meta) {
+            hydrateRowFromMeta(row, meta, forceDefaultUnit = false) {
                 if (!meta) {
                     row.fitemname = '';
                     row.units = [];
@@ -963,8 +963,9 @@
                 row.fitemname = meta.name || '';
                 const units = [...new Set((meta.units || []).map(u => (u ?? '').toString().trim()).filter(Boolean))];
                 row.units = units;
-                if (!units.includes(row.fsatuan)) row.fsatuan = units[0] || '';
-                row.fsatuan = row.fsatuan;
+                row.fsatuan = forceDefaultUnit
+                    ? (units[0] || '')
+                    : (units.includes(row.fsatuan) ? row.fsatuan : (units[0] || ''));
                 if (meta.unit_ratios) row.unit_ratios = meta.unit_ratios;
             },
 
@@ -1003,7 +1004,7 @@
             },
 
             onCodeTypedRow(row, index = null) {
-                this.hydrateRowFromMeta(row, this.productMeta(row.fprdcode));
+                this.hydrateRowFromMeta(row, this.productMeta(row.fprdcode), true);
                 row.fnoacak = this.normalizeNoAcak(row.fnoacak) || this.generateUniqueNoAcak(row.uid);
                 this.onRowUpdated(index);
             },
@@ -1310,7 +1311,7 @@
                     const row = this.rows[this.browseTarget];
                     if (!row) return;
                     row.fprdcode = (product.fprdcode || '').toString();
-                    this.hydrateRowFromMeta(row, this.productMeta(row.fprdcode));
+                    this.hydrateRowFromMeta(row, this.productMeta(row.fprdcode), true);
                     row.fnoacak = this.normalizeNoAcak(row.fnoacak) || this.generateUniqueNoAcak(row.uid);
                     if (!row.fqty) row.fqty = 1;
                     this.onRowUpdated(this.browseTarget);
