@@ -80,7 +80,7 @@ class InvoiceController extends Controller
         $reverseJournalBaseAmount = $this->getReverseJournalBaseAmountByStockDocs($stockDocNos);
 
         if ($reverseJournalBaseAmount <= 0) {
-            return 'Referensi Surat Jalan belum memiliki nilai dasar jurnal balik. Periksa nilai barang pada Surat Jalan yang dipilih.';
+            return 'REFERENSI SURAT JALAN BELUM PUNYA NILAI DASAR JURNAL BALIK.';
         }
 
         if (($invoiceGrandTotalRp - $reverseJournalBaseAmount) > 0.000001) {
@@ -123,7 +123,7 @@ class InvoiceController extends Controller
         $inventoryBaseAmount = $this->getInventoryBaseAmountByStockDocs($stockDocNos);
 
         if ($inventoryBaseAmount <= 0) {
-            return 'Referensi Surat Jalan belum memiliki nilai persediaan. Periksa nilai barang selain UM pada Surat Jalan yang dipilih.';
+            return 'REFERENSI SURAT JALAN BELUM PUNYA NILAI PERSEDIAAN.';
         }
 
         return null;
@@ -157,7 +157,7 @@ class InvoiceController extends Controller
         $advanceReductionAmount = $this->getAdvanceReductionAmountByStockDocs($stockDocNos);
 
         if ($advanceReductionAmount <= 0) {
-            return 'Referensi Surat Jalan belum memiliki nilai pengurang uang muka. Periksa item UM pada Surat Jalan yang dipilih.';
+            return 'REFERENSI SURAT JALAN BELUM PUNYA NILAI PENGURANG UANG MUKA.';
         }
 
         return null;
@@ -1147,7 +1147,7 @@ class InvoiceController extends Controller
             return redirect()->route('invoice.index')->with('success', 'Faktur Penjualan berhasil disimpan.');
         } catch (\Exception $e) {
             report($e);
-            return back()->withInput()->with('error', 'Faktur Penjualan belum berhasil disimpan. Silakan cek kembali data yang diisi.');
+            return back()->withInput()->with('error', 'FAKTUR PENJUALAN BELUM BERHASIL DISIMPAN. CEK DATA YANG DIISI.');
         }
     }
 
@@ -2186,7 +2186,7 @@ class InvoiceController extends Controller
             return redirect()->route('invoice.index')->with('success', "Faktur Penjualan {$header->fsono} berhasil diperbarui.");
         } catch (\Exception $e) {
             report($e);
-            return back()->withInput()->with('error', 'Faktur Penjualan belum berhasil diperbarui. Silakan cek kembali data yang diisi.');
+            return back()->withInput()->with('error', 'FAKTUR PENJUALAN BELUM BERHASIL DIPERBARUI. CEK DATA YANG DIISI.');
         }
     }
 
@@ -2346,7 +2346,7 @@ class InvoiceController extends Controller
         } catch (\Exception $e) {
             // Jika terjadi kesalahan saat menghapus, kembali ke halaman delete dengan pesan error
             report($e);
-            return redirect()->route('invoice.delete', $ftranmtid)->with('error', 'Data belum berhasil dihapus. Silakan coba lagi.');
+            return redirect()->route('invoice.delete', $ftranmtid)->with('error', 'DATA BELUM BERHASIL DIHAPUS. COBA LAGI.');
         }
     }
 

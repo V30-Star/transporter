@@ -1037,14 +1037,14 @@ class FakturpembelianController extends Controller
 
                 if (! empty($invalidAdvanceCodes)) {
                     return back()->withInput()->withErrors([
-                        'detail' => 'Untuk tipe pembelian Uang Muka, hanya produk dengan kode UM yang diperbolehkan. Kode tidak valid: ' . implode(', ', $invalidAdvanceCodes) . '.',
+                        'detail' => 'TIPE UANG MUKA HANYA BOLEH PAKAI PRODUK UM. KODE TIDAK VALID: ' . strtoupper(implode(', ', $invalidAdvanceCodes)) . '.',
                     ]);
                 }
             }
 
             if ($this->hasMixedOpeningBalanceAndSourceRows($codes, $qtys, $sources)) {
                 return back()->withInput()->withErrors([
-                    'detail' => 'Item AWAL tidak boleh digabung dengan item referensi PO atau TER dalam satu faktur pembelian.',
+                    'detail' => 'ITEM AWAL TIDAK BOLEH DIGABUNG DENGAN ITEM REFERENSI PO / TER.',
                 ]);
             }
 
@@ -1721,14 +1721,14 @@ class FakturpembelianController extends Controller
 
                 if (! empty($invalidAdvanceCodes)) {
                     return back()->withInput()->withErrors([
-                        'detail' => 'Untuk tipe pembelian Uang Muka, hanya produk dengan kode UM yang diperbolehkan. Kode tidak valid: ' . implode(', ', $invalidAdvanceCodes) . '.',
+                        'detail' => 'TIPE UANG MUKA HANYA BOLEH PAKAI PRODUK UM. KODE TIDAK VALID: ' . strtoupper(implode(', ', $invalidAdvanceCodes)) . '.',
                     ]);
                 }
             }
 
             if ($this->hasMixedOpeningBalanceAndSourceRows($codes, $qtys, $sources)) {
                 return back()->withInput()->withErrors([
-                    'detail' => 'Item AWAL tidak boleh digabung dengan item referensi PO atau TER dalam satu faktur pembelian.',
+                    'detail' => 'ITEM AWAL TIDAK BOLEH DIGABUNG DENGAN ITEM REFERENSI PO / TER.',
                 ]);
             }
 
@@ -2182,7 +2182,7 @@ class FakturpembelianController extends Controller
             return null;
         }
 
-        return 'Faktur Pembelian ' . $header->fstockmtno . ' tidak dapat diubah atau dihapus karena sudah digunakan pada Retur Pembelian: ' . $usedBy->implode(', ') . '.';
+        return 'FAKTUR PEMBELIAN ' . strtoupper((string) $header->fstockmtno) . ' SUDAH DIPAKAI RETUR PEMBELIAN: ' . strtoupper($usedBy->implode(', ')) . '.';
     }
 
     private function normalizeDiscountInput($discInput): string

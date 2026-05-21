@@ -315,7 +315,7 @@ class SuratJalanController extends Controller
             ->exists();
 
         if ($hasBlockedSoReference) {
-            return response()->json(['message' => 'Data SRJ ini belum dapat dipakai karena referensi Sales Order masih membutuhkan approval.'], 403);
+            return response()->json(['message' => 'DATA SRJ BELUM BISA DIPAKAI. REFERENSI SALES ORDER MASIH MENUNGGU APPROVAL.'], 403);
         }
 
         $remainMap = $this->getSrjRemainByStockNo($header->fstockmtno);
@@ -932,7 +932,7 @@ class SuratJalanController extends Controller
         } catch (\Throwable $e) {
 
             return back()->withInput()->withErrors([
-                'detail' => 'Data belum berhasil disimpan. Silakan cek kembali isian transaksi.',
+                'detail' => 'DATA BELUM BERHASIL DISIMPAN. CEK ISIAN TRANSAKSI.',
             ]);
         }
 
@@ -1618,7 +1618,7 @@ class SuratJalanController extends Controller
             });
         } catch (\Throwable $e) {
             return back()->withInput()->withErrors([
-                'detail' => 'Data belum berhasil diperbarui. Silakan cek kembali isian transaksi.',
+                'detail' => 'DATA BELUM BERHASIL DIPERBARUI. CEK ISIAN TRANSAKSI.',
             ]);
         }
 
@@ -1797,7 +1797,7 @@ class SuratJalanController extends Controller
             return redirect()->route('suratjalan.index')->with('success', 'Data Surat Jalan ' . $suratjalan->fstockmtno . ' berhasil dihapus.');
         } catch (\Exception $e) {
             // Jika terjadi kesalahan saat menghapus, kembali ke halaman delete dengan pesan error
-            return redirect()->route('suratjalan.delete', $fstockmtid)->with('error', 'Data belum berhasil dihapus. Silakan coba lagi.');
+            return redirect()->route('suratjalan.delete', $fstockmtid)->with('error', 'DATA BELUM BERHASIL DIHAPUS. COBA LAGI.');
         }
     }
 
@@ -1970,7 +1970,7 @@ class SuratJalanController extends Controller
             $docLabel = $this->isInvoiceReferenceDoc($docNo) ? 'Faktur Penjualan' : 'SO';
             if ($availableQtyKecil <= 0) {
                 $product = trim((string) ($stat['product_name'] ?? $stat['product_code'] ?? $referenceKey));
-                return 'Qty Surat Jalan untuk item ' . $product . ($docNo !== '' ? ' pada ' . $docLabel . ' ' . $docNo : '') . ' tidak bisa diinput karena qty sudah habis atau sudah digunakan.';
+                return 'QTY SURAT JALAN ITEM ' . strtoupper((string) $product) . ($docNo !== '' ? ' PADA ' . strtoupper((string) $docLabel) . ' ' . strtoupper((string) $docNo) : '') . ' SUDAH HABIS / SUDAH DIPAKAI.';
             }
 
             if ((float) $requestedQtyKecil - $availableQtyKecil > 0.000001) {
@@ -2082,7 +2082,7 @@ class SuratJalanController extends Controller
             return null;
         }
 
-        return 'Surat Jalan ' . $fstockmtno . ' tidak dapat diubah atau dihapus karena sudah digunakan pada ' . implode('; ', $parts) . '.';
+        return 'SURAT JALAN ' . strtoupper((string) $fstockmtno) . ' SUDAH DIPAKAI: ' . strtoupper(implode('; ', $parts)) . '.';
     }
 
     private function resolveSuratJalanFcode(array $row): string

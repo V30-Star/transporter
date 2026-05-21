@@ -37,11 +37,11 @@ class CurrencyController extends Controller
                 'frate' => 'required|numeric|min:0',
             ],
             [
-                'fcurrcode.required' => 'Kode currency harus diisi.',
-                'fcurrcode.unique' => 'Kode currency sudah terdaftar.',
-                'fcurrname.required' => 'Nama currency harus diisi.',
-                'fcurrname.unique' => 'Nama currency sudah terdaftar.',
-                'frate.numeric' => 'Rate harus berupa angka.',
+                'fcurrcode.required' => 'KODE CURRENCY WAJIB DIISI.',
+                'fcurrcode.unique' => 'KODE CURRENCY SUDAH ADA.',
+                'fcurrname.required' => 'NAMA CURRENCY WAJIB DIISI.',
+                'fcurrname.unique' => 'NAMA CURRENCY SUDAH ADA.',
+                'frate.numeric' => 'RATE HARUS ANGKA.',
             ]
         );
 
@@ -91,12 +91,12 @@ class CurrencyController extends Controller
                 'frate' => 'required|numeric|min:0',
             ],
             [
-                'fcurrname.required' => 'Nama currency harus diisi.',
-                'fcurrname.unique' => 'Nama currency ini sudah ada',
-                'fcurrcode.unique' => 'Kode currency ini sudah ada',
-                'frate.numeric' => 'Rate harus berupa angka.',
-                'fcurrcode.required' => 'Kode currency harus diisi.',
-                'fcurrcode.max' => 'Kode currency maksimal 10 karakter.',
+                'fcurrname.required' => 'NAMA CURRENCY WAJIB DIISI.',
+                'fcurrname.unique' => 'NAMA CURRENCY SUDAH ADA.',
+                'fcurrcode.unique' => 'KODE CURRENCY SUDAH ADA.',
+                'frate.numeric' => 'RATE HARUS ANGKA.',
+                'fcurrcode.required' => 'KODE CURRENCY WAJIB DIISI.',
+                'fcurrcode.max' => 'KODE CURRENCY MAX 10 KARAKTER.',
             ]
         );
 

@@ -367,16 +367,16 @@ class ProductController extends Controller
             }
 
             $validated = $request->validate($validationRules, [
-                'fgroupcode.required' => 'Group Produk harus diisi.',
-                'fmerek.required' => 'Merek harus diisi.',
-                'fprdname.required' => 'Nama Produk harus di isi',
-                'fsatuankecil.required' => 'Satuan 1 harus diisi.',
-                'fsatuanbesar.string' => 'Satuan 2 tidak valid.',
-                'fsatuanbesar.different' => 'Satuan 2 tidak boleh sama dengan Satuan 1.',
-                'fsatuanbesar2.string' => 'Satuan 3 tidak valid.',
-                'fsatuanbesar2.different' => 'Satuan 3 tidak boleh sama dengan Satuan 1 atau Satuan 2.',
-                'fqtykecil.numeric' => 'Isi Satuan 2 harus berupa angka.',
-                'fqtykecil2.numeric' => 'Isi Satuan 3 harus berupa angka.',
+                'fgroupcode.required' => 'GROUP PRODUK WAJIB DIISI.',
+                'fmerek.required' => 'MEREK WAJIB DIISI.',
+                'fprdname.required' => 'NAMA PRODUK WAJIB DIISI.',
+                'fsatuankecil.required' => 'SATUAN 1 WAJIB DIISI.',
+                'fsatuanbesar.string' => 'SATUAN 2 TIDAK VALID.',
+                'fsatuanbesar.different' => 'SATUAN 2 TIDAK BOLEH SAMA DENGAN SATUAN 1.',
+                'fsatuanbesar2.string' => 'SATUAN 3 TIDAK VALID.',
+                'fsatuanbesar2.different' => 'SATUAN 3 TIDAK BOLEH SAMA DENGAN SATUAN 1 ATAU 2.',
+                'fqtykecil.numeric' => 'SATUAN 2 HARUS ANGKA.',
+                'fqtykecil2.numeric' => 'SATUAN 3 HARUS ANGKA.',
             ]);
 
             $validated['fprdname'] = strtoupper($request->fprdname);
@@ -550,17 +550,17 @@ class ProductController extends Controller
         $validated = $request->validate(
             $validationRules,
             [
-                'fprdcode.unique' => 'Kode Produk sudah ada',
-                'fprdname.required' => 'Nama Produk harus di isi',
-                'fgroupcode.required' => 'Group Produk harus diisi.',
-                'fmerek.required' => 'Merek harus diisi.',
-                'fsatuankecil.required' => 'Satuan 1 harus diisi.',
-                'fsatuanbesar.string' => 'Satuan 2 tidak valid.',
-                'fsatuanbesar.different' => 'Satuan 2 tidak boleh sama dengan Satuan 1.',
-                'fsatuanbesar2.string' => 'Satuan 3 tidak valid.',
-                'fsatuanbesar2.different' => 'Satuan 3 tidak boleh sama dengan Satuan 1 atau Satuan 2.',
-                'fqtykecil.numeric' => 'Isi Satuan 2 harus berupa angka.',
-                'fqtykecil2.numeric' => 'Isi Satuan 3 harus berupa angka.',
+                'fprdcode.unique' => 'KODE PRODUK SUDAH ADA.',
+                'fprdname.required' => 'NAMA PRODUK WAJIB DIISI.',
+                'fgroupcode.required' => 'GROUP PRODUK WAJIB DIISI.',
+                'fmerek.required' => 'MEREK WAJIB DIISI.',
+                'fsatuankecil.required' => 'SATUAN 1 WAJIB DIISI.',
+                'fsatuanbesar.string' => 'SATUAN 2 TIDAK VALID.',
+                'fsatuanbesar.different' => 'SATUAN 2 TIDAK BOLEH SAMA DENGAN SATUAN 1.',
+                'fsatuanbesar2.string' => 'SATUAN 3 TIDAK VALID.',
+                'fsatuanbesar2.different' => 'SATUAN 3 TIDAK BOLEH SAMA DENGAN SATUAN 1 ATAU 2.',
+                'fqtykecil.numeric' => 'SATUAN 2 HARUS ANGKA.',
+                'fqtykecil2.numeric' => 'SATUAN 3 HARUS ANGKA.',
             ]
         );
 
@@ -627,11 +627,11 @@ class ProductController extends Controller
             $errors = [];
 
             if ($normalizeText($product->fprdcode) !== $normalizeText($validated['fprdcode'] ?? null)) {
-                $errors['fprdcode'] = 'Kode produk tidak bisa diubah karena produk sudah digunakan dalam transaksi.';
+                $errors['fprdcode'] = 'KODE PRODUK TIDAK BISA DIUBAH. SUDAH DIPAKAI TRANSAKSI.';
             }
 
             if ($normalizeText($product->fsatuankecil) !== $normalizeText($validated['fsatuankecil'] ?? null)) {
-                $errors['fsatuankecil'] = 'Satuan 1 tidak bisa diubah karena produk sudah digunakan dalam transaksi.';
+                $errors['fsatuankecil'] = 'SATUAN 1 TIDAK BISA DIUBAH. SUDAH DIPAKAI TRANSAKSI.';
             }
 
             if (count($addedUnitFields) > 1) {
@@ -649,11 +649,11 @@ class ProductController extends Controller
                 $newQty = $normalizeNumber($validated[$qtyField] ?? null);
 
                 if ($oldUnit !== '' && $oldUnit !== $newUnit) {
-                    $errors[$unitField] = ($unitLabels[$unitField] ?? 'Satuan').' tidak bisa diubah karena produk sudah digunakan dalam transaksi.';
+                    $errors[$unitField] = strtoupper((string) ($unitLabels[$unitField] ?? 'SATUAN')).' TIDAK BISA DIUBAH. SUDAH DIPAKAI TRANSAKSI.';
                 }
 
                 if ($oldUnit !== '' && abs($oldQty - $newQty) > 0.000001) {
-                    $errors[$qtyField] = 'Qty konversi untuk '.strtoupper($oldUnit).' tidak bisa diubah karena produk sudah digunakan dalam transaksi.';
+                    $errors[$qtyField] = 'QTY KONVERSI UNTUK '.strtoupper($oldUnit).' TIDAK BISA DIUBAH. SUDAH DIPAKAI TRANSAKSI.';
                 }
 
                 if ($oldUnit === '' && $newUnit === '' && abs($newQty) > 0.000001) {
@@ -711,7 +711,7 @@ class ProductController extends Controller
         $allowedFields = ['fimage1', 'fimage2', 'fimage3'];
         if (! in_array($field, $allowedFields, true)) {
             return response()->json([
-                'message' => 'Field foto tidak valid.',
+                'message' => 'FIELD FOTO TIDAK VALID.',
             ], 422);
         }
 

@@ -727,7 +727,7 @@ class Tr_prhController extends Controller
             return null;
         }
 
-        return 'Permintaan Pembelian '.$header->fprno.' tidak dapat diubah atau dihapus karena sudah digunakan pada Order Pembelian: '.$usedBy->implode(', ').'.';
+        return 'PERMINTAAN PEMBELIAN ' . strtoupper((string) $header->fprno) . ' SUDAH DIPAKAI ORDER PEMBELIAN: ' . strtoupper($usedBy->implode(', ')) . '.';
     }
 
     private function validateStoreRequest(Request $request): void
@@ -759,11 +759,11 @@ class Tr_prhController extends Controller
 
             'fapproval' => ['nullable'],
         ], [
-            'fitemcode.*.max' => 'Panjang kode produk maksimal 50 karakter.',
-            'fsatuan.*.max' => 'Panjang satuan maksimal 20 karakter.',
-            'fnoacak.*.regex' => 'No acak harus terdiri dari 3 digit angka 1-9 tanpa 0.',
-            'fdesc.*.max' => 'Panjang deskripsi maksimal 300 karakter.',
-            'fketdt.*.max' => 'Panjang keterangan detail maksimal 50 karakter.',
+            'fitemcode.*.max' => 'KODE PRODUK MAX 50 KARAKTER.',
+            'fsatuan.*.max' => 'SATUAN MAX 20 KARAKTER.',
+            'fnoacak.*.regex' => 'NO ACAK HARUS 3 DIGIT 1-9.',
+            'fdesc.*.max' => 'DESKRIPSI MAX 300 KARAKTER.',
+            'fketdt.*.max' => 'KETERANGAN DETAIL MAX 50 KARAKTER.',
         ]);
     }
 

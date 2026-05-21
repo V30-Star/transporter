@@ -35,9 +35,9 @@ class GroupcustomerController extends Controller
             'fgroupcode' => 'required|string|unique:msgroupcustomer,fgroupcode',
             'fgroupname' => 'required|string',
         ], [
-            'fgroupcode.required' => 'Kode Group harus diisi.',
-            'fgroupname.required' => 'Nama Group harus diisi.',
-            'fgroupcode.unique' => 'Kode Group sudah digunakan',
+            'fgroupcode.required' => 'KODE GROUP WAJIB DIISI.',
+            'fgroupname.required' => 'NAMA GROUP WAJIB DIISI.',
+            'fgroupcode.unique' => 'KODE GROUP SUDAH ADA.',
         ]);
 
         $validated['fgroupcode'] = strtoupper($validated['fgroupcode']);
@@ -89,9 +89,9 @@ class GroupcustomerController extends Controller
             'fgroupcode' => "required|string|unique:msgroupcustomer,fgroupcode,{$fgroupid},fgroupid",
             'fgroupname' => 'required|string',
         ], [
-            'fgroupcode.required' => 'Kode Group harus diisi.',
-            'fgroupname.required' => 'Nama Group harus diisi.',
-            'fgroupcode.unique' => 'Kode Group sudah digunakan',
+            'fgroupcode.required' => 'KODE GROUP WAJIB DIISI.',
+            'fgroupname.required' => 'NAMA GROUP WAJIB DIISI.',
+            'fgroupcode.unique' => 'KODE GROUP SUDAH ADA.',
         ]);
 
         $validated['fgroupcode'] = strtoupper($validated['fgroupcode']);
@@ -127,7 +127,7 @@ class GroupcustomerController extends Controller
             if (\Illuminate\Support\Facades\DB::table('mscustomer')->where('fgroup', $groupcustomer->fgroupid)->exists()) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'Group Customer sudah digunakan dalam data Customer.',
+                    'message' => 'GROUP CUSTOMER SUDAH DIPAKAI DATA CUSTOMER.',
                 ], 422);
             }
 

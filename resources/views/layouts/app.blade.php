@@ -1110,9 +1110,7 @@
                     title: options.title || 'Information',
                     html: `
                         <div style="text-align:left; font-size:14px; line-height:1.6;">
-                            <p style="margin:0 0 10px 0;">${escapeHtml(options.reason || inferReason(normalizedMessages))}</p>
                             <ul style="margin:0 0 12px 18px; padding:0;">${listHtml}</ul>
-                            <p style="margin:0; color:#6b7280;">Silakan cek poin di atas lalu simpan lagi.</p>
                         </div>
                     `,
                     confirmButtonText: 'Ok',

@@ -39,9 +39,9 @@ class SalesmanController extends Controller
                 'fsalesmanname' => 'required|string',
             ],
             [
-                'fsalesmancode.required' => 'Kode Salesman wajib diisi.',
-                'fsalesmanname.required' => 'Nama Salesman wajib diisi.',
-                'fsalesmancode.unique' => 'Kode Salesman sudah ada.',
+                'fsalesmancode.required' => 'KODE SALESMAN WAJIB DIISI.',
+                'fsalesmanname.required' => 'NAMA SALESMAN WAJIB DIISI.',
+                'fsalesmancode.unique' => 'KODE SALESMAN SUDAH ADA.',
             ]
         );
 
@@ -96,9 +96,9 @@ class SalesmanController extends Controller
                 'fsalesmanname' => 'required|string',
             ],
             [
-                'fsalesmancode.required' => 'Kode Salesman wajib diisi.',
-                'fsalesmanname.required' => 'Nama Salesman wajib diisi.',
-                'fsalesmancode.unique' => 'Kode Salesman sudah ada.',
+                'fsalesmancode.required' => 'KODE SALESMAN WAJIB DIISI.',
+                'fsalesmanname.required' => 'NAMA SALESMAN WAJIB DIISI.',
+                'fsalesmancode.unique' => 'KODE SALESMAN SUDAH ADA.',
             ]
         );
 

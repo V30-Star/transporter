@@ -36,9 +36,9 @@ class GroupproductController extends Controller
                 'fgroupname' => 'required|string',
             ],
             [
-                'fgroupcode.unique' => 'Kode grup produk sudah ada.',
-                'fgroupcode.required' => 'Kode grup produk harus diisi.',
-                'fgroupname.required' => 'Nama grup produk harus diisi.',
+                'fgroupcode.unique' => 'KODE GROUP PRODUK SUDAH ADA.',
+                'fgroupcode.required' => 'KODE GROUP PRODUK WAJIB DIISI.',
+                'fgroupname.required' => 'NAMA GROUP PRODUK WAJIB DIISI.',
             ]
         );
 
@@ -86,9 +86,9 @@ class GroupproductController extends Controller
                 'fgroupname' => 'required|string',
             ],
             [
-                'fgroupcode.unique' => 'Kode grup produk sudah ada.',
-                'fgroupcode.required' => 'Kode grup produk harus diisi.',
-                'fgroupname.required' => 'Nama grup produk harus diisi.',
+                'fgroupcode.unique' => 'KODE GROUP PRODUK SUDAH ADA.',
+                'fgroupcode.required' => 'KODE GROUP PRODUK WAJIB DIISI.',
+                'fgroupname.required' => 'NAMA GROUP PRODUK WAJIB DIISI.',
             ]
         );
 
@@ -124,7 +124,7 @@ class GroupproductController extends Controller
             if (\Illuminate\Support\Facades\DB::table('msprd')->where('fgroupcode', $groupproduct->fgroupcode)->exists()) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'Group Product sudah digunakan dalam data Product.',
+                    'message' => 'GROUP PRODUCT SUDAH DIPAKAI DATA PRODUCT.',
                 ], 422);
             }
 

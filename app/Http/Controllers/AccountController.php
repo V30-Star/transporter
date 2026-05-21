@@ -75,15 +75,15 @@ class AccountController extends Controller
                 'ftypesubaccount' => 'nullable|in:Sub Account,Customer,Supplier',
             ],
             [
-                'faccount.required' => 'Kode account harus diisi.',
-                'faccname.required' => 'Nama account harus diisi.',
-                'faccount.unique' => 'Kode account sudah ada.',
-                'faccount.max' => 'Kode account maksimal 10 karakter.',
-                'faccname.max' => 'Nama account maksimal 50 karakter.',
-                'finitjurnal.max' => 'Inisial jurnal maksimal 2 karakter.',
-                'finitjurnal.unique' => 'Initial Jurnal sudah digunakan oleh account lain.',
-                'finitjurnal.required' => 'Initial Jurnal wajib diisi.',
-                'faccupline.exists' => 'Account header tidak valid.',
+                'faccount.required' => 'KODE ACCOUNT WAJIB DIISI.',
+                'faccname.required' => 'NAMA ACCOUNT WAJIB DIISI.',
+                'faccount.unique' => 'KODE ACCOUNT SUDAH ADA.',
+                'faccount.max' => 'KODE ACCOUNT MAX 10 KARAKTER.',
+                'faccname.max' => 'NAMA ACCOUNT MAX 50 KARAKTER.',
+                'finitjurnal.max' => 'INISIAL JURNAL MAX 2 KARAKTER.',
+                'finitjurnal.unique' => 'INISIAL JURNAL SUDAH DIPAKAI.',
+                'finitjurnal.required' => 'INISIAL JURNAL WAJIB DIISI.',
+                'faccupline.exists' => 'ACCOUNT HEADER TIDAK VALID.',
             ]
         );
 
@@ -200,15 +200,15 @@ class AccountController extends Controller
                 ],
             ],
             [
-                'faccount.required' => 'Kode account harus diisi.',
-                'faccount.unique' => 'Kode account sudah ada.',
-                'faccount.max' => 'Kode account maksimal 10 karakter.',
-                'faccname.required' => 'Nama account harus diisi.',
-                'faccname.max' => 'Nama account maksimal 50 karakter.',
-                'finitjurnal.required' => 'Inisial jurnal harus diisi untuk KASBANKHEADER.',
-                'finitjurnal.unique' => 'Initial Jurnal sudah digunakan oleh account lain.',
-                'finitjurnal.max' => 'Inisial jurnal maksimal 2 karakter.',
-                'faccupline.exists' => 'Account header tidak valid.',
+                'faccount.required' => 'KODE ACCOUNT WAJIB DIISI.',
+                'faccount.unique' => 'KODE ACCOUNT SUDAH ADA.',
+                'faccount.max' => 'KODE ACCOUNT MAX 10 KARAKTER.',
+                'faccname.required' => 'NAMA ACCOUNT WAJIB DIISI.',
+                'faccname.max' => 'NAMA ACCOUNT MAX 50 KARAKTER.',
+                'finitjurnal.required' => 'INISIAL JURNAL WAJIB DIISI.',
+                'finitjurnal.unique' => 'INISIAL JURNAL SUDAH DIPAKAI.',
+                'finitjurnal.max' => 'INISIAL JURNAL MAX 2 KARAKTER.',
+                'faccupline.exists' => 'ACCOUNT HEADER TIDAK VALID.',
             ]
         );
 
@@ -273,7 +273,7 @@ class AccountController extends Controller
             }
 
             if (DB::table('jurnaldt')->where('faccount', $account->faccount)->exists()) {
-                return response()->json(['message' => 'Account sudah digunakan dalam transaksi.'], 422);
+                return response()->json(['message' => 'ACCOUNT SUDAH DIPAKAI TRANSAKSI.'], 422);
             }
 
             $account->delete();

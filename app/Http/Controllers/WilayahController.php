@@ -44,9 +44,9 @@ class WilayahController extends Controller
             'fwilayahcode' => 'required|string|unique:mswilayah,fwilayahcode',
             'fwilayahname' => 'required|string',
         ], [
-            'fwilayahcode.required' => 'Kode wilayah harus diisi.',
-            'fwilayahname.required' => 'Nama wilayah harus diisi.',
-            'fwilayahcode.unique' => 'Kode wilayah sudah ada',
+            'fwilayahcode.required' => 'KODE WILAYAH WAJIB DIISI.',
+            'fwilayahname.required' => 'NAMA WILAYAH WAJIB DIISI.',
+            'fwilayahcode.unique' => 'KODE WILAYAH SUDAH ADA.',
         ]);
 
         // Add default values for the required fields
@@ -99,9 +99,9 @@ class WilayahController extends Controller
             'fwilayahcode' => "required|string|unique:mswilayah,fwilayahcode,{$fwilayahid},fwilayahid",
             'fwilayahname' => 'required|string',
         ], [
-            'fwilayahcode.required' => 'Kode wilayah harus diisi.',
-            'fwilayahname.required' => 'Nama wilayah harus diisi.',
-            'fwilayahcode.unique' => 'Kode wilayah sudah ada',
+            'fwilayahcode.required' => 'KODE WILAYAH WAJIB DIISI.',
+            'fwilayahname.required' => 'NAMA WILAYAH WAJIB DIISI.',
+            'fwilayahcode.unique' => 'KODE WILAYAH SUDAH ADA.',
         ]);
 
         // Add default values for the required fields

@@ -36,8 +36,8 @@ class RekeningController extends Controller
                 'frekeningname' => 'required|string|unique:msrekening,frekeningname',
             ],
             [
-                'frekeningname.required' => 'Nama rekening harus diisi.',
-                'frekeningname.unique' => 'Nama Rekening ini sudah ada',
+                'frekeningname.required' => 'NAMA REKENING WAJIB DIISI.',
+                'frekeningname.unique' => 'NAMA REKENING SUDAH ADA.',
             ]
         );
 
@@ -87,8 +87,8 @@ class RekeningController extends Controller
                 'frekeningname' => 'required|string|string|unique:msrekening,frekeningname',
             ],
             [
-                'frekeningname.required' => 'Nama rekening harus diisi.',
-                'frekeningname.unique' => 'Nama Rekening ini sudah ada',
+                'frekeningname.required' => 'NAMA REKENING WAJIB DIISI.',
+                'frekeningname.unique' => 'NAMA REKENING SUDAH ADA.',
             ]
         );
 

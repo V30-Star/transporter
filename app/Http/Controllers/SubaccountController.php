@@ -51,9 +51,9 @@ class SubaccountController extends Controller
                 'fsubaccountname' => 'required|string',
             ],
             [
-                'fsubaccountcode.required' => 'Kode subaccount harus diisi.',
-                'fsubaccountname.required' => 'Nama subaccount harus diisi.',
-                'fsubaccountcode.unique' => 'Kode subaccount sudah ada.',
+                'fsubaccountcode.required' => 'KODE SUBACCOUNT WAJIB DIISI.',
+                'fsubaccountname.required' => 'NAMA SUBACCOUNT WAJIB DIISI.',
+                'fsubaccountcode.unique' => 'KODE SUBACCOUNT SUDAH ADA.',
             ]
         );
 
@@ -99,9 +99,9 @@ class SubaccountController extends Controller
                 'fsubaccountname' => 'required|string',
             ],
             [
-                'fsubaccountcode.required' => 'Kode subaccount harus diisi.',
-                'fsubaccountname.required' => 'Nama subaccount harus diisi.',
-                'fsubaccountcode.unique' => 'Kode subaccount sudah ada.',
+                'fsubaccountcode.required' => 'KODE SUBACCOUNT WAJIB DIISI.',
+                'fsubaccountname.required' => 'NAMA SUBACCOUNT WAJIB DIISI.',
+                'fsubaccountcode.unique' => 'KODE SUBACCOUNT SUDAH ADA.',
             ]
         );
 
@@ -137,7 +137,7 @@ class SubaccountController extends Controller
             if (\Illuminate\Support\Facades\DB::table('jurnaldt')->where('fsubaccount', $subaccount->fsubaccount)->exists()) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'Subaccount sudah digunakan dalam transaksi jurnal.',
+                    'message' => 'SUBACCOUNT SUDAH DIPAKAI TRANSAKSI JURNAL.',
                 ], 422);
             }
 

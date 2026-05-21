@@ -39,9 +39,9 @@ class SatuanController extends Controller
                 'fsatuanname' => 'required|string',
             ],
             [
-                'fsatuancode.unique' => 'Kode Satuan sudah ada.',
-                'fsatuanname.unique' => 'Nama Satuan sudah ada.',
-                'fsatuancode.required' => 'Kode Satuan harus diisi.',
+                'fsatuancode.unique' => 'KODE SATUAN SUDAH ADA.',
+                'fsatuanname.unique' => 'NAMA SATUAN SUDAH ADA.',
+                'fsatuancode.required' => 'KODE SATUAN WAJIB DIISI.',
             ]
         );
 
@@ -79,8 +79,8 @@ class SatuanController extends Controller
                 'fsatuanname' => 'required|string',
             ],
             [
-                'fsatuancode.unique' => 'Kode Satuan sudah ada.',
-                'fsatuancode.required' => 'Kode Satuan harus diisi.',
+                'fsatuancode.unique' => 'KODE SATUAN SUDAH ADA.',
+                'fsatuancode.required' => 'KODE SATUAN WAJIB DIISI.',
             ]
         );
 
@@ -120,7 +120,7 @@ class SatuanController extends Controller
                 ->exists()) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'Satuan sudah digunakan dalam data Product.',
+                    'message' => 'SATUAN SUDAH DIPAKAI DATA PRODUCT.',
                 ], 422);
             }
 

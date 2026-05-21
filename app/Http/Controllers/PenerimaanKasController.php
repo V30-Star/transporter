@@ -422,16 +422,16 @@ class PenerimaanKasController extends Controller
             'details.*.fnote' => ['nullable', 'string', 'max:100'],
             'details.*.fkasdtvalue' => ['required', 'numeric', 'not_in:0'],
         ], [
-            'fkasmtdate.required' => 'Tanggal wajib diisi.',
-            'fbranchcode.required' => 'Cabang wajib diisi.',
-            'fnogiro.unique' => 'No.Giro/Cek sudah digunakan.',
-            'ftgljatuhtempo.required' => 'Tgl.Jatuh Tempo wajib diisi saat Giro Mundur dicentang.',
-            'ftgljatuhtempo.before_or_equal' => 'Tgl.Jatuh Tempo tidak boleh melebihi Tanggal.',
-            'faccountheader.in' => 'Cash / Bank Account tidak valid.',
-            'details.required' => 'Minimal harus ada satu detail penerimaan.',
-            'details.*.faccount.required' => 'Account detail wajib diisi.',
-            'details.*.fkasdtvalue.required' => 'Jumlah bayar wajib diisi.',
-            'details.*.fkasdtvalue.not_in' => 'Jumlah bayar tidak boleh 0.',
+            'fkasmtdate.required' => 'TANGGAL WAJIB DIISI.',
+            'fbranchcode.required' => 'CABANG WAJIB DIISI.',
+            'fnogiro.unique' => 'NO. GIRO / CEK SUDAH DIPAKAI.',
+            'ftgljatuhtempo.required' => 'TGL. JATUH TEMPO WAJIB DIISI SAAT GIRO MUNDUR.',
+            'ftgljatuhtempo.before_or_equal' => 'TGL. JATUH TEMPO TIDAK BOLEH MELEBIHI TANGGAL.',
+            'faccountheader.in' => 'CASH / BANK ACCOUNT TIDAK VALID.',
+            'details.required' => 'MINIMAL 1 DETAIL PENERIMAAN.',
+            'details.*.faccount.required' => 'ACCOUNT DETAIL WAJIB DIISI.',
+            'details.*.fkasdtvalue.required' => 'JUMLAH BAYAR WAJIB DIISI.',
+            'details.*.fkasdtvalue.not_in' => 'JUMLAH BAYAR TIDAK BOLEH 0.',
         ]);
 
         if ($isGiroMundur) {

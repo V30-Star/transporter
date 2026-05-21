@@ -70,12 +70,12 @@ class SysUserController extends Controller
             'fuserlevel' => 'string|in:User,Admin',
             'fcabang' => 'string',
         ], [
-            'fsysuserid.unique' => 'Username sudah digunakan',
-            'fname.required' => 'Nama harus diisi.',
-            'fsysuserid.required' => 'Username harus diisi.',
-            'password.required' => 'Password harus diisi.',
-            'fuserlevel.required' => 'Level akun harus User atau Admin.',
-            'fcabang.required' => 'Cabang harus diisi.',
+            'fsysuserid.unique' => 'USERNAME SUDAH ADA.',
+            'fname.required' => 'NAMA WAJIB DIISI.',
+            'fsysuserid.required' => 'USERNAME WAJIB DIISI.',
+            'password.required' => 'PASSWORD WAJIB DIISI.',
+            'fuserlevel.required' => 'LEVEL AKUN TIDAK VALID.',
+            'fcabang.required' => 'CABANG WAJIB DIISI.',
         ]);
         // --- Pemrosesan Data ---
         $validated['fsysuserid'] = strtoupper($validated['fsysuserid']);
@@ -139,12 +139,12 @@ class SysUserController extends Controller
             'fuserlevel' => 'string|in:User,Admin',
             'fcabang' => 'string',
         ], [
-            'fsysuserid.unique' => 'Username sudah digunakan',
-            'fname.required' => 'Nama harus diisi.',
-            'fsysuserid.required' => 'Username harus diisi.',
-            'password.required' => 'Password harus diisi.',
-            'fuserlevel.required' => 'Level akun harus User atau Admin.',
-            'fcabang.required' => 'Cabang harus diisi.',
+            'fsysuserid.unique' => 'USERNAME SUDAH ADA.',
+            'fname.required' => 'NAMA WAJIB DIISI.',
+            'fsysuserid.required' => 'USERNAME WAJIB DIISI.',
+            'password.required' => 'PASSWORD WAJIB DIISI.',
+            'fuserlevel.required' => 'LEVEL AKUN TIDAK VALID.',
+            'fcabang.required' => 'CABANG WAJIB DIISI.',
         ]);
 
         $validated['fsysuserid'] = strtoupper($validated['fsysuserid']);

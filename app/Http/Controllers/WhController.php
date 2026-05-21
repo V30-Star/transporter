@@ -58,11 +58,11 @@ class WhController extends Controller
                 'fbranchcode' => 'required|string',
             ],
             [
-                'fwhcode.unique' => 'Kode Gudang sudah ada.',
-                'fwhcode.required' => 'Kode Gudang harus diisi.',
-                'fwhname.required' => 'Nama Gudang harus diisi.',
-                'faddress.required' => 'Alamat Gudang harus diisi.',
-                'fbranchcode.required' => 'Kode Cabang harus dipilih.',
+                'fwhcode.unique' => 'KODE GUDANG SUDAH ADA.',
+                'fwhcode.required' => 'KODE GUDANG WAJIB DIISI.',
+                'fwhname.required' => 'NAMA GUDANG WAJIB DIISI.',
+                'faddress.required' => 'ALAMAT GUDANG WAJIB DIISI.',
+                'fbranchcode.required' => 'KODE CABANG WAJIB DIPILIH.',
             ]
         );
 
@@ -139,11 +139,11 @@ class WhController extends Controller
                 'fbranchcode' => 'required|string', // Ensure the cabang code is validated and passed
             ],
             [
-                'fwhcode.unique' => 'Kode Wh sudah ada.',
-                'fwhcode.required' => 'Kode Wh harus diisi.',
-                'fwhname.required' => 'Nama Wh harus diisi.',
-                'faddress.required' => 'Alamat Wh harus diisi.',
-                'fbranchcode.required' => 'Kode Cabang harus dipilih.',
+                'fwhcode.unique' => 'KODE GUDANG SUDAH ADA.',
+                'fwhcode.required' => 'KODE GUDANG WAJIB DIISI.',
+                'fwhname.required' => 'NAMA GUDANG WAJIB DIISI.',
+                'faddress.required' => 'ALAMAT GUDANG WAJIB DIISI.',
+                'fbranchcode.required' => 'KODE CABANG WAJIB DIPILIH.',
             ]
         );
 

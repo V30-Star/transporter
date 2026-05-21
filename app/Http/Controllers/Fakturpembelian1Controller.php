@@ -958,7 +958,7 @@ class FakturpembelianController extends Controller
 
                 if (! empty($invalidAdvanceCodes)) {
                     return back()->withInput()->withErrors([
-                        'detail' => 'Tipe pembelian Uang Muka hanya boleh memakai produk dengan kode UM. Periksa item: ' . implode(', ', $invalidAdvanceCodes) . '.',
+                        'detail' => 'TIPE UANG MUKA HANYA BOLEH PAKAI PRODUK UM. CEK ITEM: ' . strtoupper(implode(', ', $invalidAdvanceCodes)) . '.',
                     ]);
                 }
             }
@@ -1573,7 +1573,7 @@ class FakturpembelianController extends Controller
 
                 if (! empty($invalidAdvanceCodes)) {
                     return back()->withInput()->withErrors([
-                        'detail' => 'Tipe pembelian Uang Muka hanya boleh memakai produk dengan kode UM. Periksa item: ' . implode(', ', $invalidAdvanceCodes) . '.',
+                        'detail' => 'TIPE UANG MUKA HANYA BOLEH PAKAI PRODUK UM. CEK ITEM: ' . strtoupper(implode(', ', $invalidAdvanceCodes)) . '.',
                     ]);
                 }
             }

@@ -38,9 +38,9 @@ class MerekController extends Controller
                 'fmerekname' => 'required|string',
             ],
             [
-                'fmerekcode.required' => 'Kode Merek harus diisi.',
-                'fmerekname.required' => 'Nama Merek harus diisi.',
-                'fmerekcode.unique' => 'Kode Merek sudah ada',
+                'fmerekcode.required' => 'KODE MEREK WAJIB DIISI.',
+                'fmerekname.required' => 'NAMA MEREK WAJIB DIISI.',
+                'fmerekcode.unique' => 'KODE MEREK SUDAH ADA.',
             ]
         );
 
@@ -89,9 +89,9 @@ class MerekController extends Controller
                 'fmerekname' => 'required|string',
             ],
             [
-                'fmerekcode.required' => 'Kode Merek harus diisi.',
-                'fmerekname.required' => 'Nama Merek harus diisi.',
-                'fmerekcode.unique' => 'Kode Merek sudah ada',
+                'fmerekcode.required' => 'KODE MEREK WAJIB DIISI.',
+                'fmerekname.required' => 'NAMA MEREK WAJIB DIISI.',
+                'fmerekcode.unique' => 'KODE MEREK SUDAH ADA.',
             ]
         );
 
@@ -127,7 +127,7 @@ class MerekController extends Controller
             if (\Illuminate\Support\Facades\DB::table('msprd')->where('fmerek', $merek->fmerekid)->exists()) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'Merek sudah digunakan dalam data Product.',
+                    'message' => 'MEREK SUDAH DIPAKAI DATA PRODUCT.',
                 ], 422);
             }
 
