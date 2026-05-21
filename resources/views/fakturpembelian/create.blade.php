@@ -1478,10 +1478,20 @@
                     return;
                 }
                 row.fitemname = meta.name || '';
+                const preferredUnit = (row.fsatuan || '').toString().trim();
                 const units = [...new Set((meta.units || []).map(u => (u ?? '').toString().trim()).filter(Boolean))];
-                row.units = units;
-                if (!units.includes(row.fsatuan)) row.fsatuan = units[0] || '';
-                row.fsatuan = row.fsatuan;
+                const matchedUnit = preferredUnit === '' ? '' : (units.find(u => u.toLowerCase() === preferredUnit.toLowerCase()) || '');
+
+                row.units = matchedUnit !== ''
+                    ? [matchedUnit, ...units.filter(u => u.toLowerCase() !== matchedUnit.toLowerCase())]
+                    : units;
+
+                if (matchedUnit !== '') {
+                    row.fsatuan = matchedUnit;
+                } else if (!row.units.includes(row.fsatuan)) {
+                    row.fsatuan = row.units[0] || '';
+                }
+
                 if (meta.unit_ratios) row.unit_ratios = meta.unit_ratios;
                 const stock = Number.isFinite(+meta.stock) && +meta.stock > 0 ? +meta.stock : 0;
                 row.maxqty = stock;
