@@ -34,7 +34,7 @@ class EditPeriodeController extends Controller
         ]);
 
         return redirect()
-            ->route('editperiode.edit')
+            ->route('dashboard')
             ->with('success', 'PERIODE EDIT BERHASIL DIUPDATE.');
     }
 }
