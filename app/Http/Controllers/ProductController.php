@@ -126,24 +126,9 @@ class ProductController extends Controller
             ->values()
             ->all();
 
-        $allowedNewUnitField = null;
-        if (! empty($product->fsatuankecil)) {
-            if (empty($product->fsatuanbesar)) {
-                $allowedNewUnitField = 'fsatuanbesar';
-            } elseif (empty($product->fsatuanbesar2)) {
-                $allowedNewUnitField = 'fsatuanbesar2';
-            }
-        }
-
         return [
             'is_used' => ! empty($usedBy),
             'used_by' => $usedBy,
-            'allowed_new_unit_field' => $allowedNewUnitField,
-            'allowed_new_qty_field' => match ($allowedNewUnitField) {
-                'fsatuanbesar' => 'fqtykecil',
-                'fsatuanbesar2' => 'fqtykecil2',
-                default => null,
-            },
         ];
     }
 
@@ -499,6 +484,7 @@ class ProductController extends Controller
         if ($message = $this->getApprovalLockMessage($product)) {
             return redirect()->route('product.view', $product->fprdid)->with('error', $message);
         }
+        try {
         $shouldSendApprovalNotification = false;
         $usageInfo = $this->getProductUsageInfo($product);
         $enabledImageFields = $this->getEnabledProductImageFields();
@@ -634,14 +620,6 @@ class ProductController extends Controller
                 $errors['fsatuankecil'] = 'SATUAN 1 TIDAK BISA DIUBAH. SUDAH DIPAKAI TRANSAKSI.';
             }
 
-            if (count($addedUnitFields) > 1) {
-                $errors['fsatuanbesar'] = 'Produk yang sudah digunakan hanya boleh menambah 1 satuan baru.';
-            }
-
-            if (count($addedUnitFields) === 1 && $addedUnitFields[0] !== $usageInfo['allowed_new_unit_field']) {
-                $errors[$addedUnitFields[0]] = 'Satuan baru hanya boleh ditambahkan pada slot satuan yang masih kosong.';
-            }
-
             foreach ($qtyFields as $unitField => $qtyField) {
                 $oldUnit = $normalizeText($product->{$unitField});
                 $newUnit = $normalizeText($validated[$unitField] ?? null);
@@ -702,6 +680,13 @@ class ProductController extends Controller
         return redirect()
             ->route('product.index')
             ->with('success', 'Product berhasil di-update.');
+        } catch (ValidationException $e) {
+            return redirect()
+                ->route('product.edit', $product->fprdid)
+                ->withErrors($e->errors())
+                ->withInput()
+                ->with('error', 'Data produk belum berhasil diperbarui. Silakan cek kembali isian Anda.');
+        }
     }
 
     public function deletePhoto($fprdid, $field = 'fimage1')

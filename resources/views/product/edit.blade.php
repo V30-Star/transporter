@@ -117,6 +117,57 @@
         }
     </style>
 
+    <style>
+        #fsatuankecil+.select2-container .select2-selection--single {
+            background-color: #eff6ff !important;
+            border-color: #93c5fd !important;
+        }
+
+        #fsatuanbesar+.select2-container .select2-selection--single {
+            background-color: #fefce8 !important;
+            border-color: #fde047 !important;
+        }
+
+        #fsatuanbesar2+.select2-container .select2-selection--single {
+            background-color: #faf5ff !important;
+            border-color: #d8b4fe !important;
+        }
+
+        .satuan-kecil-display {
+            white-space: nowrap;
+            display: inline-block;
+            vertical-align: middle;
+        }
+
+        .satuan-qty-input,
+        .satuan-qty-input:disabled {
+            background-color: transparent !important;
+            border: none !important;
+            box-shadow: none !important;
+            opacity: 1 !important;
+            -webkit-text-fill-color: #111827;
+            appearance: none !important;
+            text-align: right !important;
+            padding-left: 0.75rem !important;
+            padding-right: 0.75rem !important;
+        }
+
+        #fqtykecil,
+        #fqtykecil2,
+        #fqtykecil:disabled,
+        #fqtykecil2:disabled {
+            background: transparent !important;
+            border: 0 !important;
+            outline: 0 !important;
+            box-shadow: none !important;
+            color: #111827 !important;
+            -webkit-text-fill-color: #111827 !important;
+            text-align: right !important;
+            padding-left: 0.75rem !important;
+            padding-right: 0.75rem !important;
+        }
+    </style>
+
 
     <div x-data="{ open: false, keyword: '', rows: [], page: 1, lastPage: 1, total: 0 }">
         <div class="bg-white rounded shadow p-6 md:p-8 max-w-[96rem] mx-auto">
@@ -396,9 +447,9 @@
                                                 class="autonumeric flex-1 bg-transparent border-none focus:ring-0 px-3 py-2 text-right"
                                                 disabled>
 
-                                            {{-- Span sebagai teks di dalam kotak --}}
+                                            {{-- Span sebagai prefix/suffix di dalam kotak --}}
                                             <span
-                                                class="satuan-kecil-display text-purple-700 font-bold text-[10px] pr-3 flex-shrink-0 border-l border-purple-200 ml-2 pl-2 uppercase">
+                                                class="satuan-kecil-display text-gray-500 font-bold text-[10px] pr-3 flex-shrink-0 border-l border-purple-200 ml-2 pl-2">
                                             </span>
                                         </div>
                                         @error('fqtykecil2')
@@ -722,8 +773,8 @@
                         @if ($isUsedProduct)
                             <div class="mb-4 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
                                 Produk ini sudah dipakai di transaksi {{ implode(', ', $usedByLabels) }}. Kode produk,
-                                qty konversi, dan satuan yang sudah terpakai dikunci. Anda masih bisa ubah field lain,
-                                dan hanya boleh menambah 1 satuan baru pada slot yang masih kosong.
+                                qty konversi, dan satuan yang sudah terpakai dikunci. Anda masih bisa ubah field lain.
+                                Satuan 2 dan Satuan 3 masih boleh diisi atau diupdate jika slotnya masih kosong.
                             </div>
                         @endif
 
@@ -907,13 +958,13 @@
                             </div>
 
                             {{-- Satuan 2 --}}
-                            <div id="satuan2-block" style="display: none;">
+                            <div id="satuan2-block" style="display: none;" class="mt-2">
                                 <div class="flex items-end gap-4">
                                     <div class="w-1/3">
                                         <label class="block text-sm font-medium">Satuan 2</label>
                                         <select
                                             class="w-full border rounded px-3 py-2 bg-yellow-50 @error('fsatuanbesar') border-red-500 @enderror"
-                                            name="fsatuanbesar" id="fsatuanbesar" disabled
+                                            name="fsatuanbesar" id="fsatuanbesar" {{ $lockSatuan2 ? 'disabled' : '' }}
                                             data-usage-locked="{{ $lockSatuan2 ? '1' : '0' }}"
                                             onchange="updateSatuanLogic();">
                                             <option value="" selected>Pilih Satuan 2</option>
@@ -943,9 +994,9 @@
                                             {{-- Input tanpa border agar menyatu dengan container --}}
                                             <input type="text" name="fqtykecil" id="fqtykecil"
                                                 value={{ old('fqtykecil', $product->fqtykecil) }}
-                                                class="autonumeric flex-1 bg-transparent border-none focus:ring-0 px-3 py-2 text-right"
+                                                class="satuan-qty-input autonumeric flex-1 bg-transparent border-none focus:ring-0 px-3 py-2 text-right"
                                                 data-usage-locked="{{ $lockQty2 ? '1' : '0' }}"
-                                                disabled>
+                                                {{ $lockQty2 ? 'disabled' : '' }}>
                                             @if ($lockQty2)
                                                 <input type="hidden" name="fqtykecil"
                                                     value="{{ old('fqtykecil', $product->fqtykecil) }}">
@@ -971,7 +1022,7 @@
                             </div>
 
                             {{-- Satuan 3 --}}
-                            <div id="satuan3-block" style="display: none;">
+                            <div id="satuan3-block" style="display: none;" class="mt-2">
                                 <div class="flex items-end gap-4">
                                     <div class="w-1/3">
                                         <label class="block text-sm font-medium">Satuan 3</label>
@@ -980,7 +1031,8 @@
                                             name="fsatuanbesar2" id="fsatuanbesar2"
                                             data-usage-locked="{{ $lockSatuan3 ? '1' : '0' }}"
                                             data-select2-id="select2-data-fsatuanbesar2" tabindex="-1"
-                                            aria-hidden="true" {{ $lockSatuan3 ? 'disabled' : '' }}>
+                                            aria-hidden="true" onchange="updateSatuanLogic();"
+                                            {{ $lockSatuan3 ? 'disabled' : '' }}>
                                             <option value="" selected>Pilih Satuan 3</option>
                                             @foreach ($satuan as $satu)
                                                 <option value="{{ $satu->fsatuancode }}"
@@ -1008,9 +1060,9 @@
                                             {{-- Input tanpa border agar menyatu dengan container --}}
                                             <input type="text" name="fqtykecil2" id="fqtykecil2"
                                                 value={{ old('fqtykecil2', $product->fqtykecil2) }}
-                                                class="autonumeric flex-1 bg-transparent border-none focus:ring-0 px-3 py-2 text-right"
+                                                class="satuan-qty-input autonumeric flex-1 bg-transparent border-none focus:ring-0 px-3 py-2 text-right"
                                                 data-usage-locked="{{ $lockQty3 ? '1' : '0' }}"
-                                                disabled>
+                                                {{ $lockQty3 ? 'disabled' : '' }}>
                                             @if ($lockQty3)
                                                 <input type="hidden" name="fqtykecil2"
                                                     value="{{ old('fqtykecil2', $product->fqtykecil2) }}">
@@ -1018,7 +1070,7 @@
 
                                             {{-- Span sebagai teks di dalam kotak --}}
                                             <span
-                                                class="satuan-kecil-display text-purple-700 font-bold text-[10px] pr-3 flex-shrink-0 border-l border-purple-200 ml-2 pl-2 uppercase">
+                                                class="satuan-kecil-display text-gray-500 font-bold text-[10px] pr-3 flex-shrink-0 border-l border-purple-200 ml-2 pl-2">
                                             </span>
                                         </div>
                                         @error('fqtykecil2')
@@ -1169,7 +1221,7 @@
                         <div id="hj-level1-block" style="display: none;">
                             <div class="mt-2 grid grid-cols-1 sm:grid-cols-3 gap-4">
                                 <!-- Harga Jual Satuan 2 -->
-                                <div class="min-h-[96px]">
+                                <div>
                                     <label for="fhargajual2level1" class="block text-sm font-medium">Harga Jual 2
                                         (<span id="hj-satuan-besar-level1-label" class="uppercase">-</span>) Level 1</label>
                                     <div class="d-flex">
@@ -1186,7 +1238,7 @@
                                 </div>
 
                                 <!-- HJ. Besar Level 2 -->
-                                <div class="min-h-[96px]">
+                                <div>
                                     <label for="fhargajual2level2" class="block text-sm font-medium">Harga Jual 2
                                         (<span id="hj-satuan-besar-level2-label" class="uppercase">-</span>) Level 2</label>
                                     <div class="d-flex">
@@ -1203,7 +1255,7 @@
                                 </div>
 
                                 <!-- HJ. Besar Level 3 -->
-                                <div class="min-h-[96px]">
+                                <div>
                                     <label for="fhargajual2level3" class="block text-sm font-medium">Harga Jual 2
                                         (<span id="hj-satuan-besar-level3-label" class="uppercase">-</span>) Level 3</label>
                                     <div class="d-flex">
@@ -1225,7 +1277,7 @@
                         <div id="hj-level2-block" style="display: none;">
                             <div class="mt-2 grid grid-cols-1 sm:grid-cols-3 gap-4">
                                 <!-- HJ <PCS> Level 1 -->
-                                <div class="min-h-[96px]">
+                                <div>
                                     <label for="fhargajual3level1" class="block text-sm font-medium">
                                         Harga Jual 3 (<span id="hj-satuan-kecil-label"
                                             class="uppercase">{{ $product->fsatuankecil ?? '-' }}</span>) Level 1
@@ -1233,7 +1285,7 @@
                                     <div class="d-flex">
                                         <input type="text" autocomplete="off"
                                             class="autonumeric w-1/10 border rounded px-3 py-2 bg-purple-50 @error('fhargajual3level1') is-invalid @enderror"
-                                            name="fhargajual3level1" id="hj-satuan-besar-label"
+                                            name="fhargajual3level1" id="fhargajual3level1"
                                             value="{{ old('fhargajual3level1', $product->fhargajual3level1 ?? 0) }}">
                                         @error('fhargajual3level1')
                                             <div class="text-red-600 text-sm mt-1">
@@ -1244,9 +1296,9 @@
                                 </div>
 
                                 <!-- HJ <CTN> Level 1 -->
-                                <div class="min-h-[96px]">
+                                <div>
                                     <label for="fhargajual3level2" class="block text-sm font-medium">
-                                        Harga Jual 3 (<span id="hj-satuan-besar2-label"
+                                        Harga Jual 3 (<span id="hj-satuan-besar-label"
                                             class="uppercase">{{ $product->fsatuanbesar ?? '-' }}</span>) Level 2
                                     </label>
                                     <div class="d-flex">
@@ -1263,9 +1315,9 @@
                                 </div>
 
                                 <!-- HJ <DUS> Level 1 -->
-                                <div class="min-h-[96px]">
+                                <div>
                                     <label for="fhargajual3level3" class="block text-sm font-medium">
-                                        Harga Jual 3 (<span id="hjSatuanBesar2Label"
+                                        Harga Jual 3 (<span id="hj-satuan-besar2-label"
                                             class="uppercase">{{ $product->fsatuanbesar2 ?? '-' }}</span>) Level 3
                                     </label>
                                     <div class="d-flex">
@@ -1933,6 +1985,13 @@
 
 <script>
     $(document).ready(function() {
+        $('#groupSelect, #merkSelect, #fsatuankecil, #fsatuanbesar, #fsatuanbesar2').select2({
+            width: '100%',
+            placeholder: function() {
+                return $(this).data('placeholder') || '-- Pilih --';
+            },
+        });
+
         $('#groupSelect').select2({
             placeholder: '',
             allowClear: true
@@ -2447,6 +2506,23 @@
         return field?.dataset?.usageLocked === '1';
     }
 
+    function syncSatuanQtyFieldLayout() {
+        ['fqtykecil', 'fqtykecil2'].forEach(function(id) {
+            const field = document.getElementById(id);
+            if (!field) return;
+
+            field.style.setProperty('text-align', 'right', 'important');
+            field.style.setProperty('padding-left', '0.75rem', 'important');
+            field.style.setProperty('padding-right', '0.75rem', 'important');
+            field.style.setProperty('background', 'transparent', 'important');
+            field.style.setProperty('border', '0', 'important');
+            field.style.setProperty('outline', '0', 'important');
+            field.style.setProperty('box-shadow', 'none', 'important');
+            field.style.setProperty('min-width', '0', 'important');
+            field.style.setProperty('width', '100%', 'important');
+        });
+    }
+
     function updateSatuanLogic() {
         if (isUpdating) return;
 
@@ -2493,7 +2569,7 @@
         const largeSatuan1Value = largeSatuan1 ? largeSatuan1.value : '';
         const largeSatuan2Value = largeSatuan2 ? largeSatuan2.value : '';
 
-        const shouldShowSatuan2 = isInitialSatuanRender ? !!largeSatuan1Value : !!smallSatuanValue;
+        const shouldShowSatuan2 = !!smallSatuanValue;
 
         // --- 2. Logika Satuan 2 & Satuan Kecil Display ---
         if (shouldShowSatuan2) {
@@ -2569,7 +2645,7 @@
         // --- 4. Logika Satuan 3 ---
         // Satuan 3 muncul jika Satuan 2 sedang terlihat DAN Satuan 2 memiliki nilai yang dipilih
         const isSatuan2Visible = block2 ? block2.style.display !== 'none' : false;
-        const shouldShowSatuan3 = isInitialSatuanRender ? !!largeSatuan2Value : (isSatuan2Visible && !!largeSatuan1Value);
+        const shouldShowSatuan3 = isSatuan2Visible && !!largeSatuan1Value;
 
         if (shouldShowSatuan3) {
             // Tampilkan block Satuan 3
@@ -2577,7 +2653,7 @@
 
             // Aktifkan field Satuan 3
             if (largeSatuan2 && !isUsageLockedField(largeSatuan2)) largeSatuan2.disabled = false;
-            if (qty2 && !isUsageLockedField(qty2)) qty2.disabled = false;
+            if (qty2 && !isUsageLockedField(qty2)) qty2.disabled = !largeSatuan2Value;
 
             // Aktifkan HJ Satuan Besar input
             if (hjSatuanBesarInput) hjSatuanBesarInput.disabled = false;
@@ -2616,11 +2692,14 @@
             }
         }
 
-        if (!isInitialSatuanRender && satuanKecil !== "" && satuanKecil !== null) {
+        if (satuanKecil !== "" && satuanKecil !== null) {
             $('#satuan2-block').show();
             $('#hj-level1-block').show();
             if (!isUsageLockedField(document.getElementById('fsatuanbesar'))) {
                 $('#fsatuanbesar').prop('disabled', false);
+            }
+            if (!isUsageLockedField(document.getElementById('fqtykecil'))) {
+                $('#fqtykecil').prop('disabled', false);
             }
 
             $('.satuan-kecil-display').text(satuanKecil);
@@ -2639,16 +2718,12 @@
         }
 
         // --- LOGIKA SATUAN 2 ---
-        if (!isInitialSatuanRender && satuan2 !== "" && satuan2 !== null && satuanKecil !== "") {
+        if (satuanKecil !== "" && satuanKecil !== null && satuan2 !== "" && satuan2 !== null) {
             $('#satuan3-block').show();
             $('#hj-level2-block').show();
             if (!isUsageLockedField(document.getElementById('fsatuanbesar2'))) {
                 $('#fsatuanbesar2').prop('disabled', false);
             }
-            if (!isUsageLockedField(document.getElementById('fqtykecil'))) {
-                $('#fqtykecil').prop('disabled', false);
-            }
-
             $('#hj-satuan-besar-level1-label, #hj-satuan-besar-level2-label, #hj-satuan-besar-level3-label').text(
                 satuan2);
         } else {
@@ -2659,9 +2734,6 @@
             }
             if (!isUsageLockedField(document.getElementById('fsatuanbesar2'))) {
                 $('#fsatuanbesar2').prop('disabled', true);
-            }
-            if (!isUsageLockedField(document.getElementById('fqtykecil'))) {
-                $('#fqtykecil').prop('disabled', true);
             }
         }
 
@@ -2678,12 +2750,16 @@
 
         isInitialSatuanRender = false;
         isUpdating = false;
+        syncSatuanQtyFieldLayout();
     }
 
     // --- Pemasangan Event Listener ---
 
     // Panggil fungsi ini saat dokumen dimuat untuk inisialisasi awal (kasus halaman Create)
-    document.addEventListener('DOMContentLoaded', updateSatuanLogic);
+    document.addEventListener('DOMContentLoaded', function() {
+        updateSatuanLogic();
+        syncSatuanQtyFieldLayout();
+    });
 
     // Event listener untuk Satuan Kecil (Sudah dipasang melalui onchange="updateSatuanLogic()" di HTML)
     // Event listener untuk Satuan 2 (Sudah dipasang melalui onchange="updateSatuanLogic()" di HTML)
