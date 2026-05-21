@@ -338,20 +338,20 @@
                                     {{-- Satuan --}}
                                     <td class="p-2 align-top">
                                         @if ($isEdit)
-                                            <template x-if="it.units.length > 1">
+                                            <template x-if="unitOptions(it).length > 1">
                                                 <select class="w-full border rounded px-2 py-1 text-sm"
                                                     :id="'unit_saved_' + i" x-model="it.fsatuan"
                                                     @focus="activeRow = it.uid" @blur="activeRow = null"
                                                     @keydown.enter.prevent="focusSavedQty(i)"
                                                     @change="onRowUpdated(i)">
-                                                    <template x-for="u in it.units" :key="u">
+                                                    <template x-for="u in unitOptions(it)" :key="u">
                                                         <option :value="u" x-text="u"></option>
                                                     </template>
                                                 </select>
                                             </template>
                                         @endif
                                         <input type="text"
-                                            x-show="{{ $isReadOnly ? 'true' : 'it.units.length <= 1' }}"
+                                            x-show="{{ $isReadOnly ? 'true' : 'unitOptions(it).length <= 1' }}"
                                             class="w-full border rounded px-2 py-1 bg-gray-100 text-gray-600 text-sm"
                                             :value="it.fsatuan || '-'" disabled>
                                     </td>
@@ -1058,6 +1058,40 @@
                     if (meta.unit_ratios) row.unit_ratios = meta.unit_ratios;
                     if (!keepMaxqty) row.maxqty = 0;
                 },
+                unitOptions(row) {
+                    const options = [
+                        ...(Array.isArray(row?.units) ? row.units : []),
+                        row?.fsatuankecil || '',
+                        row?.fsatuanbesar || '',
+                        row?.fsatuanbesar2 || '',
+                    ].map(u => (u ?? '').toString().trim()).filter(Boolean);
+                    const currentSatuan = (row?.fsatuan || '').toString().trim();
+                    if (currentSatuan) options.unshift(currentSatuan);
+                    return options.filter((value, index, self) => self.indexOf(value) === index);
+                },
+                metaFromProductPayload(product) {
+                    if (!product) return null;
+                    return {
+                        id: product.fprdid ?? null,
+                        name: product.fprdname ?? '',
+                        units: [
+                            product.fsatuankecil ?? '',
+                            product.fsatuanbesar ?? '',
+                            product.fsatuanbesar2 ?? '',
+                        ].map(u => (u ?? '').toString().trim()).filter(Boolean).filter((value, index, self) => self.indexOf(value) === index),
+                        stock: Number(product.fminstock ?? 0),
+                        fsatuankecil: product.fsatuankecil ?? '',
+                        fsatuanbesar: product.fsatuanbesar ?? '',
+                        fsatuanbesar2: product.fsatuanbesar2 ?? '',
+                        fqtykecil: Number(product.fqtykecil ?? 0),
+                        fqtykecil2: Number(product.fqtykecil2 ?? 0),
+                        unit_ratios: {
+                            satuankecil: 1,
+                            satuanbesar: Number(product.fqtykecil ?? 1),
+                            satuanbesar2: Number(product.fqtykecil2 ?? 1),
+                        }
+                    };
+                },
 
                 onCodeTypedRow(row) {
                     this.hydrateRowFromMeta(row, this.productMeta(row.fitemcode));
@@ -1282,7 +1316,7 @@
                             fqtypo: 0,
                             fqtysisapo: Number(src.fqtysisapo ?? 0),
                             fqtyditer: Number(src.fqtyditer ?? 0),
-                            fqtymaxedit: Number(src.fqtymaxedit ?? 0),
+                            fqtymaxedit: Number(src.fqtymaxedit ?? src.fqtysisapo ?? src.maxqty ?? 0),
                             fqtykecil_ref: Number(src.fqtykecil_ref ?? src.fqtyremain ?? src.fqtykecil_sisa ?? 0),
                             frefdtid: src.frefdtid ?? '',
                             fsatuankecil: src.fsatuankecil || meta?.fsatuankecil || '',
@@ -1403,7 +1437,13 @@
                 init() {
                     this.savedItems = this.savedItems.map(it => {
                         const meta = this.productMeta(it.fitemcode);
-                        const units = (it.units && it.units.length) ? it.units : (meta ? [...new Set((meta.units || []).filter(Boolean))] : []);
+                        const units = (it.units && it.units.length)
+                            ? [...new Set((it.units || []).map(u => (u ?? '').toString().trim()).filter(Boolean))]
+                            : [
+                                it.fsatuankecil || meta?.fsatuankecil || '',
+                                it.fsatuanbesar || meta?.fsatuanbesar || '',
+                                it.fsatuanbesar2 || meta?.fsatuanbesar2 || '',
+                            ].map(u => (u ?? '').toString().trim()).filter(Boolean).filter((value, index, self) => self.indexOf(value) === index);
                         const fsatuankecil = it.fsatuankecil || meta?.fsatuankecil || '';
                         const fsatuanbesar = it.fsatuanbesar || meta?.fsatuanbesar || '';
                         const fsatuanbesar2 = it.fsatuanbesar2 || meta?.fsatuanbesar2 || '';
@@ -1457,7 +1497,23 @@
                         if (!product) return;
                         const apply = (row) => {
                             row.fitemcode = (product.fprdcode || '').toString();
-                            this.hydrateRowFromMeta(row, this.productMeta(row.fitemcode));
+                            const payloadMeta = this.metaFromProductPayload(product);
+                            if (payloadMeta) {
+                                row.fitemname = payloadMeta.name || row.fitemname || '';
+                                row.fsatuankecil = payloadMeta.fsatuankecil || row.fsatuankecil || '';
+                                row.fsatuanbesar = payloadMeta.fsatuanbesar || row.fsatuanbesar || '';
+                                row.fsatuanbesar2 = payloadMeta.fsatuanbesar2 || row.fsatuanbesar2 || '';
+                                row.fqtykecil = Number(row.fqtykecil || payloadMeta.fqtykecil || 0);
+                                row.fqtykecil2 = Number(row.fqtykecil2 || payloadMeta.fqtykecil2 || 0);
+                                row.units = this.unitOptions({
+                                    ...row,
+                                    units: payloadMeta.units,
+                                    fsatuankecil: payloadMeta.fsatuankecil,
+                                    fsatuanbesar: payloadMeta.fsatuanbesar,
+                                    fsatuanbesar2: payloadMeta.fsatuanbesar2,
+                                });
+                            }
+                            this.hydrateRowFromMeta(row, this.productMeta(row.fitemcode) || payloadMeta);
                             row.fnoacak = this.normalizeNoAcak(row.fnoacak) || this.generateUniqueNoAcak();
                             if (!row.fqty) row.fqty = 1;
                             this.recalc(row);

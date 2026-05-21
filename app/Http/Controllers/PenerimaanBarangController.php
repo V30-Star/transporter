@@ -129,12 +129,27 @@ class PenerimaanBarangController extends Controller
     {
         $supplierCode = trim((string) $request->input('supplier', ''));
 
+        $receiptSub = DB::table('trstockdt')
+            ->selectRaw('CAST(frefdtid AS BIGINT) AS fpodid, SUM(COALESCE(fqtykecil, 0)) AS fqtykecilterima')
+            ->where('fstockmtcode', 'TER')
+            ->whereNotNull('frefdtid')
+            ->groupBy(DB::raw('CAST(frefdtid AS BIGINT)'));
+
         $query = DB::table('tr_poh')
             ->leftJoin('mssupplier', 'tr_poh.fsupplier', '=', 'mssupplier.fsuppliercode')
             ->select('tr_poh.*', 'mssupplier.fsuppliername', 'mssupplier.fsuppliercode')
-            ->where('tr_poh.fprdin', '0');
+            ->whereIn('tr_poh.fclose', ['0', ''])
+            ->whereExists(function ($sub) use ($receiptSub) {
+                $sub->select(DB::raw(1))
+                    ->from('tr_pod as d')
+                    ->leftJoinSub($receiptSub, 'ter', function ($join) {
+                        $join->on('ter.fpodid', '=', 'd.fpodid');
+                    })
+                    ->whereColumn('d.fpono', 'tr_poh.fpono')
+                    ->whereRaw('GREATEST(COALESCE(d.fqtykecil, 0) - COALESCE(ter.fqtykecilterima, 0), 0) > 0');
+            });
 
-        $recordsTotal = DB::table('tr_poh')->count();
+        $recordsTotal = (clone $query)->count();
 
         if ($supplierCode !== '') {
             $query->where('tr_poh.fsupplier', $supplierCode);
@@ -244,7 +259,13 @@ class PenerimaanBarangController extends Controller
                 $remainKecil = (float) ($item->fqtykecil_sisa ?? 0);
                 $item->fqtyremain = $remainKecil;
                 $item->fqtykecil_ref = $remainKecil;
-                $item->maxqty = $remainKecil;
+                $item->maxqty = $this->qtyKecilToUnit($item, (string) ($item->fsatuan ?? ''), $remainKecil);
+                $item->maxqty_satuan = (string) ($item->fsatuan ?? '');
+                $item->units = array_values(array_filter([
+                    $item->fsatuankecil ?? '',
+                    $item->fsatuanbesar ?? '',
+                    $item->fsatuanbesar2 ?? '',
+                ]));
 
                 return $item;
             });
@@ -476,7 +497,107 @@ class PenerimaanBarangController extends Controller
             ->all();
     }
 
-    private function adjustPoReferenceQtyKecil(array $usageByPod, int $direction): void {}
+    private function adjustPoReferenceQtyKecil(array $usageByPod, int $direction): void
+    {
+        $podIds = collect(array_keys($usageByPod))
+            ->map(fn($id) => (int) $id)
+            ->filter(fn($id) => $id > 0)
+            ->unique()
+            ->values()
+            ->all();
+
+        if (empty($podIds)) {
+            return;
+        }
+
+        $poNos = DB::table('tr_pod')
+            ->whereIn('fpodid', $podIds)
+            ->pluck('fpono')
+            ->filter(fn($pono) => trim((string) $pono) !== '')
+            ->unique()
+            ->values()
+            ->all();
+
+        if (empty($poNos)) {
+            return;
+        }
+
+        $receiptSub = DB::table('trstockdt')
+            ->selectRaw('CAST(frefdtid AS BIGINT) AS fpodid, SUM(COALESCE(fqtykecil, 0)) AS fqtykecilterima')
+            ->where('fstockmtcode', 'TER')
+            ->whereNotNull('frefdtid')
+            ->groupBy(DB::raw('CAST(frefdtid AS BIGINT)'));
+
+        $details = DB::table('tr_pod as d')
+            ->leftJoinSub($receiptSub, 'ter', function ($join) {
+                $join->on('ter.fpodid', '=', 'd.fpodid');
+            })
+            ->whereIn('d.fpono', $poNos)
+            ->orderBy('d.fpodid')
+            ->get([
+                'd.fpodid',
+                'd.fpono',
+                DB::raw('COALESCE(d.fqtykecil, 0) AS fqtykecil'),
+                DB::raw('COALESCE(ter.fqtykecilterima, 0) AS fqtykecilterima'),
+            ]);
+
+        if ($details->isEmpty()) {
+            return;
+        }
+
+        $statusByPo = [];
+        $tolerance = 0.00001;
+
+        foreach ($details as $detail) {
+            $podId = (int) ($detail->fpodid ?? 0);
+            $poNo = (string) ($detail->fpono ?? '');
+            $qtyKecil = max(0, (float) ($detail->fqtykecil ?? 0));
+            $qtyTerima = max(0, (float) ($detail->fqtykecilterima ?? 0));
+
+            if ($direction > 0) {
+                $qtyTerima = max(0, $qtyTerima - max(0, (float) ($usageByPod[$podId] ?? 0)));
+            }
+
+            $qtyRemain = max(0, $qtyKecil - $qtyTerima);
+
+            DB::table('tr_pod')
+                ->where('fpodid', $podId)
+                ->update([
+                    'fqtyremain' => $qtyRemain,
+                ]);
+
+            if (! isset($statusByPo[$poNo])) {
+                $statusByPo[$poNo] = [
+                    'has_received' => false,
+                    'all_complete' => true,
+                ];
+            }
+
+            if ($qtyTerima > $tolerance) {
+                $statusByPo[$poNo]['has_received'] = true;
+            }
+
+            if ($qtyRemain > $tolerance) {
+                $statusByPo[$poNo]['all_complete'] = false;
+            }
+        }
+
+        foreach ($statusByPo as $poNo => $meta) {
+            $status = '0';
+
+            if ($meta['all_complete']) {
+                $status = '1';
+            } elseif ($meta['has_received']) {
+                $status = '2';
+            }
+
+            DB::table('tr_poh')
+                ->where('fpono', $poNo)
+                ->update([
+                    'fprdin' => $status,
+                ]);
+        }
+    }
 
     private function validateTrPodRemain(array $aggregateByPod, array $extraAvailableByPod = []): void
     {
@@ -1034,7 +1155,11 @@ class PenerimaanBarangController extends Controller
                 'fqtykecil' => (float) ($d->fqtykecil ?? 0),
                 'fqtykecil2' => (float) ($d->fqtykecil2 ?? 0),
                 'maxqty' => 0,
-                'units' => [],
+                'units' => array_values(array_filter([
+                    $d->fsatuankecil ?? '',
+                    $d->fsatuanbesar ?? '',
+                    $d->fsatuanbesar2 ?? '',
+                ])),
             ];
         })->values();
 
