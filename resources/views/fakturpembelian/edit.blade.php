@@ -1947,10 +1947,16 @@
         // Map produk untuk auto-fill tabel
         window.PRODUCT_MAP = {
             @foreach ($products as $p)
-                "{{ $p->fprdcode }}": {
-                    name: @json($p->fprdname),
-                    units: @json(array_values(array_filter([$p->fsatuankecil, $p->fsatuanbesar, $p->fsatuanbesar2]))),
-                    stock: @json($p->fminstock ?? 0),
+            "{{ $p->fprdcode }}": {
+                name: @json($p->fprdname),
+                default_unit: @json(match ((string) ($p->fsatuandefault ?? '')) {
+                    '1' => trim((string) ($p->fsatuankecil ?? '')),
+                    '2' => trim((string) ($p->fsatuanbesar ?? '')),
+                    '3' => trim((string) ($p->fsatuanbesar2 ?? '')),
+                    default => trim((string) ($p->fsatuankecil ?? '')) ?: trim((string) ($p->fsatuanbesar ?? '')) ?: trim((string) ($p->fsatuanbesar2 ?? '')),
+                }),
+                units: @json(array_values(array_filter([$p->fsatuankecil, $p->fsatuanbesar, $p->fsatuanbesar2]))),
+                stock: @json($p->fminstock ?? 0),
                     unit_ratios: {
                         satuankecil: 1,
                         satuanbesar: @json((float) ($p->fqtykecil ?? 1)),
@@ -2139,13 +2145,14 @@
                 productMeta(code) {
                     const key = (code || '').trim();
                     const meta = window.PRODUCT_MAP?.[key];
-                    if (!meta) {
-                        return {
-                            name: '',
-                            units: [],
-                            stock: 0,
-                            unit_ratios: {
-                                satuankecil: 1,
+                if (!meta) {
+                    return {
+                        name: '',
+                        default_unit: '',
+                        units: [],
+                        stock: 0,
+                        unit_ratios: {
+                            satuankecil: 1,
                                 satuanbesar: 1,
                                 satuanbesar2: 1
                             }
@@ -2259,7 +2266,7 @@
                     if (n < 0) row.fqty = 0;
                 },
 
-                hydrateRowFromMeta(row, meta) {
+                hydrateRowFromMeta(row, meta, forceDefaultUnit = false) {
                     if (!meta) {
                         row.fitemname = '';
                         row.units = [];
@@ -2270,16 +2277,20 @@
                     row.fitemname = meta.name || '';
                     const preferredUnit = (row.fsatuan || '').toString().trim();
                     const units = [...new Set((meta.units || []).map(u => (u ?? '').toString().trim()).filter(Boolean))];
+                    const defaultUnit = (meta.default_unit || '').toString().trim();
+                    const resolvedDefaultUnit = defaultUnit && units.includes(defaultUnit) ? defaultUnit : (units[0] || '');
                     const matchedUnit = preferredUnit === '' ? '' : (units.find(u => u.toLowerCase() === preferredUnit.toLowerCase()) || '');
 
                     row.units = matchedUnit !== ''
                         ? [matchedUnit, ...units.filter(u => u.toLowerCase() !== matchedUnit.toLowerCase())]
                         : units;
 
-                    if (matchedUnit !== '') {
+                    if (forceDefaultUnit) {
+                        row.fsatuan = resolvedDefaultUnit;
+                    } else if (matchedUnit !== '') {
                         row.fsatuan = matchedUnit;
                     } else if (!row.units.includes(row.fsatuan)) {
-                        row.fsatuan = row.units[0] || '';
+                        row.fsatuan = resolvedDefaultUnit;
                     }
 
                     if (meta.unit_ratios) row.unit_ratios = meta.unit_ratios;
@@ -2487,7 +2498,7 @@
 
                         const rawMeta = window.PRODUCT_MAP?.[(row.fitemcode || '').trim()];
                         if (rawMeta) {
-                            this.hydrateRowFromMeta(row, this.productMeta(row.fitemcode));
+                            this.hydrateRowFromMeta(row, this.productMeta(row.fitemcode), true);
                         }
                         row.maxqty = sourceLimit;
                         if (!(Number(row.fqtysisa_source) > 0 || Number(row.maxqty) > 0)) return;

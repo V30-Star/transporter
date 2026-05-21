@@ -977,8 +977,10 @@
                 row.fitemname = meta.name || '';
                 const units = [...new Set((meta.units || []).map(u => (u ?? '').toString().trim()).filter(Boolean))];
                 const prev = row.fsatuan;
+                const defaultUnit = (meta.default_unit || '').toString().trim();
+                const resolvedDefaultUnit = defaultUnit && units.includes(defaultUnit) ? defaultUnit : (units[0] || '');
                 row.units = units;
-                row.fsatuan = units.includes(prev) ? prev : (units[0] || '');
+                row.fsatuan = units.includes(prev) ? prev : resolvedDefaultUnit;
                 row.maxqty = Number.isFinite(+meta.stock) && +meta.stock > 0 ? +meta.stock : 0;
                 row.fnoacak = this.normalizeNoAcak(row.fnoacak) || this.generateUniqueNoAcak();
             },
@@ -996,14 +998,16 @@
                 }
                 row.fitemname = meta.name || '';
                 const units = [...new Set((meta.units || []).map(u => (u ?? '').toString().trim()).filter(Boolean))];
+                const defaultUnit = (meta.default_unit || '').toString().trim();
+                const resolvedDefaultUnit = defaultUnit && units.includes(defaultUnit) ? defaultUnit : (units[0] || '');
                 row.units = units;
                 row.maxqty = Number.isFinite(+meta.stock) && +meta.stock > 0 ? +meta.stock : 0;
                 if (units.length > 1) {
                     populateDraftUnitSelect(units);
-                    row.fsatuan = units[0]; // hanya fallback
+                    row.fsatuan = resolvedDefaultUnit;
                 } else {
                     clearDraftUnitSelect();
-                    row.fsatuan = units[0] || '';
+                    row.fsatuan = resolvedDefaultUnit;
                 }
                 row.fnoacak = this.normalizeNoAcak(row.fnoacak) || this.generateUniqueNoAcak();
             },
@@ -1109,7 +1113,7 @@
                         const item = this.savedItems[this.browseTarget];
                         if (item) {
                             item.fitemcode = (product.fprdcode || '').toString();
-                            this.hydrateRowFromMeta(item, this.productMeta(item.fitemcode));
+                            this.hydrateRowFromMeta(item, this.productMeta(item.fitemcode), true);
                             item.fqty = (+item.fqty || 1);
                             const i = this.browseTarget;
                             this.$nextTick(() => document.getElementById('qty_saved_' + i)?.focus());
@@ -1253,6 +1257,7 @@
                 const key = (code || '').trim();
                 return window.PRODUCT_MAP?.[key] || {
                     name: '',
+                    default_unit: '',
                     units: []
                 };
             },
@@ -1267,10 +1272,12 @@
 
                 row.fitemname = meta.name || '';
                 const units = [...new Set((meta.units || []).map(unit => (unit ?? '').toString().trim()).filter(Boolean))];
+                const defaultUnit = (meta.default_unit || '').toString().trim();
+                const resolvedDefaultUnit = defaultUnit && units.includes(defaultUnit) ? defaultUnit : (units[0] || '');
                 row.units = units;
                 row.fsatuan = forceDefaultUnit
-                    ? (units[0] || '')
-                    : (units.includes(row.fsatuan) ? row.fsatuan : (units[0] || ''));
+                    ? resolvedDefaultUnit
+                    : (units.includes(row.fsatuan) ? row.fsatuan : resolvedDefaultUnit);
                 row.fnoacak = this.normalizeNoAcak(row.fnoacak) || this.generateUniqueNoAcak();
             },
 
@@ -1451,7 +1458,7 @@
                     if (!row) return;
 
                     row.fitemcode = (product.fprdcode || '').toString();
-                    this.hydrateRowFromMeta(row, this.productMeta(row.fitemcode));
+                    this.hydrateRowFromMeta(row, this.productMeta(row.fitemcode), true);
                     this.onRowUpdated(this.browseTargetIndex);
                 }, {
                     passive: true

@@ -1335,7 +1335,9 @@
                         this.draft.fprdid = meta.id;
                         this.draft.fitemname = meta.name;
                         this.draft.units = meta.units;
-                        this.draft.fsatuan = meta.units[0] || '';
+                        this.draft.fsatuan = meta.default_unit && meta.units.includes(meta.default_unit)
+                            ? meta.default_unit
+                            : (meta.units[0] || '');
                         this.draft.fnoacak = this.normalizeNoAcak(this.draft.fnoacak) || this.generateUniqueNoAcak();
                     } else {
                         this.draft.fprdid = 0;
@@ -1350,7 +1352,11 @@
                         it.fprdid = meta.id;
                         it.fitemname = meta.name;
                         it.units = meta.units;
-                        if (!it.units.includes(it.fsatuan)) it.fsatuan = it.units[0] || '';
+                        if (!it.units.includes(it.fsatuan)) {
+                            it.fsatuan = meta.default_unit && it.units.includes(meta.default_unit)
+                                ? meta.default_unit
+                                : (it.units[0] || '');
+                        }
                         it.fnoacak = this.normalizeNoAcak(it.fnoacak) || this.generateUniqueNoAcak();
                     }
                 },
@@ -1621,7 +1627,7 @@
 
                 productMeta(code) {
                     const key = (code || '').trim();
-                    return window.PRODUCT_MAP?.[key] || { name: '', units: [] };
+                    return window.PRODUCT_MAP?.[key] || { name: '', default_unit: '', units: [] };
                 },
 
                 hydrateRowFromMeta(row, meta, forceDefaultUnit = false) {
@@ -1635,10 +1641,12 @@
                     row.fprdid = meta.id || row.fprdid || '';
                     row.fitemname = meta.name || '';
                     const units = [...new Set((meta.units || []).map(unit => (unit ?? '').toString().trim()).filter(Boolean))];
+                    const defaultUnit = (meta.default_unit || '').toString().trim();
+                    const resolvedDefaultUnit = defaultUnit && units.includes(defaultUnit) ? defaultUnit : (units[0] || '');
                     row.units = units;
                     row.fsatuan = forceDefaultUnit
-                        ? (units[0] || '')
-                        : (units.includes(row.fsatuan) ? row.fsatuan : (units[0] || ''));
+                        ? resolvedDefaultUnit
+                        : (units.includes(row.fsatuan) ? row.fsatuan : resolvedDefaultUnit);
                     row.fnoacak = this.normalizeNoAcak(row.fnoacak) || this.generateUniqueNoAcak();
                 },
 
@@ -1821,7 +1829,7 @@
                         if (!row) return;
 
                         row.fitemcode = (code || '').toString();
-                        this.hydrateRowFromMeta(row, this.productMeta(row.fitemcode));
+                        this.hydrateRowFromMeta(row, this.productMeta(row.fitemcode), true);
                         this.onRowUpdated(index);
                     });
 

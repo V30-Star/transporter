@@ -892,6 +892,7 @@
                     if (!meta) {
                         return {
                             name: '',
+                            default_unit: '',
                             units: [],
                             stock: 0,
                             unit_ratios: {
@@ -951,7 +952,7 @@
                         this.recalc(row);
                     }
                 },
-                hydrateRowFromMeta(row, meta) {
+                hydrateRowFromMeta(row, meta, forceDefaultUnit = false) {
                     if (!meta) {
                         const fallbackUnits = [
                             row.fsatuankecil || '',
@@ -972,9 +973,15 @@
                     row.fqtykecil2 = Number(row.fqtykecil2 ?? meta.fqtykecil2 ?? 0);
                     const units = [...new Set((meta.units || []).map(u => (u ?? '').toString().trim()).filter(Boolean))];
                     const currentSatuan = (row.fsatuan || '').trim();
+                    const defaultUnit = (meta.default_unit || '').toString().trim();
+                    const resolvedDefaultUnit = defaultUnit && units.includes(defaultUnit) ? defaultUnit : (units[0] || '');
                     if (currentSatuan && !units.includes(currentSatuan)) units.unshift(currentSatuan);
                     row.units = units;
-                    if (!currentSatuan) row.fsatuan = units[0] || '';
+                    if (forceDefaultUnit) {
+                        row.fsatuan = resolvedDefaultUnit;
+                    } else if (!currentSatuan) {
+                        row.fsatuan = resolvedDefaultUnit;
+                    }
                 },
                 unitOptions(row) {
                     const options = [
@@ -992,6 +999,11 @@
                     return {
                         id: product.fprdid ?? null,
                         name: product.fprdname ?? '',
+                        default_unit: ({
+                            '1': (product.fsatuankecil ?? '').toString().trim(),
+                            '2': (product.fsatuanbesar ?? '').toString().trim(),
+                            '3': (product.fsatuanbesar2 ?? '').toString().trim(),
+                        }[(product.fsatuandefault ?? '').toString().trim()] || (product.fsatuankecil ?? '').toString().trim() || (product.fsatuanbesar ?? '').toString().trim() || (product.fsatuanbesar2 ?? '').toString().trim()),
                         units: [
                             product.fsatuankecil ?? '',
                             product.fsatuanbesar ?? '',
@@ -1306,7 +1318,7 @@
                                 fsatuanbesar2: payloadMeta.fsatuanbesar2,
                             });
                         }
-                        this.hydrateRowFromMeta(row, this.productMeta(row.fitemcode) || payloadMeta);
+                        this.hydrateRowFromMeta(row, this.productMeta(row.fitemcode) || payloadMeta, true);
                         row.fnoacak = this.normalizeNoAcak(row.fnoacak) || this.generateUniqueNoAcak();
                         if (!row.fqty) row.fqty = 1;
                         this.recalc(row);

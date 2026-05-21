@@ -8,6 +8,20 @@ use Illuminate\Support\Facades\Cache;
 
 trait ProductBrowseHelper
 {
+    protected function resolveBrowseProductDefaultUnit(object $product): string
+    {
+        $defaultKey = trim((string) ($product->fsatuandefault ?? ''));
+
+        return match ($defaultKey) {
+            '1' => trim((string) ($product->fsatuankecil ?? '')),
+            '2' => trim((string) ($product->fsatuanbesar ?? '')),
+            '3' => trim((string) ($product->fsatuanbesar2 ?? '')),
+            default => trim((string) ($product->fsatuankecil ?? ''))
+                ?: trim((string) ($product->fsatuanbesar ?? ''))
+                ?: trim((string) ($product->fsatuanbesar2 ?? '')),
+        };
+    }
+
     protected function browseProducts()
     {
         return Cache::store('file')->remember('tr_poh:browse_products', now()->addMinutes(10), function () {
@@ -15,6 +29,7 @@ trait ProductBrowseHelper
                 'fprdid',
                 'fprdcode',
                 'fprdname',
+                'fsatuandefault',
                 'fsatuankecil',
                 'fsatuanbesar',
                 'fsatuanbesar2',
@@ -40,6 +55,7 @@ trait ProductBrowseHelper
                     'id' => $product->fprdid ?? null,
                     'name' => $product->fprdname ?? '',
                     'code' => $product->fprdcode ?? '',
+                    'default_unit' => $this->resolveBrowseProductDefaultUnit($product),
                     'units' => array_values(array_filter([
                         $product->fsatuankecil ?? '',
                         $product->fsatuanbesar ?? '',

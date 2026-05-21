@@ -1034,6 +1034,12 @@
             "{{ $p->fprdcode }}": {
                 id: @json($p->fprdid),
                 name: @json($p->fprdname),
+                default_unit: @json(match ((string) ($p->fsatuandefault ?? '')) {
+                    '1' => trim((string) ($p->fsatuankecil ?? '')),
+                    '2' => trim((string) ($p->fsatuanbesar ?? '')),
+                    '3' => trim((string) ($p->fsatuanbesar2 ?? '')),
+                    default => trim((string) ($p->fsatuankecil ?? '')) ?: trim((string) ($p->fsatuanbesar ?? '')) ?: trim((string) ($p->fsatuanbesar2 ?? '')),
+                }),
                 units: @json(array_values(array_filter([$p->fsatuankecil, $p->fsatuanbesar, $p->fsatuanbesar2]))),
                 stock: @json($p->fminstock ?? 0),
                 unit_ratios: {
@@ -1338,6 +1344,7 @@
                 if (!meta) {
                     return {
                         name: '',
+                        default_unit: '',
                         units: [],
                         stock: 0,
                         unit_ratios: {
@@ -1381,9 +1388,11 @@
                 row.fitemname = meta.name || '';
                 const units = [...new Set((meta.units || []).map(u => (u ?? '').toString().trim()).filter(Boolean))];
                 const currentSatuan = (row.fsatuan || '').trim();
+                const defaultUnit = (meta.default_unit || '').toString().trim();
+                const resolvedDefaultUnit = defaultUnit && units.includes(defaultUnit) ? defaultUnit : (units[0] || '');
                 if (currentSatuan && !units.includes(currentSatuan)) units.unshift(currentSatuan);
                 row.units = units;
-                if (!currentSatuan) row.fsatuan = units[0] || '';
+                if (!currentSatuan) row.fsatuan = resolvedDefaultUnit;
                 if (meta.unit_ratios) row.unit_ratios = meta.unit_ratios;
                 row.fsatuankecil = row.fsatuankecil || meta.fsatuankecil || '';
                 row.fsatuanbesar = row.fsatuanbesar || meta.fsatuanbesar || '';
@@ -1787,7 +1796,7 @@
                         fsatuan: row.fsatuan || ''
                     };
                     row.fitemcode = candidate.fitemcode;
-                    this.hydrateRowFromMeta(row, this.productMeta(row.fitemcode));
+                    this.hydrateRowFromMeta(row, this.productMeta(row.fitemcode), true);
                     candidate.fsatuan = row.fsatuan || '';
                     if (this.isDupeItem(candidate, row.uid)) {
                         this.showDupItemModal = true;
