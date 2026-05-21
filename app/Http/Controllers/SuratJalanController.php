@@ -305,7 +305,7 @@ class SuratJalanController extends Controller
             ->first();
 
         if (! $header) {
-            return response()->json(['message' => 'DATA TIDAK ADA.'], 404);
+            return response()->json(['message' => 'Data tidak ada.'], 404);
         }
 
         $hasBlockedSoReference = DB::table('trstockdt as srj_dt')
@@ -315,7 +315,7 @@ class SuratJalanController extends Controller
             ->exists();
 
         if ($hasBlockedSoReference) {
-            return response()->json(['message' => 'DATA SRJ BELUM BISA DIPAKAI. REFERENSI SALES ORDER MASIH MENUNGGU APPROVAL.'], 403);
+            return response()->json(['message' => 'Data SRJ belum bisa dipakai. Referensi sales order masih menunggu approval.'], 403);
         }
 
         $remainMap = $this->getSrjRemainByStockNo($header->fstockmtno);
@@ -439,7 +439,7 @@ class SuratJalanController extends Controller
             ]);
 
         if (! $hdr) {
-            return redirect()->back()->with('error', 'PO TIDAK ADA.');
+            return redirect()->back()->with('error', 'PO tidak ada.');
         }
 
         DB::table('trstockmt')->where('fstockmtno', $hdr->fstockmtno)->update(['fprint' => 1]);
@@ -932,7 +932,7 @@ class SuratJalanController extends Controller
         } catch (\Throwable $e) {
 
             return back()->withInput()->withErrors([
-                'detail' => 'DATA BELUM BERHASIL DISIMPAN. CEK ISIAN TRANSAKSI.',
+                'detail' => 'Data belum berhasil disimpan. Cek isian transaksi.',
             ]);
         }
 
@@ -940,7 +940,7 @@ class SuratJalanController extends Controller
 
         return redirect()
             ->route('suratjalan.create')
-            ->with('success', "SURAT JALAN {$fstockmtno} BERHASIL DISIMPAN.");
+            ->with('success', "Surat jalan {$fstockmtno} berhasil disimpan.");
     }
 
     public function edit(Request $request, $fstockmtid)
@@ -1618,7 +1618,7 @@ class SuratJalanController extends Controller
             });
         } catch (\Throwable $e) {
             return back()->withInput()->withErrors([
-                'detail' => 'DATA BELUM BERHASIL DIPERBARUI. CEK ISIAN TRANSAKSI.',
+                'detail' => 'Data belum berhasil diperbarui. Cek isian transaksi.',
             ]);
         }
 
@@ -1626,7 +1626,7 @@ class SuratJalanController extends Controller
 
         return redirect()
             ->route('suratjalan.index')
-            ->with('success', "SURAT JALAN {$fstockmtno} BERHASIL DIUPDATE.");
+            ->with('success', "Surat jalan {$fstockmtno} berhasil diupdate.");
     }
 
     public function delete(Request $request, $fstockmtid)
@@ -1794,10 +1794,10 @@ class SuratJalanController extends Controller
 
             $this->syncInvoiceOutFlags($invoiceReferenceDocs);
 
-            return redirect()->route('suratjalan.index')->with('success', 'SURAT JALAN ' . $suratjalan->fstockmtno . ' BERHASIL DIHAPUS.');
+            return redirect()->route('suratjalan.index')->with('success', 'Surat jalan ' . $suratjalan->fstockmtno . ' berhasil dihapus.');
         } catch (\Exception $e) {
             // Jika terjadi kesalahan saat menghapus, kembali ke halaman delete dengan pesan error
-            return redirect()->route('suratjalan.delete', $fstockmtid)->with('error', 'SURAT JALAN BELUM BISA DIHAPUS. COBA LAGI.');
+            return redirect()->route('suratjalan.delete', $fstockmtid)->with('error', 'Surat jalan belum bisa dihapus. Coba lagi.');
         }
     }
 

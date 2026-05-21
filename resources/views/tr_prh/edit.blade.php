@@ -421,7 +421,7 @@
                         <div class="mb-4 flex items-center gap-3 px-4 py-3 rounded-lg bg-amber-50 border border-amber-200">
                             <x-heroicon-o-lock-closed class="w-5 h-5 text-amber-500 flex-shrink-0" />
                             <p class="text-sm text-amber-700">
-                                <strong>MODE HANYA BACA.</strong> PR INI TIDAK BISA DIEDIT KARENA SUDAH MEMILIKI PURCHASE
+                                <strong>Mode hanya baca.</strong> PR ini tidak bisa diedit karena sudah memiliki purchase
                                 Order terkait.
                             </p>
                         </div>
@@ -652,7 +652,7 @@
                             @if ($isUsageLocked)
                                 <button type="button" disabled
                                     class="bg-blue-300 text-white px-8 py-2.5 rounded shadow flex items-center transition cursor-not-allowed opacity-70"
-                                    title="{{ $usageLockMessage ?? 'DATA INI SUDAH DIREFERENSI.' }}">
+                                    title="{{ $usageLockMessage ?? 'Data ini sudah direferensi.' }}">
                                     <x-heroicon-o-lock-closed class="w-5 h-5 mr-2" /> Simpan Perubahan
                                 </button>
                             @else

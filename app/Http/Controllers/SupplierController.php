@@ -52,14 +52,14 @@ class SupplierController extends Controller
                 'fmemo' => '',
             ],
             [
-                'fsuppliercode.unique' => 'KODE SUPPLIER SUDAH ADA.',
-                'fsuppliercode.required' => 'KODE SUPPLIER WAJIB DIISI.',
-                'fsuppliername.required' => 'NAMA SUPPLIER WAJIB DIISI.',
-                'fnpwp.required' => 'NPWP WAJIB DIISI.',
-                'faddress.required' => 'ALAMAT WAJIB DIISI.',
-                'ftelp.required' => 'TELEPON WAJIB DIISI.',
-                'ffax.required' => 'FAX WAJIB DIISI.',
-                'fcurr.required' => 'MATA UANG WAJIB DIISI.',
+                'fsuppliercode.unique' => 'Kode supplier sudah ada.',
+                'fsuppliercode.required' => 'Kode supplier wajib diisi.',
+                'fsuppliername.required' => 'Nama supplier wajib diisi.',
+                'fnpwp.required' => 'Npwp wajib diisi.',
+                'faddress.required' => 'Alamat wajib diisi.',
+                'ftelp.required' => 'Telepon wajib diisi.',
+                'ffax.required' => 'Fax wajib diisi.',
+                'fcurr.required' => 'Mata uang wajib diisi.',
             ]
         );
 
@@ -77,7 +77,7 @@ class SupplierController extends Controller
 
         return redirect()
             ->route('supplier.create')
-            ->with('success', 'SUPPLIER BERHASIL DISIMPAN.');
+            ->with('success', 'Supplier berhasil disimpan.');
     }
 
     public function edit($fsupplierid)
@@ -126,14 +126,14 @@ class SupplierController extends Controller
                 'faddress' => '',
             ],
             [
-                'fsuppliercode.unique' => 'KODE SUPPLIER SUDAH ADA.',
-                'fsuppliercode.required' => 'KODE SUPPLIER WAJIB DIISI.',
-                'fsuppliername.required' => 'NAMA SUPPLIER WAJIB DIISI.',
-                'fnpwp.required' => 'NPWP WAJIB DIISI.',
-                'faddress.required' => 'ALAMAT WAJIB DIISI.',
-                'ftelp.required' => 'TELEPON WAJIB DIISI.',
-                'ffax.required' => 'FAX WAJIB DIISI.',
-                'fcurr.required' => 'MATA UANG WAJIB DIISI.',
+                'fsuppliercode.unique' => 'Kode supplier sudah ada.',
+                'fsuppliercode.required' => 'Kode supplier wajib diisi.',
+                'fsuppliername.required' => 'Nama supplier wajib diisi.',
+                'fnpwp.required' => 'Npwp wajib diisi.',
+                'faddress.required' => 'Alamat wajib diisi.',
+                'ftelp.required' => 'Telepon wajib diisi.',
+                'ffax.required' => 'Fax wajib diisi.',
+                'fcurr.required' => 'Mata uang wajib diisi.',
             ]
         );
 
@@ -152,7 +152,7 @@ class SupplierController extends Controller
 
         return redirect()
             ->route('supplier.index')
-            ->with('success', 'SUPPLIER BERHASIL DIUPDATE.');
+            ->with('success', 'Supplier berhasil diupdate.');
     }
 
     public function delete($fsupplierid)
@@ -189,13 +189,13 @@ class SupplierController extends Controller
 
             return response()->json([
                 'success' => true,
-                'message' => 'SUPPLIER ' . $supplier->fsuppliername . ' BERHASIL DIHAPUS.',
+                'message' => 'Supplier ' . $supplier->fsuppliername . ' berhasil dihapus.',
                 'redirect' => route('supplier.index'),
             ]);
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'SUPPLIER BELUM BISA DIHAPUS. COBA LAGI.',
+                'message' => 'Supplier belum bisa dihapus. Coba lagi.',
             ], 500);
         }
     }
@@ -262,6 +262,6 @@ class SupplierController extends Controller
             return null;
         }
 
-        return 'SUPPLIER ' . strtoupper((string) $supplier->fsuppliercode) . ' TIDAK BISA DIHAPUS. SUDAH DIREFERENSI DI TRANSAKSI.';
+        return 'Supplier ' . strtoupper((string) $supplier->fsuppliercode) . ' tidak bisa dihapus. Sudah direferensi di transaksi.';
     }
 }

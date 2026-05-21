@@ -363,7 +363,7 @@ class AssemblingController extends Controller
             ]);
 
         if (! $hdr) {
-            return redirect()->back()->with('error', 'ASSEMBLING TIDAK ADA.');
+            return redirect()->back()->with('error', 'Assembling tidak ada.');
         }
 
         DB::table('trstockmt')->where('fstockmtno', $hdr->fstockmtno)->update(['fprint' => 1]);
@@ -479,9 +479,9 @@ class AssemblingController extends Controller
             'frate' => ['nullable', 'numeric', 'min:0'],
             'famountpopajak' => ['nullable', 'numeric', 'min:0'],
         ], [
-            'fstockmtdate.required' => 'TANGGAL TRANSAKSI WAJIB DIISI.',
-            'fsupplier.required' => 'SUPPLIER WAJIB DIISI.',
-            'fitemcode.required' => 'MINIMAL 1 ITEM.',
+            'fstockmtdate.required' => 'Tanggal transaksi wajib diisi.',
+            'fsupplier.required' => 'Supplier wajib diisi.',
+            'fitemcode.required' => 'Minimal 1 item.',
             'fsatuan.*.max' => 'SATUAN MAX 5 KARAKTER.',
             'fitemtype.*.in' => 'TIPE ITEM TIDAK VALID.',
         ]);
@@ -612,8 +612,8 @@ class AssemblingController extends Controller
         if (empty($rowsDt)) {
             return back()->withInput()->withErrors([
                 'detail' => $allowNegativeStockQty
-                    ? 'MINIMAL 1 ITEM VALID (KODE, SATUAN, QTY TIDAK BOLEH 0).'
-                    : 'MINIMAL 1 ITEM VALID (KODE, SATUAN, QTY > 0).',
+                    ? 'Minimal 1 item valid (kode, satuan, qty tidak boleh 0).'
+                    : 'Minimal 1 item valid (kode, satuan, qty > 0).',
             ]);
         }
 
@@ -714,7 +714,7 @@ class AssemblingController extends Controller
 
         return redirect()
             ->route('assembling.create')
-            ->with('success', "ASSEMBLING {$fstockmtno} BERHASIL DISIMPAN.");
+            ->with('success', "Assembling {$fstockmtno} berhasil disimpan.");
     }
 
     public function edit($fstockmtid)
@@ -1013,8 +1013,8 @@ class AssemblingController extends Controller
             'fitemtype' => ['nullable', 'array'],
             'fitemtype.*' => ['nullable', 'string', 'in:bahan_baku,barang_jadi'],
         ], [
-            'fstockmtdate.required' => 'TANGGAL TRANSAKSI WAJIB DIISI.',
-            'fitemcode.required' => 'MINIMAL 1 ITEM.',
+            'fstockmtdate.required' => 'Tanggal transaksi wajib diisi.',
+            'fitemcode.required' => 'Minimal 1 item.',
             'fqty.*.min' => 'QTY TIDAK BOLEH 0.',
             'ffrom.max' => 'GUDANG MAX 10 KARAKTER.',
         ]);
@@ -1150,8 +1150,8 @@ class AssemblingController extends Controller
         if (empty($rowsDt)) {
             return back()->withInput()->withErrors([
                 'detail' => $allowNegativeStockQty
-                    ? 'MINIMAL 1 ITEM VALID (KODE, SATUAN, QTY TIDAK BOLEH 0).'
-                    : 'MINIMAL 1 ITEM VALID (KODE, SATUAN, QTY > 0).',
+                    ? 'Minimal 1 item valid (kode, satuan, qty tidak boleh 0).'
+                    : 'Minimal 1 item valid (kode, satuan, qty > 0).',
             ]);
         }
 
@@ -1242,7 +1242,7 @@ class AssemblingController extends Controller
 
         return redirect()
             ->route('assembling.index')
-            ->with('success', "ASSEMBLING {$header->fstockmtno} BERHASIL DIUPDATE.");
+            ->with('success', "Assembling {$header->fstockmtno} berhasil diupdate.");
     }
 
     public function delete($fstockmtid)
@@ -1404,10 +1404,10 @@ class AssemblingController extends Controller
                 $assembling->delete();
             });
 
-            return redirect()->route('assembling.index')->with('success', 'ASSEMBLING '.$assembling->fstockmtno.' BERHASIL DIHAPUS.');
+            return redirect()->route('assembling.index')->with('success', 'Assembling '.$assembling->fstockmtno.' berhasil dihapus.');
         } catch (\Exception $e) {
             // Jika terjadi kesalahan saat menghapus, kembali ke halaman delete dengan pesan error
-            return redirect()->route('assembling.delete', $fstockmtid)->with('error', 'ASSEMBLING BELUM BISA DIHAPUS. COBA LAGI.');
+            return redirect()->route('assembling.delete', $fstockmtid)->with('error', 'Assembling belum bisa dihapus. Coba lagi.');
         }
     }
 

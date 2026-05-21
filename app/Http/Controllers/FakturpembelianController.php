@@ -884,7 +884,7 @@ class FakturpembelianController extends Controller
             ]);
 
         if (! $hdr) {
-            return redirect()->back()->with('error', 'PO TIDAK ADA.');
+            return redirect()->back()->with('error', 'PO tidak ada.');
         }
 
         $dt = PenerimaanPembelianDetail::query()
@@ -1280,7 +1280,7 @@ class FakturpembelianController extends Controller
             });
 
             return redirect()->route('fakturpembelian.create')
-                ->with('success', "FAKTUR PEMBELIAN $fstockmtno BERHASIL DISIMPAN.");
+                ->with('success', "Faktur pembelian $fstockmtno berhasil disimpan.");
         } catch (\Exception $e) {
             Log::error('FakturPembelian@store ERROR: ' . $e->getMessage());
 
@@ -1651,12 +1651,12 @@ class FakturpembelianController extends Controller
                 'frefnoacak.*' => ['nullable', 'regex:/^\d{3}(,\s*\d{3})*$/'],
                 'fprdjadi' => ['required_if:ftypebuy,1'],
             ], [
-                'fstockmtdate.required' => 'TANGGAL TRANSAKSI WAJIB DIISI.',
-                'fsupplier.required' => 'SUPPLIER WAJIB DIISI.',
-                'frefno.required' => 'NO FAKTUR WAJIB DIISI.',
-                'fsatuan.*.max' => 'SATUAN MAX 5 KARAKTER.',
-                'fprdjadi.required_if' => 'ACCOUNT WAJIB DIISI.',
-                'fdiscpersen.*.regex' => 'FORMAT DISKON HARUS ANGKA ATAU 10+2.',
+                'fstockmtdate.required' => 'Tanggal transaksi wajib diisi.',
+                'fsupplier.required' => 'Supplier wajib diisi.',
+                'frefno.required' => 'No. faktur wajib diisi.',
+                'fsatuan.*.max' => 'Satuan maksimal 5 karakter.',
+                'fprdjadi.required_if' => 'Account wajib diisi.',
+                'fdiscpersen.*.regex' => 'Format diskon harus angka atau 10+2.',
             ]);
 
             $this->ensureNoDuplicateDetailCodes($request->input('fitemcode', []));
@@ -1981,7 +1981,7 @@ class FakturpembelianController extends Controller
 
             return redirect()
                 ->route('fakturpembelian.index')
-                ->with('success', "FAKTUR PEMBELIAN {$fstockmtno} BERHASIL DIUPDATE.");
+                ->with('success', "Faktur pembelian {$fstockmtno} berhasil diupdate.");
         } catch (\Exception $e) {
 
             return back()
@@ -2158,10 +2158,10 @@ class FakturpembelianController extends Controller
                 $fakturpembelian->delete();
             });
 
-            return redirect()->route('fakturpembelian.index')->with('success', 'FAKTUR PEMBELIAN ' . $fakturpembelian->fstockmtno . ' BERHASIL DIHAPUS.');
+            return redirect()->route('fakturpembelian.index')->with('success', 'Faktur pembelian ' . $fakturpembelian->fstockmtno . ' berhasil dihapus.');
         } catch (\Exception $e) {
             // Jika terjadi kesalahan saat menghapus, kembali ke halaman delete dengan pesan error
-            return redirect()->route('fakturpembelian.delete', $fstockmtid)->with('error', 'FAKTUR PEMBELIAN BELUM BISA DIHAPUS. COBA LAGI.');
+            return redirect()->route('fakturpembelian.delete', $fstockmtid)->with('error', 'Faktur pembelian belum bisa dihapus. Coba lagi.');
         }
     }
 
@@ -2182,7 +2182,7 @@ class FakturpembelianController extends Controller
             return null;
         }
 
-        return 'FAKTUR PEMBELIAN ' . strtoupper((string) $header->fstockmtno) . ' SUDAH DIPAKAI RETUR PEMBELIAN: ' . strtoupper($usedBy->implode(', ')) . '.';
+        return 'Faktur pembelian ' . (string) $header->fstockmtno . ' sudah dipakai retur pembelian: ' . $usedBy->implode(', ') . '.';
     }
 
     private function normalizeDiscountInput($discInput): string
@@ -2251,7 +2251,7 @@ class FakturpembelianController extends Controller
                 ->first();
 
             if ($existing) {
-                return 'NO. REFERENSI ' . strtoupper((string) $referenceNo) . ' SUDAH ADA DI TRANSAKSI ' . strtoupper(trim((string) ($existing->fstockmtno ?? ''))) . '.';
+                return 'No. referensi ' . strtoupper((string) $referenceNo) . ' sudah ada di transaksi ' . strtoupper(trim((string) ($existing->fstockmtno ?? ''))) . '.';
             }
         }
 

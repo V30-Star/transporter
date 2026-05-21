@@ -1593,7 +1593,7 @@
                     .then(response => response.json())
                     .then(data => {
                         closeDeleteModal();
-                        showToast(data.message || 'DATA BERHASIL DIHAPUS.', true);
+                        showToast(data.message || 'Data berhasil dihapus.', true);
 
                         setTimeout(() => {
                             window.location.href = '{{ route('product.index') }}';
@@ -1603,7 +1603,7 @@
                         btnYa.disabled = false;
                         btnTidak.disabled = false;
                         btnYa.textContent = 'Ya, Hapus';
-                        showToast('TERJADI KESALAHAN SAAT HAPUS DATA.', false);
+                        showToast('Terjadi kesalahan saat hapus data.', false);
                     });
             }
         </script>
@@ -2808,4 +2808,3 @@
         if (e.key === "Escape") closeModal();
     });
 </script>
-

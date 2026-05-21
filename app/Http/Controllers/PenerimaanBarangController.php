@@ -197,7 +197,7 @@ class PenerimaanBarangController extends Controller
         $header = DB::table('tr_poh')->where('fpohid', $id)->first();
 
         if (! $header) {
-            return response()->json(['message' => 'PO TIDAK ADA.'], 404);
+            return response()->json(['message' => 'PO tidak ada.'], 404);
         }
 
         $receiptSub = DB::table('trstockdt')
@@ -723,7 +723,7 @@ class PenerimaanBarangController extends Controller
             ]);
 
         if (! $hdr) {
-            return redirect()->back()->with('error', 'PO TIDAK ADA.');
+            return redirect()->back()->with('error', 'PO tidak ada.');
         }
 
         $dt = PenerimaanPembelianDetail::query()
@@ -1028,7 +1028,7 @@ class PenerimaanBarangController extends Controller
             return back()->withInput()->withErrors(['detail' => 'Gagal simpan: ' . $e->getMessage()]);
         }
 
-        return redirect()->route('penerimaanbarang.create')->with('success', "PENERIMAAN BARANG {$fstockmtno} BERHASIL DISIMPAN.");
+        return redirect()->route('penerimaanbarang.create')->with('success', "Penerimaan barang {$fstockmtno} berhasil disimpan.");
     }
 
     public function edit(Request $request, $fstockmtid)
@@ -1415,7 +1415,7 @@ class PenerimaanBarangController extends Controller
         }
 
         return redirect()->route('penerimaanbarang.index')
-            ->with('success', "PENERIMAAN BARANG {$header->fstockmtno} BERHASIL DIUPDATE.");
+            ->with('success', "Penerimaan barang {$header->fstockmtno} berhasil diupdate.");
     }
 
     public function destroy($fstockmtid)
@@ -1460,10 +1460,10 @@ class PenerimaanBarangController extends Controller
             });
 
             return redirect()->route('penerimaanbarang.index')
-                ->with('success', 'PENERIMAAN BARANG ' . $penerimaanbarang->fstockmtno . ' BERHASIL DIHAPUS.');
+                ->with('success', 'Penerimaan barang ' . $penerimaanbarang->fstockmtno . ' berhasil dihapus.');
         } catch (\Exception $e) {
             return redirect()->route('penerimaanbarang.delete', $fstockmtid)
-                ->with('error', 'PENERIMAAN BARANG BELUM BISA DIHAPUS. COBA LAGI.');
+                ->with('error', 'Penerimaan barang belum bisa dihapus. Coba lagi.');
         }
     }
 

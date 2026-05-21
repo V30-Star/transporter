@@ -75,15 +75,15 @@ class AccountController extends Controller
                 'ftypesubaccount' => 'nullable|in:Sub Account,Customer,Supplier',
             ],
             [
-                'faccount.required' => 'KODE ACCOUNT WAJIB DIISI.',
-                'faccname.required' => 'NAMA ACCOUNT WAJIB DIISI.',
-                'faccount.unique' => 'KODE ACCOUNT SUDAH ADA.',
-                'faccount.max' => 'KODE ACCOUNT MAX 10 KARAKTER.',
-                'faccname.max' => 'NAMA ACCOUNT MAX 50 KARAKTER.',
-                'finitjurnal.max' => 'INISIAL JURNAL MAX 2 KARAKTER.',
-                'finitjurnal.unique' => 'INISIAL JURNAL SUDAH DIPAKAI.',
-                'finitjurnal.required' => 'INISIAL JURNAL WAJIB DIISI.',
-                'faccupline.exists' => 'ACCOUNT HEADER TIDAK VALID.',
+                'faccount.required' => 'Kode account wajib diisi.',
+                'faccname.required' => 'Nama account wajib diisi.',
+                'faccount.unique' => 'Kode account sudah ada.',
+                'faccount.max' => 'Kode account max 10 karakter.',
+                'faccname.max' => 'Nama account max 50 karakter.',
+                'finitjurnal.max' => 'Inisial jurnal max 2 karakter.',
+                'finitjurnal.unique' => 'Inisial jurnal sudah dipakai.',
+                'finitjurnal.required' => 'Inisial jurnal wajib diisi.',
+                'faccupline.exists' => 'Account header tidak valid.',
             ]
         );
 
@@ -112,7 +112,7 @@ class AccountController extends Controller
 
         Account::create($validated);
 
-        return redirect()->route('account.create')->with('success', 'ACCOUNT BERHASIL DISIMPAN.');
+        return redirect()->route('account.create')->with('success', 'Account berhasil disimpan.');
     }
 
     public function view($faccid)
@@ -200,15 +200,15 @@ class AccountController extends Controller
                 ],
             ],
             [
-                'faccount.required' => 'KODE ACCOUNT WAJIB DIISI.',
-                'faccount.unique' => 'KODE ACCOUNT SUDAH ADA.',
-                'faccount.max' => 'KODE ACCOUNT MAX 10 KARAKTER.',
-                'faccname.required' => 'NAMA ACCOUNT WAJIB DIISI.',
-                'faccname.max' => 'NAMA ACCOUNT MAX 50 KARAKTER.',
-                'finitjurnal.required' => 'INISIAL JURNAL WAJIB DIISI.',
-                'finitjurnal.unique' => 'INISIAL JURNAL SUDAH DIPAKAI.',
-                'finitjurnal.max' => 'INISIAL JURNAL MAX 2 KARAKTER.',
-                'faccupline.exists' => 'ACCOUNT HEADER TIDAK VALID.',
+                'faccount.required' => 'Kode account wajib diisi.',
+                'faccount.unique' => 'Kode account sudah ada.',
+                'faccount.max' => 'Kode account max 10 karakter.',
+                'faccname.required' => 'Nama account wajib diisi.',
+                'faccname.max' => 'Nama account max 50 karakter.',
+                'finitjurnal.required' => 'Inisial jurnal wajib diisi.',
+                'finitjurnal.unique' => 'Inisial jurnal sudah dipakai.',
+                'finitjurnal.max' => 'Inisial jurnal max 2 karakter.',
+                'faccupline.exists' => 'Account header tidak valid.',
             ]
         );
 
@@ -240,7 +240,7 @@ class AccountController extends Controller
 
         $account->update($validated);
 
-        return redirect()->route('account.index')->with('success', 'ACCOUNT BERHASIL DIUPDATE.');
+        return redirect()->route('account.index')->with('success', 'Account berhasil diupdate.');
     }
 
     public function delete($faccid)
@@ -265,27 +265,27 @@ class AccountController extends Controller
 
             // Validasi
             if ($account->fend == 0) {
-                return response()->json(['message' => 'ACCOUNT HEADER TIDAK BISA DIHAPUS.'], 422);
+                return response()->json(['message' => 'Account header tidak bisa dihapus.'], 422);
             }
 
             if (Account::where('faccupline', $faccid)->exists()) {
-                return response()->json(['message' => 'ACCOUNT TIDAK BISA DIHAPUS. MASIH ADA SUB ACCOUNT.'], 422);
+                return response()->json(['message' => 'Account tidak bisa dihapus. Masih ada sub account.'], 422);
             }
 
             if (DB::table('jurnaldt')->where('faccount', $account->faccount)->exists()) {
-                return response()->json(['message' => 'ACCOUNT TIDAK BISA DIHAPUS. SUDAH DIREFERENSI DI TRANSAKSI.'], 422);
+                return response()->json(['message' => 'Account tidak bisa dihapus. Sudah direferensi di transaksi.'], 422);
             }
 
             $account->delete();
 
             return response()->json([
                 'success' => true,
-                'message' => 'ACCOUNT '.$account->faccname.' BERHASIL DIHAPUS.',
+                'message' => 'Account '.$account->faccname.' berhasil dihapus.',
             ]);
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'ACCOUNT BELUM BISA DIHAPUS. COBA LAGI.',
+                'message' => 'Account belum bisa dihapus. Coba lagi.',
             ], 500);
         }
     }
@@ -389,6 +389,6 @@ class AccountController extends Controller
             return null;
         }
 
-        return 'ACCOUNT ' . strtoupper((string) $account->faccount) . ' SUDAH DIPAKAI TRANSAKSI.';
+        return 'Account ' . strtoupper((string) $account->faccount) . ' sudah dipakai transaksi.';
     }
 }

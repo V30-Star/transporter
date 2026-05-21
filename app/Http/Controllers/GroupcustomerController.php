@@ -35,9 +35,9 @@ class GroupcustomerController extends Controller
             'fgroupcode' => 'required|string|unique:msgroupcustomer,fgroupcode',
             'fgroupname' => 'required|string',
         ], [
-            'fgroupcode.required' => 'KODE GROUP WAJIB DIISI.',
-            'fgroupname.required' => 'NAMA GROUP WAJIB DIISI.',
-            'fgroupcode.unique' => 'KODE GROUP SUDAH ADA.',
+            'fgroupcode.required' => 'Kode group wajib diisi.',
+            'fgroupname.required' => 'Nama group wajib diisi.',
+            'fgroupcode.unique' => 'Kode group sudah ada.',
         ]);
 
         $validated['fgroupcode'] = strtoupper($validated['fgroupcode']);
@@ -53,7 +53,7 @@ class GroupcustomerController extends Controller
 
         // Mengarahkan kembali dengan pesan sukses
         return redirect()->route('groupcustomer.create')
-            ->with('success', 'GROUP CUSTOMER BERHASIL DISIMPAN.');
+            ->with('success', 'Group customer berhasil disimpan.');
     }
 
     public function edit($fgroupid)
@@ -89,9 +89,9 @@ class GroupcustomerController extends Controller
             'fgroupcode' => "required|string|unique:msgroupcustomer,fgroupcode,{$fgroupid},fgroupid",
             'fgroupname' => 'required|string',
         ], [
-            'fgroupcode.required' => 'KODE GROUP WAJIB DIISI.',
-            'fgroupname.required' => 'NAMA GROUP WAJIB DIISI.',
-            'fgroupcode.unique' => 'KODE GROUP SUDAH ADA.',
+            'fgroupcode.required' => 'Kode group wajib diisi.',
+            'fgroupname.required' => 'Nama group wajib diisi.',
+            'fgroupcode.unique' => 'Kode group sudah ada.',
         ]);
 
         $validated['fgroupcode'] = strtoupper($validated['fgroupcode']);
@@ -107,7 +107,7 @@ class GroupcustomerController extends Controller
 
         // Mengarahkan kembali dengan pesan sukses
         return redirect()->route('groupcustomer.index')
-            ->with('success', 'GROUP CUSTOMER BERHASIL DIUPDATE.');
+            ->with('success', 'Group customer berhasil diupdate.');
     }
 
     public function delete($fgroupid)
@@ -127,7 +127,7 @@ class GroupcustomerController extends Controller
             if (\Illuminate\Support\Facades\DB::table('mscustomer')->where('fgroup', $groupcustomer->fgroupid)->exists()) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'GROUP CUSTOMER TIDAK BISA DIHAPUS. SUDAH DIREFERENSI DI CUSTOMER.',
+                    'message' => 'Group customer tidak bisa dihapus. Sudah direferensi di customer.',
                 ], 422);
             }
 
@@ -135,13 +135,13 @@ class GroupcustomerController extends Controller
 
             return response()->json([
                 'success' => true,
-                'message' => 'GROUP CUSTOMER '.$groupcustomer->fgroupname.' BERHASIL DIHAPUS.',
+                'message' => 'Group customer '.$groupcustomer->fgroupname.' berhasil dihapus.',
                 'redirect' => route('groupcustomer.index'),
             ]);
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'GROUP CUSTOMER BELUM BISA DIHAPUS. COBA LAGI.',
+                'message' => 'Group customer belum bisa dihapus. Coba lagi.',
             ], 500);
         }
     }

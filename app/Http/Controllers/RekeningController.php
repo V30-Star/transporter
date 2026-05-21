@@ -36,8 +36,8 @@ class RekeningController extends Controller
                 'frekeningname' => 'required|string|unique:msrekening,frekeningname',
             ],
             [
-                'frekeningname.required' => 'NAMA REKENING WAJIB DIISI.',
-                'frekeningname.unique' => 'NAMA REKENING SUDAH ADA.',
+                'frekeningname.required' => 'Nama rekening wajib diisi.',
+                'frekeningname.unique' => 'Nama rekening sudah ada.',
             ]
         );
 
@@ -52,7 +52,7 @@ class RekeningController extends Controller
 
         return redirect()
             ->route('rekening.create')
-            ->with('success', 'REKENING BERHASIL DISIMPAN.');
+            ->with('success', 'Rekening berhasil disimpan.');
     }
 
     public function edit($frekeningid)
@@ -87,8 +87,8 @@ class RekeningController extends Controller
                 'frekeningname' => 'required|string|string|unique:msrekening,frekeningname',
             ],
             [
-                'frekeningname.required' => 'NAMA REKENING WAJIB DIISI.',
-                'frekeningname.unique' => 'NAMA REKENING SUDAH ADA.',
+                'frekeningname.required' => 'Nama rekening wajib diisi.',
+                'frekeningname.unique' => 'Nama rekening sudah ada.',
             ]
         );
 
@@ -104,7 +104,7 @@ class RekeningController extends Controller
 
         return redirect()
             ->route('rekening.index')
-            ->with('success', 'REKENING BERHASIL DIUPDATE.');
+            ->with('success', 'Rekening berhasil diupdate.');
     }
 
     public function delete($frekeningid)
@@ -141,13 +141,13 @@ class RekeningController extends Controller
 
             return response()->json([
                 'success' => true,
-                'message' => 'REKENING '.$rekening->frekeningname.' BERHASIL DIHAPUS.',
+                'message' => 'Rekening '.$rekening->frekeningname.' berhasil dihapus.',
                 'redirect' => route('rekening.index'),
             ]);
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'REKENING BELUM BISA DIHAPUS. COBA LAGI.',
+                'message' => 'Rekening belum bisa dihapus. Coba lagi.',
             ], 500);
         }
     }
@@ -163,6 +163,6 @@ class RekeningController extends Controller
             return null;
         }
 
-        return 'REKENING ' . strtoupper((string) $rekening->frekeningname) . ' TIDAK BISA DIHAPUS. SUDAH DIREFERENSI DI TRANSAKSI.';
+        return 'Rekening ' . strtoupper((string) $rekening->frekeningname) . ' tidak bisa dihapus. Sudah direferensi di transaksi.';
     }
 }

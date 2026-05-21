@@ -216,34 +216,34 @@ class CustomerController extends Controller
             'fnpwp' => 'required_without:fnik|nullable|string|prohibits:fnik',
             'fnik' => 'required_without:fnpwp|nullable|string|prohibits:fnpwp',
         ], [
-            'fcustomercode.max' => 'KODE CUSTOMER MAX 10 KARAKTER.',
-            'fcustomername.required' => 'NAMA CUSTOMER WAJIB DIISI.',
-            'fgroup.required' => 'GROUP PRODUK WAJIB DIPILIH.',
-            'fsalesman.required' => 'SALESMAN WAJIB DIPILIH.',
-            'fwilayah.required' => 'WILAYAH WAJIB DIPILIH.',
-            'fjadwaltukarfakturmingguan.required' => 'JADWAL TUKAR FAKTUR WAJIB DIPILIH.',
-            'fjadwaltukarfakturhari.required' => 'HARI TUKAR FAKTUR WAJIB DIPILIH.',
-            'fkodefp.required' => 'KODE FP WAJIB DIISI.',
-            'ftelp.required' => 'TELEPON WAJIB DIISI.',
-            'ffax.required' => 'FAX WAJIB DIISI.',
-            'femail.required' => 'EMAIL WAJIB DIISI.',
-            'ftempo.required' => 'TEMPO WAJIB DIISI.',
-            'fmaxtempo.required' => 'MAX TEMPO WAJIB DIISI.',
-            'flimit.required' => 'LIMIT WAJIB DIISI.',
-            'faddress.required' => 'ALAMAT WAJIB DIISI.',
-            'fkirimaddress1.required' => 'ALAMAT KIRIM 1 WAJIB DIISI.',
-            'fkirimaddress2.required' => 'ALAMAT KIRIM 2 WAJIB DIISI.',
-            'fkirimaddress3.required' => 'ALAMAT KIRIM 3 WAJIB DIISI.',
-            'ftaxaddress.required' => 'ALAMAT PAJAK WAJIB DIISI.',
-            'fhargalevel.required' => 'LEVEL HARGA WAJIB DIPILIH.',
-            'fkontakperson.required' => 'KONTAK PERSON WAJIB DIISI.',
-            'fjabatan.required' => 'JABATAN WAJIB DIISI.',
-            'frekening.required' => 'REKENING WAJIB DIPILIH.',
-            'fcustomercode.unique' => 'KODE CUSTOMER SUDAH ADA.',
-            'fnpwp.required_without' => 'ISI SALAH SATU: NPWP ATAU NIK.',
-            'fnik.required_without' => 'ISI SALAH SATU: NPWP ATAU NIK.',
-            'fnpwp.prohibits' => 'HANYA BOLEH ISI NPWP ATAU NIK.',
-            'fnik.prohibits' => 'HANYA BOLEH ISI NPWP ATAU NIK.',
+            'fcustomercode.max' => 'Kode customer max 10 karakter.',
+            'fcustomername.required' => 'Nama customer wajib diisi.',
+            'fgroup.required' => 'Group produk wajib dipilih.',
+            'fsalesman.required' => 'Salesman wajib dipilih.',
+            'fwilayah.required' => 'Wilayah wajib dipilih.',
+            'fjadwaltukarfakturmingguan.required' => 'Jadwal tukar faktur wajib dipilih.',
+            'fjadwaltukarfakturhari.required' => 'Hari tukar faktur wajib dipilih.',
+            'fkodefp.required' => 'Kode FP wajib diisi.',
+            'ftelp.required' => 'Telepon wajib diisi.',
+            'ffax.required' => 'Fax wajib diisi.',
+            'femail.required' => 'Email wajib diisi.',
+            'ftempo.required' => 'Tempo wajib diisi.',
+            'fmaxtempo.required' => 'Max tempo wajib diisi.',
+            'flimit.required' => 'Limit wajib diisi.',
+            'faddress.required' => 'Alamat wajib diisi.',
+            'fkirimaddress1.required' => 'Alamat kirim 1 wajib diisi.',
+            'fkirimaddress2.required' => 'Alamat kirim 2 wajib diisi.',
+            'fkirimaddress3.required' => 'Alamat kirim 3 wajib diisi.',
+            'ftaxaddress.required' => 'Alamat pajak wajib diisi.',
+            'fhargalevel.required' => 'Level harga wajib dipilih.',
+            'fkontakperson.required' => 'Kontak person wajib diisi.',
+            'fjabatan.required' => 'Jabatan wajib diisi.',
+            'frekening.required' => 'Rekening wajib dipilih.',
+            'fcustomercode.unique' => 'Kode customer sudah ada.',
+            'fnpwp.required_without' => 'Isi salah satu: NPWP atau NIK.',
+            'fnik.required_without' => 'Isi salah satu: NPWP atau NIK.',
+            'fnpwp.prohibits' => 'Hanya boleh isi NPWP atau NIK.',
+            'fnik.prohibits' => 'Hanya boleh isi NPWP atau NIK.',
         ]);
 
         if (empty($request->fcustomercode)) {
@@ -263,7 +263,7 @@ class CustomerController extends Controller
 
         return redirect()
             ->route('customer.create')
-            ->with('success', 'CUSTOMER BERHASIL DISIMPAN.');
+            ->with('success', 'Customer berhasil disimpan.');
     }
 
     // Edit method to return the customer edit form with existing data
@@ -362,33 +362,33 @@ class CustomerController extends Controller
             'fnpwp' => 'required_without:fnik|nullable|string|prohibits:fnik',
             'fnik' => 'required_without:fnpwp|nullable|string|prohibits:fnpwp',
         ], [
-            'fcustomername.required' => 'NAMA CUSTOMER WAJIB DIISI.',
-            'fgroup.required' => 'GROUP PRODUK WAJIB DIPILIH.',
-            'fsalesman.required' => 'SALESMAN WAJIB DIPILIH.',
-            'fwilayah.required' => 'WILAYAH WAJIB DIPILIH.',
-            'fnpwp.required' => 'NPWP WAJIB DIISI.',
-            'fnik.required' => 'NIK WAJIB DIISI.',
-            'fjadwaltukarfakturmingguan.required' => 'JADWAL TUKAR FAKTUR WAJIB DIPILIH.',
-            'fjadwaltukarfakturhari.required' => 'HARI TUKAR FAKTUR WAJIB DIPILIH.',
-            'fkodefp.required' => 'KODE FP WAJIB DIISI.',
-            'ftelp.required' => 'TELEPON WAJIB DIISI.',
-            'ffax.required' => 'FAX WAJIB DIISI.',
-            'femail.required' => 'EMAIL WAJIB DIISI.',
-            'ftempo.required' => 'TEMPO WAJIB DIISI.',
-            'fmaxtempo.required' => 'MAX TEMPO WAJIB DIISI.',
-            'flimit.required' => 'LIMIT WAJIB DIISI.',
-            'faddress.required' => 'ALAMAT WAJIB DIISI.',
-            'fkirimaddress1.required' => 'ALAMAT KIRIM 1 WAJIB DIISI.',
-            'fkirimaddress2.required' => 'ALAMAT KIRIM 2 WAJIB DIISI.',
-            'fkirimaddress3.required' => 'ALAMAT KIRIM 3 WAJIB DIISI.',
-            'ftaxaddress.required' => 'ALAMAT PAJAK WAJIB DIISI.',
-            'fhargalevel.required' => 'LEVEL HARGA WAJIB DIPILIH.',
-            'fkontakperson.required' => 'KONTAK PERSON WAJIB DIISI.',
-            'fjabatan.required' => 'JABATAN WAJIB DIISI.',
-            'frekening.required' => 'REKENING WAJIB DIPILIH.',
-            'fcustomercode.unique' => 'KODE CUSTOMER SUDAH ADA.',
-            'fnpwp.prohibits' => 'HANYA BOLEH ISI NPWP ATAU NIK.',
-            'fnik.prohibits' => 'HANYA BOLEH ISI NPWP ATAU NIK.',
+            'fcustomername.required' => 'Nama customer wajib diisi.',
+            'fgroup.required' => 'Group produk wajib dipilih.',
+            'fsalesman.required' => 'Salesman wajib dipilih.',
+            'fwilayah.required' => 'Wilayah wajib dipilih.',
+            'fnpwp.required' => 'NPWP wajib diisi.',
+            'fnik.required' => 'NIK wajib diisi.',
+            'fjadwaltukarfakturmingguan.required' => 'Jadwal tukar faktur wajib dipilih.',
+            'fjadwaltukarfakturhari.required' => 'Hari tukar faktur wajib dipilih.',
+            'fkodefp.required' => 'Kode FP wajib diisi.',
+            'ftelp.required' => 'Telepon wajib diisi.',
+            'ffax.required' => 'Fax wajib diisi.',
+            'femail.required' => 'Email wajib diisi.',
+            'ftempo.required' => 'Tempo wajib diisi.',
+            'fmaxtempo.required' => 'Max tempo wajib diisi.',
+            'flimit.required' => 'Limit wajib diisi.',
+            'faddress.required' => 'Alamat wajib diisi.',
+            'fkirimaddress1.required' => 'Alamat kirim 1 wajib diisi.',
+            'fkirimaddress2.required' => 'Alamat kirim 2 wajib diisi.',
+            'fkirimaddress3.required' => 'Alamat kirim 3 wajib diisi.',
+            'ftaxaddress.required' => 'Alamat pajak wajib diisi.',
+            'fhargalevel.required' => 'Level harga wajib dipilih.',
+            'fkontakperson.required' => 'Kontak person wajib diisi.',
+            'fjabatan.required' => 'Jabatan wajib diisi.',
+            'frekening.required' => 'Rekening wajib dipilih.',
+            'fcustomercode.unique' => 'Kode customer sudah ada.',
+            'fnpwp.prohibits' => 'Hanya boleh isi NPWP atau NIK.',
+            'fnik.prohibits' => 'Hanya boleh isi NPWP atau NIK.',
         ]);
         $customer = Customer::findOrFail($fcustomerid);
 
@@ -405,7 +405,7 @@ class CustomerController extends Controller
 
         return redirect()
             ->route('customer.index')
-            ->with('success', 'CUSTOMER BERHASIL DIUPDATE.');
+            ->with('success', 'Customer berhasil diupdate.');
     }
 
     public function delete($fcustomerid)
@@ -442,13 +442,13 @@ class CustomerController extends Controller
 
             return response()->json([
                 'success' => true,
-                'message' => 'CUSTOMER '.$customer->fcustomername.' BERHASIL DIHAPUS.',
+                'message' => 'Customer '.$customer->fcustomername.' berhasil dihapus.',
                 'redirect' => route('customer.index'),
             ]);
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'CUSTOMER BELUM BISA DIHAPUS. COBA LAGI.',
+                'message' => 'Customer belum bisa dihapus. Coba lagi.',
             ], 500);
         }
     }
@@ -572,6 +572,6 @@ class CustomerController extends Controller
             return null;
         }
 
-        return 'CUSTOMER ' . strtoupper((string) $customer->fcustomercode) . ' TIDAK BISA DIHAPUS. SUDAH DIREFERENSI DI TRANSAKSI.';
+        return 'Customer ' . strtoupper((string) $customer->fcustomercode) . ' tidak bisa dihapus. Sudah direferensi di transaksi.';
     }
 }

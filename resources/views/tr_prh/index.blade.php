@@ -259,10 +259,10 @@
                                     table.row($(rowToDelete)).remove().draw(false);
                                 }
                                 this.showNotificationMsg('success', result.data.message ||
-                                    'DATA BERHASIL DIHAPUS.');
+                                    'Data berhasil dihapus.');
                             } else {
                                 this.showNotificationMsg('error', result.data.message ||
-                                    'HAPUS DATA GAGAL.');
+                                    'Hapus data gagal.');
                             }
 
                             this.currentRow = null;
@@ -271,7 +271,7 @@
                             console.error('Error:', error);
                             this.showDeleteModal = false;
                             this.isDeleting = false;
-                            this.showNotificationMsg('error', 'TERJADI KESALAHAN. COBA LAGI.');
+                            this.showNotificationMsg('error', 'Terjadi kesalahan. Coba lagi.');
                             this.currentRow = null;
                         });
                 },
@@ -341,7 +341,7 @@
                     return;
                 }
 
-                window.showAppInfoAlert('INFORMATION', message);
+                window.showAppInfoAlert('Information', message);
             };
 
             // --- 1. Definisi columnDefs ---

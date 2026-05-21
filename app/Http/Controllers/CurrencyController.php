@@ -38,11 +38,11 @@ class CurrencyController extends Controller
                 'frate' => 'required|numeric|min:0',
             ],
             [
-                'fcurrcode.required' => 'KODE CURRENCY WAJIB DIISI.',
-                'fcurrcode.unique' => 'KODE CURRENCY SUDAH ADA.',
-                'fcurrname.required' => 'NAMA CURRENCY WAJIB DIISI.',
-                'fcurrname.unique' => 'NAMA CURRENCY SUDAH ADA.',
-                'frate.numeric' => 'RATE HARUS ANGKA.',
+                'fcurrcode.required' => 'Kode currency wajib diisi.',
+                'fcurrcode.unique' => 'Kode currency sudah ada.',
+                'fcurrname.required' => 'Nama currency wajib diisi.',
+                'fcurrname.unique' => 'Nama currency sudah ada.',
+                'frate.numeric' => 'Rate harus angka.',
             ]
         );
 
@@ -55,7 +55,7 @@ class CurrencyController extends Controller
 
         return redirect()
             ->route('currency.index')
-            ->with('success', 'CURRENCY BERHASIL DISIMPAN.');
+            ->with('success', 'Currency berhasil disimpan.');
     }
 
     public function edit($fcurrid)
@@ -92,12 +92,12 @@ class CurrencyController extends Controller
                 'frate' => 'required|numeric|min:0',
             ],
             [
-                'fcurrname.required' => 'NAMA CURRENCY WAJIB DIISI.',
-                'fcurrname.unique' => 'NAMA CURRENCY SUDAH ADA.',
-                'fcurrcode.unique' => 'KODE CURRENCY SUDAH ADA.',
-                'frate.numeric' => 'RATE HARUS ANGKA.',
-                'fcurrcode.required' => 'KODE CURRENCY WAJIB DIISI.',
-                'fcurrcode.max' => 'KODE CURRENCY MAX 10 KARAKTER.',
+                'fcurrname.required' => 'Nama currency wajib diisi.',
+                'fcurrname.unique' => 'Nama currency sudah ada.',
+                'fcurrcode.unique' => 'Kode currency sudah ada.',
+                'frate.numeric' => 'Rate harus angka.',
+                'fcurrcode.required' => 'Kode currency wajib diisi.',
+                'fcurrcode.max' => 'Kode currency max 10 karakter.',
             ]
         );
 
@@ -110,7 +110,7 @@ class CurrencyController extends Controller
 
         return redirect()
             ->route('currency.index')
-            ->with('success', 'CURRENCY BERHASIL DIUPDATE.');
+            ->with('success', 'Currency berhasil diupdate.');
     }
 
     public function delete($fcurrid)
@@ -130,7 +130,7 @@ class CurrencyController extends Controller
             if ($this->hasUsage($currency)) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'CURRENCY TIDAK BISA DIHAPUS. SUDAH DIREFERENSI.',
+                    'message' => 'Currency tidak bisa dihapus. Sudah direferensi.',
                 ], 422);
             }
 
@@ -138,13 +138,13 @@ class CurrencyController extends Controller
 
             return response()->json([
                 'success' => true,
-                'message' => 'CURRENCY '.$currency->fcurrcode.' BERHASIL DIHAPUS.',
+                'message' => 'Currency '.$currency->fcurrcode.' berhasil dihapus.',
                 'redirect' => route('currency.index'),
             ]);
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'CURRENCY BELUM BISA DIHAPUS. COBA LAGI.',
+                'message' => 'Currency belum bisa dihapus. Coba lagi.',
             ], 500);
         }
     }

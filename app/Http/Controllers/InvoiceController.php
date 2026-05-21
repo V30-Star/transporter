@@ -788,7 +788,7 @@ class InvoiceController extends Controller
             ]);
 
         if (! $hdr) {
-            return redirect()->back()->with('error', 'SALES ORDER TIDAK ADA.');
+            return redirect()->back()->with('error', 'Sales order tidak ada.');
         }
 
         DB::table('tranmt')->where('fsono', $hdr->fsono)->update(['fprint' => 1]);
@@ -1144,10 +1144,10 @@ class InvoiceController extends Controller
                 $this->sendApprovalNotification($fsono, $userid);
             }
 
-            return redirect()->route('invoice.index')->with('success', 'FAKTUR PENJUALAN BERHASIL DISIMPAN.');
+            return redirect()->route('invoice.index')->with('success', 'Faktur penjualan berhasil disimpan.');
         } catch (\Exception $e) {
             report($e);
-            return back()->withInput()->with('error', 'FAKTUR PENJUALAN BELUM BISA DISIMPAN. CEK DATA.');
+            return back()->withInput()->with('error', 'Faktur penjualan belum bisa disimpan. Cek data.');
         }
     }
 
@@ -1917,7 +1917,7 @@ class InvoiceController extends Controller
         $header = DB::table('tranmt')->where('ftranmtid', $ftranmtid)->first();
         if (! $header) {
 
-            return abort(404, 'FAKTUR PENJUALAN TIDAK ADA.');
+            return abort(404, 'Faktur penjualan tidak ada.');
         }
         if ($message = $this->getPostedPeriodLockMessage($header->fsodate, 'Faktur ini')) {
             return redirect()->route('invoice.view', $ftranmtid)->with('error', $message);
@@ -2008,7 +2008,7 @@ class InvoiceController extends Controller
 
             if (! $product) {
 
-                return back()->withInput()->with('error', "PRODUK {$code} TIDAK ADA.");
+                return back()->withInput()->with('error', "Produk {$code} tidak ada.");
             }
 
             if ($product->fnonactive == '1') {
@@ -2183,10 +2183,10 @@ class InvoiceController extends Controller
                 $this->sendApprovalNotification($header->fsono, $userid);
             }
 
-            return redirect()->route('invoice.index')->with('success', "FAKTUR PENJUALAN {$header->fsono} BERHASIL DIUPDATE.");
+            return redirect()->route('invoice.index')->with('success', "Faktur penjualan {$header->fsono} berhasil diupdate.");
         } catch (\Exception $e) {
             report($e);
-            return back()->withInput()->with('error', 'FAKTUR PENJUALAN BELUM BISA DIUPDATE. CEK DATA.');
+            return back()->withInput()->with('error', 'Faktur penjualan belum bisa diupdate. Cek data.');
         }
     }
 
@@ -2342,11 +2342,11 @@ class InvoiceController extends Controller
                 $invoice->delete();
             });
 
-            return redirect()->route('invoice.index')->with('success', 'FAKTUR PENJUALAN ' . $invoice->fsono . ' BERHASIL DIHAPUS.');
+            return redirect()->route('invoice.index')->with('success', 'Faktur penjualan ' . $invoice->fsono . ' berhasil dihapus.');
         } catch (\Exception $e) {
             // Jika terjadi kesalahan saat menghapus, kembali ke halaman delete dengan pesan error
             report($e);
-            return redirect()->route('invoice.delete', $ftranmtid)->with('error', 'FAKTUR PENJUALAN BELUM BISA DIHAPUS. COBA LAGI.');
+            return redirect()->route('invoice.delete', $ftranmtid)->with('error', 'Faktur penjualan belum bisa dihapus. Coba lagi.');
         }
     }
 

@@ -44,9 +44,9 @@ class WilayahController extends Controller
             'fwilayahcode' => 'required|string|unique:mswilayah,fwilayahcode',
             'fwilayahname' => 'required|string',
         ], [
-            'fwilayahcode.required' => 'KODE WILAYAH WAJIB DIISI.',
-            'fwilayahname.required' => 'NAMA WILAYAH WAJIB DIISI.',
-            'fwilayahcode.unique' => 'KODE WILAYAH SUDAH ADA.',
+            'fwilayahcode.required' => 'Kode wilayah wajib diisi.',
+            'fwilayahname.required' => 'Nama wilayah wajib diisi.',
+            'fwilayahcode.unique' => 'Kode wilayah sudah ada.',
         ]);
 
         // Add default values for the required fields
@@ -62,7 +62,7 @@ class WilayahController extends Controller
 
         return redirect()
             ->route('wilayah.create')
-            ->with('success', 'WILAYAH BERHASIL DISIMPAN.');
+            ->with('success', 'Wilayah berhasil disimpan.');
     }
 
     public function edit($fwilayahid)
@@ -99,9 +99,9 @@ class WilayahController extends Controller
             'fwilayahcode' => "required|string|unique:mswilayah,fwilayahcode,{$fwilayahid},fwilayahid",
             'fwilayahname' => 'required|string',
         ], [
-            'fwilayahcode.required' => 'KODE WILAYAH WAJIB DIISI.',
-            'fwilayahname.required' => 'NAMA WILAYAH WAJIB DIISI.',
-            'fwilayahcode.unique' => 'KODE WILAYAH SUDAH ADA.',
+            'fwilayahcode.required' => 'Kode wilayah wajib diisi.',
+            'fwilayahname.required' => 'Nama wilayah wajib diisi.',
+            'fwilayahcode.unique' => 'Kode wilayah sudah ada.',
         ]);
 
         // Add default values for the required fields
@@ -120,7 +120,7 @@ class WilayahController extends Controller
 
         return redirect()
             ->route('wilayah.index')
-            ->with('success', 'WILAYAH BERHASIL DIUPDATE.');
+            ->with('success', 'Wilayah berhasil diupdate.');
     }
 
     public function delete($fwilayahid)
@@ -157,13 +157,13 @@ class WilayahController extends Controller
 
             return response()->json([
                 'success' => true,
-                'message' => 'WILAYAH '.$wilayah->fwilayahname.' BERHASIL DIHAPUS.',
+                'message' => 'Wilayah '.$wilayah->fwilayahname.' berhasil dihapus.',
                 'redirect' => route('wilayah.index'),
             ]);
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'WILAYAH BELUM BISA DIHAPUS. COBA LAGI.',
+                'message' => 'Wilayah belum bisa dihapus. Coba lagi.',
             ], 500);
         }
     }
@@ -179,6 +179,6 @@ class WilayahController extends Controller
             return null;
         }
 
-        return 'WILAYAH ' . strtoupper((string) $wilayah->fwilayahcode) . ' TIDAK BISA DIHAPUS. SUDAH DIREFERENSI DI TRANSAKSI.';
+        return 'Wilayah ' . strtoupper((string) $wilayah->fwilayahcode) . ' tidak bisa dihapus. Sudah direferensi di transaksi.';
     }
 }

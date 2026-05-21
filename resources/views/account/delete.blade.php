@@ -128,7 +128,7 @@
                             <li>Account memiliki sub-account yang masih aktif</li>
                         @endif
                         @if($hasJournalTransactions)
-                            <li>ACCOUNT SUDAH DIREFERENSI DI TRANSAKSI JURNAL</li>
+                            <li>Account sudah direferensi di transaksi jurnal</li>
                         @endif
                     </ul>
                 </div>
@@ -242,17 +242,17 @@
                 closeDeleteModal();
                 
                 if (data.success) {
-                    window.notificationApp?.showNotification('success', data.message || 'DATA BERHASIL DIHAPUS.');
+                    window.notificationApp?.showNotification('success', data.message || 'Data berhasil dihapus.');
                     setTimeout(() => {
                         window.location.href = '{{ route('account.index') }}';
                     }, 1000);
                 } else {
-                    window.notificationApp?.showNotification('error', data.message || 'HAPUS DATA GAGAL.');
+                    window.notificationApp?.showNotification('error', data.message || 'Hapus data gagal.');
                 }
             })
             .catch(error => {
                 closeDeleteModal();
-                window.notificationApp?.showNotification('error', 'TERJADI KESALAHAN SAAT HAPUS DATA.');
+                window.notificationApp?.showNotification('error', 'Terjadi kesalahan saat hapus data.');
             });
         }
 
