@@ -311,7 +311,7 @@
                                 @enderror
                             </div>
 
-                            <div class="lg:col-span-4">
+                            <div class="lg:col-span-2">
                                 <label class="block text-sm font-medium mb-1">Tempo</label>
                                 <div class="flex items-center">
                                     {{-- Gunakan trim() untuk membuang spasi di belakang angka --}}
@@ -321,7 +321,7 @@
                                     <span class="ml-2">Hari</span>
                                 </div>
                             </div>
-                            <div class="lg:col-span-4">
+                            <div class="lg:col-span-2">
                                 <label class="block text-sm font-medium mb-1">Reff PO</label>
                                 <input type="text" name="frefpo" disabled
                                     value="{{ old('frefpo', $salesorder->frefpo) }}"
@@ -847,7 +847,7 @@
                                         @enderror
                                     </div>
 
-                                    <div class="lg:col-span-4">
+                                    <div class="lg:col-span-2">
                                         <label class="block text-sm font-medium mb-1">Tempo</label>
                                         <div class="flex items-center">
                                             {{-- Gunakan trim() untuk membuang spasi di belakang angka --}}
@@ -857,7 +857,7 @@
                                             <span class="ml-2">Hari</span>
                                         </div>
                                     </div>
-                                    <div class="lg:col-span-4">
+                                    <div class="lg:col-span-2">
                                         <label class="block text-sm font-medium mb-1">Reff PO</label>
                                         <input type="text" name="frefpo"
                                             value="{{ old('frefpo', $salesorder->frefpo) }}"
@@ -951,7 +951,7 @@
                                                 <label
                                                     class="block text-sm font-bold text-gray-700 mb-2">Keterangan</label>
                                                 <div
-                                                    class="flex-1 border-2 border-gray-200 rounded-xl p-3 bg-white min-h-[150px] focus-within:border-blue-400">
+                                                    class="flex-1 border-2 border-gray-200 rounded-xl p-3 bg-white min-h-[50px] focus-within:border-blue-400">
                                                     <textarea name="fket" class="w-full h-full border-none focus:ring-0 p-0 text-sm resize-none"
                                                         placeholder="Keterangan isi di sini...">{{ old('fket', $salesorder->fket) }}</textarea>
                                                 </div>
