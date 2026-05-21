@@ -197,7 +197,7 @@ class PenerimaanBarangController extends Controller
         $header = DB::table('tr_poh')->where('fpohid', $id)->first();
 
         if (! $header) {
-            return response()->json(['message' => 'PO tidak ditemukan'], 404);
+            return response()->json(['message' => 'PO TIDAK ADA.'], 404);
         }
 
         $receiptSub = DB::table('trstockdt')
@@ -723,7 +723,7 @@ class PenerimaanBarangController extends Controller
             ]);
 
         if (! $hdr) {
-            return redirect()->back()->with('error', 'PO tidak ditemukan.');
+            return redirect()->back()->with('error', 'PO TIDAK ADA.');
         }
 
         $dt = PenerimaanPembelianDetail::query()
@@ -1028,7 +1028,7 @@ class PenerimaanBarangController extends Controller
             return back()->withInput()->withErrors(['detail' => 'Gagal simpan: ' . $e->getMessage()]);
         }
 
-        return redirect()->route('penerimaanbarang.create')->with('success', "Transaksi {$fstockmtno} berhasil disimpan.");
+        return redirect()->route('penerimaanbarang.create')->with('success', "PENERIMAAN BARANG {$fstockmtno} BERHASIL DISIMPAN.");
     }
 
     public function edit(Request $request, $fstockmtid)
@@ -1231,7 +1231,7 @@ class PenerimaanBarangController extends Controller
         }
 
         $fstockmtdate = Carbon::parse($request->fstockmtdate)->startOfDay();
-        $this->ensureCreateDateWithinEditPeriod($fstockmtdate);
+        $this->ensureCreateDateWithinEditPeriod($fstockmtdate, $header->fstockmtdate);
         $fsupplier = trim((string) $request->input('fsupplier'));
         $ffrom = trim((string) $request->input('ffrom'));
         $fket = trim((string) $request->input('fket', ''));
@@ -1415,7 +1415,7 @@ class PenerimaanBarangController extends Controller
         }
 
         return redirect()->route('penerimaanbarang.index')
-            ->with('success', "Transaksi {$header->fstockmtno} berhasil diperbarui.");
+            ->with('success', "PENERIMAAN BARANG {$header->fstockmtno} BERHASIL DIUPDATE.");
     }
 
     public function destroy($fstockmtid)
@@ -1460,10 +1460,10 @@ class PenerimaanBarangController extends Controller
             });
 
             return redirect()->route('penerimaanbarang.index')
-                ->with('success', 'Data Penerimaan Barang ' . $penerimaanbarang->fstockmtno . ' berhasil dihapus.');
+                ->with('success', 'PENERIMAAN BARANG ' . $penerimaanbarang->fstockmtno . ' BERHASIL DIHAPUS.');
         } catch (\Exception $e) {
             return redirect()->route('penerimaanbarang.delete', $fstockmtid)
-                ->with('error', 'Gagal menghapus data: ' . $e->getMessage());
+                ->with('error', 'PENERIMAAN BARANG BELUM BISA DIHAPUS. COBA LAGI.');
         }
     }
 
@@ -1557,6 +1557,6 @@ class PenerimaanBarangController extends Controller
             return null;
         }
 
-        return "Information\nPenerimaan ini tidak dapat di-Edit/Delete.\nMasih ada Refrensi di Transaksi:\n" . $usedBy->implode(', ');
+        return "Information\nPenerimaan ini tidak dapat di-Edit/Delete.\nMasih ada Referensi di Transaksi:\n" . $usedBy->implode(', ');
     }
 }

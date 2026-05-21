@@ -637,6 +637,14 @@
                                 </td>
                             </tr>
 
+                            <tr class="bg-gray-50">
+                                <td class="px-3 py-2 font-semibold">BolehGantiTanggal</td>
+                                <td class="text-center" colspan="4">
+                                    <input type="checkbox" name="permission[]" value="BolehGantiTanggal"
+                                        {{ in_array('BolehGantiTanggal', $selectedPermissions) ? 'checked' : '' }}>
+                                </td>
+                            </tr>
+
                             <tr>
                                 <td class="px-3 py-2 font-semibold">Boleh Approve SO</td>
                                 <td class="text-center" colspan="4">
@@ -735,7 +743,7 @@
                     cb.checked = selected.has(cb.value);
                 });
             } catch (e) {
-                alert(e.message || 'Could not copy permissions.');
+                window.showAppErrorAlert('TERJADI KESALAHAN', e.message || 'GAGAL COPY PERMISSIONS.');
             }
         }
     </script>

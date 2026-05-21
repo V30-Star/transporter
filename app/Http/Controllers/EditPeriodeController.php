@@ -35,6 +35,6 @@ class EditPeriodeController extends Controller
 
         return redirect()
             ->route('editperiode.edit')
-            ->with('success', 'Periode edit berhasil diperbarui.');
+            ->with('success', 'PERIODE EDIT BERHASIL DIUPDATE.');
     }
 }

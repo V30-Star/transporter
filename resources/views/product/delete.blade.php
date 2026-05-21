@@ -176,7 +176,7 @@
                         <h4 class="text-sm font-semibold text-red-700">Produk Tidak Dapat Dihapus</h4>
                         <ul class="mt-2 text-sm text-red-600 list-disc list-inside space-y-1">
                             @foreach ($usedByLabels as $usedBy)
-                                <li>Produk sudah digunakan di {{ $usedBy }}</li>
+                                <li>PRODUK SUDAH DIREFERENSI DI {{ strtoupper($usedBy) }}</li>
                             @endforeach
                         </ul>
                     </div>
@@ -341,7 +341,7 @@
                         if (notifApp && notifApp._x_dataStack) {
                             const dataComponent = notifApp._x_dataStack[0];
                             if (dataComponent && typeof dataComponent.show === 'function') {
-                                dataComponent.show('success', data.message || 'Data berhasil dihapus');
+                                dataComponent.show('success', data.message || 'DATA BERHASIL DIHAPUS.');
                             }
                         }
 
@@ -355,7 +355,7 @@
                         if (notifApp && notifApp._x_dataStack) {
                             const dataComponent = notifApp._x_dataStack[0];
                             if (dataComponent && typeof dataComponent.show === 'function') {
-                                dataComponent.show('error', 'Terjadi kesalahan saat menghapus data');
+                                dataComponent.show('error', 'TERJADI KESALAHAN SAAT HAPUS DATA.');
                             }
                         }
                     });

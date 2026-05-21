@@ -161,7 +161,7 @@ class PenerimaanKasController extends Controller
 
         return redirect()
             ->route('penerimaankas.create')
-            ->with('success', 'Data Penerimaan Kas ' . $header->fkasmtno . ' berhasil disimpan.');
+            ->with('success', 'PENERIMAAN KAS ' . $header->fkasmtno . ' BERHASIL DISIMPAN.');
     }
 
     public function view($fkasmtno)
@@ -215,7 +215,7 @@ class PenerimaanKasController extends Controller
             return redirect()->route('penerimaankas.view', $header->fkasmtno)->with('error', $message);
         }
         $payload = $this->validatePayload($request, $header);
-        $this->ensureCreateDateWithinEditPeriod($payload['fkasmtdate']);
+        $this->ensureCreateDateWithinEditPeriod($payload['fkasmtdate'], $header->fkasmtdate);
 
         DB::transaction(function () use ($payload, $header) {
             $now = now();
@@ -281,7 +281,7 @@ class PenerimaanKasController extends Controller
 
         return redirect()
             ->route('penerimaankas.edit', ['fkasmtno' => $header->fkasmtno])
-            ->with('success', 'Data Penerimaan Kas ' . $header->fkasmtno . ' berhasil diperbarui.');
+            ->with('success', 'PENERIMAAN KAS ' . $header->fkasmtno . ' BERHASIL DIUPDATE.');
     }
 
     public function destroy($fkasmtno)
@@ -301,12 +301,12 @@ class PenerimaanKasController extends Controller
         if (! request()->expectsJson()) {
             return redirect()
                 ->route('penerimaankas.index')
-                ->with('success', 'Data Penerimaan Kas ' . $deletedNo . ' berhasil dihapus.');
+                ->with('success', 'PENERIMAAN KAS ' . $deletedNo . ' BERHASIL DIHAPUS.');
         }
 
         return response()->json([
             'success' => true,
-            'message' => 'Data Penerimaan Kas ' . $deletedNo . ' berhasil dihapus.',
+            'message' => 'PENERIMAAN KAS ' . $deletedNo . ' BERHASIL DIHAPUS.',
         ]);
     }
 
@@ -322,7 +322,7 @@ class PenerimaanKasController extends Controller
             ]);
 
         if (! $header) {
-            return redirect()->back()->with('error', 'Data Penerimaan Kas tidak ditemukan.');
+            return redirect()->back()->with('error', 'PENERIMAAN KAS TIDAK ADA.');
         }
 
         $details = DB::table('trkasdt as dt')

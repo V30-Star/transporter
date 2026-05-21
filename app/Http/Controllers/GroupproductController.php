@@ -62,7 +62,7 @@ class GroupproductController extends Controller
 
         return redirect()
             ->route('groupproduct.create')
-            ->with('success', 'Groupproduct berhasil ditambahkan.');
+            ->with('success', 'GROUP PRODUCT BERHASIL DISIMPAN.');
     }
 
     public function edit($fgroupid)
@@ -104,7 +104,7 @@ class GroupproductController extends Controller
 
         return redirect()
             ->route('groupproduct.index')
-            ->with('success', 'Groupproduct berhasil di-update.');
+            ->with('success', 'GROUP PRODUCT BERHASIL DIUPDATE.');
     }
 
     public function delete($fgroupid)
@@ -124,7 +124,7 @@ class GroupproductController extends Controller
             if (\Illuminate\Support\Facades\DB::table('msprd')->where('fgroupcode', $groupproduct->fgroupcode)->exists()) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'GROUP PRODUCT SUDAH DIPAKAI DATA PRODUCT.',
+                    'message' => 'GROUP PRODUCT TIDAK BISA DIHAPUS. SUDAH DIREFERENSI DI PRODUK.',
                 ], 422);
             }
 
@@ -132,13 +132,13 @@ class GroupproductController extends Controller
 
             return response()->json([
                 'success' => true,
-                'message' => 'Data groupproduct '.$groupproduct->fgroupname.' berhasil dihapus.',
+                'message' => 'GROUP PRODUCT '.$groupproduct->fgroupname.' BERHASIL DIHAPUS.',
                 'redirect' => route('groupproduct.index'),
             ]);
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'Data belum berhasil dihapus. Silakan coba lagi.',
+                'message' => 'GROUP PRODUCT BELUM BISA DIHAPUS. COBA LAGI.',
             ], 500);
         }
     }

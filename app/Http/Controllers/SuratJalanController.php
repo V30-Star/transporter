@@ -305,7 +305,7 @@ class SuratJalanController extends Controller
             ->first();
 
         if (! $header) {
-            return response()->json(['message' => 'Data tidak ditemukan'], 404);
+            return response()->json(['message' => 'DATA TIDAK ADA.'], 404);
         }
 
         $hasBlockedSoReference = DB::table('trstockdt as srj_dt')
@@ -439,7 +439,7 @@ class SuratJalanController extends Controller
             ]);
 
         if (! $hdr) {
-            return redirect()->back()->with('error', 'PO tidak ditemukan.');
+            return redirect()->back()->with('error', 'PO TIDAK ADA.');
         }
 
         DB::table('trstockmt')->where('fstockmtno', $hdr->fstockmtno)->update(['fprint' => 1]);
@@ -940,7 +940,7 @@ class SuratJalanController extends Controller
 
         return redirect()
             ->route('suratjalan.create')
-            ->with('success', "Transaksi {$fstockmtno} tersimpan.");
+            ->with('success', "SURAT JALAN {$fstockmtno} BERHASIL DISIMPAN.");
     }
 
     public function edit(Request $request, $fstockmtid)
@@ -1264,7 +1264,7 @@ class SuratJalanController extends Controller
 
         $fstockmtno = $header->fstockmtno;
         $fstockmtdate = Carbon::parse($request->fstockmtdate)->startOfDay();
-        $this->ensureCreateDateWithinEditPeriod($fstockmtdate);
+        $this->ensureCreateDateWithinEditPeriod($fstockmtdate, $header->fstockmtdate);
         $fsupplier = trim((string) $request->input('fsupplier'));
         $ffrom = trim((string) $request->input('ffrom'));
         $fket = trim((string) $request->input('fket', ''));
@@ -1626,7 +1626,7 @@ class SuratJalanController extends Controller
 
         return redirect()
             ->route('suratjalan.index')
-            ->with('success', "Transaksi {$fstockmtno} berhasil diperbarui.");
+            ->with('success', "SURAT JALAN {$fstockmtno} BERHASIL DIUPDATE.");
     }
 
     public function delete(Request $request, $fstockmtid)
@@ -1794,10 +1794,10 @@ class SuratJalanController extends Controller
 
             $this->syncInvoiceOutFlags($invoiceReferenceDocs);
 
-            return redirect()->route('suratjalan.index')->with('success', 'Data Surat Jalan ' . $suratjalan->fstockmtno . ' berhasil dihapus.');
+            return redirect()->route('suratjalan.index')->with('success', 'SURAT JALAN ' . $suratjalan->fstockmtno . ' BERHASIL DIHAPUS.');
         } catch (\Exception $e) {
             // Jika terjadi kesalahan saat menghapus, kembali ke halaman delete dengan pesan error
-            return redirect()->route('suratjalan.delete', $fstockmtid)->with('error', 'DATA BELUM BERHASIL DIHAPUS. COBA LAGI.');
+            return redirect()->route('suratjalan.delete', $fstockmtid)->with('error', 'SURAT JALAN BELUM BISA DIHAPUS. COBA LAGI.');
         }
     }
 

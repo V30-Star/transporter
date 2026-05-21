@@ -87,7 +87,7 @@
                 <div>
                     <h4 class="text-sm font-semibold text-red-700">Gudang Tidak Dapat Dihapus</h4>
                     <ul class="mt-2 text-sm text-red-600 list-disc list-inside space-y-1">
-                        <li>Gudang sudah digunakan dalam Transaksi Stok</li>
+                        <li>GUDANG SUDAH DIREFERENSI DI TRANSAKSI STOK</li>
                     </ul>
                 </div>
             </div>
@@ -219,7 +219,7 @@
                 if (notifApp && notifApp._x_dataStack) {
                     const dataComponent = notifApp._x_dataStack[0];
                     if (dataComponent && typeof dataComponent.show === 'function') {
-                        dataComponent.show(data.success ? 'success' : 'error', data.message || (data.success ? 'Data berhasil dihapus' : 'Gagal menghapus data'));
+                        dataComponent.show(data.success ? 'success' : 'error', data.message || (data.success ? 'DATA BERHASIL DIHAPUS.' : 'HAPUS DATA GAGAL.'));
                     }
                 }
                 
@@ -235,7 +235,7 @@
                 if (notifApp && notifApp._x_dataStack) {
                     const dataComponent = notifApp._x_dataStack[0];
                     if (dataComponent && typeof dataComponent.show === 'function') {
-                        dataComponent.show('error', 'Terjadi kesalahan saat menghapus data');
+                        dataComponent.show('error', 'TERJADI KESALAHAN SAAT HAPUS DATA.');
                     }
                 }
             });

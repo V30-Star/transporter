@@ -68,33 +68,6 @@
             -moz-appearance: textfield;
         }
     </style>
-    @if ($errors->any())
-        <div class="alert alert-danger alert-dismissible fade show border-0 shadow p-0 overflow-hidden" role="alert">
-            {{-- Header Strip --}}
-            <div class="d-flex align-items-center px-4 py-3" style="background-color: #c0392b;">
-                <i class="bi bi-exclamation-triangle-fill text-white me-2 fs-5"></i>
-                <strong class="text-white fs-6">Gagal Menyimpan Data!</strong>
-                <button type="button" class="btn-close btn-close-white ms-auto" data-bs-dismiss="alert"
-                    aria-label="Close"></button>
-            </div>
-
-            {{-- Body --}}
-            <div class="px-4 py-3" style="background-color: #fdeded; border-left: 5px solid #c0392b;">
-                <p class="mb-2 text-danger fw-semibold">
-                    <i class="bi bi-info-circle me-1"></i>
-                    Periksa kembali data berikut sebelum menyimpan:
-                </p>
-                <ul class="mb-0 ps-3">
-                    @foreach ($errors->all() as $error)
-                        <li class="text-danger mb-1">
-                            <i class="bi bi-dot fs-5 align-middle"></i>
-                            {{ $error }}
-                        </li>
-                    @endforeach
-                </ul>
-            </div>
-        </div>
-    @endif
     @php
         $oldItemCodes = old('fitemcode', []);
         $oldItemNames = old('fitemname', []);
@@ -139,22 +112,6 @@
         <form action="{{ route('tr_poh.store') }}" method="POST" class="mt-6" data-form-draft="true"
             data-draft-key="tr_poh:create" x-data="mainForm()" x-init="init()" @submit.prevent="submitForm($el)">
             @csrf
-
-            @if ($errors->any())
-                <div class="mb-4 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800" role="alert">
-                    <p class="font-semibold mb-1">Tidak dapat menyimpan</p>
-                    <ul class="list-disc list-inside space-y-0.5">
-                        @foreach ($errors->all() as $err)
-                            <li>{{ $err }}</li>
-                        @endforeach
-                    </ul>
-                </div>
-            @endif
-            @if (session('error'))
-                <div class="mb-4 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800" role="alert">
-                    {{ session('error') }}
-                </div>
-            @endif
 
             {{-- HEADER FORM --}}
             <div class="grid grid-cols-1 lg:grid-cols-12 gap-4">

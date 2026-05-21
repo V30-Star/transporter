@@ -62,7 +62,7 @@ class WilayahController extends Controller
 
         return redirect()
             ->route('wilayah.create')
-            ->with('success', 'Wilayah berhasil ditambahkan.');
+            ->with('success', 'WILAYAH BERHASIL DISIMPAN.');
     }
 
     public function edit($fwilayahid)
@@ -120,7 +120,7 @@ class WilayahController extends Controller
 
         return redirect()
             ->route('wilayah.index')
-            ->with('success', 'Wilayah berhasil di-update.');
+            ->with('success', 'WILAYAH BERHASIL DIUPDATE.');
     }
 
     public function delete($fwilayahid)
@@ -157,13 +157,13 @@ class WilayahController extends Controller
 
             return response()->json([
                 'success' => true,
-                'message' => 'Data wilayah '.$wilayah->fwilayahname.' berhasil dihapus.',
+                'message' => 'WILAYAH '.$wilayah->fwilayahname.' BERHASIL DIHAPUS.',
                 'redirect' => route('wilayah.index'),
             ]);
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'Data belum berhasil dihapus. Silakan coba lagi.',
+                'message' => 'WILAYAH BELUM BISA DIHAPUS. COBA LAGI.',
             ], 500);
         }
     }
@@ -179,6 +179,6 @@ class WilayahController extends Controller
             return null;
         }
 
-        return 'WILAYAH ' . strtoupper((string) $wilayah->fwilayahcode) . ' SUDAH DIPAKAI TRANSAKSI.';
+        return 'WILAYAH ' . strtoupper((string) $wilayah->fwilayahcode) . ' TIDAK BISA DIHAPUS. SUDAH DIREFERENSI DI TRANSAKSI.';
     }
 }

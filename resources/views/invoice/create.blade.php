@@ -1264,10 +1264,9 @@
             if (!response.ok) {
                 const message = payload?.message || Object.values(payload?.errors || {}).flat().join('\n') ||
                     @json('Gagal cek limit customer.');
-                await Swal.fire({
-                    icon: 'error',
-                    title: @json('Cek Customer Gagal'),
-                    html: `<div class="text-left whitespace-pre-line">${message}</div>`
+                await window.showAppErrorAlert(@json('Cek Customer Gagal'), message, {
+                    html: `<div class="text-left whitespace-pre-line">${message}</div>`,
+                    text: undefined
                 });
                 return false;
             }
@@ -1302,9 +1301,7 @@
                 }
 
                 if (!canApprove) {
-                    await Swal.fire({
-                        icon: 'error',
-                        title: @json('Persetujuan Kredit Ditolak'),
+                    await window.showAppErrorAlert(@json('Persetujuan Kredit Ditolak'), '', {
                         html: `
                             <div class="text-left text-sm">
                                 <div class="font-medium mb-2">Persetujuan diperlukan:</div>
@@ -1314,7 +1311,8 @@
                                 </ul>
                                 <div class="mt-3">User login ini tidak punya wewenang menyetujui.</div>
                             </div>
-                        `
+                        `,
+                        text: undefined
                     });
                     return false;
                 }
@@ -1350,9 +1348,7 @@
                 }
 
                 if (!canApprove) {
-                    await Swal.fire({
-                        icon: 'error',
-                        title: @json('Persetujuan Kredit Ditolak'),
+                    await window.showAppErrorAlert(@json('Persetujuan Kredit Ditolak'), '', {
                         html: `
                             <div class="text-left text-sm">
                                 <div class="font-medium mb-2">Persetujuan diperlukan:</div>
@@ -1361,7 +1357,8 @@
                                 </ul>
                                 <div class="mt-3">User login ini tidak punya wewenang menyetujui.</div>
                             </div>
-                        `
+                        `,
+                        text: undefined
                     });
                     return false;
                 }
@@ -1372,11 +1369,14 @@
 
             return true;
         } catch (error) {
-            await Swal.fire({
-                icon: 'error',
-                title: @json('Pemeriksaan Persetujuan Gagal'),
-                html: `<div class="text-left whitespace-pre-line">@json("Gagal memeriksa persetujuan customer.\nSilakan coba lagi.")</div>`
-            });
+            await window.showAppErrorAlert(
+                @json('Pemeriksaan Persetujuan Gagal'),
+                @json("Gagal memeriksa persetujuan customer.\nSilakan coba lagi."),
+                {
+                    html: `<div class="text-left whitespace-pre-line">@json("Gagal memeriksa persetujuan customer.\nSilakan coba lagi.")</div>`,
+                    text: undefined
+                }
+            );
             return false;
         }
     };
@@ -2101,28 +2101,6 @@
 </script>
 <script>
     document.addEventListener('DOMContentLoaded', function() {
-        // Cek jika ada flash message "error" dari controller
-        @if (session('error'))
-            Swal.fire({
-                icon: 'error',
-                title: @json('Penyimpanan Batal'),
-                html: `<div class="text-left whitespace-pre-line">{{ session('error') }}</div>`,
-                confirmButtonColor: '#ef4444', // Warna merah tailwind
-                confirmButtonText: @json('OK'),
-                allowOutsideClick: false
-            });
-        @endif
-
-        // Cek jika ada flash message "success"
-        @if (session('success'))
-            Swal.fire({
-                icon: 'success',
-                title: @json('Berhasil'),
-                text: "{{ session('success') }}",
-                timer: 2000,
-                showConfirmButton: false
-            });
-        @endif
     });
 </script>
 <script>
@@ -2271,7 +2249,7 @@
                     this.closeModal();
                 } catch (e) {
                     console.error(e);
-                    alert(@json('Gagal mengambil detail PR.'));
+                    window.showAppErrorAlert('TERJADI KESALAHAN', @json('GAGAL MENGAMBIL DETAIL PR.'));
                 }
             },
         };

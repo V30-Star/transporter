@@ -398,7 +398,7 @@ class Tr_prhController extends Controller
         });
 
         return redirect()->route('tr_prh.create')
-            ->with('success', 'Permintaan pembelian berhasil ditambahkan.');
+            ->with('success', 'PERMINTAAN PEMBELIAN BERHASIL DISIMPAN.');
     }
 
     public function view(Request $request, $fprhid)
@@ -484,7 +484,7 @@ class Tr_prhController extends Controller
 
         if ($isCloseOnly) {
             if (! $canCloseReferencedPr) {
-                return back()->withInput()->with('error', 'Status close PR hanya bisa diubah jika PR memiliki referensi PO dan fprdin = 0.');
+                return back()->withInput()->with('error', 'STATUS CLOSE PR TIDAK BISA DIUPDATE. PR HARUS SUDAH DIREFERENSI PO DAN FPRDIN = 0.');
             }
 
             Tr_prh::where('fprhid', $header->fprhid)->update([
@@ -495,7 +495,7 @@ class Tr_prhController extends Controller
 
             return redirect()
                 ->route('tr_prh.index')
-                ->with('success', "Status close PR {$header->fprno} berhasil diperbarui.");
+                ->with('success', "STATUS CLOSE PR {$header->fprno} BERHASIL DIUPDATE.");
         }
 
         $this->validateUpdateRequest($request);
@@ -504,7 +504,7 @@ class Tr_prhController extends Controller
         $fprdate = $request->filled('fprdate')
             ? \Carbon\Carbon::parse($request->fprdate)->startOfDay()
             : $header->fprdate;
-        $this->ensureCreateDateWithinEditPeriod($fprdate);
+        $this->ensureCreateDateWithinEditPeriod($fprdate, $header->fprdate);
 
         $fneeddate = $request->filled('fneeddate')
             ? \Carbon\Carbon::parse($request->fneeddate)->startOfDay()
@@ -656,7 +656,7 @@ class Tr_prhController extends Controller
 
         return redirect()
             ->route('tr_prh.index')
-            ->with('success', 'Permintaan pembelian berhasil diperbarui.');
+            ->with('success', 'PERMINTAAN PEMBELIAN BERHASIL DIUPDATE.');
     }
 
     public function delete(Request $request, $fprhid)
@@ -713,9 +713,9 @@ class Tr_prhController extends Controller
                 $tr_prh->delete();
             });
 
-            return redirect()->route('tr_prh.index')->with('success', 'Data Permintaan Pembelian '.$tr_prh->fprno.' berhasil dihapus.');
+            return redirect()->route('tr_prh.index')->with('success', 'PERMINTAAN PEMBELIAN '.$tr_prh->fprno.' BERHASIL DIHAPUS.');
         } catch (\Exception $e) {
-            return redirect()->route('tr_prh.delete', $fprhid)->with('error', 'Gakey: gal menghapus data: '.$e->getMessage());
+            return redirect()->route('tr_prh.delete', $fprhid)->with('error', 'PERMINTAAN PEMBELIAN BELUM BISA DIHAPUS. COBA LAGI.');
         }
     }
 
@@ -733,7 +733,7 @@ class Tr_prhController extends Controller
             return null;
         }
 
-        return "Information\nPermintaan ini tidak dapat di-Edit/Delete.\nMasih ada Refrensi di Transaksi:\n" . $usedBy->implode(', ');
+        return "Information\nPermintaan ini tidak dapat di-Edit/Delete.\nMasih ada Referensi di Transaksi:\n" . $usedBy->implode(', ');
     }
 
     private function validateStoreRequest(Request $request): void

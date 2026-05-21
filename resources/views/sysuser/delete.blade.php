@@ -77,7 +77,7 @@
                     <h4 class="text-sm font-semibold text-red-700">User Tidak Dapat Dihapus</h4>
                     <ul class="mt-2 text-sm text-red-600 list-disc list-inside space-y-1">
                         @foreach($relatedMessages as $msg)
-                            <li>User sudah digunakan dalam {{ $msg }}</li>
+                            <li>USER SUDAH DIREFERENSI DI {{ strtoupper($msg) }}</li>
                         @endforeach
                     </ul>
                 </div>
@@ -210,7 +210,7 @@
                 if (notifApp && notifApp._x_dataStack) {
                     const dataComponent = notifApp._x_dataStack[0];
                     if (dataComponent && typeof dataComponent.show === 'function') {
-                        dataComponent.show(data.success ? 'success' : 'error', data.message || (data.success ? 'Data berhasil dihapus' : 'Gagal menghapus data'));
+                        dataComponent.show(data.success ? 'success' : 'error', data.message || (data.success ? 'DATA BERHASIL DIHAPUS.' : 'HAPUS DATA GAGAL.'));
                     }
                 }
                 
@@ -226,7 +226,7 @@
                 if (notifApp && notifApp._x_dataStack) {
                     const dataComponent = notifApp._x_dataStack[0];
                     if (dataComponent && typeof dataComponent.show === 'function') {
-                        dataComponent.show('error', 'Terjadi kesalahan saat menghapus data');
+                        dataComponent.show('error', 'TERJADI KESALAHAN SAAT HAPUS DATA.');
                     }
                 }
             });

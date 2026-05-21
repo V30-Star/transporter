@@ -781,12 +781,16 @@
             })
             .then(async (response) => {
                 const data = await response.json();
-                if (!response.ok) throw new Error(data.message || 'Gagal menghapus foto');
-                alert(data.message || 'Foto berhasil dihapus');
+                if (!response.ok) throw new Error(data.message || 'FOTO BELUM BISA DIHAPUS.');
+                if (typeof window.showAppSuccessToast === 'function') {
+                    window.showAppSuccessToast(data.message || 'FOTO BERHASIL DIHAPUS');
+                }
                 window.location.reload();
             })
             .catch((error) => {
-                alert(error.message || 'Terjadi kesalahan saat menghapus foto');
+                if (typeof window.showAppErrorAlert === 'function') {
+                    window.showAppErrorAlert('TERJADI KESALAHAN', error.message || 'FOTO BELUM BISA DIHAPUS.');
+                }
             });
     }
 </script>

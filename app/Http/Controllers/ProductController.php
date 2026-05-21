@@ -431,11 +431,11 @@ class ProductController extends Controller
 
             return redirect()
                 ->route('product.create')
-                ->with('success', 'Product berhasil ditambahkan.');
+                ->with('success', 'PRODUK BERHASIL DISIMPAN.');
         } catch (\Illuminate\Validation\ValidationException $v) {
             throw $v;
         } catch (\Exception $e) {
-            return redirect()->back()->with('error', 'Data produk belum berhasil disimpan. Silakan cek kembali isian Anda.');
+            return redirect()->back()->with('error', 'PRODUK BELUM BISA DISIMPAN. CEK DATA.');
         }
     }
 
@@ -665,7 +665,7 @@ class ProductController extends Controller
                         $validated[$imageField] = $fileId;
                     }
                 } catch (\Exception $e) {
-                    return redirect()->back()->with('error', 'Data produk belum berhasil diperbarui. Silakan cek kembali isian Anda.');
+                    return redirect()->back()->with('error', 'PRODUK BELUM BISA DIUPDATE. CEK DATA.');
                 }
             }
         }
@@ -679,13 +679,13 @@ class ProductController extends Controller
 
         return redirect()
             ->route('product.index')
-            ->with('success', 'Product berhasil di-update.');
+            ->with('success', 'PRODUK BERHASIL DIUPDATE.');
         } catch (ValidationException $e) {
             return redirect()
                 ->route('product.edit', $product->fprdid)
                 ->withErrors($e->errors())
                 ->withInput()
-                ->with('error', 'Data produk belum berhasil diperbarui. Silakan cek kembali isian Anda.');
+                ->with('error', 'PRODUK BELUM BISA DIUPDATE. CEK DATA.');
         }
     }
 
@@ -702,7 +702,7 @@ class ProductController extends Controller
 
         if (empty($product->{$field})) {
             return response()->json([
-                'message' => 'Foto product tidak ditemukan.',
+                'message' => 'FOTO PRODUK TIDAK ADA.',
             ], 422);
         }
 
@@ -784,15 +784,15 @@ class ProductController extends Controller
 
             if ($usageInfo['is_used']) {
                 return response()->json([
-                    'message' => 'Gagal hapus: Produk masih digunakan di '.implode(', ', $usageInfo['used_by']).'.',
+                    'message' => 'PRODUK ' . strtoupper((string) $product->fprdcode) . ' TIDAK BISA DIHAPUS. SUDAH DIREFERENSI DI ' . strtoupper(implode(', ', $usageInfo['used_by'])) . '.',
                 ], 422);
             }
 
             $product->delete();
 
-            return response()->json(['message' => 'Data produk '.$product->fprdname.' berhasil dihapus.']);
+            return response()->json(['message' => 'PRODUK '.$product->fprdname.' BERHASIL DIHAPUS.']);
         } catch (\Exception $e) {
-            return response()->json(['message' => 'Data belum berhasil dihapus. Silakan coba lagi.'], 500);
+            return response()->json(['message' => 'PRODUK BELUM BISA DIHAPUS. COBA LAGI.'], 500);
         }
     }
 

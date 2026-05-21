@@ -53,7 +53,7 @@ class GroupcustomerController extends Controller
 
         // Mengarahkan kembali dengan pesan sukses
         return redirect()->route('groupcustomer.create')
-            ->with('success', 'Group Customer berhasil ditambahkan.');
+            ->with('success', 'GROUP CUSTOMER BERHASIL DISIMPAN.');
     }
 
     public function edit($fgroupid)
@@ -107,7 +107,7 @@ class GroupcustomerController extends Controller
 
         // Mengarahkan kembali dengan pesan sukses
         return redirect()->route('groupcustomer.index')
-            ->with('success', 'Group Customer berhasil diupdate.');
+            ->with('success', 'GROUP CUSTOMER BERHASIL DIUPDATE.');
     }
 
     public function delete($fgroupid)
@@ -127,7 +127,7 @@ class GroupcustomerController extends Controller
             if (\Illuminate\Support\Facades\DB::table('mscustomer')->where('fgroup', $groupcustomer->fgroupid)->exists()) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'GROUP CUSTOMER SUDAH DIPAKAI DATA CUSTOMER.',
+                    'message' => 'GROUP CUSTOMER TIDAK BISA DIHAPUS. SUDAH DIREFERENSI DI CUSTOMER.',
                 ], 422);
             }
 
@@ -135,13 +135,13 @@ class GroupcustomerController extends Controller
 
             return response()->json([
                 'success' => true,
-                'message' => 'Data groupcustomer '.$groupcustomer->fgroupname.' berhasil dihapus.',
+                'message' => 'GROUP CUSTOMER '.$groupcustomer->fgroupname.' BERHASIL DIHAPUS.',
                 'redirect' => route('groupcustomer.index'),
             ]);
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'Data belum berhasil dihapus. Silakan coba lagi.',
+                'message' => 'GROUP CUSTOMER BELUM BISA DIHAPUS. COBA LAGI.',
             ], 500);
         }
     }

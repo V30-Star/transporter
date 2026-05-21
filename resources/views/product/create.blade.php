@@ -818,7 +818,7 @@
                         this.form = { fgroupcode: '', fgroupname: '', fnonactive: false };
                         this.errors = {};
                     } else {
-                        alert('Format respon server salah.');
+                        window.showAppErrorAlert('TERJADI KESALAHAN', 'FORMAT RESPON SERVER SALAH.');
                     }
                     this.loading = false;
                 })
@@ -827,7 +827,7 @@
                     if (xhr.status === 422) {
                         this.errors = xhr.responseJSON?.errors || {};
                     } else {
-                        alert('Gagal menyimpan group produk.');
+                        window.showAppErrorAlert('TERJADI KESALAHAN', 'GAGAL MENYIMPAN GROUP PRODUK.');
                     }
                 });
         }
@@ -905,7 +905,7 @@
                         this.form = { fmerekcode: '', fmerekname: '', fnonactive: false };
                         this.errors = {};
                     } else {
-                        alert('Format respon server salah.');
+                        window.showAppErrorAlert('TERJADI KESALAHAN', 'FORMAT RESPON SERVER SALAH.');
                     }
                     this.loading = false;
                 })
@@ -914,7 +914,7 @@
                     if (xhr.status === 422) {
                         this.errors = xhr.responseJSON?.errors || {};
                     } else {
-                        alert('Gagal menyimpan merek.');
+                        window.showAppErrorAlert('TERJADI KESALAHAN', 'GAGAL MENYIMPAN MEREK.');
                     }
                 });
         }

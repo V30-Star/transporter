@@ -1778,7 +1778,7 @@
                         .then(response => response.json())
                         .then(data => {
                             closeDeleteModal();
-                            showToast(data.message || 'Data berhasil dihapus', true);
+                            showToast(data.message || 'DATA BERHASIL DIHAPUS.', true);
 
                             setTimeout(() => {
                                 window.location.href = '{{ route('fakturpembelian.index') }}';
@@ -1788,7 +1788,7 @@
                             btnYa.disabled = false;
                             btnTidak.disabled = false;
                             btnYa.textContent = 'Ya, Hapus';
-                            showToast('Terjadi kesalahan saat menghapus data', false);
+                            showToast('TERJADI KESALAHAN SAAT HAPUS DATA.', false);
                         });
                 }
             </script>
@@ -2759,7 +2759,7 @@
                         });
                         return;
                     }
-                    alert(message);
+                    window.showAppErrorAlert('TERJADI KESALAHAN', message);
                 },
 
                 syncOpeningBalanceMode() {
@@ -2781,7 +2781,7 @@
                         return;
                     }
                     if (this.biayaGlobal <= 0 || this.totalHarga <= 0) {
-                        alert("Masukkan total ongkir dan pastikan item sudah ada.");
+                        window.showAppWarningAlert('WARNING', 'MASUKKAN TOTAL ONGKIR DAN PASTIKAN ITEM SUDAH ADA.');
                         return;
                     }
 
@@ -2917,7 +2917,7 @@
                                     title: 'Produk Duplikat'
                                 });
                             } else {
-                                alert(`Kode produk ${code} tidak boleh sama dalam satu Faktur Pembelian.`);
+                                window.showAppWarningAlert('WARNING', `KODE PRODUK ${code} TIDAK BOLEH SAMA DALAM SATU FAKTUR PEMBELIAN.`);
                             }
                             return;
                         }
@@ -3029,7 +3029,7 @@
                         });
                         return;
                     }
-                    alert(message);
+                    window.showAppErrorAlert('TERJADI KESALAHAN', message);
                 },
 
                 initDataTable() {
@@ -3200,7 +3200,7 @@
                         });
                         return;
                     }
-                    alert(message);
+                    window.showAppErrorAlert('TERJADI KESALAHAN', message);
                 },
 
                 initDataTable() {

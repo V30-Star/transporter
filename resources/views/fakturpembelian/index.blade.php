@@ -264,10 +264,10 @@
                                     table.row($(rowToDelete)).remove().draw(false);
                                 }
                                 this.showNotificationMsg('success', result.data.message ||
-                                    @json("Data berhasil dihapus"));
+                                    @json("DATA BERHASIL DIHAPUS."));
                             } else {
                                 this.showNotificationMsg('error', result.data.message ||
-                                    @json("Gagal menghapus data"));
+                                    @json("HAPUS DATA GAGAL."));
                             }
 
                             this.currentRow = null;
@@ -276,7 +276,7 @@
                             console.error('Error:', error);
                             this.showDeleteModal = false;
                             this.isDeleting = false;
-                            this.showNotificationMsg('error', @json("Terjadi kesalahan. Silakan coba lagi."));
+                            this.showNotificationMsg('error', @json("TERJADI KESALAHAN. COBA LAGI."));
                             this.currentRow = null;
                         });
                 },

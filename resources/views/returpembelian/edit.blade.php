@@ -1746,7 +1746,7 @@
                     .then(response => response.json())
                     .then(data => {
                         closeDeleteModal();
-                        showToast(data.message || 'Data berhasil dihapus', true);
+                        showToast(data.message || 'DATA BERHASIL DIHAPUS.', true);
 
                         setTimeout(() => {
                             window.location.href = '{{ route('returpembelian.index') }}';
@@ -1756,7 +1756,7 @@
                         btnYa.disabled = false;
                         btnTidak.disabled = false;
                         btnYa.textContent = 'Ya, Hapus';
-                        showToast('Terjadi kesalahan saat menghapus data', false);
+                        showToast('TERJADI KESALAHAN SAAT HAPUS DATA.', false);
                     });
             }
         </script>
@@ -2164,7 +2164,7 @@
                 const dupe = this.savedItems.find(it => it.fitemcode === r.fitemcode && it.fsatuan === r.fsatuan && (it
                     .frefpr || '') === (r.frefpr || ''));
                 if (dupe) {
-                    alert('Item sama sudah ada.');
+                    window.showAppWarningAlert('WARNING', 'ITEM SAMA SUDAH ADA.');
                     return;
                 }
 
@@ -2194,7 +2194,7 @@
             applyEdit() {
                 const r = this.editRow;
                 if (!this.isComplete(r)) {
-                    alert('Lengkapi data item.');
+                    window.showAppWarningAlert('WARNING', 'LENGKAPI DATA ITEM.');
                     return;
                 }
                 this.recalc(r);

@@ -307,7 +307,7 @@ class PemakaianbarangController extends Controller
             ]);
 
         if (! $hdr) {
-            return redirect()->back()->with('error', 'Pemakaian Barang tidak ditemukan.');
+            return redirect()->back()->with('error', 'PEMAKAIAN BARANG TIDAK ADA.');
         }
 
         DB::table('trstockmt')->where('fstockmtno', $hdr->fstockmtno)->update(['fprint' => 1]);
@@ -721,7 +721,7 @@ class PemakaianbarangController extends Controller
 
         return redirect()
             ->route('pemakaianbarang.create')
-            ->with('success', "Transaksi {$fstockmtno} tersimpan.");
+            ->with('success', "PEMAKAIAN BARANG {$fstockmtno} BERHASIL DISIMPAN.");
     }
 
     public function edit($fstockmtid)
@@ -1068,7 +1068,7 @@ class PemakaianbarangController extends Controller
         }
 
         $fstockmtdate = Carbon::parse($request->fstockmtdate)->startOfDay();
-        $this->ensureCreateDateWithinEditPeriod($fstockmtdate);
+        $this->ensureCreateDateWithinEditPeriod($fstockmtdate, $header->fstockmtdate);
         $ffrom = $request->input('ffrom');
         $fket = trim((string) $request->input('fket', ''));
         $fbranchcode = $request->input('fbranchcode');
@@ -1252,7 +1252,7 @@ class PemakaianbarangController extends Controller
 
         return redirect()
             ->route('pemakaianbarang.index')
-            ->with('success', "Transaksi {$header->fstockmtno} berhasil diperbarui.");
+            ->with('success', "PEMAKAIAN BARANG {$header->fstockmtno} BERHASIL DIUPDATE.");
     }
 
     public function delete($fstockmtid)
@@ -1427,10 +1427,10 @@ class PemakaianbarangController extends Controller
                 $pemakaianbarang->delete();
             });
 
-            return redirect()->route('pemakaianbarang.index')->with('success', 'Data pemakaianbarang '.$pemakaianbarang->fstockmtno.' berhasil dihapus.');
+            return redirect()->route('pemakaianbarang.index')->with('success', 'PEMAKAIAN BARANG '.$pemakaianbarang->fstockmtno.' BERHASIL DIHAPUS.');
         } catch (\Exception $e) {
             // Jika terjadi kesalahan saat menghapus, kembali ke halaman delete dengan pesan error
-            return redirect()->route('pemakaianbarang.delete', $fstockmtid)->with('error', 'Data belum berhasil dihapus. Silakan coba lagi.');
+            return redirect()->route('pemakaianbarang.delete', $fstockmtid)->with('error', 'PEMAKAIAN BARANG BELUM BISA DIHAPUS. COBA LAGI.');
         }
     }
 

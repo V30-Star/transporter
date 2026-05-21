@@ -64,7 +64,7 @@ class MerekController extends Controller
 
         return redirect()
             ->route('merek.create')
-            ->with('success', 'Merek berhasil ditambahkan.');
+            ->with('success', 'MEREK BERHASIL DISIMPAN.');
     }
 
     public function edit($fmerekid)
@@ -107,7 +107,7 @@ class MerekController extends Controller
 
         return redirect()
             ->route('merek.index')
-            ->with('success', 'Merek berhasil di-update.');
+            ->with('success', 'MEREK BERHASIL DIUPDATE.');
     }
 
     public function delete($fmerekid)
@@ -127,7 +127,7 @@ class MerekController extends Controller
             if (\Illuminate\Support\Facades\DB::table('msprd')->where('fmerek', $merek->fmerekid)->exists()) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'MEREK SUDAH DIPAKAI DATA PRODUCT.',
+                    'message' => 'MEREK TIDAK BISA DIHAPUS. SUDAH DIREFERENSI DI PRODUK.',
                 ], 422);
             }
 
@@ -135,13 +135,13 @@ class MerekController extends Controller
 
             return response()->json([
                 'success' => true,
-                'message' => 'Data merek '.$merek->fmerekname.' berhasil dihapus.',
+                'message' => 'MEREK '.$merek->fmerekname.' BERHASIL DIHAPUS.',
                 'redirect' => route('merek.index'),
             ]);
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'Data belum berhasil dihapus. Silakan coba lagi.',
+                'message' => 'MEREK BELUM BISA DIHAPUS. COBA LAGI.',
             ], 500);
         }
     }

@@ -259,10 +259,10 @@
                                     table.row($(rowToDelete)).remove().draw(false);
                                 }
                                 this.showNotificationMsg('success', result.data.message ||
-                                    'Data berhasil dihapus');
+                                    'DATA BERHASIL DIHAPUS.');
                             } else {
                                 this.showNotificationMsg('error', result.data.message ||
-                                    'Gagal menghapus data');
+                                    'HAPUS DATA GAGAL.');
                             }
 
                             this.currentRow = null;
@@ -271,7 +271,7 @@
                             console.error('Error:', error);
                             this.showDeleteModal = false;
                             this.isDeleting = false;
-                            this.showNotificationMsg('error', 'Terjadi kesalahan. Silakan coba lagi.');
+                            this.showNotificationMsg('error', 'TERJADI KESALAHAN. COBA LAGI.');
                             this.currentRow = null;
                         });
                 },
@@ -334,17 +334,14 @@
 
             window.showPrApprovalLocked = function() {
                 const message = 'Permintaan Pembelian belum dapat diedit karena status approval saat ini belum mengizinkan edit.';
-                if (window.Swal?.fire) {
-                    window.Swal.fire({
-                        icon: 'info',
-                        title: 'Edit Belum Tersedia',
-                        text: message,
+                if (typeof window.showAppInfoAlert === 'function') {
+                    window.showAppInfoAlert('Edit Belum Tersedia', message, {
                         confirmButtonText: 'Tutup'
                     });
                     return;
                 }
 
-                window.alert(message);
+                window.showAppInfoAlert('INFORMATION', message);
             };
 
             // --- 1. Definisi columnDefs ---

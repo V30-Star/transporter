@@ -52,7 +52,7 @@ class RekeningController extends Controller
 
         return redirect()
             ->route('rekening.create')
-            ->with('success', 'Rekening berhasil ditambahkan.');
+            ->with('success', 'REKENING BERHASIL DISIMPAN.');
     }
 
     public function edit($frekeningid)
@@ -104,7 +104,7 @@ class RekeningController extends Controller
 
         return redirect()
             ->route('rekening.index')
-            ->with('success', 'Rekening berhasil di-update.');
+            ->with('success', 'REKENING BERHASIL DIUPDATE.');
     }
 
     public function delete($frekeningid)
@@ -141,13 +141,13 @@ class RekeningController extends Controller
 
             return response()->json([
                 'success' => true,
-                'message' => 'Data rekening '.$rekening->frekeningname.' berhasil dihapus.',
+                'message' => 'REKENING '.$rekening->frekeningname.' BERHASIL DIHAPUS.',
                 'redirect' => route('rekening.index'),
             ]);
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'Data belum berhasil dihapus. Silakan coba lagi.',
+                'message' => 'REKENING BELUM BISA DIHAPUS. COBA LAGI.',
             ], 500);
         }
     }
@@ -163,6 +163,6 @@ class RekeningController extends Controller
             return null;
         }
 
-        return 'REKENING ' . strtoupper((string) $rekening->frekeningname) . ' SUDAH DIPAKAI TRANSAKSI.';
+        return 'REKENING ' . strtoupper((string) $rekening->frekeningname) . ' TIDAK BISA DIHAPUS. SUDAH DIREFERENSI DI TRANSAKSI.';
     }
 }

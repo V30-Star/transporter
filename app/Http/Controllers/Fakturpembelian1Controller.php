@@ -812,7 +812,7 @@ class FakturpembelianController extends Controller
             ]);
 
         if (! $hdr) {
-            return redirect()->back()->with('error', 'PO tidak ditemukan.');
+            return redirect()->back()->with('error', 'PO TIDAK ADA.');
         }
 
         DB::table('trstockmt')->where('fstockmtno', $hdr->fstockmtno)->update(['fprint' => 1]);
@@ -1165,11 +1165,11 @@ class FakturpembelianController extends Controller
             });
 
             return redirect()->route('fakturpembelian.create')
-                ->with('success', "Faktur Pembelian $fstockmtno berhasil disimpan.");
+                ->with('success', "FAKTUR PEMBELIAN $fstockmtno BERHASIL DISIMPAN.");
         } catch (\Exception $e) {
             Log::error('FakturPembelian@store ERROR: ' . $e->getMessage());
 
-            return back()->withInput()->withErrors(['error' => 'Data belum berhasil disimpan. Silakan cek kembali isian transaksi lalu coba lagi.']);
+            return back()->withInput()->withErrors(['error' => 'FAKTUR PEMBELIAN BELUM BISA DISIMPAN. CEK DATA TRANSAKSI.']);
         }
     }
 
@@ -1797,12 +1797,12 @@ class FakturpembelianController extends Controller
 
             return redirect()
                 ->route('fakturpembelian.index')
-                ->with('success', "Faktur Pembelian {$fstockmtno} berhasil di-update.");
+                ->with('success', "FAKTUR PEMBELIAN {$fstockmtno} BERHASIL DIUPDATE.");
         } catch (\Exception $e) {
 
             return back()
                 ->withInput()
-                ->withErrors(['error' => 'Data belum berhasil diperbarui. Silakan cek kembali isian transaksi lalu coba lagi.']);
+                ->withErrors(['error' => 'FAKTUR PEMBELIAN BELUM BISA DIUPDATE. CEK DATA TRANSAKSI.']);
         }
     }
 
@@ -1967,7 +1967,7 @@ class FakturpembelianController extends Controller
             return redirect()->route('fakturpembelian.index')->with('success', 'Data Faktur Pembelian ' . $fakturpembelian->fstockmtno . ' berhasil dihapus.');
         } catch (\Exception $e) {
             // Jika terjadi kesalahan saat menghapus, kembali ke halaman delete dengan pesan error
-            return redirect()->route('fakturpembelian.delete', $fstockmtid)->with('error', 'Data belum berhasil dihapus. Silakan coba lagi.');
+            return redirect()->route('fakturpembelian.delete', $fstockmtid)->with('error', 'FAKTUR PEMBELIAN BELUM BISA DIHAPUS. COBA LAGI.');
         }
     }
 
@@ -1988,7 +1988,7 @@ class FakturpembelianController extends Controller
             return null;
         }
 
-        return 'Faktur Pembelian ' . $header->fstockmtno . ' tidak dapat diubah atau dihapus karena sudah digunakan pada Retur Pembelian: ' . $usedBy->implode(', ') . '.';
+        return 'FAKTUR PEMBELIAN ' . $header->fstockmtno . ' TIDAK BISA DIUBAH ATAU DIHAPUS. SUDAH DIREFERENSI DI RETUR PEMBELIAN: ' . strtoupper($usedBy->implode(', ')) . '.';
     }
 
     private function validateUniqueHeaderReference($frefno, $frefpo, ?string $exceptStockMtNo = null): ?string

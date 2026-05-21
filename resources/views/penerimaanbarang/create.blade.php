@@ -1561,7 +1561,7 @@
                         this.closeModal();
                     } catch (e) {
                         console.error(e);
-                        alert('Gagal mengambil detail PO');
+                        window.showAppErrorAlert('TERJADI KESALAHAN', 'GAGAL MENGAMBIL DETAIL PO.');
                     }
                 }
             };

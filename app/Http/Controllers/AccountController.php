@@ -112,7 +112,7 @@ class AccountController extends Controller
 
         Account::create($validated);
 
-        return redirect()->route('account.create')->with('success', 'Account berhasil ditambahkan.');
+        return redirect()->route('account.create')->with('success', 'ACCOUNT BERHASIL DISIMPAN.');
     }
 
     public function view($faccid)
@@ -240,7 +240,7 @@ class AccountController extends Controller
 
         $account->update($validated);
 
-        return redirect()->route('account.index')->with('success', 'Account berhasil di-update.');
+        return redirect()->route('account.index')->with('success', 'ACCOUNT BERHASIL DIUPDATE.');
     }
 
     public function delete($faccid)
@@ -265,27 +265,27 @@ class AccountController extends Controller
 
             // Validasi
             if ($account->fend == 0) {
-                return response()->json(['message' => 'Account tidak dapat dihapus karena Header.'], 422);
+                return response()->json(['message' => 'ACCOUNT HEADER TIDAK BISA DIHAPUS.'], 422);
             }
 
             if (Account::where('faccupline', $faccid)->exists()) {
-                return response()->json(['message' => 'Account memiliki sub-account.'], 422);
+                return response()->json(['message' => 'ACCOUNT TIDAK BISA DIHAPUS. MASIH ADA SUB ACCOUNT.'], 422);
             }
 
             if (DB::table('jurnaldt')->where('faccount', $account->faccount)->exists()) {
-                return response()->json(['message' => 'ACCOUNT SUDAH DIPAKAI TRANSAKSI.'], 422);
+                return response()->json(['message' => 'ACCOUNT TIDAK BISA DIHAPUS. SUDAH DIREFERENSI DI TRANSAKSI.'], 422);
             }
 
             $account->delete();
 
             return response()->json([
                 'success' => true,
-                'message' => 'Data account '.$account->faccname.' berhasil dihapus.',
+                'message' => 'ACCOUNT '.$account->faccname.' BERHASIL DIHAPUS.',
             ]);
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'Data belum berhasil diproses. Silakan coba lagi.',
+                'message' => 'ACCOUNT BELUM BISA DIHAPUS. COBA LAGI.',
             ], 500);
         }
     }

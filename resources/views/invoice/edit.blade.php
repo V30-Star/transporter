@@ -1817,36 +1817,15 @@
     if (!window.toast) {
         window.toast = {
             success: (msg) => {
-                if (typeof Swal !== 'undefined') Swal.fire({
-                    toast: true,
-                    position: 'top-end',
-                    icon: 'success',
-                    title: msg,
-                    showConfirmButton: false,
-                    timer: 3000
-                });
+                if (typeof window.showAppSuccessToast === 'function') window.showAppSuccessToast(msg);
                 else console.log('Success:', msg);
             },
             error: (msg) => {
-                if (typeof Swal !== 'undefined') Swal.fire({
-                    toast: true,
-                    position: 'top-end',
-                    icon: 'error',
-                    title: msg,
-                    showConfirmButton: false,
-                    timer: 3000
-                });
+                if (typeof window.showAppErrorAlert === 'function') window.showAppErrorAlert('Terjadi Kesalahan', msg);
                 else console.error('Error:', msg);
             },
             info: (msg) => {
-                if (typeof Swal !== 'undefined') Swal.fire({
-                    toast: true,
-                    position: 'top-end',
-                    icon: 'info',
-                    title: msg,
-                    showConfirmButton: false,
-                    timer: 3000
-                });
+                if (typeof window.showAppInfoAlert === 'function') window.showAppInfoAlert('Information', msg);
                 else console.info('Info:', msg);
             }
         };
@@ -1942,10 +1921,9 @@
             if (!response.ok) {
                 const message = payload?.message || Object.values(payload?.errors || {}).flat().join('\n') ||
                     @json('Gagal cek limit customer.');
-                await Swal.fire({
-                    icon: 'error',
-                    title: @json('Cek Customer Gagal'),
-                    html: `<div class="text-left whitespace-pre-line">${message}</div>`
+                await window.showAppErrorAlert(@json('Cek Customer Gagal'), message, {
+                    html: `<div class="text-left whitespace-pre-line">${message}</div>`,
+                    text: undefined
                 });
                 return false;
             }
@@ -1980,9 +1958,7 @@
                 }
 
                 if (!canApprove) {
-                    await Swal.fire({
-                        icon: 'error',
-                        title: @json('Persetujuan Kredit Ditolak'),
+                    await window.showAppErrorAlert(@json('Persetujuan Kredit Ditolak'), '', {
                         html: `
                             <div class="text-left text-sm">
                                 <div class="font-medium mb-2">Persetujuan diperlukan:</div>
@@ -1992,7 +1968,8 @@
                                 </ul>
                                 <div class="mt-3">User login ini tidak punya wewenang menyetujui.</div>
                             </div>
-                        `
+                        `,
+                        text: undefined
                     });
                     return false;
                 }
@@ -2028,9 +2005,7 @@
                 }
 
                 if (!canApprove) {
-                    await Swal.fire({
-                        icon: 'error',
-                        title: @json('Persetujuan Kredit Ditolak'),
+                    await window.showAppErrorAlert(@json('Persetujuan Kredit Ditolak'), '', {
                         html: `
                             <div class="text-left text-sm">
                                 <div class="font-medium mb-2">Persetujuan diperlukan:</div>
@@ -2039,7 +2014,8 @@
                                 </ul>
                                 <div class="mt-3">User login ini tidak punya wewenang menyetujui.</div>
                             </div>
-                        `
+                        `,
+                        text: undefined
                     });
                     return false;
                 }
@@ -2050,11 +2026,14 @@
 
             return true;
         } catch (error) {
-            await Swal.fire({
-                icon: 'error',
-                title: @json('Pemeriksaan Persetujuan Gagal'),
-                html: `<div class="text-left whitespace-pre-line">@json("Gagal memeriksa persetujuan customer.\nSilakan coba lagi.")</div>`
-            });
+            await window.showAppErrorAlert(
+                @json('Pemeriksaan Persetujuan Gagal'),
+                @json("Gagal memeriksa persetujuan customer.\nSilakan coba lagi."),
+                {
+                    html: `<div class="text-left whitespace-pre-line">@json("Gagal memeriksa persetujuan customer.\nSilakan coba lagi.")</div>`,
+                    text: undefined
+                }
+            );
             return false;
         }
     };
@@ -2261,15 +2240,10 @@
                     if (type === 'error' || type === 'danger') window.toast.error(message);
                     else if (type === 'warning') window.toast.info(message);
                     else window.toast.success(message);
-                } else if (typeof Swal !== 'undefined') {
-                    Swal.fire({
-                        toast: true,
-                        position: 'top-end',
-                        icon: type === 'danger' ? 'error' : type,
-                        title: message,
-                        showConfirmButton: false,
-                        timer: 3000
-                    });
+                } else if (typeof window.showAppErrorAlert === 'function' || typeof window.showAppInfoAlert === 'function' || typeof window.showAppSuccessToast === 'function') {
+                    if (type === 'error' || type === 'danger') window.showAppErrorAlert('Terjadi Kesalahan', message);
+                    else if (type === 'warning') window.showAppWarningAlert('Warning', message);
+                    else window.showAppSuccessToast(message, { timer: 3000 });
                 } else {
                     console.info('Toast:', message);
                 }

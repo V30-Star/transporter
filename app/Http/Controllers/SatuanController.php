@@ -58,7 +58,7 @@ class SatuanController extends Controller
 
         return redirect()
             ->route('satuan.create')
-            ->with('success', 'Satuan berhasil ditambahkan.');
+            ->with('success', 'SATUAN BERHASIL DISIMPAN.');
     }
 
     public function edit($fsatuanid)
@@ -97,7 +97,7 @@ class SatuanController extends Controller
 
         return redirect()
             ->route('satuan.index')
-            ->with('success', 'Satuan berhasil di-update.');
+            ->with('success', 'SATUAN BERHASIL DIUPDATE.');
     }
 
     public function delete($fsatuanid)
@@ -120,7 +120,7 @@ class SatuanController extends Controller
                 ->exists()) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'SATUAN SUDAH DIPAKAI DATA PRODUCT.',
+                    'message' => 'SATUAN TIDAK BISA DIHAPUS. SUDAH DIREFERENSI DI PRODUK.',
                 ], 422);
             }
 
@@ -128,13 +128,13 @@ class SatuanController extends Controller
 
             return response()->json([
                 'success' => true,
-                'message' => 'Data satuan '.$satuan->fsatuanname.' berhasil dihapus.',
+                'message' => 'SATUAN '.$satuan->fsatuanname.' BERHASIL DIHAPUS.',
                 'redirect' => route('satuan.index'),
             ]);
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'Data belum berhasil dihapus. Silakan coba lagi.',
+                'message' => 'SATUAN BELUM BISA DIHAPUS. COBA LAGI.',
             ], 500);
         }
     }

@@ -79,7 +79,7 @@ class WhController extends Controller
 
         return redirect()
             ->route('gudang.create')
-            ->with('success', 'Wh berhasil ditambahkan.');
+            ->with('success', 'GUDANG BERHASIL DISIMPAN.');
     }
 
     public function edit($fwhid)
@@ -164,7 +164,7 @@ class WhController extends Controller
 
         return redirect()
             ->route('gudang.index')
-            ->with('success', 'Wh berhasil di-update.');
+            ->with('success', 'GUDANG BERHASIL DIUPDATE.');
     }
 
     public function delete($fwhid)
@@ -201,13 +201,13 @@ class WhController extends Controller
 
             return response()->json([
                 'success' => true,
-                'message' => 'Data gudang '.$gudang->fwhname.' berhasil dihapus.',
+                'message' => 'GUDANG '.$gudang->fwhname.' BERHASIL DIHAPUS.',
                 'redirect' => route('gudang.index'),
             ]);
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'Data belum berhasil dihapus. Silakan coba lagi.',
+                'message' => 'GUDANG BELUM BISA DIHAPUS. COBA LAGI.',
             ], 500);
         }
     }
@@ -299,6 +299,6 @@ class WhController extends Controller
             return null;
         }
 
-        return 'GUDANG ' . strtoupper((string) $gudang->fwhcode) . ' SUDAH DIPAKAI TRANSAKSI.';
+        return 'GUDANG ' . strtoupper((string) $gudang->fwhcode) . ' TIDAK BISA DIHAPUS. SUDAH DIREFERENSI DI TRANSAKSI.';
     }
 }

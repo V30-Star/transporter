@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Currency;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class CurrencyController extends Controller
 {
@@ -54,7 +55,7 @@ class CurrencyController extends Controller
 
         return redirect()
             ->route('currency.index')
-            ->with('success', 'Currency berhasil ditambahkan.');
+            ->with('success', 'CURRENCY BERHASIL DISIMPAN.');
     }
 
     public function edit($fcurrid)
@@ -109,7 +110,7 @@ class CurrencyController extends Controller
 
         return redirect()
             ->route('currency.index')
-            ->with('success', 'Currency berhasil di-update.');
+            ->with('success', 'CURRENCY BERHASIL DIUPDATE.');
     }
 
     public function delete($fcurrid)
@@ -126,10 +127,10 @@ class CurrencyController extends Controller
         try {
             $currency = Currency::findOrFail($fcurrid);
 
-            if (\Illuminate\Support\Facades\DB::table('mscurrency')->where('fcurrid', $currency->fcurrid)->exists()) {
+            if ($this->hasUsage($currency)) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'Currency sudah digunakan dalam detail currency.',
+                    'message' => 'CURRENCY TIDAK BISA DIHAPUS. SUDAH DIREFERENSI.',
                 ], 422);
             }
 
@@ -137,14 +138,44 @@ class CurrencyController extends Controller
 
             return response()->json([
                 'success' => true,
-                'message' => 'Data currency '.$currency->fcurrcode.' berhasil dihapus.',
+                'message' => 'CURRENCY '.$currency->fcurrcode.' BERHASIL DIHAPUS.',
                 'redirect' => route('currency.index'),
             ]);
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'Data belum berhasil dihapus. Silakan coba lagi.',
+                'message' => 'CURRENCY BELUM BISA DIHAPUS. COBA LAGI.',
             ], 500);
         }
+    }
+
+    private function hasUsage(Currency $currency): bool
+    {
+        $currencyId = $currency->fcurrid;
+        $currencyCode = strtoupper(trim((string) $currency->fcurrcode));
+
+        if (! empty($currencyId) && DB::table('tr_poh')->where('fcurrency', $currencyId)->exists()) {
+            return true;
+        }
+
+        if ($currencyCode === '') {
+            return false;
+        }
+
+        $codeReferencedTables = [
+            'trstockmt',
+            'trsomt',
+            'tranmt',
+            'mscustomer',
+            'account',
+        ];
+
+        foreach ($codeReferencedTables as $table) {
+            if (DB::table($table)->where('fcurrency', $currencyCode)->exists()) {
+                return true;
+            }
+        }
+
+        return false;
     }
 }

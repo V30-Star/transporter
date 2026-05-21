@@ -299,10 +299,10 @@
                                     table.row($(rowToDelete)).remove().draw(false);
                                 }
                                 this.showNotificationMsg('success', result.data.message ||
-                                    'Data berhasil dihapus');
+                                    'DATA BERHASIL DIHAPUS.');
                             } else {
                                 this.showNotificationMsg('error', result.data.message ||
-                                    'Gagal menghapus data');
+                                    'HAPUS DATA GAGAL.');
                             }
 
                             this.currentRow = null;
@@ -311,7 +311,7 @@
                             console.error('Error:', error);
                             this.showDeleteModal = false;
                             this.isDeleting = false;
-                            this.showNotificationMsg('error', 'Terjadi kesalahan. Silakan coba lagi.');
+                            this.showNotificationMsg('error', 'TERJADI KESALAHAN. COBA LAGI.');
                             this.currentRow = null;
                         });
                 },

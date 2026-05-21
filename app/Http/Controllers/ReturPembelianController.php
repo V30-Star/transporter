@@ -357,7 +357,7 @@ class ReturPembelianController extends Controller
             ]);
 
         if (! $hdr) {
-            return redirect()->back()->with('error', 'Retur Pembelian tidak ditemukan.');
+            return redirect()->back()->with('error', 'RETUR PEMBELIAN TIDAK ADA.');
         }
 
         DB::table('trstockmt')->where('fstockmtno', $hdr->fstockmtno)->update(['fprint' => 1]);
@@ -700,11 +700,11 @@ class ReturPembelianController extends Controller
 
             return redirect()
                 ->route('returpembelian.create')
-                ->with('success', "Faktur Pembelian {$fstockmtno} berhasil disimpan.");
+                ->with('success', "RETUR PEMBELIAN {$fstockmtno} BERHASIL DISIMPAN.");
         } catch (\Exception $e) {
             return back()
                 ->withInput()
-                ->withErrors(['error' => 'Data belum berhasil disimpan. Silakan cek kembali isian transaksi.']);
+                ->withErrors(['error' => 'RETUR PEMBELIAN BELUM BISA DISIMPAN. CEK DATA TRANSAKSI.']);
         }
     }
 
@@ -1012,7 +1012,7 @@ class ReturPembelianController extends Controller
             // HEADER FIELDS
             $fstockmtno = $header->fstockmtno;
             $fstockmtdate = Carbon::parse($request->fstockmtdate)->startOfDay();
-            $this->ensureCreateDateWithinEditPeriod($fstockmtdate);
+            $this->ensureCreateDateWithinEditPeriod($fstockmtdate, $header->fstockmtdate);
             $fsupplier = trim((string) $request->input('fsupplier'));
             $ffrom = $request->input('ffrom');
             $fket = trim((string) $request->input('fket', ''));
@@ -1223,11 +1223,11 @@ class ReturPembelianController extends Controller
 
             return redirect()
                 ->route('returpembelian.index') // <-- Redirect kembali ke halaman edit
-                ->with('success', "Faktur Pembelian {$fstockmtno} berhasil di-update.");
+                ->with('success', "RETUR PEMBELIAN {$fstockmtno} BERHASIL DIUPDATE.");
         } catch (\Exception $e) {
             return back()
                 ->withInput()
-                ->withErrors(['error' => 'Data belum berhasil diperbarui. Silakan cek kembali isian transaksi.']);
+                ->withErrors(['error' => 'RETUR PEMBELIAN BELUM BISA DIUPDATE. CEK DATA TRANSAKSI.']);
         }
     }
 
@@ -1386,10 +1386,10 @@ class ReturPembelianController extends Controller
                 $returpembelian->delete();
             });
 
-            return redirect()->route('returpembelian.index')->with('success', 'Data Retur Pembelian '.$returpembelian->fstockmtno.' berhasil dihapus.');
+            return redirect()->route('returpembelian.index')->with('success', 'RETUR PEMBELIAN '.$returpembelian->fstockmtno.' BERHASIL DIHAPUS.');
         } catch (\Exception $e) {
             // Jika terjadi kesalahan saat menghapus, kembali ke halaman delete dengan pesan error
-            return redirect()->route('returpembelian.delete', $fstockmtid)->with('error', 'Data belum berhasil dihapus. Silakan coba lagi.');
+            return redirect()->route('returpembelian.delete', $fstockmtid)->with('error', 'RETUR PEMBELIAN BELUM BISA DIHAPUS. COBA LAGI.');
         }
     }
 

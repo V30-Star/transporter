@@ -2488,28 +2488,6 @@
 </script>
 <script>
     document.addEventListener('DOMContentLoaded', function() {
-        // Cek jika ada flash message "error" dari controller
-        @if (session('error'))
-            Swal.fire({
-                icon: 'error',
-                title: @json('Penyimpanan Batal'),
-                text: "{{ session('error') }}",
-                confirmButtonColor: '#ef4444', // Warna merah tailwind
-                confirmButtonText: 'OK',
-                allowOutsideClick: false
-            });
-        @endif
-
-        // Cek jika ada flash message "success"
-        @if (session('success'))
-            Swal.fire({
-                icon: 'success',
-                title: 'Berhasil',
-                text: "{{ session('success') }}",
-                timer: 2000,
-                showConfirmButton: false
-            });
-        @endif
     });
 </script>
 <script>
@@ -2649,7 +2627,7 @@
 
                 } catch (e) {
                     console.error(e);
-                    alert(@json('Gagal mengambil detail Faktur Penjualan. Lihat konsol untuk detail.'));
+                    window.showAppErrorAlert('TERJADI KESALAHAN', @json('GAGAL MENGAMBIL DETAIL FAKTUR PENJUALAN.'));
                 }
             },
         };

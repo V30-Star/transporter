@@ -106,9 +106,9 @@ class SysUserController extends Controller
 
             return redirect()
                 ->route('sysuser.create')
-                ->with('success', 'User berhasil ditambahkan.');
+                ->with('success', 'USER BERHASIL DISIMPAN.');
         } catch (\Exception $e) {
-            return back()->withInput()->with('error', 'Data user belum berhasil disimpan. Silakan cek kembali isian Anda.');
+            return back()->withInput()->with('error', 'USER BELUM BISA DISIMPAN. CEK DATA.');
         }
     }
 
@@ -176,7 +176,7 @@ class SysUserController extends Controller
 
         return redirect()
             ->route('sysuser.index')
-            ->with('success', 'Sysuser berhasil diperbarui.');
+            ->with('success', 'USER BERHASIL DIUPDATE.');
     }
 
     public function delete($fuid)
@@ -200,13 +200,13 @@ class SysUserController extends Controller
             if (request()->wantsJson()) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'User tidak dapat dihapus karena sudah digunakan di Role Access.',
+                    'message' => 'USER TIDAK BISA DIHAPUS. SUDAH DIREFERENSI DI ROLE ACCESS.',
                 ], 422);
             }
 
             return redirect()
                 ->route('sysuser.delete', $fuid)
-                ->with('error', 'User tidak dapat dihapus karena sudah digunakan di Role Access.');
+                ->with('error', 'USER TIDAK BISA DIHAPUS. SUDAH DIREFERENSI DI ROLE ACCESS.');
         }
 
         $sysuser->delete();
@@ -214,12 +214,12 @@ class SysUserController extends Controller
         if (request()->wantsJson()) {
             return response()->json([
                 'success' => true,
-                'message' => 'User berhasil dihapus.',
+                'message' => 'USER BERHASIL DIHAPUS.',
             ]);
         }
 
         return redirect()
             ->route('sysuser.index')
-            ->with('success', 'User berhasil dihapus.');
+            ->with('success', 'USER BERHASIL DIHAPUS.');
     }
 }

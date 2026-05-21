@@ -177,7 +177,7 @@
                     .then(response => response.json())
                     .then(data => {
                         closeDeleteModal();
-                        showToast(data.message || 'Data berhasil dihapus', true);
+                        showToast(data.message || 'DATA BERHASIL DIHAPUS.', true);
 
                         setTimeout(() => {
                             window.location.href = '{{ route('satuan.index') }}';
@@ -187,7 +187,7 @@
                         btnYa.disabled = false;
                         btnTidak.disabled = false;
                         btnYa.textContent = 'Ya, Hapus';
-                        showToast('Terjadi kesalahan saat menghapus data', false);
+                        showToast('TERJADI KESALAHAN SAAT HAPUS DATA.', false);
                     });
             }
         </script>

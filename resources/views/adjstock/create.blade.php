@@ -2026,7 +2026,7 @@
                     this.closeModal();
                 } catch (e) {
                     console.error(e);
-                    alert('Gagal mengambil detail PR');
+                    window.showAppErrorAlert('TERJADI KESALAHAN', 'GAGAL MENGAMBIL DETAIL PR.');
                 }
             },
         };

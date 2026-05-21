@@ -303,10 +303,10 @@
                                     table.row($(rowToDelete)).remove().draw(false);
                                 }
                                 this.showNotificationMsg('success', result.data.message ||
-                                    @json("Data berhasil dihapus"));
+                                    @json("DATA BERHASIL DIHAPUS."));
                             } else {
                                 this.showNotificationMsg('error', result.data.message ||
-                                    @json("Gagal menghapus data"));
+                                    @json("HAPUS DATA GAGAL."));
                             }
 
                             this.currentRow = null;
@@ -315,7 +315,7 @@
                             console.error('Error:', error);
                             this.showDeleteModal = false;
                             this.isDeleting = false;
-                            this.showNotificationMsg('error', @json("Terjadi kesalahan. Silakan coba lagi."));
+                            this.showNotificationMsg('error', @json("TERJADI KESALAHAN. COBA LAGI."));
                             this.currentRow = null;
                         });
                 },
@@ -375,17 +375,14 @@
 
             window.showSoApprovalLocked = function() {
                 const message = 'Sales Order belum dapat diedit karena status approval saat ini belum mengizinkan edit.';
-                if (window.Swal?.fire) {
-                    window.Swal.fire({
-                        icon: 'info',
-                        title: 'Edit Belum Tersedia',
-                        text: message,
+                if (typeof window.showAppInfoAlert === 'function') {
+                    window.showAppInfoAlert('Edit Belum Tersedia', message, {
                         confirmButtonText: 'Tutup'
                     });
                     return;
                 }
 
-                window.alert(message);
+                window.showAppInfoAlert('INFORMATION', message);
             };
 
             // 1. Definisi Kolom

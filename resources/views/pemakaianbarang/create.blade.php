@@ -1010,7 +1010,7 @@
                     );
 
                     if (dupe) {
-                        alert('Item sama sudah ada.');
+                        window.showAppWarningAlert('WARNING', 'ITEM SAMA SUDAH ADA.');
                         return;
                     }
 

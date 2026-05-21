@@ -772,8 +772,8 @@
                     <div>
                         @if ($isUsedProduct)
                             <div class="mb-4 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
-                                Produk ini sudah dipakai di transaksi {{ implode(', ', $usedByLabels) }}. Kode produk,
-                                qty konversi, dan satuan yang sudah terpakai dikunci. Anda masih bisa ubah field lain.
+                                PRODUK INI SUDAH DIREFERENSI DI TRANSAKSI {{ implode(', ', $usedByLabels) }}. KODE PRODUK,
+                                QTY KONVERSI, DAN SATUAN YANG SUDAH TERPAKAI DIKUNCI. ANDA MASIH BISA UBAH FIELD LAIN.
                                 Satuan 2 dan Satuan 3 masih boleh diisi atau diupdate jika slotnya masih kosong.
                             </div>
                         @endif
@@ -1593,7 +1593,7 @@
                     .then(response => response.json())
                     .then(data => {
                         closeDeleteModal();
-                        showToast(data.message || 'Data berhasil dihapus', true);
+                        showToast(data.message || 'DATA BERHASIL DIHAPUS.', true);
 
                         setTimeout(() => {
                             window.location.href = '{{ route('product.index') }}';
@@ -1603,7 +1603,7 @@
                         btnYa.disabled = false;
                         btnTidak.disabled = false;
                         btnYa.textContent = 'Ya, Hapus';
-                        showToast('Terjadi kesalahan saat menghapus data', false);
+                        showToast('TERJADI KESALAHAN SAAT HAPUS DATA.', false);
                     });
             }
         </script>
@@ -1644,7 +1644,7 @@
                         this.errors = {};
                         this.isEditable = true;
                     } else {
-                        alert('Format respon server salah.');
+                        window.showAppErrorAlert('TERJADI KESALAHAN', 'FORMAT RESPON SERVER SALAH.');
                     }
                     this.loading = false;
                 })
@@ -1653,7 +1653,7 @@
                     if (xhr.status === 422) {
                         this.errors = xhr.responseJSON?.errors || {};
                     } else {
-                        alert('Gagal menyimpan group produk.');
+                        window.showAppErrorAlert('TERJADI KESALAHAN', 'GAGAL MENYIMPAN GROUP PRODUK.');
                     }
                 });
         }
@@ -1754,7 +1754,7 @@
                     if (xhr.status === 422) {
                         this.errors = xhr.responseJSON?.errors || {};
                     } else {
-                        alert('Gagal menyimpan merek.');
+                        window.showAppErrorAlert('TERJADI KESALAHAN', 'GAGAL MENYIMPAN MEREK.');
                     }
                 });
         }

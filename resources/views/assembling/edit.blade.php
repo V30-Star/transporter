@@ -641,7 +641,7 @@
                                         );
 
                                         if (dupe) {
-                                            alert('Item sama sudah ada.');
+                                            window.showAppWarningAlert('WARNING', 'ITEM SAMA SUDAH ADA.');
                                             return;
                                         }
 
@@ -677,7 +677,7 @@
                                     applyEdit() {
                                         const r = this.editRow;
                                         if (!this.isComplete(r)) {
-                                            alert('Lengkapi data item.');
+                                            window.showAppWarningAlert('WARNING', 'LENGKAPI DATA ITEM.');
                                             return;
                                         }
 
@@ -1629,7 +1629,7 @@
                                         );
 
                                         if (dupe) {
-                                            alert('Item sama sudah ada.');
+                                            window.showAppWarningAlert('WARNING', 'ITEM SAMA SUDAH ADA.');
                                             return;
                                         }
 
@@ -1665,7 +1665,7 @@
                                     applyEdit() {
                                         const r = this.editRow;
                                         if (!this.isComplete(r)) {
-                                            alert('Lengkapi data item.');
+                                            window.showAppWarningAlert('WARNING', 'LENGKAPI DATA ITEM.');
                                             return;
                                         }
 

@@ -1970,7 +1970,7 @@
                     window.showTransactionErrorModal(message, { title: 'Kombinasi Item Tidak Diizinkan' });
                     return;
                 }
-                alert(message);
+                window.showAppErrorAlert('TERJADI KESALAHAN', message);
             },
 
             syncOpeningBalanceMode() {
@@ -1992,7 +1992,7 @@
                     return;
                 }
                 if (this.biayaGlobal <= 0 || this.totalHarga <= 0) {
-                    alert("Masukkan total ongkir dan pastikan item sudah ada.");
+                    window.showAppWarningAlert('WARNING', 'MASUKKAN TOTAL ONGKIR DAN PASTIKAN ITEM SUDAH ADA.');
                     return;
                 }
 
@@ -2078,7 +2078,7 @@
                                 title: 'Produk Duplikat'
                             });
                         } else {
-                            alert(`Kode produk ${code} tidak boleh sama dalam satu Faktur Pembelian.`);
+                            window.showAppWarningAlert('WARNING', `KODE PRODUK ${code} TIDAK BOLEH SAMA DALAM SATU FAKTUR PEMBELIAN.`);
                         }
                         return;
                     }
@@ -2186,7 +2186,7 @@
                     window.showTransactionErrorModal(message, { title: 'Referensi Tidak Bisa Dipakai' });
                     return;
                 }
-                alert(message);
+                window.showAppErrorAlert('TERJADI KESALAHAN', message);
             },
 
             initDataTable() {
@@ -2342,7 +2342,7 @@
                     window.showTransactionErrorModal(message, { title: 'Referensi Tidak Bisa Dipakai' });
                     return;
                 }
-                alert(message);
+                window.showAppErrorAlert('TERJADI KESALAHAN', message);
             },
 
             initDataTable() {

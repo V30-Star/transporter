@@ -8,6 +8,21 @@ use Illuminate\Validation\ValidationException;
 
 abstract class Controller
 {
+    protected function getRestrictedPermissions(): array
+    {
+        return array_filter(array_map('trim', explode(',', (string) session('user_restricted_permissions', ''))));
+    }
+
+    protected function hasRestrictedPermission(string $permission): bool
+    {
+        return in_array($permission, $this->getRestrictedPermissions(), true);
+    }
+
+    protected function canChangeTransactionDate(): bool
+    {
+        return $this->hasRestrictedPermission('BolehGantiTanggal');
+    }
+
     protected function getEditPeriodYm(): string
     {
         $raw = trim((string) DB::table('setini')->value('fyrmth'));
@@ -33,10 +48,35 @@ abstract class Controller
         return Carbon::parse($date)->startOfDay()->lt($this->getEditPeriodStart());
     }
 
-    protected function ensureCreateDateWithinEditPeriod($date): void
+    protected function ensureCreateDateWithinEditPeriod($date, $originalDate = null): void
     {
-        if (! $this->isTransactionBeforeEditPeriod($date)) {
+        if (empty($date)) {
             return;
+        }
+
+        if (! $this->isTransactionBeforeEditPeriod($date)) {
+            $submittedDate = Carbon::parse($date)->startOfDay();
+            $today = now()->startOfDay();
+
+            if ($this->canChangeTransactionDate()) {
+                return;
+            }
+
+            if (! empty($originalDate)) {
+                $existingDate = Carbon::parse($originalDate)->startOfDay();
+
+                if ($submittedDate->equalTo($existingDate)) {
+                    return;
+                }
+            }
+
+            if ($submittedDate->equalTo($today)) {
+                return;
+            }
+
+            throw ValidationException::withMessages([
+                'fdate' => "Information\nTanggal transaksi harus sama dengan hari ini (" . $today->format('d-m-Y') . ") !!!",
+            ]);
         }
 
         throw ValidationException::withMessages([

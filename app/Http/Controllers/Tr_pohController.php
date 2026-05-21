@@ -647,7 +647,7 @@ class Tr_pohController extends Controller
             ]);
 
         if (! $hdr) {
-            return redirect()->back()->with('error', 'PO tidak ditemukan.');
+            return redirect()->back()->with('error', 'PO TIDAK ADA.');
         }
 
         $dt = DB::table('tr_pod')
@@ -1080,7 +1080,7 @@ class Tr_pohController extends Controller
 
         return redirect()
             ->route('tr_poh.create')
-            ->with('success', "Data sudah tersimpan. No {$fpono}");
+            ->with('success', "ORDER PEMBELIAN {$fpono} BERHASIL DISIMPAN.");
     }
 
     public function edit(Request $request, $fpohid)
@@ -1406,7 +1406,7 @@ class Tr_pohController extends Controller
 
         if ($isCloseOnly) {
             if (! $canClosePo) {
-                return back()->withInput()->with('error', 'Status close PO hanya bisa diubah jika fprdin tidak sama dengan 1.');
+                return back()->withInput()->with('error', 'STATUS CLOSE PO TIDAK BISA DIUPDATE. FPRDIN TIDAK BOLEH = 1.');
             }
 
             Tr_poh::where('fpohid', $header->fpohid)->update([
@@ -1417,7 +1417,7 @@ class Tr_pohController extends Controller
 
             return redirect()
                 ->route('tr_poh.index')
-                ->with('success', "Status close PO {$header->fpono} berhasil diperbarui.");
+                ->with('success', "STATUS CLOSE PO {$header->fpono} BERHASIL DIUPDATE.");
         }
 
         $validator = Validator::make($request->all(), [
@@ -1468,7 +1468,7 @@ class Tr_pohController extends Controller
         $fponoId = (int) $header->fpohid;
 
         $fpodate = \Carbon\Carbon::parse($request->fpodate)->startOfDay();
-        $this->ensureCreateDateWithinEditPeriod($fpodate);
+        $this->ensureCreateDateWithinEditPeriod($fpodate, $header->fpodate);
         $fkirimdate = $request->filled('fkirimdate')
             ? \Carbon\Carbon::parse($request->fkirimdate)->startOfDay()
             : null;
@@ -1688,12 +1688,12 @@ class Tr_pohController extends Controller
         } catch (\RuntimeException $e) {
             return back()->withInput()->withErrors(['detail' => $e->getMessage()]);
         } catch (\Throwable $e) {
-            return back()->withInput()->with('error', 'Gagal menyimpan: ' . $e->getMessage());
+            return back()->withInput()->with('error', 'ORDER PEMBELIAN BELUM BISA DISIMPAN. COBA LAGI.');
         }
 
         return redirect()
             ->route('tr_poh.index')
-            ->with('success', "Data PO {$header->fpono} berhasil diperbarui.");
+            ->with('success', "ORDER PEMBELIAN {$header->fpono} BERHASIL DIUPDATE.");
     }
 
     public function delete(Request $request, $fpohid)
@@ -1876,9 +1876,9 @@ class Tr_pohController extends Controller
             });
 
             return redirect()->route('tr_poh.index')
-                ->with('success', "Data Order Pembelian {$tr_poh->fpono} berhasil dihapus.");
+                ->with('success', "ORDER PEMBELIAN {$tr_poh->fpono} BERHASIL DIHAPUS.");
         } catch (\Exception $e) {
-            return redirect()->back()->with('error', 'Gagal menghapus data: ' . $e->getMessage());
+            return redirect()->back()->with('error', 'ORDER PEMBELIAN BELUM BISA DIHAPUS. COBA LAGI.');
         }
     }
 
@@ -1947,7 +1947,7 @@ class Tr_pohController extends Controller
             return null;
         }
 
-        return "Information\nOrder ini tidak dapat di-Edit/Delete.\nMasih ada Refrensi di Transaksi:\n" . $usedBy->implode(', ');
+        return "Information\nOrder ini tidak dapat di-Edit/Delete.\nMasih ada Referensi di Transaksi:\n" . $usedBy->implode(', ');
     }
 
     private function validateUniqueReferenceUsage(array $rowsPod, ?string $exceptPono = null): ?string

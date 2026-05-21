@@ -111,7 +111,7 @@
                             {{ !empty($isTransactionLocked) ? 'readonly' : '' }}
                             autofocus>
                         @if (!empty($isTransactionLocked))
-                            <p class="text-amber-600 text-sm mt-1">Kode Gudang dikunci karena gudang ini sudah dipakai transaksi.</p>
+                            <p class="text-amber-600 text-sm mt-1">KODE GUDANG DIKUNCI KARENA SUDAH DIREFERENSI DI TRANSAKSI.</p>
                         @endif
                         @error('fwhcode')
                             <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
@@ -259,7 +259,7 @@
                     .then(response => response.json())
                     .then(data => {
                         closeDeleteModal();
-                        showToast(data.message || 'Data berhasil dihapus', true);
+                        showToast(data.message || 'DATA BERHASIL DIHAPUS.', true);
 
                         setTimeout(() => {
                             window.location.href = '{{ route('gudang.index') }}';
@@ -269,7 +269,7 @@
                         btnYa.disabled = false;
                         btnTidak.disabled = false;
                         btnYa.textContent = 'Ya, Hapus';
-                        showToast('Terjadi kesalahan saat menghapus data', false);
+                        showToast('TERJADI KESALAHAN SAAT HAPUS DATA.', false);
                     });
             }
         </script>

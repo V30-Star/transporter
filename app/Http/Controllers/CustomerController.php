@@ -263,7 +263,7 @@ class CustomerController extends Controller
 
         return redirect()
             ->route('customer.create')
-            ->with('success', 'Customer berhasil ditambahkan.');
+            ->with('success', 'CUSTOMER BERHASIL DISIMPAN.');
     }
 
     // Edit method to return the customer edit form with existing data
@@ -405,7 +405,7 @@ class CustomerController extends Controller
 
         return redirect()
             ->route('customer.index')
-            ->with('success', 'Customer berhasil di-update.');
+            ->with('success', 'CUSTOMER BERHASIL DIUPDATE.');
     }
 
     public function delete($fcustomerid)
@@ -442,13 +442,13 @@ class CustomerController extends Controller
 
             return response()->json([
                 'success' => true,
-                'message' => 'Data customer '.$customer->fcustomername.' berhasil dihapus.',
+                'message' => 'CUSTOMER '.$customer->fcustomername.' BERHASIL DIHAPUS.',
                 'redirect' => route('customer.index'),
             ]);
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'Data belum berhasil dihapus. Silakan coba lagi.',
+                'message' => 'CUSTOMER BELUM BISA DIHAPUS. COBA LAGI.',
             ], 500);
         }
     }
@@ -572,6 +572,6 @@ class CustomerController extends Controller
             return null;
         }
 
-        return 'CUSTOMER ' . strtoupper((string) $customer->fcustomercode) . ' SUDAH DIPAKAI TRANSAKSI.';
+        return 'CUSTOMER ' . strtoupper((string) $customer->fcustomercode) . ' TIDAK BISA DIHAPUS. SUDAH DIREFERENSI DI TRANSAKSI.';
     }
 }

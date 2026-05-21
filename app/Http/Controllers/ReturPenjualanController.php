@@ -384,7 +384,7 @@ class ReturPenjualanController extends Controller
             ]);
 
         if (! $hdr) {
-            return redirect()->back()->with('error', 'Sales Order tidak ditemukan.');
+            return redirect()->back()->with('error', 'SALES ORDER TIDAK ADA.');
         }
 
         DB::table('tranmt')->where('fsono', $hdr->fsono)->update(['fprint' => 1]);
@@ -788,10 +788,10 @@ class ReturPenjualanController extends Controller
                 // Validasi sisa SO/SRJ berdasarkan fqtykecil dinonaktifkan.
             });
 
-            return redirect()->route('returpenjualan.index')->with('success', 'Retur Penjualan berhasil disimpan.');
+            return redirect()->route('returpenjualan.index')->with('success', 'RETUR PENJUALAN BERHASIL DISIMPAN.');
         } catch (\Exception $e) {
 
-            return back()->withInput()->with('error', 'Data belum berhasil disimpan. Silakan cek kembali isian transaksi.');
+            return back()->withInput()->with('error', 'RETUR PENJUALAN BELUM BISA DISIMPAN. CEK DATA TRANSAKSI.');
         }
     }
 
@@ -1545,7 +1545,7 @@ class ReturPenjualanController extends Controller
         // 2. LOAD HEADER
         $header = DB::table('tranmt')->where('ftranmtid', $ftranmtid)->first();
         if (! $header) {
-            return abort(404, 'Faktur Penjualan tidak ditemukan.');
+            return abort(404, 'FAKTUR PENJUALAN TIDAK ADA.');
         }
 
         if ($message = $this->getPostedPeriodLockMessage($header->fsodate, 'Retur ini')) {
@@ -1558,7 +1558,7 @@ class ReturPenjualanController extends Controller
 
         // 3. INISIALISASI DATA
         $fsodate = Carbon::parse($request->fsodate);
-        $this->ensureCreateDateWithinEditPeriod($fsodate);
+        $this->ensureCreateDateWithinEditPeriod($fsodate, $header->fsodate);
         $fincludeppn = $request->boolean('fincludeppn') ? '1' : '0';
         $userid = mb_substr(auth('sysuser')->user()->fname ?? 'admin', 0, 10);
         $now = now();
@@ -1812,9 +1812,9 @@ class ReturPenjualanController extends Controller
                 // Validasi sisa SO/SRJ berdasarkan fqtykecil dinonaktifkan.
             });
 
-            return redirect()->route('returpenjualan.index')->with('success', "Retur Penjualan {$header->fsono} berhasil diperbarui.");
+            return redirect()->route('returpenjualan.index')->with('success', "RETUR PENJUALAN {$header->fsono} BERHASIL DIUPDATE.");
         } catch (\Exception $e) {
-            return back()->withInput()->with('error', 'Data belum berhasil diperbarui. Silakan cek kembali isian transaksi.');
+            return back()->withInput()->with('error', 'RETUR PENJUALAN BELUM BISA DIUPDATE. CEK DATA TRANSAKSI.');
         }
     }
 
@@ -1994,9 +1994,9 @@ class ReturPenjualanController extends Controller
                 $returpenjualan->delete();
             });
 
-            return redirect()->route('returpenjualan.index')->with('success', 'Data Retur Penjualan berhasil dihapus.');
+            return redirect()->route('returpenjualan.index')->with('success', 'RETUR PENJUALAN BERHASIL DIHAPUS.');
         } catch (\Exception $e) {
-            return redirect()->route('returpenjualan.index')->with('error', 'Data belum berhasil dihapus. Silakan coba lagi.');
+            return redirect()->route('returpenjualan.index')->with('error', 'RETUR PENJUALAN BELUM BISA DIHAPUS. COBA LAGI.');
         }
     }
 

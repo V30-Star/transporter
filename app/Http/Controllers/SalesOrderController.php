@@ -676,7 +676,7 @@ class SalesOrderController extends Controller
             ]);
 
         if (! $hdr) {
-            return redirect()->back()->with('error', 'Data Sales Order tidak ditemukan.');
+            return redirect()->back()->with('error', 'SALES ORDER TIDAK ADA.');
         }
 
         DB::table('trsomt')->where('fsono', $hdr->fsono)->update(['fprint' => 1]);
@@ -1028,10 +1028,10 @@ class SalesOrderController extends Controller
                 $this->sendApprovalNotification($fsono, $userid);
             }
 
-            return redirect()->route('salesorder.create')->with('success', "Sales Order {$fsono} berhasil disimpan.");
+            return redirect()->route('salesorder.create')->with('success', "SALES ORDER {$fsono} BERHASIL DISIMPAN.");
         } catch (\Exception $e) {
             report($e);
-            return back()->withInput()->withErrors(['error' => 'Sales Order belum berhasil disimpan. Silakan cek kembali data yang diisi.']);
+            return back()->withInput()->withErrors(['error' => 'SALES ORDER BELUM BISA DISIMPAN. CEK DATA.']);
         }
     }
 
@@ -1393,7 +1393,7 @@ class SalesOrderController extends Controller
         // 2. LOAD HEADER
         $header = DB::table('trsomt')->where('ftrsomtid', $ftrsomtid)->first();
         if (! $header) {
-            return abort(404, 'Data Sales Order tidak ditemukan.');
+            return abort(404, 'SALES ORDER TIDAK ADA.');
         }
         if ($message = $this->getPostedPeriodLockMessage($header->fsodate, 'Sales Order ini')) {
             return redirect()->route('salesorder.view', $ftrsomtid)->with('error', $message);
@@ -1408,7 +1408,7 @@ class SalesOrderController extends Controller
 
         // 3. HEADER VALUES
         $fsodate = Carbon::parse($request->fsodate)->startOfDay();
-        $this->ensureCreateDateWithinEditPeriod($fsodate);
+        $this->ensureCreateDateWithinEditPeriod($fsodate, $header->fsodate);
         $fincludeppn = $request->input('fincludeppn', '0'); // 0: Exclude, 1: Include
         $fapplyppn = $request->input('fapplyppn') == '1' ? '1' : '0';
         $fppnpersen = (float) $request->input('fppnpersen', 11);
@@ -1581,7 +1581,7 @@ class SalesOrderController extends Controller
 
         return redirect()
             ->route('salesorder.index')
-            ->with('success', "Sales Order {$header->fsono} berhasil diperbarui.");
+            ->with('success', "SALES ORDER {$header->fsono} BERHASIL DIUPDATE.");
     }
 
     public function delete(Request $request, $ftrsomtid)
@@ -1733,11 +1733,11 @@ class SalesOrderController extends Controller
                 $salesorder->delete();
             });
 
-            return redirect()->route('salesorder.index')->with('success', 'Data Sales Order ' . $salesorder->fsono . ' berhasil dihapus.');
+            return redirect()->route('salesorder.index')->with('success', 'SALES ORDER ' . $salesorder->fsono . ' BERHASIL DIHAPUS.');
         } catch (\Exception $e) {
             // Jika terjadi kesalahan saat menghapus, kembali ke halaman delete dengan pesan error
             report($e);
-            return redirect()->route('salesorder.delete', $ftrsomtid)->with('error', 'Data belum berhasil dihapus. Silakan coba lagi.');
+            return redirect()->route('salesorder.delete', $ftrsomtid)->with('error', 'SALES ORDER BELUM BISA DIHAPUS. COBA LAGI.');
         }
     }
 
@@ -1830,6 +1830,6 @@ class SalesOrderController extends Controller
             return null;
         }
 
-        return 'Sales Order ' . $fsono . ' tidak bisa diubah atau dihapus karena sudah dipakai di ' . implode('; ', $parts) . '.';
+        return 'SALES ORDER ' . $fsono . ' TIDAK BISA DIUBAH ATAU DIHAPUS. SUDAH DIREFERENSI DI ' . strtoupper(implode('; ', $parts)) . '.';
     }
 }

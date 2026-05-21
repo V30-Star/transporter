@@ -371,7 +371,7 @@ class JurnalTransaksiController extends Controller
             ]);
 
         if (! $hdr) {
-            return redirect()->back()->with('error', 'PO tidak ditemukan.');
+            return redirect()->back()->with('error', 'PO TIDAK ADA.');
         }
 
         DB::table('trstockmt')->where('fstockmtno', $hdr->fstockmtno)->update(['fprint' => 1]);
@@ -724,7 +724,7 @@ class JurnalTransaksiController extends Controller
                 ['fcurrid' => $newJurnalMtId],
                 $this->resolveJournalIndexRouteParams($fjurnaltype)
             ))
-            ->with('success', ($fjurnaltype === self::PURCHASE_JOURNAL_TYPE ? 'Jurnal faktur pembelian' : 'Jurnal transaksi').' berhasil disimpan.');
+            ->with('success', strtoupper(($fjurnaltype === self::PURCHASE_JOURNAL_TYPE ? 'JURNAL FAKTUR PEMBELIAN' : 'JURNAL TRANSAKSI').' BERHASIL DISIMPAN.'));
     }
 
     public function edit($fstockmtid)
@@ -938,7 +938,7 @@ class JurnalTransaksiController extends Controller
         }
 
         $fjurnaldate = Carbon::parse($request->fjurnaldate)->startOfDay();
-        $this->ensureCreateDateWithinEditPeriod($fjurnaldate);
+        $this->ensureCreateDateWithinEditPeriod($fjurnaldate, $header->fjurnaldate);
         $fjurnaltype = $header->fjurnaltype === self::PURCHASE_JOURNAL_TYPE
             ? self::PURCHASE_JOURNAL_TYPE
             : strtoupper(trim((string) $request->input('fjurnaltype', 'JV')));
@@ -1102,7 +1102,7 @@ class JurnalTransaksiController extends Controller
                 ['fcurrid' => $fstockmtid],
                 $this->resolveJournalIndexRouteParams($fjurnaltype)
             ))
-            ->with('success', ($fjurnaltype === self::PURCHASE_JOURNAL_TYPE ? 'Jurnal faktur pembelian ' : 'Jurnal transaksi ').trim((string) $header->fjurnalno).' berhasil diperbarui.');
+            ->with('success', strtoupper(($fjurnaltype === self::PURCHASE_JOURNAL_TYPE ? 'JURNAL FAKTUR PEMBELIAN ' : 'JURNAL TRANSAKSI ').trim((string) $header->fjurnalno).' BERHASIL DIUPDATE.'));
     }
 
     public function delete($fstockmtid)
@@ -1216,7 +1216,7 @@ class JurnalTransaksiController extends Controller
 
             return redirect($redirectUrl)->with('success', $message);
         } catch (\Exception $e) {
-            $message = 'Data belum berhasil dihapus. Silakan coba lagi.';
+            $message = 'JURNAL BELUM BISA DIHAPUS. COBA LAGI.';
 
             if (request()->expectsJson()) {
                 return response()->json([

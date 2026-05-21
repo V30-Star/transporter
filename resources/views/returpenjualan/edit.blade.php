@@ -1984,7 +1984,7 @@
                     .then(response => response.json())
                     .then(data => {
                         closeDeleteModal();
-                        showToast(data.message || 'Data berhasil dihapus', true);
+                        showToast(data.message || 'DATA BERHASIL DIHAPUS.', true);
 
                         setTimeout(() => {
                             window.location.href = '{{ route('returpenjualan.index') }}';
@@ -1994,7 +1994,7 @@
                         btnYa.disabled = false;
                         btnTidak.disabled = false;
                         btnYa.textContent = 'Ya, Hapus';
-                        showToast('Terjadi kesalahan saat menghapus data', false);
+                        showToast('TERJADI KESALAHAN SAAT HAPUS DATA.', false);
                     });
             }
         </script>
@@ -2130,36 +2130,15 @@
     if (!window.toast) {
         window.toast = {
             success: (msg) => {
-                if (typeof Swal !== 'undefined') Swal.fire({
-                    toast: true,
-                    position: 'top-end',
-                    icon: 'success',
-                    title: msg,
-                    showConfirmButton: false,
-                    timer: 3000
-                });
+                if (typeof window.showAppSuccessToast === 'function') window.showAppSuccessToast(msg);
                 else console.log('Success:', msg);
             },
             error: (msg) => {
-                if (typeof Swal !== 'undefined') Swal.fire({
-                    toast: true,
-                    position: 'top-end',
-                    icon: 'error',
-                    title: msg,
-                    showConfirmButton: false,
-                    timer: 3000
-                });
+                if (typeof window.showAppErrorAlert === 'function') window.showAppErrorAlert('Terjadi Kesalahan', msg);
                 else console.error('Error:', msg);
             },
             info: (msg) => {
-                if (typeof Swal !== 'undefined') Swal.fire({
-                    toast: true,
-                    position: 'top-end',
-                    icon: 'info',
-                    title: msg,
-                    showConfirmButton: false,
-                    timer: 3000
-                });
+                if (typeof window.showAppInfoAlert === 'function') window.showAppInfoAlert('Information', msg);
                 else console.info('Info:', msg);
             }
         };
@@ -2722,15 +2701,10 @@
                     if (type === 'error' || type === 'danger') window.toast.error(message);
                     else if (type === 'warning') window.toast.info(message);
                     else window.toast.success(message);
-                } else if (typeof Swal !== 'undefined') {
-                    Swal.fire({
-                        toast: true,
-                        position: 'top-end',
-                        icon: type === 'danger' ? 'error' : type,
-                        title: message,
-                        showConfirmButton: false,
-                        timer: 3000
-                    });
+                } else if (typeof window.showAppErrorAlert === 'function' || typeof window.showAppInfoAlert === 'function' || typeof window.showAppSuccessToast === 'function') {
+                    if (type === 'error' || type === 'danger') window.showAppErrorAlert('Terjadi Kesalahan', message);
+                    else if (type === 'warning') window.showAppWarningAlert('Warning', message);
+                    else window.showAppSuccessToast(message, { timer: 3000 });
                 } else {
                     console.info('Toast:', message);
                 }

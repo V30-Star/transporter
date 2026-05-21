@@ -534,17 +534,14 @@
 
             window.showProductApprovalLocked = function() {
                 const message = 'Produk belum dapat diedit karena status approval saat ini belum mengizinkan edit.';
-                if (window.Swal?.fire) {
-                    window.Swal.fire({
-                        icon: 'info',
-                        title: 'Edit Belum Tersedia',
-                        text: message,
+                if (typeof window.showAppInfoAlert === 'function') {
+                    window.showAppInfoAlert('Edit Belum Tersedia', message, {
                         confirmButtonText: 'Tutup'
                     });
                     return;
                 }
 
-                window.alert(message);
+                window.showAppInfoAlert('INFORMATION', message);
             };
             const hasActions = {{ $showActionsColumn ? 'true' : 'false' }};
 

@@ -403,7 +403,7 @@ class MutasiController extends Controller
             ]);
 
         if (! $hdr) {
-            return redirect()->back()->with('error', 'Mutasi Stock tidak ditemukan.');
+            return redirect()->back()->with('error', 'MUTASI STOCK TIDAK ADA.');
         }
 
         DB::table('trstockmt')->where('fstockmtno', $hdr->fstockmtno)->update(['fprint' => 1]);
@@ -715,9 +715,9 @@ class MutasiController extends Controller
 
             return redirect()
                 ->route('mutasi.create')
-                ->with('success', "Transaksi {$finalNo} berhasil disimpan.");
+                ->with('success', "MUTASI {$finalNo} BERHASIL DISIMPAN.");
         } catch (\Exception $e) {
-            return back()->withInput()->withErrors(['fatal' => 'Data belum berhasil disimpan. Silakan cek kembali isian transaksi.']);
+            return back()->withInput()->withErrors(['fatal' => 'MUTASI BELUM BISA DISIMPAN. CEK DATA TRANSAKSI.']);
         }
     }
 
@@ -1011,7 +1011,7 @@ class MutasiController extends Controller
             // 4) TAHAP UPDATE DB
             // =========================
             $fstockmtdate = Carbon::parse($request->fstockmtdate)->startOfDay();
-            $this->ensureCreateDateWithinEditPeriod($fstockmtdate);
+            $this->ensureCreateDateWithinEditPeriod($fstockmtdate, $header->fstockmtdate);
             $ppnAmount = (float) $request->input('famountpopajak', 0);
             $grandTotal = $subtotal + $ppnAmount;
 
@@ -1045,10 +1045,10 @@ class MutasiController extends Controller
 
             return redirect()
                 ->route('mutasi.index')
-                ->with('success', "Transaksi {$header->fstockmtno} berhasil diperbarui.");
+                ->with('success', "MUTASI {$header->fstockmtno} BERHASIL DIUPDATE.");
         } catch (\Exception $e) {
             return back()->withInput()->withErrors([
-                'fatal' => 'Data belum berhasil diperbarui. Silakan cek kembali isian transaksi.',
+                'fatal' => 'MUTASI BELUM BISA DIUPDATE. CEK DATA TRANSAKSI.',
             ]);
         }
     }
@@ -1194,7 +1194,7 @@ class MutasiController extends Controller
             if (! $mutasi) {
                 DB::rollBack();
 
-                return redirect()->route('mutasi.index')->with('error', 'Data Mutasi tidak ditemukan.');
+                return redirect()->route('mutasi.index')->with('error', 'MUTASI TIDAK ADA.');
             }
 
             if ($message = $this->getPostedPeriodLockMessage($mutasi->fstockmtdate, 'Mutasi ini')) {
@@ -1223,13 +1223,13 @@ class MutasiController extends Controller
 
             DB::commit();
 
-            return redirect()->route('mutasi.index')->with('success', 'Data Mutasi '.$docNo.' berhasil dihapus.');
+            return redirect()->route('mutasi.index')->with('success', 'MUTASI '.$docNo.' BERHASIL DIHAPUS.');
         } catch (\Exception $e) {
             if (DB::transactionLevel() > 0) {
                 DB::rollBack();
             }
 
-            return redirect()->route('mutasi.index')->with('error', 'Data belum berhasil dihapus. Silakan coba lagi.');
+            return redirect()->route('mutasi.index')->with('error', 'MUTASI BELUM BISA DIHAPUS. COBA LAGI.');
         }
     }
 

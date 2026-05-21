@@ -77,7 +77,7 @@ class SupplierController extends Controller
 
         return redirect()
             ->route('supplier.create')
-            ->with('success', 'Supplier berhasil ditambahkan.');
+            ->with('success', 'SUPPLIER BERHASIL DISIMPAN.');
     }
 
     public function edit($fsupplierid)
@@ -152,7 +152,7 @@ class SupplierController extends Controller
 
         return redirect()
             ->route('supplier.index')
-            ->with('success', 'Supplier berhasil di-update.');
+            ->with('success', 'SUPPLIER BERHASIL DIUPDATE.');
     }
 
     public function delete($fsupplierid)
@@ -189,13 +189,13 @@ class SupplierController extends Controller
 
             return response()->json([
                 'success' => true,
-                'message' => 'Data supplier ' . $supplier->fsuppliername . ' berhasil dihapus.',
+                'message' => 'SUPPLIER ' . $supplier->fsuppliername . ' BERHASIL DIHAPUS.',
                 'redirect' => route('supplier.index'),
             ]);
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'Data belum berhasil dihapus. Silakan coba lagi.',
+                'message' => 'SUPPLIER BELUM BISA DIHAPUS. COBA LAGI.',
             ], 500);
         }
     }
@@ -262,6 +262,6 @@ class SupplierController extends Controller
             return null;
         }
 
-        return 'SUPPLIER ' . strtoupper((string) $supplier->fsuppliercode) . ' SUDAH DIPAKAI TRANSAKSI.';
+        return 'SUPPLIER ' . strtoupper((string) $supplier->fsuppliercode) . ' TIDAK BISA DIHAPUS. SUDAH DIREFERENSI DI TRANSAKSI.';
     }
 }

@@ -325,7 +325,7 @@ class AdjstockController extends Controller
             ]);
 
         if (! $hdr) {
-            return redirect()->back()->with('error', 'Adjustment Stock tidak ditemukan.');
+            return redirect()->back()->with('error', 'ADJUSTMENT STOCK TIDAK ADA.');
         }
 
         DB::table('trstockmt')->where('fstockmtno', $hdr->fstockmtno)->update(['fprint' => 1]);
@@ -647,9 +647,9 @@ class AdjstockController extends Controller
 
             return redirect()
                 ->route('adjstock.create')
-                ->with('success', "Transaksi {$finalNo} berhasil disimpan.");
+                ->with('success', "ADJUSTMENT STOCK {$finalNo} BERHASIL DISIMPAN.");
         } catch (\Exception $e) {
-            return back()->withInput()->withErrors(['fatal' => 'Data belum berhasil disimpan. Silakan cek kembali isian transaksi.']);
+            return back()->withInput()->withErrors(['fatal' => 'ADJUSTMENT STOCK BELUM BISA DISIMPAN. CEK DATA TRANSAKSI.']);
         }
     }
 
@@ -942,7 +942,7 @@ class AdjstockController extends Controller
         }
 
         $fstockmtdate = Carbon::parse($request->fstockmtdate)->startOfDay();
-        $this->ensureCreateDateWithinEditPeriod($fstockmtdate);
+        $this->ensureCreateDateWithinEditPeriod($fstockmtdate, $header->fstockmtdate);
         $ffrom = $request->input('ffrom');
         $fprdjadi = $request->input('fprdjadi');
         $ftrancode = $request->input('ftrancode');
@@ -1146,7 +1146,7 @@ class AdjstockController extends Controller
 
         return redirect()
             ->route('adjstock.index')
-            ->with('success', "Transaksi {$header->fstockmtno} berhasil diperbarui.");
+            ->with('success', "ADJUSTMENT STOCK {$header->fstockmtno} BERHASIL DIUPDATE.");
     }
 
     public function delete($fstockmtid)
@@ -1294,10 +1294,10 @@ class AdjstockController extends Controller
                 $adjstock->delete();
             });
 
-            return redirect()->route('adjstock.index')->with('success', 'Data Adjustment Stock '.$adjstock->fstockmtno.' berhasil dihapus.');
+            return redirect()->route('adjstock.index')->with('success', 'ADJUSTMENT STOCK '.$adjstock->fstockmtno.' BERHASIL DIHAPUS.');
         } catch (\Exception $e) {
             // Jika terjadi kesalahan saat menghapus, kembali ke halaman delete dengan pesan error
-            return redirect()->route('adjstock.delete', $fstockmtid)->with('error', 'Data belum berhasil dihapus. Silakan coba lagi.');
+            return redirect()->route('adjstock.delete', $fstockmtid)->with('error', 'ADJUSTMENT STOCK BELUM BISA DIHAPUS. COBA LAGI.');
         }
     }
 

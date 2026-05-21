@@ -7,6 +7,7 @@
             array_map('trim', explode(',', (string) session('user_restricted_permissions', '')))
         );
         $layoutCanAccessAllBranches = in_array('semuacabang', $layoutRestrictedPermissions, true);
+        $layoutCanChangeTransactionDate = in_array('BolehGantiTanggal', $layoutRestrictedPermissions, true);
         $layoutBranchOptions = $layoutCanAccessAllBranches
             ? \Illuminate\Support\Facades\DB::table('mscabang')
                 ->select('fcabangkode', 'fcabangname')
@@ -288,6 +289,13 @@
         html[data-theme="dark"] .swal2-title,
         html[data-theme="dark"] .swal2-html-container {
             color: #f9fafb !important;
+        }
+
+        .swal2-popup .swal2-title,
+        .swal2-popup .swal2-html-container,
+        .swal2-popup .swal2-confirm,
+        .swal2-popup .swal2-cancel {
+            text-transform: uppercase;
         }
 
         html[data-theme="dark"] .user-dropdown-panel {
@@ -685,13 +693,6 @@
                 @endauth
             </header>
 
-            @if (session('success'))
-                <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded relative mb-4"
-                    role="alert">
-                    <span class="block sm:inline">{{ session('success') }}</span>
-                </div>
-            @endif
-
             <main class="p-6 flex-1">
                 @yield('content')
             </main>
@@ -717,6 +718,167 @@
     @stack('scripts')
     <script>
         (() => {
+            const defaultToastOptions = {
+                showConfirmButton: false,
+                timer: 1500
+            };
+
+            function compactPopupMessage(value) {
+                if (typeof value !== 'string') {
+                    return value;
+                }
+
+                let result = value.trim();
+
+                result = result.replace(/^data\s+/i, '');
+                result = result.replace(/\bbelum berhasil\b/gi, 'belum bisa');
+                result = result.replace(/\bgagal menghapus data\b/gi, 'hapus data gagal');
+                result = result.replace(/\bgagal menyimpan data\b/gi, 'simpan data gagal');
+                result = result.replace(/\bgagal memperbarui data\b/gi, 'update data gagal');
+                result = result.replace(/\bberhasil diperbarui\b/gi, 'berhasil diupdate');
+                result = result.replace(/\bdiperbarui\b/gi, 'diupdate');
+                result = result.replace(/\btidak dapat\b/gi, 'tidak bisa');
+                result = result.replace(/\btidak ditemukan\b/gi, 'tidak ada');
+                result = result.replace(/\bsilakan coba lagi\b/gi, 'coba lagi');
+                result = result.replace(/\bsilakan cek kembali data yang diisi\b/gi, 'cek data');
+                result = result.replace(/\bsilakan cek kembali isian transaksi lalu coba lagi\b/gi, 'cek data transaksi');
+                result = result.replace(/\bsilakan cek kembali isian transaksi\b/gi, 'cek data transaksi');
+                result = result.replace(/\bsilakan cek kembali isian anda\b/gi, 'cek data');
+                result = result.replace(/\bsilakan cek kembali\b/gi, 'cek data');
+                result = result.replace(/\bmasih ada refrensi\b/gi, 'masih ada referensi');
+                result = result.replace(/\bkarena sudah direferensi di transaksi\b/gi, 'karena sudah direferensi di transaksi');
+                result = result.replace(/\bkarena sudah direferensikan di transaksi\b/gi, 'karena sudah direferensi di transaksi');
+                result = result.replace(/\bsudah digunakan di\b/gi, 'sudah direferensi di');
+                result = result.replace(/\bsudah digunakan dalam\b/gi, 'sudah direferensi di');
+                result = result.replace(/\bsudah digunakan pada\b/gi, 'sudah direferensi di');
+                result = result.replace(/\btidak bisa dihapus karena sudah direferensi di transaksi\b/gi, 'tidak bisa dihapus. sudah direferensi di transaksi');
+                result = result.replace(/\s+\.\s*/g, '. ');
+                result = result.replace(/\s+/g, ' ').trim();
+
+                return result;
+            }
+
+            function toUpperMessage(value) {
+                return typeof value === 'string' ? compactPopupMessage(value).toUpperCase() : value;
+            }
+
+            window.showAppSuccessToast = function(title = 'Your work has been saved', options = {}) {
+                Swal.fire({
+                    icon: 'success',
+                    title: toUpperMessage(title),
+                    ...defaultToastOptions,
+                    ...options,
+                });
+            };
+
+            window.showAppErrorAlert = function(title = 'Terjadi Kesalahan', text = '', options = {}) {
+                Swal.fire({
+                    title: toUpperMessage(title),
+                    text: toUpperMessage(text),
+                    icon: 'error',
+                    ...options,
+                });
+            };
+
+            window.showAppInfoAlert = function(title = 'Information', text = '', options = {}) {
+                Swal.fire({
+                    title: toUpperMessage(title),
+                    text: toUpperMessage(text),
+                    icon: 'info',
+                    ...options,
+                });
+            };
+
+            window.showAppWarningAlert = function(title = 'Warning', text = '', options = {}) {
+                Swal.fire({
+                    title: toUpperMessage(title),
+                    text: toUpperMessage(text),
+                    icon: 'warning',
+                    ...options,
+                });
+            };
+
+            const canChangeTransactionDate = @json($layoutCanChangeTransactionDate);
+            const serverTodayDateValue = @json(now()->format('Y-m-d'));
+            const guardedTransactionDateFields = [
+                'fprdate',
+                'fpodate',
+                'fstockmtdate',
+                'fsodate',
+                'fjurnaldate',
+                'fkasmtdate',
+            ];
+
+            function normalizeDateValue(value) {
+                const raw = (value || '').toString().trim();
+                return /^\d{4}-\d{2}-\d{2}$/.test(raw) ? raw : '';
+            }
+
+            function getTodayDateValue() {
+                return normalizeDateValue(serverTodayDateValue);
+            }
+
+            function attachTransactionDateGuard(field) {
+                if (!(field instanceof HTMLInputElement) || field.dataset.dateAuthorityBound === '1') {
+                    return;
+                }
+
+                if (field.type !== 'date' || field.disabled || field.readOnly || canChangeTransactionDate) {
+                    return;
+                }
+
+                const todayValue = getTodayDateValue();
+                const loadedValue = normalizeDateValue(field.value);
+                const allowedValue = loadedValue || todayValue;
+
+                if (!loadedValue) {
+                    field.value = todayValue;
+                }
+
+                field.dataset.dateAuthorityBound = '1';
+                field.dataset.allowedDateValue = allowedValue;
+                field.dataset.todayDateValue = todayValue;
+                if (allowedValue === todayValue) {
+                    field.setAttribute('max', todayValue);
+                } else {
+                    field.removeAttribute('max');
+                }
+                field.setAttribute('title', `TANGGAL HANYA BOLEH ${allowedValue === todayValue ? 'HARI INI' : allowedValue}`);
+
+                const revertIfInvalid = () => {
+                    const currentValue = normalizeDateValue(field.value);
+                    const fixedAllowedValue = field.dataset.allowedDateValue || todayValue;
+
+                    if (currentValue === '' || currentValue === fixedAllowedValue) {
+                        return;
+                    }
+
+                    field.value = fixedAllowedValue;
+                    if (typeof window.showAppInfoAlert === 'function') {
+                        window.showAppInfoAlert(
+                            'Information',
+                            fixedAllowedValue === todayValue
+                                ? `Tanggal transaksi harus sama dengan hari ini (${todayValue}).`
+                                : `Tanggal transaksi tidak bisa diubah. Gunakan tanggal ${fixedAllowedValue}.`
+                        );
+                    }
+                };
+
+                field.addEventListener('change', revertIfInvalid);
+                field.addEventListener('blur', revertIfInvalid);
+            }
+
+            function enforceTransactionDateAuthority(root = document) {
+                if (canChangeTransactionDate) {
+                    return;
+                }
+
+                const scope = root instanceof HTMLElement || root instanceof Document ? root : document;
+                guardedTransactionDateFields.forEach((fieldName) => {
+                    scope.querySelectorAll(`input[type="date"][name="${fieldName}"]`).forEach(attachTransactionDateGuard);
+                });
+            }
+
             function resolveTheme(theme) {
                 return theme === 'dark' ? 'dark' : 'light';
             }
@@ -1045,7 +1207,7 @@
             }
 
             function simplifyMessage(message) {
-                let result = String(message ?? '').trim();
+                let result = compactPopupMessage(String(message ?? '').trim());
 
                 result = result.replace(/^the\s+/i, '');
                 result = result.replace(/\.$/, '');
@@ -1082,14 +1244,21 @@
                     : '';
 
                 if (simpleTitle !== '') {
-                    Swal.fire({
-                        icon: simpleTitle.toLowerCase() === 'warning' ? 'warning' : 'info',
-                        title: simpleTitle,
-                        html: `<div class="text-left whitespace-pre-line" style="font-size:14px; line-height:1.7;">${escapeHtml(simpleLines.slice(1).join('\n'))}</div>`,
-                        confirmButtonText: 'Ok',
-                        confirmButtonColor: '#f59e0b',
-                        width: 560
-                    });
+                    const helperName = simpleTitle.toLowerCase() === 'warning'
+                        ? 'showAppWarningAlert'
+                        : 'showAppInfoAlert';
+
+                    window[helperName](
+                        simpleTitle,
+                        '',
+                        {
+                            html: `<div class="text-left whitespace-pre-line" style="font-size:14px; line-height:1.7;">${escapeHtml(simpleLines.slice(1).map((line) => compactPopupMessage(line)).join('\n'))}</div>`,
+                            text: undefined,
+                            confirmButtonText: 'OK',
+                            confirmButtonColor: '#f59e0b',
+                            width: 560
+                        }
+                    );
                     return;
                 }
 
@@ -1105,21 +1274,31 @@
                     `<li style="margin-bottom:8px;">${escapeHtml(message)}</li>`
                 ).join('');
 
-                Swal.fire({
-                    icon: 'warning',
-                    title: options.title || 'Information',
-                    html: `
-                        <div style="text-align:left; font-size:14px; line-height:1.6;">
-                            <ul style="margin:0 0 12px 18px; padding:0;">${listHtml}</ul>
-                        </div>
-                    `,
-                    confirmButtonText: 'Ok',
-                    confirmButtonColor: '#f59e0b',
-                    width: 560
-                });
+                window.showAppErrorAlert(
+                    options.title || 'Terjadi Kesalahan',
+                    normalizedMessages.join('\n'),
+                    {
+                        html: `
+                            <div style="text-align:left; font-size:14px; line-height:1.6;">
+                                <ul style="margin:0 0 12px 18px; padding:0;">${listHtml}</ul>
+                            </div>
+                        `,
+                        text: undefined,
+                        confirmButtonText: 'OK',
+                        confirmButtonColor: '#f59e0b',
+                        width: 560
+                    }
+                );
             };
         })();
     </script>
+    @if (session('success'))
+        <script>
+            document.addEventListener('DOMContentLoaded', () => {
+                window.showAppSuccessToast(@json((string) session('success')));
+            });
+        </script>
+    @endif
     @if ($transactionErrorMessages->isNotEmpty())
         <script>
             (() => {
@@ -1465,11 +1644,13 @@
                 }
 
                 document.addEventListener('DOMContentLoaded', () => {
+                    enforceTransactionDateAuthority(document);
                     enhanceTransactionBranchFields(document);
                     syncEnhancedBranchFields(document);
                 });
 
                 document.addEventListener('form-draft-restored', (event) => {
+                    enforceTransactionDateAuthority(event.target instanceof HTMLElement ? event.target : document);
                     enhanceTransactionBranchFields(event.target instanceof HTMLElement ? event.target : document);
                     syncEnhancedBranchFields(event.target instanceof HTMLElement ? event.target : document);
                 });
@@ -1803,6 +1984,8 @@
             }
 
             document.addEventListener('DOMContentLoaded', () => {
+                enforceTransactionDateAuthority(document);
+
                 if (hasSuccessFlash) {
                     clearSubmittedDrafts();
                 }
@@ -1828,6 +2011,7 @@
                                 localStorage.removeItem(storageKey);
                             } else {
                                 restoreForm(form, parsed);
+                                enforceTransactionDateAuthority(form);
                             }
                         }
                     } catch (error) {

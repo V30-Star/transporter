@@ -884,7 +884,7 @@ class FakturpembelianController extends Controller
             ]);
 
         if (! $hdr) {
-            return redirect()->back()->with('error', 'PO tidak ditemukan.');
+            return redirect()->back()->with('error', 'PO TIDAK ADA.');
         }
 
         $dt = PenerimaanPembelianDetail::query()
@@ -1280,7 +1280,7 @@ class FakturpembelianController extends Controller
             });
 
             return redirect()->route('fakturpembelian.create')
-                ->with('success', "Faktur Pembelian $fstockmtno berhasil disimpan.");
+                ->with('success', "FAKTUR PEMBELIAN $fstockmtno BERHASIL DISIMPAN.");
         } catch (\Exception $e) {
             Log::error('FakturPembelian@store ERROR: ' . $e->getMessage());
 
@@ -1675,7 +1675,7 @@ class FakturpembelianController extends Controller
             // HEADER FIELDS
             $fstockmtno = $header->fstockmtno;
             $fstockmtdate = Carbon::parse($request->fstockmtdate)->startOfDay();
-            $this->ensureCreateDateWithinEditPeriod($fstockmtdate);
+            $this->ensureCreateDateWithinEditPeriod($fstockmtdate, $header->fstockmtdate);
             $fsupplier = trim((string) $request->input('fsupplier'));
             $ffrom = trim((string) $request->input('ffrom'));
             $fket = trim((string) $request->input('fket', ''));
@@ -1981,7 +1981,7 @@ class FakturpembelianController extends Controller
 
             return redirect()
                 ->route('fakturpembelian.index')
-                ->with('success', "Faktur Pembelian {$fstockmtno} berhasil di-update.");
+                ->with('success', "FAKTUR PEMBELIAN {$fstockmtno} BERHASIL DIUPDATE.");
         } catch (\Exception $e) {
 
             return back()
@@ -2158,10 +2158,10 @@ class FakturpembelianController extends Controller
                 $fakturpembelian->delete();
             });
 
-            return redirect()->route('fakturpembelian.index')->with('success', 'Data Faktur Pembelian ' . $fakturpembelian->fstockmtno . ' berhasil dihapus.');
+            return redirect()->route('fakturpembelian.index')->with('success', 'FAKTUR PEMBELIAN ' . $fakturpembelian->fstockmtno . ' BERHASIL DIHAPUS.');
         } catch (\Exception $e) {
             // Jika terjadi kesalahan saat menghapus, kembali ke halaman delete dengan pesan error
-            return redirect()->route('fakturpembelian.delete', $fstockmtid)->with('error', 'Gagal menghapus data: ' . $e->getMessage());
+            return redirect()->route('fakturpembelian.delete', $fstockmtid)->with('error', 'FAKTUR PEMBELIAN BELUM BISA DIHAPUS. COBA LAGI.');
         }
     }
 

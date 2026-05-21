@@ -363,7 +363,7 @@ class AssemblingController extends Controller
             ]);
 
         if (! $hdr) {
-            return redirect()->back()->with('error', 'Assembling tidak ditemukan.');
+            return redirect()->back()->with('error', 'ASSEMBLING TIDAK ADA.');
         }
 
         DB::table('trstockmt')->where('fstockmtno', $hdr->fstockmtno)->update(['fprint' => 1]);
@@ -714,7 +714,7 @@ class AssemblingController extends Controller
 
         return redirect()
             ->route('assembling.create')
-            ->with('success', "Transaksi {$fstockmtno} tersimpan.");
+            ->with('success', "ASSEMBLING {$fstockmtno} BERHASIL DISIMPAN.");
     }
 
     public function edit($fstockmtid)
@@ -1033,7 +1033,7 @@ class AssemblingController extends Controller
         }
 
         $fstockmtdate = Carbon::parse($request->fstockmtdate)->startOfDay();
-        $this->ensureCreateDateWithinEditPeriod($fstockmtdate);
+        $this->ensureCreateDateWithinEditPeriod($fstockmtdate, $header->fstockmtdate);
         $ffrom = $request->input('ffrom');
         $fket = trim((string) $request->input('fket', ''));
         $fbranchcode = $request->input('fbranchcode');
@@ -1242,7 +1242,7 @@ class AssemblingController extends Controller
 
         return redirect()
             ->route('assembling.index')
-            ->with('success', "Transaksi {$header->fstockmtno} berhasil diperbarui.");
+            ->with('success', "ASSEMBLING {$header->fstockmtno} BERHASIL DIUPDATE.");
     }
 
     public function delete($fstockmtid)
@@ -1404,10 +1404,10 @@ class AssemblingController extends Controller
                 $assembling->delete();
             });
 
-            return redirect()->route('assembling.index')->with('success', 'Data assembling '.$assembling->fstockmtno.' berhasil dihapus.');
+            return redirect()->route('assembling.index')->with('success', 'ASSEMBLING '.$assembling->fstockmtno.' BERHASIL DIHAPUS.');
         } catch (\Exception $e) {
             // Jika terjadi kesalahan saat menghapus, kembali ke halaman delete dengan pesan error
-            return redirect()->route('assembling.delete', $fstockmtid)->with('error', 'Data belum berhasil dihapus. Silakan coba lagi.');
+            return redirect()->route('assembling.delete', $fstockmtid)->with('error', 'ASSEMBLING BELUM BISA DIHAPUS. COBA LAGI.');
         }
     }
 

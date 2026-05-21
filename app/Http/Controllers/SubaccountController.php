@@ -69,7 +69,7 @@ class SubaccountController extends Controller
 
         return redirect()
             ->route('subaccount.create')
-            ->with('success', 'Subaccount berhasil ditambahkan.');
+            ->with('success', 'SUBACCOUNT BERHASIL DISIMPAN.');
     }
 
     public function edit($fsubaccountid)
@@ -117,7 +117,7 @@ class SubaccountController extends Controller
 
         return redirect()
             ->route('subaccount.index')
-            ->with('success', 'Subaccount berhasil di-update.');
+            ->with('success', 'SUBACCOUNT BERHASIL DIUPDATE.');
     }
 
     public function delete($fsubaccountid)
@@ -145,13 +145,13 @@ class SubaccountController extends Controller
 
             return response()->json([
                 'success' => true,
-                'message' => 'Data subaccount '.$subaccount->fsubaccountname.' berhasil dihapus.',
+                'message' => 'SUBACCOUNT '.$subaccount->fsubaccountname.' BERHASIL DIHAPUS.',
                 'redirect' => route('subaccount.index'),
             ]);
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'Data belum berhasil dihapus. Silakan coba lagi.',
+                'message' => 'SUBACCOUNT BELUM BISA DIHAPUS. COBA LAGI.',
             ], 500);
         }
     }
