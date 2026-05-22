@@ -1020,11 +1020,20 @@ class Tr_prhController extends Controller
     private function buildSavedItems($details, bool $includePricing = false)
     {
         return $details->map(function ($detail) use ($includePricing) {
+            $existingUnit = trim((string) ($detail->fsatuan ?? ''));
+            $units = array_values(array_unique(array_filter(array_map('trim', [
+                $existingUnit,
+                $detail->fsatuankecil ?? '',
+                $detail->fsatuanbesar ?? '',
+                $detail->fsatuanbesar2 ?? '',
+            ]))));
+
             $item = [
                 'uid' => (string) \Illuminate\Support\Str::uuid(),
                 'fitemcode' => (string) ($detail->fprdcode_master ?? ''),
                 'fitemname' => (string) ($detail->fprdname ?? ''),
-                'fsatuan' => (string) ($detail->fsatuan ?? ''),
+                'fsatuan' => $existingUnit,
+                'units' => $units,
                 'fqty' => (float) ($detail->fqty ?? 0),
                 'fqtypo' => (float) ($detail->fqtydipo ?? $detail->fqtypo ?? 0),
                 'fqtysisapr' => (float) ($detail->fqtysisapr ?? 0),
@@ -1105,6 +1114,9 @@ class Tr_prhController extends Controller
                 'd.*',
                 'p.fprdname',
                 'p.fprdcode as fprdcode_master',
+                'p.fsatuankecil',
+                'p.fsatuanbesar',
+                'p.fsatuanbesar2',
                 DB::raw('COALESCE(
                     CASE 
                         WHEN d.fsatuan=p.fsatuanbesar 

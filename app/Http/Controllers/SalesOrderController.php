@@ -710,7 +710,7 @@ class SalesOrderController extends Controller
     public function create(Request $request)
     {
         $customers = Customer::orderBy('fcustomername', 'asc')
-            ->get(['fcustomercode', 'fcustomername']);
+            ->get(['fcustomercode', 'fcustomername', 'ftempo', 'fsalesman']);
 
         $salesmans = Salesman::orderBy('fsalesmanname', 'asc')
             ->get(['fsalesmancode', 'fsalesmanname']);
@@ -1079,7 +1079,7 @@ class SalesOrderController extends Controller
     public function edit(Request $request, $ftrsomtid)
     {
         $customers = Customer::orderBy('fcustomername', 'asc')
-            ->get(['fcustomercode', 'fcustomername']);
+            ->get(['fcustomercode', 'fcustomername', 'ftempo', 'fsalesman']);
 
         $salesmans = Salesman::orderBy('fsalesmanname', 'asc')
             ->get(['fsalesmancode', 'fsalesmanname']);
@@ -1222,7 +1222,7 @@ class SalesOrderController extends Controller
     public function view(Request $request, $ftrsomtid)
     {
         $customers = Customer::orderBy('fcustomername', 'asc')
-            ->get(['fcustomercode', 'fcustomername']);
+            ->get(['fcustomercode', 'fcustomername', 'ftempo', 'fsalesman']);
 
         $salesmans = Salesman::orderBy('fsalesmanname', 'asc')
             ->get(['fsalesmancode', 'fsalesmanname']);

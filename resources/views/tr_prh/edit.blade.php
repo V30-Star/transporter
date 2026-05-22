@@ -411,7 +411,7 @@
             @else
                 {{-- MODE EDIT --}}
                 <form action="{{ route('tr_prh.update', $tr_prh->fprhid) }}" method="POST"
-                    data-form-draft="true" data-draft-key="tr_prh:edit:{{ $tr_prh->fprhid }}"
+                    data-form-draft="true" data-draft-key="tr_prh:edit:{{ $tr_prh->fprhid }}" data-disable-form-persist="true"
                     x-data="{ blockedByPO: {{ $blockedByPO ? 'true' : 'false' }} }"
                     @submit.prevent="window.dispatchEvent(new CustomEvent('tr-prh-edit-submit-request'))">
                     @csrf
@@ -1236,17 +1236,25 @@
                 }
 
                 let units = [];
-                if (meta && meta.units && meta.units.length > 0) {
-                    units = meta.units;
+                if (Array.isArray(it.units) && it.units.length > 0) {
+                    units = [...new Set(it.units.map(unit => (unit ?? '').toString().trim()).filter(Boolean))];
+                } else if (meta && meta.units && meta.units.length > 0) {
+                    units = [...new Set(meta.units.map(unit => (unit ?? '').toString().trim()).filter(Boolean))];
                 } else if (it.fsatuan) {
                     units = [it.fsatuan];
+                }
+
+                const existingUnit = (it.fsatuan || '').toString().trim();
+                const matchedUnit = units.find(unit => unit.toLowerCase() === existingUnit.toLowerCase()) || existingUnit;
+                if (matchedUnit && !units.includes(matchedUnit)) {
+                    units.unshift(matchedUnit);
                 }
 
                 return {
                     ...it,
                     uid: it.uid || cryptoRandom(),
                     units: units,
-                    fsatuan: it.fsatuan || (units[0] || '')
+                    fsatuan: matchedUnit || (units[0] || '')
                 };
             });
 
@@ -1475,13 +1483,22 @@
             const hydratedItems = rawItems.map((it) => {
                 const code = (it.fitemcode || '').trim();
                 const meta = window.PRODUCT_MAP?.[code] || null;
-                const units = meta?.units?.length ? meta.units : (it.fsatuan ? [it.fsatuan] : []);
+                const units = Array.isArray(it.units) && it.units.length > 0
+                    ? [...new Set(it.units.map(unit => (unit ?? '').toString().trim()).filter(Boolean))]
+                    : (meta?.units?.length
+                        ? [...new Set(meta.units.map(unit => (unit ?? '').toString().trim()).filter(Boolean))]
+                        : (it.fsatuan ? [it.fsatuan] : []));
+                const existingUnit = (it.fsatuan || '').toString().trim();
+                const matchedUnit = units.find(unit => unit.toLowerCase() === existingUnit.toLowerCase()) || existingUnit;
+                if (matchedUnit && !units.includes(matchedUnit)) {
+                    units.unshift(matchedUnit);
+                }
 
                 return {
                     ...it,
                     uid: it.uid || cryptoRandom(),
                     units,
-                    fsatuan: it.fsatuan || (units[0] || ''),
+                    fsatuan: matchedUnit || (units[0] || ''),
                     fqty: Number(it.fqty || 0),
                     fqtypo: Number(it.fqtypo || 0),
                     fnoacak: (it.fnoacak || '').toString()
@@ -1636,14 +1653,16 @@
                     row.fitemname = meta.name || '';
                     const units = [...new Set((meta.units || []).map(unit => (unit ?? '').toString().trim()).filter(Boolean))];
                     row.units = units;
+                    const existingUnit = (row.fsatuan || '').toString().trim();
+                    const matchedUnit = units.find(unit => unit.toLowerCase() === existingUnit.toLowerCase()) || existingUnit;
                     row.fsatuan = forceDefaultUnit
                         ? (units[0] || '')
-                        : (units.includes(row.fsatuan) ? row.fsatuan : (units[0] || ''));
+                        : (matchedUnit || (units[0] || ''));
                     row.fnoacak = this.normalizeNoAcak(row.fnoacak) || this.generateUniqueNoAcak();
                 },
 
                 onCodeTyped(row, index = null) {
-                    this.hydrateRowFromMeta(row, this.productMeta(row.fitemcode), true);
+                    this.hydrateRowFromMeta(row, this.productMeta(row.fitemcode), false);
                     this.onRowUpdated(index);
                 },
 

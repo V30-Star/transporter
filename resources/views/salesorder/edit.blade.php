@@ -266,6 +266,8 @@
                                             @endif
                                             @foreach ($customers as $customer)
                                                 <option value="{{ $customer->fcustomercode }}" {{-- CEK DISINI: Bandingkan dengan data yang tersimpan di DB --}}
+                                                    data-ftempo="{{ trim((string) ($customer->ftempo ?? 0)) }}"
+                                                    data-fsalesman="{{ trim((string) ($customer->fsalesman ?? '')) }}"
                                                     {{ old('fcustno', $salesorder->fcustno) == $customer->fcustomercode ? 'selected' : '' }}>
                                                     {{ $customer->fcustomername }} ({{ $customer->fcustomercode }})
                                                 </option>
@@ -776,6 +778,8 @@
                                                     @endif
                                                     @foreach ($customers as $customer)
                                                         <option value="{{ $customer->fcustomercode }}"
+                                                            data-ftempo="{{ trim((string) ($customer->ftempo ?? 0)) }}"
+                                                            data-fsalesman="{{ trim((string) ($customer->fsalesman ?? '')) }}"
                                                             {{-- CEK DISINI: Bandingkan dengan data yang tersimpan di DB --}}
                                                             {{ old('fcustno', $salesorder->fcustno) == $customer->fcustomercode ? 'selected' : '' }}>
                                                             {{ $customer->fcustomername }}
@@ -2561,5 +2565,57 @@
 
     <script>
         window.PRODUCT_MAP = @json($productMap ?? []);
+    </script>
+    <script>
+        (() => {
+            function syncSalesOrderCustomerDefaults(detail = {}) {
+                const customerSelect = document.getElementById('modal_filter_customer_id');
+                const customerHidden = document.getElementById('customerCodeHidden');
+                const tempoInput = document.getElementById('ftempohr');
+                const salesmanSelect = document.getElementById('modal_filter_salesman_id');
+                const salesmanHidden = document.getElementById('salesmanCodeHidden');
+
+                if (!customerSelect || !tempoInput || !salesmanSelect || !salesmanHidden) {
+                    return;
+                }
+
+                const normalize = (value) => String(value ?? '').trim();
+                const normalizeCode = (value) => normalize(value).toUpperCase();
+                const customerCode = normalize(detail.fcustomercode) || normalize(customerHidden.value) || normalize(customerSelect.value);
+                const selectedOption = [...customerSelect.options].find((option) => normalizeCode(option.value) === normalizeCode(customerCode));
+
+                if (customerCode !== '' && selectedOption) {
+                    customerSelect.value = customerCode;
+                }
+
+                const tempoValue = normalize(detail.ftempo ?? selectedOption?.dataset?.ftempo ?? '');
+                const salesmanCode = normalize(detail.fsalesman ?? selectedOption?.dataset?.fsalesman ?? '');
+
+                if (tempoValue !== '') {
+                    tempoInput.value = tempoValue;
+                }
+
+                if (salesmanCode !== '') {
+                    let salesmanOption = [...salesmanSelect.options].find((option) => normalizeCode(option.value) === normalizeCode(salesmanCode));
+                    if (!salesmanOption) {
+                        salesmanOption = new Option(salesmanCode, salesmanCode, true, true);
+                        salesmanSelect.add(salesmanOption);
+                    } else {
+                        salesmanOption.selected = true;
+                    }
+                    salesmanSelect.value = salesmanOption.value;
+                    salesmanHidden.value = salesmanCode;
+                    salesmanSelect.dispatchEvent(new Event('change', { bubbles: true }));
+                }
+            }
+
+            document.addEventListener('DOMContentLoaded', () => {
+                syncSalesOrderCustomerDefaults();
+
+                const customerSelect = document.getElementById('modal_filter_customer_id');
+                customerSelect?.addEventListener('change', () => syncSalesOrderCustomerDefaults());
+            });
+            window.addEventListener('customer-selected', (event) => syncSalesOrderCustomerDefaults(event.detail || {}));
+        })();
     </script>
 @endpush
