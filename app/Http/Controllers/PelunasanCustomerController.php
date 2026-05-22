@@ -78,24 +78,60 @@ class PelunasanCustomerController extends Controller
 
     public function create()
     {
-        $customerCode = trim((string) old('fcustomer', ''));
-        $accountCode = trim((string) old('faccountheader', ''));
+        return view('pelunasancustomer.create', $this->formViewData(null, [
+            'pageTitle' => 'Pelunasan Customer',
+            'formAction' => route('pelunasancustomer.store'),
+            'formMethod' => 'POST',
+            'isReadOnly' => false,
+            'isDeleteMode' => false,
+            'submitLabel' => 'Simpan',
+            'draftKey' => 'pelunasancustomer:create',
+        ]));
+    }
 
-        return view('pelunasancustomer.create', [
-            'voucherNo' => old('fkasmtno'),
-            'transactionDate' => old('fkasmtdate', now()->format('Y-m-d')),
-            'currentBranchCode' => $this->resolveBranchCode(),
-            'selectedCustomer' => $customerCode !== ''
-                ? Customer::query()
-                    ->where('fcustomercode', $customerCode)
-                    ->first(['fcustomerid', 'fcustomercode', 'fcustomername', 'ftempo'])
-                : null,
-            'selectedAccount' => $accountCode !== ''
-                ? Account::query()
-                    ->where('faccount', $accountCode)
-                    ->first(['faccid', 'faccount', 'faccname'])
-                : null,
-        ]);
+    public function view($fkasmtno)
+    {
+        $header = $this->findHeader($fkasmtno);
+
+        return view('pelunasancustomer.view', $this->formViewData($header, [
+            'pageTitle' => 'View Pelunasan Customer',
+            'formAction' => '#',
+            'formMethod' => 'POST',
+            'isReadOnly' => true,
+            'isDeleteMode' => false,
+            'submitLabel' => null,
+            'draftKey' => null,
+        ]));
+    }
+
+    public function edit($fkasmtno)
+    {
+        $header = $this->findHeader($fkasmtno);
+
+        return view('pelunasancustomer.edit', $this->formViewData($header, [
+            'pageTitle' => 'Edit Pelunasan Customer',
+            'formAction' => route('pelunasancustomer.update', $header->fkasmtno),
+            'formMethod' => 'PATCH',
+            'isReadOnly' => false,
+            'isDeleteMode' => false,
+            'submitLabel' => 'Simpan',
+            'draftKey' => 'pelunasancustomer:edit:' . $header->fkasmtno,
+        ]));
+    }
+
+    public function delete($fkasmtno)
+    {
+        $header = $this->findHeader($fkasmtno);
+
+        return view('pelunasancustomer.delete', $this->formViewData($header, [
+            'pageTitle' => 'Hapus Pelunasan Customer',
+            'formAction' => route('pelunasancustomer.destroy', $header->fkasmtno),
+            'formMethod' => 'DELETE',
+            'isReadOnly' => true,
+            'isDeleteMode' => true,
+            'submitLabel' => 'Hapus',
+            'draftKey' => null,
+        ]));
     }
 
     public function pickableNota(Request $request)
@@ -305,7 +341,131 @@ class PelunasanCustomerController extends Controller
 
         return redirect()
             ->route('pelunasancustomer.create')
-            ->with('success', 'PELUNASAN CUSTOMER ' . $voucherNo . ' BERHASIL DISIMPAN.');
+            ->with('success', 'Pelunasan customer ' . $voucherNo . ' berhasil disimpan.');
+    }
+
+    public function update(Request $request, $fkasmtno)
+    {
+        $header = $this->findHeader($fkasmtno);
+
+        $request->merge([
+            'details' => $this->filterEmptyDetailRows($request->input('details', [])),
+            'fbranchcode' => trim((string) $request->input('fbranchcode', $header->fbranchcode ?: $this->resolveBranchCode())),
+            'fgiromundur' => $request->boolean('fgiromundur') ? '1' : '0',
+        ]);
+
+        $validated = $request->validate([
+            'fkasmtno' => [
+                'nullable',
+                'string',
+                'max:30',
+                Rule::unique('trkasmt', 'fkasmtno')->ignore($header->fkasmtid, 'fkasmtid'),
+            ],
+            'fkasmtdate' => ['required', 'date'],
+            'fbranchcode' => ['required', 'string', 'max:10'],
+            'fcustomer' => ['required', 'string', 'max:20', Rule::exists('mscustomer', 'fcustomercode')],
+            'faccountheader' => ['required', 'string', 'max:15', Rule::exists('account', 'faccount')],
+            'fnogiro' => ['nullable', 'string', 'max:35'],
+            'fgiromundur' => ['nullable', 'in:0,1'],
+            'ftgljatuhtempo' => ['nullable', 'date', Rule::requiredIf($request->input('fgiromundur') === '1'), 'after_or_equal:fkasmtdate'],
+            'fket' => ['nullable', 'string', 'max:50'],
+            'fbiayaadminbank' => ['nullable', 'numeric', 'min:0'],
+            'details' => ['required', 'array', 'min:1'],
+            'details.*.frefno' => ['required', 'string', 'max:30'],
+            'details.*.fnilai_nota' => ['nullable', 'numeric'],
+            'details.*.fsisa_piutang' => ['nullable', 'numeric'],
+            'details.*.fdiscpersen' => ['nullable', 'numeric', 'min:0', 'max:100'],
+            'details.*.fdiscount' => ['nullable', 'numeric'],
+            'details.*.fkasdtvalue' => ['required', 'numeric', 'not_in:0'],
+            'details.*.freftype' => ['nullable', 'string', 'max:10'],
+        ], [
+            'fkasmtdate.required' => 'Tanggal wajib diisi.',
+            'fcustomer.required' => 'Customer wajib dipilih.',
+            'faccountheader.required' => 'Account wajib dipilih.',
+            'ftgljatuhtempo.required' => 'Tgl. jatuh tempo wajib diisi saat giro mundur aktif.',
+            'details.required' => 'Minimal 1 detail faktur wajib diisi.',
+            'details.*.frefno.required' => 'No. nota wajib diisi.',
+            'details.*.fkasdtvalue.required' => 'Total bayar wajib diisi.',
+            'details.*.fkasdtvalue.not_in' => 'Total bayar tidak boleh 0.',
+        ]);
+
+        $customer = Customer::query()
+            ->where('fcustomercode', $validated['fcustomer'])
+            ->firstOrFail(['fcustomerid', 'fcustomercode', 'fcustomername']);
+        $headerAccount = Account::query()
+            ->where('faccount', $validated['faccountheader'])
+            ->firstOrFail(['faccid', 'faccount', 'faccname']);
+        $detailRows = $this->normalizeDetails($validated['details']);
+        $voucherNo = trim((string) ($validated['fkasmtno'] ?? '')) ?: $header->fkasmtno;
+        $totalPenerimaan = round((float) $detailRows->sum(fn(array $row) => (float) ($row['fkasdtvalue'] ?? 0)), 2);
+        $now = now();
+
+        DB::transaction(function () use ($validated, $customer, $headerAccount, $detailRows, $voucherNo, $totalPenerimaan, $now, $header) {
+            $header->update([
+                'fkasmtno' => $voucherNo,
+                'fkasmtdate' => $validated['fkasmtdate'],
+                'fwhom' => $customer->fcustomername,
+                'faccountheader' => $headerAccount->faccount,
+                'faccountheaderid' => $headerAccount->faccid,
+                'fcustomer' => $customer->fcustomerid,
+                'fket' => $validated['fket'] ?? null,
+                'famountpay' => $totalPenerimaan,
+                'famountpay_rp' => $totalPenerimaan,
+                'fuserid' => $this->currentUserId(),
+                'fdatetime' => $now,
+                'fgiromundur' => $validated['fgiromundur'] ?? '0',
+                'fnogiro' => $validated['fnogiro'] ?? null,
+                'ftgljatuhtempo' => !empty($validated['ftgljatuhtempo']) ? Carbon::parse($validated['ftgljatuhtempo'])->startOfDay() : null,
+                'faccountno' => $headerAccount->faccount,
+                'faccountnoid' => $headerAccount->faccid,
+                'fbranchcode' => $validated['fbranchcode'],
+            ]);
+
+            Trkasdt::where('fkasmtid', $header->fkasmtid)->delete();
+
+            $nextDetailId = $this->nextIntegerId('trkasdt', 'fkasdtid');
+            foreach ($detailRows as $index => $row) {
+                Trkasdt::create([
+                    'fkasdtid' => $nextDetailId + $index,
+                    'fkasmtid' => $header->fkasmtid,
+                    'ftrancode' => self::TRAN_CODE,
+                    'faccount' => $headerAccount->faccount,
+                    'faccountid' => $headerAccount->faccid,
+                    'fdk' => 'K',
+                    'frefno' => trim((string) ($row['frefno'] ?? '')),
+                    'fnote' => $customer->fcustomername,
+                    'fdiscpersen' => round((float) ($row['fdiscpersen'] ?? 0), 2),
+                    'fdiscount' => round((float) ($row['fdiscount'] ?? 0), 2),
+                    'fkasdtvalue' => round((float) ($row['fkasdtvalue'] ?? 0), 2),
+                    'fvalue_rp' => round((float) ($row['fkasdtvalue'] ?? 0), 2),
+                    'fjurnal' => round((float) ($row['fkasdtvalue'] ?? 0), 2),
+                    'fjurnal_rp' => round((float) ($row['fkasdtvalue'] ?? 0), 2),
+                    'fuserid' => $this->currentUserId(),
+                    'fdatetime' => $now,
+                    'fdiscountrp' => round((float) ($row['fdiscount'] ?? 0), 2),
+                    'fnou' => $index + 1,
+                    'freftype' => trim((string) ($row['freftype'] ?? 'INV')),
+                ]);
+            }
+        });
+
+        return redirect()
+            ->route('pelunasancustomer.edit', $voucherNo)
+            ->with('success', 'Pelunasan customer ' . $voucherNo . ' berhasil diperbarui.');
+    }
+
+    public function destroy($fkasmtno)
+    {
+        $header = $this->findHeader($fkasmtno);
+
+        DB::transaction(function () use ($header) {
+            Trkasdt::where('fkasmtid', $header->fkasmtid)->delete();
+            $header->delete();
+        });
+
+        return redirect()
+            ->route('pelunasancustomer.index')
+            ->with('success', 'Pelunasan customer ' . $fkasmtno . ' berhasil dihapus.');
     }
 
     private function filterEmptyDetailRows(array $details): array
@@ -405,5 +565,72 @@ class PelunasanCustomerController extends Controller
             ->value('last_no');
 
         return $prefix . str_pad((string) (((int) $lastNumber) + 1), 4, '0', STR_PAD_LEFT);
+    }
+
+    private function findHeader(string $fkasmtno): Trkasmt
+    {
+        return Trkasmt::query()
+            ->with(['details', 'headerAccount'])
+            ->where('ftrancode', self::TRAN_CODE)
+            ->where('fkasmtno', $fkasmtno)
+            ->firstOrFail();
+    }
+
+    private function formViewData(?Trkasmt $header = null, array $overrides = []): array
+    {
+        $customerCode = trim((string) old('fcustomer', ''));
+        $accountCode = trim((string) old('faccountheader', ''));
+
+        $selectedCustomer = null;
+        if ($customerCode !== '') {
+            $selectedCustomer = Customer::query()
+                ->where('fcustomercode', $customerCode)
+                ->first(['fcustomerid', 'fcustomercode', 'fcustomername', 'ftempo']);
+        } elseif ($header && !empty($header->fcustomer)) {
+            $selectedCustomer = Customer::query()
+                ->where('fcustomerid', $header->fcustomer)
+                ->first(['fcustomerid', 'fcustomercode', 'fcustomername', 'ftempo']);
+        }
+
+        $selectedAccount = null;
+        if ($accountCode !== '') {
+            $selectedAccount = Account::query()
+                ->where('faccount', $accountCode)
+                ->first(['faccid', 'faccount', 'faccname']);
+        } elseif ($header && !empty($header->faccountheader)) {
+            $selectedAccount = Account::query()
+                ->where('faccount', $header->faccountheader)
+                ->first(['faccid', 'faccount', 'faccname']);
+        }
+
+        $detailRows = $header
+            ? $header->details->values()->map(function ($detail, $index) {
+                return [
+                    'uid' => 'pc-existing-' . $index . '-' . $detail->fkasdtid,
+                    'frefno' => trim((string) ($detail->frefno ?? '')),
+                    'fnilai_nota' => (float) ($detail->fvalue_rp ?? $detail->fjurnal_rp ?? $detail->fkasdtvalue ?? 0),
+                    'fsisa_piutang' => (float) ($detail->fvalue_rp ?? $detail->fjurnal_rp ?? $detail->fkasdtvalue ?? 0),
+                    'fdiscpersen' => (float) ($detail->fdiscpersen ?? 0),
+                    'fdiscount' => (float) ($detail->fdiscount ?? 0),
+                    'fkasdtvalue' => (float) ($detail->fkasdtvalue ?? 0),
+                    'freftype' => trim((string) ($detail->freftype ?? 'INV')),
+                ];
+            })->all()
+            : [];
+
+        return array_merge([
+            'voucherNo' => old('fkasmtno', $header?->fkasmtno),
+            'transactionDate' => old('fkasmtdate', optional($header?->fkasmtdate)->format('Y-m-d') ?? now()->format('Y-m-d')),
+            'currentBranchCode' => old('fbranchcode', $header?->fbranchcode ?: $this->resolveBranchCode()),
+            'selectedCustomer' => $selectedCustomer,
+            'selectedAccount' => $selectedAccount,
+            'detailRows' => $detailRows,
+            'headerData' => $header,
+            'bankAdminFee' => old('fbiayaadminbank', 0),
+            'dueDate' => old('ftgljatuhtempo', optional($header?->ftgljatuhtempo)->format('Y-m-d')),
+            'giroMundur' => old('fgiromundur', ($header?->fgiromundur ?? '0')) === '1',
+            'noteValue' => old('fket', $header?->fket),
+            'giroNo' => old('fnogiro', $header?->fnogiro),
+        ], $overrides);
     }
 }

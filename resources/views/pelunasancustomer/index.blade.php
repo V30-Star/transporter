@@ -42,6 +42,7 @@
                     <th class="border px-2 py-2">Nama Customer</th>
                     <th class="border px-2 py-2 text-right">Nilai Bayar</th>
                     <th class="border px-2 py-2">User-Id</th>
+                    <th class="border px-2 py-2 no-sort">Aksi</th>
                 </tr>
             </thead>
             <tbody>
@@ -58,6 +59,22 @@
                         <td class="border px-2 py-2">{{ $record->customer_summary }}</td>
                         <td class="border px-2 py-2 text-right">{{ number_format((float) $record->payment_amount, 2, ',', '.') }}</td>
                         <td class="border px-2 py-2">{{ $record->fuserid ?: '-' }}</td>
+                        <td class="border px-2 py-2 text-right whitespace-nowrap">
+                            <div class="flex items-center justify-end gap-1.5 flex-nowrap">
+                                <a href="{{ route('pelunasancustomer.view', $record->fkasmtno) }}"
+                                    class="inline-flex items-center bg-slate-500 text-white px-3 py-1.5 text-xs rounded hover:bg-slate-600">
+                                    <x-heroicon-o-eye class="w-3.5 h-3.5 mr-1" /> {{ 'View' }}
+                                </a>
+                                <a href="{{ route('pelunasancustomer.edit', $record->fkasmtno) }}"
+                                    class="inline-flex items-center bg-yellow-500 text-white px-3 py-1.5 text-xs rounded hover:bg-yellow-600">
+                                    <x-heroicon-o-pencil-square class="w-3.5 h-3.5 mr-1" /> {{ 'Edit' }}
+                                </a>
+                                <a href="{{ route('pelunasancustomer.delete', $record->fkasmtno) }}"
+                                    class="inline-flex items-center bg-red-600 text-white px-3 py-1.5 text-xs rounded hover:bg-red-700">
+                                    <x-heroicon-o-trash class="w-3.5 h-3.5 mr-1" /> {{ 'Hapus' }}
+                                </a>
+                            </div>
+                        </td>
                     </tr>
                 @endforeach
             </tbody>
@@ -75,6 +92,12 @@
         #pelunasanCustomerTable th,
         #pelunasanCustomerTable td {
             vertical-align: middle;
+        }
+
+        #pelunasanCustomerTable th:last-child,
+        #pelunasanCustomerTable td:last-child {
+            text-align: right;
+            white-space: nowrap;
         }
 
         .dt-container .dt-search,
@@ -147,6 +170,11 @@
                 order: [
                     [1, 'desc']
                 ],
+                columnDefs: [{
+                    targets: 'no-sort',
+                    orderable: false,
+                    searchable: false
+                }],
                 layout: {
                     topStart: 'search',
                     topEnd: 'pageLength',

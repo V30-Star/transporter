@@ -254,7 +254,7 @@
                     <td>{{ $fmt($hdr->fneeddate) }}</td>
                 </tr>
                 <tr>
-                    <td>Tgl. Jatuh Tempo</td>
+                    <td>Tgl. Paling Lambat</td>
                     <td>:</td>
                     <td>{{ $fmt($hdr->fduedate) }}</td>
                 </tr>
@@ -306,13 +306,11 @@
         <div class="sign-container">
             <table class="sign-table">
                 <tr>
-                    <td>Dibuat Oleh</td>
-                    <td>Diperiksa</td>
-                    <td>Disetujui</td>
+                    <td style="width: 50%;">Dibuat Oleh</td>
+                    <td style="width: 50%;">Disetujui</td>
                 </tr>
                 <tr>
                     <td class="box-content">{{ strtoupper($hdr->fusercreate ?? '-') }}</td>
-                    <td class="box-content">{{ strtoupper($hdr->fuserupdate ?? '-') }}</td>
                     <td class="box-content">{{ strtoupper($hdr->fuserapproved ?? '-') }}</td>
                 </tr>
             </table>

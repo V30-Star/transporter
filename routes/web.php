@@ -253,6 +253,11 @@ Route::middleware('auth')->group(function () {
         Route::get('/pelunasancustomer/create', [PelunasanCustomerController::class, 'create'])->name('pelunasancustomer.create');
         Route::post('/pelunasancustomer', [PelunasanCustomerController::class, 'store'])->name('pelunasancustomer.store');
         Route::get('/pelunasancustomer/pickable-nota', [PelunasanCustomerController::class, 'pickableNota'])->name('pelunasancustomer.pickable-nota');
+        Route::get('/pelunasancustomer/{fkasmtno}/view', [PelunasanCustomerController::class, 'view'])->name('pelunasancustomer.view');
+        Route::get('/pelunasancustomer/{fkasmtno}/edit', [PelunasanCustomerController::class, 'edit'])->name('pelunasancustomer.edit');
+        Route::get('/pelunasancustomer/{fkasmtno}/delete', [PelunasanCustomerController::class, 'delete'])->name('pelunasancustomer.delete');
+        Route::patch('/pelunasancustomer/{fkasmtno}', [PelunasanCustomerController::class, 'update'])->name('pelunasancustomer.update');
+        Route::delete('/pelunasancustomer/{fkasmtno}', [PelunasanCustomerController::class, 'destroy'])->name('pelunasancustomer.destroy');
 
         Route::get('/account', [AccountController::class, 'index'])->name('account.index');
         Route::post('/account', [AccountController::class, 'store'])->name('account.store');
