@@ -1872,11 +1872,10 @@ class SuratJalanController extends Controller
                     ->selectRaw("
                         TRIM(d.fsono) as ref_doc,
                         TRIM(d.fprdcode) as product_code,
-                        COALESCE(d.frefnosoacak::text, d.fnoacak::text, '') as ref_noacak,
                         MAX(COALESCE(p.fprdname, d.fprdcode)) as product_name,
                         SUM(COALESCE(d.fqtykecil, 0)) as source_qty_kecil
                     ")
-                    ->groupByRaw("TRIM(d.fsono), TRIM(d.fprdcode), COALESCE(d.frefnosoacak::text, d.fnoacak::text, '')")
+                    ->groupByRaw("TRIM(d.fsono), TRIM(d.fprdcode)")
                     ->get()
             );
         }
