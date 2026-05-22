@@ -588,7 +588,13 @@
                         </div>
                         <div class="px-5 py-4 space-y-4">
                             <div>
-                                <div class="mb-1 text-sm text-gray-700">Nama Produk</div>
+                                <div class="mb-1 flex items-center justify-between gap-3">
+                                    <div class="text-sm text-gray-700">Nama Produk</div>
+                                    <button x-show="!descReadonly" type="button" @click="copyDescName()"
+                                        class="h-8 px-3 rounded-lg bg-blue-50 text-blue-700 text-sm font-medium hover:bg-blue-100">
+                                        Copy
+                                    </button>
+                                </div>
                                 <div class="rounded-lg border bg-gray-50 px-3 py-2 text-sm text-gray-800" x-text="descItemName || '-'"></div>
                             </div>
                             <label class="block text-sm text-gray-700">Deskripsi</label>
@@ -598,10 +604,6 @@
                                 placeholder="Tulis deskripsi item di sini..."></textarea>
                         </div>
                         <div class="px-5 py-3 border-t flex items-center justify-end gap-2">
-                            <button x-show="!descReadonly" type="button" @click="copyDescName()"
-                                class="h-9 px-4 rounded-lg bg-blue-50 text-blue-700 text-sm font-medium hover:bg-blue-100">
-                                Copy
-                            </button>
                             <button type="button" @click="closeDesc()"
                                 class="h-9 px-4 rounded-lg bg-gray-100 text-gray-700 text-sm font-medium hover:bg-gray-200">
                                 Tutup
