@@ -403,7 +403,7 @@ class MutasiController extends Controller
             ]);
 
         if (! $hdr) {
-            return redirect()->back()->with('error', 'MUTASI STOCK TIDAK ADA.');
+            return redirect()->back()->with('error', 'Mutasi stock tidak ada.');
         }
 
         DB::table('trstockmt')->where('fstockmtno', $hdr->fstockmtno)->update(['fprint' => 1]);
@@ -715,9 +715,9 @@ class MutasiController extends Controller
 
             return redirect()
                 ->route('mutasi.create')
-                ->with('success', "MUTASI {$finalNo} BERHASIL DISIMPAN.");
+                ->with('success', "Mutasi {$finalNo} berhasil disimpan.");
         } catch (\Exception $e) {
-            return back()->withInput()->withErrors(['fatal' => 'MUTASI BELUM BISA DISIMPAN. CEK DATA TRANSAKSI.']);
+            return back()->withInput()->withErrors(['fatal' => 'Mutasi belum bisa disimpan. Cek data transaksi.']);
         }
     }
 
@@ -1045,10 +1045,10 @@ class MutasiController extends Controller
 
             return redirect()
                 ->route('mutasi.index')
-                ->with('success', "MUTASI {$header->fstockmtno} BERHASIL DIUPDATE.");
+                ->with('success', "Mutasi {$header->fstockmtno} berhasil diupdate.");
         } catch (\Exception $e) {
             return back()->withInput()->withErrors([
-                'fatal' => 'MUTASI BELUM BISA DIUPDATE. CEK DATA TRANSAKSI.',
+                'fatal' => 'Mutasi belum bisa diupdate. Cek data transaksi.',
             ]);
         }
     }
@@ -1194,7 +1194,7 @@ class MutasiController extends Controller
             if (! $mutasi) {
                 DB::rollBack();
 
-                return redirect()->route('mutasi.index')->with('error', 'MUTASI TIDAK ADA.');
+                return redirect()->route('mutasi.index')->with('error', 'Mutasi tidak ada.');
             }
 
             if ($message = $this->getPostedPeriodLockMessage($mutasi->fstockmtdate, 'Mutasi ini')) {
@@ -1223,13 +1223,13 @@ class MutasiController extends Controller
 
             DB::commit();
 
-            return redirect()->route('mutasi.index')->with('success', 'MUTASI '.$docNo.' BERHASIL DIHAPUS.');
+            return redirect()->route('mutasi.index')->with('success', 'Mutasi '.$docNo.' berhasil dihapus.');
         } catch (\Exception $e) {
             if (DB::transactionLevel() > 0) {
                 DB::rollBack();
             }
 
-            return redirect()->route('mutasi.index')->with('error', 'MUTASI BELUM BISA DIHAPUS. COBA LAGI.');
+            return redirect()->route('mutasi.index')->with('error', 'Mutasi belum bisa dihapus. Coba lagi.');
         }
     }
 

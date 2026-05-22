@@ -325,7 +325,7 @@ class AdjstockController extends Controller
             ]);
 
         if (! $hdr) {
-            return redirect()->back()->with('error', 'ADJUSTMENT STOCK TIDAK ADA.');
+            return redirect()->back()->with('error', 'Adjustment stock tidak ada.');
         }
 
         DB::table('trstockmt')->where('fstockmtno', $hdr->fstockmtno)->update(['fprint' => 1]);
@@ -550,8 +550,8 @@ class AdjstockController extends Controller
             if (empty($rowsDt)) {
                 return back()->withInput()->withErrors([
                     'detail' => $allowNegativeStockQty
-                        ? 'MINIMAL 1 ITEM VALID HARUS DIISI. QTY TIDAK BOLEH 0.'
-                        : 'MINIMAL 1 ITEM VALID HARUS DIISI.',
+                        ? 'Minimal 1 item valid harus diisi. Qty tidak boleh 0.'
+                        : 'Minimal 1 item valid harus diisi.',
                 ]);
             }
 
@@ -647,9 +647,9 @@ class AdjstockController extends Controller
 
             return redirect()
                 ->route('adjstock.create')
-                ->with('success', "ADJUSTMENT STOCK {$finalNo} BERHASIL DISIMPAN.");
+                ->with('success', "Adjustment stock {$finalNo} berhasil disimpan.");
         } catch (\Exception $e) {
-            return back()->withInput()->withErrors(['fatal' => 'ADJUSTMENT STOCK BELUM BISA DISIMPAN. CEK DATA TRANSAKSI.']);
+            return back()->withInput()->withErrors(['fatal' => 'Adjustment stock belum bisa disimpan. Cek data transaksi.']);
         }
     }
 
@@ -1055,8 +1055,8 @@ class AdjstockController extends Controller
         if (empty($rowsDt)) {
             return back()->withInput()->withErrors([
                 'detail' => $allowNegativeStockQty
-                    ? 'MINIMAL 1 ITEM VALID (KODE, SATUAN, QTY TIDAK BOLEH 0).'
-                    : 'MINIMAL 1 ITEM VALID (KODE, SATUAN, QTY > 0).',
+                    ? 'Minimal 1 item valid (kode, satuan, qty tidak boleh 0).'
+                    : 'Minimal 1 item valid (kode, satuan, qty > 0).',
             ]);
         }
 
@@ -1146,7 +1146,7 @@ class AdjstockController extends Controller
 
         return redirect()
             ->route('adjstock.index')
-            ->with('success', "ADJUSTMENT STOCK {$header->fstockmtno} BERHASIL DIUPDATE.");
+            ->with('success', "Adjustment stock {$header->fstockmtno} berhasil diupdate.");
     }
 
     public function delete($fstockmtid)
@@ -1294,10 +1294,10 @@ class AdjstockController extends Controller
                 $adjstock->delete();
             });
 
-            return redirect()->route('adjstock.index')->with('success', 'ADJUSTMENT STOCK '.$adjstock->fstockmtno.' BERHASIL DIHAPUS.');
+            return redirect()->route('adjstock.index')->with('success', 'Adjustment stock '.$adjstock->fstockmtno.' berhasil dihapus.');
         } catch (\Exception $e) {
             // Jika terjadi kesalahan saat menghapus, kembali ke halaman delete dengan pesan error
-            return redirect()->route('adjstock.delete', $fstockmtid)->with('error', 'ADJUSTMENT STOCK BELUM BISA DIHAPUS. COBA LAGI.');
+            return redirect()->route('adjstock.delete', $fstockmtid)->with('error', 'Adjustment stock belum bisa dihapus. Coba lagi.');
         }
     }
 

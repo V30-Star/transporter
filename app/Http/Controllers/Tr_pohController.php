@@ -647,7 +647,7 @@ class Tr_pohController extends Controller
             ]);
 
         if (! $hdr) {
-            return redirect()->back()->with('error', 'PO TIDAK ADA.');
+            return redirect()->back()->with('error', 'PO tidak ada.');
         }
 
         $dt = DB::table('tr_pod')
@@ -800,9 +800,9 @@ class Tr_pohController extends Controller
 
             'ppn_rate' => ['nullable', 'numeric', 'min:0', 'max:100'],
         ], [
-            'fpodate.required' => 'TANGGAL PO WAJIB DIISI.',
-            'fsupplier.required' => 'SUPPLIER WAJIB DIISI.',
-            'fitemcode.required' => 'MINIMAL 1 ITEM.',
+            'fpodate.required' => 'Tanggal PO wajib diisi.',
+            'fsupplier.required' => 'Supplier wajib diisi.',
+            'fitemcode.required' => 'Minimal 1 item.',
             'fqty.*.gt' => 'HAPUS BARIS ATAU ISI QTY. QTY TIDAK BOLEH 0.',
             'fnoacak.*.regex' => 'NO ACAK PO HARUS 3 DIGIT 1-9.',
             'frefnoacak.*.regex' => 'NO REFERENSI ACAK HARUS 3 DIGIT.',
@@ -1080,7 +1080,7 @@ class Tr_pohController extends Controller
 
         return redirect()
             ->route('tr_poh.create')
-            ->with('success', "ORDER PEMBELIAN {$fpono} BERHASIL DISIMPAN.");
+            ->with('success', "Order pembelian {$fpono} berhasil disimpan.");
     }
 
     public function edit(Request $request, $fpohid)
@@ -1406,7 +1406,7 @@ class Tr_pohController extends Controller
 
         if ($isCloseOnly) {
             if (! $canClosePo) {
-                return back()->withInput()->with('error', 'STATUS CLOSE PO TIDAK BISA DIUPDATE. FPRDIN TIDAK BOLEH = 1.');
+                return back()->withInput()->with('error', 'Status close PO tidak bisa diupdate. FPRDIN tidak boleh = 1.');
             }
 
             Tr_poh::where('fpohid', $header->fpohid)->update([
@@ -1417,7 +1417,7 @@ class Tr_pohController extends Controller
 
             return redirect()
                 ->route('tr_poh.index')
-                ->with('success', "STATUS CLOSE PO {$header->fpono} BERHASIL DIUPDATE.");
+                ->with('success', "Status close PO {$header->fpono} berhasil diupdate.");
         }
 
         $validator = Validator::make($request->all(), [
@@ -1688,12 +1688,12 @@ class Tr_pohController extends Controller
         } catch (\RuntimeException $e) {
             return back()->withInput()->withErrors(['detail' => $e->getMessage()]);
         } catch (\Throwable $e) {
-            return back()->withInput()->with('error', 'ORDER PEMBELIAN BELUM BISA DISIMPAN. COBA LAGI.');
+            return back()->withInput()->with('error', 'Order pembelian belum bisa disimpan. Coba lagi.');
         }
 
         return redirect()
             ->route('tr_poh.index')
-            ->with('success', "ORDER PEMBELIAN {$header->fpono} BERHASIL DIUPDATE.");
+            ->with('success', "Order pembelian {$header->fpono} berhasil diupdate.");
     }
 
     public function delete(Request $request, $fpohid)
@@ -1876,9 +1876,9 @@ class Tr_pohController extends Controller
             });
 
             return redirect()->route('tr_poh.index')
-                ->with('success', "ORDER PEMBELIAN {$tr_poh->fpono} BERHASIL DIHAPUS.");
+                ->with('success', "Order pembelian {$tr_poh->fpono} berhasil dihapus.");
         } catch (\Exception $e) {
-            return redirect()->back()->with('error', 'ORDER PEMBELIAN BELUM BISA DIHAPUS. COBA LAGI.');
+            return redirect()->back()->with('error', 'Order pembelian belum bisa dihapus. Coba lagi.');
         }
     }
 

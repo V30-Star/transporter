@@ -1374,7 +1374,7 @@
                     .then(response => response.json())
                     .then(data => {
                         closeDeleteModal();
-                        showToast(data.message || 'DATA BERHASIL DIHAPUS.', true);
+                        showToast(data.message || 'Data berhasil dihapus.', true);
 
                         setTimeout(() => {
                             window.location.href = '{{ route('salesorder.index') }}';
@@ -1384,7 +1384,7 @@
                         btnYa.disabled = false;
                         btnTidak.disabled = false;
                         btnYa.textContent = 'Ya, Hapus';
-                        showToast('HAPUS DATA GAGAL.', false);
+                        showToast('Hapus data gagal.', false);
                     });
             }
         </script>
@@ -1826,10 +1826,14 @@
                 }
                 row.fitemname = meta.name || '';
                 const units = [...new Set((meta.units || []).map(u => (u ?? '').toString().trim()).filter(Boolean))];
+                const defaultUnit = (meta.default_unit || '').toString().trim();
+                const resolvedDefaultUnit = defaultUnit && units.includes(defaultUnit)
+                    ? defaultUnit
+                    : (units[0] || '');
                 row.units = units;
                 row.fsatuan = forceDefaultUnit
-                    ? (units[0] || '')
-                    : (units.includes(row.fsatuan) ? row.fsatuan : (units[0] || ''));
+                    ? resolvedDefaultUnit
+                    : (units.includes(row.fsatuan) ? row.fsatuan : resolvedDefaultUnit);
                 if (meta.unit_ratios) row.unit_ratios = meta.unit_ratios;
             },
 
@@ -2182,11 +2186,13 @@
                     const meta = {
                         name: product.fprdname,
                         units: [product.fsatuankecil, product.fsatuanbesar, product.fsatuanbesar2].filter(Boolean),
+                        default_unit: (product.fsatuandefault || '').toString().trim(),
                         stock: product.fqty || product.fminstock || 0
                     };
                     const localMeta = this.productMeta(row.fprdcode);
                     if (localMeta) {
                         if (localMeta.name) meta.name = localMeta.name;
+                        if (localMeta.default_unit) meta.default_unit = localMeta.default_unit;
                         if (localMeta.units && localMeta.units.length) meta.units = localMeta.units;
                         if (localMeta.stock) meta.stock = localMeta.stock;
                     }

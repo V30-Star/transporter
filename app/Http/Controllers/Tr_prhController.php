@@ -16,6 +16,20 @@ use Illuminate\Validation\ValidationException;
 
 class Tr_prhController extends Controller
 {
+    private function resolveProductDefaultUnit(object $product): string
+    {
+        $defaultKey = trim((string) ($product->fsatuandefault ?? ''));
+
+        return match ($defaultKey) {
+            '1' => trim((string) ($product->fsatuankecil ?? '')),
+            '2' => trim((string) ($product->fsatuanbesar ?? '')),
+            '3' => trim((string) ($product->fsatuanbesar2 ?? '')),
+            default => trim((string) ($product->fsatuankecil ?? ''))
+                ?: trim((string) ($product->fsatuanbesar ?? ''))
+                ?: trim((string) ($product->fsatuanbesar2 ?? '')),
+        };
+    }
+
     private function canApprovePurchaseRequest(): bool
     {
         return in_array('approvePR', explode(',', session('user_restricted_permissions', '')));
@@ -398,7 +412,7 @@ class Tr_prhController extends Controller
         });
 
         return redirect()->route('tr_prh.create')
-            ->with('success', 'PERMINTAAN PEMBELIAN BERHASIL DISIMPAN.');
+            ->with('success', 'Permintaan pembelian berhasil disimpan.');
     }
 
     public function view(Request $request, $fprhid)
@@ -484,7 +498,7 @@ class Tr_prhController extends Controller
 
         if ($isCloseOnly) {
             if (! $canCloseReferencedPr) {
-                return back()->withInput()->with('error', 'STATUS CLOSE PR TIDAK BISA DIUPDATE. PR HARUS SUDAH DIREFERENSI PO DAN FPRDIN = 0.');
+                return back()->withInput()->with('error', 'Status close PR tidak bisa diupdate. PR harus sudah direferensi PO dan FPRDIN = 0.');
             }
 
             Tr_prh::where('fprhid', $header->fprhid)->update([
@@ -495,7 +509,7 @@ class Tr_prhController extends Controller
 
             return redirect()
                 ->route('tr_prh.index')
-                ->with('success', "STATUS CLOSE PR {$header->fprno} BERHASIL DIUPDATE.");
+                ->with('success', "Status close PR {$header->fprno} berhasil diupdate.");
         }
 
         $this->validateUpdateRequest($request);
@@ -656,7 +670,7 @@ class Tr_prhController extends Controller
 
         return redirect()
             ->route('tr_prh.index')
-            ->with('success', 'PERMINTAAN PEMBELIAN BERHASIL DIUPDATE.');
+            ->with('success', 'Permintaan pembelian berhasil diupdate.');
     }
 
     public function delete(Request $request, $fprhid)
@@ -713,9 +727,9 @@ class Tr_prhController extends Controller
                 $tr_prh->delete();
             });
 
-            return redirect()->route('tr_prh.index')->with('success', 'PERMINTAAN PEMBELIAN '.$tr_prh->fprno.' BERHASIL DIHAPUS.');
+            return redirect()->route('tr_prh.index')->with('success', 'Permintaan pembelian '.$tr_prh->fprno.' berhasil dihapus.');
         } catch (\Exception $e) {
-            return redirect()->route('tr_prh.delete', $fprhid)->with('error', 'PERMINTAAN PEMBELIAN BELUM BISA DIHAPUS. COBA LAGI.');
+            return redirect()->route('tr_prh.delete', $fprhid)->with('error', 'Permintaan pembelian belum bisa dihapus. Coba lagi.');
         }
     }
 
@@ -835,6 +849,7 @@ class Tr_prhController extends Controller
                 'fprdid',
                 'fprdcode',
                 'fminstock',
+                'fsatuandefault',
                 'fsatuankecil',
                 'fsatuanbesar',
                 'fqtykecil',
@@ -949,6 +964,7 @@ class Tr_prhController extends Controller
             'fprdid',
             'fprdcode',
             'fprdname',
+            'fsatuandefault',
             'fsatuankecil',
             'fsatuanbesar',
             'fsatuanbesar2',
@@ -967,6 +983,7 @@ class Tr_prhController extends Controller
                 trim($product->fprdcode) => [
                     'id' => $product->fprdid ?? null,
                     'name' => $product->fprdname,
+                    'default_unit' => $this->resolveProductDefaultUnit($product),
                     'units' => array_values(array_filter([
                         $product->fsatuankecil,
                         $product->fsatuanbesar,

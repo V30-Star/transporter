@@ -295,7 +295,7 @@
         .swal2-popup .swal2-html-container,
         .swal2-popup .swal2-confirm,
         .swal2-popup .swal2-cancel {
-            text-transform: uppercase;
+            text-transform: none;
         }
 
         html[data-theme="dark"] .user-dropdown-panel {
@@ -758,14 +758,46 @@
                 return result;
             }
 
-            function toUpperMessage(value) {
-                return typeof value === 'string' ? compactPopupMessage(value).toUpperCase() : value;
+            function toSentenceMessage(value) {
+                if (typeof value !== 'string') {
+                    return value;
+                }
+
+                let result = compactPopupMessage(value);
+                const protectedTokens = [];
+
+                result = result.replace(/\b([A-Z]{2,}\d+[A-Z0-9./-]*)\b/g, (match) => {
+                    const key = `__TOKEN_${protectedTokens.length}__`;
+                    protectedTokens.push({
+                        key,
+                        value: match,
+                    });
+                    return key;
+                });
+
+                result = result.replace(/\b(NPWP|NIK|PPN|PPH|PO|PR|SO|SJ|SRJ|INV|TER|FP|IDR|USD|EUR|TOP|JBL|SJU)\b/g, (match) => {
+                    const key = `__TOKEN_${protectedTokens.length}__`;
+                    protectedTokens.push({
+                        key,
+                        value: match,
+                    });
+                    return key;
+                });
+
+                result = result.toLowerCase();
+
+                protectedTokens.forEach((token) => {
+                    result = result.replace(token.key.toLowerCase(), token.value);
+                });
+
+                result = result.replace(/^./, (char) => char.toUpperCase());
+                return result;
             }
 
             window.showAppSuccessToast = function(title = 'Your work has been saved', options = {}) {
                 Swal.fire({
                     icon: 'success',
-                    title: toUpperMessage(title),
+                    title: toSentenceMessage(title),
                     ...defaultToastOptions,
                     ...options,
                 });
@@ -773,8 +805,8 @@
 
             window.showAppErrorAlert = function(title = 'Terjadi Kesalahan', text = '', options = {}) {
                 Swal.fire({
-                    title: toUpperMessage(title),
-                    text: toUpperMessage(text),
+                    title: toSentenceMessage(title),
+                    text: toSentenceMessage(text),
                     icon: 'error',
                     ...options,
                 });
@@ -782,8 +814,8 @@
 
             window.showAppInfoAlert = function(title = 'Information', text = '', options = {}) {
                 Swal.fire({
-                    title: toUpperMessage(title),
-                    text: toUpperMessage(text),
+                    title: toSentenceMessage(title),
+                    text: toSentenceMessage(text),
                     icon: 'info',
                     ...options,
                 });
@@ -791,8 +823,8 @@
 
             window.showAppWarningAlert = function(title = 'Warning', text = '', options = {}) {
                 Swal.fire({
-                    title: toUpperMessage(title),
-                    text: toUpperMessage(text),
+                    title: toSentenceMessage(title),
+                    text: toSentenceMessage(text),
                     icon: 'warning',
                     ...options,
                 });

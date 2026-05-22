@@ -256,7 +256,7 @@
                             const dataComponent = notifApp._x_dataStack[0];
                             if (dataComponent && typeof dataComponent.show === 'function') {
                                 dataComponent.show(data.success ? 'success' : 'error', data.message || (data.success ?
-                                    'DATA BERHASIL DIHAPUS.' : 'HAPUS DATA GAGAL.'));
+                                    'Data berhasil dihapus.' : 'Hapus data gagal.'));
                             }
                         }
 
@@ -272,7 +272,7 @@
                         if (notifApp && notifApp._x_dataStack) {
                             const dataComponent = notifApp._x_dataStack[0];
                             if (dataComponent && typeof dataComponent.show === 'function') {
-                                dataComponent.show('error', 'TERJADI KESALAHAN SAAT HAPUS DATA.');
+                                dataComponent.show('error', 'Terjadi kesalahan saat hapus data.');
                             }
                         }
                     });

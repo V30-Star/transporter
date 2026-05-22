@@ -357,7 +357,7 @@ class ReturPembelianController extends Controller
             ]);
 
         if (! $hdr) {
-            return redirect()->back()->with('error', 'RETUR PEMBELIAN TIDAK ADA.');
+            return redirect()->back()->with('error', 'Retur pembelian tidak ada.');
         }
 
         DB::table('trstockmt')->where('fstockmtno', $hdr->fstockmtno)->update(['fprint' => 1]);
@@ -467,10 +467,10 @@ class ReturPembelianController extends Controller
                 'frefno' => ['nullable', 'string', 'max:100'],
                 'frefpo' => ['nullable', 'string', 'max:100'],
             ], [
-                'fstockmtdate.required' => 'TANGGAL TRANSAKSI WAJIB DIISI.',
-                'fsupplier.required' => 'SUPPLIER WAJIB DIISI.',
-                'fitemcode.required' => 'MINIMAL 1 ITEM.',
-                'fsatuan.*.max' => 'SATUAN MAX 5 KARAKTER.',
+                'fstockmtdate.required' => 'Tanggal transaksi wajib diisi.',
+                'fsupplier.required' => 'Supplier wajib diisi.',
+                'fitemcode.required' => 'Minimal 1 item.',
+                'fsatuan.*.max' => 'Satuan maksimal 5 karakter.',
             ]);
 
             $this->ensureNoDuplicateDetailCodes($request->input('fitemcode', []));
@@ -601,7 +601,7 @@ class ReturPembelianController extends Controller
 
             if (empty($rowsDt)) {
                 return back()->withInput()->withErrors([
-                    'detail' => 'MINIMAL 1 ITEM VALID (KODE, SATUAN, QTY > 0).',
+                    'detail' => 'Minimal 1 item valid (Kode, Satuan, Qty > 0).',
                 ]);
             }
 
@@ -700,11 +700,11 @@ class ReturPembelianController extends Controller
 
             return redirect()
                 ->route('returpembelian.create')
-                ->with('success', "RETUR PEMBELIAN {$fstockmtno} BERHASIL DISIMPAN.");
+                ->with('success', "Retur pembelian {$fstockmtno} berhasil disimpan.");
         } catch (\Exception $e) {
             return back()
                 ->withInput()
-                ->withErrors(['error' => 'RETUR PEMBELIAN BELUM BISA DISIMPAN. CEK DATA TRANSAKSI.']);
+                ->withErrors(['error' => 'Retur pembelian belum bisa disimpan. Cek data transaksi.']);
         }
     }
 
@@ -991,11 +991,11 @@ class ReturPembelianController extends Controller
                 'frefno' => ['nullable', 'string'],
                 'frefpo' => ['nullable', 'string'],
             ], [
-                'fstockmtdate.required' => 'TANGGAL TRANSAKSI WAJIB DIISI.',
-                'fsupplier.required' => 'SUPPLIER WAJIB DIISI.',
-                'fitemcode.required' => 'MINIMAL 1 ITEM.',
-                'fsatuan.*.max' => 'SATUAN MAX 5 KARAKTER.',
-                'faccid.required_if' => 'ACCOUNT WAJIB DIPILIH.',
+                'fstockmtdate.required' => 'Tanggal transaksi wajib diisi.',
+                'fsupplier.required' => 'Supplier wajib diisi.',
+                'fitemcode.required' => 'Minimal 1 item.',
+                'fsatuan.*.max' => 'Satuan maksimal 5 karakter.',
+                'faccid.required_if' => 'Account wajib dipilih.',
             ]);
 
             $this->ensureNoDuplicateDetailCodes($request->input('fitemcode', []));
@@ -1132,7 +1132,7 @@ class ReturPembelianController extends Controller
 
             if (empty($rowsDt)) {
                 return back()->withInput()->withErrors([
-                    'detail' => 'MINIMAL 1 ITEM VALID (KODE, SATUAN, QTY > 0).',
+                    'detail' => 'Minimal 1 item valid (Kode, Satuan, Qty > 0).',
                 ]);
             }
 
@@ -1223,11 +1223,11 @@ class ReturPembelianController extends Controller
 
             return redirect()
                 ->route('returpembelian.index') // <-- Redirect kembali ke halaman edit
-                ->with('success', "RETUR PEMBELIAN {$fstockmtno} BERHASIL DIUPDATE.");
+                ->with('success', "Retur pembelian {$fstockmtno} berhasil diupdate.");
         } catch (\Exception $e) {
             return back()
                 ->withInput()
-                ->withErrors(['error' => 'RETUR PEMBELIAN BELUM BISA DIUPDATE. CEK DATA TRANSAKSI.']);
+                ->withErrors(['error' => 'Retur pembelian belum bisa diupdate. Cek data transaksi.']);
         }
     }
 
@@ -1386,10 +1386,10 @@ class ReturPembelianController extends Controller
                 $returpembelian->delete();
             });
 
-            return redirect()->route('returpembelian.index')->with('success', 'RETUR PEMBELIAN '.$returpembelian->fstockmtno.' BERHASIL DIHAPUS.');
+            return redirect()->route('returpembelian.index')->with('success', 'Retur pembelian '.$returpembelian->fstockmtno.' berhasil dihapus.');
         } catch (\Exception $e) {
             // Jika terjadi kesalahan saat menghapus, kembali ke halaman delete dengan pesan error
-            return redirect()->route('returpembelian.delete', $fstockmtid)->with('error', 'RETUR PEMBELIAN BELUM BISA DIHAPUS. COBA LAGI.');
+            return redirect()->route('returpembelian.delete', $fstockmtid)->with('error', 'Retur pembelian belum bisa dihapus. Coba lagi.');
         }
     }
 
@@ -1410,7 +1410,7 @@ class ReturPembelianController extends Controller
             return null;
         }
 
-        return 'RETUR PEMBELIAN ' . strtoupper((string) $header->fstockmtno) . ' SUDAH DIPAKAI: ' . strtoupper($usedBy->implode(', ')) . '.';
+        return 'Retur pembelian ' . (string) $header->fstockmtno . ' sudah dipakai: ' . $usedBy->implode(', ') . '.';
     }
 
     private function validateUniqueHeaderReference($frefno, $frefpo, ?string $exceptStockMtNo = null): ?string
@@ -1443,7 +1443,7 @@ class ReturPembelianController extends Controller
                 ->first();
 
             if ($existing) {
-                return 'NO. REFERENSI ' . strtoupper((string) $referenceNo) . ' SUDAH ADA DI TRANSAKSI ' . strtoupper(trim((string) ($existing->fstockmtno ?? ''))) . '.';
+                return 'No. referensi ' . strtoupper((string) $referenceNo) . ' sudah ada di transaksi ' . strtoupper(trim((string) ($existing->fstockmtno ?? ''))) . '.';
             }
         }
 

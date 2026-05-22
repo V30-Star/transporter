@@ -229,11 +229,11 @@
 
                                 // Tampilkan notifikasi sukses
                                 this.showNotificationMsg('success', result.data.message ||
-                                    'DATA BERHASIL DIHAPUS.');
+                                    'Data berhasil dihapus.');
                             } else {
                                 // Tampilkan error dari server
                                 this.showNotificationMsg('error', result.data.message ||
-                                    'HAPUS DATA GAGAL.');
+                                    'Hapus data gagal.');
                             }
 
                             this.currentRow = null;
@@ -243,7 +243,7 @@
                             this.showDeleteModal = false;
                             this.isDeleting = false;
                             this.showNotificationMsg('error',
-                                'TERJADI KESALAHAN. COBA LAGI.');
+                                'Terjadi kesalahan. Coba lagi.');
                             this.currentRow = null;
                         });
                 },

@@ -13,6 +13,19 @@
         }
     </style>
 
+    @if (session('error'))
+        <script>
+            document.addEventListener('DOMContentLoaded', function() {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Supplier Tidak Dapat Dihapus',
+                    text: @json(session('error')),
+                    confirmButtonText: 'OK'
+                });
+            });
+        </script>
+    @endif
+
     <div x-data="{ open: true, selected: 'surat' }">
         <div class="bg-white rounded shadow p-6 md:p-8 max-w-[96rem] mx-auto">
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
@@ -156,4 +169,3 @@
         </div>
     </div>
 @endsection
-

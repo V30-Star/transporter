@@ -1378,6 +1378,7 @@
                 if (!meta) {
                     return {
                         name: '',
+                        default_unit: '',
                         units: [],
                         stock: 0,
                         unit_ratios: { satuankecil: 1, satuanbesar: 1, satuanbesar2: 1 }
@@ -1469,7 +1470,7 @@
                 if (n < 0) row.fqty = 0;
             },
 
-            hydrateRowFromMeta(row, meta) {
+            hydrateRowFromMeta(row, meta, forceDefaultUnit = false) {
                 if (!meta) {
                     row.fitemname = '';
                     row.units = [];
@@ -1480,16 +1481,20 @@
                 row.fitemname = meta.name || '';
                 const preferredUnit = (row.fsatuan || '').toString().trim();
                 const units = [...new Set((meta.units || []).map(u => (u ?? '').toString().trim()).filter(Boolean))];
+                const defaultUnit = (meta.default_unit || '').toString().trim();
+                const resolvedDefaultUnit = defaultUnit && units.includes(defaultUnit) ? defaultUnit : (units[0] || '');
                 const matchedUnit = preferredUnit === '' ? '' : (units.find(u => u.toLowerCase() === preferredUnit.toLowerCase()) || '');
 
                 row.units = matchedUnit !== ''
                     ? [matchedUnit, ...units.filter(u => u.toLowerCase() !== matchedUnit.toLowerCase())]
                     : units;
 
-                if (matchedUnit !== '') {
+                if (forceDefaultUnit) {
+                    row.fsatuan = resolvedDefaultUnit;
+                } else if (matchedUnit !== '') {
                     row.fsatuan = matchedUnit;
                 } else if (!row.units.includes(row.fsatuan)) {
-                    row.fsatuan = row.units[0] || '';
+                    row.fsatuan = resolvedDefaultUnit;
                 }
 
                 if (meta.unit_ratios) row.unit_ratios = meta.unit_ratios;
@@ -2048,7 +2053,7 @@
                     if (!product) return;
                     const apply = (row) => {
                         row.fitemcode = (product.fprdcode || '').toString();
-                        this.hydrateRowFromMeta(row, this.productMeta(row.fitemcode));
+                        this.hydrateRowFromMeta(row, this.productMeta(row.fitemcode), true);
                         if (row.fqty === null || row.fqty === undefined || row.fqty === '') row.fqty = 0;
                         this.recalc(row);
                         const index = this.savedItems.findIndex((item) => item.uid === row.uid);

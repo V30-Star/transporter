@@ -939,6 +939,7 @@
                 if (!meta) {
                     return {
                         name: '',
+                        default_unit: '',
                         units: [],
                         stock: 0,
                         unit_ratios: {
@@ -964,10 +965,14 @@
                 }
                 row.fitemname = meta.name || '';
                 const units = [...new Set((meta.units || []).map(u => (u ?? '').toString().trim()).filter(Boolean))];
+                const defaultUnit = (meta.default_unit || '').toString().trim();
+                const resolvedDefaultUnit = defaultUnit && units.includes(defaultUnit)
+                    ? defaultUnit
+                    : (units[0] || '');
                 row.units = units;
                 row.fsatuan = forceDefaultUnit
-                    ? (units[0] || '')
-                    : (units.includes(row.fsatuan) ? row.fsatuan : (units[0] || ''));
+                    ? resolvedDefaultUnit
+                    : (units.includes(row.fsatuan) ? row.fsatuan : resolvedDefaultUnit);
                 if (meta.unit_ratios) row.unit_ratios = meta.unit_ratios;
             },
 

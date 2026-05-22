@@ -384,7 +384,7 @@ class ReturPenjualanController extends Controller
             ]);
 
         if (! $hdr) {
-            return redirect()->back()->with('error', 'SALES ORDER TIDAK ADA.');
+            return redirect()->back()->with('error', 'Sales order tidak ada.');
         }
 
         DB::table('tranmt')->where('fsono', $hdr->fsono)->update(['fprint' => 1]);
@@ -580,7 +580,7 @@ class ReturPenjualanController extends Controller
             $product = $products->get($code);
 
             if ($product && $product->fnonactive == '1') {
-                return back()->withInput()->with('error', "Produk [{$code}] {$product->fprdname} Sudah Discontinue.");
+                return back()->withInput()->with('error', "Produk [{$code}] {$product->fprdname} sudah discontinue.");
             }
 
             $qtyKecil = $qty;
@@ -788,10 +788,10 @@ class ReturPenjualanController extends Controller
                 // Validasi sisa SO/SRJ berdasarkan fqtykecil dinonaktifkan.
             });
 
-            return redirect()->route('returpenjualan.index')->with('success', 'RETUR PENJUALAN BERHASIL DISIMPAN.');
+            return redirect()->route('returpenjualan.index')->with('success', 'Retur penjualan berhasil disimpan.');
         } catch (\Exception $e) {
 
-            return back()->withInput()->with('error', 'RETUR PENJUALAN BELUM BISA DISIMPAN. CEK DATA TRANSAKSI.');
+            return back()->withInput()->with('error', 'Retur penjualan belum bisa disimpan. Cek data transaksi.');
         }
     }
 
@@ -939,7 +939,7 @@ class ReturPenjualanController extends Controller
                 if ((float) ($soStats[$referenceKey]['used_qty_kecil'] ?? 0) > 0) {
                     $refNo = trim((string) ($soStats[$referenceKey]['ref_doc'] ?? ''));
                     $transactionNo = trim((string) ($soStats[$referenceKey]['used_by_transaction'] ?? ''));
-                    return 'NO. REFERENSI ' . strtoupper((string) $refNo) . ' SUDAH ADA DI TRANSAKSI ' . strtoupper((string) $transactionNo) . '.';
+                    return 'No. referensi ' . strtoupper((string) $refNo) . ' sudah ada di transaksi ' . strtoupper((string) $transactionNo) . '.';
                 }
             }
         }
@@ -950,7 +950,7 @@ class ReturPenjualanController extends Controller
                 if ((float) ($srjStats[$referenceKey]['used_qty_kecil'] ?? 0) > 0) {
                     $refNo = trim((string) ($srjStats[$referenceKey]['ref_doc'] ?? ''));
                     $transactionNo = trim((string) ($srjStats[$referenceKey]['used_by_transaction'] ?? ''));
-                    return 'NO. REFERENSI ' . strtoupper((string) $refNo) . ' SUDAH ADA DI TRANSAKSI ' . strtoupper((string) $transactionNo) . '.';
+                    return 'No. referensi ' . strtoupper((string) $refNo) . ' sudah ada di transaksi ' . strtoupper((string) $transactionNo) . '.';
                 }
             }
         }
@@ -1545,7 +1545,7 @@ class ReturPenjualanController extends Controller
         // 2. LOAD HEADER
         $header = DB::table('tranmt')->where('ftranmtid', $ftranmtid)->first();
         if (! $header) {
-            return abort(404, 'FAKTUR PENJUALAN TIDAK ADA.');
+            return abort(404, 'Faktur penjualan tidak ada.');
         }
 
         if ($message = $this->getPostedPeriodLockMessage($header->fsodate, 'Retur ini')) {
@@ -1812,9 +1812,9 @@ class ReturPenjualanController extends Controller
                 // Validasi sisa SO/SRJ berdasarkan fqtykecil dinonaktifkan.
             });
 
-            return redirect()->route('returpenjualan.index')->with('success', "RETUR PENJUALAN {$header->fsono} BERHASIL DIUPDATE.");
+            return redirect()->route('returpenjualan.index')->with('success', "Retur penjualan {$header->fsono} berhasil diupdate.");
         } catch (\Exception $e) {
-            return back()->withInput()->with('error', 'RETUR PENJUALAN BELUM BISA DIUPDATE. CEK DATA TRANSAKSI.');
+            return back()->withInput()->with('error', 'Retur penjualan belum bisa diupdate. Cek data transaksi.');
         }
     }
 
@@ -1994,9 +1994,9 @@ class ReturPenjualanController extends Controller
                 $returpenjualan->delete();
             });
 
-            return redirect()->route('returpenjualan.index')->with('success', 'RETUR PENJUALAN BERHASIL DIHAPUS.');
+            return redirect()->route('returpenjualan.index')->with('success', 'Retur penjualan berhasil dihapus.');
         } catch (\Exception $e) {
-            return redirect()->route('returpenjualan.index')->with('error', 'RETUR PENJUALAN BELUM BISA DIHAPUS. COBA LAGI.');
+            return redirect()->route('returpenjualan.index')->with('error', 'Retur penjualan belum bisa dihapus. Coba lagi.');
         }
     }
 

@@ -39,9 +39,9 @@ class SalesmanController extends Controller
                 'fsalesmanname' => 'required|string',
             ],
             [
-                'fsalesmancode.required' => 'KODE SALESMAN WAJIB DIISI.',
-                'fsalesmanname.required' => 'NAMA SALESMAN WAJIB DIISI.',
-                'fsalesmancode.unique' => 'KODE SALESMAN SUDAH ADA.',
+                'fsalesmancode.required' => 'Kode salesman wajib diisi.',
+                'fsalesmanname.required' => 'Nama salesman wajib diisi.',
+                'fsalesmancode.unique' => 'Kode salesman sudah ada.',
             ]
         );
 
@@ -57,7 +57,7 @@ class SalesmanController extends Controller
 
         return redirect()
             ->route('salesman.create')
-            ->with('success', 'SALESMAN BERHASIL DISIMPAN.');
+            ->with('success', 'Salesman berhasil disimpan.');
     }
 
     public function edit($fsalesmanid)
@@ -96,9 +96,9 @@ class SalesmanController extends Controller
                 'fsalesmanname' => 'required|string',
             ],
             [
-                'fsalesmancode.required' => 'KODE SALESMAN WAJIB DIISI.',
-                'fsalesmanname.required' => 'NAMA SALESMAN WAJIB DIISI.',
-                'fsalesmancode.unique' => 'KODE SALESMAN SUDAH ADA.',
+                'fsalesmancode.required' => 'Kode salesman wajib diisi.',
+                'fsalesmanname.required' => 'Nama salesman wajib diisi.',
+                'fsalesmancode.unique' => 'Kode salesman sudah ada.',
             ]
         );
 
@@ -117,7 +117,7 @@ class SalesmanController extends Controller
 
         return redirect()
             ->route('salesman.index')
-            ->with('success', 'SALESMAN BERHASIL DIUPDATE.');
+            ->with('success', 'Salesman berhasil diupdate.');
     }
 
     public function delete($fsalesmanid)
@@ -154,13 +154,13 @@ class SalesmanController extends Controller
 
             return response()->json([
                 'success' => true,
-                'message' => 'SALESMAN '.$salesman->fsalesmanname.' BERHASIL DIHAPUS.',
+                'message' => 'Salesman '.$salesman->fsalesmanname.' berhasil dihapus.',
                 'redirect' => route('salesman.index'),
             ]);
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'SALESMAN BELUM BISA DIHAPUS. COBA LAGI.',
+                'message' => 'Salesman belum bisa dihapus. Coba lagi.',
             ], 500);
         }
     }
@@ -217,6 +217,6 @@ class SalesmanController extends Controller
             return null;
         }
 
-        return 'SALESMAN ' . strtoupper((string) $salesman->fsalesmancode) . ' TIDAK BISA DIHAPUS. SUDAH DIREFERENSI DI TRANSAKSI.';
+        return 'Salesman ' . strtoupper((string) $salesman->fsalesmancode) . ' tidak bisa dihapus. Sudah direferensi di transaksi.';
     }
 }

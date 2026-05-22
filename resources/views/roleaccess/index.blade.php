@@ -684,6 +684,13 @@
                                         {{ isset($roleAccess) && in_array('approveProduct', explode(',', $roleAccess->fpermission)) ? 'checked' : '' }}>
                                 </td>
                             </tr>
+                            <tr>
+                                <td class="px-3 py-2 font-semibold">Edit Periode</td>
+                                <td class="text-center" colspan="4">
+                                    <input type="checkbox" name="permission[]" value="editPeriode"
+                                        {{ isset($roleAccess) && in_array('editPeriode', explode(',', $roleAccess->fpermission)) ? 'checked' : '' }}>
+                                </td>
+                            </tr>
                         </tbody>
                     </table>
                 </div>

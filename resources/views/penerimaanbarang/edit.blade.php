@@ -827,6 +827,12 @@
                 "{{ $p->fprdcode }}": {
                     id: @json($p->fprdid),
                     name: @json($p->fprdname),
+                    default_unit: @json(match ((string) ($p->fsatuandefault ?? '')) {
+                        '1' => trim((string) ($p->fsatuankecil ?? '')),
+                        '2' => trim((string) ($p->fsatuanbesar ?? '')),
+                        '3' => trim((string) ($p->fsatuanbesar2 ?? '')),
+                        default => trim((string) ($p->fsatuankecil ?? '')) ?: trim((string) ($p->fsatuanbesar ?? '')) ?: trim((string) ($p->fsatuanbesar2 ?? '')),
+                    }),
                     units: @json(array_values(array_filter([$p->fsatuankecil, $p->fsatuanbesar, $p->fsatuanbesar2]))),
                     stock: @json($p->fminstock ?? 0),
                     unit_ratios: {
@@ -1041,7 +1047,7 @@
                     row.maxqty = this.calcMaxQty(row);
                 },
 
-                hydrateRowFromMeta(row, meta, keepMaxqty = false) {
+                hydrateRowFromMeta(row, meta, keepMaxqty = false, forceDefaultUnit = false) {
                     if (!meta) {
                         row.fitemname = '';
                         row.units = [];
@@ -1052,9 +1058,15 @@
                     row.fitemname = meta.name || '';
                     const units = [...new Set((meta.units || []).map(u => (u ?? '').toString().trim()).filter(Boolean))];
                     const currentSatuan = (row.fsatuan || '').trim();
+                    const defaultUnit = (meta.default_unit || '').toString().trim();
+                    const resolvedDefaultUnit = defaultUnit && units.includes(defaultUnit) ? defaultUnit : (units[0] || '');
                     if (currentSatuan && !units.includes(currentSatuan)) units.unshift(currentSatuan);
                     row.units = units;
-                    if (!currentSatuan) row.fsatuan = units[0] || '';
+                    if (forceDefaultUnit) {
+                        row.fsatuan = resolvedDefaultUnit;
+                    } else if (!currentSatuan) {
+                        row.fsatuan = resolvedDefaultUnit;
+                    }
                     if (meta.unit_ratios) row.unit_ratios = meta.unit_ratios;
                     if (!keepMaxqty) row.maxqty = 0;
                 },
@@ -1074,6 +1086,11 @@
                     return {
                         id: product.fprdid ?? null,
                         name: product.fprdname ?? '',
+                        default_unit: ({
+                            '1': (product.fsatuankecil ?? '').toString().trim(),
+                            '2': (product.fsatuanbesar ?? '').toString().trim(),
+                            '3': (product.fsatuanbesar2 ?? '').toString().trim(),
+                        }[(product.fsatuandefault ?? '').toString().trim()] || (product.fsatuankecil ?? '').toString().trim() || (product.fsatuanbesar ?? '').toString().trim() || (product.fsatuanbesar2 ?? '').toString().trim()),
                         units: [
                             product.fsatuankecil ?? '',
                             product.fsatuanbesar ?? '',
@@ -1513,7 +1530,7 @@
                                     fsatuanbesar2: payloadMeta.fsatuanbesar2,
                                 });
                             }
-                            this.hydrateRowFromMeta(row, this.productMeta(row.fitemcode) || payloadMeta);
+                            this.hydrateRowFromMeta(row, this.productMeta(row.fitemcode) || payloadMeta, false, true);
                             row.fnoacak = this.normalizeNoAcak(row.fnoacak) || this.generateUniqueNoAcak();
                             if (!row.fqty) row.fqty = 1;
                             this.recalc(row);

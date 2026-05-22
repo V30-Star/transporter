@@ -27,7 +27,7 @@
                             {{ !empty($isTransactionLocked) ? 'readonly' : '' }}
                             autofocus>
                         @if (!empty($isTransactionLocked))
-                            <p class="text-amber-600 text-sm mt-1">KODE WILAYAH DIKUNCI KARENA SUDAH DIREFERENSI DI TRANSAKSI.</p>
+                            <p class="text-amber-600 text-sm mt-1">Kode wilayah dikunci karena sudah direferensi di transaksi.</p>
                         @endif
                         @error('fwilayahcode')
                             <p class="text-red-600 text-sm mt-1">{{ $message }}</p>

@@ -129,7 +129,7 @@
                                 :value="autoCode ? '{{ $customer->fcustomercode }}' : '{{ old('fcustomercode', $customer->fcustomercode) }}'"
                                 :class="(autoCode || {{ !empty($isTransactionLocked) ? 'true' : 'false' }}) ? 'bg-gray-200 cursor-not-allowed' : 'bg-white'">
                             @if (!empty($isTransactionLocked))
-                                <p class="text-amber-600 text-sm mt-1">KODE CUSTOMER DIKUNCI KARENA SUDAH DIREFERENSI DI TRANSAKSI.</p>
+                                <p class="text-amber-600 text-sm mt-1">Kode customer dikunci karena sudah direferensi di transaksi.</p>
                             @endif
                         </div>
 

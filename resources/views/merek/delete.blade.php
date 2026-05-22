@@ -71,7 +71,7 @@
                 <div>
                     <h4 class="text-sm font-semibold text-red-700">Merek Tidak Dapat Dihapus</h4>
                     <ul class="mt-2 text-sm text-red-600 list-disc list-inside space-y-1">
-                        <li>MEREK SUDAH DIREFERENSI DI PRODUK</li>
+                        <li>Merek sudah direferensi di produk</li>
                     </ul>
                 </div>
             </div>

@@ -38,9 +38,9 @@ class MerekController extends Controller
                 'fmerekname' => 'required|string',
             ],
             [
-                'fmerekcode.required' => 'KODE MEREK WAJIB DIISI.',
-                'fmerekname.required' => 'NAMA MEREK WAJIB DIISI.',
-                'fmerekcode.unique' => 'KODE MEREK SUDAH ADA.',
+                'fmerekcode.required' => 'Kode merek wajib diisi.',
+                'fmerekname.required' => 'Nama merek wajib diisi.',
+                'fmerekcode.unique' => 'Kode merek sudah ada.',
             ]
         );
 
@@ -64,7 +64,7 @@ class MerekController extends Controller
 
         return redirect()
             ->route('merek.create')
-            ->with('success', 'MEREK BERHASIL DISIMPAN.');
+            ->with('success', 'Merek berhasil disimpan.');
     }
 
     public function edit($fmerekid)
@@ -89,9 +89,9 @@ class MerekController extends Controller
                 'fmerekname' => 'required|string',
             ],
             [
-                'fmerekcode.required' => 'KODE MEREK WAJIB DIISI.',
-                'fmerekname.required' => 'NAMA MEREK WAJIB DIISI.',
-                'fmerekcode.unique' => 'KODE MEREK SUDAH ADA.',
+                'fmerekcode.required' => 'Kode merek wajib diisi.',
+                'fmerekname.required' => 'Nama merek wajib diisi.',
+                'fmerekcode.unique' => 'Kode merek sudah ada.',
             ]
         );
 
@@ -107,7 +107,7 @@ class MerekController extends Controller
 
         return redirect()
             ->route('merek.index')
-            ->with('success', 'MEREK BERHASIL DIUPDATE.');
+            ->with('success', 'Merek berhasil diupdate.');
     }
 
     public function delete($fmerekid)
@@ -127,7 +127,7 @@ class MerekController extends Controller
             if (\Illuminate\Support\Facades\DB::table('msprd')->where('fmerek', $merek->fmerekid)->exists()) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'MEREK TIDAK BISA DIHAPUS. SUDAH DIREFERENSI DI PRODUK.',
+                    'message' => 'Merek tidak bisa dihapus. Sudah direferensi di produk.',
                 ], 422);
             }
 
@@ -135,13 +135,13 @@ class MerekController extends Controller
 
             return response()->json([
                 'success' => true,
-                'message' => 'MEREK '.$merek->fmerekname.' BERHASIL DIHAPUS.',
+                'message' => 'Merek '.$merek->fmerekname.' berhasil dihapus.',
                 'redirect' => route('merek.index'),
             ]);
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'MEREK BELUM BISA DIHAPUS. COBA LAGI.',
+                'message' => 'Merek belum bisa dihapus. Coba lagi.',
             ], 500);
         }
     }

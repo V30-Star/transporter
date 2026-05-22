@@ -114,7 +114,7 @@
                 <div>
                     <h4 class="text-sm font-semibold text-red-700">Customer Tidak Dapat Dihapus</h4>
                     <ul class="mt-2 text-sm text-red-600 list-disc list-inside space-y-1">
-                        <li>CUSTOMER SUDAH DIREFERENSI DI SALES ORDER</li>
+                        <li>Customer sudah direferensi di sales order</li>
                     </ul>
                 </div>
             </div>
@@ -244,7 +244,7 @@
                 if (notifApp && notifApp._x_dataStack) {
                     const dataComponent = notifApp._x_dataStack[0];
                     if (dataComponent && typeof dataComponent.show === 'function') {
-                        dataComponent.show(data.success ? 'success' : 'error', data.message || (data.success ? 'DATA BERHASIL DIHAPUS.' : 'HAPUS DATA GAGAL.'));
+                        dataComponent.show(data.success ? 'success' : 'error', data.message || (data.success ? 'Data berhasil dihapus.' : 'Hapus data gagal.'));
                     }
                 }
                 if (data.success || data.redirect) {
@@ -259,7 +259,7 @@
                 if (notifApp && notifApp._x_dataStack) {
                     const dataComponent = notifApp._x_dataStack[0];
                     if (dataComponent && typeof dataComponent.show === 'function') {
-                        dataComponent.show('error', 'TERJADI KESALAHAN SAAT HAPUS DATA.');
+                        dataComponent.show('error', 'Terjadi kesalahan saat hapus data.');
                     }
                 }
             });

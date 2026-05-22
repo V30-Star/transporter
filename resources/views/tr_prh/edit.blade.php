@@ -421,7 +421,7 @@
                         <div class="mb-4 flex items-center gap-3 px-4 py-3 rounded-lg bg-amber-50 border border-amber-200">
                             <x-heroicon-o-lock-closed class="w-5 h-5 text-amber-500 flex-shrink-0" />
                             <p class="text-sm text-amber-700">
-                                <strong>MODE HANYA BACA.</strong> PR INI TIDAK BISA DIEDIT KARENA SUDAH MEMILIKI PURCHASE
+                                <strong>Mode hanya baca.</strong> PR ini tidak bisa diedit karena sudah memiliki purchase
                                 Order terkait.
                             </p>
                         </div>
@@ -652,7 +652,7 @@
                             @if ($isUsageLocked)
                                 <button type="button" disabled
                                     class="bg-blue-300 text-white px-8 py-2.5 rounded shadow flex items-center transition cursor-not-allowed opacity-70"
-                                    title="{{ $usageLockMessage ?? 'DATA INI SUDAH DIREFERENSI.' }}">
+                                    title="{{ $usageLockMessage ?? 'Data ini sudah direferensi.' }}">
                                     <x-heroicon-o-lock-closed class="w-5 h-5 mr-2" /> Simpan Perubahan
                                 </button>
                             @else
@@ -1343,7 +1343,9 @@
                         this.draft.fprdid = meta.id;
                         this.draft.fitemname = meta.name;
                         this.draft.units = meta.units;
-                        this.draft.fsatuan = meta.units[0] || '';
+                        this.draft.fsatuan = meta.default_unit && meta.units.includes(meta.default_unit)
+                            ? meta.default_unit
+                            : (meta.units[0] || '');
                         this.draft.fnoacak = this.normalizeNoAcak(this.draft.fnoacak) || this.generateUniqueNoAcak();
                     } else {
                         this.draft.fprdid = 0;
@@ -1358,7 +1360,11 @@
                         it.fprdid = meta.id;
                         it.fitemname = meta.name;
                         it.units = meta.units;
-                        if (!it.units.includes(it.fsatuan)) it.fsatuan = it.units[0] || '';
+                        if (!it.units.includes(it.fsatuan)) {
+                            it.fsatuan = meta.default_unit && it.units.includes(meta.default_unit)
+                                ? meta.default_unit
+                                : (it.units[0] || '');
+                        }
                         it.fnoacak = this.normalizeNoAcak(it.fnoacak) || this.generateUniqueNoAcak();
                     }
                 },
@@ -1638,7 +1644,7 @@
 
                 productMeta(code) {
                     const key = (code || '').trim();
-                    return window.PRODUCT_MAP?.[key] || { name: '', units: [] };
+                    return window.PRODUCT_MAP?.[key] || { name: '', default_unit: '', units: [] };
                 },
 
                 hydrateRowFromMeta(row, meta, forceDefaultUnit = false) {
@@ -1652,6 +1658,8 @@
                     row.fprdid = meta.id || row.fprdid || '';
                     row.fitemname = meta.name || '';
                     const units = [...new Set((meta.units || []).map(unit => (unit ?? '').toString().trim()).filter(Boolean))];
+                    const defaultUnit = (meta.default_unit || '').toString().trim();
+                    const resolvedDefaultUnit = defaultUnit && units.includes(defaultUnit) ? defaultUnit : (units[0] || '');
                     row.units = units;
                     const existingUnit = (row.fsatuan || '').toString().trim();
                     const matchedUnit = units.find(unit => unit.toLowerCase() === existingUnit.toLowerCase()) || existingUnit;
@@ -1840,7 +1848,7 @@
                         if (!row) return;
 
                         row.fitemcode = (code || '').toString();
-                        this.hydrateRowFromMeta(row, this.productMeta(row.fitemcode));
+                        this.hydrateRowFromMeta(row, this.productMeta(row.fitemcode), true);
                         this.onRowUpdated(index);
                     });
 

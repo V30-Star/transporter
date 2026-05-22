@@ -29,7 +29,7 @@
                             {{ !empty($isTransactionLocked) ? 'readonly' : '' }}
                             autofocus>
                         @if (!empty($isTransactionLocked))
-                            <p class="text-amber-600 text-sm mt-1">KODE SALESMAN DIKUNCI KARENA SUDAH DIREFERENSI DI TRANSAKSI.</p>
+                            <p class="text-amber-600 text-sm mt-1">Kode salesman dikunci karena sudah direferensi di transaksi.</p>
                         @endif
                         @error('fsalesmancode')
                             <p class="text-red-600 text-sm mt-1">{{ $message }}</p>

@@ -51,9 +51,9 @@ class SubaccountController extends Controller
                 'fsubaccountname' => 'required|string',
             ],
             [
-                'fsubaccountcode.required' => 'KODE SUBACCOUNT WAJIB DIISI.',
-                'fsubaccountname.required' => 'NAMA SUBACCOUNT WAJIB DIISI.',
-                'fsubaccountcode.unique' => 'KODE SUBACCOUNT SUDAH ADA.',
+                'fsubaccountcode.required' => 'Kode subaccount wajib diisi.',
+                'fsubaccountname.required' => 'Nama subaccount wajib diisi.',
+                'fsubaccountcode.unique' => 'Kode subaccount sudah ada.',
             ]
         );
 
@@ -69,7 +69,7 @@ class SubaccountController extends Controller
 
         return redirect()
             ->route('subaccount.create')
-            ->with('success', 'SUBACCOUNT BERHASIL DISIMPAN.');
+            ->with('success', 'Subaccount berhasil disimpan.');
     }
 
     public function edit($fsubaccountid)
@@ -99,9 +99,9 @@ class SubaccountController extends Controller
                 'fsubaccountname' => 'required|string',
             ],
             [
-                'fsubaccountcode.required' => 'KODE SUBACCOUNT WAJIB DIISI.',
-                'fsubaccountname.required' => 'NAMA SUBACCOUNT WAJIB DIISI.',
-                'fsubaccountcode.unique' => 'KODE SUBACCOUNT SUDAH ADA.',
+                'fsubaccountcode.required' => 'Kode subaccount wajib diisi.',
+                'fsubaccountname.required' => 'Nama subaccount wajib diisi.',
+                'fsubaccountcode.unique' => 'Kode subaccount sudah ada.',
             ]
         );
 
@@ -117,7 +117,7 @@ class SubaccountController extends Controller
 
         return redirect()
             ->route('subaccount.index')
-            ->with('success', 'SUBACCOUNT BERHASIL DIUPDATE.');
+            ->with('success', 'Subaccount berhasil diupdate.');
     }
 
     public function delete($fsubaccountid)
@@ -137,7 +137,7 @@ class SubaccountController extends Controller
             if (\Illuminate\Support\Facades\DB::table('jurnaldt')->where('fsubaccount', $subaccount->fsubaccount)->exists()) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'SUBACCOUNT SUDAH DIPAKAI TRANSAKSI JURNAL.',
+                    'message' => 'Subaccount sudah dipakai transaksi jurnal.',
                 ], 422);
             }
 
@@ -145,13 +145,13 @@ class SubaccountController extends Controller
 
             return response()->json([
                 'success' => true,
-                'message' => 'SUBACCOUNT '.$subaccount->fsubaccountname.' BERHASIL DIHAPUS.',
+                'message' => 'Subaccount '.$subaccount->fsubaccountname.' berhasil dihapus.',
                 'redirect' => route('subaccount.index'),
             ]);
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'SUBACCOUNT BELUM BISA DIHAPUS. COBA LAGI.',
+                'message' => 'Subaccount belum bisa dihapus. Coba lagi.',
             ], 500);
         }
     }
