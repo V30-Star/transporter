@@ -23,6 +23,7 @@ use App\Http\Controllers\MerekController;
 use App\Http\Controllers\MutasiController;
 use App\Http\Controllers\PemakaianbarangController;
 use App\Http\Controllers\PengeluaranKasController;
+use App\Http\Controllers\PelunasanCustomerController;
 use App\Http\Controllers\PenerimaanKasController;
 use App\Http\Controllers\PenerimaanBarangController;
 use App\Http\Controllers\ProductController;
@@ -248,6 +249,10 @@ Route::middleware('auth')->group(function () {
         Route::get('/penerimaankas/{fkasmtno}/print', [PenerimaanKasController::class, 'print'])->name('penerimaankas.print');
         Route::patch('/penerimaankas/{fkasmtno}', [PenerimaanKasController::class, 'update'])->name('penerimaankas.update');
         Route::delete('/penerimaankas/{fkasmtno}', [PenerimaanKasController::class, 'destroy'])->name('penerimaankas.destroy');
+        Route::get('/pelunasancustomer', [PelunasanCustomerController::class, 'index'])->name('pelunasancustomer.index');
+        Route::get('/pelunasancustomer/create', [PelunasanCustomerController::class, 'create'])->name('pelunasancustomer.create');
+        Route::post('/pelunasancustomer', [PelunasanCustomerController::class, 'store'])->name('pelunasancustomer.store');
+        Route::get('/pelunasancustomer/pickable-nota', [PelunasanCustomerController::class, 'pickableNota'])->name('pelunasancustomer.pickable-nota');
 
         Route::get('/account', [AccountController::class, 'index'])->name('account.index');
         Route::post('/account', [AccountController::class, 'store'])->name('account.store');
