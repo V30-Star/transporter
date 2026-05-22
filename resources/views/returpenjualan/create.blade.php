@@ -499,10 +499,10 @@
                                 const inputRefSrj = document.getElementById('frefsrj');
 
                                 // Menangkap Event saat referensi faktur dipilih
-                                window.addEventListener('pr-picked', (e) => {
+                                window.addEventListener('invoice-picked', (e) => {
                                     const header = e.detail.header;
-                                    inputRefCode.value = 'SO';
-                                    inputRefSo.value = header.ftranmtid ?? header.ftrsomtid ?? ''; // Simpan id referensi aktif
+                                    inputRefCode.value = 'INV';
+                                    inputRefSo.value = header.fsono ?? '';
                                     inputRefSrj.value = ''; // Reset yang lain
                                 });
 
@@ -2120,7 +2120,6 @@
                     items
                 } = e.detail || {};
                 if (!items || !Array.isArray(items)) return;
-                this.resetDraft();
                 this.addManyFromPR(header, items, source);
             },
 
@@ -2141,8 +2140,8 @@
                             ?.fsono ?? '')),
                         frefcode: source === 'SRJ' ? (header?.fstockmtno ?? '') : (header?.fsono ?? ''),
 
-                        frefso: source === 'SO' ? (header?.fsono ?? '') : '',
-                        frefsrj: source === 'SRJ' ? (header?.fstockmtno ?? '') : '',
+                        frefso: source === 'SO' ? (header?.fsono ?? '') : ((src.frefso ?? '').toString().trim()),
+                        frefsrj: source === 'SRJ' ? (header?.fstockmtno ?? '') : ((src.frefsrj ?? '').toString().trim()),
                         fnoacak: this.generateUniqueNoAcak(),
                         frefnoacak: this.normalizeRefNoAcak(src.frefnoacak ?? src.fnoacak ?? ''),
 
@@ -2406,7 +2405,7 @@
                     fnoacak: this.normalizeNoAcak(item.fnoacak) || this.generateUniqueNoAcak(),
                     frefnoacak: this.normalizeRefNoAcak(item.frefnoacak),
                 }));
-                window.addEventListener('pr-picked', (e) => this.onPrPicked(e, 'SO'), {
+                window.addEventListener('invoice-picked', (e) => this.onPrPicked(e, 'INV'), {
                     passive: true
                 });
                 window.addEventListener('srj-picked', (e) => this.onPrPicked(e, 'SRJ'), {
@@ -2522,7 +2521,7 @@
                 const safeUniques = this.pendingUniques.filter(src => !currentKeys.has(keyOf(src)));
 
                 if (safeUniques.length > 0) {
-                    window.transactionReferenceModalHelper.dispatchPick('pr-picked', this.pendingHeader,
+                    window.transactionReferenceModalHelper.dispatchPick('invoice-picked', this.pendingHeader,
                         safeUniques);
                 }
 
@@ -2617,7 +2616,7 @@
                     }
 
                     // tidak ada duplikat → langsung kirim semua item yang unik (atau 'items' kalau mau semua)
-                    window.dispatchEvent(new CustomEvent('pr-picked', {
+                    window.dispatchEvent(new CustomEvent('invoice-picked', {
                         detail: {
                             header: row,
                             items
@@ -2791,7 +2790,7 @@
             },
 
             confirmAddUniques() {
-                window.dispatchEvent(new CustomEvent('pr-picked', {
+                window.dispatchEvent(new CustomEvent('invoice-picked', {
                     detail: {
                         header: this.pendingHeader,
                         items: this.pendingUniques
@@ -2843,7 +2842,7 @@
                         return;
                     }
 
-                    window.dispatchEvent(new CustomEvent('pr-picked', {
+                    window.dispatchEvent(new CustomEvent('invoice-picked', {
                         detail: {
                             header: json.header,
                             items: items
