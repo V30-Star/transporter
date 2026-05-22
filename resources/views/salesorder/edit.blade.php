@@ -1468,6 +1468,8 @@
         return {
             rows: [],
             totalHarga: 0,
+            headerDiscPercent: @json((float) old('fdiscpersen', $salesorder->fdiscpersen ?? 0)),
+            initialHeaderDiscAmount: @json((float) old('fdiscount', $salesorder->fdiscount ?? 0)),
             ppnRate: 11,
             includePPN: false,
             ppnMode: 0,
@@ -1477,8 +1479,24 @@
             _descTarget: null,
             descReadonly: true,
 
-            get totalDPP() {
+            get headerDiscAmount() {
+                const storedAmount = Number(this.initialHeaderDiscAmount || 0);
+                if (storedAmount > 0) {
+                    return storedAmount;
+                }
+
                 const total = +this.totalHarga || 0;
+                const percent = Math.min(100, Math.max(0, +this.headerDiscPercent || 0));
+                return +(total * (percent / 100)).toFixed(2);
+            },
+
+            get totalSetelahDisc() {
+                const total = +this.totalHarga || 0;
+                return +(total - this.headerDiscAmount).toFixed(2);
+            },
+
+            get totalDPP() {
+                const total = this.totalSetelahDisc;
                 if (!this.includePPN) return total;
                 const rate = +this.ppnRate || 0;
                 if (this.ppnMode === 1) {
@@ -1495,7 +1513,7 @@
             },
 
             get grandTotal() {
-                const total = +this.totalHarga || 0;
+                const total = this.totalSetelahDisc;
                 if (!this.includePPN) return total;
                 if (this.ppnMode === 1) return total;
                 return total + this.ppnAmount;
@@ -1660,6 +1678,8 @@
 
             totalHarga: 0,
             headerDiscPercent: @json((float) old('fdiscpersen', $salesorder->fdiscpersen ?? 0)),
+            initialHeaderDiscAmount: @json((float) old('fdiscount', $salesorder->fdiscount ?? 0)),
+            useStoredHeaderDiscount: true,
             ppnRate: 11,
 
             initialGrandTotal: @json($famountso ?? 0),
@@ -1677,6 +1697,10 @@
             pendingRowsToSubmit: [],
 
             get headerDiscAmount() {
+                if (this.useStoredHeaderDiscount) {
+                    return +(Number(this.initialHeaderDiscAmount || 0)).toFixed(2);
+                }
+
                 const total = +this.totalHarga || 0;
                 const percent = Math.min(100, Math.max(0, +this.headerDiscPercent || 0));
                 return +(total * (percent / 100)).toFixed(2);
@@ -1874,6 +1898,7 @@
             },
 
             onRowUpdated(index = null) {
+                this.useStoredHeaderDiscount = false;
                 const row = typeof index === 'number' ? this.rows[index] : null;
                 if (row) {
                     this.recalc(row);
@@ -2137,6 +2162,7 @@
                         this.headerDiscPercent = normalized;
                         return;
                     }
+                    this.useStoredHeaderDiscount = false;
                     this.recalcTotals();
                 });
 
