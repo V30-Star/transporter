@@ -18,20 +18,6 @@ use App\Support\ApprovalState;
 
 class SalesOrderController extends Controller
 {
-    private function resolveProductDefaultUnit(object $product): string
-    {
-        $defaultKey = trim((string) ($product->fsatuandefault ?? ''));
-
-        return match ($defaultKey) {
-            '1' => trim((string) ($product->fsatuankecil ?? '')),
-            '2' => trim((string) ($product->fsatuanbesar ?? '')),
-            '3' => trim((string) ($product->fsatuanbesar2 ?? '')),
-            default => trim((string) ($product->fsatuankecil ?? ''))
-                ?: trim((string) ($product->fsatuanbesar ?? ''))
-                ?: trim((string) ($product->fsatuanbesar2 ?? '')),
-        };
-    }
-
     private function ensureNoDuplicateDetailCodes(array $codes): void
     {
         $seen = [];
@@ -578,7 +564,6 @@ class SalesOrderController extends Controller
             ->select([
                 'trsodt.ftrsodtid as frefdtno',
                 'trsodt.fsono as fnouref',
-                DB::raw("COALESCE(trsodt.frefnosoacak::text, trsodt.fnoacak::text, '') as frefnoacak"),
                 'trsodt.fprdcode as fitemcode',
                 'm.fprdname as fitemname',
                 'trsodt.fsatuan',
@@ -690,7 +675,7 @@ class SalesOrderController extends Controller
             ]);
 
         if (! $hdr) {
-            return redirect()->back()->with('error', 'Sales order tidak ada.');
+            return redirect()->back()->with('error', 'SALES ORDER TIDAK ADA.');
         }
 
         DB::table('trsomt')->where('fsono', $hdr->fsono)->update(['fprint' => 1]);
@@ -750,7 +735,6 @@ class SalesOrderController extends Controller
             'fprdid',
             'fprdcode',
             'fprdname',
-            'fsatuandefault',
             'fsatuankecil',
             'fsatuanbesar',
             'fsatuanbesar2',
@@ -763,7 +747,6 @@ class SalesOrderController extends Controller
             return [
                 $p->fprdcode => [
                     'name' => $p->fprdname,
-                    'default_unit' => $this->resolveProductDefaultUnit($p),
                     'units' => array_values(array_filter([
                         $p->fsatuankecil,
                         $p->fsatuanbesar,
@@ -900,7 +883,6 @@ class SalesOrderController extends Controller
             $rowsSodt[] = [
                 'fprdcode' => mb_substr($itemCode, 0, 20),
                 'fnoacak' => $this->normalizeRandomNumber($fnoacaks[$i] ?? null, $usedNoAcaks),
-                'frefnosoacak' => $this->normalizeReferenceRandomNumber($frefnoacaks[$i] ?? null),
                 'fsatuan' => mb_substr($satuan, 0, 20),
                 'fdesc' => $descs[$i] ?? '',
                 'fqty' => $qty,
@@ -1044,10 +1026,10 @@ class SalesOrderController extends Controller
                 $this->sendApprovalNotification($fsono, $userid);
             }
 
-            return redirect()->route('salesorder.create')->with('success', "Sales order {$fsono} berhasil disimpan.");
+            return redirect()->route('salesorder.create')->with('success', "SALES ORDER {$fsono} BERHASIL DISIMPAN.");
         } catch (\Exception $e) {
             report($e);
-            return back()->withInput()->withErrors(['error' => 'Sales order belum bisa disimpan. Cek data.']);
+            return back()->withInput()->withErrors(['error' => 'SALES ORDER BELUM BISA DISIMPAN. CEK DATA.']);
         }
     }
 
@@ -1184,7 +1166,6 @@ class SalesOrderController extends Controller
             'fprdid',
             'fprdcode',
             'fprdname',
-            'fsatuandefault',
             'fsatuankecil',
             'fsatuanbesar',
             'fsatuanbesar2',
@@ -1198,7 +1179,6 @@ class SalesOrderController extends Controller
             return [
                 $p->fprdcode => [
                     'name' => $p->fprdname,
-                    'default_unit' => $this->resolveProductDefaultUnit($p),
                     'units' => array_values(array_filter([
                         $p->fsatuankecil,
                         $p->fsatuanbesar,
@@ -1317,7 +1297,6 @@ class SalesOrderController extends Controller
             'fprdid',
             'fprdcode',
             'fprdname',
-            'fsatuandefault',
             'fsatuankecil',
             'fsatuanbesar',
             'fsatuanbesar2',
@@ -1328,7 +1307,6 @@ class SalesOrderController extends Controller
             return [
                 (string) $p->fprdcode => [
                     'name' => $p->fprdname,
-                    'default_unit' => $this->resolveProductDefaultUnit($p),
                     'units' => array_values(array_filter([$p->fsatuankecil, $p->fsatuanbesar, $p->fsatuanbesar2])),
                     'stock' => (float) ($p->fminstock ?? 0),
                 ],
@@ -1413,7 +1391,7 @@ class SalesOrderController extends Controller
         // 2. LOAD HEADER
         $header = DB::table('trsomt')->where('ftrsomtid', $ftrsomtid)->first();
         if (! $header) {
-            return abort(404, 'Sales order tidak ada.');
+            return abort(404, 'SALES ORDER TIDAK ADA.');
         }
         if ($message = $this->getPostedPeriodLockMessage($header->fsodate, 'Sales Order ini')) {
             return redirect()->route('salesorder.view', $ftrsomtid)->with('error', $message);
@@ -1498,7 +1476,6 @@ class SalesOrderController extends Controller
                 'fsono' => $header->fsono, // Gunakan fsono yang sudah ada
                 'fprdcode' => $itemCode,
                 'fnoacak' => $this->normalizeRandomNumber($fnoacaks[$i] ?? null, $usedNoAcaks),
-                'frefnosoacak' => $this->normalizeReferenceRandomNumber($frefnoacaks[$i] ?? null),
                 'fsatuan' => mb_substr($satuan, 0, 20),
                 'fdesc' => $desc,
                 'fqty' => $qty,
@@ -1601,7 +1578,7 @@ class SalesOrderController extends Controller
 
         return redirect()
             ->route('salesorder.index')
-            ->with('success', "Sales order {$header->fsono} berhasil diupdate.");
+            ->with('success', "SALES ORDER {$header->fsono} BERHASIL DIUPDATE.");
     }
 
     public function delete(Request $request, $ftrsomtid)
@@ -1692,7 +1669,6 @@ class SalesOrderController extends Controller
             'fprdid',
             'fprdcode',
             'fprdname',
-            'fsatuandefault',
             'fsatuankecil',
             'fsatuanbesar',
             'fsatuanbesar2',
@@ -1704,7 +1680,6 @@ class SalesOrderController extends Controller
             return [
                 $p->fprdcode => [
                     'name' => $p->fprdname,
-                    'default_unit' => $this->resolveProductDefaultUnit($p),
                     'units' => array_values(array_filter([$p->fsatuankecil, $p->fsatuanbesar, $p->fsatuanbesar2])),
                     'stock' => $p->fminstock ?? 0,
                 ],
@@ -1755,11 +1730,11 @@ class SalesOrderController extends Controller
                 $salesorder->delete();
             });
 
-            return redirect()->route('salesorder.index')->with('success', 'Sales order ' . $salesorder->fsono . ' berhasil dihapus.');
+            return redirect()->route('salesorder.index')->with('success', 'SALES ORDER ' . $salesorder->fsono . ' BERHASIL DIHAPUS.');
         } catch (\Exception $e) {
             // Jika terjadi kesalahan saat menghapus, kembali ke halaman delete dengan pesan error
             report($e);
-            return redirect()->route('salesorder.delete', $ftrsomtid)->with('error', 'Sales order belum bisa dihapus. Coba lagi.');
+            return redirect()->route('salesorder.delete', $ftrsomtid)->with('error', 'SALES ORDER BELUM BISA DIHAPUS. COBA LAGI.');
         }
     }
 
@@ -1852,6 +1827,6 @@ class SalesOrderController extends Controller
             return null;
         }
 
-        return 'Sales order ' . $fsono . ' tidak bisa diubah atau dihapus. Sudah direferensi di ' . implode('; ', $parts) . '.';
+        return 'SALES ORDER ' . $fsono . ' TIDAK BISA DIUBAH ATAU DIHAPUS. SUDAH DIREFERENSI DI ' . strtoupper(implode('; ', $parts)) . '.';
     }
 }

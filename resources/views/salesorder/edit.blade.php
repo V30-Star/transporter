@@ -518,71 +518,82 @@
                                 </table>
                             </div>
 
-                            <div class="mt-3 flex justify-end items-start gap-4">
-                                <div class="w-1/2">
-                                        <div class="rounded-lg border bg-gray-50 p-3 space-y-2">
-                                            <div class="flex items-center justify-between">
-                                                <span class="text-sm text-gray-700">Total Harga</span>
+                            <div class="mt-3 flex justify-end">
+                                <div class="w-full md:w-1/2">
+                                    <div class="rounded-lg border bg-gray-50 p-3 space-y-2">
+                                        <div class="flex items-center justify-between">
+                                            <span class="text-sm text-gray-700">Total Harga</span>
+                                            <span class="min-w-[140px] text-right font-medium"
+                                                x-text="formatTransactionAmount(totalHarga)"></span>
+                                        </div>
+
+                                        <div class="flex items-center justify-between">
+                                            <span class="text-sm text-gray-700">Total DPP</span>
+                                            <span class="min-w-[140px] text-right font-medium"
+                                                x-text="rupiah(totalDPP)"></span>
+                                        </div>
+
+                                        <div class="flex items-center justify-between gap-6">
+                                            <div class="flex items-center">
+                                                <input id="fapplyppn" type="checkbox" name="fapplyppn"
+                                                    value="1" x-model="includePPN" disabled
+                                                    x-init="includePPN = {{ $salesorder->fapplyppn == '1' ? 'true' : 'false' }}"
+                                                    class="h-4 w-4 text-blue-600 border-gray-300 rounded">
+                                                <label for="fapplyppn" class="ml-2 text-sm font-medium text-gray-700">
+                                                    <span class="font-bold">PPN</span>
+                                                </label>
+                                            </div>
+
+                                            <div class="flex items-center gap-2">
+                                                <select disabled id="ppnMode" name="fincludeppn"
+                                                    x-model.number="ppnMode" x-init="ppnMode = {{ old('fincludeppn', $salesorder->fincludeppn ?? 0) }}"
+                                                    :disabled="!includePPN"
+                                                    class="w-28 h-9 px-2 text-sm leading-tight border rounded transition-opacity appearance-none disabled:bg-gray-100 disabled:opacity-60 disabled:cursor-not-allowed">
+                                                    <option value="0">Exclude</option>
+                                                    <option value="1">Include</option>
+                                                </select>
+                                            </div>
+
+                                            <div class="flex items-center gap-2">
+                                                <input disabled type="number" min="0" max="100"
+                                                    step="0.01" x-model.number="ppnRate"
+                                                    x-init="ppnRate = {{ old('fppnpersen', $salesorder->fppnpersen ?? 11) }}"
+                                                    :disabled="!includePPN"
+                                                    class="w-20 h-9 px-2 text-sm leading-tight text-right border rounded transition-opacity [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none disabled:bg-gray-100 disabled:opacity-60 disabled:cursor-not-allowed">
+                                                <span class="text-sm">%</span>
                                                 <span class="min-w-[140px] text-right font-medium"
-                                                    x-text="formatTransactionAmount(totalHarga)"></span>
-                                            </div>
-                                            <div class="flex items-center justify-between gap-6">
-                                                <!-- Checkbox -->
-                                                <div class="flex items-center">
-                                                    <input id="fapplyppn" type="checkbox" name="fapplyppn"
-                                                        value="1" x-model="includePPN" disabled
-                                                        x-init="includePPN = {{ $salesorder->fppn == '1' ? 'true' : 'false' }}"
-                                                        class="h-4 w-4 text-blue-600 border-gray-300 rounded">
-                                                    <label for="fapplyppn" class="ml-2 text-sm font-medium text-gray-700">
-                                                        <span class="font-bold">PPN</span>
-                                                    </label>
-                                                </div>
-
-                                                <!-- Dropdown Include / Exclude (tengah) -->
-                                                <div class="flex items-center gap-2">
-                                                    <select disabled id="includePPN" name="includePPN"
-                                                        x-model.number="fapplyppn" x-init="fapplyppn = {{ old('includePPN', $salesorder->fincludeppn) }}"
-                                                        :disabled="!(includePPN || fapplyppn)"
-                                                        class="w-28 h-9 px-2 text-sm leading-tight border rounded transition-opacity appearance-none
-                                                           disabled:bg-gray-100 disabled:opacity-60 disabled:cursor-not-allowed">
-                                                        <option value="0">Exclude</option>
-                                                        <option value="1">Include</option>
-                                                    </select>
-                                                </div>
-
-                                                <!-- Input Rate + Nominal (kanan) -->
-                                                <div class="flex items-center gap-2">
-                                                    <input disabled type="number" min="0" max="100"
-                                                        step="0.01" x-model.number="ppnRate" x-init="ppnRate = {{ old('fppnpersen', $fppnpersen) }}"
-                                                        :disabled="!(includePPN || fapplyppn)"
-                                                        class="w-20 h-9 px-2 text-sm leading-tight text-right border rounded transition-opacity
-                                                            [appearance:textfield]
-                                                            [&::-webkit-outer-spin-button]:appearance-none
-                                                            [&::-webkit-inner-spin-button]:appearance-none
-                                                            disabled:bg-gray-100 disabled:opacity-60 disabled:cursor-not-allowed">
-                                                    <span class="text-sm">%</span>
-                                                    <span class="min-w-[140px] text-right font-medium"
-                                                        x-text="rupiah(ppnAmount)"></span>
-                                                </div>
-
-                                            </div>
-
-                                            <div class="border-t my-1"></div>
-
-                                            <div class="flex items-center justify-between">
-                                                <span class="text-sm font-semibold text-gray-800">Grand Total</span>
-                                                <span class="min-w-[140px] text-right text-lg font-semibold"
-                                                    x-text="rupiah(grandTotal)"></span>
+                                                    x-text="rupiah(ppnAmount)"></span>
                                             </div>
                                         </div>
 
-                                        <!-- Hidden inputs for submit -->
-                                        <input type="hidden" name="famountgross" :value="totalHarga">
-                                        <input type="hidden" name="" :value="ppnAmount">
-                                        <input type="hidden" name="famountso" :value="grandTotal">
-                                        <input type="hidden" name="famountpopajak" :value="ppnRate">
+                                        <div class="flex items-center justify-between gap-3">
+                                            <span class="text-sm text-gray-700">Discount</span>
+                                            <div class="flex items-center gap-2">
+                                                <input type="number" min="0" max="100" step="0.01"
+                                                    x-model.number="headerDiscPercent" disabled
+                                                    class="w-20 h-9 px-2 text-sm leading-tight text-right border rounded transition-opacity [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none disabled:bg-gray-100 disabled:opacity-60 disabled:cursor-not-allowed">
+                                                <span class="text-sm">%</span>
+                                                <span class="min-w-[140px] text-right font-medium"
+                                                    x-text="rupiah(headerDiscAmount)"></span>
+                                            </div>
+                                        </div>
+
+                                        <div class="flex items-center justify-between">
+                                            <span class="text-sm text-gray-700">Total Setelah Disc.</span>
+                                            <span class="min-w-[140px] text-right font-medium"
+                                                x-text="rupiah(totalSetelahDisc)"></span>
+                                        </div>
+
+                                        <div class="border-t my-1"></div>
+
+                                        <div class="flex items-center justify-between">
+                                            <span class="text-sm font-semibold text-gray-800">Grand Total</span>
+                                            <span class="min-w-[140px] text-right text-lg font-semibold"
+                                                x-text="rupiah(grandTotal)"></span>
+                                        </div>
                                     </div>
                                 </div>
+                            </div>
 
                                 <!-- MODAL DESC (di dalam itemsTable) -->
                                 <div x-show="showDescModal" x-cloak
@@ -1170,7 +1181,7 @@
                                                 </div>
 
                                                 <div class="flex items-center justify-between">
-                                                    <span class="text-sm text-gray-700">Total Setelah Disc</span>
+                                                    <span class="text-sm text-gray-700">Total Setelah Disc.</span>
                                                     <span class="min-w-[140px] text-right font-medium"
                                                         x-text="rupiah(totalSetelahDisc)"></span>
                                                 </div>
