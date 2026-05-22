@@ -161,6 +161,11 @@
                 'frefno_display' => $refPr !== '' ? $refPr : $refDtNo,
             ];
         }
+
+        $hasOldEditItems = collect($initialEditSalesOrderItems)->isNotEmpty();
+        $editItemsSource = $hasOldEditItems
+            ? $initialEditSalesOrderItems
+            : collect($savedItems ?? [])->map(fn($item) => (array) $item)->values()->all();
     @endphp
     @if ($usageLocked && !$isView)
         <div x-data="{ open: true }" x-show="open" x-cloak class="fixed inset-0 z-[99] flex items-center justify-center"
@@ -1470,6 +1475,7 @@
             totalHarga: 0,
             headerDiscPercent: @json((float) old('fdiscpersen', $salesorder->fdiscpersen ?? 0)),
             initialHeaderDiscAmount: @json((float) old('fdiscount', $salesorder->fdiscount ?? 0)),
+            initialGrandTotal: @json((float) old('famountso', $salesorder->famountso ?? 0)),
             ppnRate: 11,
             includePPN: false,
             ppnMode: 0,
@@ -1513,6 +1519,11 @@
             },
 
             get grandTotal() {
+                const storedGrandTotal = Number(this.initialGrandTotal || 0);
+                if (storedGrandTotal > 0) {
+                    return +storedGrandTotal.toFixed(2);
+                }
+
                 const total = this.totalSetelahDisc;
                 if (!this.includePPN) return total;
                 if (this.ppnMode === 1) return total;
@@ -1674,15 +1685,15 @@
             showNoItems: false,
             rows: [],
             rowsToSubmit: [],
-            minimumVisibleRows: @json(count($initialEditSalesOrderItems) ? count($initialEditSalesOrderItems) + 5 : count($savedItems ?? []) + 5),
+            minimumVisibleRows: @json(count($editItemsSource) + 5),
 
             totalHarga: 0,
             headerDiscPercent: @json((float) old('fdiscpersen', $salesorder->fdiscpersen ?? 0)),
             initialHeaderDiscAmount: @json((float) old('fdiscount', $salesorder->fdiscount ?? 0)),
+            initialGrandTotal: @json((float) old('famountso', $salesorder->famountso ?? 0)),
             useStoredHeaderDiscount: true,
+            useStoredGrandTotal: true,
             ppnRate: 11,
-
-            initialGrandTotal: @json($famountso ?? 0),
             initialPpnAmount: @json($famountpopajak ?? 0),
 
             includePPN: false,
@@ -1729,6 +1740,10 @@
             },
 
             get grandTotal() {
+                if (this.useStoredGrandTotal) {
+                    return +(Number(this.initialGrandTotal || 0)).toFixed(2);
+                }
+
                 const total = this.totalSetelahDisc;
                 if (!this.includePPN) return total;
                 if (this.ppnMode === 1) return total; // Include: total already has PPN
@@ -1899,6 +1914,7 @@
 
             onRowUpdated(index = null) {
                 this.useStoredHeaderDiscount = false;
+                this.useStoredGrandTotal = false;
                 const row = typeof index === 'number' ? this.rows[index] : null;
                 if (row) {
                     this.recalc(row);
@@ -2163,10 +2179,11 @@
                         return;
                     }
                     this.useStoredHeaderDiscount = false;
+                    this.useStoredGrandTotal = false;
                     this.recalcTotals();
                 });
 
-                this.rows = @json(count($initialEditSalesOrderItems) ? $initialEditSalesOrderItems : $savedItems ?? []);
+                this.rows = @json($editItemsSource);
                 this.rows = this.rows.map((item, index) => this.createRow(item, index));
 
                 this.rows.forEach((item) => {
@@ -2319,7 +2336,7 @@
                 const row = {
                     ...newRow(),
                     ...(item || {}),
-                    uid: item?.uid || `edit-row-${index}-${Date.now()}`,
+                    uid: item?.uid ? `edit-row-${item.uid}` : `edit-row-${cryptoRandom()}`,
                 };
                 row.fnoacak = this.normalizeNoAcak(row.fnoacak) || this.generateUniqueNoAcak(row.uid);
                 if (!Array.isArray(row.units)) row.units = [];

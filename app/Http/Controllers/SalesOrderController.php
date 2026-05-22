@@ -150,6 +150,10 @@ class SalesOrderController extends Controller
 
     private function getApprovalLockMessage($record): ?string
     {
+        if (trim((string) data_get($record, 'fneedacc', '0')) !== '1') {
+            return null;
+        }
+
         return ApprovalState::isEditBlockedRecord($record)
             ? 'Sales Order belum dapat diubah karena status approval saat ini belum mengizinkan edit.'
             : null;
@@ -1251,10 +1255,6 @@ class SalesOrderController extends Controller
                     'msprd.fqtykecil     as fprd_qtykonversi'  // alias jelas, tidak konflik
                 );
         }])->findOrFail($ftrsomtid);
-
-        if ($message = $this->getApprovalLockMessage($salesorder)) {
-            return redirect()->route('salesorder.view', $salesorder->ftrsomtid)->with('error', $message);
-        }
 
         if (! $salesorder->customer) {
             $salesorder->setRelation('customer', Customer::where('fcustomercode', trim((string) $salesorder->fcustno))->first());

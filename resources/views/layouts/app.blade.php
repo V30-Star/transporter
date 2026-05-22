@@ -911,6 +911,8 @@
                 });
             }
 
+            window.enforceTransactionDateAuthority = enforceTransactionDateAuthority;
+
             function resolveTheme(theme) {
                 return theme === 'dark' ? 'dark' : 'light';
             }
