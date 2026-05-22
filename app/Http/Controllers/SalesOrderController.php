@@ -1719,7 +1719,7 @@ class SalesOrderController extends Controller
             }
 
             if ($message = $this->getUsageLockMessage($salesorder)) {
-                return redirect()->route('salesorder.index')->with('error', $message);
+                return redirect()->route('salesorder.view', $salesorder->ftrsomtid)->with('error', $message);
             }
 
             DB::transaction(function () use ($salesorder) {
@@ -1727,14 +1727,15 @@ class SalesOrderController extends Controller
                     ->where('fsono', $salesorder->fsono)
                     ->delete();
 
-                $salesorder->delete();
+                DB::table('trsomt')
+                    ->where('ftrsomtid', $salesorder->ftrsomtid)
+                    ->delete();
             });
 
-            return redirect()->route('salesorder.index')->with('success', 'SALES ORDER ' . $salesorder->fsono . ' BERHASIL DIHAPUS.');
+            return redirect()->route('salesorder.index')->with('success', 'Sales Order ' . $salesorder->fsono . ' berhasil dihapus.');
         } catch (\Exception $e) {
-            // Jika terjadi kesalahan saat menghapus, kembali ke halaman delete dengan pesan error
             report($e);
-            return redirect()->route('salesorder.delete', $ftrsomtid)->with('error', 'SALES ORDER BELUM BISA DIHAPUS. COBA LAGI.');
+            return redirect()->route('salesorder.view', $ftrsomtid)->with('error', 'Sales Order belum bisa dihapus. Coba lagi.');
         }
     }
 

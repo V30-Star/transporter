@@ -1559,6 +1559,7 @@
                 let added = 0,
                     duplicates = [],
                     skipped = [];
+                const rowsToAdd = [];
 
                 items.forEach((src, index) => {
                     const itemcode = (src.fitemcode ?? '').toString().trim();
@@ -1622,14 +1623,22 @@
                         return;
                     }
 
-                    this.savedItems.push({
+                    rowsToAdd.push({
                         ...this.createRow(),
                         ...row,
                     });
                     existing.add(key);
                     added++;
-                    this.onRowUpdated(this.savedItems.length - 1);
                 });
+
+                if (rowsToAdd.length > 0) {
+                    const shouldReplaceStarter = this.savedItems.every((row) => !this.rowHasContent(row));
+                    if (shouldReplaceStarter) {
+                        this.savedItems = rowsToAdd;
+                    } else {
+                        this.savedItems.push(...rowsToAdd);
+                    }
+                }
 
                 if (!this.isReadOnlyMode) {
                     this.ensureMinimumRows();

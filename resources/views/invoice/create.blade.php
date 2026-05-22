@@ -1652,6 +1652,10 @@
                 }
             },
 
+            getFirstEmptyRowIndex() {
+                return this.savedItems.findIndex((row) => !this.rowHasContent(row));
+            },
+
             onRowUpdated(index = null) {
                 const row = typeof index === 'number' ? this.savedItems[index] : null;
                 if (row) {
@@ -1847,13 +1851,21 @@
                         row.fqty = Number(rowLimit);
                     }
                     this.validateReferenceQty(row, false);
-                    this.savedItems.push({
+                    const nextRow = {
                         ...this.createRow(),
                         ...row,
-                    });
+                    };
+                    const emptyIndex = this.getFirstEmptyRowIndex();
+
+                    if (emptyIndex >= 0) {
+                        this.savedItems.splice(emptyIndex, 1, nextRow);
+                        this.onRowUpdated(emptyIndex);
+                    } else {
+                        this.savedItems.push(nextRow);
+                        this.onRowUpdated(this.savedItems.length - 1);
+                    }
                     existing.add(key);
                     added++;
-                    this.onRowUpdated(this.savedItems.length - 1);
                 });
 
                 this.ensureMinimumRows();

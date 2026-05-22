@@ -1329,12 +1329,12 @@
                     @csrf
                     @method('DELETE')
                     <div class="flex justify-end space-x-2">
-                        <button onclick="closeDeleteModal()" class="px-4 py-2 bg-gray-300 rounded hover:bg-gray-400"
+                        <button type="button" onclick="closeDeleteModal()" class="px-4 py-2 bg-gray-300 rounded hover:bg-gray-400"
                             id="btnTidak">
                             Tidak
                         </button>
-                        </button>
-                        <button type="submit" class="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700">
+                        <button type="button" onclick="submitDeleteForm()"
+                            class="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700">
                             Ya, Hapus
                         </button>
                     </div>
@@ -1349,6 +1349,15 @@
 
             function closeDeleteModal() {
                 document.getElementById('deleteModal').classList.add('hidden');
+            }
+
+            function submitDeleteForm() {
+                const form = document.getElementById('deleteForm');
+                if (!form) {
+                    return;
+                }
+
+                form.submit();
             }
 
             function closeToast() {
@@ -1368,41 +1377,6 @@
                 toast.classList.remove('hidden');
             }
 
-            function confirmDelete() {
-                const btnYa = document.getElementById('btnYa');
-                const btnTidak = document.getElementById('btnTidak');
-
-                btnYa.disabled = true;
-                btnTidak.disabled = true;
-                btnYa.textContent = 'Menghapus...';
-
-                fetch('{{ route('salesorder.destroy', $salesorder->ftrsomtid) }}', {
-                        method: 'POST',
-                        headers: {
-                            'X-CSRF-TOKEN': '{{ csrf_token() }}',
-                            'Content-Type': 'application/json',
-                            'Accept': 'application/json'
-                        },
-                        body: JSON.stringify({
-                            _method: 'DELETE'
-                        })
-                    })
-                    .then(response => response.json())
-                    .then(data => {
-                        closeDeleteModal();
-                        showToast(data.message || 'Data berhasil dihapus.', true);
-
-                        setTimeout(() => {
-                            window.location.href = '{{ route('salesorder.index') }}';
-                        }, 500);
-                    })
-                    .catch(error => {
-                        btnYa.disabled = false;
-                        btnTidak.disabled = false;
-                        btnYa.textContent = 'Ya, Hapus';
-                        showToast('Hapus data gagal.', false);
-                    });
-            }
         </script>
     @endif
 @endsection

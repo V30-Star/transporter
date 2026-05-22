@@ -758,6 +758,8 @@
                 return result;
             }
 
+            window.compactPopupMessage = compactPopupMessage;
+
             function toSentenceMessage(value) {
                 if (typeof value !== 'string') {
                     return value;
