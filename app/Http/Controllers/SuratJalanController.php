@@ -300,8 +300,10 @@ class SuratJalanController extends Controller
     public function items($id)
     {
         $header = DB::table('trstockmt')
-            ->where('fstockmtid', $id)
-            ->where('fstockmtcode', 'SRJ')
+            ->leftJoin('mscustomer', 'mscustomer.fcustomercode', '=', 'trstockmt.fsupplier')
+            ->where('trstockmt.fstockmtid', $id)
+            ->where('trstockmt.fstockmtcode', 'SRJ')
+            ->select('trstockmt.*', 'mscustomer.fcustomername as fsuppliername')
             ->first();
 
         if (! $header) {

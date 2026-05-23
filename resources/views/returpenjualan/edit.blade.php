@@ -1123,12 +1123,52 @@
                                     const inputRefSo = document.getElementById('frefso');
                                     const inputRefSrj = document.getElementById('frefsrj');
 
+                                    /**
+                                     * Auto-fill customer dari header referensi (Faktur/SRJ).
+                                     * @param {string} customerCode - Kode customer
+                                     * @param {string} customerName - Nama customer (opsional)
+                                     */
+                                    function autoFillCustomer(customerCode, customerName) {
+                                        const code = (customerCode ?? '').toString().trim();
+                                        if (code === '') return;
+
+                                        const sel = document.getElementById('modal_filter_customer_id');
+                                        const hid = document.getElementById('customerCodeHidden');
+
+                                        if (!sel) return;
+
+                                        // Cek apakah customer sudah terpilih sama
+                                        if (hid && hid.value === code) return;
+
+                                        const name = (customerName ?? '').toString().trim();
+                                        const label = name !== '' ? `${name} (${code})` : code;
+
+                                        // Set option di select dropdown
+                                        let opt = [...sel.options].find(o => o.value === code);
+                                        if (!opt) {
+                                            opt = new Option(label, code, true, true);
+                                            sel.add(opt);
+                                        } else {
+                                            opt.text = label;
+                                            opt.selected = true;
+                                        }
+
+                                        // Set hidden input
+                                        if (hid) hid.value = code;
+                                    }
+
                                     // Menangkap Event saat referensi faktur dipilih
                                     window.addEventListener('invoice-picked', (e) => {
                                         const header = e.detail.header;
                                         inputRefCode.value = 'INV';
                                         inputRefSo.value = header.fsono ?? '';
                                         inputRefSrj.value = ''; // Reset yang lain
+
+                                        // Auto-fill customer dari faktur
+                                        autoFillCustomer(
+                                            header.fcustno ?? header.fcustomercode ?? '',
+                                            header.fcustomername ?? ''
+                                        );
                                     });
 
                                     // Menangkap Event saat SRJ dipilih
@@ -1137,6 +1177,12 @@
                                         inputRefCode.value = 'SRJ';
                                         inputRefSrj.value = header.fstockmtid; // Sesuaikan ID header SRJ
                                         inputRefSo.value = ''; // Reset yang lain
+
+                                        // Auto-fill customer dari SRJ (fsupplier = customer code)
+                                        autoFillCustomer(
+                                            header.fsupplier ?? header.fcustomercode ?? '',
+                                            header.fsuppliername ?? header.fcustomername ?? ''
+                                        );
                                     });
                                 });
                             </script>

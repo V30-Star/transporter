@@ -276,8 +276,10 @@ class ReturPenjualanController extends Controller
     public function items($id)
     {
         $header = DB::table('tranmt')
-            ->where('ftranmtid', $id)
-            ->where('fsono', 'like', 'INV.%')
+            ->leftJoin('mscustomer', 'mscustomer.fcustomercode', '=', 'tranmt.fcustno')
+            ->where('tranmt.ftranmtid', $id)
+            ->where('tranmt.fsono', 'like', 'INV.%')
+            ->select('tranmt.*', 'mscustomer.fcustomername')
             ->firstOrFail();
 
         abort_if(! ApprovalState::isApprovedRecord($header), 404);
