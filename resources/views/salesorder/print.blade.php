@@ -286,26 +286,34 @@
             # {{ strtoupper(terbilang($hdr->famountso ?? 123765000)) }} RUPIAH #
         </div>
 
+        @php
+            $famountgross = (float) ($hdr->famountgross ?? 0);
+            $fdiscount = (float) ($hdr->fdiscount ?? 0);
+            if ($famountgross <= 0) {
+                $famountgross = (float) ($hdr->famountsonet ?? 0);
+            }
+            $totalSetelahDisc = $famountgross - $fdiscount;
+        @endphp
         <div class="summary-box">
             <div class="summary-row">
                 <span>Total Harga :</span>
-                <span>{{ number_format($hdr->famountsonet ?? 111500000, 2, '.', ',') }}</span>
+                <span>{{ number_format($famountgross, 2, '.', ',') }}</span>
             </div>
             <div class="summary-row">
                 <span>Discount :</span>
-                <span>0.00</span>
+                <span>{{ number_format($fdiscount, 2, '.', ',') }}</span>
             </div>
             <div class="summary-row">
                 <span>Total Setelah Disc :</span>
-                <span>{{ number_format($hdr->famountsonet ?? 111500000, 2, '.', ',') }}</span>
+                <span>{{ number_format($totalSetelahDisc, 2, '.', ',') }}</span>
             </div>
             <div class="summary-row">
                 <span>PPN :</span>
-                <span>{{ number_format($hdr->famountpajak ?? 12265000, 2, '.', ',') }}</span>
+                <span>{{ number_format($hdr->famountpajak ?? 0, 2, '.', ',') }}</span>
             </div>
             <div class="summary-row grand-total">
                 <span>Grand Total :</span>
-                <span>{{ number_format($hdr->famountso ?? 123765000, 2, '.', ',') }}</span>
+                <span>{{ number_format($hdr->famountso ?? 0, 2, '.', ',') }}</span>
             </div>
         </div>
 

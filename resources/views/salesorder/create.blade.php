@@ -411,11 +411,11 @@
                                         <th class="p-2 text-left w-10">#</th>
                                         <th class="p-2 text-left w-52">Kode Produk</th>
                                         <th class="p-2 text-left w-[28rem]">Nama Produk</th>
-                                        <th class="p-2 text-left w-32">Satuan</th>
+                                        <th class="p-2 text-left w-30">Satuan</th>
                                         <th class="p-2 text-right w-28 whitespace-nowrap">Jumlah</th>
                                         <th class="p-2 text-right w-28 whitespace-nowrap">@ Harga</th>
                                         <th class="p-2 text-right w-28 whitespace-nowrap">Disc. %</th>
-                                        <th class="p-2 text-right w-32 whitespace-nowrap">Total Harga</th>
+                                        <th class="p-2 text-right w-34 whitespace-nowrap">Total Harga</th>
                                         <th class="p-2 text-center w-24">Aksi</th>
                                     </tr>
                                 </thead>
@@ -528,6 +528,27 @@
                                             x-text="formatTransactionAmount(totalHarga)"></span>
                                     </div>
 
+                                    <div class="flex items-center justify-between gap-3">
+                                        <span class="text-sm text-gray-700">Discount</span>
+                                        <div class="flex items-center gap-2">
+                                            <input type="number" min="0" max="100" step="0.01"
+                                                name="fdiscpersen" x-model.number="headerDiscPercent"
+                                                class="w-20 h-9 px-2 text-sm leading-tight text-right border rounded transition-opacity
+                                                    [appearance:textfield]
+                                                    [&::-webkit-outer-spin-button]:appearance-none
+                                                    [&::-webkit-inner-spin-button]:appearance-none">
+                                            <span class="text-sm">%</span>
+                                            <span class="min-w-[140px] text-right font-medium"
+                                                x-text="rupiah(headerDiscAmount)"></span>
+                                        </div>
+                                    </div>
+
+                                    <div class="flex items-center justify-between">
+                                        <span class="text-sm text-gray-700">Total Setelah Disc</span>
+                                        <span class="min-w-[140px] text-right font-medium"
+                                            x-text="rupiah(totalSetelahDisc)"></span>
+                                    </div>
+
                                     <div class="flex items-center justify-between">
                                         <span class="text-sm text-gray-700">Total DPP</span>
                                         <span class="min-w-[140px] text-right font-medium"
@@ -570,27 +591,6 @@
                                                 x-text="rupiah(ppnAmount)"></span>
                                         </div>
 
-                                    </div>
-
-                                    <div class="flex items-center justify-between gap-3">
-                                        <span class="text-sm text-gray-700">Discount</span>
-                                        <div class="flex items-center gap-2">
-                                            <input type="number" min="0" max="100" step="0.01"
-                                                name="fdiscpersen" x-model.number="headerDiscPercent"
-                                                class="w-20 h-9 px-2 text-sm leading-tight text-right border rounded transition-opacity
-                                                    [appearance:textfield]
-                                                    [&::-webkit-outer-spin-button]:appearance-none
-                                                    [&::-webkit-inner-spin-button]:appearance-none">
-                                            <span class="text-sm">%</span>
-                                            <span class="min-w-[140px] text-right font-medium"
-                                                x-text="rupiah(headerDiscAmount)"></span>
-                                        </div>
-                                    </div>
-
-                                    <div class="flex items-center justify-between">
-                                        <span class="text-sm text-gray-700">Total Setelah Disc</span>
-                                        <span class="min-w-[140px] text-right font-medium"
-                                            x-text="rupiah(totalSetelahDisc)"></span>
                                     </div>
 
                                     <div class="border-t my-1"></div>

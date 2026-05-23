@@ -532,6 +532,24 @@
                                                 x-text="formatTransactionAmount(totalHarga)"></span>
                                         </div>
 
+                                        <div class="flex items-center justify-between gap-3">
+                                            <span class="text-sm text-gray-700">Discount</span>
+                                            <div class="flex items-center gap-2">
+                                                <input type="number" min="0" max="100" step="0.01"
+                                                    x-model.number="headerDiscPercent" disabled
+                                                    class="w-20 h-9 px-2 text-sm leading-tight text-right border rounded transition-opacity [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none disabled:bg-gray-100 disabled:opacity-60 disabled:cursor-not-allowed">
+                                                <span class="text-sm">%</span>
+                                                <span class="min-w-[140px] text-right font-medium"
+                                                    x-text="rupiah(headerDiscAmount)"></span>
+                                            </div>
+                                        </div>
+
+                                        <div class="flex items-center justify-between">
+                                            <span class="text-sm text-gray-700">Total Setelah Disc.</span>
+                                            <span class="min-w-[140px] text-right font-medium"
+                                                x-text="rupiah(totalSetelahDisc)"></span>
+                                        </div>
+
                                         <div class="flex items-center justify-between">
                                             <span class="text-sm text-gray-700">Total DPP</span>
                                             <span class="min-w-[140px] text-right font-medium"
@@ -569,24 +587,6 @@
                                                 <span class="min-w-[140px] text-right font-medium"
                                                     x-text="rupiah(ppnAmount)"></span>
                                             </div>
-                                        </div>
-
-                                        <div class="flex items-center justify-between gap-3">
-                                            <span class="text-sm text-gray-700">Discount</span>
-                                            <div class="flex items-center gap-2">
-                                                <input type="number" min="0" max="100" step="0.01"
-                                                    x-model.number="headerDiscPercent" disabled
-                                                    class="w-20 h-9 px-2 text-sm leading-tight text-right border rounded transition-opacity [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none disabled:bg-gray-100 disabled:opacity-60 disabled:cursor-not-allowed">
-                                                <span class="text-sm">%</span>
-                                                <span class="min-w-[140px] text-right font-medium"
-                                                    x-text="rupiah(headerDiscAmount)"></span>
-                                            </div>
-                                        </div>
-
-                                        <div class="flex items-center justify-between">
-                                            <span class="text-sm text-gray-700">Total Setelah Disc.</span>
-                                            <span class="min-w-[140px] text-right font-medium"
-                                                x-text="rupiah(totalSetelahDisc)"></span>
                                         </div>
 
                                         <div class="border-t my-1"></div>
@@ -1125,6 +1125,27 @@
                                                         x-text="formatTransactionAmount(totalHarga)"></span>
                                                 </div>
 
+                                                <div class="flex items-center justify-between gap-3">
+                                                    <span class="text-sm text-gray-700">Discount</span>
+                                                    <div class="flex items-center gap-2">
+                                                        <input type="number" min="0" max="100" step="0.01"
+                                                            name="fdiscpersen" x-model.number="headerDiscPercent"
+                                                            class="w-20 h-9 px-2 text-sm leading-tight text-right border rounded transition-opacity
+                                                                [appearance:textfield]
+                                                                [&::-webkit-outer-spin-button]:appearance-none
+                                                                [&::-webkit-inner-spin-button]:appearance-none">
+                                                        <span class="text-sm">%</span>
+                                                        <span class="min-w-[140px] text-right font-medium"
+                                                            x-text="rupiah(headerDiscAmount)"></span>
+                                                    </div>
+                                                </div>
+
+                                                <div class="flex items-center justify-between">
+                                                    <span class="text-sm text-gray-700">Total Setelah Disc.</span>
+                                                    <span class="min-w-[140px] text-right font-medium"
+                                                        x-text="rupiah(totalSetelahDisc)"></span>
+                                                </div>
+
                                                 <div class="flex items-center justify-between">
                                                     <span class="text-sm text-gray-700">Total DPP</span>
                                                     <span class="min-w-[140px] text-right font-medium"
@@ -1170,27 +1191,6 @@
                                                             x-text="rupiah(ppnAmount)"></span>
                                                     </div>
 
-                                                </div>
-
-                                                <div class="flex items-center justify-between gap-3">
-                                                    <span class="text-sm text-gray-700">Discount</span>
-                                                    <div class="flex items-center gap-2">
-                                                        <input type="number" min="0" max="100" step="0.01"
-                                                            name="fdiscpersen" x-model.number="headerDiscPercent"
-                                                            class="w-20 h-9 px-2 text-sm leading-tight text-right border rounded transition-opacity
-                                                                [appearance:textfield]
-                                                                [&::-webkit-outer-spin-button]:appearance-none
-                                                                [&::-webkit-inner-spin-button]:appearance-none">
-                                                        <span class="text-sm">%</span>
-                                                        <span class="min-w-[140px] text-right font-medium"
-                                                            x-text="rupiah(headerDiscAmount)"></span>
-                                                    </div>
-                                                </div>
-
-                                                <div class="flex items-center justify-between">
-                                                    <span class="text-sm text-gray-700">Total Setelah Disc.</span>
-                                                    <span class="min-w-[140px] text-right font-medium"
-                                                        x-text="rupiah(totalSetelahDisc)"></span>
                                                 </div>
 
                                                 <div class="border-t my-1"></div>
@@ -1429,6 +1429,10 @@
         animation: slide-out 0.3s ease-in;
     }
 </style>
+@php
+    $rowTotalSum = collect($savedItems)->sum('ftotal');
+    $headerDiscountVal = round($rowTotalSum * (($salesorder->fdiscpersen ?? 0) / 100), 2);
+@endphp
 {{-- DATA & SCRIPTS --}}
 <script>
     // id unik
@@ -1460,7 +1464,7 @@
             rows: [],
             totalHarga: 0,
             headerDiscPercent: @json((float) old('fdiscpersen', $salesorder->fdiscpersen ?? 0)),
-            initialHeaderDiscAmount: @json((float) old('fdiscount', $salesorder->fdiscount ?? 0)),
+            initialHeaderDiscAmount: @json((float) old('fdiscount', $headerDiscountVal)),
             initialGrandTotal: @json((float) old('famountso', $salesorder->famountso ?? 0)),
             ppnRate: 11,
             includePPN: false,
@@ -1675,7 +1679,7 @@
 
             totalHarga: 0,
             headerDiscPercent: @json((float) old('fdiscpersen', $salesorder->fdiscpersen ?? 0)),
-            initialHeaderDiscAmount: @json((float) old('fdiscount', $salesorder->fdiscount ?? 0)),
+            initialHeaderDiscAmount: @json((float) old('fdiscount', $headerDiscountVal)),
             initialGrandTotal: @json((float) old('famountso', $salesorder->famountso ?? 0)),
             useStoredHeaderDiscount: true,
             useStoredGrandTotal: true,
