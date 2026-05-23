@@ -322,10 +322,16 @@
                             <h3 class="text-xl font-bold text-gray-800">Browse nota</h3>
                             <p class="text-sm text-gray-500 mt-0.5">Pilih nota yang ingin ditambahkan</p>
                         </div>
-                        <button type="button" @click="closeNotaModal()"
-                            class="px-4 py-2 rounded-lg border-2 border-gray-300 bg-white hover:bg-gray-50 hover:border-gray-400 transition-all duration-150 font-medium text-gray-700 text-sm">
-                            Tutup
-                        </button>
+                        <div class="flex items-center gap-3">
+                            <button type="button" @click="submitSelectedNotas()" :disabled="!tempSelectedNotas.length"
+                                class="px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 disabled:bg-gray-200 disabled:text-gray-400 disabled:cursor-not-allowed text-white font-medium text-sm transition-all duration-150 shadow-sm">
+                                Submit (<span x-text="tempSelectedNotas.length"></span>)
+                            </button>
+                            <button type="button" @click="closeNotaModal()"
+                                class="px-4 py-2 rounded-lg border-2 border-gray-300 bg-white hover:bg-gray-50 hover:border-gray-400 transition-all duration-150 font-medium text-gray-700 text-sm">
+                                Tutup
+                            </button>
+                        </div>
                     </div>
 
                     <div class="px-6 pt-4 pb-2 flex-shrink-0 border-b border-gray-100">
@@ -367,6 +373,10 @@
                             <table class="min-w-full text-sm border border-gray-200">
                                 <thead class="sticky top-0 z-10">
                                     <tr class="bg-gradient-to-r from-gray-50 to-gray-100">
+                                        <th class="text-center p-3 font-semibold text-gray-700 border-b-2 border-r border-gray-200 w-16">
+                                            <input type="checkbox" :checked="isAllOnPageSelected()" @change="toggleAllOnPage()"
+                                                class="rounded border-gray-300 text-blue-600 focus:ring-blue-500 w-4 h-4 cursor-pointer">
+                                        </th>
                                         <th class="text-left p-3 font-semibold text-gray-700 border-b-2 border-r border-gray-200">No.Nota</th>
                                         <th class="text-left p-3 font-semibold text-gray-700 border-b-2 border-r border-gray-200">Tanggal</th>
                                         <th class="text-left p-3 font-semibold text-gray-700 border-b-2 border-r border-gray-200">Customer</th>
@@ -374,8 +384,7 @@
                                         <th class="text-right p-3 font-semibold text-gray-700 border-b-2 border-r border-gray-200">Nilai Nota</th>
                                         <th class="text-right p-3 font-semibold text-gray-700 border-b-2 border-r border-gray-200">Sisa Piutang</th>
                                         <th class="text-center p-3 font-semibold text-gray-700 border-b-2 border-r border-gray-200">Item</th>
-                                        <th class="text-left p-3 font-semibold text-gray-700 border-b-2 border-r border-gray-200">Jatuh Tempo</th>
-                                        <th class="text-center p-3 font-semibold text-gray-700 border-b-2 border-gray-200">Aksi</th>
+                                        <th class="text-left p-3 font-semibold text-gray-700 border-b-2 border-gray-200">Jatuh Tempo</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -387,24 +396,22 @@
                                         </tr>
                                     </template>
                                     <template x-for="record in notaRecords" :key="record.ftranmtid">
-                                        <tr class="bg-white">
-                                            <td class="p-3 text-sm text-gray-700 border-b border-r border-gray-200" x-text="record.fsono || '-'"></td>
-                                            <td class="p-3 text-sm text-gray-700 border-b border-r border-gray-200" x-text="formatDateDisplay(record.fsodate)"></td>
-                                            <td class="p-3 text-sm text-gray-700 border-b border-r border-gray-200">
+                                        <tr class="bg-white hover:bg-gray-50 cursor-pointer" @click="toggleNotaSelection(record)">
+                                            <td class="p-3 text-center border-b border-r border-gray-200 align-middle" @click.stop>
+                                                <input type="checkbox" :checked="isNotaSelected(record)" @change="toggleNotaSelection(record)"
+                                                    class="rounded border-gray-300 text-blue-600 focus:ring-blue-500 w-4 h-4 cursor-pointer">
+                                            </td>
+                                            <td class="p-3 text-sm text-gray-700 border-b border-r border-gray-200 align-middle font-mono" x-text="record.fsono || '-'"></td>
+                                            <td class="p-3 text-sm text-gray-700 border-b border-r border-gray-200 align-middle" x-text="formatDateDisplay(record.fsodate)"></td>
+                                            <td class="p-3 text-sm text-gray-700 border-b border-r border-gray-200 align-middle">
                                                 <div class="font-medium" x-text="record.fcustomername || '-'"></div>
                                                 <div class="text-xs text-gray-500" x-text="record.fcustno || '-'"></div>
                                             </td>
-                                            <td class="p-3 text-sm text-gray-700 border-b border-r border-gray-200" x-text="record.ftrcode || '-'"></td>
-                                            <td class="p-3 text-sm text-gray-700 border-b border-r border-gray-200 text-right" x-text="formatNumber(record.famount)"></td>
-                                            <td class="p-3 text-sm text-gray-700 border-b border-r border-gray-200 text-right" x-text="formatNumber(record.famountremain)"></td>
-                                            <td class="p-3 text-sm text-gray-700 border-b border-r border-gray-200 text-center" x-text="record.detail_count ?? 0"></td>
-                                            <td class="p-3 text-sm text-gray-700 border-b border-r border-gray-200" x-text="formatDateDisplay(record.fjatuhtempo)"></td>
-                                            <td class="p-3 text-sm text-gray-700 border-b border-gray-200 text-center">
-                                                <button type="button" @click="pickNota(record)"
-                                                    class="px-4 py-1.5 rounded-md text-sm font-medium bg-blue-600 hover:bg-blue-700 text-white transition-colors duration-150">
-                                                    Pilih
-                                                </button>
-                                            </td>
+                                            <td class="p-3 text-sm text-gray-700 border-b border-r border-gray-200 align-middle" x-text="record.ftrcode || '-'"></td>
+                                            <td class="p-3 text-sm text-gray-700 border-b border-r border-gray-200 text-right align-middle" x-text="formatNumber(record.famount)"></td>
+                                            <td class="p-3 text-sm text-gray-700 border-b border-r border-gray-200 text-right align-middle" x-text="formatNumber(record.famountremain)"></td>
+                                            <td class="p-3 text-sm text-gray-700 border-b border-r border-gray-200 text-center align-middle" x-text="record.detail_count ?? 0"></td>
+                                            <td class="p-3 text-sm text-gray-700 border-b align-middle" x-text="formatDateDisplay(record.fjatuhtempo)"></td>
                                         </tr>
                                     </template>
                                 </tbody>
@@ -414,16 +421,22 @@
 
                     <div class="px-6 py-3 border-t border-gray-200 flex items-center justify-between gap-3 flex-shrink-0 bg-gray-50 text-sm text-gray-600">
                         <div x-text="notaInfoText"></div>
-                        <div class="flex items-center gap-2">
-                            <button type="button" @click="prevNotaPage()" :disabled="notaPage <= 1"
-                                class="px-3 py-1.5 rounded-lg border border-gray-300 bg-white hover:bg-gray-50 disabled:bg-gray-100 disabled:text-gray-400 disabled:cursor-not-allowed">
-                                Sebelumnya
+                        <div class="flex items-center gap-4">
+                            <button type="button" @click="submitSelectedNotas()" :disabled="!tempSelectedNotas.length"
+                                class="px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 disabled:bg-gray-200 disabled:text-gray-400 disabled:cursor-not-allowed text-white font-medium text-sm transition-all duration-150 shadow-sm">
+                                Submit (<span x-text="tempSelectedNotas.length"></span>)
                             </button>
-                            <span class="font-medium" x-text="`Hal. ${notaPage}`"></span>
-                            <button type="button" @click="nextNotaPage()" :disabled="!canNextNotaPage"
-                                class="px-3 py-1.5 rounded-lg border border-gray-300 bg-white hover:bg-gray-50 disabled:bg-gray-100 disabled:text-gray-400 disabled:cursor-not-allowed">
-                                Selanjutnya
-                            </button>
+                            <div class="flex items-center gap-2">
+                                <button type="button" @click="prevNotaPage()" :disabled="notaPage <= 1"
+                                    class="px-3 py-1.5 rounded-lg border border-gray-300 bg-white hover:bg-gray-50 disabled:bg-gray-100 disabled:text-gray-400 disabled:cursor-not-allowed">
+                                    Sebelumnya
+                                </button>
+                                <span class="font-medium" x-text="`Hal. ${notaPage}`"></span>
+                                <button type="button" @click="nextNotaPage()" :disabled="!canNextNotaPage"
+                                    class="px-3 py-1.5 rounded-lg border border-gray-300 bg-white hover:bg-gray-50 disabled:bg-gray-100 disabled:text-gray-400 disabled:cursor-not-allowed">
+                                    Selanjutnya
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -487,6 +500,7 @@
                 notaPage: 1,
                 notaRecordsFiltered: 0,
                 notaRecordsTotal: 0,
+                tempSelectedNotas: [],
 
                 init() {
                     this.rows = (Array.isArray(initialRows) && initialRows.length ? initialRows : [this.emptyRow()])
@@ -624,6 +638,18 @@
                         return;
                     }
 
+                    this.tempSelectedNotas = [];
+                    this.rows.forEach(row => {
+                        if (row.frefno) {
+                            this.tempSelectedNotas.push({
+                                fsono: row.frefno,
+                                famount: row.fnilai_nota,
+                                famountremain: row.fsisa_piutang,
+                                ftrcode: row.ftrcode
+                            });
+                        }
+                    });
+
                     this.notaPage = 1;
                     this.notaModalOpen = true;
                     this.fetchNotaRecords();
@@ -718,9 +744,11 @@
                     return row;
                 },
 
-                pickNota(record) {
-                    if (!record) return;
+                isNotaSelected(record) {
+                    return this.tempSelectedNotas.some(item => String(item.fsono).trim() === String(record.fsono).trim());
+                },
 
+                toggleNotaSelection(record) {
                     const remain = this.toNumber(record.famountremain);
                     if (remain <= 0) {
                         if (window.showTransactionErrorModal) {
@@ -736,17 +764,69 @@
                         return;
                     }
 
-                    const existing = this.rows.find((row) => String(row.frefno || '').trim() === String(record.fsono || '').trim());
-                    const targetRow = existing || this.findTargetRowForNota();
-                    const amount = this.toNumber(record.famount);
+                    const idx = this.tempSelectedNotas.findIndex(item => String(item.fsono).trim() === String(record.fsono).trim());
+                    if (idx > -1) {
+                        this.tempSelectedNotas.splice(idx, 1);
+                    } else {
+                        this.tempSelectedNotas.push(record);
+                    }
+                },
 
-                    targetRow.frefno = String(record.fsono || '').trim();
-                    targetRow.fnilai_nota = amount;
-                    targetRow.fsisa_piutang = remain;
-                    targetRow.fdiscpersen = this.toNumber(targetRow.fdiscpersen);
-                    targetRow.fdiscount = this.toNumber(targetRow.fdiscount);
-                    targetRow.fkasdtvalue = Math.max(remain - this.toNumber(targetRow.fdiscount), 0);
-                    targetRow.ftrcode = String(record.ftrcode || 'INV').trim() || 'INV';
+                isAllOnPageSelected() {
+                    return this.notaRecords.length > 0 && this.notaRecords.every(record => {
+                        const remain = this.toNumber(record.famountremain);
+                        if (remain <= 0) return true;
+                        return this.isNotaSelected(record);
+                    });
+                },
+
+                toggleAllOnPage() {
+                    const allSelected = this.isAllOnPageSelected();
+                    this.notaRecords.forEach(record => {
+                        const remain = this.toNumber(record.famountremain);
+                        if (remain <= 0) return;
+
+                        const idx = this.tempSelectedNotas.findIndex(item => String(item.fsono).trim() === String(record.fsono).trim());
+                        if (allSelected) {
+                            if (idx > -1) this.tempSelectedNotas.splice(idx, 1);
+                        } else {
+                            if (idx === -1) this.tempSelectedNotas.push(record);
+                        }
+                    });
+                },
+
+                submitSelectedNotas() {
+                    const selectedSonos = this.tempSelectedNotas.map(item => String(item.fsono).trim());
+                    
+                    this.rows = this.rows.filter(row => {
+                        const refNo = String(row.frefno || '').trim();
+                        return refNo === '' || selectedSonos.includes(refNo);
+                    });
+
+                    this.tempSelectedNotas.forEach(record => {
+                        const remain = this.toNumber(record.famountremain);
+                        if (remain <= 0) return;
+
+                        const fsono = String(record.fsono || '').trim();
+                        const existing = this.rows.find((row) => String(row.frefno || '').trim() === fsono);
+                        
+                        if (!existing) {
+                            const targetRow = this.findTargetRowForNota();
+                            const amount = this.toNumber(record.famount);
+
+                            targetRow.frefno = fsono;
+                            targetRow.fnilai_nota = amount;
+                            targetRow.fsisa_piutang = remain;
+                            targetRow.fdiscpersen = 0;
+                            targetRow.fdiscount = 0;
+                            targetRow.fkasdtvalue = remain;
+                            targetRow.ftrcode = String(record.ftrcode || 'INV').trim() || 'INV';
+                        }
+                    });
+
+                    if (this.rows.length === 0) {
+                        this.rows.push(this.emptyRow());
+                    }
 
                     this.recalcTotals();
                     this.closeNotaModal();
