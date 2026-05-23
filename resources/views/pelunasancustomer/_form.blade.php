@@ -176,7 +176,7 @@
                                 <th class="border px-2 py-2 min-w-[10rem] text-right">{{ 'Discount' }}</th>
                                 <th class="border px-2 py-2 min-w-[10rem] text-right">{{ 'Total Bayar' }}</th>
                                 @if (!$isReadOnly)
-                                    <th class="border px-2 py-2 w-28 text-center">{{ 'Aksi' }}</th>
+                                    <th class="border px-2 py-2 w-16 text-center">{{ 'Aksi' }}</th>
                                 @endif
                             </tr>
                         </thead>
@@ -215,17 +215,12 @@
                                             @input="recalcTotals()" class="w-full border rounded px-2 py-1.5 text-right">
                                     </td>
                                     @if (!$isReadOnly)
-                                        <td class="border px-2 py-2">
-                                            <div class="flex items-center justify-center gap-2">
-                                                <button type="button" @click="addRow()"
-                                                    x-show="index === rows.length - 1"
-                                                    class="inline-flex items-center justify-center w-9 h-9 rounded bg-blue-600 text-white hover:bg-blue-700">
-                                                    <x-heroicon-o-plus class="w-4 h-4" />
-                                                </button>
+                                        <td class="border px-2 py-2 text-center">
+                                            <div class="flex items-center justify-center">
                                                 <button type="button" @click="removeRow(index)"
-                                                    class="inline-flex items-center justify-center w-9 h-9 rounded bg-red-600 text-white hover:bg-red-700"
-                                                    :disabled="rows.length === 1">
-                                                    <x-heroicon-o-trash class="w-4 h-4" />
+                                                    class="inline-flex h-8 w-8 items-center justify-center rounded bg-red-100 text-red-600 hover:bg-red-200 text-lg font-bold transition-colors duration-150"
+                                                    title="Hapus baris">
+                                                    -
                                                 </button>
                                             </div>
                                         </td>
@@ -503,10 +498,16 @@
                 tempSelectedNotas: [],
 
                 init() {
-                    this.rows = (Array.isArray(initialRows) && initialRows.length ? initialRows : [this.emptyRow()])
+                    this.rows = (Array.isArray(initialRows) && initialRows.length ? initialRows : [])
                         .map((row, index) => this.normalizeRow(row, index));
 
+                    this.ensureMinimumRows();
                     this.recalcTotals();
+
+                    this.$watch('rows', () => {
+                        this.ensureMinimumRows();
+                        this.ensureTrailingRow();
+                    }, { deep: true });
 
                     window.addEventListener('customer-selected', (event) => {
                         const detail = event.detail || {};
@@ -593,6 +594,28 @@
                     };
                 },
 
+                rowHasContent(row) {
+                    if (!row) return false;
+                    return String(row.frefno || '').trim() !== '';
+                },
+
+                ensureMinimumRows() {
+                    while (this.rows.length < 5) {
+                        this.rows.push(this.emptyRow());
+                    }
+                },
+
+                ensureTrailingRow() {
+                    if (!this.rows.length) {
+                        this.ensureMinimumRows();
+                        return;
+                    }
+                    const lastRow = this.rows[this.rows.length - 1];
+                    if (this.rowHasContent(lastRow)) {
+                        this.rows.push(this.emptyRow());
+                    }
+                },
+
                 makeUid() {
                     return `${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
                 },
@@ -619,9 +642,7 @@
                     return `${day}/${month}/${year}`;
                 },
 
-                addRow() {
-                    this.rows.push(this.emptyRow());
-                },
+
 
                 openNotaModal() {
                     if (!this.customerCode) {
@@ -833,12 +854,7 @@
                 },
 
                 removeRow(index) {
-                    if (this.rows.length === 1) {
-                        this.rows = [this.emptyRow()];
-                    } else {
-                        this.rows.splice(index, 1);
-                    }
-
+                    this.rows.splice(index, 1);
                     this.recalcTotals();
                 },
 
