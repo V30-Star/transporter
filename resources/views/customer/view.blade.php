@@ -166,8 +166,8 @@
                                 id="salesmanSelect">
                                 <option value="">-- Pilih Salesman --</option>
                                 @foreach ($salesman as $sales)
-                                    <option value="{{ $sales->fsalesmanid }}"
-                                        {{ old('fsalesman', $customer->fsalesman) == $sales->fsalesmanid ? 'selected' : '' }}>
+                                    <option value="{{ $sales->fsalesmancode }}"
+                                        {{ old('fsalesman', $customer->fsalesman) == $sales->fsalesmancode ? 'selected' : '' }}>
                                         {{ $sales->fsalesmanname }}
                                     </option>
                                 @endforeach

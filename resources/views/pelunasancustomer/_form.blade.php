@@ -256,9 +256,9 @@
                             <p class="text-red-600 text-sm">{{ $message }}</p>
                         @enderror
 
-                        <div class="flex items-center justify-between gap-4">
-                            <label class="text-sm font-semibold text-gray-700">{{ 'Account Admin Bank' }}</label>
-                            <div class="w-64">
+                        <div class="grid grid-cols-2 gap-3">
+                            <div>
+                                <label class="block text-sm font-semibold text-gray-700 mb-1">{{ 'Account Admin Bank' }}</label>
                                 <div class="flex">
                                     <input type="text" x-model="adminAccountLabel"
                                         class="w-full border rounded-l px-3 py-2 text-sm bg-gray-100 cursor-not-allowed" readonly>
@@ -270,11 +270,22 @@
                                         </button>
                                     @endif
                                 </div>
+                                @error('faccountadmin')
+                                    <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+                                @enderror
+                            </div>
+
+                            <div>
+                                <label class="block text-sm font-semibold text-gray-700 mb-1">{{ 'Harga' }}</label>
+                                <input type="number" min="0" step="0.01" name="fhargaadmin" x-model="hargaAdmin"
+                                    @input="recalcTotals()"
+                                    :disabled="!adminAccountCode"
+                                    class="w-full border rounded px-3 py-2 text-right text-sm @error('fhargaadmin') border-red-500 @enderror disabled:bg-gray-100 disabled:text-gray-400 disabled:cursor-not-allowed">
+                                @error('fhargaadmin')
+                                    <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+                                @enderror
                             </div>
                         </div>
-                        @error('faccountadmin')
-                            <p class="text-red-600 text-sm">{{ $message }}</p>
-                        @enderror
 
                         <div class="flex items-center justify-between gap-4 border-t pt-3">
                             <span class="text-sm font-semibold text-gray-800">{{ 'Total Penerimaan' }}</span>
@@ -485,6 +496,7 @@
                 dueDate: @js(old('ftgljatuhtempo', $dueDate ?? '')),
                 isGiroMundur: @js(old('fgiromundur', ($giroMundur ?? false) ? '1' : '0') === '1'),
                 bankAdminFee: @js((float) old('fbiayaadminbank', $bankAdminFee ?? 0)),
+                hargaAdmin: @js((float) old('fhargaadmin', $hargaAdminValue ?? 0)),
                 totalPenerimaanDisplay: '0.00',
                 notaModalOpen: false,
                 notaLoading: false,
@@ -565,6 +577,17 @@
 
                     this.$watch('bankAdminFee', () => {
                         this.recalcTotals();
+                    });
+
+                    this.$watch('hargaAdmin', () => {
+                        this.recalcTotals();
+                    });
+
+                    this.$watch('adminAccountCode', (value) => {
+                        if (!value) {
+                            this.hargaAdmin = 0;
+                            this.recalcTotals();
+                        }
                     });
                 },
 
@@ -875,7 +898,7 @@
 
                 recalcTotals() {
                     const totalBayar = this.rows.reduce((sum, row) => sum + this.toNumber(row.fkasdtvalue), 0);
-                    const netPenerimaan = Math.max(totalBayar - this.toNumber(this.bankAdminFee), 0);
+                    const netPenerimaan = Math.max(totalBayar - this.toNumber(this.bankAdminFee) - this.toNumber(this.hargaAdmin), 0);
                     this.totalPenerimaanDisplay = this.formatNumber(netPenerimaan);
                 },
 

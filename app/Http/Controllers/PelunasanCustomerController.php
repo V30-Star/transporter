@@ -268,9 +268,10 @@ class PelunasanCustomerController extends Controller
             'ftgljatuhtempo' => ['nullable', 'date', Rule::requiredIf($request->input('fgiromundur') === '1'), 'after_or_equal:fkasmtdate'],
             'fket' => ['nullable', 'string', 'max:50'],
             'fbiayaadminbank' => ['nullable', 'numeric', 'min:0'],
+            'fhargaadmin' => ['nullable', 'numeric', 'min:0'],
             'faccountadmin' => [
                 Rule::requiredIf(function () use ($request) {
-                    return (float) $request->input('fbiayaadminbank') > 0;
+                    return (float) $request->input('fbiayaadminbank') > 0 || (float) $request->input('fhargaadmin') > 0;
                 }),
                 'nullable',
                 'string',
@@ -293,7 +294,7 @@ class PelunasanCustomerController extends Controller
             'faccountheader.required' => 'Account wajib dipilih.',
             'faccountheader.exists' => 'Account tidak valid atau bukan account detail (fend=1).',
             'ftgljatuhtempo.required' => 'Tgl. jatuh tempo wajib diisi saat giro mundur aktif.',
-            'faccountadmin.required_if' => 'Account admin bank wajib diisi jika ada biaya admin.',
+            'faccountadmin.required_if' => 'Account admin bank wajib diisi jika ada biaya admin atau harga adjustment.',
             'faccountadmin.exists' => 'Account admin bank tidak valid atau bukan account detail (fend=1).',
             'details.required' => 'Minimal 1 detail faktur wajib diisi.',
             'details.*.frefno.required' => 'No. nota wajib diisi.',
@@ -332,8 +333,9 @@ class PelunasanCustomerController extends Controller
             ]);
         }
         $voucherNo = trim((string) ($validated['fkasmtno'] ?? '')) ?: $this->generateVoucherNo(Carbon::parse($validated['fkasmtdate']));
+        $hargaAdmin = round((float) ($validated['fhargaadmin'] ?? 0), 2);
         $totalPenerimaan = round((float) $detailRows->sum(fn(array $row) => (float) ($row['fkasdtvalue'] ?? 0)), 2);
-        $netPaymentAmount = round($totalPenerimaan - $bankAdminFee, 2);
+        $netPaymentAmount = round($totalPenerimaan - $bankAdminFee - $hargaAdmin, 2);
         $now = now();
 
         DB::transaction(function () use ($validated, $customer, $headerAccount, $detailEntries, $voucherNo, $netPaymentAmount, $now) {
@@ -363,6 +365,8 @@ class PelunasanCustomerController extends Controller
                 'faccountnoid' => $headerAccount->faccid,
                 'fstatusgiro' => '0',
                 'fbranchcode' => $validated['fbranchcode'],
+                'faccadj' => $validated['faccountadmin'] ?? null,
+                'fadjustment' => (float) ($validated['fhargaadmin'] ?? 0),
             ]);
 
             foreach ($detailEntries as $index => $entry) {
@@ -429,9 +433,10 @@ class PelunasanCustomerController extends Controller
             'ftgljatuhtempo' => ['nullable', 'date', Rule::requiredIf($request->input('fgiromundur') === '1'), 'after_or_equal:fkasmtdate'],
             'fket' => ['nullable', 'string', 'max:50'],
             'fbiayaadminbank' => ['nullable', 'numeric', 'min:0'],
+            'fhargaadmin' => ['nullable', 'numeric', 'min:0'],
             'faccountadmin' => [
                 Rule::requiredIf(function () use ($request) {
-                    return (float) $request->input('fbiayaadminbank') > 0;
+                    return (float) $request->input('fbiayaadminbank') > 0 || (float) $request->input('fhargaadmin') > 0;
                 }),
                 'nullable',
                 'string',
@@ -454,7 +459,7 @@ class PelunasanCustomerController extends Controller
             'faccountheader.required' => 'Account wajib dipilih.',
             'faccountheader.exists' => 'Account tidak valid atau bukan account detail (fend=1).',
             'ftgljatuhtempo.required' => 'Tgl. jatuh tempo wajib diisi saat giro mundur aktif.',
-            'faccountadmin.required_if' => 'Account admin bank wajib diisi jika ada biaya admin.',
+            'faccountadmin.required_if' => 'Account admin bank wajib diisi jika ada biaya admin atau harga adjustment.',
             'faccountadmin.exists' => 'Account admin bank tidak valid atau bukan account detail (fend=1).',
             'details.required' => 'Minimal 1 detail faktur wajib diisi.',
             'details.*.frefno.required' => 'No. nota wajib diisi.',
@@ -493,8 +498,9 @@ class PelunasanCustomerController extends Controller
             ]);
         }
         $voucherNo = trim((string) ($validated['fkasmtno'] ?? '')) ?: $header->fkasmtno;
+        $hargaAdmin = round((float) ($validated['fhargaadmin'] ?? 0), 2);
         $totalPenerimaan = round((float) $detailRows->sum(fn(array $row) => (float) ($row['fkasdtvalue'] ?? 0)), 2);
-        $netPaymentAmount = round($totalPenerimaan - $bankAdminFee, 2);
+        $netPaymentAmount = round($totalPenerimaan - $bankAdminFee - $hargaAdmin, 2);
         $now = now();
 
         DB::transaction(function () use ($validated, $customer, $headerAccount, $detailEntries, $voucherNo, $netPaymentAmount, $now, $header) {
@@ -516,6 +522,8 @@ class PelunasanCustomerController extends Controller
                 'faccountno' => $headerAccount->faccount,
                 'faccountnoid' => $headerAccount->faccid,
                 'fbranchcode' => $validated['fbranchcode'],
+                'faccadj' => $validated['faccountadmin'] ?? null,
+                'fadjustment' => (float) ($validated['fhargaadmin'] ?? 0),
             ]);
 
             Trkasdt::where('fkasmtid', $header->fkasmtid)->delete();
@@ -848,6 +856,8 @@ class PelunasanCustomerController extends Controller
         $bankAdminFee = 0;
         $selectedAdminAccount = null;
 
+        $hargaAdmin = $header ? (float) $header->fadjustment : 0;
+
         if ($adminFeeDetail) {
             $bankAdminFee = (float) $adminFeeDetail->fkasdtvalue;
             $selectedAdminAccount = Account::query()
@@ -891,6 +901,7 @@ class PelunasanCustomerController extends Controller
             'detailRows' => $detailRows,
             'headerData' => $header,
             'bankAdminFee' => old('fbiayaadminbank', $bankAdminFee),
+            'hargaAdminValue' => old('fhargaadmin', $hargaAdmin),
             'dueDate' => old('ftgljatuhtempo', optional($header?->ftgljatuhtempo)->format('Y-m-d')),
             'giroMundur' => old('fgiromundur', ($header?->fgiromundur ?? '0')) === '1',
             'noteValue' => old('fket', $header?->fket),
