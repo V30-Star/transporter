@@ -165,6 +165,8 @@ class ReturPenjualanController extends Controller
 
     public function pickable(Request $request)
     {
+        $customerCode = trim((string) $request->input('fcustno', ''));
+
         $query = DB::table('tranmt as mt')
             ->leftJoin('mscustomer as cust', 'mt.fcustno', '=', 'cust.fcustomercode')
             ->select(
@@ -178,9 +180,16 @@ class ReturPenjualanController extends Controller
         $query->where('mt.fsono', 'like', 'INV.%');
         ApprovalState::applyApprovedFilter($query, 'mt.');
 
+        if ($customerCode !== '') {
+            $query->whereRaw('TRIM(COALESCE(mt.fcustno, \'\')) = ?', [$customerCode]);
+        }
+
         $recordsTotal = DB::table('tranmt as mt')
             ->where('mt.fsono', 'like', 'INV.%')
             ->whereRaw(ApprovalState::approvedSql('mt.'))
+            ->when($customerCode !== '', function ($q) use ($customerCode) {
+                $q->whereRaw('TRIM(COALESCE(mt.fcustno, \'\')) = ?', [$customerCode]);
+            })
             ->count();
 
         if ($request->filled('search') && $request->search != '') {

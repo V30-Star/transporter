@@ -3365,7 +3365,7 @@
                         url: "{{ route('returpenjualan.pickable') }}",
                         type: 'GET',
                         data: function(d) {
-                            return {
+                            var params = {
                                 draw: d.draw,
                                 start: d.start,
                                 length: d.length,
@@ -3373,6 +3373,10 @@
                                 order_column: d.columns[d.order[0].column].data,
                                 order_dir: d.order[0].dir
                             };
+                            // Filter by selected customer
+                            var custCode = (document.getElementById('customerCodeHidden')?.value || '').trim();
+                            if (custCode) params.fcustno = custCode;
+                            return params;
                         }
                     },
                     columns: [{
@@ -3587,7 +3591,7 @@
                         url: "{{ route('suratjalan.pickable') }}", // Pastikan route ini ada di web.php
                         type: 'GET',
                         data: function(d) {
-                            return {
+                            var params = {
                                 draw: d.draw,
                                 start: d.start,
                                 length: d.length,
@@ -3595,6 +3599,10 @@
                                 order_column: d.columns[d.order[0].column].data,
                                 order_dir: d.order[0].dir
                             };
+                            // Filter by selected customer
+                            var custCode = (document.getElementById('customerCodeHidden')?.value || '').trim();
+                            if (custCode) params.fcustno = custCode;
+                            return params;
                         }
                     },
                     columns: [{
@@ -3814,7 +3822,7 @@
                         url: "{{ route('returpenjualan.pickable') }}",
                         type: 'GET',
                         data: function(d) {
-                            return {
+                            var params = {
                                 draw: d.draw,
                                 start: d.start,
                                 length: d.length,
@@ -3823,6 +3831,10 @@
                                 order_column: d.columns[d.order[0].column].data,
                                 order_dir: d.order[0].dir
                             };
+                            // Filter by selected customer
+                            var custCode = (document.getElementById('customerCodeHidden')?.value || '').trim();
+                            if (custCode) params.fcustno = custCode;
+                            return params;
                         },
                         // Karena kita sudah menggunakan parameter start/length standar DataTables,
                         // properti dataSrc bisa dihilangkan jika backend langsung mengembalikan format DataTables.

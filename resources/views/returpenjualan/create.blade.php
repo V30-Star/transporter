@@ -2594,6 +2594,10 @@
                         page: this.currentPage,
                     });
 
+                    // Filter by selected customer
+                    const custCode = (document.getElementById('customerCodeHidden')?.value || '').trim();
+                    if (custCode) params.set('fcustno', custCode);
+
                     const res = await fetch(`{{ route('returpenjualan.pickable') }}?` + params.toString(), {
                         headers: {
                             'X-Requested-With': 'XMLHttpRequest'
@@ -2704,7 +2708,7 @@
                         url: "{{ route('returpenjualan.pickable') }}",
                         type: 'GET',
                         data: function(d) {
-                            return {
+                            var params = {
                                 draw: d.draw,
                                 start: d.start,
                                 length: d.length,
@@ -2712,6 +2716,10 @@
                                 order_column: d.columns[d.order[0].column].data,
                                 order_dir: d.order[0].dir
                             };
+                            // Filter by selected customer
+                            var custCode = (document.getElementById('customerCodeHidden')?.value || '').trim();
+                            if (custCode) params.fcustno = custCode;
+                            return params;
                         }
                     },
                     columns: [{
@@ -2939,7 +2947,7 @@
                         url: "{{ route('suratjalan.pickable') }}", // Pastikan route ini ada di web.php
                         type: 'GET',
                         data: function(d) {
-                            return {
+                            var params = {
                                 draw: d.draw,
                                 start: d.start,
                                 length: d.length,
@@ -2947,6 +2955,10 @@
                                 order_column: d.columns[d.order[0].column].data,
                                 order_dir: d.order[0].dir
                             };
+                            // Filter by selected customer
+                            var custCode = (document.getElementById('customerCodeHidden')?.value || '').trim();
+                            if (custCode) params.fcustno = custCode;
+                            return params;
                         }
                     },
                     columns: [{
