@@ -68,18 +68,33 @@ class GroupproductController extends Controller
     public function edit($fgroupid)
     {
         $groupproduct = Groupproduct::findOrFail($fgroupid);
+        $isUsedInTransactions = $this->isGroupProductUsedInTransactions($groupproduct->fgroupcode);
 
         return view('groupproduct.edit', [
             'groupproduct' => $groupproduct,
             'action' => 'edit',
+            'isUsedInTransactions' => $isUsedInTransactions,
         ]);
     }
 
     public function update(Request $request, $fgroupid)
     {
+        $groupproduct = Groupproduct::findOrFail($fgroupid);
+        $oldGroupCode = $groupproduct->fgroupcode;
+
         $request->merge([
             'fgroupcode' => strtoupper($request->fgroupcode),
         ]);
+
+        $newGroupCode = $request->fgroupcode;
+        $isUsed = $this->isGroupProductUsedInTransactions($oldGroupCode);
+
+        if ($isUsed && trim($oldGroupCode) !== trim($newGroupCode)) {
+            return redirect()->back()
+                ->withErrors(['fgroupcode' => 'Kode group produk tidak bisa diubah karena produk dalam group ini sudah digunakan dalam transaksi.'])
+                ->withInput();
+        }
+
         $validated = $request->validate(
             [
                 'fgroupcode' => "required|string|unique:ms_groupprd,fgroupcode,{$fgroupid},fgroupid",
@@ -99,7 +114,12 @@ class GroupproductController extends Controller
         $validated['fupdatedby'] = auth('sysuser')->user()->fname ?? null;
         $validated['fupdatedat'] = now();
 
-        $groupproduct = Groupproduct::findOrFail($fgroupid);
+        if (trim($oldGroupCode) !== trim($newGroupCode) && !$isUsed) {
+            \Illuminate\Support\Facades\DB::table('msprd')
+                ->whereRaw('TRIM(fgroupcode) = ?', [trim($oldGroupCode)])
+                ->update(['fgroupcode' => $newGroupCode]);
+        }
+
         $groupproduct->update($validated);
 
         return redirect()
@@ -172,5 +192,64 @@ class GroupproductController extends Controller
             'recordsFiltered' => $recordsFiltered,
             'data' => $data,
         ]);
+    }
+
+    protected function isGroupProductUsedInTransactions($groupCode)
+    {
+        if (empty($groupCode)) {
+            return false;
+        }
+
+        $trimmedCode = trim($groupCode);
+
+        $products = \Illuminate\Support\Facades\DB::table('msprd')
+            ->whereRaw('TRIM(fgroupcode) = ?', [$trimmedCode])
+            ->get(['fprdid', 'fprdcode']);
+
+        if ($products->isEmpty()) {
+            return false;
+        }
+
+        $productIds = $products->pluck('fprdid')->filter()->all();
+        $productCodes = $products->pluck('fprdcode')->filter()->all();
+
+        if (empty($productIds) && empty($productCodes)) {
+            return false;
+        }
+
+        if (!empty($productCodes) && \Illuminate\Support\Facades\DB::table('tr_prd')->whereIn('fprdcode', $productCodes)->exists()) {
+            return true;
+        }
+
+        $poQuery = \Illuminate\Support\Facades\DB::table('tr_pod');
+        $hasPo = false;
+        if (!empty($productIds)) {
+            $poQuery->where(function($q) use ($productIds, $productCodes) {
+                $q->whereIn('fprdid', $productIds);
+                if (!empty($productCodes)) {
+                    $q->orWhereIn('fprdcode', $productCodes);
+                }
+            });
+            $hasPo = $poQuery->exists();
+        } elseif (!empty($productCodes)) {
+            $hasPo = $poQuery->whereIn('fprdcode', $productCodes)->exists();
+        }
+        if ($hasPo) {
+            return true;
+        }
+
+        if (!empty($productCodes) && \Illuminate\Support\Facades\DB::table('trstockdt')->whereIn('fprdcode', $productCodes)->exists()) {
+            return true;
+        }
+
+        if (!empty($productCodes) && \Illuminate\Support\Facades\DB::table('trsodt')->whereIn('fprdcode', $productCodes)->exists()) {
+            return true;
+        }
+
+        if (!empty($productCodes) && \Illuminate\Support\Facades\DB::table('trandt')->whereIn('fprdcode', $productCodes)->exists()) {
+            return true;
+        }
+
+        return false;
     }
 }

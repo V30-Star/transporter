@@ -52,8 +52,11 @@
                     <div>
                         <label class="block text-sm font-medium">Kode Group</label>
                         <input type="text" name="fgroupcode" value="{{ old('fgroupcode', $groupproduct->fgroupcode) }}"
-                            class="w-full border rounded px-3 py-2 uppercase @error('fgroupcode') border-red-500 @enderror"
-                            autofocus>
+                            class="w-full border rounded px-3 py-2 uppercase @error('fgroupcode') border-red-500 @enderror {{ $isUsedInTransactions ? 'bg-gray-100 cursor-not-allowed' : '' }}"
+                            {{ $isUsedInTransactions ? 'readonly' : 'autofocus' }}>
+                        @if ($isUsedInTransactions)
+                            <p class="text-xs text-red-500 mt-1">Kode group tidak bisa diubah karena produk dalam group ini sudah digunakan dalam transaksi.</p>
+                        @endif
                         @error('fgroupcode')
                             <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                         @enderror

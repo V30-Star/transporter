@@ -583,7 +583,7 @@
                         maxWidth: 'none',
                         verticalAlign: 'middle'
                     });
-                    $searchInput.attr('placeholder', 'Cari No.SO / Customer / User Id');
+                    $searchInput.attr('placeholder', 'Cari No.SO / No.Ref / Nama Customer');
 
                     // Set nilai awal dari URL agar tampilan Select Box sinkron
                     const urlParams = new URLSearchParams(window.location.search);

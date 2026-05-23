@@ -63,12 +63,14 @@
         <div id="statusFilterTemplate" class="hidden">
             <div class="flex items-center gap-2" id="statusFilterWrap">
                 <span class="text-sm text-gray-700">Status</span>
-                <select data-role="status-filter" class="border rounded px-2 py-1 w-24">
+                <select data-role="status-filter" class="border rounded px-2 py-1 w-36">
                     <option value="all" {{ $status === 'all' ? 'selected' : '' }}>Semua</option>
                     <option value="open" {{ $status === 'open' ? 'selected' : '' }}>Open</option>
                     <option value="done" {{ $status === 'done' ? 'selected' : '' }}>Done</option>
                     <option value="partial" {{ $status === 'partial' ? 'selected' : '' }}>Partial</option>
                     <option value="close" {{ $status === 'close' ? 'selected' : '' }}>Close</option>
+                    <option value="belum_approve" {{ $status === 'belum_approve' ? 'selected' : '' }}>Belum Approve</option>
+                    <option value="approve" {{ $status === 'approve' ? 'selected' : '' }}>Approve</option>
                 </select>
             </div>
         </div>

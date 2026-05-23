@@ -94,6 +94,27 @@ class Tr_prhController extends Controller
                 $query->where('tr_prh.fclose', '0');
             } elseif ($statusFilter === 'nonactive') {
                 $query->where('tr_prh.fclose', '1');
+            } elseif ($statusFilter === 'belum_approve') {
+                $query->where(function ($q) {
+                    $q->where(function ($inner) {
+                        $inner->where('tr_prh.fapproval', '1')
+                              ->where(function ($sub) {
+                                  $sub->whereNull('tr_prh.fapproval2')
+                                      ->orWhere('tr_prh.fapproval2', '!=', '2');
+                              });
+                    })->orWhere(function ($inner) {
+                        $inner->where('tr_prh.fapproval2', '1')
+                              ->where(function ($sub) {
+                                  $sub->whereNull('tr_prh.fapproval')
+                                      ->orWhere('tr_prh.fapproval', '!=', '2');
+                              });
+                    });
+                });
+            } elseif ($statusFilter === 'approve') {
+                $query->where(function ($q) {
+                    $q->where('tr_prh.fapproval', '2')
+                      ->orWhere('tr_prh.fapproval2', '2');
+                });
             }
             if ($year) {
                 $query->whereRaw('EXTRACT(YEAR FROM tr_prh.fcreatedat) = ?', [$year]);

@@ -389,9 +389,8 @@ class SalesOrderController extends Controller
             if ($search = $request->input('search.value')) {
                 $query->where(function ($q) use ($search) {
                     $q->where('trsomt.fsono', 'like', "%{$search}%")
-                        ->orWhere('trsomt.frefpo', 'like', "%{$search}%")
-                        ->orWhere('c.fcustomername', 'like', "%{$search}%")
-                        ->orWhere('trsomt.fcustno', 'like', "%{$search}%");
+                        ->orWhere('trsomt.frefno', 'like', "%{$search}%")
+                        ->orWhere('c.fcustomername', 'like', "%{$search}%");
                 });
             }
 
