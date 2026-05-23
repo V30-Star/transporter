@@ -109,19 +109,19 @@ class Tr_prhController extends Controller
             $orderDir = $request->input('order.0.dir', 'asc');
 
             $columns = [
-                0 => 'fprno',
-                1 => 'mssupplier.fsuppliername',
-                2 => 'fprdate',
-                3 => 'fusercreate',
-                4 => 'fuserupdate',
-                5 => 'fclose',
+                0 => 'tr_prh.fprno',
+                1 => 'tr_prh.fprdate',
+                2 => 'mssupplier.fsuppliername',
+                3 => 'tr_prh.fusercreate',
+                4 => 'tr_prh.fclose',
+                5 => 'tr_prh.fapproval',
                 6 => '',
             ];
 
-            if (isset($columns[$orderColumnIndex]) && $columns[$orderColumnIndex] !== null) {
+            if (isset($columns[$orderColumnIndex]) && $columns[$orderColumnIndex] !== null && $columns[$orderColumnIndex] !== '') {
                 $query->orderBy($columns[$orderColumnIndex], $orderDir);
             } else {
-                $query->orderBy('fprhid', 'desc');
+                $query->orderBy('tr_prh.fprhid', 'desc');
             }
 
             $start = $request->input('start', 0);
@@ -130,7 +130,19 @@ class Tr_prhController extends Controller
                 $query->skip($start)->take($length);
             }
 
-            $records = $query->get(['fprhid', 'fprno', 'fprdate', 'fsupplier', 'fusercreate', 'fuserupdate', 'fclose', 'fprdin', 'mssupplier.fsuppliername']);
+            $records = $query->get([
+                'tr_prh.fprhid',
+                'tr_prh.fprno',
+                'tr_prh.fprdate',
+                'tr_prh.fsupplier',
+                'tr_prh.fusercreate',
+                'tr_prh.fuserupdate',
+                'tr_prh.fclose',
+                'tr_prh.fprdin',
+                'tr_prh.fapproval',
+                'tr_prh.fapproval2',
+                'mssupplier.fsuppliername'
+            ]);
 
             $data = $records->map(function ($record) {
                 return [
@@ -141,6 +153,8 @@ class Tr_prhController extends Controller
                     'fuserupdate' => $record->fuserupdate,
                     'fclose' => $record->fclose,
                     'fprdin' => $record->fprdin,
+                    'fapproval' => $record->fapproval,
+                    'fapproval2' => $record->fapproval2,
                     'fprhid' => $record->fprhid,
                     'DT_RowId' => 'row_'.$record->fprhid,
                 ];
