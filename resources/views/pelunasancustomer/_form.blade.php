@@ -35,6 +35,7 @@
         ? trim($selectedCustomerName . ' (' . $selectedCustomerCode . ')')
         : '';
     $selectedAdminAccount = $selectedAdminAccount ?? null;
+    $selectedAdminAccount2 = $selectedAdminAccount2 ?? null;
 @endphp
 
 <div class="bg-white rounded shadow p-6 md:p-8 max-w-[96rem] mx-auto"
@@ -287,6 +288,37 @@
                             </div>
                         </div>
 
+                        <div class="grid grid-cols-2 gap-3">
+                            <div>
+                                <label class="block text-sm font-semibold text-gray-700 mb-1">{{ 'Account Admin Bank 2' }}</label>
+                                <div class="flex">
+                                    <input type="text" x-model="adminAccount2Label"
+                                        class="w-full border rounded-l px-3 py-2 text-sm bg-gray-100 cursor-not-allowed" readonly>
+                                    <input type="hidden" name="faccountadmin2" x-model="adminAccount2Code">
+                                    @if (!$isReadOnly)
+                                        <button type="button" @click="activeAccountField = 'admin2'; window.dispatchEvent(new CustomEvent('admin-account-browse-open'))"
+                                            class="border -ml-px px-3 py-2 bg-white hover:bg-gray-50 rounded-r" title="Browse Account Admin 2">
+                                            <x-heroicon-o-magnifying-glass class="w-5 h-5" />
+                                        </button>
+                                    @endif
+                                </div>
+                                @error('faccountadmin2')
+                                    <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+                                @enderror
+                            </div>
+
+                            <div>
+                                <label class="block text-sm font-semibold text-gray-700 mb-1">{{ 'Harga' }}</label>
+                                <input type="number" min="0" step="0.01" name="fhargaadmin2" x-model="hargaAdmin2"
+                                    @input="recalcTotals()"
+                                    :disabled="!adminAccount2Code"
+                                    class="w-full border rounded px-3 py-2 text-right text-sm @error('fhargaadmin2') border-red-500 @enderror disabled:bg-gray-100 disabled:text-gray-400 disabled:cursor-not-allowed">
+                                @error('fhargaadmin2')
+                                    <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+                                @enderror
+                            </div>
+                        </div>
+
                         <div class="flex items-center justify-between gap-4 border-t pt-3">
                             <span class="text-sm font-semibold text-gray-800">{{ 'Total Penerimaan' }}</span>
                             <input type="text" x-model="totalPenerimaanDisplay"
@@ -491,12 +523,15 @@
                 accountLabel: @js($selectedAccountCode !== '' ? trim($selectedAccountCode . ' - ' . $selectedAccountName) : ''),
                 adminAccountCode: @js($selectedAdminAccount->faccount ?? ''),
                 adminAccountLabel: @js(isset($selectedAdminAccount) ? trim($selectedAdminAccount->faccount . ' - ' . $selectedAdminAccount->faccname) : ''),
+                adminAccount2Code: @js($selectedAdminAccount2->faccount ?? ''),
+                adminAccount2Label: @js(isset($selectedAdminAccount2) ? trim($selectedAdminAccount2->faccount . ' - ' . $selectedAdminAccount2->faccname) : ''),
                 activeAccountField: null,
                 transactionDate: @js(old('fkasmtdate', $transactionDate)),
                 dueDate: @js(old('ftgljatuhtempo', $dueDate ?? '')),
                 isGiroMundur: @js(old('fgiromundur', ($giroMundur ?? false) ? '1' : '0') === '1'),
                 bankAdminFee: @js((float) old('fbiayaadminbank', $bankAdminFee ?? 0)),
                 hargaAdmin: @js((float) old('fhargaadmin', $hargaAdminValue ?? 0)),
+                hargaAdmin2: @js((float) old('fhargaadmin2', $hargaAdmin2Value ?? 0)),
                 totalPenerimaanDisplay: '0.00',
                 notaModalOpen: false,
                 notaLoading: false,
@@ -555,6 +590,9 @@
                         if (this.activeAccountField === 'admin') {
                             this.adminAccountCode = code;
                             this.adminAccountLabel = code && name ? `${code} - ${name}` : code;
+                        } else if (this.activeAccountField === 'admin2') {
+                            this.adminAccount2Code = code;
+                            this.adminAccount2Label = code && name ? `${code} - ${name}` : code;
                         } else {
                             this.accountCode = code;
                             this.accountLabel = code && name ? `${code} - ${name}` : code;
@@ -586,6 +624,17 @@
                     this.$watch('adminAccountCode', (value) => {
                         if (!value) {
                             this.hargaAdmin = 0;
+                            this.recalcTotals();
+                        }
+                    });
+
+                    this.$watch('hargaAdmin2', () => {
+                        this.recalcTotals();
+                    });
+
+                    this.$watch('adminAccount2Code', (value) => {
+                        if (!value) {
+                            this.hargaAdmin2 = 0;
                             this.recalcTotals();
                         }
                     });
@@ -898,7 +947,7 @@
 
                 recalcTotals() {
                     const totalBayar = this.rows.reduce((sum, row) => sum + this.toNumber(row.fkasdtvalue), 0);
-                    const netPenerimaan = Math.max(totalBayar - this.toNumber(this.bankAdminFee) - this.toNumber(this.hargaAdmin), 0);
+                    const netPenerimaan = Math.max(totalBayar - this.toNumber(this.bankAdminFee) - this.toNumber(this.hargaAdmin) - this.toNumber(this.hargaAdmin2), 0);
                     this.totalPenerimaanDisplay = this.formatNumber(netPenerimaan);
                 },
 
