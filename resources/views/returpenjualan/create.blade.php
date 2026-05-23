@@ -584,8 +584,8 @@
                                             @click="closeSrjModal()">
                                         </div>
 
-                                        <div class="relative bg-white rounded-2xl shadow-2xl w-[96vw] max-w-[110rem] flex flex-col overflow-hidden"
-                                            style="height: 85vh;">
+                                        <div class="relative bg-white rounded-2xl shadow-2xl w-[94vw] max-w-[100rem] flex flex-col overflow-hidden"
+                                            style="height: 82vh;">
                                             <div
                                                 class="px-6 py-4 border-b border-gray-200 flex items-center justify-between flex-shrink-0 bg-gradient-to-r from-indigo-50 to-white">
                                                 <div>
@@ -2963,24 +2963,38 @@
                     },
                     columns: [{
                             data: 'fstockmtno',
-                            className: 'font-mono text-sm'
-                        },
-                        {
-                            data: 'frefpo',
-                            defaultContent: '-',
+                            name: 'fstockmtno',
                             className: 'font-mono text-sm'
                         },
                         {
                             data: 'fstockmtdate',
+                            name: 'fstockmtdate',
                             className: 'text-sm',
                             render: function(data) {
-                                return formatDate(
-                                    data); // Menggunakan helper formatDate yang sudah Anda miliki
+                                return formatDate(data);
                             }
+                        },
+                        {
+                            data: 'fcustomercode',
+                            name: 'fcustomercode',
+                            defaultContent: '-',
+                            className: 'font-mono text-sm'
                         },
                         {
                             data: 'fsuppliername',
                             name: 'fsuppliername',
+                            defaultContent: '-',
+                        },
+                        {
+                            data: 'faddress',
+                            name: 'faddress',
+                            defaultContent: '-',
+                        },
+                        {
+                            data: 'frefpo',
+                            name: 'frefpo',
+                            defaultContent: '-',
+                            className: 'font-mono text-sm'
                         },
                         {
                             data: null,
