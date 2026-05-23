@@ -1331,7 +1331,21 @@
     @if (session('success'))
         <script>
             document.addEventListener('DOMContentLoaded', () => {
-                window.showAppSuccessToast(@json((string) session('success')));
+                const successMessage = @json((string) session('success'));
+
+                if (successMessage === "Periode sudah di Update\njangan lupa diposting ulang.") {
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Periode sudah di Update',
+                        text: 'jangan lupa diposting ulang.',
+                        confirmButtonText: 'Ok',
+                        allowOutsideClick: false,
+                        allowEscapeKey: false,
+                    });
+                    return;
+                }
+
+                window.showAppSuccessToast(successMessage);
             });
         </script>
     @endif
