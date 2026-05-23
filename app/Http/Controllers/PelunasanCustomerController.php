@@ -607,6 +607,17 @@ class PelunasanCustomerController extends Controller
         return $references->all();
     }
 
+    private function resolveSetAccountCode(string $accountName): ?string
+    {
+        $accountCode = DB::table('set_account')
+            ->where('faccount_name', $accountName)
+            ->value('faccount');
+
+        $accountCode = trim((string) $accountCode);
+
+        return $accountCode !== '' ? $accountCode : null;
+    }
+
     private function resolveRequiredAccount(string $accountName, string $message): Account
     {
         $accountCode = $this->resolveSetAccountCode($accountName);
