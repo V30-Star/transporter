@@ -4,7 +4,7 @@
 <head>
     @php
         $layoutRestrictedPermissions = array_filter(
-            array_map('trim', explode(',', (string) session('user_restricted_permissions', '')))
+            array_map('trim', explode(',', (string) session('user_restricted_permissions', ''))),
         );
         $layoutCanAccessAllBranches = in_array('semuacabang', $layoutRestrictedPermissions, true);
         $layoutCanChangeTransactionDate = in_array('BolehGantiTanggal', $layoutRestrictedPermissions, true);
@@ -26,7 +26,7 @@
     @endphp
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>@yield('title', "Dashboard")</title>
+    <title>@yield('title', 'Dashboard')</title>
     <script>
         (() => {
             const savedTheme = localStorage.getItem('app-theme');
@@ -398,7 +398,7 @@
             min-width: 0;
         }
 
-        .transaction-detail-table .transaction-product-column > * {
+        .transaction-detail-table .transaction-product-column>* {
             width: 100%;
         }
 
@@ -423,8 +423,8 @@
         }
 
         .transaction-detail-table .transaction-code-column .font-mono,
-        .transaction-detail-table .transaction-product-column > div,
-        .transaction-detail-table .transaction-product-column > span,
+        .transaction-detail-table .transaction-product-column>div,
+        .transaction-detail-table .transaction-product-column>span,
         .transaction-detail-table .transaction-product-column .align-middle {
             display: block;
             overflow: hidden;
@@ -503,12 +503,12 @@
             min-width: 0 !important;
         }
 
-        .fpb-detail-table td:nth-child(2) .flex > input {
+        .fpb-detail-table td:nth-child(2) .flex>input {
             min-width: 0 !important;
             flex: 1 1 auto !important;
         }
 
-        .fpb-detail-table td:nth-child(2) .flex > button {
+        .fpb-detail-table td:nth-child(2) .flex>button {
             flex: 0 0 auto !important;
         }
 
@@ -616,37 +616,37 @@
 
                 <div class="flex items-center gap-3 ml-auto">
                     <div class="flex flex-col items-end gap-1">
-                    @auth
-                        <div class="text-sm text-gray-600 font-medium mr-4">
-                            <span>{{ Auth::user()->fname }} | {{ Auth::user()->fsysuserid }}</span>
-                        </div>
-                    @endauth
+                        @auth
+                            <div class="text-sm text-gray-600 font-medium mr-4">
+                                <span>{{ Auth::user()->fname }} | {{ Auth::user()->fsysuserid }}</span>
+                            </div>
+                        @endauth
 
-                    <div x-data="{
-                        display: '',
-                        update() {
-                            const dt = new Date();
-                    
-                            const months = [
-                                'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni',
-                                'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'
-                            ];
-                    
-                            const day = dt.getDate();
-                            const month = months[dt.getMonth()];
-                            const year = dt.getFullYear();
-                            const hour = dt.getHours().toString().padStart(2, '0');
-                            const minute = dt.getMinutes().toString().padStart(2, '0');
-                            const second = dt.getSeconds().toString().padStart(2, '0');
-                    
-                            this.display = `${day} ${month} ${year} | ${hour}:${minute}:${second}`;
-                        },
-                        init() {
-                            this.update();
-                            setInterval(() => this.update(), 1000);
-                        }
-                    }" x-init="init()" class="text-sm text-gray-600 font-medium mr-4"
-                        x-text="display"></div>
+                        <div x-data="{
+                            display: '',
+                            update() {
+                                const dt = new Date();
+                        
+                                const months = [
+                                    'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni',
+                                    'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'
+                                ];
+                        
+                                const day = dt.getDate();
+                                const month = months[dt.getMonth()];
+                                const year = dt.getFullYear();
+                                const hour = dt.getHours().toString().padStart(2, '0');
+                                const minute = dt.getMinutes().toString().padStart(2, '0');
+                                const second = dt.getSeconds().toString().padStart(2, '0');
+                        
+                                this.display = `${day} ${month} ${year} | ${hour}:${minute}:${second}`;
+                            },
+                            init() {
+                                this.update();
+                                setInterval(() => this.update(), 1000);
+                            }
+                        }" x-init="init()"
+                            class="text-sm text-gray-600 font-medium mr-4" x-text="display"></div>
                     </div>
                 </div>
 
@@ -659,33 +659,34 @@
                         </button>
 
                         <div x-show="open" @click.outside="open = false"
-                            class="user-dropdown-panel absolute right-0 mt-2 w-56 bg-white rounded-md shadow-lg z-20" x-cloak>
+                            class="user-dropdown-panel absolute right-0 mt-2 w-56 bg-white rounded-md shadow-lg z-20"
+                            x-cloak>
                             <div class="px-4 py-3 border-b border-gray-200">
                                 <div class="text-xs font-semibold uppercase tracking-wide text-gray-500 mb-2">
-                                    {{ "Tema Tampilan" }}
+                                    {{ 'Tema Tampilan' }}
                                 </div>
                                 <div class="grid grid-cols-2 gap-2">
                                     <button type="button" onclick="window.appTheme.set('light')"
                                         class="theme-toggle-button justify-center w-full !px-3 !py-2 !text-xs"
                                         id="theme-light-option">
-                                        {{ "Terang" }}
+                                        {{ 'Terang' }}
                                     </button>
                                     <button type="button" onclick="window.appTheme.set('dark')"
                                         class="theme-toggle-button justify-center w-full !px-3 !py-2 !text-xs"
                                         id="theme-dark-option">
-                                        {{ "Gelap" }}
+                                        {{ 'Gelap' }}
                                     </button>
                                 </div>
                             </div>
                             <a href="{{ route('settings') }}"
                                 class="user-dropdown-link block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
-                                {{ "Pengaturan" }}
+                                {{ 'Pengaturan' }}
                             </a>
                             <form method="POST" action="{{ route('logout') }}">
                                 @csrf
                                 <button type="submit"
                                     class="user-dropdown-link w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
-                                    {{ "Logout" }}
+                                    {{ 'Logout' }}
                                 </button>
                             </form>
                         </div>
@@ -710,7 +711,7 @@
         }
 
         $transactionErrorMessages = $transactionErrorMessages
-            ->map(fn ($message) => trim((string) $message))
+            ->map(fn($message) => trim((string) $message))
             ->filter()
             ->unique()
             ->values();
@@ -741,17 +742,21 @@
                 result = result.replace(/\btidak ditemukan\b/gi, 'tidak ada');
                 result = result.replace(/\bsilakan coba lagi\b/gi, 'coba lagi');
                 result = result.replace(/\bsilakan cek kembali data yang diisi\b/gi, 'cek data');
-                result = result.replace(/\bsilakan cek kembali isian transaksi lalu coba lagi\b/gi, 'cek data transaksi');
+                result = result.replace(/\bsilakan cek kembali isian transaksi lalu coba lagi\b/gi,
+                    'cek data transaksi');
                 result = result.replace(/\bsilakan cek kembali isian transaksi\b/gi, 'cek data transaksi');
                 result = result.replace(/\bsilakan cek kembali isian anda\b/gi, 'cek data');
                 result = result.replace(/\bsilakan cek kembali\b/gi, 'cek data');
                 result = result.replace(/\bmasih ada refrensi\b/gi, 'masih ada referensi');
-                result = result.replace(/\bkarena sudah direferensi di transaksi\b/gi, 'karena sudah direferensi di transaksi');
-                result = result.replace(/\bkarena sudah direferensikan di transaksi\b/gi, 'karena sudah direferensi di transaksi');
+                result = result.replace(/\bkarena sudah direferensi di transaksi\b/gi,
+                    'karena sudah direferensi di transaksi');
+                result = result.replace(/\bkarena sudah direferensikan di transaksi\b/gi,
+                    'karena sudah direferensi di transaksi');
                 result = result.replace(/\bsudah digunakan di\b/gi, 'sudah direferensi di');
                 result = result.replace(/\bsudah digunakan dalam\b/gi, 'sudah direferensi di');
                 result = result.replace(/\bsudah digunakan pada\b/gi, 'sudah direferensi di');
-                result = result.replace(/\btidak bisa dihapus karena sudah direferensi di transaksi\b/gi, 'tidak bisa dihapus. sudah direferensi di transaksi');
+                result = result.replace(/\btidak bisa dihapus karena sudah direferensi di transaksi\b/gi,
+                    'tidak bisa dihapus. sudah direferensi di transaksi');
                 result = result.replace(/\s+\.\s*/g, '. ');
                 result = result.replace(/\s+/g, ' ').trim();
 
@@ -777,7 +782,8 @@
                     return key;
                 });
 
-                result = result.replace(/\b(NPWP|NIK|PPN|PPH|PO|PR|SO|SJ|SRJ|INV|TER|FP|IDR|USD|EUR|TOP|JBL|SJU)\b/g, (match) => {
+                result = result.replace(/\b(NPWP|NIK|PPN|PPH|PO|PR|SO|SJ|SRJ|INV|TER|FP|IDR|USD|EUR|TOP|JBL|SJU)\b/g, (
+                    match) => {
                     const key = `__TOKEN_${protectedTokens.length}__`;
                     protectedTokens.push({
                         key,
@@ -877,7 +883,8 @@
                 } else {
                     field.removeAttribute('max');
                 }
-                field.setAttribute('title', `TANGGAL HANYA BOLEH ${allowedValue === todayValue ? 'HARI INI' : allowedValue}`);
+                field.setAttribute('title',
+                    `TANGGAL HANYA BOLEH ${allowedValue === todayValue ? 'HARI INI' : allowedValue}`);
 
                 const revertIfInvalid = () => {
                     const currentValue = normalizeDateValue(field.value);
@@ -891,9 +898,9 @@
                     if (typeof window.showAppInfoAlert === 'function') {
                         window.showAppInfoAlert(
                             'Information',
-                            fixedAllowedValue === todayValue
-                                ? `Tanggal transaksi harus sama dengan hari ini (${todayValue}).`
-                                : `Tanggal transaksi tidak bisa diubah. Gunakan tanggal ${fixedAllowedValue}.`
+                            fixedAllowedValue === todayValue ?
+                            `Tanggal transaksi harus sama dengan hari ini (${todayValue}).` :
+                            `Tanggal transaksi tidak bisa diubah. Gunakan tanggal ${fixedAllowedValue}.`
                         );
                     }
                 };
@@ -909,7 +916,8 @@
 
                 const scope = root instanceof HTMLElement || root instanceof Document ? root : document;
                 guardedTransactionDateFields.forEach((fieldName) => {
-                    scope.querySelectorAll(`input[type="date"][name="${fieldName}"]`).forEach(attachTransactionDateGuard);
+                    scope.querySelectorAll(`input[type="date"][name="${fieldName}"]`).forEach(
+                        attachTransactionDateGuard);
                 });
             }
 
@@ -997,9 +1005,9 @@
                 },
 
                 confirmAddUniques(state, eventName, options = {}) {
-                    const detailBuilder = typeof options.detailBuilder === 'function'
-                        ? options.detailBuilder
-                        : (header, items) => ({
+                    const detailBuilder = typeof options.detailBuilder === 'function' ?
+                        options.detailBuilder :
+                        (header, items) => ({
                             header,
                             items
                         });
@@ -1099,8 +1107,12 @@
 
                     input.addEventListener('blur', () => {
                         formatCurrentValue();
-                        input.dispatchEvent(new Event('input', { bubbles: true }));
-                        input.dispatchEvent(new Event('change', { bubbles: true }));
+                        input.dispatchEvent(new Event('input', {
+                            bubbles: true
+                        }));
+                        input.dispatchEvent(new Event('change', {
+                            bubbles: true
+                        }));
                     });
 
                     input.dataset.qtyFormatted = '1';
@@ -1213,7 +1225,7 @@
                     '>': '&gt;',
                     '"': '&quot;',
                     "'": '&#39;'
-                }[char]));
+                } [char]));
             }
 
             function inferReason(items) {
@@ -1231,7 +1243,8 @@
                     return 'Jumlah item yang diinput masih belum sesuai.';
                 }
 
-                if (text.includes('supplier') || text.includes('customer') || text.includes('salesman') || text.includes('gudang') || text.includes('akun')) {
+                if (text.includes('supplier') || text.includes('customer') || text.includes('salesman') || text
+                    .includes('gudang') || text.includes('akun')) {
                     return 'Ada data pilihan yang masih kosong atau belum sesuai.';
                 }
 
@@ -1274,21 +1287,36 @@
                     .filter(Boolean);
 
                 const simpleSingleMessage = rawMessages.length === 1 ? rawMessages[0] : '';
-                const simpleLines = simpleSingleMessage !== '' ? simpleSingleMessage.split(/\r?\n/).map((line) => line.trim()).filter(Boolean) : [];
-                const simpleTitle = simpleLines.length > 1 && ['information', 'warning'].includes(simpleLines[0].toLowerCase())
-                    ? simpleLines[0]
-                    : '';
+                const simpleLines = simpleSingleMessage !== '' ? simpleSingleMessage.split(/\r?\n/).map((line) =>
+                    line.trim()).filter(Boolean) : [];
+                const simpleTitle = simpleLines.length > 1 && ['information', 'warning', 'plain'].includes(
+                        simpleLines[0].toLowerCase()) ?
+                    simpleLines[0] :
+                    '';
 
                 if (simpleTitle !== '') {
-                    const helperName = simpleTitle.toLowerCase() === 'warning'
-                        ? 'showAppWarningAlert'
-                        : 'showAppInfoAlert';
+                    const helperName = simpleTitle.toLowerCase() === 'warning' ?
+                        'showAppWarningAlert' :
+                        'showAppInfoAlert';
 
                     window[helperName](
-                        simpleTitle,
+                        simpleTitle.toLowerCase() === 'plain' ? '' : simpleTitle,
+                        '', {
+                            html: `<div class="text-center whitespace-pre-line" style="font-size:18px; line-height:1.7; font-weight:bold;">${simpleLines.slice(1).map((line) => compactPopupMessage(line).replace(/\.\s+/g, '.<br>')).join('\n')}</div>`,
+                            text: undefined,
+                            confirmButtonText: 'OK',
+                            confirmButtonColor: '#f59e0b',
+                            width: 560
+                        }
+                    );
+                    return;
+                }
+
+                if (rawMessages.length === 1 && simpleTitle === '') {
+                    window.showAppInfoAlert(
                         '',
-                        {
-                            html: `<div class="text-left whitespace-pre-line" style="font-size:14px; line-height:1.7;">${escapeHtml(simpleLines.slice(1).map((line) => compactPopupMessage(line)).join('\n'))}</div>`,
+                        '', {
+                            html: `<div class="text-center whitespace-pre-line" style="font-size:18px; line-height:1.7; font-weight:bold;">${escapeHtml(rawMessages[0]).replace(/\.\s+/g, '.<br>')}</div>`,
                             text: undefined,
                             confirmButtonText: 'OK',
                             confirmButtonColor: '#f59e0b',
@@ -1312,13 +1340,12 @@
 
                 window.showAppErrorAlert(
                     options.title || 'Terjadi Kesalahan',
-                    normalizedMessages.join('\n'),
-                    {
+                    normalizedMessages.join('\n'), {
                         html: `
-                            <div style="text-align:left; font-size:14px; line-height:1.6;">
-                                <ul style="margin:0 0 12px 18px; padding:0;">${listHtml}</ul>
-                            </div>
-                        `,
+                        <div style="text-align:left; font-size:14px; line-height:1.6;">
+                            <ul style="margin:0 0 12px 18px; padding:0;">${listHtml}</ul>
+                        </div>
+                    `,
                         text: undefined,
                         confirmButtonText: 'OK',
                         confirmButtonColor: '#f59e0b',
@@ -1355,7 +1382,8 @@
                 const messages = @json($transactionErrorMessages);
 
                 document.addEventListener('DOMContentLoaded', () => {
-                    document.querySelectorAll('.alert.alert-danger[role="alert"], .border-red-200.bg-red-50[role="alert"]')
+                    document.querySelectorAll(
+                            '.alert.alert-danger[role="alert"], .border-red-200.bg-red-50[role="alert"]')
                         .forEach((element) => element.remove());
 
                     window.showTransactionErrorModal(messages);
@@ -1642,7 +1670,8 @@
                         return;
                     }
 
-                    const displayInput = Array.from(fieldGroup.querySelectorAll('input[type="text"]')).find((input) => input !== hiddenInput && input.disabled);
+                    const displayInput = Array.from(fieldGroup.querySelectorAll('input[type="text"]')).find((input) =>
+                        input !== hiddenInput && input.disabled);
                     if (!displayInput) {
                         return;
                     }
@@ -1678,19 +1707,22 @@
 
                 function enhanceTransactionBranchFields(root = document) {
                     const scope = root instanceof HTMLElement || root instanceof Document ? root : document;
-                    scope.querySelectorAll('form[data-form-draft="true"] input[type="hidden"][name="fbranchcode"]').forEach(enhanceTransactionBranchField);
+                    scope.querySelectorAll('form[data-form-draft="true"] input[type="hidden"][name="fbranchcode"]')
+                        .forEach(enhanceTransactionBranchField);
                 }
 
                 function syncEnhancedBranchFields(root = document) {
                     const scope = root instanceof HTMLElement || root instanceof Document ? root : document;
-                    scope.querySelectorAll('input[type="hidden"][name="fbranchcode"][data-branch-enhanced="1"]').forEach((hiddenInput) => {
-                        const select = document.querySelector(`select[data-branch-select-for="${hiddenInput.id}"]`);
-                        if (!select) {
-                            return;
-                        }
+                    scope.querySelectorAll('input[type="hidden"][name="fbranchcode"][data-branch-enhanced="1"]')
+                        .forEach((hiddenInput) => {
+                            const select = document.querySelector(
+                                `select[data-branch-select-for="${hiddenInput.id}"]`);
+                            if (!select) {
+                                return;
+                            }
 
-                        syncBranchSelect(hiddenInput, select);
-                    });
+                            syncBranchSelect(hiddenInput, select);
+                        });
                 }
 
                 document.addEventListener('DOMContentLoaded', () => {
@@ -1700,8 +1732,10 @@
                 });
 
                 document.addEventListener('form-draft-restored', (event) => {
-                    enforceTransactionDateAuthority(event.target instanceof HTMLElement ? event.target : document);
-                    enhanceTransactionBranchFields(event.target instanceof HTMLElement ? event.target : document);
+                    enforceTransactionDateAuthority(event.target instanceof HTMLElement ? event.target :
+                        document);
+                    enhanceTransactionBranchFields(event.target instanceof HTMLElement ? event.target :
+                        document);
                     syncEnhancedBranchFields(event.target instanceof HTMLElement ? event.target : document);
                 });
             }
@@ -1942,7 +1976,8 @@
                 }
 
                 form.querySelectorAll('input[name], select[name], textarea[name]').forEach((field) => {
-                    if (!field.name || !(field.name in data) || field.type === 'file' || field.name === '_token') {
+                    if (!field.name || !(field.name in data) || field.type === 'file' || field.name ===
+                        '_token') {
                         return;
                     }
 
@@ -1953,9 +1988,9 @@
                 syncCommonDisplayFields();
 
                 const alpineState = getAlpineFormState(form);
-                const customState = savedDraft?.customState && typeof savedDraft.customState === 'object'
-                    ? savedDraft.customState
-                    : {};
+                const customState = savedDraft?.customState && typeof savedDraft.customState === 'object' ?
+                    savedDraft.customState :
+                    {};
                 const savedItems = customState.savedItems;
                 if (Array.isArray(savedItems)) {
                     if (alpineState && typeof alpineState.restoreSavedItems === 'function') {
@@ -2071,7 +2106,8 @@
                     const persist = () => {
                         window.clearTimeout(saveTimer);
                         saveTimer = window.setTimeout(() => {
-                            localStorage.setItem(storageKey, JSON.stringify(serializeForm(form)));
+                            localStorage.setItem(storageKey, JSON.stringify(serializeForm(
+                                form)));
                         }, 150);
                     };
 
