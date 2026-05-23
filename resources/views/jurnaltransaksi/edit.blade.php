@@ -120,7 +120,8 @@
         @else
             <form action="{{ route('jurnaltransaksi.update', $jurnaltransaksi->fjurnalmtid) }}" method="POST"
                 class="space-y-6" data-form-draft="true"
-                data-draft-key="jurnaltransaksi:edit:{{ $jurnaltransaksi->fjurnalmtid }}">
+                data-draft-key="jurnaltransaksi:edit:{{ $jurnaltransaksi->fjurnalmtid }}"
+                @submit="onSubmit($event)">
                 @csrf
                 @method('PATCH')
 
@@ -190,88 +191,125 @@
                         <table class="min-w-full text-sm">
                             <thead class="bg-gray-100">
                                 <tr>
-                                    <th class="p-2 text-left w-12">#</th>
-                                    <th class="p-2 text-left w-44">Kode Account</th>
-                                    <th class="p-2 text-left w-60">Nama Account</th>
-                                    <th class="p-2 text-left w-60">Sub Account</th>
-                                    <th class="p-2 text-left w-44">Ref No</th>
-                                    <th class="p-2 text-left w-20">D/K</th>
-                                    <th class="p-2 text-left w-[24rem]">Keterangan</th>
-                                    <th class="p-2 text-right w-40">Jumlah</th>
-                                    <th class="p-2 text-right w-28">Aksi</th>
+                                    <th class="p-2 text-left w-8">#</th>
+                                    <th class="p-2 text-left w-40">Kode Account <span class="text-red-500">*</span></th>
+                                    <th class="p-2 text-left w-56">Nama Account</th>
+                                    <th class="p-2 text-left w-52">Sub Account</th>
+                                    <th class="p-2 text-left w-28">Ref No</th>
+                                    <th class="p-2 text-left w-20">D/K <span class="text-red-500">*</span></th>
+                                    <th class="p-2 text-left w-72">Keterangan</th>
+                                    <th class="p-2 text-right w-40">Jumlah <span class="text-red-500">*</span></th>
+                                    <th class="p-2 text-center w-28">Aksi</th>
                                 </tr>
                             </thead>
+
                             <tbody>
-                                <template x-for="(item, index) in items" :key="item.uid ?? index">
-                                    <tr class="border-t align-top">
+                                <template x-for="(item, index) in items" :key="item.uid">
+                                    <tr class="border-t align-middle hover:bg-gray-50">
                                         <td class="p-2 text-gray-500" x-text="index + 1"></td>
+
+                                        {{-- Kode Account --}}
                                         <td class="p-2">
-                                            <div class="flex items-center gap-2">
-                                                <input type="text" class="w-full border rounded px-2 py-1 font-mono uppercase"
-                                                    :name="'faccount[]'" x-model.trim="item.faccount"
+                                            <div class="flex items-center gap-1">
+                                                <input type="text"
+                                                    class="w-full border rounded px-2 py-1 font-mono uppercase text-xs"
+                                                    x-model.trim="item.faccount"
                                                     @input="syncAccountFromCode(item)"
-                                                    @keydown.enter.prevent="openBrowseFor(index)">
+                                                    @keydown.enter.prevent="">
                                                 <button type="button" @click="openBrowseFor(index)"
-                                                    class="border rounded px-2 py-1 bg-white hover:bg-gray-50"
+                                                    class="border rounded px-1.5 py-1 bg-white hover:bg-gray-50"
                                                     title="Cari account">
-                                                    <x-heroicon-o-magnifying-glass class="w-4 h-4" />
+                                                    <x-heroicon-o-magnifying-glass class="w-3.5 h-3.5" />
                                                 </button>
                                             </div>
                                         </td>
+
+                                        {{-- Nama Account --}}
                                         <td class="p-2">
-                                            <input type="text" class="w-full border rounded px-2 py-1 bg-gray-100 text-gray-600"
-                                                :value="accountName(item.faccount) || '-'" disabled>
+                                            <input type="text"
+                                                class="w-full border rounded px-2 py-1 bg-gray-100 text-gray-600 text-xs"
+                                                :value="item.faccname || '-'" disabled>
                                         </td>
+
+                                        {{-- Sub Account --}}
                                         <td class="p-2">
-                                            <select class="w-full border rounded px-2 py-1" :name="'fsubaccount[]'" x-model="item.fsubaccountcode">
-                                                <option value="">Pilih Sub Akun</option>
-                                                <template x-for="subaccount in subaccounts" :key="subaccount.fsubaccountid">
-                                                    <option :value="subaccount.fsubaccountcode"
-                                                        x-text="`${subaccount.fsubaccountcode} - ${subaccount.fsubaccountname}`"></option>
+                                            <select class="w-full border rounded px-2 py-1 text-xs transition-colors"
+                                                x-model="item.fsubaccountcode" :disabled="!item.fhavesubaccount"
+                                                :class="!item.fhavesubaccount ? 'bg-gray-100 text-gray-400 cursor-not-allowed opacity-60' : 'bg-white'">
+                                                <option value="">— Pilih Sub —</option>
+                                                <template x-for="sacc in subaccounts" :key="sacc.fsubaccountid">
+                                                    <option :value="sacc.fsubaccountcode"
+                                                        x-text="`${sacc.fsubaccountcode} - ${sacc.fsubaccountname}`"></option>
                                                 </template>
                                             </select>
                                         </td>
+
+                                        {{-- Ref No --}}
                                         <td class="p-2">
-                                            <input type="text"
-                                                class="w-full border rounded px-2 py-1 bg-gray-100 text-gray-400 cursor-not-allowed"
-                                                x-model="item.frefno" placeholder="No referensi" disabled>
-                                            <input type="hidden" :name="'frefno[]'" :value="item.frefno">
+                                            <input type="text" x-model="item.frefno"
+                                                class="w-full border rounded px-2 py-1 text-xs"
+                                                :disabled="!isRefAllowed(item.faccount)"
+                                                :class="!isRefAllowed(item.faccount) ? 'bg-gray-100 text-gray-400 cursor-not-allowed' : 'bg-white'"
+                                                placeholder="No Ref">
                                         </td>
+
+                                        {{-- D/K --}}
                                         <td class="p-2">
-                                            <select class="w-full border rounded px-2 py-1" :name="'fdk[]'" x-model="item.fdk"
-                                                @change="autofillBalancedAmount(item, index)">
+                                            <select class="w-full border rounded px-2 py-1 text-xs"
+                                                x-model="item.fdk"
+                                                @change="autofillBalancedAmount(item); recalcTotals()">
                                                 <option value="D">D</option>
                                                 <option value="K">K</option>
                                             </select>
                                         </td>
+
+                                        {{-- Keterangan --}}
                                         <td class="p-2">
-                                            <input type="text" class="w-full border rounded px-2 py-1"
-                                                :name="'faccountnote[]'" x-model="item.faccountnote" placeholder="Keterangan">
+                                            <input type="text" class="w-full border rounded px-2 py-1 text-xs"
+                                                x-model="item.faccountnote" placeholder="Keterangan">
                                         </td>
-                                        <td class="p-2">
-                                            <input type="text" inputmode="decimal"
-                                                class="w-full border rounded px-2 py-1 text-right"
-                                                x-model="item.famountInput" @blur="normalizeItemAmount(item)">
-                                            <input type="hidden" :name="'famount[]'" :value="item.famount">
-                                            <input type="hidden" :name="'frate[]'" x-model="item.frate">
-                                        </td>
+
+                                        {{-- Jumlah --}}
                                         <td class="p-2 text-right">
-                                            <button type="button" @click="removeRow(index)"
-                                                class="inline-flex items-center bg-red-100 text-red-600 px-3 py-1 rounded hover:bg-red-200">
-                                                Hapus
-                                            </button>
+                                            <input type="text" class="border rounded px-2 py-1 w-full text-right text-xs"
+                                                inputmode="decimal"
+                                                x-model="item.famountInput" @blur="normalizeAmount(item)"
+                                                @input="recalcTotals()">
+                                        </td>
+
+                                        {{-- Aksi --}}
+                                        <td class="p-2 text-center">
+                                            <div class="flex items-center justify-center">
+                                                <button type="button" @click="removeRow(index)"
+                                                    class="inline-flex h-8 w-8 items-center justify-center rounded bg-red-100 text-red-600 hover:bg-red-200 text-lg font-bold transition-colors duration-150"
+                                                    title="Hapus baris">
+                                                    -
+                                                </button>
+                                            </div>
+                                        </td>
+
+                                        {{-- Hidden inputs untuk POST --}}
+                                        <td class="hidden">
+                                            <input type="hidden" name="faccount[]" :value="item.faccount">
+                                            <input type="hidden" name="fsubaccount[]" :value="item.fsubaccountcode">
+                                            <input type="hidden" name="fdk[]" :value="item.fdk">
+                                            <input type="hidden" name="faccountnote[]" :value="item.faccountnote">
+                                            <input type="hidden" name="frefno[]" :value="item.frefno">
+                                            <input type="hidden" name="famount[]" :value="item.famount">
+                                            <input type="hidden" name="frate[]" :value="item.frate || 1">
                                         </td>
                                     </tr>
                                 </template>
+
+                                {{-- Total row --}}
+                                <tr class="border-t bg-gray-50 font-semibold text-sm">
+                                    <td colspan="7" class="p-2 text-right text-gray-600">Total:</td>
+                                    <td class="p-2 text-right" x-text="fmt(totalDebit)"></td>
+                                    <td></td>
+                                </tr>
                             </tbody>
                         </table>
                     </div>
-
-                    <button type="button" @click="addRow()"
-                        class="inline-flex items-center bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
-                        <x-heroicon-o-plus class="w-4 h-4 mr-1" />
-                        Tambah Detail
-                    </button>
                 </div>
 
                 <div class="flex justify-center gap-4">
@@ -346,16 +384,7 @@
             return {
                 mode: config.mode || 'edit',
                 showDeleteModal: false,
-                items: (config.items || []).map((item, index) => ({
-                    uid: item.uid ?? index + 1,
-                    faccount: item.faccount || '',
-                    fsubaccountcode: item.fsubaccountcode || '',
-                    fdk: item.fdk || 'D',
-                    faccountnote: item.faccountnote || '',
-                    frefno: item.frefno || '',
-                    famount: Number(item.famount || 0),
-                    frate: Number(item.frate || 1),
-                })),
+                items: config.items || [],
                 accounts: config.accounts || [],
                 subaccounts: config.subaccounts || [],
                 referenceAllowedAccountCodes: (config.referenceAllowedAccountCodes || []).map((code) => String(code).trim().toUpperCase()),
@@ -364,117 +393,61 @@
                 csrfToken: config.csrfToken || '',
                 browseIndex: null,
 
-                addRow() {
-                    this.items.push({
-                        uid: Date.now() + Math.random(),
-                        faccount: '',
-                        fsubaccountcode: '',
-                        fdk: 'D',
-                        faccountnote: '',
-                        frefno: '',
-                        famount: 0,
-                        famountInput: '0,00',
-                        frate: 1,
-                    });
+                totalDebit: 0,
+                totalKredit: 0,
+
+                get isBalanced() {
+                    const validItems = this.items.filter(it => it.faccount && Number(it.famount) > 0);
+                    const debit = validItems.filter(it => it.fdk === 'D').reduce((s, it) => s + Number(it.famount || 0), 0);
+                    const kredit = validItems.filter(it => it.fdk === 'K').reduce((s, it) => s + Number(it.famount || 0), 0);
+                    return debit > 0 && Math.abs(debit - kredit) < 0.005;
                 },
 
-                openBrowseFor(index) {
-                    this.browseIndex = index;
-                    window.dispatchEvent(new CustomEvent('account-browse-open'));
-                },
-
-                removeRow(index) {
-                    this.items.splice(index, 1);
-                },
-
-                totalDebit() {
-                    return this.items.reduce((sum, item) => sum + (item.fdk === 'D' ? Number(item.famount || 0) : 0), 0);
-                },
-
-                totalKredit() {
-                    return this.items.reduce((sum, item) => sum + (item.fdk === 'K' ? Number(item.famount || 0) : 0), 0);
-                },
-
-                getBalanceSuggestion(targetType, rowIndex) {
-                    let debit = 0;
-                    let kredit = 0;
-
-                    this.items.forEach((item, index) => {
-                        if (index === rowIndex) return;
-                        if (item.fdk === 'D') debit += Number(item.famount || 0);
-                        if (item.fdk === 'K') kredit += Number(item.famount || 0);
-                    });
-
-                    if (targetType === 'D') {
-                        return Math.max(0, Number((kredit - debit).toFixed(2)));
-                    }
-
-                    if (targetType === 'K') {
-                        return Math.max(0, Number((debit - kredit).toFixed(2)));
-                    }
-
-                    return 0;
-                },
-
-                isBalanced() {
-                    return this.totalDebit().toFixed(2) === this.totalKredit().toFixed(2);
-                },
-
-                formatAmount(value) {
-                    return Number(value || 0).toLocaleString('id-ID', {
-                        minimumFractionDigits: 2,
-                        maximumFractionDigits: 2,
-                    });
+                fmt(n) {
+                    const v = Number(n);
+                    if (!isFinite(v) || n === '' || n === null) return '0,00';
+                    return v.toLocaleString('id-ID', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
                 },
 
                 parseDecimal(value) {
-                    if (typeof value === 'number') {
-                        return Number.isFinite(value) ? value : 0;
-                    }
-
+                    if (typeof value === 'number') return Number.isFinite(value) ? value : 0;
                     let normalized = String(value ?? '').trim();
                     if (!normalized) return 0;
-
                     normalized = normalized.replace(/\s+/g, '');
-
                     const commaPos = normalized.lastIndexOf(',');
                     const dotPos = normalized.lastIndexOf('.');
-
                     if (commaPos !== -1 && dotPos !== -1) {
-                        if (commaPos > dotPos) {
-                            normalized = normalized.replace(/\./g, '').replace(',', '.');
-                        } else {
-                            normalized = normalized.replace(/,/g, '');
-                        }
-                    } else if (commaPos !== -1) {
-                        normalized = normalized.replace(/\./g, '').replace(',', '.');
-                    } else {
-                        normalized = normalized.replace(/,/g, '');
-                    }
-
+                        if (commaPos > dotPos) normalized = normalized.replace(/\./g, '').replace(',', '.');
+                        else normalized = normalized.replace(/,/g, '');
+                    } else if (commaPos !== -1) normalized = normalized.replace(/\./g, '').replace(',', '.');
+                    else normalized = normalized.replace(/,/g, '');
                     normalized = normalized.replace(/[^0-9.\-]/g, '');
                     const parsed = Number.parseFloat(normalized);
                     return Number.isFinite(parsed) ? parsed : 0;
                 },
 
                 formatDecimalInput(value) {
-                    return this.parseDecimal(value).toLocaleString('id-ID', {
-                        minimumFractionDigits: 2,
-                        maximumFractionDigits: 2,
-                    });
+                    return this.parseDecimal(value).toLocaleString('id-ID', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
                 },
 
-                normalizeItemAmount(item) {
+                normalizeAmount(item) {
                     item.famount = Number(this.parseDecimal(item.famountInput).toFixed(2));
                     item.famountInput = this.formatDecimalInput(item.famount);
+                    this.recalcTotals();
                 },
 
-                autofillBalancedAmount(item, index) {
-                    const suggested = this.getBalanceSuggestion(item.fdk, index);
-                    if (!(suggested > 0)) return;
-
-                    item.famount = suggested;
-                    item.famountInput = this.formatDecimalInput(suggested);
+                updateAccount(item, faccid, accName, accCode) {
+                    const accObj = this.accounts.find(a => String(a.faccid) === String(faccid));
+                    Object.assign(item, {
+                        faccid: faccid,
+                        faccname: accName || (accObj?.faccname ?? ''),
+                        faccount: accCode || (accObj?.faccount ?? ''),
+                        fhavesubaccount: accObj ? Number(accObj.fhavesubaccount ?? 0) : 0,
+                        fsubaccountid: 0,
+                        fsubaccountcode: '',
+                        fsubaccountname: '',
+                    });
+                    if (!this.isRefAllowed(item.faccount)) item.frefno = '';
                 },
 
                 isRefAllowed(accountCode) {
@@ -483,27 +456,101 @@
 
                 syncAccountFromCode(item) {
                     const code = String(item.faccount ?? '').trim().toUpperCase();
-                    const match = this.accounts.find((account) => String(account.faccount ?? '').trim().toUpperCase() === code);
-
-                    if (!match) {
-                        item.frefno = '';
+                    const accObj = this.accounts.find(a => String(a.faccount ?? '').trim().toUpperCase() === code);
+                    if (!accObj) {
+                        Object.assign(item, { faccid: '', faccname: '', fhavesubaccount: 0, fsubaccountid: '', fsubaccountcode: '', fsubaccountname: '', frefno: '' });
+                        this.recalcTotals();
                         return;
                     }
+                    this.updateAccount(item, accObj.faccid, accObj.faccname, accObj.faccount);
+                    this.recalcTotals();
+                },
 
-                    item.faccount = match.faccount;
-                    if (!this.isRefAllowed(item.faccount)) {
-                        item.frefno = '';
+                openBrowseFor(index) {
+                    this.browseIndex = index;
+                    window.dispatchEvent(new CustomEvent('account-browse-open'));
+                },
+
+                recalcTotals() {
+                    const validItems = this.items.filter(it => it.faccount && Number(it.famount) > 0);
+                    this.totalDebit = validItems.filter(it => it.fdk === 'D').reduce((s, it) => s + Number(it.famount || 0), 0);
+                    this.totalKredit = validItems.filter(it => it.fdk === 'K').reduce((s, it) => s + Number(it.famount || 0), 0);
+                },
+
+                getBalanceSuggestion(targetType, rowIndex) {
+                    let debit = 0; let kredit = 0;
+                    this.items.forEach((item, index) => {
+                        if (index === rowIndex) return;
+                        if (item.fdk === 'D') debit += Number(item.famount || 0);
+                        if (item.fdk === 'K') kredit += Number(item.famount || 0);
+                    });
+                    if (targetType === 'D') return Math.max(0, Number((kredit - debit).toFixed(2)));
+                    if (targetType === 'K') return Math.max(0, Number((debit - kredit).toFixed(2)));
+                    return 0;
+                },
+
+                autofillBalancedAmount(item) {
+                    const rowIndex = this.items.findIndex(r => r.uid === item.uid);
+                    const suggested = this.getBalanceSuggestion(item.fdk, rowIndex);
+                    if (!(suggested > 0)) return;
+                    item.famount = suggested;
+                    item.famountInput = this.formatDecimalInput(suggested);
+                },
+
+                removeRow(index) {
+                    this.items.splice(index, 1);
+                    this.recalcTotals();
+                },
+
+                onSubmit($event) {
+                    const validItems = this.items.filter(it => it.faccount && Number(it.famount) > 0);
+                    if (validItems.length === 0) {
+                        $event.preventDefault();
+                        window.showTransactionErrorModal('Tambahkan minimal satu baris jurnal sebelum menyimpan.');
+                        return;
+                    }
+                    let tD = validItems.filter(it => it.fdk === 'D').reduce((s, it) => s + Number(it.famount || 0), 0);
+                    let tK = validItems.filter(it => it.fdk === 'K').reduce((s, it) => s + Number(it.famount || 0), 0);
+                    if (Math.abs(tD - tK) >= 0.005 || tD === 0) {
+                        $event.preventDefault();
+                        window.showTransactionErrorModal(['Jurnal tidak balance.', `Total Debit: ${this.fmt(tD)}`, `Total Kredit: ${this.fmt(tK)}`], { reason: 'Nilai transaksi tidak seimbang.' });
                     }
                 },
 
-                accountName(code) {
-                    const match = this.accounts.find((account) => String(account.faccount) === String(code));
-                    return match ? match.faccname : '';
+                emptyRow() {
+                    return { uid: this.makeUid(), faccount: '', faccid: '', faccname: '', fhavesubaccount: 0, fsubaccountcode: '', fsubaccountid: '', fsubaccountname: '', fdk: 'D', faccountnote: '', frefno: '', famount: 0, famountInput: '0,00', frate: 1 };
                 },
 
-                subaccountName(code) {
-                    const match = this.subaccounts.find((subaccount) => String(subaccount.fsubaccountcode) === String(code));
-                    return match ? match.fsubaccountname : '';
+                normalizeRow(item = {}, index = 0) {
+                    const parsedAmt = Number(this.parseDecimal(item.famount || 0).toFixed(2));
+                    const matchedAccount = this.accounts.find(a => String(a.faccount).trim() === String(item.faccount || '').trim());
+                    return {
+                        uid: item.uid || `jt-row-${index}-${this.makeUid()}`,
+                        faccount: String(item.faccount || '').trim(),
+                        faccid: matchedAccount ? matchedAccount.faccid : (item.faccid || ''),
+                        faccname: matchedAccount ? matchedAccount.faccname : (item.faccname || ''),
+                        fhavesubaccount: matchedAccount ? Number(matchedAccount.fhavesubaccount ?? 0) : Number(item.fhavesubaccount || 0),
+                        fsubaccountcode: String(item.fsubaccountcode || '').trim(),
+                        fsubaccountid: item.fsubaccountid || '',
+                        fsubaccountname: String(item.fsubaccountname || '').trim(),
+                        fdk: String(item.fdk || 'D').trim() || 'D',
+                        faccountnote: String(item.faccountnote || '').trim(),
+                        frefno: String(item.frefno || '').trim(),
+                        famount: parsedAmt,
+                        famountInput: this.formatDecimalInput(parsedAmt),
+                        frate: Number(item.frate || 1),
+                    };
+                },
+
+                makeUid() { return `${Date.now()}-${Math.random().toString(36).slice(2, 10)}`; },
+
+                rowHasContent(item) { return item && String(item.faccount || '').trim() !== ''; },
+
+                ensureMinimumRows() { while (this.items.length < 5) this.items.push(this.emptyRow()); },
+
+                ensureTrailingRow() {
+                    if (!this.items.length) { this.ensureMinimumRows(); return; }
+                    if (this.rowHasContent(this.items[this.items.length - 1])) this.items.push(this.emptyRow());
                 },
 
                 confirmDelete() {
@@ -513,27 +560,42 @@
                     }
                 },
 
+                // Compatibility methods for delete view
+                formatAmount(value) {
+                    return this.fmt(value);
+                },
+                accountName(code) {
+                    const match = this.accounts.find((account) => String(account.faccount) === String(code));
+                    return match ? match.faccname : '';
+                },
+                subaccountName(code) {
+                    const match = this.subaccounts.find((subaccount) => String(subaccount.fsubaccountcode) === String(code));
+                    return match ? match.fsubaccountname : '';
+                },
+                totalDebit() {
+                    return this.totalDebit;
+                },
+                totalKredit() {
+                    return this.totalKredit;
+                },
+
                 init() {
-                    this.items = this.items.map((item, index) => ({
-                        ...item,
-                        uid: item.uid ?? index + 1,
-                        famount: Number(this.parseDecimal(item.famount).toFixed(2)),
-                        famountInput: this.formatDecimalInput(item.famount),
-                    }));
-
+                    this.items = (Array.isArray(this.items) ? this.items : []).map((item, index) => this.normalizeRow(item, index));
+                    this.ensureMinimumRows();
+                    this.recalcTotals();
+                    this.$watch('items', () => { this.ensureMinimumRows(); this.ensureTrailingRow(); }, { deep: true });
+                    
                     window.addEventListener('account-picked', (event) => {
-                        if (this.browseIndex === null || !this.items[this.browseIndex]) {
-                            return;
-                        }
-
+                        if (this.browseIndex === null || !this.items[this.browseIndex]) return;
                         const detail = event.detail || {};
-                        this.items[this.browseIndex].faccount = (detail.faccount || '').toString().trim();
-                        if (!this.isRefAllowed(this.items[this.browseIndex].faccount)) {
-                            this.items[this.browseIndex].frefno = '';
-                        }
-                    }, {
-                        passive: true
-                    });
+                        this.updateAccount(
+                            this.items[this.browseIndex],
+                            detail.faccid ?? '',
+                            detail.faccname ?? '',
+                            detail.faccount ?? ''
+                        );
+                        this.recalcTotals();
+                    }, { passive: true });
                 }
             };
         }
