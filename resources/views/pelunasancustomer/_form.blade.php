@@ -34,6 +34,7 @@
     $selectedCustomerLabel = $selectedCustomerCode !== ''
         ? trim($selectedCustomerName . ' (' . $selectedCustomerCode . ')')
         : '';
+    $selectedAdminAccount = $selectedAdminAccount ?? null;
 @endphp
 
 <div class="bg-white rounded shadow p-6 md:p-8 max-w-[96rem] mx-auto"
@@ -137,7 +138,7 @@
                             class="w-full border rounded-l px-3 py-2 bg-gray-100 cursor-not-allowed" readonly>
                         <input type="hidden" name="faccountheader" x-model="accountCode">
                         @if (!$isReadOnly)
-                            <button type="button" @click="window.dispatchEvent(new CustomEvent('account-browse-open'))"
+                            <button type="button" @click="activeAccountField = 'main'; window.dispatchEvent(new CustomEvent('account-browse-open'))"
                                 class="border -ml-px px-3 py-2 bg-white hover:bg-gray-50 rounded-r" title="Browse Account">
                                 <x-heroicon-o-magnifying-glass class="w-5 h-5" />
                             </button>
@@ -257,6 +258,26 @@
                             </div>
                         </div>
                         @error('fbiayaadminbank')
+                            <p class="text-red-600 text-sm">{{ $message }}</p>
+                        @enderror
+
+                        <div class="flex items-center justify-between gap-4">
+                            <label class="text-sm font-semibold text-gray-700">{{ 'Account Admin Bank' }}</label>
+                            <div class="w-64">
+                                <div class="flex">
+                                    <input type="text" x-model="adminAccountLabel"
+                                        class="w-full border rounded-l px-3 py-2 text-sm bg-gray-100 cursor-not-allowed" readonly>
+                                    <input type="hidden" name="faccountadmin" x-model="adminAccountCode">
+                                    @if (!$isReadOnly)
+                                        <button type="button" @click="activeAccountField = 'admin'; window.dispatchEvent(new CustomEvent('admin-account-browse-open'))"
+                                            class="border -ml-px px-3 py-2 bg-white hover:bg-gray-50 rounded-r" title="Browse Account Admin">
+                                            <x-heroicon-o-magnifying-glass class="w-5 h-5" />
+                                        </button>
+                                    @endif
+                                </div>
+                            </div>
+                        </div>
+                        @error('faccountadmin')
                             <p class="text-red-600 text-sm">{{ $message }}</p>
                         @enderror
 
@@ -415,6 +436,15 @@
     @include('components.transaction.browse-customer-modal')
     @include('components.transaction.browse-customer-script')
     <x-transaction.browse-account-modal />
+    <x-transaction.browse-account-modal 
+        table-id="adminAccountTable" 
+        controls-id="adminAccountTableControls" 
+        pagination-id="adminAccountTablePagination" 
+        event-name="admin-account-browse-open" 
+        :fend="1" 
+        show-controls="true" 
+        show-pagination="true" 
+    />
 @endif
 
 @push('styles')
@@ -440,6 +470,9 @@
                 customerTempo: Number(initialTempo || 0),
                 accountCode: @js($selectedAccountCode),
                 accountLabel: @js($selectedAccountCode !== '' ? trim($selectedAccountCode . ' - ' . $selectedAccountName) : ''),
+                adminAccountCode: @js($selectedAdminAccount->faccount ?? ''),
+                adminAccountLabel: @js(isset($selectedAdminAccount) ? trim($selectedAdminAccount->faccount . ' - ' . $selectedAdminAccount->faccname) : ''),
+                activeAccountField: null,
                 transactionDate: @js(old('fkasmtdate', $transactionDate)),
                 dueDate: @js(old('ftgljatuhtempo', $dueDate ?? '')),
                 isGiroMundur: @js(old('fgiromundur', ($giroMundur ?? false) ? '1' : '0') === '1'),
@@ -491,8 +524,14 @@
                         const detail = event.detail || {};
                         const code = String(detail.faccount || '').trim();
                         const name = String(detail.faccname || '').trim();
-                        this.accountCode = code;
-                        this.accountLabel = code && name ? `${code} - ${name}` : code;
+                        
+                        if (this.activeAccountField === 'admin') {
+                            this.adminAccountCode = code;
+                            this.adminAccountLabel = code && name ? `${code} - ${name}` : code;
+                        } else {
+                            this.accountCode = code;
+                            this.accountLabel = code && name ? `${code} - ${name}` : code;
+                        }
                     });
 
                     this.$watch('transactionDate', () => {
@@ -507,6 +546,10 @@
                             return;
                         }
                         this.dueDate = '';
+                    });
+
+                    this.$watch('bankAdminFee', () => {
+                        this.recalcTotals();
                     });
                 },
 
@@ -736,7 +779,8 @@
 
                 recalcTotals() {
                     const totalBayar = this.rows.reduce((sum, row) => sum + this.toNumber(row.fkasdtvalue), 0);
-                    this.totalPenerimaanDisplay = this.formatNumber(totalBayar);
+                    const netPenerimaan = Math.max(totalBayar - this.toNumber(this.bankAdminFee), 0);
+                    this.totalPenerimaanDisplay = this.formatNumber(netPenerimaan);
                 },
 
                 syncDueDate() {

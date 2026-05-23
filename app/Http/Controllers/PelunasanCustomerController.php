@@ -48,8 +48,8 @@ class PelunasanCustomerController extends Controller
                 DB::raw("
                     COALESCE(
                         string_agg(
-                            DISTINCT NULLIF(TRIM(COALESCE(dt.frefno, '')), ''),
-                            ', ' ORDER BY NULLIF(TRIM(COALESCE(dt.frefno, '')), '')
+                            DISTINCT NULLIF(TRIM(COALESCE(CASE WHEN TRIM(COALESCE(dt.freftype, '')) != 'ADM' THEN dt.frefno ELSE NULL END, '')), ''),
+                            ', ' ORDER BY NULLIF(TRIM(COALESCE(CASE WHEN TRIM(COALESCE(dt.freftype, '')) != 'ADM' THEN dt.frefno ELSE NULL END, '')), '')
                         ),
                         '-'
                     ) as invoice_summary
@@ -63,7 +63,7 @@ class PelunasanCustomerController extends Controller
                         '-'
                     ) as customer_summary
                 "),
-                DB::raw('ABS(COALESCE(SUM(COALESCE(dt.fkasdtvalue, 0)), COALESCE(trkasmt.famountpay, 0), 0)) as payment_amount'),
+                DB::raw("ABS(COALESCE(SUM(COALESCE(CASE WHEN TRIM(COALESCE(dt.freftype, '')) != 'ADM' THEN dt.fkasdtvalue ELSE 0 END, 0)), COALESCE(trkasmt.famountpay, 0), 0)) as payment_amount"),
             ])
             ->groupBy(
                 'trkasmt.fkasmtid',
@@ -255,12 +255,30 @@ class PelunasanCustomerController extends Controller
             'fkasmtdate' => ['required', 'date'],
             'fbranchcode' => ['required', 'string', 'max:10'],
             'fcustomer' => ['required', 'string', 'max:20', Rule::exists('mscustomer', 'fcustomercode')],
-            'faccountheader' => ['required', 'string', 'max:15', Rule::exists('account', 'faccount')],
+            'faccountheader' => [
+                'required',
+                'string',
+                'max:15',
+                Rule::exists('account', 'faccount')->where(function ($query) {
+                    $query->where('fend', 1);
+                }),
+            ],
             'fnogiro' => ['nullable', 'string', 'max:35'],
             'fgiromundur' => ['nullable', 'in:0,1'],
             'ftgljatuhtempo' => ['nullable', 'date', Rule::requiredIf($request->input('fgiromundur') === '1'), 'after_or_equal:fkasmtdate'],
             'fket' => ['nullable', 'string', 'max:50'],
             'fbiayaadminbank' => ['nullable', 'numeric', 'min:0'],
+            'faccountadmin' => [
+                Rule::requiredIf(function () use ($request) {
+                    return (float) $request->input('fbiayaadminbank') > 0;
+                }),
+                'nullable',
+                'string',
+                'max:15',
+                Rule::exists('account', 'faccount')->where(function ($query) {
+                    $query->where('fend', 1);
+                }),
+            ],
             'details' => ['required', 'array', 'min:1'],
             'details.*.frefno' => ['required', 'string', 'max:30'],
             'details.*.fnilai_nota' => ['nullable', 'numeric'],
@@ -273,7 +291,10 @@ class PelunasanCustomerController extends Controller
             'fkasmtdate.required' => 'Tanggal wajib diisi.',
             'fcustomer.required' => 'Customer wajib dipilih.',
             'faccountheader.required' => 'Account wajib dipilih.',
+            'faccountheader.exists' => 'Account tidak valid atau bukan account detail (fend=1).',
             'ftgljatuhtempo.required' => 'Tgl. jatuh tempo wajib diisi saat giro mundur aktif.',
+            'faccountadmin.required_if' => 'Account admin bank wajib diisi jika ada biaya admin.',
+            'faccountadmin.exists' => 'Account admin bank tidak valid atau bukan account detail (fend=1).',
             'details.required' => 'Minimal 1 detail faktur wajib diisi.',
             'details.*.frefno.required' => 'No. nota wajib diisi.',
             'details.*.fkasdtvalue.required' => 'Total bayar wajib diisi.',
@@ -288,11 +309,34 @@ class PelunasanCustomerController extends Controller
             ->firstOrFail(['faccid', 'faccount', 'faccname']);
         $detailRows = $this->normalizeDetails($validated['details']);
         $detailEntries = $this->buildJournalDetailEntries($detailRows, $validated['fkasmtdate'], $customer);
+        $bankAdminFee = round((float) ($validated['fbiayaadminbank'] ?? 0), 2);
+        if ($bankAdminFee > 0 && !empty($validated['faccountadmin'])) {
+            $adminAccount = Account::query()
+                ->where('faccount', $validated['faccountadmin'])
+                ->firstOrFail(['faccid', 'faccount', 'faccname']);
+
+            $detailEntries->push([
+                'account' => $adminAccount,
+                'fdk' => 'D',
+                'frefno' => 'ADM',
+                'fnote' => 'BIAYA ADMIN BANK',
+                'fsubaccount' => null,
+                'fdiscpersen' => 0,
+                'fdiscount' => 0,
+                'fdiscountrp' => 0,
+                'fkasdtvalue' => $bankAdminFee,
+                'fvalue_rp' => $bankAdminFee,
+                'fjurnal' => $bankAdminFee,
+                'fjurnal_rp' => $bankAdminFee,
+                'ftrcode' => 'ADM',
+            ]);
+        }
         $voucherNo = trim((string) ($validated['fkasmtno'] ?? '')) ?: $this->generateVoucherNo(Carbon::parse($validated['fkasmtdate']));
         $totalPenerimaan = round((float) $detailRows->sum(fn(array $row) => (float) ($row['fkasdtvalue'] ?? 0)), 2);
+        $netPaymentAmount = round($totalPenerimaan - $bankAdminFee, 2);
         $now = now();
 
-        DB::transaction(function () use ($validated, $customer, $headerAccount, $detailEntries, $voucherNo, $totalPenerimaan, $now) {
+        DB::transaction(function () use ($validated, $customer, $headerAccount, $detailEntries, $voucherNo, $netPaymentAmount, $now) {
             $headerId = $this->nextIntegerId('trkasmt', 'fkasmtid');
             $nextDetailId = $this->nextIntegerId('trkasdt', 'fkasdtid');
 
@@ -308,8 +352,8 @@ class PelunasanCustomerController extends Controller
                 'fdkheader' => 'D',
                 'fcustomer' => $customer->fcustomerid,
                 'fket' => $validated['fket'] ?? null,
-                'famountpay' => $totalPenerimaan,
-                'famountpay_rp' => $totalPenerimaan,
+                'famountpay' => $netPaymentAmount,
+                'famountpay_rp' => $netPaymentAmount,
                 'fuserid' => $this->currentUserId(),
                 'fdatetime' => $now,
                 'fgiromundur' => $validated['fgiromundur'] ?? '0',
@@ -372,12 +416,30 @@ class PelunasanCustomerController extends Controller
             'fkasmtdate' => ['required', 'date'],
             'fbranchcode' => ['required', 'string', 'max:10'],
             'fcustomer' => ['required', 'string', 'max:20', Rule::exists('mscustomer', 'fcustomercode')],
-            'faccountheader' => ['required', 'string', 'max:15', Rule::exists('account', 'faccount')],
+            'faccountheader' => [
+                'required',
+                'string',
+                'max:15',
+                Rule::exists('account', 'faccount')->where(function ($query) {
+                    $query->where('fend', 1);
+                }),
+            ],
             'fnogiro' => ['nullable', 'string', 'max:35'],
             'fgiromundur' => ['nullable', 'in:0,1'],
             'ftgljatuhtempo' => ['nullable', 'date', Rule::requiredIf($request->input('fgiromundur') === '1'), 'after_or_equal:fkasmtdate'],
             'fket' => ['nullable', 'string', 'max:50'],
             'fbiayaadminbank' => ['nullable', 'numeric', 'min:0'],
+            'faccountadmin' => [
+                Rule::requiredIf(function () use ($request) {
+                    return (float) $request->input('fbiayaadminbank') > 0;
+                }),
+                'nullable',
+                'string',
+                'max:15',
+                Rule::exists('account', 'faccount')->where(function ($query) {
+                    $query->where('fend', 1);
+                }),
+            ],
             'details' => ['required', 'array', 'min:1'],
             'details.*.frefno' => ['required', 'string', 'max:30'],
             'details.*.fnilai_nota' => ['nullable', 'numeric'],
@@ -390,7 +452,10 @@ class PelunasanCustomerController extends Controller
             'fkasmtdate.required' => 'Tanggal wajib diisi.',
             'fcustomer.required' => 'Customer wajib dipilih.',
             'faccountheader.required' => 'Account wajib dipilih.',
+            'faccountheader.exists' => 'Account tidak valid atau bukan account detail (fend=1).',
             'ftgljatuhtempo.required' => 'Tgl. jatuh tempo wajib diisi saat giro mundur aktif.',
+            'faccountadmin.required_if' => 'Account admin bank wajib diisi jika ada biaya admin.',
+            'faccountadmin.exists' => 'Account admin bank tidak valid atau bukan account detail (fend=1).',
             'details.required' => 'Minimal 1 detail faktur wajib diisi.',
             'details.*.frefno.required' => 'No. nota wajib diisi.',
             'details.*.fkasdtvalue.required' => 'Total bayar wajib diisi.',
@@ -405,11 +470,34 @@ class PelunasanCustomerController extends Controller
             ->firstOrFail(['faccid', 'faccount', 'faccname']);
         $detailRows = $this->normalizeDetails($validated['details']);
         $detailEntries = $this->buildJournalDetailEntries($detailRows, $validated['fkasmtdate'], $customer);
+        $bankAdminFee = round((float) ($validated['fbiayaadminbank'] ?? 0), 2);
+        if ($bankAdminFee > 0 && !empty($validated['faccountadmin'])) {
+            $adminAccount = Account::query()
+                ->where('faccount', $validated['faccountadmin'])
+                ->firstOrFail(['faccid', 'faccount', 'faccname']);
+
+            $detailEntries->push([
+                'account' => $adminAccount,
+                'fdk' => 'D',
+                'frefno' => 'ADM',
+                'fnote' => 'BIAYA ADMIN BANK',
+                'fsubaccount' => null,
+                'fdiscpersen' => 0,
+                'fdiscount' => 0,
+                'fdiscountrp' => 0,
+                'fkasdtvalue' => $bankAdminFee,
+                'fvalue_rp' => $bankAdminFee,
+                'fjurnal' => $bankAdminFee,
+                'fjurnal_rp' => $bankAdminFee,
+                'ftrcode' => 'ADM',
+            ]);
+        }
         $voucherNo = trim((string) ($validated['fkasmtno'] ?? '')) ?: $header->fkasmtno;
         $totalPenerimaan = round((float) $detailRows->sum(fn(array $row) => (float) ($row['fkasdtvalue'] ?? 0)), 2);
+        $netPaymentAmount = round($totalPenerimaan - $bankAdminFee, 2);
         $now = now();
 
-        DB::transaction(function () use ($validated, $customer, $headerAccount, $detailEntries, $voucherNo, $totalPenerimaan, $now, $header) {
+        DB::transaction(function () use ($validated, $customer, $headerAccount, $detailEntries, $voucherNo, $netPaymentAmount, $now, $header) {
             $header->update([
                 'fkasmtno' => $voucherNo,
                 'fkasmtdate' => $validated['fkasmtdate'],
@@ -418,8 +506,8 @@ class PelunasanCustomerController extends Controller
                 'faccountheaderid' => $headerAccount->faccid,
                 'fcustomer' => $customer->fcustomerid,
                 'fket' => $validated['fket'] ?? null,
-                'famountpay' => $totalPenerimaan,
-                'famountpay_rp' => $totalPenerimaan,
+                'famountpay' => $netPaymentAmount,
+                'famountpay_rp' => $netPaymentAmount,
                 'fuserid' => $this->currentUserId(),
                 'fdatetime' => $now,
                 'fgiromundur' => $validated['fgiromundur'] ?? '0',
@@ -753,20 +841,45 @@ class PelunasanCustomerController extends Controller
                 ->first(['faccid', 'faccount', 'faccname']);
         }
 
+        $adminFeeDetail = $header 
+            ? $header->details->firstWhere('freftype', 'ADM') 
+            : null;
+
+        $bankAdminFee = 0;
+        $selectedAdminAccount = null;
+
+        if ($adminFeeDetail) {
+            $bankAdminFee = (float) $adminFeeDetail->fkasdtvalue;
+            $selectedAdminAccount = Account::query()
+                ->where('faccount', $adminFeeDetail->faccount)
+                ->first(['faccid', 'faccount', 'faccname']);
+        }
+
         $detailRows = $header
-            ? $header->details->values()->map(function ($detail, $index) {
-                return [
-                    'uid' => 'pc-existing-' . $index . '-' . $detail->fkasdtid,
-                    'frefno' => trim((string) ($detail->frefno ?? '')),
-                    'fnilai_nota' => (float) ($detail->fvalue_rp ?? $detail->fjurnal_rp ?? $detail->fkasdtvalue ?? 0),
-                    'fsisa_piutang' => (float) ($detail->fvalue_rp ?? $detail->fjurnal_rp ?? $detail->fkasdtvalue ?? 0),
-                    'fdiscpersen' => (float) ($detail->fdiscpersen ?? 0),
-                    'fdiscount' => (float) ($detail->fdiscount ?? 0),
-                    'fkasdtvalue' => (float) ($detail->fkasdtvalue ?? 0),
-                    'ftrcode' => trim((string) ($detail->freftype ?? 'INV')),
-                ];
-            })->all()
+            ? $header->details
+                ->filter(fn($detail) => trim((string)($detail->freftype ?? 'INV')) !== 'ADM')
+                ->values()
+                ->map(function ($detail, $index) {
+                    return [
+                        'uid' => 'pc-existing-' . $index . '-' . $detail->fkasdtid,
+                        'frefno' => trim((string) ($detail->frefno ?? '')),
+                        'fnilai_nota' => (float) ($detail->fvalue_rp ?? $detail->fjurnal_rp ?? $detail->fkasdtvalue ?? 0),
+                        'fsisa_piutang' => (float) ($detail->fvalue_rp ?? $detail->fjurnal_rp ?? $detail->fkasdtvalue ?? 0),
+                        'fdiscpersen' => (float) ($detail->fdiscpersen ?? 0),
+                        'fdiscount' => (float) ($detail->fdiscount ?? 0),
+                        'fkasdtvalue' => (float) ($detail->fkasdtvalue ?? 0),
+                        'ftrcode' => trim((string) ($detail->freftype ?? 'INV')),
+                    ];
+                })->all()
             : [];
+
+        $adminAccountCode = old('faccountadmin', $selectedAdminAccount->faccount ?? '');
+        $selectedAdminAccountModel = null;
+        if ($adminAccountCode !== '') {
+            $selectedAdminAccountModel = Account::query()
+                ->where('faccount', $adminAccountCode)
+                ->first(['faccid', 'faccount', 'faccname']);
+        }
 
         return array_merge([
             'voucherNo' => old('fkasmtno', $header?->fkasmtno),
@@ -774,9 +887,10 @@ class PelunasanCustomerController extends Controller
             'currentBranchCode' => old('fbranchcode', $header?->fbranchcode ?: $this->resolveBranchCode()),
             'selectedCustomer' => $selectedCustomer,
             'selectedAccount' => $selectedAccount,
+            'selectedAdminAccount' => $selectedAdminAccountModel,
             'detailRows' => $detailRows,
             'headerData' => $header,
-            'bankAdminFee' => old('fbiayaadminbank', 0),
+            'bankAdminFee' => old('fbiayaadminbank', $bankAdminFee),
             'dueDate' => old('ftgljatuhtempo', optional($header?->ftgljatuhtempo)->format('Y-m-d')),
             'giroMundur' => old('fgiromundur', ($header?->fgiromundur ?? '0')) === '1',
             'noteValue' => old('fket', $header?->fket),

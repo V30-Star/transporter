@@ -130,7 +130,7 @@
 </style>
 
 <script>
-    function accountBrowser() {
+    function accountBrowser_{{ $tableId }}() {
         return {
             open: false,
             table: null,
@@ -382,7 +382,7 @@
     }
 </script>
 
-<div x-data="accountBrowser()">
+<div x-data="accountBrowser_{{ $tableId }}()">
     <div x-show="open" x-transition.opacity class="fixed inset-0 z-40 bg-black/50" @click="close()"></div>
 
     <div x-show="open" x-cloak x-transition.opacity class="fixed inset-0 z-50 flex items-center justify-center overflow-hidden p-3 md:p-6"
