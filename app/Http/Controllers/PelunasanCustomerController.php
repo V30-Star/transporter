@@ -13,10 +13,17 @@ use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\ValidationException;
 
 class PelunasanCustomerController extends Controller
 {
     private const TRAN_CODE = 'BKM';
+    private const RECEIVABLE_SET_ACCOUNT = 'PIUTANGDAGANG';
+    private const RETURN_RECEIVABLE_SET_ACCOUNT_CANDIDATES = [
+        'RETURPENJUALANBELUMPOTONGPIUTANG',
+        'RETURPENJUALAN_BELUM_POTONG_PIUTANG',
+        'RETUR PENJUALAN BELUM POTONG PIUTANG',
+    ];
 
     public function index()
     {
@@ -155,10 +162,10 @@ class PelunasanCustomerController extends Controller
                 'mt.fsodate',
                 'mt.fcustno',
                 'mt.ftrcode',
-                'mt.famount',
                 'mt.famountremain',
                 'mt.fjatuhtempo',
                 'c.fcustomername',
+                DB::raw('COALESCE(SUM(COALESCE(dt.famount, 0)), 0) as famount'),
                 DB::raw('COUNT(dt.ftrandtid) as detail_count'),
             ])
             ->groupBy(
@@ -167,7 +174,6 @@ class PelunasanCustomerController extends Controller
                 'mt.fsodate',
                 'mt.fcustno',
                 'mt.ftrcode',
-                'mt.famount',
                 'mt.famountremain',
                 'mt.fjatuhtempo',
                 'c.fcustomername'
@@ -262,7 +268,7 @@ class PelunasanCustomerController extends Controller
             'details.*.fdiscpersen' => ['nullable', 'numeric', 'min:0', 'max:100'],
             'details.*.fdiscount' => ['nullable', 'numeric'],
             'details.*.fkasdtvalue' => ['required', 'numeric', 'not_in:0'],
-            'details.*.freftype' => ['nullable', 'string', 'max:10'],
+            'details.*.ftrcode' => ['nullable', 'string', 'max:10'],
         ], [
             'fkasmtdate.required' => 'Tanggal wajib diisi.',
             'fcustomer.required' => 'Customer wajib dipilih.',
@@ -281,11 +287,12 @@ class PelunasanCustomerController extends Controller
             ->where('faccount', $validated['faccountheader'])
             ->firstOrFail(['faccid', 'faccount', 'faccname']);
         $detailRows = $this->normalizeDetails($validated['details']);
+        $detailEntries = $this->buildJournalDetailEntries($detailRows, $validated['fkasmtdate'], $customer);
         $voucherNo = trim((string) ($validated['fkasmtno'] ?? '')) ?: $this->generateVoucherNo(Carbon::parse($validated['fkasmtdate']));
         $totalPenerimaan = round((float) $detailRows->sum(fn(array $row) => (float) ($row['fkasdtvalue'] ?? 0)), 2);
         $now = now();
 
-        DB::transaction(function () use ($validated, $customer, $headerAccount, $detailRows, $voucherNo, $totalPenerimaan, $now) {
+        DB::transaction(function () use ($validated, $customer, $headerAccount, $detailEntries, $voucherNo, $totalPenerimaan, $now) {
             $headerId = $this->nextIntegerId('trkasmt', 'fkasmtid');
             $nextDetailId = $this->nextIntegerId('trkasdt', 'fkasdtid');
 
@@ -314,27 +321,28 @@ class PelunasanCustomerController extends Controller
                 'fbranchcode' => $validated['fbranchcode'],
             ]);
 
-            foreach ($detailRows as $index => $row) {
+            foreach ($detailEntries as $index => $entry) {
                 Trkasdt::create([
                     'fkasdtid' => $nextDetailId + $index,
                     'fkasmtid' => $headerId,
                     'ftrancode' => self::TRAN_CODE,
-                    'faccount' => $headerAccount->faccount,
-                    'faccountid' => $headerAccount->faccid,
-                    'fdk' => 'K',
-                    'frefno' => trim((string) ($row['frefno'] ?? '')),
-                    'fnote' => $customer->fcustomername,
-                    'fdiscpersen' => round((float) ($row['fdiscpersen'] ?? 0), 2),
-                    'fdiscount' => round((float) ($row['fdiscount'] ?? 0), 2),
-                    'fkasdtvalue' => round((float) ($row['fkasdtvalue'] ?? 0), 2),
-                    'fvalue_rp' => round((float) ($row['fkasdtvalue'] ?? 0), 2),
-                    'fjurnal' => round((float) ($row['fkasdtvalue'] ?? 0), 2),
-                    'fjurnal_rp' => round((float) ($row['fkasdtvalue'] ?? 0), 2),
+                    'faccount' => $entry['account']->faccount,
+                    'faccountid' => $entry['account']->faccid,
+                    'fdk' => $entry['fdk'],
+                    'frefno' => $entry['frefno'],
+                    'fnote' => $entry['fnote'],
+                    'fsubaccount' => $entry['fsubaccount'],
+                    'fdiscpersen' => $entry['fdiscpersen'],
+                    'fdiscount' => $entry['fdiscount'],
+                    'fkasdtvalue' => $entry['fkasdtvalue'],
+                    'fvalue_rp' => $entry['fvalue_rp'],
+                    'fjurnal' => $entry['fjurnal'],
+                    'fjurnal_rp' => $entry['fjurnal_rp'],
                     'fuserid' => $this->currentUserId(),
                     'fdatetime' => $now,
-                    'fdiscountrp' => round((float) ($row['fdiscount'] ?? 0), 2),
+                    'fdiscountrp' => $entry['fdiscountrp'],
                     'fnou' => $index + 1,
-                    'freftype' => trim((string) ($row['freftype'] ?? 'INV')),
+                    'freftype' => $entry['ftrcode'],
                 ]);
             }
         });
@@ -377,7 +385,7 @@ class PelunasanCustomerController extends Controller
             'details.*.fdiscpersen' => ['nullable', 'numeric', 'min:0', 'max:100'],
             'details.*.fdiscount' => ['nullable', 'numeric'],
             'details.*.fkasdtvalue' => ['required', 'numeric', 'not_in:0'],
-            'details.*.freftype' => ['nullable', 'string', 'max:10'],
+            'details.*.ftrcode' => ['nullable', 'string', 'max:10'],
         ], [
             'fkasmtdate.required' => 'Tanggal wajib diisi.',
             'fcustomer.required' => 'Customer wajib dipilih.',
@@ -396,11 +404,12 @@ class PelunasanCustomerController extends Controller
             ->where('faccount', $validated['faccountheader'])
             ->firstOrFail(['faccid', 'faccount', 'faccname']);
         $detailRows = $this->normalizeDetails($validated['details']);
+        $detailEntries = $this->buildJournalDetailEntries($detailRows, $validated['fkasmtdate'], $customer);
         $voucherNo = trim((string) ($validated['fkasmtno'] ?? '')) ?: $header->fkasmtno;
         $totalPenerimaan = round((float) $detailRows->sum(fn(array $row) => (float) ($row['fkasdtvalue'] ?? 0)), 2);
         $now = now();
 
-        DB::transaction(function () use ($validated, $customer, $headerAccount, $detailRows, $voucherNo, $totalPenerimaan, $now, $header) {
+        DB::transaction(function () use ($validated, $customer, $headerAccount, $detailEntries, $voucherNo, $totalPenerimaan, $now, $header) {
             $header->update([
                 'fkasmtno' => $voucherNo,
                 'fkasmtdate' => $validated['fkasmtdate'],
@@ -424,27 +433,28 @@ class PelunasanCustomerController extends Controller
             Trkasdt::where('fkasmtid', $header->fkasmtid)->delete();
 
             $nextDetailId = $this->nextIntegerId('trkasdt', 'fkasdtid');
-            foreach ($detailRows as $index => $row) {
+            foreach ($detailEntries as $index => $entry) {
                 Trkasdt::create([
                     'fkasdtid' => $nextDetailId + $index,
                     'fkasmtid' => $header->fkasmtid,
                     'ftrancode' => self::TRAN_CODE,
-                    'faccount' => $headerAccount->faccount,
-                    'faccountid' => $headerAccount->faccid,
-                    'fdk' => 'K',
-                    'frefno' => trim((string) ($row['frefno'] ?? '')),
-                    'fnote' => $customer->fcustomername,
-                    'fdiscpersen' => round((float) ($row['fdiscpersen'] ?? 0), 2),
-                    'fdiscount' => round((float) ($row['fdiscount'] ?? 0), 2),
-                    'fkasdtvalue' => round((float) ($row['fkasdtvalue'] ?? 0), 2),
-                    'fvalue_rp' => round((float) ($row['fkasdtvalue'] ?? 0), 2),
-                    'fjurnal' => round((float) ($row['fkasdtvalue'] ?? 0), 2),
-                    'fjurnal_rp' => round((float) ($row['fkasdtvalue'] ?? 0), 2),
+                    'faccount' => $entry['account']->faccount,
+                    'faccountid' => $entry['account']->faccid,
+                    'fdk' => $entry['fdk'],
+                    'frefno' => $entry['frefno'],
+                    'fnote' => $entry['fnote'],
+                    'fsubaccount' => $entry['fsubaccount'],
+                    'fdiscpersen' => $entry['fdiscpersen'],
+                    'fdiscount' => $entry['fdiscount'],
+                    'fkasdtvalue' => $entry['fkasdtvalue'],
+                    'fvalue_rp' => $entry['fvalue_rp'],
+                    'fjurnal' => $entry['fjurnal'],
+                    'fjurnal_rp' => $entry['fjurnal_rp'],
                     'fuserid' => $this->currentUserId(),
                     'fdatetime' => $now,
-                    'fdiscountrp' => round((float) ($row['fdiscount'] ?? 0), 2),
+                    'fdiscountrp' => $entry['fdiscountrp'],
                     'fnou' => $index + 1,
-                    'freftype' => trim((string) ($row['freftype'] ?? 'INV')),
+                    'freftype' => $entry['ftrcode'],
                 ]);
             }
         });
@@ -482,7 +492,7 @@ class PelunasanCustomerController extends Controller
                     || trim((string) ($detail['fdiscpersen'] ?? '')) !== ''
                     || trim((string) ($detail['fdiscount'] ?? '')) !== ''
                     || trim((string) ($detail['fkasdtvalue'] ?? '')) !== ''
-                    || trim((string) ($detail['freftype'] ?? '')) !== '';
+                    || trim((string) ($detail['ftrcode'] ?? '')) !== '';
             })
             ->values()
             ->all();
@@ -492,21 +502,150 @@ class PelunasanCustomerController extends Controller
     {
         return collect($details)
             ->map(function (array $detail) {
-                $refType = strtoupper(trim((string) ($detail['freftype'] ?? 'INV')));
-                $multiplier = $refType === 'REJ' ? -1 : 1;
+                $trCode = strtoupper(trim((string) ($detail['ftrcode'] ?? 'INV')));
 
                 return [
                     'frefno' => trim((string) ($detail['frefno'] ?? '')),
-                    'fnilai_nota' => round(abs((float) ($detail['fnilai_nota'] ?? 0)) * $multiplier, 2),
-                    'fsisa_piutang' => round(abs((float) ($detail['fsisa_piutang'] ?? 0)) * $multiplier, 2),
+                    'fnilai_nota' => round(abs((float) ($detail['fnilai_nota'] ?? 0)), 2),
+                    'fsisa_piutang' => round(abs((float) ($detail['fsisa_piutang'] ?? 0)), 2),
                     'fdiscpersen' => round((float) ($detail['fdiscpersen'] ?? 0), 2),
-                    'fdiscount' => round(abs((float) ($detail['fdiscount'] ?? 0)) * $multiplier, 2),
-                    'fkasdtvalue' => round(abs((float) ($detail['fkasdtvalue'] ?? 0)) * $multiplier, 2),
-                    'freftype' => $refType,
+                    'fdiscount' => round(abs((float) ($detail['fdiscount'] ?? 0)), 2),
+                    'fkasdtvalue' => round(abs((float) ($detail['fkasdtvalue'] ?? 0)), 2),
+                    'ftrcode' => $trCode !== '' ? $trCode : 'INV',
                 ];
             })
             ->filter(fn(array $detail) => $detail['frefno'] !== '' && (float) ($detail['fkasdtvalue'] ?? 0) !== 0.0)
             ->values();
+    }
+
+    private function buildJournalDetailEntries(Collection $detailRows, string $paymentDate, Customer $customer): Collection
+    {
+        $receivableAccount = $this->resolveRequiredAccount(self::RECEIVABLE_SET_ACCOUNT, 'Akun piutang dagang belum disetting.');
+        $returnReceivableAccount = $this->resolveRequiredAccountFromCandidates(
+            self::RETURN_RECEIVABLE_SET_ACCOUNT_CANDIDATES,
+            'Akun retur penjualan belum potong piutang belum disetting.'
+        );
+        $referenceMap = $this->resolveReferenceTransactions($detailRows, Carbon::parse($paymentDate));
+
+        return $detailRows->values()->map(function (array $row) use ($customer, $receivableAccount, $returnReceivableAccount, $referenceMap) {
+            $refNo = trim((string) ($row['frefno'] ?? ''));
+            $reference = $referenceMap[$refNo] ?? null;
+            $trCode = strtoupper(trim((string) ($row['ftrcode'] ?? $reference?->ftrcode ?? 'INV')));
+            $paymentAmount = round(abs((float) ($row['fkasdtvalue'] ?? 0)), 2);
+            $discountAmount = round(abs((float) ($row['fdiscount'] ?? 0)), 2);
+            $journalAmount = $trCode === 'REJ'
+                ? $paymentAmount
+                : round($paymentAmount + $discountAmount, 2);
+            $account = $trCode === 'REJ' ? $returnReceivableAccount : $receivableAccount;
+            $note = $trCode === 'REJ'
+                ? 'Retur ' . $customer->fcustomername
+                : $customer->fcustomername;
+
+            return [
+                'account' => $account,
+                'fdk' => $trCode === 'REJ' ? 'D' : 'K',
+                'frefno' => $refNo,
+                'fnote' => $note,
+                'fsubaccount' => $trCode === 'REJ' ? null : $customer->fcustomercode,
+                'fdiscpersen' => round((float) ($row['fdiscpersen'] ?? 0), 2),
+                'fdiscount' => $discountAmount,
+                'fdiscountrp' => $discountAmount,
+                'fkasdtvalue' => $paymentAmount,
+                'fvalue_rp' => $journalAmount,
+                'fjurnal' => $journalAmount,
+                'fjurnal_rp' => $journalAmount,
+                'ftrcode' => $trCode,
+            ];
+        });
+    }
+
+    private function resolveReferenceTransactions(Collection $detailRows, Carbon $paymentDate): array
+    {
+        $refNos = $detailRows
+            ->pluck('frefno')
+            ->map(fn($value) => trim((string) $value))
+            ->filter()
+            ->unique()
+            ->values();
+
+        $references = Tranmt::query()
+            ->whereIn('fsono', $refNos)
+            ->whereIn('ftrcode', ['INV', 'REJ'])
+            ->get(['fsono', 'ftrcode', 'fsodate'])
+            ->keyBy(fn($row) => trim((string) $row->fsono));
+
+        foreach ($detailRows as $index => $row) {
+            $refNo = trim((string) ($row['frefno'] ?? ''));
+            $trCode = strtoupper(trim((string) ($row['ftrcode'] ?? 'INV')));
+            $reference = $references->get($refNo);
+
+            if (!$reference) {
+                throw ValidationException::withMessages([
+                    "details.{$index}.frefno" => "No. nota {$refNo} tidak ditemukan.",
+                ]);
+            }
+
+            if (strtoupper(trim((string) ($reference->ftrcode ?? ''))) !== $trCode) {
+                throw ValidationException::withMessages([
+                    "details.{$index}.frefno" => "Tipe transaksi nota {$refNo} tidak sesuai.",
+                ]);
+            }
+
+            $referenceDate = !empty($reference->fsodate)
+                ? Carbon::parse($reference->fsodate)->startOfDay()
+                : null;
+
+            if ($referenceDate && $referenceDate->gt($paymentDate->copy()->startOfDay())) {
+                $label = $trCode === 'REJ' ? 'Tanggal retur' : 'Tanggal faktur';
+
+                throw ValidationException::withMessages([
+                    "details.{$index}.frefno" => "{$label} {$refNo} tidak boleh lebih besar dari tanggal bayar.",
+                ]);
+            }
+        }
+
+        return $references->all();
+    }
+
+    private function resolveRequiredAccount(string $accountName, string $message): Account
+    {
+        $accountCode = $this->resolveSetAccountCode($accountName);
+
+        if (!$accountCode) {
+            throw ValidationException::withMessages([
+                'faccountheader' => $message,
+            ]);
+        }
+
+        return Account::query()
+            ->where('faccount', $accountCode)
+            ->first(['faccid', 'faccount', 'faccname'])
+            ?? throw ValidationException::withMessages([
+                'faccountheader' => $message,
+            ]);
+    }
+
+    private function resolveRequiredAccountFromCandidates(array $accountNames, string $message): Account
+    {
+        foreach ($accountNames as $accountName) {
+            $accountCode = $this->resolveSetAccountCode($accountName);
+
+            if (!$accountCode) {
+                continue;
+            }
+
+            $account = Account::query()
+                ->where('faccount', $accountCode)
+                ->first(['faccid', 'faccount', 'faccname']);
+
+            if ($account) {
+                return $account;
+            }
+        }
+
+        throw ValidationException::withMessages([
+            'faccountheader' => $message,
+        ]);
     }
 
     private function resolveBranchCode(): string
@@ -613,7 +752,7 @@ class PelunasanCustomerController extends Controller
                     'fdiscpersen' => (float) ($detail->fdiscpersen ?? 0),
                     'fdiscount' => (float) ($detail->fdiscount ?? 0),
                     'fkasdtvalue' => (float) ($detail->fkasdtvalue ?? 0),
-                    'freftype' => trim((string) ($detail->freftype ?? 'INV')),
+                    'ftrcode' => trim((string) ($detail->freftype ?? 'INV')),
                 ];
             })->all()
             : [];

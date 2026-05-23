@@ -21,7 +21,7 @@
                 'fdiscpersen' => (float) ($detail['fdiscpersen'] ?? 0),
                 'fdiscount' => (float) ($detail['fdiscount'] ?? 0),
                 'fkasdtvalue' => (float) ($detail['fkasdtvalue'] ?? 0),
-                'freftype' => trim((string) ($detail['freftype'] ?? 'INV')),
+                'ftrcode' => trim((string) ($detail['ftrcode'] ?? $detail['freftype'] ?? 'INV')),
             ];
         })
         ->all();
@@ -36,10 +36,10 @@
         : '';
 @endphp
 
-<div class="bg-white rounded shadow p-6 md:p-8 max-w-[96rem] mx-auto">
+<div class="bg-white rounded shadow p-6 md:p-8 max-w-[96rem] mx-auto"
+    x-data="pelunasanCustomerForm(@js($initialDetailRows), @js($selectedCustomerTempo))" x-init="init()">
     <form action="{{ $formAction }}" method="POST" class="space-y-6"
-        @if (!$isReadOnly && !empty($draftKey)) data-form-draft="true" data-draft-key="{{ $draftKey }}" @endif
-        x-data="pelunasanCustomerForm(@js($initialDetailRows), @js($selectedCustomerTempo))" x-init="init()">
+        @if (!$isReadOnly && !empty($draftKey)) data-form-draft="true" data-draft-key="{{ $draftKey }}" @endif>
         @csrf
         @if ($formMethod !== 'POST')
             @method($formMethod)
@@ -48,8 +48,8 @@
         <input type="hidden" name="fbranchcode" value="{{ old('fbranchcode', $currentBranchCode) }}">
         <input type="hidden" name="fcustomer_tempo" x-model="customerTempo">
         <fieldset @disabled($isReadOnly) class="space-y-6">
-            <div class="grid grid-cols-1 lg:grid-cols-12 gap-4">
-                <div class="lg:col-span-3">
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                <div>
                     <label class="block text-sm font-bold mb-1">{{ 'No. Voucher' }}</label>
                     <input type="text" name="fkasmtno" value="{{ old('fkasmtno', $voucherNo) }}"
                         class="w-full border rounded px-3 py-2 @error('fkasmtno') border-red-500 @enderror"
@@ -59,7 +59,7 @@
                     @enderror
                 </div>
 
-                <div class="lg:col-span-3">
+                <div>
                     <label class="block text-sm font-bold mb-1">{{ 'No.Giro/Cek' }}</label>
                     <input type="text" name="fnogiro" value="{{ old('fnogiro', $giroNo ?? '') }}"
                         class="w-full border rounded px-3 py-2 @error('fnogiro') border-red-500 @enderror">
@@ -68,7 +68,10 @@
                     @enderror
                 </div>
 
-                <div class="lg:col-span-3">
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-4 items-end">
+                <div class="lg:col-span-4">
                     <label class="block text-sm font-bold mb-1">{{ 'Tanggal' }}</label>
                     <input type="date" name="fkasmtdate" x-model="transactionDate"
                         value="{{ old('fkasmtdate', $transactionDate) }}"
@@ -78,16 +81,29 @@
                     @enderror
                 </div>
 
-                <div class="lg:col-span-3">
-                    <label class="block text-sm font-bold mb-1">{{ 'Giro Mundur' }}</label>
-                    <label class="inline-flex items-center gap-2 h-10 px-3 border rounded w-full">
-                        <input type="checkbox" x-model="isGiroMundur">
-                        <span>{{ 'Aktifkan giro mundur' }}</span>
-                    </label>
-                    <input type="hidden" name="fgiromundur" :value="isGiroMundur ? '1' : '0'">
+                <div class="lg:col-span-4">
+                    <label class="block text-sm font-bold mb-1">{{ 'Tgl.Jatuh Tempo' }}</label>
+                    <input type="date" name="ftgljatuhtempo" x-model="dueDate"
+                        class="w-full border rounded px-3 py-2 @error('ftgljatuhtempo') border-red-500 @enderror"
+                        :readonly="!isGiroMundur" :disabled="!isGiroMundur"
+                        :class="!isGiroMundur ? 'bg-gray-100 cursor-not-allowed' : 'bg-white'">
+                    @error('ftgljatuhtempo')
+                        <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+                    @enderror
                 </div>
 
                 <div class="lg:col-span-4">
+                    <label class="block text-sm font-bold mb-1">{{ 'Giro Mundur' }}</label>
+                    <label class="inline-flex items-center gap-2 h-10 px-3 border rounded w-full lg:w-auto">
+                        <input type="checkbox" x-model="isGiroMundur" class="rounded">
+                        <span class="text-sm">{{ 'Aktifkan giro mundur' }}</span>
+                    </label>
+                    <input type="hidden" name="fgiromundur" :value="isGiroMundur ? '1' : '0'">
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                <div>
                     <label class="block text-sm font-bold mb-1">{{ 'Customer' }}</label>
                     <div class="flex">
                         <div class="relative flex-1">
@@ -114,7 +130,7 @@
                     @enderror
                 </div>
 
-                <div class="lg:col-span-4">
+                <div>
                     <label class="block text-sm font-bold mb-1">{{ 'Account' }}</label>
                     <div class="flex">
                         <input type="text" x-model="accountLabel"
@@ -131,36 +147,15 @@
                         <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                     @enderror
                 </div>
+            </div>
 
-                <div class="lg:col-span-4">
-                    <label class="block text-sm font-bold mb-1">{{ 'Tgl.Jatuh Tempo' }}</label>
-                    <input type="date" name="ftgljatuhtempo" x-model="dueDate"
-                        class="w-full border rounded px-3 py-2 @error('ftgljatuhtempo') border-red-500 @enderror"
-                        :readonly="!isGiroMundur" :disabled="!isGiroMundur"
-                        :class="!isGiroMundur ? 'bg-gray-100 cursor-not-allowed' : 'bg-white'">
-                    @error('ftgljatuhtempo')
-                        <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
-                    @enderror
-                </div>
-
-                <div class="lg:col-span-3">
-                    <label class="block text-sm font-bold mb-1">{{ 'Add Nota' }}</label>
-                    <button type="button" @click="openNotaModal()"
-                        @disabled($isReadOnly)
-                        class="w-full h-10 inline-flex items-center justify-center gap-2 border rounded px-3 py-2 bg-white hover:bg-gray-50">
-                        <x-heroicon-o-arrow-down-tray class="w-5 h-5" />
-                        <span>{{ 'Add Nota' }}</span>
-                    </button>
-                </div>
-
-                <div class="lg:col-span-9">
-                    <label class="block text-sm font-bold mb-1">{{ 'Keterangan' }}</label>
-                    <input type="text" name="fket" value="{{ old('fket', $noteValue ?? '') }}"
-                        class="w-full border rounded px-3 py-2 @error('fket') border-red-500 @enderror">
-                    @error('fket')
-                        <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
-                    @enderror
-                </div>
+            <div>
+                <label class="block text-sm font-bold mb-1">{{ 'Keterangan' }}</label>
+                <input type="text" name="fket" value="{{ old('fket', $noteValue ?? '') }}"
+                    class="w-full border rounded px-3 py-2 @error('fket') border-red-500 @enderror">
+                @error('fket')
+                    <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+                @enderror
             </div>
 
             <div>
@@ -191,7 +186,7 @@
                                     <td class="border px-2 py-2">
                                         <input type="text" :name="`details[${index}][frefno]`" x-model="row.frefno"
                                             class="w-full border rounded px-2 py-1.5">
-                                        <input type="hidden" :name="`details[${index}][freftype]`" :value="row.freftype || 'INV'">
+                                        <input type="hidden" :name="`details[${index}][ftrcode]`" :value="row.ftrcode || 'INV'">
                                     </td>
                                     <td class="border px-2 py-2">
                                         <input type="number" min="0" step="0.01" :name="`details[${index}][fnilai_nota]`"
@@ -239,12 +234,19 @@
                         </tbody>
                     </table>
                 </div>
+
+                <div class="mt-3 flex justify-start">
+                    <button type="button" @click="openNotaModal()"
+                        @disabled($isReadOnly)
+                        class="inline-flex items-center justify-center gap-2 border rounded px-3 py-2 bg-white hover:bg-gray-50 disabled:bg-gray-100 disabled:text-gray-400 disabled:cursor-not-allowed">
+                        <x-heroicon-o-arrow-down-tray class="w-5 h-5" />
+                        <span>{{ 'Add Nota' }}</span>
+                    </button>
+                </div>
             </div>
 
-            <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-                <div class="lg:col-span-8"></div>
-
-                <div class="lg:col-span-4">
+            <div class="flex justify-end">
+                <div class="w-full max-w-md">
                     <div class="rounded-lg border border-gray-200 bg-gray-50 p-4 space-y-3">
                         <div class="flex items-center justify-between gap-4">
                             <label class="text-sm font-semibold text-gray-700">{{ 'Biaya Admin Bank' }}</label>
@@ -286,6 +288,88 @@
                 </button>
             @endif
         </div>
+        @if (!$isReadOnly)
+            <div x-cloak x-show="notaModalOpen" class="fixed inset-0 z-[95] flex items-center justify-center p-4" x-transition.opacity>
+        <div class="absolute inset-0 bg-black/50" @click="closeNotaModal()"></div>
+
+        <div class="relative w-full max-w-6xl rounded-2xl bg-white shadow-2xl overflow-hidden" x-transition.scale>
+            <div class="flex items-center justify-between gap-4 border-b px-5 py-4">
+                <div>
+                    <h3 class="text-lg font-semibold text-gray-800">Browse nota</h3>
+                    <p class="text-sm text-gray-500">Data diambil dari `tranmt` dan `trandt`.</p>
+                </div>
+                <button type="button" @click="closeNotaModal()"
+                    class="inline-flex h-9 w-9 items-center justify-center rounded-lg bg-gray-100 text-gray-600 hover:bg-gray-200">
+                    <x-heroicon-o-x-mark class="h-5 w-5" />
+                </button>
+            </div>
+
+            <div class="border-b px-5 py-4">
+                <div class="grid grid-cols-1 gap-3 md:grid-cols-[minmax(0,1fr)_auto]">
+                    <input type="text" x-model="notaSearch" @input.debounce.400ms="fetchNotaRecords()"
+                        class="w-full rounded-lg border px-3 py-2"
+                        placeholder="Cari no.nota, customer, tipe, atau kode customer">
+                    <button type="button" @click="fetchNotaRecords()"
+                        class="inline-flex items-center justify-center rounded-lg bg-blue-600 px-4 py-2 text-white hover:bg-blue-700">
+                        Refresh
+                    </button>
+                </div>
+            </div>
+
+            <div class="max-h-[65vh] overflow-auto px-5 py-4">
+                <div x-show="notaError" x-text="notaError" class="mb-3 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700"></div>
+
+                <div x-show="notaLoading" class="py-10 text-center text-sm text-gray-500">
+                    Memuat data nota...
+                </div>
+
+                <table x-show="!notaLoading" class="min-w-full border text-sm">
+                    <thead class="bg-gray-100">
+                        <tr>
+                            <th class="border px-2 py-2 text-left">No.Nota</th>
+                            <th class="border px-2 py-2 text-left">Tanggal</th>
+                            <th class="border px-2 py-2 text-left">Customer</th>
+                            <th class="border px-2 py-2 text-left">Tipe</th>
+                            <th class="border px-2 py-2 text-right">Nilai Nota</th>
+                            <th class="border px-2 py-2 text-right">Sisa Piutang</th>
+                            <th class="border px-2 py-2 text-center">Item</th>
+                            <th class="border px-2 py-2 text-left">Jatuh Tempo</th>
+                            <th class="border px-2 py-2 text-center">Aksi</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <template x-if="!notaRecords.length">
+                            <tr>
+                                <td colspan="9" class="border px-3 py-6 text-center text-gray-500">Tidak ada data nota.</td>
+                            </tr>
+                        </template>
+                        <template x-for="record in notaRecords" :key="record.ftranmtid">
+                            <tr>
+                                <td class="border px-2 py-2" x-text="record.fsono || '-'"></td>
+                                <td class="border px-2 py-2" x-text="formatDateDisplay(record.fsodate)"></td>
+                                <td class="border px-2 py-2">
+                                    <div class="font-medium" x-text="record.fcustomername || '-'"></div>
+                                    <div class="text-xs text-gray-500" x-text="record.fcustno || '-'"></div>
+                                </td>
+                                <td class="border px-2 py-2" x-text="record.ftrcode || '-'"></td>
+                                <td class="border px-2 py-2 text-right" x-text="formatNumber(record.famount)"></td>
+                                <td class="border px-2 py-2 text-right" x-text="formatNumber(record.famountremain)"></td>
+                                <td class="border px-2 py-2 text-center" x-text="record.detail_count ?? 0"></td>
+                                <td class="border px-2 py-2" x-text="formatDateDisplay(record.fjatuhtempo)"></td>
+                                <td class="border px-2 py-2 text-center">
+                                    <button type="button" @click="pickNota(record)"
+                                        class="inline-flex items-center rounded bg-emerald-600 px-3 py-1.5 text-xs text-white hover:bg-emerald-700">
+                                        Pilih
+                                    </button>
+                                </td>
+                            </tr>
+                        </template>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+            </div>
+        @endif
     </form>
 </div>
 
@@ -323,6 +407,11 @@
                 isGiroMundur: @js(old('fgiromundur', ($giroMundur ?? false) ? '1' : '0') === '1'),
                 bankAdminFee: @js((float) old('fbiayaadminbank', $bankAdminFee ?? 0)),
                 totalPenerimaanDisplay: '0.00',
+                notaModalOpen: false,
+                notaLoading: false,
+                notaSearch: '',
+                notaError: '',
+                notaRecords: [],
 
                 init() {
                     this.rows = (Array.isArray(initialRows) && initialRows.length ? initialRows : [this.emptyRow()])
@@ -388,6 +477,7 @@
                         fdiscpersen: 0,
                         fdiscount: 0,
                         fkasdtvalue: 0,
+                        ftrcode: 'INV',
                     };
                 },
 
@@ -400,6 +490,7 @@
                         fdiscpersen: this.toNumber(row.fdiscpersen),
                         fdiscount: this.toNumber(row.fdiscount),
                         fkasdtvalue: this.toNumber(row.fkasdtvalue),
+                        ftrcode: String(row.ftrcode || 'INV').trim() || 'INV',
                     };
                 },
 
@@ -419,12 +510,123 @@
                     });
                 },
 
+                formatDateDisplay(value) {
+                    if (!value) return '-';
+                    const date = new Date(`${value}T00:00:00`);
+                    if (Number.isNaN(date.getTime())) return value;
+                    const day = String(date.getDate()).padStart(2, '0');
+                    const month = String(date.getMonth() + 1).padStart(2, '0');
+                    const year = date.getFullYear();
+                    return `${day}/${month}/${year}`;
+                },
+
                 addRow() {
                     this.rows.push(this.emptyRow());
                 },
 
                 openNotaModal() {
-                    this.handleImportInvoice();
+                    if (!this.customerCode) {
+                        if (window.showTransactionErrorModal) {
+                            window.showTransactionErrorModal('Pilih customer terlebih dahulu sebelum browse nota.');
+                            return;
+                        }
+
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Terjadi kesalahan',
+                            text: 'Pilih customer terlebih dahulu sebelum browse nota.'
+                        });
+                        return;
+                    }
+
+                    this.notaModalOpen = true;
+                    this.fetchNotaRecords();
+                },
+
+                closeNotaModal() {
+                    this.notaModalOpen = false;
+                    this.notaError = '';
+                },
+
+                async fetchNotaRecords() {
+                    this.notaLoading = true;
+                    this.notaError = '';
+
+                    try {
+                        const params = new URLSearchParams({
+                            customer_code: this.customerCode || '',
+                            search: this.notaSearch || '',
+                            start: '0',
+                            length: '25',
+                            draw: '1',
+                            order_column: 'fsodate',
+                            order_dir: 'desc'
+                        });
+
+                        const response = await fetch(`{{ route('pelunasancustomer.pickable-nota') }}?${params.toString()}`, {
+                            headers: {
+                                'X-Requested-With': 'XMLHttpRequest',
+                                'Accept': 'application/json'
+                            }
+                        });
+
+                        if (!response.ok) {
+                            throw new Error('Gagal memuat data nota.');
+                        }
+
+                        const payload = await response.json();
+                        this.notaRecords = Array.isArray(payload.data) ? payload.data : [];
+                    } catch (error) {
+                        this.notaRecords = [];
+                        this.notaError = error?.message || 'Gagal memuat data nota.';
+                    } finally {
+                        this.notaLoading = false;
+                    }
+                },
+
+                findTargetRowForNota() {
+                    const emptyIndex = this.rows.findIndex((row) => !String(row.frefno || '').trim());
+                    if (emptyIndex !== -1) {
+                        return this.rows[emptyIndex];
+                    }
+
+                    const row = this.emptyRow();
+                    this.rows.push(row);
+                    return row;
+                },
+
+                pickNota(record) {
+                    if (!record) return;
+
+                    const remain = this.toNumber(record.famountremain);
+                    if (remain <= 0) {
+                        if (window.showTransactionErrorModal) {
+                            window.showTransactionErrorModal('Nota tidak bisa dipilih karena sisa piutang harus lebih besar dari 0.');
+                            return;
+                        }
+
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Terjadi kesalahan',
+                            text: 'Nota tidak bisa dipilih karena sisa piutang harus lebih besar dari 0.'
+                        });
+                        return;
+                    }
+
+                    const existing = this.rows.find((row) => String(row.frefno || '').trim() === String(record.fsono || '').trim());
+                    const targetRow = existing || this.findTargetRowForNota();
+                    const amount = this.toNumber(record.famount);
+
+                    targetRow.frefno = String(record.fsono || '').trim();
+                    targetRow.fnilai_nota = amount;
+                    targetRow.fsisa_piutang = remain;
+                    targetRow.fdiscpersen = this.toNumber(targetRow.fdiscpersen);
+                    targetRow.fdiscount = this.toNumber(targetRow.fdiscount);
+                    targetRow.fkasdtvalue = Math.max(remain - this.toNumber(targetRow.fdiscount), 0);
+                    targetRow.ftrcode = String(record.ftrcode || 'INV').trim() || 'INV';
+
+                    this.recalcTotals();
+                    this.closeNotaModal();
                 },
 
                 removeRow(index) {
@@ -474,32 +676,7 @@
                     this.dueDate = `${year}-${month}-${day}`;
                 },
 
-                handleImportInvoice() {
-                    if (!this.customerCode) {
-                        if (window.showTransactionErrorModal) {
-                            window.showTransactionErrorModal('Pilih customer terlebih dahulu sebelum import faktur.');
-                            return;
-                        }
-
-                        Swal.fire({
-                            icon: 'error',
-                            title: 'Terjadi Kesalahan',
-                            text: 'Pilih customer terlebih dahulu sebelum import faktur.'
-                        });
-                        return;
-                    }
-
-                    if (window.showAppInfoAlert) {
-                        window.showAppInfoAlert('Informasi', 'Fitur import faktur belum disiapkan pada halaman ini.');
-                        return;
-                    }
-
-                    Swal.fire({
-                        icon: 'info',
-                        title: 'Informasi',
-                        text: 'Fitur import faktur belum disiapkan pada halaman ini.'
-                    });
-                }
+                handleImportInvoice() {}
             }
         }
     </script>
