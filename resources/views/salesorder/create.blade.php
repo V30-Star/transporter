@@ -296,7 +296,7 @@
                         </div>
 
                         <div class="lg:col-span-2">
-                            <label class="block text-sm font-bold mb-1">{{ 'Reff PO' }}</label>
+                            <label class="block text-sm font-bold mb-1">{{ 'Ref.PO' }}</label>
                             <input type="text" name="frefpo" value="{{ old('frefpo') }}"
                                 class="w-full border rounded px-3 py-2 @error('frefpo') border-red-500 @enderror"
                                 placeholder="Masukkan nomor PO customer">

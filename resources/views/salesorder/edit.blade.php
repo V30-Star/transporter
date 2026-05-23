@@ -329,7 +329,7 @@
                                 </div>
                             </div>
                             <div class="lg:col-span-2">
-                                <label class="block text-sm font-medium mb-1">Reff PO</label>
+                                <label class="block text-sm font-medium mb-1">Ref.PO</label>
                                 <input type="text" name="frefpo" disabled
                                     value="{{ old('frefpo', $salesorder->frefpo) }}"
                                     class="w-full border rounded px-3 py-2 bg-gray-200">
@@ -880,7 +880,7 @@
                                         </div>
                                     </div>
                                     <div class="lg:col-span-2">
-                                        <label class="block text-sm font-medium mb-1">Reff PO</label>
+                                        <label class="block text-sm font-medium mb-1">Ref.PO</label>
                                         <input type="text" name="frefpo"
                                             value="{{ old('frefpo', $salesorder->frefpo) }}"
                                             class="w-full border rounded px-3 py-2 @error('frefpo') border-red-500 @enderror"
