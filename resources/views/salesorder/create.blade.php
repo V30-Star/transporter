@@ -816,28 +816,32 @@
                 return +(total - this.headerDiscAmount).toFixed(2);
             },
 
+            get ppnBaseAmount() {
+                return this.totalSetelahDisc;
+            },
+
             get totalDPP() {
-                const total = this.totalSetelahDisc;
-                if (!this.includePPN) return total;
+                const total = this.ppnBaseAmount;
+                if (!this.includePPN) return +total.toFixed(2);
                 const rate = +this.ppnRate || 0;
                 if (this.ppnMode === 1) { // Include
-                    return (100 / (100 + rate)) * total;
+                    return +((100 / (100 + rate)) * total).toFixed(2);
                 }
-                return total; // Exclude
+                return +total.toFixed(2); // Exclude
             },
 
             get ppnAmount() {
                 if (!this.includePPN) return 0;
                 const dpp = this.totalDPP;
                 const rate = +this.ppnRate || 0;
-                return Math.round(dpp * (rate / 100));
+                return +((dpp * rate) / 100).toFixed(2);
             },
 
             get grandTotal() {
-                const total = this.totalSetelahDisc;
-                if (!this.includePPN) return total;
-                if (this.ppnMode === 1) return total; // Include: total already has PPN
-                return total + this.ppnAmount; // Exclude: total + PPN
+                const total = this.ppnBaseAmount;
+                if (!this.includePPN) return +total.toFixed(2);
+                if (this.ppnMode === 1) return +total.toFixed(2); // Include: total already has PPN
+                return +(total + this.ppnAmount).toFixed(2); // Exclude: total + PPN
             },
 
             fmt(n) {
