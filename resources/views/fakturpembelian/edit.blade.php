@@ -789,14 +789,7 @@
                         class="mt-6" data-form-draft="true"
                         data-draft-key="fakturpembelian:edit:{{ $fakturpembelian->fstockmtid }}"
                         x-data="{ showNoItems: false }"
-                        @submit.prevent="
-        const n = Number(document.getElementById('itemsCount')?.value || 0);
-        if (n < 1) {
-            showNoItems = true;
-            return;
-        }
-        $el.submit()
-      ">
+                        @submit.prevent="if (window.fakturPembelianItemsTable?.submitForm) { window.fakturPembelianItemsTable.submitForm($el); } else { const n = Number(document.getElementById('itemsCount')?.value || 0); if (n < 1) { showNoItems = true; return; } $el.submit() }">
                         @csrf
                         @method('PATCH')
 
@@ -1638,7 +1631,6 @@
                             </div>
 
                             <input type="hidden" id="itemsCount" :value="submitItems.length">
-                        </div>
 
                         {{-- MODAL ERROR: belum ada item --}}
                         <div x-show="showNoItems && savedItems.length === 0" x-cloak
@@ -1654,7 +1646,7 @@
 
                                 <div class="px-5 py-4">
                                     <p class="text-sm text-gray-700">
-                                        Anda belum menambahkan item apa pun pada tabel. Silakan isi baris â€œDetail Itemâ€
+                                        Anda belum menambahkan item apa pun pada tabel. Silakan isi baris “Detail Item”
                                         terlebih
                                         dahulu.
                                     </p>
@@ -1702,7 +1694,7 @@
                                 </div>
                             </div>
                         </div>
-                </div>
+                        </div>  </div>
 
                 <x-transaction.browse-supplier-modal />
                 <x-transaction.browse-product-modal show-controls="true" show-pagination="true" />
@@ -2897,6 +2889,7 @@
                     this.syncOpeningBalanceMode();
 
                     // Listen for PO and PB picked
+                    window.fakturPembelianItemsTable = this;
                     window.getCurrentItemKeys = () => this.getCurrentItemKeys();
                     window.addEventListener('po-picked', this.onPoPicked.bind(this), {
                         passive: true

@@ -224,10 +224,7 @@
             <div class="bg-white rounded shadow p-6 md:p-8 max-w-[1600px] w-full mx-auto">
                 <form action="{{ route('fakturpembelian.store') }}" method="POST" class="mt-6" data-form-draft="true"
                     data-draft-key="fakturpembelian:create" x-data="{ showNoItems: false }"
-                    @submit.prevent="
-        const n = Number(document.getElementById('itemsCount')?.value || 0);
-        if (n < 1) { showNoItems = true } else { $el.submit() }
-      ">
+                    @submit.prevent="if (window.fakturPembelianItemsTable?.submitForm) { window.fakturPembelianItemsTable.submitForm($el); } else { const n = Number(document.getElementById('itemsCount')?.value || 0); if (n < 1) { showNoItems = true } else { $el.submit() } }">
                     @csrf
 
                     {{-- HEADER FORM --}}
@@ -951,7 +948,6 @@
                         </div>
 
                         <input type="hidden" id="itemsCount" :value="submitItems.length">
-                    </div>
 
                     {{-- MODAL ERROR: belum ada item --}}
                     <div x-show="showNoItems && savedItems.length === 0" x-cloak
@@ -967,7 +963,7 @@
 
                             <div class="px-5 py-4">
                                 <p class="text-sm text-gray-700">
-                                    Anda belum menambahkan item apa pun pada tabel. Silakan isi baris â€œDetail Itemâ€ terlebih
+                                    Anda belum menambahkan item apa pun pada tabel. Silakan isi baris “Detail Item” terlebih
                                     dahulu.
                                 </p>
                             </div>
@@ -1014,6 +1010,7 @@
                             </div>
                         </div>
                     </div>
+                    </div>  </div>
 
 
                     <x-transaction.browse-supplier-modal />
@@ -2049,6 +2046,7 @@
                 this.syncOpeningBalanceMode();
 
                 // Listen for PO and PB picked
+                window.fakturPembelianItemsTable = this;
                 window.getCurrentItemKeys = () => this.getCurrentItemKeys();
                 window.addEventListener('po-picked', this.onPoPicked.bind(this), {
                     passive: true
