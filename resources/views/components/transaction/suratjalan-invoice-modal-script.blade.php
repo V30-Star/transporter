@@ -176,10 +176,21 @@
                     const items = json.items || [];
                     const currentKeys = new Set((window.getCurrentItemKeys?.() || []).map(String));
                     const keyOf = (src) =>
-                        `${(src.fitemcode ?? '').toString().trim()}::${(src.frefdtno ?? '').toString().trim()}`;
+                        (src.fitemcode ?? '').toString().trim().toUpperCase();
 
-                    const duplicates = items.filter(src => currentKeys.has(keyOf(src)));
-                    const uniques = items.filter(src => !currentKeys.has(keyOf(src)));
+                    const seenKeys = new Set(currentKeys);
+                    const duplicates = [];
+                    const uniques = [];
+
+                    items.forEach(src => {
+                        const key = keyOf(src);
+                        if (seenKeys.has(key)) {
+                            duplicates.push(src);
+                        } else {
+                            uniques.push(src);
+                            seenKeys.add(key);
+                        }
+                    });
 
                     if (duplicates.length > 0) {
                         this.openDupModal(json.header, duplicates, uniques);

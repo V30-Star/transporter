@@ -1311,11 +1311,13 @@
             },
 
             itemKey(it) {
-                return `${(it.fitemcode ?? '').toString().trim()}::${(it.frefdtno ?? '').toString().trim()}`;
+                return (it.fitemcode ?? '').toString().trim().toUpperCase();
             },
 
             getCurrentItemKeys() {
-                return this.submitItems.map(it => this.itemKey(it));
+                return this.savedItems
+                    .filter(it => it.fitemcode)
+                    .map(it => this.itemKey(it));
             },
 
             createRow(overrides = {}) {

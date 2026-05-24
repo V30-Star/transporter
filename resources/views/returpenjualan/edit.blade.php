@@ -3225,11 +3225,13 @@
             },
 
             itemKey(it) {
-                return `${(it.fitemcode ?? '').toString().trim()}::${(it.frefdtno ?? '').toString().trim()}`;
+                return (it.fitemcode ?? '').toString().trim().toUpperCase();
             },
 
             getCurrentItemKeys() {
-                return this.submitItems.map(it => this.itemKey(it));
+                return this.savedItems
+                    .filter(it => it.fitemcode)
+                    .map(it => this.itemKey(it));
             },
 
             get submitItems() {
@@ -3533,7 +3535,7 @@
             confirmAddUniques() {
                 const currentKeys = new Set((window.getCurrentItemKeys?.() || []).map(String));
                 const keyOf = (src) =>
-                    `${(src.fitemcode ?? '').toString().trim()}::${(src.frefdtno ?? '').toString().trim()}`;
+                    (src.fitemcode ?? '').toString().trim().toUpperCase();
                 const safeUniques = this.pendingUniques.filter(src => !currentKeys.has(keyOf(src)));
 
                 if (safeUniques.length > 0) {
@@ -3575,12 +3577,22 @@
 
                     const items = json.items || [];
                     const currentKeys = new Set((window.getCurrentItemKeys?.() || []).map(String));
-
                     const keyOf = (src) =>
-                        `${(src.fitemcode ?? '').toString().trim()}::${(src.frefdtno ?? '').toString().trim()}`;
+                        (src.fitemcode ?? '').toString().trim().toUpperCase();
 
-                    const duplicates = items.filter(src => currentKeys.has(keyOf(src)));
-                    const uniques = items.filter(src => !currentKeys.has(keyOf(src)));
+                    const seenKeys = new Set(currentKeys);
+                    const duplicates = [];
+                    const uniques = [];
+
+                    items.forEach(src => {
+                        const key = keyOf(src);
+                        if (seenKeys.has(key)) {
+                            duplicates.push(src);
+                        } else {
+                            uniques.push(src);
+                            seenKeys.add(key);
+                        }
+                    });
 
                     if (duplicates.length > 0) {
                         this.openDupModal(json.header, duplicates, uniques);
@@ -3590,7 +3602,7 @@
                     window.dispatchEvent(new CustomEvent('invoice-picked', {
                         detail: {
                             header: json.header,
-                            items: items
+                            items: uniques
                         }
                     }));
 
@@ -3774,7 +3786,7 @@
             confirmAddUniques() {
                 const currentKeys = new Set((window.getCurrentItemKeys?.() || []).map(String));
                 const keyOf = (src) =>
-                    `${(src.fitemcode ?? '').toString().trim()}::${(src.frefdtno ?? '').toString().trim()}`;
+                    (src.fitemcode ?? '').toString().trim().toUpperCase();
 
                 const safeUniques = this.pendingUniques.filter(src => !currentKeys.has(keyOf(src)));
 
@@ -3817,15 +3829,23 @@
                     const json = await res.json();
                     const items = json.items || [];
 
-                    // Ambil key item yang sudah ada di table input (untuk cek duplikat)
                     const currentKeys = new Set((window.getCurrentItemKeys?.() || []).map(String));
-
-                    // Logic key unik (Item Code + Ref Detail No)
                     const keyOf = (src) =>
-                        `${(src.fitemcode ?? '').toString().trim()}::${(src.frefdtno ?? '').toString().trim()}`;
+                        (src.fitemcode ?? '').toString().trim().toUpperCase();
 
-                    const duplicates = items.filter(src => currentKeys.has(keyOf(src)));
-                    const uniques = items.filter(src => !currentKeys.has(keyOf(src)));
+                    const seenKeys = new Set(currentKeys);
+                    const duplicates = [];
+                    const uniques = [];
+
+                    items.forEach(src => {
+                        const key = keyOf(src);
+                        if (seenKeys.has(key)) {
+                            duplicates.push(src);
+                        } else {
+                            uniques.push(src);
+                            seenKeys.add(key);
+                        }
+                    });
 
                     if (duplicates.length > 0) {
                         this.openDupModal(json.header, duplicates, uniques);
@@ -3835,7 +3855,7 @@
                     window.dispatchEvent(new CustomEvent('srj-picked', {
                         detail: {
                             header: json.header,
-                            items: items
+                            items: uniques
                         }
                     }));
 
@@ -4041,14 +4061,23 @@
                     const json = await res.json();
 
                     const items = json.items || [];
-                    // Pastikan window.getCurrentItemKeys() tersedia
                     const currentKeys = new Set((window.getCurrentItemKeys?.() || []).map(String));
-
                     const keyOf = (src) =>
-                        `${(src.fitemcode ?? '').toString().trim()}::${(src.frefcode ?? '').toString().trim()}`;
+                        (src.fitemcode ?? '').toString().trim().toUpperCase();
 
-                    const duplicates = items.filter(src => currentKeys.has(keyOf(src)));
-                    const uniques = items.filter(src => !currentKeys.has(keyOf(src)));
+                    const seenKeys = new Set(currentKeys);
+                    const duplicates = [];
+                    const uniques = [];
+
+                    items.forEach(src => {
+                        const key = keyOf(src);
+                        if (seenKeys.has(key)) {
+                            duplicates.push(src);
+                        } else {
+                            uniques.push(src);
+                            seenKeys.add(key);
+                        }
+                    });
 
                     if (duplicates.length > 0) {
                         this.openDupModal(row, duplicates, uniques);
@@ -4059,7 +4088,7 @@
                     window.dispatchEvent(new CustomEvent('invoice-picked', {
                         detail: {
                             header: row,
-                            items
+                            items: uniques
                         }
                     }));
 
