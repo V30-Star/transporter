@@ -497,16 +497,16 @@
                                                         class="w-full border rounded px-2 py-1 text-right bg-gray-100 text-gray-600"
                                                         :value="formatQtyValue(row.fqtysrj)" disabled>
                                                 </td>
-                                                <td class="p-2 text-right">
-                                                    <input type="number"
-                                                        class="w-full border rounded px-2 py-1 text-right bg-gray-100 text-gray-600"
-                                                        x-model.number="row.fprice" disabled>
-                                                </td>
-                                                <td class="p-2 text-right">
-                                                    <input type="text"
-                                                        class="w-full border rounded px-2 py-1 text-right bg-gray-100 text-gray-600"
-                                                        x-model="row.fdisc" disabled>
-                                                </td>
+                                                 <td class="p-2 text-right">
+                                                     <input type="number"
+                                                         class="w-full border rounded px-2 py-1 text-right bg-gray-100 text-gray-600"
+                                                         :value="Number(row.fprice || 0).toFixed(2)" disabled>
+                                                 </td>
+                                                 <td class="p-2 text-right">
+                                                     <input type="text"
+                                                         class="w-full border rounded px-2 py-1 text-right bg-gray-100 text-gray-600"
+                                                         :value="row.fdisc && row.fdisc.toString().includes('+') ? row.fdisc : Number(row.fdisc || 0).toFixed(2)" disabled>
+                                                 </td>
                                                 <td class="p-2">
                                                     <input type="text"
                                                         class="w-full border rounded px-2 py-1 bg-gray-100 text-gray-600 text-sm text-right"
@@ -1070,19 +1070,23 @@
                                                         </td>
                                                         <td class="p-2 text-right font-medium"
                                                             x-text="formatQtyValue(row.fqtysrj)"></td>
-                                                        <td class="p-2 text-right">
-                                                            <input type="number"
-                                                                class="w-full border rounded px-2 py-1 text-right"
-                                                                :id="'price_row_' + i" x-model.number="row.fprice"
-                                                                @input="recalc(row)"
-                                                                @keydown.enter.prevent="focusRowDisc(i)">
-                                                        </td>
-                                                        <td class="p-2 text-right">
-                                                            <input type="text"
-                                                                class="w-full border rounded px-2 py-1 text-right"
-                                                                :id="'disc_row_' + i" x-model="row.fdisc"
-                                                                @input="recalc(row)" @keydown.enter.prevent="$event.target.blur()">
-                                                        </td>
+                                                         <td class="p-2 text-right">
+                                                             <input type="number"
+                                                                 class="w-full border rounded px-2 py-1 text-right"
+                                                                 :id="'price_row_' + i" :value="Number(row.fprice || 0).toFixed(2)"
+                                                                 @focus="activeRow = row.uid; $event.target.select()"
+                                                                 @blur="activeRow = null; $event.target.value = (+row.fprice || 0).toFixed(2)"
+                                                                 @input="row.fprice = +$event.target.value; recalc(row)"
+                                                                 @keydown.enter.prevent="focusRowDisc(i)">
+                                                         </td>
+                                                         <td class="p-2 text-right">
+                                                             <input type="text"
+                                                                 class="w-full border rounded px-2 py-1 text-right"
+                                                                 :id="'disc_row_' + i" :value="normalizeDiscountValue(row.fdisc)"
+                                                                 @focus="activeRow = row.uid; $event.target.select()"
+                                                                 @blur="activeRow = null; normalizeDiscountInput($event, row)"
+                                                                 @input="row.fdisc = $event.target.value; recalc(row)" @keydown.enter.prevent="$event.target.blur()">
+                                                         </td>
                                                         <td class="p-2">
                                                             <input type="text"
                                                                 class="w-full border rounded px-2 py-1 bg-gray-100 text-gray-600 text-sm text-right"
@@ -1816,6 +1820,29 @@
                 } catch (e) {
                     console.warn('Invalid discount format:', discStr);
                     return 0;
+                }
+            },
+
+            normalizeDiscountValue(value) {
+                const cleaned = String(value ?? '').replace(/\s+/g, '');
+                if (cleaned === '') return '0.00';
+                if (!cleaned.includes('+')) {
+                    const num = Number(cleaned);
+                    if (Number.isFinite(num)) {
+                        return num.toFixed(2);
+                    }
+                }
+                return cleaned;
+            },
+
+            normalizeDiscountInput(event, row) {
+                const normalized = this.normalizeDiscountValue(row?.fdisc);
+                if (row) {
+                    row.fdisc = normalized;
+                    this.recalc(row);
+                }
+                if (event?.target) {
+                    event.target.value = normalized;
                 }
             },
 

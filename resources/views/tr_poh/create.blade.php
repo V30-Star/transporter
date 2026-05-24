@@ -344,7 +344,7 @@
 
                                     <td class="p-2 text-right">
                                         <input type="number" class="border rounded px-2 py-1 w-20 text-right text-sm"
-                                            :id="'qty_row_' + i" x-model.number="row.fqty" min="0"
+                                            :id="'qty_row_' + i" x-model.number="row.fqty" min="0" step="any"
                                             @focus="activeRow = row.uid; $event.target.select()"
                                             @blur="activeRow = null; enforcePrQtyRow(row)"
                                             @input="onRowUpdated(i)"
@@ -357,21 +357,23 @@
                                     </td>
 
                                     <td class="p-2 text-right">
-                                        <input type="number" class="border rounded px-2 py-1 w-24 text-right text-sm"
-                                            min="0" step="0.01" x-model.number="row.fprice"
-                                            :id="'price_row_' + i"
-                                            @focus="activeRow = row.uid; $event.target.select()"
-                                            @blur="activeRow = null" @input="recalc(row)"
-                                            @change="recalc(row)" @keydown.enter.prevent="focusRowDisc(i)">
+                                         <input type="number" class="border rounded px-2 py-1 w-24 text-right text-sm"
+                                             min="0" step="0.01" :value="Number(row.fprice || 0).toFixed(2)"
+                                             @input="row.fprice = +$event.target.value; recalc(row)"
+                                             :id="'price_row_' + i"
+                                             @focus="activeRow = row.uid; $event.target.select()"
+                                             @blur="activeRow = null; $event.target.value = (+row.fprice || 0).toFixed(2)"
+                                             @change="recalc(row)" @keydown.enter.prevent="focusRowDisc(i)">
                                     </td>
 
                                     <td class="p-2 text-right">
-                                        <input type="number" class="border rounded px-2 py-1 w-20 text-right text-sm"
-                                            min="0" max="100" step="0.01" x-model.number="row.fdisc"
-                                            :id="'disc_row_' + i"
-                                            @focus="activeRow = row.uid; $event.target.select()"
-                                            @blur="activeRow = null" @input="recalc(row)"
-                                            @change="recalc(row)" @keydown.enter.prevent="onRowUpdated(i)">
+                                         <input type="number" class="border rounded px-2 py-1 w-20 text-right text-sm"
+                                             min="0" max="100" step="0.01" :value="Number(row.fdisc || 0).toFixed(2)"
+                                             @input="row.fdisc = +$event.target.value; recalc(row)"
+                                             :id="'disc_row_' + i"
+                                             @focus="activeRow = row.uid; $event.target.select()"
+                                             @blur="activeRow = null; $event.target.value = (+row.fdisc || 0).toFixed(2)"
+                                             @change="recalc(row)" @keydown.enter.prevent="onRowUpdated(i)">
                                     </td>
 
                                     <td class="p-2">

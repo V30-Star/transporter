@@ -367,7 +367,7 @@
                                     <td class="p-2 text-right">
                                         @if ($isEdit)
                                             <input type="number" class="border rounded px-2 py-1 w-20 text-right text-sm"
-                                                x-model.number="it.fqty" :id="'qty_saved_' + i"
+                                                x-model.number="it.fqty" :id="'qty_saved_' + i" step="any"
                                                 @focus="activeRow = it.uid; $event.target.select()" @blur="activeRow = null"
                                                 @input="onRowUpdated(i)"
                                                 @change="onRowUpdated(i)"
@@ -377,7 +377,7 @@
                                                 x-html="formatPoRemainHint(it)">
                                             </div>
                                         @else
-                                            <span class="text-sm" x-text="it.fqty"></span>
+                                            <span class="text-sm" x-text="fmtCurr(it.fqty)"></span>
                                         @endif
                                     </td>
 
@@ -386,11 +386,11 @@
                                         <input type="number"
                                             class="border rounded px-2 py-1 w-28 text-right text-sm
                                                 {{ $isReadOnly ? 'bg-gray-100 cursor-not-allowed' : '' }}"
-                                            min="0" step="0.01" x-model.number="it.fprice"
+                                            min="0" step="0.01" :value="Number(it.fprice || 0).toFixed(2)"
+                                            @input="it.fprice = +$event.target.value; @if ($isEdit) recalc(it) @endif"
                                             :id="'price_saved_' + i" @focus="activeRow = it.uid; $event.target.select()"
-                                            @blur="activeRow = null"
-                                            @if ($isEdit) @input="recalc(it)"
-                                                @change="recalc(it)"
+                                            @blur="activeRow = null; $event.target.value = (+it.fprice || 0).toFixed(2)"
+                                            @if ($isEdit) @change="recalc(it)"
                                                 @keydown.enter.prevent="focusSavedDisc(i)" @endif
                                             {{ $isReadOnly ? 'disabled' : '' }}>
                                     </td>

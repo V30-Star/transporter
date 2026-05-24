@@ -598,7 +598,7 @@
                                             <!-- Qty -->
                                             <td class="p-2 text-right">
                                                 <input type="number" class="border rounded px-2 py-1 w-full text-right"
-                                                    x-model.number="it.fqty" :id="'qty_saved_' + i"
+                                                    x-model.number="it.fqty" :id="'qty_saved_' + i" step="any"
                                                     @focus="activeRow = it.uid; $event.target.select()" @blur="activeRow = null; enforceQtyRow(it);"
                                                     @input="onRowUpdated(i)"
                                                     @change="onRowUpdated(i)"
@@ -615,9 +615,10 @@
                                                 <input type="number" class="border rounded px-2 py-1 w-full text-right"
                                                     :disabled="hasTerSourceItems"
                                                     :class="hasTerSourceItems ? 'border rounded px-2 py-1 w-full text-right bg-gray-100 cursor-not-allowed text-gray-600' : 'border rounded px-2 py-1 w-full text-right'"
-                                                    min="0" step="0.01" x-model.number="it.fprice"
+                                                    min="0" step="0.01" :value="Number(it.fprice || 0).toFixed(2)"
                                                     :id="'price_saved_' + i" @focus="activeRow = it.uid; $event.target.select()"
-                                                    @blur="activeRow = null; normalizeMoneyInput($event, it, 'fprice')" @input="recalc(it)" @change="recalc(it)"
+                                                    @blur="activeRow = null; $event.target.value = (+it.fprice || 0).toFixed(2)"
+                                                    @input="it.fprice = +$event.target.value; recalc(it)" @change="recalc(it)"
                                                     @keydown.enter.prevent="$refs['biaya_saved_' + i]?.focus()">
                                             </td>
 
@@ -626,9 +627,10 @@
                                                 <input type="number" class="border rounded px-2 py-1 w-full text-right"
                                                     :disabled="hasTerSourceItems"
                                                     :class="hasTerSourceItems ? 'border rounded px-2 py-1 w-full text-right bg-gray-100 cursor-not-allowed text-gray-600' : 'border rounded px-2 py-1 w-full text-right'"
-                                                    min="0" step="0.01" x-model.number="it.fbiaya"
+                                                    min="0" step="0.01" :value="Number(it.fbiaya || 0).toFixed(2)"
                                                     :id="'biaya_saved_' + i" @focus="activeRow = it.uid; $event.target.select()"
-                                                    @blur="activeRow = null; normalizeMoneyInput($event, it, 'fbiaya')" @input="recalc(it)" @change="recalc(it)"
+                                                    @blur="activeRow = null; $event.target.value = (+it.fbiaya || 0).toFixed(2)"
+                                                    @input="it.fbiaya = +$event.target.value; recalc(it)" @change="recalc(it)"
                                                     @keydown.enter.prevent="$refs['disc_saved_' + i]?.focus()">
                                             </td>
 
@@ -637,9 +639,10 @@
                                                 <input type="text" class="border rounded px-2 py-1 w-20 text-right text-sm"
                                                     :disabled="hasTerSourceItems"
                                                     :class="hasTerSourceItems ? 'border rounded px-2 py-1 w-20 text-right text-sm bg-gray-100 cursor-not-allowed text-gray-600' : 'border rounded px-2 py-1 w-20 text-right text-sm'"
-                                                    placeholder="10+2" x-model="it.fdiscpersen"
+                                                    placeholder="10+2" :value="it.fdiscpersen"
                                                     :id="'disc_saved_' + i" @focus="activeRow = it.uid; $event.target.select()"
-                                                    @blur="activeRow = null; normalizeDiscountInput($event, it)" @input="recalc(it)" @change="recalc(it)">
+                                                    @blur="activeRow = null; normalizeDiscountInput($event, it)"
+                                                    @input="it.fdiscpersen = $event.target.value; recalc(it)" @change="recalc(it)">
                                             </td>
 
                                             <!-- Total Harga -->
@@ -1332,7 +1335,14 @@
 
             normalizeDiscountValue(value) {
                 const cleaned = String(value ?? '').replace(/\s+/g, '');
-                return cleaned === '' ? '0' : cleaned;
+                if (cleaned === '') return '0.00';
+                if (!cleaned.includes('+')) {
+                    const num = Number(cleaned);
+                    if (Number.isFinite(num)) {
+                        return num.toFixed(2);
+                    }
+                }
+                return cleaned;
             },
 
             normalizeDiscountInput(event, row) {

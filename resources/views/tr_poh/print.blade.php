@@ -286,9 +286,9 @@
                         <td>{{ $r->product_name ?? 'CANGKANG SAWIT' }}</td>
                         <td class="text-right">{{ number_format($r->fqty ?? 100000, 2, ',', '.') }}
                             {{ $r->funit ?? 'KG' }}</td>
-                        <td class="text-right">{{ number_format($r->fprice ?? 1115, 2, '.', ',') }}</td>
-                        <td class="text-center">{{ $r->fdiscpersen ?? 0 }}</td>
-                        <td class="text-right">{{ number_format($r->famount ?? 111500000, 2, '.', ',') }}</td>
+                        <td class="text-right">{{ number_format($r->fprice ?? 1115, 2, ',', '.') }}</td>
+                        <td class="text-center">{{ number_format((float)($r->fdisc ?? 0), 2, ',', '.') }}</td>
+                        <td class="text-right">{{ number_format($r->famount ?? 111500000, 2, ',', '.') }}</td>
                     </tr>
                 @endforeach
             </tbody>
@@ -308,7 +308,7 @@
             </div>
             <div class="summary-row">
                 <span>Discount :</span>
-                <span>0.00</span>
+                <span>0,00</span>
             </div>
             @if ($hdr->fincludeppn == '1')
                 <div class="summary-row">

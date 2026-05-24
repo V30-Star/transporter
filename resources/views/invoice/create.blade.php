@@ -478,16 +478,21 @@
                                                 class="w-full border rounded px-2 py-1 text-right text-sm"
                                                 min="0" step="0.01"
                                                 :id="'price_row_' + i"
-                                                x-model.number="it.fprice"
-                                                @input="onRowUpdated(i)"
+                                                :value="Number(it.fprice || 0).toFixed(2)"
+                                                @focus="activeRow = it.uid; $event.target.select()"
+                                                @blur="activeRow = null; $event.target.value = (+it.fprice || 0).toFixed(2)"
+                                                @input="it.fprice = +$event.target.value; onRowUpdated(i)"
                                                 @keydown.enter.prevent="focusRowDisc(i)">
                                         </td>
                                         <td class="p-2 text-right">
                                             <input type="text"
                                                 class="w-full border rounded px-2 py-1 text-right text-sm"
                                                 :id="'disc_row_' + i"
-                                                x-model="it.fdisc"
-                                                @input="onRowUpdated(i)">
+                                                :value="normalizeDiscountValue(it.fdisc)"
+                                                @focus="activeRow = it.uid; $event.target.select()"
+                                                @blur="activeRow = null; normalizeDiscountInput($event, it)"
+                                                @input="it.fdisc = $event.target.value; onRowUpdated(i)"
+                                                @keydown.enter.prevent="$event.target.blur()">
                                         </td>
                                         <td class="p-2">
                                             <input type="text"
@@ -1560,6 +1565,29 @@
                 } catch (e) {
                     console.warn('Invalid discount format:', discStr);
                     return 0;
+                }
+            },
+
+            normalizeDiscountValue(value) {
+                const cleaned = String(value ?? '').replace(/\s+/g, '');
+                if (cleaned === '') return '0.00';
+                if (!cleaned.includes('+')) {
+                    const num = Number(cleaned);
+                    if (Number.isFinite(num)) {
+                        return num.toFixed(2);
+                    }
+                }
+                return cleaned;
+            },
+
+            normalizeDiscountInput(event, row) {
+                const normalized = this.normalizeDiscountValue(row?.fdisc);
+                if (row) {
+                    row.fdisc = normalized;
+                    this.recalc(row);
+                }
+                if (event?.target) {
+                    event.target.value = normalized;
                 }
             },
 

@@ -607,7 +607,7 @@
                                             <td class="p-2 text-right" x-text="fmt(it.fqty)"></td>
                                             <td class="p-2 text-right" x-text="fmt(it.fprice)"></td>
                                             <td class="p-2 text-right" x-text="fmt(it.fbiaya)"></td>
-                                            <td class="p-2 text-right" x-text="it.fdiscpersen"></td>
+                                            <td class="p-2 text-right" x-text="it.fdiscpersen && it.fdiscpersen.toString().includes('+') ? it.fdiscpersen : fmt(it.fdiscpersen)"></td>
                                             <td class="p-2">
                                                 <input type="text"
                                                     class="w-full border rounded px-2 py-1 bg-gray-100 text-gray-600 text-sm text-right"
@@ -1229,7 +1229,7 @@
                                                 <td class="p-2 text-right">
                                                     <input type="number"
                                                         class="border rounded px-2 py-1 w-full text-right" min="0"
-                                                        x-model.number="it.fqty"
+                                                        x-model.number="it.fqty" step="any"
                                                         @focus="activeRow = it.uid; $event.target.select()"
                                                         @blur="activeRow = null; enforceQtyRow(it); recalc(it);"
                                                         @input="enforceQtyRow(it); onRowUpdated(i);"
@@ -1246,29 +1246,30 @@
                                                         class="border rounded px-2 py-1 w-full text-right" min="0"
                                                         :disabled="hasTerSourceItems"
                                                         :class="hasTerSourceItems ? 'border rounded px-2 py-1 w-full text-right bg-gray-100 cursor-not-allowed text-gray-600' : 'border rounded px-2 py-1 w-full text-right'"
-                                                        step="0.01" x-model.number="it.fprice"
+                                                        step="0.01" :value="Number(it.fprice || 0).toFixed(2)"
                                                         @focus="activeRow = it.uid; $event.target.select()"
-                                                        @blur="activeRow = null; normalizeMoneyInput($event, it, 'fprice')"
-                                                        @input="recalc(it)" @change="recalc(it)">
+                                                        @blur="activeRow = null; $event.target.value = (+it.fprice || 0).toFixed(2)"
+                                                        @input="it.fprice = +$event.target.value; recalc(it)" @change="recalc(it)">
                                                 </td>
                                                 <td class="p-2 text-right">
                                                     <input type="number"
                                                         class="border rounded px-2 py-1 w-full text-right" min="0"
                                                         :disabled="hasTerSourceItems"
                                                         :class="hasTerSourceItems ? 'border rounded px-2 py-1 w-full text-right bg-gray-100 cursor-not-allowed text-gray-600' : 'border rounded px-2 py-1 w-full text-right'"
-                                                        step="0.01" x-model.number="it.fbiaya"
+                                                        step="0.01" :value="Number(it.fbiaya || 0).toFixed(2)"
                                                         @focus="activeRow = it.uid; $event.target.select()"
-                                                        @blur="activeRow = null; normalizeMoneyInput($event, it, 'fbiaya')"
-                                                        @input="recalc(it)" @change="recalc(it)">
+                                                        @blur="activeRow = null; $event.target.value = (+it.fbiaya || 0).toFixed(2)"
+                                                        @input="it.fbiaya = +$event.target.value; recalc(it)" @change="recalc(it)">
                                                 </td>
                                                 <td class="p-2 text-right">
                                                     <input type="text"
                                                         class="border rounded px-2 py-1 w-full text-right" min="0"
                                                         :disabled="hasTerSourceItems"
                                                         :class="hasTerSourceItems ? 'border rounded px-2 py-1 w-full text-right bg-gray-100 cursor-not-allowed text-gray-600' : 'border rounded px-2 py-1 w-full text-right'"
-                                                        placeholder="10+2" x-model="it.fdiscpersen"
+                                                        placeholder="10+2" :value="it.fdiscpersen"
                                                         @focus="activeRow = it.uid; $event.target.select()"
-                                                        @blur="activeRow = null; normalizeDiscountInput($event, it)" @input="recalc(it)"
+                                                        @blur="activeRow = null; normalizeDiscountInput($event, it)"
+                                                        @input="it.fdiscpersen = $event.target.value; recalc(it)"
                                                         @change="recalc(it)">
                                                 </td>
                                                 <td class="p-2">
@@ -2109,7 +2110,14 @@
 
                 normalizeDiscountValue(value) {
                     const cleaned = String(value ?? '').replace(/\s+/g, '');
-                    return cleaned === '' ? '0' : cleaned;
+                    if (cleaned === '') return '0.00';
+                    if (!cleaned.includes('+')) {
+                        const num = Number(cleaned);
+                        if (Number.isFinite(num)) {
+                            return num.toFixed(2);
+                        }
+                    }
+                    return cleaned;
                 },
 
                 normalizeDiscountInput(event, row) {

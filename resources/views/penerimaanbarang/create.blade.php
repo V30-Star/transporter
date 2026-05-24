@@ -329,7 +329,7 @@
                                     {{-- Qty --}}
                                     <td class="p-2 text-right">
                                         <input type="number" class="border rounded px-2 py-1 w-20 text-right text-sm"
-                                            x-model.number="it.fqty" :id="'qty_saved_' + i"
+                                            x-model.number="it.fqty" :id="'qty_saved_' + i" step="any"
                                             @focus="activeRow = it.uid; $event.target.select()"
                                             @blur="activeRow = null; enforceQtyRow(it);" @input="onRowUpdated(i)"
                                             @change="onRowUpdated(i)" @keydown.enter.prevent="focusSavedPrice(i)">
@@ -338,9 +338,10 @@
                                     {{-- @ Harga --}}
                                     <td class="p-2 text-right">
                                         <input type="number" class="border rounded px-2 py-1 w-28 text-right text-sm"
-                                            min="0" step="0.01" x-model.number="it.fprice"
+                                            min="0" step="0.01" :value="Number(it.fprice || 0).toFixed(2)"
+                                            @input="it.fprice = +$event.target.value; recalc(it)"
                                             :id="'price_saved_' + i" @focus="activeRow = it.uid; $event.target.select()"
-                                            @blur="activeRow = null" @input="recalc(it)" @change="recalc(it)"
+                                            @blur="activeRow = null; $event.target.value = (+it.fprice || 0).toFixed(2)" @change="recalc(it)"
                                             @keydown.enter.prevent="focusSavedDisc(i)">
                                     </td>
 

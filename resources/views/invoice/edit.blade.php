@@ -416,7 +416,7 @@
                                             <td class="p-2" x-text="it.frefno_display || it.frefcode || '-'"></td>
                                             <td class="p-2 text-right" x-text="fmt(it.fqty)"></td>
                                             <td class="p-2 text-right" x-text="fmt(it.fprice)"></td>
-                                            <td class="p-2 text-right" x-text="it.fdisc"></td>
+                                            <td class="p-2 text-right" x-text="it.fdisc && it.fdisc.toString().includes('+') ? it.fdisc : fmt(it.fdisc)"></td>
                                             <td class="p-2 text-right" x-text="fmt(it.ftotal)"></td>
                                         </tr>
 
@@ -1133,16 +1133,21 @@
                                                         class="w-full border rounded px-2 py-1 text-right text-sm"
                                                         min="0" step="0.01"
                                                         :id="'price_row_' + i"
-                                                        x-model.number="it.fprice"
-                                                        @input="onRowUpdated(i)"
+                                                        :value="Number(it.fprice || 0).toFixed(2)"
+                                                        @focus="activeRow = it.uid; $event.target.select()"
+                                                        @blur="activeRow = null; $event.target.value = (+it.fprice || 0).toFixed(2)"
+                                                        @input="it.fprice = +$event.target.value; onRowUpdated(i)"
                                                         @keydown.enter.prevent="focusRowDisc(i)">
                                                 </td>
                                                 <td class="p-2 text-right">
                                                     <input type="text"
                                                         class="w-full border rounded px-2 py-1 text-right text-sm"
                                                         :id="'disc_row_' + i"
-                                                        x-model="it.fdisc"
-                                                        @input="onRowUpdated(i)">
+                                                        :value="normalizeDiscountValue(it.fdisc)"
+                                                        @focus="activeRow = it.uid; $event.target.select()"
+                                                        @blur="activeRow = null; normalizeDiscountInput($event, it)"
+                                                        @input="it.fdisc = $event.target.value; onRowUpdated(i)"
+                                                        @keydown.enter.prevent="$event.target.blur()">
                                                 </td>
                                                 <td class="p-2">
                                                     <input type="text"
@@ -2222,6 +2227,29 @@
                 }
             },
 
+            normalizeDiscountValue(value) {
+                const cleaned = String(value ?? '').replace(/\s+/g, '');
+                if (cleaned === '') return '0.00';
+                if (!cleaned.includes('+')) {
+                    const num = Number(cleaned);
+                    if (Number.isFinite(num)) {
+                        return num.toFixed(2);
+                    }
+                }
+                return cleaned;
+            },
+
+            normalizeDiscountInput(event, row) {
+                const normalized = this.normalizeDiscountValue(row?.fdisc);
+                if (row) {
+                    row.fdisc = normalized;
+                    this.recalc(row);
+                }
+                if (event?.target) {
+                    event.target.value = normalized;
+                }
+            },
+
             recalc(row) {
                 row.fqty = Math.max(0, +row.fqty || 0);
                 row.fprice = Math.max(0, +row.fprice || 0);
@@ -2523,6 +2551,41 @@
 
             getCurrentItemKeys() {
                 return this.submitItems.map(it => this.itemKey(it));
+            },
+
+            normalizeRestoredRow(item, index = 0) {
+                const row = {
+                    ...newRow(),
+                    ...(item || {}),
+                    uid: item?.uid || `restored-${index}`
+                };
+                row.fnoacak = this.normalizeNoAcak(row.fnoacak) || this.generateUniqueNoAcak();
+                row.frefnoacak = this.normalizeRefNoAcak(row.frefnoacak);
+
+                if (typeof row.units === 'string') {
+                    try {
+                        const parsed = JSON.parse(row.units);
+                        row.units = Array.isArray(parsed) ? parsed : [];
+                    } catch (e) {
+                        row.units = row.units.split(',').map(u => u.trim()).filter(Boolean);
+                    }
+                } else if (!Array.isArray(row.units)) {
+                    row.units = [];
+                }
+
+                const meta = this.productMeta(row.fitemcode);
+                if (meta?.units?.length) {
+                    row.units = [...new Set([...row.units, ...meta.units])];
+                } else if (row.fsatuan && !row.units.includes(row.fsatuan)) {
+                    row.units.unshift(row.fsatuan);
+                }
+
+                if (meta?.unit_ratios) {
+                    row.unit_ratios = row.unit_ratios || meta.unit_ratios;
+                }
+
+                this.recalc(row);
+                return row;
             },
 
             createRow(overrides = {}) {

@@ -451,12 +451,14 @@
                                                 <td class="p-2 text-right">
                                                     <input type="number"
                                                         class="w-full border rounded px-2 py-1 text-right"
-                                                        x-model.number="it.fprice" @input="recalc(it)">
+                                                        :value="Number(it.fprice || 0).toFixed(2)"
+                                                        disabled>
                                                 </td>
                                                 <td class="p-2 text-right">
                                                     <input type="text"
                                                         class="w-full border rounded px-2 py-1 text-right"
-                                                        x-model="it.fdisc" @input="recalc(it)">
+                                                        :value="normalizeDiscountValue(it.fdisc)"
+                                                        disabled>
                                                 </td>
                                                 <td class="p-2">
                                                     <input type="text"
@@ -551,12 +553,15 @@
                                             </td>
                                             <td class="p-2 text-right">
                                                 <input type="number" class="border rounded px-2 py-1 w-28 text-right"
-                                                    x-model.number="draft.fprice" @input="recalc(draft)"
+                                                    :value="Number(draft.fprice || 0).toFixed(2)"
+                                                    disabled
                                                     x-ref="draftPrice">
                                             </td>
                                             <td class="p-2 text-right">
                                                 <input type="text" class="border rounded px-2 py-1 w-24 text-right"
-                                                    x-model="draft.fdisc" @input="recalc(draft)" x-ref="draftDisc">
+                                                    :value="normalizeDiscountValue(draft.fdisc)"
+                                                    disabled
+                                                    x-ref="draftDisc">
                                             </td>
                                             <td class="p-2">
                                                 <input type="text"
@@ -1057,7 +1062,8 @@
                                                         class="w-full border rounded px-2 py-1 text-right text-sm"
                                                         min="0" step="0.01"
                                                         :id="'price_row_' + i"
-                                                        x-model.number="it.fprice"
+                                                        :value="Number(it.fprice || 0).toFixed(2)"
+                                                        @blur="it.fprice = Number($event.target.value) || 0; onRowUpdated(i)"
                                                         @input="onRowUpdated(i)"
                                                         @keydown.enter.prevent="focusRowDisc(i)">
                                                 </td>
@@ -1065,8 +1071,9 @@
                                                     <input type="text"
                                                         class="w-full border rounded px-2 py-1 text-right text-sm"
                                                         :id="'disc_row_' + i"
-                                                        x-model="it.fdisc"
-                                                        @input="onRowUpdated(i)"
+                                                        :value="normalizeDiscountValue(it.fdisc)"
+                                                        @blur="normalizeDiscountInput($event, it); onRowUpdated(i)"
+                                                        @input="it.fdisc = $event.target.value; onRowUpdated(i)"
                                                         @keydown.enter.prevent="onRowUpdated(i)">
                                                 </td>
                                                 <td class="p-2">
@@ -2726,6 +2733,29 @@
                 } catch (e) {
                     console.warn('Invalid discount format:', discStr);
                     return 0;
+                }
+            },
+
+            normalizeDiscountValue(value) {
+                const cleaned = String(value ?? '').replace(/\s+/g, '');
+                if (cleaned === '') return '0.00';
+                if (!cleaned.includes('+')) {
+                    const num = Number(cleaned);
+                    if (Number.isFinite(num)) {
+                        return num.toFixed(2);
+                    }
+                }
+                return cleaned;
+            },
+
+            normalizeDiscountInput(event, row) {
+                const normalized = this.normalizeDiscountValue(row?.fdisc);
+                if (row) {
+                    row.fdisc = normalized;
+                    this.recalc(row);
+                }
+                if (event?.target) {
+                    event.target.value = normalized;
                 }
             },
 

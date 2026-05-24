@@ -287,14 +287,22 @@
             </thead>
             <tbody>
                 @foreach ($dt as $i => $r)
+                    @php
+                        $discVal = $r->fdisc ?? '0';
+                        if (is_numeric($discVal)) {
+                            $formattedDisc = number_format((float)$discVal, 2, ',', '.');
+                        } else {
+                            $formattedDisc = $discVal;
+                        }
+                    @endphp
                     <tr>
                         <td class="text-center">{{ $i + 1 }}</td>
                         <td>{{ $r->product_name ?? 'CANGKANG SAWIT' }}</td>
                         <td class="text-right">{{ $fmtQty($r->fqty ?? 100000) }}
                             {{ $r->funit ?? 'KG' }}</td>
-                        <td class="text-right">{{ number_format($r->fprice ?? 1115, 2, '.', ',') }}</td>
-                        <td class="text-center">{{ $r->fdiscpersen ?? 0 }}</td>
-                        <td class="text-right">{{ number_format($r->famount ?? 111500000, 2, '.', ',') }}</td>
+                        <td class="text-right">{{ number_format($r->fprice ?? 1115, 2, ',', '.') }}</td>
+                        <td class="text-center">{{ $formattedDisc }}</td>
+                        <td class="text-right">{{ number_format($r->famount ?? 111500000, 2, ',', '.') }}</td>
                     </tr>
                 @endforeach
             </tbody>
@@ -302,31 +310,44 @@
 
         <div class="footer-line"></div>
 
+        @php
+            $famountso = (float) ($hdr->famountso ?? 123765000);
+        @endphp
+
         <div class="terbilang-box">
             Terbilang : <br>
-            # {{ strtoupper(terbilang($hdr->famountso ?? 123765000)) }} RUPIAH #
+            # {{ strtoupper(terbilang($famountso)) }} RUPIAH #
         </div>
 
         <div class="summary-box">
+            @php
+                $famountgross = (float) ($hdr->famountgross ?? 0);
+                if ($famountgross <= 0) {
+                    $famountgross = (float) ($hdr->famountsonet ?? 111500000);
+                }
+                $fdiscount = (float) ($hdr->fdiscount ?? 0);
+                $totalSetelahDisc = $famountgross - $fdiscount;
+                $famountpajak = (float) ($hdr->famountpajak ?? 12265000);
+            @endphp
             <div class="summary-row">
                 <span>Total Harga :</span>
-                <span>{{ number_format($hdr->famountsonet ?? 111500000, 2, '.', ',') }}</span>
+                <span>{{ number_format($famountgross, 2, ',', '.') }}</span>
             </div>
             <div class="summary-row">
                 <span>Discount :</span>
-                <span>0.00</span>
+                <span>{{ number_format($fdiscount, 2, ',', '.') }}</span>
             </div>
             <div class="summary-row">
                 <span>Total Setelah Disc :</span>
-                <span>{{ number_format($hdr->famountsonet ?? 111500000, 2, '.', ',') }}</span>
+                <span>{{ number_format($totalSetelahDisc, 2, ',', '.') }}</span>
             </div>
             <div class="summary-row">
                 <span>PPN :</span>
-                <span>{{ number_format($hdr->famountpajak ?? 12265000, 2, '.', ',') }}</span>
+                <span>{{ number_format($famountpajak, 2, ',', '.') }}</span>
             </div>
             <div class="summary-row grand-total">
                 <span>Grand Total :</span>
-                <span>{{ number_format($hdr->famountso ?? 123765000, 2, '.', ',') }}</span>
+                <span>{{ number_format($famountso, 2, ',', '.') }}</span>
             </div>
         </div>
 

@@ -389,12 +389,12 @@ class Tr_prhController extends Controller
             for ($i = 0; $i < $rowCount; $i++) {
                 $code = trim($codes[$i] ?? '');
                 $sat = trim($sats[$i] ?? '');
-                $qty = is_numeric($qtys[$i] ?? null) ? (int) $qtys[$i] : null;
+                $qty = is_numeric($qtys[$i] ?? null) ? (float) $qtys[$i] : null;
                 $noacak = $this->normalizeRandomNumber($noacaks[$i] ?? null, $usedNoAcaks);
                 $desc = $descs[$i] ?? null;
                 $ketdt = $ketdts[$i] ?? null;
 
-                if ($code !== '' && $sat !== '' && is_numeric($qty) && $qty >= 1) {
+                if ($code !== '' && $sat !== '' && is_numeric($qty) && $qty > 0) {
                     $product = $productMap[$code] ?? null;
                     $productId = (int) ($product->fprdid ?? 0);
                     if ($productId === 0) {
@@ -405,7 +405,7 @@ class Tr_prhController extends Controller
 
                     $detailRows[] = [
                         'fprdcode' => $product->fprdcode ?? '',
-                        'fqty' => (int) $qty,
+                        'fqty' => (float) $qty,
                         'fqtykecil' => $qtyKecil,
                         'fqtyremain' => $qtyKecil,
                         'fnoacak' => $noacak,
@@ -586,7 +586,7 @@ class Tr_prhController extends Controller
 
         foreach ($codes as $i => $codeStr) {
             $code = trim($codeStr);
-            $qty = (int) ($qtys[$i] ?? 0);
+            $qty = (float) ($qtys[$i] ?? 0);
             $did = (int) ($idsIn[$i] ?? 0);
             $sat = trim($sats[$i] ?? '');
 
@@ -671,7 +671,7 @@ class Tr_prhController extends Controller
 
                 $did = (int) ($idsIn[$i] ?? 0);
                 $sat = trim($sats[$i] ?? '');
-                $qty = (int) ($qtys[$i] ?? 0);
+                $qty = (float) ($qtys[$i] ?? 0);
                 $noacak = $this->normalizeRandomNumber($noacaks[$i] ?? null, $usedNoAcaks);
                 $desc = $descs[$i] ?? null;
                 $ket = $ketdts[$i] ?? null;
@@ -838,7 +838,7 @@ class Tr_prhController extends Controller
             'fsatuan' => ['array'],
             'fsatuan.*' => ['nullable', 'string', 'max:20'],
             'fqty' => ['array'],
-            'fqty.*' => ['nullable', 'numeric', 'min:1'],
+            'fqty.*' => ['nullable', 'numeric', 'min:0.01'],
             'fnoacak' => ['array'],
             'fnoacak.*' => ['nullable', 'regex:/^[1-9]{3}$/'],
             'fdesc' => ['array'],
@@ -902,9 +902,9 @@ class Tr_prhController extends Controller
         for ($i = 0; $i < $rowCount; $i++) {
             $code = trim($codes[$i] ?? '');
             $sat = trim($sats[$i] ?? '');
-            $qty = is_numeric($qtys[$i] ?? null) ? (int) $qtys[$i] : null;
+            $qty = is_numeric($qtys[$i] ?? null) ? (float) $qtys[$i] : null;
 
-            if ($code !== '' && $sat !== '' && is_numeric($qty) && $qty >= 1) {
+            if ($code !== '' && $sat !== '' && is_numeric($qty) && $qty > 0) {
                 return true;
             }
         }
@@ -1104,7 +1104,7 @@ class Tr_prhController extends Controller
         })->values();
     }
 
-    private function convertQtyToSmallUnit($product, string $unit, int $qty): float|int
+    private function convertQtyToSmallUnit($product, string $unit, float $qty): float|int
     {
         if (! $product) {
             return $qty;
