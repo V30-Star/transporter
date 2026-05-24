@@ -1124,6 +1124,25 @@ class FakturpembelianController extends Controller
 
                 $isSaldoAwal = $this->isOpeningBalanceProductCode($code);
                 $sat = mb_substr(trim((string) ($satuans[$i] ?? $meta->fsatuankecil ?? '')), 0, 5);
+                $sourceType = $isSaldoAwal ? '' : strtoupper(trim((string) ($sources[$i] ?? '')));
+                $frefdtid = $isSaldoAwal ? null : (isset($refdtids[$i]) ? (int) $refdtids[$i] : null);
+                if (! $isSaldoAwal && $frefdtid > 0) {
+                    if ($sourceType === 'PO') {
+                        $refUnit = DB::table('tr_pod')
+                            ->where('fpodid', $frefdtid)
+                            ->value('fsatuan');
+                        if ($refUnit !== null) {
+                            $sat = trim($refUnit);
+                        }
+                    } elseif ($sourceType === 'PB') {
+                        $refUnit = DB::table('trstockdt')
+                            ->where('fstockdtid', $frefdtid)
+                            ->value('fsatuan');
+                        if ($refUnit !== null) {
+                            $sat = trim($refUnit);
+                        }
+                    }
+                }
                 $qtyKecil = ($sat === $meta->fsatuanbesar && ($meta->fqtykecil ?? 0) > 0) ? $qty * (float) $meta->fqtykecil : $qty;
                 if ($isSaldoAwal) {
                     $qtyKecil = 0;
@@ -1829,12 +1848,33 @@ class FakturpembelianController extends Controller
 
                 $isSaldoAwal = $this->isOpeningBalanceProductCode($code);
                 $sat = trim((string) ($satuans[$i] ?? ''));
+                if ($sat === '') {
+                    $sat = $meta->fsatuankecil ?? '';
+                }
+                $sourceType = $isSaldoAwal ? '' : strtoupper(trim((string) ($sources[$i] ?? '')));
+                $frefdtid = $isSaldoAwal ? null : (isset($refdtids[$i]) ? (int) $refdtids[$i] : null);
+                if (! $isSaldoAwal && $frefdtid > 0) {
+                    if ($sourceType === 'PO') {
+                        $refUnit = DB::table('tr_pod')
+                            ->where('fpodid', $frefdtid)
+                            ->value('fsatuan');
+                        if ($refUnit !== null) {
+                            $sat = trim($refUnit);
+                        }
+                    } elseif ($sourceType === 'PB') {
+                        $refUnit = DB::table('trstockdt')
+                            ->where('fstockdtid', $frefdtid)
+                            ->value('fsatuan');
+                        if ($refUnit !== null) {
+                            $sat = trim($refUnit);
+                        }
+                    }
+                }
                 $price = (float) ($prices[$i] ?? 0);
                 $biaya = (float) ($biayas[$i] ?? 0);
                 $discRaw = $this->normalizeDiscountInput($discs[$i] ?? 0);
                 $discP = $this->parseDiscountExpression($discRaw);
                 $desc = trim((string) ($descs[$i] ?? ''));
-                $sourceType = $isSaldoAwal ? '' : strtoupper(trim((string) ($sources[$i] ?? '')));
 
                 // Konversi Satuan & Qty Kecil
                 $qtyKecil = $qty;

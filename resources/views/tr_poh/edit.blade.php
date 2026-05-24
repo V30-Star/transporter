@@ -438,7 +438,7 @@
 
                                 <td class="p-2">
                                     @if ($isEdit)
-                                        <template x-if="row.units.length > 1">
+                                        <template x-if="row.units.length > 1 && !row.frefdtid">
                                             <select class="w-full border rounded px-2 py-1 text-sm" :id="'unit_row_' + i"
                                                 x-model="row.fsatuan" @focus="activeRow = row.uid"
                                                 @blur="activeRow = null" @change="onRowUpdated(i)"
@@ -448,7 +448,7 @@
                                                 </template>
                                             </select>
                                         </template>
-                                        <input type="text" x-show="row.units.length <= 1"
+                                        <input type="text" x-show="row.units.length <= 1 || row.frefdtid"
                                             class="w-full border rounded px-2 py-1 bg-gray-100 text-gray-600 text-sm"
                                             :value="row.fsatuan || '-'" disabled>
                                     @else
@@ -1384,7 +1384,7 @@
                 this.recalc(row);
             },
 
-            hydrateRowFromMeta(row, meta, keepMaxqty = false) {
+            hydrateRowFromMeta(row, meta, keepMaxqty = false, forceDefaultUnit = false) {
                 if (!meta) {
                     row.fitemname = '';
                     row.units = [];
@@ -1399,7 +1399,7 @@
                 const resolvedDefaultUnit = defaultUnit && units.includes(defaultUnit) ? defaultUnit : (units[0] || '');
                 if (currentSatuan && !units.includes(currentSatuan)) units.unshift(currentSatuan);
                 row.units = units;
-                if (!currentSatuan) row.fsatuan = resolvedDefaultUnit;
+                if (!currentSatuan || forceDefaultUnit) row.fsatuan = resolvedDefaultUnit;
                 if (meta.unit_ratios) row.unit_ratios = meta.unit_ratios;
                 row.fsatuankecil = row.fsatuankecil || meta.fsatuankecil || '';
                 row.fsatuanbesar = row.fsatuanbesar || meta.fsatuanbesar || '';
@@ -1410,7 +1410,7 @@
             },
 
             onCodeTypedRow(row, index = null) {
-                this.hydrateRowFromMeta(row, this.productMeta(row.fitemcode));
+                this.hydrateRowFromMeta(row, this.productMeta(row.fitemcode), false, true);
                 row.fnoacak = this.normalizeNoAcak(row.fnoacak) || this.generateUniqueNoAcak(row.uid);
                 row.maxqty = this.calcMaxQty(row);
                 this.recalc(row);
@@ -1803,7 +1803,7 @@
                         fsatuan: row.fsatuan || ''
                     };
                     row.fitemcode = candidate.fitemcode;
-                    this.hydrateRowFromMeta(row, this.productMeta(row.fitemcode), true);
+                    this.hydrateRowFromMeta(row, this.productMeta(row.fitemcode), true, true);
                     candidate.fsatuan = row.fsatuan || '';
                     if (this.isDupeItem(candidate, row.uid)) {
                         this.showDupItemModal = true;

@@ -338,7 +338,7 @@
                                     {{-- Satuan --}}
                                     <td class="p-2 align-top">
                                         @if ($isEdit)
-                                            <template x-if="unitOptions(it).length > 1">
+                                            <template x-if="unitOptions(it).length > 1 && !it.frefdtid">
                                                 <select class="w-full border rounded px-2 py-1 text-sm"
                                                     :id="'unit_saved_' + i" x-model="it.fsatuan"
                                                     @focus="activeRow = it.uid" @blur="activeRow = null"
@@ -351,7 +351,7 @@
                                             </template>
                                         @endif
                                         <input type="text"
-                                            x-show="{{ $isReadOnly ? 'true' : 'unitOptions(it).length <= 1' }}"
+                                            x-show="{{ $isReadOnly ? 'true' : 'unitOptions(it).length <= 1 || it.frefdtid' }}"
                                             class="w-full border rounded px-2 py-1 bg-gray-100 text-gray-600 text-sm"
                                             :value="it.fsatuan || '-'" disabled>
                                     </td>
@@ -1116,11 +1116,11 @@
                 },
 
                 onCodeTypedRow(row) {
-                    this.hydrateRowFromMeta(row, this.productMeta(row.fitemcode));
+                    this.hydrateRowFromMeta(row, this.productMeta(row.fitemcode), false, true);
                     this.$nextTick(() => this.applyLastPrice(row));
                 },
                 onCodeTypedSaved(item, index = null) {
-                    this.hydrateRowFromMeta(item, this.productMeta(item.fitemcode));
+                    this.hydrateRowFromMeta(item, this.productMeta(item.fitemcode), false, true);
                     this.$nextTick(() => this.applyLastPrice(item));
                     this.onRowUpdated(index);
                 },

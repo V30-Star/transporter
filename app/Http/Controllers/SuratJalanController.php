@@ -654,6 +654,27 @@ class SuratJalanController extends Controller
 
             $meta = $prodMeta[$code] ?? null;
 
+            $frefdtnoValue = ($rref !== null && $rref !== '') ? (int) $rref : null;
+            $refDoc = trim((string) ($frefso[$i] ?? ''));
+
+            if ($frefdtnoValue > 0 && $refDoc !== '') {
+                if ($this->isInvoiceReferenceDoc($refDoc)) {
+                    $refSat = DB::table('trstockdt')
+                        ->where('fstockdtid', $frefdtnoValue)
+                        ->value('fsatuan');
+                    if ($refSat) {
+                        $sat = trim($refSat);
+                    }
+                } else {
+                    $refSat = DB::table('trsodt')
+                        ->where('ftrsodtid', $frefdtnoValue)
+                        ->value('fsatuan');
+                    if ($refSat) {
+                        $sat = trim($refSat);
+                    }
+                }
+            }
+
             $qtyKecil = $qty;
             if ($sat !== '' && $sat === trim((string) ($meta->fsatuanbesar ?? '')) && (float) $meta->fqtykecil > 0) {
                 $qtyKecil = $qty * (float) $meta->fqtykecil;
@@ -1337,6 +1358,27 @@ class SuratJalanController extends Controller
             $desc = (string) ($descs[$i] ?? '');
 
             $meta = $prodMeta[$code] ?? null;
+
+            $frefdtnoValue = ($rref !== null && $rref !== '') ? (int) $rref : null;
+            $refDoc = trim((string) ($frefso[$i] ?? ''));
+
+            if ($frefdtnoValue > 0 && $refDoc !== '') {
+                if ($this->isInvoiceReferenceDoc($refDoc)) {
+                    $refSat = DB::table('trstockdt')
+                        ->where('fstockdtid', $frefdtnoValue)
+                        ->value('fsatuan');
+                    if ($refSat) {
+                        $sat = trim($refSat);
+                    }
+                } else {
+                    $refSat = DB::table('trsodt')
+                        ->where('ftrsodtid', $frefdtnoValue)
+                        ->value('fsatuan');
+                    if ($refSat) {
+                        $sat = trim($refSat);
+                    }
+                }
+            }
 
             $qtyKecil = $qty;
             if ($meta && $sat !== '' && $sat === trim((string) ($meta->fsatuanbesar ?? '')) && (float) $meta->fqtykecil > 0) {

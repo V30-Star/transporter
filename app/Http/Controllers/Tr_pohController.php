@@ -891,6 +891,14 @@ class Tr_pohController extends Controller
             if ($sat === '') {
                 $sat = $pickDefaultSat($code);
             }
+            if ($frefdtid > 0) {
+                $prUnit = DB::table('tr_prd')
+                    ->where('fprdid', $frefdtid)
+                    ->value('fsatuan');
+                if ($prUnit !== null) {
+                    $sat = trim($prUnit);
+                }
+            }
             $sat = mb_substr($sat, 0, 20);
             if ($sat === '') {
                 continue;
@@ -1567,6 +1575,14 @@ class Tr_pohController extends Controller
 
             if ($sat === '') {
                 $sat = $pickDefaultSat($code);
+            }
+            if ($frefdtid > 0) {
+                $prUnit = DB::table('tr_prd')
+                    ->where('fprdid', $frefdtid)
+                    ->value('fsatuan');
+                if ($prUnit !== null) {
+                    $sat = trim($prUnit);
+                }
             }
             $sat = mb_substr($sat, 0, 20);
             if ($sat === '') {

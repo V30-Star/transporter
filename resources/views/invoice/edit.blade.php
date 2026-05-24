@@ -1094,7 +1094,7 @@
                                                     </div>
                                                 </td>
                                                 <td class="p-2">
-                                                    <template x-if="it.units && it.units.length > 1">
+                                                    <template x-if="it.units && it.units.length > 1 && !it.frefso && !it.frefsrj">
                                                         <select class="w-full border rounded px-2 py-1 text-sm focus:ring-1 focus:ring-blue-500"
                                                             :id="'unit_row_' + i"
                                                             x-model="it.fsatuan"
@@ -1105,7 +1105,7 @@
                                                             </template>
                                                         </select>
                                                     </template>
-                                                    <template x-if="!it.units || it.units.length <= 1">
+                                                    <template x-if="!(it.units && it.units.length > 1 && !it.frefso && !it.frefsrj)">
                                                         <div class="px-2 py-1 text-sm text-gray-600 bg-gray-50 border rounded"
                                                             x-text="it.fsatuan || '-'"></div>
                                                     </template>
@@ -2396,7 +2396,7 @@
 
             },
 
-            hydrateRowFromMeta(row, meta) {
+            hydrateRowFromMeta(row, meta, forceDefaultUnit = false) {
                 if (!meta) {
                     row.fitemname = '';
                     row.units = [];
@@ -2407,7 +2407,9 @@
                 row.fitemname = meta.name || '';
                 const units = [...new Set((meta.units || []).map(u => (u ?? '').toString().trim()).filter(Boolean))];
                 row.units = units;
-                if (!units.includes(row.fsatuan)) row.fsatuan = units[0] || '';
+                if (forceDefaultUnit || !units.includes(row.fsatuan)) {
+                    row.fsatuan = units[0] || '';
+                }
                 if (meta.unit_ratios) row.unit_ratios = meta.unit_ratios;
                 row.maxqty = Number.isFinite(+row.maxqty) ? +row.maxqty : 0;
             },
@@ -2418,7 +2420,7 @@
                     this.hydrateRowFromMeta(row, null);
                     return;
                 }
-                this.hydrateRowFromMeta(row, this.productMeta(row.fitemcode));
+                this.hydrateRowFromMeta(row, this.productMeta(row.fitemcode), true);
                 row.fnoacak = this.normalizeNoAcak(row.fnoacak) || this.generateUniqueNoAcak(row.uid);
                 this.onRowUpdated(index);
             },

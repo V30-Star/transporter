@@ -579,7 +579,7 @@
 
                                             <!-- Satuan -->
                                             <td class="p-2 align-top">
-                                                <template x-if="it.units && it.units.length > 1">
+                                                <template x-if="it.units && it.units.length > 1 && !it.frefdtid">
                                                     <select class="w-full border rounded px-2 py-1 text-sm"
                                                         :id="'unit_saved_' + i"
                                                         x-model="it.fsatuan"
@@ -590,7 +590,7 @@
                                                         </template>
                                                     </select>
                                                 </template>
-                                                <input type="text" x-show="!it.units || it.units.length <= 1"
+                                                <input type="text" x-show="!it.units || it.units.length <= 1 || it.frefdtid"
                                                     class="w-full border rounded px-2 py-1 bg-gray-100 text-gray-600 text-sm"
                                                     :value="it.fsatuan || '-'" disabled>
                                             </td>
@@ -1627,7 +1627,7 @@
                     this.showOpeningBalanceMixWarning();
                     return;
                 }
-                this.hydrateRowFromMeta(row, this.productMeta(row.fitemcode));
+                this.hydrateRowFromMeta(row, this.productMeta(row.fitemcode), true);
                 this.onRowUpdated(index);
             },
 

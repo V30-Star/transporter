@@ -858,12 +858,21 @@ class PenerimaanBarangController extends Controller
                 $sat = mb_substr($meta->fsatuankecil ?? $meta->fsatuanbesar ?? '', 0, 5);
             }
 
+            $frefdtid = isset($refdtids[$i]) ? (int) $refdtids[$i] : null;
+            if ($frefdtid > 0) {
+                $poUnit = DB::table('tr_pod')
+                    ->where('fpodid', $frefdtid)
+                    ->value('fsatuan');
+                if ($poUnit !== null) {
+                    $sat = trim($poUnit);
+                }
+            }
+
             $qtyKecil = $this->qtyPoToKecil($meta, $sat, $qty);
 
             $price = (float) ($prices[$i] ?? 0);
             $amount = $qty * $price;
             $subtotal += $amount;
-            $frefdtid = isset($refdtids[$i]) ? (int) $refdtids[$i] : null;
 
             $rowsDt[] = [
                 'fprdcode' => $code,
@@ -1294,6 +1303,14 @@ class PenerimaanBarangController extends Controller
 
             if ($sat === '') {
                 $sat = $pickDefaultSat($meta);
+            }
+            if ($rid !== null && $rid > 0) {
+                $poUnit = DB::table('tr_pod')
+                    ->where('fpodid', $rid)
+                    ->value('fsatuan');
+                if ($poUnit !== null) {
+                    $sat = trim($poUnit);
+                }
             }
             $sat = mb_substr($sat, 0, 5);
             if ($sat === '') {

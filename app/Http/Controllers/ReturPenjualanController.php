@@ -307,6 +307,7 @@ class ReturPenjualanController extends Controller
                 'trandt.fdesc',
                 'trandt.frefso',
                 'trandt.frefsrj',
+                DB::raw("COALESCE(NULLIF(TRIM(trandt.fnoacak::text), ''), '') as frefnoacak"),
             ])
             ->orderBy('trandt.fnou')
             ->get();
@@ -593,6 +594,37 @@ class ReturPenjualanController extends Controller
             if ($product && $product->fnonactive == '1') {
                 return back()->withInput()->with('error', "Produk [{$code}] {$product->fprdname} sudah discontinue.");
             }
+
+            // --- OVERRIDE unit dari referensi (SRJ / Invoice) ---
+            $refSoDoc  = trim((string) ($frefso[$i]  ?? ''));
+            $refSrjDoc = trim((string) ($frefsrj[$i] ?? ''));
+            $refNoAcak = $this->normalizeReferenceRandomNumbers($frefnoacaks[$i] ?? null);
+            if ($refSrjDoc !== '') {
+                // Resolusi unit dari trstockdt (Surat Jalan)
+                $srcUnit = DB::table('trstockdt')
+                    ->where('fstockmtno', $refSrjDoc)
+                    ->where('fprdcode', $code)
+                    ->when($refNoAcak !== null, fn ($q) => $q->where(function ($q2) use ($refNoAcak) {
+                        $q2->whereRaw("COALESCE(frefnoacak::text, fnoacak::text, '') = ?", [$refNoAcak]);
+                    }))
+                    ->value('fsatuan');
+                if ($srcUnit !== null && trim((string) $srcUnit) !== '') {
+                    $satuans[$i] = trim((string) $srcUnit);
+                }
+            } elseif ($refSoDoc !== '') {
+                // Resolusi unit dari trandt (Faktur/Invoice)
+                $srcUnit = DB::table('trandt')
+                    ->where('fsono', $refSoDoc)
+                    ->where('fprdcode', $code)
+                    ->when($refNoAcak !== null, fn ($q) => $q->where(function ($q2) use ($refNoAcak) {
+                        $q2->whereRaw("COALESCE(frefnoacak::text, fnoacak::text, '') = ?", [$refNoAcak]);
+                    }))
+                    ->value('fsatuan');
+                if ($srcUnit !== null && trim((string) $srcUnit) !== '') {
+                    $satuans[$i] = trim((string) $srcUnit);
+                }
+            }
+            // --- END override ---
 
             $qtyKecil = $qty;
             if ($product && isset($satuans[$i]) && $satuans[$i] === $product->fsatuanbesar) {
@@ -1630,6 +1662,38 @@ class ReturPenjualanController extends Controller
             }
 
             $product = $products->get($code);
+
+            // --- OVERRIDE unit dari referensi (SRJ / Invoice) ---
+            $refSoDoc  = trim((string) ($frefso[$i]  ?? ''));
+            $refSrjDoc = trim((string) ($frefsrj[$i] ?? ''));
+            $refNoAcak = $this->normalizeReferenceRandomNumbers($frefnoacaks[$i] ?? null);
+            if ($refSrjDoc !== '') {
+                // Resolusi unit dari trstockdt (Surat Jalan)
+                $srcUnit = DB::table('trstockdt')
+                    ->where('fstockmtno', $refSrjDoc)
+                    ->where('fprdcode', $code)
+                    ->when($refNoAcak !== null, fn ($q) => $q->where(function ($q2) use ($refNoAcak) {
+                        $q2->whereRaw("COALESCE(frefnoacak::text, fnoacak::text, '') = ?", [$refNoAcak]);
+                    }))
+                    ->value('fsatuan');
+                if ($srcUnit !== null && trim((string) $srcUnit) !== '') {
+                    $satuans[$i] = trim((string) $srcUnit);
+                }
+            } elseif ($refSoDoc !== '') {
+                // Resolusi unit dari trandt (Faktur/Invoice)
+                $srcUnit = DB::table('trandt')
+                    ->where('fsono', $refSoDoc)
+                    ->where('fprdcode', $code)
+                    ->when($refNoAcak !== null, fn ($q) => $q->where(function ($q2) use ($refNoAcak) {
+                        $q2->whereRaw("COALESCE(frefnoacak::text, fnoacak::text, '') = ?", [$refNoAcak]);
+                    }))
+                    ->value('fsatuan');
+                if ($srcUnit !== null && trim((string) $srcUnit) !== '') {
+                    $satuans[$i] = trim((string) $srcUnit);
+                }
+            }
+            // --- END override ---
+
             $qtyKecil = $qty;
             if ($product && isset($satuans[$i]) && $satuans[$i] === $product->fsatuanbesar) {
                 $qtyKecil = $qty * (float) $product->rasio_konversi;

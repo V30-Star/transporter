@@ -989,8 +989,60 @@ class InvoiceController extends Controller
 
             $product = $products->get($code);
 
+            $sat = trim((string) ($satuans[$i] ?? ''));
+
+            if ($refSoNo !== '') {
+                $normalizedRefNoAcak = $this->normalizeReferenceRandomNumbers($frefnoacaks[$i] ?? null);
+                $refSat = DB::table('trsodt')
+                    ->where('fsono', $refSoNo)
+                    ->where('fprdcode', $code)
+                    ->where(function($q) use ($normalizedRefNoAcak) {
+                        $q->where('fnoacak', $normalizedRefNoAcak)
+                          ->orWhere('frefnosoacak', $normalizedRefNoAcak);
+                    })
+                    ->value('fsatuan');
+                if (! $refSat) {
+                    $refSat = DB::table('trsodt')
+                        ->where('fsono', $refSoNo)
+                        ->where('fprdcode', $code)
+                        ->value('fsatuan');
+                }
+                if ($refSat) {
+                    $sat = trim($refSat);
+                }
+            } elseif ($refSrjNo !== '') {
+                $normalizedRefNoAcak = $this->normalizeReferenceRandomNumbers($frefnoacaks[$i] ?? null);
+                $refSat = DB::table('trstockdt')
+                    ->where('fstockmtno', $refSrjNo)
+                    ->where('fprdcode', $code)
+                    ->where(function($q) use ($normalizedRefNoAcak) {
+                        $q->where('fnoacak', $normalizedRefNoAcak)
+                          ->orWhere('frefnoacak', $normalizedRefNoAcak);
+                    })
+                    ->value('fsatuan');
+                if (! $refSat) {
+                    $refSat = DB::table('trstockdt')
+                        ->where('fstockmtno', $refSrjNo)
+                        ->where('fprdcode', $code)
+                        ->value('fsatuan');
+                }
+                if ($refSat) {
+                    $sat = trim($refSat);
+                }
+            }
+
+            if ($sat === '' && $product) {
+                foreach (['fsatuankecil', 'fsatuanbesar', 'fsatuanbesar2'] as $k) {
+                    $v = trim((string) ($product->$k ?? ''));
+                    if ($v !== '') {
+                        $sat = mb_substr($v, 0, 5);
+                        break;
+                    }
+                }
+            }
+
             $qtyKecil = $qty;
-            if ($product && ($satuans[$i] ?? '') === $product->fsatuanbesar) {
+            if ($product && $sat === trim((string) ($product->fsatuanbesar ?? ''))) {
                 $qtyKecil = $qty * (float) ($product->rasio_konversi ?? 1);
             }
 
@@ -1025,7 +1077,7 @@ class InvoiceController extends Controller
                 'fsalesnet' => $fsalesnet,
                 'famount' => $amountRow,
                 'famount_rp' => $amountRow * $frate,
-                'fsatuan' => mb_substr($satuans[$i] ?? '', 0, 5),
+                'fsatuan' => mb_substr($sat, 0, 5),
                 'fuserid' => $userid,
                 'fdatetime' => $now,
                 'frefcode' => $refCode,
@@ -2016,9 +2068,61 @@ class InvoiceController extends Controller
             }
 
             // Konversi Satuan
+            $sat = trim((string) ($satuans[$i] ?? ''));
+
+            if ($refSoNo !== '') {
+                $normalizedRefNoAcak = $this->normalizeReferenceRandomNumbers($frefnoacaks[$i] ?? null);
+                $refSat = DB::table('trsodt')
+                    ->where('fsono', $refSoNo)
+                    ->where('fprdcode', $code)
+                    ->where(function($q) use ($normalizedRefNoAcak) {
+                        $q->where('fnoacak', $normalizedRefNoAcak)
+                          ->orWhere('frefnosoacak', $normalizedRefNoAcak);
+                    })
+                    ->value('fsatuan');
+                if (! $refSat) {
+                    $refSat = DB::table('trsodt')
+                        ->where('fsono', $refSoNo)
+                        ->where('fprdcode', $code)
+                        ->value('fsatuan');
+                }
+                if ($refSat) {
+                    $sat = trim($refSat);
+                }
+            } elseif ($refSrjNo !== '') {
+                $normalizedRefNoAcak = $this->normalizeReferenceRandomNumbers($frefnoacaks[$i] ?? null);
+                $refSat = DB::table('trstockdt')
+                    ->where('fstockmtno', $refSrjNo)
+                    ->where('fprdcode', $code)
+                    ->where(function($q) use ($normalizedRefNoAcak) {
+                        $q->where('fnoacak', $normalizedRefNoAcak)
+                          ->orWhere('frefnoacak', $normalizedRefNoAcak);
+                    })
+                    ->value('fsatuan');
+                if (! $refSat) {
+                    $refSat = DB::table('trstockdt')
+                        ->where('fstockmtno', $refSrjNo)
+                        ->where('fprdcode', $code)
+                        ->value('fsatuan');
+                }
+                if ($refSat) {
+                    $sat = trim($refSat);
+                }
+            }
+
+            if ($sat === '' && $product) {
+                foreach (['fsatuankecil', 'fsatuanbesar', 'fsatuanbesar2'] as $k) {
+                    $v = trim((string) ($product->$k ?? ''));
+                    if ($v !== '') {
+                        $sat = mb_substr($v, 0, 5);
+                        break;
+                    }
+                }
+            }
+
             $qtyKecil = $qty;
-            if ($satuans[$i] === $product->fsatuanbesar) {
-                $qtyKecil = $qty * (float) $product->rasio_konversi;
+            if ($product && $sat === trim((string) ($product->fsatuanbesar ?? ''))) {
+                $qtyKecil = $qty * (float) ($product->rasio_konversi ?? 1);
             }
 
             // Kalkulasi Baris
@@ -2046,7 +2150,7 @@ class InvoiceController extends Controller
                 'fpricenet_rp' => $netPrice * $frate,
                 'famount' => $amountRow,
                 'famount_rp' => $amountRow * $frate,
-                'fsatuan' => mb_substr($satuans[$i] ?? '', 0, 5),
+                'fsatuan' => mb_substr($sat, 0, 5),
                 'fuserid' => $userid,
                 'fdatetime' => $now,
                 'frefcode' => $refCode,

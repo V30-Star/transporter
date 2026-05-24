@@ -305,18 +305,18 @@
 
                                     {{-- Satuan --}}
                                     <td class="p-2 align-top">
-                                        <template x-if="unitOptions(it).length > 1">
-                                            <select class="w-full border rounded px-2 py-1 text-sm" :id="'unit_saved_' + i"
-                                                x-model="it.fsatuan" @focus="activeRow = it.uid" @blur="activeRow = null"
-                                                @keydown.enter.prevent="focusSavedQty(i)" @change="onRowUpdated(i)">
-                                                <template x-for="u in unitOptions(it)" :key="u">
-                                                    <option :value="u" x-text="u"></option>
-                                                </template>
-                                            </select>
-                                        </template>
-                                        <input type="text" x-show="unitOptions(it).length <= 1"
-                                            class="w-full border rounded px-2 py-1 bg-gray-100 text-gray-600 text-sm"
-                                            :value="it.fsatuan || '-'" disabled>
+                                         <template x-if="unitOptions(it).length > 1 && !it.frefdtid">
+                                             <select class="w-full border rounded px-2 py-1 text-sm" :id="'unit_saved_' + i"
+                                                 x-model="it.fsatuan" @focus="activeRow = it.uid" @blur="activeRow = null"
+                                                 @keydown.enter.prevent="focusSavedQty(i)" @change="onRowUpdated(i)">
+                                                 <template x-for="u in unitOptions(it)" :key="u">
+                                                     <option :value="u" x-text="u"></option>
+                                                 </template>
+                                             </select>
+                                         </template>
+                                         <input type="text" x-show="unitOptions(it).length <= 1 || it.frefdtid"
+                                             class="w-full border rounded px-2 py-1 bg-gray-100 text-gray-600 text-sm"
+                                             :value="it.fsatuan || '-'" disabled>
                                     </td>
 
                                     {{-- Ref.PO# --}}
@@ -1026,10 +1026,10 @@
                     };
                 },
                 onCodeTypedRow(row) {
-                    this.hydrateRowFromMeta(row, this.productMeta(row.fitemcode));
+                    this.hydrateRowFromMeta(row, this.productMeta(row.fitemcode), true);
                 },
                 onCodeTypedSaved(item, index = null) {
-                    this.hydrateRowFromMeta(item, this.productMeta(item.fitemcode));
+                    this.hydrateRowFromMeta(item, this.productMeta(item.fitemcode), true);
                     this.onRowUpdated(index);
                 },
 

@@ -1211,7 +1211,7 @@
                                                         :value="it.frefdtno" disabled placeholder="No Ref">
                                                 </td>
                                                 <td class="p-2">
-                                                    <template x-if="(it.units?.length || 0) > 1">
+                                                    <template x-if="(it.units?.length || 0) > 1 && !it.frefdtid">
                                                         <select class="w-full border rounded px-2 py-1 text-sm"
                                                             x-model="it.fsatuan" @focus="activeRow = it.uid"
                                                             @blur="activeRow = null" @change="onRowUpdated(i)">
@@ -1220,7 +1220,7 @@
                                                             </template>
                                                         </select>
                                                     </template>
-                                                    <template x-if="(it.units?.length || 0) <= 1">
+                                                    <template x-if="(it.units?.length || 0) <= 1 || it.frefdtid">
                                                         <input type="text"
                                                             class="w-full border rounded px-2 py-1 bg-gray-100 text-gray-600 text-sm"
                                                             :value="it.fsatuan || '-'" disabled>
@@ -2428,7 +2428,7 @@
                         this.hydrateRowFromMeta(row, null);
                         return;
                     }
-                    this.hydrateRowFromMeta(row, this.productMeta(row.fitemcode));
+                    this.hydrateRowFromMeta(row, this.productMeta(row.fitemcode), true);
                     this.onRowUpdated(index);
                 },
 

@@ -2876,10 +2876,16 @@
                     return;
                 }
                 row.fitemname = meta.name || '';
-                const units = [...new Set((meta.units || []).map(u => (u ?? '').toString().trim()).filter(Boolean))];
-                row.units = units;
-                if (!units.includes(row.fsatuan)) row.fsatuan = units[0] || '';
-                row.fsatuan = row.fsatuan;
+                // If this row came from a reference (SRJ / Invoice), keep its
+                // locked unit and do NOT override units/fsatuan from product meta.
+                const isRefRow = String(row.frefso ?? '').trim() !== '' ||
+                    String(row.frefsrj ?? '').trim() !== '';
+                if (!isRefRow) {
+                    const units = [...new Set((meta.units || []).map(u => (u ?? '').toString().trim()).filter(Boolean))];
+                    row.units = units;
+                    if (!units.includes(row.fsatuan)) row.fsatuan = units[0] || '';
+                    row.fsatuan = row.fsatuan;
+                }
                 if (meta.unit_ratios) row.unit_ratios = meta.unit_ratios;
                 row.maxqty = Number.isFinite(+row.maxqty) ? +row.maxqty : 0;
 
@@ -3034,8 +3040,8 @@
                         ftotal: 0,
                         fdesc: src.fdesc ? src.fdesc.toString().trim() : '',
                         fketdt: src.fketdt ? src.fketdt.toString().trim() : '',
-                        units: meta ? [...new Set((meta.units || []).map(u => (u ?? '').toString().trim())
-                            .filter(Boolean))] : [satuan].filter(Boolean),
+                        // Lock unit to the reference unit (single-element array = read-only display)
+                        units: [satuan].filter(Boolean),
                         maxqty: Math.max(0, Number(src.maxqty ?? src.fqtyremain ?? src.fqty ?? 0)),
                     };
 
