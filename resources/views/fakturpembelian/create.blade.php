@@ -1021,7 +1021,6 @@
                             </div>
                         </div>
                     </div>
-                    </div>  </div>
 
 
                     <div class="mt-8 border-t pt-6 flex justify-center gap-4">

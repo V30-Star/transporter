@@ -526,7 +526,7 @@
 
                             // Function: Update Tempo from Supplier
                             function updateTempo() {
-                                const supplierSelect = document.getElementById('supplierSelect');
+                                const supplierSelect = document.getElementById('modal_filter_supplier_id');
                                 const tempoInput = document.getElementById('ftempohr');
 
                                 if (!supplierSelect || !tempoInput) return;
@@ -549,7 +549,7 @@
                                 ftempohr.addEventListener('input', calculateDueDate);
                             }
 
-                            const supplierSelect = document.getElementById('supplierSelect');
+                            const supplierSelect = document.getElementById('modal_filter_supplier_id');
                             if (supplierSelect) {
                                 supplierSelect.addEventListener('change', updateTempo);
                             }
@@ -1050,7 +1050,12 @@
                                 @enderror
                             </div>
 
-                            <div class="min-w-0 overflow-hidden">
+                            <div class="min-w-0 overflow-hidden"
+                                x-data="{
+                                    get hasTerSourceItems() {
+                                        return window.getFpbItemsTableComponent?.()?.hasTerSourceItems ?? false;
+                                    }
+                                }">
                                 <label class="block text-sm font-medium mb-2">Hitung Biaya</label>
                                 <div
                                     class="hpp-box h-[96px] bg-gray-50 p-3 rounded-lg border border-gray-200 shadow-sm flex items-center gap-3">
@@ -1092,7 +1097,7 @@
 
                                 // Function: Update Tempo from Supplier
                                 function updateTempo() {
-                                    const supplierSelect = document.getElementById('supplierSelect');
+                                    const supplierSelect = document.getElementById('modal_filter_supplier_id');
                                     const tempoInput = document.getElementById('ftempohr');
 
                                     if (!supplierSelect || !tempoInput) return;
@@ -1115,7 +1120,7 @@
                                     ftempohr.addEventListener('input', calculateDueDate);
                                 }
 
-                                const supplierSelect = document.getElementById('supplierSelect');
+                                const supplierSelect = document.getElementById('modal_filter_supplier_id');
                                 if (supplierSelect) {
                                     supplierSelect.addEventListener('change', updateTempo);
                                 }
