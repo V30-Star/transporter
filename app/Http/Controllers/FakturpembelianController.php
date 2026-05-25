@@ -1037,14 +1037,14 @@ class FakturpembelianController extends Controller
 
                 if (! empty($invalidAdvanceCodes)) {
                     return back()->withInput()->withErrors([
-                        'detail' => 'TIPE UANG MUKA HANYA BOLEH PAKAI PRODUK UM. KODE TIDAK VALID: ' . strtoupper(implode(', ', $invalidAdvanceCodes)) . '.',
+                        'detail' => 'Tipe uang muka hanya boleh pakai produk UM. Kode tidak valid: ' . strtoupper(implode(', ', $invalidAdvanceCodes)) . '.',
                     ]);
                 }
             }
 
             if ($this->hasMixedOpeningBalanceAndSourceRows($codes, $qtys, $sources)) {
                 return back()->withInput()->withErrors([
-                    'detail' => 'ITEM AWAL TIDAK BOLEH DIGABUNG DENGAN ITEM REFERENSI PO / TER.',
+                    'detail' => 'Item awal tidak boleh digabung dengan item referensi PO / TER.',
                 ]);
             }
 
@@ -1740,14 +1740,14 @@ class FakturpembelianController extends Controller
 
                 if (! empty($invalidAdvanceCodes)) {
                     return back()->withInput()->withErrors([
-                        'detail' => 'TIPE UANG MUKA HANYA BOLEH PAKAI PRODUK UM. KODE TIDAK VALID: ' . strtoupper(implode(', ', $invalidAdvanceCodes)) . '.',
+                        'detail' => 'Tipe uang muka hanya boleh pakai produk UM. Kode tidak valid: ' . strtoupper(implode(', ', $invalidAdvanceCodes)) . '.',
                     ]);
                 }
             }
 
             if ($this->hasMixedOpeningBalanceAndSourceRows($codes, $qtys, $sources)) {
                 return back()->withInput()->withErrors([
-                    'detail' => 'ITEM AWAL TIDAK BOLEH DIGABUNG DENGAN ITEM REFERENSI PO / TER.',
+                    'detail' => 'Item awal tidak boleh digabung dengan item referensi PO / TER.',
                 ]);
             }
 

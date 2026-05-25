@@ -1507,15 +1507,15 @@ class FakturpembelianController extends Controller
                 'frefnoacak.*' => ['nullable', 'regex:/^\d{3}(,\s*\d{3})*$/'],
                 'fprdjadi' => ['required_if:ftypebuy,1'],
             ], [
-                'fstockmtdate.required' => 'TANGGAL TRANSAKSI WAJIB DIISI.',
-                'fsupplier.required' => 'SUPPLIER WAJIB DIPILIH.',
-                'fitemcode.required' => 'MINIMAL 1 ITEM.',
-                'fsatuan.*.max' => 'SATUAN ITEM TERLALU PANJANG.',
-                'fqty.*.min' => 'JUMLAH ITEM TIDAK BOLEH MINUS.',
-                'fprice.*.min' => 'HARGA ITEM TIDAK BOLEH MINUS.',
-                'fbiaya.*.min' => 'BIAYA ITEM TIDAK BOLEH MINUS.',
-                'frefnoacak.*.regex' => 'NOMOR ACAK HARUS 3 DIGIT.',
-                'fprdjadi.required_if' => 'ACCOUNT WAJIB DIPILIH.',
+                'fstockmtdate.required' => 'Tanggal transaksi wajib diisi.',
+                'fsupplier.required' => 'Supplier wajib dipilih.',
+                'fitemcode.required' => 'Minimal 1 item.',
+                'fsatuan.*.max' => 'Satuan item terlalu panjang.',
+                'fqty.*.min' => 'Jumlah item tidak boleh minus.',
+                'fprice.*.min' => 'Harga item tidak boleh minus.',
+                'fbiaya.*.min' => 'Biaya item tidak boleh minus.',
+                'frefnoacak.*.regex' => 'Nomor acak harus 3 digit.',
+                'fprdjadi.required_if' => 'Account wajib dipilih.',
             ]);
 
             // 2. Muat header yang ada

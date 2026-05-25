@@ -433,7 +433,7 @@ class AdjstockController extends Controller
                     'numeric',
                     function ($attribute, $value, $fail) use ($allowNegativeStockQty) {
                         if ($allowNegativeStockQty ? (float) $value == 0.0 : (float) $value <= 0) {
-                            $fail($allowNegativeStockQty ? 'QTY TIDAK BOLEH 0.' : 'QTY HARUS > 0.');
+                            $fail($allowNegativeStockQty ? 'Qty tidak boleh 0.' : 'Qty harus lebih dari 0.');
                         }
                     },
                 ],
@@ -917,7 +917,7 @@ class AdjstockController extends Controller
                 'numeric',
                 function ($attribute, $value, $fail) use ($allowNegativeStockQty) {
                     if ($allowNegativeStockQty ? (float) $value == 0.0 : (float) $value <= 0) {
-                        $fail($allowNegativeStockQty ? 'QTY TIDAK BOLEH 0.' : 'QTY HARUS > 0.');
+                        $fail($allowNegativeStockQty ? 'Qty tidak boleh 0.' : 'Qty harus lebih dari 0.');
                     }
                 },
             ],

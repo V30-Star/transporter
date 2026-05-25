@@ -352,16 +352,16 @@ class ProductController extends Controller
             }
 
             $validated = $request->validate($validationRules, [
-                'fgroupcode.required' => 'GROUP PRODUK WAJIB DIISI.',
-                'fmerek.required' => 'MEREK WAJIB DIISI.',
-                'fprdname.required' => 'NAMA PRODUK WAJIB DIISI.',
-                'fsatuankecil.required' => 'SATUAN 1 WAJIB DIISI.',
-                'fsatuanbesar.string' => 'SATUAN 2 TIDAK VALID.',
-                'fsatuanbesar.different' => 'SATUAN 2 TIDAK BOLEH SAMA DENGAN SATUAN 1.',
-                'fsatuanbesar2.string' => 'SATUAN 3 TIDAK VALID.',
-                'fsatuanbesar2.different' => 'SATUAN 3 TIDAK BOLEH SAMA DENGAN SATUAN 1 ATAU 2.',
-                'fqtykecil.numeric' => 'SATUAN 2 HARUS ANGKA.',
-                'fqtykecil2.numeric' => 'SATUAN 3 HARUS ANGKA.',
+                'fgroupcode.required' => 'Group produk wajib diisi.',
+                'fmerek.required' => 'Merek wajib diisi.',
+                'fprdname.required' => 'Nama produk wajib diisi.',
+                'fsatuankecil.required' => 'Satuan 1 wajib diisi.',
+                'fsatuanbesar.string' => 'Satuan 2 tidak valid.',
+                'fsatuanbesar.different' => 'Satuan 2 tidak boleh sama dengan Satuan 1.',
+                'fsatuanbesar2.string' => 'Satuan 3 tidak valid.',
+                'fsatuanbesar2.different' => 'Satuan 3 tidak boleh sama dengan Satuan 1 atau 2.',
+                'fqtykecil.numeric' => 'Satuan 2 harus angka.',
+                'fqtykecil2.numeric' => 'Satuan 3 harus angka.',
             ]);
 
             $validated['fprdname'] = strtoupper($request->fprdname);

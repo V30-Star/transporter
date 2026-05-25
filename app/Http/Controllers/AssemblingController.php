@@ -463,7 +463,7 @@ class AssemblingController extends Controller
                 'numeric',
                 function ($attribute, $value, $fail) use ($allowNegativeStockQty) {
                     if ($allowNegativeStockQty ? (float) $value == 0.0 : (float) $value <= 0) {
-                        $fail($allowNegativeStockQty ? 'QTY TIDAK BOLEH 0.' : 'QTY HARUS > 0.');
+                        $fail($allowNegativeStockQty ? 'Qty tidak boleh 0.' : 'Qty harus lebih dari 0.');
                     }
                 },
             ],
@@ -482,8 +482,8 @@ class AssemblingController extends Controller
             'fstockmtdate.required' => 'Tanggal transaksi wajib diisi.',
             'fsupplier.required' => 'Supplier wajib diisi.',
             'fitemcode.required' => 'Minimal 1 item.',
-            'fsatuan.*.max' => 'SATUAN MAX 5 KARAKTER.',
-            'fitemtype.*.in' => 'TIPE ITEM TIDAK VALID.',
+            'fsatuan.*.max' => 'Satuan maksimal 5 karakter.',
+            'fitemtype.*.in' => 'Tipe item tidak valid.',
         ]);
 
         $this->ensureNoDuplicateDetailCodes($request->input('fitemcode', []));
@@ -1004,7 +1004,7 @@ class AssemblingController extends Controller
                 'numeric',
                 function ($attribute, $value, $fail) use ($allowNegativeStockQty) {
                     if ($allowNegativeStockQty ? (float) $value == 0.0 : (float) $value <= 0) {
-                        $fail($allowNegativeStockQty ? 'QTY TIDAK BOLEH 0.' : 'QTY HARUS > 0.');
+                        $fail($allowNegativeStockQty ? 'Qty tidak boleh 0.' : 'Qty harus lebih dari 0.');
                     }
                 },
             ],
@@ -1015,8 +1015,8 @@ class AssemblingController extends Controller
         ], [
             'fstockmtdate.required' => 'Tanggal transaksi wajib diisi.',
             'fitemcode.required' => 'Minimal 1 item.',
-            'fqty.*.min' => 'QTY TIDAK BOLEH 0.',
-            'ffrom.max' => 'GUDANG MAX 10 KARAKTER.',
+            'fqty.*.min' => 'Qty tidak boleh 0.',
+            'ffrom.max' => 'Gudang maksimal 10 karakter.',
         ]);
 
         $this->ensureNoDuplicateDetailCodes($request->input('fitemcode', []));
