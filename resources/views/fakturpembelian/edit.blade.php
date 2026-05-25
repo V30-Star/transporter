@@ -1945,6 +1945,8 @@
         }
     </style>
     <script>
+        const ACTION = @json($action);
+
         // Map produk untuk auto-fill tabel
         window.PRODUCT_MAP = {
             @foreach ($products as $p)
