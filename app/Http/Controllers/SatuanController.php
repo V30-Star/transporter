@@ -7,8 +7,23 @@ use Illuminate\Http\Request;
 
 class SatuanController extends Controller
 {
+    private function ensureSatuanPermission(string $permission)
+    {
+        if ($this->hasRestrictedPermission($permission)) {
+            return null;
+        }
+
+        return redirect()
+            ->route('dashboard')
+            ->with('error', 'Anda tidak memiliki akses ke menu satuan.');
+    }
+
     public function index(Request $request)
     {
+        if ($guard = $this->ensureSatuanPermission('viewSatuan')) {
+            return $guard;
+        }
+
         $satuans = Satuan::orderBy('fsatuancode', 'asc')
             ->get(['fsatuanid', 'fsatuancode', 'fsatuanname', 'fnonactive']);
 
@@ -23,11 +38,19 @@ class SatuanController extends Controller
 
     public function create()
     {
+        if ($guard = $this->ensureSatuanPermission('createSatuan')) {
+            return $guard;
+        }
+
         return view('satuan.create');
     }
 
     public function store(Request $request)
     {
+        if ($guard = $this->ensureSatuanPermission('createSatuan')) {
+            return $guard;
+        }
+
         $request->merge([
             'fsatuancode' => strtoupper($request->fsatuancode),
             'fsatuanname' => strtoupper($request->fsatuanname),
@@ -63,6 +86,10 @@ class SatuanController extends Controller
 
     public function edit($fsatuanid)
     {
+        if ($guard = $this->ensureSatuanPermission('updateSatuan')) {
+            return $guard;
+        }
+
         $satuan = Satuan::findOrFail($fsatuanid);
 
         return view('satuan.edit', [
@@ -71,8 +98,25 @@ class SatuanController extends Controller
         ]);
     }
 
+    public function view($fsatuanid)
+    {
+        if ($guard = $this->ensureSatuanPermission('viewSatuan')) {
+            return $guard;
+        }
+
+        $satuan = Satuan::findOrFail($fsatuanid);
+
+        return view('satuan.view', [
+            'satuan' => $satuan,
+        ]);
+    }
+
     public function update(Request $request, $fsatuanid)
     {
+        if ($guard = $this->ensureSatuanPermission('updateSatuan')) {
+            return $guard;
+        }
+
         $validated = $request->validate(
             [
                 'fsatuancode' => "required|string|unique:mssatuan,fsatuancode,{$fsatuanid},fsatuanid",
@@ -102,6 +146,10 @@ class SatuanController extends Controller
 
     public function delete($fsatuanid)
     {
+        if ($guard = $this->ensureSatuanPermission('deleteSatuan')) {
+            return $guard;
+        }
+
         $satuan = Satuan::findOrFail($fsatuanid);
 
         return view('satuan.delete', [
@@ -111,6 +159,19 @@ class SatuanController extends Controller
 
     public function destroy($fsatuanid)
     {
+        if (! $this->hasRestrictedPermission('deleteSatuan')) {
+            if (request()->expectsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Anda tidak memiliki akses ke menu satuan.',
+                ], 403);
+            }
+
+            return redirect()
+                ->route('dashboard')
+                ->with('error', 'Anda tidak memiliki akses ke menu satuan.');
+        }
+
         try {
             $satuan = Satuan::findOrFail($fsatuanid);
 

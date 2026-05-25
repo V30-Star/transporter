@@ -8,8 +8,23 @@ use Illuminate\Support\Facades\DB;
 
 class SalesmanController extends Controller
 {
+    private function ensureSalesmanPermission(string $permission)
+    {
+        if ($this->hasRestrictedPermission($permission)) {
+            return null;
+        }
+
+        return redirect()
+            ->route('dashboard')
+            ->with('error', 'Anda tidak memiliki akses ke menu salesman.');
+    }
+
     public function index(Request $request)
     {
+        if ($guard = $this->ensureSalesmanPermission('viewSalesman')) {
+            return $guard;
+        }
+
         $salesmans = Salesman::orderBy('fsalesmancode', 'asc')
             ->get(['fsalesmancode', 'fsalesmanname', 'fsalesmanid', 'fnonactive']);
 
@@ -24,11 +39,19 @@ class SalesmanController extends Controller
 
     public function create()
     {
+        if ($guard = $this->ensureSalesmanPermission('createSalesman')) {
+            return $guard;
+        }
+
         return view('salesman.create');
     }
 
     public function store(Request $request)
     {
+        if ($guard = $this->ensureSalesmanPermission('createSalesman')) {
+            return $guard;
+        }
+
         $request->merge([
             'fsalesmancode' => strtoupper($request->fsalesmancode),
         ]);
@@ -62,6 +85,10 @@ class SalesmanController extends Controller
 
     public function edit($fsalesmanid)
     {
+        if ($guard = $this->ensureSalesmanPermission('updateSalesman')) {
+            return $guard;
+        }
+
         $salesman = Salesman::findOrFail($fsalesmanid);
         $isTransactionLocked = $this->hasTransactionUsage($salesman);
 
@@ -74,6 +101,10 @@ class SalesmanController extends Controller
 
     public function view($fsalesmanid)
     {
+        if ($guard = $this->ensureSalesmanPermission('viewSalesman')) {
+            return $guard;
+        }
+
         $salesman = Salesman::findOrFail($fsalesmanid);
 
         return view('salesman.view', [
@@ -83,6 +114,10 @@ class SalesmanController extends Controller
 
     public function update(Request $request, $fsalesmanid)
     {
+        if ($guard = $this->ensureSalesmanPermission('updateSalesman')) {
+            return $guard;
+        }
+
         $salesman = Salesman::findOrFail($fsalesmanid);
         $isTransactionLocked = $this->hasTransactionUsage($salesman);
 
@@ -122,6 +157,10 @@ class SalesmanController extends Controller
 
     public function delete($fsalesmanid)
     {
+        if ($guard = $this->ensureSalesmanPermission('deleteSalesman')) {
+            return $guard;
+        }
+
         $salesman = Salesman::findOrFail($fsalesmanid);
 
         if ($message = $this->getUsageLockMessage($salesman)) {
@@ -135,6 +174,19 @@ class SalesmanController extends Controller
 
     public function destroy($fsalesmanid)
     {
+        if (! $this->hasRestrictedPermission('deleteSalesman')) {
+            if (request()->expectsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Anda tidak memiliki akses ke menu salesman.',
+                ], 403);
+            }
+
+            return redirect()
+                ->route('dashboard')
+                ->with('error', 'Anda tidak memiliki akses ke menu salesman.');
+        }
+
         try {
             $salesman = Salesman::findOrFail($fsalesmanid);
 
@@ -167,6 +219,10 @@ class SalesmanController extends Controller
 
     public function browse(Request $request)
     {
+        if ($guard = $this->ensureSalesmanPermission('viewSalesman')) {
+            return $guard;
+        }
+
         $query = Salesman::query();
 
         $recordsTotal = Salesman::count();

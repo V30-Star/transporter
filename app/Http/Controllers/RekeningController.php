@@ -8,8 +8,23 @@ use Illuminate\Support\Facades\DB;
 
 class RekeningController extends Controller
 {
+    private function ensureRekeningPermission(string $permission)
+    {
+        if ($this->hasRestrictedPermission($permission)) {
+            return null;
+        }
+
+        return redirect()
+            ->route('dashboard')
+            ->with('error', 'Anda tidak memiliki akses ke menu rekening.');
+    }
+
     public function index(Request $request)
     {
+        if ($guard = $this->ensureRekeningPermission('viewRekening')) {
+            return $guard;
+        }
+
         $rekenings = Rekening::orderBy('frekeningname', 'asc')
             ->get(['frekeningcode', 'frekeningname', 'frekeningid', 'fnonactive']);
 
@@ -22,11 +37,19 @@ class RekeningController extends Controller
 
     public function create()
     {
+        if ($guard = $this->ensureRekeningPermission('createRekening')) {
+            return $guard;
+        }
+
         return view('rekening.create');
     }
 
     public function store(Request $request)
     {
+        if ($guard = $this->ensureRekeningPermission('createRekening')) {
+            return $guard;
+        }
+
         $request->merge([
             'frekeningname' => strtoupper($request->frekeningname),
         ]);
@@ -57,6 +80,10 @@ class RekeningController extends Controller
 
     public function edit($frekeningid)
     {
+        if ($guard = $this->ensureRekeningPermission('updateRekening')) {
+            return $guard;
+        }
+
         $rekening = Rekening::findOrFail($frekeningid);
         $isTransactionLocked = $this->hasTransactionUsage($rekening);
 
@@ -69,6 +96,10 @@ class RekeningController extends Controller
 
     public function view($frekeningid)
     {
+        if ($guard = $this->ensureRekeningPermission('viewRekening')) {
+            return $guard;
+        }
+
         $rekening = Rekening::findOrFail($frekeningid);
 
         return view('rekening.view', [
@@ -78,6 +109,10 @@ class RekeningController extends Controller
 
     public function update(Request $request, $frekeningid)
     {
+        if ($guard = $this->ensureRekeningPermission('updateRekening')) {
+            return $guard;
+        }
+
         $request->merge([
             'frekeningname' => strtoupper($request->frekeningname),
         ]);
@@ -109,6 +144,10 @@ class RekeningController extends Controller
 
     public function delete($frekeningid)
     {
+        if ($guard = $this->ensureRekeningPermission('deleteRekening')) {
+            return $guard;
+        }
+
         $rekening = Rekening::findOrFail($frekeningid);
 
         if ($message = $this->getUsageLockMessage($rekening)) {
@@ -122,6 +161,19 @@ class RekeningController extends Controller
 
     public function destroy($frekeningid)
     {
+        if (! $this->hasRestrictedPermission('deleteRekening')) {
+            if (request()->expectsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Anda tidak memiliki akses ke menu rekening.',
+                ], 403);
+            }
+
+            return redirect()
+                ->route('dashboard')
+                ->with('error', 'Anda tidak memiliki akses ke menu rekening.');
+        }
+
         try {
             $rekening = Rekening::findOrFail($frekeningid);
 

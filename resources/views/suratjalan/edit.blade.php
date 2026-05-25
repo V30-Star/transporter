@@ -526,11 +526,13 @@
                                             title="{{ "Browse Customer" }}">
                                             <x-heroicon-o-magnifying-glass class="w-5 h-5" />
                                         </button>
-                                        <a href="{{ route('customer.create') }}" target="_blank" rel="noopener"
-                                            class="border -ml-px rounded-r px-3 py-2 bg-white hover:bg-gray-50"
-                                            title="Tambah Customer">
-                                            <x-heroicon-o-plus class="w-5 h-5" />
-                                        </a>
+                                        @if (in_array('createCustomer', explode(',', session('user_restricted_permissions', '')), true))
+                                            <a href="{{ route('customer.create') }}" target="_blank" rel="noopener"
+                                                class="border -ml-px rounded-r px-3 py-2 bg-white hover:bg-gray-50"
+                                                title="Tambah Customer">
+                                                <x-heroicon-o-plus class="w-5 h-5" />
+                                            </a>
+                                        @endif
                                     </div>
                                     @error('fsupplier')
                                         <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
@@ -573,11 +575,6 @@
                                             title="{{ "Browse Gudang" }}">
                                             <x-heroicon-o-magnifying-glass class="w-5 h-5" />
                                         </button>
-                                        <a href="{{ route('supplier.create') }}" target="_blank" rel="noopener"
-                                            class="border -ml-px rounded-r px-3 py-2 bg-white hover:bg-gray-50"
-                                            title="Tambah Supplier">
-                                            <x-heroicon-o-plus class="w-5 h-5" />
-                                        </a>
                                     </div>
                                 </div>
 

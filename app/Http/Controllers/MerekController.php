@@ -7,8 +7,23 @@ use Illuminate\Http\Request;
 
 class MerekController extends Controller
 {
+    private function ensureMerekPermission(string $permission)
+    {
+        if ($this->hasRestrictedPermission($permission)) {
+            return null;
+        }
+
+        return redirect()
+            ->route('dashboard')
+            ->with('error', 'Anda tidak memiliki akses ke menu merek.');
+    }
+
     public function index(Request $request)
     {
+        if ($guard = $this->ensureMerekPermission('viewMerek')) {
+            return $guard;
+        }
+
         $mereks = Merek::orderBy('fmerekcode', 'asc')
             ->get(['fmerekid', 'fmerekcode', 'fmerekname', 'fnonactive']);
 
@@ -23,11 +38,19 @@ class MerekController extends Controller
 
     public function create()
     {
+        if ($guard = $this->ensureMerekPermission('createMerek')) {
+            return $guard;
+        }
+
         return view('merek.create');
     }
 
     public function store(Request $request)
     {
+        if ($guard = $this->ensureMerekPermission('createMerek')) {
+            return $guard;
+        }
+
         $request->merge([
             'fmerekcode' => strtoupper($request->fmerekcode),
         ]);
@@ -69,6 +92,10 @@ class MerekController extends Controller
 
     public function edit($fmerekid)
     {
+        if ($guard = $this->ensureMerekPermission('updateMerek')) {
+            return $guard;
+        }
+
         $merek = Merek::findOrFail($fmerekid);
 
         return view('merek.edit', [
@@ -77,8 +104,25 @@ class MerekController extends Controller
         ]);
     }
 
+    public function view($fmerekid)
+    {
+        if ($guard = $this->ensureMerekPermission('viewMerek')) {
+            return $guard;
+        }
+
+        $merek = Merek::findOrFail($fmerekid);
+
+        return view('merek.view', [
+            'merek' => $merek,
+        ]);
+    }
+
     public function update(Request $request, $fmerekid)
     {
+        if ($guard = $this->ensureMerekPermission('updateMerek')) {
+            return $guard;
+        }
+
         $request->merge([
             'fmerekcode' => strtoupper($request->fmerekcode),
         ]);
@@ -112,6 +156,10 @@ class MerekController extends Controller
 
     public function delete($fmerekid)
     {
+        if ($guard = $this->ensureMerekPermission('deleteMerek')) {
+            return $guard;
+        }
+
         $merek = Merek::findOrFail($fmerekid);
 
         return view('merek.delete', [
@@ -121,6 +169,19 @@ class MerekController extends Controller
 
     public function destroy($fmerekid)
     {
+        if (! $this->hasRestrictedPermission('deleteMerek')) {
+            if (request()->expectsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Anda tidak memiliki akses ke menu merek.',
+                ], 403);
+            }
+
+            return redirect()
+                ->route('dashboard')
+                ->with('error', 'Anda tidak memiliki akses ke menu merek.');
+        }
+
         try {
             $merek = Merek::findOrFail($fmerekid);
 
@@ -148,6 +209,10 @@ class MerekController extends Controller
 
     public function browse(Request $request)
     {
+        if ($guard = $this->ensureMerekPermission('viewMerek')) {
+            return $guard;
+        }
+
         $query = Merek::query();
 
         $recordsTotal = Merek::count();

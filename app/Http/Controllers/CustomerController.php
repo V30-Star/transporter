@@ -13,9 +13,24 @@ use Illuminate\Support\Facades\DB;
 
 class CustomerController extends Controller
 {
+    private function ensureCustomerPermission(string $permission)
+    {
+        if ($this->hasRestrictedPermission($permission)) {
+            return null;
+        }
+
+        return redirect()
+            ->route('dashboard')
+            ->with('error', 'Anda tidak memiliki akses ke menu customer.');
+    }
+
     // Index method to list all customers with search functionality
     public function index(Request $request)
     {
+        if ($guard = $this->ensureCustomerPermission('viewCustomer')) {
+            return $guard;
+        }
+
         // Ambil permissions dulu
         $canCreate = in_array('createCustomer', explode(',', session('user_restricted_permissions', '')));
         $canEdit = in_array('updateCustomer', explode(',', session('user_restricted_permissions', '')));
@@ -172,6 +187,10 @@ class CustomerController extends Controller
     // Create method to return the customer creation form
     public function create()
     {
+        if ($guard = $this->ensureCustomerPermission('createCustomer')) {
+            return $guard;
+        }
+
         $groups = Groupcustomer::where('fnonactive', 0)->get();
         $salesman = Salesman::where('fnonactive', 0)->get();
         $wilayah = Wilayah::where('fnonactive', 0)->get();
@@ -184,6 +203,10 @@ class CustomerController extends Controller
     // Store method to save the new customer in the database
     public function store(Request $request)
     {
+        if ($guard = $this->ensureCustomerPermission('createCustomer')) {
+            return $guard;
+        }
+
         $request->merge([
             'fcustomercode' => strtoupper($request->fcustomercode),
         ]);
@@ -269,6 +292,10 @@ class CustomerController extends Controller
     // Edit method to return the customer edit form with existing data
     public function edit($fcustomerid)
     {
+        if ($guard = $this->ensureCustomerPermission('updateCustomer')) {
+            return $guard;
+        }
+
         // Find Customer by primary key
         $customer = Customer::findOrFail($fcustomerid);
         $isTransactionLocked = $this->hasTransactionUsage($customer);
@@ -292,6 +319,10 @@ class CustomerController extends Controller
 
     public function view($fcustomerid)
     {
+        if ($guard = $this->ensureCustomerPermission('viewCustomer')) {
+            return $guard;
+        }
+
         // Find Customer by primary key
         $customer = Customer::findOrFail($fcustomerid);
         $groups = Groupcustomer::where('fnonactive', 0)->get();
@@ -313,6 +344,10 @@ class CustomerController extends Controller
     // Update method to save the updated customer data in the database
     public function update(Request $request, $fcustomerid)
     {
+        if ($guard = $this->ensureCustomerPermission('updateCustomer')) {
+            return $guard;
+        }
+
         // 1. Ambil data customer yang lama
         $customer = Customer::findOrFail($fcustomerid);
         $isTransactionLocked = $this->hasTransactionUsage($customer);
@@ -410,6 +445,10 @@ class CustomerController extends Controller
 
     public function delete($fcustomerid)
     {
+        if ($guard = $this->ensureCustomerPermission('deleteCustomer')) {
+            return $guard;
+        }
+
         $customer = Customer::findOrFail($fcustomerid);
 
         if ($message = $this->getUsageLockMessage($customer)) {
@@ -423,6 +462,19 @@ class CustomerController extends Controller
 
     public function destroy($fcustomerid)
     {
+        if (! $this->hasRestrictedPermission('deleteCustomer')) {
+            if (request()->expectsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Anda tidak memiliki akses ke menu customer.',
+                ], 403);
+            }
+
+            return redirect()
+                ->route('dashboard')
+                ->with('error', 'Anda tidak memiliki akses ke menu customer.');
+        }
+
         try {
             $customer = Customer::findOrFail($fcustomerid);
 
@@ -472,6 +524,10 @@ class CustomerController extends Controller
 
     public function browse(Request $request)
     {
+        if ($guard = $this->ensureCustomerPermission('viewCustomer')) {
+            return $guard;
+        }
+
         $query = DB::table('mscustomer')
             ->leftJoin('mswilayah as w', 'w.fwilayahid', '=', 'mscustomer.fwilayah')
             ->select(

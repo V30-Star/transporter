@@ -7,8 +7,23 @@ use Illuminate\Http\Request;
 
 class GroupcustomerController extends Controller
 {
+    private function ensureGroupCustomerPermission(string $permission)
+    {
+        if ($this->hasRestrictedPermission($permission)) {
+            return null;
+        }
+
+        return redirect()
+            ->route('dashboard')
+            ->with('error', 'Anda tidak memiliki akses ke menu group customer.');
+    }
+
     public function index(Request $request)
     {
+        if ($guard = $this->ensureGroupCustomerPermission('viewGroupCustomer')) {
+            return $guard;
+        }
+
         $groupcustomers = Groupcustomer::orderBy('fgroupcode', 'asc')
             ->get(['fgroupcode', 'fgroupname', 'fgroupid', 'fnonactive']);
 
@@ -21,12 +36,19 @@ class GroupcustomerController extends Controller
 
     public function create()
     {
-        // Menampilkan form untuk menambah grup customer baru
+        if ($guard = $this->ensureGroupCustomerPermission('createGroupCustomer')) {
+            return $guard;
+        }
+
         return view('groupcustomer.create');
     }
 
     public function store(Request $request)
     {
+        if ($guard = $this->ensureGroupCustomerPermission('createGroupCustomer')) {
+            return $guard;
+        }
+
         $request->merge([
             'fgroupcode' => strtoupper($request->fgroupcode),
         ]);
@@ -58,10 +80,12 @@ class GroupcustomerController extends Controller
 
     public function edit($fgroupid)
     {
-        // Mengambil data grup customer berdasarkan ID
+        if ($guard = $this->ensureGroupCustomerPermission('updateGroupCustomer')) {
+            return $guard;
+        }
+
         $groupcustomer = Groupcustomer::findOrFail($fgroupid);
 
-        // Menampilkan form untuk mengedit grup customer
         return view('groupcustomer.edit', [
             'groupcustomer' => $groupcustomer,
             'action' => 'edit',
@@ -70,10 +94,12 @@ class GroupcustomerController extends Controller
 
     public function view($fgroupid)
     {
-        // Mengambil data grup customer berdasarkan ID
+        if ($guard = $this->ensureGroupCustomerPermission('viewGroupCustomer')) {
+            return $guard;
+        }
+
         $groupcustomer = Groupcustomer::findOrFail($fgroupid);
 
-        // Menampilkan form untuk mengedit grup customer
         return view('groupcustomer.view', [
             'groupcustomer' => $groupcustomer,
         ]);
@@ -81,6 +107,10 @@ class GroupcustomerController extends Controller
 
     public function update(Request $request, $fgroupid)
     {
+        if ($guard = $this->ensureGroupCustomerPermission('updateGroupCustomer')) {
+            return $guard;
+        }
+
         $request->merge([
             'fgroupcode' => strtoupper($request->fgroupcode),
         ]);
@@ -101,17 +131,19 @@ class GroupcustomerController extends Controller
         $validated['fupdatedat'] = now(); // Menggunakan waktu sekarang
         $validated['fnonactive'] = $request->has('fnonactive') ? '1' : '0';
 
-        // Mengambil data grup customer berdasarkan ID dan mengupdate
         $groupcustomer = Groupcustomer::findOrFail($fgroupid);
         $groupcustomer->update($validated);
 
-        // Mengarahkan kembali dengan pesan sukses
         return redirect()->route('groupcustomer.index')
             ->with('success', 'Group customer berhasil diupdate.');
     }
 
     public function delete($fgroupid)
     {
+        if ($guard = $this->ensureGroupCustomerPermission('deleteGroupCustomer')) {
+            return $guard;
+        }
+
         $groupcustomer = Groupcustomer::findOrFail($fgroupid);
 
         return view('groupcustomer.delete', [
@@ -121,6 +153,19 @@ class GroupcustomerController extends Controller
 
     public function destroy($fgroupid)
     {
+        if (! $this->hasRestrictedPermission('deleteGroupCustomer')) {
+            if (request()->expectsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Anda tidak memiliki akses ke menu group customer.',
+                ], 403);
+            }
+
+            return redirect()
+                ->route('dashboard')
+                ->with('error', 'Anda tidak memiliki akses ke menu group customer.');
+        }
+
         try {
             $groupcustomer = Groupcustomer::findOrFail($fgroupid);
 

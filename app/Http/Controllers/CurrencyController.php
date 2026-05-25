@@ -8,8 +8,23 @@ use Illuminate\Support\Facades\DB;
 
 class CurrencyController extends Controller
 {
+    private function ensureCurrencyPermission(string $permission)
+    {
+        if ($this->hasRestrictedPermission($permission)) {
+            return null;
+        }
+
+        return redirect()
+            ->route('dashboard')
+            ->with('error', 'Anda tidak memiliki akses ke menu currency.');
+    }
+
     public function index(Request $request)
     {
+        if ($guard = $this->ensureCurrencyPermission('viewCurrency')) {
+            return $guard;
+        }
+
         $currencys = Currency::orderBy('fcurrcode', 'asc')
             ->get(['fcurrcode', 'fcurrname', 'fcurrid', 'fnonactive']);
 
@@ -22,11 +37,19 @@ class CurrencyController extends Controller
 
     public function create()
     {
+        if ($guard = $this->ensureCurrencyPermission('createCurrency')) {
+            return $guard;
+        }
+
         return view('currency.create');
     }
 
     public function store(Request $request)
     {
+        if ($guard = $this->ensureCurrencyPermission('createCurrency')) {
+            return $guard;
+        }
+
         $request->merge([
             'fcurrcode' => strtoupper($request->fcurrcode),
             'fcurrname' => strtoupper($request->fcurrname),
@@ -60,6 +83,10 @@ class CurrencyController extends Controller
 
     public function edit($fcurrid)
     {
+        if ($guard = $this->ensureCurrencyPermission('updateCurrency')) {
+            return $guard;
+        }
+
         $currency = Currency::findOrFail($fcurrid);
 
         return view('currency.edit', [
@@ -70,6 +97,10 @@ class CurrencyController extends Controller
 
     public function view($fcurrid)
     {
+        if ($guard = $this->ensureCurrencyPermission('viewCurrency')) {
+            return $guard;
+        }
+
         $currency = Currency::findOrFail($fcurrid);
 
         return view('currency.view', [
@@ -79,6 +110,10 @@ class CurrencyController extends Controller
 
     public function update(Request $request, $fcurrid)
     {
+        if ($guard = $this->ensureCurrencyPermission('updateCurrency')) {
+            return $guard;
+        }
+
         $request->merge([
             'fcurrname' => strtoupper($request->fcurrname),
             'fcurrcode' => strtoupper($request->fcurrcode),
@@ -115,6 +150,10 @@ class CurrencyController extends Controller
 
     public function delete($fcurrid)
     {
+        if ($guard = $this->ensureCurrencyPermission('deleteCurrency')) {
+            return $guard;
+        }
+
         $currency = Currency::findOrFail($fcurrid);
 
         return view('currency.delete', [
@@ -124,6 +163,19 @@ class CurrencyController extends Controller
 
     public function destroy($fcurrid)
     {
+        if (! $this->hasRestrictedPermission('deleteCurrency')) {
+            if (request()->expectsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Anda tidak memiliki akses ke menu currency.',
+                ], 403);
+            }
+
+            return redirect()
+                ->route('dashboard')
+                ->with('error', 'Anda tidak memiliki akses ke menu currency.');
+        }
+
         try {
             $currency = Currency::findOrFail($fcurrid);
 
