@@ -490,9 +490,9 @@
                         </div>
 
                         <input type="hidden" id="itemsCount" :value="submitItems.length">
-                        <input type="hidden" name="frefcode" id="frefcode" value="{{ old('frefcode') }}">
-                        <input type="hidden" name="frefso" id="frefso" value="{{ old('frefso') }}">
-                        <input type="hidden" name="frefsrj" id="frefsrj" value="{{ old('frefsrj') }}">
+                        <input type="hidden" name="frefcode_global" id="frefcode" value="{{ old('frefcode_global') }}">
+                        <input type="hidden" name="frefso_header" id="frefso" value="{{ old('frefso_header') }}">
+                        <input type="hidden" name="frefsrj_header" id="frefsrj" value="{{ old('frefsrj_header') }}">
 
                         <script>
                             document.addEventListener('DOMContentLoaded', () => {

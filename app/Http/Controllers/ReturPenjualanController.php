@@ -361,9 +361,28 @@ class ReturPenjualanController extends Controller
     private function buildReferenceRandomNumberColumns(?string $sourceCode, $value): array
     {
         $normalized = $this->normalizeReferenceRandomNumbers($value);
+        $sourceCode = strtoupper(trim((string) ($sourceCode ?? '')));
+
+        if (in_array($sourceCode, ['S', 'SO', 'INV'], true)) {
+            return [
+                'frefnoacak' => $normalized,
+                'frefnosoacak' => $normalized,
+                'frefnosrjacak' => null,
+            ];
+        }
+
+        if (in_array($sourceCode, ['R', 'SRJ'], true)) {
+            return [
+                'frefnoacak' => $normalized,
+                'frefnosoacak' => null,
+                'frefnosrjacak' => $normalized,
+            ];
+        }
 
         return [
             'frefnoacak' => $normalized,
+            'frefnosoacak' => null,
+            'frefnosrjacak' => null,
         ];
     }
 
@@ -510,8 +529,9 @@ class ReturPenjualanController extends Controller
                 'fqty.*' => ['numeric', 'min:0'],
                 'fprice' => ['required', 'array'],
                 'fprice.*' => ['numeric', 'min:0'],
-                'fdisc' => ['nullable', 'array'],
-                'frefcode' => ['nullable', 'string', 'in:SO,SRJ,UM'],
+                'frefcode' => ['nullable', 'array'],
+                'frefcode.*' => ['nullable', 'string'],
+                'frefcode_global' => ['nullable', 'string', 'in:SO,SRJ,UM,INV,REJ'],
                 'frefso' => ['nullable'],
                 'frefsrj' => ['nullable'],
                 'fnoacak' => ['nullable', 'array'],
@@ -553,7 +573,7 @@ class ReturPenjualanController extends Controller
         if ($typeSales === 1) {
             $frefcode = 'UM';
         } else {
-            $frefcode = $request->input('frefcode');
+            $frefcode = $request->input('frefcode_global');
         }
 
         // CEK UM
@@ -657,7 +677,7 @@ class ReturPenjualanController extends Controller
                 'fsatuan' => mb_substr($satuans[$i] ?? '', 0, 5),
                 'fuserid' => $userid,
                 'fdatetime' => $now,
-                'frefcode' => $frefcode ?? '',
+                'frefcode' => 'REJ',
                 'frefso' => trim((string) ($frefso[$i] ?? '')),
                 'frefsrj' => trim((string) ($frefsrj[$i] ?? '')),
                 'fnoacak' => $this->normalizeRandomNumber($fnoacaks[$i] ?? null, $usedNoAcaks),
@@ -1726,7 +1746,7 @@ class ReturPenjualanController extends Controller
                 'fsatuan' => mb_substr($satuans[$i] ?? '', 0, 5),
                 'fuserid' => $userid,
                 'fdatetime' => $now,
-                'frefcode' => $frefcode ?? '',
+                'frefcode' => 'REJ',
                 'frefso' => trim((string) ($frefso[$i] ?? '')),
                 'frefsrj' => trim((string) ($frefsrj[$i] ?? '')),
                 'fnoacak' => $this->normalizeRandomNumber($fnoacaks[$i] ?? null, $usedNoAcaks),

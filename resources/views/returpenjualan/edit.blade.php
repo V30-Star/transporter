@@ -1119,10 +1119,10 @@
                             <input type="hidden" id="itemsCount" :value="submitItems.length">
                             <input type="hidden" name="frefcode_global" id="frefcode_global"
                                 value="{{ old('frefcode_global', $returpenjualan->frefcode) }}">
-                            <input type="hidden" name="frefso" id="frefso"
-                                value="{{ old('frefso', $returpenjualan->frefso) }}">
-                            <input type="hidden" name="frefsrj" id="frefsrj"
-                                value="{{ old('frefsrj', $returpenjualan->frefsrj) }}">
+                            <input type="hidden" name="frefso_header" id="frefso"
+                                value="{{ old('frefso_header', $returpenjualan->frefso) }}">
+                            <input type="hidden" name="frefsrj_header" id="frefsrj"
+                                value="{{ old('frefsrj_header', $returpenjualan->frefsrj) }}">
 
                             <script>
                                 document.addEventListener('DOMContentLoaded', () => {
