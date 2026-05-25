@@ -78,10 +78,61 @@
             <thead class="bg-gray-100">
                 <tr>
                     <th class="border px-2 py-1">{{ "Cab." }}</th>
-                    <th class="border px-2 py-1">{{ "No.SO" }}</th>
+                    <th class="border px-2 py-1">
+                        <div class="flex items-center justify-between">
+                            <span>{{ "No.SO" }}</span>
+                            <button type="button" class="col-search-btn p-1 hover:bg-gray-200 rounded"
+                                data-column="1" title="Filter No.SO">
+                                <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor"
+                                    viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                                </svg>
+                            </button>
+                        </div>
+                        <div class="col-search-input mt-2 hidden">
+                            <input type="text"
+                                class="dt-column-search w-full px-2 py-1 border border-gray-300 rounded text-sm uppercase focus:outline-none focus:ring-1 focus:ring-blue-500"
+                                data-column="1" placeholder="Cari No.SO...">
+                        </div>
+                    </th>
                     <th class="border px-2 py-1">{{ "Tanggal" }}</th>
-                    <th class="border px-2 py-1">{{ "No.Ref" }}</th>
-                    <th class="border px-2 py-1">{{ "Nama Customer" }}</th>
+                    <th class="border px-2 py-1">
+                        <div class="flex items-center justify-between">
+                            <span>{{ "No.Ref" }}</span>
+                            <button type="button" class="col-search-btn p-1 hover:bg-gray-200 rounded"
+                                data-column="3" title="Filter No.Ref">
+                                <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor"
+                                    viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                                </svg>
+                            </button>
+                        </div>
+                        <div class="col-search-input mt-2 hidden">
+                            <input type="text"
+                                class="dt-column-search w-full px-2 py-1 border border-gray-300 rounded text-sm uppercase focus:outline-none focus:ring-1 focus:ring-blue-500"
+                                data-column="3" placeholder="Cari No.Ref...">
+                        </div>
+                    </th>
+                    <th class="border px-2 py-1">
+                        <div class="flex items-center justify-between">
+                            <span>{{ "Nama Customer" }}</span>
+                            <button type="button" class="col-search-btn p-1 hover:bg-gray-200 rounded"
+                                data-column="4" title="Filter Customer">
+                                <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor"
+                                    viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                                </svg>
+                            </button>
+                        </div>
+                        <div class="col-search-input mt-2 hidden">
+                            <input type="text"
+                                class="dt-column-search w-full px-2 py-1 border border-gray-300 rounded text-sm uppercase focus:outline-none focus:ring-1 focus:ring-blue-500"
+                                data-column="4" placeholder="Cari Customer...">
+                        </div>
+                    </th>
                     <th class="border px-2 py-1">{{ "Nilai SO" }}</th>
                     <th class="border px-2 py-1">{{ "Status" }}</th>
                     <th class="border px-2 py-1">{{ "User Id" }}</th>
@@ -240,6 +291,10 @@
             max-width: none !important;
             vertical-align: middle !important;
         }
+
+        .col-search-btn {
+            line-height: 1;
+        }
     </style>
 @endpush
 @push('scripts')
@@ -333,6 +388,25 @@
         });
 
         $(function() {
+            const $salesorderTable = $('#salesorderTable');
+            let activeColumnSearch = null;
+
+            function syncColumnSearchVisibility() {
+                const $dtContainer = $salesorderTable.closest('.dt-container');
+                $dtContainer.find('.col-search-input').addClass('hidden');
+
+                if (activeColumnSearch === null) {
+                    return;
+                }
+
+                const $activeInputWrap = $dtContainer.find(`.dt-column-search[data-column="${activeColumnSearch}"]`)
+                    .closest('.col-search-input');
+
+                if ($activeInputWrap.length) {
+                    $activeInputWrap.removeClass('hidden');
+                }
+            }
+
             const hasActions = {{ $showActionsColumn ? 'true' : 'false' }};
             const canView = {{ $canView ? 'true' : 'false' }};
             const canEdit = {{ $canEdit ? 'true' : 'false' }};
@@ -509,7 +583,7 @@
             }
 
             // 3. Inisialisasi DataTables
-            $('#salesorderTable').DataTable({
+            const table = $('#salesorderTable').DataTable({
                 processing: true,
                 serverSide: true,
                 ajax: {
@@ -531,6 +605,9 @@
                     topEnd: 'pageLength',
                     bottomStart: 'info',
                     bottomEnd: 'paging'
+                },
+                drawCallback: function() {
+                    syncColumnSearchVisibility();
                 },
                 initComplete: function() {
                     const api = this.api();
@@ -612,6 +689,44 @@
                     // Event listeners
                     $yearSelect.on('change', refreshTable);
                     $monthSelect.on('change', refreshTable);
+                }
+            });
+
+            // Column search events
+            const $container = $($salesorderTable.closest('.dt-container'));
+            const $searchInput = $container.find('.dt-search .dt-input');
+
+            // Prevent sort trigger on column search interaction
+            $container.on('click', '.col-search-btn, .col-search-input', function(e) {
+                e.stopPropagation();
+            });
+
+            $container.on('click', '.col-search-btn', function() {
+                const columnIndex = Number($(this).data('column'));
+                activeColumnSearch = activeColumnSearch === columnIndex ? null : columnIndex;
+                syncColumnSearchVisibility();
+
+                if (activeColumnSearch !== null) {
+                    $container.find(`.dt-column-search[data-column="${activeColumnSearch}"]`).trigger('focus');
+                }
+            });
+
+            $container.on('input', '.dt-column-search', function() {
+                const columnIndex = Number($(this).data('column'));
+                const start = this.selectionStart;
+                const end = this.selectionEnd;
+                this.value = this.value.toUpperCase();
+                this.setSelectionRange(start, end);
+                table.column(columnIndex).search(this.value).draw();
+            });
+
+            $container.on('keydown', '.dt-column-search', function(e) {
+                if (e.key === 'Escape') {
+                    this.value = '';
+                    table.column(Number($(this).data('column'))).search('').draw();
+                    activeColumnSearch = null;
+                    syncColumnSearchVisibility();
+                    $searchInput.trigger('focus');
                 }
             });
         });

@@ -19,6 +19,37 @@ use Illuminate\Validation\ValidationException;
 class FakturpembelianController extends Controller
 {
     use ProductBrowseHelper;
+
+    private function getSupplierAdvanceWarningMap(): array
+    {
+        return DB::table('trstockmt')
+            ->selectRaw('TRIM(COALESCE(fsupplier, \'\')) as fsupplier')
+            ->selectRaw('SUM(COALESCE(famountremain, 0)) as total_remain')
+            ->selectRaw('SUM(COALESCE(famountremain_rp, 0)) as total_remain_rp')
+            ->where('fstockmtcode', 'BUY')
+            ->where('ftypebuy', 2)
+            ->where(function ($query) {
+                $query->where('famountremain', '>', 0)
+                    ->orWhere('famountremain_rp', '>', 0);
+            })
+            ->groupBy(DB::raw('TRIM(COALESCE(fsupplier, \'\'))'))
+            ->get()
+            ->filter(fn ($row) => trim((string) ($row->fsupplier ?? '')) !== '')
+            ->mapWithKeys(function ($row) {
+                $supplierCode = trim((string) ($row->fsupplier ?? ''));
+                $remainRp = (float) ($row->total_remain_rp ?? 0);
+
+                return [
+                    $supplierCode => [
+                        'message' => $remainRp > 0
+                            ? 'Supplier ini ada sisa uang muka sebesar Rp '.number_format($remainRp, 2, ',', '.').'.'
+                            : 'Supplier ini ada sisa uang muka.',
+                    ],
+                ];
+            })
+            ->all();
+    }
+
     public function index(Request $request)
     {
         $canCreate = in_array('createFakturPembelian', explode(',', session('user_restricted_permissions', '')));
@@ -53,6 +84,16 @@ class FakturpembelianController extends Controller
                         ->orWhere('trstockmt.frefpo', $likeOp, "%{$search}%")
                         ->orWhere('mssupplier.fsuppliername', $likeOp, "%{$search}%")
                         ->orWhere('mssupplier.fsuppliercode', $likeOp, "%{$search}%");
+                });
+            }
+
+            // Pencarian per kolom
+            $colSearchGudang = $request->input('columns.3.search.value');
+            if ($colSearchGudang !== null && $colSearchGudang !== '') {
+                $likeOp = DB::getDriverName() === 'pgsql' ? 'ILIKE' : 'LIKE';
+                $query->where(function ($q) use ($colSearchGudang, $likeOp) {
+                    $q->where('trstockmt.ffrom', $likeOp, "%{$colSearchGudang}%")
+                        ->orWhere('mswh.fwhname', $likeOp, "%{$colSearchGudang}%");
                 });
             }
             if ($year) {
@@ -919,6 +960,7 @@ class FakturpembelianController extends Controller
     {
         $suppliers = Supplier::orderBy('fsuppliername', 'asc')
             ->get(['fsuppliercode', 'fsuppliername']);
+        $supplierAdvanceWarnings = $this->getSupplierAdvanceWarningMap();
 
         $warehouses = DB::table('mswh')
             ->select('fwhid', 'fwhcode', 'fwhname', 'fbranchcode', 'fnonactive')
@@ -959,6 +1001,7 @@ class FakturpembelianController extends Controller
             'fbranchcode' => $fbranchcode,
             'products' => $products,
             'filterSupplierId' => $request->query('filter_supplier_id'),
+            'supplierAdvanceWarnings' => $supplierAdvanceWarnings,
         ]);
     }
 
@@ -1312,6 +1355,7 @@ class FakturpembelianController extends Controller
 
     public function edit(Request $request, $fstockmtid)
     {
+        $supplierAdvanceWarnings = $this->getSupplierAdvanceWarningMap();
         $suppliers = Supplier::orderBy('fsuppliername', 'asc')
             ->get(['fsuppliercode', 'fsuppliername']);
 
@@ -1492,11 +1536,13 @@ class FakturpembelianController extends Controller
             'isUsageLocked' => false,
             'usageLockMessage' => null,
             'action' => 'edit',
+            'supplierAdvanceWarnings' => $supplierAdvanceWarnings,
         ]);
     }
 
     public function view(Request $request, $fstockmtid)
     {
+        $supplierAdvanceWarnings = $this->getSupplierAdvanceWarningMap();
         $suppliers = Supplier::orderBy('fsuppliername', 'asc')
             ->get(['fsuppliercode', 'fsuppliername']);
 
@@ -1616,6 +1662,7 @@ class FakturpembelianController extends Controller
             'isUsageLocked' => ! empty($this->getUsageLockMessage($fakturpembelian)),
             'usageLockMessage' => $this->getUsageLockMessage($fakturpembelian),
             'action' => 'view',
+            'supplierAdvanceWarnings' => $supplierAdvanceWarnings,
         ]);
     }
 
@@ -2035,6 +2082,7 @@ class FakturpembelianController extends Controller
 
     public function delete(Request $request, $fstockmtid)
     {
+        $supplierAdvanceWarnings = $this->getSupplierAdvanceWarningMap();
         $suppliers = Supplier::orderBy('fsuppliername', 'asc')
             ->get(['fsuppliercode', 'fsuppliername']);
 
@@ -2153,6 +2201,7 @@ class FakturpembelianController extends Controller
             'isUsageLocked' => false,
             'usageLockMessage' => null,
             'action' => 'delete',
+            'supplierAdvanceWarnings' => $supplierAdvanceWarnings,
         ]);
     }
 

@@ -396,6 +396,22 @@ class SalesOrderController extends Controller
                 });
             }
 
+            // Pencarian per kolom
+            $colSearchSo = $request->input('columns.1.search.value');
+            if ($colSearchSo !== null && $colSearchSo !== '') {
+                $query->where('trsomt.fsono', 'ilike', "%{$colSearchSo}%");
+            }
+
+            $colSearchRef = $request->input('columns.3.search.value');
+            if ($colSearchRef !== null && $colSearchRef !== '') {
+                $query->where('trsomt.frefno', 'ilike', "%{$colSearchRef}%");
+            }
+
+            $colSearchCust = $request->input('columns.4.search.value');
+            if ($colSearchCust !== null && $colSearchCust !== '') {
+                $query->where('c.fcustomername', 'ilike', "%{$colSearchCust}%");
+            }
+
             if ($year) {
                 $query->whereRaw('EXTRACT(YEAR FROM fsodate) = ?', [$year]);
             }

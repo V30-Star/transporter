@@ -80,7 +80,24 @@
                     <th class="border px-2 py-1">{{ "No.Transaksi" }}</th>
                     <th class="border px-2 py-1">{{ "Tanggal" }}</th>
                     <th class="border px-2 py-1">{{ "Faktur#" }}</th>
-                    <th class="border px-2 py-1">{{ "Gudang" }}</th>
+                    <th class="border px-2 py-1">
+                        <div class="flex items-center justify-between">
+                            <span>{{ "Gudang" }}</span>
+                            <button type="button" class="col-search-btn p-1 hover:bg-gray-200 rounded"
+                                data-column="3" title="Filter Gudang">
+                                <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor"
+                                    viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                                </svg>
+                            </button>
+                        </div>
+                        <div class="col-search-input mt-2 hidden">
+                            <input type="text"
+                                class="dt-column-search w-full px-2 py-1 border border-gray-300 rounded text-sm uppercase focus:outline-none focus:ring-1 focus:ring-blue-500"
+                                data-column="3" placeholder="Cari Gudang...">
+                        </div>
+                    </th>
                     <th class="border px-2 py-1">{{ "Nama Supplier" }}</th>
                     <th class="border px-2 py-1">{{ "Referensi#" }}</th>
                     <th class="border px-2 py-1">{{ "Total Harga" }}</th>
@@ -200,6 +217,10 @@
         #statusFilterWrap {
             margin-right: .25rem;
         }
+
+        .col-search-btn {
+            line-height: 1;
+        }
     </style>
 @endpush
 
@@ -294,6 +315,32 @@
         });
 
         $(function() {
+            const $fakturpembelianTable = $('#fakturpembelianTable');
+            let activeColumnSearch = null;
+
+            function syncColumnSearchVisibility() {
+                const $dtContainer = $fakturpembelianTable.closest('.dt-container');
+                $dtContainer.find('.col-search-input').addClass('hidden');
+
+                if (activeColumnSearch === null) {
+                    return;
+                }
+
+                const $activeInputWrap = $dtContainer.find(`.dt-column-search[data-column="${activeColumnSearch}"]`)
+                    .closest('.col-search-input');
+
+                if ($activeInputWrap.length) {
+                    $activeInputWrap.removeClass('hidden');
+                }
+            }
+
+            function hasColumnSearchValue(columnIndex) {
+                const $input = $fakturpembelianTable.closest('.dt-container')
+                    .find(`.dt-column-search[data-column="${columnIndex}"]`);
+
+                return $input.length && String($input.val() || '').trim() !== '';
+            }
+
             const hasActions = {{ $showActionsColumn ? 'true' : 'false' }};
             const canView = {{ $canView ? 'true' : 'false' }};
             const canEdit = {{ $canEdit ? 'true' : 'false' }};
@@ -400,7 +447,7 @@
             }] @else [] @endif;
 
             // 3. Inisialisasi DataTables
-            $('#fakturpembelianTable').DataTable({
+            const table = $('#fakturpembelianTable').DataTable({
                 processing: true,
                 serverSide: true,
                 ajax: {
@@ -422,6 +469,9 @@
                     topEnd: 'pageLength',
                     bottomStart: 'info',
                     bottomEnd: 'paging'
+                },
+                drawCallback: function() {
+                    syncColumnSearchVisibility();
                 },
                 language: {
                     search: @json("Search" . ':'),
@@ -491,6 +541,67 @@
 
                         window.history.pushState({}, '', url.toString());
                     }
+                }
+            });
+
+            // Column search events
+            const $container = $($fakturpembelianTable.closest('.dt-container'));
+            const $searchInput = $container.find('.dt-search .dt-input');
+
+            // Prevent sort trigger on column search interaction
+            $container.on('click', '.col-search-btn, .col-search-input', function(e) {
+                e.stopPropagation();
+            });
+
+            $container.on('click', '.col-search-btn', function(e) {
+                e.stopPropagation();
+                const columnIndex = Number($(this).data('column'));
+                const $th = $(this).closest('th');
+                const $colSearchInput = $th.find('.col-search-input');
+
+                if (activeColumnSearch === columnIndex && !$colSearchInput.hasClass('hidden')) {
+                    activeColumnSearch = null;
+                    $colSearchInput.addClass('hidden');
+                    return;
+                }
+
+                activeColumnSearch = columnIndex;
+                syncColumnSearchVisibility();
+
+                if (!$colSearchInput.hasClass('hidden')) {
+                    $colSearchInput.find('input').focus();
+                }
+            });
+
+            // Close search inputs when clicking outside
+            $(document).on('click', function(e) {
+                if (!$(e.target).closest('.col-search-btn').length && !$(e.target).closest('.col-search-input').length) {
+                    if (activeColumnSearch !== null && hasColumnSearchValue(activeColumnSearch)) {
+                        syncColumnSearchVisibility();
+                        return;
+                    }
+
+                    activeColumnSearch = null;
+                    syncColumnSearchVisibility();
+                }
+            });
+
+            $container.on('input', '.dt-column-search', function() {
+                const columnIndex = Number($(this).data('column'));
+                const start = this.selectionStart;
+                const end = this.selectionEnd;
+                this.value = this.value.toUpperCase();
+                this.setSelectionRange(start, end);
+                table.column(columnIndex).search(this.value).draw();
+            });
+
+            $container.on('keydown', '.dt-column-search', function(e) {
+                if (e.key === 'Escape') {
+                    this.value = '';
+                    table.column(Number($(this).data('column'))).search('').draw();
+                    activeColumnSearch = null;
+                    syncColumnSearchVisibility();
+                    $searchInput.trigger('focus');
                 }
             });
         });

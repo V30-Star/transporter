@@ -311,6 +311,15 @@
                             @enderror
                         </div>
 
+                        <div class="lg:col-span-8 hidden" id="supplierAdvanceWarningBox">
+                            <div class="rounded-lg border border-amber-300 bg-amber-50 px-4 py-3 text-amber-800">
+                                <div class="flex items-start gap-2">
+                                    <x-heroicon-o-exclamation-triangle class="w-5 h-5 mt-0.5 flex-shrink-0" />
+                                    <p class="text-sm font-medium" id="supplierAdvanceWarningText"></p>
+                                </div>
+                            </div>
+                        </div>
+
                         <div class="lg:col-span-4">
                             <label class="block text-sm font-medium mb-1">{{ "Gudang" }}</label>
                             <div class="flex">
@@ -1015,12 +1024,7 @@
                     </div>  </div>
 
 
-                    <x-transaction.browse-supplier-modal />
-                    <x-transaction.browse-product-modal show-controls="true" show-pagination="true" />
-                    <x-transaction.browse-warehouse-modal event-name="faktur-pembelian-warehouse-browse-open" />
-                    <x-transaction.browse-account-modal />
-
-                    <div class="mt-8 flex justify-center gap-4">
+                    <div class="mt-8 border-t pt-6 flex justify-center gap-4">
                         <button type="submit"
                             class="bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700 flex items-center">
                             <x-heroicon-o-check class="w-5 h-5 mr-2" /> Simpan
@@ -1030,6 +1034,11 @@
                             <x-heroicon-o-arrow-left class="w-5 h-5 mr-2" /> Keluar
                         </button>
                     </div>
+
+                    <x-transaction.browse-supplier-modal />
+                    <x-transaction.browse-product-modal show-controls="true" show-pagination="true" />
+                    <x-transaction.browse-warehouse-modal event-name="faktur-pembelian-warehouse-browse-open" />
+                    <x-transaction.browse-account-modal />
                 </form>
             </div>
         </div>
@@ -1533,6 +1542,7 @@
 
                 if (hiddenInput) {
                     hiddenInput.value = supplierCode;
+                    hiddenInput.dispatchEvent(new Event('change', { bubbles: true }));
                 }
 
                 if (selectInput) {
@@ -2716,6 +2726,73 @@
         });
     });
 </script>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const supplierAdvanceWarnings = @json($supplierAdvanceWarnings ?? []);
+            const warningBox = document.getElementById('supplierAdvanceWarningBox');
+            const warningText = document.getElementById('supplierAdvanceWarningText');
+            const hiddenInput = document.getElementById('supplierCodeHidden');
+            const selectInput = document.getElementById('modal_filter_supplier_id');
+            let lastPopupSupplierCode = '';
+
+            const showSupplierAdvancePopup = (message) => {
+                if (!message) {
+                    return;
+                }
+
+                if (typeof window.showAppWarningAlert === 'function') {
+                    window.showAppWarningAlert('Perhatian', message, {
+                        confirmButtonText: 'Ok'
+                    });
+                    return;
+                }
+
+                if (typeof Swal !== 'undefined') {
+                    Swal.fire({
+                        icon: 'warning',
+                        title: 'Perhatian',
+                        text: message,
+                        confirmButtonText: 'Ok'
+                    });
+                }
+            };
+
+            const updateSupplierAdvanceWarning = (supplierCode = null, shouldPopup = false) => {
+                if (!warningBox || !warningText) {
+                    return;
+                }
+
+                const code = (supplierCode ?? hiddenInput?.value ?? selectInput?.value ?? '').toString().trim();
+                const warning = supplierAdvanceWarnings[code] ?? null;
+
+                if (!warning || !warning.message) {
+                    warningBox.classList.add('hidden');
+                    warningText.textContent = '';
+                    if (code !== lastPopupSupplierCode) {
+                        lastPopupSupplierCode = '';
+                    }
+                    return;
+                }
+
+                warningText.textContent = warning.message;
+                warningBox.classList.remove('hidden');
+
+                if (shouldPopup && code !== '' && code !== lastPopupSupplierCode) {
+                    lastPopupSupplierCode = code;
+                    showSupplierAdvancePopup(warning.message);
+                }
+            };
+
+            hiddenInput?.addEventListener('change', () => updateSupplierAdvanceWarning(null, true));
+            selectInput?.addEventListener('change', () => updateSupplierAdvanceWarning(null, true));
+            window.addEventListener('supplier-picked', (event) => {
+                updateSupplierAdvanceWarning(event.detail?.fsuppliercode ?? '', true);
+            });
+
+            updateSupplierAdvanceWarning();
+        });
+    </script>
 
 @push('scripts')
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>

@@ -913,15 +913,20 @@
                         
                         if (!existing) {
                             const targetRow = this.findTargetRowForNota();
-                            const amount = this.toNumber(record.famount);
+                            let amount = this.toNumber(record.famount);
+                            const trCode = String(record.ftrcode || 'INV').trim() || 'INV';
+
+                            if (trCode.toUpperCase() === 'REJ') {
+                                amount = amount * -1;
+                            }
 
                             targetRow.frefno = fsono;
-                            targetRow.fnilai_nota = amount;
+                            targetRow.fnilai_nota = Math.abs(amount);
                             targetRow.fsisa_piutang = remain;
                             targetRow.fdiscpersen = 0;
                             targetRow.fdiscount = 0;
                             targetRow.fkasdtvalue = remain;
-                            targetRow.ftrcode = String(record.ftrcode || 'INV').trim() || 'INV';
+                            targetRow.ftrcode = trCode;
                         }
                     });
 
