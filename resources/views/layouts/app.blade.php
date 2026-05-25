@@ -6,23 +6,7 @@
         $layoutRestrictedPermissions = array_filter(
             array_map('trim', explode(',', (string) session('user_restricted_permissions', ''))),
         );
-        $layoutCanAccessAllBranches = in_array('semuacabang', $layoutRestrictedPermissions, true);
         $layoutCanChangeTransactionDate = in_array('BolehGantiTanggal', $layoutRestrictedPermissions, true);
-        $layoutBranchOptions = $layoutCanAccessAllBranches
-            ? \Illuminate\Support\Facades\DB::table('mscabang')
-                ->select('fcabangkode', 'fcabangname')
-                ->whereNotNull('fcabangkode')
-                ->orderBy('fcabangkode')
-                ->get()
-                ->map(function ($branch) {
-                    return [
-                        'code' => trim((string) $branch->fcabangkode),
-                        'name' => trim((string) ($branch->fcabangname ?? '')),
-                    ];
-                })
-                ->values()
-                ->all()
-            : [];
     @endphp
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -1618,127 +1602,13 @@
     </script>
     <script>
         (() => {
-            const canAccessAllBranches = @json($layoutCanAccessAllBranches);
-            const branchOptions = @json($layoutBranchOptions);
+            document.addEventListener('DOMContentLoaded', () => {
+                enforceTransactionDateAuthority(document);
+            });
 
-            if (canAccessAllBranches && Array.isArray(branchOptions) && branchOptions.length > 0) {
-                function buildBranchOptionLabel(branch) {
-                    const code = String(branch?.code || '').trim();
-                    const name = String(branch?.name || '').trim();
-
-                    if (!code) {
-                        return '';
-                    }
-
-                    return name ? `${code} - ${name}` : code;
-                }
-
-                function ensureBranchOption(select, value) {
-                    const normalizedValue = String(value || '').trim();
-                    if (!normalizedValue) {
-                        return;
-                    }
-
-                    const exists = Array.from(select.options).some((option) => option.value === normalizedValue);
-                    if (!exists) {
-                        select.add(new Option(normalizedValue, normalizedValue, false, false));
-                    }
-                }
-
-                function syncBranchSelect(hiddenInput, select) {
-                    ensureBranchOption(select, hiddenInput.value);
-                    select.value = String(hiddenInput.value || '').trim();
-                }
-
-                function enhanceTransactionBranchField(hiddenInput) {
-                    if (!(hiddenInput instanceof HTMLInputElement) || hiddenInput.dataset.branchEnhanced === '1') {
-                        return;
-                    }
-
-                    const fieldGroup = hiddenInput.closest('div');
-                    if (!fieldGroup) {
-                        return;
-                    }
-
-                    const label = fieldGroup.querySelector('label');
-                    if (!label || !/cabang/i.test(label.textContent || '')) {
-                        return;
-                    }
-
-                    const form = hiddenInput.closest('form[data-form-draft="true"]');
-                    if (!form) {
-                        return;
-                    }
-
-                    const displayInput = Array.from(fieldGroup.querySelectorAll('input[type="text"]')).find((input) =>
-                        input !== hiddenInput && input.disabled);
-                    if (!displayInput) {
-                        return;
-                    }
-
-                    if (!hiddenInput.id) {
-                        hiddenInput.id = `branch-hidden-${Math.random().toString(36).slice(2, 10)}`;
-                    }
-
-                    const select = document.createElement('select');
-                    select.className = displayInput.className;
-                    select.classList.remove('bg-gray-200', 'cursor-not-allowed');
-                    select.classList.add('bg-white');
-                    select.dataset.branchSelectFor = hiddenInput.id;
-
-                    branchOptions.forEach((branch) => {
-                        const code = String(branch?.code || '').trim();
-                        if (!code) {
-                            return;
-                        }
-
-                        select.add(new Option(buildBranchOptionLabel(branch), code, false, false));
-                    });
-
-                    syncBranchSelect(hiddenInput, select);
-
-                    select.addEventListener('change', () => {
-                        hiddenInput.value = select.value;
-                    });
-
-                    displayInput.replaceWith(select);
-                    hiddenInput.dataset.branchEnhanced = '1';
-                }
-
-                function enhanceTransactionBranchFields(root = document) {
-                    const scope = root instanceof HTMLElement || root instanceof Document ? root : document;
-                    scope.querySelectorAll('form[data-form-draft="true"] input[type="hidden"][name="fbranchcode"]')
-                        .forEach(enhanceTransactionBranchField);
-                }
-
-                function syncEnhancedBranchFields(root = document) {
-                    const scope = root instanceof HTMLElement || root instanceof Document ? root : document;
-                    scope.querySelectorAll('input[type="hidden"][name="fbranchcode"][data-branch-enhanced="1"]')
-                        .forEach((hiddenInput) => {
-                            const select = document.querySelector(
-                                `select[data-branch-select-for="${hiddenInput.id}"]`);
-                            if (!select) {
-                                return;
-                            }
-
-                            syncBranchSelect(hiddenInput, select);
-                        });
-                }
-
-                document.addEventListener('DOMContentLoaded', () => {
-                    enforceTransactionDateAuthority(document);
-                    enhanceTransactionBranchFields(document);
-                    syncEnhancedBranchFields(document);
-                });
-
-                document.addEventListener('form-draft-restored', (event) => {
-                    enforceTransactionDateAuthority(event.target instanceof HTMLElement ? event.target :
-                        document);
-                    enhanceTransactionBranchFields(event.target instanceof HTMLElement ? event.target :
-                        document);
-                    syncEnhancedBranchFields(event.target instanceof HTMLElement ? event.target : document);
-                });
-            }
+            document.addEventListener('form-draft-restored', (event) => {
+                enforceTransactionDateAuthority(event.target instanceof HTMLElement ? event.target : document);
+            });
 
             const shouldRestoreFormState = @json($errors->any() || session()->hasOldInput() || session()->has('error'));
             const formSelector = 'form:not([method="GET"]):not([data-disable-form-persist="true"])';

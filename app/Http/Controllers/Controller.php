@@ -3,6 +3,9 @@
 namespace App\Http\Controllers;
 
 use Carbon\Carbon;
+use Illuminate\Database\Eloquent\Builder as EloquentBuilder;
+use Illuminate\Database\Query\Builder as QueryBuilder;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
@@ -21,6 +24,61 @@ abstract class Controller
     protected function canChangeTransactionDate(): bool
     {
         return $this->hasRestrictedPermission('BolehGantiTanggal');
+    }
+
+    protected function canAccessAllBranches(): bool
+    {
+        return $this->hasRestrictedPermission('semuacabang');
+    }
+
+    protected function getCurrentBranchCode(): ?string
+    {
+        $rawBranch = Auth::guard('sysuser')->user()?->fcabang
+            ?? Auth::user()?->fcabang
+            ?? session('fcabang');
+
+        $needle = trim((string) $rawBranch);
+        if ($needle === '') {
+            return null;
+        }
+
+        if (is_numeric($needle)) {
+            $code = DB::table('mscabang')
+                ->where('fcabangid', (int) $needle)
+                ->value('fcabangkode');
+
+            return filled($code) ? trim((string) $code) : $needle;
+        }
+
+        $code = DB::table('mscabang')
+            ->whereRaw('LOWER(TRIM(fcabangkode)) = LOWER(?)', [$needle])
+            ->value('fcabangkode');
+
+        if (! filled($code)) {
+            $code = DB::table('mscabang')
+                ->whereRaw('LOWER(TRIM(fcabangname)) = LOWER(?)', [$needle])
+                ->value('fcabangkode');
+        }
+
+        return filled($code) ? trim((string) $code) : $needle;
+    }
+
+    protected function applyBranchVisibilityScope($query, string $column = 'fbranchcode')
+    {
+        if ($this->canAccessAllBranches()) {
+            return $query;
+        }
+
+        $branchCode = $this->getCurrentBranchCode();
+        if (! filled($branchCode)) {
+            return $query;
+        }
+
+        if ($query instanceof EloquentBuilder || $query instanceof QueryBuilder) {
+            $query->where($column, $branchCode);
+        }
+
+        return $query;
     }
 
     protected function getEditPeriodYm(): string

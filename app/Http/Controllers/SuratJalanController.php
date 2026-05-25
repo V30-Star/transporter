@@ -71,9 +71,11 @@ class SuratJalanController extends Controller
             ->values();
 
         // Ambil tahun-tahun yang tersedia dari data
-        $availableYears = PenerimaanPembelianHeader::selectRaw('DISTINCT EXTRACT(YEAR FROM fdatetime) as year')
+        $availableYearsQuery = PenerimaanPembelianHeader::selectRaw('DISTINCT EXTRACT(YEAR FROM fdatetime) as year')
             ->where('fstockmtcode', 'SRJ')
-            ->whereNotNull('fdatetime')
+            ->whereNotNull('fdatetime');
+        $this->applyBranchVisibilityScope($availableYearsQuery, 'trstockmt.fbranchcode');
+        $availableYears = $availableYearsQuery
             ->orderByRaw('EXTRACT(YEAR FROM fdatetime) DESC')
             ->pluck('year');
 
@@ -94,6 +96,7 @@ class SuratJalanController extends Controller
                     $join->on('so_refs.fstockmtno', '=', 'trstockmt.fstockmtno');
                 })
                 ->where('trstockmt.fstockmtcode', 'SRJ');
+            $this->applyBranchVisibilityScope($baseQuery, 'trstockmt.fbranchcode');
 
             $query = clone $baseQuery;
             $totalRecords = (clone $baseQuery)->count('trstockmt.fstockmtid');

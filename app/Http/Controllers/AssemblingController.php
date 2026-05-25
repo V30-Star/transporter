@@ -58,10 +58,12 @@ class AssemblingController extends Controller
         $showActionsColumn = $canEdit || $canDelete; // Anda bisa tambahkan $canPrint jika ada
         $year = trim((string) $request->query('year', ''));
         $month = trim((string) $request->query('month', ''));
-        $availableYears = DB::table('trstockmt')
+        $availableYearsQuery = DB::table('trstockmt')
             ->where('fstockmtcode', 'LHP')
             ->whereNotNull('fstockmtdate')
-            ->selectRaw('DISTINCT EXTRACT(YEAR FROM fstockmtdate) as year')
+            ->selectRaw('DISTINCT EXTRACT(YEAR FROM fstockmtdate) as year');
+        $this->applyBranchVisibilityScope($availableYearsQuery, 'trstockmt.fbranchcode');
+        $availableYears = $availableYearsQuery
             ->orderByRaw('EXTRACT(YEAR FROM fstockmtdate) DESC')
             ->pluck('year');
 
@@ -73,9 +75,10 @@ class AssemblingController extends Controller
                 ->leftJoin('mscabang as c', 'c.fcabangkode', '=', 'trstockmt.fbranchcode')
                 ->leftJoin('mswh as w', 'w.fwhcode', '=', 'trstockmt.ffrom')
                 ->where('trstockmt.fstockmtcode', 'LHP');
+            $this->applyBranchVisibilityScope($query, 'trstockmt.fbranchcode');
 
             // Total records (dengan filter 'LHP')
-            $totalRecords = PenerimaanPembelianHeader::where('fstockmtcode', 'LHP')->count();
+            $totalRecords = (clone $query)->count();
 
             // Handle Search
             if ($search = $request->input('search.value')) {

@@ -354,8 +354,10 @@ class SalesOrderController extends Controller
         $year = $request->query('year');
         $month = $request->query('month');
 
-        $availableYears = SalesOrderHeader::selectRaw('DISTINCT EXTRACT(YEAR FROM fsodate) as year')
-            ->whereNotNull('fsodate')
+        $availableYearsQuery = SalesOrderHeader::selectRaw('DISTINCT EXTRACT(YEAR FROM fsodate) as year')
+            ->whereNotNull('fsodate');
+        $this->applyBranchVisibilityScope($availableYearsQuery, 'trsomt.fbranchcode');
+        $availableYears = $availableYearsQuery
             ->orderByRaw('EXTRACT(YEAR FROM fsodate) DESC')
             ->pluck('year');
 
@@ -383,8 +385,8 @@ class SalesOrderController extends Controller
                         END AS frefno_confirm
                     ")
                 );
-
-            $totalRecords = SalesOrderHeader::count();
+            $this->applyBranchVisibilityScope($query, 'trsomt.fbranchcode');
+            $totalRecords = (clone $query)->count();
 
             if ($search = $request->input('search.value')) {
                 $query->where(function ($q) use ($search) {

@@ -57,10 +57,12 @@ class AdjstockController extends Controller
         $showActionsColumn = $canEdit || $canDelete;
         $year = trim((string) $request->query('year', ''));
         $month = trim((string) $request->query('month', ''));
-        $availableYears = DB::table('trstockmt')
+        $availableYearsQuery = DB::table('trstockmt')
             ->where('fstockmtcode', 'ADJ')
             ->whereNotNull('fstockmtdate')
-            ->selectRaw('DISTINCT EXTRACT(YEAR FROM fstockmtdate) as year')
+            ->selectRaw('DISTINCT EXTRACT(YEAR FROM fstockmtdate) as year');
+        $this->applyBranchVisibilityScope($availableYearsQuery, 'trstockmt.fbranchcode');
+        $availableYears = $availableYearsQuery
             ->orderByRaw('EXTRACT(YEAR FROM fstockmtdate) DESC')
             ->pluck('year');
 
@@ -72,9 +74,10 @@ class AdjstockController extends Controller
                 ->leftJoin('mscabang as c', 'c.fcabangkode', '=', 'trstockmt.fbranchcode')
                 ->leftJoin('mswh as w', 'w.fwhcode', '=', 'trstockmt.ffrom')
                 ->where('trstockmt.fstockmtcode', 'ADJ');
+            $this->applyBranchVisibilityScope($query, 'trstockmt.fbranchcode');
 
             // Total records (dengan filter 'ADJ')
-            $totalRecords = PenerimaanPembelianHeader::where('fstockmtcode', 'ADJ')->count();
+            $totalRecords = (clone $query)->count();
 
             // Handle Search (cari di No. Adjustment)
             if ($search = $request->input('search.value')) {

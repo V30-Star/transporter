@@ -58,10 +58,12 @@ class MutasiController extends Controller
         $showActionsColumn = $canEdit || $canDelete; // Anda bisa tambahkan $canPrint jika ada
         $year = trim((string) $request->query('year', ''));
         $month = trim((string) $request->query('month', ''));
-        $availableYears = DB::table('trstockmt')
+        $availableYearsQuery = DB::table('trstockmt')
             ->where('fstockmtcode', 'MUT')
             ->whereNotNull('fstockmtdate')
-            ->selectRaw('DISTINCT EXTRACT(YEAR FROM fstockmtdate) as year')
+            ->selectRaw('DISTINCT EXTRACT(YEAR FROM fstockmtdate) as year');
+        $this->applyBranchVisibilityScope($availableYearsQuery, 'trstockmt.fbranchcode');
+        $availableYears = $availableYearsQuery
             ->orderByRaw('EXTRACT(YEAR FROM fstockmtdate) DESC')
             ->pluck('year');
 
@@ -74,9 +76,10 @@ class MutasiController extends Controller
                 ->leftJoin('mswh as wf', 'wf.fwhcode', '=', 'trstockmt.ffrom')
                 ->leftJoin('mswh as wt', 'wt.fwhcode', '=', 'trstockmt.fto')
                 ->where('trstockmt.fstockmtcode', 'MUT');
+            $this->applyBranchVisibilityScope($query, 'trstockmt.fbranchcode');
 
             // Total records (dengan filter 'MUT')
-            $totalRecords = PenerimaanPembelianHeader::where('fstockmtcode', 'MUT')->count();
+            $totalRecords = (clone $query)->count();
 
             // Handle Search
             if ($search = trim((string) $request->input('search.value'))) {

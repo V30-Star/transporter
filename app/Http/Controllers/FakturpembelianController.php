@@ -30,9 +30,11 @@ class FakturpembelianController extends Controller
         $year = $request->query('year');
         $month = $request->query('month');
 
-        $availableYears = PenerimaanPembelianHeader::selectRaw('DISTINCT EXTRACT(YEAR FROM fdatetime) as year')
+        $availableYearsQuery = PenerimaanPembelianHeader::selectRaw('DISTINCT EXTRACT(YEAR FROM fdatetime) as year')
             ->where('fstockmtcode', 'BUY')
-            ->whereNotNull('fdatetime')
+            ->whereNotNull('fdatetime');
+        $this->applyBranchVisibilityScope($availableYearsQuery, 'trstockmt.fbranchcode');
+        $availableYears = $availableYearsQuery
             ->orderByRaw('EXTRACT(YEAR FROM fdatetime) DESC')
             ->pluck('year');
 
@@ -41,7 +43,8 @@ class FakturpembelianController extends Controller
                 ->where('trstockmt.fstockmtcode', 'BUY')
                 ->leftJoin('mssupplier', 'trstockmt.fsupplier', '=', 'mssupplier.fsuppliercode')
                 ->leftJoin('mswh', 'trstockmt.ffrom', '=', 'mswh.fwhcode');
-            $totalRecords = PenerimaanPembelianHeader::where('fstockmtcode', 'BUY')->count();
+            $this->applyBranchVisibilityScope($query, 'trstockmt.fbranchcode');
+            $totalRecords = (clone $query)->count();
             if ($search = trim((string) $request->input('search.value'))) {
                 $likeOp = DB::getDriverName() === 'pgsql' ? 'ILIKE' : 'LIKE';
                 $query->where(function ($q) use ($search, $likeOp) {

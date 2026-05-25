@@ -48,8 +48,10 @@ class Tr_pohController extends Controller
         $month = $request->query('month');
 
         // Ambil tahun-tahun yang tersedia
-        $availableYears = Tr_poh::selectRaw('DISTINCT EXTRACT(YEAR FROM fdatetime) as year')
-            ->whereNotNull('fdatetime')
+        $availableYearsQuery = Tr_poh::selectRaw('DISTINCT EXTRACT(YEAR FROM fdatetime) as year')
+            ->whereNotNull('fdatetime');
+        $this->applyBranchVisibilityScope($availableYearsQuery, 'tr_poh.fbranchcode');
+        $availableYears = $availableYearsQuery
             ->orderByRaw('EXTRACT(YEAR FROM fdatetime) DESC')
             ->pluck('year');
 
@@ -75,8 +77,8 @@ class Tr_pohController extends Controller
                 ->leftJoin('mssupplier', 'tr_poh.fsupplier', '=', 'mssupplier.fsuppliercode')
                 ->leftJoin('tr_pod', 'tr_poh.fpono', '=', 'tr_pod.fpono')
                 ->leftJoin('tr_prh', 'tr_prh.fprno', '=', 'tr_pod.frefdtno');
-
-            $totalRecords = Tr_poh::count();
+            $this->applyBranchVisibilityScope($query, 'tr_poh.fbranchcode');
+            $totalRecords = (clone $query)->distinct('tr_poh.fpohid')->count('tr_poh.fpohid');
 
             // Handle Search - Beri prefix tabel agar tidak bingung
             if ($search = $request->input('search.value')) {

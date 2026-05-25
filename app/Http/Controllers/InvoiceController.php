@@ -452,8 +452,10 @@ class InvoiceController extends Controller
         $month = $request->query('month');
 
         // Ambil tahun-tahun yang tersedia dari data
-        $availableYears = Tranmt::selectRaw('DISTINCT EXTRACT(YEAR FROM fdatetime) as year')
-            ->whereNotNull('fdatetime')
+        $availableYearsQuery = Tranmt::selectRaw('DISTINCT EXTRACT(YEAR FROM fdatetime) as year')
+            ->whereNotNull('fdatetime');
+        $this->applyBranchVisibilityScope($availableYearsQuery, 'tranmt.fbranchcode');
+        $availableYears = $availableYearsQuery
             ->orderByRaw('EXTRACT(YEAR FROM fdatetime) DESC')
             ->pluck('year');
 
@@ -461,9 +463,10 @@ class InvoiceController extends Controller
         if ($request->ajax()) {
 
             $query = Tranmt::query();
+            $this->applyBranchVisibilityScope($query, 'tranmt.fbranchcode');
 
             // DEBUG: Cek total data di tabel
-            $totalRecords = Tranmt::count();
+            $totalRecords = (clone $query)->count();
 
             // Handle Search
             if ($search = $request->input('search.value')) {
