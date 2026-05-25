@@ -47,10 +47,16 @@
             @method($formMethod)
         @endif
 
-        <input type="hidden" name="fbranchcode" value="{{ old('fbranchcode', $currentBranchCode) }}">
         <input type="hidden" name="fcustomer_tempo" x-model="customerTempo">
         <fieldset @disabled($isReadOnly) class="space-y-6">
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+            <!-- Row 1: Branch, Voucher Number, Date -->
+            <div class="grid grid-cols-3 gap-4">
+                <div>
+                    <label class="block text-sm font-bold mb-1">{{ 'Cabang' }}</label>
+                    <input type="text" name="fbranchcode" value="{{ old('fbranchcode', $currentBranchCode) }}"
+                        class="w-full border rounded px-3 py-2 bg-gray-100 cursor-not-allowed text-gray-700" readonly>
+                </div>
+
                 <div>
                     <label class="block text-sm font-bold mb-1">{{ 'No. Voucher' }}</label>
                     <input type="text" name="fkasmtno" value="{{ old('fkasmtno', $voucherNo) }}"
@@ -62,18 +68,6 @@
                 </div>
 
                 <div>
-                    <label class="block text-sm font-bold mb-1">{{ 'No.Giro/Cek' }}</label>
-                    <input type="text" name="fnogiro" value="{{ old('fnogiro', $giroNo ?? '') }}"
-                        class="w-full border rounded px-3 py-2 @error('fnogiro') border-red-500 @enderror">
-                    @error('fnogiro')
-                        <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
-                    @enderror
-                </div>
-
-            </div>
-
-            <div class="grid grid-cols-1 lg:grid-cols-12 gap-4 items-end">
-                <div class="lg:col-span-4">
                     <label class="block text-sm font-bold mb-1">{{ 'Tanggal' }}</label>
                     <input type="date" name="fkasmtdate" x-model="transactionDate"
                         value="{{ old('fkasmtdate', $transactionDate) }}"
@@ -82,29 +76,10 @@
                         <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                     @enderror
                 </div>
-
-                <div class="lg:col-span-4">
-                    <label class="block text-sm font-bold mb-1">{{ 'Tgl.Jatuh Tempo' }}</label>
-                    <input type="date" name="ftgljatuhtempo" x-model="dueDate"
-                        class="w-full border rounded px-3 py-2 @error('ftgljatuhtempo') border-red-500 @enderror"
-                        :readonly="!isGiroMundur" :disabled="!isGiroMundur"
-                        :class="!isGiroMundur ? 'bg-gray-100 cursor-not-allowed' : 'bg-white'">
-                    @error('ftgljatuhtempo')
-                        <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
-                    @enderror
-                </div>
-
-                <div class="lg:col-span-4">
-                    <label class="block text-sm font-bold mb-1">{{ 'Giro Mundur' }}</label>
-                    <label class="inline-flex items-center gap-2 h-10 px-3 border rounded w-full lg:w-auto">
-                        <input type="checkbox" x-model="isGiroMundur" class="rounded">
-                        <span class="text-sm">{{ 'Aktifkan giro mundur' }}</span>
-                    </label>
-                    <input type="hidden" name="fgiromundur" :value="isGiroMundur ? '1' : '0'">
-                </div>
             </div>
 
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+            <!-- Row 2: Customer, Account -->
+            <div class="grid grid-cols-2 gap-4">
                 <div>
                     <label class="block text-sm font-bold mb-1">{{ 'Customer' }}</label>
                     <div class="flex">
@@ -151,6 +126,39 @@
                 </div>
             </div>
 
+            <!-- Row 3: Checking Number, Post-Dated Checking, Due Date -->
+            <div class="grid grid-cols-3 gap-4 items-end">
+                <div>
+                    <label class="block text-sm font-bold mb-1">{{ 'No.Giro/Cek' }}</label>
+                    <input type="text" name="fnogiro" value="{{ old('fnogiro', $giroNo ?? '') }}"
+                        class="w-full border rounded px-3 py-2 @error('fnogiro') border-red-500 @enderror">
+                    @error('fnogiro')
+                        <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+                    @enderror
+                </div>
+
+                <div>
+                    <label class="block text-sm font-bold mb-1">{{ 'Giro Mundur' }}</label>
+                    <label class="inline-flex items-center gap-2 h-10 px-3 border rounded w-full bg-white">
+                        <input type="checkbox" x-model="isGiroMundur" class="rounded">
+                        <span class="text-sm">{{ 'Aktifkan giro mundur' }}</span>
+                    </label>
+                    <input type="hidden" name="fgiromundur" :value="isGiroMundur ? '1' : '0'">
+                </div>
+
+                <div>
+                    <label class="block text-sm font-bold mb-1">{{ 'Tgl.Jatuh Tempo' }}</label>
+                    <input type="date" name="ftgljatuhtempo" x-model="dueDate"
+                        class="w-full border rounded px-3 py-2 @error('ftgljatuhtempo') border-red-500 @enderror"
+                        :readonly="!isGiroMundur" :disabled="!isGiroMundur"
+                        :class="!isGiroMundur ? 'bg-gray-100 cursor-not-allowed text-gray-400' : 'bg-white'">
+                    @error('ftgljatuhtempo')
+                        <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+                    @enderror
+                </div>
+            </div>
+
+            <!-- Row 4: Description -->
             <div>
                 <label class="block text-sm font-bold mb-1">{{ 'Keterangan' }}</label>
                 <input type="text" name="fket" value="{{ old('fket', $noteValue ?? '') }}"
