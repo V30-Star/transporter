@@ -22,6 +22,7 @@ class ReportingFakturPembelianController extends Controller
         $filterSupplierId = $request->query('filter_supplier_id'); // berisi supplier code
 
         $query = PenerimaanPembelianHeader::query();
+        $this->applyBranchVisibilityScope($query, 'trstockmt.fbranchcode');
 
         // Terapkan Filter Tanggal Mulai (fpodate >= filterDateFrom)
         if (! empty($filterDateFrom)) {
@@ -105,6 +106,7 @@ class ReportingFakturPembelianController extends Controller
         $query = DB::table('trstockmt')
             ->select('trstockmt.*')
             ->where('fstockmtcode', 'TER');
+        $this->applyBranchVisibilityScope($query, 'trstockmt.fbranchcode');
 
         // Filter berdasarkan tanggal jika ada
         if ($request->filled('filter_date_from')) {

@@ -25,6 +25,7 @@ class ReportingController extends Controller
         $filterSupplierId = $request->query('filter_supplier_id'); // Parameter Supplier baru
 
         $query = Tr_poh::query();
+        $this->applyBranchVisibilityScope($query, 'tr_poh.fbranchcode');
 
         // Terapkan Filter Tanggal Mulai (fpodate >= filterDateFrom)
         if (! empty($filterDateFrom)) {
@@ -107,6 +108,7 @@ class ReportingController extends Controller
         $filterSupplierId = $request->query('fsupplier');
 
         $query = DB::table('tr_poh')->select('tr_poh.*');
+        $this->applyBranchVisibilityScope($query, 'tr_poh.fbranchcode');
 
         // Filter berdasarkan tanggal jika ada
         if ($request->filled('filter_date_from')) {

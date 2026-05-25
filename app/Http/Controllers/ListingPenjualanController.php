@@ -62,6 +62,7 @@ class ListingPenjualanController extends Controller
                 DB::raw('ROUND(m.ftotalsalesnet) as famountgross'),
                 DB::raw('d.fsalesnet * d.fqty as famount')
             );
+        $this->applyBranchVisibilityScope($query, 'm.fbranchcode');
 
         if ($request->date_from) {
             $query->where('m.fsodate', '>=', $request->date_from);

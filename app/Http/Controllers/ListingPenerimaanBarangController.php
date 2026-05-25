@@ -64,6 +64,7 @@ class ListingPenerimaanBarangController extends Controller
                 DB::raw('COALESCE(buy.fqtybuy, 0) as fqtybuy')
             )
             ->where('m.fstockmtcode', 'TER');
+        $this->applyBranchVisibilityScope($query, 'm.fbranchcode');
 
         // Filter Tanggal
         if ($request->date_from) {

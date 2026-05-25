@@ -71,6 +71,7 @@ class ReportingKasController extends Controller
                 'trkasmt.*',
                 'acc.faccname as header_account_name',
             ]);
+        $this->applyBranchVisibilityScope($query, 'trkasmt.fbranchcode');
 
         if (! empty($filterDateFrom)) {
             $query->whereDate('trkasmt.fkasmtdate', '>=', $filterDateFrom);

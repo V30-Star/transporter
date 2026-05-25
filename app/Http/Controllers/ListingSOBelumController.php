@@ -52,6 +52,7 @@ class ListingSOBelumController extends Controller
             )
             ->where('d.fqty', '>', 0)
             ->where('m.fclose', '0');
+        $this->applyBranchVisibilityScope($query, 'm.fbranchcode');
 
         if ($request->date_from) {
             $query->where('m.fsodate', '>=', $request->date_from);
@@ -342,6 +343,7 @@ class ListingSOBelumController extends Controller
             )
             ->where('d.fqty', '>', 0)
             ->where('m.fclose', '0');
+        $this->applyBranchVisibilityScope($query, 'm.fbranchcode');
 
         if ($request->date_from) {
             $query->where('m.fsodate', '>=', $request->date_from);
