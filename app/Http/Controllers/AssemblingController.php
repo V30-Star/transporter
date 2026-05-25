@@ -1428,7 +1428,7 @@ class AssemblingController extends Controller
             return null;
         }
 
-        return 'ASSEMBLING ' . strtoupper((string) $header->fstockmtno) . ' SUDAH DIPAKAI: ' . strtoupper($usedBy->implode(', ')) . '.';
+        return 'Assembling ' . $header->fstockmtno . ' sudah dipakai: ' . $usedBy->implode(', ') . '.';
     }
 
     private function validateUniqueReferenceUsage(array $rowsDt, ?string $exceptStockMtNo = null): ?string
@@ -1461,7 +1461,7 @@ class AssemblingController extends Controller
                 ->first();
 
             if ($existing) {
-                return 'NO. REFERENSI ' . strtoupper((string) $referenceNo) . ' SUDAH ADA DI TRANSAKSI ' . strtoupper(trim((string) ($existing->transaction_no ?? ''))) . '.';
+                return 'No. referensi ' . $referenceNo . ' sudah ada di transaksi ' . trim((string) ($existing->transaction_no ?? '')) . '.';
             }
         }
 

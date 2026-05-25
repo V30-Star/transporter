@@ -371,7 +371,7 @@ class JurnalTransaksiController extends Controller
             ]);
 
         if (! $hdr) {
-            return redirect()->back()->with('error', 'PO TIDAK ADA.');
+            return redirect()->back()->with('error', 'Jurnal tidak ada.');
         }
 
         DB::table('trstockmt')->where('fstockmtno', $hdr->fstockmtno)->update(['fprint' => 1]);
@@ -724,7 +724,7 @@ class JurnalTransaksiController extends Controller
                 ['fcurrid' => $newJurnalMtId],
                 $this->resolveJournalIndexRouteParams($fjurnaltype)
             ))
-            ->with('success', strtoupper(($fjurnaltype === self::PURCHASE_JOURNAL_TYPE ? 'JURNAL FAKTUR PEMBELIAN' : 'JURNAL TRANSAKSI').' BERHASIL DISIMPAN.'));
+            ->with('success', $fjurnaltype === self::PURCHASE_JOURNAL_TYPE ? 'Jurnal faktur pembelian berhasil disimpan.' : 'Jurnal transaksi berhasil disimpan.');
     }
 
     public function edit($fstockmtid)
@@ -1102,7 +1102,7 @@ class JurnalTransaksiController extends Controller
                 ['fcurrid' => $fstockmtid],
                 $this->resolveJournalIndexRouteParams($fjurnaltype)
             ))
-            ->with('success', strtoupper(($fjurnaltype === self::PURCHASE_JOURNAL_TYPE ? 'JURNAL FAKTUR PEMBELIAN ' : 'JURNAL TRANSAKSI ').trim((string) $header->fjurnalno).' BERHASIL DIUPDATE.'));
+            ->with('success', $fjurnaltype === self::PURCHASE_JOURNAL_TYPE ? 'Jurnal faktur pembelian ' . trim((string) $header->fjurnalno) . ' berhasil diupdate.' : 'Jurnal transaksi ' . trim((string) $header->fjurnalno) . ' berhasil diupdate.');
     }
 
     public function delete($fstockmtid)
@@ -1216,7 +1216,7 @@ class JurnalTransaksiController extends Controller
 
             return redirect($redirectUrl)->with('success', $message);
         } catch (\Exception $e) {
-            $message = 'JURNAL BELUM BISA DIHAPUS. COBA LAGI.';
+            $message = 'Jurnal belum bisa dihapus. Coba lagi.';
 
             if (request()->expectsJson()) {
                 return response()->json([
@@ -1349,7 +1349,7 @@ class JurnalTransaksiController extends Controller
                 ->first();
 
             if ($existing) {
-                return 'NO. REFERENSI ' . strtoupper((string) $referenceNo) . ' SUDAH ADA DI TRANSAKSI ' . strtoupper(trim((string) ($existing->transaction_no ?? ''))) . '.';
+                return 'No. referensi ' . $referenceNo . ' sudah ada di transaksi ' . trim((string) ($existing->transaction_no ?? '')) . '.';
             }
         }
 

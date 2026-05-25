@@ -161,7 +161,7 @@ class PenerimaanKasController extends Controller
 
         return redirect()
             ->route('penerimaankas.create')
-            ->with('success', 'PENERIMAAN KAS ' . $header->fkasmtno . ' BERHASIL DISIMPAN.');
+            ->with('success', 'Penerimaan kas ' . $header->fkasmtno . ' berhasil disimpan.');
     }
 
     public function view($fkasmtno)
@@ -281,7 +281,7 @@ class PenerimaanKasController extends Controller
 
         return redirect()
             ->route('penerimaankas.edit', ['fkasmtno' => $header->fkasmtno])
-            ->with('success', 'PENERIMAAN KAS ' . $header->fkasmtno . ' BERHASIL DIUPDATE.');
+            ->with('success', 'Penerimaan kas ' . $header->fkasmtno . ' berhasil diupdate.');
     }
 
     public function destroy($fkasmtno)
@@ -301,12 +301,12 @@ class PenerimaanKasController extends Controller
         if (! request()->expectsJson()) {
             return redirect()
                 ->route('penerimaankas.index')
-                ->with('success', 'PENERIMAAN KAS ' . $deletedNo . ' BERHASIL DIHAPUS.');
+                ->with('success', 'Penerimaan kas ' . $deletedNo . ' berhasil dihapus.');
         }
 
         return response()->json([
             'success' => true,
-            'message' => 'PENERIMAAN KAS ' . $deletedNo . ' BERHASIL DIHAPUS.',
+            'message' => 'Penerimaan kas ' . $deletedNo . ' berhasil dihapus.',
         ]);
     }
 
@@ -322,7 +322,7 @@ class PenerimaanKasController extends Controller
             ]);
 
         if (! $header) {
-            return redirect()->back()->with('error', 'PENERIMAAN KAS TIDAK ADA.');
+            return redirect()->back()->with('error', 'Penerimaan kas tidak ada.');
         }
 
         $details = DB::table('trkasdt as dt')
@@ -422,16 +422,16 @@ class PenerimaanKasController extends Controller
             'details.*.fnote' => ['nullable', 'string', 'max:100'],
             'details.*.fkasdtvalue' => ['required', 'numeric', 'not_in:0'],
         ], [
-            'fkasmtdate.required' => 'TANGGAL WAJIB DIISI.',
-            'fbranchcode.required' => 'CABANG WAJIB DIISI.',
-            'fnogiro.unique' => 'NO. GIRO / CEK SUDAH DIPAKAI.',
-            'ftgljatuhtempo.required' => 'TGL. JATUH TEMPO WAJIB DIISI SAAT GIRO MUNDUR.',
-            'ftgljatuhtempo.before_or_equal' => 'TGL. JATUH TEMPO TIDAK BOLEH MELEBIHI TANGGAL.',
-            'faccountheader.in' => 'CASH / BANK ACCOUNT TIDAK VALID.',
-            'details.required' => 'MINIMAL 1 DETAIL PENERIMAAN.',
-            'details.*.faccount.required' => 'ACCOUNT DETAIL WAJIB DIISI.',
-            'details.*.fkasdtvalue.required' => 'JUMLAH BAYAR WAJIB DIISI.',
-            'details.*.fkasdtvalue.not_in' => 'JUMLAH BAYAR TIDAK BOLEH 0.',
+            'fkasmtdate.required' => 'Tanggal wajib diisi.',
+            'fbranchcode.required' => 'Cabang wajib diisi.',
+            'fnogiro.unique' => 'No. giro / cek sudah dipakai.',
+            'ftgljatuhtempo.required' => 'Tgl. jatuh tempo wajib diisi saat giro mundur.',
+            'ftgljatuhtempo.before_or_equal' => 'Tgl. jatuh tempo tidak boleh melebihi tanggal.',
+            'faccountheader.in' => 'Cash / bank account tidak valid.',
+            'details.required' => 'Minimal 1 detail penerimaan.',
+            'details.*.faccount.required' => 'Account detail wajib diisi.',
+            'details.*.fkasdtvalue.required' => 'Jumlah bayar wajib diisi.',
+            'details.*.fkasdtvalue.not_in' => 'Jumlah bayar tidak boleh 0.',
         ]);
 
         if ($isGiroMundur) {

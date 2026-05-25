@@ -19,17 +19,17 @@ class ApprovalController extends Controller
         $token = trim((string) $request->query('token', ''));
 
         if (! $fprno || $token === '') {
-            return redirect()->route('tr_prh.index')->with('error', 'LINK APPROVAL TIDAK VALID.');
+            return redirect()->route('tr_prh.index')->with('error', 'Link approval tidak valid.');
         }
 
         $hdr = Tr_prh::where('fprno', $fprno)->first();
         if (! $hdr) {
-            return redirect()->route('tr_prh.index')->with('error', 'LINK APPROVAL TIDAK VALID / DATA TIDAK DITEMUKAN.');
+            return redirect()->route('tr_prh.index')->with('error', 'Link approval tidak valid atau data tidak ditemukan.');
         }
 
         $stage = $this->resolveStageByToken($hdr, $token);
         if ($stage === null) {
-            return redirect()->route('tr_prh.index')->with('error', 'LINK APPROVAL TIDAK VALID.');
+            return redirect()->route('tr_prh.index')->with('error', 'Link approval tidak valid.');
         }
 
         $dt = Tr_prd::query()
@@ -50,12 +50,12 @@ class ApprovalController extends Controller
     {
         $pr = Tr_prh::where('fprno', $fprno)->first();
         if (! $pr) {
-            return back()->with('error', 'LINK APPROVAL TIDAK VALID.');
+            return back()->with('error', 'Link approval tidak valid.');
         }
 
         $stage = $this->resolveStageByToken($pr, trim((string) $request->input('token')));
         if ($stage === null) {
-            return back()->with('error', 'LINK APPROVAL TIDAK VALID.');
+            return back()->with('error', 'Link approval tidak valid.');
         }
         if ($this->isApprovalProcessed($pr, $stage)) {
             return redirect()->route('approval.info', $pr->fprno)->with('error', 'PR ini sudah pernah diproses sebelumnya.');
@@ -70,12 +70,12 @@ class ApprovalController extends Controller
     {
         $pr = Tr_prh::where('fprno', $fprno)->first();
         if (! $pr) {
-            return back()->with('error', 'LINK APPROVAL TIDAK VALID.');
+            return back()->with('error', 'Link approval tidak valid.');
         }
 
         $stage = $this->resolveStageByToken($pr, trim((string) $request->input('token')));
         if ($stage === null) {
-            return back()->with('error', 'LINK APPROVAL TIDAK VALID.');
+            return back()->with('error', 'Link approval tidak valid.');
         }
         if ($this->isApprovalProcessed($pr, $stage)) {
             return redirect()->route('approval.info', $pr->fprno)->with('error', 'PR ini sudah pernah diproses sebelumnya.');
@@ -99,17 +99,17 @@ class ApprovalController extends Controller
         $token = trim((string) $request->query('token', ''));
 
         if (! $fpono || $token === '') {
-            return redirect()->route('login')->with('error', 'LINK APPROVAL TIDAK VALID.');
+            return redirect()->route('login')->with('error', 'Link approval tidak valid.');
         }
 
         $hdr = Tr_poh::where('fpono', $fpono)->first();
         if (! $hdr) {
-            return redirect()->route('login')->with('error', 'LINK APPROVAL TIDAK VALID / DATA TIDAK DITEMUKAN.');
+            return redirect()->route('login')->with('error', 'Link approval tidak valid atau data tidak ditemukan.');
         }
 
         $stage = $this->resolveStageByToken($hdr, $token);
         if ($stage === null) {
-            return redirect()->route('login')->with('error', 'LINK APPROVAL TIDAK VALID.');
+            return redirect()->route('login')->with('error', 'Link approval tidak valid.');
         }
 
         $dt = Tr_pod::from('tr_pod as d')
@@ -136,12 +136,12 @@ class ApprovalController extends Controller
     {
         $po = Tr_poh::where('fpono', $fpono)->first();
         if (! $po) {
-            return back()->with('error', 'LINK APPROVAL TIDAK VALID.');
+            return back()->with('error', 'Link approval tidak valid.');
         }
 
         $stage = $this->resolveStageByToken($po, trim((string) $request->input('token')));
         if ($stage === null) {
-            return back()->with('error', 'LINK APPROVAL TIDAK VALID.');
+            return back()->with('error', 'Link approval tidak valid.');
         }
         if ($this->isApprovalProcessed($po, $stage)) {
             return redirect()->route('approval.po.info', $po->fpono)->with('error', 'PO ini sudah pernah diproses sebelumnya.');
@@ -156,12 +156,12 @@ class ApprovalController extends Controller
     {
         $po = Tr_poh::where('fpono', $fpono)->first();
         if (! $po) {
-            return back()->with('error', 'LINK APPROVAL TIDAK VALID.');
+            return back()->with('error', 'Link approval tidak valid.');
         }
 
         $stage = $this->resolveStageByToken($po, trim((string) $request->input('token')));
         if ($stage === null) {
-            return back()->with('error', 'LINK APPROVAL TIDAK VALID.');
+            return back()->with('error', 'Link approval tidak valid.');
         }
         if ($this->isApprovalProcessed($po, $stage)) {
             return redirect()->route('approval.po.info', $po->fpono)->with('error', 'PO ini sudah pernah diproses sebelumnya.');
@@ -186,7 +186,7 @@ class ApprovalController extends Controller
         $stage = $this->resolveStageByToken($product, $token);
 
         if ($token === '' || $stage === null) {
-            return redirect()->route('product.index')->with('error', 'LINK APPROVAL TIDAK VALID.');
+            return redirect()->route('product.index')->with('error', 'Link approval tidak valid.');
         }
 
         return view('approvalGenericPage', [
@@ -214,7 +214,7 @@ class ApprovalController extends Controller
         $product = Product::findOrFail($fprdid);
         $stage = $this->resolveStageByToken($product, trim((string) $request->input('token')));
         if ($stage === null) {
-            return back()->with('error', 'LINK APPROVAL TIDAK VALID.');
+            return back()->with('error', 'Link approval tidak valid.');
         }
         if ($this->isApprovalProcessed($product, $stage)) {
             return redirect()->route('approval.product.info', $product->fprdid)->with('error', 'Produk ini sudah pernah diproses sebelumnya.');
@@ -230,7 +230,7 @@ class ApprovalController extends Controller
         $product = Product::findOrFail($fprdid);
         $stage = $this->resolveStageByToken($product, trim((string) $request->input('token')));
         if ($stage === null) {
-            return back()->with('error', 'LINK APPROVAL TIDAK VALID.');
+            return back()->with('error', 'Link approval tidak valid.');
         }
         if ($this->isApprovalProcessed($product, $stage)) {
             return redirect()->route('approval.product.info', $product->fprdid)->with('error', 'Produk ini sudah pernah diproses sebelumnya.');
@@ -257,12 +257,12 @@ class ApprovalController extends Controller
         $token = trim((string) $request->query('token', ''));
         $header = DB::table('trsomt')->where('fsono', $fsono)->first();
         if (! $header) {
-            return redirect()->route('salesorder.index')->with('error', 'LINK APPROVAL TIDAK VALID / DATA TIDAK DITEMUKAN.');
+            return redirect()->route('salesorder.index')->with('error', 'Link approval tidak valid atau data tidak ditemukan.');
         }
 
         $stage = $this->resolveStageByToken($header, $token);
         if ($token === '' || $stage === null) {
-            return redirect()->route('salesorder.index')->with('error', 'LINK APPROVAL TIDAK VALID.');
+            return redirect()->route('salesorder.index')->with('error', 'Link approval tidak valid.');
         }
 
         $items = DB::table('trsodt as d')
@@ -301,12 +301,12 @@ class ApprovalController extends Controller
     {
         $header = DB::table('trsomt')->where('fsono', $fsono)->first();
         if (! $header) {
-            return back()->with('error', 'LINK APPROVAL TIDAK VALID.');
+            return back()->with('error', 'Link approval tidak valid.');
         }
 
         $stage = $this->resolveStageByToken($header, trim((string) $request->input('token')));
         if ($stage === null) {
-            return back()->with('error', 'LINK APPROVAL TIDAK VALID.');
+            return back()->with('error', 'Link approval tidak valid.');
         }
         if ($this->isApprovalProcessed($header, $stage)) {
             return redirect()->route('approval.salesorder.info', $fsono)->with('error', 'Sales Order ini sudah pernah diproses sebelumnya.');
@@ -321,12 +321,12 @@ class ApprovalController extends Controller
     {
         $header = DB::table('trsomt')->where('fsono', $fsono)->first();
         if (! $header) {
-            return back()->with('error', 'LINK APPROVAL TIDAK VALID.');
+            return back()->with('error', 'Link approval tidak valid.');
         }
 
         $stage = $this->resolveStageByToken($header, trim((string) $request->input('token')));
         if ($stage === null) {
-            return back()->with('error', 'LINK APPROVAL TIDAK VALID.');
+            return back()->with('error', 'Link approval tidak valid.');
         }
         if ($this->isApprovalProcessed($header, $stage)) {
             return redirect()->route('approval.salesorder.info', $fsono)->with('error', 'Sales Order ini sudah pernah diproses sebelumnya.');
@@ -354,12 +354,12 @@ class ApprovalController extends Controller
         $token = trim((string) $request->query('token', ''));
         $header = DB::table('tranmt')->where('fsono', $fsono)->first();
         if (! $header) {
-            return redirect()->route('invoice.index')->with('error', 'LINK APPROVAL TIDAK VALID / DATA TIDAK DITEMUKAN.');
+            return redirect()->route('invoice.index')->with('error', 'Link approval tidak valid atau data tidak ditemukan.');
         }
 
         $stage = $this->resolveStageByToken($header, $token);
         if ($token === '' || $stage === null) {
-            return redirect()->route('invoice.index')->with('error', 'LINK APPROVAL TIDAK VALID.');
+            return redirect()->route('invoice.index')->with('error', 'Link approval tidak valid.');
         }
 
         $items = DB::table('trandt as d')
@@ -398,12 +398,12 @@ class ApprovalController extends Controller
     {
         $header = DB::table('tranmt')->where('fsono', $fsono)->first();
         if (! $header) {
-            return back()->with('error', 'LINK APPROVAL TIDAK VALID.');
+            return back()->with('error', 'Link approval tidak valid.');
         }
 
         $stage = $this->resolveStageByToken($header, trim((string) $request->input('token')));
         if ($stage === null) {
-            return back()->with('error', 'LINK APPROVAL TIDAK VALID.');
+            return back()->with('error', 'Link approval tidak valid.');
         }
         if ($this->isApprovalProcessed($header, $stage)) {
             return redirect()->route('approval.invoice.info', $fsono)->with('error', 'Faktur Penjualan ini sudah pernah diproses sebelumnya.');
@@ -418,12 +418,12 @@ class ApprovalController extends Controller
     {
         $header = DB::table('tranmt')->where('fsono', $fsono)->first();
         if (! $header) {
-            return back()->with('error', 'LINK APPROVAL TIDAK VALID.');
+            return back()->with('error', 'Link approval tidak valid.');
         }
 
         $stage = $this->resolveStageByToken($header, trim((string) $request->input('token')));
         if ($stage === null) {
-            return back()->with('error', 'LINK APPROVAL TIDAK VALID.');
+            return back()->with('error', 'Link approval tidak valid.');
         }
         if ($this->isApprovalProcessed($header, $stage)) {
             return redirect()->route('approval.invoice.info', $fsono)->with('error', 'Faktur Penjualan ini sudah pernah diproses sebelumnya.');

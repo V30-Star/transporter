@@ -1250,7 +1250,7 @@ class MutasiController extends Controller
             return null;
         }
 
-        return 'MUTASI STOCK ' . strtoupper((string) $header->fstockmtno) . ' SUDAH DIPAKAI: ' . strtoupper($usedBy->implode(', ')) . '.';
+        return 'Mutasi stock ' . $header->fstockmtno . ' sudah dipakai: ' . $usedBy->implode(', ') . '.';
     }
 
     private function buildMutasiReferenceUsageKey(?string $docNo, ?string $productCode, ?string $refNoAcak = null): string
@@ -1319,7 +1319,7 @@ class MutasiController extends Controller
                 );
 
                 if (isset($referenceUsage[$key])) {
-                    return 'NO. REFERENSI ' . strtoupper(trim((string) ($existing->ref_no ?? ''))) . ' SUDAH ADA DI TRANSAKSI ' . strtoupper(trim((string) ($existing->transaction_no ?? ''))) . '.';
+                    return 'No. referensi ' . trim((string) ($existing->ref_no ?? '')) . ' sudah ada di transaksi ' . trim((string) ($existing->transaction_no ?? '')) . '.';
                 }
             }
         }
@@ -1352,7 +1352,7 @@ class MutasiController extends Controller
                 ->first();
 
             if ($existing) {
-                return 'NO. REFERENSI ' . strtoupper((string) $referenceNo) . ' SUDAH ADA DI TRANSAKSI ' . strtoupper(trim((string) ($existing->transaction_no ?? ''))) . '.';
+                return 'No. referensi ' . $referenceNo . ' sudah ada di transaksi ' . trim((string) ($existing->transaction_no ?? '')) . '.';
             }
         }
 

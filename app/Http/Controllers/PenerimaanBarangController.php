@@ -1543,10 +1543,10 @@ class PenerimaanBarangController extends Controller
         $transactionNo = trim((string) ($existing->transaction_no ?? ''));
 
         if ($refNo === '' || $transactionNo === '') {
-            return 'NO. REFERENSI SUDAH ADA DI TRANSAKSI LAIN.';
+            return 'No. referensi sudah ada di transaksi lain.';
         }
 
-        return 'NO. REFERENSI ' . strtoupper((string) $refNo) . ' SUDAH ADA DI TRANSAKSI ' . strtoupper((string) $transactionNo) . '.';
+        return 'No. referensi ' . $refNo . ' sudah ada di transaksi ' . $transactionNo . '.';
     }
 
     private function getUsageLockMessage(PenerimaanPembelianHeader $header): ?string

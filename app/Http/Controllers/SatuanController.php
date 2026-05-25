@@ -39,9 +39,9 @@ class SatuanController extends Controller
                 'fsatuanname' => 'required|string',
             ],
             [
-                'fsatuancode.unique' => 'KODE SATUAN SUDAH ADA.',
-                'fsatuanname.unique' => 'NAMA SATUAN SUDAH ADA.',
-                'fsatuancode.required' => 'KODE SATUAN WAJIB DIISI.',
+                'fsatuancode.unique' => 'Kode satuan sudah ada.',
+                'fsatuanname.unique' => 'Nama satuan sudah ada.',
+                'fsatuancode.required' => 'Kode satuan wajib diisi.',
             ]
         );
 
@@ -58,7 +58,7 @@ class SatuanController extends Controller
 
         return redirect()
             ->route('satuan.create')
-            ->with('success', 'SATUAN BERHASIL DISIMPAN.');
+            ->with('success', 'Satuan berhasil disimpan.');
     }
 
     public function edit($fsatuanid)
@@ -79,8 +79,8 @@ class SatuanController extends Controller
                 'fsatuanname' => 'required|string',
             ],
             [
-                'fsatuancode.unique' => 'KODE SATUAN SUDAH ADA.',
-                'fsatuancode.required' => 'KODE SATUAN WAJIB DIISI.',
+                'fsatuancode.unique' => 'Kode satuan sudah ada.',
+                'fsatuancode.required' => 'Kode satuan wajib diisi.',
             ]
         );
 
@@ -97,7 +97,7 @@ class SatuanController extends Controller
 
         return redirect()
             ->route('satuan.index')
-            ->with('success', 'SATUAN BERHASIL DIUPDATE.');
+            ->with('success', 'Satuan berhasil diupdate.');
     }
 
     public function delete($fsatuanid)
@@ -120,7 +120,7 @@ class SatuanController extends Controller
                 ->exists()) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'SATUAN TIDAK BISA DIHAPUS. SUDAH DIREFERENSI DI PRODUK.',
+                    'message' => 'Satuan tidak bisa dihapus. Sudah direferensi di produk.',
                 ], 422);
             }
 
@@ -128,13 +128,13 @@ class SatuanController extends Controller
 
             return response()->json([
                 'success' => true,
-                'message' => 'SATUAN '.$satuan->fsatuanname.' BERHASIL DIHAPUS.',
+                'message' => 'Satuan '.$satuan->fsatuanname.' berhasil dihapus.',
                 'redirect' => route('satuan.index'),
             ]);
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'SATUAN BELUM BISA DIHAPUS. COBA LAGI.',
+                'message' => 'Satuan belum bisa dihapus. Coba lagi.',
             ], 500);
         }
     }

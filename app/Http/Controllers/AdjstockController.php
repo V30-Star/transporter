@@ -1318,7 +1318,7 @@ class AdjstockController extends Controller
             return null;
         }
 
-        return 'ADJUSTMENT STOCK ' . strtoupper((string) $header->fstockmtno) . ' SUDAH DIPAKAI: ' . strtoupper($usedBy->implode(', ')) . '.';
+        return 'Adjustment stock ' . $header->fstockmtno . ' sudah dipakai: ' . $usedBy->implode(', ') . '.';
     }
 
     private function validateUniqueReferenceUsage(array $rowsDt, ?string $exceptStockMtNo = null): ?string
@@ -1351,7 +1351,7 @@ class AdjstockController extends Controller
                 ->first();
 
             if ($existing) {
-                return 'NO. REFERENSI ' . strtoupper((string) $referenceNo) . ' SUDAH ADA DI TRANSAKSI ' . strtoupper(trim((string) ($existing->transaction_no ?? ''))) . '.';
+                return 'No. referensi ' . $referenceNo . ' sudah ada di transaksi ' . trim((string) ($existing->transaction_no ?? '')) . '.';
             }
         }
 

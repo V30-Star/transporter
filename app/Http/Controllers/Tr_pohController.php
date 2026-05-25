@@ -803,9 +803,9 @@ class Tr_pohController extends Controller
             'fpodate.required' => 'Tanggal PO wajib diisi.',
             'fsupplier.required' => 'Supplier wajib diisi.',
             'fitemcode.required' => 'Minimal 1 item.',
-            'fqty.*.gt' => 'HAPUS BARIS ATAU ISI QTY. QTY TIDAK BOLEH 0.',
-            'fnoacak.*.regex' => 'NO ACAK PO HARUS 3 DIGIT 1-9.',
-            'frefnoacak.*.regex' => 'NO REFERENSI ACAK HARUS 3 DIGIT.',
+            'fqty.*.gt' => 'Hapus baris atau isi qty. Qty tidak boleh 0.',
+            'fnoacak.*.regex' => 'No. acak PO harus 3 digit 1-9.',
+            'frefnoacak.*.regex' => 'No. referensi acak harus 3 digit.',
         ]);
 
         if ($validator->fails()) {
@@ -2004,9 +2004,9 @@ class Tr_pohController extends Controller
         $transactionNo = trim((string) ($existing->transaction_no ?? ''));
 
         if ($refNo === '' || $transactionNo === '') {
-            return 'NO. REFERENSI SUDAH ADA DI TRANSAKSI LAIN.';
+            return 'No. referensi sudah ada di transaksi lain.';
         }
 
-        return 'NO. REFERENSI ' . strtoupper((string) $refNo) . ' SUDAH ADA DI TRANSAKSI ' . strtoupper((string) $transactionNo) . '.';
+        return 'No. referensi ' . $refNo . ' sudah ada di transaksi ' . $transactionNo . '.';
     }
 }

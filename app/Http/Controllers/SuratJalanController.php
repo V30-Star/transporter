@@ -2013,7 +2013,7 @@ class SuratJalanController extends Controller
             $docLabel = $this->isInvoiceReferenceDoc($docNo) ? 'Faktur Penjualan' : 'SO';
             if ($availableQtyKecil <= 0) {
                 $product = trim((string) ($stat['product_name'] ?? $stat['product_code'] ?? $referenceKey));
-                return 'QTY SURAT JALAN ITEM ' . strtoupper((string) $product) . ($docNo !== '' ? ' PADA ' . strtoupper((string) $docLabel) . ' ' . strtoupper((string) $docNo) : '') . ' SUDAH HABIS / SUDAH DIPAKAI.';
+                return 'Qty Surat Jalan untuk item ' . $product . ($docNo !== '' ? ' pada ' . $docLabel . ' ' . $docNo : '') . ' sudah habis atau sudah dipakai.';
             }
 
             if ((float) $requestedQtyKecil - $availableQtyKecil > 0.000001) {
@@ -2040,7 +2040,7 @@ class SuratJalanController extends Controller
             if ((float) ($stats[$referenceKey]['used_qty_kecil'] ?? 0) > 0) {
                 $refNo = trim((string) ($stats[$referenceKey]['ref_doc'] ?? ''));
                 $transactionNo = trim((string) ($stats[$referenceKey]['used_by_transaction'] ?? ''));
-                return 'NO. REFERENSI ' . strtoupper((string) $refNo) . ' SUDAH ADA DI TRANSAKSI ' . strtoupper((string) $transactionNo) . '.';
+                return 'No. referensi ' . $refNo . ' sudah ada di transaksi ' . $transactionNo . '.';
             }
         }
 
@@ -2125,7 +2125,7 @@ class SuratJalanController extends Controller
             return null;
         }
 
-        return 'SURAT JALAN ' . strtoupper((string) $fstockmtno) . ' SUDAH DIPAKAI: ' . strtoupper(implode('; ', $parts)) . '.';
+        return 'Surat Jalan ' . $fstockmtno . ' sudah dipakai: ' . implode('; ', $parts) . '.';
     }
 
     private function resolveSuratJalanFcode(array $row): string

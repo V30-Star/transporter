@@ -307,7 +307,7 @@ class PemakaianbarangController extends Controller
             ]);
 
         if (! $hdr) {
-            return redirect()->back()->with('error', 'PEMAKAIAN BARANG TIDAK ADA.');
+            return redirect()->back()->with('error', 'Pemakaian barang tidak ada.');
         }
 
         DB::table('trstockmt')->where('fstockmtno', $hdr->fstockmtno)->update(['fprint' => 1]);
@@ -428,7 +428,7 @@ class PemakaianbarangController extends Controller
                 'numeric',
                 function ($attribute, $value, $fail) use ($allowNegativeStockQty) {
                     if ($allowNegativeStockQty ? (float) $value == 0.0 : (float) $value <= 0) {
-                        $fail($allowNegativeStockQty ? 'QTY TIDAK BOLEH 0.' : 'QTY HARUS > 0.');
+                        $fail($allowNegativeStockQty ? 'Qty tidak boleh 0.' : 'Qty harus lebih dari 0.');
                     }
                 },
             ],
@@ -440,10 +440,10 @@ class PemakaianbarangController extends Controller
             'frate' => ['nullable', 'numeric', 'min:0'],
             'famountpopajak' => ['nullable', 'numeric', 'min:0'], // PPN nominal
         ], [
-            'fstockmtdate.required' => 'TANGGAL TRANSAKSI WAJIB DIISI.',
-            'fsupplier.required' => 'SUPPLIER WAJIB DIISI.',
-            'fitemcode.required' => 'MINIMAL 1 ITEM.',
-            'fsatuan.*.max' => 'SATUAN MAX 5 KARAKTER.',
+            'fstockmtdate.required' => 'Tanggal transaksi wajib diisi.',
+            'fsupplier.required' => 'Supplier wajib diisi.',
+            'fitemcode.required' => 'Minimal 1 item.',
+            'fsatuan.*.max' => 'Satuan maksimal 5 karakter.',
         ]);
 
         $this->ensureNoDuplicateDetailCodes($request->input('fitemcode', []));
@@ -560,8 +560,8 @@ class PemakaianbarangController extends Controller
         if (empty($rowsDt)) {
             return back()->withInput()->withErrors([
                 'detail' => $allowNegativeStockQty
-                    ? 'MINIMAL 1 ITEM VALID (KODE, SATUAN, QTY TIDAK BOLEH 0).'
-                    : 'MINIMAL 1 ITEM VALID (KODE, SATUAN, QTY > 0).',
+                    ? 'Minimal 1 item valid (kode, satuan, qty tidak boleh 0).'
+                    : 'Minimal 1 item valid (kode, satuan, qty lebih dari 0).',
             ]);
         }
 
@@ -721,7 +721,7 @@ class PemakaianbarangController extends Controller
 
         return redirect()
             ->route('pemakaianbarang.create')
-            ->with('success', "PEMAKAIAN BARANG {$fstockmtno} BERHASIL DISIMPAN.");
+            ->with('success', "Pemakaian barang {$fstockmtno} berhasil disimpan.");
     }
 
     public function edit($fstockmtid)
@@ -1041,17 +1041,17 @@ class PemakaianbarangController extends Controller
                 'numeric',
                 function ($attribute, $value, $fail) use ($allowNegativeStockQty) {
                     if ($allowNegativeStockQty ? (float) $value == 0.0 : (float) $value <= 0) {
-                        $fail($allowNegativeStockQty ? 'QTY TIDAK BOLEH 0.' : 'QTY HARUS > 0.');
+                        $fail($allowNegativeStockQty ? 'Qty tidak boleh 0.' : 'Qty harus lebih dari 0.');
                     }
                 },
             ],
             'fdesc' => ['nullable', 'array'],
             'fdesc.*' => ['nullable', 'string', 'max:500'],
         ], [
-            'fstockmtdate.required' => 'TANGGAL TRANSAKSI WAJIB DIISI.',
-            'fitemcode.required' => 'MINIMAL 1 ITEM.',
-            'fqty.*.min' => 'QTY TIDAK BOLEH 0.',
-            'ffrom.max' => 'GUDANG MAX 10 KARAKTER.',
+            'fstockmtdate.required' => 'Tanggal transaksi wajib diisi.',
+            'fitemcode.required' => 'Minimal 1 item.',
+            'fqty.*.min' => 'Qty tidak boleh 0.',
+            'ffrom.max' => 'Gudang maksimal 10 karakter.',
         ]);
 
         $this->ensureNoDuplicateDetailCodes($request->input('fitemcode', []));
@@ -1181,8 +1181,8 @@ class PemakaianbarangController extends Controller
         if (empty($rowsDt)) {
             return back()->withInput()->withErrors([
                 'detail' => $allowNegativeStockQty
-                    ? 'MINIMAL 1 ITEM VALID (KODE, SATUAN, QTY TIDAK BOLEH 0).'
-                    : 'MINIMAL 1 ITEM VALID (KODE, SATUAN, QTY > 0).',
+                    ? 'Minimal 1 item valid (kode, satuan, qty tidak boleh 0).'
+                    : 'Minimal 1 item valid (kode, satuan, qty lebih dari 0).',
             ]);
         }
 
@@ -1252,7 +1252,7 @@ class PemakaianbarangController extends Controller
 
         return redirect()
             ->route('pemakaianbarang.index')
-            ->with('success', "PEMAKAIAN BARANG {$header->fstockmtno} BERHASIL DIUPDATE.");
+            ->with('success', "Pemakaian barang {$header->fstockmtno} berhasil diupdate.");
     }
 
     public function delete($fstockmtid)
@@ -1427,10 +1427,10 @@ class PemakaianbarangController extends Controller
                 $pemakaianbarang->delete();
             });
 
-            return redirect()->route('pemakaianbarang.index')->with('success', 'PEMAKAIAN BARANG '.$pemakaianbarang->fstockmtno.' BERHASIL DIHAPUS.');
+            return redirect()->route('pemakaianbarang.index')->with('success', 'Pemakaian barang '.$pemakaianbarang->fstockmtno.' berhasil dihapus.');
         } catch (\Exception $e) {
             // Jika terjadi kesalahan saat menghapus, kembali ke halaman delete dengan pesan error
-            return redirect()->route('pemakaianbarang.delete', $fstockmtid)->with('error', 'PEMAKAIAN BARANG BELUM BISA DIHAPUS. COBA LAGI.');
+            return redirect()->route('pemakaianbarang.delete', $fstockmtid)->with('error', 'Pemakaian barang belum bisa dihapus. Coba lagi.');
         }
     }
 
@@ -1451,7 +1451,7 @@ class PemakaianbarangController extends Controller
             return null;
         }
 
-        return 'PEMAKAIAN BARANG ' . strtoupper((string) $header->fstockmtno) . ' SUDAH DIPAKAI: ' . strtoupper($usedBy->implode(', ')) . '.';
+        return 'Pemakaian barang ' . $header->fstockmtno . ' sudah dipakai: ' . $usedBy->implode(', ') . '.';
     }
 
     private function normalizeRandomNumber($value, array &$usedNumbers): string

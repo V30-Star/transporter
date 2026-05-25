@@ -70,12 +70,12 @@ class SysUserController extends Controller
             'fuserlevel' => 'string|in:User,Admin',
             'fcabang' => 'string',
         ], [
-            'fsysuserid.unique' => 'USERNAME SUDAH ADA.',
-            'fname.required' => 'NAMA WAJIB DIISI.',
-            'fsysuserid.required' => 'USERNAME WAJIB DIISI.',
-            'password.required' => 'PASSWORD WAJIB DIISI.',
-            'fuserlevel.required' => 'LEVEL AKUN TIDAK VALID.',
-            'fcabang.required' => 'CABANG WAJIB DIISI.',
+            'fsysuserid.unique' => 'Username sudah ada.',
+            'fname.required' => 'Nama wajib diisi.',
+            'fsysuserid.required' => 'Username wajib diisi.',
+            'password.required' => 'Password wajib diisi.',
+            'fuserlevel.required' => 'Level akun tidak valid.',
+            'fcabang.required' => 'Cabang wajib diisi.',
         ]);
         // --- Pemrosesan Data ---
         $validated['fsysuserid'] = strtoupper($validated['fsysuserid']);
@@ -106,9 +106,9 @@ class SysUserController extends Controller
 
             return redirect()
                 ->route('sysuser.create')
-                ->with('success', 'USER BERHASIL DISIMPAN.');
+                ->with('success', 'User berhasil disimpan.');
         } catch (\Exception $e) {
-            return back()->withInput()->with('error', 'USER BELUM BISA DISIMPAN. CEK DATA.');
+            return back()->withInput()->with('error', 'User belum bisa disimpan. Cek data.');
         }
     }
 
@@ -139,12 +139,12 @@ class SysUserController extends Controller
             'fuserlevel' => 'string|in:User,Admin',
             'fcabang' => 'string',
         ], [
-            'fsysuserid.unique' => 'USERNAME SUDAH ADA.',
-            'fname.required' => 'NAMA WAJIB DIISI.',
-            'fsysuserid.required' => 'USERNAME WAJIB DIISI.',
-            'password.required' => 'PASSWORD WAJIB DIISI.',
-            'fuserlevel.required' => 'LEVEL AKUN TIDAK VALID.',
-            'fcabang.required' => 'CABANG WAJIB DIISI.',
+            'fsysuserid.unique' => 'Username sudah ada.',
+            'fname.required' => 'Nama wajib diisi.',
+            'fsysuserid.required' => 'Username wajib diisi.',
+            'password.required' => 'Password wajib diisi.',
+            'fuserlevel.required' => 'Level akun tidak valid.',
+            'fcabang.required' => 'Cabang wajib diisi.',
         ]);
 
         $validated['fsysuserid'] = strtoupper($validated['fsysuserid']);
@@ -176,7 +176,7 @@ class SysUserController extends Controller
 
         return redirect()
             ->route('sysuser.index')
-            ->with('success', 'USER BERHASIL DIUPDATE.');
+            ->with('success', 'User berhasil diupdate.');
     }
 
     public function delete($fuid)
@@ -200,13 +200,13 @@ class SysUserController extends Controller
             if (request()->wantsJson()) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'USER TIDAK BISA DIHAPUS. SUDAH DIREFERENSI DI ROLE ACCESS.',
+                    'message' => 'User tidak bisa dihapus. Sudah direferensi di role access.',
                 ], 422);
             }
 
             return redirect()
                 ->route('sysuser.delete', $fuid)
-                ->with('error', 'USER TIDAK BISA DIHAPUS. SUDAH DIREFERENSI DI ROLE ACCESS.');
+                ->with('error', 'User tidak bisa dihapus. Sudah direferensi di role access.');
         }
 
         $sysuser->delete();
@@ -214,12 +214,12 @@ class SysUserController extends Controller
         if (request()->wantsJson()) {
             return response()->json([
                 'success' => true,
-                'message' => 'USER BERHASIL DIHAPUS.',
+                'message' => 'User berhasil dihapus.',
             ]);
         }
 
         return redirect()
             ->route('sysuser.index')
-            ->with('success', 'USER BERHASIL DIHAPUS.');
+            ->with('success', 'User berhasil dihapus.');
     }
 }

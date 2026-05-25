@@ -431,11 +431,11 @@ class ProductController extends Controller
 
             return redirect()
                 ->route('product.create')
-                ->with('success', 'PRODUK BERHASIL DISIMPAN.');
+                ->with('success', 'Produk berhasil disimpan.');
         } catch (\Illuminate\Validation\ValidationException $v) {
             throw $v;
         } catch (\Exception $e) {
-            return redirect()->back()->with('error', 'PRODUK BELUM BISA DISIMPAN. CEK DATA.');
+            return redirect()->back()->with('error', 'Produk belum bisa disimpan. Cek data.');
         }
     }
 
@@ -536,17 +536,17 @@ class ProductController extends Controller
         $validated = $request->validate(
             $validationRules,
             [
-                'fprdcode.unique' => 'KODE PRODUK SUDAH ADA.',
-                'fprdname.required' => 'NAMA PRODUK WAJIB DIISI.',
-                'fgroupcode.required' => 'GROUP PRODUK WAJIB DIISI.',
-                'fmerek.required' => 'MEREK WAJIB DIISI.',
-                'fsatuankecil.required' => 'SATUAN 1 WAJIB DIISI.',
-                'fsatuanbesar.string' => 'SATUAN 2 TIDAK VALID.',
-                'fsatuanbesar.different' => 'SATUAN 2 TIDAK BOLEH SAMA DENGAN SATUAN 1.',
-                'fsatuanbesar2.string' => 'SATUAN 3 TIDAK VALID.',
-                'fsatuanbesar2.different' => 'SATUAN 3 TIDAK BOLEH SAMA DENGAN SATUAN 1 ATAU 2.',
-                'fqtykecil.numeric' => 'SATUAN 2 HARUS ANGKA.',
-                'fqtykecil2.numeric' => 'SATUAN 3 HARUS ANGKA.',
+                'fprdcode.unique' => 'Kode produk sudah ada.',
+                'fprdname.required' => 'Nama produk wajib diisi.',
+                'fgroupcode.required' => 'Group produk wajib diisi.',
+                'fmerek.required' => 'Merek wajib diisi.',
+                'fsatuankecil.required' => 'Satuan 1 wajib diisi.',
+                'fsatuanbesar.string' => 'Satuan 2 tidak valid.',
+                'fsatuanbesar.different' => 'Satuan 2 tidak boleh sama dengan Satuan 1.',
+                'fsatuanbesar2.string' => 'Satuan 3 tidak valid.',
+                'fsatuanbesar2.different' => 'Satuan 3 tidak boleh sama dengan Satuan 1 atau 2.',
+                'fqtykecil.numeric' => 'Satuan 2 harus angka.',
+                'fqtykecil2.numeric' => 'Satuan 3 harus angka.',
             ]
         );
 
@@ -613,11 +613,11 @@ class ProductController extends Controller
             $errors = [];
 
             if ($normalizeText($product->fprdcode) !== $normalizeText($validated['fprdcode'] ?? null)) {
-                $errors['fprdcode'] = 'KODE PRODUK TIDAK BISA DIUBAH. SUDAH DIPAKAI TRANSAKSI.';
+                $errors['fprdcode'] = 'Kode produk tidak bisa diubah. Sudah dipakai transaksi.';
             }
 
             if ($normalizeText($product->fsatuankecil) !== $normalizeText($validated['fsatuankecil'] ?? null)) {
-                $errors['fsatuankecil'] = 'SATUAN 1 TIDAK BISA DIUBAH. SUDAH DIPAKAI TRANSAKSI.';
+                $errors['fsatuankecil'] = 'Satuan 1 tidak bisa diubah. Sudah dipakai transaksi.';
             }
 
             foreach ($qtyFields as $unitField => $qtyField) {
@@ -627,11 +627,11 @@ class ProductController extends Controller
                 $newQty = $normalizeNumber($validated[$qtyField] ?? null);
 
                 if ($oldUnit !== '' && $oldUnit !== $newUnit) {
-                    $errors[$unitField] = strtoupper((string) ($unitLabels[$unitField] ?? 'SATUAN')).' TIDAK BISA DIUBAH. SUDAH DIPAKAI TRANSAKSI.';
+                    $errors[$unitField] = ($unitLabels[$unitField] ?? 'Satuan').' tidak bisa diubah. Sudah dipakai transaksi.';
                 }
 
                 if ($oldUnit !== '' && abs($oldQty - $newQty) > 0.000001) {
-                    $errors[$qtyField] = 'QTY KONVERSI UNTUK '.strtoupper($oldUnit).' TIDAK BISA DIUBAH. SUDAH DIPAKAI TRANSAKSI.';
+                    $errors[$qtyField] = 'Qty konversi untuk '.$oldUnit.' tidak bisa diubah. Sudah dipakai transaksi.';
                 }
 
                 if ($oldUnit === '' && $newUnit === '' && abs($newQty) > 0.000001) {
@@ -665,7 +665,7 @@ class ProductController extends Controller
                         $validated[$imageField] = $fileId;
                     }
                 } catch (\Exception $e) {
-                    return redirect()->back()->with('error', 'PRODUK BELUM BISA DIUPDATE. CEK DATA.');
+                    return redirect()->back()->with('error', 'Produk belum bisa diupdate. Cek data.');
                 }
             }
         }
@@ -679,13 +679,13 @@ class ProductController extends Controller
 
         return redirect()
             ->route('product.index')
-            ->with('success', 'PRODUK BERHASIL DIUPDATE.');
+            ->with('success', 'Produk berhasil diupdate.');
         } catch (ValidationException $e) {
             return redirect()
                 ->route('product.edit', $product->fprdid)
                 ->withErrors($e->errors())
                 ->withInput()
-                ->with('error', 'PRODUK BELUM BISA DIUPDATE. CEK DATA.');
+                ->with('error', 'Produk belum bisa diupdate. Cek data.');
         }
     }
 
@@ -696,13 +696,13 @@ class ProductController extends Controller
         $allowedFields = ['fimage1', 'fimage2', 'fimage3'];
         if (! in_array($field, $allowedFields, true)) {
             return response()->json([
-                'message' => 'FIELD FOTO TIDAK VALID.',
+                'message' => 'Field foto tidak valid.',
             ], 422);
         }
 
         if (empty($product->{$field})) {
             return response()->json([
-                'message' => 'FOTO PRODUK TIDAK ADA.',
+                'message' => 'Foto produk tidak ada.',
             ], 422);
         }
 
@@ -784,15 +784,15 @@ class ProductController extends Controller
 
             if ($usageInfo['is_used']) {
                 return response()->json([
-                    'message' => 'PRODUK ' . strtoupper((string) $product->fprdcode) . ' TIDAK BISA DIHAPUS. SUDAH DIREFERENSI DI ' . strtoupper(implode(', ', $usageInfo['used_by'])) . '.',
+                    'message' => 'Produk ' . $product->fprdcode . ' tidak bisa dihapus. Sudah direferensi di ' . implode(', ', $usageInfo['used_by']) . '.',
                 ], 422);
             }
 
             $product->delete();
 
-            return response()->json(['message' => 'PRODUK '.$product->fprdname.' BERHASIL DIHAPUS.']);
+            return response()->json(['message' => 'Produk '.$product->fprdname.' berhasil dihapus.']);
         } catch (\Exception $e) {
-            return response()->json(['message' => 'PRODUK BELUM BISA DIHAPUS. COBA LAGI.'], 500);
+            return response()->json(['message' => 'Produk belum bisa dihapus. Coba lagi.'], 500);
         }
     }
 

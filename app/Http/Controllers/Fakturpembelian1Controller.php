@@ -812,7 +812,7 @@ class FakturpembelianController extends Controller
             ]);
 
         if (! $hdr) {
-            return redirect()->back()->with('error', 'PO TIDAK ADA.');
+            return redirect()->back()->with('error', 'PO tidak ada.');
         }
 
         DB::table('trstockmt')->where('fstockmtno', $hdr->fstockmtno)->update(['fprint' => 1]);
@@ -907,13 +907,13 @@ class FakturpembelianController extends Controller
                 'frefnoacak' => ['nullable', 'array'],
                 'frefnoacak.*' => ['nullable', 'regex:/^\d{3}(,\s*\d{3})*$/'],
             ], [
-                'fstockmtdate.required' => 'TANGGAL TRANSAKSI WAJIB DIISI.',
-                'fsupplier.required' => 'SUPPLIER WAJIB DIPILIH.',
-                'fitemcode.required' => 'MINIMAL 1 ITEM.',
-                'fqty.*.min' => 'JUMLAH ITEM HARUS > 0.',
-                'fprice.*.min' => 'HARGA ITEM TIDAK BOLEH MINUS.',
-                'frefnoacak.*.regex' => 'NOMOR ACAK HARUS 3 DIGIT.',
-                'fprdjadi.required_if' => 'ACCOUNT WAJIB DIPILIH.',
+                'fstockmtdate.required' => 'Tanggal transaksi wajib diisi.',
+                'fsupplier.required' => 'Supplier wajib dipilih.',
+                'fitemcode.required' => 'Minimal 1 item.',
+                'fqty.*.min' => 'Jumlah item harus lebih dari 0.',
+                'fprice.*.min' => 'Harga item tidak boleh minus.',
+                'frefnoacak.*.regex' => 'Nomor acak harus 3 digit.',
+                'fprdjadi.required_if' => 'Account wajib dipilih.',
             ]);
 
             // 2) HEADER FIELDS
@@ -958,7 +958,7 @@ class FakturpembelianController extends Controller
 
                 if (! empty($invalidAdvanceCodes)) {
                     return back()->withInput()->withErrors([
-                        'detail' => 'TIPE UANG MUKA HANYA BOLEH PAKAI PRODUK UM. CEK ITEM: ' . strtoupper(implode(', ', $invalidAdvanceCodes)) . '.',
+                        'detail' => 'Tipe uang muka hanya boleh pakai produk UM. Cek item: ' . implode(', ', $invalidAdvanceCodes) . '.',
                     ]);
                 }
             }
@@ -1165,11 +1165,11 @@ class FakturpembelianController extends Controller
             });
 
             return redirect()->route('fakturpembelian.create')
-                ->with('success', "FAKTUR PEMBELIAN $fstockmtno BERHASIL DISIMPAN.");
+                ->with('success', "Faktur pembelian {$fstockmtno} berhasil disimpan.");
         } catch (\Exception $e) {
             Log::error('FakturPembelian@store ERROR: ' . $e->getMessage());
 
-            return back()->withInput()->withErrors(['error' => 'FAKTUR PEMBELIAN BELUM BISA DISIMPAN. CEK DATA TRANSAKSI.']);
+            return back()->withInput()->withErrors(['error' => 'Faktur pembelian belum bisa disimpan. Cek data transaksi.']);
         }
     }
 
@@ -1797,12 +1797,12 @@ class FakturpembelianController extends Controller
 
             return redirect()
                 ->route('fakturpembelian.index')
-                ->with('success', "FAKTUR PEMBELIAN {$fstockmtno} BERHASIL DIUPDATE.");
+                ->with('success', "Faktur pembelian {$fstockmtno} berhasil diupdate.");
         } catch (\Exception $e) {
 
             return back()
                 ->withInput()
-                ->withErrors(['error' => 'FAKTUR PEMBELIAN BELUM BISA DIUPDATE. CEK DATA TRANSAKSI.']);
+                ->withErrors(['error' => 'Faktur pembelian belum bisa diupdate. Cek data transaksi.']);
         }
     }
 
@@ -1967,7 +1967,7 @@ class FakturpembelianController extends Controller
             return redirect()->route('fakturpembelian.index')->with('success', 'Data Faktur Pembelian ' . $fakturpembelian->fstockmtno . ' berhasil dihapus.');
         } catch (\Exception $e) {
             // Jika terjadi kesalahan saat menghapus, kembali ke halaman delete dengan pesan error
-            return redirect()->route('fakturpembelian.delete', $fstockmtid)->with('error', 'FAKTUR PEMBELIAN BELUM BISA DIHAPUS. COBA LAGI.');
+            return redirect()->route('fakturpembelian.delete', $fstockmtid)->with('error', 'Faktur pembelian belum bisa dihapus. Coba lagi.');
         }
     }
 
@@ -1988,7 +1988,7 @@ class FakturpembelianController extends Controller
             return null;
         }
 
-        return 'FAKTUR PEMBELIAN ' . $header->fstockmtno . ' TIDAK BISA DIUBAH ATAU DIHAPUS. SUDAH DIREFERENSI DI RETUR PEMBELIAN: ' . strtoupper($usedBy->implode(', ')) . '.';
+        return 'Faktur pembelian ' . $header->fstockmtno . ' tidak bisa diubah atau dihapus. Sudah direferensi di retur pembelian: ' . $usedBy->implode(', ') . '.';
     }
 
     private function validateUniqueHeaderReference($frefno, $frefpo, ?string $exceptStockMtNo = null): ?string
@@ -2021,7 +2021,7 @@ class FakturpembelianController extends Controller
                 ->first();
 
             if ($existing) {
-                return 'NO. REFERENSI ' . strtoupper((string) $referenceNo) . ' SUDAH ADA DI TRANSAKSI ' . strtoupper(trim((string) ($existing->fstockmtno ?? ''))) . '.';
+                return 'No. referensi ' . $referenceNo . ' sudah ada di transaksi ' . trim((string) ($existing->fstockmtno ?? '')) . '.';
             }
         }
 

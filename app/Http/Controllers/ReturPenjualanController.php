@@ -415,7 +415,7 @@ class ReturPenjualanController extends Controller
             ]);
 
         if (! $hdr) {
-            return redirect()->back()->with('error', 'Sales order tidak ada.');
+            return redirect()->back()->with('error', 'Retur penjualan tidak ada.');
         }
 
         DB::table('tranmt')->where('fsono', $hdr->fsono)->update(['fprint' => 1]);

@@ -678,7 +678,7 @@ class SalesOrderController extends Controller
             ]);
 
         if (! $hdr) {
-            return redirect()->back()->with('error', 'SALES ORDER TIDAK ADA.');
+            return redirect()->back()->with('error', 'Sales Order tidak ada.');
         }
 
         DB::table('trsomt')->where('fsono', $hdr->fsono)->update(['fprint' => 1]);
@@ -1029,10 +1029,10 @@ class SalesOrderController extends Controller
                 $this->sendApprovalNotification($fsono, $userid);
             }
 
-            return redirect()->route('salesorder.create')->with('success', "SALES ORDER {$fsono} BERHASIL DISIMPAN.");
+            return redirect()->route('salesorder.create')->with('success', "Sales Order {$fsono} berhasil disimpan.");
         } catch (\Exception $e) {
             report($e);
-            return back()->withInput()->withErrors(['error' => 'SALES ORDER BELUM BISA DISIMPAN. CEK DATA.']);
+            return back()->withInput()->withErrors(['error' => 'Sales Order belum bisa disimpan. Cek data.']);
         }
     }
 
@@ -1390,7 +1390,7 @@ class SalesOrderController extends Controller
         // 2. LOAD HEADER
         $header = DB::table('trsomt')->where('ftrsomtid', $ftrsomtid)->first();
         if (! $header) {
-            return abort(404, 'SALES ORDER TIDAK ADA.');
+            return abort(404, 'Sales Order tidak ada.');
         }
         if ($message = $this->getPostedPeriodLockMessage($header->fsodate, 'Sales Order ini')) {
             return redirect()->route('salesorder.view', $ftrsomtid)->with('error', $message);
@@ -1577,7 +1577,7 @@ class SalesOrderController extends Controller
 
         return redirect()
             ->route('salesorder.index')
-            ->with('success', "SALES ORDER {$header->fsono} BERHASIL DIUPDATE.");
+            ->with('success', "Sales Order {$header->fsono} berhasil diupdate.");
     }
 
     public function delete(Request $request, $ftrsomtid)
@@ -1827,6 +1827,6 @@ class SalesOrderController extends Controller
             return null;
         }
 
-        return 'SALES ORDER ' . $fsono . ' TIDAK BISA DIUBAH ATAU DIHAPUS. SUDAH DIREFERENSI DI ' . strtoupper(implode('; ', $parts)) . '.';
+        return 'Sales Order ' . $fsono . ' tidak bisa diubah atau dihapus. Sudah direferensi di ' . implode('; ', $parts) . '.';
     }
 }

@@ -80,7 +80,7 @@ class InvoiceController extends Controller
         $reverseJournalBaseAmount = $this->getReverseJournalBaseAmountByStockDocs($stockDocNos);
 
         if ($reverseJournalBaseAmount <= 0) {
-            return 'REFERENSI SURAT JALAN BELUM PUNYA NILAI DASAR JURNAL BALIK.';
+            return 'Referensi Surat Jalan belum punya nilai dasar jurnal balik.';
         }
 
         if (($invoiceGrandTotalRp - $reverseJournalBaseAmount) > 0.000001) {
@@ -123,7 +123,7 @@ class InvoiceController extends Controller
         $inventoryBaseAmount = $this->getInventoryBaseAmountByStockDocs($stockDocNos);
 
         if ($inventoryBaseAmount <= 0) {
-            return 'REFERENSI SURAT JALAN BELUM PUNYA NILAI PERSEDIAAN.';
+            return 'Referensi Surat Jalan belum punya nilai persediaan.';
         }
 
         return null;
@@ -157,7 +157,7 @@ class InvoiceController extends Controller
         $advanceReductionAmount = $this->getAdvanceReductionAmountByStockDocs($stockDocNos);
 
         if ($advanceReductionAmount <= 0) {
-            return 'REFERENSI SURAT JALAN BELUM PUNYA NILAI PENGURANG UANG MUKA.';
+            return 'Referensi Surat Jalan belum punya nilai pengurang uang muka.';
         }
 
         return null;
@@ -788,7 +788,7 @@ class InvoiceController extends Controller
             ]);
 
         if (! $hdr) {
-            return redirect()->back()->with('error', 'Sales order tidak ada.');
+            return redirect()->back()->with('error', 'Faktur penjualan tidak ada.');
         }
 
         DB::table('tranmt')->where('fsono', $hdr->fsono)->update(['fprint' => 1]);
