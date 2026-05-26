@@ -303,8 +303,8 @@
 
         <div class="summary-box">
             <div class="summary-row">
-                <span>Total Harga :</span>
-                <span>{{ number_format($subtotal, 2, ',', '.') }}</span>
+                <span style="font-weight: bold;">Total Harga :</span>
+                <span style="font-weight: bold;">{{ number_format($subtotal, 2, ',', '.') }}</span>
             </div>
             <div class="summary-row">
                 <span>Discount :</span>

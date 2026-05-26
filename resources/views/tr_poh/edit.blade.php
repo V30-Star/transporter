@@ -643,8 +643,8 @@
                     <div class="w-[480px] shrink-0">
                         <div class="rounded-lg border bg-gray-50 p-3 space-y-2 text-sm">
                             <div class="flex items-center justify-between">
-                                <span class="text-gray-600">Total Harga</span>
-                                <span class="font-medium" x-text="fmtCurr(totalHarga)"></span>
+                                <span class="font-bold text-gray-800">Total Harga</span>
+                                <span class="font-bold text-gray-900" x-text="fmtCurr(totalHarga)"></span>
                             </div>
                             <div class="flex items-center gap-2">
                                 <label

@@ -450,8 +450,8 @@
                                             <th class="p-2 text-left w-52">Kode Produk</th>
                                             <th class="p-2 text-left w-[28rem]">Nama Produk</th>
                                             <th class="p-2 text-left w-32">Satuan</th>
-                                            <th class="p-2 text-right w-28 whitespace-nowrap">Jumlah</th>
-                                            <th class="p-2 text-right w-28 whitespace-nowrap">Jumlah SRJ</th>
+                                            <th class="p-2 text-right w-28 whitespace-nowrap">Qty</th>
+                                            <th class="p-2 text-right w-28 whitespace-nowrap">Qty.SRJ</th>
                                             <th class="p-2 text-right w-28 whitespace-nowrap">@ Harga</th>
                                             <th class="p-2 text-right w-28 whitespace-nowrap">Disc. %</th>
                                             <th class="p-2 text-right w-32 whitespace-nowrap">Total Harga</th>
@@ -1007,8 +1007,8 @@
                                                     <th class="p-2 text-left w-52">Kode Produk</th>
                                                     <th class="p-2 text-left w-[28rem]">Nama Produk</th>
                                                     <th class="p-2 text-left w-32">Satuan</th>
-                                                    <th class="p-2 text-right w-28 whitespace-nowrap">Jumlah</th>
-                                                    <th class="p-2 text-right w-28 whitespace-nowrap">Jumlah SRJ</th>
+                                                    <th class="p-2 text-right w-28 whitespace-nowrap">Qty</th>
+                                                    <th class="p-2 text-right w-28 whitespace-nowrap">Qty.SRJ</th>
                                                     <th class="p-2 text-right w-28 whitespace-nowrap">@ Harga</th>
                                                     <th class="p-2 text-right w-28 whitespace-nowrap">Disc. %</th>
                                                     <th class="p-2 text-right w-32 whitespace-nowrap">Total Harga</th>

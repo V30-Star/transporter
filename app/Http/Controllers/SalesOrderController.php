@@ -845,6 +845,10 @@ class SalesOrderController extends Controller
         $fsodate = Carbon::parse($request->fsodate)->startOfDay();
         $this->ensureCreateDateWithinEditPeriod($fsodate);
         $fsono = $request->input('fsono');
+        $resolvedSalesmanCode = $this->resolveSalesmanCode(
+            $request->input('fsalesman'),
+            $request->input('filter_salesman_id')
+        );
         $fincludeppn = $request->boolean('fincludeppn') ? '1' : '0';
         $userid = auth('sysuser')->user()->fname ?? 'admin';
         $now = now();
@@ -1003,7 +1007,7 @@ class SalesOrderController extends Controller
                     'fsodate' => $fsodate,
                     'fbranchcode' => mb_substr($request->input('fbranchcode', ''), 0, 2),
                     'fcustno' => mb_substr($request->input('fcustno', ''), 0, 20),
-                    'fsalesman' => mb_substr((string) $request->input('fsalesman', ''), 0, 20) ?: null,
+                    'fsalesman' => $resolvedSalesmanCode,
                     'ftempohr' => mb_substr($request->input('ftempohr', '0'), 0, 3),
                     'frefpo' => mb_substr($request->input('frefpo', ''), 0, 100),
                     'fket' => mb_substr($request->input('fket', ''), 0, 300),
@@ -1425,6 +1429,10 @@ class SalesOrderController extends Controller
         // 3. HEADER VALUES
         $fsodate = Carbon::parse($request->fsodate)->startOfDay();
         $this->ensureCreateDateWithinEditPeriod($fsodate, $header->fsodate);
+        $resolvedSalesmanCode = $this->resolveSalesmanCode(
+            $request->input('fsalesman'),
+            $request->input('filter_salesman_id')
+        );
         $fincludeppn = $request->input('fincludeppn', '0'); // 0: Exclude, 1: Include
         $fapplyppn = $request->input('fapplyppn') == '1' ? '1' : '0';
         $fppnpersen = (float) $request->input('fppnpersen', 11);
@@ -1559,7 +1567,7 @@ class SalesOrderController extends Controller
                 'fsodate' => $fsodate,
                 'fbranchcode' => mb_substr($request->input('fbranchcode', ''), 0, 2),
                 'fcustno' => mb_substr($request->input('fcustno', ''), 0, 20),
-                'fsalesman' => mb_substr((string) $request->input('fsalesman', ''), 0, 20) ?: null,
+                'fsalesman' => $resolvedSalesmanCode,
                 'ftempohr' => mb_substr($request->input('ftempohr', '0'), 0, 3),
                 'frefpo' => mb_substr($request->input('frefpo', ''), 0, 100),
                 'fincludeppn' => $fincludeppn,
@@ -1847,5 +1855,37 @@ class SalesOrderController extends Controller
         }
 
         return 'Sales Order ' . $fsono . ' tidak bisa diubah atau dihapus. Sudah direferensi di ' . implode('; ', $parts) . '.';
+    }
+
+    private function resolveSalesmanCode($primaryValue, $fallbackValue = null): ?string
+    {
+        $candidate = trim((string) ($primaryValue ?? ''));
+        if ($candidate === '') {
+            $candidate = trim((string) ($fallbackValue ?? ''));
+        }
+
+        if ($candidate === '') {
+            return null;
+        }
+
+        $code = DB::table('mssalesman')
+            ->whereRaw('LOWER(fsalesmancode) = LOWER(?)', [$candidate])
+            ->value('fsalesmancode');
+
+        if ($code) {
+            return mb_substr((string) $code, 0, 20);
+        }
+
+        if (ctype_digit($candidate)) {
+            $codeById = DB::table('mssalesman')
+                ->where('fsalesmanid', (int) $candidate)
+                ->value('fsalesmancode');
+
+            if ($codeById) {
+                return mb_substr((string) $codeById, 0, 20);
+            }
+        }
+
+        return mb_substr($candidate, 0, 20);
     }
 }
