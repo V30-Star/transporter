@@ -48,19 +48,19 @@
         @endif
 
         <input type="hidden" name="fcustomer_tempo" x-model="customerTempo">
-        <fieldset @disabled($isReadOnly) class="space-y-6">
+        <fieldset @disabled($isReadOnly) class="space-y-3.5">
             <!-- Row 1: Branch, Voucher Number, Date -->
-            <div class="grid grid-cols-3 gap-4">
+            <div class="grid grid-cols-3 gap-3">
                 <div>
                     <label class="block text-sm font-bold mb-1">{{ 'Cabang' }}</label>
                     <input type="text" name="fbranchcode" value="{{ old('fbranchcode', $currentBranchCode) }}"
-                        class="w-full border rounded px-3 py-2 bg-gray-100 cursor-not-allowed text-gray-700" readonly>
+                        class="w-full border rounded px-3 py-1.5 bg-gray-100 cursor-not-allowed text-gray-700" readonly>
                 </div>
 
                 <div>
                     <label class="block text-sm font-bold mb-1">{{ 'No. Voucher' }}</label>
                     <input type="text" name="fkasmtno" value="{{ old('fkasmtno', $voucherNo) }}"
-                        class="w-full border rounded px-3 py-2 @error('fkasmtno') border-red-500 @enderror"
+                        class="w-full border rounded px-3 py-1.5 @error('fkasmtno') border-red-500 @enderror"
                         placeholder="Kosongkan untuk auto number">
                     @error('fkasmtno')
                         <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
@@ -71,7 +71,7 @@
                     <label class="block text-sm font-bold mb-1">{{ 'Tanggal' }}</label>
                     <input type="date" name="fkasmtdate" x-model="transactionDate"
                         value="{{ old('fkasmtdate', $transactionDate) }}"
-                        class="w-full border rounded px-3 py-2 @error('fkasmtdate') border-red-500 @enderror">
+                        class="w-full border rounded px-3 py-1.5 @error('fkasmtdate') border-red-500 @enderror">
                     @error('fkasmtdate')
                         <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                     @enderror
@@ -79,13 +79,13 @@
             </div>
 
             <!-- Row 2: Customer, Account -->
-            <div class="grid grid-cols-2 gap-4">
+            <div class="grid grid-cols-2 gap-3">
                 <div>
                     <label class="block text-sm font-bold mb-1">{{ 'Customer' }}</label>
                     <div class="flex">
                         <div class="relative flex-1">
                             <select id="modal_filter_customer_id" name="filter_customer_id"
-                                class="w-full border rounded-l px-3 py-2 bg-gray-100 text-gray-700 cursor-not-allowed"
+                                class="w-full border rounded-l px-3 py-1.5 bg-gray-100 text-gray-700 cursor-not-allowed"
                                 disabled>
                                 <option value="{{ $selectedCustomerCode }}">{{ $selectedCustomerLabel }}</option>
                             </select>
@@ -97,7 +97,7 @@
                         <input type="hidden" name="fcustomer" id="customerCodeHidden" x-model="customerCode">
                         @if (!$isReadOnly)
                             <button type="button" @click="window.dispatchEvent(new CustomEvent('customer-browse-open'))"
-                                class="border -ml-px px-3 py-2 bg-white hover:bg-gray-50 rounded-r" title="Browse Customer">
+                                class="border -ml-px px-3 py-1.5 bg-white hover:bg-gray-50 rounded-r" title="Browse Customer">
                                 <x-heroicon-o-magnifying-glass class="w-5 h-5" />
                             </button>
                         @endif
@@ -111,11 +111,11 @@
                     <label class="block text-sm font-bold mb-1">{{ 'Account' }}</label>
                     <div class="flex">
                         <input type="text" x-model="accountLabel"
-                            class="w-full border rounded-l px-3 py-2 bg-gray-100 cursor-not-allowed" readonly>
+                            class="w-full border rounded-l px-3 py-1.5 bg-gray-100 cursor-not-allowed" readonly>
                         <input type="hidden" name="faccountheader" x-model="accountCode">
                         @if (!$isReadOnly)
                             <button type="button" @click="activeAccountField = 'main'; window.dispatchEvent(new CustomEvent('account-browse-open'))"
-                                class="border -ml-px px-3 py-2 bg-white hover:bg-gray-50 rounded-r" title="Browse Account">
+                                class="border -ml-px px-3 py-1.5 bg-white hover:bg-gray-50 rounded-r" title="Browse Account">
                                 <x-heroicon-o-magnifying-glass class="w-5 h-5" />
                             </button>
                         @endif
@@ -127,11 +127,11 @@
             </div>
 
             <!-- Row 3: Checking Number, Post-Dated Checking, Due Date -->
-            <div class="grid grid-cols-3 gap-4 items-end">
+            <div class="grid grid-cols-3 gap-3 items-end">
                 <div>
                     <label class="block text-sm font-bold mb-1">{{ 'No.Giro/Cek' }}</label>
                     <input type="text" name="fnogiro" value="{{ old('fnogiro', $giroNo ?? '') }}"
-                        class="w-full border rounded px-3 py-2 @error('fnogiro') border-red-500 @enderror">
+                        class="w-full border rounded px-3 py-1.5 @error('fnogiro') border-red-500 @enderror">
                     @error('fnogiro')
                         <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                     @enderror
@@ -139,7 +139,7 @@
 
                 <div>
                     <label class="block text-sm font-bold mb-1">{{ 'Giro Mundur' }}</label>
-                    <label class="inline-flex items-center gap-2 h-10 px-3 border rounded w-full bg-white">
+                    <label class="inline-flex items-center gap-2 h-9 px-3 border rounded w-full bg-white">
                         <input type="checkbox" x-model="isGiroMundur" class="rounded">
                         <span class="text-sm">{{ 'Aktifkan giro mundur' }}</span>
                     </label>
@@ -149,7 +149,7 @@
                 <div>
                     <label class="block text-sm font-bold mb-1">{{ 'Tgl.Jatuh Tempo' }}</label>
                     <input type="date" name="ftgljatuhtempo" x-model="dueDate"
-                        class="w-full border rounded px-3 py-2 @error('ftgljatuhtempo') border-red-500 @enderror"
+                        class="w-full border rounded px-3 py-1.5 @error('ftgljatuhtempo') border-red-500 @enderror"
                         :readonly="!isGiroMundur" :disabled="!isGiroMundur"
                         :class="!isGiroMundur ? 'bg-gray-100 cursor-not-allowed text-gray-400' : 'bg-white'">
                     @error('ftgljatuhtempo')
@@ -162,7 +162,7 @@
             <div>
                 <label class="block text-sm font-bold mb-1">{{ 'Keterangan' }}</label>
                 <input type="text" name="fket" value="{{ old('fket', $noteValue ?? '') }}"
-                    class="w-full border rounded px-3 py-2 @error('fket') border-red-500 @enderror">
+                    class="w-full border rounded px-3 py-1.5 @error('fket') border-red-500 @enderror">
                 @error('fket')
                     <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                 @enderror
@@ -177,54 +177,54 @@
                     <table class="min-w-full text-sm balanced-detail-table">
                         <thead class="bg-gray-100">
                             <tr>
-                                <th class="border px-2 py-2 w-12">{{ 'No' }}</th>
-                                <th class="border px-2 py-2 min-w-[12rem]">{{ 'No.Nota' }}</th>
-                                <th class="border px-2 py-2 min-w-[10rem] text-right">{{ 'Nilai Nota' }}</th>
-                                <th class="border px-2 py-2 min-w-[10rem] text-right">{{ 'Sisa Piutang' }}</th>
-                                <th class="border px-2 py-2 min-w-[8rem] text-right">{{ 'Disc%' }}</th>
-                                <th class="border px-2 py-2 min-w-[10rem] text-right">{{ 'Discount' }}</th>
-                                <th class="border px-2 py-2 min-w-[10rem] text-right">{{ 'Total Bayar' }}</th>
+                                <th class="border px-2 py-1.5 w-12">{{ 'No' }}</th>
+                                <th class="border px-2 py-1.5 min-w-[12rem]">{{ 'No.Nota' }}</th>
+                                <th class="border px-2 py-1.5 min-w-[10rem] text-right">{{ 'Nilai Nota' }}</th>
+                                <th class="border px-2 py-1.5 min-w-[10rem] text-right">{{ 'Sisa Piutang' }}</th>
+                                <th class="border px-2 py-1.5 min-w-[8rem] text-right">{{ 'Disc%' }}</th>
+                                <th class="border px-2 py-1.5 min-w-[10rem] text-right">{{ 'Discount' }}</th>
+                                <th class="border px-2 py-1.5 min-w-[10rem] text-right">{{ 'Total Bayar' }}</th>
                                 @if (!$isReadOnly)
-                                    <th class="border px-2 py-2 w-16 text-center">{{ 'Aksi' }}</th>
+                                    <th class="border px-2 py-1.5 w-16 text-center">{{ 'Aksi' }}</th>
                                 @endif
                             </tr>
                         </thead>
                         <tbody>
                             <template x-for="(row, index) in rows" :key="row.uid">
                                 <tr>
-                                    <td class="border px-2 py-2 text-center" x-text="index + 1"></td>
-                                    <td class="border px-2 py-2">
+                                    <td class="border px-2 py-1 text-center" x-text="index + 1"></td>
+                                    <td class="border px-2 py-1">
                                         <input type="text" :name="`details[${index}][frefno]`" x-model="row.frefno"
-                                            class="w-full border rounded px-2 py-1.5">
+                                            class="w-full border rounded px-2 py-1">
                                         <input type="hidden" :name="`details[${index}][ftrcode]`" :value="row.ftrcode || 'INV'">
                                     </td>
-                                    <td class="border px-2 py-2">
+                                    <td class="border px-2 py-1">
                                         <input type="number" min="0" step="0.01" :name="`details[${index}][fnilai_nota]`"
                                             x-model="row.fnilai_nota" @input="recalcTotals()"
-                                            class="w-full border rounded px-2 py-1.5 text-right">
+                                            class="w-full border rounded px-2 py-1 text-right">
                                     </td>
-                                    <td class="border px-2 py-2">
+                                    <td class="border px-2 py-1">
                                         <input type="number" min="0" step="0.01"
                                             :name="`details[${index}][fsisa_piutang]`" x-model="row.fsisa_piutang"
-                                            @input="recalcTotals()" class="w-full border rounded px-2 py-1.5 text-right">
+                                            @input="recalcTotals()" class="w-full border rounded px-2 py-1 text-right">
                                     </td>
-                                    <td class="border px-2 py-2">
+                                    <td class="border px-2 py-1">
                                         <input type="number" min="0" max="100" step="0.01"
                                             :name="`details[${index}][fdiscpersen]`" x-model="row.fdiscpersen"
-                                            @input="syncDiscountFromPercent(row)" class="w-full border rounded px-2 py-1.5 text-right">
+                                            @input="syncDiscountFromPercent(row)" class="w-full border rounded px-2 py-1 text-right">
                                     </td>
-                                    <td class="border px-2 py-2">
+                                    <td class="border px-2 py-1">
                                         <input type="number" min="0" step="0.01"
                                             :name="`details[${index}][fdiscount]`" x-model="row.fdiscount"
-                                            @input="syncTotalBayar(row)" class="w-full border rounded px-2 py-1.5 text-right">
+                                            @input="syncTotalBayar(row)" class="w-full border rounded px-2 py-1 text-right">
                                     </td>
-                                    <td class="border px-2 py-2">
+                                    <td class="border px-2 py-1">
                                         <input type="number" min="0" step="0.01"
                                             :name="`details[${index}][fkasdtvalue]`" x-model="row.fkasdtvalue"
-                                            @input="recalcTotals()" class="w-full border rounded px-2 py-1.5 text-right">
+                                            @input="recalcTotals()" class="w-full border rounded px-2 py-1 text-right">
                                     </td>
                                     @if (!$isReadOnly)
-                                        <td class="border px-2 py-2 text-center">
+                                        <td class="border px-2 py-1 text-center">
                                             <div class="flex items-center justify-center">
                                                 <button type="button" @click="removeRow(index)"
                                                     class="inline-flex h-8 w-8 items-center justify-center rounded bg-red-100 text-red-600 hover:bg-red-200 text-lg font-bold transition-colors duration-150"

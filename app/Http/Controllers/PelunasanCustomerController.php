@@ -616,13 +616,15 @@ class PelunasanCustomerController extends Controller
                     return false;
                 }
 
-                return trim((string) ($detail['frefno'] ?? '')) !== ''
-                    || trim((string) ($detail['fnilai_nota'] ?? '')) !== ''
-                    || trim((string) ($detail['fsisa_piutang'] ?? '')) !== ''
-                    || trim((string) ($detail['fdiscpersen'] ?? '')) !== ''
-                    || trim((string) ($detail['fdiscount'] ?? '')) !== ''
-                    || trim((string) ($detail['fkasdtvalue'] ?? '')) !== ''
-                    || trim((string) ($detail['ftrcode'] ?? '')) !== '';
+                $frefno = trim((string) ($detail['frefno'] ?? ''));
+                $fkasdtvalue = (float) ($detail['fkasdtvalue'] ?? 0);
+
+                // Jika frefno kosong dan fkasdtvalue adalah 0, anggap baris ini kosong/diabaikan
+                if ($frefno === '' && $fkasdtvalue === 0.0) {
+                    return false;
+                }
+
+                return true;
             })
             ->values()
             ->all();
