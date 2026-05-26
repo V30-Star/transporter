@@ -658,17 +658,19 @@
                                                             class="w-full border rounded px-2 py-1 bg-gray-100 text-gray-600 text-sm"
                                                             :value="it.frefno_display || it.frefdtno || '-'" disabled>
                                                     </td>
-                                                    <template x-if="it.units && it.units.length > 1 && !it.frefso">
+                                                    <template x-if="it.units && it.units.length > 1">
                                                         <select class="w-full border rounded px-2 py-1 text-xs"
                                                             :id="'unit_row_' + i" x-model="it.fsatuan"
+                                                            x-effect="$el.value = it.fsatuan"
                                                             @change="onRowUpdated(i)"
                                                             @keydown.enter.prevent="focusRowQty(i)">
                                                             <template x-for="u in it.units" :key="u">
-                                                                <option :value="u" x-text="u"></option>
+                                                                <option :value="u" :selected="u === it.fsatuan"
+                                                                    x-text="u"></option>
                                                             </template>
                                                         </select>
                                                     </template>
-                                                    <template x-if="!(it.units && it.units.length > 1) || it.frefso">
+                                                    <template x-if="!(it.units && it.units.length > 1)">
                                                         <span class="text-xs" x-text="it.fsatuan || '-'"></span>
                                                     </template>
                                                     </td>
@@ -1522,9 +1524,18 @@
                 }
                 row.fitemname = meta.name || '';
                 const units = [...new Set((meta.units || []).map(u => (u ?? '').toString().trim()).filter(Boolean))];
+                const currentUnit = (row.fsatuan ?? '').toString().trim();
                 row.units = units;
-                if (forceDefaultUnit || !units.includes(row.fsatuan)) {
+                if (forceDefaultUnit) {
                     row.fsatuan = units[0] || '';
+                } else {
+                    row.fsatuan = currentUnit;
+                    if (currentUnit && !units.includes(currentUnit)) {
+                        row.units.unshift(currentUnit);
+                    }
+                    if (!row.fsatuan) {
+                        row.fsatuan = units[0] || '';
+                    }
                 }
                 if (meta.unit_ratios) row.unit_ratios = meta.unit_ratios;
                 row.maxqty = Number.isFinite(+row.maxqty) ? +row.maxqty : 0;
@@ -1600,6 +1611,13 @@
                     }
 
                     const meta = this.productMeta(itemcode);
+                    const normalizedUnits = meta
+                        ? [...new Set((meta.units || []).map(u => (u ?? '').toString().trim()).filter(Boolean))]
+                        : [satuan].filter(Boolean);
+
+                    if (satuan && !normalizedUnits.includes(satuan)) {
+                        normalizedUnits.unshift(satuan);
+                    }
 
                     const row = {
                         uid: cryptoRandom(),
@@ -1619,8 +1637,7 @@
                         ftotal: 0,
                         fdesc: src.fdesc ? src.fdesc.toString().trim() : '',
                         fketdt: src.fketdt ? src.fketdt.toString().trim() : '',
-                        units: meta ? [...new Set((meta.units || []).map(u => (u ?? '').toString().trim())
-                            .filter(Boolean))] : [satuan].filter(Boolean),
+                        units: normalizedUnits,
                         maxqty: Math.max(0, Number(src.maxqty ?? src.fqtyremain ?? src.fqty ?? 0)),
                         hideQtyLimitHint: false,
                     };
