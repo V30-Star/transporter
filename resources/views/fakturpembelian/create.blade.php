@@ -1343,8 +1343,17 @@
             },
 
             get hasTerSourceItems() {
-                return (this.savedItems || []).some((item) => (item?.fsource || '').toString().trim()
-                .toUpperCase() === 'PB');
+                const activeRows = (this.savedItems || []).filter((item) => {
+                    const code = (item?.fitemcode || '').toString().trim();
+                    const qty = Number(item?.fqty || 0);
+                    return code !== '' || qty > 0;
+                });
+
+                if (!activeRows.length) {
+                    return false;
+                }
+
+                return activeRows.every((item) => (item?.fsource || '').toString().trim().toUpperCase() === 'PB');
             },
 
             fmt(n) {

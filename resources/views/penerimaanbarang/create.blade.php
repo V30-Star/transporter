@@ -1220,6 +1220,7 @@
                             fqtykecil2: Number(src.fqtykecil2 ?? meta?.fqtykecil2 ?? 0),
                             maxqty_satuan: src.maxqty_satuan ?? '',
                             fprice: Number(src.fprice ?? 0),
+                            fpriceInput: Number(src.fprice ?? 0).toFixed(2),
                             ftotal: Number(src.ftotal ?? 0),
                             fdesc: src.fdesc ?? src.fketdt ?? '',
                             fketdt: src.fketdt ?? '',
