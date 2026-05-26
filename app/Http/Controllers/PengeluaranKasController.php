@@ -72,7 +72,7 @@ class PengeluaranKasController extends Controller
     {
         return view('pengeluarankas.create', $this->formViewData(new Trkasmt([
             'fkasmtdate' => now()->toDateString(),
-        ]), collect([new Trkasdt]), [
+        ]), collect(array_map(fn() => new Trkasdt, range(1, 5))), [
             'pageTitle' => 'Pengeluaran Kas',
             'formAction' => route('pengeluarankas.store'),
             'formMethod' => 'POST',

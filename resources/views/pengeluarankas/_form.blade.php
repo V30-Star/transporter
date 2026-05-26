@@ -411,15 +411,14 @@
                                     @enderror
                                 </td>
                                 @unless ($isReadOnly)
-                                    <td class="detail-action-cell border px-0.5 py-1.5 text-center align-top">
-                                        <button type="button" @click="addRow()"
-                                            class="detail-add-btn inline-flex min-w-[0.5rem] items-center justify-center bg-blue-600 text-white px-2.5 py-1 rounded hover:bg-blue-700 whitespace-nowrap">
-                                            <x-heroicon-o-plus class="w-4 h-4 mr-1" /> {{ 'Tambah' }}
-                                        </button>
-                                        <button type="button" @click="removeRow($event)"
-                                            class="detail-delete-btn inline-flex min-w-[0.5rem] items-center justify-center bg-red-600 text-white px-2.5 py-1 rounded hover:bg-red-700 whitespace-nowrap">
-                                            <x-heroicon-o-trash class="w-4 h-4 mr-1" /> {{ 'Hapus' }}
-                                        </button>
+                                    <td class="detail-action-cell border px-1 py-1 text-center align-middle">
+                                        <div class="flex items-center justify-center">
+                                            <button type="button" @click="removeRow($event)"
+                                                class="detail-delete-btn inline-flex h-8 w-8 items-center justify-center rounded bg-red-100 text-red-600 hover:bg-red-200 text-lg font-bold transition-colors duration-150"
+                                                title="Hapus baris">
+                                                -
+                                            </button>
+                                        </div>
                                     </td>
                                 @endunless
                             </tr>
@@ -498,6 +497,25 @@
                     activeLookupRow: null,
                     activeLookupType: null,
 
+                    checkAndAutoAppendRow() {
+                        if (this.isReadOnly) return;
+
+                        const rows = Array.from(document.querySelectorAll('#detailRows tr.detail-row'));
+                        if (rows.length === 0) return;
+
+                        const lastRow = rows[rows.length - 1];
+                        
+                        const accountVal = lastRow.querySelector('input[name$="[faccount]"]')?.value || '';
+                        const noteVal = lastRow.querySelector('textarea[name$="[fnote]"]')?.value || '';
+                        const amountVal = lastRow.querySelector('input[name$="[fkasdtvalue]"]')?.value || '';
+
+                        const isLastRowFilled = accountVal.trim() !== '' || noteVal.trim() !== '' || amountVal.trim() !== '';
+
+                        if (isLastRowFilled) {
+                            this.addRow();
+                        }
+                    },
+
                     init() {
                         if (this.isReadOnly && this.voucherNo) {
                             this.autoCode = false;
@@ -523,13 +541,17 @@
                             const code = (event.detail?.fsubaccountcode || '').toString().trim();
                             const name = (event.detail?.fsubaccountname || '').toString().trim();
                             this.applyLookupValue(activeRow, 'fsubaccount', 'subaccount-display', code,
-                                code && name ? `${code} - ${name}` : code);
+                                  code && name ? `${code} - ${name}` : code);
                             if (activeRow) {
                                 const result = this.validateJournalRow(activeRow);
                                 if (result.status === 'ERROR') {
                                     this.presentValidationError(result, activeRow);
                                 }
                             }
+                        });
+
+                        this.$nextTick(() => {
+                            this.checkAndAutoAppendRow();
                         });
                     },
 
@@ -712,6 +734,7 @@
 
                         this.activeLookupRow = null;
                         this.activeLookupType = null;
+                        this.checkAndAutoAppendRow();
                     },
 
                     applyAccountLookupValue(row, code, name, hasSubaccount) {
@@ -751,6 +774,7 @@
                         }
                         this.activeLookupRow = null;
                         this.activeLookupType = null;
+                        this.checkAndAutoAppendRow();
                     },
 
                     rowHasSubaccountEnabled(row) {
@@ -836,11 +860,11 @@
                             });
                         });
 
-                        this.updateActionButtons();
                         rows.forEach((row) => {
                             this.syncSubaccountState(row);
                             this.syncRowAmountState(row);
                         });
+                        this.checkAndAutoAppendRow();
                     },
 
                     updateTotal() {
@@ -878,23 +902,6 @@
                             : ['border-amber-200', 'bg-amber-50', 'text-amber-700']));
                     },
 
-                    updateActionButtons() {
-                        const rows = Array.from(document.querySelectorAll('#detailRows tr.detail-row'));
-
-                        rows.forEach((row, index) => {
-                            const addButton = row.querySelector('.detail-add-btn');
-                            const deleteButton = row.querySelector('.detail-delete-btn');
-                            const isLastRow = index === rows.length - 1;
-
-                            if (addButton) {
-                                addButton.style.display = isLastRow ? 'inline-flex' : 'none';
-                            }
-
-                            if (deleteButton) {
-                                deleteButton.style.display = isLastRow ? 'none' : 'inline-flex';
-                            }
-                        });
-                    },
 
                     handleSubmit(event) {
                         if (this.isReadOnly) {
@@ -936,6 +943,24 @@
                     }
                     refreshPengeluaranKasTotal();
                 }
+
+                if (event.target.closest('tr.detail-row')) {
+                    const formRoot = event.target.closest('[x-data]');
+                    const alpineComponent = formRoot?._x_dataStack?.[0];
+                    if (alpineComponent?.checkAndAutoAppendRow) {
+                        alpineComponent.checkAndAutoAppendRow();
+                    }
+                }
+            });
+
+            document.addEventListener('change', (event) => {
+                if (event.target.closest('tr.detail-row')) {
+                    const formRoot = event.target.closest('[x-data]');
+                    const alpineComponent = formRoot?._x_dataStack?.[0];
+                    if (alpineComponent?.checkAndAutoAppendRow) {
+                        alpineComponent.checkAndAutoAppendRow();
+                    }
+                }
             });
 
             document.addEventListener('DOMContentLoaded', () => {
@@ -943,18 +968,6 @@
                     const rows = document.querySelectorAll('#detailRows tr.detail-row');
                     rows.forEach((row, index) => {
                         row.querySelector('td').textContent = index + 1;
-                    });
-
-                    const addButtons = document.querySelectorAll('#detailRows .detail-add-btn');
-                    const deleteButtons = document.querySelectorAll('#detailRows .detail-delete-btn');
-                    const totalRows = document.querySelectorAll('#detailRows tr.detail-row').length;
-
-                    addButtons.forEach((button, index) => {
-                        button.style.display = index === totalRows - 1 ? 'inline-flex' : 'none';
-                    });
-
-                    deleteButtons.forEach((button, index) => {
-                        button.style.display = index === totalRows - 1 ? 'none' : 'inline-flex';
                     });
 
                     rows.forEach((row) => {
