@@ -1617,9 +1617,11 @@
 
                 row.fitemname = row.fitemname || meta.name || '';
                 const units = [...new Set((meta.units || []).map((u) => (u ?? '').toString().trim()).filter(Boolean))];
+                const currentUnit = (row.fsatuan ?? '').toString().trim();
                 row.units = units;
-                if (!units.includes(row.fsatuan)) {
-                    row.fsatuan = row.fsatuan || units[0] || '';
+                row.fsatuan = currentUnit;
+                if (!units.includes(currentUnit)) {
+                    row.fsatuan = currentUnit || units[0] || '';
                 }
             },
 
@@ -1657,6 +1659,7 @@
                 }
 
                 this.hydrateRowFromMeta(row, this.productMeta(row.fprdcode));
+                row.fsatuan = (row.fsatuan ?? '').toString().trim();
                 if (row.fsatuan && !row.units.includes(row.fsatuan)) {
                     row.units.unshift(row.fsatuan);
                 }
@@ -1932,26 +1935,26 @@
             },
 
             hydrateRowFromMeta(row, meta, forceDefaultUnit = false) {
-    if (!meta) {
-        row.fitemname = '';
-        row.units = [];
-        row.fsatuan = '';
-        return;
-    }
+                if (!meta) {
+                    row.fitemname = '';
+                    row.units = [];
+                    row.fsatuan = '';
+                    return;
+                }
 
-    row.fitemname = meta.name || '';
-    const units = [...new Set((meta.units || []).map(unit => (unit ?? '').toString().trim()).filter(Boolean))];
-    const defaultUnit = (meta.default_unit || '').toString().trim();
-    const resolvedDefaultUnit = defaultUnit && units.includes(defaultUnit)
-        ? defaultUnit
-        : (units[0] || '');
+                row.fitemname = meta.name || '';
+                const units = [...new Set((meta.units || []).map(unit => (unit ?? '').toString().trim()).filter(Boolean))];
+                const defaultUnit = (meta.default_unit || '').toString().trim();
+                const currentUnit = (row.fsatuan ?? '').toString().trim();
+                const resolvedDefaultUnit = defaultUnit && units.includes(defaultUnit)
+                    ? defaultUnit
+                    : (units[0] || '');
 
-    row.units = units;
-    row.fsatuan = forceDefaultUnit
-        ? resolvedDefaultUnit
-        : (units.includes(row.fsatuan) ? row.fsatuan : resolvedDefaultUnit);
-
-},
+                row.units = units;
+                row.fsatuan = forceDefaultUnit
+                    ? resolvedDefaultUnit
+                    : (units.includes(currentUnit) ? currentUnit : resolvedDefaultUnit);
+            },
 
             rowHasContent(row) {
                 if (!row) return false;
@@ -2124,6 +2127,7 @@
 
             showDescModal: false,
             descValue: '',
+            descItemName: '',
             _descTarget: null,
             descReadonly: false,
             openDesc(targetRow, readonly = false) {
@@ -2255,37 +2259,26 @@
                 this.rows.forEach((item) => {
                     item.fnoacak = this.normalizeNoAcak(item.fnoacak) || this.generateUniqueNoAcak();
                     item.hideQtyLimitHint = !((item.frefdtno ?? '').toString().trim());
-                    item.units = item.units || [];
-                    if (typeof item.units === 'string') {
-                        try {
-                            const parsed = JSON.parse(item.units);
-                            item.units = Array.isArray(parsed) ? parsed : [];
-                        } catch (e) {
-                            item.units = item.units.split(',').map(u => u.trim());
-                        }
-                    } else if (!Array.isArray(item.units)) {
-                        item.units = [];
-                    }
-
+                    // units and fsatuan are already hydrated in createRow(); only sync unit_ratios here
                     const meta = this.productMeta(item.fprdcode);
-                    if (meta) {
-                        if (meta.units && meta.units.length) {
-                            item.units = [...new Set([...item.units, ...meta.units])];
-                        } else if (item.fsatuan && !item.units.includes(item.fsatuan)) {
-                            item.units.unshift(item.fsatuan);
-                        }
-                        if (meta.unit_ratios) {
-                            item.unit_ratios = item.unit_ratios || meta.unit_ratios;
-                        }
-                    } else {
-                        if (item.fsatuan && !item.units.includes(item.fsatuan)) {
-                            item.units.unshift(item.fsatuan);
-                        }
+                    if (meta && meta.unit_ratios) {
+                        item.unit_ratios = item.unit_ratios || meta.unit_ratios;
                     }
                 });
                 this.ensureMinimumRows();
                 this.ensureTrailingRow();
                 this.recalcTotals();
+                // Force-sync the select DOM values after Alpine renders the options
+                this.$nextTick(() => {
+                    this.rows.forEach((row, i) => {
+                        if (row.units && row.units.length > 1 && row.fsatuan) {
+                            const sel = document.getElementById('unit_row_' + i);
+                            if (sel && sel.value !== row.fsatuan) {
+                                sel.value = row.fsatuan;
+                            }
+                        }
+                    });
+                });
 
                 window.getCurrentItemKeys = () => this.getCurrentItemKeys();
                 window.addEventListener('pr-picked', this.onPrPicked.bind(this), {
@@ -2422,7 +2415,24 @@ this.$nextTick(() => {
                     uid: item?.uid ? `edit-row-${item.uid}` : `edit-row-${cryptoRandom()}`,
                 };
                 row.fnoacak = this.normalizeNoAcak(row.fnoacak) || this.generateUniqueNoAcak(row.uid);
-                if (!Array.isArray(row.units)) row.units = [];
+                // Hydrate units from PRODUCT_MAP before Alpine renders, preserving saved fsatuan
+                if (!Array.isArray(row.units) || row.units.length === 0) {
+                    const meta = this.productMeta(row.fprdcode);
+                    if (meta && meta.units && meta.units.length) {
+                        row.units = [...new Set(meta.units.map(u => (u ?? '').toString().trim()).filter(Boolean))];
+                    } else {
+                        row.units = [];
+                    }
+                }
+                // Ensure saved fsatuan is always present in units list
+                const savedSatuan = (row.fsatuan ?? '').toString().trim();
+                if (savedSatuan && !row.units.includes(savedSatuan)) {
+                    row.units.unshift(savedSatuan);
+                }
+                // Keep fsatuan as-is (from DB); only default if empty
+                if (!row.fsatuan && row.units.length) {
+                    row.fsatuan = row.units[0];
+                }
                 row.fpriceInput = Number(row.fprice || 0).toFixed(2);
                 this.recalc(row);
                 return row;

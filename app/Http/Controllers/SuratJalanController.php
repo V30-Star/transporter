@@ -1871,7 +1871,7 @@ class SuratJalanController extends Controller
             ->where('fsono', $docNo)
             ->where('fprdcode', $productCode)
             ->when($refNoAcak !== '', function ($query) use ($refNoAcak) {
-                $query->whereRaw("COALESCE(frefnosoacak::text, fnoacak::text, '') = ?", [$refNoAcak]);
+                $query->whereRaw("COALESCE(fnoacak::text, '') = ?", [$refNoAcak]);
             })
             ->orderBy('ftrsodtid')
             ->first(['ftrsodtid', 'fsatuan']);

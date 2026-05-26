@@ -595,7 +595,7 @@ class SalesOrderController extends Controller
             ->select([
                 'trsodt.ftrsodtid as frefdtno',
                 'trsodt.fsono as fnouref',
-                DB::raw("COALESCE(trsodt.frefnosoacak::text, trsodt.fnoacak::text, '') as frefnoacak"),
+                DB::raw("COALESCE(trsodt.fnoacak::text, '') as frefnoacak"),
                 'trsodt.fprdcode as fitemcode',
                 'm.fprdname as fitemname',
                 'trsodt.fsatuan',
