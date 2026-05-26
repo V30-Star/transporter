@@ -1021,6 +1021,7 @@ class FakturpembelianController extends Controller
             $request->validate([
                 'fstockmtdate' => ['required', 'date'],
                 'fsupplier' => ['required', 'string', 'max:30'],
+                'ffrom' => ['required', 'string', 'max:30'],
                 'frefno' => ['required', 'string', 'max:100'],
                 'ftypebuy' => ['nullable', 'integer'],
                 'fprdjadi' => ['required_if:ftypebuy,1'],
@@ -1033,6 +1034,7 @@ class FakturpembelianController extends Controller
                 'frefnoacak' => ['nullable', 'array'],
                 'frefnoacak.*' => ['nullable', 'regex:/^\d{3}(,\s*\d{3})*$/'],
             ], [
+                'ffrom.required' => 'Gudang wajib diisi.',
                 'frefno.required' => 'No faktur wajib diisi.',
                 'fprdjadi.required_if' => 'Account wajib diisi ketika tipe pembelian adalah Non Stok.',
                 'fdiscpersen.*.regex' => 'Format diskon item harus angka atau format seperti 10+2.',
@@ -1689,7 +1691,7 @@ class FakturpembelianController extends Controller
                 'fstockmtno' => ['nullable', 'string', 'max:100'],
                 'fstockmtdate' => ['required', 'date'],
                 'fsupplier' => ['required', 'string', 'max:30'],
-                'ffrom' => ['nullable', 'string', 'max:30'],
+                'ffrom' => ['required', 'string', 'max:30'],
                 'fket' => ['nullable', 'string', 'max:50'],
                 'fbranchcode' => ['nullable', 'string', 'max:20'],
                 'faccid' => ['nullable', 'integer'],
@@ -1725,6 +1727,7 @@ class FakturpembelianController extends Controller
                 'frefnoacak.*' => ['nullable', 'regex:/^\d{3}(,\s*\d{3})*$/'],
                 'fprdjadi' => ['required_if:ftypebuy,1'],
             ], [
+                'ffrom.required' => 'Gudang wajib diisi.',
                 'fstockmtdate.required' => 'Tanggal transaksi wajib diisi.',
                 'fsupplier.required' => 'Supplier wajib diisi.',
                 'frefno.required' => 'No. faktur wajib diisi.',

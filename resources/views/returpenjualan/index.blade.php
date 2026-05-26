@@ -78,17 +78,14 @@
             <thead class="bg-gray-100">
                 <tr>
                     <th class="border px-2 py-1">Cab.</th>
-                    <th class="border px-2 py-1">No.Faktur</th> {{-- Sesuai data simpel (bukan nama) --}}
-                    <th class="border px-2 py-1">Faktur Pajak#</th>
+                    <th class="border px-2 py-1">No.Retur</th>
                     <th class="border px-2 py-1">Tanggal</th>
                     <th class="border px-2 py-1">No.Ref</th>
-                    <th class="border px-2 py-1">SO#</th>
+                    <th class="border px-2 py-1">Customer #</th>
                     <th class="border px-2 py-1">Nama Customer</th>
-                    <th class="border px-2 py-1">Nilai Faktur</th>
-                    <th class="border px-2 py-1">Sisa Piutang</th>
-                    <th class="border px-2 py-1">Ref.PO</th>
+                    <th class="border px-2 py-1">Nilai Retur</th>
+                    <th class="border px-2 py-1">Keterangan</th>
                     <th class="border px-2 py-1">User Id</th>
-                    <th class="border px-2 py-1">Tagih?</th>
                     @if ($showActionsColumn)
                         <th class="border px-2 py-1 col-aksi">Aksi</th>
                     @endif
@@ -310,18 +307,7 @@
                 },
                 {
                     data: 'fsono',
-                    name: 'fsono',
-                    render: function(data, type) {
-                        if (type !== 'display') {
-                            return data;
-                        }
-
-                        if (!data) {
-                            return '';
-                        }
-
-                        return data.startsWith('REJ') ? data : `REJ${data}`;
-                    }
+                    name: 'fsono'
                 },
                 {
                     data: 'fsodate',
@@ -336,28 +322,22 @@
                     name: 'fcustno'
                 },
                 {
+                    data: 'fcustomername',
+                    name: 'fcustomername'
+                },
+                {
                     data: 'famountso',
                     name: 'famountso',
                     render: function(data) {
-                        // Format currency jika perlu
-                        return new Intl.NumberFormat('id-ID', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(data);
+                        return new Intl.NumberFormat('id-ID', {
+                            minimumFractionDigits: 2,
+                            maximumFractionDigits: 2
+                        }).format(data || 0);
                     }
                 },
                 {
-                    data: 'fusercreate',
-                    name: 'fusercreate'
-                },
-                {
-                    data: 'fusercreate',
-                    name: 'fusercreate'
-                },
-                {
-                    data: 'fusercreate',
-                    name: 'fusercreate'
-                },
-                {
-                    data: 'fusercreate',
-                    name: 'fusercreate'
+                    data: 'fket',
+                    name: 'fket'
                 },
                 {
                     data: 'fusercreate',

@@ -326,7 +326,7 @@
                         </div>
 
                         <div class="lg:col-span-4">
-                            <label class="block text-sm font-medium mb-1">{{ 'Gudang' }}</label>
+                            <label class="block text-sm font-medium mb-1">{{ 'Gudang' }} <span class="text-red-500">*</span></label>
                             <div class="flex">
                                 <div class="relative flex-1">
                                     <select id="warehouseSelect"

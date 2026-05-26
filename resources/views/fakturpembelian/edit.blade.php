@@ -924,7 +924,7 @@
                             </div>
 
                             <div class="lg:col-span-4">
-                                <label class="block text-sm font-medium mb-1">Gudang</label>
+                                <label class="block text-sm font-medium mb-1">Gudang <span class="text-red-500">*</span></label>
                                 <div class="flex">
                                     <div class="relative flex-1">
                                         <select id="warehouseSelect"
@@ -961,6 +961,9 @@
                                         <x-heroicon-o-plus class="w-5 h-5" />
                                     </a>
                                 </div>
+                                @error('ffrom')
+                                    <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+                                @enderror
                             </div>
 
                             <div class="lg:col-span-4">

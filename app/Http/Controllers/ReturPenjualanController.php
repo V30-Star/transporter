@@ -62,57 +62,86 @@ class ReturPenjualanController extends Controller
         $month = $request->query('month');
 
         // Ambil tahun-tahun yang tersedia dari data
-        $availableYearsQuery = Tranmt::selectRaw('DISTINCT EXTRACT(YEAR FROM fdatetime) as year')
-            ->whereNotNull('fdatetime');
+        $availableYearsQuery = Tranmt::query()
+            ->selectRaw('DISTINCT EXTRACT(YEAR FROM fsodate) as year')
+            ->where('ftrcode', 'REJ')
+            ->whereNotNull('fsodate');
         $this->applyBranchVisibilityScope($availableYearsQuery, 'tranmt.fbranchcode');
         $availableYears = $availableYearsQuery
-            ->orderByRaw('EXTRACT(YEAR FROM fdatetime) DESC')
+            ->orderByRaw('EXTRACT(YEAR FROM fsodate) DESC')
             ->pluck('year');
 
         // --- Handle Request AJAX dari DataTables ---
         if ($request->ajax()) {
 
-            $query = Tranmt::query();
+            $query = Tranmt::query()
+                ->leftJoin('mscustomer as c', 'c.fcustomercode', '=', 'tranmt.fcustno')
+                ->where('tranmt.ftrcode', 'REJ')
+                ->select(
+                    'tranmt.ftranmtid',
+                    'tranmt.fbranchcode',
+                    'tranmt.fsono',
+                    'tranmt.fsodate',
+                    'tranmt.frefno',
+                    'tranmt.fcustno',
+                    'c.fcustomername',
+                    'tranmt.famountso',
+                    'tranmt.fket',
+                    'tranmt.fusercreate',
+                    'tranmt.fclose'
+                );
             $this->applyBranchVisibilityScope($query, 'tranmt.fbranchcode');
 
-            // DEBUG: Cek total data di tabel
             $totalRecords = (clone $query)->count();
 
-            // Handle Search
             if ($search = $request->input('search.value')) {
-                $query->where('fsono', 'like', "%{$search}%");
+                $query->where(function ($q) use ($search) {
+                    $q->where('tranmt.fsono', 'ilike', "%{$search}%")
+                        ->orWhere('tranmt.frefno', 'ilike', "%{$search}%")
+                        ->orWhere('tranmt.fcustno', 'ilike', "%{$search}%")
+                        ->orWhere('c.fcustomername', 'ilike', "%{$search}%")
+                        ->orWhere('tranmt.fket', 'ilike', "%{$search}%");
+                });
             }
 
-            // Filter tahun
             if ($year) {
-                $query->whereRaw('EXTRACT(YEAR FROM fdatetime) = ?', [$year]);
+                $query->whereRaw('EXTRACT(YEAR FROM tranmt.fsodate) = ?', [$year]);
             }
 
-            // Filter bulan
             if ($month) {
-                $query->whereRaw('EXTRACT(MONTH FROM fdatetime) = ?', [$month]);
+                $query->whereRaw('EXTRACT(MONTH FROM tranmt.fsodate) = ?', [$month]);
             }
 
             $filteredRecords = (clone $query)->count();
 
-            // Sorting
             $orderColIdx = $request->input('order.0.column', 0);
             $orderDir = $request->input('order.0.dir', 'asc');
 
-            $sortableColumns = ['fsono', 'fsodate'];
+            $sortableColumns = [
+                0 => 'tranmt.fbranchcode',
+                1 => 'tranmt.fsono',
+                2 => 'tranmt.fsodate',
+                3 => 'tranmt.frefno',
+                4 => 'tranmt.fcustno',
+                5 => 'c.fcustomername',
+                6 => 'tranmt.famountso',
+                7 => 'tranmt.fket',
+                8 => 'tranmt.fusercreate',
+                9 => 'tranmt.fclose',
+            ];
 
-            if (isset($sortableColumns[$orderColIdx])) {
+            if (isset($sortableColumns[$orderColIdx]) && $sortableColumns[$orderColIdx]) {
                 $query->orderBy($sortableColumns[$orderColIdx], $orderDir);
+            } else {
+                $query->orderBy('tranmt.fsodate', 'desc')->orderBy('tranmt.fsono', 'desc');
             }
 
-            // Paginasi
             $start = $request->input('start', 0);
             $length = $request->input('length', 10);
             $records = $query->skip($start)
                 ->take($length)
                 ->get();
 
-            // Format Data
             $data = $records->map(function ($row) {
                 return [
                     'ftranmtid' => $row->ftranmtid,
@@ -123,25 +152,11 @@ class ReturPenjualanController extends Controller
                         : $row->fsodate,
                     'frefno' => $row->frefno ?? '',
                     'fcustno' => $row->fcustno ?? '',
-                    'fsalesman' => $row->fsalesman,
-                    'fdiscpersen' => $row->fdiscpersen,
-                    'fdiscount' => $row->fdiscount,
-                    'famountgross' => $row->famountgross,
-                    'famountsonet' => $row->famountsonet,
-                    'famountpajak' => $row->famountpajak,
-                    'famountso' => $row->famountso,
-                    'fket' => $row->fket,
-                    'falamatkirim' => $row->falamatkirim,
-                    'fprdout' => $row->fprdout,
-                    'fusercreate' => $row->fusercreate,
-                    'fuserupdate' => $row->fuserupdate,
-                    'fdatetime' => $row->fdatetime,
-                    'fclose' => $row->fclose,
-                    'fincludeppn' => $row->fincludeppn,
-                    'fuseracc' => $row->fuseracc,
-                    'fneedacc' => $row->fneedacc,
-                    'ftempohr' => $row->ftempohr,
-                    'fprint' => $row->fprint,
+                    'fcustomername' => $row->fcustomername ?? '',
+                    'famountso' => (float) ($row->famountso ?? 0),
+                    'fket' => $row->fket ?? '',
+                    'fusercreate' => $row->fusercreate ?? '',
+                    'fclose' => $row->fclose ?? '0',
                 ];
             });
 
