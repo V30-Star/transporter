@@ -990,6 +990,7 @@ class SalesOrderController extends Controller
                 $grandTotal,
                 $ppnAmount,
                 $headerDiscPercent,
+                $resolvedSalesmanCode,
                 $creditApproval,
                 $needsApprovalNotification,
                 &$shouldSendApprovalNotification
@@ -1609,6 +1610,7 @@ class SalesOrderController extends Controller
             $fapplyppn,
             $fppnpersen,
             $headerDiscPercent,
+            $resolvedSalesmanCode,
             $creditApproval,
             $needsApprovalNotification,
             &$shouldSendApprovalNotification
