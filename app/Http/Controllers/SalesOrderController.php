@@ -607,7 +607,6 @@ class SalesOrderController extends Controller
             ->get()
             ->map(function ($item) use ($remainMap) {
                 $remain = (float) ($remainMap[(int) ($item->frefdtno ?? 0)] ?? 0);
-                $item->fqty = $remain;
                 $item->fqtyremain = $remain;
 
                 return $item;

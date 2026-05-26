@@ -1626,11 +1626,7 @@
                     };
 
                     if (!(Number(row.maxqty) > 0)) return;
-                    if (Number(row.maxqty) > 0) {
-                        row.fqty = Number(row.maxqty);
-                    }
                     row.ftotal = Number((row.fqty * row.fprice).toFixed(2));
-                    this.validateSoQtyRow(row, false);
 
                     const key = this.itemKey({
                         fitemcode: row.fitemcode,
