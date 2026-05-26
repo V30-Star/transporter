@@ -171,6 +171,7 @@ class ListingPRController extends Controller
                 'd.fsatuan',
                 DB::raw('COALESCE(o.fqtypo, 0) as fqtypo')
             );
+        $this->applyBranchVisibilityScope($query, 'h.fbranchcode');
 
         if ($request->date_from) {
             $query->where('h.fprdate', '>=', $request->date_from);

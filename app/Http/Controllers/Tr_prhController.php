@@ -54,15 +54,18 @@ class Tr_prhController extends Controller
         $year = $request->query('year');
         $month = $request->query('month');
 
-        $availableYears = Tr_prh::selectRaw('DISTINCT EXTRACT(YEAR FROM tr_prh.fcreatedat) as year')
-            ->whereNotNull('tr_prh.fcreatedat')
+        $availableYearsQuery = Tr_prh::selectRaw('DISTINCT EXTRACT(YEAR FROM tr_prh.fcreatedat) as year')
+            ->whereNotNull('tr_prh.fcreatedat');
+        $this->applyBranchVisibilityScope($availableYearsQuery, 'tr_prh.fbranchcode');
+        $availableYears = $availableYearsQuery
             ->orderByRaw('EXTRACT(YEAR FROM tr_prh.fcreatedat) DESC')
             ->pluck('year');
 
         if ($request->ajax()) {
             $query = Tr_prh::query()
                 ->leftJoin('mssupplier', 'tr_prh.fsupplier', '=', 'mssupplier.fsuppliercode');
-            $totalRecords = Tr_prh::count();
+            $this->applyBranchVisibilityScope($query, 'tr_prh.fbranchcode');
+            $totalRecords = (clone $query)->count();
 
             $searchableColumns = ['tr_prh.fprno', 'tr_prh.fprdin', 'mssupplier.fsuppliername'];
 

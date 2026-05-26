@@ -321,15 +321,26 @@
                                     title="Browse Supplier">
                                     <x-heroicon-o-magnifying-glass class="w-5 h-5" />
                                 </button>
-                                    <a href="{{ route('supplier.create') }}" target="_blank" rel="noopener" id="supplierCreateButtonReadonly"
-                                        class="border -ml-px rounded-r px-3 py-2 bg-white hover:bg-gray-50"
-                                        title="Tambah Supplier">
-                                        <x-heroicon-o-plus class="w-5 h-5" />
-                                    </a>
+                                    @if (in_array('createSupplier', explode(',', session('user_restricted_permissions', '')), true))
+                                        <a href="{{ route('supplier.create') }}" target="_blank" rel="noopener" id="supplierCreateButtonReadonly"
+                                            class="border -ml-px rounded-r px-3 py-2 bg-white hover:bg-gray-50"
+                                            title="Tambah Supplier">
+                                            <x-heroicon-o-plus class="w-5 h-5" />
+                                        </a>
+                                    @endif
                             </div>
                             @error('fsupplier')
                                 <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                             @enderror
+                        </div>
+
+                        <div class="lg:col-span-8 hidden" id="supplierAdvanceWarningBox">
+                            <div class="rounded-lg border border-amber-300 bg-amber-50 px-4 py-3 text-amber-800">
+                                <div class="flex items-start gap-2">
+                                    <x-heroicon-o-exclamation-triangle class="w-5 h-5 mt-0.5 flex-shrink-0" />
+                                    <p class="text-sm font-medium" id="supplierAdvanceWarningText"></p>
+                                </div>
+                            </div>
                         </div>
 
                         <div class="lg:col-span-4">
@@ -515,7 +526,7 @@
 
                             // Function: Update Tempo from Supplier
                             function updateTempo() {
-                                const supplierSelect = document.getElementById('supplierSelect');
+                                const supplierSelect = document.getElementById('modal_filter_supplier_id');
                                 const tempoInput = document.getElementById('ftempohr');
 
                                 if (!supplierSelect || !tempoInput) return;
@@ -538,7 +549,7 @@
                                 ftempohr.addEventListener('input', calculateDueDate);
                             }
 
-                            const supplierSelect = document.getElementById('supplierSelect');
+                            const supplierSelect = document.getElementById('modal_filter_supplier_id');
                             if (supplierSelect) {
                                 supplierSelect.addEventListener('change', updateTempo);
                             }
@@ -877,15 +888,26 @@
                                         title="Browse Supplier">
                                         <x-heroicon-o-magnifying-glass class="w-5 h-5" />
                                     </button>
-                                    <a href="{{ route('supplier.create') }}" target="_blank" rel="noopener" id="supplierCreateButton"
-                                        class="border -ml-px rounded-r px-3 py-2 bg-white hover:bg-gray-50"
-                                        title="Tambah Supplier">
-                                        <x-heroicon-o-plus class="w-5 h-5" />
-                                    </a>
+                                    @if (in_array('createSupplier', explode(',', session('user_restricted_permissions', '')), true))
+                                        <a href="{{ route('supplier.create') }}" target="_blank" rel="noopener" id="supplierCreateButton"
+                                            class="border -ml-px rounded-r px-3 py-2 bg-white hover:bg-gray-50"
+                                            title="Tambah Supplier">
+                                            <x-heroicon-o-plus class="w-5 h-5" />
+                                        </a>
+                                    @endif
                                 </div>
                                 @error('fsupplier')
                                     <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                                 @enderror
+                            </div>
+
+                            <div class="lg:col-span-8 hidden mt-3" id="supplierAdvanceWarningBox">
+                                <div class="rounded-lg border border-amber-300 bg-amber-50 px-4 py-3 text-amber-800">
+                                    <div class="flex items-start gap-2">
+                                        <x-heroicon-o-exclamation-triangle class="w-5 h-5 mt-0.5 flex-shrink-0" />
+                                        <p class="text-sm font-medium" id="supplierAdvanceWarningText"></p>
+                                    </div>
+                                </div>
                             </div>
 
                             <div class="lg:col-span-4">
@@ -1028,7 +1050,12 @@
                                 @enderror
                             </div>
 
-                            <div class="min-w-0 overflow-hidden">
+                            <div class="min-w-0 overflow-hidden"
+                                x-data="{
+                                    get hasTerSourceItems() {
+                                        return window.getFpbItemsTableComponent?.()?.hasTerSourceItems ?? false;
+                                    }
+                                }">
                                 <label class="block text-sm font-medium mb-2">Hitung Biaya</label>
                                 <div
                                     class="hpp-box h-[96px] bg-gray-50 p-3 rounded-lg border border-gray-200 shadow-sm flex items-center gap-3">
@@ -1070,7 +1097,7 @@
 
                                 // Function: Update Tempo from Supplier
                                 function updateTempo() {
-                                    const supplierSelect = document.getElementById('supplierSelect');
+                                    const supplierSelect = document.getElementById('modal_filter_supplier_id');
                                     const tempoInput = document.getElementById('ftempohr');
 
                                     if (!supplierSelect || !tempoInput) return;
@@ -1093,7 +1120,7 @@
                                     ftempohr.addEventListener('input', calculateDueDate);
                                 }
 
-                                const supplierSelect = document.getElementById('supplierSelect');
+                                const supplierSelect = document.getElementById('modal_filter_supplier_id');
                                 if (supplierSelect) {
                                     supplierSelect.addEventListener('change', updateTempo);
                                 }
@@ -1511,7 +1538,7 @@
                                 </div>
                             </div>
 
-                            <div class="mt-8 flex justify-center gap-4 pb-6">
+                            <div class="mt-8 border-t pt-6 flex justify-center gap-4 pb-6">
                                 @if ($canEditPermission)
                                     @if ($usageLocked)
                                         <button type="button" disabled title="{{ $usageLockMessage }}"
@@ -2331,6 +2358,7 @@
 
                     if (hiddenInput) {
                         hiddenInput.value = supplierCode;
+                        hiddenInput.dispatchEvent(new Event('change', { bubbles: true }));
                     }
 
                     if (selectInput) {
@@ -3403,6 +3431,73 @@
                 }
                 if (hid) hid.value = fwhcode || '';
             });
+        });
+    </script>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const supplierAdvanceWarnings = @json($supplierAdvanceWarnings ?? []);
+            const warningBox = document.getElementById('supplierAdvanceWarningBox');
+            const warningText = document.getElementById('supplierAdvanceWarningText');
+            const hiddenInput = document.getElementById('supplierCodeHidden');
+            const selectInput = document.getElementById('modal_filter_supplier_id');
+            let lastPopupSupplierCode = '';
+
+            const showSupplierAdvancePopup = (message) => {
+                if (!message) {
+                    return;
+                }
+
+                if (typeof window.showAppWarningAlert === 'function') {
+                    window.showAppWarningAlert('Perhatian', message, {
+                        confirmButtonText: 'Ok'
+                    });
+                    return;
+                }
+
+                if (typeof Swal !== 'undefined') {
+                    Swal.fire({
+                        icon: 'warning',
+                        title: 'Perhatian',
+                        text: message,
+                        confirmButtonText: 'Ok'
+                    });
+                }
+            };
+
+            const updateSupplierAdvanceWarning = (supplierCode = null, shouldPopup = false) => {
+                if (!warningBox || !warningText) {
+                    return;
+                }
+
+                const code = (supplierCode ?? hiddenInput?.value ?? selectInput?.value ?? '').toString().trim();
+                const warning = supplierAdvanceWarnings[code] ?? null;
+
+                if (!warning || !warning.message) {
+                    warningBox.classList.add('hidden');
+                    warningText.textContent = '';
+                    if (code !== lastPopupSupplierCode) {
+                        lastPopupSupplierCode = '';
+                    }
+                    return;
+                }
+
+                warningText.textContent = warning.message;
+                warningBox.classList.remove('hidden');
+
+                if (shouldPopup && code !== '' && code !== lastPopupSupplierCode) {
+                    lastPopupSupplierCode = code;
+                    showSupplierAdvancePopup(warning.message);
+                }
+            };
+
+            hiddenInput?.addEventListener('change', () => updateSupplierAdvanceWarning(null, true));
+            selectInput?.addEventListener('change', () => updateSupplierAdvanceWarning(null, true));
+            window.addEventListener('supplier-picked', (event) => {
+                updateSupplierAdvanceWarning(event.detail?.fsuppliercode ?? '', true);
+            });
+
+            updateSupplierAdvanceWarning();
         });
     </script>
 

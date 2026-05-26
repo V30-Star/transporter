@@ -3,6 +3,9 @@
 @section('title', $action === 'delete' ? 'Permintaan Pembelian - Delete' : ($action === 'view' ? 'Permintaan Pembelian - View' : 'Permintaan Pembelian - Edit'))
 
 @section('content')
+    @php
+        $canCreateSupplier = in_array('createSupplier', explode(',', session('user_restricted_permissions', '')), true);
+    @endphp
     <style>
         input:focus,
         select:focus,
@@ -473,10 +476,12 @@
                                     class="border border-l-0 px-3 py-2 bg-white hover:bg-gray-50">
                                     <x-heroicon-o-magnifying-glass class="w-5 h-5" />
                                 </button>
-                                <a href="{{ route('supplier.create') }}" target="_blank"
-                                    class="border border-l-0 rounded-r px-3 py-2 bg-white hover:bg-gray-50">
-                                    <x-heroicon-o-plus class="w-5 h-5" />
-                                </a>
+                                @if ($canCreateSupplier)
+                                    <a href="{{ route('supplier.create') }}" target="_blank"
+                                        class="border border-l-0 rounded-r px-3 py-2 bg-white hover:bg-gray-50">
+                                        <x-heroicon-o-plus class="w-5 h-5" />
+                                    </a>
+                                @endif
                             </div>
                             @error('fsupplier')
                                 <p class="text-red-600 text-xs mt-1">{{ $message }}</p>

@@ -9,8 +9,23 @@ use Illuminate\Support\Facades\DB;
 
 class WhController extends Controller
 {
+    private function ensureGudangPermission(string $permission)
+    {
+        if ($this->hasRestrictedPermission($permission)) {
+            return null;
+        }
+
+        return redirect()
+            ->route('dashboard')
+            ->with('error', 'Anda tidak memiliki akses ke menu gudang.');
+    }
+
     public function index(Request $request)
     {
+        if ($guard = $this->ensureGudangPermission('viewGudang')) {
+            return $guard;
+        }
+
         $gudangs = Wh::query()
             ->leftJoin('mscabang', 'mswh.fbranchcode', '=', 'mscabang.fcabangkode')
             ->orderBy('fwhcode', 'asc')
@@ -34,6 +49,10 @@ class WhController extends Controller
 
     public function create()
     {
+        if ($guard = $this->ensureGudangPermission('createGudang')) {
+            return $guard;
+        }
+
         $cabangOptions = Cabang::query()
             ->selectRaw('TRIM(BOTH FROM fcabangkode) AS fbranchcode, fcabangname')
             ->where('fnonactive', '0')
@@ -46,6 +65,10 @@ class WhController extends Controller
 
     public function store(Request $request)
     {
+        if ($guard = $this->ensureGudangPermission('createGudang')) {
+            return $guard;
+        }
+
         $request->merge([
             'fwhcode' => strtoupper($request->fwhcode),
         ]);
@@ -84,6 +107,10 @@ class WhController extends Controller
 
     public function edit($fwhid)
     {
+        if ($guard = $this->ensureGudangPermission('updateGudang')) {
+            return $guard;
+        }
+
         $gudang = Wh::findOrFail($fwhid);
         $isTransactionLocked = $this->hasTransactionUsage($gudang);
 
@@ -104,6 +131,10 @@ class WhController extends Controller
 
     public function view($fwhid)
     {
+        if ($guard = $this->ensureGudangPermission('viewGudang')) {
+            return $guard;
+        }
+
         $gudang = Wh::findOrFail($fwhid);
 
         $cabangOptions = Cabang::query()
@@ -124,6 +155,10 @@ class WhController extends Controller
      */
     public function update(Request $request, $fwhid)
     {
+        if ($guard = $this->ensureGudangPermission('updateGudang')) {
+            return $guard;
+        }
+
         $gudang = Wh::findOrFail($fwhid);
         $isTransactionLocked = $this->hasTransactionUsage($gudang);
 
@@ -169,6 +204,10 @@ class WhController extends Controller
 
     public function delete($fwhid)
     {
+        if ($guard = $this->ensureGudangPermission('deleteGudang')) {
+            return $guard;
+        }
+
         $gudang = Wh::findOrFail($fwhid);
 
         if ($message = $this->getUsageLockMessage($gudang)) {
@@ -182,6 +221,19 @@ class WhController extends Controller
 
     public function destroy($fwhid)
     {
+        if (! $this->hasRestrictedPermission('deleteGudang')) {
+            if (request()->expectsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Anda tidak memiliki akses ke menu gudang.',
+                ], 403);
+            }
+
+            return redirect()
+                ->route('dashboard')
+                ->with('error', 'Anda tidak memiliki akses ke menu gudang.');
+        }
+
         try {
             $gudang = Wh::findOrFail($fwhid);
 
@@ -214,6 +266,10 @@ class WhController extends Controller
 
     public function browse(Request $request)
     {
+        if ($guard = $this->ensureGudangPermission('viewGudang')) {
+            return $guard;
+        }
+
         // 1. Ambil kode cabang dari session user login
         // Pastikan session 'fcabang' sudah diset saat proses login
         $userBranch = session('fcabang');

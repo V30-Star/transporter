@@ -16,6 +16,17 @@ use App\Support\ApprovalState;
 
 class ProductController extends Controller
 {
+    private function ensureProductPermission(string $permission)
+    {
+        if ($this->hasRestrictedPermission($permission)) {
+            return null;
+        }
+
+        return redirect()
+            ->route('dashboard')
+            ->with('error', 'Anda tidak memiliki akses ke menu produk.');
+    }
+
     protected function canApproveProduct(): bool
     {
         return in_array('approveProduct', explode(',', session('user_restricted_permissions', '')));
@@ -134,6 +145,10 @@ class ProductController extends Controller
 
     public function index(Request $request)
     {
+        if ($guard = $this->ensureProductPermission('viewProduct')) {
+            return $guard;
+        }
+
         if ($request->ajax()) {
             $query = Product::query()
                 ->from('msprd')
@@ -239,6 +254,10 @@ class ProductController extends Controller
 
     public function suggestNames(Request $request)
     {
+        if ($guard = $this->ensureProductPermission('viewProduct')) {
+            return $guard;
+        }
+
         $term = (string) $request->get('term', '');
 
         $q = DB::table('msprd')->whereNotNull('fprdname');
@@ -257,6 +276,10 @@ class ProductController extends Controller
 
     public function suggestCodes(Request $request)
     {
+        if ($guard = $this->ensureProductPermission('viewProduct')) {
+            return $guard;
+        }
+
         $term = (string) $request->get('term', '');
 
         $q = DB::table('msprd')->whereNotNull('fprdcode');
@@ -297,6 +320,10 @@ class ProductController extends Controller
 
     public function create()
     {
+        if ($guard = $this->ensureProductPermission('createProduct')) {
+            return $guard;
+        }
+
         $groups = Groupproduct::where('fnonactive', 0)->get();
         $merks = Merek::where('fnonactive', 0)->get();
         $satuan = Satuan::where('fnonactive', 0)->get();
@@ -308,6 +335,10 @@ class ProductController extends Controller
 
     public function store(Request $request)
     {
+        if ($guard = $this->ensureProductPermission('createProduct')) {
+            return $guard;
+        }
+
         try {
             $shouldSendApprovalNotification = false;
             $needsApprovalNotification = $this->shouldRequestProductApproval($request);
@@ -441,6 +472,10 @@ class ProductController extends Controller
 
     public function edit($id)
     {
+        if ($guard = $this->ensureProductPermission('updateProduct')) {
+            return $guard;
+        }
+
         $product = Product::findOrFail($id);
         if ($message = $this->getApprovalLockMessage($product)) {
             return redirect()->route('product.view', $product->fprdid)->with('error', $message);
@@ -464,6 +499,10 @@ class ProductController extends Controller
 
     public function view($id)
     {
+        if ($guard = $this->ensureProductPermission('viewProduct')) {
+            return $guard;
+        }
+
         $product = Product::findOrFail($id);
         $groups = Groupproduct::where('fnonactive', 0)->get();
         $merks = Merek::where('fnonactive', 0)->get();
@@ -480,6 +519,10 @@ class ProductController extends Controller
 
     public function update(Request $request, $fprdid)
     {
+        if ($guard = $this->ensureProductPermission('updateProduct')) {
+            return $guard;
+        }
+
         $product = Product::findOrFail($fprdid);
         if ($message = $this->getApprovalLockMessage($product)) {
             return redirect()->route('product.view', $product->fprdid)->with('error', $message);
@@ -691,6 +734,12 @@ class ProductController extends Controller
 
     public function deletePhoto($fprdid, $field = 'fimage1')
     {
+        if (! $this->hasRestrictedPermission('updateProduct')) {
+            return response()->json([
+                'message' => 'Anda tidak memiliki akses ke menu produk.',
+            ], 403);
+        }
+
         $product = Product::findOrFail($fprdid);
         $field = request()->query('field', $field);
         $allowedFields = ['fimage1', 'fimage2', 'fimage3'];
@@ -730,6 +779,10 @@ class ProductController extends Controller
 
     public function photo($fprdid, $field = 'fimage1')
     {
+        if (! $this->hasRestrictedPermission('viewProduct')) {
+            abort(403);
+        }
+
         $product = Product::findOrFail($fprdid);
         $field = request()->query('field', $field);
         $allowedFields = ['fimage1', 'fimage2', 'fimage3'];
@@ -767,6 +820,10 @@ class ProductController extends Controller
 
     public function delete($fprdid)
     {
+        if ($guard = $this->ensureProductPermission('deleteProduct')) {
+            return $guard;
+        }
+
         $product = Product::with('merek')->findOrFail($fprdid);
         $usageInfo = $this->getProductUsageInfo($product);
 
@@ -778,6 +835,12 @@ class ProductController extends Controller
 
     public function destroy($fprdid)
     {
+        if (! $this->hasRestrictedPermission('deleteProduct')) {
+            return response()->json([
+                'message' => 'Anda tidak memiliki akses ke menu produk.',
+            ], 403);
+        }
+
         try {
             $product = Product::findOrFail($fprdid);
             $usageInfo = $this->getProductUsageInfo($product);
@@ -798,6 +861,12 @@ class ProductController extends Controller
 
     public function laporan($fprdid)
     {
+        if (! $this->hasRestrictedPermission('viewProduct')) {
+            return response()->json([
+                'message' => 'Anda tidak memiliki akses ke menu produk.',
+            ], 403);
+        }
+
         $product = Product::findOrFail($fprdid);
 
         $stokData = DB::select('

@@ -8,17 +8,23 @@ use Illuminate\Support\Facades\DB;
 
 class WilayahController extends Controller
 {
-    // protected $permission = [];
-
-    public function __construct()
+    private function ensureWilayahPermission(string $permission)
     {
-        $restrictedPermissions = session('user_restricted_permissions', []);
+        if ($this->hasRestrictedPermission($permission)) {
+            return null;
+        }
 
-        $this->restrictedPermission = $restrictedPermissions ? explode(',', $restrictedPermissions) : [];
+        return redirect()
+            ->route('dashboard')
+            ->with('error', 'Anda tidak memiliki akses ke menu wilayah.');
     }
 
     public function index(Request $request)
     {
+        if ($guard = $this->ensureWilayahPermission('viewWilayah')) {
+            return $guard;
+        }
+
         $wilayahs = Wilayah::orderBy('fwilayahcode', 'asc')
             ->get(['fwilayahcode', 'fwilayahname', 'fwilayahid', 'fnonactive']);
 
@@ -31,11 +37,19 @@ class WilayahController extends Controller
 
     public function create()
     {
+        if ($guard = $this->ensureWilayahPermission('createWilayah')) {
+            return $guard;
+        }
+
         return view('wilayah.create');
     }
 
     public function store(Request $request)
     {
+        if ($guard = $this->ensureWilayahPermission('createWilayah')) {
+            return $guard;
+        }
+
         $request->merge([
             'fwilayahcode' => strtoupper($request->fwilayahcode),
         ]);
@@ -67,6 +81,10 @@ class WilayahController extends Controller
 
     public function edit($fwilayahid)
     {
+        if ($guard = $this->ensureWilayahPermission('updateWilayah')) {
+            return $guard;
+        }
+
         $wilayah = Wilayah::findOrFail($fwilayahid);
         $isTransactionLocked = $this->hasTransactionUsage($wilayah);
 
@@ -79,6 +97,10 @@ class WilayahController extends Controller
 
     public function view($fwilayahid)
     {
+        if ($guard = $this->ensureWilayahPermission('viewWilayah')) {
+            return $guard;
+        }
+
         $wilayah = Wilayah::findOrFail($fwilayahid);
 
         return view('wilayah.view', [
@@ -88,6 +110,10 @@ class WilayahController extends Controller
 
     public function update(Request $request, $fwilayahid)
     {
+        if ($guard = $this->ensureWilayahPermission('updateWilayah')) {
+            return $guard;
+        }
+
         $wilayah = Wilayah::findOrFail($fwilayahid);
         $isTransactionLocked = $this->hasTransactionUsage($wilayah);
 
@@ -125,6 +151,10 @@ class WilayahController extends Controller
 
     public function delete($fwilayahid)
     {
+        if ($guard = $this->ensureWilayahPermission('deleteWilayah')) {
+            return $guard;
+        }
+
         $wilayah = Wilayah::findOrFail($fwilayahid);
 
         if ($message = $this->getUsageLockMessage($wilayah)) {
@@ -138,6 +168,19 @@ class WilayahController extends Controller
 
     public function destroy($fwilayahid)
     {
+        if (! $this->hasRestrictedPermission('deleteWilayah')) {
+            if (request()->expectsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Anda tidak memiliki akses ke menu wilayah.',
+                ], 403);
+            }
+
+            return redirect()
+                ->route('dashboard')
+                ->with('error', 'Anda tidak memiliki akses ke menu wilayah.');
+        }
+
         try {
             $wilayah = Wilayah::findOrFail($fwilayahid);
 

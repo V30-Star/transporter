@@ -354,8 +354,10 @@ class SalesOrderController extends Controller
         $year = $request->query('year');
         $month = $request->query('month');
 
-        $availableYears = SalesOrderHeader::selectRaw('DISTINCT EXTRACT(YEAR FROM fsodate) as year')
-            ->whereNotNull('fsodate')
+        $availableYearsQuery = SalesOrderHeader::selectRaw('DISTINCT EXTRACT(YEAR FROM fsodate) as year')
+            ->whereNotNull('fsodate');
+        $this->applyBranchVisibilityScope($availableYearsQuery, 'trsomt.fbranchcode');
+        $availableYears = $availableYearsQuery
             ->orderByRaw('EXTRACT(YEAR FROM fsodate) DESC')
             ->pluck('year');
 
@@ -383,8 +385,8 @@ class SalesOrderController extends Controller
                         END AS frefno_confirm
                     ")
                 );
-
-            $totalRecords = SalesOrderHeader::count();
+            $this->applyBranchVisibilityScope($query, 'trsomt.fbranchcode');
+            $totalRecords = (clone $query)->count();
 
             if ($search = $request->input('search.value')) {
                 $query->where(function ($q) use ($search) {
@@ -392,6 +394,22 @@ class SalesOrderController extends Controller
                         ->orWhere('trsomt.frefno', 'like', "%{$search}%")
                         ->orWhere('c.fcustomername', 'like', "%{$search}%");
                 });
+            }
+
+            // Pencarian per kolom
+            $colSearchSo = $request->input('columns.1.search.value');
+            if ($colSearchSo !== null && $colSearchSo !== '') {
+                $query->where('trsomt.fsono', 'ilike', "%{$colSearchSo}%");
+            }
+
+            $colSearchRef = $request->input('columns.3.search.value');
+            if ($colSearchRef !== null && $colSearchRef !== '') {
+                $query->where('trsomt.frefno', 'ilike', "%{$colSearchRef}%");
+            }
+
+            $colSearchCust = $request->input('columns.4.search.value');
+            if ($colSearchCust !== null && $colSearchCust !== '') {
+                $query->where('c.fcustomername', 'ilike', "%{$colSearchCust}%");
             }
 
             if ($year) {

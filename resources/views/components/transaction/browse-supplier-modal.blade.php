@@ -217,7 +217,15 @@
                     opt.selected = true;
                 }
                 sel.dispatchEvent(new Event('change'));
-                if (hid) hid.value = supplier.fsuppliercode;
+                if (hid) {
+                    hid.value = supplier.fsuppliercode;
+                    hid.dispatchEvent(new Event('change', {
+                        bubbles: true
+                    }));
+                }
+                window.dispatchEvent(new CustomEvent('supplier-picked', {
+                    detail: supplier
+                }));
                 this.close();
             },
 

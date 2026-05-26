@@ -214,15 +214,26 @@ class PelunasanCustomerController extends Controller
             ->take((int) $request->input('length', 10))
             ->get()
             ->map(function ($row) {
+                $trCode = trim((string) ($row->ftrcode ?? ''));
+                $amount = (float) ($row->famount ?? 0);
+                $amountRemain = (float) ($row->famountremain ?? 0);
+
+                if (strtoupper($trCode) === 'REJ') {
+                    $amount *= -1;
+                    if ($amountRemain < 0) {
+                        $amountRemain *= -1;
+                    }
+                }
+
                 return [
                     'ftranmtid' => (int) ($row->ftranmtid ?? 0),
                     'fsono' => trim((string) ($row->fsono ?? '')),
                     'fsodate' => !empty($row->fsodate) ? Carbon::parse($row->fsodate)->format('Y-m-d') : null,
                     'fcustno' => trim((string) ($row->fcustno ?? '')),
                     'fcustomername' => trim((string) ($row->fcustomername ?? '')),
-                    'ftrcode' => trim((string) ($row->ftrcode ?? '')),
-                    'famount' => (float) ($row->famount ?? 0),
-                    'famountremain' => (float) ($row->famountremain ?? 0),
+                    'ftrcode' => $trCode,
+                    'famount' => $amount,
+                    'famountremain' => $amountRemain,
                     'fjatuhtempo' => !empty($row->fjatuhtempo) ? Carbon::parse($row->fjatuhtempo)->format('Y-m-d') : null,
                     'detail_count' => (int) ($row->detail_count ?? 0),
                 ];
@@ -706,6 +717,21 @@ class PelunasanCustomerController extends Controller
             ->get(['fsono', 'ftrcode', 'fsodate'])
             ->keyBy(fn($row) => trim((string) $row->fsono));
 
+        $returStockDateMap = $refNos
+            ->filter(fn($refNo) => str_starts_with(strtoupper((string) $refNo), 'REJ.'))
+            ->mapWithKeys(function ($refNo) {
+                $trimmed = trim((string) $refNo);
+                $rebNo = preg_replace('/^REJ\./i', 'REB.', $trimmed);
+
+                return [$trimmed => $rebNo];
+            });
+
+        $stockDatesByRebNo = $returStockDateMap->isNotEmpty()
+            ? DB::table('trstockmt')
+                ->whereIn('fstockmtno', $returStockDateMap->values()->all())
+                ->pluck('fstockmtdate', 'fstockmtno')
+            : collect();
+
         foreach ($detailRows as $index => $row) {
             $refNo = trim((string) ($row['frefno'] ?? ''));
             $trCode = strtoupper(trim((string) ($row['ftrcode'] ?? 'INV')));
@@ -723,15 +749,27 @@ class PelunasanCustomerController extends Controller
                 ]);
             }
 
-            $referenceDate = !empty($reference->fsodate)
-                ? Carbon::parse($reference->fsodate)->startOfDay()
+            $referenceDateValue = null;
+            $referenceLabel = $trCode === 'REJ' ? 'Tanggal retur' : 'Tanggal faktur';
+
+            if ($trCode === 'REJ') {
+                $rebNo = $returStockDateMap->get($refNo);
+                $referenceDateValue = $rebNo ? $stockDatesByRebNo->get($rebNo) : null;
+
+                if (empty($referenceDateValue) && !empty($reference->fsodate)) {
+                    $referenceDateValue = $reference->fsodate;
+                }
+            } elseif (!empty($reference->fsodate)) {
+                $referenceDateValue = $reference->fsodate;
+            }
+
+            $referenceDate = !empty($referenceDateValue)
+                ? Carbon::parse($referenceDateValue)->startOfDay()
                 : null;
 
             if ($referenceDate && $referenceDate->gt($paymentDate->copy()->startOfDay())) {
-                $label = $trCode === 'REJ' ? 'Tanggal retur' : 'Tanggal faktur';
-
                 throw ValidationException::withMessages([
-                    "details.{$index}.frefno" => "{$label} {$refNo} tidak boleh lebih besar dari tanggal bayar.",
+                    "details.{$index}.frefno" => "{$referenceLabel} {$refNo} tidak boleh lebih besar dari tanggal transaksi kas/bank.",
                 ]);
             }
         }
@@ -907,15 +945,24 @@ class PelunasanCustomerController extends Controller
                 ->filter(fn($detail) => trim((string)($detail->freftype ?? 'INV')) !== 'ADM')
                 ->values()
                 ->map(function ($detail, $index) {
+                    $trCode = trim((string) ($detail->freftype ?? 'INV'));
+                    $baseAmount = (float) ($detail->fvalue_rp ?? $detail->fjurnal_rp ?? $detail->fkasdtvalue ?? 0);
+                    $paymentAmount = (float) ($detail->fkasdtvalue ?? 0);
+
+                    if (strtoupper($trCode) === 'REJ') {
+                        $baseAmount = $baseAmount < 0 ? $baseAmount * -1 : $baseAmount;
+                        $paymentAmount = $paymentAmount < 0 ? $paymentAmount * -1 : $paymentAmount;
+                    }
+
                     return [
                         'uid' => 'pc-existing-' . $index . '-' . $detail->fkasdtid,
                         'frefno' => trim((string) ($detail->frefno ?? '')),
-                        'fnilai_nota' => (float) ($detail->fvalue_rp ?? $detail->fjurnal_rp ?? $detail->fkasdtvalue ?? 0),
-                        'fsisa_piutang' => (float) ($detail->fvalue_rp ?? $detail->fjurnal_rp ?? $detail->fkasdtvalue ?? 0),
+                        'fnilai_nota' => $baseAmount,
+                        'fsisa_piutang' => $baseAmount,
                         'fdiscpersen' => (float) ($detail->fdiscpersen ?? 0),
                         'fdiscount' => (float) ($detail->fdiscount ?? 0),
-                        'fkasdtvalue' => (float) ($detail->fkasdtvalue ?? 0),
-                        'ftrcode' => trim((string) ($detail->freftype ?? 'INV')),
+                        'fkasdtvalue' => $paymentAmount,
+                        'ftrcode' => $trCode,
                     ];
                 })->all()
             : [];

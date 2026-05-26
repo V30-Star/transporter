@@ -106,15 +106,18 @@ class JurnalTransaksiController extends Controller
         $journalType = strtoupper(trim((string) $request->query('journal_type', '')));
         $pageMeta = $this->resolveJournalPageMeta($journalType);
 
-        $availableYears = DB::table('jurnalmt')
+        $availableYearsQuery = DB::table('jurnalmt')
             ->when($journalType !== '', fn ($query) => $query->where('fjurnaltype', $journalType))
             ->whereNotNull('fjurnaldate')
-            ->selectRaw('DISTINCT EXTRACT(YEAR FROM fjurnaldate) as year')
+            ->selectRaw('DISTINCT EXTRACT(YEAR FROM fjurnaldate) as year');
+        $this->applyBranchVisibilityScope($availableYearsQuery, 'jurnalmt.fbranchcode');
+        $availableYears = $availableYearsQuery
             ->orderByRaw('EXTRACT(YEAR FROM fjurnaldate) DESC')
             ->pluck('year');
 
         if ($request->ajax()) {
             $query = DB::table('jurnalmt');
+            $this->applyBranchVisibilityScope($query, 'jurnalmt.fbranchcode');
 
             if ($journalType !== '') {
                 $query->where('fjurnaltype', $journalType);

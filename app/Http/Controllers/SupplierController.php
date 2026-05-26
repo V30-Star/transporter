@@ -8,8 +8,23 @@ use Illuminate\Support\Facades\DB;
 
 class SupplierController extends Controller
 {
+    private function ensureSupplierPermission(string $permission)
+    {
+        if ($this->hasRestrictedPermission($permission)) {
+            return null;
+        }
+
+        return redirect()
+            ->route('dashboard')
+            ->with('error', 'Anda tidak memiliki akses ke menu supplier.');
+    }
+
     public function index(Request $request)
     {
+        if ($guard = $this->ensureSupplierPermission('viewSupplier')) {
+            return $guard;
+        }
+
         $allowedSorts = ['fsuppliercode', 'fsuppliername', 'fsupplierid', 'fkontakperson', 'faddress', 'fnonactive'];
         $sortBy = in_array($request->sort_by, $allowedSorts, true) ? $request->sort_by : 'fsupplierid';
         $sortDir = $request->sort_dir === 'asc' ? 'asc' : 'desc';
@@ -27,11 +42,19 @@ class SupplierController extends Controller
 
     public function create()
     {
+        if ($guard = $this->ensureSupplierPermission('createSupplier')) {
+            return $guard;
+        }
+
         return view('supplier.create');
     }
 
     public function store(Request $request)
     {
+        if ($guard = $this->ensureSupplierPermission('createSupplier')) {
+            return $guard;
+        }
+
         $request->merge([
             'fsuppliercode' => strtoupper($request->fsuppliercode),
         ]);
@@ -82,6 +105,10 @@ class SupplierController extends Controller
 
     public function edit($fsupplierid)
     {
+        if ($guard = $this->ensureSupplierPermission('updateSupplier')) {
+            return $guard;
+        }
+
         $supplier = Supplier::findOrFail($fsupplierid);
         $isTransactionLocked = $this->hasTransactionUsage($supplier);
 
@@ -94,6 +121,10 @@ class SupplierController extends Controller
 
     public function view($fsupplierid)
     {
+        if ($guard = $this->ensureSupplierPermission('viewSupplier')) {
+            return $guard;
+        }
+
         $supplier = Supplier::findOrFail($fsupplierid);
 
         return view('supplier.view', [
@@ -103,6 +134,10 @@ class SupplierController extends Controller
 
     public function update(Request $request, $fsupplierid)
     {
+        if ($guard = $this->ensureSupplierPermission('updateSupplier')) {
+            return $guard;
+        }
+
         $supplier = Supplier::findOrFail($fsupplierid);
         $isTransactionLocked = $this->hasTransactionUsage($supplier);
 
@@ -157,6 +192,10 @@ class SupplierController extends Controller
 
     public function delete($fsupplierid)
     {
+        if ($guard = $this->ensureSupplierPermission('deleteSupplier')) {
+            return $guard;
+        }
+
         $supplier = Supplier::findOrFail($fsupplierid);
 
         if ($message = $this->getUsageLockMessage($supplier)) {
@@ -170,6 +209,19 @@ class SupplierController extends Controller
 
     public function destroy($fsupplierid)
     {
+        if (! $this->hasRestrictedPermission('deleteSupplier')) {
+            if (request()->expectsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Anda tidak memiliki akses ke menu supplier.',
+                ], 403);
+            }
+
+            return redirect()
+                ->route('dashboard')
+                ->with('error', 'Anda tidak memiliki akses ke menu supplier.');
+        }
+
         try {
             $supplier = Supplier::findOrFail($fsupplierid);
 
@@ -202,6 +254,10 @@ class SupplierController extends Controller
 
     public function browse(Request $request)
     {
+        if ($guard = $this->ensureSupplierPermission('viewSupplier')) {
+            return $guard;
+        }
+
         $query = Supplier::query();
 
         $recordsTotal = Supplier::count();

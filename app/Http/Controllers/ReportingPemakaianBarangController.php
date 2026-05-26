@@ -22,6 +22,7 @@ class ReportingPemakaianBarangController extends Controller
         $filterSupplierId = $request->query('filter_supplier_id'); // berisi supplier code
 
         $query = PenerimaanPembelianHeader::query();
+        $this->applyBranchVisibilityScope($query, 'trstockmt.fbranchcode');
 
         // Terapkan Filter Tanggal Mulai (fpodate >= filterDateFrom)
         if (! empty($filterDateFrom)) {
@@ -107,6 +108,7 @@ class ReportingPemakaianBarangController extends Controller
             ->leftJoin('account', 'trstockmt.fto', '=', 'account.faccid')
             ->leftJoin('mswh', 'trstockmt.ffrom', '=', 'mswh.fwhcode')
             ->where('fstockmtcode', 'PBR');
+        $this->applyBranchVisibilityScope($query, 'trstockmt.fbranchcode');
 
         // Filter berdasarkan tanggal jika ada
         if ($request->filled('filter_date_from')) {

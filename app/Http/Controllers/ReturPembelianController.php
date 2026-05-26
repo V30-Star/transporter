@@ -60,9 +60,11 @@ class ReturPembelianController extends Controller
         $month = $request->query('month');
 
         // Ambil tahun-tahun yang tersedia dari data
-        $availableYears = PenerimaanPembelianHeader::selectRaw('DISTINCT EXTRACT(YEAR FROM fdatetime) as year')
+        $availableYearsQuery = PenerimaanPembelianHeader::selectRaw('DISTINCT EXTRACT(YEAR FROM fdatetime) as year')
             ->where('fstockmtcode', 'REB')
-            ->whereNotNull('fdatetime')
+            ->whereNotNull('fdatetime');
+        $this->applyBranchVisibilityScope($availableYearsQuery, 'trstockmt.fbranchcode');
+        $availableYears = $availableYearsQuery
             ->orderByRaw('EXTRACT(YEAR FROM fdatetime) DESC')
             ->pluck('year');
 
@@ -72,6 +74,7 @@ class ReturPembelianController extends Controller
                 ->leftJoin('mswh as warehouse', 'warehouse.fwhcode', '=', 'trstockmt.ffrom')
                 ->leftJoin('mssupplier as supplier', 'supplier.fsuppliercode', '=', 'trstockmt.fsupplier')
                 ->where('trstockmt.fstockmtcode', 'REB');
+            $this->applyBranchVisibilityScope($baseQuery, 'trstockmt.fbranchcode');
 
             $query = clone $baseQuery;
             $totalRecords = (clone $baseQuery)->count('trstockmt.fstockmtid');

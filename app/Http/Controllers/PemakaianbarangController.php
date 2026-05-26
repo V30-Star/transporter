@@ -63,9 +63,10 @@ class PemakaianbarangController extends Controller
 
             // Query dasar HANYA untuk 'PBR' (Receiving)
             $query = PenerimaanPembelianHeader::where('fstockmtcode', 'PBR');
+            $this->applyBranchVisibilityScope($query, 'trstockmt.fbranchcode');
 
             // Total records (dengan filter 'PBR')
-            $totalRecords = PenerimaanPembelianHeader::where('fstockmtcode', 'PBR')->count();
+            $totalRecords = (clone $query)->count();
 
             // Handle Search (cari di No. Penerimaan)
             if ($search = $request->input('search.value')) {

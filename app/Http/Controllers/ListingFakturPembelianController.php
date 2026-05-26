@@ -191,6 +191,7 @@ class ListingFakturPembelianController extends Controller
                 DB::raw("case when m.ftrancode='0' then 'Trade' else 'Non Trade' end as ftype")
             )
             ->where('m.fstockmtcode', 'BUY');
+        $this->applyBranchVisibilityScope($query, 'm.fbranchcode');
 
         if ($request->date_from) {
             $query->where('m.fstockmtdate', '>=', $request->date_from);

@@ -7,8 +7,23 @@ use Illuminate\Http\Request;
 
 class GroupproductController extends Controller
 {
+    private function ensureGroupProductPermission(string $permission)
+    {
+        if ($this->hasRestrictedPermission($permission)) {
+            return null;
+        }
+
+        return redirect()
+            ->route('dashboard')
+            ->with('error', 'Anda tidak memiliki akses ke menu group product.');
+    }
+
     public function index(Request $request)
     {
+        if ($guard = $this->ensureGroupProductPermission('viewGroupProduct')) {
+            return $guard;
+        }
+
         $groupproducts = Groupproduct::orderBy('fgroupcode', 'asc')
             ->get(['fgroupcode', 'fgroupname', 'fgroupid', 'fnonactive']);
 
@@ -21,11 +36,19 @@ class GroupproductController extends Controller
 
     public function create()
     {
+        if ($guard = $this->ensureGroupProductPermission('createGroupProduct')) {
+            return $guard;
+        }
+
         return view('groupproduct.create');
     }
 
     public function store(Request $request)
     {
+        if ($guard = $this->ensureGroupProductPermission('createGroupProduct')) {
+            return $guard;
+        }
+
         $request->merge([
             'fgroupcode' => strtoupper($request->fgroupcode),
         ]);
@@ -67,6 +90,10 @@ class GroupproductController extends Controller
 
     public function edit($fgroupid)
     {
+        if ($guard = $this->ensureGroupProductPermission('updateGroupProduct')) {
+            return $guard;
+        }
+
         $groupproduct = Groupproduct::findOrFail($fgroupid);
         $isUsedInTransactions = $this->isGroupProductUsedInTransactions($groupproduct->fgroupcode);
 
@@ -77,8 +104,27 @@ class GroupproductController extends Controller
         ]);
     }
 
+    public function view($fgroupid)
+    {
+        if ($guard = $this->ensureGroupProductPermission('viewGroupProduct')) {
+            return $guard;
+        }
+
+        $groupproduct = Groupproduct::findOrFail($fgroupid);
+        $isUsedInTransactions = $this->isGroupProductUsedInTransactions($groupproduct->fgroupcode);
+
+        return view('groupproduct.view', [
+            'groupproduct' => $groupproduct,
+            'isUsedInTransactions' => $isUsedInTransactions,
+        ]);
+    }
+
     public function update(Request $request, $fgroupid)
     {
+        if ($guard = $this->ensureGroupProductPermission('updateGroupProduct')) {
+            return $guard;
+        }
+
         $groupproduct = Groupproduct::findOrFail($fgroupid);
         $oldGroupCode = $groupproduct->fgroupcode;
 
@@ -129,6 +175,10 @@ class GroupproductController extends Controller
 
     public function delete($fgroupid)
     {
+        if ($guard = $this->ensureGroupProductPermission('deleteGroupProduct')) {
+            return $guard;
+        }
+
         $groupproduct = Groupproduct::findOrFail($fgroupid);
 
         return view('groupproduct.delete', [
@@ -138,6 +188,19 @@ class GroupproductController extends Controller
 
     public function destroy($fgroupid)
     {
+        if (! $this->hasRestrictedPermission('deleteGroupProduct')) {
+            if (request()->expectsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Anda tidak memiliki akses ke menu group product.',
+                ], 403);
+            }
+
+            return redirect()
+                ->route('dashboard')
+                ->with('error', 'Anda tidak memiliki akses ke menu group product.');
+        }
+
         try {
             $groupproduct = Groupproduct::findOrFail($fgroupid);
 
@@ -165,6 +228,10 @@ class GroupproductController extends Controller
 
     public function browse(Request $request)
     {
+        if ($guard = $this->ensureGroupProductPermission('viewGroupProduct')) {
+            return $guard;
+        }
+
         $query = Groupproduct::query();
 
         if ($request->filled('search')) {

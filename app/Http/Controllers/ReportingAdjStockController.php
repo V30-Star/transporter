@@ -23,6 +23,7 @@ class ReportingAdjStockController extends Controller
         $filterSupplierId = $request->query('filter_supplier_id'); // berisi supplier code
 
         $query = PenerimaanPembelianHeader::query();
+        $this->applyBranchVisibilityScope($query, 'trstockmt.fbranchcode');
 
         // Terapkan Filter Tanggal Mulai (fpodate >= filterDateFrom)
         if (! empty($filterDateFrom)) {
@@ -107,6 +108,7 @@ class ReportingAdjStockController extends Controller
             ->select('trstockmt.*', 'account.faccname')
             ->leftJoin('account', 'trstockmt.fto', '=', 'account.faccid')
             ->where('fstockmtcode', 'ADJ');
+        $this->applyBranchVisibilityScope($query, 'trstockmt.fbranchcode');
 
         // Filter berdasarkan tanggal jika ada
         if ($request->filled('filter_date_from')) {

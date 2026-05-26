@@ -187,6 +187,7 @@ class ListingPOController extends Controller
                 'd.fnou',
                 DB::raw('COALESCE(ter.fqtyterima, 0) as fqtyterima')
             );
+        $this->applyBranchVisibilityScope($query, 'h.fbranchcode');
 
         if ($request->date_from) {
             $query->where('h.fpodate', '>=', $request->date_from);

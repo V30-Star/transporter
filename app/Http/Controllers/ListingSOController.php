@@ -26,6 +26,7 @@ class ListingSOController extends Controller
             ->leftJoin('public.mscustomer as cust', 'mt.fcustno', '=', 'cust.fcustomercode')
             ->leftJoin('public.mssalesman as sls', 'mt.fsalesman', '=', 'sls.fsalesmancode')
             ->select('mt.*', 'cust.fcustomercode', 'cust.fcustomername', 'sls.fsalesmanname');
+        $this->applyBranchVisibilityScope($query, 'mt.fbranchcode');
 
         if ($request->date_from) {
             $query->where('mt.fsodate', '>=', $request->date_from);
@@ -75,6 +76,7 @@ class ListingSOController extends Controller
             ->leftJoin('public.mscustomer as cust', 'mt.fcustno', '=', 'cust.fcustomercode')
             ->leftJoin('public.mssalesman as sls', 'mt.fsalesman', '=', 'sls.fsalesmancode')
             ->select('mt.*', 'cust.fcustomercode', 'cust.fcustomername', 'sls.fsalesmanname');
+        $this->applyBranchVisibilityScope($query, 'mt.fbranchcode');
 
         if ($request->date_from) {
             $query->where('mt.fsodate', '>=', $request->date_from);

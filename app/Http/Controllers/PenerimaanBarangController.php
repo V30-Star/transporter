@@ -27,16 +27,18 @@ class PenerimaanBarangController extends Controller
         $year = $request->query('year');
         $month = $request->query('month');
 
-        $availableYears = PenerimaanPembelianHeader::selectRaw('DISTINCT EXTRACT(YEAR FROM fdatetime) as year')
+        $availableYearsQuery = PenerimaanPembelianHeader::selectRaw('DISTINCT EXTRACT(YEAR FROM fdatetime) as year')
             ->where('fstockmtcode', 'TER')
-            ->whereNotNull('fdatetime')
+            ->whereNotNull('fdatetime');
+        $this->applyBranchVisibilityScope($availableYearsQuery, 'trstockmt.fbranchcode');
+        $availableYears = $availableYearsQuery
             ->orderByRaw('EXTRACT(YEAR FROM fdatetime) DESC')
             ->pluck('year');
 
         if ($request->ajax()) {
             $query = PenerimaanPembelianHeader::where('fstockmtcode', 'TER');
-
-            $totalRecords = PenerimaanPembelianHeader::where('fstockmtcode', 'TER')->count();
+            $this->applyBranchVisibilityScope($query, 'trstockmt.fbranchcode');
+            $totalRecords = (clone $query)->count();
 
             if ($search = $request->input('search.value')) {
                 $query->where(function ($q) use ($search) {
