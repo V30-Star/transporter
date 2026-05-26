@@ -916,7 +916,7 @@
                                     <input type="hidden" name="famount" :value="totalHarga">
                                     <input type="hidden" name="famountpajak" :value="ppnAmount">
                                     <input type="hidden" name="famountmt" :value="grandTotal">
-                                    <input type="hidden" name="fincludeppn" value="0">
+                                    <input type="hidden" name="fincludeppn" :value="ppnMode ? 1 : 0">
                                     <input type="hidden" name="famountpopajak" :value="ppnRate">
                                 </div>
                             </div>
@@ -1690,6 +1690,67 @@
                     }
                 }
             },
+            setPpnFromReferenceHeader(header) {
+                const hasApplyFlag = header && header.fapplyppn !== undefined && header.fapplyppn !== null;
+                const hasRate = header && header.fppnpersen !== undefined && header.fppnpersen !== null;
+                const hasMode = header && header.fincludeppn !== undefined && header.fincludeppn !== null;
+
+                if (!hasApplyFlag && !hasRate && !hasMode) {
+                    return;
+                }
+
+                this.includePPN = Number(header?.fapplyppn || 0) === 1;
+                this.ppnMode = Number(header?.fincludeppn || 0) === 1 ? 1 : 0;
+
+                const rate = Number(header?.fppnpersen ?? 0);
+                this.ppnRate = Number.isFinite(rate) && rate >= 0 ? rate : 0;
+                this.recalcTotals();
+            },
+            getNormalizedReferencePpnConfig(header = null) {
+                const apply = Number(header?.fapplyppn || 0) === 1 ? 1 : 0;
+                const mode = Number(header?.fincludeppn || 0) === 1 ? 1 : 0;
+                const rate = Number(header?.fppnpersen ?? 0);
+
+                return {
+                    apply,
+                    mode,
+                    rate: Number.isFinite(rate) && rate >= 0 ? Number(rate.toFixed(2)) : 0
+                };
+            },
+            getExistingSourcePpnConfig() {
+                const activeSourceRows = (this.savedItems || []).filter((item) => {
+                    const sourceType = (item?.fsource || '').toString().trim().toUpperCase();
+                    const code = (item?.fitemcode || '').toString().trim();
+                    const qty = Number(item?.fqty || 0);
+                    return ['PO', 'PB'].includes(sourceType) && (code !== '' || qty > 0);
+                });
+
+                if (!activeSourceRows.length) {
+                    return null;
+                }
+
+                return {
+                    apply: this.includePPN ? 1 : 0,
+                    mode: Number(this.ppnMode || 0) === 1 ? 1 : 0,
+                    rate: Number.isFinite(Number(this.ppnRate)) ? Number(Number(this.ppnRate).toFixed(2)) : 0
+                };
+            },
+            hasConflictingReferencePpn(header) {
+                const existing = this.getExistingSourcePpnConfig();
+                if (!existing) {
+                    return false;
+                }
+
+                const incoming = this.getNormalizedReferencePpnConfig(header);
+                return existing.apply !== incoming.apply || existing.mode !== incoming.mode || existing.rate !==
+                    incoming.rate;
+            },
+            showConflictingReferencePpnWarning() {
+                window.showAppWarningAlert(
+                    'Perhatian',
+                    'Setting PPN referensi berbeda. Dalam satu faktur pembelian, referensi PO atau TER harus memakai setting PPN yang sama.'
+                );
+            },
             hasSourceLockedSupplier() {
                 return (this.savedItems || []).some(item => ['PO', 'PB'].includes((item?.fsource || '').toString()
                 .trim().toUpperCase()));
@@ -1784,8 +1845,13 @@
                     items
                 } = e.detail || {};
                 if (!items || !Array.isArray(items)) return;
+                if (this.hasConflictingReferencePpn(header)) {
+                    this.showConflictingReferencePpnWarning();
+                    return;
+                }
 
                 this.setSupplierFromReferenceHeader(header);
+                this.setPpnFromReferenceHeader(header);
                 this.addManyFromSource(header, items, 'PO');
             },
 
@@ -1795,8 +1861,13 @@
                     items
                 } = e.detail || {};
                 if (!items || !Array.isArray(items)) return;
+                if (this.hasConflictingReferencePpn(header)) {
+                    this.showConflictingReferencePpnWarning();
+                    return;
+                }
 
                 this.setSupplierFromReferenceHeader(header);
+                this.setPpnFromReferenceHeader(header);
                 this.addManyFromSource(header, items, 'PB');
             },
 
