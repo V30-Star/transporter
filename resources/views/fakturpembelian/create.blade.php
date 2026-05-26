@@ -620,13 +620,13 @@
 
                                             <!-- @ Harga -->
                                             <td class="p-2 text-right">
-                                                <input type="number" class="border rounded px-2 py-1 w-full text-right"
+                                                <input type="text" inputmode="decimal" class="border rounded px-2 py-1 w-full text-right"
                                                     :disabled="hasTerSourceItems"
                                                     :class="hasTerSourceItems ? 'border rounded px-2 py-1 w-full text-right bg-gray-100 cursor-not-allowed text-gray-600' : 'border rounded px-2 py-1 w-full text-right'"
-                                                    min="0" step="0.01" :value="Number(it.fprice || 0).toFixed(2)"
-                                                    :id="'price_saved_' + i" @focus="activeRow = it.uid; $event.target.select()"
-                                                    @blur="activeRow = null; $event.target.value = (+it.fprice || 0).toFixed(2)"
-                                                    @input="it.fprice = +$event.target.value; recalc(it)" @change="recalc(it)"
+                                                    x-model="it.fpriceInput"
+                                                    :id="'price_saved_' + i" @focus="activeRow = it.uid; focusPriceInput(it); $event.target.select()"
+                                                    @blur="activeRow = null; blurPriceInput(it)"
+                                                    @input="onPriceInput(it)" @change="recalc(it)"
                                                     @keydown.enter.prevent="$refs['biaya_saved_' + i]?.focus()">
                                             </td>
 
@@ -1323,6 +1323,30 @@
                 }
             },
 
+            sanitizePriceValue(value) {
+                const raw = (value ?? '').toString().replace(',', '.').replace(/[^0-9.]/g, '');
+                const parts = raw.split('.');
+                if (parts.length <= 1) return raw;
+                return `${parts.shift()}.${parts.join('')}`;
+            },
+
+            focusPriceInput(row) {
+                const price = Math.max(0, +row.fprice || 0);
+                row.fpriceInput = price > 0 ? String(price) : '';
+            },
+
+            onPriceInput(row) {
+                row.fpriceInput = this.sanitizePriceValue(row.fpriceInput);
+                row.fprice = Math.max(0, +(row.fpriceInput || 0));
+                this.recalc(row);
+            },
+
+            blurPriceInput(row) {
+                row.fprice = Math.max(0, +(row.fpriceInput || 0));
+                row.fpriceInput = row.fprice.toFixed(2);
+                this.recalc(row);
+            },
+
             parseDiscount(value) {
                 if (value === null || value === undefined || value === '') return 0;
                 const cleaned = String(value).replace(/\s+/g, '');
@@ -1363,12 +1387,15 @@
                 }
             },
 
-            recalc(row) {
-                row.fqty = Math.max(0, +row.fqty || 0);
-                row.fprice = Math.max(0, +row.fprice || 0);
-                row.fbiaya = Math.max(0, +row.fbiaya || 0);
-                row.fdiscpersen = this.normalizeDiscountValue(row.fdiscpersen);
-                const discPercent = this.parseDiscount(row.fdiscpersen);
+                recalc(row) {
+                    row.fqty = Math.max(0, +row.fqty || 0);
+                    row.fprice = Math.max(0, +row.fprice || 0);
+                    if (typeof row.fpriceInput === 'undefined') {
+                        row.fpriceInput = row.fprice.toFixed(2);
+                    }
+                    row.fbiaya = Math.max(0, +row.fbiaya || 0);
+                    row.fdiscpersen = this.normalizeDiscountValue(row.fdiscpersen);
+                    const discPercent = this.parseDiscount(row.fdiscpersen);
 
                 const basePrice = (row.fprice + row.fbiaya) * row.fqty;
                 const diskon = (row.fqty * row.fprice) * (discPercent / 100);
@@ -2173,7 +2200,8 @@
                 fqty: 0,
                 fterima: 0,
                 fprice: 0,
-                    fdiscpersen: '0',
+                fpriceInput: '0.00',
+                fdiscpersen: '0',
                 fbiaya: 0,
                 ftotprice: 0,
                 fdesc: '',

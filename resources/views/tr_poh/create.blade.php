@@ -359,12 +359,12 @@
                                     </td>
 
                                     <td class="p-2 text-right">
-                                         <input type="number" class="border rounded px-2 py-1 w-24 text-right text-sm"
-                                             min="0" step="0.01" :value="Number(row.fprice || 0).toFixed(2)"
-                                             @input="row.fprice = +$event.target.value; recalc(row)"
+                                         <input type="text" inputmode="decimal" class="border rounded px-2 py-1 w-24 text-right text-sm"
+                                             x-model="row.fpriceInput"
+                                             @input="onPriceInput(row)"
                                              :id="'price_row_' + i"
-                                             @focus="activeRow = row.uid; $event.target.select()"
-                                             @blur="activeRow = null; $event.target.value = (+row.fprice || 0).toFixed(2)"
+                                             @focus="activeRow = row.uid; focusPriceInput(row); $event.target.select()"
+                                             @blur="activeRow = null; blurPriceInput(row)"
                                              @change="recalc(row)" @keydown.enter.prevent="focusRowDisc(i)">
                                     </td>
 
@@ -1071,8 +1071,35 @@
                 const disc = Math.min(100, Math.max(0, +row.fdisc || 0));
                 row.fqty = qty;
                 row.fprice = price;
+                if (typeof row.fpriceInput === 'undefined') {
+                    row.fpriceInput = price.toFixed(2);
+                }
                 row.fdisc = disc;
                 row.ftotal = +(qty * price * (1 - disc / 100)).toFixed(2);
+            },
+
+            sanitizePriceValue(value) {
+                const raw = (value ?? '').toString().replace(',', '.').replace(/[^0-9.]/g, '');
+                const parts = raw.split('.');
+                if (parts.length <= 1) return raw;
+                return `${parts.shift()}.${parts.join('')}`;
+            },
+
+            focusPriceInput(row) {
+                const price = Math.max(0, +row.fprice || 0);
+                row.fpriceInput = price > 0 ? String(price) : '';
+            },
+
+            onPriceInput(row) {
+                row.fpriceInput = this.sanitizePriceValue(row.fpriceInput);
+                row.fprice = Math.max(0, +(row.fpriceInput || 0));
+                this.recalc(row);
+            },
+
+            blurPriceInput(row) {
+                row.fprice = Math.max(0, +(row.fpriceInput || 0));
+                row.fpriceInput = row.fprice.toFixed(2);
+                this.recalc(row);
             },
 
             productMeta(code) {
@@ -1192,6 +1219,7 @@
                 row.fprno = (row.fprno || '').toString();
                 row.fqty = Number(row.fqty || 0);
                 row.fprice = Number(row.fprice || 0);
+                row.fpriceInput = row.fprice.toFixed(2);
                 row.fdisc = Number(row.fdisc || 0);
                 row.ftotal = Number(row.ftotal || 0);
                 row.fdesc = (row.fdesc || '').toString();
@@ -1239,6 +1267,7 @@
                 if (!hist) return;
                 if (!row.fprice || row.fprice === 0) {
                     row.fprice = hist.fprice;
+                    row.fpriceInput = Number(row.fprice || 0).toFixed(2);
                     row.fdisc = hist.fdisc ?? 0;
                     this.recalc(row);
                 }

@@ -1069,12 +1069,12 @@
                                                         <td class="p-2 text-right font-medium"
                                                             x-text="formatQtyValue(row.fqtysrj)"></td>
                                                          <td class="p-2 text-right">
-                                                             <input type="number"
+                                                             <input type="text" inputmode="decimal"
                                                                  class="w-full border rounded px-2 py-1 text-right"
-                                                                 :id="'price_row_' + i" :value="Number(row.fprice || 0).toFixed(2)"
-                                                                 @focus="activeRow = row.uid; $event.target.select()"
-                                                                 @blur="activeRow = null; $event.target.value = (+row.fprice || 0).toFixed(2)"
-                                                                 @input="row.fprice = +$event.target.value; recalc(row)"
+                                                                 :id="'price_row_' + i" x-model="row.fpriceInput"
+                                                                 @focus="activeRow = row.uid; focusPriceInput(row); $event.target.select()"
+                                                                 @blur="activeRow = null; blurPriceInput(row)"
+                                                                 @input="onPriceInput(row)"
                                                                  @keydown.enter.prevent="focusRowDisc(i)">
                                                          </td>
                                                          <td class="p-2 text-right">
@@ -1843,6 +1843,9 @@
                 row.fqty = Math.max(0, +row.fqty || 0);
                 row.fterima = Math.max(0, +row.fterima || 0);
                 row.fprice = Math.max(0, +row.fprice || 0);
+                if (typeof row.fpriceInput === 'undefined') {
+                    row.fpriceInput = row.fprice.toFixed(2);
+                }
 
                 // Parse discount menggunakan fungsi baru
                 const discPercent = this.parseDiscount(row.fdisc);
@@ -1853,6 +1856,30 @@
                 row.ftotal = +(subtotal - discAmount).toFixed(2);
 
                 this.recalcTotals();
+            },
+
+            sanitizePriceValue(value) {
+                const raw = (value ?? '').toString().replace(',', '.').replace(/[^0-9.]/g, '');
+                const parts = raw.split('.');
+                if (parts.length <= 1) return raw;
+                return `${parts.shift()}.${parts.join('')}`;
+            },
+
+            focusPriceInput(row) {
+                const price = Math.max(0, +row.fprice || 0);
+                row.fpriceInput = price > 0 ? String(price) : '';
+            },
+
+            onPriceInput(row) {
+                row.fpriceInput = this.sanitizePriceValue(row.fpriceInput);
+                row.fprice = Math.max(0, +(row.fpriceInput || 0));
+                this.recalc(row);
+            },
+
+            blurPriceInput(row) {
+                row.fprice = Math.max(0, +(row.fpriceInput || 0));
+                row.fpriceInput = row.fprice.toFixed(2);
+                this.recalc(row);
             },
 
             recalcTotals() {
@@ -2357,6 +2384,7 @@
                 };
                 row.fnoacak = this.normalizeNoAcak(row.fnoacak) || this.generateUniqueNoAcak(row.uid);
                 if (!Array.isArray(row.units)) row.units = [];
+                row.fpriceInput = Number(row.fprice || 0).toFixed(2);
                 this.recalc(row);
                 return row;
             },
@@ -2376,6 +2404,7 @@
                 fqty: 0,
                 fterima: 0,
                 fprice: 0,
+                fpriceInput: '0.00',
                 fdisc: 0, // Bisa berupa string "10+2" atau angka 12
                 ftotal: 0,
                 fdesc: '',
