@@ -716,7 +716,7 @@ class Tr_pohController extends Controller
     public function create(Request $request)
     {
         $suppliers = Supplier::orderBy('fsuppliername', 'asc')
-            ->get(['fsupplierid', 'fsuppliercode', 'fsuppliername']);
+            ->get(['fsupplierid', 'fsuppliercode', 'fsuppliername', 'ftempo']);
 
         $raw = (Auth::guard('sysuser')->user() ?? Auth::user())?->fcabang;
 
@@ -1096,7 +1096,7 @@ class Tr_pohController extends Controller
     public function edit(Request $request, $fpohid)
     {
         $suppliers = Supplier::orderBy('fsuppliername', 'asc')
-            ->get(['fsupplierid', 'fsuppliercode', 'fsuppliername']);
+            ->get(['fsupplierid', 'fsuppliercode', 'fsuppliername', 'ftempo']);
 
         $raw = (Auth::guard('sysuser')->user() ?? Auth::user())?->fcabang;
 
@@ -1293,7 +1293,7 @@ class Tr_pohController extends Controller
     public function view(Request $request, $fpohid)
     {
         $suppliers = Supplier::orderBy('fsuppliername', 'asc')
-            ->get(['fsupplierid', 'fsuppliercode', 'fsuppliername']);
+            ->get(['fsupplierid', 'fsuppliercode', 'fsuppliername', 'ftempo']);
 
         $raw = (Auth::guard('sysuser')->user() ?? Auth::user())?->fcabang;
 
@@ -1717,7 +1717,7 @@ class Tr_pohController extends Controller
     public function delete(Request $request, $fpohid)
     {
         $suppliers = Supplier::orderBy('fsuppliername', 'asc')
-            ->get(['fsupplierid', 'fsuppliercode', 'fsuppliername']);
+            ->get(['fsupplierid', 'fsuppliercode', 'fsuppliername', 'ftempo']);
 
         $raw = (Auth::guard('sysuser')->user() ?? Auth::user())?->fcabang;
 

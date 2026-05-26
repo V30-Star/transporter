@@ -208,6 +208,7 @@
                             <option value=""></option>
                             @foreach ($suppliers as $supplier)
                                 <option value="{{ $supplier->fsuppliercode }}"
+                                    data-tempo="{{ (int) ($supplier->ftempo ?? 0) }}"
                                     {{ old('fsupplier', $tr_poh->fsupplier) == $supplier->fsuppliercode ? 'selected' : '' }}>
                                     {{ $supplier->fsuppliername }} ({{ $supplier->fsuppliercode }})
                                 </option>
@@ -1451,6 +1452,41 @@
                 return (document.getElementById('supplierCodeHidden')?.value || '').trim();
             },
 
+            syncSupplierTempo(code = null) {
+                const supplierCode = (code ?? this.getSupplier() ?? '').toString().trim();
+                const sel = document.getElementById('modal_filter_supplier_id');
+                const tempoInput = document.getElementById('ftempohr');
+                if (!sel || !tempoInput) return;
+
+                const selectedOption = Array.from(sel.options).find((option) => String(option.value) === supplierCode);
+                const tempo = Number(selectedOption?.dataset?.tempo ?? tempoInput.value ?? 0);
+                tempoInput.value = Number.isFinite(tempo) ? tempo : 0;
+            },
+
+            syncSupplierDisplay(code) {
+                const supplierCode = (code || '').toString().trim();
+                const sel = document.getElementById('modal_filter_supplier_id');
+                const hid = document.getElementById('supplierCodeHidden');
+                if (hid) hid.value = supplierCode;
+                if (!sel) return;
+
+                let found = false;
+                Array.from(sel.options).forEach((option) => {
+                    const selected = String(option.value) === supplierCode;
+                    option.selected = selected;
+                    if (selected) found = true;
+                });
+
+                if (!found && supplierCode) {
+                    const option = new Option(supplierCode, supplierCode, true, true);
+                    option.dataset.tempo = '0';
+                    sel.add(option);
+                }
+
+                sel.dispatchEvent(new Event('change', { bubbles: true }));
+                this.syncSupplierTempo(supplierCode);
+            },
+
             async applyLastPrice(row) {
                 if (!IS_EDIT) return;
                 const supplier = this.getSupplier();
@@ -1805,6 +1841,7 @@
 
             init() {
                 this.restoreRows(@json($savedItems ?? []));
+                this.syncSupplierDisplay(@js(old('fsupplier', $tr_poh->fsupplier ?? '')));
 
                 const currId = parseInt(this.selectedCurrId);
                 if (currId && window.CURRENCY_MAP[currId]) {
@@ -1815,6 +1852,10 @@
 
                 window.getCurrentItemKeys = () => this.getCurrentItemKeys();
                 window.isDupeItem = (candidate) => this.isDupeItem(candidate);
+                const supplierSelect = document.getElementById('modal_filter_supplier_id');
+                supplierSelect?.addEventListener('change', () => {
+                    this.syncSupplierTempo(supplierSelect.value);
+                });
                 window.addEventListener('show-no-supplier', () => {
                     this.showNoSupplier = true;
                 }, {

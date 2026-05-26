@@ -493,16 +493,12 @@
                             <div class="min-w-0 overflow-hidden">
                                 <label class="block text-sm font-medium">Hitung Biaya</label>
                                 <div
-                                    class="hpp-box h-[96px] bg-gray-50 p-3 rounded-lg border border-gray-200 shadow-sm flex items-center gap-3">
-                                    <input type="number" x-model.number="biayaGlobal" :disabled="hasTerSourceItems"
-                                        placeholder="Masukkan Total Ongkir"
-                                        :class="hasTerSourceItems ? 'flex-1 border rounded px-3 py-2 text-right font-mono bg-gray-100 cursor-not-allowed text-gray-600' : 'flex-1 border rounded px-3 py-2 text-right font-mono bg-white'">
-
-                                    <button type="button" @click="alokasiBiaya()" :disabled="hasTerSourceItems"
-                                        style="background-color: #2563eb; color: #ffffff;"
-                                        :class="hasTerSourceItems ? 'shrink-0 min-w-[120px] text-white font-medium py-2 px-4 rounded transition flex items-center justify-center gap-2 cursor-not-allowed opacity-80' : 'shrink-0 min-w-[120px] hover:bg-blue-700 text-white font-medium py-2 px-4 rounded transition flex items-center justify-center gap-2'">
-                                        Hitung
-                                    </button>
+                                    class="hpp-box h-[96px] bg-gray-50 p-3 rounded-lg border border-gray-200 shadow-sm flex flex-col justify-center gap-2">
+                                    <input type="text" :value="Number(biayaGlobal || 0).toFixed(2)" readonly
+                                        class="w-full border rounded px-3 py-2 text-right font-mono bg-gray-100 cursor-not-allowed text-gray-600">
+                                    <p class="text-xs text-gray-500">
+                                        Total biaya mengikuti input `@ Biaya` pada detail item.
+                                    </p>
                                 </div>
                             </div>
                         </div>

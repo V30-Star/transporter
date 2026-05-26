@@ -148,6 +148,7 @@
                                 <option value=""></option>
                                 @foreach ($suppliers as $supplier)
                                     <option value="{{ $supplier->fsuppliercode }}"
+                                        data-tempo="{{ (int) ($supplier->ftempo ?? 0) }}"
                                         {{ old('fsupplier', $filterSupplierId) == $supplier->fsuppliercode ? 'selected' : '' }}>
                                         {{ $supplier->fsuppliername }} ({{ $supplier->fsuppliercode }})
                                     </option>
@@ -1179,6 +1180,17 @@
                 return (document.getElementById('supplierCodeHidden')?.value || '').trim();
             },
 
+            syncSupplierTempo(code = null) {
+                const supplierCode = (code ?? this.getSupplier() ?? '').toString().trim();
+                const sel = document.getElementById('modal_filter_supplier_id');
+                const tempoInput = document.getElementById('ftempohr');
+                if (!sel || !tempoInput) return;
+
+                const selectedOption = Array.from(sel.options).find((option) => String(option.value) === supplierCode);
+                const tempo = Number(selectedOption?.dataset?.tempo ?? 0);
+                tempoInput.value = Number.isFinite(tempo) ? tempo : 0;
+            },
+
             syncSupplierDisplay(code) {
                 const supplierCode = (code || '').toString().trim();
                 const sel = document.getElementById('modal_filter_supplier_id');
@@ -1194,10 +1206,13 @@
                 });
 
                 if (!found && supplierCode) {
-                    sel.add(new Option(supplierCode, supplierCode, true, true));
+                    const option = new Option(supplierCode, supplierCode, true, true);
+                    option.dataset.tempo = '0';
+                    sel.add(option);
                 }
 
                 sel.dispatchEvent(new Event('change', { bubbles: true }));
+                this.syncSupplierTempo(supplierCode);
             },
 
             buildRow(source = {}) {
@@ -1559,6 +1574,11 @@
                 this.restoreRows(@js($initialPoItems));
                 window.getCurrentItemKeys = () => this.getCurrentItemKeys();
                 window.isDupeItem = (candidate) => this.isDupeItem(candidate);
+
+                const supplierSelect = document.getElementById('modal_filter_supplier_id');
+                supplierSelect?.addEventListener('change', () => {
+                    this.syncSupplierTempo(supplierSelect.value);
+                });
 
                 if (this._ac) this._ac.abort();
                 this._ac = new AbortController();
