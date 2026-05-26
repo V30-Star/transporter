@@ -365,8 +365,7 @@
                                                 <div class="flex">
                                                     <input type="text"
                                                         class="flex-1 border rounded-l px-2 py-1 font-mono text-sm"
-                                                        x-model.trim="it.fitemcode"
-                                                        @input="onCodeTypedRow(it, i)"
+                                                        x-model.trim="it.fitemcode" @input="onCodeTypedRow(it, i)"
                                                         @keydown.enter.prevent="focusRowUnit(it, i)">
                                                     <button type="button" @click="openBrowseFor(i)"
                                                         class="border border-l-0 px-2 py-1 bg-white hover:bg-gray-50"
@@ -394,10 +393,8 @@
                                             <td class="p-2 text-right">
                                                 <template x-if="it.units && it.units.length > 1 && !it.frefso">
                                                     <select class="w-full border rounded px-2 py-1 text-xs"
-                                                        :id="'unit_row_' + i"
-                                                        x-model="it.fsatuan"
-                                                        @change="onRowUpdated(i)"
-                                                        @keydown.enter.prevent="focusRowQty(i)">
+                                                        :id="'unit_row_' + i" x-model="it.fsatuan"
+                                                        @change="onRowUpdated(i)" @keydown.enter.prevent="focusRowQty(i)">
                                                         <template x-for="u in it.units" :key="u">
                                                             <option :value="u" x-text="u"></option>
                                                         </template>
@@ -410,8 +407,7 @@
                                             <td class="p-2 text-right">
                                                 <input type="number"
                                                     class="w-full border rounded px-2 py-1 text-right text-sm"
-                                                    :id="'qty_row_' + i"
-                                                    x-model.number="it.fqty"
+                                                    :id="'qty_row_' + i" x-model.number="it.fqty"
                                                     @input="enforceQtyRow(it); onRowUpdated(i)"
                                                     @change="enforceQtyRow(it); onRowUpdated(i)">
                                                 <div class="text-xs text-gray-400 mt-0.5 text-right">
@@ -493,7 +489,8 @@
                                             </div>
 
                                             <!-- Table with fixed height and scroll -->
-                                            <div class="flex-1 overflow-x-auto overflow-y-hidden px-6" style="min-height: 0;">
+                                            <div class="flex-1 overflow-x-auto overflow-y-hidden px-6"
+                                                style="min-height: 0;">
                                                 <div class="bg-white">
                                                     <table id="poTable"
                                                         class="min-w-full text-sm display nowrap stripe hover"
@@ -546,7 +543,7 @@
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
                                                     d="M12 4.5v15m7.5-7.5h-15" />
                                             </svg>
-                                            Add TER
+                                            Add Faktur
                                         </button>
                                     </div>
 
@@ -560,7 +557,7 @@
                                             <div
                                                 class="px-6 py-4 border-b border-gray-200 flex items-center justify-between flex-shrink-0 bg-gradient-to-r from-sky-50 to-white">
                                                 <div>
-                                                    <h3 class="text-xl font-bold text-gray-800">Add TER (INV)</h3>
+                                                    <h3 class="text-xl font-bold text-gray-800">Add Faktur (INV)</h3>
                                                     <p class="text-sm text-gray-500 mt-0.5">Pilih transaksi invoice kode
                                                         INV yang belum dipakai</p>
                                                 </div>
@@ -574,7 +571,8 @@
                                                 <div id="invoiceTableControls"></div>
                                             </div>
 
-                                            <div class="flex-1 overflow-x-auto overflow-y-hidden px-6" style="min-height: 0;">
+                                            <div class="flex-1 overflow-x-auto overflow-y-hidden px-6"
+                                                style="min-height: 0;">
                                                 <div class="bg-white">
                                                     <table id="invoiceTable"
                                                         class="min-w-full text-sm display nowrap stripe hover"
@@ -1119,7 +1117,7 @@
                     row.units = [];
                     row.fsatuan = '';
                     row.maxqty = 0;
-                    row.frefdtno = '';
+                    row.frefdtno = 0;
                     return;
                 }
                 row.fitemname = meta.name || '';
@@ -1130,7 +1128,7 @@
                 }
                 if (meta.unit_ratios) row.unit_ratios = meta.unit_ratios;
                 row.maxqty = Number.isFinite(+row.maxqty) ? +row.maxqty : 0;
-                row.frefdtno = row.fitemcode || '';
+                row.frefdtno = meta.fprdid || 0;
             },
 
             onCodeTypedRow(row, index = null) {
@@ -1151,9 +1149,9 @@
             generateUniqueNoAcak(exceptUid = null) {
                 const used = new Set(
                     this.savedItems
-                        .filter(item => item.uid !== exceptUid)
-                        .map(item => this.normalizeNoAcak(item.fnoacak))
-                        .filter(Boolean)
+                    .filter(item => item.uid !== exceptUid)
+                    .map(item => this.normalizeNoAcak(item.fnoacak))
+                    .filter(Boolean)
                 );
                 let candidate = '';
                 do {
@@ -1208,7 +1206,7 @@
                         fitemcode: itemcode,
                         fitemname: itemname,
                         fsatuan: satuan,
-                        frefdtno: (header?.fsono ?? frefdtno ?? '').toString().trim(),
+                        frefdtno: frefdtno,
                         fnoacak: this.generateUniqueNoAcak(),
                         frefnoacak: this.normalizeNoAcak(src.frefnoacak ?? src.fnoacak ?? ''),
                         frefno_display: (src.frefpr ?? header?.fsono ?? '').toString().trim(),
@@ -1327,7 +1325,8 @@
                     ...newRow(),
                     uid: overrides.uid || cryptoRandom(),
                     ...overrides,
-                    fnoacak: this.normalizeNoAcak(overrides.fnoacak) || this.generateUniqueNoAcak(overrides.uid || null),
+                    fnoacak: this.normalizeNoAcak(overrides.fnoacak) || this.generateUniqueNoAcak(overrides.uid ||
+                        null),
                     frefnoacak: this.normalizeNoAcak(overrides.frefnoacak),
                 };
             },
@@ -1361,9 +1360,8 @@
 
             init() {
                 window.getCurrentItemKeys = () => this.getCurrentItemKeys();
-                this.savedItems = Array.isArray(this.savedItems)
-                    ? this.savedItems.map((item, index) => this.normalizeRestoredRow(item, index))
-                    : [];
+                this.savedItems = Array.isArray(this.savedItems) ?
+                    this.savedItems.map((item, index) => this.normalizeRestoredRow(item, index)) : [];
                 this.pruneEmptyRows();
                 this.ensureMinimumRows();
                 this.ensureTrailingRow();
@@ -1384,12 +1382,13 @@
                     const row = this.savedItems[index];
                     const apply = () => {
                         row.fitemcode = (product.fprdcode || '').toString();
-                        row.frefdtno = (product.fprdcode || '').toString();
+                        row.frefdtno = product.fprdid || '';
                         this.hydrateRowFromMeta(row, this.productMeta(row.fitemcode), true);
-                            this.rows.splice(this.browseTarget, 1, {
-                        ...this.rows[this.browseTarget]
-                    });
-                        row.fnoacak = this.normalizeNoAcak(row.fnoacak) || this.generateUniqueNoAcak(row.uid);
+                        this.rows.splice(this.browseTarget, 1, {
+                            ...this.rows[this.browseTarget]
+                        });
+                        row.fnoacak = this.normalizeNoAcak(row.fnoacak) || this.generateUniqueNoAcak(row
+                            .uid);
                         this.onRowUpdated(index);
                     };
                     apply();
@@ -1420,7 +1419,7 @@
                 fitemname: '',
                 units: [],
                 fsatuan: '',
-                frefdtno: '',
+                frefdtno: 0,
                 fnoacak: '',
                 frefnoacak: '',
                 frefno_display: '',
