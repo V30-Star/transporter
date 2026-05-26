@@ -594,7 +594,17 @@ class ReturPenjualanController extends Controller
 
         $products = DB::table('msprd')
             ->whereIn('fprdcode', $filteredCodes)
-            ->get(['fprdid', 'fprdcode', 'fprdname', 'fnonactive', 'fsatuanbesar', 'fqtykecil as rasio_konversi'])
+            ->get([
+                'fprdid',
+                'fprdcode',
+                'fprdname',
+                'fnonactive',
+                'fsatuankecil',
+                'fsatuanbesar',
+                'fsatuanbesar2',
+                'fqtykecil',
+                'fqtykecil2',
+            ])
             ->keyBy('fprdcode');
 
         // LOOP ITEM
@@ -650,8 +660,21 @@ class ReturPenjualanController extends Controller
             // --- END override ---
 
             $qtyKecil = $qty;
-            if ($product && isset($satuans[$i]) && $satuans[$i] === $product->fsatuanbesar) {
-                $qtyKecil = $qty * (float) $product->rasio_konversi;
+            $selectedUnit = trim((string) ($satuans[$i] ?? ''));
+            if (
+                $product
+                && $selectedUnit !== ''
+                && $selectedUnit === trim((string) ($product->fsatuanbesar ?? ''))
+                && (float) ($product->fqtykecil ?? 0) > 0
+            ) {
+                $qtyKecil = $qty * (float) $product->fqtykecil;
+            } elseif (
+                $product
+                && $selectedUnit !== ''
+                && $selectedUnit === trim((string) ($product->fsatuanbesar2 ?? ''))
+                && (float) ($product->fqtykecil2 ?? 0) > 0
+            ) {
+                $qtyKecil = $qty * (float) $product->fqtykecil2;
             }
 
             $discPersen = $this->parseDiscount($discs[$i] ?? 0);
@@ -1654,7 +1677,15 @@ class ReturPenjualanController extends Controller
         // Ambil mapping produk untuk mendapatkan rasio satuan
         $products = DB::table('msprd')
             ->whereIn('fprdcode', array_filter($itemCodes))
-            ->get(['fprdid', 'fprdcode', 'fsatuanbesar', 'fqtykecil as rasio_konversi'])
+            ->get([
+                'fprdid',
+                'fprdcode',
+                'fsatuankecil',
+                'fsatuanbesar',
+                'fsatuanbesar2',
+                'fqtykecil',
+                'fqtykecil2',
+            ])
             ->keyBy('fprdcode');
 
         // 4. BUILD DETAIL ROWS
@@ -1718,8 +1749,21 @@ class ReturPenjualanController extends Controller
             // --- END override ---
 
             $qtyKecil = $qty;
-            if ($product && isset($satuans[$i]) && $satuans[$i] === $product->fsatuanbesar) {
-                $qtyKecil = $qty * (float) $product->rasio_konversi;
+            $selectedUnit = trim((string) ($satuans[$i] ?? ''));
+            if (
+                $product
+                && $selectedUnit !== ''
+                && $selectedUnit === trim((string) ($product->fsatuanbesar ?? ''))
+                && (float) ($product->fqtykecil ?? 0) > 0
+            ) {
+                $qtyKecil = $qty * (float) $product->fqtykecil;
+            } elseif (
+                $product
+                && $selectedUnit !== ''
+                && $selectedUnit === trim((string) ($product->fsatuanbesar2 ?? ''))
+                && (float) ($product->fqtykecil2 ?? 0) > 0
+            ) {
+                $qtyKecil = $qty * (float) $product->fqtykecil2;
             }
 
             $discPersen = $this->parseDiscount($discs[$i] ?? 0);
