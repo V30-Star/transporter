@@ -1,13 +1,19 @@
 @extends('layouts.app')
 
-@section('title', $action === 'delete' ? 'Faktur Pembelian - Delete' : ($action === 'view' ? 'Faktur Pembelian - View' : 'Faktur Pembelian - Edit'))
+@section('title', $action === 'delete' ? 'Faktur Pembelian - Delete' : ($action === 'view' ? 'Faktur Pembelian - View' :
+    'Faktur Pembelian - Edit'))
 
 @section('content')
     @php
         $permissions = explode(',', session('user_restricted_permissions', ''));
         $canEditPermission = in_array('updateFakturPembelian', $permissions, true);
         $canDeletePermission = in_array('deleteFakturPembelian', $permissions, true);
-        $canPrintPermission = in_array('printFakturPembelian', $permissions, true) || in_array('viewTr_prh', $permissions, true) || in_array('updateFakturPembelian', $permissions, true) || in_array('deleteFakturPembelian', $permissions, true) || in_array('createFakturPembelian', $permissions, true);
+        $canPrintPermission =
+            in_array('printFakturPembelian', $permissions, true) ||
+            in_array('viewTr_prh', $permissions, true) ||
+            in_array('updateFakturPembelian', $permissions, true) ||
+            in_array('deleteFakturPembelian', $permissions, true) ||
+            in_array('createFakturPembelian', $permissions, true);
         $isDelete = $action === 'delete';
         $isView = $action === 'view';
         $isReadOnly = $isDelete || $isView;
@@ -170,7 +176,10 @@
         $currentType = old('ftypebuy', $fakturpembelian->ftypebuy);
         $currentAccount = trim((string) old('fprdjadi', $fakturpembelian->fprdjadi));
         $currentAccountId = old('faccid', $fakturpembelian->fprdjadiid);
-        $currentPpnAmount = old('famountpajak', $ppnAmount ?? $fakturpembelian->famountpopajak ?? $fakturpembelian->famountpajak ?? 0);
+        $currentPpnAmount = old(
+            'famountpajak',
+            $ppnAmount ?? ($fakturpembelian->famountpopajak ?? ($fakturpembelian->famountpajak ?? 0)),
+        );
         $currentSubtotal = old('famount', $fakturpembelian->famount ?? 0);
         $includePPN = old('fapplyppn', $fakturpembelian->fapplyppn ?? 0);
         $ppnMode = old('fincludeppn', $fakturpembelian->fincludeppn ?? 0);
@@ -309,7 +318,8 @@
                                             </option>
                                         @endforeach
                                     </select>
-                                    <div id="supplierBrowseOverlayReadonly" class="absolute inset-0" role="button" aria-label="Browse supplier"
+                                    <div id="supplierBrowseOverlayReadonly" class="absolute inset-0" role="button"
+                                        aria-label="Browse supplier"
                                         @click="window.dispatchEvent(new CustomEvent('supplier-browse-open'))"></div>
                                 </div>
                                 {{-- kirim ID supplier ke server --}}
@@ -321,13 +331,14 @@
                                     title="Browse Supplier">
                                     <x-heroicon-o-magnifying-glass class="w-5 h-5" />
                                 </button>
-                                    @if (in_array('createSupplier', explode(',', session('user_restricted_permissions', '')), true))
-                                        <a href="{{ route('supplier.create') }}" target="_blank" rel="noopener" id="supplierCreateButtonReadonly"
-                                            class="border -ml-px rounded-r px-3 py-2 bg-white hover:bg-gray-50"
-                                            title="Tambah Supplier">
-                                            <x-heroicon-o-plus class="w-5 h-5" />
-                                        </a>
-                                    @endif
+                                @if (in_array('createSupplier', explode(',', session('user_restricted_permissions', '')), true))
+                                    <a href="{{ route('supplier.create') }}" target="_blank" rel="noopener"
+                                        id="supplierCreateButtonReadonly"
+                                        class="border -ml-px rounded-r px-3 py-2 bg-white hover:bg-gray-50"
+                                        title="Tambah Supplier">
+                                        <x-heroicon-o-plus class="w-5 h-5" />
+                                    </a>
+                                @endif
                             </div>
                             @error('fsupplier')
                                 <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
@@ -464,7 +475,8 @@
                         <div class="lg:col-span-2">
                             <label class="block text-sm font-medium">Tgl. Jatuh Tempo</label>
                             <input disabled type="date" id="fjatuhtempo" name="fjatuhtempo"
-                                value="{{ old('fjatuhtempo', optional($fakturpembelian->fjatuhtempo)->format('Y-m-d') ?? optional($fakturpembelian->fstockmtdate)->format('Y-m-d')) }}" readonly
+                                value="{{ old('fjatuhtempo', optional($fakturpembelian->fjatuhtempo)->format('Y-m-d') ?? optional($fakturpembelian->fstockmtdate)->format('Y-m-d')) }}"
+                                readonly
                                 class="w-full border rounded px-3 py-2 text-gray-700 bg-gray-100 @error('fjatuhtempo') border-red-500 @enderror">
                             @error('fjatuhtempo')
                                 <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
@@ -602,13 +614,11 @@
                                             <td class="p-2 font-mono" x-text="it.fitemcode"></td>
                                             <td class="p-2">
                                                 <div class="flex w-full max-w-full">
-                                                    <div
-                                                        class="min-w-0 flex-1 rounded-l border bg-gray-100 px-2 py-1 text-sm leading-5 text-gray-600 whitespace-normal break-words"
+                                                    <div class="min-w-0 flex-1 rounded-l border bg-gray-100 px-2 py-1 text-sm leading-5 text-gray-600 whitespace-normal break-words"
                                                         x-text="it.fitemname"></div>
                                                     <button type="button" @click="openDesc('saved', i, true)"
                                                         class="shrink-0 inline-flex items-center border border-l-0 rounded-r px-2 py-1 transition-colors"
-                                                        :class="descButtonClass(it.fdesc)"
-                                                        title="Deskripsi">
+                                                        :class="descButtonClass(it.fdesc)" title="Deskripsi">
                                                         <x-heroicon-o-document-text class="w-4 h-4" />
                                                     </button>
                                                 </div>
@@ -618,7 +628,9 @@
                                             <td class="p-2 text-right" x-text="fmt(it.fqty)"></td>
                                             <td class="p-2 text-right" x-text="fmt(it.fprice)"></td>
                                             <td class="p-2 text-right" x-text="fmt(it.fbiaya)"></td>
-                                            <td class="p-2 text-right" x-text="it.fdiscpersen && it.fdiscpersen.toString().includes('+') ? it.fdiscpersen : fmt(it.fdiscpersen)"></td>
+                                            <td class="p-2 text-right"
+                                                x-text="it.fdiscpersen && it.fdiscpersen.toString().includes('+') ? it.fdiscpersen : fmt(it.fdiscpersen)">
+                                            </td>
                                             <td class="p-2">
                                                 <input type="text"
                                                     class="w-full border rounded px-2 py-1 bg-gray-100 text-gray-600 text-sm text-right"
@@ -798,8 +810,7 @@
                 @else
                     <form action="{{ route('fakturpembelian.update', $fakturpembelian->fstockmtid) }}" method="POST"
                         class="mt-6" data-form-draft="true"
-                        data-draft-key="fakturpembelian:edit:{{ $fakturpembelian->fstockmtid }}"
-                        x-data="{ showNoItems: false }"
+                        data-draft-key="fakturpembelian:edit:{{ $fakturpembelian->fstockmtid }}" x-data="{ showNoItems: false }"
                         @submit.prevent="if (window.fakturPembelianItemsTable?.submitForm) { window.fakturPembelianItemsTable.submitForm($el); } else { const n = Number(document.getElementById('itemsCount')?.value || 0); if (n < 1) { showNoItems = true; return; } $el.submit() }">
                         @csrf
                         @method('PATCH')
@@ -876,7 +887,8 @@
                                                 </option>
                                             @endforeach
                                         </select>
-                                        <div id="supplierBrowseOverlay" class="absolute inset-0" role="button" aria-label="Browse supplier"
+                                        <div id="supplierBrowseOverlay" class="absolute inset-0" role="button"
+                                            aria-label="Browse supplier"
                                             @click="window.dispatchEvent(new CustomEvent('supplier-browse-open'))"></div>
                                     </div>
                                     {{-- kirim ID supplier ke server --}}
@@ -889,7 +901,8 @@
                                         <x-heroicon-o-magnifying-glass class="w-5 h-5" />
                                     </button>
                                     @if (in_array('createSupplier', explode(',', session('user_restricted_permissions', '')), true))
-                                        <a href="{{ route('supplier.create') }}" target="_blank" rel="noopener" id="supplierCreateButton"
+                                        <a href="{{ route('supplier.create') }}" target="_blank" rel="noopener"
+                                            id="supplierCreateButton"
                                             class="border -ml-px rounded-r px-3 py-2 bg-white hover:bg-gray-50"
                                             title="Tambah Supplier">
                                             <x-heroicon-o-plus class="w-5 h-5" />
@@ -1030,7 +1043,8 @@
                             <div class="lg:col-span-2">
                                 <label class="block text-sm font-medium">Tgl. Jatuh Tempo</label>
                                 <input type="date" id="fjatuhtempo" name="fjatuhtempo"
-                                    value="{{ old('fjatuhtempo', optional($fakturpembelian->fjatuhtempo)->format('Y-m-d') ?? optional($fakturpembelian->fstockmtdate)->format('Y-m-d')) }}" readonly
+                                    value="{{ old('fjatuhtempo', optional($fakturpembelian->fjatuhtempo)->format('Y-m-d') ?? optional($fakturpembelian->fstockmtdate)->format('Y-m-d')) }}"
+                                    readonly
                                     class="w-full border rounded px-3 py-2 bg-gray-100 @error('fjatuhtempo') border-red-500 @enderror">
                                 @error('fjatuhtempo')
                                     <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
@@ -1050,12 +1064,11 @@
                                 @enderror
                             </div>
 
-                            <div class="min-w-0 overflow-hidden"
-                                x-data="{
-                                    get hasTerSourceItems() {
-                                        return window.getFpbItemsTableComponent?.()?.hasTerSourceItems ?? false;
-                                    }
-                                }">
+                            <div class="min-w-0 overflow-hidden" x-data="{
+                                get hasTerSourceItems() {
+                                    return window.getFpbItemsTableComponent?.()?.hasTerSourceItems ?? false;
+                                }
+                            }">
                                 <label class="block text-sm font-medium mb-2">Hitung Biaya</label>
                                 <div
                                     class="hpp-box h-[96px] bg-gray-50 p-3 rounded-lg border border-gray-200 shadow-sm flex items-center gap-3">
@@ -1213,13 +1226,11 @@
                                                 </td>
                                                 <td class="p-2">
                                                     <div class="flex w-full max-w-full">
-                                                        <div
-                                                            class="min-w-0 flex-1 rounded-l border bg-gray-100 px-2 py-1 text-sm leading-5 text-gray-600 whitespace-normal break-words"
+                                                        <div class="min-w-0 flex-1 rounded-l border bg-gray-100 px-2 py-1 text-sm leading-5 text-gray-600 whitespace-normal break-words"
                                                             x-text="it.fitemname"></div>
                                                         <button type="button" @click="openDesc('saved', i)"
                                                             class="shrink-0 inline-flex items-center border border-l-0 rounded-r px-2 py-1 transition-colors"
-                                                            :class="descButtonClass(it.fdesc)"
-                                                            title="Deskripsi">
+                                                            :class="descButtonClass(it.fdesc)" title="Deskripsi">
                                                             <x-heroicon-o-document-text class="w-4 h-4" />
                                                         </button>
                                                     </div>
@@ -1264,7 +1275,9 @@
                                                     <input type="text" inputmode="decimal"
                                                         class="border rounded px-2 py-1 w-full text-right" min="0"
                                                         :disabled="hasTerSourceItems"
-                                                        :class="hasTerSourceItems ? 'border rounded px-2 py-1 w-full text-right bg-gray-100 cursor-not-allowed text-gray-600' : 'border rounded px-2 py-1 w-full text-right'"
+                                                        :class="hasTerSourceItems ?
+                                                            'border rounded px-2 py-1 w-full text-right bg-gray-100 cursor-not-allowed text-gray-600' :
+                                                            'border rounded px-2 py-1 w-full text-right'"
                                                         x-model="it.fpriceInput"
                                                         @focus="activeRow = it.uid; focusPriceInput(it); $event.target.select()"
                                                         @blur="activeRow = null; blurPriceInput(it)"
@@ -1274,17 +1287,22 @@
                                                     <input type="number"
                                                         class="border rounded px-2 py-1 w-full text-right" min="0"
                                                         :disabled="hasTerSourceItems"
-                                                        :class="hasTerSourceItems ? 'border rounded px-2 py-1 w-full text-right bg-gray-100 cursor-not-allowed text-gray-600' : 'border rounded px-2 py-1 w-full text-right'"
+                                                        :class="hasTerSourceItems ?
+                                                            'border rounded px-2 py-1 w-full text-right bg-gray-100 cursor-not-allowed text-gray-600' :
+                                                            'border rounded px-2 py-1 w-full text-right'"
                                                         step="0.01" :value="Number(it.fbiaya || 0).toFixed(2)"
                                                         @focus="activeRow = it.uid; $event.target.select()"
                                                         @blur="activeRow = null; $event.target.value = (+it.fbiaya || 0).toFixed(2)"
-                                                        @input="it.fbiaya = +$event.target.value; recalc(it)" @change="recalc(it)">
+                                                        @input="it.fbiaya = +$event.target.value; recalc(it)"
+                                                        @change="recalc(it)">
                                                 </td>
                                                 <td class="p-2 text-right">
                                                     <input type="text"
                                                         class="border rounded px-2 py-1 w-full text-right" min="0"
                                                         :disabled="hasTerSourceItems"
-                                                        :class="hasTerSourceItems ? 'border rounded px-2 py-1 w-full text-right bg-gray-100 cursor-not-allowed text-gray-600' : 'border rounded px-2 py-1 w-full text-right'"
+                                                        :class="hasTerSourceItems ?
+                                                            'border rounded px-2 py-1 w-full text-right bg-gray-100 cursor-not-allowed text-gray-600' :
+                                                            'border rounded px-2 py-1 w-full text-right'"
                                                         placeholder="10+2" :value="it.fdiscpersen"
                                                         @focus="activeRow = it.uid; $event.target.select()"
                                                         @blur="activeRow = null; normalizeDiscountInput($event, it)"
@@ -1318,7 +1336,8 @@
                                     <!-- Trigger: Add PO -->
                                     <div x-data="poFormModal()">
                                         <button type="button" @click="openModal()" :disabled="isLocked()"
-                                            :class="isLocked() ? 'cursor-not-allowed opacity-50' : 'hover:bg-emerald-700 focus:ring-2 focus:ring-emerald-500'"
+                                            :class="isLocked() ? 'cursor-not-allowed opacity-50' :
+                                                'hover:bg-emerald-700 focus:ring-2 focus:ring-emerald-500'"
                                             class="inline-flex items-center gap-2 rounded-lg bg-emerald-600 px-3 py-2 text-white focus:outline-none">
                                             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none"
                                                 viewBox="0 0 24 24" stroke="currentColor">
@@ -1395,14 +1414,15 @@
                                     <!-- Trigger: Add PB -->
                                     <div x-data="pbFormModal()">
                                         <button type="button" @click="openModal()" :disabled="isLocked()"
-                                            :class="isLocked() ? 'cursor-not-allowed opacity-50' : 'hover:bg-blue-700 focus:ring-2 focus:ring-blue-500'"
+                                            :class="isLocked() ? 'cursor-not-allowed opacity-50' :
+                                                'hover:bg-blue-700 focus:ring-2 focus:ring-blue-500'"
                                             class="inline-flex items-center gap-2 rounded-lg bg-blue-600 px-3 py-2 text-white focus:outline-none">
                                             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none"
                                                 viewBox="0 0 24 24" stroke="currentColor">
-                                                <path stroke-linecap="round" stroke-linejoin="round"
-                                                    stroke-width="1.5" d="M12 4.5v15m7.5-7.5h-15" />
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                                                    d="M12 4.5v15m7.5-7.5h-15" />
                                             </svg>
-                                            Add TER
+                                            Add Faktur
                                         </button>
 
                                         <!-- PB Modal -->
@@ -1488,8 +1508,8 @@
                                         <div class="flex items-center gap-3">
                                             <!-- Checkbox -->
                                             <div class="flex items-center">
-                                                <input id="fapplyppn" type="checkbox" name="fapplyppn"
-                                                    value="1" x-model="includePPN"
+                                                <input id="fapplyppn" type="checkbox" name="fapplyppn" value="1"
+                                                    x-model="includePPN"
                                                     class="h-4 w-4 text-blue-600 border-gray-300 rounded">
                                                 <label for="fapplyppn" class="text-sm font-medium text-gray-700">
                                                     <span class="font-bold">PPN</span>
@@ -1583,23 +1603,22 @@
                                                 x-text="descItemName || '-'"></div>
                                         </div>
                                         <label class="block text-sm text-gray-700">Deskripsi</label>
-                                        <textarea x-model="descValue" rows="5" class="w-full border rounded px-3 py-2"
-                                            :readonly="descReadonly"
+                                        <textarea x-model="descValue" rows="5" class="w-full border rounded px-3 py-2" :readonly="descReadonly"
                                             placeholder="Tulis deskripsi item di sini..."></textarea>
                                     </div>
 
-                            <div class="px-5 py-3 border-t flex items-center justify-end gap-2">
-                                <button type="button" @click="closeDesc()"
-                                    class="h-9 px-4 rounded-lg bg-gray-100 text-gray-700 text-sm font-medium hover:bg-gray-200">
-                                    Batal
+                                    <div class="px-5 py-3 border-t flex items-center justify-end gap-2">
+                                        <button type="button" @click="closeDesc()"
+                                            class="h-9 px-4 rounded-lg bg-gray-100 text-gray-700 text-sm font-medium hover:bg-gray-200">
+                                            Batal
                                         </button>
                                         <button x-show="!descReadonly" type="button" @click="applyDesc()"
                                             class="h-9 px-4 rounded-lg bg-emerald-600 text-white text-sm font-medium hover:bg-emerald-700">
                                             Simpan
-                                </button>
+                                        </button>
+                                    </div>
+                                </div>
                             </div>
-                        </div>
-                    </div>
 
                             <div x-show="showSupplierRequired" x-cloak
                                 class="fixed inset-0 z-[94] flex items-center justify-center" x-transition.opacity>
@@ -1647,8 +1666,7 @@
                                     </div>
 
                                     <div class="px-5 py-3 border-t flex items-center justify-end gap-2">
-                                        <button type="button"
-                                            @click="showDescCodeRequired = false"
+                                        <button type="button" @click="showDescCodeRequired = false"
                                             class="h-9 px-4 rounded-lg bg-blue-600 text-white text-sm font-medium hover:bg-blue-700">
                                             OK
                                         </button>
@@ -1658,69 +1676,71 @@
 
                             <input type="hidden" id="itemsCount" :value="submitItems.length">
 
-                        {{-- MODAL ERROR: belum ada item --}}
-                        <div x-show="showNoItems && savedItems.length === 0" x-cloak
-                            class="fixed inset-0 z-[90] flex items-center justify-center" x-transition.opacity>
-                            <div class="absolute inset-0 bg-black/50" @click="showNoItems=false"></div>
+                            {{-- MODAL ERROR: belum ada item --}}
+                            <div x-show="showNoItems && savedItems.length === 0" x-cloak
+                                class="fixed inset-0 z-[90] flex items-center justify-center" x-transition.opacity>
+                                <div class="absolute inset-0 bg-black/50" @click="showNoItems=false"></div>
 
-                            <div class="relative bg-white w-[92vw] max-w-md rounded-2xl shadow-2xl overflow-hidden"
-                                x-transition.scale>
-                                <div class="px-5 py-4 border-b flex items-center">
-                                    <x-heroicon-o-exclamation-triangle class="w-6 h-6 text-red-500 mr-2" />
-                                    <h3 class="text-lg font-semibold text-gray-800">Tidak Ada Item</h3>
+                                <div class="relative bg-white w-[92vw] max-w-md rounded-2xl shadow-2xl overflow-hidden"
+                                    x-transition.scale>
+                                    <div class="px-5 py-4 border-b flex items-center">
+                                        <x-heroicon-o-exclamation-triangle class="w-6 h-6 text-red-500 mr-2" />
+                                        <h3 class="text-lg font-semibold text-gray-800">Tidak Ada Item</h3>
+                                    </div>
+
+                                    <div class="px-5 py-4">
+                                        <p class="text-sm text-gray-700">
+                                            Anda belum menambahkan item apa pun pada tabel. Silakan isi baris “Detail Item”
+                                            terlebih
+                                            dahulu.
+                                        </p>
+                                    </div>
+
+                                    <div class="px-5 py-3 border-t flex items-center justify-end gap-2">
+                                        <button type="button" @click="showNoItems=false"
+                                            class="h-9 px-4 rounded-lg bg-blue-600 text-white text-sm font-medium hover:bg-blue-700">
+                                            OK
+                                        </button>
+                                    </div>
                                 </div>
+                            </div>
 
-                                <div class="px-5 py-4">
-                                    <p class="text-sm text-gray-700">
-                                        Anda belum menambahkan item apa pun pada tabel. Silakan isi baris “Detail Item”
-                                        terlebih
-                                        dahulu.
-                                    </p>
-                                </div>
+                            <div x-show="showWarningModal" x-cloak
+                                class="fixed inset-0 z-[96] flex items-center justify-center" x-transition.opacity>
+                                <div class="absolute inset-0 bg-black/50" @click="closeWarning()"></div>
+                                <div class="relative bg-white w-[92vw] max-w-lg rounded-2xl shadow-2xl overflow-hidden"
+                                    x-transition.scale>
+                                    <div class="px-5 py-4 border-b flex items-center">
+                                        <x-heroicon-o-exclamation-triangle class="w-6 h-6 text-amber-500 mr-2" />
+                                        <h3 class="text-lg font-semibold text-gray-800" x-text="warningTitle"></h3>
+                                    </div>
 
-                                <div class="px-5 py-3 border-t flex items-center justify-end gap-2">
-                                    <button type="button" @click="showNoItems=false"
-                                        class="h-9 px-4 rounded-lg bg-blue-600 text-white text-sm font-medium hover:bg-blue-700">
-                                        OK
-                                    </button>
+                                    <div class="px-5 py-4 space-y-3">
+                                        <p class="text-sm text-gray-700" x-text="warningMessage"></p>
+                                        <template x-if="warningItems.length > 0">
+                                            <ul class="list-disc pl-5 text-sm text-gray-700 space-y-1">
+                                                <template x-for="item in warningItems" :key="item">
+                                                    <li x-text="item"></li>
+                                                </template>
+                                            </ul>
+                                        </template>
+                                    </div>
+
+                                    <div class="px-5 py-3 border-t flex items-center justify-end gap-2">
+                                        <button type="button" @click="closeWarning()"
+                                            class="h-9 px-4 rounded-lg bg-gray-100 text-gray-700 text-sm font-medium hover:bg-gray-200">
+                                            Tutup
+                                        </button>
+                                        <button type="button" x-show="warningCanProceed"
+                                            @click="confirmWarningAndSubmit()"
+                                            class="h-9 px-4 rounded-lg bg-emerald-600 text-white text-sm font-medium hover:bg-emerald-700">
+                                            Lanjut Simpan
+                                        </button>
+                                    </div>
                                 </div>
                             </div>
                         </div>
-
-                        <div x-show="showWarningModal" x-cloak class="fixed inset-0 z-[96] flex items-center justify-center"
-                            x-transition.opacity>
-                            <div class="absolute inset-0 bg-black/50" @click="closeWarning()"></div>
-                            <div class="relative bg-white w-[92vw] max-w-lg rounded-2xl shadow-2xl overflow-hidden"
-                                x-transition.scale>
-                                <div class="px-5 py-4 border-b flex items-center">
-                                    <x-heroicon-o-exclamation-triangle class="w-6 h-6 text-amber-500 mr-2" />
-                                    <h3 class="text-lg font-semibold text-gray-800" x-text="warningTitle"></h3>
-                                </div>
-
-                                <div class="px-5 py-4 space-y-3">
-                                    <p class="text-sm text-gray-700" x-text="warningMessage"></p>
-                                    <template x-if="warningItems.length > 0">
-                                        <ul class="list-disc pl-5 text-sm text-gray-700 space-y-1">
-                                            <template x-for="item in warningItems" :key="item">
-                                                <li x-text="item"></li>
-                                            </template>
-                                        </ul>
-                                    </template>
-                                </div>
-
-                                <div class="px-5 py-3 border-t flex items-center justify-end gap-2">
-                                    <button type="button" @click="closeWarning()"
-                                        class="h-9 px-4 rounded-lg bg-gray-100 text-gray-700 text-sm font-medium hover:bg-gray-200">
-                                        Tutup
-                                    </button>
-                                    <button type="button" x-show="warningCanProceed" @click="confirmWarningAndSubmit()"
-                                        class="h-9 px-4 rounded-lg bg-emerald-600 text-white text-sm font-medium hover:bg-emerald-700">
-                                        Lanjut Simpan
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                        </div>  </div>
+                </div>
 
                 <x-transaction.browse-supplier-modal />
                 <x-transaction.browse-product-modal show-controls="true" show-pagination="true" />
@@ -1976,25 +1996,25 @@
         // Map produk untuk auto-fill tabel
         window.PRODUCT_MAP = {
             @foreach ($products as $p)
-            @php
-                $defaultUnit = match ((string) ($p->fsatuandefault ?? '')) {
-                    '1' => trim((string) ($p->fsatuankecil ?? '')),
-                    '2' => trim((string) ($p->fsatuanbesar ?? '')),
-                    '3' => trim((string) ($p->fsatuanbesar2 ?? '')),
-                    default => trim((string) ($p->fsatuankecil ?? '')) ?: trim((string) ($p->fsatuanbesar ?? '')) ?: trim((string) ($p->fsatuanbesar2 ?? '')),
-                };
-            @endphp
-            "{{ $p->fprdcode }}": {
-                name: @json($p->fprdname),
-                default_unit: @json($defaultUnit),
-                units: @json(array_values(array_filter([$p->fsatuankecil, $p->fsatuanbesar, $p->fsatuanbesar2]))),
-                stock: @json($p->fminstock ?? 0),
-                    unit_ratios: {
-                        satuankecil: 1,
-                        satuanbesar: @json((float) ($p->fqtykecil ?? 1)),
-                        satuanbesar2: @json((float) ($p->fqtykecil2 ?? 1)),
+                @php
+                    $defaultUnit = match ((string) ($p->fsatuandefault ?? '')) {
+                        '1' => trim((string) ($p->fsatuankecil ?? '')),
+                        '2' => trim((string) ($p->fsatuanbesar ?? '')),
+                        '3' => trim((string) ($p->fsatuanbesar2 ?? '')),
+                        default => trim((string) ($p->fsatuankecil ?? '')) ?: trim((string) ($p->fsatuanbesar ?? '')) ?: trim((string) ($p->fsatuanbesar2 ?? '')),
+                    };
+                @endphp
+                    "{{ $p->fprdcode }}": {
+                        name: @json($p->fprdname),
+                        default_unit: @json($defaultUnit),
+                        units: @json(array_values(array_filter([$p->fsatuankecil, $p->fsatuanbesar, $p->fsatuanbesar2]))),
+                        stock: @json($p->fminstock ?? 0),
+                        unit_ratios: {
+                            satuankecil: 1,
+                            satuanbesar: @json((float) ($p->fqtykecil ?? 1)),
+                            satuanbesar2: @json((float) ($p->fqtykecil2 ?? 1)),
+                        },
                     },
-                },
             @endforeach
         };
 
@@ -2069,7 +2089,8 @@
                 },
 
                 get hasTerSourceItems() {
-                    return (this.savedItems || []).some((item) => (item?.fsource || '').toString().trim().toUpperCase() === 'PB');
+                    return (this.savedItems || []).some((item) => (item?.fsource || '').toString().trim()
+                    .toUpperCase() === 'PB');
                 },
 
                 fmt(n) {
@@ -2211,14 +2232,14 @@
                 productMeta(code) {
                     const key = (code || '').trim();
                     const meta = window.PRODUCT_MAP?.[key];
-                if (!meta) {
-                    return {
-                        name: '',
-                        default_unit: '',
-                        units: [],
-                        stock: 0,
-                        unit_ratios: {
-                            satuankecil: 1,
+                    if (!meta) {
+                        return {
+                            name: '',
+                            default_unit: '',
+                            units: [],
+                            stock: 0,
+                            unit_ratios: {
+                                satuankecil: 1,
                                 satuanbesar: 1,
                                 satuanbesar2: 1
                             }
@@ -2345,11 +2366,12 @@
                     const units = [...new Set((meta.units || []).map(u => (u ?? '').toString().trim()).filter(Boolean))];
                     const defaultUnit = (meta.default_unit || '').toString().trim();
                     const resolvedDefaultUnit = defaultUnit && units.includes(defaultUnit) ? defaultUnit : (units[0] || '');
-                    const matchedUnit = preferredUnit === '' ? '' : (units.find(u => u.toLowerCase() === preferredUnit.toLowerCase()) || '');
+                    const matchedUnit = preferredUnit === '' ? '' : (units.find(u => u.toLowerCase() === preferredUnit
+                        .toLowerCase()) || '');
 
-                    row.units = matchedUnit !== ''
-                        ? [matchedUnit, ...units.filter(u => u.toLowerCase() !== matchedUnit.toLowerCase())]
-                        : units;
+                    row.units = matchedUnit !== '' ?
+                        [matchedUnit, ...units.filter(u => u.toLowerCase() !== matchedUnit.toLowerCase())] :
+                        units;
 
                     if (forceDefaultUnit) {
                         row.fsatuan = resolvedDefaultUnit;
@@ -2365,7 +2387,8 @@
                 },
 
                 getSelectedSupplierCode() {
-                    return (document.getElementById('supplierCodeHidden')?.value || document.getElementById('modal_filter_supplier_id')?.value || '').trim();
+                    return (document.getElementById('supplierCodeHidden')?.value || document.getElementById(
+                        'modal_filter_supplier_id')?.value || '').trim();
                 },
 
                 requireSupplierBeforeManualProduct() {
@@ -2384,23 +2407,31 @@
 
                     if (hiddenInput) {
                         hiddenInput.value = supplierCode;
-                        hiddenInput.dispatchEvent(new Event('change', { bubbles: true }));
+                        hiddenInput.dispatchEvent(new Event('change', {
+                            bubbles: true
+                        }));
                     }
 
                     if (selectInput) {
                         selectInput.value = supplierCode;
-                        selectInput.dispatchEvent(new Event('change', { bubbles: true }));
+                        selectInput.dispatchEvent(new Event('change', {
+                            bubbles: true
+                        }));
 
-                        const option = Array.from(selectInput.options || []).find(opt => (opt.value || '').trim() === supplierCode);
+                        const option = Array.from(selectInput.options || []).find(opt => (opt.value || '').trim() ===
+                            supplierCode);
                         const tempo = Number(option?.getAttribute('data-tempo') || 0);
                         if (tempoInput && Number.isFinite(tempo)) {
                             tempoInput.value = tempo;
-                            tempoInput.dispatchEvent(new Event('input', { bubbles: true }));
+                            tempoInput.dispatchEvent(new Event('input', {
+                                bubbles: true
+                            }));
                         }
                     }
                 },
                 hasSourceLockedSupplier() {
-                    return (this.savedItems || []).some(item => ['PO', 'PB'].includes((item?.fsource || '').toString().trim().toUpperCase()));
+                    return (this.savedItems || []).some(item => ['PO', 'PB'].includes((item?.fsource || '').toString()
+                    .trim().toUpperCase()));
                 },
                 syncSupplierLockState() {
                     const locked = this.hasSourceLockedSupplier();
@@ -2527,7 +2558,7 @@
 
                         const sourceQty = Math.max(0, +(src.fqty ?? 0) || 0);
                         const sourceQtyKecil = Math.max(0, +(src.fqtykecil ?? src.fqtyremain ?? src.fqty ?? 0) ||
-                        0);
+                            0);
                         const sourceLimit = sourceQty > 0 ? sourceQty : sourceQtyKecil;
 
                         const row = {
@@ -2676,21 +2707,21 @@
 
                 isRowFilled(row) {
                     return [
-                        row.fitemcode,
-                        row.fitemname,
-                        row.fsatuan,
-                        row.frefdtno,
-                        row.fsource,
-                        row.fnouref,
-                        row.frefpr,
-                        row.fqty,
-                        row.fprice,
-                        row.fbiaya,
-                        row.fdiscpersen,
-                        row.fdesc,
-                        row.fketdt
-                    ].some((value) => String(value ?? '').trim() !== '' && Number(value ?? 0) !== 0)
-                        || Number(row.fqty || 0) > 0;
+                            row.fitemcode,
+                            row.fitemname,
+                            row.fsatuan,
+                            row.frefdtno,
+                            row.fsource,
+                            row.fnouref,
+                            row.frefpr,
+                            row.fqty,
+                            row.fprice,
+                            row.fbiaya,
+                            row.fdiscpersen,
+                            row.fdesc,
+                            row.fketdt
+                        ].some((value) => String(value ?? '').trim() !== '' && Number(value ?? 0) !== 0) ||
+                        Number(row.fqty || 0) > 0;
                 },
 
                 rowWarningLabel(row) {
@@ -2713,7 +2744,9 @@
                         return;
                     }
 
-                    this.savedItems = this.pendingValidRows.map((row) => ({ ...row }));
+                    this.savedItems = this.pendingValidRows.map((row) => ({
+                        ...row
+                    }));
                     this.recalcTotals();
                     const form = this.pendingSubmitForm;
                     this.closeWarning();
@@ -2745,9 +2778,9 @@
                     return String(value ?? '').trim() !== '';
                 },
                 descButtonClass(value) {
-                    return this.hasDesc(value)
-                        ? 'border-emerald-200 bg-emerald-50 text-emerald-700 hover:bg-emerald-100'
-                        : 'border-slate-200 bg-slate-50 text-slate-700 hover:bg-slate-100';
+                    return this.hasDesc(value) ?
+                        'border-emerald-200 bg-emerald-50 text-emerald-700 hover:bg-emerald-100' :
+                        'border-slate-200 bg-slate-50 text-slate-700 hover:bg-slate-100';
                 },
                 getDescRow(target = 'saved', index = null) {
                     if (target === 'saved' && index !== null) {
@@ -2790,7 +2823,8 @@
                     this.descValue = this.descItemName || '';
                 },
                 applyDesc() {
-                    if (this.descTarget === 'saved' && this.descSavedIndex !== null && this.savedItems[this.descSavedIndex]) {
+                    if (this.descTarget === 'saved' && this.descSavedIndex !== null && this.savedItems[this
+                        .descSavedIndex]) {
                         this.savedItems[this.descSavedIndex].fdesc = this.descValue;
                         this.onRowUpdated(this.descSavedIndex);
                     }
@@ -2819,18 +2853,21 @@
                 },
 
                 hasSourceReferenceRows() {
-                    return (this.savedItems || []).some((row) => ['PO', 'PB'].includes((row?.fsource || '').toString().trim().toUpperCase()));
+                    return (this.savedItems || []).some((row) => ['PO', 'PB'].includes((row?.fsource || '').toString()
+                    .trim().toUpperCase()));
                 },
 
                 hasMixedOpeningBalanceAndSourceRows(rows = this.savedItems) {
                     const activeRows = (rows || []).filter((row) => this.isRowSavable(row));
                     const hasOpeningBalance = activeRows.some((row) => this.isOpeningBalanceCode(row?.fitemcode));
-                    const hasSourceReference = activeRows.some((row) => ['PO', 'PB'].includes((row?.fsource || '').toString().trim().toUpperCase()));
+                    const hasSourceReference = activeRows.some((row) => ['PO', 'PB'].includes((row?.fsource || '')
+                    .toString().trim().toUpperCase()));
                     return hasOpeningBalance && hasSourceReference;
                 },
 
                 showOpeningBalanceMixWarning() {
-                    const message = 'Item AWAL tidak boleh digabung dengan item referensi PO atau TER dalam satu faktur pembelian.';
+                    const message =
+                        'Item AWAL tidak boleh digabung dengan item referensi PO atau TER dalam satu faktur pembelian.';
                     if (window.showTransactionErrorModal) {
                         window.showTransactionErrorModal(message, {
                             title: 'Kombinasi Item Tidak Diizinkan'
@@ -2849,8 +2886,12 @@
                     const typeSelect = document.querySelector('select[name="ftypebuy"]');
                     if (typeSelect && typeSelect.value !== '1') {
                         typeSelect.value = '1';
-                        typeSelect.dispatchEvent(new Event('input', { bubbles: true }));
-                        typeSelect.dispatchEvent(new Event('change', { bubbles: true }));
+                        typeSelect.dispatchEvent(new Event('input', {
+                            bubbles: true
+                        }));
+                        typeSelect.dispatchEvent(new Event('change', {
+                            bubbles: true
+                        }));
                     }
                 },
 
@@ -2975,7 +3016,8 @@
                         if (this.browseTarget === 'saved' && this.browseIndex !== null) {
                             apply(this.savedItems[this.browseIndex]);
                         } else {
-                            const row = typeof this.browseIndex === 'number' ? this.savedItems[this.browseIndex] : null;
+                            const row = typeof this.browseIndex === 'number' ? this.savedItems[this.browseIndex] :
+                                null;
                             if (row) {
                                 apply(row);
                             }
@@ -2995,11 +3037,13 @@
                         if (!code) continue;
                         if (seenCodes.has(code)) {
                             if (window.showTransactionErrorModal) {
-                                window.showTransactionErrorModal(`Kode produk ${code} tidak boleh sama dalam satu Faktur Pembelian.`, {
-                                    title: 'Produk Duplikat'
-                                });
+                                window.showTransactionErrorModal(
+                                    `Kode produk ${code} tidak boleh sama dalam satu Faktur Pembelian.`, {
+                                        title: 'Produk Duplikat'
+                                    });
                             } else {
-                                window.showAppWarningAlert('WARNING', `KODE PRODUK ${code} TIDAK BOLEH SAMA DALAM SATU FAKTUR PEMBELIAN.`);
+                                window.showAppWarningAlert('WARNING',
+                                    `KODE PRODUK ${code} TIDAK BOLEH SAMA DALAM SATU FAKTUR PEMBELIAN.`);
                             }
                             return;
                         }
@@ -3013,9 +3057,9 @@
 
                     if (warningRows.length > 0) {
                         this.warningTitle = 'Qty Belum Diisi';
-                        this.warningMessage = validRows.length > 0
-                            ? 'Beberapa item tidak akan disimpan karena qty masih 0.'
-                            : 'Tidak ada item yang bisa disimpan karena qty masih 0 atau data belum lengkap.';
+                        this.warningMessage = validRows.length > 0 ?
+                            'Beberapa item tidak akan disimpan karena qty masih 0.' :
+                            'Tidak ada item yang bisa disimpan karena qty masih 0 atau data belum lengkap.';
                         this.warningItems = warningRows.map((row) => this.rowWarningLabel(row));
                         this.warningCanProceed = validRows.length > 0;
                         this.pendingSubmitForm = form;
@@ -3029,7 +3073,9 @@
                         return;
                     }
 
-                    this.savedItems = validRows.map((row) => ({ ...row }));
+                    this.savedItems = validRows.map((row) => ({
+                        ...row
+                    }));
                     this.recalcTotals();
                     this.$nextTick(() => {
                         this.syncDetailPayload(form, this.savedItems);
@@ -3131,7 +3177,9 @@
                             type: 'GET',
                             data: function(d) {
                                 return {
-                                    supplier_code: (document.getElementById('supplierCodeHidden')?.value || document.getElementById('modal_filter_supplier_id')?.value || '').trim(),
+                                    supplier_code: (document.getElementById('supplierCodeHidden')?.value ||
+                                        document.getElementById('modal_filter_supplier_id')?.value || ''
+                                        ).trim(),
                                     draw: d.draw,
                                     start: d.start,
                                     length: d.length,
@@ -3302,7 +3350,9 @@
                             type: 'GET',
                             data: function(d) {
                                 return {
-                                    supplier_code: (document.getElementById('supplierCodeHidden')?.value || document.getElementById('modal_filter_supplier_id')?.value || '').trim(),
+                                    supplier_code: (document.getElementById('supplierCodeHidden')?.value ||
+                                        document.getElementById('modal_filter_supplier_id')?.value || ''
+                                        ).trim(),
                                     draw: d.draw,
                                     start: d.start,
                                     length: d.length,

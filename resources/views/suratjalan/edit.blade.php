@@ -804,7 +804,7 @@
                                                     <path stroke-linecap="round" stroke-linejoin="round"
                                                         stroke-width="1.5" d="M12 4.5v15m7.5-7.5h-15" />
                                                 </svg>
-                                                Add TER (INV)
+                                                Add TER
                                             </button>
                                         </div>
 
@@ -1496,7 +1496,7 @@
                     row.units = [];
                     row.fsatuan = '';
                     row.maxqty = 0;
-                    row.frefdtno = 0;
+                    row.frefdtno = '';
                     return;
                 }
                 row.fitemname = meta.name || '';
@@ -1507,7 +1507,7 @@
                 }
                 if (meta.unit_ratios) row.unit_ratios = meta.unit_ratios;
                 row.maxqty = Number.isFinite(+row.maxqty) ? +row.maxqty : 0;
-                row.frefdtno = meta.fprdid || 0;
+                row.frefdtno = row.fitemcode || '';
             },
 
             onCodeTypedRow(row, index = null) {
@@ -1583,7 +1583,7 @@
                         fitemcode: itemcode,
                         fitemname: itemname,
                         fsatuan: satuan,
-                        frefdtno: frefdtno,
+                        frefdtno: (header?.fsono ?? frefdtno ?? '').toString().trim(),
                         fnoacak: this.generateUniqueNoAcak(),
                         frefnoacak: this.normalizeNoAcak(src.frefnoacak ?? src.fnoacak ?? ''),
                         frefno_display: (src.frefpr ?? header?.fsono ?? '').toString().trim(),

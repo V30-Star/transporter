@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', "Faktur Pembelian - New")
+@section('title', 'Faktur Pembelian - New')
 
 @section('content')
     <style>
@@ -134,7 +134,7 @@
             {{-- Header Strip --}}
             <div class="d-flex align-items-center px-4 py-3" style="background-color: #c0392b;">
                 <i class="bi bi-exclamation-triangle-fill text-white me-2 fs-5"></i>
-                <strong class="text-white fs-6">{{ "Gagal Menyimpan Data!" }}</strong>
+                <strong class="text-white fs-6">{{ 'Gagal Menyimpan Data!' }}</strong>
                 <button type="button" class="btn-close btn-close-white ms-auto" data-bs-dismiss="alert"
                     aria-label="Close"></button>
             </div>
@@ -143,7 +143,7 @@
             <div class="px-4 py-3" style="background-color: #fdeded; border-left: 5px solid #c0392b;">
                 <p class="mb-2 text-danger fw-semibold">
                     <i class="bi bi-info-circle me-1"></i>
-                    {{ "Periksa kembali data berikut sebelum menyimpan:" }}
+                    {{ 'Periksa kembali data berikut sebelum menyimpan:' }}
                 </p>
                 <ul class="mb-0 ps-3">
                     @foreach ($errors->all() as $error)
@@ -158,8 +158,8 @@
     @endif
     @php
         $includePPN = old('fapplyppn', 0);
-        $ppnMode    = old('fincludeppn', 0);
-        $ppnRate    = old('ppn_rate', 11);
+        $ppnMode = old('fincludeppn', 0);
+        $ppnRate = old('ppn_rate', 11);
         $currentType = old('ftypebuy', '0');
         $currentAccount = old('fprdjadi', '');
         $currentAccountId = old('faccid', '');
@@ -189,7 +189,7 @@
             }
 
             $initialFakturItems[] = [
-                'uid' => 'old-'.$i,
+                'uid' => 'old-' . $i,
                 'fitemcode' => $code,
                 'fitemname' => '',
                 'fsatuan' => (string) ($oldSatuans[$i] ?? ''),
@@ -214,7 +214,7 @@
         }
     @endphp
 
-    <div x-data="{ 
+    <div x-data="{
         open: true,
         selectedType: '{{ $currentType }}',
         selectedAccountCode: '{{ $currentAccount }}',
@@ -230,32 +230,35 @@
                     {{-- HEADER FORM --}}
                     <div class="grid grid-cols-1 lg:grid-cols-12 gap-4">
                         <div class="lg:col-span-4">
-                            <label class="block text-sm font-medium">{{ "Cabang" }}</label>
+                            <label class="block text-sm font-medium">{{ 'Cabang' }}</label>
                             <input type="text" class="w-full border rounded px-3 py-2 bg-gray-200 cursor-not-allowed"
                                 value="{{ $fcabang }}" disabled>
                             <input type="hidden" name="fbranchcode" value="{{ $fbranchcode }}">
                         </div>
 
                         <div class="lg:col-span-4" x-data="{ autoCode: true }">
-                            <label class="block text-sm font-medium mb-1">{{ "No.Transaksi" }}#</label>
+                            <label class="block text-sm font-medium mb-1">{{ 'No.Transaksi' }}#</label>
                             <div class="flex items-center gap-3">
                                 <input type="text" name="fstockmtno" class="w-full border rounded px-3 py-2"
                                     :disabled="autoCode"
                                     :class="autoCode ? 'bg-gray-200 cursor-not-allowed' : 'bg-white'">
                                 <label class="inline-flex items-center select-none">
                                     <input type="checkbox" x-model="autoCode" checked>
-                                    <span class="ml-2 text-sm text-gray-700">{{ "Auto" }}</span>
+                                    <span class="ml-2 text-sm text-gray-700">{{ 'Auto' }}</span>
                                 </label>
                             </div>
                         </div>
 
                         <div class="lg:col-span-4">
-                            <label class="block text-sm font-medium">{{ "Type" }}</label>
+                            <label class="block text-sm font-medium">{{ 'Type' }}</label>
                             <select name="ftypebuy" x-model="selectedType"
                                 class="w-full border rounded px-3 py-2 @error('ftypebuy') border-red-500 @enderror">
-                                <option value="0" {{ old('ftypebuy') == '0' ? 'selected' : '' }}>{{ "Stok" }}</option>
-                                <option value="1" {{ old('ftypebuy') == '1' ? 'selected' : '' }}>{{ "Non Stok" }}</option>
-                                <option value="2" {{ old('ftypebuy') == '2' ? 'selected' : '' }}>{{ "Uang Muka" }}</option>
+                                <option value="0" {{ old('ftypebuy') == '0' ? 'selected' : '' }}>{{ 'Stok' }}
+                                </option>
+                                <option value="1" {{ old('ftypebuy') == '1' ? 'selected' : '' }}>{{ 'Non Stok' }}
+                                </option>
+                                <option value="2" {{ old('ftypebuy') == '2' ? 'selected' : '' }}>{{ 'Uang Muka' }}
+                                </option>
                             </select>
                             @error('ftypebuy')
                                 <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
@@ -263,7 +266,7 @@
                         </div>
 
                         <div class="lg:col-span-4">
-                            <label class="block text-sm font-medium">{{ "Tanggal" }}</label>
+                            <label class="block text-sm font-medium">{{ 'Tanggal' }}</label>
                             <input type="date" id="fstockmtdate" name="fstockmtdate"
                                 value="{{ old('fstockmtdate') ?? date('Y-m-d') }}"
                                 class="w-full border rounded px-3 py-2 @error('fstockmtdate') border-red-500 @enderror">
@@ -273,7 +276,7 @@
                         </div>
 
                         <div class="lg:col-span-4">
-                            <label class="block text-sm font-medium mb-1">{{ "Supplier" }}</label>
+                            <label class="block text-sm font-medium mb-1">{{ 'Supplier' }}</label>
                             <div class="flex">
                                 <div class="relative flex-1" for="modal_filter_supplier_id">
                                     <select id="modal_filter_supplier_id" name="filter_supplier_id"
@@ -287,7 +290,8 @@
                                             </option>
                                         @endforeach
                                     </select>
-                                    <div id="supplierBrowseOverlay" class="absolute inset-0" role="button" aria-label="Browse supplier"
+                                    <div id="supplierBrowseOverlay" class="absolute inset-0" role="button"
+                                        aria-label="Browse supplier"
                                         @click="window.dispatchEvent(new CustomEvent('supplier-browse-open'))"></div>
                                 </div>
                                 <input type="hidden" name="fsupplier" id="supplierCodeHidden"
@@ -299,7 +303,8 @@
                                     <x-heroicon-o-magnifying-glass class="w-5 h-5" />
                                 </button>
                                 @if (in_array('createSupplier', explode(',', session('user_restricted_permissions', '')), true))
-                                    <a href="{{ route('supplier.create') }}" target="_blank" rel="noopener" id="supplierCreateButton"
+                                    <a href="{{ route('supplier.create') }}" target="_blank" rel="noopener"
+                                        id="supplierCreateButton"
                                         class="border -ml-px rounded-r px-3 py-2 bg-white hover:bg-gray-50"
                                         title="Tambah Supplier">
                                         <x-heroicon-o-plus class="w-5 h-5" />
@@ -321,7 +326,7 @@
                         </div>
 
                         <div class="lg:col-span-4">
-                            <label class="block text-sm font-medium mb-1">{{ "Gudang" }}</label>
+                            <label class="block text-sm font-medium mb-1">{{ 'Gudang' }}</label>
                             <div class="flex">
                                 <div class="relative flex-1">
                                     <select id="warehouseSelect"
@@ -339,10 +344,12 @@
 
                                     {{-- Overlay untuk buka browser gudang --}}
                                     <div class="absolute inset-0" role="button" aria-label="Browse warehouse"
-                                    @click="window.dispatchEvent(new CustomEvent('faktur-pembelian-warehouse-browse-open'))"></div>
+                                        @click="window.dispatchEvent(new CustomEvent('faktur-pembelian-warehouse-browse-open'))">
+                                    </div>
                                 </div>
 
-                                <input type="hidden" name="ffrom" id="warehouseCodeHidden" value="{{ old('ffrom') }}">
+                                <input type="hidden" name="ffrom" id="warehouseCodeHidden"
+                                    value="{{ old('ffrom') }}">
                                 <button type="button"
                                     @click="window.dispatchEvent(new CustomEvent('faktur-pembelian-warehouse-browse-open'))"
                                     class="border -ml-px px-3 py-2 bg-white hover:bg-gray-50 rounded-r-none"
@@ -363,7 +370,7 @@
                         </div>
 
                         <div class="lg:col-span-4">
-                            <label class="block text-sm font-medium mb-1">{{ "Account" }}</label>
+                            <label class="block text-sm font-medium mb-1">{{ 'Account' }}</label>
                             <div class="flex">
                                 <div class="relative flex-1">
                                     <select id="accountSelect" class="w-full border rounded-l px-3 py-2"
@@ -510,20 +517,21 @@
                         <h3 class="text-base font-semibold text-gray-800">Detail Item</h3>
 
                         <div class="overflow-x-auto border rounded">
-                            <table class="min-w-full text-sm balanced-detail-table fpb-detail-table" data-skip-auto-detail-style="true">
-                                    <colgroup>
-                                        <col style="width:3%;">
-                                        <col style="width:17%;">
-                                        <col style="width:20%;">
-                                        <col style="width:14%;">
-                                        <col style="width:6%;">
-                                        <col style="width:6%;">
-                                        <col style="width:9%;">
-                                        <col style="width:6%;">
-                                        <col style="width:6%;">
-                                        <col style="width:9%;">
-                                        <col style="width:6%;">
-                                    </colgroup>
+                            <table class="min-w-full text-sm balanced-detail-table fpb-detail-table"
+                                data-skip-auto-detail-style="true">
+                                <colgroup>
+                                    <col style="width:3%;">
+                                    <col style="width:17%;">
+                                    <col style="width:20%;">
+                                    <col style="width:14%;">
+                                    <col style="width:6%;">
+                                    <col style="width:6%;">
+                                    <col style="width:9%;">
+                                    <col style="width:6%;">
+                                    <col style="width:6%;">
+                                    <col style="width:9%;">
+                                    <col style="width:6%;">
+                                </colgroup>
                                 <thead class="bg-gray-100">
                                     <tr>
                                         <th class="px-2 py-1 text-left w-10">#</th>
@@ -540,12 +548,13 @@
                                     </tr>
                                 </thead>
 
-                                    <template x-for="(it, i) in savedItems" :key="it.uid">
-                                        <tbody>
+                                <template x-for="(it, i) in savedItems" :key="it.uid">
+                                    <tbody>
                                         <!-- ROW UTAMA -->
-                                        <tr class="border-t align-top transition-colors" :class="activeRow === it.uid ? 'bg-amber-50' : 'hover:bg-gray-50'">
+                                        <tr class="border-t align-top transition-colors"
+                                            :class="activeRow === it.uid ? 'bg-amber-50' : 'hover:bg-gray-50'">
                                             <td class="p-2 text-gray-500" x-text="i + 1"></td>
-                                            
+
                                             <!-- Kode Produk -->
                                             <td class="p-2">
                                                 <div class="flex w-full max-w-full">
@@ -565,13 +574,11 @@
                                             <!-- Nama Produk -->
                                             <td class="p-2">
                                                 <div class="flex w-full max-w-full">
-                                                    <div
-                                                        class="min-w-0 flex-1 rounded-l border bg-gray-100 px-2 py-1 text-sm leading-5 text-gray-600 whitespace-normal break-words"
+                                                    <div class="min-w-0 flex-1 rounded-l border bg-gray-100 px-2 py-1 text-sm leading-5 text-gray-600 whitespace-normal break-words"
                                                         x-text="it.fitemname"></div>
                                                     <button type="button" @click="openDesc('saved', i)"
                                                         class="shrink-0 inline-flex items-center border border-l-0 rounded-r px-2 py-1 transition-colors"
-                                                        :class="descButtonClass(it.fdesc)"
-                                                        title="Deskripsi">
+                                                        :class="descButtonClass(it.fdesc)" title="Deskripsi">
                                                         <x-heroicon-o-document-text class="w-4 h-4" />
                                                     </button>
                                                 </div>
@@ -588,8 +595,7 @@
                                             <td class="p-2 align-top">
                                                 <template x-if="it.units && it.units.length > 1 && !it.frefdtid">
                                                     <select class="w-full border rounded px-2 py-1 text-sm"
-                                                        :id="'unit_saved_' + i"
-                                                        x-model="it.fsatuan"
+                                                        :id="'unit_saved_' + i" x-model="it.fsatuan"
                                                         @focus="activeRow = it.uid" @blur="activeRow = null"
                                                         @keydown.enter.prevent="$refs['qty_saved_' + i]?.focus()">
                                                         <template x-for="u in it.units" :key="u">
@@ -597,7 +603,8 @@
                                                         </template>
                                                     </select>
                                                 </template>
-                                                <input type="text" x-show="!it.units || it.units.length <= 1 || it.frefdtid"
+                                                <input type="text"
+                                                    x-show="!it.units || it.units.length <= 1 || it.frefdtid"
                                                     class="w-full border rounded px-2 py-1 bg-gray-100 text-gray-600 text-sm"
                                                     :value="it.fsatuan || '-'" disabled>
                                             </td>
@@ -606,26 +613,31 @@
                                             <td class="p-2 text-right">
                                                 <input type="number" class="border rounded px-2 py-1 w-full text-right"
                                                     x-model.number="it.fqty" :id="'qty_saved_' + i" step="any"
-                                                    @focus="activeRow = it.uid; $event.target.select()" @blur="activeRow = null; enforceQtyRow(it);"
-                                                    @input="onRowUpdated(i)"
+                                                    @focus="activeRow = it.uid; $event.target.select()"
+                                                    @blur="activeRow = null; enforceQtyRow(it);" @input="onRowUpdated(i)"
                                                     @change="onRowUpdated(i)"
                                                     @keydown.enter.prevent="$refs['price_saved_' + i]?.focus()">
                                                 <div class="text-[10px] text-slate-500 text-right mt-0.5"
                                                     x-show="it.fsource === 'PO' || it.fsource === 'PB'"
                                                     x-text="formatSourceSummary(it)"></div>
-                                                <div class="text-[10px] text-orange-600 font-medium text-right mt-0.5" x-show="it.fitemcode && productMeta(it.fitemcode).stock > 0" x-html="formatStockLimit(it.fitemcode, it.fqty, it.fsatuan)">
+                                                <div class="text-[10px] text-orange-600 font-medium text-right mt-0.5"
+                                                    x-show="it.fitemcode && productMeta(it.fitemcode).stock > 0"
+                                                    x-html="formatStockLimit(it.fitemcode, it.fqty, it.fsatuan)">
                                                 </div>
                                             </td>
 
                                             <!-- @ Harga -->
                                             <td class="p-2 text-right">
-                                                <input type="text" inputmode="decimal" class="border rounded px-2 py-1 w-full text-right"
+                                                <input type="text" inputmode="decimal"
+                                                    class="border rounded px-2 py-1 w-full text-right"
                                                     :disabled="hasTerSourceItems"
-                                                    :class="hasTerSourceItems ? 'border rounded px-2 py-1 w-full text-right bg-gray-100 cursor-not-allowed text-gray-600' : 'border rounded px-2 py-1 w-full text-right'"
-                                                    x-model="it.fpriceInput"
-                                                    :id="'price_saved_' + i" @focus="activeRow = it.uid; focusPriceInput(it); $event.target.select()"
-                                                    @blur="activeRow = null; blurPriceInput(it)"
-                                                    @input="onPriceInput(it)" @change="recalc(it)"
+                                                    :class="hasTerSourceItems ?
+                                                        'border rounded px-2 py-1 w-full text-right bg-gray-100 cursor-not-allowed text-gray-600' :
+                                                        'border rounded px-2 py-1 w-full text-right'"
+                                                    x-model="it.fpriceInput" :id="'price_saved_' + i"
+                                                    @focus="activeRow = it.uid; focusPriceInput(it); $event.target.select()"
+                                                    @blur="activeRow = null; blurPriceInput(it)" @input="onPriceInput(it)"
+                                                    @change="recalc(it)"
                                                     @keydown.enter.prevent="$refs['biaya_saved_' + i]?.focus()">
                                             </td>
 
@@ -633,23 +645,31 @@
                                             <td class="p-2 text-right">
                                                 <input type="number" class="border rounded px-2 py-1 w-full text-right"
                                                     :disabled="hasTerSourceItems"
-                                                    :class="hasTerSourceItems ? 'border rounded px-2 py-1 w-full text-right bg-gray-100 cursor-not-allowed text-gray-600' : 'border rounded px-2 py-1 w-full text-right'"
-                                                    min="0" step="0.01" :value="Number(it.fbiaya || 0).toFixed(2)"
-                                                    :id="'biaya_saved_' + i" @focus="activeRow = it.uid; $event.target.select()"
+                                                    :class="hasTerSourceItems ?
+                                                        'border rounded px-2 py-1 w-full text-right bg-gray-100 cursor-not-allowed text-gray-600' :
+                                                        'border rounded px-2 py-1 w-full text-right'"
+                                                    min="0" step="0.01"
+                                                    :value="Number(it.fbiaya || 0).toFixed(2)" :id="'biaya_saved_' + i"
+                                                    @focus="activeRow = it.uid; $event.target.select()"
                                                     @blur="activeRow = null; $event.target.value = (+it.fbiaya || 0).toFixed(2)"
-                                                    @input="it.fbiaya = +$event.target.value; recalc(it)" @change="recalc(it)"
+                                                    @input="it.fbiaya = +$event.target.value; recalc(it)"
+                                                    @change="recalc(it)"
                                                     @keydown.enter.prevent="$refs['disc_saved_' + i]?.focus()">
                                             </td>
 
                                             <!-- Disc.% -->
                                             <td class="p-2 text-right">
-                                                <input type="text" class="border rounded px-2 py-1 w-20 text-right text-sm"
+                                                <input type="text"
+                                                    class="border rounded px-2 py-1 w-20 text-right text-sm"
                                                     :disabled="hasTerSourceItems"
-                                                    :class="hasTerSourceItems ? 'border rounded px-2 py-1 w-20 text-right text-sm bg-gray-100 cursor-not-allowed text-gray-600' : 'border rounded px-2 py-1 w-20 text-right text-sm'"
-                                                    placeholder="10+2" :value="it.fdiscpersen"
-                                                    :id="'disc_saved_' + i" @focus="activeRow = it.uid; $event.target.select()"
+                                                    :class="hasTerSourceItems ?
+                                                        'border rounded px-2 py-1 w-20 text-right text-sm bg-gray-100 cursor-not-allowed text-gray-600' :
+                                                        'border rounded px-2 py-1 w-20 text-right text-sm'"
+                                                    placeholder="10+2" :value="it.fdiscpersen" :id="'disc_saved_' + i"
+                                                    @focus="activeRow = it.uid; $event.target.select()"
                                                     @blur="activeRow = null; normalizeDiscountInput($event, it)"
-                                                    @input="it.fdiscpersen = $event.target.value; recalc(it)" @change="recalc(it)">
+                                                    @input="it.fdiscpersen = $event.target.value; recalc(it)"
+                                                    @change="recalc(it)">
                                             </td>
 
                                             <!-- Total Harga -->
@@ -668,8 +688,8 @@
                                                 </div>
                                             </td>
                                         </tr>
-                                        </tbody>
-                                    </template>
+                                    </tbody>
+                                </template>
 
                             </table>
                         </div>
@@ -679,11 +699,12 @@
                         <div>
                             <div class="mt-3 flex justify-between items-start gap-4">
                                 <div class="w-full flex justify-start mb-3 gap-2">
-                                    
+
                                     <!-- Trigger: Add PO -->
                                     <div x-data="poFormModal()">
                                         <button type="button" @click="openModal()" :disabled="isLocked()"
-                                            :class="isLocked() ? 'cursor-not-allowed opacity-50' : 'hover:bg-emerald-700 focus:ring-2 focus:ring-emerald-500'"
+                                            :class="isLocked() ? 'cursor-not-allowed opacity-50' :
+                                                'hover:bg-emerald-700 focus:ring-2 focus:ring-emerald-500'"
                                             class="inline-flex items-center gap-2 rounded-lg bg-emerald-600 px-3 py-2 text-white focus:outline-none">
                                             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none"
                                                 viewBox="0 0 24 24" stroke="currentColor">
@@ -694,41 +715,62 @@
                                         </button>
 
                                         <!-- PO Modal -->
-                                        <div x-show="show" x-transition.opacity class="fixed inset-0 z-40 bg-black/50" @keydown.escape.window="closeModal()"></div>
+                                        <div x-show="show" x-transition.opacity class="fixed inset-0 z-40 bg-black/50"
+                                            @keydown.escape.window="closeModal()"></div>
                                         <div>
-                                            <div x-show="show" x-cloak x-transition.opacity class="fixed inset-0 z-50 flex items-center justify-center overflow-hidden p-3 md:p-6" aria-modal="true" role="dialog">
-                                                <div class="relative w-full max-w-7xl rounded-xl bg-white shadow-2xl flex flex-col overflow-hidden" style="height: min(760px, calc(100vh - 1.5rem));">
-                                                    <div class="px-6 py-4 border-b border-gray-200 flex items-center justify-between flex-shrink-0 bg-gradient-to-r from-emerald-50 to-white">
-                                                        <h3 class="text-xl font-bold text-gray-800">{{ "Pilih Purchase Order (PO)" }}</h3>
-                                                        <button type="button" @click="closeModal()" class="px-4 py-2 rounded-lg border-2 border-gray-300 bg-white hover:bg-gray-50 hover:border-gray-400 transition-all duration-150 font-medium text-gray-700 text-sm">{{ "Tutup" }}</button>
+                                            <div x-show="show" x-cloak x-transition.opacity
+                                                class="fixed inset-0 z-50 flex items-center justify-center overflow-hidden p-3 md:p-6"
+                                                aria-modal="true" role="dialog">
+                                                <div class="relative w-full max-w-7xl rounded-xl bg-white shadow-2xl flex flex-col overflow-hidden"
+                                                    style="height: min(760px, calc(100vh - 1.5rem));">
+                                                    <div
+                                                        class="px-6 py-4 border-b border-gray-200 flex items-center justify-between flex-shrink-0 bg-gradient-to-r from-emerald-50 to-white">
+                                                        <h3 class="text-xl font-bold text-gray-800">
+                                                            {{ 'Pilih Purchase Order (PO)' }}</h3>
+                                                        <button type="button" @click="closeModal()"
+                                                            class="px-4 py-2 rounded-lg border-2 border-gray-300 bg-white hover:bg-gray-50 hover:border-gray-400 transition-all duration-150 font-medium text-gray-700 text-sm">{{ 'Tutup' }}</button>
                                                     </div>
                                                     <div class="flex-1 overflow-hidden p-6" style="min-height: 0;">
-                                                        <table id="poTable" class="min-w-full text-sm display nowrap stripe hover" style="width:100%">
+                                                        <table id="poTable"
+                                                            class="min-w-full text-sm display nowrap stripe hover"
+                                                            style="width:100%">
                                                             <thead class="sticky top-0 z-10">
                                                                 <tr class="bg-gray-50 border-b-2 border-gray-200">
-                                                                    <th class="p-3 text-left font-semibold text-gray-700">{{ "PO No" }}</th>
-                                                                    <th class="p-3 text-left font-semibold text-gray-700">{{ "Supplier" }}</th>
-                                                                    <th class="p-3 text-left font-semibold text-gray-700">{{ "Tanggal" }}</th>
-                                                                    <th class="p-3 text-center font-semibold text-gray-700">{{ "Aksi" }}</th>
+                                                                    <th class="p-3 text-left font-semibold text-gray-700">
+                                                                        {{ 'PO No' }}</th>
+                                                                    <th class="p-3 text-left font-semibold text-gray-700">
+                                                                        {{ 'Supplier' }}</th>
+                                                                    <th class="p-3 text-left font-semibold text-gray-700">
+                                                                        {{ 'Tanggal' }}</th>
+                                                                    <th
+                                                                        class="p-3 text-center font-semibold text-gray-700">
+                                                                        {{ 'Aksi' }}</th>
                                                                 </tr>
                                                             </thead>
                                                             <tbody></tbody>
                                                         </table>
                                                     </div>
-                                                    <div class="px-6 py-3 border-t border-gray-200 flex-shrink-0 bg-gray-50"></div>
+                                                    <div
+                                                        class="px-6 py-3 border-t border-gray-200 flex-shrink-0 bg-gray-50">
+                                                    </div>
                                                 </div>
                                             </div>
                                             <!-- Duplicate modal -->
-                                            <div x-show="showDupModal" x-cloak x-transition.opacity class="fixed inset-0 z-[60] flex items-center justify-center p-4">
+                                            <div x-show="showDupModal" x-cloak x-transition.opacity
+                                                class="fixed inset-0 z-[60] flex items-center justify-center p-4">
                                                 <div class="absolute inset-0 bg-black/40" @click="closeDupModal()"></div>
                                                 <div class="relative bg-white rounded-xl shadow-xl max-w-2xl w-full p-6">
-                                                    <h3 class="text-lg font-semibold mb-4">{{ "Peringatan Duplikasi" }}</h3>
+                                                    <h3 class="text-lg font-semibold mb-4">{{ 'Peringatan Duplikasi' }}
+                                                    </h3>
                                                     <p class="mb-4">
-                                                        {{ Str::before("Ditemukan :count item yang sudah ada dalam daftar. Hanya item unik yang akan ditambahkan.", '__COUNT__') }}<strong x-text="dupCount"></strong>{{ Str::after("Ditemukan :count item yang sudah ada dalam daftar. Hanya item unik yang akan ditambahkan.", '__COUNT__') }}
+                                                        {{ Str::before('Ditemukan :count item yang sudah ada dalam daftar. Hanya item unik yang akan ditambahkan.', '__COUNT__') }}<strong
+                                                            x-text="dupCount"></strong>{{ Str::after('Ditemukan :count item yang sudah ada dalam daftar. Hanya item unik yang akan ditambahkan.', '__COUNT__') }}
                                                     </p>
                                                     <div class="flex justify-end gap-2">
-                                                        <button type="button" @click="closeDupModal()" class="rounded bg-gray-200 px-4 py-2 text-sm font-medium hover:bg-gray-300">{{ "Batal" }}</button>
-                                                        <button type="button" @click="confirmAddUniques()" class="rounded bg-emerald-600 px-4 py-2 text-sm font-medium text-white hover:bg-emerald-700">{{ "Tambahkan Item Unik" }}</button>
+                                                        <button type="button" @click="closeDupModal()"
+                                                            class="rounded bg-gray-200 px-4 py-2 text-sm font-medium hover:bg-gray-300">{{ 'Batal' }}</button>
+                                                        <button type="button" @click="confirmAddUniques()"
+                                                            class="rounded bg-emerald-600 px-4 py-2 text-sm font-medium text-white hover:bg-emerald-700">{{ 'Tambahkan Item Unik' }}</button>
                                                     </div>
                                                 </div>
                                             </div>
@@ -738,52 +780,74 @@
                                     <!-- Trigger: Add PB -->
                                     <div x-data="pbFormModal()">
                                         <button type="button" @click="openModal()" :disabled="isLocked()"
-                                            :class="isLocked() ? 'cursor-not-allowed opacity-50' : 'hover:bg-blue-700 focus:ring-2 focus:ring-blue-500'"
+                                            :class="isLocked() ? 'cursor-not-allowed opacity-50' :
+                                                'hover:bg-blue-700 focus:ring-2 focus:ring-blue-500'"
                                             class="inline-flex items-center gap-2 rounded-lg bg-blue-600 px-3 py-2 text-white focus:outline-none">
                                             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none"
                                                 viewBox="0 0 24 24" stroke="currentColor">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
                                                     d="M12 4.5v15m7.5-7.5h-15" />
                                             </svg>
-                                            Add TER
+                                            Add Faktur
                                         </button>
 
                                         <!-- PB Modal -->
-                                        <div x-show="show" x-transition.opacity class="fixed inset-0 z-40 bg-black/50" @keydown.escape.window="closeModal()"></div>
+                                        <div x-show="show" x-transition.opacity class="fixed inset-0 z-40 bg-black/50"
+                                            @keydown.escape.window="closeModal()"></div>
                                         <div>
-                                            <div x-show="show" x-cloak x-transition.opacity class="fixed inset-0 z-50 flex items-center justify-center overflow-hidden p-3 md:p-6" aria-modal="true" role="dialog">
-                                                <div class="relative w-full max-w-7xl rounded-xl bg-white shadow-2xl flex flex-col overflow-hidden" style="height: min(760px, calc(100vh - 1.5rem));">
-                                                    <div class="px-6 py-4 border-b border-gray-200 flex items-center justify-between flex-shrink-0 bg-gradient-to-r from-blue-50 to-white">
-                                                        <h3 class="text-xl font-bold text-gray-800">{{ "Pilih Penerimaan Barang" }}</h3>
-                                                        <button type="button" @click="closeModal()" class="px-4 py-2 rounded-lg border-2 border-gray-300 bg-white hover:bg-gray-50 hover:border-gray-400 transition-all duration-150 font-medium text-gray-700 text-sm">{{ "Tutup" }}</button>
+                                            <div x-show="show" x-cloak x-transition.opacity
+                                                class="fixed inset-0 z-50 flex items-center justify-center overflow-hidden p-3 md:p-6"
+                                                aria-modal="true" role="dialog">
+                                                <div class="relative w-full max-w-7xl rounded-xl bg-white shadow-2xl flex flex-col overflow-hidden"
+                                                    style="height: min(760px, calc(100vh - 1.5rem));">
+                                                    <div
+                                                        class="px-6 py-4 border-b border-gray-200 flex items-center justify-between flex-shrink-0 bg-gradient-to-r from-blue-50 to-white">
+                                                        <h3 class="text-xl font-bold text-gray-800">
+                                                            {{ 'Pilih Penerimaan Barang' }}</h3>
+                                                        <button type="button" @click="closeModal()"
+                                                            class="px-4 py-2 rounded-lg border-2 border-gray-300 bg-white hover:bg-gray-50 hover:border-gray-400 transition-all duration-150 font-medium text-gray-700 text-sm">{{ 'Tutup' }}</button>
                                                     </div>
                                                     <div class="flex-1 overflow-hidden p-6" style="min-height: 0;">
-                                                        <table id="pbTable" class="min-w-full text-sm display nowrap stripe hover" style="width:100%">
+                                                        <table id="pbTable"
+                                                            class="min-w-full text-sm display nowrap stripe hover"
+                                                            style="width:100%">
                                                             <thead class="sticky top-0 z-10">
                                                                 <tr class="bg-gray-50 border-b-2 border-gray-200">
-                                                                    <th class="p-3 text-left font-semibold text-gray-700">{{ "No.Transaksi" }}</th>
-                                                                    <th class="p-3 text-left font-semibold text-gray-700">{{ "Supplier" }}</th>
-                                                                    <th class="p-3 text-left font-semibold text-gray-700">{{ "Tanggal" }}</th>
-                                                                    <th class="p-3 text-center font-semibold text-gray-700">{{ "Aksi" }}</th>
+                                                                    <th class="p-3 text-left font-semibold text-gray-700">
+                                                                        {{ 'No.Transaksi' }}</th>
+                                                                    <th class="p-3 text-left font-semibold text-gray-700">
+                                                                        {{ 'Supplier' }}</th>
+                                                                    <th class="p-3 text-left font-semibold text-gray-700">
+                                                                        {{ 'Tanggal' }}</th>
+                                                                    <th
+                                                                        class="p-3 text-center font-semibold text-gray-700">
+                                                                        {{ 'Aksi' }}</th>
                                                                 </tr>
                                                             </thead>
                                                             <tbody></tbody>
                                                         </table>
                                                     </div>
-                                                    <div class="px-6 py-3 border-t border-gray-200 flex-shrink-0 bg-gray-50"></div>
+                                                    <div
+                                                        class="px-6 py-3 border-t border-gray-200 flex-shrink-0 bg-gray-50">
+                                                    </div>
                                                 </div>
                                             </div>
                                             <!-- Duplicate modal -->
-                                            <div x-show="showDupModal" x-cloak x-transition.opacity class="fixed inset-0 z-[60] flex items-center justify-center p-4">
+                                            <div x-show="showDupModal" x-cloak x-transition.opacity
+                                                class="fixed inset-0 z-[60] flex items-center justify-center p-4">
                                                 <div class="absolute inset-0 bg-black/40" @click="closeDupModal()"></div>
                                                 <div class="relative bg-white rounded-xl shadow-xl max-w-2xl w-full p-6">
-                                                    <h3 class="text-lg font-semibold mb-4">{{ "Peringatan Duplikasi" }}</h3>
+                                                    <h3 class="text-lg font-semibold mb-4">{{ 'Peringatan Duplikasi' }}
+                                                    </h3>
                                                     <p class="mb-4">
-                                                        {{ Str::before("Ditemukan :count item yang sudah ada dalam daftar. Hanya item unik yang akan ditambahkan.", '__COUNT__') }}<strong x-text="dupCount"></strong>{{ Str::after("Ditemukan :count item yang sudah ada dalam daftar. Hanya item unik yang akan ditambahkan.", '__COUNT__') }}
+                                                        {{ Str::before('Ditemukan :count item yang sudah ada dalam daftar. Hanya item unik yang akan ditambahkan.', '__COUNT__') }}<strong
+                                                            x-text="dupCount"></strong>{{ Str::after('Ditemukan :count item yang sudah ada dalam daftar. Hanya item unik yang akan ditambahkan.', '__COUNT__') }}
                                                     </p>
                                                     <div class="flex justify-end gap-2">
-                                                        <button type="button" @click="closeDupModal()" class="rounded bg-gray-200 px-4 py-2 text-sm font-medium hover:bg-gray-300">{{ "Batal" }}</button>
-                                                        <button type="button" @click="confirmAddUniques()" class="rounded bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700">{{ "Tambahkan Item Unik" }}</button>
+                                                        <button type="button" @click="closeDupModal()"
+                                                            class="rounded bg-gray-200 px-4 py-2 text-sm font-medium hover:bg-gray-300">{{ 'Batal' }}</button>
+                                                        <button type="button" @click="confirmAddUniques()"
+                                                            class="rounded bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700">{{ 'Tambahkan Item Unik' }}</button>
                                                     </div>
                                                 </div>
                                             </div>
@@ -819,8 +883,8 @@
 
                                             <!-- Input Rate + Nominal (kanan) -->
                                             <div class="ml-2 flex items-center gap-1">
-                                                <input type="number" min="0" max="100" step="0.01" name="ppn_rate"
-                                                    x-model.number="ppnRate" :disabled="!includePPN"
+                                                <input type="number" min="0" max="100" step="0.01"
+                                                    name="ppn_rate" x-model.number="ppnRate" :disabled="!includePPN"
                                                     class="w-20 h-9 px-2 text-sm leading-tight text-right border rounded transition-opacity
                                                             [appearance:textfield]
                                                             [&::-webkit-outer-spin-button]:appearance-none
@@ -884,8 +948,7 @@
                                             x-text="descItemName || '-'"></div>
                                     </div>
                                     <label class="block text-sm text-gray-700">Deskripsi</label>
-                                    <textarea x-model="descValue" rows="5" class="w-full border rounded px-3 py-2"
-                                        :readonly="descReadonly"
+                                    <textarea x-model="descValue" rows="5" class="w-full border rounded px-3 py-2" :readonly="descReadonly"
                                         placeholder="Tulis deskripsi item di sini..."></textarea>
                                 </div>
 
@@ -902,8 +965,8 @@
                             </div>
                         </div>
 
-                        <div x-show="showSupplierRequired" x-cloak class="fixed inset-0 z-[94] flex items-center justify-center"
-                            x-transition.opacity>
+                        <div x-show="showSupplierRequired" x-cloak
+                            class="fixed inset-0 z-[94] flex items-center justify-center" x-transition.opacity>
                             <div class="absolute inset-0 bg-black/50" @click="showSupplierRequired = false"></div>
 
                             <div class="relative bg-white w-[92vw] max-w-md rounded-2xl shadow-2xl overflow-hidden"
@@ -915,7 +978,7 @@
 
                                 <div class="px-5 py-4">
                                     <p class="text-sm text-gray-700">
-                                        Supplier wajib dipilih sebelum input produk manual. Untuk Add PO atau Add TER,
+                                        Supplier wajib dipilih sebelum input produk manual. Untuk Add PO atau Add Faktur,
                                         supplier tidak wajib dipilih terlebih dahulu.
                                     </p>
                                 </div>
@@ -930,8 +993,8 @@
                             </div>
                         </div>
 
-                        <div x-show="showDescCodeRequired" x-cloak class="fixed inset-0 z-[94] flex items-center justify-center"
-                            x-transition.opacity>
+                        <div x-show="showDescCodeRequired" x-cloak
+                            class="fixed inset-0 z-[94] flex items-center justify-center" x-transition.opacity>
                             <div class="absolute inset-0 bg-black/50" @click="showDescCodeRequired = false"></div>
 
                             <div class="relative bg-white w-[92vw] max-w-md rounded-2xl shadow-2xl overflow-hidden"
@@ -948,8 +1011,7 @@
                                 </div>
 
                                 <div class="px-5 py-3 border-t flex items-center justify-end gap-2">
-                                    <button type="button"
-                                        @click="showDescCodeRequired = false"
+                                    <button type="button" @click="showDescCodeRequired = false"
                                         class="h-9 px-4 rounded-lg bg-blue-600 text-white text-sm font-medium hover:bg-blue-700">
                                         OK
                                     </button>
@@ -959,84 +1021,85 @@
 
                         <input type="hidden" id="itemsCount" :value="submitItems.length">
 
-                    {{-- MODAL ERROR: belum ada item --}}
-                    <div x-show="showNoItems && savedItems.length === 0" x-cloak
-                        class="fixed inset-0 z-[90] flex items-center justify-center" x-transition.opacity>
-                        <div class="absolute inset-0 bg-black/50" @click="showNoItems=false"></div>
+                        {{-- MODAL ERROR: belum ada item --}}
+                        <div x-show="showNoItems && savedItems.length === 0" x-cloak
+                            class="fixed inset-0 z-[90] flex items-center justify-center" x-transition.opacity>
+                            <div class="absolute inset-0 bg-black/50" @click="showNoItems=false"></div>
 
-                        <div class="relative bg-white w-[92vw] max-w-md rounded-2xl shadow-2xl overflow-hidden"
-                            x-transition.scale>
-                            <div class="px-5 py-4 border-b flex items-center">
-                                <x-heroicon-o-exclamation-triangle class="w-6 h-6 text-red-500 mr-2" />
-                                <h3 class="text-lg font-semibold text-gray-800">Tidak Ada Item</h3>
-                            </div>
+                            <div class="relative bg-white w-[92vw] max-w-md rounded-2xl shadow-2xl overflow-hidden"
+                                x-transition.scale>
+                                <div class="px-5 py-4 border-b flex items-center">
+                                    <x-heroicon-o-exclamation-triangle class="w-6 h-6 text-red-500 mr-2" />
+                                    <h3 class="text-lg font-semibold text-gray-800">Tidak Ada Item</h3>
+                                </div>
 
-                            <div class="px-5 py-4">
-                                <p class="text-sm text-gray-700">
-                                    Anda belum menambahkan item apa pun pada tabel. Silakan isi baris “Detail Item” terlebih
-                                    dahulu.
-                                </p>
-                            </div>
+                                <div class="px-5 py-4">
+                                    <p class="text-sm text-gray-700">
+                                        Anda belum menambahkan item apa pun pada tabel. Silakan isi baris “Detail Item”
+                                        terlebih
+                                        dahulu.
+                                    </p>
+                                </div>
 
-                            <div class="px-5 py-3 border-t flex items-center justify-end gap-2">
-                                <button type="button" @click="showNoItems=false"
-                                    class="h-9 px-4 rounded-lg bg-blue-600 text-white text-sm font-medium hover:bg-blue-700">
-                                    OK
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div x-show="showWarningModal" x-cloak class="fixed inset-0 z-[96] flex items-center justify-center"
-                        x-transition.opacity>
-                        <div class="absolute inset-0 bg-black/50" @click="closeWarning()"></div>
-                        <div class="relative bg-white w-[92vw] max-w-lg rounded-2xl shadow-2xl overflow-hidden"
-                            x-transition.scale>
-                            <div class="px-5 py-4 border-b flex items-center">
-                                <x-heroicon-o-exclamation-triangle class="w-6 h-6 text-amber-500 mr-2" />
-                                <h3 class="text-lg font-semibold text-gray-800" x-text="warningTitle"></h3>
-                            </div>
-
-                            <div class="px-5 py-4 space-y-3">
-                                <p class="text-sm text-gray-700" x-text="warningMessage"></p>
-                                <template x-if="warningItems.length > 0">
-                                    <ul class="list-disc pl-5 text-sm text-gray-700 space-y-1">
-                                        <template x-for="item in warningItems" :key="item">
-                                            <li x-text="item"></li>
-                                        </template>
-                                    </ul>
-                                </template>
-                            </div>
-
-                            <div class="px-5 py-3 border-t flex items-center justify-end gap-2">
-                                <button type="button" @click="closeWarning()"
-                                    class="h-9 px-4 rounded-lg bg-gray-100 text-gray-700 text-sm font-medium hover:bg-gray-200">
-                                    Tutup
-                                </button>
-                                <button type="button" x-show="warningCanProceed" @click="confirmWarningAndSubmit()"
-                                    class="h-9 px-4 rounded-lg bg-emerald-600 text-white text-sm font-medium hover:bg-emerald-700">
-                                    Lanjut Simpan
-                                </button>
+                                <div class="px-5 py-3 border-t flex items-center justify-end gap-2">
+                                    <button type="button" @click="showNoItems=false"
+                                        class="h-9 px-4 rounded-lg bg-blue-600 text-white text-sm font-medium hover:bg-blue-700">
+                                        OK
+                                    </button>
+                                </div>
                             </div>
                         </div>
-                    </div>
+
+                        <div x-show="showWarningModal" x-cloak
+                            class="fixed inset-0 z-[96] flex items-center justify-center" x-transition.opacity>
+                            <div class="absolute inset-0 bg-black/50" @click="closeWarning()"></div>
+                            <div class="relative bg-white w-[92vw] max-w-lg rounded-2xl shadow-2xl overflow-hidden"
+                                x-transition.scale>
+                                <div class="px-5 py-4 border-b flex items-center">
+                                    <x-heroicon-o-exclamation-triangle class="w-6 h-6 text-amber-500 mr-2" />
+                                    <h3 class="text-lg font-semibold text-gray-800" x-text="warningTitle"></h3>
+                                </div>
+
+                                <div class="px-5 py-4 space-y-3">
+                                    <p class="text-sm text-gray-700" x-text="warningMessage"></p>
+                                    <template x-if="warningItems.length > 0">
+                                        <ul class="list-disc pl-5 text-sm text-gray-700 space-y-1">
+                                            <template x-for="item in warningItems" :key="item">
+                                                <li x-text="item"></li>
+                                            </template>
+                                        </ul>
+                                    </template>
+                                </div>
+
+                                <div class="px-5 py-3 border-t flex items-center justify-end gap-2">
+                                    <button type="button" @click="closeWarning()"
+                                        class="h-9 px-4 rounded-lg bg-gray-100 text-gray-700 text-sm font-medium hover:bg-gray-200">
+                                        Tutup
+                                    </button>
+                                    <button type="button" x-show="warningCanProceed" @click="confirmWarningAndSubmit()"
+                                        class="h-9 px-4 rounded-lg bg-emerald-600 text-white text-sm font-medium hover:bg-emerald-700">
+                                        Lanjut Simpan
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
 
 
-                    <div class="mt-8 border-t pt-6 flex justify-center gap-4">
-                        <button type="submit"
-                            class="bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700 flex items-center">
-                            <x-heroicon-o-check class="w-5 h-5 mr-2" /> Simpan
-                        </button>
-                        <button type="button" @click="window.location.href='{{ route('fakturpembelian.index') }}'"
-                            class="bg-gray-500 text-white px-6 py-2 rounded hover:bg-gray-600 flex items-center">
-                            <x-heroicon-o-arrow-left class="w-5 h-5 mr-2" /> Keluar
-                        </button>
-                    </div>
+                        <div class="mt-8 border-t pt-6 flex justify-center gap-4">
+                            <button type="submit"
+                                class="bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700 flex items-center">
+                                <x-heroicon-o-check class="w-5 h-5 mr-2" /> Simpan
+                            </button>
+                            <button type="button" @click="window.location.href='{{ route('fakturpembelian.index') }}'"
+                                class="bg-gray-500 text-white px-6 py-2 rounded hover:bg-gray-600 flex items-center">
+                                <x-heroicon-o-arrow-left class="w-5 h-5 mr-2" /> Keluar
+                            </button>
+                        </div>
 
-                    <x-transaction.browse-supplier-modal />
-                    <x-transaction.browse-product-modal show-controls="true" show-pagination="true" />
-                    <x-transaction.browse-warehouse-modal event-name="faktur-pembelian-warehouse-browse-open" />
-                    <x-transaction.browse-account-modal />
+                        <x-transaction.browse-supplier-modal />
+                        <x-transaction.browse-product-modal show-controls="true" show-pagination="true" />
+                        <x-transaction.browse-warehouse-modal event-name="faktur-pembelian-warehouse-browse-open" />
+                        <x-transaction.browse-account-modal />
                 </form>
             </div>
         </div>
@@ -1257,8 +1320,8 @@
             initialPpnAmount: @json($famountpajak ?? 0),
 
             includePPN: @json($includePPN == 1),
-            ppnMode: @json((int)$ppnMode),
-            ppnRate: @json((float)$ppnRate),
+            ppnMode: @json((int) $ppnMode),
+            ppnRate: @json((float) $ppnRate),
 
             get ppnAmount() {
                 if (!this.includePPN) return 0;
@@ -1280,7 +1343,8 @@
             },
 
             get hasTerSourceItems() {
-                return (this.savedItems || []).some((item) => (item?.fsource || '').toString().trim().toUpperCase() === 'PB');
+                return (this.savedItems || []).some((item) => (item?.fsource || '').toString().trim()
+                .toUpperCase() === 'PB');
             },
 
             fmt(n) {
@@ -1386,15 +1450,15 @@
                 }
             },
 
-                recalc(row) {
-                    row.fqty = Math.max(0, +row.fqty || 0);
-                    row.fprice = Math.max(0, +row.fprice || 0);
-                    if (typeof row.fpriceInput === 'undefined') {
-                        row.fpriceInput = row.fprice.toFixed(2);
-                    }
-                    row.fbiaya = Math.max(0, +row.fbiaya || 0);
-                    row.fdiscpersen = this.normalizeDiscountValue(row.fdiscpersen);
-                    const discPercent = this.parseDiscount(row.fdiscpersen);
+            recalc(row) {
+                row.fqty = Math.max(0, +row.fqty || 0);
+                row.fprice = Math.max(0, +row.fprice || 0);
+                if (typeof row.fpriceInput === 'undefined') {
+                    row.fpriceInput = row.fprice.toFixed(2);
+                }
+                row.fbiaya = Math.max(0, +row.fbiaya || 0);
+                row.fdiscpersen = this.normalizeDiscountValue(row.fdiscpersen);
+                const discPercent = this.parseDiscount(row.fdiscpersen);
 
                 const basePrice = (row.fprice + row.fbiaya) * row.fqty;
                 const diskon = (row.fqty * row.fprice) * (discPercent / 100);
@@ -1426,7 +1490,11 @@
                         default_unit: '',
                         units: [],
                         stock: 0,
-                        unit_ratios: { satuankecil: 1, satuanbesar: 1, satuanbesar2: 1 }
+                        unit_ratios: {
+                            satuankecil: 1,
+                            satuanbesar: 1,
+                            satuanbesar2: 1
+                        }
                     };
                 }
                 return meta;
@@ -1439,7 +1507,11 @@
             qtyToKecil(code, qty, satuan) {
                 const meta = this.productMeta(code);
                 const units = meta?.units || [];
-                const ratios = meta?.unit_ratios || { satuankecil: 1, satuanbesar: 1, satuanbesar2: 1 };
+                const ratios = meta?.unit_ratios || {
+                    satuankecil: 1,
+                    satuanbesar: 1,
+                    satuanbesar2: 1
+                };
                 const satKecil = units[0] || '';
                 const satBesar = units[1] || '';
                 const satBesar2 = units[2] || '';
@@ -1461,7 +1533,11 @@
             kecilToUnit(code, qtyKecil, satuan) {
                 const meta = this.productMeta(code);
                 const units = meta?.units || [];
-                const ratios = meta?.unit_ratios || { satuankecil: 1, satuanbesar: 1, satuanbesar2: 1 };
+                const ratios = meta?.unit_ratios || {
+                    satuankecil: 1,
+                    satuanbesar: 1,
+                    satuanbesar2: 1
+                };
                 const satKecil = units[0] || '';
                 const satBesar = units[1] || '';
                 const satBesar2 = units[2] || '';
@@ -1495,19 +1571,23 @@
                 const n = +row.fqty;
                 const meta = this.productMeta(row.fitemcode);
                 const units = meta?.units || [];
-                const ratios = meta?.unit_ratios || { satuankecil: 1, satuanbesar: 1, satuanbesar2: 1 };
+                const ratios = meta?.unit_ratios || {
+                    satuankecil: 1,
+                    satuanbesar: 1,
+                    satuanbesar2: 1
+                };
                 const satKecil = units[0] || 'pcs';
                 const satBesar = units[1] || '';
                 const satBesar2 = units[2] || '';
                 const satuan = row.fsatuan || '';
-                
+
                 let ratio = 1;
                 if (satuan === satBesar2 && ratios.satuanbesar2 > 0) {
                     ratio = ratios.satuanbesar2;
                 } else if (satuan === satBesar && ratios.satuanbesar > 0) {
                     ratio = ratios.satuanbesar;
                 }
-                
+
                 if (!Number.isFinite(n)) {
                     row.fqty = 0;
                     return;
@@ -1528,11 +1608,12 @@
                 const units = [...new Set((meta.units || []).map(u => (u ?? '').toString().trim()).filter(Boolean))];
                 const defaultUnit = (meta.default_unit || '').toString().trim();
                 const resolvedDefaultUnit = defaultUnit && units.includes(defaultUnit) ? defaultUnit : (units[0] || '');
-                const matchedUnit = preferredUnit === '' ? '' : (units.find(u => u.toLowerCase() === preferredUnit.toLowerCase()) || '');
+                const matchedUnit = preferredUnit === '' ? '' : (units.find(u => u.toLowerCase() === preferredUnit
+                    .toLowerCase()) || '');
 
-                row.units = matchedUnit !== ''
-                    ? [matchedUnit, ...units.filter(u => u.toLowerCase() !== matchedUnit.toLowerCase())]
-                    : units;
+                row.units = matchedUnit !== '' ?
+                    [matchedUnit, ...units.filter(u => u.toLowerCase() !== matchedUnit.toLowerCase())] :
+                    units;
 
                 if (forceDefaultUnit) {
                     row.fsatuan = resolvedDefaultUnit;
@@ -1548,7 +1629,8 @@
             },
 
             getSelectedSupplierCode() {
-                return (document.getElementById('supplierCodeHidden')?.value || document.getElementById('modal_filter_supplier_id')?.value || '').trim();
+                return (document.getElementById('supplierCodeHidden')?.value || document.getElementById(
+                    'modal_filter_supplier_id')?.value || '').trim();
             },
 
             requireSupplierBeforeManualProduct() {
@@ -1567,23 +1649,31 @@
 
                 if (hiddenInput) {
                     hiddenInput.value = supplierCode;
-                    hiddenInput.dispatchEvent(new Event('change', { bubbles: true }));
+                    hiddenInput.dispatchEvent(new Event('change', {
+                        bubbles: true
+                    }));
                 }
 
                 if (selectInput) {
                     selectInput.value = supplierCode;
-                    selectInput.dispatchEvent(new Event('change', { bubbles: true }));
+                    selectInput.dispatchEvent(new Event('change', {
+                        bubbles: true
+                    }));
 
-                    const option = Array.from(selectInput.options || []).find(opt => (opt.value || '').trim() === supplierCode);
+                    const option = Array.from(selectInput.options || []).find(opt => (opt.value || '').trim() ===
+                        supplierCode);
                     const tempo = Number(option?.getAttribute('data-tempo') || 0);
                     if (tempoInput && Number.isFinite(tempo)) {
                         tempoInput.value = tempo;
-                        tempoInput.dispatchEvent(new Event('input', { bubbles: true }));
+                        tempoInput.dispatchEvent(new Event('input', {
+                            bubbles: true
+                        }));
                     }
                 }
             },
             hasSourceLockedSupplier() {
-                return (this.savedItems || []).some(item => ['PO', 'PB'].includes((item?.fsource || '').toString().trim().toUpperCase()));
+                return (this.savedItems || []).some(item => ['PO', 'PB'].includes((item?.fsource || '').toString()
+                .trim().toUpperCase()));
             },
             syncSupplierLockState() {
                 const locked = this.hasSourceLockedSupplier();
@@ -1692,7 +1782,8 @@
             },
 
             normalizeRefNoAcak(value) {
-                const parts = String(value ?? '').split(',').map(part => part.trim()).filter(part => /^\d{3}$/.test(part));
+                const parts = String(value ?? '').split(',').map(part => part.trim()).filter(part => /^\d{3}$/.test(
+                    part));
                 return [...new Set(parts)].join(',');
             },
 
@@ -1709,13 +1800,14 @@
                     let fnourefVal = src.fnouref ?? src.fnou ?? '';
                     let frefdtnoVal = src.frefdtno ?? '';
                     if (sourceType === 'PO') {
-                       frefdtnoVal = header?.fpono ?? '';
+                        frefdtnoVal = header?.fpono ?? '';
                     } else if (sourceType === 'PB') {
-                       frefdtnoVal = header?.fstockmtno ?? '';
+                        frefdtnoVal = header?.fstockmtno ?? '';
                     }
 
                     const sourceQty = Math.max(0, +(src.fqty ?? 0) || 0);
-                    const sourceQtyKecil = Math.max(0, +(src.fqtykecil ?? src.fqtyremain ?? src.fqty ?? 0) || 0);
+                    const sourceQtyKecil = Math.max(0, +(src.fqtykecil ?? src.fqtyremain ?? src.fqty ?? 0) ||
+                    0);
                     const sourceLimit = sourceQty > 0 ? sourceQty : sourceQtyKecil;
 
                     const row = {
@@ -1745,7 +1837,8 @@
                         ftotprice: +(src.fharga || 0),
 
                         fdesc: src.fdesc || '',
-                        units: Array.isArray(src.units) && src.units.length ? src.units : [src.fsatuan].filter(Boolean)
+                        units: Array.isArray(src.units) && src.units.length ? src.units : [src.fsatuan]
+                            .filter(Boolean)
                     };
 
                     const rawMeta = window.PRODUCT_MAP?.[(row.fitemcode || '').trim()];
@@ -1862,21 +1955,21 @@
 
             isRowFilled(row) {
                 return [
-                    row.fitemcode,
-                    row.fitemname,
-                    row.fsatuan,
-                    row.frefdtno,
-                    row.fsource,
-                    row.fnouref,
-                    row.frefpr,
-                    row.fqty,
-                    row.fprice,
-                    row.fbiaya,
-                    row.fdiscpersen,
-                    row.fdesc,
-                    row.fketdt
-                ].some((value) => String(value ?? '').trim() !== '' && Number(value ?? 0) !== 0)
-                    || Number(row.fqty || 0) > 0;
+                        row.fitemcode,
+                        row.fitemname,
+                        row.fsatuan,
+                        row.frefdtno,
+                        row.fsource,
+                        row.fnouref,
+                        row.frefpr,
+                        row.fqty,
+                        row.fprice,
+                        row.fbiaya,
+                        row.fdiscpersen,
+                        row.fdesc,
+                        row.fketdt
+                    ].some((value) => String(value ?? '').trim() !== '' && Number(value ?? 0) !== 0) ||
+                    Number(row.fqty || 0) > 0;
             },
 
             rowWarningLabel(row) {
@@ -1899,7 +1992,9 @@
                     return;
                 }
 
-                this.savedItems = this.pendingValidRows.map((row) => ({ ...row }));
+                this.savedItems = this.pendingValidRows.map((row) => ({
+                    ...row
+                }));
                 this.recalcTotals();
                 const form = this.pendingSubmitForm;
                 this.closeWarning();
@@ -1931,9 +2026,9 @@
                 return String(value ?? '').trim() !== '';
             },
             descButtonClass(value) {
-                return this.hasDesc(value)
-                    ? 'border-emerald-200 bg-emerald-50 text-emerald-700 hover:bg-emerald-100'
-                    : 'border-slate-200 bg-slate-50 text-slate-700 hover:bg-slate-100';
+                return this.hasDesc(value) ?
+                    'border-emerald-200 bg-emerald-50 text-emerald-700 hover:bg-emerald-100' :
+                    'border-slate-200 bg-slate-50 text-slate-700 hover:bg-slate-100';
             },
             getDescRow(target = 'saved', index = null) {
                 if (target === 'saved' && index !== null) {
@@ -1976,7 +2071,8 @@
                 this.descValue = this.descItemName || '';
             },
             applyDesc() {
-                if (this.descTarget === 'saved' && this.descSavedIndex !== null && this.savedItems[this.descSavedIndex]) {
+                if (this.descTarget === 'saved' && this.descSavedIndex !== null && this.savedItems[this
+                    .descSavedIndex]) {
                     this.savedItems[this.descSavedIndex].fdesc = this.descValue;
                     this.onRowUpdated(this.descSavedIndex);
                 }
@@ -2005,20 +2101,25 @@
             },
 
             hasSourceReferenceRows() {
-                return (this.savedItems || []).some((row) => ['PO', 'PB'].includes((row?.fsource || '').toString().trim().toUpperCase()));
+                return (this.savedItems || []).some((row) => ['PO', 'PB'].includes((row?.fsource || '').toString()
+                .trim().toUpperCase()));
             },
 
             hasMixedOpeningBalanceAndSourceRows(rows = this.savedItems) {
                 const activeRows = (rows || []).filter((row) => this.isRowSavable(row));
                 const hasOpeningBalance = activeRows.some((row) => this.isOpeningBalanceCode(row?.fitemcode));
-                const hasSourceReference = activeRows.some((row) => ['PO', 'PB'].includes((row?.fsource || '').toString().trim().toUpperCase()));
+                const hasSourceReference = activeRows.some((row) => ['PO', 'PB'].includes((row?.fsource || '')
+                .toString().trim().toUpperCase()));
                 return hasOpeningBalance && hasSourceReference;
             },
 
             showOpeningBalanceMixWarning() {
-                const message = 'Item AWAL tidak boleh digabung dengan item referensi PO atau TER dalam satu faktur pembelian.';
+                const message =
+                    'Item AWAL tidak boleh digabung dengan item referensi PO atau TER dalam satu faktur pembelian.';
                 if (window.showTransactionErrorModal) {
-                    window.showTransactionErrorModal(message, { title: 'Kombinasi Item Tidak Diizinkan' });
+                    window.showTransactionErrorModal(message, {
+                        title: 'Kombinasi Item Tidak Diizinkan'
+                    });
                     return;
                 }
                 window.showAppErrorAlert('TERJADI KESALAHAN', message);
@@ -2033,8 +2134,12 @@
                 const typeSelect = document.querySelector('select[name="ftypebuy"]');
                 if (typeSelect && typeSelect.value !== '1') {
                     typeSelect.value = '1';
-                    typeSelect.dispatchEvent(new Event('input', { bubbles: true }));
-                    typeSelect.dispatchEvent(new Event('change', { bubbles: true }));
+                    typeSelect.dispatchEvent(new Event('input', {
+                        bubbles: true
+                    }));
+                    typeSelect.dispatchEvent(new Event('change', {
+                        bubbles: true
+                    }));
                 }
             },
 
@@ -2099,11 +2204,11 @@
                     } = e.detail || {};
                     if (!product) return;
                     const apply = (row) => {
-                    row.fitemcode = (product.fprdcode || '').toString();
-                    this.hydrateRowFromMeta(row, this.productMeta(row.fitemcode), true);
-                    this.rows.splice(this.browseTarget, 1, {
-                        ...this.rows[this.browseTarget]
-                    });
+                        row.fitemcode = (product.fprdcode || '').toString();
+                        this.hydrateRowFromMeta(row, this.productMeta(row.fitemcode), true);
+                        this.rows.splice(this.browseTarget, 1, {
+                            ...this.rows[this.browseTarget]
+                        });
                         if (row.fqty === null || row.fqty === undefined || row.fqty === '') row.fqty = 0;
                         this.recalc(row);
                         const index = this.savedItems.findIndex((item) => item.uid === row.uid);
@@ -2129,11 +2234,13 @@
                     if (!code) continue;
                     if (seenCodes.has(code)) {
                         if (window.showTransactionErrorModal) {
-                            window.showTransactionErrorModal(`Kode produk ${code} tidak boleh sama dalam satu Faktur Pembelian.`, {
-                                title: 'Produk Duplikat'
-                            });
+                            window.showTransactionErrorModal(
+                                `Kode produk ${code} tidak boleh sama dalam satu Faktur Pembelian.`, {
+                                    title: 'Produk Duplikat'
+                                });
                         } else {
-                            window.showAppWarningAlert('WARNING', `KODE PRODUK ${code} TIDAK BOLEH SAMA DALAM SATU FAKTUR PEMBELIAN.`);
+                            window.showAppWarningAlert('WARNING',
+                                `KODE PRODUK ${code} TIDAK BOLEH SAMA DALAM SATU FAKTUR PEMBELIAN.`);
                         }
                         return;
                     }
@@ -2147,9 +2254,9 @@
 
                 if (warningRows.length > 0) {
                     this.warningTitle = 'Qty Belum Diisi';
-                    this.warningMessage = validRows.length > 0
-                        ? 'Beberapa item tidak akan disimpan karena qty masih 0.'
-                        : 'Tidak ada item yang bisa disimpan karena qty masih 0 atau data belum lengkap.';
+                    this.warningMessage = validRows.length > 0 ?
+                        'Beberapa item tidak akan disimpan karena qty masih 0.' :
+                        'Tidak ada item yang bisa disimpan karena qty masih 0 atau data belum lengkap.';
                     this.warningItems = warningRows.map((row) => this.rowWarningLabel(row));
                     this.warningCanProceed = validRows.length > 0;
                     this.pendingSubmitForm = form;
@@ -2163,7 +2270,9 @@
                     return;
                 }
 
-                this.savedItems = validRows.map((row) => ({ ...row }));
+                this.savedItems = validRows.map((row) => ({
+                    ...row
+                }));
                 this.recalcTotals();
                 this.$nextTick(() => {
                     this.syncDetailPayload(form, this.savedItems);
@@ -2180,7 +2289,8 @@
                 window.dispatchEvent(new CustomEvent('browse-open', {
                     detail: {
                         forEdit: false,
-                        productCodeFilter: document.querySelector('select[name="ftypebuy"]')?.value === '2' ? 'UM' : ''
+                        productCodeFilter: document.querySelector('select[name="ftypebuy"]')?.value ===
+                            '2' ? 'UM' : ''
                     }
                 }));
             },
@@ -2239,7 +2349,9 @@
             showLockedWarning() {
                 const message = 'Item AWAL untuk saldo awal tidak boleh ambil referensi PO atau TER.';
                 if (window.showTransactionErrorModal) {
-                    window.showTransactionErrorModal(message, { title: 'Referensi Tidak Bisa Dipakai' });
+                    window.showTransactionErrorModal(message, {
+                        title: 'Referensi Tidak Bisa Dipakai'
+                    });
                     return;
                 }
                 window.showAppErrorAlert('TERJADI KESALAHAN', message);
@@ -2261,7 +2373,9 @@
                         type: 'GET',
                         data: function(d) {
                             return {
-                                supplier_code: (document.getElementById('supplierCodeHidden')?.value || document.getElementById('modal_filter_supplier_id')?.value || '').trim(),
+                                supplier_code: (document.getElementById('supplierCodeHidden')?.value ||
+                                    document.getElementById('modal_filter_supplier_id')?.value || ''
+                                    ).trim(),
                                 draw: d.draw,
                                 start: d.start,
                                 length: d.length,
@@ -2298,14 +2412,19 @@
                             searchable: false,
                             className: 'text-center',
                             render: function(data, type, row) {
-                                return '<button type="button" class="btn-pick px-4 py-1.5 rounded-md text-sm font-medium bg-blue-600 hover:bg-blue-700 text-white transition-colors duration-150">{{ "Pilih" }}</button>';
+                                return '<button type="button" class="btn-pick px-4 py-1.5 rounded-md text-sm font-medium bg-blue-600 hover:bg-blue-700 text-white transition-colors duration-150">{{ 'Pilih' }}</button>';
                             }
                         }
                     ],
                     pageLength: 10,
-                    lengthMenu: [[10, 25, 50, 100], [10, 25, 50, 100]],
+                    lengthMenu: [
+                        [10, 25, 50, 100],
+                        [10, 25, 50, 100]
+                    ],
                     dom: '<"flex justify-between items-center mb-4"f<"ml-auto"l>>rtip',
-                    order: [[2, 'desc']],
+                    order: [
+                        [2, 'desc']
+                    ],
                     autoWidth: false
                 });
 
@@ -2341,8 +2460,13 @@
             },
             async pick(row) {
                 try {
-                    const url = `{{ route('fakturpembelian.itemsPO', ['id' => 'PO_ID_PLACEHOLDER']) }}`.replace('PO_ID_PLACEHOLDER', row.fpohid);
-                    const res = await fetch(url, { headers: { 'X-Requested-With': 'XMLHttpRequest' } });
+                    const url = `{{ route('fakturpembelian.itemsPO', ['id' => 'PO_ID_PLACEHOLDER']) }}`
+                        .replace('PO_ID_PLACEHOLDER', row.fpohid);
+                    const res = await fetch(url, {
+                        headers: {
+                            'X-Requested-With': 'XMLHttpRequest'
+                        }
+                    });
                     const json = await res.json();
 
                     const items = json.items || [];
@@ -2366,12 +2490,15 @@
                     }
 
                     window.dispatchEvent(new CustomEvent('po-picked', {
-                        detail: { header, items }
+                        detail: {
+                            header,
+                            items
+                        }
                     }));
                     this.closeModal();
                 } catch (e) {
                     console.error(e);
-                    console.log(@json("Gagal mengambil detail PO. Lihat konsol untuk detail."));
+                    console.log(@json('Gagal mengambil detail PO. Lihat konsol untuk detail.'));
                 }
             }
         };
@@ -2395,7 +2522,9 @@
             showLockedWarning() {
                 const message = 'Item AWAL untuk saldo awal tidak boleh ambil referensi PO atau TER.';
                 if (window.showTransactionErrorModal) {
-                    window.showTransactionErrorModal(message, { title: 'Referensi Tidak Bisa Dipakai' });
+                    window.showTransactionErrorModal(message, {
+                        title: 'Referensi Tidak Bisa Dipakai'
+                    });
                     return;
                 }
                 window.showAppErrorAlert('TERJADI KESALAHAN', message);
@@ -2417,7 +2546,9 @@
                         type: 'GET',
                         data: function(d) {
                             return {
-                                supplier_code: (document.getElementById('supplierCodeHidden')?.value || document.getElementById('modal_filter_supplier_id')?.value || '').trim(),
+                                supplier_code: (document.getElementById('supplierCodeHidden')?.value ||
+                                    document.getElementById('modal_filter_supplier_id')?.value || ''
+                                    ).trim(),
                                 draw: d.draw,
                                 start: d.start,
                                 length: d.length,
@@ -2454,14 +2585,19 @@
                             searchable: false,
                             className: 'text-center',
                             render: function() {
-                                return '<button type="button" class="btn-pick px-4 py-1.5 rounded-md text-sm font-medium bg-blue-600 hover:bg-blue-700 text-white transition-colors duration-150">{{ "Pilih" }}</button>';
+                                return '<button type="button" class="btn-pick px-4 py-1.5 rounded-md text-sm font-medium bg-blue-600 hover:bg-blue-700 text-white transition-colors duration-150">{{ 'Pilih' }}</button>';
                             }
                         }
                     ],
                     pageLength: 10,
-                    lengthMenu: [[10, 25, 50, 100], [10, 25, 50, 100]],
+                    lengthMenu: [
+                        [10, 25, 50, 100],
+                        [10, 25, 50, 100]
+                    ],
                     dom: '<"flex justify-between items-center mb-4"f<"ml-auto"l>>rtip',
-                    order: [[2, 'desc']],
+                    order: [
+                        [2, 'desc']
+                    ],
                     autoWidth: false
                 });
 
@@ -2497,8 +2633,13 @@
             },
             async pick(row) {
                 try {
-                    const url = `{{ route('fakturpembelian.itemsPB', ['id' => 'PB_ID_PLACEHOLDER']) }}`.replace('PB_ID_PLACEHOLDER', row.fstockmtid);
-                    const res = await fetch(url, { headers: { 'X-Requested-With': 'XMLHttpRequest' } });
+                    const url = `{{ route('fakturpembelian.itemsPB', ['id' => 'PB_ID_PLACEHOLDER']) }}`
+                        .replace('PB_ID_PLACEHOLDER', row.fstockmtid);
+                    const res = await fetch(url, {
+                        headers: {
+                            'X-Requested-With': 'XMLHttpRequest'
+                        }
+                    });
                     const json = await res.json();
 
                     const items = json.items || [];
@@ -2522,12 +2663,15 @@
                     }
 
                     window.dispatchEvent(new CustomEvent('pb-picked', {
-                        detail: { header, items }
+                        detail: {
+                            header,
+                            items
+                        }
                     }));
                     this.closeModal();
                 } catch (e) {
                     console.error(e);
-                    console.log(@json("Gagal mengambil detail PB. Lihat konsol untuk detail."));
+                    console.log(@json('Gagal mengambil detail PB. Lihat konsol untuk detail.'));
                 }
             }
         };
@@ -2565,15 +2709,15 @@
                         type: 'GET',
                         data: function(d) {
                             // Mengirim parameter standar DataTables untuk server-side processing
-                                            return {
-                                                draw: d.draw,
-                                                start: d.start,
-                                                length: d.length,
-                                                search: d.search.value,
-                                                fend: 1,
-                                                // Menambahkan parameter order untuk sorting (diperlukan serverSide)
-                                                order_column: d.columns[d.order[0].column].data,
-                                                order_dir: d.order[0].dir
+                            return {
+                                draw: d.draw,
+                                start: d.start,
+                                length: d.length,
+                                search: d.search.value,
+                                fend: 1,
+                                // Menambahkan parameter order untuk sorting (diperlukan serverSide)
+                                order_column: d.columns[d.order[0].column].data,
+                                order_dir: d.order[0].dir
                             };
                         },
                         dataSrc: function(json) {
@@ -2601,7 +2745,7 @@
                             width: '15%',
                             render: function(data, type, row) {
                                 // Menggunakan styling yang mirip dengan button 'Pilih' di Supplier
-                                return '<button type="button" class="btn-choose px-4 py-1.5 rounded-md text-sm font-medium bg-blue-600 hover:bg-blue-700 text-white transition-colors duration-150">{{ "Pilih" }}</button>';
+                                return '<button type="button" class="btn-choose px-4 py-1.5 rounded-md text-sm font-medium bg-blue-600 hover:bg-blue-700 text-white transition-colors duration-150">{{ 'Pilih' }}</button>';
                             }
                         }
                     ],
@@ -2613,19 +2757,19 @@
                     // Menggunakan DOM custom untuk kontrol DataTables (sama seperti Supplier)
                     dom: '<"flex justify-between items-center mb-4"f<"ml-auto"l>>rtip',
                     language: {
-                        processing: @json("Memuat data..."),
-                        search: @json("Search" . ':'),
-                        lengthMenu: @json("Tampilkan _MENU_"),
-                        info: @json("Menampilkan _START_ - _END_ dari _TOTAL_ data"),
-                        infoEmpty: @json("Tidak ada data"),
-                        infoFiltered: @json("(disaring dari _MAX_ total data)"),
-                        zeroRecords: @json("Tidak ada data yang ditemukan"),
-                        emptyTable: @json("Tidak ada data tersedia"),
+                        processing: @json('Memuat data...'),
+                        search: @json('Search' . ':'),
+                        lengthMenu: @json('Tampilkan _MENU_'),
+                        info: @json('Menampilkan _START_ - _END_ dari _TOTAL_ data'),
+                        infoEmpty: @json('Tidak ada data'),
+                        infoFiltered: @json('(disaring dari _MAX_ total data)'),
+                        zeroRecords: @json('Tidak ada data yang ditemukan'),
+                        emptyTable: @json('Tidak ada data tersedia'),
                         paginate: {
-                            first: @json("Pertama"),
-                            last: @json("Terakhir"),
-                            next: @json("Selanjutnya"),
-                            previous: @json("Sebelumnya")
+                            first: @json('Pertama'),
+                            last: @json('Terakhir'),
+                            next: @json('Selanjutnya'),
+                            previous: @json('Sebelumnya')
                         }
                     },
                     order: [
@@ -2742,7 +2886,9 @@
     // Helper: update field saat warehouse-picked
     document.addEventListener('DOMContentLoaded', () => {
         window.addEventListener('warehouse-picked', (ev) => {
-            const { fwhcode } = ev.detail || {};
+            const {
+                fwhcode
+            } = ev.detail || {};
             const sel = document.getElementById('warehouseSelect');
             const hid = document.getElementById('warehouseCodeHidden');
             if (sel) {
@@ -2756,79 +2902,85 @@
     });
 </script>
 
-    <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            const supplierAdvanceWarnings = @json($supplierAdvanceWarnings ?? []);
-            const warningBox = document.getElementById('supplierAdvanceWarningBox');
-            const warningText = document.getElementById('supplierAdvanceWarningText');
-            const hiddenInput = document.getElementById('supplierCodeHidden');
-            const selectInput = document.getElementById('modal_filter_supplier_id');
-            let lastPopupSupplierCode = '';
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const supplierAdvanceWarnings = @json($supplierAdvanceWarnings ?? []);
+        const warningBox = document.getElementById('supplierAdvanceWarningBox');
+        const warningText = document.getElementById('supplierAdvanceWarningText');
+        const hiddenInput = document.getElementById('supplierCodeHidden');
+        const selectInput = document.getElementById('modal_filter_supplier_id');
+        let lastPopupSupplierCode = '';
 
-            const showSupplierAdvancePopup = (message) => {
-                if (!message) {
-                    return;
+        const showSupplierAdvancePopup = (message) => {
+            if (!message) {
+                return;
+            }
+
+            if (typeof window.showAppWarningAlert === 'function') {
+                window.showAppWarningAlert('Perhatian', message, {
+                    confirmButtonText: 'Ok'
+                });
+                return;
+            }
+
+            if (typeof Swal !== 'undefined') {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Perhatian',
+                    text: message,
+                    confirmButtonText: 'Ok'
+                });
+            }
+        };
+
+        const updateSupplierAdvanceWarning = (supplierCode = null, shouldPopup = false) => {
+            if (!warningBox || !warningText) {
+                return;
+            }
+
+            const code = (supplierCode ?? hiddenInput?.value ?? selectInput?.value ?? '').toString().trim();
+            const warning = supplierAdvanceWarnings[code] ?? null;
+
+            if (!warning || !warning.message) {
+                warningBox.classList.add('hidden');
+                warningText.textContent = '';
+                if (code !== lastPopupSupplierCode) {
+                    lastPopupSupplierCode = '';
                 }
+                return;
+            }
 
-                if (typeof window.showAppWarningAlert === 'function') {
-                    window.showAppWarningAlert('Perhatian', message, {
-                        confirmButtonText: 'Ok'
-                    });
-                    return;
-                }
+            warningText.textContent = warning.message;
+            warningBox.classList.remove('hidden');
 
-                if (typeof Swal !== 'undefined') {
-                    Swal.fire({
-                        icon: 'warning',
-                        title: 'Perhatian',
-                        text: message,
-                        confirmButtonText: 'Ok'
-                    });
-                }
-            };
+            if (shouldPopup && code !== '' && code !== lastPopupSupplierCode) {
+                lastPopupSupplierCode = code;
+                showSupplierAdvancePopup(warning.message);
+            }
+        };
 
-            const updateSupplierAdvanceWarning = (supplierCode = null, shouldPopup = false) => {
-                if (!warningBox || !warningText) {
-                    return;
-                }
-
-                const code = (supplierCode ?? hiddenInput?.value ?? selectInput?.value ?? '').toString().trim();
-                const warning = supplierAdvanceWarnings[code] ?? null;
-
-                if (!warning || !warning.message) {
-                    warningBox.classList.add('hidden');
-                    warningText.textContent = '';
-                    if (code !== lastPopupSupplierCode) {
-                        lastPopupSupplierCode = '';
-                    }
-                    return;
-                }
-
-                warningText.textContent = warning.message;
-                warningBox.classList.remove('hidden');
-
-                if (shouldPopup && code !== '' && code !== lastPopupSupplierCode) {
-                    lastPopupSupplierCode = code;
-                    showSupplierAdvancePopup(warning.message);
-                }
-            };
-
-            hiddenInput?.addEventListener('change', () => updateSupplierAdvanceWarning(null, true));
-            selectInput?.addEventListener('change', () => updateSupplierAdvanceWarning(null, true));
-            window.addEventListener('supplier-picked', (event) => {
-                updateSupplierAdvanceWarning(event.detail?.fsuppliercode ?? '', true);
-            });
-
-            updateSupplierAdvanceWarning();
+        hiddenInput?.addEventListener('change', () => updateSupplierAdvanceWarning(null, true));
+        selectInput?.addEventListener('change', () => updateSupplierAdvanceWarning(null, true));
+        window.addEventListener('supplier-picked', (event) => {
+            updateSupplierAdvanceWarning(event.detail?.fsuppliercode ?? '', true);
         });
-    </script>
+
+        updateSupplierAdvanceWarning();
+    });
+</script>
 
 @push('scripts')
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
     <script src="https://cdn.datatables.net/1.13.7/js/jquery.dataTables.min.js"></script>
 
-    @include('components.transaction.browse-warehouse-script', ['eventName' => 'faktur-pembelian-warehouse-browse-open'])
-    @include('components.transaction.browse-product-script', ['showControls' => true, 'showPagination' => true, 'supportsForEdit' => true])
+    @include('components.transaction.browse-warehouse-script', [
+        'eventName' => 'faktur-pembelian-warehouse-browse-open',
+    ])
+    @include('components.transaction.browse-product-script', [
+        'showControls' => true,
+        'showPagination' => true,
+        'supportsForEdit' => true,
+    ])
     <script>
         document.addEventListener('alpine:init', () => {
             Alpine.store('prh', {

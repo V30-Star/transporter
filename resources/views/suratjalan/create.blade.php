@@ -1119,7 +1119,7 @@
                     row.units = [];
                     row.fsatuan = '';
                     row.maxqty = 0;
-                    row.frefdtno = 0;
+                    row.frefdtno = '';
                     return;
                 }
                 row.fitemname = meta.name || '';
@@ -1130,7 +1130,7 @@
                 }
                 if (meta.unit_ratios) row.unit_ratios = meta.unit_ratios;
                 row.maxqty = Number.isFinite(+row.maxqty) ? +row.maxqty : 0;
-                row.frefdtno = meta.fprdid || 0;
+                row.frefdtno = row.fitemcode || '';
             },
 
             onCodeTypedRow(row, index = null) {
@@ -1208,7 +1208,7 @@
                         fitemcode: itemcode,
                         fitemname: itemname,
                         fsatuan: satuan,
-                        frefdtno: frefdtno,
+                        frefdtno: (header?.fsono ?? frefdtno ?? '').toString().trim(),
                         fnoacak: this.generateUniqueNoAcak(),
                         frefnoacak: this.normalizeNoAcak(src.frefnoacak ?? src.fnoacak ?? ''),
                         frefno_display: (src.frefpr ?? header?.fsono ?? '').toString().trim(),
@@ -1384,7 +1384,7 @@
                     const row = this.savedItems[index];
                     const apply = () => {
                         row.fitemcode = (product.fprdcode || '').toString();
-                        row.frefdtno = product.fprdid || '';
+                        row.frefdtno = (product.fprdcode || '').toString();
                         this.hydrateRowFromMeta(row, this.productMeta(row.fitemcode), true);
                             this.rows.splice(this.browseTarget, 1, {
                         ...this.rows[this.browseTarget]
@@ -1420,7 +1420,7 @@
                 fitemname: '',
                 units: [],
                 fsatuan: '',
-                frefdtno: 0,
+                frefdtno: '',
                 fnoacak: '',
                 frefnoacak: '',
                 frefno_display: '',

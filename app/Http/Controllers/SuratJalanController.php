@@ -329,7 +329,8 @@ class SuratJalanController extends Controller
             ->where('trstockdt.fstockmtno', $header->fstockmtno)
             ->leftJoin('msprd', 'msprd.fprdcode', '=', 'trstockdt.fprdcode')
             ->select(
-                'trstockdt.fstockdtid as frefdtno',
+                'trstockdt.fstockmtno as frefdtno',
+                'trstockdt.fstockdtid as frefdtid',
                 DB::raw("TRIM(BOTH ', ' FROM CONCAT_WS(', ', NULLIF(TRIM(COALESCE(trstockdt.frefnoacak::text, '')), ''), NULLIF(TRIM(COALESCE(trstockdt.fnoacak::text, '')), ''))) as frefnoacak"),
                 // UBAH BAGIAN INI: Ambil kolom kode dari msprd (misal: fprdcode_string)
                 // atau pastikan kolom ini memang yang berisi kode produk
@@ -342,7 +343,7 @@ class SuratJalanController extends Controller
             )
             ->get()
             ->map(function ($item) use ($remainMap) {
-                $remain = (float) ($remainMap[(int) ($item->frefdtno ?? 0)] ?? 0);
+                $remain = (float) ($remainMap[(int) ($item->frefdtid ?? 0)] ?? 0);
                 $item->fqty = $remain;
                 $item->fqtyremain = $remain;
 
@@ -560,7 +561,7 @@ class SuratJalanController extends Controller
             'fsatuan' => ['nullable', 'array'],
             'fsatuan.*' => ['nullable', 'string', 'max:20'],
             'frefdtno' => ['nullable', 'array'],
-            'frefdtno.*' => ['nullable', 'integer'],
+            'frefdtno.*' => ['nullable', 'string', 'max:100'],
             'fqty' => ['required', 'array'],
             'fqty.*' => ['numeric', 'min:0'],
             'fprice' => ['required', 'array'],
@@ -659,24 +660,14 @@ class SuratJalanController extends Controller
 
             $meta = $prodMeta[$code] ?? null;
 
-            $frefdtnoValue = ($rref !== null && $rref !== '') ? (int) $rref : null;
+            $frefdtnoValue = trim((string) ($rref ?? ''));
             $refDoc = trim((string) ($frefso[$i] ?? ''));
+            $refNoAcak = $this->normalizeReferenceRandomNumber($frefnoacaks[$i] ?? null);
 
-            if ($frefdtnoValue > 0 && $refDoc !== '') {
-                if ($this->isInvoiceReferenceDoc($refDoc)) {
-                    $refSat = DB::table('trstockdt')
-                        ->where('fstockdtid', $frefdtnoValue)
-                        ->value('fsatuan');
-                    if ($refSat) {
-                        $sat = trim($refSat);
-                    }
-                } else {
-                    $refSat = DB::table('trsodt')
-                        ->where('ftrsodtid', $frefdtnoValue)
-                        ->value('fsatuan');
-                    if ($refSat) {
-                        $sat = trim($refSat);
-                    }
+            if ($refDoc !== '') {
+                $referenceDetail = $this->resolveSuratJalanReferenceDetail($refDoc, $code, $refNoAcak);
+                if ($referenceDetail && ! empty($referenceDetail->fsatuan)) {
+                    $sat = trim((string) $referenceDetail->fsatuan);
                 }
             }
 
@@ -695,13 +686,13 @@ class SuratJalanController extends Controller
                 continue;
             }
 
-            $frefdtnoValue = ($rref !== null && $rref !== '') ? (int) $rref : null;
+            $frefdtnoValue = $frefdtnoValue !== '' ? $frefdtnoValue : $refDoc;
             $amount = $qty * $price;
             $subtotal += $amount;
 
             $row = [
                 'fprdcode' => $code,
-                'frefdtno' => $frefdtnoValue,
+                'frefdtno' => $frefdtnoValue !== '' ? mb_substr($frefdtnoValue, 0, 100) : null,
                 'fqty' => $qty,
                 'fprice' => $price,
                 'fprice_rp' => $price * $frate,
@@ -716,7 +707,7 @@ class SuratJalanController extends Controller
                 'frefso' => $frefso[$i] ?? null,
                 'fnoacak' => $this->normalizeRandomNumber($fnoacaks[$i] ?? null, $usedNoAcaks),
                 'frefnoacak' => trim((string) ($frefso[$i] ?? '')) !== ''
-                    ? $this->normalizeReferenceRandomNumber($frefnoacaks[$i] ?? null)
+                    ? $refNoAcak
                     : null,
                 'fdesc' => $desc,
                 'fsatuan' => $sat,
@@ -1259,7 +1250,7 @@ class SuratJalanController extends Controller
             'fsatuan' => ['nullable', 'array'],
             'fsatuan.*' => ['nullable', 'string', 'max:20'],
             'frefdtno' => ['nullable', 'array'],
-            'frefdtno.*' => ['nullable', 'integer'],
+            'frefdtno.*' => ['nullable', 'string', 'max:100'],
             'fqty' => ['required', 'array'],
             'fqty.*' => ['numeric', 'min:0'],
             'fprice' => ['required', 'array'],
@@ -1368,24 +1359,14 @@ class SuratJalanController extends Controller
 
             $meta = $prodMeta[$code] ?? null;
 
-            $frefdtnoValue = ($rref !== null && $rref !== '') ? (int) $rref : null;
+            $frefdtnoValue = trim((string) ($rref ?? ''));
             $refDoc = trim((string) ($frefso[$i] ?? ''));
+            $refNoAcak = $this->normalizeReferenceRandomNumber($frefnoacaks[$i] ?? null);
 
-            if ($frefdtnoValue > 0 && $refDoc !== '') {
-                if ($this->isInvoiceReferenceDoc($refDoc)) {
-                    $refSat = DB::table('trstockdt')
-                        ->where('fstockdtid', $frefdtnoValue)
-                        ->value('fsatuan');
-                    if ($refSat) {
-                        $sat = trim($refSat);
-                    }
-                } else {
-                    $refSat = DB::table('trsodt')
-                        ->where('ftrsodtid', $frefdtnoValue)
-                        ->value('fsatuan');
-                    if ($refSat) {
-                        $sat = trim($refSat);
-                    }
+            if ($refDoc !== '') {
+                $referenceDetail = $this->resolveSuratJalanReferenceDetail($refDoc, $code, $refNoAcak);
+                if ($referenceDetail && ! empty($referenceDetail->fsatuan)) {
+                    $sat = trim((string) $referenceDetail->fsatuan);
                 }
             }
 
@@ -1404,13 +1385,13 @@ class SuratJalanController extends Controller
                 continue;
             }
 
-            $frefdtnoValue = ($rref !== null && $rref !== '') ? (int) $rref : null;
+            $frefdtnoValue = $frefdtnoValue !== '' ? $frefdtnoValue : $refDoc;
             $amount = $qty * $price;
             $subtotal += $amount;
 
             $row = [
                 'fprdcode' => $code,
-                'frefdtno' => $frefdtnoValue,
+                'frefdtno' => $frefdtnoValue !== '' ? mb_substr($frefdtnoValue, 0, 100) : null,
                 'fqty' => $qty,
                 'fprice' => $price,
                 'fprice_rp' => $price * $frate,
@@ -1426,7 +1407,7 @@ class SuratJalanController extends Controller
                 'frefso' => $frefso[$i] ?? null,
                 'fnoacak' => $this->normalizeRandomNumber($fnoacaks[$i] ?? null, $usedNoAcaks),
                 'frefnoacak' => trim((string) ($frefso[$i] ?? '')) !== ''
-                    ? $this->normalizeReferenceRandomNumber($frefnoacaks[$i] ?? null)
+                    ? $refNoAcak
                     : null,
                 'fdesc' => $desc,
                 'fsatuan' => $sat,
@@ -1863,6 +1844,37 @@ class SuratJalanController extends Controller
             trim((string) ($productCode ?? '')),
             trim((string) ($refNoAcak ?? '')),
         ]);
+    }
+
+    private function resolveSuratJalanReferenceDetail(string $docNo, string $productCode, ?string $refNoAcak = null): ?object
+    {
+        $docNo = trim($docNo);
+        $productCode = trim($productCode);
+        $refNoAcak = trim((string) ($refNoAcak ?? ''));
+
+        if ($docNo === '' || $productCode === '') {
+            return null;
+        }
+
+        if ($this->isInvoiceReferenceDoc($docNo)) {
+            return DB::table('trstockdt')
+                ->where('fstockmtno', $docNo)
+                ->where('fprdcode', $productCode)
+                ->when($refNoAcak !== '', function ($query) use ($refNoAcak) {
+                    $query->whereRaw("COALESCE(frefnoacak::text, fnoacak::text, '') = ?", [$refNoAcak]);
+                })
+                ->orderBy('fstockdtid')
+                ->first(['fstockdtid', 'fsatuan']);
+        }
+
+        return DB::table('trsodt')
+            ->where('fsono', $docNo)
+            ->where('fprdcode', $productCode)
+            ->when($refNoAcak !== '', function ($query) use ($refNoAcak) {
+                $query->whereRaw("COALESCE(frefnosoacak::text, fnoacak::text, '') = ?", [$refNoAcak]);
+            })
+            ->orderBy('ftrsodtid')
+            ->first(['ftrsodtid', 'fsatuan']);
     }
 
     private function isInvoiceReferenceDoc(string $docNo): bool
