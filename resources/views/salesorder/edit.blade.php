@@ -1,13 +1,18 @@
 @extends('layouts.app')
 
-@section('title', $action === 'delete' ? 'Sales Order - Delete' : ($action === 'view' ? 'Sales Order - View' : 'Sales Order - Edit'))
+@section('title', $action === 'delete' ? 'Sales Order - Delete' : ($action === 'view' ? 'Sales Order - View' : 'Sales
+    Order - Edit'))
 
 @section('content')
     @php
         $permissions = explode(',', session('user_restricted_permissions', ''));
         $canEditPermission = in_array('updateTr_poh', $permissions, true);
         $canDeletePermission = in_array('deleteTr_poh', $permissions, true);
-        $canPrint = in_array('viewTr_poh', $permissions, true) || in_array('updateTr_poh', $permissions, true) || in_array('deleteTr_poh', $permissions, true) || in_array('createTr_poh', $permissions, true);
+        $canPrint =
+            in_array('viewTr_poh', $permissions, true) ||
+            in_array('updateTr_poh', $permissions, true) ||
+            in_array('deleteTr_poh', $permissions, true) ||
+            in_array('createTr_poh', $permissions, true);
         $isDelete = $action === 'delete';
         $isView = $action === 'view';
         $isReadOnly = $isDelete || $isView;
@@ -165,7 +170,10 @@
         $hasOldEditItems = collect($initialEditSalesOrderItems)->isNotEmpty();
         $editItemsSource = $hasOldEditItems
             ? $initialEditSalesOrderItems
-            : collect($savedItems ?? [])->map(fn($item) => (array) $item)->values()->all();
+            : collect($savedItems ?? [])
+                ->map(fn($item) => (array) $item)
+                ->values()
+                ->all();
     @endphp
     @if ($usageLocked && !$isView)
         <div x-data="{ open: true }" x-show="open" x-cloak class="fixed inset-0 z-[99] flex items-center justify-center"
@@ -497,16 +505,18 @@
                                                         class="w-full border rounded px-2 py-1 text-right bg-gray-100 text-gray-600"
                                                         :value="formatQtyValue(row.fqtysrj)" disabled>
                                                 </td>
-                                                 <td class="p-2 text-right">
-                                                     <input type="number"
-                                                         class="w-full border rounded px-2 py-1 text-right bg-gray-100 text-gray-600"
-                                                         :value="Number(row.fprice || 0).toFixed(2)" disabled>
-                                                 </td>
-                                                 <td class="p-2 text-right">
-                                                     <input type="text"
-                                                         class="w-full border rounded px-2 py-1 text-right bg-gray-100 text-gray-600"
-                                                         :value="row.fdisc && row.fdisc.toString().includes('+') ? row.fdisc : Number(row.fdisc || 0).toFixed(2)" disabled>
-                                                 </td>
+                                                <td class="p-2 text-right">
+                                                    <input type="number"
+                                                        class="w-full border rounded px-2 py-1 text-right bg-gray-100 text-gray-600"
+                                                        :value="Number(row.fprice || 0).toFixed(2)" disabled>
+                                                </td>
+                                                <td class="p-2 text-right">
+                                                    <input type="text"
+                                                        class="w-full border rounded px-2 py-1 text-right bg-gray-100 text-gray-600"
+                                                        :value="row.fdisc && row.fdisc.toString().includes('+') ? row.fdisc :
+                                                            Number(row.fdisc || 0).toFixed(2)"
+                                                        disabled>
+                                                </td>
                                                 <td class="p-2">
                                                     <input type="text"
                                                         class="w-full border rounded px-2 py-1 bg-gray-100 text-gray-600 text-sm text-right"
@@ -552,9 +562,8 @@
 
                                         <div class="flex items-center justify-between gap-6">
                                             <div class="flex items-center">
-                                                <input id="fapplyppn" type="checkbox" name="fapplyppn"
-                                                    value="1" x-model="includePPN" disabled
-                                                    x-init="includePPN = {{ $salesorder->fapplyppn == '1' ? 'true' : 'false' }}"
+                                                <input id="fapplyppn" type="checkbox" name="fapplyppn" value="1"
+                                                    x-model="includePPN" disabled x-init="includePPN = {{ $salesorder->fapplyppn == '1' ? 'true' : 'false' }}"
                                                     class="h-4 w-4 text-blue-600 border-gray-300 rounded">
                                                 <label for="fapplyppn" class="ml-2 text-sm font-medium text-gray-700">
                                                     <span class="font-bold">PPN</span>
@@ -573,8 +582,7 @@
 
                                             <div class="flex items-center gap-2">
                                                 <input disabled type="number" min="0" max="100"
-                                                    step="0.01" x-model.number="ppnRate"
-                                                    x-init="ppnRate = {{ old('fppnpersen', $salesorder->fppnpersen ?? 11) }}"
+                                                    step="0.01" x-model.number="ppnRate" x-init="ppnRate = {{ old('fppnpersen', $salesorder->fppnpersen ?? 11) }}"
                                                     :disabled="!includePPN"
                                                     class="w-20 h-9 px-2 text-sm leading-tight text-right border rounded transition-opacity [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none disabled:bg-gray-100 disabled:opacity-60 disabled:cursor-not-allowed">
                                                 <span class="text-sm">%</span>
@@ -594,6 +602,620 @@
                                 </div>
                             </div>
 
+                            <!-- MODAL DESC (di dalam itemsTable) -->
+                            <div x-show="showDescModal" x-cloak
+                                class="fixed inset-0 z-[95] flex items-center justify-center" x-transition.opacity>
+                                <div class="absolute inset-0 bg-black/50" @click="closeDesc()"></div>
+
+                                <div class="relative bg-white w-[92vw] max-w-lg rounded-2xl shadow-2xl overflow-hidden"
+                                    x-transition.scale>
+                                    <div class="px-5 py-4 border-b flex items-center">
+                                        <x-heroicon-o-document-text class="w-6 h-6 text-blue-600 mr-2" />
+                                        <h3 class="text-lg font-semibold text-gray-800">Isi Deskripsi Item</h3>
+                                    </div>
+
+                                    <div class="px-5 py-4 space-y-4">
+                                        <div>
+                                            <div class="mb-1 flex items-center justify-between gap-3">
+                                                <div class="text-sm text-gray-700">Nama Produk</div>
+                                                <button x-show="!descReadonly" type="button" @click="copyDescName()"
+                                                    class="h-8 px-3 rounded-lg bg-blue-50 text-blue-700 text-sm font-medium hover:bg-blue-100">
+                                                    Copy
+                                                </button>
+                                            </div>
+                                            <div class="rounded-lg border bg-gray-50 px-3 py-2 text-sm text-gray-800"
+                                                x-text="descItemName || '-'"></div>
+                                        </div>
+                                        <label class="block text-sm text-gray-700">Deskripsi</label>
+                                        <textarea x-model="descValue" rows="5" class="w-full border rounded px-3 py-2" :readonly="descReadonly"
+                                            placeholder="Tulis deskripsi item di sini..."></textarea>
+                                    </div>
+
+                                    <div class="px-5 py-3 border-t flex items-center justify-end gap-2">
+                                        <button type="button" @click="closeDesc()"
+                                            class="h-9 px-4 rounded-lg bg-gray-100 text-gray-700 text-sm font-medium hover:bg-gray-200">
+                                            Batal
+                                        </button>
+                                        <button x-show="!descReadonly" type="button" @click="applyDesc()"
+                                            class="h-9 px-4 rounded-lg bg-emerald-600 text-white text-sm font-medium hover:bg-emerald-700">
+                                            Simpan
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+
+                        </div>
+
+                        @php
+                            $canApproval = in_array(
+                                'approveSalesOrder',
+                                explode(',', session('user_restricted_permissions', '')),
+                            );
+                        @endphp
+
+                        @if ($canApproval)
+                            <div
+                                class="mt-6 mx-auto max-w-2xl rounded-lg border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-700">
+                                <div class="font-semibold">Status Persetujuan Kredit</div>
+                                <div class="mt-1">
+                                    {{ !empty($salesorder->fuseracc) ? 'Sudah disetujui oleh: ' . $salesorder->fuseracc : 'Belum ada persetujuan kredit pada transaksi ini.' }}
+                                </div>
+                            </div>
+                        @endif
+
+                        <div class="mt-6 flex justify-center space-x-4">
+                            @if ($isDelete && $canDeletePermission)
+                                @if ($usageLocked)
+                                    <button type="button" disabled title="{{ $usageLockMessage }}"
+                                        class="bg-red-300 text-white px-6 py-2 rounded flex items-center cursor-not-allowed opacity-70">
+                                        <x-heroicon-o-lock-closed class="w-5 h-5 mr-2" />
+                                        Hapus
+                                    </button>
+                                @else
+                                    <button type="button" onclick="showDeleteModal()"
+                                        class="bg-red-600 text-white px-6 py-2 rounded hover:bg-red-700 flex items-center">
+                                        <x-heroicon-o-trash class="w-5 h-5 mr-2" />
+                                        Hapus
+                                    </button>
+                                @endif
+                            @endif
+                            @if ($isView && $canPrint)
+                                <a href="{{ route('salesorder.print', $salesorder->fsono) }}" target="_blank"
+                                    class="bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700 flex items-center">
+                                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m10 0v-5a2 2 0 00-2-2H9a2 2 0 00-2 2v5m10 0v5H7v-5">
+                                        </path>
+                                    </svg>
+                                    Print
+                                </a>
+                            @endif
+                            <button type="button" onclick="window.location.href='{{ route('salesorder.index') }}'"
+                                class="bg-gray-500 text-white px-6 py-2 rounded hover:bg-gray-600 flex items-center">
+                                <x-heroicon-o-arrow-left class="w-5 h-5 mr-2" />
+                                Kembali
+                            </button>
+                        </div>
+
+                        {{-- ============================================ --}}
+                        {{-- MODE EDIT: FORM EDITABLE                    --}}
+                        {{-- ============================================ --}}
+                    @else
+                        <script>
+                            window._soLabels = {
+                                noItemsTitle: @json(__('Tidak Ada Item')),
+                                noItemsText: @json(__('Silakan tambahkan minimal 1 item terlebih dahulu.')),
+                                noItemsBtn: @json(__('OK')),
+                            };
+                        </script>
+
+                        <form id="salesOrderForm" action="{{ route('salesorder.update', $salesorder->ftrsomtid) }}"
+                            method="POST" class="mt-6" data-form-draft="true"
+                            data-draft-key="salesorder:edit:{{ $salesorder->ftrsomtid }}"
+                            data-salesorder-id="{{ $salesorder->ftrsomtid }}" x-data="{
+                                handleSubmit() {
+                                    if (window.salesOrderItemsTable?.submitForm) {
+                                        window.salesOrderItemsTable.submitForm(this.$el);
+                                        return;
+                                    }
+                                    this.$el.submit();
+                                }
+                            }"
+                            @submit.prevent="handleSubmit()">
+                            @csrf
+                            @method('PATCH')
+                            <input type="hidden" name="fneedacc" id="salesOrderNeedAcc"
+                                value="{{ old('fneedacc', $salesorder->fneedacc ?? '0') }}">
+                            <input type="hidden" name="fuseracc" id="salesOrderUserAcc"
+                                value="{{ old('fuseracc', $salesorder->fuseracc ?? '') }}">
+
+                            {{-- HEADER FORM --}}
+                            <div class="grid grid-cols-1 lg:grid-cols-12 gap-4">
+                                <div class="lg:col-span-4">
+                                    <label class="block text-sm font-medium">Cabang</label>
+                                    <input type="text"
+                                        class="w-full border rounded px-3 py-2 bg-gray-200 cursor-not-allowed"
+                                        value="{{ $fcabang }}" disabled>
+                                    <input type="hidden" name="fbranchcode" value="{{ $fbranchcode }}">
+                                </div>
+
+                                {{-- SO# --}}
+                                <div class="lg:col-span-4" x-data="{ autoCode: false }">
+                                    <label class="block text-sm font-medium mb-1">SO#</label>
+                                    <div class="flex items-center gap-3">
+                                        <input type="text" name="fsono"
+                                            value="{{ old('fsono', $salesorder->fsono) }}"
+                                            class="w-full border rounded px-3 py-2" :disabled="autoCode"
+                                            :class="autoCode ? 'bg-gray-200 cursor-not-allowed text-gray-500' : 'bg-white'">
+
+                                        <label class="inline-flex items-center select-none">
+                                            <input type="checkbox" x-model="autoCode">
+                                            <span class="ml-2 text-sm text-gray-700">Auto</span>
+                                        </label>
+                                    </div>
+                                    <p x-show="autoCode" class="text-[10px] text-blue-600 mt-1">* Nomor akan
+                                        digenerate
+                                        otomatis
+                                        saat simpan</p>
+                                </div>
+
+                                {{-- Tanggal --}}
+                                <div class="lg:col-span-2">
+                                    <label class="block text-sm font-medium">Tanggal</label>
+                                    <input type="date" name="fsodate"
+                                        value="{{ old('fsodate') ?? date('Y-m-d', strtotime($salesorder->fsodate)) }}"
+                                        class="w-full border rounded px-3 py-2 @error('fsodate') border-red-500 @enderror">
+                                    @error('fsodate')
+                                        <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+                                    @enderror
+                                </div>
+
+                                <div class="lg:col-span-2 flex items-end pb-2">
+                                    <div class="inline-flex items-center">
+                                        <input id="fclose" type="checkbox" name="fclose" value="1"
+                                            x-model="fclose" {{-- text-red-600 mengubah isi centang, border-red-400 mengubah bingkai --}}
+                                            class="w-6 h-6 text-red-600 border-red-400 rounded cursor-pointer focus:ring-red-500"
+                                            {{ old('fclose', $salesorder->fclose) ? 'checked' : '' }}>
+
+                                        <label for="fclose" {{-- text-red-600 mengubah warna tulisan menjadi merah --}}
+                                            class="ml-3 text-base font-bold text-red-600 whitespace-nowrap cursor-pointer">
+                                            Close
+                                        </label>
+                                    </div>
+                                </div>
+
+                                {{-- Customer --}}
+                                <div class="lg:col-span-4">
+                                    <label class="block text-sm font-medium mb-1">Customer</label>
+                                    <div class="flex">
+                                        <div class="relative flex-1" for="modal_filter_customer_id">
+                                            <select id="modal_filter_customer_id" name="filter_customer_id"
+                                                class="w-full border rounded-l px-3 py-2 bg-gray-100 text-gray-700 cursor-not-allowed"
+                                                disabled>
+                                                <option value=""></option>
+                                                @if ($currentCustomerCode !== '' && !$hasCurrentCustomer)
+                                                    <option value="{{ $currentCustomerCode }}" selected>
+                                                        {{ $currentCustomerName !== '' ? $currentCustomerName . ' (' . $currentCustomerCode . ')' : $currentCustomerCode }}
+                                                    </option>
+                                                @endif
+                                                @foreach ($customers as $customer)
+                                                    <option value="{{ $customer->fcustomercode }}"
+                                                        data-ftempo="{{ trim((string) ($customer->ftempo ?? 0)) }}"
+                                                        data-fsalesman="{{ trim((string) ($customer->fsalesman ?? '')) }}"
+                                                        {{-- CEK DISINI: Bandingkan dengan data yang tersimpan di DB --}}
+                                                        {{ old('fcustno', $salesorder->fcustno) == $customer->fcustomercode ? 'selected' : '' }}>
+                                                        {{ $customer->fcustomername }}
+                                                        ({{ $customer->fcustomercode }})
+                                                    </option>
+                                                @endforeach
+                                            </select>
+                                            <div class="absolute inset-0" role="button" aria-label="Browse Customer"
+                                                @click="window.dispatchEvent(new CustomEvent('customer-browse-open'))">
+                                            </div>
+                                        </div>
+                                        <input type="hidden" name="fcustno" id="customerCodeHidden"
+                                            value="{{ old('fcustno', $salesorder->fcustno) }}">
+                                        <button type="button"
+                                            @click="window.dispatchEvent(new CustomEvent('customer-browse-open'))"
+                                            class="border -ml-px px-3 py-2 bg-white hover:bg-gray-50 rounded-r-none"
+                                            title="Browse Customer">
+                                            <x-heroicon-o-magnifying-glass class="w-5 h-5" />
+                                        </button>
+                                        @if (in_array('createCustomer', explode(',', session('user_restricted_permissions', '')), true))
+                                            <a href="{{ route('customer.create') }}" target="_blank" rel="noopener"
+                                                class="border -ml-px rounded-r px-3 py-2 bg-white hover:bg-gray-50"
+                                                title="Tambah Customer">
+                                                <x-heroicon-o-plus class="w-5 h-5" />
+                                            </a>
+                                        @endif
+                                    </div>
+                                    @error('fcustno')
+                                        <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+                                    @enderror
+                                </div>
+
+                                {{-- Salesman --}}
+                                <div class="lg:col-span-4">
+                                    <label class="block text-sm font-medium mb-1">Salesman</label>
+                                    <div class="flex">
+                                        <div class="relative flex-1" for="modal_filter_salesman_id">
+                                            <select id="modal_filter_salesman_id" name="filter_salesman_id"
+                                                class="w-full border rounded-l px-3 py-2 bg-gray-100 text-gray-700 cursor-not-allowed"
+                                                disabled>
+                                                <option value=""></option>
+                                                @foreach ($salesmans as $salesman)
+                                                    <option value="{{ $salesman->fsalesmancode }}" {{-- CEK DISINI: Bandingkan old input atau data dari database --}}
+                                                        {{ old('fsalesman', $salesorder->fsalesman) == $salesman->fsalesmancode ? 'selected' : '' }}>
+                                                        {{ $salesman->fsalesmanname }}
+                                                        ({{ $salesman->fsalesmancode }})
+                                                    </option>
+                                                @endforeach
+                                            </select>
+                                            <div class="absolute inset-0" role="button" aria-label="Browse Salesman"
+                                                @click="window.dispatchEvent(new CustomEvent('salesman-browse-open'))">
+                                            </div>
+                                        </div>
+                                        <input type="hidden" name="fsalesman" id="salesmanCodeHidden"
+                                            value="{{ old('fsalesman', $salesorder->fsalesman) }}">
+                                        <button type="button"
+                                            @click="window.dispatchEvent(new CustomEvent('salesman-browse-open'))"
+                                            class="border -ml-px px-3 py-2 bg-white hover:bg-gray-50 rounded-r-none"
+                                            title="Browse Salesman">
+                                            <x-heroicon-o-magnifying-glass class="w-5 h-5" />
+                                        </button>
+                                        @if (in_array('createSalesman', explode(',', session('user_restricted_permissions', '')), true))
+                                            <a href="{{ route('salesman.create') }}" target="_blank" rel="noopener"
+                                                class="border -ml-px rounded-r px-3 py-2 bg-white hover:bg-gray-50"
+                                                title="Tambah Salesman">
+                                                <x-heroicon-o-plus class="w-5 h-5" />
+                                            </a>
+                                        @endif
+                                    </div>
+                                    @error('fsalesman')
+                                        <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+                                    @enderror
+                                </div>
+
+                                <div class="lg:col-span-2">
+                                    <label class="block text-sm font-medium mb-1">Tempo</label>
+                                    <div class="flex items-center">
+                                        {{-- Gunakan trim() untuk membuang spasi di belakang angka --}}
+                                        <input type="number" id="ftempohr" name="ftempohr"
+                                            value="{{ trim(old('ftempohr', $salesorder->ftempohr ?? 0)) }}"
+                                            class="w-full border rounded px-3 py-2">
+                                        <span class="ml-2">Hari</span>
+                                    </div>
+                                </div>
+                                <div class="lg:col-span-2">
+                                    <label class="block text-sm font-medium mb-1">Ref.PO</label>
+                                    <input type="text" name="frefpo"
+                                        value="{{ old('frefpo', $salesorder->frefpo) }}"
+                                        class="w-full border rounded px-3 py-2 @error('frefpo') border-red-500 @enderror"
+                                        placeholder="PO Customer">
+                                    @error('frefpo')
+                                        <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+                                    @enderror
+                                </div>
+                                <div class="col-span-12 mt-4">
+                                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 items-stretch">
+
+                                        <div x-data="{
+                                            tab: 1,
+                                            addr1: {{ json_encode(old('fkirimaddress1', $salesorder->customer->fkirimaddress1 ?? '')) }},
+                                            addr2: {{ json_encode(old('fkirimaddress2', $salesorder->customer->fkirimaddress2 ?? '')) }},
+                                            addr3: {{ json_encode(old('fkirimaddress3', $salesorder->customer->fkirimaddress3 ?? '')) }},
+                                        
+                                            updateFinal() {
+                                                let val = '';
+                                                if (this.tab === 1) val = this.addr1;
+                                                else if (this.tab === 2) val = this.addr2;
+                                                else if (this.tab === 3) val = this.addr3;
+                                        
+                                                const el = document.getElementById('falamatkirim_final');
+                                                if (el) el.value = val;
+                                            }
+                                        }" x-init="const savedAddr = {{ json_encode(trim($salesorder->falamatkirim ?? '')) }};
+                                        if (savedAddr && savedAddr === addr2) { tab = 2; } else if (savedAddr && savedAddr === addr3) { tab = 3; } else { tab = 1; if (savedAddr) addr1 = savedAddr; }
+                                        updateFinal();
+                                        $watch('tab', v => updateFinal());
+                                        $watch('addr1', v => updateFinal());
+                                        $watch('addr2', v => updateFinal());
+                                        $watch('addr3', v => updateFinal());"
+                                            @customer-selected.window="
+                                addr1 = $event.detail.f1 || ''; 
+                                addr2 = $event.detail.f2 || ''; 
+                                addr3 = $event.detail.f3 || ''; 
+                                tab = 1; 
+                                updateFinal();
+                                "
+                                            class="flex flex-col gap-2">
+
+                                            <input type="hidden" name="falamatkirim" id="falamatkirim_final"
+                                                value="{{ old('falamatkirim') }}">
+
+                                            <div class="flex items-center gap-2">
+                                                <label class="text-sm font-bold text-gray-700 mr-2">Kirim ke :</label>
+
+                                                <div class="inline-flex rounded-md shadow-sm" role="group">
+                                                    <button type="button" @click="tab = 1" disabled
+                                                        :class="tab === 1 ?
+                                                            'bg-blue-600 text-white z-10 ring-2 ring-blue-300' :
+                                                            'bg-white text-gray-700 hover:bg-gray-50'"
+                                                        class="px-4 py-1.5 text-xs font-semibold border border-gray-300 rounded-l-md transition-all">
+                                                        Alamat 1
+                                                    </button>
+                                                    <button type="button" @click="tab = 2" disabled
+                                                        :class="tab === 2 ?
+                                                            'bg-blue-600 text-white z-10 ring-2 ring-blue-300' :
+                                                            'bg-white text-gray-700 hover:bg-gray-50'"
+                                                        class="px-4 py-1.5 text-xs font-semibold border-t border-b border-r border-gray-300 transition-all">
+                                                        Alamat 2
+                                                    </button>
+                                                    <button type="button" @click="tab = 3" disabled
+                                                        :class="tab === 3 ?
+                                                            'bg-blue-600 text-white z-10 ring-2 ring-blue-300' :
+                                                            'bg-white text-gray-700 hover:bg-gray-50'"
+                                                        class="px-4 py-1.5 text-xs font-semibold border-t border-b border-r border-gray-300 rounded-r-md transition-all">
+                                                        Alamat 3
+                                                    </button>
+                                                </div>
+                                            </div>
+
+                                            <div class="w-full">
+                                                <textarea x-show="tab === 1" x-model="addr1" readonly
+                                                    class="w-full p-2 text-sm border border-gray-300 rounded focus:ring-blue-500 focus:border-blue-500 min-h-[80px]"
+                                                    placeholder="Isi Alamat 1..."></textarea>
+
+                                                <textarea x-show="tab === 2" x-model="addr2" readonly
+                                                    class="w-full p-2 text-sm border border-gray-300 rounded focus:ring-blue-500 focus:border-blue-500 min-h-[80px]"
+                                                    placeholder="Isi Alamat 2..."></textarea>
+
+                                                <textarea x-show="tab === 3" x-model="addr3" readonly
+                                                    class="w-full p-2 text-sm border border-gray-300 rounded focus:ring-blue-500 focus:border-blue-500 min-h-[80px]"
+                                                    placeholder="Isi Alamat 3..."></textarea>
+                                            </div>
+                                        </div>
+
+                                        <div class="flex flex-col">
+                                            <label class="block text-sm font-bold text-gray-700 mb-2">Keterangan</label>
+                                            <div
+                                                class="flex-1 border-2 border-gray-200 rounded-xl p-3 bg-white min-h-[50px] focus-within:border-blue-400">
+                                                <textarea name="fket" class="w-full h-full border-none focus:ring-0 p-0 text-sm resize-none"
+                                                    placeholder="Keterangan isi di sini...">{{ old('fket', $salesorder->fket) }}</textarea>
+                                            </div>
+                                            @error('fket')
+                                                <span class="text-red-500 text-xs mt-1">{{ $message }}</span>
+                                            @enderror
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="lg:col-span-12">
+                                    <label class="block text-sm font-medium">Catatan Internal</label>
+                                    <textarea name="fketinternal" rows="3"
+                                        class="w-full border rounded px-3 py-2 @error('fketinternal') border-red-500 @enderror"
+                                        placeholder="Tulis Catatan Internal tambahan di sini...">{{ old('fketinternal', $salesorder->fketinternal) }}</textarea>
+                                    @error('fketinternal')
+                                        <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+                                    @enderror
+                                </div>
+                            </div>
+
+                            <div x-data="itemsTable()" x-init="init()" class="mt-6 space-y-2">
+
+                                {{-- DETAIL ITEM (tabel input) --}}
+                                <h3 class="text-base font-semibold text-gray-800">Detail Item</h3>
+
+                                <div class="overflow-auto border rounded">
+                                    <table class="min-w-full text-sm balanced-detail-table"
+                                        data-skip-auto-detail-style="true">
+                                        <thead class="bg-gray-100">
+                                            <tr>
+                                                <th class="p-2 text-left w-10">#</th>
+                                                <th class="p-2 text-left w-52">Kode Produk</th>
+                                                <th class="p-2 text-left w-[28rem]">Nama Produk</th>
+                                                <th class="p-2 text-left w-32">Satuan</th>
+                                                <th class="p-2 text-right w-28 whitespace-nowrap">Qty</th>
+                                                <th class="p-2 text-right w-28 whitespace-nowrap">Qty.SRJ</th>
+                                                <th class="p-2 text-right w-28 whitespace-nowrap">@ Harga</th>
+                                                <th class="p-2 text-right w-28 whitespace-nowrap">Disc. %</th>
+                                                <th class="p-2 text-right w-32 whitespace-nowrap">Total Harga</th>
+                                                <th class="p-2 text-center w-24">Aksi</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <template x-for="(row, i) in rows" :key="row.uid || `item-${i}`">
+                                                <tr class="border-t align-top">
+                                                    <td class="p-2" x-text="i + 1"></td>
+                                                    <td class="p-2">
+                                                        <div class="flex">
+                                                            <input type="text"
+                                                                class="flex-1 border rounded-l px-2 py-1 font-mono"
+                                                                x-model.trim="row.fprdcode"
+                                                                @input="onCodeTypedRow(row, i)"
+                                                                @keydown.enter.prevent="focusRowUnit(row, i)">
+                                                            <button type="button" @click="openBrowseFor(i)"
+                                                                class="border border-l-0 px-2 py-1 bg-white hover:bg-gray-50"
+                                                                title="Cari Produk">
+                                                                <x-heroicon-o-magnifying-glass class="w-4 h-4" />
+                                                            </button>
+                                                        </div>
+                                                    </td>
+                                                    <td class="p-2">
+                                                        <div class="flex w-full max-w-full">
+                                                            <div class="min-w-0 flex-1 rounded-l border bg-gray-100 px-2 py-1 text-sm leading-5 text-gray-600 whitespace-normal break-words"
+                                                                x-text="row.fitemname"></div>
+                                                            <button type="button" @click="openDesc(row)"
+                                                                class="shrink-0 inline-flex items-center border border-l-0 rounded-r bg-slate-50 px-2 py-1 text-slate-700 hover:bg-slate-100"
+                                                                title="Deskripsi">
+                                                                <x-heroicon-o-document-text class="w-4 h-4" />
+                                                            </button>
+                                                        </div>
+                                                    </td>
+                                                    <td class="p-2">
+                                                        <template x-if="row.units && row.units.length > 1">
+                                                            <select class="w-full border rounded px-2 py-1 text-xs"
+                                                                :id="'unit_row_' + i" x-model="row.fsatuan"
+                                                                @change="onRowUpdated(i)"
+                                                                @keydown.enter.prevent="focusRowQty(i)">
+                                                                <template x-for="u in row.units" :key="u">
+                                                                    <option :value="u" x-text="u">
+                                                                    </option>
+                                                                </template>
+                                                            </select>
+                                                        </template>
+                                                        <template x-if="!row.units || row.units.length <= 1">
+                                                            <span class="text-xs" x-text="row.fsatuan"></span>
+                                                        </template>
+                                                    </td>
+                                                    <td class="p-2 text-right">
+                                                        <input type="number"
+                                                            class="w-full border rounded px-2 py-1 text-right"
+                                                            :id="'qty_row_' + i" x-model.number="row.fqty"
+                                                            min="0" @input="onRowUpdated(i)"
+                                                            @keydown.enter.prevent="focusRowPrice(i)">
+                                                    </td>
+                                                    <td class="p-2 text-right font-medium"
+                                                        x-text="formatQtyValue(row.fqtysrj)"></td>
+                                                    <td class="p-2 text-right">
+                                                        <input type="text" inputmode="decimal"
+                                                            class="w-full border rounded px-2 py-1 text-right"
+                                                            :id="'price_row_' + i" x-model="row.fpriceInput"
+                                                            @focus="activeRow = row.uid; focusPriceInput(row); $event.target.select()"
+                                                            @blur="activeRow = null; blurPriceInput(row)"
+                                                            @input="onPriceInput(row)"
+                                                            @keydown.enter.prevent="focusRowDisc(i)">
+                                                    </td>
+                                                    <td class="p-2 text-right">
+                                                        <input type="text"
+                                                            class="w-full border rounded px-2 py-1 text-right"
+                                                            :id="'disc_row_' + i"
+                                                            :value="normalizeDiscountValue(row.fdisc)"
+                                                            @focus="activeRow = row.uid; $event.target.select()"
+                                                            @blur="activeRow = null; normalizeDiscountInput($event, row)"
+                                                            @input="row.fdisc = $event.target.value; recalc(row)"
+                                                            @keydown.enter.prevent="$event.target.blur()">
+                                                    </td>
+                                                    <td class="p-2">
+                                                        <input type="text"
+                                                            class="w-full border rounded px-2 py-1 bg-gray-100 text-gray-600 text-sm text-right"
+                                                            :value="fmt(row.ftotal)" disabled>
+                                                    </td>
+                                                    <td class="p-2 text-center">
+                                                        <div class="flex items-center justify-center gap-2 flex-wrap">
+                                                            <button type="button" @click="removeRow(i)"
+                                                                class="inline-flex h-8 w-8 items-center justify-center rounded bg-red-100 text-red-600 hover:bg-red-200">-</button>
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                            </template>
+                                        </tbody>
+                                    </table>
+                                </div>
+
+                                <div class="hidden">
+                                    <template x-for="row in rowsToSubmit" :key="'submit-' + row.uid">
+                                        <div>
+                                            <input type="hidden" name="fprdcode[]" :value="row.fprdcode">
+                                            <input type="hidden" name="fitemname[]" :value="row.fitemname">
+                                            <input type="hidden" name="fsatuan[]" :value="row.fsatuan">
+                                            <input type="hidden" name="fqty[]" :value="row.fqty">
+                                            <input type="hidden" name="fprice[]" :value="row.fprice">
+                                            <input type="hidden" name="fdisc[]" :value="row.fdisc">
+                                            <input type="hidden" name="ftotal[]" :value="row.ftotal">
+                                            <input type="hidden" name="fdesc[]" :value="row.fdesc">
+                                        </div>
+                                    </template>
+                                </div>
+
+                                <!-- Kanan: Panel Totals -->
+                                <div class="mt-3 flex justify-end">
+                                    <div class="w-full md:w-1/2">
+                                        <div class="rounded-lg border bg-gray-50 p-3 space-y-2">
+                                            <div class="flex items-center justify-between">
+                                                <span class="text-sm text-gray-700">Total Harga</span>
+                                                <span class="min-w-[140px] text-right font-medium"
+                                                    x-text="formatTransactionAmount(totalHarga)"></span>
+                                            </div>
+
+                                            <div class="flex items-center justify-between gap-3">
+                                                <span class="text-sm text-gray-700">Discount</span>
+                                                <div class="flex items-center gap-2">
+                                                    <input type="number" min="0" max="100" step="0.01"
+                                                        name="fdiscpersen" x-model.number="headerDiscPercent"
+                                                        class="w-20 h-9 px-2 text-sm leading-tight text-right border rounded transition-opacity
+                                                                [appearance:textfield]
+                                                                [&::-webkit-outer-spin-button]:appearance-none
+                                                                [&::-webkit-inner-spin-button]:appearance-none">
+                                                    <span class="text-sm">%</span>
+                                                    <span class="min-w-[140px] text-right font-medium"
+                                                        x-text="rupiah(headerDiscAmount)"></span>
+                                                </div>
+                                            </div>
+
+                                            <div class="flex items-center justify-between">
+                                                <span class="text-sm text-gray-700">Total Setelah Disc.</span>
+                                                <span class="min-w-[140px] text-right font-medium"
+                                                    x-text="rupiah(totalSetelahDisc)"></span>
+                                            </div>
+
+                                            <div class="flex items-center justify-between gap-6">
+                                                <!-- Checkbox -->
+                                                <div class="flex items-center">
+                                                    <input id="fapplyppn" type="checkbox" value="1"
+                                                        name="fapplyppn" x-model="includePPN" x-init="includePPN = {{ $salesorder->fapplyppn == '1' ? 'true' : 'false' }}"
+                                                        class="h-4 w-4 text-blue-600 border-gray-300 rounded">
+                                                    <label for="fapplyppn" class="ml-2 text-sm font-medium text-gray-700">
+                                                        <span class="font-bold">PPN</span>
+                                                    </label>
+                                                </div>
+
+                                                <!-- Dropdown Include / Exclude (tengah) -->
+                                                <div class="flex items-center gap-2">
+                                                    <select id="ppnMode" name="fincludeppn" x-model.number="ppnMode"
+                                                        x-init="ppnMode = {{ old('fincludeppn', $salesorder->fincludeppn ?? 0) }}" :disabled="!includePPN"
+                                                        class="w-28 h-9 px-2 text-sm leading-tight border rounded transition-opacity appearance-none
+                                                           disabled:bg-gray-100 disabled:opacity-60 disabled:cursor-not-allowed">
+                                                        <option value="0">Exclude</option>
+                                                        <option value="1">Include</option>
+                                                    </select>
+                                                </div>
+
+                                                <!-- Input Rate + Nominal (kanan) -->
+                                                <div class="flex items-center gap-2">
+                                                    <input type="number" name="fppnpersen" min="0"
+                                                        max="100" step="0.01" x-model.number="ppnRate"
+                                                        x-init="ppnRate = {{ old('fppnpersen', $salesorder->fppnpersen ?? 11) }}" :disabled="!includePPN"
+                                                        class="w-20 h-9 px-2 text-sm leading-tight text-right border rounded transition-opacity
+                                                            [appearance:textfield]
+                                                            [&::-webkit-outer-spin-button]:appearance-none
+                                                            [&::-webkit-inner-spin-button]:appearance-none
+                                                            disabled:bg-gray-100 disabled:opacity-60 disabled:cursor-not-allowed">
+                                                    <span class="text-sm">%</span>
+                                                    <span class="min-w-[140px] text-right font-medium"
+                                                        x-text="rupiah(ppnAmount)"></span>
+                                                </div>
+
+                                            </div>
+
+                                            <div class="border-t my-1"></div>
+
+                                            <div class="flex items-center justify-between">
+                                                <span class="text-sm font-semibold text-gray-800">Grand Total</span>
+                                                <span class="min-w-[140px] text-right text-lg font-semibold"
+                                                    x-text="rupiah(grandTotal)"></span>
+                                            </div>
+                                        </div>
+
+                                        <!-- Hidden inputs for submit -->
+                                        <input type="hidden" name="famountgross" :value="totalHarga">
+                                        <input type="hidden" name="fdiscount" :value="headerDiscAmount">
+                                        <input type="hidden" name="famountpajak" :value="ppnAmount">
+                                        <input type="hidden" name="famountso" :value="grandTotal">
+                                        <input type="hidden" name="famountsonet" :value="totalDPP">
+                                    </div>
+                                </div>
+
                                 <!-- MODAL DESC (di dalam itemsTable) -->
                                 <div x-show="showDescModal" x-cloak
                                     class="fixed inset-0 z-[95] flex items-center justify-center" x-transition.opacity>
@@ -603,7 +1225,8 @@
                                         x-transition.scale>
                                         <div class="px-5 py-4 border-b flex items-center">
                                             <x-heroicon-o-document-text class="w-6 h-6 text-blue-600 mr-2" />
-                                            <h3 class="text-lg font-semibold text-gray-800">Isi Deskripsi Item</h3>
+                                            <h3 class="text-lg font-semibold text-gray-800">Isi Deskripsi Item
+                                            </h3>
                                         </div>
 
                                         <div class="px-5 py-4 space-y-4">
@@ -615,7 +1238,8 @@
                                                         Copy
                                                     </button>
                                                 </div>
-                                                <div class="rounded-lg border bg-gray-50 px-3 py-2 text-sm text-gray-800" x-text="descItemName || '-'"></div>
+                                                <div class="rounded-lg border bg-gray-50 px-3 py-2 text-sm text-gray-800"
+                                                    x-text="descItemName || '-'"></div>
                                             </div>
                                             <label class="block text-sm text-gray-700">Deskripsi</label>
                                             <textarea x-model="descValue" rows="5" class="w-full border rounded px-3 py-2" :readonly="descReadonly"
@@ -635,7 +1259,44 @@
                                     </div>
                                 </div>
 
+                                <div x-show="showWarningModal" x-cloak
+                                    class="fixed inset-0 z-[96] flex items-center justify-center" x-transition.opacity>
+                                    <div class="absolute inset-0 bg-black/50" @click="closeWarning()"></div>
+                                    <div class="relative bg-white w-[92vw] max-w-lg rounded-2xl shadow-2xl overflow-hidden"
+                                        x-transition.scale>
+                                        <div class="px-5 py-4 border-b flex items-center">
+                                            <x-heroicon-o-exclamation-triangle class="w-6 h-6 text-amber-500 mr-2" />
+                                            <h3 class="text-lg font-semibold text-gray-800" x-text="warningTitle"></h3>
+                                        </div>
+                                        <div class="px-5 py-4 space-y-3">
+                                            <p class="text-sm text-gray-700" x-text="warningMessage"></p>
+                                            <template x-if="warningItems.length > 0">
+                                                <ul class="list-disc pl-5 text-sm text-gray-700 space-y-1">
+                                                    <template x-for="item in warningItems" :key="item">
+                                                        <li x-text="item"></li>
+                                                    </template>
+                                                </ul>
+                                            </template>
+                                        </div>
+                                        <div class="px-5 py-3 border-t flex items-center justify-end gap-2">
+                                            <button type="button" @click="closeWarning()"
+                                                class="h-9 px-4 rounded-lg bg-gray-100 text-gray-700 text-sm font-medium hover:bg-gray-200">Tutup</button>
+                                            <button type="button" x-show="warningCanProceed"
+                                                @click="confirmWarningAndSubmit()"
+                                                class="h-9 px-4 rounded-lg bg-emerald-600 text-white text-sm font-medium hover:bg-emerald-700">Lanjut
+                                                Simpan</button>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <input type="hidden" name="itemsCount" :value="rowsToSubmit.length">
                             </div>
+
+                            <x-transaction.browse-customer-modal />
+
+                            <x-transaction.browse-salesman-modal />
+
+                            <x-transaction.browse-product-modal show-controls="true" show-pagination="true" />
 
                             @php
                                 $canApproval = in_array(
@@ -644,683 +1305,33 @@
                                 );
                             @endphp
 
-                            @if ($canApproval)
-                                <div
-                                    class="mt-6 mx-auto max-w-2xl rounded-lg border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-700">
-                                    <div class="font-semibold">Status Persetujuan Kredit</div>
-                                    <div class="mt-1">
-                                        {{ !empty($salesorder->fuseracc) ? 'Sudah disetujui oleh: ' . $salesorder->fuseracc : 'Belum ada persetujuan kredit pada transaksi ini.' }}
-                                    </div>
-                                </div>
-                            @endif
+                            @php
+                                $canApproval = in_array(
+                                    'approveSalesOrder',
+                                    explode(',', session('user_restricted_permissions', '')),
+                                );
+                            @endphp
 
-                            <div class="mt-6 flex justify-center space-x-4">
-                                @if ($isDelete && $canDeletePermission)
+                            <div class="mt-8 flex justify-center gap-4">
+                                @if ($canEditPermission)
                                     @if ($usageLocked)
                                         <button type="button" disabled title="{{ $usageLockMessage }}"
-                                            class="bg-red-300 text-white px-6 py-2 rounded flex items-center cursor-not-allowed opacity-70">
-                                            <x-heroicon-o-lock-closed class="w-5 h-5 mr-2" />
-                                            Hapus
+                                            class="bg-blue-300 text-white px-6 py-2 rounded flex items-center cursor-not-allowed opacity-70">
+                                            <x-heroicon-o-lock-closed class="w-5 h-5 mr-2" /> Simpan
                                         </button>
                                     @else
-                                        <button type="button" onclick="showDeleteModal()"
-                                            class="bg-red-600 text-white px-6 py-2 rounded hover:bg-red-700 flex items-center">
-                                            <x-heroicon-o-trash class="w-5 h-5 mr-2" />
-                                            Hapus
+                                        <button type="submit"
+                                            class="bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700 flex items-center">
+                                            <x-heroicon-o-check class="w-5 h-5 mr-2" /> Simpan
                                         </button>
                                     @endif
                                 @endif
-                                @if ($isView && $canPrint)
-                                    <a href="{{ route('salesorder.print', $salesorder->fsono) }}" target="_blank"
-                                        class="bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700 flex items-center">
-                                        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m10 0v-5a2 2 0 00-2-2H9a2 2 0 00-2 2v5m10 0v5H7v-5">
-                                            </path>
-                                        </svg>
-                                        Print
-                                    </a>
-                                @endif
-                                <button type="button" onclick="window.location.href='{{ route('salesorder.index') }}'"
+                                <button type="button" @click="window.location.href='{{ route('salesorder.index') }}'"
                                     class="bg-gray-500 text-white px-6 py-2 rounded hover:bg-gray-600 flex items-center">
-                                    <x-heroicon-o-arrow-left class="w-5 h-5 mr-2" />
-                                    Kembali
+                                    <x-heroicon-o-arrow-left class="w-5 h-5 mr-2" /> Keluar
                                 </button>
                             </div>
-
-                            {{-- ============================================ --}}
-                            {{-- MODE EDIT: FORM EDITABLE                    --}}
-                            {{-- ============================================ --}}
-                        @else
-                            <script>
-                                window._soLabels = {
-                                    noItemsTitle: @json(__('Tidak Ada Item')),
-                                    noItemsText: @json(__('Silakan tambahkan minimal 1 item terlebih dahulu.')),
-                                    noItemsBtn: @json(__('OK')),
-                                };
-                            </script>
-
-                            <form id="salesOrderForm" action="{{ route('salesorder.update', $salesorder->ftrsomtid) }}"
-                                method="POST" class="mt-6" data-form-draft="true"
-                                data-draft-key="salesorder:edit:{{ $salesorder->ftrsomtid }}"
-                                data-salesorder-id="{{ $salesorder->ftrsomtid }}" x-data="{
-                                    handleSubmit() {
-                                        if (window.salesOrderItemsTable?.submitForm) {
-                                            window.salesOrderItemsTable.submitForm(this.$el);
-                                            return;
-                                        }
-                                        this.$el.submit();
-                                    }
-                                }" @submit.prevent="handleSubmit()">
-                                @csrf
-                                @method('PATCH')
-                                <input type="hidden" name="fneedacc" id="salesOrderNeedAcc"
-                                    value="{{ old('fneedacc', $salesorder->fneedacc ?? '0') }}">
-                                <input type="hidden" name="fuseracc" id="salesOrderUserAcc"
-                                    value="{{ old('fuseracc', $salesorder->fuseracc ?? '') }}">
-
-                                {{-- HEADER FORM --}}
-                                <div class="grid grid-cols-1 lg:grid-cols-12 gap-4">
-                                    <div class="lg:col-span-4">
-                                        <label class="block text-sm font-medium">Cabang</label>
-                                        <input type="text"
-                                            class="w-full border rounded px-3 py-2 bg-gray-200 cursor-not-allowed"
-                                            value="{{ $fcabang }}" disabled>
-                                        <input type="hidden" name="fbranchcode" value="{{ $fbranchcode }}">
-                                    </div>
-
-                                    {{-- SO# --}}
-                                    <div class="lg:col-span-4" x-data="{ autoCode: false }">
-                                        <label class="block text-sm font-medium mb-1">SO#</label>
-                                        <div class="flex items-center gap-3">
-                                            <input type="text" name="fsono"
-                                                value="{{ old('fsono', $salesorder->fsono) }}"
-                                                class="w-full border rounded px-3 py-2" :disabled="autoCode"
-                                                :class="autoCode ? 'bg-gray-200 cursor-not-allowed text-gray-500' : 'bg-white'">
-
-                                            <label class="inline-flex items-center select-none">
-                                                <input type="checkbox" x-model="autoCode">
-                                                <span class="ml-2 text-sm text-gray-700">Auto</span>
-                                            </label>
-                                        </div>
-                                        <p x-show="autoCode" class="text-[10px] text-blue-600 mt-1">* Nomor akan
-                                            digenerate
-                                            otomatis
-                                            saat simpan</p>
-                                    </div>
-
-                                    {{-- Tanggal --}}
-                                    <div class="lg:col-span-2">
-                                        <label class="block text-sm font-medium">Tanggal</label>
-                                        <input type="date" name="fsodate"
-                                            value="{{ old('fsodate') ?? date('Y-m-d', strtotime($salesorder->fsodate)) }}"
-                                            class="w-full border rounded px-3 py-2 @error('fsodate') border-red-500 @enderror">
-                                        @error('fsodate')
-                                            <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
-                                        @enderror
-                                    </div>
-
-                                    <div class="lg:col-span-2 flex items-end pb-2">
-                                        <div class="inline-flex items-center">
-                                            <input id="fclose" type="checkbox" name="fclose" value="1"
-                                                x-model="fclose" {{-- text-red-600 mengubah isi centang, border-red-400 mengubah bingkai --}}
-                                                class="w-6 h-6 text-red-600 border-red-400 rounded cursor-pointer focus:ring-red-500"
-                                                {{ old('fclose', $salesorder->fclose) ? 'checked' : '' }}>
-
-                                            <label for="fclose" {{-- text-red-600 mengubah warna tulisan menjadi merah --}}
-                                                class="ml-3 text-base font-bold text-red-600 whitespace-nowrap cursor-pointer">
-                                                Close
-                                            </label>
-                                        </div>
-                                    </div>
-
-                                    {{-- Customer --}}
-                                    <div class="lg:col-span-4">
-                                        <label class="block text-sm font-medium mb-1">Customer</label>
-                                        <div class="flex">
-                                            <div class="relative flex-1" for="modal_filter_customer_id">
-                                                <select id="modal_filter_customer_id" name="filter_customer_id"
-                                                    class="w-full border rounded-l px-3 py-2 bg-gray-100 text-gray-700 cursor-not-allowed"
-                                                    disabled>
-                                                    <option value=""></option>
-                                                    @if ($currentCustomerCode !== '' && !$hasCurrentCustomer)
-                                                        <option value="{{ $currentCustomerCode }}" selected>
-                                                            {{ $currentCustomerName !== '' ? $currentCustomerName . ' (' . $currentCustomerCode . ')' : $currentCustomerCode }}
-                                                        </option>
-                                                    @endif
-                                                    @foreach ($customers as $customer)
-                                                        <option value="{{ $customer->fcustomercode }}"
-                                                            data-ftempo="{{ trim((string) ($customer->ftempo ?? 0)) }}"
-                                                            data-fsalesman="{{ trim((string) ($customer->fsalesman ?? '')) }}"
-                                                            {{-- CEK DISINI: Bandingkan dengan data yang tersimpan di DB --}}
-                                                            {{ old('fcustno', $salesorder->fcustno) == $customer->fcustomercode ? 'selected' : '' }}>
-                                                            {{ $customer->fcustomername }}
-                                                            ({{ $customer->fcustomercode }})
-                                                        </option>
-                                                    @endforeach
-                                                </select>
-                                                <div class="absolute inset-0" role="button" aria-label="Browse Customer"
-                                                    @click="window.dispatchEvent(new CustomEvent('customer-browse-open'))">
-                                                </div>
-                                            </div>
-                                            <input type="hidden" name="fcustno" id="customerCodeHidden"
-                                                value="{{ old('fcustno', $salesorder->fcustno) }}">
-                                            <button type="button"
-                                                @click="window.dispatchEvent(new CustomEvent('customer-browse-open'))"
-                                                class="border -ml-px px-3 py-2 bg-white hover:bg-gray-50 rounded-r-none"
-                                                title="Browse Customer">
-                                                <x-heroicon-o-magnifying-glass class="w-5 h-5" />
-                                            </button>
-                                            @if (in_array('createCustomer', explode(',', session('user_restricted_permissions', '')), true))
-                                                <a href="{{ route('customer.create') }}" target="_blank" rel="noopener"
-                                                    class="border -ml-px rounded-r px-3 py-2 bg-white hover:bg-gray-50"
-                                                    title="Tambah Customer">
-                                                    <x-heroicon-o-plus class="w-5 h-5" />
-                                                </a>
-                                            @endif
-                                        </div>
-                                        @error('fcustno')
-                                            <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
-                                        @enderror
-                                    </div>
-
-                                    {{-- Salesman --}}
-                                    <div class="lg:col-span-4">
-                                        <label class="block text-sm font-medium mb-1">Salesman</label>
-                                        <div class="flex">
-                                            <div class="relative flex-1" for="modal_filter_salesman_id">
-                                                <select id="modal_filter_salesman_id" name="filter_salesman_id"
-                                                    class="w-full border rounded-l px-3 py-2 bg-gray-100 text-gray-700 cursor-not-allowed"
-                                                    disabled>
-                                                    <option value=""></option>
-                                                    @foreach ($salesmans as $salesman)
-                                                        <option value="{{ $salesman->fsalesmancode }}"
-                                                            {{-- CEK DISINI: Bandingkan old input atau data dari database --}}
-                                                            {{ old('fsalesman', $salesorder->fsalesman) == $salesman->fsalesmancode ? 'selected' : '' }}>
-                                                            {{ $salesman->fsalesmanname }}
-                                                            ({{ $salesman->fsalesmancode }})
-                                                        </option>
-                                                    @endforeach
-                                                </select>
-                                                <div class="absolute inset-0" role="button" aria-label="Browse Salesman"
-                                                    @click="window.dispatchEvent(new CustomEvent('salesman-browse-open'))">
-                                                </div>
-                                            </div>
-                                            <input type="hidden" name="fsalesman" id="salesmanCodeHidden"
-                                                value="{{ old('fsalesman', $salesorder->fsalesman) }}">
-                                            <button type="button"
-                                                @click="window.dispatchEvent(new CustomEvent('salesman-browse-open'))"
-                                                class="border -ml-px px-3 py-2 bg-white hover:bg-gray-50 rounded-r-none"
-                                                title="Browse Salesman">
-                                                <x-heroicon-o-magnifying-glass class="w-5 h-5" />
-                                            </button>
-                                            @if (in_array('createSalesman', explode(',', session('user_restricted_permissions', '')), true))
-                                                <a href="{{ route('salesman.create') }}" target="_blank" rel="noopener"
-                                                    class="border -ml-px rounded-r px-3 py-2 bg-white hover:bg-gray-50"
-                                                    title="Tambah Salesman">
-                                                    <x-heroicon-o-plus class="w-5 h-5" />
-                                                </a>
-                                            @endif
-                                        </div>
-                                        @error('fsalesman')
-                                            <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
-                                        @enderror
-                                    </div>
-
-                                    <div class="lg:col-span-2">
-                                        <label class="block text-sm font-medium mb-1">Tempo</label>
-                                        <div class="flex items-center">
-                                            {{-- Gunakan trim() untuk membuang spasi di belakang angka --}}
-                                            <input type="number" id="ftempohr" name="ftempohr"
-                                                value="{{ trim(old('ftempohr', $salesorder->ftempohr ?? 0)) }}"
-                                                class="w-full border rounded px-3 py-2">
-                                            <span class="ml-2">Hari</span>
-                                        </div>
-                                    </div>
-                                    <div class="lg:col-span-2">
-                                        <label class="block text-sm font-medium mb-1">Ref.PO</label>
-                                        <input type="text" name="frefpo"
-                                            value="{{ old('frefpo', $salesorder->frefpo) }}"
-                                            class="w-full border rounded px-3 py-2 @error('frefpo') border-red-500 @enderror"
-                                            placeholder="Masukkan nomor PO customer">
-                                        @error('frefpo')
-                                            <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
-                                        @enderror
-                                    </div>
-                                    <div class="col-span-12 mt-4">
-                                        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 items-stretch">
-
-                                            <div x-data="{
-                                                tab: 1,
-                                                addr1: {{ json_encode(old('fkirimaddress1', $salesorder->customer->fkirimaddress1 ?? '')) }},
-                                                addr2: {{ json_encode(old('fkirimaddress2', $salesorder->customer->fkirimaddress2 ?? '')) }},
-                                                addr3: {{ json_encode(old('fkirimaddress3', $salesorder->customer->fkirimaddress3 ?? '')) }},
-                                            
-                                                updateFinal() {
-                                                    let val = '';
-                                                    if (this.tab === 1) val = this.addr1;
-                                                    else if (this.tab === 2) val = this.addr2;
-                                                    else if (this.tab === 3) val = this.addr3;
-                                            
-                                                    const el = document.getElementById('falamatkirim_final');
-                                                    if (el) el.value = val;
-                                                }
-                                            }" x-init="const savedAddr = {{ json_encode(trim($salesorder->falamatkirim ?? '')) }};
-                                            if (savedAddr && savedAddr === addr2) { tab = 2; } else if (savedAddr && savedAddr === addr3) { tab = 3; } else { tab = 1; if (savedAddr) addr1 = savedAddr; }
-                                            updateFinal();
-                                            $watch('tab', v => updateFinal());
-                                            $watch('addr1', v => updateFinal());
-                                            $watch('addr2', v => updateFinal());
-                                            $watch('addr3', v => updateFinal());"
-                                                @customer-selected.window="
-                                addr1 = $event.detail.f1 || ''; 
-                                addr2 = $event.detail.f2 || ''; 
-                                addr3 = $event.detail.f3 || ''; 
-                                tab = 1; 
-                                updateFinal();
-                                "
-                                                class="flex flex-col gap-2">
-
-                                                <input type="hidden" name="falamatkirim" id="falamatkirim_final"
-                                                    value="{{ old('falamatkirim') }}">
-
-                                                <div class="flex items-center gap-2">
-                                                    <label class="text-sm font-bold text-gray-700 mr-2">Kirim ke :</label>
-
-                                                    <div class="inline-flex rounded-md shadow-sm" role="group">
-                                                        <button type="button" @click="tab = 1" disabled
-                                                            :class="tab === 1 ?
-                                                                'bg-blue-600 text-white z-10 ring-2 ring-blue-300' :
-                                                                'bg-white text-gray-700 hover:bg-gray-50'"
-                                                            class="px-4 py-1.5 text-xs font-semibold border border-gray-300 rounded-l-md transition-all">
-                                                            Alamat 1
-                                                        </button>
-                                                        <button type="button" @click="tab = 2" disabled
-                                                            :class="tab === 2 ?
-                                                                'bg-blue-600 text-white z-10 ring-2 ring-blue-300' :
-                                                                'bg-white text-gray-700 hover:bg-gray-50'"
-                                                            class="px-4 py-1.5 text-xs font-semibold border-t border-b border-r border-gray-300 transition-all">
-                                                            Alamat 2
-                                                        </button>
-                                                        <button type="button" @click="tab = 3" disabled
-                                                            :class="tab === 3 ?
-                                                                'bg-blue-600 text-white z-10 ring-2 ring-blue-300' :
-                                                                'bg-white text-gray-700 hover:bg-gray-50'"
-                                                            class="px-4 py-1.5 text-xs font-semibold border-t border-b border-r border-gray-300 rounded-r-md transition-all">
-                                                            Alamat 3
-                                                        </button>
-                                                    </div>
-                                                </div>
-
-                                                <div class="w-full">
-                                                    <textarea x-show="tab === 1" x-model="addr1" readonly
-                                                        class="w-full p-2 text-sm border border-gray-300 rounded focus:ring-blue-500 focus:border-blue-500 min-h-[80px]"
-                                                        placeholder="Isi Alamat 1..."></textarea>
-
-                                                    <textarea x-show="tab === 2" x-model="addr2" readonly
-                                                        class="w-full p-2 text-sm border border-gray-300 rounded focus:ring-blue-500 focus:border-blue-500 min-h-[80px]"
-                                                        placeholder="Isi Alamat 2..."></textarea>
-
-                                                    <textarea x-show="tab === 3" x-model="addr3" readonly
-                                                        class="w-full p-2 text-sm border border-gray-300 rounded focus:ring-blue-500 focus:border-blue-500 min-h-[80px]"
-                                                        placeholder="Isi Alamat 3..."></textarea>
-                                                </div>
-                                            </div>
-
-                                            <div class="flex flex-col">
-                                                <label
-                                                    class="block text-sm font-bold text-gray-700 mb-2">Keterangan</label>
-                                                <div
-                                                    class="flex-1 border-2 border-gray-200 rounded-xl p-3 bg-white min-h-[50px] focus-within:border-blue-400">
-                                                    <textarea name="fket" class="w-full h-full border-none focus:ring-0 p-0 text-sm resize-none"
-                                                        placeholder="Keterangan isi di sini...">{{ old('fket', $salesorder->fket) }}</textarea>
-                                                </div>
-                                                @error('fket')
-                                                    <span class="text-red-500 text-xs mt-1">{{ $message }}</span>
-                                                @enderror
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    <div class="lg:col-span-12">
-                                        <label class="block text-sm font-medium">Catatan Internal</label>
-                                        <textarea name="fketinternal" rows="3"
-                                            class="w-full border rounded px-3 py-2 @error('fketinternal') border-red-500 @enderror"
-                                            placeholder="Tulis Catatan Internal tambahan di sini...">{{ old('fketinternal', $salesorder->fketinternal) }}</textarea>
-                                        @error('fketinternal')
-                                            <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
-                                        @enderror
-                                    </div>
-                                </div>
-
-                                <div x-data="itemsTable()" x-init="init()" class="mt-6 space-y-2">
-
-                                    {{-- DETAIL ITEM (tabel input) --}}
-                                    <h3 class="text-base font-semibold text-gray-800">Detail Item</h3>
-
-                                    <div class="overflow-auto border rounded">
-                                        <table class="min-w-full text-sm balanced-detail-table"
-                                            data-skip-auto-detail-style="true">
-                                            <thead class="bg-gray-100">
-                                                <tr>
-                                                    <th class="p-2 text-left w-10">#</th>
-                                                    <th class="p-2 text-left w-52">Kode Produk</th>
-                                                    <th class="p-2 text-left w-[28rem]">Nama Produk</th>
-                                                    <th class="p-2 text-left w-32">Satuan</th>
-                                                    <th class="p-2 text-right w-28 whitespace-nowrap">Qty</th>
-                                                    <th class="p-2 text-right w-28 whitespace-nowrap">Qty.SRJ</th>
-                                                    <th class="p-2 text-right w-28 whitespace-nowrap">@ Harga</th>
-                                                    <th class="p-2 text-right w-28 whitespace-nowrap">Disc. %</th>
-                                                    <th class="p-2 text-right w-32 whitespace-nowrap">Total Harga</th>
-                                                    <th class="p-2 text-center w-24">Aksi</th>
-                                                </tr>
-                                            </thead>
-                                            <tbody>
-                                                <template x-for="(row, i) in rows" :key="row.uid || `item-${i}`">
-                                                    <tr class="border-t align-top">
-                                                        <td class="p-2" x-text="i + 1"></td>
-                                                        <td class="p-2">
-                                                            <div class="flex">
-                                                                <input type="text"
-                                                                    class="flex-1 border rounded-l px-2 py-1 font-mono"
-                                                                    x-model.trim="row.fprdcode"
-                                                                    @input="onCodeTypedRow(row, i)"
-                                                                    @keydown.enter.prevent="focusRowUnit(row, i)">
-                                                                <button type="button" @click="openBrowseFor(i)"
-                                                                    class="border border-l-0 px-2 py-1 bg-white hover:bg-gray-50"
-                                                                    title="Cari Produk">
-                                                                    <x-heroicon-o-magnifying-glass class="w-4 h-4" />
-                                                                </button>
-                                                            </div>
-                                                        </td>
-                                                        <td class="p-2">
-                                                            <div class="flex w-full max-w-full">
-                                                                <div class="min-w-0 flex-1 rounded-l border bg-gray-100 px-2 py-1 text-sm leading-5 text-gray-600 whitespace-normal break-words"
-                                                                    x-text="row.fitemname"></div>
-                                                                <button type="button" @click="openDesc(row)"
-                                                                    class="shrink-0 inline-flex items-center border border-l-0 rounded-r bg-slate-50 px-2 py-1 text-slate-700 hover:bg-slate-100"
-                                                                    title="Deskripsi">
-                                                                    <x-heroicon-o-document-text class="w-4 h-4" />
-                                                                </button>
-                                                            </div>
-                                                        </td>
-                                                        <td class="p-2">
-                                                            <template x-if="row.units && row.units.length > 1">
-                                                                <select class="w-full border rounded px-2 py-1 text-xs"
-                                                                    :id="'unit_row_' + i" x-model="row.fsatuan"
-                                                                    @change="onRowUpdated(i)"
-                                                                    @keydown.enter.prevent="focusRowQty(i)">
-                                                                    <template x-for="u in row.units" :key="u">
-                                                                        <option :value="u" x-text="u"></option>
-                                                                    </template>
-                                                                </select>
-                                                            </template>
-                                                            <template x-if="!row.units || row.units.length <= 1">
-                                                                <span class="text-xs" x-text="row.fsatuan"></span>
-                                                            </template>
-                                                        </td>
-                                                        <td class="p-2 text-right">
-                                                            <input type="number"
-                                                                class="w-full border rounded px-2 py-1 text-right"
-                                                                :id="'qty_row_' + i" x-model.number="row.fqty"
-                                                                min="0" @input="onRowUpdated(i)"
-                                                                @keydown.enter.prevent="focusRowPrice(i)">
-                                                        </td>
-                                                        <td class="p-2 text-right font-medium"
-                                                            x-text="formatQtyValue(row.fqtysrj)"></td>
-                                                         <td class="p-2 text-right">
-                                                             <input type="text" inputmode="decimal"
-                                                                 class="w-full border rounded px-2 py-1 text-right"
-                                                                 :id="'price_row_' + i" x-model="row.fpriceInput"
-                                                                 @focus="activeRow = row.uid; focusPriceInput(row); $event.target.select()"
-                                                                 @blur="activeRow = null; blurPriceInput(row)"
-                                                                 @input="onPriceInput(row)"
-                                                                 @keydown.enter.prevent="focusRowDisc(i)">
-                                                         </td>
-                                                         <td class="p-2 text-right">
-                                                             <input type="text"
-                                                                 class="w-full border rounded px-2 py-1 text-right"
-                                                                 :id="'disc_row_' + i" :value="normalizeDiscountValue(row.fdisc)"
-                                                                 @focus="activeRow = row.uid; $event.target.select()"
-                                                                 @blur="activeRow = null; normalizeDiscountInput($event, row)"
-                                                                 @input="row.fdisc = $event.target.value; recalc(row)" @keydown.enter.prevent="$event.target.blur()">
-                                                         </td>
-                                                        <td class="p-2">
-                                                            <input type="text"
-                                                                class="w-full border rounded px-2 py-1 bg-gray-100 text-gray-600 text-sm text-right"
-                                                                :value="fmt(row.ftotal)" disabled>
-                                                        </td>
-                                                        <td class="p-2 text-center">
-                                                            <div class="flex items-center justify-center gap-2 flex-wrap">
-                                                                <button type="button" @click="removeRow(i)"
-                                                                    class="inline-flex h-8 w-8 items-center justify-center rounded bg-red-100 text-red-600 hover:bg-red-200">-</button>
-                                                            </div>
-                                                        </td>
-                                                    </tr>
-                                                </template>
-                                            </tbody>
-                                        </table>
-                                    </div>
-
-                                    <div class="hidden">
-                                        <template x-for="row in rowsToSubmit" :key="'submit-' + row.uid">
-                                            <div>
-                                                <input type="hidden" name="fprdcode[]" :value="row.fprdcode">
-                                                <input type="hidden" name="fitemname[]" :value="row.fitemname">
-                                                <input type="hidden" name="fsatuan[]" :value="row.fsatuan">
-                                                <input type="hidden" name="fqty[]" :value="row.fqty">
-                                                <input type="hidden" name="fprice[]" :value="row.fprice">
-                                                <input type="hidden" name="fdisc[]" :value="row.fdisc">
-                                                <input type="hidden" name="ftotal[]" :value="row.ftotal">
-                                                <input type="hidden" name="fdesc[]" :value="row.fdesc">
-                                            </div>
-                                        </template>
-                                    </div>
-
-                                    <!-- Kanan: Panel Totals -->
-                                    <div class="mt-3 flex justify-end">
-                                        <div class="w-full md:w-1/2">
-                                            <div class="rounded-lg border bg-gray-50 p-3 space-y-2">
-                                                <div class="flex items-center justify-between">
-                                                    <span class="text-sm text-gray-700">Total Harga</span>
-                                                    <span class="min-w-[140px] text-right font-medium"
-                                                        x-text="formatTransactionAmount(totalHarga)"></span>
-                                                </div>
-
-                                                <div class="flex items-center justify-between gap-3">
-                                                    <span class="text-sm text-gray-700">Discount</span>
-                                                    <div class="flex items-center gap-2">
-                                                        <input type="number" min="0" max="100" step="0.01"
-                                                            name="fdiscpersen" x-model.number="headerDiscPercent"
-                                                            class="w-20 h-9 px-2 text-sm leading-tight text-right border rounded transition-opacity
-                                                                [appearance:textfield]
-                                                                [&::-webkit-outer-spin-button]:appearance-none
-                                                                [&::-webkit-inner-spin-button]:appearance-none">
-                                                        <span class="text-sm">%</span>
-                                                        <span class="min-w-[140px] text-right font-medium"
-                                                            x-text="rupiah(headerDiscAmount)"></span>
-                                                    </div>
-                                                </div>
-
-                                                <div class="flex items-center justify-between">
-                                                    <span class="text-sm text-gray-700">Total Setelah Disc.</span>
-                                                    <span class="min-w-[140px] text-right font-medium"
-                                                        x-text="rupiah(totalSetelahDisc)"></span>
-                                                </div>
-
-                                                <div class="flex items-center justify-between gap-6">
-                                                    <!-- Checkbox -->
-                                                    <div class="flex items-center">
-                                                        <input id="fapplyppn" type="checkbox" value="1"
-                                                            name="fapplyppn" x-model="includePPN" x-init="includePPN = {{ $salesorder->fapplyppn == '1' ? 'true' : 'false' }}"
-                                                            class="h-4 w-4 text-blue-600 border-gray-300 rounded">
-                                                        <label for="fapplyppn"
-                                                            class="ml-2 text-sm font-medium text-gray-700">
-                                                            <span class="font-bold">PPN</span>
-                                                        </label>
-                                                    </div>
-
-                                                    <!-- Dropdown Include / Exclude (tengah) -->
-                                                    <div class="flex items-center gap-2">
-                                                        <select id="ppnMode" name="fincludeppn"
-                                                            x-model.number="ppnMode" x-init="ppnMode = {{ old('fincludeppn', $salesorder->fincludeppn ?? 0) }}"
-                                                            :disabled="!includePPN"
-                                                            class="w-28 h-9 px-2 text-sm leading-tight border rounded transition-opacity appearance-none
-                                                           disabled:bg-gray-100 disabled:opacity-60 disabled:cursor-not-allowed">
-                                                            <option value="0">Exclude</option>
-                                                            <option value="1">Include</option>
-                                                        </select>
-                                                    </div>
-
-                                                    <!-- Input Rate + Nominal (kanan) -->
-                                                    <div class="flex items-center gap-2">
-                                                        <input type="number" name="fppnpersen" min="0"
-                                                            max="100" step="0.01" x-model.number="ppnRate"
-                                                            x-init="ppnRate = {{ old('fppnpersen', $salesorder->fppnpersen ?? 11) }}" :disabled="!includePPN"
-                                                            class="w-20 h-9 px-2 text-sm leading-tight text-right border rounded transition-opacity
-                                                            [appearance:textfield]
-                                                            [&::-webkit-outer-spin-button]:appearance-none
-                                                            [&::-webkit-inner-spin-button]:appearance-none
-                                                            disabled:bg-gray-100 disabled:opacity-60 disabled:cursor-not-allowed">
-                                                        <span class="text-sm">%</span>
-                                                        <span class="min-w-[140px] text-right font-medium"
-                                                            x-text="rupiah(ppnAmount)"></span>
-                                                    </div>
-
-                                                </div>
-
-                                                <div class="border-t my-1"></div>
-
-                                                <div class="flex items-center justify-between">
-                                                    <span class="text-sm font-semibold text-gray-800">Grand Total</span>
-                                                    <span class="min-w-[140px] text-right text-lg font-semibold"
-                                                        x-text="rupiah(grandTotal)"></span>
-                                                </div>
-                                            </div>
-
-                                            <!-- Hidden inputs for submit -->
-                                            <input type="hidden" name="famountgross" :value="totalHarga">
-                                            <input type="hidden" name="fdiscount" :value="headerDiscAmount">
-                                            <input type="hidden" name="famountpajak" :value="ppnAmount">
-                                            <input type="hidden" name="famountso" :value="grandTotal">
-                                            <input type="hidden" name="famountsonet" :value="totalDPP">
-                                        </div>
-                                    </div>
-
-                                    <!-- MODAL DESC (di dalam itemsTable) -->
-                                    <div x-show="showDescModal" x-cloak
-                                        class="fixed inset-0 z-[95] flex items-center justify-center" x-transition.opacity>
-                                        <div class="absolute inset-0 bg-black/50" @click="closeDesc()"></div>
-
-                                        <div class="relative bg-white w-[92vw] max-w-lg rounded-2xl shadow-2xl overflow-hidden"
-                                            x-transition.scale>
-                                            <div class="px-5 py-4 border-b flex items-center">
-                                                <x-heroicon-o-document-text class="w-6 h-6 text-blue-600 mr-2" />
-                                                <h3 class="text-lg font-semibold text-gray-800">Isi Deskripsi Item
-                                                </h3>
-                                            </div>
-
-                                            <div class="px-5 py-4 space-y-4">
-                                                <div>
-                                                    <div class="mb-1 flex items-center justify-between gap-3">
-                                                        <div class="text-sm text-gray-700">Nama Produk</div>
-                                                        <button x-show="!descReadonly" type="button" @click="copyDescName()"
-                                                            class="h-8 px-3 rounded-lg bg-blue-50 text-blue-700 text-sm font-medium hover:bg-blue-100">
-                                                            Copy
-                                                        </button>
-                                                    </div>
-                                                    <div class="rounded-lg border bg-gray-50 px-3 py-2 text-sm text-gray-800" x-text="descItemName || '-'"></div>
-                                                </div>
-                                                <label class="block text-sm text-gray-700">Deskripsi</label>
-                                                <textarea x-model="descValue" rows="5" class="w-full border rounded px-3 py-2" :readonly="descReadonly"
-                                                    placeholder="Tulis deskripsi item di sini..."></textarea>
-                                            </div>
-
-                                            <div class="px-5 py-3 border-t flex items-center justify-end gap-2">
-                                                <button type="button" @click="closeDesc()"
-                                                    class="h-9 px-4 rounded-lg bg-gray-100 text-gray-700 text-sm font-medium hover:bg-gray-200">
-                                                    Batal
-                                                </button>
-                                                <button x-show="!descReadonly" type="button" @click="applyDesc()"
-                                                    class="h-9 px-4 rounded-lg bg-emerald-600 text-white text-sm font-medium hover:bg-emerald-700">
-                                                    Simpan
-                                                </button>
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    <div x-show="showWarningModal" x-cloak
-                                        class="fixed inset-0 z-[96] flex items-center justify-center" x-transition.opacity>
-                                        <div class="absolute inset-0 bg-black/50" @click="closeWarning()"></div>
-                                        <div class="relative bg-white w-[92vw] max-w-lg rounded-2xl shadow-2xl overflow-hidden"
-                                            x-transition.scale>
-                                            <div class="px-5 py-4 border-b flex items-center">
-                                                <x-heroicon-o-exclamation-triangle class="w-6 h-6 text-amber-500 mr-2" />
-                                                <h3 class="text-lg font-semibold text-gray-800" x-text="warningTitle"></h3>
-                                            </div>
-                                            <div class="px-5 py-4 space-y-3">
-                                                <p class="text-sm text-gray-700" x-text="warningMessage"></p>
-                                                <template x-if="warningItems.length > 0">
-                                                    <ul class="list-disc pl-5 text-sm text-gray-700 space-y-1">
-                                                        <template x-for="item in warningItems" :key="item">
-                                                            <li x-text="item"></li>
-                                                        </template>
-                                                    </ul>
-                                                </template>
-                                            </div>
-                                            <div class="px-5 py-3 border-t flex items-center justify-end gap-2">
-                                                <button type="button" @click="closeWarning()"
-                                                    class="h-9 px-4 rounded-lg bg-gray-100 text-gray-700 text-sm font-medium hover:bg-gray-200">Tutup</button>
-                                                <button type="button" x-show="warningCanProceed" @click="confirmWarningAndSubmit()"
-                                                    class="h-9 px-4 rounded-lg bg-emerald-600 text-white text-sm font-medium hover:bg-emerald-700">Lanjut Simpan</button>
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    <input type="hidden" name="itemsCount" :value="rowsToSubmit.length">
-                                </div>
-
-                                <x-transaction.browse-customer-modal />
-
-                                <x-transaction.browse-salesman-modal />
-
-                                <x-transaction.browse-product-modal show-controls="true" show-pagination="true" />
-
-                                @php
-                                    $canApproval = in_array(
-                                        'approveSalesOrder',
-                                        explode(',', session('user_restricted_permissions', '')),
-                                    );
-                                @endphp
-
-                                @php
-                                    $canApproval = in_array(
-                                        'approveSalesOrder',
-                                        explode(',', session('user_restricted_permissions', '')),
-                                    );
-                                @endphp
-
-                                <div class="mt-8 flex justify-center gap-4">
-                                    @if ($canEditPermission)
-                                        @if ($usageLocked)
-                                            <button type="button" disabled title="{{ $usageLockMessage }}"
-                                                class="bg-blue-300 text-white px-6 py-2 rounded flex items-center cursor-not-allowed opacity-70">
-                                                <x-heroicon-o-lock-closed class="w-5 h-5 mr-2" /> Simpan
-                                            </button>
-                                        @else
-                                            <button type="submit"
-                                                class="bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700 flex items-center">
-                                                <x-heroicon-o-check class="w-5 h-5 mr-2" /> Simpan
-                                            </button>
-                                        @endif
-                                    @endif
-                                    <button type="button"
-                                        @click="window.location.href='{{ route('salesorder.index') }}'"
-                                        class="bg-gray-500 text-white px-6 py-2 rounded hover:bg-gray-600 flex items-center">
-                                        <x-heroicon-o-arrow-left class="w-5 h-5 mr-2" /> Keluar
-                                    </button>
-                                </div>
-                            </form>
+                        </form>
                 @endif
             </div>
         </div>
@@ -1337,8 +1348,8 @@
                     @csrf
                     @method('DELETE')
                     <div class="flex justify-end space-x-2">
-                        <button type="button" onclick="closeDeleteModal()" class="px-4 py-2 bg-gray-300 rounded hover:bg-gray-400"
-                            id="btnTidak">
+                        <button type="button" onclick="closeDeleteModal()"
+                            class="px-4 py-2 bg-gray-300 rounded hover:bg-gray-400" id="btnTidak">
                             Tidak
                         </button>
                         <button type="button" onclick="submitDeleteForm()"
@@ -1384,7 +1395,6 @@
 
                 toast.classList.remove('hidden');
             }
-
         </script>
     @endif
 @endsection
@@ -1921,13 +1931,13 @@
                 row.fitemname = meta.name || '';
                 const units = [...new Set((meta.units || []).map(u => (u ?? '').toString().trim()).filter(Boolean))];
                 const defaultUnit = (meta.default_unit || '').toString().trim();
-                const resolvedDefaultUnit = defaultUnit && units.includes(defaultUnit)
-                    ? defaultUnit
-                    : (units[0] || '');
+                const resolvedDefaultUnit = defaultUnit && units.includes(defaultUnit) ?
+                    defaultUnit :
+                    (units[0] || '');
                 row.units = units;
-                row.fsatuan = forceDefaultUnit
-                    ? resolvedDefaultUnit
-                    : (units.includes(row.fsatuan) ? row.fsatuan : resolvedDefaultUnit);
+                row.fsatuan = forceDefaultUnit ?
+                    resolvedDefaultUnit :
+                    (units.includes(row.fsatuan) ? row.fsatuan : resolvedDefaultUnit);
                 if (meta.unit_ratios) row.unit_ratios = meta.unit_ratios;
             },
 
@@ -1978,16 +1988,16 @@
             },
             isRowFilled(row) {
                 return [
-                    row.fprdcode,
-                    row.fitemname,
-                    row.fsatuan,
-                    row.fqty,
-                    row.fprice,
-                    row.fdisc,
-                    row.fdesc,
-                    row.fketdt
-                ].some((value) => String(value ?? '').trim() !== '' && Number(value ?? 0) !== 0)
-                    || Number(row.fqty || 0) > 0;
+                        row.fprdcode,
+                        row.fitemname,
+                        row.fsatuan,
+                        row.fqty,
+                        row.fprice,
+                        row.fdisc,
+                        row.fdesc,
+                        row.fketdt
+                    ].some((value) => String(value ?? '').trim() !== '' && Number(value ?? 0) !== 0) ||
+                    Number(row.fqty || 0) > 0;
             },
 
             onPrPicked(e) {
@@ -2283,7 +2293,8 @@
                     row.fnoacak = this.normalizeNoAcak(row.fnoacak) || this.generateUniqueNoAcak(row.uid);
                     const meta = {
                         name: product.fprdname,
-                        units: [product.fsatuankecil, product.fsatuanbesar, product.fsatuanbesar2].filter(Boolean),
+                        units: [product.fsatuankecil, product.fsatuanbesar, product.fsatuanbesar2].filter(
+                            Boolean),
                         default_unit: (product.fsatuandefault || '').toString().trim(),
                         stock: product.fqty || product.fminstock || 0
                     };
@@ -2295,7 +2306,7 @@
                         if (localMeta.stock) meta.stock = localMeta.stock;
                     }
                     this.hydrateRowFromMeta(row, meta, true);
-                        this.rows.splice(this.browseTarget, 1, {
+                    this.rows.splice(this.browseTarget, 1, {
                         ...this.rows[this.browseTarget]
                     });
                     if (!row.fqty) row.fqty = 1;
@@ -2344,9 +2355,9 @@
 
                 if (warningRows.length > 0) {
                     this.warningTitle = 'Qty Belum Diisi';
-                    this.warningMessage = validRows.length > 0
-                        ? 'Beberapa item tidak akan disimpan karena qty masih 0.'
-                        : 'Tidak ada item yang bisa disimpan karena qty masih 0 atau data belum lengkap.';
+                    this.warningMessage = validRows.length > 0 ?
+                        'Beberapa item tidak akan disimpan karena qty masih 0.' :
+                        'Tidak ada item yang bisa disimpan karena qty masih 0 atau data belum lengkap.';
                     this.warningItems = warningRows.map((row) => this.rowWarningLabel(row));
                     this.warningCanProceed = validRows.length > 0;
                     this.pendingSubmitForm = form;
@@ -2487,8 +2498,7 @@
         } catch (error) {
             await window.showAppErrorAlert(
                 @json('Cek Reff PO Gagal'),
-                @json("Gagal memeriksa duplikasi customer dan Reff PO.\nSilakan coba lagi."),
-                {
+                @json("Gagal memeriksa duplikasi customer dan Reff PO.\nSilakan coba lagi."), {
                     html: `<div class="text-left whitespace-pre-line">@json("Gagal memeriksa duplikasi customer dan Reff PO.\nSilakan coba lagi.")</div>`,
                     text: undefined
                 }
@@ -2636,8 +2646,7 @@
         } catch (error) {
             await window.showAppErrorAlert(
                 @json('Pemeriksaan Persetujuan Gagal'),
-                @json("Gagal memeriksa persetujuan customer.\nSilakan coba lagi."),
-                {
+                @json("Gagal memeriksa persetujuan customer.\nSilakan coba lagi."), {
                     html: `<div class="text-left whitespace-pre-line">@json("Gagal memeriksa persetujuan customer.\nSilakan coba lagi.")</div>`,
                     text: undefined
                 }
@@ -2690,8 +2699,10 @@
 
                 const normalize = (value) => String(value ?? '').trim();
                 const normalizeCode = (value) => normalize(value).toUpperCase();
-                const customerCode = normalize(detail.fcustomercode) || normalize(customerHidden.value) || normalize(customerSelect.value);
-                const selectedOption = [...customerSelect.options].find((option) => normalizeCode(option.value) === normalizeCode(customerCode));
+                const customerCode = normalize(detail.fcustomercode) || normalize(customerHidden.value) || normalize(
+                    customerSelect.value);
+                const selectedOption = [...customerSelect.options].find((option) => normalizeCode(option.value) ===
+                    normalizeCode(customerCode));
 
                 if (customerCode !== '' && selectedOption) {
                     customerSelect.value = customerCode;
@@ -2705,7 +2716,8 @@
                 }
 
                 if (salesmanCode !== '') {
-                    let salesmanOption = [...salesmanSelect.options].find((option) => normalizeCode(option.value) === normalizeCode(salesmanCode));
+                    let salesmanOption = [...salesmanSelect.options].find((option) => normalizeCode(option.value) ===
+                        normalizeCode(salesmanCode));
                     if (!salesmanOption) {
                         salesmanOption = new Option(salesmanCode, salesmanCode, true, true);
                         salesmanSelect.add(salesmanOption);
@@ -2714,7 +2726,9 @@
                     }
                     salesmanSelect.value = salesmanOption.value;
                     salesmanHidden.value = salesmanCode;
-                    salesmanSelect.dispatchEvent(new Event('change', { bubbles: true }));
+                    salesmanSelect.dispatchEvent(new Event('change', {
+                        bubbles: true
+                    }));
                 }
             }
 

@@ -216,12 +216,12 @@
                                         disabled>
                                         <option value=""></option>
                                         @foreach ($customers as $customer)
-                                        <option value="{{ $customer->fcustomercode }}"
-                                            data-ftempo="{{ trim((string) ($customer->ftempo ?? 0)) }}"
-                                            data-fsalesman="{{ trim((string) ($customer->fsalesman ?? '')) }}"
-                                            {{ $filterSupplierId == $customer->fcustomercode ? 'selected' : '' }}>
-                                            {{ $customer->fcustomername }} ({{ $customer->fcustomercode }})
-                                        </option>
+                                            <option value="{{ $customer->fcustomercode }}"
+                                                data-ftempo="{{ trim((string) ($customer->ftempo ?? 0)) }}"
+                                                data-fsalesman="{{ trim((string) ($customer->fsalesman ?? '')) }}"
+                                                {{ $filterSupplierId == $customer->fcustomercode ? 'selected' : '' }}>
+                                                {{ $customer->fcustomername }} ({{ $customer->fcustomercode }})
+                                            </option>
                                         @endforeach
                                     </select>
                                     <div class="absolute inset-0" role="button" aria-label="Browse Customer"
@@ -303,7 +303,7 @@
                             <label class="block text-sm font-bold mb-1">{{ 'Ref.PO' }}</label>
                             <input type="text" name="frefpo" value="{{ old('frefpo') }}"
                                 class="w-full border rounded px-3 py-2 @error('frefpo') border-red-500 @enderror"
-                                placeholder="Masukkan nomor PO customer">
+                                placeholder="PO Customer">
                             @error('frefpo')
                                 <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                             @enderror
@@ -431,7 +431,8 @@
                                             <td class="p-2" x-text="i + 1"></td>
                                             <td class="p-2">
                                                 <div class="flex">
-                                                    <input type="text" class="flex-1 border rounded-l px-2 py-1 font-mono"
+                                                    <input type="text"
+                                                        class="flex-1 border rounded-l px-2 py-1 font-mono"
                                                         x-model.trim="row.fprdcode" @input="onCodeTypedRow(row, i)"
                                                         @keydown.enter.prevent="focusRowUnit(row, i)">
                                                     <button type="button" @click="openBrowseFor(i)"
@@ -455,9 +456,8 @@
                                             <td class="p-2">
                                                 <template x-if="row.units && row.units.length > 1">
                                                     <select class="w-full border rounded px-2 py-1 text-xs"
-                                                        :id="'unit_row_' + i"
-                                                        x-model="row.fsatuan" @change="onRowUpdated(i)"
-                                                        @keydown.enter.prevent="focusRowQty(i)">
+                                                        :id="'unit_row_' + i" x-model="row.fsatuan"
+                                                        @change="onRowUpdated(i)" @keydown.enter.prevent="focusRowQty(i)">
                                                         <template x-for="u in row.units" :key="u">
                                                             <option :value="u" x-text="u"
                                                                 :selected="u === row.fsatuan"></option>
@@ -471,23 +471,23 @@
                                             <td class="p-2 text-right">
                                                 <input type="number" class="w-full border rounded px-2 py-1 text-right"
                                                     :id="'qty_row_' + i" x-model.number="row.fqty" min="0"
-                                                    @input="onRowUpdated(i)"
-                                                    @keydown.enter.prevent="focusRowPrice(i)">
+                                                    @input="onRowUpdated(i)" @keydown.enter.prevent="focusRowPrice(i)">
                                             </td>
                                             <td class="p-2 text-right">
-                                                <input type="text" inputmode="decimal" class="w-full border rounded px-2 py-1 text-right"
+                                                <input type="text" inputmode="decimal"
+                                                    class="w-full border rounded px-2 py-1 text-right"
                                                     :id="'price_row_' + i" x-model="row.fpriceInput"
                                                     @focus="activeRow = row.uid; focusPriceInput(row); $event.target.select()"
                                                     @blur="activeRow = null; blurPriceInput(row)"
-                                                    @input="onPriceInput(row)"
-                                                    @keydown.enter.prevent="focusRowDisc(i)">
+                                                    @input="onPriceInput(row)" @keydown.enter.prevent="focusRowDisc(i)">
                                             </td>
                                             <td class="p-2 text-right">
                                                 <input type="text" class="w-full border rounded px-2 py-1 text-right"
                                                     :id="'disc_row_' + i" :value="normalizeDiscountValue(row.fdisc)"
                                                     @focus="activeRow = row.uid; $event.target.select()"
                                                     @blur="activeRow = null; normalizeDiscountInput($event, row)"
-                                                    @input="row.fdisc = $event.target.value; recalc(row)" @keydown.enter.prevent="$event.target.blur()">
+                                                    @input="row.fdisc = $event.target.value; recalc(row)"
+                                                    @keydown.enter.prevent="$event.target.blur()">
                                             </td>
                                             <td class="p-2">
                                                 <input type="text"
@@ -634,7 +634,8 @@
                                                 Copy
                                             </button>
                                         </div>
-                                        <div class="rounded-lg border bg-gray-50 px-3 py-2 text-sm text-gray-800" x-text="descItemName || '-'"></div>
+                                        <div class="rounded-lg border bg-gray-50 px-3 py-2 text-sm text-gray-800"
+                                            x-text="descItemName || '-'"></div>
                                     </div>
                                     <label class="block text-sm text-gray-700">Deskripsi</label>
                                     <textarea x-model="descValue" rows="5" class="w-full border rounded px-3 py-2" :readonly="descReadonly"
@@ -1023,13 +1024,13 @@
                 row.fitemname = meta.name || '';
                 const units = [...new Set((meta.units || []).map(u => (u ?? '').toString().trim()).filter(Boolean))];
                 const defaultUnit = (meta.default_unit || '').toString().trim();
-                const resolvedDefaultUnit = defaultUnit && units.includes(defaultUnit)
-                    ? defaultUnit
-                    : (units[0] || '');
+                const resolvedDefaultUnit = defaultUnit && units.includes(defaultUnit) ?
+                    defaultUnit :
+                    (units[0] || '');
                 row.units = units;
-                row.fsatuan = forceDefaultUnit
-                    ? resolvedDefaultUnit
-                    : (units.includes(row.fsatuan) ? row.fsatuan : resolvedDefaultUnit);
+                row.fsatuan = forceDefaultUnit ?
+                    resolvedDefaultUnit :
+                    (units.includes(row.fsatuan) ? row.fsatuan : resolvedDefaultUnit);
                 if (meta.unit_ratios) row.unit_ratios = meta.unit_ratios;
             },
 
@@ -1078,16 +1079,16 @@
             },
             isRowFilled(row) {
                 return [
-                    row.fprdcode,
-                    row.fitemname,
-                    row.fsatuan,
-                    row.fqty,
-                    row.fprice,
-                    row.fdisc,
-                    row.fdesc,
-                    row.fketdt
-                ].some((value) => String(value ?? '').trim() !== '' && Number(value ?? 0) !== 0)
-                    || Number(row.fqty || 0) > 0;
+                        row.fprdcode,
+                        row.fitemname,
+                        row.fsatuan,
+                        row.fqty,
+                        row.fprice,
+                        row.fdisc,
+                        row.fdesc,
+                        row.fketdt
+                    ].some((value) => String(value ?? '').trim() !== '' && Number(value ?? 0) !== 0) ||
+                    Number(row.fqty || 0) > 0;
             },
 
             onPrPicked(e) {
@@ -1133,10 +1134,14 @@
                         fnouref: src.fnouref ?? '',
                         frefpr: src.frefpr ?? (header?.fpono ?? header?.fsono ?? ''),
                         fprhid: src.fprhid ?? header?.fprhid ?? header?.fpohid ?? '',
-                        fqty: (src.fqtysisa !== null && src.fqtysisa !== undefined && Number(src.fqtysisa) > 0) ?
-                            Number(src.fqtysisa) : ((src.fqtyremain !== null && src.fqtyremain !== undefined &&
-                                Number(src.fqtyremain) > 0) ? Number(src.fqtyremain) : ((src.fqty !== null &&
-                                src.fqty !== undefined && Number(src.fqty) > 0) ? Number(src.fqty) : 1)),
+                        fqty: (src.fqtysisa !== null && src.fqtysisa !== undefined && Number(src.fqtysisa) >
+                                0) ?
+                            Number(src.fqtysisa) : ((src.fqtyremain !== null && src.fqtyremain !==
+                                undefined &&
+                                Number(src.fqtyremain) > 0) ? Number(src.fqtyremain) : ((src.fqty !==
+                                    null &&
+                                    src.fqty !== undefined && Number(src.fqty) > 0) ? Number(src.fqty) :
+                                1)),
                         fterima: Number(src.fterima ?? 0),
                         fprice: Number(src.fprice ?? 0),
                         fdisc: src.fdisc ?? 0,
@@ -1144,7 +1149,8 @@
                         fdesc: src.fdesc ?? '',
                         fketdt: src.fketdt ?? '',
                         hideQtyLimitHint: false,
-                        units: Array.isArray(src.units) && src.units.length ? src.units : [src.fsatuan].filter(Boolean),
+                        units: Array.isArray(src.units) && src.units.length ? src.units : [src.fsatuan]
+                            .filter(Boolean),
                     };
 
                     const key = this.itemKey({
@@ -1299,8 +1305,7 @@
 
             restoreRows(items = []) {
                 this.rows = Array.isArray(items) ?
-                items.map((item, index) => this.normalizeRestoredRow(item, index)) :
-                    [];
+                    items.map((item, index) => this.normalizeRestoredRow(item, index)) : [];
                 if (this.rows.length === 0) {
                     this.rows = [this.createRow()];
                 }
@@ -1377,7 +1382,7 @@
                     if (!row) return;
                     row.fprdcode = (product.fprdcode || '').toString();
                     this.hydrateRowFromMeta(row, this.productMeta(row.fprdcode), true);
-                        this.rows.splice(this.browseTarget, 1, {
+                    this.rows.splice(this.browseTarget, 1, {
                         ...this.rows[this.browseTarget]
                     });
                     row.fnoacak = this.normalizeNoAcak(row.fnoacak) || this.generateUniqueNoAcak(row.uid);
@@ -1429,9 +1434,9 @@
 
                 if (warningRows.length > 0) {
                     this.warningTitle = 'Qty Belum Diisi';
-                    this.warningMessage = validRows.length > 0
-                        ? 'Beberapa item tidak akan disimpan karena qty masih 0.'
-                        : 'Tidak ada item yang bisa disimpan karena qty masih 0 atau data belum lengkap.';
+                    this.warningMessage = validRows.length > 0 ?
+                        'Beberapa item tidak akan disimpan karena qty masih 0.' :
+                        'Tidak ada item yang bisa disimpan karena qty masih 0 atau data belum lengkap.';
                     this.warningItems = warningRows.map((row) => this.rowWarningLabel(row));
                     this.warningCanProceed = validRows.length > 0;
                     this.pendingSubmitForm = form;
@@ -1558,8 +1563,7 @@
         } catch (error) {
             await window.showAppErrorAlert(
                 @json('Cek Reff PO Gagal'),
-                @json("Gagal memeriksa duplikasi customer dan Reff PO.\nSilakan coba lagi."),
-                {
+                @json("Gagal memeriksa duplikasi customer dan Reff PO.\nSilakan coba lagi."), {
                     html: `<div class="text-left whitespace-pre-line">@json("Gagal memeriksa duplikasi customer dan Reff PO.\nSilakan coba lagi.")</div>`,
                     text: undefined
                 }
@@ -1707,8 +1711,7 @@
         } catch (error) {
             await window.showAppErrorAlert(
                 @json('Pemeriksaan Persetujuan Gagal'),
-                @json("Gagal memeriksa persetujuan customer.\nSilakan coba lagi."),
-                {
+                @json("Gagal memeriksa persetujuan customer.\nSilakan coba lagi."), {
                     html: `<div class="text-left whitespace-pre-line">@json("Gagal memeriksa persetujuan customer.\nSilakan coba lagi.")</div>`,
                     text: undefined
                 }
@@ -1759,8 +1762,10 @@
 
                 const normalize = (value) => String(value ?? '').trim();
                 const normalizeCode = (value) => normalize(value).toUpperCase();
-                const customerCode = normalize(detail.fcustomercode) || normalize(customerHidden.value) || normalize(customerSelect.value);
-                const selectedOption = [...customerSelect.options].find((option) => normalizeCode(option.value) === normalizeCode(customerCode));
+                const customerCode = normalize(detail.fcustomercode) || normalize(customerHidden.value) || normalize(
+                    customerSelect.value);
+                const selectedOption = [...customerSelect.options].find((option) => normalizeCode(option.value) ===
+                    normalizeCode(customerCode));
 
                 if (customerCode !== '' && selectedOption) {
                     customerSelect.value = customerCode;
@@ -1774,7 +1779,8 @@
                 }
 
                 if (salesmanCode !== '') {
-                    let salesmanOption = [...salesmanSelect.options].find((option) => normalizeCode(option.value) === normalizeCode(salesmanCode));
+                    let salesmanOption = [...salesmanSelect.options].find((option) => normalizeCode(option.value) ===
+                        normalizeCode(salesmanCode));
                     if (!salesmanOption) {
                         salesmanOption = new Option(salesmanCode, salesmanCode, true, true);
                         salesmanSelect.add(salesmanOption);
@@ -1783,7 +1789,9 @@
                     }
                     salesmanSelect.value = salesmanOption.value;
                     salesmanHidden.value = salesmanCode;
-                    salesmanSelect.dispatchEvent(new Event('change', { bubbles: true }));
+                    salesmanSelect.dispatchEvent(new Event('change', {
+                        bubbles: true
+                    }));
                 }
             }
 
