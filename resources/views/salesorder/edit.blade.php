@@ -550,12 +550,6 @@
                                                 x-text="rupiah(totalSetelahDisc)"></span>
                                         </div>
 
-                                        <div class="flex items-center justify-between">
-                                            <span class="text-sm text-gray-700">Total DPP</span>
-                                            <span class="min-w-[140px] text-right font-medium"
-                                                x-text="rupiah(totalDPP)"></span>
-                                        </div>
-
                                         <div class="flex items-center justify-between gap-6">
                                             <div class="flex items-center">
                                                 <input id="fapplyppn" type="checkbox" name="fapplyppn"
@@ -1152,12 +1146,6 @@
                                                     <span class="text-sm text-gray-700">Total Setelah Disc.</span>
                                                     <span class="min-w-[140px] text-right font-medium"
                                                         x-text="rupiah(totalSetelahDisc)"></span>
-                                                </div>
-
-                                                <div class="flex items-center justify-between">
-                                                    <span class="text-sm text-gray-700">Total DPP</span>
-                                                    <span class="min-w-[140px] text-right font-medium"
-                                                        x-text="rupiah(totalDPP)"></span>
                                                 </div>
 
                                                 <div class="flex items-center justify-between gap-6">

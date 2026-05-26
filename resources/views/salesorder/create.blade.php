@@ -556,12 +556,6 @@
                                             x-text="rupiah(totalSetelahDisc)"></span>
                                     </div>
 
-                                    <div class="flex items-center justify-between">
-                                        <span class="text-sm text-gray-700">Total DPP</span>
-                                        <span class="min-w-[140px] text-right font-medium"
-                                            x-text="rupiah(totalDPP)"></span>
-                                    </div>
-
                                     <div class="flex items-center justify-between gap-6">
                                         <!-- Checkbox -->
                                         <div class="flex items-center">
