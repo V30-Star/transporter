@@ -1,6 +1,11 @@
 @extends('layouts.app')
 
-@section('title', $action === 'delete' ? 'Sales Order - Delete' : ($action === 'view' ? 'Sales Order - View' : 'Sales
+@section('title',
+    $action === 'delete'
+    ? 'Sales Order - Delete'
+    : ($action === 'view'
+    ? 'Sales Order - View'
+    : 'Sales
     Order - Edit'))
 
 @section('content')
@@ -483,21 +488,24 @@
                                                         </button>
                                                     </div>
                                                 </td>
-                                                <td class="p-2">
-                                                    <template x-if="row.units && row.units.length > 1">
-                                                        <select
-                                                            class="w-full border rounded px-2 py-1 text-xs bg-gray-100 text-gray-600"
-                                                            x-model="row.fsatuan" disabled>
-                                                            <template x-for="u in row.units" :key="u">
-                                                                <option :value="u" x-text="u"
-                                                                    :selected="u === row.fsatuan"></option>
-                                                            </template>
-                                                        </select>
-                                                    </template>
-                                                    <template x-if="!row.units || row.units.length <= 1">
-                                                        <span x-text="row.fsatuan"></span>
-                                                    </template>
-                                                </td>
+                                              <td class="p-2">
+    <template x-if="row.units && row.units.length > 1">
+        <select class="w-full border rounded px-2 py-1 text-xs"
+            :id="'unit_row_' + i"
+            x-model="row.fsatuan"
+            x-effect="$el.value = row.fsatuan"
+            @change="row.fsatuan = $el.value; onRowUpdated(i)"
+            @keydown.enter.prevent="focusRowQty(i)">
+            <template x-for="u in row.units" :key="u">
+                <option :value="u" x-text="u"></option>
+            </template>
+        </select>
+    </template>
+    <span x-show="!row.units || row.units.length <= 1"
+        class="text-xs"
+        x-text="row.fsatuan">
+    </span>
+</td>
                                                 <td class="p-2 text-right font-medium" x-text="formatQtyValue(row.fqty)">
                                                 </td>
                                                 <td class="p-2 text-right">
@@ -1052,22 +1060,24 @@
                                                             </button>
                                                         </div>
                                                     </td>
-                                                    <td class="p-2">
-                                                        <template x-if="row.units && row.units.length > 1">
-                                                            <select class="w-full border rounded px-2 py-1 text-xs"
-                                                                :id="'unit_row_' + i" x-model="row.fsatuan"
-                                                                @change="onRowUpdated(i)"
-                                                                @keydown.enter.prevent="focusRowQty(i)">
-                                                                <template x-for="u in row.units" :key="u">
-                                                                    <option :value="u" x-text="u">
-                                                                    </option>
-                                                                </template>
-                                                            </select>
-                                                        </template>
-                                                        <template x-if="!row.units || row.units.length <= 1">
-                                                            <span class="text-xs" x-text="row.fsatuan"></span>
-                                                        </template>
-                                                    </td>
+                                               <td class="p-2">
+    <template x-if="row.units && row.units.length > 1">
+        <select class="w-full border rounded px-2 py-1 text-xs"
+            :id="'unit_row_' + i"
+            x-model="row.fsatuan"
+            x-effect="$el.value = row.fsatuan"
+            @change="row.fsatuan = $el.value; onRowUpdated(i)"
+            @keydown.enter.prevent="focusRowQty(i)">
+            <template x-for="u in row.units" :key="u">
+                <option :value="u" x-text="u"></option>
+            </template>
+        </select>
+    </template>
+    <span x-show="!row.units || row.units.length <= 1"
+        class="text-xs"
+        x-text="row.fsatuan">
+    </span>
+</td>
                                                     <td class="p-2 text-right">
                                                         <input type="number"
                                                             class="w-full border rounded px-2 py-1 text-right"
@@ -1922,24 +1932,26 @@
             },
 
             hydrateRowFromMeta(row, meta, forceDefaultUnit = false) {
-                if (!meta) {
-                    row.fitemname = '';
-                    row.units = [];
-                    row.fsatuan = '';
-                    return;
-                }
-                row.fitemname = meta.name || '';
-                const units = [...new Set((meta.units || []).map(u => (u ?? '').toString().trim()).filter(Boolean))];
-                const defaultUnit = (meta.default_unit || '').toString().trim();
-                const resolvedDefaultUnit = defaultUnit && units.includes(defaultUnit) ?
-                    defaultUnit :
-                    (units[0] || '');
-                row.units = units;
-                row.fsatuan = forceDefaultUnit ?
-                    resolvedDefaultUnit :
-                    (units.includes(row.fsatuan) ? row.fsatuan : resolvedDefaultUnit);
-                if (meta.unit_ratios) row.unit_ratios = meta.unit_ratios;
-            },
+    if (!meta) {
+        row.fitemname = '';
+        row.units = [];
+        row.fsatuan = '';
+        return;
+    }
+
+    row.fitemname = meta.name || '';
+    const units = [...new Set((meta.units || []).map(unit => (unit ?? '').toString().trim()).filter(Boolean))];
+    const defaultUnit = (meta.default_unit || '').toString().trim();
+    const resolvedDefaultUnit = defaultUnit && units.includes(defaultUnit)
+        ? defaultUnit
+        : (units[0] || '');
+
+    row.units = units;
+    row.fsatuan = forceDefaultUnit
+        ? resolvedDefaultUnit
+        : (units.includes(row.fsatuan) ? row.fsatuan : resolvedDefaultUnit);
+
+},
 
             rowHasContent(row) {
                 if (!row) return false;
@@ -2280,42 +2292,55 @@
                     passive: true
                 });
 
-                window.addEventListener('product-chosen', (e) => {
-                    const {
-                        product
-                    } = e.detail || {};
-                    if (!product) return;
-                    if (typeof this.browseTarget !== 'number') return;
-                    const row = this.rows[this.browseTarget];
-                    if (!row) return;
-                    row.fprdcode = (product.fprdcode || '').toString();
-                    row.hideQtyLimitHint = true;
-                    row.fnoacak = this.normalizeNoAcak(row.fnoacak) || this.generateUniqueNoAcak(row.uid);
-                    const meta = {
-                        name: product.fprdname,
-                        units: [product.fsatuankecil, product.fsatuanbesar, product.fsatuanbesar2].filter(
-                            Boolean),
-                        default_unit: (product.fsatuandefault || '').toString().trim(),
-                        stock: product.fqty || product.fminstock || 0
-                    };
-                    const localMeta = this.productMeta(row.fprdcode);
-                    if (localMeta) {
-                        if (localMeta.name) meta.name = localMeta.name;
-                        if (localMeta.default_unit) meta.default_unit = localMeta.default_unit;
-                        if (localMeta.units && localMeta.units.length) meta.units = localMeta.units;
-                        if (localMeta.stock) meta.stock = localMeta.stock;
-                    }
-                    this.hydrateRowFromMeta(row, meta, true);
-                    this.rows.splice(this.browseTarget, 1, {
-                        ...this.rows[this.browseTarget]
-                    });
-                    if (!row.fqty) row.fqty = 1;
-                    this.onRowUpdated(this.browseTarget);
-                    const i = this.browseTarget;
-                    this.$nextTick(() => document.getElementById('qty_row_' + i)?.focus());
-                }, {
-                    passive: true
-                });
+               window.addEventListener('product-chosen', (e) => {
+    const { product } = e.detail || {};
+    if (!product) return;
+    if (typeof this.browseTarget !== 'number') return;
+
+    const i = this.browseTarget; // ✅ pindah ke atas
+    let row = this.rows[i];      // ✅ let supaya bisa reassign
+    if (!row) return;
+
+    row.fprdcode = (product.fprdcode || '').toString();
+    row.hideQtyLimitHint = true;
+    row.fnoacak = this.normalizeNoAcak(row.fnoacak) || this.generateUniqueNoAcak(row.uid);
+
+    const meta = {
+        name: product.fprdname,
+        units: [product.fsatuankecil, product.fsatuanbesar, product.fsatuanbesar2].filter(Boolean),
+        default_unit: (product.fsatuandefault || '').toString().trim(),
+        stock: product.fqty || product.fminstock || 0
+    };
+
+    const localMeta = this.productMeta(row.fprdcode);
+    if (localMeta) {
+        if (localMeta.name) meta.name = localMeta.name;
+        if (localMeta.default_unit) meta.default_unit = localMeta.default_unit;
+        if (localMeta.units && localMeta.units.length) meta.units = localMeta.units;
+        if (localMeta.stock) meta.stock = localMeta.stock;
+    }
+
+    this.hydrateRowFromMeta(row, meta, true);
+
+    // Force Alpine reactivity
+    this.rows.splice(i, 1, { ...this.rows[i] });
+
+    // ✅ reassign row setelah splice
+    row = this.rows[i];
+    row.uid = cryptoRandom();
+
+this.$nextTick(() => {
+    const sel = document.getElementById('unit_row_' + i);
+    if (sel) {
+        sel.value = row.fsatuan;
+    }
+});
+    if (!row.fqty) row.fqty = 1;
+    this.onRowUpdated(i);
+    this.$nextTick(() => document.getElementById('qty_row_' + i)?.focus());
+}, {
+    passive: true
+});
             },
 
             browseTarget: null,

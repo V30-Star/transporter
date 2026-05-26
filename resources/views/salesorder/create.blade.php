@@ -1378,17 +1378,23 @@
                     } = e.detail || {};
                     if (!product) return;
                     if (typeof this.browseTarget !== 'number') return;
-                    const row = this.rows[this.browseTarget];
+
+                    const i = this.browseTarget;
+                    let row = this.rows[i];
                     if (!row) return;
+
                     row.fprdcode = (product.fprdcode || '').toString();
                     this.hydrateRowFromMeta(row, this.productMeta(row.fprdcode), true);
-                    this.rows.splice(this.browseTarget, 1, {
-                        ...this.rows[this.browseTarget]
+
+                    this.rows.splice(i, 1, {
+                        ...this.rows[i]
                     });
+
+                    row = this.rows[i];
+
                     row.fnoacak = this.normalizeNoAcak(row.fnoacak) || this.generateUniqueNoAcak(row.uid);
                     if (!row.fqty) row.fqty = 1;
-                    this.onRowUpdated(this.browseTarget);
-                    const i = this.browseTarget;
+                    this.onRowUpdated(i);
                     this.$nextTick(() => document.getElementById('qty_row_' + i)?.focus());
                 }, {
                     passive: true

@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Controllers\Concerns\ProductBrowseHelper;
 use App\Mail\GenericApprovalNotification;
 use App\Models\Customer;
 use App\Models\Product;
@@ -18,6 +19,15 @@ use App\Support\ApprovalState;
 
 class SalesOrderController extends Controller
 {
+    use ProductBrowseHelper;
+    private function resolveProductDefaultUnit($product): string
+    {
+        return match ((int) $product->fsatuandefault) {
+            2 => (string) ($product->fsatuanbesar ?? ''),
+            3 => (string) ($product->fsatuanbesar2 ?? ''),
+            default => (string) ($product->fsatuankecil ?? ''),
+        };
+    }
     private function ensureNoDuplicateDetailCodes(array $codes): void
     {
         $seen = [];
@@ -757,6 +767,7 @@ class SalesOrderController extends Controller
             'fprdid',
             'fprdcode',
             'fprdname',
+            'fsatuandefault',
             'fsatuankecil',
             'fsatuanbesar',
             'fsatuanbesar2',
@@ -768,16 +779,17 @@ class SalesOrderController extends Controller
         $productMap = $products->mapWithKeys(function ($p) {
             return [
                 $p->fprdcode => [
-                    'name' => $p->fprdname,
-                    'units' => array_values(array_filter([
+                    'name'         => $p->fprdname,
+                    'default_unit' => $this->resolveProductDefaultUnit($p),
+                    'units'        => array_values(array_filter([
                         $p->fsatuankecil,
                         $p->fsatuanbesar,
                         $p->fsatuanbesar2,
                     ])),
-                    'stock' => $p->fminstock ?? 0,
-                    'unit_ratios' => [
-                        'satuankecil' => 1,
-                        'satuanbesar' => (float) ($p->fqtykecil ?? 1),
+                    'stock'        => $p->fminstock ?? 0,
+                    'unit_ratios'  => [
+                        'satuankecil'  => 1,
+                        'satuanbesar'  => (float) ($p->fqtykecil ?? 1),
                         'satuanbesar2' => (float) ($p->fqtykecil2 ?? 1),
                     ],
                 ],
@@ -886,15 +898,34 @@ class SalesOrderController extends Controller
 
             $produk = DB::table('msprd')
                 ->where('fprdcode', $itemCode)
-                ->select('fprdid', 'fsatuanbesar', 'fqtykecil as rasio_konversi')
+                ->select(
+                    'fprdid',
+                    'fsatuankecil',
+                    'fsatuanbesar',
+                    'fsatuanbesar2',
+                    'fqtykecil',
+                    'fqtykecil2'
+                )
                 ->first();
 
             $satuan = trim((string) ($satuans[$i] ?? ''));
 
             // Konversi Qty Kecil
             $qtyKecil = $qty;
-            if ($produk && $satuan === $produk->fsatuanbesar) {
-                $qtyKecil = $qty * (float) $produk->rasio_konversi;
+            if (
+                $produk
+                && $satuan !== ''
+                && $satuan === trim((string) ($produk->fsatuanbesar ?? ''))
+                && (float) ($produk->fqtykecil ?? 0) > 0
+            ) {
+                $qtyKecil = $qty * (float) $produk->fqtykecil;
+            } elseif (
+                $produk
+                && $satuan !== ''
+                && $satuan === trim((string) ($produk->fsatuanbesar2 ?? ''))
+                && (float) ($produk->fqtykecil2 ?? 0) > 0
+            ) {
+                $qtyKecil = $qty * (float) $produk->fqtykecil2;
             }
 
             // Hitung Diskon
@@ -1192,6 +1223,7 @@ class SalesOrderController extends Controller
             'fprdid',
             'fprdcode',
             'fprdname',
+            'fsatuandefault',
             'fsatuankecil',
             'fsatuanbesar',
             'fsatuanbesar2',
@@ -1205,6 +1237,7 @@ class SalesOrderController extends Controller
             return [
                 $p->fprdcode => [
                     'name' => $p->fprdname,
+                    'default_unit' => $this->resolveProductDefaultUnit($p),
                     'units' => array_values(array_filter([
                         $p->fsatuankecil,
                         $p->fsatuanbesar,
@@ -1482,12 +1515,31 @@ class SalesOrderController extends Controller
 
             $produk = DB::table('msprd')
                 ->where('fprdcode', $itemCode)
-                ->select('fprdid', 'fsatuanbesar', 'fqtykecil as rasio_konversi')
+                ->select(
+                    'fprdid',
+                    'fsatuankecil',
+                    'fsatuanbesar',
+                    'fsatuanbesar2',
+                    'fqtykecil',
+                    'fqtykecil2'
+                )
                 ->first();
 
             $qtyKecil = $qty;
-            if ($produk && $satuan === $produk->fsatuanbesar) {
-                $qtyKecil = $qty * (float) $produk->rasio_konversi;
+            if (
+                $produk
+                && $satuan !== ''
+                && $satuan === trim((string) ($produk->fsatuanbesar ?? ''))
+                && (float) ($produk->fqtykecil ?? 0) > 0
+            ) {
+                $qtyKecil = $qty * (float) $produk->fqtykecil;
+            } elseif (
+                $produk
+                && $satuan !== ''
+                && $satuan === trim((string) ($produk->fsatuanbesar2 ?? ''))
+                && (float) ($produk->fqtykecil2 ?? 0) > 0
+            ) {
+                $qtyKecil = $qty * (float) $produk->fqtykecil2;
             }
 
             $discPersen = $this->parseDiscount($discInput);
