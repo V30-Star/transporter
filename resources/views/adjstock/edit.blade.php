@@ -1927,6 +1927,10 @@
                     const apply = (row) => {
                         row.fitemcode = (product.fprdcode || '').toString();
                         this.hydrateRowFromMeta(row, this.productMeta(row.fitemcode));
+                         this.rows.splice(this.browseTarget, 1, {
+                        ...this.rows[this.browseTarget]
+                    });
+
                         if (!row.fqty) row.fqty = @json((string) env('STOCKBOLEHMINUS', '0') === '1') ? 1 : 0;
                         this.recalc(row);
                     };
@@ -2320,6 +2324,10 @@
                     const apply = (row) => {
                         row.fitemcode = (product.fprdcode || '').toString();
                         this.hydrateRowFromMeta(row, this.productMeta(row.fitemcode));
+                         this.rows.splice(this.browseTarget, 1, {
+                        ...this.rows[this.browseTarget]
+                    });
+
                         if (!row.fqty) row.fqty = @json((string) env('STOCKBOLEHMINUS', '0') === '1') ? 1 : 0;
                         this.recalc(row);
                     };

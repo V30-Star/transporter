@@ -970,7 +970,17 @@ class InvoiceController extends Controller
 
         $products = DB::table('msprd')
             ->whereIn('fprdcode', array_filter($itemCodes))
-            ->get(['fprdid', 'fprdcode', 'fprdname', 'fnonactive', 'fsatuanbesar', 'fqtykecil as rasio_konversi'])
+            ->get([
+                'fprdid',
+                'fprdcode',
+                'fprdname',
+                'fnonactive',
+                'fsatuankecil',
+                'fsatuanbesar',
+                'fsatuanbesar2',
+                'fqtykecil',
+                'fqtykecil2',
+            ])
             ->keyBy('fprdcode');
 
         foreach ($itemCodes as $i => $code) {
@@ -1045,8 +1055,10 @@ class InvoiceController extends Controller
             }
 
             $qtyKecil = $qty;
-            if ($product && $sat === trim((string) ($product->fsatuanbesar ?? ''))) {
-                $qtyKecil = $qty * (float) ($product->rasio_konversi ?? 1);
+            if ($product && $sat === trim((string) ($product->fsatuanbesar ?? '')) && (float) ($product->fqtykecil ?? 0) > 0) {
+                $qtyKecil = $qty * (float) $product->fqtykecil;
+            } elseif ($product && $sat === trim((string) ($product->fsatuanbesar2 ?? '')) && (float) ($product->fqtykecil2 ?? 0) > 0) {
+                $qtyKecil = $qty * (float) $product->fqtykecil2;
             }
 
             $discPersen = $this->parseDiscount($discs[$i] ?? 0);
@@ -2036,7 +2048,17 @@ class InvoiceController extends Controller
         // Ambil data produk masal
         $products = DB::table('msprd')
             ->whereIn('fprdcode', array_filter($itemCodes))
-            ->get(['fprdid', 'fprdcode', 'fprdname', 'fnonactive', 'fsatuanbesar', 'fqtykecil as rasio_konversi'])
+            ->get([
+                'fprdid',
+                'fprdcode',
+                'fprdname',
+                'fnonactive',
+                'fsatuankecil',
+                'fsatuanbesar',
+                'fsatuanbesar2',
+                'fqtykecil',
+                'fqtykecil2',
+            ])
             ->keyBy('fprdcode');
 
         foreach ($itemCodes as $i => $code) {
@@ -2124,8 +2146,10 @@ class InvoiceController extends Controller
             }
 
             $qtyKecil = $qty;
-            if ($product && $sat === trim((string) ($product->fsatuanbesar ?? ''))) {
-                $qtyKecil = $qty * (float) ($product->rasio_konversi ?? 1);
+            if ($product && $sat === trim((string) ($product->fsatuanbesar ?? '')) && (float) ($product->fqtykecil ?? 0) > 0) {
+                $qtyKecil = $qty * (float) $product->fqtykecil;
+            } elseif ($product && $sat === trim((string) ($product->fsatuanbesar2 ?? '')) && (float) ($product->fqtykecil2 ?? 0) > 0) {
+                $qtyKecil = $qty * (float) $product->fqtykecil2;
             }
 
             // Kalkulasi Baris

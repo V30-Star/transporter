@@ -141,7 +141,6 @@
                     <label class="block text-sm font-bold mb-1">{{ 'Giro Mundur' }}</label>
                     <label class="inline-flex items-center gap-2 h-9 px-3 border rounded w-full bg-white">
                         <input type="checkbox" x-model="isGiroMundur" class="rounded">
-                        <span class="text-sm">{{ 'Aktifkan giro mundur' }}</span>
                     </label>
                     <input type="hidden" name="fgiromundur" :value="isGiroMundur ? '1' : '0'">
                 </div>

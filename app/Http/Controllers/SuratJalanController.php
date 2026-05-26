@@ -625,7 +625,7 @@ class SuratJalanController extends Controller
         // =========================
         $prodMeta = DB::table('msprd')
             ->whereIn('fprdcode', $uniqueCodes)
-            ->get(['fprdid', 'fprdcode', 'fsatuankecil', 'fsatuanbesar', 'fsatuanbesar2', 'fqtykecil'])
+            ->get(['fprdid', 'fprdcode', 'fsatuankecil', 'fsatuanbesar', 'fsatuanbesar2', 'fqtykecil', 'fqtykecil2'])
             ->keyBy('fprdcode');
 
         $pickDefaultSat = function ($meta) {
@@ -683,6 +683,8 @@ class SuratJalanController extends Controller
             $qtyKecil = $qty;
             if ($sat !== '' && $sat === trim((string) ($meta->fsatuanbesar ?? '')) && (float) $meta->fqtykecil > 0) {
                 $qtyKecil = $qty * (float) $meta->fqtykecil;
+            } elseif ($sat !== '' && $sat === trim((string) ($meta->fsatuanbesar2 ?? '')) && (float) ($meta->fqtykecil2 ?? 0) > 0) {
+                $qtyKecil = $qty * (float) $meta->fqtykecil2;
             }
 
             if ($sat === '') {
@@ -1332,7 +1334,7 @@ class SuratJalanController extends Controller
         // =========================
         $prodMeta = DB::table('msprd')
             ->whereIn('fprdcode', $uniqueCodes)
-            ->get(['fprdid', 'fprdcode', 'fsatuankecil', 'fsatuanbesar', 'fsatuanbesar2', 'fqtykecil'])
+            ->get(['fprdid', 'fprdcode', 'fsatuankecil', 'fsatuanbesar', 'fsatuanbesar2', 'fqtykecil', 'fqtykecil2'])
             ->keyBy('fprdcode');
 
         $pickDefaultSat = function ($meta) {
@@ -1390,6 +1392,8 @@ class SuratJalanController extends Controller
             $qtyKecil = $qty;
             if ($meta && $sat !== '' && $sat === trim((string) ($meta->fsatuanbesar ?? '')) && (float) $meta->fqtykecil > 0) {
                 $qtyKecil = $qty * (float) $meta->fqtykecil;
+            } elseif ($meta && $sat !== '' && $sat === trim((string) ($meta->fsatuanbesar2 ?? '')) && (float) ($meta->fqtykecil2 ?? 0) > 0) {
+                $qtyKecil = $qty * (float) $meta->fqtykecil2;
             }
 
             if ($sat === '') {

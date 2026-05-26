@@ -1,6 +1,7 @@
 @extends('layouts.app')
 
-@section('title', $action === 'delete' ? 'Order Pembelian - Delete' : ($action === 'view' ? 'Order Pembelian - View' : 'Order Pembelian - Edit'))
+@section('title', $action === 'delete' ? 'Order Pembelian - Delete' : ($action === 'view' ? 'Order Pembelian - View' :
+    'Order Pembelian - Edit'))
 
 @section('content')
     <style>
@@ -85,7 +86,11 @@
         $readonly = $isReadOnly ? 'readonly' : '';
         $bgDisabled = $isReadOnly ? 'bg-gray-100 cursor-not-allowed text-gray-500' : '';
         $canClosePo = $isEdit && $tr_poh->fclose != '1' && (string) ($tr_poh->fprdin ?? '') !== '1';
-        $canPrint = in_array('viewTr_poh', $permissions, true) || in_array('updateTr_poh', $permissions, true) || in_array('deleteTr_poh', $permissions, true) || in_array('createTr_poh', $permissions, true);
+        $canPrint =
+            in_array('viewTr_poh', $permissions, true) ||
+            in_array('updateTr_poh', $permissions, true) ||
+            in_array('deleteTr_poh', $permissions, true) ||
+            in_array('createTr_poh', $permissions, true);
         $fmtQty = function ($value) {
             $num = (float) ($value ?? 0);
             return number_format($num, 2, ',', '.');
@@ -170,11 +175,9 @@
 
         @if ($isEdit)
             <form action="{{ route('tr_poh.update', $tr_poh->fpohid) }}" method="POST" class="mt-6"
-                data-form-draft="true" data-draft-key="tr_poh:edit:{{ $tr_poh->fpohid }}"
-                @submit.prevent="submitForm($el)">
+                data-form-draft="true" data-draft-key="tr_poh:edit:{{ $tr_poh->fpohid }}" @submit.prevent="submitForm($el)">
                 @csrf
                 @method('PATCH')
-
             @else
                 <div class="mt-6">
         @endif
@@ -209,6 +212,7 @@
                             @foreach ($suppliers as $supplier)
                                 <option value="{{ $supplier->fsuppliercode }}"
                                     data-tempo="{{ (int) ($supplier->ftempo ?? 0) }}"
+                                    data-currency="{{ trim((string) ($supplier->fcurr ?? '')) }}"
                                     {{ old('fsupplier', $tr_poh->fsupplier) == $supplier->fsuppliercode ? 'selected' : '' }}>
                                     {{ $supplier->fsuppliername }} ({{ $supplier->fsuppliercode }})
                                 </option>
@@ -413,12 +417,14 @@
                                     @if ($isEdit)
                                         <div class="flex min-w-0 items-start overflow-visible">
                                             <div class="flex min-w-0 flex-1">
-                                                <div
-                                                    class="min-w-0 flex-1 rounded-l border bg-gray-100 px-2 py-1 text-sm leading-5 text-gray-600 whitespace-normal break-words"
+                                                <div class="min-w-0 flex-1 rounded-l border bg-gray-100 px-2 py-1 text-sm leading-5 text-gray-600 whitespace-normal break-words"
                                                     x-text="row.fitemname || '-'"></div>
-                                                <button type="button" @click="openDesc(row, {{ $isEdit ? 'false' : 'true' }})"
+                                                <button type="button"
+                                                    @click="openDesc(row, {{ $isEdit ? 'false' : 'true' }})"
                                                     class="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-r border border-l-0 transition"
-                                                    :class="row.fdesc ? 'border-emerald-300 bg-emerald-50 text-emerald-600 hover:bg-emerald-100' : 'border-gray-300 bg-white text-gray-500 hover:bg-gray-50'"
+                                                    :class="row.fdesc ?
+                                                        'border-emerald-300 bg-emerald-50 text-emerald-600 hover:bg-emerald-100' :
+                                                        'border-gray-300 bg-white text-gray-500 hover:bg-gray-50'"
                                                     title="Deskripsi item">
                                                     <x-heroicon-o-document-text class="h-4 w-4" />
                                                 </button>
@@ -427,10 +433,13 @@
                                     @else
                                         <div class="flex items-start gap-2">
                                             <div class="flex min-w-0 flex-1">
-                                                <div class="min-w-0 flex-1 text-sm text-gray-800" x-text="row.fitemname"></div>
+                                                <div class="min-w-0 flex-1 text-sm text-gray-800" x-text="row.fitemname">
+                                                </div>
                                                 <button type="button" @click="openDesc(row, true)"
                                                     class="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded border transition"
-                                                    :class="row.fdesc ? 'border-emerald-300 bg-emerald-50 text-emerald-600 hover:bg-emerald-100' : 'border-gray-300 bg-white text-gray-500 hover:bg-gray-50'"
+                                                    :class="row.fdesc ?
+                                                        'border-emerald-300 bg-emerald-50 text-emerald-600 hover:bg-emerald-100' :
+                                                        'border-gray-300 bg-white text-gray-500 hover:bg-gray-50'"
                                                     title="Deskripsi item">
                                                     <x-heroicon-o-document-text class="h-4 w-4" />
                                                 </button>
@@ -462,7 +471,8 @@
 
                                 {{-- Ref.PR# --}}
                                 <td class="p-2">
-                                    <span class="text-sm text-gray-600" x-text="row.fprno || row.frefdtno || row.frefpr || '-'"></span>
+                                    <span class="text-sm text-gray-600"
+                                        x-text="row.fprno || row.frefdtno || row.frefpr || '-'"></span>
                                 </td>
 
                                 {{-- Qty --}}
@@ -470,10 +480,9 @@
                                     @if ($isEdit)
                                         <input type="number" class="border rounded px-2 py-1 w-20 text-right text-sm"
                                             x-model.number="row.fqty" :id="'qty_row_' + i" step="any"
-                                            @focus="activeRow = row.uid; $event.target.select()" @blur="activeRow = null; enforcePrQtyRow(row);"
-                                            @input="onRowUpdated(i)"
-                                            @change="onRowUpdated(i)"
-                                            @keydown.enter.prevent="focusRowPrice(i)">
+                                            @focus="activeRow = row.uid; $event.target.select()"
+                                            @blur="activeRow = null; enforcePrQtyRow(row);" @input="onRowUpdated(i)"
+                                            @change="onRowUpdated(i)" @keydown.enter.prevent="focusRowPrice(i)">
                                         <div class="text-[10px] text-amber-700 font-medium text-right mt-0.5"
                                             x-show="row.frefdtid && formatPrRemainHint(row)"
                                             x-html="formatPrRemainHint(row)">
@@ -492,10 +501,10 @@
                                 {{-- @ Harga --}}
                                 <td class="p-2 text-right">
                                     @if ($isEdit)
-                                        <input type="text" inputmode="decimal" class="border rounded px-2 py-1 w-24 text-right text-sm"
-                                            x-model="row.fpriceInput"
-                                            @input="onPriceInput(row)"
-                                            :id="'price_row_' + i" @focus="activeRow = row.uid; focusPriceInput(row); $event.target.select()"
+                                        <input type="text" inputmode="decimal"
+                                            class="border rounded px-2 py-1 w-24 text-right text-sm"
+                                            x-model="row.fpriceInput" @input="onPriceInput(row)" :id="'price_row_' + i"
+                                            @focus="activeRow = row.uid; focusPriceInput(row); $event.target.select()"
                                             @blur="activeRow = null; blurPriceInput(row)" @change="recalc(row)"
                                             @keydown.enter.prevent="focusRowDisc(i)">
                                     @else
@@ -507,11 +516,12 @@
                                 <td class="p-2 text-right">
                                     @if ($isEdit)
                                         <input type="number" class="border rounded px-2 py-1 w-20 text-right text-sm"
-                                            min="0" max="100" step="0.01" :value="Number(row.fdisc || 0).toFixed(2)"
-                                            @input="row.fdisc = +$event.target.value; recalc(row)"
-                                            :id="'disc_row_' + i" @focus="activeRow = row.uid; $event.target.select()"
-                                            @blur="activeRow = null; $event.target.value = (+row.fdisc || 0).toFixed(2)" @change="recalc(row)"
-                                            @keydown.enter.prevent="onRowUpdated(i)">
+                                            min="0" max="100" step="0.01"
+                                            :value="Number(row.fdisc || 0).toFixed(2)"
+                                            @input="row.fdisc = +$event.target.value; recalc(row)" :id="'disc_row_' + i"
+                                            @focus="activeRow = row.uid; $event.target.select()"
+                                            @blur="activeRow = null; $event.target.value = (+row.fdisc || 0).toFixed(2)"
+                                            @change="recalc(row)" @keydown.enter.prevent="onRowUpdated(i)">
                                     @else
                                         <span class="text-sm" x-text="fmtCurr(row.fdisc)"></span>
                                     @endif
@@ -575,11 +585,11 @@
             <div x-show="showDescModal" x-cloak class="fixed inset-0 z-[95] flex items-center justify-center"
                 x-transition.opacity>
                 <div class="absolute inset-0 bg-black/50" @click="closeDesc()"></div>
-                <div class="relative bg-white w-[92vw] max-w-lg rounded-2xl shadow-2xl overflow-hidden"
-                    x-transition.scale>
+                <div class="relative bg-white w-[92vw] max-w-lg rounded-2xl shadow-2xl overflow-hidden" x-transition.scale>
                     <div class="px-5 py-4 border-b flex items-center">
                         <x-heroicon-o-document-text class="w-6 h-6 text-blue-600 mr-2" />
-                        <h3 class="text-lg font-semibold text-gray-800" x-text="descReadonly ? 'Deskripsi Item' : 'Isi Deskripsi Item'"></h3>
+                        <h3 class="text-lg font-semibold text-gray-800"
+                            x-text="descReadonly ? 'Deskripsi Item' : 'Isi Deskripsi Item'"></h3>
                     </div>
                     <div class="px-5 py-4 space-y-4">
                         <div>
@@ -590,11 +600,11 @@
                                     Copy
                                 </button>
                             </div>
-                            <div class="rounded-lg border bg-gray-50 px-3 py-2 text-sm text-gray-800" x-text="descItemName || '-'"></div>
+                            <div class="rounded-lg border bg-gray-50 px-3 py-2 text-sm text-gray-800"
+                                x-text="descItemName || '-'"></div>
                         </div>
                         <label class="block text-sm text-gray-700">Deskripsi</label>
-                        <textarea x-model="descValue" rows="5" class="w-full border rounded px-3 py-2"
-                            :readonly="descReadonly"
+                        <textarea x-model="descValue" rows="5" class="w-full border rounded px-3 py-2" :readonly="descReadonly"
                             :class="descReadonly ? 'bg-gray-100 cursor-not-allowed text-gray-600' : ''"
                             placeholder="Tulis deskripsi item di sini..."></textarea>
                     </div>
@@ -816,8 +826,7 @@
             <div x-show="showWarningModal" x-cloak class="fixed inset-0 z-[96] flex items-center justify-center"
                 x-transition.opacity>
                 <div class="absolute inset-0 bg-black/50" @click="closeWarning()"></div>
-                <div class="relative bg-white w-[92vw] max-w-lg rounded-2xl shadow-2xl overflow-hidden"
-                    x-transition.scale>
+                <div class="relative bg-white w-[92vw] max-w-lg rounded-2xl shadow-2xl overflow-hidden" x-transition.scale>
                     <div class="px-5 py-4 border-b flex items-center">
                         <x-heroicon-o-exclamation-triangle class="w-6 h-6 text-amber-500 mr-2" />
                         <h3 class="text-lg font-semibold text-gray-800" x-text="warningTitle"></h3>
@@ -924,7 +933,8 @@
         @if ($isEdit)
             </form>
             @if ($canClosePo)
-                <form id="closePoForm" action="{{ route('tr_poh.update', $tr_poh->fpohid) }}" method="POST" class="hidden">
+                <form id="closePoForm" action="{{ route('tr_poh.update', $tr_poh->fpohid) }}" method="POST"
+                    class="hidden">
                     @csrf
                     @method('PATCH')
                     <input type="hidden" name="close_only" value="1">
@@ -1046,18 +1056,18 @@
                     default => trim((string) ($p->fsatuankecil ?? '')) ?: trim((string) ($p->fsatuanbesar ?? '')) ?: trim((string) ($p->fsatuanbesar2 ?? '')),
                 };
             @endphp
-            "{{ $p->fprdcode }}": {
-                id: @json($p->fprdid),
-                name: @json($p->fprdname),
-                default_unit: @json($defaultUnit),
-                units: @json(array_values(array_filter([$p->fsatuankecil, $p->fsatuanbesar, $p->fsatuanbesar2]))),
-                stock: @json($p->fminstock ?? 0),
-                unit_ratios: {
-                    satuankecil: 1,
-                    satuanbesar: @json((float) ($p->fqtykecil ?? 1)),
-                    satuanbesar2: @json((float) ($p->fqtykecil2 ?? 1)),
+                "{{ $p->fprdcode }}": {
+                    id: @json($p->fprdid),
+                    name: @json($p->fprdname),
+                    default_unit: @json($defaultUnit),
+                    units: @json(array_values(array_filter([$p->fsatuankecil, $p->fsatuanbesar, $p->fsatuanbesar2]))),
+                    stock: @json($p->fminstock ?? 0),
+                    unit_ratios: {
+                        satuankecil: 1,
+                        satuanbesar: @json((float) ($p->fqtykecil ?? 1)),
+                        satuanbesar2: @json((float) ($p->fqtykecil2 ?? 1)),
+                    },
                 },
-            },
         @endforeach
     };
 
@@ -1226,7 +1236,9 @@
                 let candidate = '';
 
                 do {
-                    candidate = Array.from({ length: 3 }, () => '123456789'[Math.floor(Math.random() * 9)]).join('');
+                    candidate = Array.from({
+                        length: 3
+                    }, () => '123456789' [Math.floor(Math.random() * 9)]).join('');
                 } while (used.has(candidate));
 
                 return candidate;
@@ -1463,6 +1475,25 @@
                 tempoInput.value = Number.isFinite(tempo) ? tempo : 0;
             },
 
+            syncSupplierCurrency(code = null) {
+                const supplierCode = (code ?? this.getSupplier() ?? '').toString().trim();
+                const sel = document.getElementById('modal_filter_supplier_id');
+                if (!sel) return;
+
+                const selectedOption = Array.from(sel.options).find((option) => String(option.value) === supplierCode);
+                const supplierCurrency = String(selectedOption?.dataset?.currency ?? '').trim().toUpperCase();
+                if (!supplierCurrency) return;
+
+                const currencyEntry = Object.values(window.CURRENCY_MAP || {}).find((currency) =>
+                    String(currency?.code ?? '').trim().toUpperCase() === supplierCurrency
+                );
+                if (!currencyEntry) return;
+
+                this.selectedCurrId = String(currencyEntry.id);
+                this.selectedCurrCode = currencyEntry.code;
+                this.rateValue = Number(currencyEntry.rate ?? 0);
+            },
+
             syncSupplierDisplay(code) {
                 const supplierCode = (code || '').toString().trim();
                 const sel = document.getElementById('modal_filter_supplier_id');
@@ -1480,11 +1511,15 @@
                 if (!found && supplierCode) {
                     const option = new Option(supplierCode, supplierCode, true, true);
                     option.dataset.tempo = '0';
+                    option.dataset.currency = '';
                     sel.add(option);
                 }
 
-                sel.dispatchEvent(new Event('change', { bubbles: true }));
+                sel.dispatchEvent(new Event('change', {
+                    bubbles: true
+                }));
                 this.syncSupplierTempo(supplierCode);
+                this.syncSupplierCurrency(supplierCode);
             },
 
             async applyLastPrice(row) {
@@ -1505,17 +1540,17 @@
 
             isRowFilled(row) {
                 return [
-                    row.fitemcode,
-                    row.fitemname,
-                    row.fsatuan,
-                    row.frefdtno,
-                    row.fqty,
-                    row.fprice,
-                    row.fdisc,
-                    row.fdesc,
-                    row.fketdt
-                ].some((value) => String(value ?? '').trim() !== '' && Number(value ?? 0) !== 0)
-                    || Number(row.fqty || 0) > 0;
+                        row.fitemcode,
+                        row.fitemname,
+                        row.fsatuan,
+                        row.frefdtno,
+                        row.fqty,
+                        row.fprice,
+                        row.fdisc,
+                        row.fdesc,
+                        row.fketdt
+                    ].some((value) => String(value ?? '').trim() !== '' && Number(value ?? 0) !== 0) ||
+                    Number(row.fqty || 0) > 0;
             },
 
             isRowSavable(row) {
@@ -1537,7 +1572,8 @@
                     const code = (row.fitemcode || '').trim().toUpperCase();
                     if (!code) continue;
                     if (seenCodes.has(code)) {
-                        this.showWarning('Produk Duplikat', `Kode produk ${code} tidak boleh sama dalam satu Order Pembelian.`);
+                        this.showWarning('Produk Duplikat',
+                            `Kode produk ${code} tidak boleh sama dalam satu Order Pembelian.`);
                         return null;
                     }
                     seenCodes.add(code);
@@ -1566,7 +1602,8 @@
                     return sisaPrBaris;
                 }
 
-                const hasRemainField = row.fqtykecil_ref !== undefined && row.fqtykecil_ref !== null && row.fqtykecil_ref !== '';
+                const hasRemainField = row.fqtykecil_ref !== undefined && row.fqtykecil_ref !== null && row
+                    .fqtykecil_ref !== '';
 
                 let sisaKecil = 0;
                 if (hasRemainField) {
@@ -1674,7 +1711,8 @@
                     const rowId = rowMeta?.id ?? null;
                     if (rowCode === cCode) return true;
                     if (cId && rowId && cId === rowId && (!cSatuan || rowSatuan === cSatuan)) return true;
-                    if (cName && rowName && cName === rowName && (!cSatuan || rowSatuan === cSatuan)) return true;
+                    if (cName && rowName && cName === rowName && (!cSatuan || rowSatuan === cSatuan))
+                    return true;
                     return false;
                 });
             },
@@ -1764,7 +1802,8 @@
                         normalizedRow.fqty = Number(normalizedRow.maxqty);
                     }
                     if (!normalizedRow.ftotal && normalizedRow.fqty && normalizedRow.fprice)
-                        normalizedRow.ftotal = +(normalizedRow.fqty * normalizedRow.fprice * (1 - normalizedRow.fdisc / 100)).toFixed(2);
+                        normalizedRow.ftotal = +(normalizedRow.fqty * normalizedRow.fprice * (1 - normalizedRow
+                            .fdisc / 100)).toFixed(2);
                     toAdd.push(normalizedRow);
                     existingSet.add(key);
                 });
@@ -1819,9 +1858,9 @@
 
                 if (warningRows.length > 0) {
                     this.warningTitle = 'Qty Belum Diisi';
-                    this.warningMessage = validRows.length > 0
-                        ? 'Beberapa item tidak akan disimpan karena qty masih 0.'
-                        : 'Tidak ada item yang bisa disimpan karena qty masih 0 atau data belum lengkap.';
+                    this.warningMessage = validRows.length > 0 ?
+                        'Beberapa item tidak akan disimpan karena qty masih 0.' :
+                        'Tidak ada item yang bisa disimpan karena qty masih 0 atau data belum lengkap.';
                     this.warningItems = warningRows.map((row) => this.rowWarningLabel(row));
                     this.warningCanProceed = validRows.length > 0;
                     this.pendingSubmitForm = form;
@@ -1855,6 +1894,7 @@
                 const supplierSelect = document.getElementById('modal_filter_supplier_id');
                 supplierSelect?.addEventListener('change', () => {
                     this.syncSupplierTempo(supplierSelect.value);
+                    this.syncSupplierCurrency(supplierSelect.value);
                 });
                 window.addEventListener('show-no-supplier', () => {
                     this.showNoSupplier = true;
@@ -1865,7 +1905,9 @@
                     passive: true
                 });
                 window.addEventListener('product-chosen', (e) => {
-                    const { product } = e.detail || {};
+                    const {
+                        product
+                    } = e.detail || {};
                     if (!product || typeof this.browseTarget !== 'number') return;
                     const row = this.rows[this.browseTarget];
                     if (!row) return;
@@ -1876,6 +1918,11 @@
                     };
                     row.fitemcode = candidate.fitemcode;
                     this.hydrateRowFromMeta(row, this.productMeta(row.fitemcode), true, true);
+
+                    this.rows.splice(this.browseTarget, 1, {
+                        ...this.rows[this.browseTarget]
+                    });
+
                     candidate.fsatuan = row.fsatuan || '';
                     if (this.isDupeItem(candidate, row.uid)) {
                         this.showDupItemModal = true;

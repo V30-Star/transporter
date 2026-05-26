@@ -136,8 +136,8 @@
     @endif
     <div x-data="{ open: true }">
         <div class="bg-white rounded shadow p-6 md:p-8 max-w-[1600px] w-full mx-auto">
-            <form action="{{ route('tr_prh.store') }}" method="POST" class="mt-6"
-                data-form-draft="true" data-draft-key="tr_prh:create"
+            <form action="{{ route('tr_prh.store') }}" method="POST" class="mt-6" data-form-draft="true"
+                data-draft-key="tr_prh:create"
                 @submit.prevent="window.dispatchEvent(new CustomEvent('tr-prh-submit-request'))">
                 @csrf
                 {{-- HEADER FORM --}}
@@ -187,7 +187,8 @@
                             </button>
                             @if ($canCreateSupplier)
                                 <a href="{{ route('supplier.create') }}" target="_blank" rel="noopener"
-                                    class="border -ml-px rounded-r px-3 py-2 bg-white hover:bg-gray-50" title="Tambah Supplier">
+                                    class="border -ml-px rounded-r px-3 py-2 bg-white hover:bg-gray-50"
+                                    title="Tambah Supplier">
                                     <x-heroicon-o-plus class="w-5 h-5" />
                                 </a>
                             @endif
@@ -259,8 +260,7 @@
                                             <div class="flex">
                                                 <input type="text"
                                                     class="flex-1 border rounded-l px-2 py-1 font-mono text-sm min-w-0"
-                                                    x-model.trim="row.fitemcode"
-                                                    @input="onCodeTyped(row, i)"
+                                                    x-model.trim="row.fitemcode" @input="onCodeTyped(row, i)"
                                                     @keydown.enter.prevent="focusNextField(row, i)">
                                                 <button type="button" @click="openBrowseFor(i)"
                                                     class="border border-l-0 px-2 py-1 bg-white hover:bg-gray-50"
@@ -272,23 +272,21 @@
                                         <td class="p-2" style="width: 20rem; min-width: 20rem;">
                                             <div class="desc-inline-field flex w-full min-w-0 flex-nowrap items-stretch"
                                                 style="display:flex !important; width:100% !important; min-width:0 !important; flex-wrap:nowrap !important; align-items:stretch !important;">
-                                                <div
-                                                    class="desc-inline-field__text min-w-0 flex-1 rounded-l border bg-gray-100 px-2 py-1 text-sm leading-5 text-gray-600 whitespace-normal break-words"
+                                                <div class="desc-inline-field__text min-w-0 flex-1 rounded-l border bg-gray-100 px-2 py-1 text-sm leading-5 text-gray-600 whitespace-normal break-words"
                                                     style="flex:1 1 auto !important; min-width:0 !important;"
                                                     x-text="row.fitemname || '-'"></div>
                                                 <button type="button" @click="openDesc(i)"
                                                     class="desc-inline-field__button inline-flex w-10 shrink-0 items-center justify-center border border-l-0 rounded-r px-2 py-1 transition-colors"
                                                     style="display:inline-flex !important; flex:0 0 2.5rem !important; width:2.5rem !important; justify-content:center !important; align-items:center !important;"
-                                                    :class="descButtonClass(row.fdesc)"
-                                                    title="Deskripsi item">
+                                                    :class="descButtonClass(row.fdesc)" title="Deskripsi item">
                                                     <x-heroicon-o-document-text class="w-4 h-4" />
                                                 </button>
                                             </div>
                                         </td>
                                         <td class="p-2">
                                             <template x-if="row.units.length > 1">
-                                                <select class="w-full border rounded px-2 py-1 text-sm" x-model="row.fsatuan"
-                                                    @change="onRowUpdated(i)">
+                                                <select class="w-full border rounded px-2 py-1 text-sm"
+                                                    x-model="row.fsatuan" @change="onRowUpdated(i)">
                                                     <template x-for="unit in row.units" :key="unit">
                                                         <option :value="unit" x-text="unit"></option>
                                                     </template>
@@ -302,9 +300,9 @@
                                         </td>
                                         <td class="p-2 text-right">
                                             <input type="text" inputmode="decimal"
-                                                class="w-full border rounded px-2 py-1 text-right"
-                                                x-model="row.fqty" @focus="unformatQtyInput(row)"
-                                                @input="onQtyInput(row, i)" @blur="formatQtyInput(row, i)">
+                                                class="w-full border rounded px-2 py-1 text-right" x-model="row.fqty"
+                                                @focus="unformatQtyInput(row)" @input="onQtyInput(row, i)"
+                                                @blur="formatQtyInput(row, i)">
                                         </td>
                                         <td class="p-2">
                                             <input type="text" class="w-full border rounded px-2 py-1 text-sm"
@@ -827,318 +825,6 @@
         }
     }
 
-    // ── itemsTable ────────────────────────────────────────────────────────────
-    function itemsTable() {
-        return {
-            savedItems: [],
-            activeRow: null,
-            browseTarget: 'draft',
-            showDescModal: false,
-            descTarget: 'draft',
-            descSavedIndex: null,
-            descValue: '',
-            descItemLabel: '',
-
-            draft: {
-                fitemcode: '',
-                fitemname: '',
-                fnoacak: '',
-                units: [],
-                fsatuan: '',
-                fqty: '',
-                fdesc: '',
-                fketdt: '',
-                maxqty: 0
-            },
-
-            resetDraft() {
-                this.draft = {
-                    fitemcode: '',
-                    fitemname: '',
-                    fnoacak: this.generateUniqueNoAcak(),
-                    units: [],
-                    fsatuan: '',
-                    fqty: '',
-                    fdesc: '',
-                    fketdt: '',
-                    maxqty: 0
-                };
-                clearDraftUnitSelect();
-            },
-
-            normalizeNoAcak(value) {
-                return (value || '').toString().replace(/\D/g, '').slice(0, 3);
-            },
-
-            generateUniqueNoAcak() {
-                const used = new Set(this.savedItems.map(item => this.normalizeNoAcak(item.fnoacak)).filter(Boolean));
-                let candidate = '';
-
-                do {
-                    candidate = Array.from({ length: 3 }, () => '123456789'[Math.floor(Math.random() * 9)]).join('');
-                } while (used.has(candidate));
-
-                return candidate;
-            },
-
-            hasDesc(value) {
-                return String(value ?? '').trim() !== '';
-            },
-
-            descButtonClass(value) {
-                return this.hasDesc(value)
-                    ? 'border-emerald-300 bg-emerald-50 text-emerald-600 hover:bg-emerald-100'
-                    : 'border-gray-300 bg-white text-gray-500 hover:bg-gray-50';
-            },
-
-            getDescRow(target = 'draft', index = null) {
-                if (target === 'saved' && index !== null) {
-                    return this.savedItems[index] || null;
-                }
-                return this.draft || null;
-            },
-
-            openDesc(target = 'draft', index = null) {
-                const row = this.getDescRow(target, index);
-                if (!row) return;
-                this.descTarget = target;
-                this.descSavedIndex = index;
-                this.descValue = (row.fdesc || '').toString();
-                this.descItemLabel = (row.fitemname || '').toString();
-                this.showDescModal = true;
-            },
-
-            closeDesc() {
-                this.showDescModal = false;
-                this.descTarget = 'draft';
-                this.descSavedIndex = null;
-                this.descValue = '';
-                this.descItemLabel = '';
-            },
-
-            applyDesc() {
-                const value = (this.descValue || '').trim();
-                if (this.descTarget === 'saved' && this.descSavedIndex !== null) {
-                    this.savedItems[this.descSavedIndex].fdesc = value;
-                } else {
-                    this.draft.fdesc = value;
-                }
-                this.closeDesc();
-            },
-
-            productMeta(code) {
-                const key = (code || '').trim();
-                return window.PRODUCT_MAP?.[key] || {
-                    name: '',
-                    units: [],
-                    stock: 0,
-                    unit_ratios: {
-                        satuankecil: 1,
-                        satuanbesar: 1,
-                        satuanbesar2: 1
-                    }
-                };
-            },
-
-            formatStockLimit(code, qty, satuan) {
-                const meta = this.productMeta(code);
-                if (!code || !meta.stock) return '';
-
-                const entered = Number(qty) || 0;
-                const remaining = Math.max(0, meta.stock - entered);
-                const units = meta.units || [];
-                const ratios = meta.unit_ratios || {
-                    satuankecil: 1,
-                    satuanbesar: 1,
-                    satuanbesar2: 1
-                };
-
-                if (!units.length || !satuan) return '';
-
-                const satKecil = units[0] || 'pcs';
-                const satBesar = units[1] || '';
-                const satBesar2 = units[2] || '';
-
-                let ratio = 1;
-                if (satuan === satBesar2 && ratios.satuanbesar2 > 0) {
-                    ratio = ratios.satuanbesar2;
-                } else if (satuan === satBesar && ratios.satuanbesar > 0) {
-                    ratio = ratios.satuanbesar;
-                } else if (satuan === satKecil) {
-                    ratio = 1;
-                }
-
-                const limitValue = Math.floor(remaining / ratio);
-                return '<span class="font-medium">limit:</span> ' + limitValue + ' ' + satuan;
-            },
-
-            // Hydrate baris TERSIMPAN — Alpine reaktif
-            hydrateRowFromMeta(row, meta) {
-                if (!meta) {
-                    row.fitemname = '';
-                    row.units = [];
-                    row.fsatuan = '';
-                    row.maxqty = 0;
-                    return;
-                }
-                row.fitemname = meta.name || '';
-                const units = [...new Set((meta.units || []).map(u => (u ?? '').toString().trim()).filter(Boolean))];
-                const prev = row.fsatuan;
-                const defaultUnit = (meta.default_unit || '').toString().trim();
-                const resolvedDefaultUnit = defaultUnit && units.includes(defaultUnit) ? defaultUnit : (units[0] || '');
-                row.units = units;
-                row.fsatuan = units.includes(prev) ? prev : resolvedDefaultUnit;
-                row.maxqty = Number.isFinite(+meta.stock) && +meta.stock > 0 ? +meta.stock : 0;
-                row.fnoacak = this.normalizeNoAcak(row.fnoacak) || this.generateUniqueNoAcak();
-            },
-
-            // Hydrate baris DRAFT — pure DOM untuk select
-            hydrateDraftFromMeta(meta) {
-                const row = this.draft;
-                if (!meta) {
-                    row.fitemname = '';
-                    row.units = [];
-                    row.fsatuan = '';
-                    row.maxqty = 0;
-                    clearDraftUnitSelect();
-                    return;
-                }
-                row.fitemname = meta.name || '';
-                const units = [...new Set((meta.units || []).map(u => (u ?? '').toString().trim()).filter(Boolean))];
-                const defaultUnit = (meta.default_unit || '').toString().trim();
-                const resolvedDefaultUnit = defaultUnit && units.includes(defaultUnit) ? defaultUnit : (units[0] || '');
-                row.units = units;
-                row.maxqty = Number.isFinite(+meta.stock) && +meta.stock > 0 ? +meta.stock : 0;
-                if (units.length > 1) {
-                    populateDraftUnitSelect(units);
-                    row.fsatuan = resolvedDefaultUnit;
-                } else {
-                    clearDraftUnitSelect();
-                    row.fsatuan = resolvedDefaultUnit;
-                }
-                row.fnoacak = this.normalizeNoAcak(row.fnoacak) || this.generateUniqueNoAcak();
-            },
-
-            onCodeTypedRow(row) {
-                this.hydrateDraftFromMeta(this.productMeta(row.fitemcode));
-            },
-            onCodeTypedSaved(item) {
-                this.hydrateRowFromMeta(item, this.productMeta(item.fitemcode));
-            },
-
-            enforceQtyRow(row) {
-                // max qty validation dihapus: qty tidak lagi dipaksa mengikuti stok maksimum.
-                // HTML/server tetap menangani minimal qty.
-                return;
-            },
-
-            focusUnitOrQty(item, i) {
-                if (item.units.length > 1) this.$nextTick(() => document.getElementById('unit_saved_' + i)?.focus());
-                else this.$nextTick(() => document.getElementById('qty_saved_' + i)?.focus());
-            },
-            focusSavedQty(i) {
-                this.$nextTick(() => document.getElementById('qty_saved_' + i)?.focus());
-            },
-            focusSavedKet(i) {
-                this.$nextTick(() => document.getElementById('ket_saved_' + i)?.focus());
-            },
-            focusDraftCode() {
-                this.$nextTick(() => this.$refs.draftCode?.focus());
-            },
-
-            handleEnterOnCode() {
-                if (this.draft.units.length > 1) getDraftUnitSelect()?.focus();
-                else this.$refs.draftQty?.focus();
-            },
-
-            addIfComplete() {
-                const r = this.draft;
-
-                // Baca satuan langsung dari DOM — sumber kebenaran tunggal
-                const satuanFinal = r.units.length > 1 ?
-                    (getDraftUnitValue() || r.fsatuan) :
-                    r.fsatuan;
-
-                if (!r.fitemcode || !r.fitemname || !satuanFinal || !(Number(r.fqty) > 0)) {
-                    if (!r.fitemcode) return this.$refs.draftCode?.focus();
-                    if (!r.fitemname) return this.$refs.draftCode?.focus();
-                    if (!satuanFinal) return (r.units.length > 1 ? getDraftUnitSelect()?.focus() : this.$refs.draftCode
-                        ?.focus());
-                    if (!(Number(r.fqty) > 0)) return this.$refs.draftQty?.focus();
-                    return;
-                }
-
-                this.savedItems.push({
-                    uid: cryptoRandom(),
-                    fitemcode: r.fitemcode,
-                    fitemname: r.fitemname,
-                    fnoacak: this.normalizeNoAcak(r.fnoacak) || this.generateUniqueNoAcak(),
-                    units: [...r.units],
-                    fsatuan: satuanFinal, // dari DOM, bukan Alpine proxy
-                    fqty: +r.fqty,
-                    fdesc: r.fdesc || '',
-                    fketdt: r.fketdt || '',
-                    maxqty: r.maxqty,
-                    fqtypo: 0,
-                });
-
-                this.resetDraft();
-                this.$nextTick(() => this.$refs.draftCode?.focus());
-            },
-
-            removeSaved(i) {
-                this.savedItems.splice(i, 1);
-            },
-
-            openBrowseFor(where, idx = null) {
-                this.browseTarget = (where === 'saved' && idx !== null) ? idx : 'draft';
-                window.dispatchEvent(new CustomEvent('browse-open', {
-                    detail: {
-                        forEdit: false
-                    }
-                }));
-            },
-
-            init() {
-                this.resetDraft();
-
-                window.addEventListener('product-chosen', (e) => {
-                    const {
-                        product
-                    } = e.detail || {};
-                    if (!product) return;
-
-                    if (this.browseTarget === 'draft') {
-                        this.draft.fitemcode = (product.fprdcode || '').toString();
-                        this.hydrateDraftFromMeta(this.productMeta(this.draft.fitemcode));
-                        this.draft.fqty = (+this.draft.fqty || 1);
-                        this.$nextTick(() => {
-                            if (this.draft.units.length > 1) getDraftUnitSelect()?.focus();
-                            else this.$refs.draftQty?.focus();
-                        });
-                    } else {
-                        const item = this.savedItems[this.browseTarget];
-                        if (item) {
-                            item.fitemcode = (product.fprdcode || '').toString();
-                            this.hydrateRowFromMeta(item, this.productMeta(item.fitemcode), true);
-                            item.fqty = (+item.fqty || 1);
-                            const i = this.browseTarget;
-                            this.$nextTick(() => document.getElementById('qty_saved_' + i)?.focus());
-                        }
-                    }
-                }, {
-                    passive: true
-                });
-
-                document.addEventListener('change', (e) => {
-                    if (e.target && e.target.id === 'draftUnitSelect') {
-                        this.draft.fsatuan = e.target.value;
-                    }
-                });
-            }
-        }
-    }
-
     function itemsTableRows() {
         return {
             rows: [],
@@ -1208,7 +894,8 @@
                     row.fqty,
                     row.fdesc,
                     row.fketdt
-                ].some((value) => String(value ?? '').trim() !== '' && Number(value ?? 0) !== 0) || Number(row.fqty || 0) > 0;
+                ].some((value) => String(value ?? '').trim() !== '' && Number(value ?? 0) !== 0) || Number(row
+                    .fqty || 0) > 0;
             },
 
             ensureMinimumRows() {
@@ -1244,7 +931,9 @@
                 let candidate = '';
 
                 do {
-                    candidate = Array.from({ length: 3 }, () => '123456789'[Math.floor(Math.random() * 9)]).join('');
+                    candidate = Array.from({
+                        length: 3
+                    }, () => '123456789' [Math.floor(Math.random() * 9)]).join('');
                 } while (used.has(candidate));
 
                 return candidate;
@@ -1255,9 +944,9 @@
             },
 
             descButtonClass(value) {
-                return this.hasDesc(value)
-                    ? 'border-emerald-300 bg-emerald-50 text-emerald-600 hover:bg-emerald-100'
-                    : 'border-gray-300 bg-white text-gray-500 hover:bg-gray-50';
+                return this.hasDesc(value) ?
+                    'border-emerald-300 bg-emerald-50 text-emerald-600 hover:bg-emerald-100' :
+                    'border-gray-300 bg-white text-gray-500 hover:bg-gray-50';
             },
 
             productMeta(code) {
@@ -1278,13 +967,14 @@
                 }
 
                 row.fitemname = meta.name || '';
-                const units = [...new Set((meta.units || []).map(unit => (unit ?? '').toString().trim()).filter(Boolean))];
+                const units = [...new Set((meta.units || []).map(unit => (unit ?? '').toString().trim()).filter(
+                    Boolean))];
                 const defaultUnit = (meta.default_unit || '').toString().trim();
                 const resolvedDefaultUnit = defaultUnit && units.includes(defaultUnit) ? defaultUnit : (units[0] || '');
                 row.units = units;
-                row.fsatuan = forceDefaultUnit
-                    ? resolvedDefaultUnit
-                    : (units.includes(row.fsatuan) ? row.fsatuan : resolvedDefaultUnit);
+                row.fsatuan = forceDefaultUnit ?
+                    resolvedDefaultUnit :
+                    (units.includes(row.fsatuan) ? row.fsatuan : resolvedDefaultUnit);
                 row.fnoacak = this.normalizeNoAcak(row.fnoacak) || this.generateUniqueNoAcak();
             },
 
@@ -1336,11 +1026,13 @@
             addRow(index) {
                 const row = this.rows[index];
                 if (!String(row?.fitemcode || '').trim()) {
-                    this.showWarning('Kode Produk Belum Diisi', 'Isi kode produk terlebih dahulu sebelum menambah baris baru.');
+                    this.showWarning('Kode Produk Belum Diisi',
+                        'Isi kode produk terlebih dahulu sebelum menambah baris baru.');
                     return;
                 }
                 if (!String(row?.fitemname || '').trim()) {
-                    this.showWarning('Produk Belum Valid', 'Produk pada baris ini belum ditemukan. Pilih produk yang valid terlebih dahulu.');
+                    this.showWarning('Produk Belum Valid',
+                        'Produk pada baris ini belum ditemukan. Pilih produk yang valid terlebih dahulu.');
                     return;
                 }
                 this.rows.splice(index + 1, 0, this.emptyRow());
@@ -1360,15 +1052,15 @@
                 }));
             },
 
-                prepareRowsForSubmit() {
-                    const validRows = [];
-                    const zeroQtyRows = [];
-                    const seenCodes = new Set();
+            prepareRowsForSubmit() {
+                const validRows = [];
+                const zeroQtyRows = [];
+                const seenCodes = new Set();
 
-                    for (const row of this.rows) {
-                        const code = String(row.fitemcode || '').trim();
-                        const name = String(row.fitemname || '').trim();
-                        const sat = String(row.fsatuan || '').trim();
+                for (const row of this.rows) {
+                    const code = String(row.fitemcode || '').trim();
+                    const name = String(row.fitemname || '').trim();
+                    const sat = String(row.fsatuan || '').trim();
                     const qty = Number(row.fqty || 0);
                     const ket = String(row.fketdt || '').trim();
                     const desc = String(row.fdesc || '').trim();
@@ -1378,31 +1070,47 @@
                     }
 
                     if (!code) {
-                        return { invalidMessage: 'Masih ada baris detail item tanpa kode produk.', validRows: [], zeroQtyRows: [] };
+                        return {
+                            invalidMessage: 'Masih ada baris detail item tanpa kode produk.',
+                            validRows: [],
+                            zeroQtyRows: []
+                        };
                     }
 
                     if (!name) {
-                        return { invalidMessage: `Kode produk ${code} belum valid atau belum dipilih dari daftar produk.`, validRows: [], zeroQtyRows: [] };
+                        return {
+                            invalidMessage: `Kode produk ${code} belum valid atau belum dipilih dari daftar produk.`,
+                            validRows: [],
+                            zeroQtyRows: []
+                        };
                     }
 
-                        if (!sat) {
-                            return { invalidMessage: `Satuan untuk produk ${name} belum dipilih.`, validRows: [], zeroQtyRows: [] };
-                        }
+                    if (!sat) {
+                        return {
+                            invalidMessage: `Satuan untuk produk ${name} belum dipilih.`,
+                            validRows: [],
+                            zeroQtyRows: []
+                        };
+                    }
 
-                        const normalizedCode = code.toUpperCase();
-                        if (seenCodes.has(normalizedCode)) {
-                            return { invalidMessage: `Produk ${name || code} sudah diinput. Kode produk yang sama tidak boleh dipakai lebih dari 1 kali.`, validRows: [], zeroQtyRows: [] };
-                        }
+                    const normalizedCode = code.toUpperCase();
+                    if (seenCodes.has(normalizedCode)) {
+                        return {
+                            invalidMessage: `Produk ${name || code} sudah diinput. Kode produk yang sama tidak boleh dipakai lebih dari 1 kali.`,
+                            validRows: [],
+                            zeroQtyRows: []
+                        };
+                    }
 
-                        seenCodes.add(normalizedCode);
+                    seenCodes.add(normalizedCode);
 
-                        if (!(qty > 0)) {
-                            zeroQtyRows.push(name || code);
-                            continue;
-                        }
+                    if (!(qty > 0)) {
+                        zeroQtyRows.push(name || code);
+                        continue;
+                    }
 
-                        validRows.push({
-                            ...row,
+                    validRows.push({
+                        ...row,
                         fitemcode: code,
                         fitemname: name,
                         fsatuan: sat,
@@ -1413,7 +1121,11 @@
                     });
                 }
 
-                return { invalidMessage: '', validRows, zeroQtyRows };
+                return {
+                    invalidMessage: '',
+                    validRows,
+                    zeroQtyRows
+                };
             },
 
             handleSubmit(forceSubmit = false) {
@@ -1458,19 +1170,26 @@
                 });
 
                 window.addEventListener('product-chosen', (e) => {
-                    const { product } = e.detail || {};
+                    const {
+                        product
+                    } = e.detail || {};
                     if (!product) return;
 
-                    const row = this.rows[this.browseTargetIndex];
+                    const idx = this.browseTargetIndex; // <-- pindah ke sini
+                    const row = this.rows[idx];
                     if (!row) return;
 
                     row.fitemcode = (product.fprdcode || '').toString();
                     this.hydrateRowFromMeta(row, this.productMeta(row.fitemcode), true);
-                    this.onRowUpdated(this.browseTargetIndex);
+
+                    // Force Alpine reactivity
+                    this.rows.splice(idx, 1, {
+                        ...this.rows[idx]
+                    });
+                    this.onRowUpdated(idx);
                 }, {
                     passive: true
                 });
-
                 window.addEventListener('tr-prh-submit-request', () => this.handleSubmit(), {
                     passive: true
                 });

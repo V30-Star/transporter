@@ -2295,6 +2295,9 @@
                         if (localMeta.stock) meta.stock = localMeta.stock;
                     }
                     this.hydrateRowFromMeta(row, meta, true);
+                        this.rows.splice(this.browseTarget, 1, {
+                        ...this.rows[this.browseTarget]
+                    });
                     if (!row.fqty) row.fqty = 1;
                     this.onRowUpdated(this.browseTarget);
                     const i = this.browseTarget;

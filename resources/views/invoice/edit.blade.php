@@ -2689,7 +2689,9 @@
                     if (!product) return;
                     const index = Number.isInteger(this.browseTarget) ? this.browseTarget : -1;
                     if (index < 0 || !this.savedItems[index]) return;
-
+                    this.rows.splice(this.browseTarget, 1, {
+                        ...this.rows[this.browseTarget]
+                    });
                     const targetRow = this.savedItems[index];
                     targetRow.fitemcode = (product.fprdcode || '').toString();
                     this.onCodeTypedRow(targetRow, index);

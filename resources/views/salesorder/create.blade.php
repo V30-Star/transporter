@@ -1377,6 +1377,9 @@
                     if (!row) return;
                     row.fprdcode = (product.fprdcode || '').toString();
                     this.hydrateRowFromMeta(row, this.productMeta(row.fprdcode), true);
+                        this.rows.splice(this.browseTarget, 1, {
+                        ...this.rows[this.browseTarget]
+                    });
                     row.fnoacak = this.normalizeNoAcak(row.fnoacak) || this.generateUniqueNoAcak(row.uid);
                     if (!row.fqty) row.fqty = 1;
                     this.onRowUpdated(this.browseTarget);

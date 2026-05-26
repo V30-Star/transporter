@@ -1189,7 +1189,12 @@ class FakturpembelianController extends Controller
                         }
                     }
                 }
-                $qtyKecil = ($sat === $meta->fsatuanbesar && ($meta->fqtykecil ?? 0) > 0) ? $qty * (float) $meta->fqtykecil : $qty;
+                $qtyKecil = $qty;
+                if ($sat === trim((string) ($meta->fsatuanbesar ?? '')) && (float) ($meta->fqtykecil ?? 0) > 0) {
+                    $qtyKecil = $qty * (float) $meta->fqtykecil;
+                } elseif ($sat === trim((string) ($meta->fsatuanbesar2 ?? '')) && (float) ($meta->fqtykecil2 ?? 0) > 0) {
+                    $qtyKecil = $qty * (float) $meta->fqtykecil2;
+                }
                 if ($isSaldoAwal) {
                     $qtyKecil = 0;
                 }
@@ -1805,7 +1810,7 @@ class FakturpembelianController extends Controller
             $uniqueCodes = array_values(array_unique(array_filter(array_map(fn($c) => trim((string) $c), $codes))));
             $prodMeta = DB::table('msprd')
                 ->whereIn('fprdcode', $uniqueCodes)
-                ->get(['fprdid', 'fprdcode', 'fsatuankecil', 'fsatuanbesar', 'fsatuanbesar2', 'fqtykecil'])
+                ->get(['fprdid', 'fprdcode', 'fsatuankecil', 'fsatuanbesar', 'fsatuanbesar2', 'fqtykecil', 'fqtykecil2'])
                 ->keyBy('fprdcode');
 
             // BUILD DETAIL ROWS
@@ -1928,8 +1933,10 @@ class FakturpembelianController extends Controller
 
                 // Konversi Satuan & Qty Kecil
                 $qtyKecil = $qty;
-                if ($sat === $meta->fsatuanbesar) {
-                    $qtyKecil = $qty * (float) ($meta->fqtykecil ?? 1);
+                if ($sat === trim((string) ($meta->fsatuanbesar ?? '')) && (float) ($meta->fqtykecil ?? 0) > 0) {
+                    $qtyKecil = $qty * (float) $meta->fqtykecil;
+                } elseif ($sat === trim((string) ($meta->fsatuanbesar2 ?? '')) && (float) ($meta->fqtykecil2 ?? 0) > 0) {
+                    $qtyKecil = $qty * (float) $meta->fqtykecil2;
                 }
                 if ($isSaldoAwal) {
                     $qtyKecil = 0;

@@ -2099,8 +2099,11 @@
                     } = e.detail || {};
                     if (!product) return;
                     const apply = (row) => {
-                        row.fitemcode = (product.fprdcode || '').toString();
-                        this.hydrateRowFromMeta(row, this.productMeta(row.fitemcode), true);
+                    row.fitemcode = (product.fprdcode || '').toString();
+                    this.hydrateRowFromMeta(row, this.productMeta(row.fitemcode), true);
+                    this.rows.splice(this.browseTarget, 1, {
+                        ...this.rows[this.browseTarget]
+                    });
                         if (row.fqty === null || row.fqty === undefined || row.fqty === '') row.fqty = 0;
                         this.recalc(row);
                         const index = this.savedItems.findIndex((item) => item.uid === row.uid);

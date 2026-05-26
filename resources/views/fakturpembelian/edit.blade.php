@@ -2964,6 +2964,9 @@
                             row.fitemcode = (product.fprdcode || '').toString();
                             row.hideQtyLimitHint = true;
                             this.hydrateRowFromMeta(row, this.productMeta(row.fitemcode));
+                            this.rows.splice(this.browseTarget, 1, {
+                                ...this.rows[this.browseTarget]
+                            });
                             if (row.fqty === null || row.fqty === undefined || row.fqty === '') row.fqty = 0;
                             this.recalc(row);
                             const index = this.savedItems.findIndex((item) => item.uid === row.uid);

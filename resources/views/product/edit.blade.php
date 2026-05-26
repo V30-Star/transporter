@@ -1380,7 +1380,6 @@
                         @if (!empty($enabledImageNumbers))
                             {{-- Upload Foto --}}
                             <div class="mt-4 w-1/2">
-                                <label class="block text-sm font-medium">Upload Foto Design ({{ count($enabledImageNumbers) }} Foto)</label>
                                 <div class="space-y-4">
                                     @foreach ($enabledImageNumbers as $imgNo)
                                     @php

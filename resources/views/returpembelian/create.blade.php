@@ -1560,6 +1560,10 @@
                     const apply = (row) => {
                         row.fitemcode = (product.fprdcode || '').toString();
                         this.hydrateRowFromMeta(row, this.productMeta(row.fitemcode));
+                         this.rows.splice(this.browseTarget, 1, {
+                        ...this.rows[this.browseTarget]
+                    });
+
                         if (!row.fqty) row.fqty = 1;
                         this.recalc(row);
                     };

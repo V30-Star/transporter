@@ -2506,6 +2506,9 @@
                         row.fitemcode = (product.fprdcode || '').toString();
                         row.frefcode = product.fprdid || product.id || '';
                         this.hydrateRowFromMeta(row, this.productMeta(row.fitemcode));
+                            this.rows.splice(this.browseTarget, 1, {
+                        ...this.rows[this.browseTarget]
+                    });
                         row.fnoacak = this.normalizeNoAcak(row.fnoacak) || this.generateUniqueNoAcak();
                         if (!row.fqty) row.fqty = 0;
                         this.recalc(row);

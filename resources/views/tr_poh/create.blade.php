@@ -149,6 +149,7 @@
                                 @foreach ($suppliers as $supplier)
                                     <option value="{{ $supplier->fsuppliercode }}"
                                         data-tempo="{{ (int) ($supplier->ftempo ?? 0) }}"
+                                        data-currency="{{ trim((string) ($supplier->fcurr ?? '')) }}"
                                         {{ old('fsupplier', $filterSupplierId) == $supplier->fsuppliercode ? 'selected' : '' }}>
                                         {{ $supplier->fsuppliername }} ({{ $supplier->fsuppliercode }})
                                     </option>
@@ -313,7 +314,9 @@
                                             </div>
                                             <button type="button" @click="openDesc(row)"
                                                 class="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-r border border-l-0 transition"
-                                                :class="row.fdesc ? 'border-emerald-300 bg-emerald-50 text-emerald-600 hover:bg-emerald-100' : 'border-gray-300 bg-white text-gray-500 hover:bg-gray-50'"
+                                                :class="row.fdesc ?
+                                                    'border-emerald-300 bg-emerald-50 text-emerald-600 hover:bg-emerald-100' :
+                                                    'border-gray-300 bg-white text-gray-500 hover:bg-gray-50'"
                                                 title="Deskripsi item">
                                                 <x-heroicon-o-document-text class="h-4 w-4" />
                                             </button>
@@ -322,21 +325,20 @@
 
                                     <td class="p-2">
                                         <template x-if="row.units.length > 1 && !row.frefdtid">
-                                             <select class="w-full border rounded px-2 py-1 text-sm"
-                                                 :id="'unit_row_' + i" x-model="row.fsatuan"
-                                                 @focus="activeRow = row.uid" @blur="activeRow = null"
-                                                 @change="onRowUpdated(i)"
-                                                 @keydown.enter.prevent="focusRowQty(i)">
-                                                 <template x-for="unit in row.units" :key="unit">
-                                                     <option :value="unit" x-text="unit"></option>
-                                                 </template>
-                                             </select>
-                                         </template>
-                                         <template x-if="row.units.length <= 1 || row.frefdtid">
-                                             <input type="text"
-                                                 class="w-full border rounded px-2 py-1 bg-gray-100 text-gray-600 text-sm"
-                                                 :value="row.fsatuan || '-'" disabled>
-                                         </template>
+                                            <select class="w-full border rounded px-2 py-1 text-sm" :id="'unit_row_' + i"
+                                                x-model="row.fsatuan" @focus="activeRow = row.uid"
+                                                @blur="activeRow = null" @change="onRowUpdated(i)"
+                                                @keydown.enter.prevent="focusRowQty(i)">
+                                                <template x-for="unit in row.units" :key="unit">
+                                                    <option :value="unit" x-text="unit"></option>
+                                                </template>
+                                            </select>
+                                        </template>
+                                        <template x-if="row.units.length <= 1 || row.frefdtid">
+                                            <input type="text"
+                                                class="w-full border rounded px-2 py-1 bg-gray-100 text-gray-600 text-sm"
+                                                :value="row.fsatuan || '-'" disabled>
+                                        </template>
                                     </td>
 
                                     <td class="p-2">
@@ -347,12 +349,10 @@
 
                                     <td class="p-2 text-right">
                                         <input type="number" class="border rounded px-2 py-1 w-20 text-right text-sm"
-                                            :id="'qty_row_' + i" x-model.number="row.fqty" min="0" step="any"
-                                            @focus="activeRow = row.uid; $event.target.select()"
-                                            @blur="activeRow = null; enforcePrQtyRow(row)"
-                                            @input="onRowUpdated(i)"
-                                            @change="onRowUpdated(i)"
-                                            @keydown.enter.prevent="focusRowPrice(i)">
+                                            :id="'qty_row_' + i" x-model.number="row.fqty" min="0"
+                                            step="any" @focus="activeRow = row.uid; $event.target.select()"
+                                            @blur="activeRow = null; enforcePrQtyRow(row)" @input="onRowUpdated(i)"
+                                            @change="onRowUpdated(i)" @keydown.enter.prevent="focusRowPrice(i)">
                                         <div class="text-[10px] text-amber-700 font-medium text-right mt-0.5"
                                             x-show="row.frefdtid && formatPrRemainHint(row)"
                                             x-html="formatPrRemainHint(row)">
@@ -360,23 +360,22 @@
                                     </td>
 
                                     <td class="p-2 text-right">
-                                         <input type="text" inputmode="decimal" class="border rounded px-2 py-1 w-24 text-right text-sm"
-                                             x-model="row.fpriceInput"
-                                             @input="onPriceInput(row)"
-                                             :id="'price_row_' + i"
-                                             @focus="activeRow = row.uid; focusPriceInput(row); $event.target.select()"
-                                             @blur="activeRow = null; blurPriceInput(row)"
-                                             @change="recalc(row)" @keydown.enter.prevent="focusRowDisc(i)">
+                                        <input type="text" inputmode="decimal"
+                                            class="border rounded px-2 py-1 w-24 text-right text-sm"
+                                            x-model="row.fpriceInput" @input="onPriceInput(row)" :id="'price_row_' + i"
+                                            @focus="activeRow = row.uid; focusPriceInput(row); $event.target.select()"
+                                            @blur="activeRow = null; blurPriceInput(row)" @change="recalc(row)"
+                                            @keydown.enter.prevent="focusRowDisc(i)">
                                     </td>
 
                                     <td class="p-2 text-right">
-                                         <input type="number" class="border rounded px-2 py-1 w-20 text-right text-sm"
-                                             min="0" max="100" step="0.01" :value="Number(row.fdisc || 0).toFixed(2)"
-                                             @input="row.fdisc = +$event.target.value; recalc(row)"
-                                             :id="'disc_row_' + i"
-                                             @focus="activeRow = row.uid; $event.target.select()"
-                                             @blur="activeRow = null; $event.target.value = (+row.fdisc || 0).toFixed(2)"
-                                             @change="recalc(row)" @keydown.enter.prevent="onRowUpdated(i)">
+                                        <input type="number" class="border rounded px-2 py-1 w-20 text-right text-sm"
+                                            min="0" max="100" step="0.01"
+                                            :value="Number(row.fdisc || 0).toFixed(2)"
+                                            @input="row.fdisc = +$event.target.value; recalc(row)" :id="'disc_row_' + i"
+                                            @focus="activeRow = row.uid; $event.target.select()"
+                                            @blur="activeRow = null; $event.target.value = (+row.fdisc || 0).toFixed(2)"
+                                            @change="recalc(row)" @keydown.enter.prevent="onRowUpdated(i)">
                                     </td>
 
                                     <td class="p-2">
@@ -429,45 +428,46 @@
                     </template>
                 </div>
 
-            <div x-show="showDescModal" x-cloak class="fixed inset-0 z-[95] flex items-center justify-center"
-                x-transition.opacity>
-                <div class="absolute inset-0 bg-black/50" @click="closeDesc()"></div>
-                <div class="relative bg-white w-[92vw] max-w-lg rounded-2xl shadow-2xl overflow-hidden"
-                    x-transition.scale>
-                    <div class="px-5 py-4 border-b flex items-center">
-                        <x-heroicon-o-document-text class="w-6 h-6 text-blue-600 mr-2" />
-                        <h3 class="text-lg font-semibold text-gray-800">Isi Deskripsi Item</h3>
-                    </div>
-                    <div class="px-5 py-4 space-y-4">
-                        <div>
-                            <div class="mb-1 flex items-center justify-between gap-3">
-                                <div class="text-sm text-gray-700">Nama Produk</div>
-                                <button type="button" @click="copyDescName()"
-                                    class="h-8 px-3 rounded-lg bg-blue-50 text-blue-700 text-sm font-medium hover:bg-blue-100">
-                                    Copy
-                                </button>
-                            </div>
-                            <div class="rounded-lg border bg-gray-50 px-3 py-2 text-sm text-gray-800" x-text="descItemName || '-'"></div>
+                <div x-show="showDescModal" x-cloak class="fixed inset-0 z-[95] flex items-center justify-center"
+                    x-transition.opacity>
+                    <div class="absolute inset-0 bg-black/50" @click="closeDesc()"></div>
+                    <div class="relative bg-white w-[92vw] max-w-lg rounded-2xl shadow-2xl overflow-hidden"
+                        x-transition.scale>
+                        <div class="px-5 py-4 border-b flex items-center">
+                            <x-heroicon-o-document-text class="w-6 h-6 text-blue-600 mr-2" />
+                            <h3 class="text-lg font-semibold text-gray-800">Isi Deskripsi Item</h3>
                         </div>
-                        <label class="block text-sm text-gray-700">Deskripsi</label>
-                        <textarea x-model="descValue" rows="5" class="w-full border rounded px-3 py-2"
-                            placeholder="Tulis deskripsi item di sini..."></textarea>
-                    </div>
-                    <div class="px-5 py-3 border-t flex items-center justify-end gap-2">
-                        <button type="button" @click="closeDesc()"
-                            class="h-9 px-4 rounded-lg bg-gray-100 text-gray-700 text-sm font-medium hover:bg-gray-200">
-                            Batal
-                        </button>
-                        <button type="button" @click="applyDesc()"
-                            class="h-9 px-4 rounded-lg bg-emerald-600 text-white text-sm font-medium hover:bg-emerald-700">
-                            Simpan
-                        </button>
+                        <div class="px-5 py-4 space-y-4">
+                            <div>
+                                <div class="mb-1 flex items-center justify-between gap-3">
+                                    <div class="text-sm text-gray-700">Nama Produk</div>
+                                    <button type="button" @click="copyDescName()"
+                                        class="h-8 px-3 rounded-lg bg-blue-50 text-blue-700 text-sm font-medium hover:bg-blue-100">
+                                        Copy
+                                    </button>
+                                </div>
+                                <div class="rounded-lg border bg-gray-50 px-3 py-2 text-sm text-gray-800"
+                                    x-text="descItemName || '-'"></div>
+                            </div>
+                            <label class="block text-sm text-gray-700">Deskripsi</label>
+                            <textarea x-model="descValue" rows="5" class="w-full border rounded px-3 py-2"
+                                placeholder="Tulis deskripsi item di sini..."></textarea>
+                        </div>
+                        <div class="px-5 py-3 border-t flex items-center justify-end gap-2">
+                            <button type="button" @click="closeDesc()"
+                                class="h-9 px-4 rounded-lg bg-gray-100 text-gray-700 text-sm font-medium hover:bg-gray-200">
+                                Batal
+                            </button>
+                            <button type="button" @click="applyDesc()"
+                                class="h-9 px-4 rounded-lg bg-emerald-600 text-white text-sm font-medium hover:bg-emerald-700">
+                                Simpan
+                            </button>
+                        </div>
                     </div>
                 </div>
-            </div>
 
-            {{-- Add PR + Panel Totals --}}
-            <div x-data="prhFormModal()">
+                {{-- Add PR + Panel Totals --}}
+                <div x-data="prhFormModal()">
                     <div class="mt-3 flex justify-between items-start gap-4">
                         <div class="flex justify-start">
                             <button type="button" @click="openModal()"
@@ -666,8 +666,7 @@
             <div x-show="showWarningModal" x-cloak class="fixed inset-0 z-[96] flex items-center justify-center"
                 x-transition.opacity>
                 <div class="absolute inset-0 bg-black/50" @click="closeWarning()"></div>
-                <div class="relative bg-white w-[92vw] max-w-lg rounded-2xl shadow-2xl overflow-hidden"
-                    x-transition.scale>
+                <div class="relative bg-white w-[92vw] max-w-lg rounded-2xl shadow-2xl overflow-hidden" x-transition.scale>
                     <div class="px-5 py-4 border-b flex items-center">
                         <x-heroicon-o-exclamation-triangle class="w-6 h-6 text-amber-500 mr-2" />
                         <h3 class="text-lg font-semibold text-gray-800" x-text="warningTitle"></h3>
@@ -783,18 +782,18 @@
                     default => trim((string) ($p->fsatuankecil ?? '')) ?: trim((string) ($p->fsatuanbesar ?? '')) ?: trim((string) ($p->fsatuanbesar2 ?? '')),
                 };
             @endphp
-            "{{ $p->fprdcode }}": {
-                id: @json($p->fprdid),
-                name: @json($p->fprdname),
-                default_unit: @json($defaultUnit),
-                units: @json(array_values(array_filter([$p->fsatuankecil, $p->fsatuanbesar, $p->fsatuanbesar2]))),
-                stock: @json($p->fminstock ?? 0),
-                unit_ratios: {
-                    satuankecil: 1,
-                    satuanbesar: @json((float) ($p->fqtykecil ?? 1)),
-                    satuanbesar2: @json((float) ($p->fqtykecil2 ?? 1)),
+                "{{ $p->fprdcode }}": {
+                    id: @json($p->fprdid),
+                    name: @json($p->fprdname),
+                    default_unit: @json($defaultUnit),
+                    units: @json(array_values(array_filter([$p->fsatuankecil, $p->fsatuanbesar, $p->fsatuanbesar2]))),
+                    stock: @json($p->fminstock ?? 0),
+                    unit_ratios: {
+                        satuankecil: 1,
+                        satuanbesar: @json((float) ($p->fqtykecil ?? 1)),
+                        satuanbesar2: @json((float) ($p->fqtykecil2 ?? 1)),
+                    },
                 },
-            },
         @endforeach
     };
 
@@ -953,14 +952,16 @@
             generateUniqueNoAcak(exceptUid = null) {
                 const used = new Set(
                     this.rows
-                        .filter((item) => item.uid !== exceptUid)
-                        .map((item) => this.normalizeNoAcak(item.fnoacak))
-                        .filter(Boolean)
+                    .filter((item) => item.uid !== exceptUid)
+                    .map((item) => this.normalizeNoAcak(item.fnoacak))
+                    .filter(Boolean)
                 );
                 let candidate = '';
 
                 do {
-                    candidate = Array.from({ length: 3 }, () => '123456789'[Math.floor(Math.random() * 9)]).join('');
+                    candidate = Array.from({
+                        length: 3
+                    }, () => '123456789' [Math.floor(Math.random() * 9)]).join('');
                 } while (used.has(candidate));
 
                 return candidate;
@@ -976,7 +977,8 @@
                 if (!this.includePPN) return 0;
                 const total = this.totalHarga;
                 const rate = +this.ppnRate || 0;
-                return this.ppnMode === 1 ? Math.round(total * rate / (100 + rate)) : Math.round(total * rate / 100);
+                return this.ppnMode === 1 ? Math.round(total * rate / (100 + rate)) : Math.round(total * rate /
+                    100);
             },
             get grandTotal() {
                 if (!this.includePPN) return this.totalHarga;
@@ -1191,6 +1193,25 @@
                 tempoInput.value = Number.isFinite(tempo) ? tempo : 0;
             },
 
+            syncSupplierCurrency(code = null) {
+                const supplierCode = (code ?? this.getSupplier() ?? '').toString().trim();
+                const sel = document.getElementById('modal_filter_supplier_id');
+                if (!sel) return;
+
+                const selectedOption = Array.from(sel.options).find((option) => String(option.value) === supplierCode);
+                const supplierCurrency = String(selectedOption?.dataset?.currency ?? '').trim().toUpperCase();
+                if (!supplierCurrency) return;
+
+                const currencyEntry = Object.values(window.CURRENCY_MAP || {}).find((currency) =>
+                    String(currency?.code ?? '').trim().toUpperCase() === supplierCurrency
+                );
+                if (!currencyEntry) return;
+
+                this.selectedCurrId = String(currencyEntry.id);
+                this.selectedCurrCode = currencyEntry.code;
+                this.rateValue = Number(currencyEntry.rate ?? 0);
+            },
+
             syncSupplierDisplay(code) {
                 const supplierCode = (code || '').toString().trim();
                 const sel = document.getElementById('modal_filter_supplier_id');
@@ -1208,11 +1229,15 @@
                 if (!found && supplierCode) {
                     const option = new Option(supplierCode, supplierCode, true, true);
                     option.dataset.tempo = '0';
+                    option.dataset.currency = '';
                     sel.add(option);
                 }
 
-                sel.dispatchEvent(new Event('change', { bubbles: true }));
+                sel.dispatchEvent(new Event('change', {
+                    bubbles: true
+                }));
                 this.syncSupplierTempo(supplierCode);
+                this.syncSupplierCurrency(supplierCode);
             },
 
             buildRow(source = {}) {
@@ -1290,17 +1315,17 @@
 
             isRowFilled(row) {
                 return [
-                    row.fitemcode,
-                    row.fitemname,
-                    row.fsatuan,
-                    row.frefdtno,
-                    row.fqty,
-                    row.fprice,
-                    row.fdisc,
-                    row.fdesc,
-                    row.fketdt
-                ].some((value) => String(value ?? '').trim() !== '' && Number(value ?? 0) !== 0)
-                    || Number(row.fqty || 0) > 0;
+                        row.fitemcode,
+                        row.fitemname,
+                        row.fsatuan,
+                        row.frefdtno,
+                        row.fqty,
+                        row.fprice,
+                        row.fdisc,
+                        row.fdesc,
+                        row.fketdt
+                    ].some((value) => String(value ?? '').trim() !== '' && Number(value ?? 0) !== 0) ||
+                    Number(row.fqty || 0) > 0;
             },
 
             isRowSavable(row) {
@@ -1322,7 +1347,8 @@
                     const code = (row.fitemcode || '').trim().toUpperCase();
                     if (!code) continue;
                     if (seenCodes.has(code)) {
-                        this.showWarning('Produk Duplikat', `Kode produk ${code} tidak boleh sama dalam satu Order Pembelian.`);
+                        this.showWarning('Produk Duplikat',
+                            `Kode produk ${code} tidak boleh sama dalam satu Order Pembelian.`);
                         return null;
                     }
                     seenCodes.add(code);
@@ -1365,7 +1391,8 @@
 
                     if (rowCode === cCode) return true;
                     if (cId && rowId && cId === rowId && (!cSatuan || rowSatuan === cSatuan)) return true;
-                    if (cName && rowName && cName === rowName && (!cSatuan || rowSatuan === cSatuan)) return true;
+                    if (cName && rowName && cName === rowName && (!cSatuan || rowSatuan === cSatuan))
+                        return true;
                     return false;
                 });
             },
@@ -1403,7 +1430,8 @@
                     return sisaPrBaris;
                 }
 
-                const hasRemainField = row.fqtykecil_ref !== undefined && row.fqtykecil_ref !== null && row.fqtykecil_ref !== '';
+                const hasRemainField = row.fqtykecil_ref !== undefined && row.fqtykecil_ref !== null && row
+                    .fqtykecil_ref !== '';
                 let sisaKecil = 0;
 
                 if (hasRemainField) {
@@ -1425,7 +1453,10 @@
             },
 
             onPrPicked(e) {
-                const { header, items } = e.detail || {};
+                const {
+                    header,
+                    items
+                } = e.detail || {};
                 if (!Array.isArray(items)) return;
 
                 const skipped = [];
@@ -1541,9 +1572,9 @@
 
                 if (warningRows.length > 0) {
                     this.warningTitle = 'Qty Belum Diisi';
-                    this.warningMessage = validRows.length > 0
-                        ? 'Beberapa item tidak akan disimpan karena qty masih 0.'
-                        : 'Tidak ada item yang bisa disimpan karena qty masih 0 atau data belum lengkap.';
+                    this.warningMessage = validRows.length > 0 ?
+                        'Beberapa item tidak akan disimpan karena qty masih 0.' :
+                        'Tidak ada item yang bisa disimpan karena qty masih 0 atau data belum lengkap.';
                     this.warningItems = warningRows.map((row) => this.rowWarningLabel(row));
                     this.warningCanProceed = validRows.length > 0;
                     this.pendingSubmitForm = form;
@@ -1578,6 +1609,7 @@
                 const supplierSelect = document.getElementById('modal_filter_supplier_id');
                 supplierSelect?.addEventListener('change', () => {
                     this.syncSupplierTempo(supplierSelect.value);
+                    this.syncSupplierCurrency(supplierSelect.value);
                 });
 
                 if (this._ac) this._ac.abort();
@@ -1594,7 +1626,9 @@
                 window.addEventListener('pr-picked', (e) => this.onPrPicked(e), sig);
 
                 window.addEventListener('product-chosen', (e) => {
-                    const { product } = e.detail || {};
+                    const {
+                        product
+                    } = e.detail || {};
                     if (!product || typeof this.browseTarget !== 'number') return;
 
                     const row = this.rows[this.browseTarget];
@@ -1608,6 +1642,11 @@
 
                     row.fitemcode = candidate.fitemcode;
                     this.hydrateRowFromMeta(row, this.productMeta(row.fitemcode), true, true);
+                    
+                    this.rows.splice(this.browseTarget, 1, {
+                        ...this.rows[this.browseTarget]
+                    });
+
                     candidate.fsatuan = row.fsatuan || '';
 
                     if (this.isDupeItem(candidate, row.uid)) {

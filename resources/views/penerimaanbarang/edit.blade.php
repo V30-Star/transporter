@@ -1,6 +1,7 @@
 @extends('layouts.app')
 
-@section('title', $action === 'delete' ? 'Penerimaan Barang - Delete' : ($action === 'view' ? 'Penerimaan Barang - View' : 'Penerimaan Barang - Edit'))
+@section('title', $action === 'delete' ? 'Penerimaan Barang - Delete' : ($action === 'view' ? 'Penerimaan Barang - View'
+    : 'Penerimaan Barang - Edit'))
 
 @section('content')
     @php
@@ -81,7 +82,11 @@
         $isView = $action === 'view';
         $isEdit = $action === 'edit';
         $isReadOnly = $isDelete || $isView;
-        $canPrint = in_array('viewTr_prh', $permissions, true) || in_array('updatePenerimaanBarang', $permissions, true) || in_array('deletePenerimaanBarang', $permissions, true) || in_array('createPenerimaanBarang', $permissions, true);
+        $canPrint =
+            in_array('viewTr_prh', $permissions, true) ||
+            in_array('updatePenerimaanBarang', $permissions, true) ||
+            in_array('deletePenerimaanBarang', $permissions, true) ||
+            in_array('createPenerimaanBarang', $permissions, true);
     @endphp
     @if ($usageLocked && !$isView)
         <div x-data="{ open: true }" x-show="open" x-cloak class="fixed inset-0 z-[99] flex items-center justify-center"
@@ -115,10 +120,9 @@
         </div>
     @endif
     <div class="bg-white rounded shadow p-6 md:p-8 max-w-[1600px] w-full mx-auto">
-        <form action="{{ $isEdit ? route('penerimaanbarang.update', $penerimaanbarang->fstockmtid) : '#' }}"
-            method="POST" class="mt-6" data-form-draft="true"
-            data-draft-key="penerimaanbarang:edit:{{ $penerimaanbarang->fstockmtid }}" x-data="mainForm()"
-            x-init="init()" @submit.prevent="submitForm($el)">
+        <form action="{{ $isEdit ? route('penerimaanbarang.update', $penerimaanbarang->fstockmtid) : '#' }}" method="POST"
+            class="mt-6" data-form-draft="true" data-draft-key="penerimaanbarang:edit:{{ $penerimaanbarang->fstockmtid }}"
+            x-data="mainForm()" x-init="init()" @submit.prevent="submitForm($el)">
 
             @csrf
             @if ($isEdit)
@@ -141,11 +145,12 @@
 
                 <div class="lg:col-span-4">
                     <label class="block text-sm font-medium mb-1">Cabang</label>
-                    <input type="text" class="w-full border rounded px-3 py-2 bg-gray-100 text-gray-700 cursor-not-allowed"
-                        value="{{ trim(($fbranchcode ?? '') . (($fcabang ?? '') ? ' - ' . $fcabang : '')) }}" disabled>
+                    <input type="text"
+                        class="w-full border rounded px-3 py-2 bg-gray-100 text-gray-700 cursor-not-allowed"
+                        value="{{ trim(($fbranchcode ?? '') . ($fcabang ?? '' ? ' - ' . $fcabang : '')) }}" disabled>
                     <input type="hidden" name="fbranchcode" value="{{ old('fbranchcode', $fbranchcode) }}">
                 </div>
-                
+
                 {{-- Transaksi# â€” selalu disabled (nomor tidak bisa diubah) --}}
                 <div class="lg:col-span-4">
                     <label class="block text-sm font-medium mb-1">Transaksi#</label>
@@ -189,7 +194,8 @@
                             </button>
                             @if (in_array('createSupplier', explode(',', session('user_restricted_permissions', '')), true))
                                 <a href="{{ route('supplier.create') }}" target="_blank" rel="noopener"
-                                    class="border -ml-px rounded-r px-3 py-2 bg-white hover:bg-gray-50" title="Tambah Supplier">
+                                    class="border -ml-px rounded-r px-3 py-2 bg-white hover:bg-gray-50"
+                                    title="Tambah Supplier">
                                     <x-heroicon-o-plus class="w-5 h-5" />
                                 </a>
                             @endif
@@ -219,13 +225,15 @@
                             </select>
                             @if ($isEdit)
                                 <div class="absolute inset-0" role="button" aria-label="Browse warehouse"
-                                    @click="window.dispatchEvent(new CustomEvent('penerimaanbarang-warehouse-browse-open'))"></div>
+                                    @click="window.dispatchEvent(new CustomEvent('penerimaanbarang-warehouse-browse-open'))">
+                                </div>
                             @endif
                         </div>
                         <input type="hidden" name="ffrom" id="warehouseCodeHidden"
                             value="{{ old('ffrom', $penerimaanbarang->ffrom) }}">
                         @if ($isEdit)
-                            <button type="button" @click="window.dispatchEvent(new CustomEvent('penerimaanbarang-warehouse-browse-open'))"
+                            <button type="button"
+                                @click="window.dispatchEvent(new CustomEvent('penerimaanbarang-warehouse-browse-open'))"
                                 class="border -ml-px px-3 py-2 bg-white hover:bg-gray-50 rounded-r-none"
                                 title="Browse Gudang">
                                 <x-heroicon-o-magnifying-glass class="w-5 h-5" />
@@ -273,19 +281,19 @@
             <div class="mt-6 space-y-2">
                 <h3 class="text-base font-semibold text-gray-800">Detail Item</h3>
 
-            <div class="overflow-x-auto border rounded">
-                <table class="min-w-full text-sm balanced-detail-table" data-skip-auto-detail-style="true">
+                <div class="overflow-x-auto border rounded">
+                    <table class="min-w-full text-sm balanced-detail-table" data-skip-auto-detail-style="true">
                         <thead class="bg-gray-100">
                             <tr>
-                            <th class="p-2 text-left w-10">#</th>
-                            <th class="p-2 text-left w-48">Kode Produk</th>
-                            <th class="p-2 text-left w-[26rem]">Nama Produk</th>
-                            <th class="p-2 text-left w-28">Satuan</th>
-                            <th class="p-2 text-left w-32">Ref.PO#</th>
-                            <th class="p-2 text-right w-24 whitespace-nowrap">Qty</th>
-                            <th class="p-2 text-right w-28 whitespace-nowrap">@ Harga</th>
-                            <th class="p-2 text-right w-32 whitespace-nowrap">Total Harga</th>
-                            <th class="p-2 text-center w-20 {{ $action === 'delete' ? 'hidden' : '' }}">Aksi</th>
+                                <th class="p-2 text-left w-10">#</th>
+                                <th class="p-2 text-left w-48">Kode Produk</th>
+                                <th class="p-2 text-left w-[26rem]">Nama Produk</th>
+                                <th class="p-2 text-left w-28">Satuan</th>
+                                <th class="p-2 text-left w-32">Ref.PO#</th>
+                                <th class="p-2 text-right w-24 whitespace-nowrap">Qty</th>
+                                <th class="p-2 text-right w-28 whitespace-nowrap">@ Harga</th>
+                                <th class="p-2 text-right w-32 whitespace-nowrap">Total Harga</th>
+                                <th class="p-2 text-center w-20 {{ $action === 'delete' ? 'hidden' : '' }}">Aksi</th>
                             </tr>
                         </thead>
 
@@ -313,7 +321,7 @@
                                                     class="border border-l-0 px-2 py-1 bg-white hover:bg-gray-50"
                                                     title="Cari Produk">
                                                     <x-heroicon-o-magnifying-glass class="w-4 h-4" />
-                                            </button>
+                                                </button>
                                             @else
                                                 <span
                                                     class="border border-l-0 rounded-r px-2 py-1 bg-gray-100 text-gray-400 text-xs flex items-center">â€”</span>
@@ -324,13 +332,14 @@
                                     {{-- Nama Produk + Deskripsi --}}
                                     <td class="p-2">
                                         <div class="flex w-full max-w-full">
-                                            <div
-                                                class="min-w-0 flex-1 rounded-l border bg-gray-100 px-2 py-1 text-sm leading-5 text-gray-600 whitespace-normal break-words"
+                                            <div class="min-w-0 flex-1 rounded-l border bg-gray-100 px-2 py-1 text-sm leading-5 text-gray-600 whitespace-normal break-words"
                                                 x-text="it.fitemname"></div>
                                             <button type="button"
                                                 @click="openDesc(it, {{ $isReadOnly ? 'true' : 'false' }})"
                                                 class="shrink-0 inline-flex items-center border border-l-0 rounded-r px-2 py-1 transition-colors"
-                                                :class="it.fdesc ? 'border-emerald-300 bg-emerald-50 text-emerald-600 hover:bg-emerald-100' : 'bg-white text-gray-500 hover:bg-gray-50'"
+                                                :class="it.fdesc ?
+                                                    'border-emerald-300 bg-emerald-50 text-emerald-600 hover:bg-emerald-100' :
+                                                    'bg-white text-gray-500 hover:bg-gray-50'"
                                                 title="Deskripsi item">
                                                 <x-heroicon-o-document-text class="h-4 w-4" />
                                             </button>
@@ -344,8 +353,7 @@
                                                 <select class="w-full border rounded px-2 py-1 text-sm"
                                                     :id="'unit_saved_' + i" x-model="it.fsatuan"
                                                     @focus="activeRow = it.uid" @blur="activeRow = null"
-                                                    @keydown.enter.prevent="focusSavedQty(i)"
-                                                    @change="onRowUpdated(i)">
+                                                    @keydown.enter.prevent="focusSavedQty(i)" @change="onRowUpdated(i)">
                                                     <template x-for="u in unitOptions(it)" :key="u">
                                                         <option :value="u" x-text="u"></option>
                                                     </template>
@@ -370,10 +378,9 @@
                                         @if ($isEdit)
                                             <input type="number" class="border rounded px-2 py-1 w-20 text-right text-sm"
                                                 x-model.number="it.fqty" :id="'qty_saved_' + i" step="any"
-                                                @focus="activeRow = it.uid; $event.target.select()" @blur="activeRow = null"
-                                                @input="onRowUpdated(i)"
-                                                @change="onRowUpdated(i)"
-                                                @keydown.enter.prevent="focusSavedPrice(i)">
+                                                @focus="activeRow = it.uid; $event.target.select()"
+                                                @blur="activeRow = null" @input="onRowUpdated(i)"
+                                                @change="onRowUpdated(i)" @keydown.enter.prevent="focusSavedPrice(i)">
                                             <div class="text-[10px] text-amber-700 font-medium text-right mt-0.5"
                                                 x-show="it.frefdtid && calcMaxQty(it) > 0"
                                                 x-html="formatPoRemainHint(it)">
@@ -388,9 +395,8 @@
                                         <input type="text" inputmode="decimal"
                                             class="border rounded px-2 py-1 w-28 text-right text-sm
                                                 {{ $isReadOnly ? 'bg-gray-100 cursor-not-allowed' : '' }}"
-                                            x-model="it.fpriceInput"
-                                            @input="onPriceInput(it)"
-                                            :id="'price_saved_' + i" @focus="activeRow = it.uid; focusPriceInput(it); $event.target.select()"
+                                            x-model="it.fpriceInput" @input="onPriceInput(it)" :id="'price_saved_' + i"
+                                            @focus="activeRow = it.uid; focusPriceInput(it); $event.target.select()"
                                             @blur="activeRow = null; blurPriceInput(it)"
                                             @if ($isEdit) @change="recalc(it)"
                                                 @keydown.enter.prevent="focusSavedDisc(i)" @endif
@@ -439,7 +445,7 @@
                             </template>
 
                             {{-- BARIS DRAFT â€” hanya tampil saat mode edit --}}
-                            
+
                         </tbody>
                     </table>
                 </div>
@@ -586,7 +592,8 @@
                         x-transition.scale>
                         <div class="px-5 py-4 border-b flex items-center">
                             <x-heroicon-o-document-text class="w-6 h-6 text-blue-600 mr-2" />
-                            <h3 class="text-lg font-semibold text-gray-800" x-text="descReadonly ? 'Deskripsi Item' : 'Isi Deskripsi Item'"></h3>
+                            <h3 class="text-lg font-semibold text-gray-800"
+                                x-text="descReadonly ? 'Deskripsi Item' : 'Isi Deskripsi Item'"></h3>
                         </div>
                         <div class="px-5 py-4 space-y-4">
                             <div>
@@ -597,11 +604,11 @@
                                         Copy
                                     </button>
                                 </div>
-                                <div class="rounded-lg border bg-gray-50 px-3 py-2 text-sm text-gray-800" x-text="descItemName || '-'"></div>
+                                <div class="rounded-lg border bg-gray-50 px-3 py-2 text-sm text-gray-800"
+                                    x-text="descItemName || '-'"></div>
                             </div>
                             <label class="block text-sm text-gray-700">Deskripsi</label>
-                            <textarea x-model="descValue" rows="5" class="w-full border rounded px-3 py-2"
-                                :readonly="descReadonly"
+                            <textarea x-model="descValue" rows="5" class="w-full border rounded px-3 py-2" :readonly="descReadonly"
                                 :class="descReadonly ? 'bg-gray-100 cursor-not-allowed text-gray-600' : ''"
                                 placeholder="Tulis deskripsi item di sini..."></textarea>
                         </div>
@@ -641,7 +648,8 @@
                             <button type="button" @click="closeWarning()"
                                 class="h-9 px-4 rounded-lg bg-gray-100 text-gray-700 text-sm font-medium hover:bg-gray-200">Tutup</button>
                             <button type="button" x-show="warningCanProceed" @click="confirmWarningAndSubmit()"
-                                class="h-9 px-4 rounded-lg bg-emerald-600 text-white text-sm font-medium hover:bg-emerald-700">Lanjut Simpan</button>
+                                class="h-9 px-4 rounded-lg bg-emerald-600 text-white text-sm font-medium hover:bg-emerald-700">Lanjut
+                                Simpan</button>
                         </div>
                     </div>
                 </div>
@@ -721,9 +729,9 @@
                         </div>
                     </div>
                 </div>
-            <x-transaction.browse-supplier-modal :open-delay="50" :destroy-on-close="true" />
-            <x-transaction.browse-warehouse-modal event-name="penerimaanbarang-warehouse-browse-open" />
-            <x-transaction.browse-product-modal />
+                <x-transaction.browse-supplier-modal :open-delay="50" :destroy-on-close="true" />
+                <x-transaction.browse-warehouse-modal event-name="penerimaanbarang-warehouse-browse-open" />
+                <x-transaction.browse-product-modal />
             @endif
 
             {{-- TOMBOL AKSI --}}
@@ -827,27 +835,27 @@
         window.CURRENCY_MAP = window.CURRENCY_MAP || {};
 
         window.PRODUCT_MAP = {
-        @foreach ($products as $p)
-            @php
-                $defaultUnit = match ((string) ($p->fsatuandefault ?? '')) {
-                    '1' => trim((string) ($p->fsatuankecil ?? '')),
-                    '2' => trim((string) ($p->fsatuanbesar ?? '')),
-                    '3' => trim((string) ($p->fsatuanbesar2 ?? '')),
-                    default => trim((string) ($p->fsatuankecil ?? '')) ?: trim((string) ($p->fsatuanbesar ?? '')) ?: trim((string) ($p->fsatuanbesar2 ?? '')),
-                };
-            @endphp
-            "{{ $p->fprdcode }}": {
-                id: @json($p->fprdid),
-                name: @json($p->fprdname),
-                default_unit: @json($defaultUnit),
-                units: @json(array_values(array_filter([$p->fsatuankecil, $p->fsatuanbesar, $p->fsatuanbesar2]))),
-                stock: @json($p->fminstock ?? 0),
-                unit_ratios: {
-                        satuankecil: 1,
-                        satuanbesar: @json((float) ($p->fqtykecil ?? 1)),
-                        satuanbesar2: @json((float) ($p->fqtykecil2 ?? 1)),
+            @foreach ($products as $p)
+                @php
+                    $defaultUnit = match ((string) ($p->fsatuandefault ?? '')) {
+                        '1' => trim((string) ($p->fsatuankecil ?? '')),
+                        '2' => trim((string) ($p->fsatuanbesar ?? '')),
+                        '3' => trim((string) ($p->fsatuanbesar2 ?? '')),
+                        default => trim((string) ($p->fsatuankecil ?? '')) ?: trim((string) ($p->fsatuanbesar ?? '')) ?: trim((string) ($p->fsatuanbesar2 ?? '')),
+                    };
+                @endphp
+                    "{{ $p->fprdcode }}": {
+                        id: @json($p->fprdid),
+                        name: @json($p->fprdname),
+                        default_unit: @json($defaultUnit),
+                        units: @json(array_values(array_filter([$p->fsatuankecil, $p->fsatuanbesar, $p->fsatuanbesar2]))),
+                        stock: @json($p->fminstock ?? 0),
+                        unit_ratios: {
+                            satuankecil: 1,
+                            satuanbesar: @json((float) ($p->fqtykecil ?? 1)),
+                            satuanbesar2: @json((float) ($p->fqtykecil2 ?? 1)),
+                        },
                     },
-                },
             @endforeach
         };
 
@@ -914,7 +922,11 @@
                     fqtykecil: 0,
                     fqtykecil2: 0,
                     maxqty_satuan: '',
-                    unit_ratios: { satuankecil: 1, satuanbesar: 1, satuanbesar2: 1 },
+                    unit_ratios: {
+                        satuankecil: 1,
+                        satuanbesar: 1,
+                        satuanbesar2: 1
+                    },
                     frefdtid: '',
                     fqtykecil_ref: 0,
                     fqtypo: 0,
@@ -1118,15 +1130,18 @@
                         id: product.fprdid ?? null,
                         name: product.fprdname ?? '',
                         default_unit: ({
-                            '1': (product.fsatuankecil ?? '').toString().trim(),
-                            '2': (product.fsatuanbesar ?? '').toString().trim(),
-                            '3': (product.fsatuanbesar2 ?? '').toString().trim(),
-                        }[(product.fsatuandefault ?? '').toString().trim()] || (product.fsatuankecil ?? '').toString().trim() || (product.fsatuanbesar ?? '').toString().trim() || (product.fsatuanbesar2 ?? '').toString().trim()),
+                                '1': (product.fsatuankecil ?? '').toString().trim(),
+                                '2': (product.fsatuanbesar ?? '').toString().trim(),
+                                '3': (product.fsatuanbesar2 ?? '').toString().trim(),
+                            } [(product.fsatuandefault ?? '').toString().trim()] || (product.fsatuankecil ?? '')
+                            .toString().trim() || (product.fsatuanbesar ?? '').toString().trim() || (product
+                                .fsatuanbesar2 ?? '').toString().trim()),
                         units: [
                             product.fsatuankecil ?? '',
                             product.fsatuanbesar ?? '',
                             product.fsatuanbesar2 ?? '',
-                        ].map(u => (u ?? '').toString().trim()).filter(Boolean).filter((value, index, self) => self.indexOf(value) === index),
+                        ].map(u => (u ?? '').toString().trim()).filter(Boolean).filter((value, index, self) => self
+                            .indexOf(value) === index),
                         stock: Number(product.fminstock ?? 0),
                         fsatuankecil: product.fsatuankecil ?? '',
                         fsatuanbesar: product.fsatuanbesar ?? '',
@@ -1183,7 +1198,9 @@
                     const used = new Set(this.savedItems.map(item => this.normalizeNoAcak(item.fnoacak)).filter(Boolean));
                     let candidate = '';
                     do {
-                        candidate = Array.from({ length: 3 }, () => '123456789'[Math.floor(Math.random() * 9)]).join('');
+                        candidate = Array.from({
+                            length: 3
+                        }, () => '123456789' [Math.floor(Math.random() * 9)]).join('');
                     } while (used.has(candidate));
 
                     return candidate;
@@ -1201,7 +1218,8 @@
                     const rasio = Number(row.fqtykecil || 0);
                     const rasio2 = Number(row.fqtykecil2 || 0);
 
-                    const hasRemainField = row.fqtykecil_ref !== undefined && row.fqtykecil_ref !== null && row.fqtykecil_ref !== '';
+                    const hasRemainField = row.fqtykecil_ref !== undefined && row.fqtykecil_ref !== null && row
+                        .fqtykecil_ref !== '';
                     if (!hasRemainField) return 0;
                     const sisaKecil = Math.max(0, Number(row.fqtykecil_ref) || 0);
 
@@ -1285,16 +1303,16 @@
                 },
                 isRowFilled(row) {
                     return [
-                        row.fitemcode,
-                        row.fitemname,
-                        row.fsatuan,
-                        row.frefdtno,
-                        row.fqty,
-                        row.fprice,
-                        row.fdesc,
-                        row.fketdt
-                    ].some((value) => String(value ?? '').trim() !== '' && Number(value ?? 0) !== 0)
-                        || Number(row.fqty || 0) > 0;
+                            row.fitemcode,
+                            row.fitemname,
+                            row.fsatuan,
+                            row.frefdtno,
+                            row.fqty,
+                            row.fprice,
+                            row.fdesc,
+                            row.fketdt
+                        ].some((value) => String(value ?? '').trim() !== '' && Number(value ?? 0) !== 0) ||
+                        Number(row.fqty || 0) > 0;
                 },
                 rowWarningLabel(row) {
                     return `Data Produk ${row.fitemname || row.fitemcode || '(tanpa nama)'} qty masih 0, tidak akan tersimpan.`;
@@ -1313,7 +1331,9 @@
                         this.closeWarning();
                         return;
                     }
-                    this.savedItems = this.pendingValidRows.map((row) => ({ ...row }));
+                    this.savedItems = this.pendingValidRows.map((row) => ({
+                        ...row
+                    }));
                     const form = this.pendingSubmitForm;
                     this.closeWarning();
                     this.$nextTick(() => form.submit());
@@ -1361,12 +1381,14 @@
                             fprhid: String(src.fprhid ?? header?.fprhid ?? ''),
                             fprno: String(header?.fpono ?? src.fpono ?? ''),
                             fpono: String(header?.fpono ?? src.fpono ?? ''),
-                            fqty: (src.fqty !== null && src.fqty !== undefined && Number(src.fqty) > 0) ? Number(src.fqty) : 1,
+                            fqty: (src.fqty !== null && src.fqty !== undefined && Number(src.fqty) > 0) ?
+                                Number(src.fqty) : 1,
                             fqtypo: 0,
                             fqtysisapo: Number(src.fqtysisapo ?? 0),
                             fqtyditer: Number(src.fqtyditer ?? 0),
                             fqtymaxedit: Number(src.fqtymaxedit ?? src.fqtysisapo ?? src.maxqty ?? 0),
-                            fqtykecil_ref: Number(src.fqtykecil_ref ?? src.fqtyremain ?? src.fqtykecil_sisa ?? 0),
+                            fqtykecil_ref: Number(src.fqtykecil_ref ?? src.fqtyremain ?? src.fqtykecil_sisa ??
+                                0),
                             frefdtid: src.frefdtid ?? '',
                             fsatuankecil: src.fsatuankecil || meta?.fsatuankecil || '',
                             fsatuanbesar: src.fsatuanbesar || meta?.fsatuanbesar || '',
@@ -1454,9 +1476,9 @@
 
                     if (warningRows.length > 0) {
                         this.warningTitle = 'Qty Belum Diisi';
-                        this.warningMessage = validRows.length > 0
-                            ? 'Beberapa item tidak akan disimpan karena qty masih 0.'
-                            : 'Tidak ada item yang bisa disimpan karena qty masih 0 atau data belum lengkap.';
+                        this.warningMessage = validRows.length > 0 ?
+                            'Beberapa item tidak akan disimpan karena qty masih 0.' :
+                            'Tidak ada item yang bisa disimpan karena qty masih 0 atau data belum lengkap.';
                         this.warningItems = warningRows.map((row) => this.rowWarningLabel(row));
                         this.warningCanProceed = validRows.length > 0;
                         this.pendingSubmitForm = form;
@@ -1469,7 +1491,9 @@
                         this.showNoItems = true;
                         return;
                     }
-                    this.savedItems = validRows.map((row) => ({ ...row }));
+                    this.savedItems = validRows.map((row) => ({
+                        ...row
+                    }));
                     this.$nextTick(() => form.submit());
                 },
                 createRow(source = {}) {
@@ -1486,13 +1510,14 @@
                 init() {
                     this.savedItems = this.savedItems.map(it => {
                         const meta = this.productMeta(it.fitemcode);
-                        const units = (it.units && it.units.length)
-                            ? [...new Set((it.units || []).map(u => (u ?? '').toString().trim()).filter(Boolean))]
-                            : [
+                        const units = (it.units && it.units.length) ?
+                            [...new Set((it.units || []).map(u => (u ?? '').toString().trim()).filter(Boolean))] :
+                            [
                                 it.fsatuankecil || meta?.fsatuankecil || '',
                                 it.fsatuanbesar || meta?.fsatuanbesar || '',
                                 it.fsatuanbesar2 || meta?.fsatuanbesar2 || '',
-                            ].map(u => (u ?? '').toString().trim()).filter(Boolean).filter((value, index, self) => self.indexOf(value) === index);
+                            ].map(u => (u ?? '').toString().trim()).filter(Boolean).filter((value, index, self) =>
+                                self.indexOf(value) === index);
                         const fsatuankecil = it.fsatuankecil || meta?.fsatuankecil || '';
                         const fsatuanbesar = it.fsatuanbesar || meta?.fsatuanbesar || '';
                         const fsatuanbesar2 = it.fsatuanbesar2 || meta?.fsatuanbesar2 || '';
@@ -1562,7 +1587,11 @@
                                     fsatuanbesar2: payloadMeta.fsatuanbesar2,
                                 });
                             }
-                            this.hydrateRowFromMeta(row, this.productMeta(row.fitemcode) || payloadMeta, false, true);
+                            this.hydrateRowFromMeta(row, this.productMeta(row.fitemcode) || payloadMeta, false,
+                                true);
+                            this.rows.splice(this.browseTarget, 1, {
+                                ...this.rows[this.browseTarget]
+                            });
                             row.fnoacak = this.normalizeNoAcak(row.fnoacak) || this.generateUniqueNoAcak();
                             if (!row.fqty) row.fqty = 1;
                             this.recalc(row);
@@ -1738,11 +1767,11 @@
                 },
 
                 openDupModal(header, duplicates, uniques) {
-                window.transactionReferenceModalHelper.openDupModal(this, header, duplicates, uniques);
-            },
+                    window.transactionReferenceModalHelper.openDupModal(this, header, duplicates, uniques);
+                },
                 closeDupModal() {
-                window.transactionReferenceModalHelper.closeDupModal(this);
-            },
+                    window.transactionReferenceModalHelper.closeDupModal(this);
+                },
                 applySupplierFromPo(header, row) {
                     const supplierCode = (header?.fsupplier || row?.fsuppliercode || '').toString().trim();
                     if (!supplierCode) return;
@@ -1754,7 +1783,9 @@
 
                     if (hid) {
                         hid.value = supplierCode;
-                        hid.dispatchEvent(new Event('change', { bubbles: true }));
+                        hid.dispatchEvent(new Event('change', {
+                            bubbles: true
+                        }));
                     }
 
                     if (!sel) return;
@@ -1771,11 +1802,13 @@
                     Array.from(sel.options).forEach(option => {
                         option.selected = String(option.value) === supplierCode;
                     });
-                    sel.dispatchEvent(new Event('change', { bubbles: true }));
+                    sel.dispatchEvent(new Event('change', {
+                        bubbles: true
+                    }));
                 },
                 confirmAddUniques() {
-                window.transactionReferenceModalHelper.confirmAddUniques(this, 'pr-picked');
-            },
+                    window.transactionReferenceModalHelper.confirmAddUniques(this, 'pr-picked');
+                },
 
                 async pick(row) {
                     try {
@@ -1827,7 +1860,9 @@
 
         // â”€â”€â”€ supplierBrowser â€” identik create â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
         window.addEventListener('warehouse-picked', (ev) => {
-            const { fwhcode } = ev.detail || {};
+            const {
+                fwhcode
+            } = ev.detail || {};
 
             const sel = document.getElementById('warehouseSelect');
             const hidFrom = document.getElementById('warehouseCodeHidden');
@@ -1838,8 +1873,13 @@
 
         // â”€â”€â”€ productBrowser â€” identik create â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     </script>
-        @include('components.transaction.browse-warehouse-script', ['eventName' => 'penerimaanbarang-warehouse-browse-open'])
-        @include('components.transaction.browse-product-script', ['destroyOnClose' => true, 'openDelay' => 50])
+    @include('components.transaction.browse-warehouse-script', [
+        'eventName' => 'penerimaanbarang-warehouse-browse-open',
+    ])
+    @include('components.transaction.browse-product-script', [
+        'destroyOnClose' => true,
+        'openDelay' => 50,
+    ])
     <script>
         document.addEventListener('alpine:init', () => {
             Alpine.store('prh', {

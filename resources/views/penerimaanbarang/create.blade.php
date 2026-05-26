@@ -307,18 +307,18 @@
 
                                     {{-- Satuan --}}
                                     <td class="p-2 align-top">
-                                         <template x-if="unitOptions(it).length > 1 && !it.frefdtid">
-                                             <select class="w-full border rounded px-2 py-1 text-sm" :id="'unit_saved_' + i"
-                                                 x-model="it.fsatuan" @focus="activeRow = it.uid" @blur="activeRow = null"
-                                                 @keydown.enter.prevent="focusSavedQty(i)" @change="onRowUpdated(i)">
-                                                 <template x-for="u in unitOptions(it)" :key="u">
-                                                     <option :value="u" x-text="u"></option>
-                                                 </template>
-                                             </select>
-                                         </template>
-                                         <input type="text" x-show="unitOptions(it).length <= 1 || it.frefdtid"
-                                             class="w-full border rounded px-2 py-1 bg-gray-100 text-gray-600 text-sm"
-                                             :value="it.fsatuan || '-'" disabled>
+                                        <template x-if="unitOptions(it).length > 1 && !it.frefdtid">
+                                            <select class="w-full border rounded px-2 py-1 text-sm" :id="'unit_saved_' + i"
+                                                x-model="it.fsatuan" @focus="activeRow = it.uid" @blur="activeRow = null"
+                                                @keydown.enter.prevent="focusSavedQty(i)" @change="onRowUpdated(i)">
+                                                <template x-for="u in unitOptions(it)" :key="u">
+                                                    <option :value="u" x-text="u"></option>
+                                                </template>
+                                            </select>
+                                        </template>
+                                        <input type="text" x-show="unitOptions(it).length <= 1 || it.frefdtid"
+                                            class="w-full border rounded px-2 py-1 bg-gray-100 text-gray-600 text-sm"
+                                            :value="it.fsatuan || '-'" disabled>
                                     </td>
 
                                     {{-- Ref.PO# --}}
@@ -339,10 +339,10 @@
 
                                     {{-- @ Harga --}}
                                     <td class="p-2 text-right">
-                                        <input type="text" inputmode="decimal" class="border rounded px-2 py-1 w-28 text-right text-sm"
-                                            x-model="it.fpriceInput"
-                                            @input="onPriceInput(it)"
-                                            :id="'price_saved_' + i" @focus="activeRow = it.uid; focusPriceInput(it); $event.target.select()"
+                                        <input type="text" inputmode="decimal"
+                                            class="border rounded px-2 py-1 w-28 text-right text-sm"
+                                            x-model="it.fpriceInput" @input="onPriceInput(it)" :id="'price_saved_' + i"
+                                            @focus="activeRow = it.uid; focusPriceInput(it); $event.target.select()"
                                             @blur="activeRow = null; blurPriceInput(it)" @change="recalc(it)"
                                             @keydown.enter.prevent="focusSavedDisc(i)">
                                     </td>
@@ -988,7 +988,8 @@
                             row.fsatuankecil || '',
                             row.fsatuanbesar || '',
                             row.fsatuanbesar2 || '',
-                        ].map(u => (u ?? '').toString().trim()).filter(Boolean).filter((value, index, self) => self.indexOf(value) === index);
+                        ].map(u => (u ?? '').toString().trim()).filter(Boolean).filter((value, index, self) => self
+                            .indexOf(value) === index);
                         row.units = fallbackUnits;
                         if (!(row.fsatuan || '').trim()) {
                             row.fsatuan = fallbackUnits[0] || '';
@@ -1030,15 +1031,18 @@
                         id: product.fprdid ?? null,
                         name: product.fprdname ?? '',
                         default_unit: ({
-                            '1': (product.fsatuankecil ?? '').toString().trim(),
-                            '2': (product.fsatuanbesar ?? '').toString().trim(),
-                            '3': (product.fsatuanbesar2 ?? '').toString().trim(),
-                        }[(product.fsatuandefault ?? '').toString().trim()] || (product.fsatuankecil ?? '').toString().trim() || (product.fsatuanbesar ?? '').toString().trim() || (product.fsatuanbesar2 ?? '').toString().trim()),
+                                '1': (product.fsatuankecil ?? '').toString().trim(),
+                                '2': (product.fsatuanbesar ?? '').toString().trim(),
+                                '3': (product.fsatuanbesar2 ?? '').toString().trim(),
+                            } [(product.fsatuandefault ?? '').toString().trim()] || (product.fsatuankecil ?? '')
+                            .toString().trim() || (product.fsatuanbesar ?? '').toString().trim() || (product
+                                .fsatuanbesar2 ?? '').toString().trim()),
                         units: [
                             product.fsatuankecil ?? '',
                             product.fsatuanbesar ?? '',
                             product.fsatuanbesar2 ?? '',
-                        ].map(u => (u ?? '').toString().trim()).filter(Boolean).filter((value, index, self) => self.indexOf(value) === index),
+                        ].map(u => (u ?? '').toString().trim()).filter(Boolean).filter((value, index, self) => self
+                            .indexOf(value) === index),
                         stock: Number(product.fminstock ?? 0),
                         fsatuankecil: product.fsatuankecil ?? '',
                         fsatuanbesar: product.fsatuanbesar ?? '',
@@ -1181,8 +1185,8 @@
                             return;
                         }
 
-                        const units = meta ?
-                            [...new Set((meta.units || []).map(u => (u ?? '').toString().trim()).filter(Boolean))] :
+                        const units = meta ? [...new Set((meta.units || []).map(u => (u ?? '').toString().trim())
+                                .filter(Boolean))] :
                             (Array.isArray(src.units) && src.units.length ? src.units : [fsatuan].filter(Boolean));
                         if (fsatuan && !units.includes(fsatuan)) units.unshift(fsatuan);
 
@@ -1349,6 +1353,9 @@
                             });
                         }
                         this.hydrateRowFromMeta(row, this.productMeta(row.fitemcode) || payloadMeta, true);
+                        this.rows.splice(this.browseTarget, 1, {
+                            ...this.rows[this.browseTarget]
+                        });
                         row.fnoacak = this.normalizeNoAcak(row.fnoacak) || this.generateUniqueNoAcak();
                         if (!row.fqty) row.fqty = 1;
                         this.recalc(row);

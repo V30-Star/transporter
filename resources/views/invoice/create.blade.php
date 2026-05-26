@@ -2119,6 +2119,9 @@
                     row.fitemcode = (product.fprdcode || '').toString();
                     row.frefcode = product.fprdcode || product.id || '';
                     this.hydrateRowFromMeta(row, this.productMeta(row.fitemcode), true);
+                        this.rows.splice(this.browseTarget, 1, {
+                        ...this.rows[this.browseTarget]
+                    });
                     row.fnoacak = this.normalizeNoAcak(row.fnoacak) || this.generateUniqueNoAcak(row.uid);
                     this.onRowUpdated(index);
                     this.focusRowQty(index);

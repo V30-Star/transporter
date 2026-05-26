@@ -1,6 +1,7 @@
 @extends('layouts.app')
 
-@section('title', $action === 'delete' ? 'Permintaan Pembelian - Delete' : ($action === 'view' ? 'Permintaan Pembelian - View' : 'Permintaan Pembelian - Edit'))
+@section('title', $action === 'delete' ? 'Permintaan Pembelian - Delete' : ($action === 'view' ? 'Permintaan Pembelian -
+    View' : 'Permintaan Pembelian - Edit'))
 
 @section('content')
     @php
@@ -134,7 +135,11 @@
         $permissions = explode(',', session('user_restricted_permissions', ''));
         $canEditPermission = in_array('updateTr_prh', $permissions, true);
         $canDeletePermission = in_array('deleteTr_prh', $permissions, true);
-        $canPrint = in_array('viewTr_prh', $permissions, true) || in_array('updateTr_prh', $permissions, true) || in_array('deleteTr_prh', $permissions, true) || in_array('createTr_prh', $permissions, true);
+        $canPrint =
+            in_array('viewTr_prh', $permissions, true) ||
+            in_array('updateTr_prh', $permissions, true) ||
+            in_array('deleteTr_prh', $permissions, true) ||
+            in_array('createTr_prh', $permissions, true);
         $isDelete = $action === 'delete';
         $isView = $action === 'view';
         $isEdit = $action === 'edit';
@@ -305,13 +310,12 @@
                                                     <div class="desc-inline-field__text min-w-0 flex-1 rounded-l border bg-gray-100 px-2 py-1 text-sm leading-5 text-gray-600 whitespace-normal break-words"
                                                         style="flex:1 1 auto !important; min-width:0 !important;"
                                                         x-text="it.fitemname"></div>
-                                                <button type="button" @click="openDesc('saved', i)"
-                                                    class="desc-inline-field__button inline-flex w-10 shrink-0 items-center justify-center border border-l-0 rounded-r px-2 py-1 transition-colors"
-                                                    style="display:inline-flex !important; flex:0 0 2.5rem !important; width:2.5rem !important; justify-content:center !important; align-items:center !important;"
-                                                    :class="descButtonClass(it.fdesc)"
-                                                    title="Deskripsi item">
-                                                    <x-heroicon-o-document-text class="w-4 h-4" />
-                                                </button>
+                                                    <button type="button" @click="openDesc('saved', i)"
+                                                        class="desc-inline-field__button inline-flex w-10 shrink-0 items-center justify-center border border-l-0 rounded-r px-2 py-1 transition-colors"
+                                                        style="display:inline-flex !important; flex:0 0 2.5rem !important; width:2.5rem !important; justify-content:center !important; align-items:center !important;"
+                                                        :class="descButtonClass(it.fdesc)" title="Deskripsi item">
+                                                        <x-heroicon-o-document-text class="w-4 h-4" />
+                                                    </button>
                                                 </div>
                                             </td>
                                             <td class="p-2" x-text="it.fsatuan"></td>
@@ -350,8 +354,7 @@
                                     </div>
                                     <label class="block text-sm text-gray-700">Deskripsi</label>
                                     <textarea x-model="descValue" rows="5"
-                                        class="w-full border rounded px-3 py-2 bg-gray-100 text-gray-600 cursor-not-allowed"
-                                        readonly></textarea>
+                                        class="w-full border rounded px-3 py-2 bg-gray-100 text-gray-600 cursor-not-allowed" readonly></textarea>
                                 </div>
                                 <div class="px-5 py-3 border-t flex items-center justify-end gap-2">
                                     <button type="button" @click="closeDesc()"
@@ -424,8 +427,8 @@
                 @endif
             @else
                 {{-- MODE EDIT --}}
-                <form action="{{ route('tr_prh.update', $tr_prh->fprhid) }}" method="POST"
-                    data-form-draft="true" data-draft-key="tr_prh:edit:{{ $tr_prh->fprhid }}" data-disable-form-persist="true"
+                <form action="{{ route('tr_prh.update', $tr_prh->fprhid) }}" method="POST" data-form-draft="true"
+                    data-draft-key="tr_prh:edit:{{ $tr_prh->fprhid }}" data-disable-form-persist="true"
                     x-data="{ blockedByPO: {{ $blockedByPO ? 'true' : 'false' }} }"
                     @submit.prevent="window.dispatchEvent(new CustomEvent('tr-prh-edit-submit-request'))">
                     @csrf
@@ -550,8 +553,7 @@
                                             <td class="p-2" style="width: 20rem; min-width: 20rem;">
                                                 <div class="desc-inline-field flex w-full min-w-0 flex-nowrap items-stretch"
                                                     style="display:flex !important; width:100% !important; min-width:0 !important; flex-wrap:nowrap !important; align-items:stretch !important;">
-                                                    <div
-                                                        class="desc-inline-field__text min-w-0 flex-1 rounded-l border bg-gray-100 px-2 py-1 text-sm leading-5 text-gray-600 whitespace-normal break-words"
+                                                    <div class="desc-inline-field__text min-w-0 flex-1 rounded-l border bg-gray-100 px-2 py-1 text-sm leading-5 text-gray-600 whitespace-normal break-words"
                                                         style="flex:1 1 auto !important; min-width:0 !important;"
                                                         x-text="row.fitemname || '-'"></div>
                                                     <button type="button" @click="openDesc(i)"
@@ -565,8 +567,8 @@
                                             </td>
                                             <td class="p-2">
                                                 <template x-if="row.units.length > 1">
-                                                    <select class="w-full border rounded px-2 py-1 text-sm" x-model="row.fsatuan"
-                                                        @change="onRowUpdated(i)"
+                                                    <select class="w-full border rounded px-2 py-1 text-sm"
+                                                        x-model="row.fsatuan" @change="onRowUpdated(i)"
                                                         :disabled="blockedByPO">
                                                         <template x-for="unit in row.units" :key="unit">
                                                             <option :value="unit" x-text="unit"></option>
@@ -581,9 +583,8 @@
                                             </td>
                                             <td class="p-2 text-right">
                                                 <input type="text" inputmode="decimal"
-                                                    class="w-full border rounded px-2 py-1 text-right"
-                                                    x-model="row.fqty" :disabled="blockedByPO"
-                                                    @focus="unformatQtyInput(row)"
+                                                    class="w-full border rounded px-2 py-1 text-right" x-model="row.fqty"
+                                                    :disabled="blockedByPO" @focus="unformatQtyInput(row)"
                                                     @input="onQtyInput(row, i)" @blur="formatQtyInput(row, i)">
                                             </td>
                                             <td class="p-2 text-right">
@@ -593,7 +594,8 @@
                                             </td>
                                             <td class="p-2">
                                                 <input type="text" class="w-full border rounded px-2 py-1"
-                                                    x-model="row.fketdt" :disabled="blockedByPO" @input="onRowUpdated(i)">
+                                                    x-model="row.fketdt" :disabled="blockedByPO"
+                                                    @input="onRowUpdated(i)">
                                             </td>
                                             <td class="p-2 text-center">
                                                 <div class="flex items-center justify-center">
@@ -638,7 +640,8 @@
                                     <div>
                                         <div class="mb-1 flex items-center justify-between gap-3">
                                             <div class="text-sm text-gray-700">Nama Produk</div>
-                                            <button type="button" @click="descValue = descItemLabel || ''" x-show="!blockedByPO"
+                                            <button type="button" @click="descValue = descItemLabel || ''"
+                                                x-show="!blockedByPO"
                                                 class="h-8 px-3 rounded-lg bg-blue-50 text-blue-700 text-sm font-medium hover:bg-blue-100">
                                                 Copy
                                             </button>
@@ -655,8 +658,7 @@
                                         class="h-9 px-4 rounded-lg bg-gray-100 text-gray-700 text-sm font-medium hover:bg-gray-200">
                                         Tutup
                                     </button>
-                                    <button type="button" @click="applyDesc()"
-                                        x-show="!blockedByPO"
+                                    <button type="button" @click="applyDesc()" x-show="!blockedByPO"
                                         class="h-9 px-4 rounded-lg bg-emerald-600 text-white text-sm font-medium hover:bg-emerald-700">
                                         Simpan
                                     </button>
@@ -697,7 +699,8 @@
                         class="fixed inset-0 z-[100] flex items-center justify-center bg-black/50" x-transition.opacity>
                         <div class="bg-white p-6 rounded-xl shadow-2xl max-w-sm w-full text-center">
                             <h4 class="text-lg font-bold text-red-600 mb-2">Item Kosong</h4>
-                            <p class="text-sm text-gray-600 mb-4">Belum ada item dengan Qty lebih dari 0 yang bisa disimpan.</p>
+                            <p class="text-sm text-gray-600 mb-4">Belum ada item dengan Qty lebih dari 0 yang bisa
+                                disimpan.</p>
                             <button @click="showNoItems = false" type="button"
                                 class="w-full py-2 bg-gray-100 hover:bg-gray-200 rounded font-medium">OK</button>
                         </div>
@@ -718,13 +721,15 @@
                                 <button @click="closeWarning()" type="button"
                                     class="px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded font-medium">Tutup</button>
                                 <button x-show="warningCanProceed" @click="confirmWarningAndSubmit()" type="button"
-                                    class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded font-medium">Lanjut Simpan</button>
+                                    class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded font-medium">Lanjut
+                                    Simpan</button>
                             </div>
                         </div>
                     </div>
                 </form>
                 @if ($canClosePr)
-                    <form id="closePrForm" action="{{ route('tr_prh.update', $tr_prh->fprhid) }}" method="POST" class="hidden">
+                    <form id="closePrForm" action="{{ route('tr_prh.update', $tr_prh->fprhid) }}" method="POST"
+                        class="hidden">
                         @csrf
                         @method('PATCH')
                         <input type="hidden" name="close_only" value="1">
@@ -1211,9 +1216,9 @@
                     return String(value ?? '').trim() !== '';
                 },
                 descButtonClass(value) {
-                    return this.hasDesc(value)
-                        ? 'border-emerald-300 bg-emerald-50 text-emerald-600 hover:bg-emerald-100'
-                        : 'border-gray-300 bg-white text-gray-500 hover:bg-gray-50';
+                    return this.hasDesc(value) ?
+                        'border-emerald-300 bg-emerald-50 text-emerald-600 hover:bg-emerald-100' :
+                        'border-gray-300 bg-white text-gray-500 hover:bg-gray-50';
                 },
                 openDesc(target = 'saved', index = null) {
                     if (target !== 'saved' || index === null || !this.savedItems[index]) return;
@@ -1236,284 +1241,19 @@
             };
         }
 
-        function itemsTable() {
-            // Hydrate savedItems BEFORE passing to Alpine
-            const rawItems = @json($savedItems ?? []);
-
-            const hydratedItems = rawItems.map(it => {
-                const code = (it.fitemcode || '').trim();
-                let meta = window.PRODUCT_MAP[code];
-
-                if (!meta) {
-                    const keys = Object.keys(window.PRODUCT_MAP || {});
-                    meta = keys.reduce((found, key) => {
-                        if (found) return found;
-                        if (key.includes(code) || code.includes(key)) return window.PRODUCT_MAP[key];
-                        return null;
-                    }, null);
-                }
-
-                let units = [];
-                if (Array.isArray(it.units) && it.units.length > 0) {
-                    units = [...new Set(it.units.map(unit => (unit ?? '').toString().trim()).filter(Boolean))];
-                } else if (meta && meta.units && meta.units.length > 0) {
-                    units = [...new Set(meta.units.map(unit => (unit ?? '').toString().trim()).filter(Boolean))];
-                } else if (it.fsatuan) {
-                    units = [it.fsatuan];
-                }
-
-                const existingUnit = (it.fsatuan || '').toString().trim();
-                const matchedUnit = units.find(unit => unit.toLowerCase() === existingUnit.toLowerCase()) || existingUnit;
-                if (matchedUnit && !units.includes(matchedUnit)) {
-                    units.unshift(matchedUnit);
-                }
-
-                return {
-                    ...it,
-                    uid: it.uid || cryptoRandom(),
-                    units: units,
-                    fsatuan: matchedUnit || (units[0] || '')
-                };
-            });
-
-            return {
-                savedItems: hydratedItems,
-                activeRow: null,
-                showDescModal: false,
-                descTarget: 'draft',
-                descSavedIndex: null,
-                descValue: '',
-                descItemLabel: '',
-                descReadOnly: {{ $action === 'delete' ? 'true' : 'false' }},
-                draft: {
-                    fitemcode: '',
-                    fitemname: '',
-                    fnoacak: '',
-                    units: [],
-                    fsatuan: '',
-                    fqty: 1,
-                    fdesc: '',
-                    fketdt: ''
-                },
-                normalizeNoAcak(value) {
-                    return (value || '').toString().replace(/\D/g, '').slice(0, 3);
-                },
-                formatQtyValue(value) {
-                    const num = Number(value);
-                    if (!Number.isFinite(num)) return '0,00';
-                    return new Intl.NumberFormat('id-ID', {
-                        minimumFractionDigits: 2,
-                        maximumFractionDigits: 2
-                    }).format(num);
-                },
-                generateUniqueNoAcak() {
-                    const used = new Set(this.savedItems.map(item => this.normalizeNoAcak(item.fnoacak)).filter(Boolean));
-                    let candidate = '';
-
-                    do {
-                        candidate = Array.from({ length: 3 }, () => '123456789'[Math.floor(Math.random() * 9)]).join('');
-                    } while (used.has(candidate));
-
-                    return candidate;
-                },
-                hasDesc(value) {
-                    return String(value ?? '').trim() !== '';
-                },
-                descButtonClass(value) {
-                    return this.hasDesc(value)
-                        ? 'border-emerald-300 bg-emerald-50 text-emerald-600 hover:bg-emerald-100'
-                        : 'border-gray-300 bg-white text-gray-500 hover:bg-gray-50';
-                },
-                getDescRow(target = 'draft', index = null) {
-                    if (target === 'saved' && index !== null) {
-                        return this.savedItems[index] || null;
-                    }
-                    return this.draft || null;
-                },
-                openDesc(target = 'draft', index = null) {
-                    const row = this.getDescRow(target, index);
-                    if (!row) return;
-                    this.descTarget = target;
-                    this.descSavedIndex = index;
-                    this.descValue = (row.fdesc || '').toString();
-                    this.descItemLabel = (row.fitemname || '').toString();
-                    this.showDescModal = true;
-                },
-                closeDesc() {
-                    this.showDescModal = false;
-                    this.descTarget = 'draft';
-                    this.descSavedIndex = null;
-                    this.descValue = '';
-                    this.descItemLabel = '';
-                },
-                applyDesc() {
-                    const value = (this.descValue || '').trim();
-                    if (this.descTarget === 'saved' && this.descSavedIndex !== null) {
-                        this.savedItems[this.descSavedIndex].fdesc = value;
-                    } else {
-                        this.draft.fdesc = value;
-                    }
-                    this.closeDesc();
-                },
-                onCodeTypedDraft() {
-                    const meta = window.PRODUCT_MAP[this.draft.fitemcode];
-                    if (meta) {
-                        this.draft.fprdid = meta.id;
-                        this.draft.fitemname = meta.name;
-                        this.draft.units = meta.units;
-                        this.draft.fsatuan = meta.default_unit && meta.units.includes(meta.default_unit)
-                            ? meta.default_unit
-                            : (meta.units[0] || '');
-                        this.draft.fnoacak = this.normalizeNoAcak(this.draft.fnoacak) || this.generateUniqueNoAcak();
-                    } else {
-                        this.draft.fprdid = 0;
-                        this.draft.fitemname = '';
-                        this.draft.units = [];
-                        this.draft.fsatuan = '';
-                    }
-                },
-                onCodeTypedSaved(it) {
-                    const meta = window.PRODUCT_MAP[it.fitemcode];
-                    if (meta) {
-                        it.fprdid = meta.id;
-                        it.fitemname = meta.name;
-                        it.units = meta.units;
-                        if (!it.units.includes(it.fsatuan)) {
-                            it.fsatuan = meta.default_unit && it.units.includes(meta.default_unit)
-                                ? meta.default_unit
-                                : (it.units[0] || '');
-                        }
-                        it.fnoacak = this.normalizeNoAcak(it.fnoacak) || this.generateUniqueNoAcak();
-                    }
-                },
-                handleEnterOnDraftCode() {
-                    if (this.draft.units.length > 1) this.$refs.draftUnit?.focus();
-                    else this.$refs.draftQty?.focus();
-                },
-                addIfComplete() {
-                    if (!this.draft.fitemcode || !this.draft.fitemname || !this.draft.fqty) return;
-                    this.savedItems.push({
-                        ...this.draft,
-                        uid: cryptoRandom(),
-                        fnoacak: this.normalizeNoAcak(this.draft.fnoacak) || this.generateUniqueNoAcak(),
-                        fqtypo: 0
-                    });
-                    this.draft = {
-                        fitemcode: '',
-                        fitemname: '',
-                        fnoacak: this.generateUniqueNoAcak(),
-                        units: [],
-                        fsatuan: '',
-                        fqty: 1,
-                        fdesc: '',
-                        fketdt: ''
-                    };
-                    this.$nextTick(() => this.$refs.draftCode.focus());
-                },
-                removeSaved(i) {
-                    this.savedItems.splice(i, 1);
-                },
-                openBrowseFor(target, index = null) {
-                    window.dispatchEvent(new CustomEvent('browse-product', {
-                        detail: {
-                            target,
-                            index
-                        }
-                    }));
-                },
-                productMeta(code) {
-                    const key = (code || '').trim();
-                    const meta = window.PRODUCT_MAP?.[key];
-                    if (!meta) {
-                        return {
-                            name: '',
-                            units: [],
-                            stock: 0,
-                            unit_ratios: {
-                                satuankecil: 1,
-                                satuanbesar: 1,
-                                satuanbesar2: 1
-                            }
-                        };
-                    }
-                    return meta;
-                },
-
-                formatStockLimit(code, qty, satuan) {
-                    const meta = this.productMeta(code);
-                    if (!code || !meta.stock) return '';
-
-                    const entered = Number(qty) || 0;
-                    const remaining = Math.max(0, meta.stock - entered);
-                    const units = meta.units || [];
-                    const ratios = meta.unit_ratios || {
-                        satuankecil: 1,
-                        satuanbesar: 1,
-                        satuanbesar2: 1
-                    };
-
-                    if (!units.length || !satuan) return '';
-
-                    const satKecil = units[0] || 'pcs';
-                    const satBesar = units[1] || '';
-                    const satBesar2 = units[2] || '';
-
-                    let ratio = 1;
-                    if (satuan === satBesar2 && ratios.satuanbesar2 > 0) {
-                        ratio = ratios.satuanbesar2;
-                    } else if (satuan === satBesar && ratios.satuanbesar > 0) {
-                        ratio = ratios.satuanbesar;
-                    } else if (satuan === satKecil) {
-                        ratio = 1;
-                    }
-
-                    const limitValue = Math.floor(remaining / ratio);
-                    return '<span class="font-medium">limit:</span> ' + limitValue + ' ' + satuan;
-                },
-
-                enforceQtyRow(row) {
-                    // max qty validation removed (qty tidak lagi dibatasi mengikuti stok maksimum)
-                    return;
-                },
-
-                init() {
-                    this.savedItems = this.savedItems.map(it => ({
-                        ...it,
-                        fnoacak: this.normalizeNoAcak(it.fnoacak) || this.generateUniqueNoAcak()
-                    }));
-                    this.draft.fnoacak = this.generateUniqueNoAcak();
-
-                    window.addEventListener('product-chosen', (e) => {
-                        const {
-                            code,
-                            target,
-                            index
-                        } = e.detail;
-                        if (target === 'saved') {
-                            const it = this.savedItems[index];
-                            it.fitemcode = code;
-                            this.onCodeTypedSaved(it);
-                        } else {
-                            this.draft.fitemcode = code;
-                            this.onCodeTypedDraft();
-                        }
-                    });
-                }
-            }
-        }
-
         function itemsTableRowsEdit() {
             const rawItems = @json($savedItems ?? []);
             const hydratedItems = rawItems.map((it) => {
                 const code = (it.fitemcode || '').trim();
                 const meta = window.PRODUCT_MAP?.[code] || null;
-                const units = Array.isArray(it.units) && it.units.length > 0
-                    ? [...new Set(it.units.map(unit => (unit ?? '').toString().trim()).filter(Boolean))]
-                    : (meta?.units?.length
-                        ? [...new Set(meta.units.map(unit => (unit ?? '').toString().trim()).filter(Boolean))]
-                        : (it.fsatuan ? [it.fsatuan] : []));
+                const units = Array.isArray(it.units) && it.units.length > 0 ?
+                    [...new Set(it.units.map(unit => (unit ?? '').toString().trim()).filter(Boolean))] :
+                    (meta?.units?.length ?
+                        [...new Set(meta.units.map(unit => (unit ?? '').toString().trim()).filter(Boolean))] :
+                        (it.fsatuan ? [it.fsatuan] : []));
                 const existingUnit = (it.fsatuan || '').toString().trim();
-                const matchedUnit = units.find(unit => unit.toLowerCase() === existingUnit.toLowerCase()) || existingUnit;
+                const matchedUnit = units.find(unit => unit.toLowerCase() === existingUnit.toLowerCase()) ||
+                    existingUnit;
                 if (matchedUnit && !units.includes(matchedUnit)) {
                     units.unshift(matchedUnit);
                 }
@@ -1599,7 +1339,8 @@
                         row.fqty,
                         row.fdesc,
                         row.fketdt
-                    ].some((value) => String(value ?? '').trim() !== '' && Number(value ?? 0) !== 0) || Number(row.fqty || 0) > 0;
+                    ].some((value) => String(value ?? '').trim() !== '' && Number(value ?? 0) !== 0) || Number(row
+                        .fqty || 0) > 0;
                 },
 
                 ensureMinimumRows() {
@@ -1644,7 +1385,9 @@
                     let candidate = '';
 
                     do {
-                        candidate = Array.from({ length: 3 }, () => '123456789'[Math.floor(Math.random() * 9)]).join('');
+                        candidate = Array.from({
+                            length: 3
+                        }, () => '123456789' [Math.floor(Math.random() * 9)]).join('');
                     } while (used.has(candidate));
 
                     return candidate;
@@ -1655,14 +1398,18 @@
                 },
 
                 descButtonClass(value) {
-                    return this.hasDesc(value)
-                        ? 'border-emerald-300 bg-emerald-50 text-emerald-600 hover:bg-emerald-100'
-                        : 'border-gray-300 bg-white text-gray-500 hover:bg-gray-50';
+                    return this.hasDesc(value) ?
+                        'border-emerald-300 bg-emerald-50 text-emerald-600 hover:bg-emerald-100' :
+                        'border-gray-300 bg-white text-gray-500 hover:bg-gray-50';
                 },
 
                 productMeta(code) {
                     const key = (code || '').trim();
-                    return window.PRODUCT_MAP?.[key] || { name: '', default_unit: '', units: [] };
+                    return window.PRODUCT_MAP?.[key] || {
+                        name: '',
+                        default_unit: '',
+                        units: []
+                    };
                 },
 
                 hydrateRowFromMeta(row, meta, forceDefaultUnit = false) {
@@ -1675,15 +1422,17 @@
 
                     row.fprdid = meta.id || row.fprdid || '';
                     row.fitemname = meta.name || '';
-                    const units = [...new Set((meta.units || []).map(unit => (unit ?? '').toString().trim()).filter(Boolean))];
+                    const units = [...new Set((meta.units || []).map(unit => (unit ?? '').toString().trim()).filter(
+                        Boolean))];
                     const defaultUnit = (meta.default_unit || '').toString().trim();
                     const resolvedDefaultUnit = defaultUnit && units.includes(defaultUnit) ? defaultUnit : (units[0] || '');
                     row.units = units;
                     const existingUnit = (row.fsatuan || '').toString().trim();
-                    const matchedUnit = units.find(unit => unit.toLowerCase() === existingUnit.toLowerCase()) || existingUnit;
-                    row.fsatuan = forceDefaultUnit
-                        ? (units[0] || '')
-                        : (matchedUnit || (units[0] || ''));
+                    const matchedUnit = units.find(unit => unit.toLowerCase() === existingUnit.toLowerCase()) ||
+                        existingUnit;
+                    row.fsatuan = forceDefaultUnit ?
+                        (units[0] || '') :
+                        (matchedUnit || (units[0] || ''));
                     row.fnoacak = this.normalizeNoAcak(row.fnoacak) || this.generateUniqueNoAcak();
                 },
 
@@ -1735,11 +1484,13 @@
                 addRow(index) {
                     const row = this.rows[index];
                     if (!String(row?.fitemcode || '').trim()) {
-                        this.showWarning('Kode Produk Belum Diisi', 'Isi kode produk terlebih dahulu sebelum menambah baris baru.');
+                        this.showWarning('Kode Produk Belum Diisi',
+                            'Isi kode produk terlebih dahulu sebelum menambah baris baru.');
                         return;
                     }
                     if (!String(row?.fitemname || '').trim()) {
-                        this.showWarning('Produk Belum Valid', 'Produk pada baris ini belum ditemukan. Pilih produk yang valid terlebih dahulu.');
+                        this.showWarning('Produk Belum Valid',
+                            'Produk pada baris ini belum ditemukan. Pilih produk yang valid terlebih dahulu.');
                         return;
                     }
                     this.rows.splice(index + 1, 0, this.emptyRow());
@@ -1778,20 +1529,36 @@
                         }
 
                         if (!code) {
-                            return { invalidMessage: 'Masih ada baris detail item tanpa kode produk.', validRows: [], zeroQtyRows: [] };
+                            return {
+                                invalidMessage: 'Masih ada baris detail item tanpa kode produk.',
+                                validRows: [],
+                                zeroQtyRows: []
+                            };
                         }
 
                         if (!name) {
-                            return { invalidMessage: `Kode produk ${code} belum valid atau belum dipilih dari daftar produk.`, validRows: [], zeroQtyRows: [] };
+                            return {
+                                invalidMessage: `Kode produk ${code} belum valid atau belum dipilih dari daftar produk.`,
+                                validRows: [],
+                                zeroQtyRows: []
+                            };
                         }
 
                         if (!sat) {
-                            return { invalidMessage: `Satuan untuk produk ${name} belum dipilih.`, validRows: [], zeroQtyRows: [] };
+                            return {
+                                invalidMessage: `Satuan untuk produk ${name} belum dipilih.`,
+                                validRows: [],
+                                zeroQtyRows: []
+                            };
                         }
 
                         const normalizedCode = code.toUpperCase();
                         if (seenCodes.has(normalizedCode)) {
-                            return { invalidMessage: `Produk ${name || code} sudah diinput. Kode produk yang sama tidak boleh dipakai lebih dari 1 kali.`, validRows: [], zeroQtyRows: [] };
+                            return {
+                                invalidMessage: `Produk ${name || code} sudah diinput. Kode produk yang sama tidak boleh dipakai lebih dari 1 kali.`,
+                                validRows: [],
+                                zeroQtyRows: []
+                            };
                         }
 
                         seenCodes.add(normalizedCode);
@@ -1813,7 +1580,11 @@
                         });
                     }
 
-                    return { invalidMessage: '', validRows, zeroQtyRows };
+                    return {
+                        invalidMessage: '',
+                        validRows,
+                        zeroQtyRows
+                    };
                 },
 
                 handleSubmit(forceSubmit = false) {
@@ -1859,7 +1630,11 @@
                     this.ensureMinimumRows();
 
                     window.addEventListener('product-chosen', (e) => {
-                        const { code, target, index } = e.detail || {};
+                        const {
+                            code,
+                            target,
+                            index
+                        } = e.detail || {};
                         if (target !== 'row') return;
 
                         const row = this.rows[index];
@@ -1867,6 +1642,11 @@
 
                         row.fitemcode = (code || '').toString();
                         this.hydrateRowFromMeta(row, this.productMeta(row.fitemcode), true);
+
+                        // Force Alpine reactivity
+                        this.rows.splice(index, 1, {
+                            ...this.rows[index]
+                        });
                         this.onRowUpdated(index);
                     });
 
