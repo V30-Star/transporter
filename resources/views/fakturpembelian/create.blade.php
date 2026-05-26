@@ -1655,6 +1655,8 @@
                 const hiddenInput = document.getElementById('supplierCodeHidden');
                 const selectInput = document.getElementById('modal_filter_supplier_id');
                 const tempoInput = document.getElementById('ftempohr');
+                const headerTempo = Number(header?.ftempohr ?? '');
+                let tempoApplied = false;
 
                 if (hiddenInput) {
                     hiddenInput.value = supplierCode;
@@ -1669,10 +1671,18 @@
                         bubbles: true
                     }));
 
+                    if (tempoInput && Number.isFinite(headerTempo)) {
+                        tempoInput.value = headerTempo;
+                        tempoInput.dispatchEvent(new Event('input', {
+                            bubbles: true
+                        }));
+                        tempoApplied = true;
+                    }
+
                     const option = Array.from(selectInput.options || []).find(opt => (opt.value || '').trim() ===
                         supplierCode);
                     const tempo = Number(option?.getAttribute('data-tempo') || 0);
-                    if (tempoInput && Number.isFinite(tempo)) {
+                    if (!tempoApplied && tempoInput && Number.isFinite(tempo)) {
                         tempoInput.value = tempo;
                         tempoInput.dispatchEvent(new Event('input', {
                             bubbles: true

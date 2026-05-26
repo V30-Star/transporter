@@ -387,7 +387,7 @@ class FakturpembelianController extends Controller
             ->where('trstockdt.fstockmtno', $header->fstockmtno)
             ->where('trstockdt.fstockmtcode', 'TER')
             ->leftJoin('trstockmt as hdr', 'hdr.fstockmtno', '=', 'trstockdt.fstockmtno')
-            ->leftJoin('tr_poh as po', 'po.fpono', '=', 'trstockdt.frefdtno')
+            ->leftJoin('tr_poh as po', 'po.fpono', '=', 'trstockdt.frefso')
             ->leftJoin('msprd as m', 'm.fprdcode', '=', 'trstockdt.fprdcode')
             ->leftJoinSub($buySub, 'buy', function ($join) {
                 $join->on('buy.frefdtno', '=', 'trstockdt.fstockmtno')
