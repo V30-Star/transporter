@@ -551,7 +551,7 @@ class SuratJalanController extends Controller
             'fstockmtno' => ['nullable', 'string', 'max:100'],
             'fstockmtdate' => ['required', 'date'],
             'fsupplier' => ['required', 'string', 'max:30'],
-            'ffrom' => ['nullable', 'string', 'max:10'],
+            'ffrom' => ['required', 'string', 'max:10'],
             'fket' => ['nullable', 'string', 'max:50'],
             'fkirim' => ['nullable', 'string', 'max:300'],
             'fbranchcode' => ['nullable', 'string', 'max:20'],
@@ -576,6 +576,8 @@ class SuratJalanController extends Controller
             'fnoacak.*' => ['nullable', 'regex:/^[1-9]{3}$/'],
             'frefnoacak' => ['nullable', 'array'],
             'frefnoacak.*' => ['nullable', 'regex:/^\d{3}$/'],
+        ], [
+            'ffrom.required' => 'Gudang wajib diisi.',
         ]);
 
         $this->ensureNoDuplicateDetailCodes($request->input('fitemcode', []));
@@ -1246,7 +1248,7 @@ class SuratJalanController extends Controller
             'fstockmtno' => ['nullable', 'string', 'max:100'],
             'fstockmtdate' => ['required', 'date'],
             'fsupplier' => ['required', 'string', 'max:30'],
-            'ffrom' => ['nullable', 'string', 'max:10'],
+            'ffrom' => ['required', 'string', 'max:10'],
             'fket' => ['nullable', 'string', 'max:50'],
             'fkirim' => ['nullable', 'string', 'max:300'],
             'fbranchcode' => ['nullable', 'string', 'max:20'],
@@ -1271,6 +1273,8 @@ class SuratJalanController extends Controller
             'fnoacak.*' => ['nullable', 'regex:/^[1-9]{3}$/'],
             'frefnoacak' => ['nullable', 'array'],
             'frefnoacak.*' => ['nullable', 'regex:/^\d{3}$/'],
+        ], [
+            'ffrom.required' => 'Gudang wajib diisi.',
         ]);
 
         $this->ensureNoDuplicateDetailCodes($request->input('fitemcode', []));
