@@ -756,10 +756,7 @@ class InvoiceController extends Controller
                 ->where('fsono', $docNo)
                 ->where('fprdcode', $productCode)
                 ->when($normalizedRefNoAcak !== null, function ($query) use ($normalizedRefNoAcak) {
-                    $query->where(function ($q) use ($normalizedRefNoAcak) {
-                        $q->where('fnoacak', $normalizedRefNoAcak)
-                            ->orWhere('frefnosoacak', $normalizedRefNoAcak);
-                    });
+                    $query->where('fnoacak', $normalizedRefNoAcak);
                 })
                 ->orderBy('ftrsodtid')
                 ->first(['fsatuan', 'fqty', 'fqtykecil']);
@@ -1539,12 +1536,12 @@ class InvoiceController extends Controller
                 ->selectRaw("
                     TRIM(d.fsono) as ref_doc,
                     TRIM(d.fprdcode) as product_code,
-                    COALESCE(d.frefnosoacak::text, d.fnoacak::text, '') as ref_noacak,
+                    COALESCE(d.fnoacak::text, '') as ref_noacak,
                     MAX(COALESCE(p.fprdname, d.fprdcode)) as product_name,
                     MAX(COALESCE(d.fsatuan, '')) as source_unit,
                     SUM(COALESCE(d.fqtykecil, 0)) as source_qty_kecil
                 ")
-                ->groupByRaw("TRIM(d.fsono), TRIM(d.fprdcode), COALESCE(d.frefnosoacak::text, d.fnoacak::text, '')")
+                ->groupByRaw("TRIM(d.fsono), TRIM(d.fprdcode), COALESCE(d.fnoacak::text, '')")
                 ->get();
 
             $usageRows = DB::table('trandt as d')
@@ -1637,9 +1634,10 @@ class InvoiceController extends Controller
                 ->whereIn('d.fsono', $docNos)
                 ->selectRaw("
                     d.ftrsodtid,
+                    COALESCE(d.fqtykecil, 0) as source_qty_kecil,
                     TRIM(d.fsono) as ref_doc,
                     TRIM(d.fprdcode) as product_code,
-                    COALESCE(d.frefnosoacak::text, d.fnoacak::text, '') as ref_noacak
+                    COALESCE(d.fnoacak::text, '') as ref_noacak
                 ")
                 ->get();
 
@@ -1775,6 +1773,7 @@ class InvoiceController extends Controller
                 'fitemcode' => trim($d->fitemcode ?? ''),
                 'fitemname' => trim($d->fprdname ?? ''),
                 'fsatuan' => trim($d->fsatuan ?? ''),
+                'fdisplayunit' => trim($d->fsatuan ?? ''),
                 'frefdtno' => (string) ($d->frefdtno ?? ''),
                 'frefcode' => $refCode,
                 'frefso' => trim($d->frefso ?? ''),
@@ -1898,7 +1897,8 @@ class InvoiceController extends Controller
                 'uid' => $d->ftrandtid,
                 'fitemcode' => (string) ($d->fitemcode ?? ''),
                 'fitemname' => (string) ($d->fprdname ?? ''),
-                'fsatuan' => (string) ($d->fsatuan ?? ''),
+                'fsatuan' => trim((string) ($d->fsatuan ?? '')),
+                'fdisplayunit' => trim((string) ($d->fsatuan ?? '')),
                 'frefdtno' => (string) ($d->frefdtno ?? ''),
                 'fqty' => (float) ($d->fqty ?? 0),
                 'fterima' => (float) ($d->fterima ?? 0),
@@ -2363,7 +2363,8 @@ class InvoiceController extends Controller
                 'uid' => $d->ftrandtid,
                 'fitemcode' => (string) ($d->fitemcode ?? ''),
                 'fitemname' => (string) ($d->fprdname ?? ''),
-                'fsatuan' => (string) ($d->fsatuan ?? ''),
+                'fsatuan' => trim((string) ($d->fsatuan ?? '')),
+                'fdisplayunit' => trim((string) ($d->fsatuan ?? '')),
                 'frefdtno' => (string) ($d->frefdtno ?? ''),
                 'fqty' => (float) ($d->fqty ?? 0),
                 'fterima' => (float) ($d->fterima ?? 0),

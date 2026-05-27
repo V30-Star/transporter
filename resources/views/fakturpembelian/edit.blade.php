@@ -2689,7 +2689,7 @@
 
                         const rawMeta = window.PRODUCT_MAP?.[(row.fitemcode || '').trim()];
                         if (rawMeta) {
-                            this.hydrateRowFromMeta(row, this.productMeta(row.fitemcode), true);
+                            this.hydrateRowFromMeta(row, this.productMeta(row.fitemcode), false);
                         }
                         row.maxqty = sourceLimit;
                         if (!(Number(row.fqtysisa_source) > 0 || Number(row.maxqty) > 0)) return;
@@ -3055,6 +3055,13 @@
                             }
                             if (item.fsatuan && !item.units.includes(item.fsatuan)) {
                                 item.units.unshift(item.fsatuan);
+                            }
+                        }
+                        const lockedDisplayUnit = (item.fdisplayunit || '').toString().trim();
+                        if (lockedDisplayUnit !== '') {
+                            item.fsatuan = lockedDisplayUnit;
+                            if (!item.units.includes(lockedDisplayUnit)) {
+                                item.units.unshift(lockedDisplayUnit);
                             }
                         }
                         const qty = +item.fqty || 0;

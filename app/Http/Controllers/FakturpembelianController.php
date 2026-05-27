@@ -20,6 +20,59 @@ class FakturpembelianController extends Controller
 {
     use ProductBrowseHelper;
 
+    private function getReferenceUnitMaps($details): array
+    {
+        $detailRows = collect($details);
+
+        $poIds = $detailRows
+            ->filter(fn ($detail) => (int) ($detail->frefdtid ?? 0) > 0 && trim((string) ($detail->frefso ?? '')) !== '')
+            ->map(fn ($detail) => (int) $detail->frefdtid)
+            ->unique()
+            ->values()
+            ->all();
+
+        $pbIds = $detailRows
+            ->filter(fn ($detail) => (int) ($detail->frefdtid ?? 0) > 0 && trim((string) ($detail->frefso ?? '')) === '')
+            ->map(fn ($detail) => (int) $detail->frefdtid)
+            ->unique()
+            ->values()
+            ->all();
+
+        $poUnits = empty($poIds)
+            ? []
+            : DB::table('tr_pod')
+                ->whereIn('fpodid', $poIds)
+                ->pluck('fsatuan', 'fpodid')
+                ->map(fn ($value) => trim((string) $value))
+                ->all();
+
+        $pbUnits = empty($pbIds)
+            ? []
+            : DB::table('trstockdt')
+                ->whereIn('fstockdtid', $pbIds)
+                ->pluck('fsatuan', 'fstockdtid')
+                ->map(fn ($value) => trim((string) $value))
+                ->all();
+
+        return [$poUnits, $pbUnits];
+    }
+
+    private function resolveDetailDisplayUnit($detail, array $poUnits = [], array $pbUnits = []): string
+    {
+        $detailId = (int) ($detail->frefdtid ?? 0);
+        $storedUnit = trim((string) ($detail->fsatuan ?? ''));
+
+        if ($detailId <= 0) {
+            return $storedUnit;
+        }
+
+        if (trim((string) ($detail->frefso ?? '')) !== '') {
+            return trim((string) ($poUnits[$detailId] ?? $storedUnit));
+        }
+
+        return trim((string) ($pbUnits[$detailId] ?? $storedUnit));
+    }
+
     private function getSupplierAdvanceWarningMap(): array
     {
         return DB::table('trstockmt')
@@ -1472,8 +1525,10 @@ class FakturpembelianController extends Controller
             $oldUsageBySourceRef[$sourceKey] = ($oldUsageBySourceRef[$sourceKey] ?? 0) + (float) ($d->fqty ?? 0);
         }
 
+        [$poUnits, $pbUnits] = $this->getReferenceUnitMaps($fakturpembelian->details);
+
         // 4. Map the data for savedItems
-        $savedItems = $fakturpembelian->details->map(function ($d) use ($poRefSet, $pbRefSet, $oldUsageBySourceRef) {
+        $savedItems = $fakturpembelian->details->map(function ($d) use ($poRefSet, $pbRefSet, $oldUsageBySourceRef, $poUnits, $pbUnits) {
             $detailId = (int) ($d->frefdtid ?? 0);
             $sourceType = isset($poRefSet[$detailId]) ? 'PO' : (isset($pbRefSet[$detailId]) ? 'PB' : '');
             $sourceRemain = $sourceType !== '' && $detailId > 0 ? $this->getSourceRemain($sourceType, $detailId) : null;
@@ -1488,7 +1543,8 @@ class FakturpembelianController extends Controller
                 'uid' => $d->fstockdtid,
                 'fitemcode' => $d->fitemcode_text ?? '',
                 'fitemname' => $d->fprdname ?? '',
-                'fsatuan' => $d->fsatuan ?? '',
+                'fsatuan' => $this->resolveDetailDisplayUnit($d, $poUnits, $pbUnits),
+                'fdisplayunit' => $this->resolveDetailDisplayUnit($d, $poUnits, $pbUnits),
                 'fprno' => $d->frefpr ?? '-',
                 'frefpr' => $d->frefpr ?? null,
                 'fpono' => $d->fpono ?? null,
@@ -1612,12 +1668,15 @@ class FakturpembelianController extends Controller
         $currentAccountRecord = $accounts->firstWhere('faccount', trim($fakturpembelian->fprdjadi ?? ''));
         $currentAccountId = $currentAccountRecord?->faccid ?? '';
         $currentAccountName = $currentAccountRecord?->faccname ?? '';
-        $savedItems = $fakturpembelian->details->map(function ($d) {
+        [$poUnits, $pbUnits] = $this->getReferenceUnitMaps($fakturpembelian->details);
+
+        $savedItems = $fakturpembelian->details->map(function ($d) use ($poUnits, $pbUnits) {
             return [
                 'uid' => $d->fstockdtid,
                 'fitemcode' => $d->fitemcode_text ?? '',
                 'fitemname' => $d->fprdname ?? '',
-                'fsatuan' => $d->fsatuan ?? '',
+                'fsatuan' => $this->resolveDetailDisplayUnit($d, $poUnits, $pbUnits),
+                'fdisplayunit' => $this->resolveDetailDisplayUnit($d, $poUnits, $pbUnits),
                 'fprno' => $d->frefpr ?? '-',
                 'frefpr' => $d->frefpr ?? null,
                 'fpono' => $d->fpono ?? null,
@@ -2161,12 +2220,15 @@ class FakturpembelianController extends Controller
         $currentAccountRecord = $accounts->firstWhere('faccount', trim($fakturpembelian->fprdjadi ?? ''));
         $currentAccountId = $currentAccountRecord?->faccid ?? '';
         $currentAccountName = $currentAccountRecord?->faccname ?? '';
-        $savedItems = $fakturpembelian->details->map(function ($d) {
+        [$poUnits, $pbUnits] = $this->getReferenceUnitMaps($fakturpembelian->details);
+
+        $savedItems = $fakturpembelian->details->map(function ($d) use ($poUnits, $pbUnits) {
             return [
                 'uid' => $d->fstockdtid,
                 'fitemcode' => $d->fitemcode_text ?? '',
                 'fitemname' => $d->fprdname ?? '',
-                'fsatuan' => $d->fsatuan ?? '',
+                'fsatuan' => $this->resolveDetailDisplayUnit($d, $poUnits, $pbUnits),
+                'fdisplayunit' => $this->resolveDetailDisplayUnit($d, $poUnits, $pbUnits),
                 'fprno' => $d->frefpr ?? '-',
                 'frefpr' => $d->frefpr ?? null,
                 'fpono' => $d->fpono ?? null,
