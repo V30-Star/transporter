@@ -1887,7 +1887,32 @@
                 clearButton.title = title;
                 clearButton.setAttribute('aria-label', title);
                 clearButton.dataset.browseClearFor = hiddenId;
-                clearButton.className = 'border -ml-px px-3 py-2 bg-white hover:bg-red-50 text-red-500 hover:text-red-600 transition';
+                const nextVisibleSibling = (() => {
+                    let candidate = browseButton?.nextElementSibling || null;
+                    while (candidate) {
+                        const tagName = (candidate.tagName || '').toUpperCase();
+                        const inputType = (candidate.getAttribute?.('type') || '').toLowerCase();
+                        if (!(tagName === 'INPUT' && inputType === 'hidden')) {
+                            return candidate;
+                        }
+                        candidate = candidate.nextElementSibling;
+                    }
+
+                    return null;
+                })();
+
+                clearButton.className = [
+                    'border',
+                    '-ml-px',
+                    'px-3',
+                    'py-2',
+                    'bg-white',
+                    'hover:bg-red-50',
+                    'text-red-500',
+                    'hover:text-red-600',
+                    'transition',
+                    nextVisibleSibling ? '' : 'rounded-r'
+                ].filter(Boolean).join(' ');
                 clearButton.innerHTML =
                     '<svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"/></svg>';
 
