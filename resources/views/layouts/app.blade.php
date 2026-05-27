@@ -1798,8 +1798,155 @@
                     ['customerCodeHidden', 'modal_filter_customer_id'],
                     ['salesmanCodeHidden', 'modal_filter_salesman_id'],
                     ['accountCodeHidden', 'accountSelect'],
-                    ['warehouseCodeHidden', 'warehouseSelect']
+                    ['warehouseCodeHidden', 'warehouseSelect'],
+                    ['warehouseCodeHiddenFrom', 'warehouseSelectFrom'],
+                    ['warehouseCodeHiddenTo', 'warehouseSelectTo']
                 ].forEach(([hiddenId, selectId]) => syncLinkedSelect(hiddenId, selectId));
+            }
+
+            function clearLinkedSelect(hiddenId, selectId) {
+                const hidden = document.getElementById(hiddenId);
+                const select = document.getElementById(selectId);
+
+                if (hidden) {
+                    hidden.value = '';
+                    hidden.dispatchEvent(new Event('input', {
+                        bubbles: true
+                    }));
+                    hidden.dispatchEvent(new Event('change', {
+                        bubbles: true
+                    }));
+                }
+
+                if (!select) {
+                    return;
+                }
+
+                let emptyOption = Array.from(select.options).find((option) => String(option.value).trim() === '');
+                if (!emptyOption) {
+                    emptyOption = new Option('', '', true, true);
+                    select.add(emptyOption, 0);
+                }
+
+                Array.from(select.options).forEach((option) => {
+                    option.selected = option === emptyOption;
+                });
+
+                select.value = '';
+                select.dispatchEvent(new Event('input', {
+                    bubbles: true
+                }));
+                select.dispatchEvent(new Event('change', {
+                    bubbles: true
+                }));
+
+                if (window.jQuery) {
+                    window.jQuery(select).trigger('change.select2');
+                    window.jQuery(select).trigger('change');
+                }
+            }
+
+            function ensureBrowseClearButton({
+                hiddenId,
+                selectId,
+                buttonId = null,
+                title = 'Clear',
+                onClear = null
+            }) {
+                const hidden = document.getElementById(hiddenId);
+                const select = document.getElementById(selectId);
+                const browseButton = buttonId ? document.getElementById(buttonId) : hidden?.nextElementSibling;
+
+                if (!hidden || !select || !browseButton || document.querySelector(`[data-browse-clear-for="${hiddenId}"]`)) {
+                    return;
+                }
+
+                const clearButton = document.createElement('button');
+                clearButton.type = 'button';
+                clearButton.title = title;
+                clearButton.setAttribute('aria-label', title);
+                clearButton.dataset.browseClearFor = hiddenId;
+                clearButton.className = 'border -ml-px px-3 py-2 bg-white hover:bg-red-50 text-red-500 hover:text-red-600 transition';
+                clearButton.innerHTML =
+                    '<svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"/></svg>';
+
+                const syncClearState = () => {
+                    const currentValue = String(hidden.value || select.value || '').trim();
+                    clearButton.disabled = currentValue === '';
+                    clearButton.classList.toggle('opacity-40', clearButton.disabled);
+                    clearButton.classList.toggle('cursor-not-allowed', clearButton.disabled);
+                };
+
+                clearButton.addEventListener('click', () => {
+                    if (clearButton.disabled) {
+                        return;
+                    }
+
+                    clearLinkedSelect(hiddenId, selectId);
+
+                    if (typeof onClear === 'function') {
+                        onClear();
+                    }
+
+                    syncClearState();
+                });
+
+                browseButton.insertAdjacentElement('afterend', clearButton);
+                hidden.addEventListener('change', syncClearState);
+                select.addEventListener('change', syncClearState);
+                syncClearState();
+            }
+
+            function installTransactionBrowseClearButtons() {
+                [{
+                        hiddenId: 'supplierCodeHidden',
+                        selectId: 'modal_filter_supplier_id',
+                        buttonId: 'supplierBrowseButton',
+                        title: 'Clear Supplier'
+                    },
+                    {
+                        hiddenId: 'customerCodeHidden',
+                        selectId: 'modal_filter_customer_id',
+                        title: 'Clear Customer',
+                        onClear: () => window.dispatchEvent(new CustomEvent('customer-selected', {
+                            detail: {
+                                fcustomercode: '',
+                                fcustomername: '',
+                                ftempo: '',
+                                fsalesman: '',
+                                f1: '',
+                                f2: '',
+                                f3: '',
+                                fkodefp: ''
+                            }
+                        }))
+                    },
+                    {
+                        hiddenId: 'salesmanCodeHidden',
+                        selectId: 'modal_filter_salesman_id',
+                        title: 'Clear Salesman'
+                    },
+                    {
+                        hiddenId: 'warehouseCodeHidden',
+                        selectId: 'warehouseSelect',
+                        title: 'Clear Gudang'
+                    },
+                    {
+                        hiddenId: 'warehouseCodeHiddenFrom',
+                        selectId: 'warehouseSelectFrom',
+                        title: 'Clear Gudang Dari'
+                    },
+                    {
+                        hiddenId: 'warehouseCodeHiddenTo',
+                        selectId: 'warehouseSelectTo',
+                        title: 'Clear Gudang Ke'
+                    },
+                    {
+                        hiddenId: 'accountCodeHidden',
+                        selectId: 'accountSelect',
+                        title: 'Clear Account'
+                    }
+                ].forEach(ensureBrowseClearButton);
             }
 
             function restoreField(field, value) {
@@ -1856,6 +2003,7 @@
                 });
 
                 syncCommonDisplayFields();
+                installTransactionBrowseClearButtons();
 
                 const alpineState = getAlpineFormState(form);
                 const customState = savedDraft?.customState && typeof savedDraft.customState === 'object' ?
@@ -1940,6 +2088,7 @@
 
             document.addEventListener('DOMContentLoaded', () => {
                 enforceTransactionDateAuthority(document);
+                installTransactionBrowseClearButtons();
 
                 if (hasSuccessFlash) {
                     clearSubmittedDrafts();
@@ -1978,6 +2127,7 @@
                         saveTimer = window.setTimeout(() => {
                             localStorage.setItem(storageKey, JSON.stringify(serializeForm(
                                 form)));
+                            installTransactionBrowseClearButtons();
                         }, 150);
                     };
 
