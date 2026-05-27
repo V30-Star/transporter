@@ -403,7 +403,9 @@
                                                     </select>
                                                 </template>
                                                 <template x-if="!(it.units && it.units.length > 1)">
-                                                    <span class="text-xs" x-text="it.fsatuan || '-'"></span>
+                                                    <input type="text"
+                                                        class="w-full border rounded px-2 py-1 bg-gray-100 text-gray-600 text-xs"
+                                                        :value="it.fsatuan || '-'" disabled>
                                                 </template>
                                             </td>
                                             <td class="p-2 text-right">

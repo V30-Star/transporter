@@ -665,20 +665,22 @@
                                                             class="w-full border rounded px-2 py-1 bg-gray-100 text-gray-600 text-sm"
                                                             :value="it.frefno_display || it.frefdtno || '-'" disabled>
                                                     </td>
-                                                    <template x-if="it.units && it.units.length > 1">
-                                                        <select class="w-full border rounded px-2 py-1 text-xs"
-                                                            :id="'unit_row_' + i" x-model="it.fsatuan"
-                                                            x-effect="$el.value = it.fsatuan" @change="onRowUpdated(i)"
-                                                            @keydown.enter.prevent="focusRowQty(i)">
-                                                            <template x-for="u in it.units" :key="u">
-                                                                <option :value="u"
-                                                                    :selected="u === it.fsatuan" x-text="u"></option>
-                                                            </template>
-                                                        </select>
-                                                    </template>
-                                                    <template x-if="!(it.units && it.units.length > 1)">
-                                                        <span class="text-xs" x-text="it.fsatuan || '-'"></span>
-                                                    </template>
+                                                     <template x-if="it.units && it.units.length > 1">
+                                                         <select class="w-full border rounded px-2 py-1 text-xs"
+                                                             :id="'unit_row_' + i" x-model="it.fsatuan"
+                                                             x-effect="$el.value = it.fsatuan" @change="onRowUpdated(i)"
+                                                             @keydown.enter.prevent="focusRowQty(i)">
+                                                             <template x-for="u in it.units" :key="u">
+                                                                 <option :value="u"
+                                                                     :selected="u === it.fsatuan" x-text="u"></option>
+                                                             </template>
+                                                         </select>
+                                                     </template>
+                                                     <template x-if="!(it.units && it.units.length > 1)">
+                                                         <input type="text"
+                                                             class="w-full border rounded px-2 py-1 bg-gray-100 text-gray-600 text-xs"
+                                                             :value="it.fsatuan || '-'" disabled>
+                                                     </template>
                                                     </td>
                                                     <td class="p-2 text-right">
                                                         <input type="number"
