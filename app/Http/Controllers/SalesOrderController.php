@@ -636,6 +636,7 @@ class SalesOrderController extends Controller
                 'fsono' => $header->fsono,
                 'fcustno' => $header->fcustno,
                 'fsodate' => $header->fsodate,
+                'ftempohr' => (float) ($header->ftempohr ?? 0),
             ],
             'items' => $items,
         ]);

@@ -268,6 +268,7 @@
                                         <option value=""></option>
                                         @foreach ($customers as $customer)
                                             <option value="{{ $customer->fcustomercode }}"
+                                                data-ftempo="{{ (int) ($customer->ftempo ?? 0) }}"
                                                 {{ old('fcustno', $invoice->fcustno) == $customer->fcustomercode ? 'selected' : '' }}>
                                                 {{ $customer->fcustomername }} ({{ $customer->fcustomercode }})
                                             </option>
@@ -1098,7 +1099,7 @@
                                                     </div>
                                                 </td>
                                                 <td class="p-2">
-                                                    <template x-if="it.units && it.units.length > 1 && !it.frefso && !it.frefsrj">
+                                                    <template x-if="it.units && it.units.length > 1">
                                                         <select class="w-full border rounded px-2 py-1 text-sm focus:ring-1 focus:ring-blue-500"
                                                             :id="'unit_row_' + i"
                                                             x-model="it.fsatuan"
@@ -1109,7 +1110,7 @@
                                                             </template>
                                                         </select>
                                                     </template>
-                                                    <template x-if="!(it.units && it.units.length > 1 && !it.frefso && !it.frefsrj)">
+                                                    <template x-if="!(it.units && it.units.length > 1)">
                                                         <div class="px-2 py-1 text-sm text-gray-600 bg-gray-50 border rounded"
                                                             x-text="it.fsatuan || '-'"></div>
                                                     </template>
@@ -1868,8 +1869,31 @@
         kodeFpInput.value = eventValue || optionValue || mappedValue || '';
     };
 
+    window.syncInvoiceTempoFromSource = function(days) {
+        const tempoInput = document.getElementById('ftempohr');
+        if (!tempoInput) return;
+        const numericDays = Number(days ?? 0);
+        tempoInput.value = Number.isFinite(numericDays) ? String(Math.max(0, numericDays)) : '0';
+        tempoInput.dispatchEvent(new Event('input', { bubbles: true }));
+        tempoInput.dispatchEvent(new Event('change', { bubbles: true }));
+    };
+
+    window.syncInvoiceTempoFromCustomer = function(payload = null) {
+        const normalize = (value) => String(value ?? '').trim();
+        const select = document.getElementById('modal_filter_customer_id');
+        const hidden = document.getElementById('customerCodeHidden');
+        const customerCode = normalize(payload?.fcustomercode) || normalize(hidden?.value) || normalize(select?.value);
+        const selectedOption = customerCode ?
+            [...(select?.options || [])].find(option => normalize(option.value) === customerCode) :
+            select?.selectedOptions?.[0];
+        const eventTempo = normalize(payload?.ftempo);
+        const optionTempo = normalize(selectedOption?.dataset?.ftempo);
+        window.syncInvoiceTempoFromSource(eventTempo || optionTempo || '0');
+    };
+
     document.addEventListener('customer-selected', function(event) {
         window.syncInvoiceCustomerTaxCode(event.detail || null);
+        window.syncInvoiceTempoFromCustomer(event.detail || null);
     });
 
     document.addEventListener('DOMContentLoaded', function() {
@@ -1877,10 +1901,12 @@
         if (select) {
             select.addEventListener('change', function() {
                 window.syncInvoiceCustomerTaxCode();
+                window.syncInvoiceTempoFromCustomer();
             });
         }
 
         window.syncInvoiceCustomerTaxCode();
+        window.syncInvoiceTempoFromCustomer();
     });
 
     window.getInvoiceDuplicateCode = function(form) {
@@ -2508,6 +2534,10 @@
                 const existing = new Set(this.getCurrentItemKeys());
                 let added = 0;
 
+                if (source === 'SO') {
+                    window.syncInvoiceTempoFromSource?.(header?.ftempohr ?? 0);
+                }
+
                 const refNo = source === 'SRJ' ?
                     (header?.fstockmtno ?? '') :
                     (header?.fsono ?? '');
@@ -2546,9 +2576,6 @@
 
                     const rowLimit = this.getRowQtyLimit(row);
                     if (!(rowLimit > 0)) return;
-                    if (rowLimit > 0) {
-                        row.fqty = Number(rowLimit);
-                    }
                     this.recalc(row);
                     this.validateReferenceQty(row, false);
                     this.savedItems.push({
