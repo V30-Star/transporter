@@ -162,6 +162,7 @@ class PelunasanCustomerController extends Controller
                 'mt.fsodate',
                 'mt.fcustno',
                 'mt.ftrcode',
+                'mt.famountso',
                 'mt.famountremain',
                 'mt.fjatuhtempo',
                 'c.fcustomername',
@@ -217,9 +218,11 @@ class PelunasanCustomerController extends Controller
                 $trCode = trim((string) ($row->ftrcode ?? ''));
                 $amount = (float) ($row->famount ?? 0);
                 $amountRemain = (float) ($row->famountremain ?? 0);
+                $amountSo = (float) ($row->famountso ?? 0);
 
                 if (strtoupper($trCode) === 'REJ') {
                     $amount *= -1;
+                    $amountSo *= -1;
                     if ($amountRemain < 0) {
                         $amountRemain *= -1;
                     }
@@ -233,6 +236,7 @@ class PelunasanCustomerController extends Controller
                     'fcustomername' => trim((string) ($row->fcustomername ?? '')),
                     'ftrcode' => $trCode,
                     'famount' => $amount,
+                    'famountso' => $amountSo,
                     'famountremain' => $amountRemain,
                     'fjatuhtempo' => !empty($row->fjatuhtempo) ? Carbon::parse($row->fjatuhtempo)->format('Y-m-d') : null,
                     'detail_count' => (int) ($row->detail_count ?? 0),

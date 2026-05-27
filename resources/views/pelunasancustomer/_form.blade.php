@@ -198,29 +198,40 @@
                                         <input type="hidden" :name="`details[${index}][ftrcode]`" :value="row.ftrcode || 'INV'">
                                     </td>
                                     <td class="border px-2 py-1">
-                                        <input type="number" min="0" step="0.01" :name="`details[${index}][fnilai_nota]`"
-                                            x-model="row.fnilai_nota" @input="recalcTotals()"
-                                            class="w-full border rounded px-2 py-1 text-right">
+                                        <input type="number" min="0" step="0.01" x-model="row.fnilai_nota"
+                                            class="w-full border rounded px-2 py-1 text-right bg-gray-100 cursor-not-allowed"
+                                            readonly disabled>
+                                        <input type="hidden" :name="`details[${index}][fnilai_nota]`" :value="row.fnilai_nota">
                                     </td>
                                     <td class="border px-2 py-1">
-                                        <input type="number" min="0" step="0.01"
-                                            :name="`details[${index}][fsisa_piutang]`" x-model="row.fsisa_piutang"
-                                            @input="recalcTotals()" class="w-full border rounded px-2 py-1 text-right">
+                                        <input type="number" min="0" step="0.01" x-model="row.fsisa_piutang"
+                                            class="w-full border rounded px-2 py-1 text-right bg-gray-100 cursor-not-allowed"
+                                            readonly disabled>
+                                        <input type="hidden" :name="`details[${index}][fsisa_piutang]`" :value="row.fsisa_piutang">
                                     </td>
                                     <td class="border px-2 py-1">
                                         <input type="number" min="0" max="100" step="0.01"
                                             :name="`details[${index}][fdiscpersen]`" x-model="row.fdiscpersen"
-                                            @input="syncDiscountFromPercent(row)" class="w-full border rounded px-2 py-1 text-right">
+                                            @input="syncDiscountFromPercent(row)"
+                                            :disabled="isDiscPercentDisabled(row)"
+                                            class="w-full border rounded px-2 py-1 text-right disabled:bg-gray-100 disabled:text-gray-400 disabled:cursor-not-allowed">
+                                        <input type="hidden" x-show="isDiscPercentDisabled(row)"
+                                            :name="`details[${index}][fdiscpersen]`" :value="row.fdiscpersen">
                                     </td>
                                     <td class="border px-2 py-1">
                                         <input type="number" min="0" step="0.01"
                                             :name="`details[${index}][fdiscount]`" x-model="row.fdiscount"
-                                            @input="syncTotalBayar(row)" class="w-full border rounded px-2 py-1 text-right">
+                                            @input="syncTotalBayar(row)"
+                                            :disabled="isDiscountDisabled(row)"
+                                            class="w-full border rounded px-2 py-1 text-right disabled:bg-gray-100 disabled:text-gray-400 disabled:cursor-not-allowed">
+                                        <input type="hidden" x-show="isDiscountDisabled(row)"
+                                            :name="`details[${index}][fdiscount]`" :value="row.fdiscount">
                                     </td>
                                     <td class="border px-2 py-1">
-                                        <input type="number" min="0" step="0.01"
-                                            :name="`details[${index}][fkasdtvalue]`" x-model="row.fkasdtvalue"
-                                            @input="recalcTotals()" class="w-full border rounded px-2 py-1 text-right">
+                                        <input type="number" min="0" step="0.01" x-model="row.fkasdtvalue"
+                                            class="w-full border rounded px-2 py-1 text-right bg-gray-100 cursor-not-allowed"
+                                            readonly disabled>
+                                        <input type="hidden" :name="`details[${index}][fkasdtvalue]`" :value="row.fkasdtvalue">
                                     </td>
                                     @if (!$isReadOnly)
                                         <td class="border px-2 py-1 text-center">
@@ -250,11 +261,11 @@
             </div>
 
             <div class="flex justify-end">
-                <div class="w-full max-w-md">
+                <div class="w-full max-w-2xl">
                     <div class="rounded-lg border border-gray-200 bg-gray-50 p-4 space-y-3">
                         <div class="flex items-center justify-between gap-4">
                             <label class="text-sm font-semibold text-gray-700">{{ 'Biaya Admin Bank' }}</label>
-                            <div class="w-40">
+                            <div class="w-52">
                                 <input type="number" min="0" step="0.01" name="fbiayaadminbank" x-model="bankAdminFee"
                                     @input="recalcTotals()"
                                     class="w-full border rounded px-3 py-2 text-right @error('fbiayaadminbank') border-red-500 @enderror">
@@ -266,7 +277,6 @@
 
                         <div class="grid grid-cols-2 gap-3">
                             <div>
-                                <label class="block text-sm font-semibold text-gray-700 mb-1">{{ 'Account Admin Bank' }}</label>
                                 <div class="flex">
                                     <input type="text" x-model="adminAccountLabel"
                                         class="w-full border rounded-l px-3 py-2 text-sm bg-gray-100 cursor-not-allowed" readonly>
@@ -284,7 +294,6 @@
                             </div>
 
                             <div>
-                                <label class="block text-sm font-semibold text-gray-700 mb-1">{{ 'Harga' }}</label>
                                 <input type="number" min="0" step="0.01" name="fhargaadmin" x-model="hargaAdmin"
                                     @input="recalcTotals()"
                                     :disabled="!adminAccountCode"
@@ -297,7 +306,6 @@
 
                         <div class="grid grid-cols-2 gap-3">
                             <div>
-                                <label class="block text-sm font-semibold text-gray-700 mb-1">{{ 'Account Admin Bank 2' }}</label>
                                 <div class="flex">
                                     <input type="text" x-model="adminAccount2Label"
                                         class="w-full border rounded-l px-3 py-2 text-sm bg-gray-100 cursor-not-allowed" readonly>
@@ -315,7 +323,6 @@
                             </div>
 
                             <div>
-                                <label class="block text-sm font-semibold text-gray-700 mb-1">{{ 'Harga' }}</label>
                                 <input type="number" min="0" step="0.01" name="fhargaadmin2" x-model="hargaAdmin2"
                                     @input="recalcTotals()"
                                     :disabled="!adminAccount2Code"
@@ -329,7 +336,7 @@
                         <div class="flex items-center justify-between gap-4 border-t pt-3">
                             <span class="text-sm font-semibold text-gray-800">{{ 'Total Penerimaan' }}</span>
                             <input type="text" x-model="totalPenerimaanDisplay"
-                                class="w-40 border rounded px-3 py-2 bg-gray-100 text-right font-semibold cursor-not-allowed"
+                                class="w-52 border rounded px-3 py-2 bg-gray-100 text-right font-semibold cursor-not-allowed"
                                 readonly>
                         </div>
                     </div>
@@ -453,7 +460,7 @@
                                                 <div class="text-xs text-gray-500" x-text="record.fcustno || '-'"></div>
                                             </td>
                                             <td class="p-3 text-sm text-gray-700 border-b border-r border-gray-200 align-middle" x-text="record.ftrcode || '-'"></td>
-                                            <td class="p-3 text-sm text-gray-700 border-b border-r border-gray-200 text-right align-middle" x-text="formatNumber(record.famount)"></td>
+                                            <td class="p-3 text-sm text-gray-700 border-b border-r border-gray-200 text-right align-middle" x-text="formatNumber(record.famountso ?? record.famount)"></td>
                                             <td class="p-3 text-sm text-gray-700 border-b border-r border-gray-200 text-right align-middle" x-text="formatNumber(record.famountremain)"></td>
                                             <td class="p-3 text-sm text-gray-700 border-b border-r border-gray-200 text-center align-middle" x-text="record.detail_count ?? 0"></td>
                                             <td class="p-3 text-sm text-gray-700 border-b align-middle" x-text="formatDateDisplay(record.fjatuhtempo)"></td>
@@ -912,7 +919,7 @@
                         
                         if (!existing) {
                             const targetRow = this.findTargetRowForNota();
-                            let amount = this.toNumber(record.famount);
+                            let amount = this.toNumber(record.famountso ?? record.famount);
                             const trCode = String(record.ftrcode || 'INV').trim() || 'INV';
 
                             if (trCode.toUpperCase() === 'REJ') {
@@ -940,6 +947,17 @@
                 removeRow(index) {
                     this.rows.splice(index, 1);
                     this.recalcTotals();
+                },
+
+                isDiscPercentDisabled(row) {
+                    const percent = this.toNumber(row?.fdiscpersen);
+                    const discount = this.toNumber(row?.fdiscount);
+                    return percent <= 0 && discount > 0;
+                },
+
+                isDiscountDisabled(row) {
+                    const percent = this.toNumber(row?.fdiscpersen);
+                    return percent > 0;
                 },
 
                 syncDiscountFromPercent(row) {

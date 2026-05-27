@@ -1199,7 +1199,7 @@
                     const itemcode = (src.fitemcode ?? '').toString().trim();
                     const itemname = (src.fitemname ?? '').toString().trim();
                     const satuan = (src.fsatuan ?? '').toString().trim();
-                    const frefdtno = src.frefdtno ?? '';
+                    const frefdtno = (header?.fsono ?? src.frefdtno ?? '').toString().trim();
 
                     // VALIDASI MINIMAL: harus ada kode, nama, dan satuan
                     if (!itemcode || !itemname || !satuan) {
