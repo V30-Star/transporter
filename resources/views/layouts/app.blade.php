@@ -766,6 +766,15 @@
                     return key;
                 });
 
+                result = result.replace(/(?<=\.)[A-Z]{2,4}(?=\.)/g, (match) => {
+                    const key = `__TOKEN_${protectedTokens.length}__`;
+                    protectedTokens.push({
+                        key,
+                        value: match,
+                    });
+                    return key;
+                });
+
                 result = result.replace(/\b(NPWP|NIK|PPN|PPH|PO|PR|SO|SJ|SRJ|INV|TER|FP|IDR|USD|EUR|TOP|JBL|SJU)\b/g, (
                     match) => {
                     const key = `__TOKEN_${protectedTokens.length}__`;

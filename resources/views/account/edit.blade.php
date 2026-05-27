@@ -142,7 +142,9 @@
                     <label class="block text-sm font-medium mb-1" style="font-weight: bold;">Account Header</label>
                     <div class="flex">
                         <div class="relative flex-1">
-                            <select id="accountSelect" class="w-full border rounded-l px-3 py-2" disabled>
+                            <select id="accountSelect"
+                                class="w-full border rounded-l px-3 py-2 {{ !empty($isUsedInTransaction) ? 'bg-gray-100 text-gray-700 cursor-not-allowed' : '' }}"
+                                disabled>
                                 <option value=""></option>
                                 @foreach ($headers as $header)
                                     <option value="{{ $header->faccount }}" data-faccid="{{ $header->faccid }}"
@@ -153,8 +155,10 @@
                                 @endforeach
                             </select>
 
-                            <div class="absolute inset-0" role="button" aria-label="Browse account"
-                                @click="window.dispatchEvent(new CustomEvent('account-browse-open'))"></div>
+                            @if (empty($isUsedInTransaction))
+                                <div class="absolute inset-0" role="button" aria-label="Browse account"
+                                    @click="window.dispatchEvent(new CustomEvent('account-browse-open'))"></div>
+                            @endif
                         </div>
 
                         <input type="hidden" name="faccupline" id="accountCodeHidden"
@@ -163,7 +167,8 @@
                             value="{{ old('faccid', $account->faccid) }}">
 
                         <button type="button" @click="window.dispatchEvent(new CustomEvent('account-browse-open'))"
-                            class="border -ml-px px-3 py-2 bg-white hover:bg-gray-50 rounded-r-none"
+                            class="border -ml-px px-3 py-2 bg-white hover:bg-gray-50 rounded-r-none {{ !empty($isUsedInTransaction) ? 'opacity-50 cursor-not-allowed' : '' }}"
+                            @disabled(!empty($isUsedInTransaction))
                             title="Browse Account">
                             <x-heroicon-o-magnifying-glass class="w-5 h-5" />
                         </button>
@@ -172,6 +177,9 @@
                     @error('faccupline')
                         <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                     @enderror
+                    @if (!empty($isUsedInTransaction))
+                        <p class="text-amber-600 text-sm mt-1">Account header tidak bisa diubah karena account sudah dipakai transaksi.</p>
+                    @endif
                 </div>
 
                 {{-- MODAL ACCOUNT dengan DataTables --}}
@@ -227,13 +235,17 @@
                     <label class="block text-sm font-medium" style="font-weight: bold;">Kode Account</label>
                     <input type="text" name="faccount" id="faccount"
                         value="{{ old('faccount', $account->faccount) }}"
-                        class="w-full border rounded px-3 py-2 uppercase @error('faccount') border-red-500 @enderror"
+                        class="w-full border rounded px-3 py-2 uppercase @error('faccount') border-red-500 @enderror {{ !empty($isUsedInTransaction) ? 'bg-gray-100 text-gray-700 cursor-not-allowed' : '' }}"
+                        {{ !empty($isUsedInTransaction) ? 'readonly' : '' }}
                         maxlength="10" pattern="^\d+(-\d+)*$" title="Format harus angka & boleh pakai '-' (mis: 1-123)"
                         placeholder="Ketik untuk mencari..." autofocus>
                     <p id="faccount-hint" class="hint-text"></p>
                     @error('faccount')
                         <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                     @enderror
+                    @if (!empty($isUsedInTransaction))
+                        <p class="text-amber-600 text-sm mt-1">Kode account tidak bisa diubah karena account sudah dipakai transaksi.</p>
+                    @endif
                 </div>
 
                 {{-- Nama Account --}}

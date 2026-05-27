@@ -141,10 +141,7 @@ class AccountController extends Controller
     public function edit($faccid)
     {
         $account = Account::findOrFail($faccid);
-
-        if ($message = $this->getUsageLockMessage($account)) {
-            return redirect()->route('account.view', $account->faccid)->with('error', $message);
-        }
+        $isUsedInTransaction = $this->hasTransactionUsage($account);
 
         // preload 50 header untuk dropdown view
         $headers = Account::where('fend', 0)
@@ -162,6 +159,7 @@ class AccountController extends Controller
             'account' => $account,
             'headers' => $headers,
             'selectedHeader' => $selectedHeader,
+            'isUsedInTransaction' => $isUsedInTransaction,
             'action' => 'edit', // Tambahkan ini
         ]);
     }
@@ -169,10 +167,7 @@ class AccountController extends Controller
     public function update(Request $request, $faccid)
     {
         $account = Account::findOrFail($faccid);
-
-        if ($message = $this->getUsageLockMessage($account)) {
-            return redirect()->route('account.view', $account->faccid)->with('error', $message);
-        }
+        $isUsedInTransaction = $this->hasTransactionUsage($account);
 
         $isSetAccount = DB::table('set_account')
             ->where('faccount_id', $request->faccid) // faccid dari input hidden 'faccid'
@@ -215,6 +210,10 @@ class AccountController extends Controller
         $validated['faccount'] = strtoupper($validated['faccount']);
         $validated['faccname'] = strtoupper($validated['faccname']);
 
+        if ($isUsedInTransaction) {
+            $validated['faccount'] = (string) $account->faccount;
+        }
+
         // Checkbox & metadata
         $validated['fnonactive'] = $request->has('fnonactive') ? '1' : '0';
         $validated['fupdatedby'] = auth('sysuser')->user()->fname ?? null;
@@ -234,9 +233,11 @@ class AccountController extends Controller
         $validated['fcurrency'] = 'IDR';
 
         // PENTING: simpan faccupline (boleh null)
-        $validated['faccupline'] = $request->filled('faccupline')
-            ? (int) $request->input('faccupline')
-            : null;
+        $validated['faccupline'] = $isUsedInTransaction
+            ? $account->faccupline
+            : ($request->filled('faccupline')
+                ? (int) $request->input('faccupline')
+                : null);
 
         $account->update($validated);
 
@@ -385,10 +386,15 @@ class AccountController extends Controller
 
     private function getUsageLockMessage(Account $account): ?string
     {
-        if (!DB::table('jurnaldt')->where('faccount', $account->faccount)->exists()) {
+        if (! $this->hasTransactionUsage($account)) {
             return null;
         }
 
         return 'Account ' . strtoupper((string) $account->faccount) . ' sudah dipakai transaksi.';
+    }
+
+    private function hasTransactionUsage(Account $account): bool
+    {
+        return DB::table('jurnaldt')->where('faccount', $account->faccount)->exists();
     }
 }
