@@ -253,7 +253,7 @@
                         <div class="lg:col-span-4">
                             <label class="block text-sm font-medium">Cabang</label>
                             <input type="text" class="w-full border rounded px-3 py-2 bg-gray-200 cursor-not-allowed"
-                                value="{{ $fcabang }}" disabled>
+                                value="{{ trim(($fbranchcode ?? '') . ($fcabang ?? '' ? ' - ' . $fcabang : '')) }}" disabled>
                             <input type="hidden" name="fbranchcode" value="{{ $fbranchcode }}">
                         </div>
 
@@ -821,7 +821,7 @@
                                 <label class="block text-sm font-medium">Cabang</label>
                                 <input type="text"
                                     class="w-full border rounded px-3 py-2 bg-gray-200 cursor-not-allowed"
-                                    value="{{ $fcabang }}" disabled>
+                                    value="{{ trim(($fbranchcode ?? '') . ($fcabang ?? '' ? ' - ' . $fcabang : '')) }}" disabled>
                                 <input type="hidden" name="fbranchcode" value="{{ $fbranchcode }}">
                             </div>
 

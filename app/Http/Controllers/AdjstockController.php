@@ -154,7 +154,10 @@ class AdjstockController extends Controller
             $data = $records->map(function ($row) {
                 return [
                     'fstockmtid' => $row->fstockmtid,
-                    'fcabang' => trim((string) ($row->fcabangname ?? $row->fbranchcode ?? '')),
+                    'fcabang' => trim(implode(' - ', array_filter([
+                        trim((string) ($row->fbranchcode ?? '')),
+                        trim((string) ($row->fcabangname ?? '')),
+                    ]))) ?: trim((string) ($row->fbranchcode ?? $row->fcabangname ?? '')),
                     'fstockmtno' => $row->fstockmtno,
                     'fstockmtdate' => Carbon::parse($row->fstockmtdate)->format('d/m/Y'),
                     'fadjtype' => strtoupper(trim((string) ($row->ftrancode ?? ''))) === 'K' ? 'Keluar' : 'Masuk',

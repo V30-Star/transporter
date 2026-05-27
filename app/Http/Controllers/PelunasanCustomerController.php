@@ -868,6 +868,25 @@ class PelunasanCustomerController extends Controller
         return 'NA';
     }
 
+    private function resolveBranchLabel(?string $branchCode): string
+    {
+        $branchCode = trim((string) $branchCode);
+
+        if ($branchCode === '') {
+            return 'NA';
+        }
+
+        $branchName = DB::table('mscabang')
+            ->whereRaw('LOWER(fcabangkode) = LOWER(?)', [$branchCode])
+            ->value('fcabangname');
+
+        $branchName = trim((string) $branchName);
+
+        return $branchName !== ''
+            ? $branchCode . ' - ' . $branchName
+            : $branchCode;
+    }
+
     private function nextIntegerId(string $table, string $column): int
     {
         return ((int) DB::table($table)->max($column)) + 1;
@@ -991,6 +1010,7 @@ class PelunasanCustomerController extends Controller
             'voucherNo' => old('fkasmtno', $header?->fkasmtno),
             'transactionDate' => old('fkasmtdate', optional($header?->fkasmtdate)->format('Y-m-d') ?? now()->format('Y-m-d')),
             'currentBranchCode' => old('fbranchcode', $header?->fbranchcode ?: $this->resolveBranchCode()),
+            'currentBranchLabel' => $this->resolveBranchLabel((string) old('fbranchcode', $header?->fbranchcode ?: $this->resolveBranchCode())),
             'selectedCustomer' => $selectedCustomer,
             'selectedAccount' => $selectedAccount,
             'selectedAdminAccount' => $selectedAdminAccountModel,

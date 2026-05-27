@@ -204,7 +204,10 @@ class MutasiController extends Controller
                 // }
 
                 return [
-                    'fcabang' => trim((string) ($row->fcabangname ?? $row->fbranchcode ?? '')),
+                    'fcabang' => trim(implode(' - ', array_filter([
+                        trim((string) ($row->fbranchcode ?? '')),
+                        trim((string) ($row->fcabangname ?? '')),
+                    ]))) ?: trim((string) ($row->fbranchcode ?? $row->fcabangname ?? '')),
                     'fstockmtno' => $row->fstockmtno,
                     'fstockmtdate' => Carbon::parse($row->fstockmtdate)->format('d/m/Y'),
                     'fgudang_dari' => $this->formatWarehouseLabel($row->ffrom ?? '', $row->from_warehouse_name ?? ''),

@@ -244,7 +244,7 @@
                         <div class="lg:col-span-4">
                             <label class="block text-sm font-medium">Cabang</label>
                             <input type="text" class="w-full border rounded px-3 py-2 bg-gray-200 cursor-not-allowed"
-                                value="{{ $fcabang }}" disabled>
+                                value="{{ $fbranchlabel ?? $fcabang }}" disabled>
                         </div>
 
                         <div class="lg:col-span-4">
@@ -455,7 +455,7 @@
                         <div class="lg:col-span-4">
                             <label class="block text-sm font-medium">Cabang</label>
                             <input type="text" class="w-full border rounded px-3 py-2 bg-gray-200"
-                                value="{{ $fcabang }}" disabled>
+                                value="{{ $fbranchlabel ?? $fcabang }}" disabled>
                             <input type="hidden" name="fbranchcode" value="{{ $fbranchcode }}">
                         </div>
 

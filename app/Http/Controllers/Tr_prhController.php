@@ -314,6 +314,7 @@ class Tr_prhController extends Controller
             'perms' => ['can_approval' => $canApproval],
             'suppliers' => $suppliers,
             'fcabang' => $branchInfo['fcabang'],
+            'fbranchlabel' => $branchInfo['fbranchlabel'],
             'fbranchcode' => $fbranchcode,
             'products' => $products,
             'productMap' => $productMap,
@@ -462,6 +463,7 @@ class Tr_prhController extends Controller
         return view('tr_prh.edit', [
             'suppliers' => $pageData['suppliers'],
             'fcabang' => $branchInfo['fcabang'],
+            'fbranchlabel' => $branchInfo['fbranchlabel'],
             'fbranchcode' => $branchInfo['fbranchcode'],
             'products' => $pageData['products'],
             'productMap' => $pageData['productMap'],
@@ -496,6 +498,7 @@ class Tr_prhController extends Controller
         return view('tr_prh.edit', [
             'suppliers' => $pageData['suppliers'],
             'fcabang' => $branchInfo['fcabang'],
+            'fbranchlabel' => $branchInfo['fbranchlabel'],
             'fbranchcode' => $branchInfo['fbranchcode'],
             'products' => $pageData['products'],
             'productMap' => $pageData['productMap'],
@@ -732,6 +735,7 @@ class Tr_prhController extends Controller
         return view('tr_prh.edit', [
             'suppliers' => $pageData['suppliers'],
             'fcabang' => $branchInfo['fcabang'],
+            'fbranchlabel' => $branchInfo['fbranchlabel'],
             'fbranchcode' => $branchInfo['fbranchcode'],
             'products' => $pageData['products'],
             'productMap' => $pageData['productMap'],
@@ -1057,6 +1061,10 @@ class Tr_prhController extends Controller
             'branch' => $branch,
             'fcabang' => $branch->fcabangname ?? (string) $raw,
             'fbranchcode' => $branch->fcabangkode ?? (string) $raw,
+            'fbranchlabel' => trim(implode(' - ', array_filter([
+                trim((string) ($branch->fcabangkode ?? '')),
+                trim((string) ($branch->fcabangname ?? '')),
+            ]))) ?: (string) $raw,
         ];
     }
 

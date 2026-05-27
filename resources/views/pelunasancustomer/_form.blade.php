@@ -53,8 +53,9 @@
             <div class="grid grid-cols-3 gap-3">
                 <div>
                     <label class="block text-sm font-bold mb-1">{{ 'Cabang' }}</label>
-                    <input type="text" name="fbranchcode" value="{{ old('fbranchcode', $currentBranchCode) }}"
+                    <input type="text" value="{{ $currentBranchLabel ?? old('fbranchcode', $currentBranchCode) }}"
                         class="w-full border rounded px-3 py-1.5 bg-gray-100 cursor-not-allowed text-gray-700" readonly>
+                    <input type="hidden" name="fbranchcode" value="{{ old('fbranchcode', $currentBranchCode) }}">
                 </div>
 
                 <div>
@@ -293,11 +294,11 @@
                                 @enderror
                             </div>
 
-                            <div>
+                            <div class="flex justify-end">
                                 <input type="number" min="0" step="0.01" name="fhargaadmin" x-model="hargaAdmin"
                                     @input="recalcTotals()"
                                     :disabled="!adminAccountCode"
-                                    class="w-full border rounded px-3 py-2 text-right text-sm @error('fhargaadmin') border-red-500 @enderror disabled:bg-gray-100 disabled:text-gray-400 disabled:cursor-not-allowed">
+                                    class="w-52 border rounded px-3 py-2 text-right text-sm @error('fhargaadmin') border-red-500 @enderror disabled:bg-gray-100 disabled:text-gray-400 disabled:cursor-not-allowed">
                                 @error('fhargaadmin')
                                     <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                                 @enderror
@@ -322,11 +323,11 @@
                                 @enderror
                             </div>
 
-                            <div>
+                            <div class="flex justify-end">
                                 <input type="number" min="0" step="0.01" name="fhargaadmin2" x-model="hargaAdmin2"
                                     @input="recalcTotals()"
                                     :disabled="!adminAccount2Code"
-                                    class="w-full border rounded px-3 py-2 text-right text-sm @error('fhargaadmin2') border-red-500 @enderror disabled:bg-gray-100 disabled:text-gray-400 disabled:cursor-not-allowed">
+                                    class="w-52 border rounded px-3 py-2 text-right text-sm @error('fhargaadmin2') border-red-500 @enderror disabled:bg-gray-100 disabled:text-gray-400 disabled:cursor-not-allowed">
                                 @error('fhargaadmin2')
                                     <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                                 @enderror
