@@ -409,6 +409,42 @@ class ReturPenjualanController extends Controller
         ];
     }
 
+    private function resolveReturReferenceSourceDetail(string $sourceCode, string $docNo, string $productCode, $refNoAcak = null): ?object
+    {
+        $sourceCode = strtoupper(trim($sourceCode));
+        $docNo = trim($docNo);
+        $productCode = trim($productCode);
+        $normalizedRefNoAcak = $this->normalizeReferenceRandomNumbers($refNoAcak);
+
+        if ($docNo === '' || $productCode === '') {
+            return null;
+        }
+
+        if (in_array($sourceCode, ['R', 'SRJ'], true)) {
+            return DB::table('trstockdt')
+                ->where('fstockmtno', $docNo)
+                ->where('fprdcode', $productCode)
+                ->when($normalizedRefNoAcak !== null, fn ($query) => $query->where(function ($q) use ($normalizedRefNoAcak) {
+                    $q->whereRaw("COALESCE(frefnoacak::text, fnoacak::text, '') = ?", [$normalizedRefNoAcak]);
+                }))
+                ->orderBy('fstockdtid')
+                ->first(['fsatuan', 'fqty', 'fqtykecil']);
+        }
+
+        if (in_array($sourceCode, ['S', 'SO', 'INV'], true)) {
+            return DB::table('trandt')
+                ->where('fsono', $docNo)
+                ->where('fprdcode', $productCode)
+                ->when($normalizedRefNoAcak !== null, fn ($query) => $query->where(function ($q) use ($normalizedRefNoAcak) {
+                    $q->whereRaw("COALESCE(frefnoacak::text, fnoacak::text, '') = ?", [$normalizedRefNoAcak]);
+                }))
+                ->orderBy('ftrandtid')
+                ->first(['fsatuan', 'fqty', 'fqtykecil']);
+        }
+
+        return null;
+    }
+
     private function generateInvoiceCode(?Carbon $onDate = null): string
     {
         $date = $onDate ?: now();
@@ -652,36 +688,30 @@ class ReturPenjualanController extends Controller
             $refSoDoc  = trim((string) ($frefso[$i]  ?? ''));
             $refSrjDoc = trim((string) ($frefsrj[$i] ?? ''));
             $refNoAcak = $this->normalizeReferenceRandomNumbers($frefnoacaks[$i] ?? null);
+            $referenceRatio = null;
+            $referenceDetail = null;
             if ($refSrjDoc !== '') {
-                // Resolusi unit dari trstockdt (Surat Jalan)
-                $srcUnit = DB::table('trstockdt')
-                    ->where('fstockmtno', $refSrjDoc)
-                    ->where('fprdcode', $code)
-                    ->when($refNoAcak !== null, fn ($q) => $q->where(function ($q2) use ($refNoAcak) {
-                        $q2->whereRaw("COALESCE(frefnoacak::text, fnoacak::text, '') = ?", [$refNoAcak]);
-                    }))
-                    ->value('fsatuan');
-                if ($srcUnit !== null && trim((string) $srcUnit) !== '') {
-                    $satuans[$i] = trim((string) $srcUnit);
-                }
+                $referenceDetail = $this->resolveReturReferenceSourceDetail('SRJ', $refSrjDoc, $code, $frefnoacaks[$i] ?? null);
             } elseif ($refSoDoc !== '') {
-                // Resolusi unit dari trandt (Faktur/Invoice)
-                $srcUnit = DB::table('trandt')
-                    ->where('fsono', $refSoDoc)
-                    ->where('fprdcode', $code)
-                    ->when($refNoAcak !== null, fn ($q) => $q->where(function ($q2) use ($refNoAcak) {
-                        $q2->whereRaw("COALESCE(frefnoacak::text, fnoacak::text, '') = ?", [$refNoAcak]);
-                    }))
-                    ->value('fsatuan');
-                if ($srcUnit !== null && trim((string) $srcUnit) !== '') {
-                    $satuans[$i] = trim((string) $srcUnit);
+                $referenceDetail = $this->resolveReturReferenceSourceDetail('INV', $refSoDoc, $code, $frefnoacaks[$i] ?? null);
+            }
+            if ($referenceDetail && trim((string) ($referenceDetail->fsatuan ?? '')) !== '') {
+                $satuans[$i] = trim((string) $referenceDetail->fsatuan);
+            }
+            if ($referenceDetail) {
+                $referenceQty = (float) ($referenceDetail->fqty ?? 0);
+                $referenceQtyKecil = (float) ($referenceDetail->fqtykecil ?? 0);
+                if ($referenceQty > 0 && $referenceQtyKecil > 0) {
+                    $referenceRatio = $referenceQtyKecil / $referenceQty;
                 }
             }
             // --- END override ---
 
             $qtyKecil = $qty;
             $selectedUnit = trim((string) ($satuans[$i] ?? ''));
-            if (
+            if ($referenceRatio !== null && $referenceRatio > 0) {
+                $qtyKecil = $qty * $referenceRatio;
+            } elseif (
                 $product
                 && $selectedUnit !== ''
                 && $selectedUnit === trim((string) ($product->fsatuanbesar ?? ''))
@@ -1721,36 +1751,30 @@ class ReturPenjualanController extends Controller
             $refSoDoc  = trim((string) ($frefso[$i]  ?? ''));
             $refSrjDoc = trim((string) ($frefsrj[$i] ?? ''));
             $refNoAcak = $this->normalizeReferenceRandomNumbers($frefnoacaks[$i] ?? null);
+            $referenceRatio = null;
+            $referenceDetail = null;
             if ($refSrjDoc !== '') {
-                // Resolusi unit dari trstockdt (Surat Jalan)
-                $srcUnit = DB::table('trstockdt')
-                    ->where('fstockmtno', $refSrjDoc)
-                    ->where('fprdcode', $code)
-                    ->when($refNoAcak !== null, fn ($q) => $q->where(function ($q2) use ($refNoAcak) {
-                        $q2->whereRaw("COALESCE(frefnoacak::text, fnoacak::text, '') = ?", [$refNoAcak]);
-                    }))
-                    ->value('fsatuan');
-                if ($srcUnit !== null && trim((string) $srcUnit) !== '') {
-                    $satuans[$i] = trim((string) $srcUnit);
-                }
+                $referenceDetail = $this->resolveReturReferenceSourceDetail('SRJ', $refSrjDoc, $code, $frefnoacaks[$i] ?? null);
             } elseif ($refSoDoc !== '') {
-                // Resolusi unit dari trandt (Faktur/Invoice)
-                $srcUnit = DB::table('trandt')
-                    ->where('fsono', $refSoDoc)
-                    ->where('fprdcode', $code)
-                    ->when($refNoAcak !== null, fn ($q) => $q->where(function ($q2) use ($refNoAcak) {
-                        $q2->whereRaw("COALESCE(frefnoacak::text, fnoacak::text, '') = ?", [$refNoAcak]);
-                    }))
-                    ->value('fsatuan');
-                if ($srcUnit !== null && trim((string) $srcUnit) !== '') {
-                    $satuans[$i] = trim((string) $srcUnit);
+                $referenceDetail = $this->resolveReturReferenceSourceDetail('INV', $refSoDoc, $code, $frefnoacaks[$i] ?? null);
+            }
+            if ($referenceDetail && trim((string) ($referenceDetail->fsatuan ?? '')) !== '') {
+                $satuans[$i] = trim((string) $referenceDetail->fsatuan);
+            }
+            if ($referenceDetail) {
+                $referenceQty = (float) ($referenceDetail->fqty ?? 0);
+                $referenceQtyKecil = (float) ($referenceDetail->fqtykecil ?? 0);
+                if ($referenceQty > 0 && $referenceQtyKecil > 0) {
+                    $referenceRatio = $referenceQtyKecil / $referenceQty;
                 }
             }
             // --- END override ---
 
             $qtyKecil = $qty;
             $selectedUnit = trim((string) ($satuans[$i] ?? ''));
-            if (
+            if ($referenceRatio !== null && $referenceRatio > 0) {
+                $qtyKecil = $qty * $referenceRatio;
+            } elseif (
                 $product
                 && $selectedUnit !== ''
                 && $selectedUnit === trim((string) ($product->fsatuanbesar ?? ''))

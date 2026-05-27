@@ -740,6 +740,48 @@ class InvoiceController extends Controller
         ];
     }
 
+    private function resolveInvoiceReferenceSourceDetail(string $sourceCode, string $docNo, string $productCode, $refNoAcak = null): ?object
+    {
+        $sourceCode = strtoupper(trim($sourceCode));
+        $docNo = trim($docNo);
+        $productCode = trim($productCode);
+        $normalizedRefNoAcak = $this->normalizeReferenceRandomNumbers($refNoAcak);
+
+        if ($docNo === '' || $productCode === '') {
+            return null;
+        }
+
+        if (in_array($sourceCode, ['S', 'SO'], true)) {
+            return DB::table('trsodt')
+                ->where('fsono', $docNo)
+                ->where('fprdcode', $productCode)
+                ->when($normalizedRefNoAcak !== null, function ($query) use ($normalizedRefNoAcak) {
+                    $query->where(function ($q) use ($normalizedRefNoAcak) {
+                        $q->where('fnoacak', $normalizedRefNoAcak)
+                            ->orWhere('frefnosoacak', $normalizedRefNoAcak);
+                    });
+                })
+                ->orderBy('ftrsodtid')
+                ->first(['fsatuan', 'fqty', 'fqtykecil']);
+        }
+
+        if (in_array($sourceCode, ['R', 'SRJ'], true)) {
+            return DB::table('trstockdt')
+                ->where('fstockmtno', $docNo)
+                ->where('fprdcode', $productCode)
+                ->when($normalizedRefNoAcak !== null, function ($query) use ($normalizedRefNoAcak) {
+                    $query->where(function ($q) use ($normalizedRefNoAcak) {
+                        $q->where('fnoacak', $normalizedRefNoAcak)
+                            ->orWhere('frefnoacak', $normalizedRefNoAcak);
+                    });
+                })
+                ->orderBy('fstockdtid')
+                ->first(['fsatuan', 'fqty', 'fqtykecil']);
+        }
+
+        return null;
+    }
+
     private function generatetr_poh_Code(?Carbon $onDate = null, $branch = null): string
     {
         $date = $onDate ?: now();
@@ -1009,43 +1051,21 @@ class InvoiceController extends Controller
 
             $sat = trim((string) ($satuans[$i] ?? ''));
 
+            $referenceRatio = null;
+            $referenceDetail = null;
             if ($refSoNo !== '') {
-                $normalizedRefNoAcak = $this->normalizeReferenceRandomNumbers($frefnoacaks[$i] ?? null);
-                $refSat = DB::table('trsodt')
-                    ->where('fsono', $refSoNo)
-                    ->where('fprdcode', $code)
-                    ->where(function($q) use ($normalizedRefNoAcak) {
-                        $q->where('fnoacak', $normalizedRefNoAcak)
-                          ->orWhere('frefnosoacak', $normalizedRefNoAcak);
-                    })
-                    ->value('fsatuan');
-                if (! $refSat) {
-                    $refSat = DB::table('trsodt')
-                        ->where('fsono', $refSoNo)
-                        ->where('fprdcode', $code)
-                        ->value('fsatuan');
-                }
-                if ($refSat) {
-                    $sat = trim($refSat);
-                }
+                $referenceDetail = $this->resolveInvoiceReferenceSourceDetail('SO', $refSoNo, $code, $frefnoacaks[$i] ?? null);
             } elseif ($refSrjNo !== '') {
-                $normalizedRefNoAcak = $this->normalizeReferenceRandomNumbers($frefnoacaks[$i] ?? null);
-                $refSat = DB::table('trstockdt')
-                    ->where('fstockmtno', $refSrjNo)
-                    ->where('fprdcode', $code)
-                    ->where(function($q) use ($normalizedRefNoAcak) {
-                        $q->where('fnoacak', $normalizedRefNoAcak)
-                          ->orWhere('frefnoacak', $normalizedRefNoAcak);
-                    })
-                    ->value('fsatuan');
-                if (! $refSat) {
-                    $refSat = DB::table('trstockdt')
-                        ->where('fstockmtno', $refSrjNo)
-                        ->where('fprdcode', $code)
-                        ->value('fsatuan');
-                }
-                if ($refSat) {
-                    $sat = trim($refSat);
+                $referenceDetail = $this->resolveInvoiceReferenceSourceDetail('SRJ', $refSrjNo, $code, $frefnoacaks[$i] ?? null);
+            }
+            if ($referenceDetail && ! empty($referenceDetail->fsatuan)) {
+                $sat = trim((string) $referenceDetail->fsatuan);
+            }
+            if ($referenceDetail) {
+                $referenceQty = (float) ($referenceDetail->fqty ?? 0);
+                $referenceQtyKecil = (float) ($referenceDetail->fqtykecil ?? 0);
+                if ($referenceQty > 0 && $referenceQtyKecil > 0) {
+                    $referenceRatio = $referenceQtyKecil / $referenceQty;
                 }
             }
 
@@ -1060,7 +1080,9 @@ class InvoiceController extends Controller
             }
 
             $qtyKecil = $qty;
-            if ($product && $sat === trim((string) ($product->fsatuanbesar ?? '')) && (float) ($product->fqtykecil ?? 0) > 0) {
+            if ($referenceRatio !== null && $referenceRatio > 0) {
+                $qtyKecil = $qty * $referenceRatio;
+            } elseif ($product && $sat === trim((string) ($product->fsatuanbesar ?? '')) && (float) ($product->fqtykecil ?? 0) > 0) {
                 $qtyKecil = $qty * (float) $product->fqtykecil;
             } elseif ($product && $sat === trim((string) ($product->fsatuanbesar2 ?? '')) && (float) ($product->fqtykecil2 ?? 0) > 0) {
                 $qtyKecil = $qty * (float) $product->fqtykecil2;
@@ -2080,43 +2102,21 @@ class InvoiceController extends Controller
             // Konversi Satuan
             $sat = trim((string) ($satuans[$i] ?? ''));
 
+            $referenceRatio = null;
+            $referenceDetail = null;
             if ($refSoNo !== '') {
-                $normalizedRefNoAcak = $this->normalizeReferenceRandomNumbers($frefnoacaks[$i] ?? null);
-                $refSat = DB::table('trsodt')
-                    ->where('fsono', $refSoNo)
-                    ->where('fprdcode', $code)
-                    ->where(function($q) use ($normalizedRefNoAcak) {
-                        $q->where('fnoacak', $normalizedRefNoAcak)
-                          ->orWhere('frefnosoacak', $normalizedRefNoAcak);
-                    })
-                    ->value('fsatuan');
-                if (! $refSat) {
-                    $refSat = DB::table('trsodt')
-                        ->where('fsono', $refSoNo)
-                        ->where('fprdcode', $code)
-                        ->value('fsatuan');
-                }
-                if ($refSat) {
-                    $sat = trim($refSat);
-                }
+                $referenceDetail = $this->resolveInvoiceReferenceSourceDetail('SO', $refSoNo, $code, $frefnoacaks[$i] ?? null);
             } elseif ($refSrjNo !== '') {
-                $normalizedRefNoAcak = $this->normalizeReferenceRandomNumbers($frefnoacaks[$i] ?? null);
-                $refSat = DB::table('trstockdt')
-                    ->where('fstockmtno', $refSrjNo)
-                    ->where('fprdcode', $code)
-                    ->where(function($q) use ($normalizedRefNoAcak) {
-                        $q->where('fnoacak', $normalizedRefNoAcak)
-                          ->orWhere('frefnoacak', $normalizedRefNoAcak);
-                    })
-                    ->value('fsatuan');
-                if (! $refSat) {
-                    $refSat = DB::table('trstockdt')
-                        ->where('fstockmtno', $refSrjNo)
-                        ->where('fprdcode', $code)
-                        ->value('fsatuan');
-                }
-                if ($refSat) {
-                    $sat = trim($refSat);
+                $referenceDetail = $this->resolveInvoiceReferenceSourceDetail('SRJ', $refSrjNo, $code, $frefnoacaks[$i] ?? null);
+            }
+            if ($referenceDetail && ! empty($referenceDetail->fsatuan)) {
+                $sat = trim((string) $referenceDetail->fsatuan);
+            }
+            if ($referenceDetail) {
+                $referenceQty = (float) ($referenceDetail->fqty ?? 0);
+                $referenceQtyKecil = (float) ($referenceDetail->fqtykecil ?? 0);
+                if ($referenceQty > 0 && $referenceQtyKecil > 0) {
+                    $referenceRatio = $referenceQtyKecil / $referenceQty;
                 }
             }
 
@@ -2131,7 +2131,9 @@ class InvoiceController extends Controller
             }
 
             $qtyKecil = $qty;
-            if ($product && $sat === trim((string) ($product->fsatuanbesar ?? '')) && (float) ($product->fqtykecil ?? 0) > 0) {
+            if ($referenceRatio !== null && $referenceRatio > 0) {
+                $qtyKecil = $qty * $referenceRatio;
+            } elseif ($product && $sat === trim((string) ($product->fsatuanbesar ?? '')) && (float) ($product->fqtykecil ?? 0) > 0) {
                 $qtyKecil = $qty * (float) $product->fqtykecil;
             } elseif ($product && $sat === trim((string) ($product->fsatuanbesar2 ?? '')) && (float) ($product->fqtykecil2 ?? 0) > 0) {
                 $qtyKecil = $qty * (float) $product->fqtykecil2;
