@@ -1855,7 +1855,8 @@
             }) {
                 const hidden = document.getElementById(hiddenId);
                 const select = document.getElementById(selectId);
-                const browseButton = buttonId ? document.getElementById(buttonId) : hidden?.nextElementSibling;
+                const browseButton = (buttonId ? document.getElementById(buttonId) : null) || hidden
+                    ?.nextElementSibling;
 
                 if (!hidden || !select || !browseButton || document.querySelector(`[data-browse-clear-for="${hiddenId}"]`)) {
                     return;
