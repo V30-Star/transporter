@@ -1,6 +1,11 @@
 @extends('layouts.app')
 
-@section('title', $action === 'delete' ? 'Surat Jalan - Delete' : ($action === 'view' ? 'Surat Jalan - View' : 'Surat
+@section('title',
+    $action === 'delete'
+    ? 'Surat Jalan - Delete'
+    : ($action === 'view'
+    ? 'Surat Jalan - View'
+    : 'Surat
     Jalan - Edit'))
 
 @section('content')
@@ -234,7 +239,8 @@
                             <div class="lg:col-span-4">
                                 <label class="block text-sm font-bold">Cabang</label>
                                 <input type="text" class="w-full border rounded px-3 py-2 bg-gray-200 cursor-not-allowed"
-                                    value="{{ trim(($fbranchcode ?? '') . ($fcabang ?? '' ? ' - ' . $fcabang : '')) }}" disabled>
+                                    value="{{ trim(($fbranchcode ?? '') . ($fcabang ?? '' ? ' - ' . $fcabang : '')) }}"
+                                    disabled>
                                 <input type="hidden" name="fbranchcode" value="{{ $fbranchcode }}">
                             </div>
                             <div class="lg:col-span-4" x-data="{ autoCode: true }">
@@ -477,7 +483,8 @@
                                     <label class="block text-sm font-bold">Cabang</label>
                                     <input type="text"
                                         class="w-full border rounded px-3 py-2 bg-gray-200 cursor-not-allowed"
-                                        value="{{ trim(($fbranchcode ?? '') . ($fcabang ?? '' ? ' - ' . $fcabang : '')) }}" disabled>
+                                        value="{{ trim(($fbranchcode ?? '') . ($fcabang ?? '' ? ' - ' . $fcabang : '')) }}"
+                                        disabled>
                                     <input type="hidden" name="fbranchcode" value="{{ $fbranchcode }}">
                                 </div>
                                 <div class="lg:col-span-4" x-data="{ autoCode: true }">
@@ -661,12 +668,11 @@
                                                     <template x-if="it.units && it.units.length > 1">
                                                         <select class="w-full border rounded px-2 py-1 text-xs"
                                                             :id="'unit_row_' + i" x-model="it.fsatuan"
-                                                            x-effect="$el.value = it.fsatuan"
-                                                            @change="onRowUpdated(i)"
+                                                            x-effect="$el.value = it.fsatuan" @change="onRowUpdated(i)"
                                                             @keydown.enter.prevent="focusRowQty(i)">
                                                             <template x-for="u in it.units" :key="u">
-                                                                <option :value="u" :selected="u === it.fsatuan"
-                                                                    x-text="u"></option>
+                                                                <option :value="u"
+                                                                    :selected="u === it.fsatuan" x-text="u"></option>
                                                             </template>
                                                         </select>
                                                     </template>
@@ -829,7 +835,7 @@
                                                     <div
                                                         class="px-6 py-4 border-b border-gray-200 flex items-center justify-between flex-shrink-0 bg-gradient-to-r from-sky-50 to-white">
                                                         <div>
-                                                            <h3 class="text-xl font-bold text-gray-800">Add Faktur (INV)
+                                                            <h3 class="text-xl font-bold text-gray-800">Add Faktur
                                                             </h3>
                                                             <p class="text-sm text-gray-500 mt-0.5">Pilih transaksi invoice
                                                                 kode INV yang belum dipakai</p>
@@ -1455,7 +1461,17 @@
                     ratio = 1;
                 }
 
-                return Math.floor(limitSource / ratio);
+                const limit = limitSource / ratio;
+                return Number.isFinite(limit) && limit > 0 ? limit : 0;
+            },
+
+            formatQtyLimit(limit) {
+                const numericLimit = Number(limit ?? 0);
+                if (!Number.isFinite(numericLimit) || numericLimit <= 0) {
+                    return '0';
+                }
+
+                return numericLimit.toFixed(2).replace(/\.00$/, '').replace(/(\.\d*[1-9])0+$/, '$1');
             },
 
             validateSoQtyRow(row, showToast = true) {
@@ -1476,7 +1492,8 @@
                 if (qty > limit) {
                     row.fqty = limit;
                     if (showToast) {
-                        window.toast?.error(`Qty melebihi sisa ${refLabel}. Maksimal ${limit} ${row.fsatuan || ''}`
+                        window.toast?.error(
+                            `Qty melebihi sisa ${refLabel}. Maksimal ${this.formatQtyLimit(limit)} ${row.fsatuan || ''}`
                             .trim());
                     }
                 }
@@ -1611,9 +1628,9 @@
                     }
 
                     const meta = this.productMeta(itemcode);
-                    const normalizedUnits = meta
-                        ? [...new Set((meta.units || []).map(u => (u ?? '').toString().trim()).filter(Boolean))]
-                        : [satuan].filter(Boolean);
+                    const normalizedUnits = meta ?
+                        [...new Set((meta.units || []).map(u => (u ?? '').toString().trim()).filter(Boolean))] :
+                        [satuan].filter(Boolean);
 
                     if (satuan && !normalizedUnits.includes(satuan)) {
                         normalizedUnits.unshift(satuan);
@@ -1777,8 +1794,7 @@
             init() {
                 window.getCurrentItemKeys = () => this.getCurrentItemKeys();
                 this.savedItems = Array.isArray(this.savedItems) ?
-                    this.savedItems.map((item, index) => this.normalizeRestoredRow(item, index)) :
-                    [];
+                    this.savedItems.map((item, index) => this.normalizeRestoredRow(item, index)) : [];
                 this.pruneEmptyRows();
 
                 this.savedItems.forEach((item) => {
@@ -1879,7 +1895,7 @@
         const d = new Date(s);
         if (isNaN(d)) return '-';
         const pad = n => n.toString().padStart(2, '0');
-        return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
+        return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
     }
 </script>
 

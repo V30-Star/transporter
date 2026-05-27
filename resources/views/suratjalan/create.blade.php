@@ -559,7 +559,7 @@
                                             <div
                                                 class="px-6 py-4 border-b border-gray-200 flex items-center justify-between flex-shrink-0 bg-gradient-to-r from-sky-50 to-white">
                                                 <div>
-                                                    <h3 class="text-xl font-bold text-gray-800">Add Faktur (INV)</h3>
+                                                    <h3 class="text-xl font-bold text-gray-800">Add Faktur</h3>
                                                     <p class="text-sm text-gray-500 mt-0.5">Pilih transaksi invoice kode
                                                         INV yang belum dipakai</p>
                                                 </div>
@@ -1055,7 +1055,17 @@
                     ratio = 1;
                 }
 
-                return Math.floor(limitSource / ratio);
+                const limit = limitSource / ratio;
+                return Number.isFinite(limit) && limit > 0 ? limit : 0;
+            },
+
+            formatQtyLimit(limit) {
+                const numericLimit = Number(limit ?? 0);
+                if (!Number.isFinite(numericLimit) || numericLimit <= 0) {
+                    return '0';
+                }
+
+                return numericLimit.toFixed(2).replace(/\.00$/, '').replace(/(\.\d*[1-9])0+$/, '$1');
             },
 
             validateSoQtyRow(row, showToast = true) {
@@ -1076,7 +1086,7 @@
                 if (qty > limit) {
                     row.fqty = limit;
                     if (showToast) {
-                        window.toast?.error(`Qty melebihi sisa ${refLabel}. Maksimal ${limit} ${row.fsatuan || ''}`
+                        window.toast?.error(`Qty melebihi sisa ${refLabel}. Maksimal ${this.formatQtyLimit(limit)} ${row.fsatuan || ''}`
                             .trim());
                     }
                 }
@@ -1463,7 +1473,7 @@
         const d = new Date(s);
         if (isNaN(d)) return '-';
         const pad = n => n.toString().padStart(2, '0');
-        return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
+        return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
     }
 </script>
 

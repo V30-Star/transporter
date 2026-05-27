@@ -465,7 +465,9 @@
                                                     </select>
                                                 </template>
                                                 <template x-if="!row.units || row.units.length <= 1">
-                                                    <span class="text-xs" x-text="row.fsatuan"></span>
+                                                    <input type="text"
+                                                        class="w-full border rounded px-2 py-1 bg-gray-100 text-gray-600 text-xs"
+                                                        :value="row.fsatuan || '-'" disabled>
                                                 </template>
                                             </td>
                                             <td class="p-2 text-right">
@@ -1728,7 +1730,7 @@
 
         // Format YYYY-MM-DD HH:MM
         const pad = n => n.toString().padStart(2, '0');
-        return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
+        return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
     }
 </script>
 

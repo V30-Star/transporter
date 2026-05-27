@@ -664,15 +664,25 @@ class SuratJalanController extends Controller
             $refDoc = trim((string) ($frefso[$i] ?? ''));
             $refNoAcak = $this->normalizeReferenceRandomNumber($frefnoacaks[$i] ?? null);
 
+            $referenceRatio = null;
             if ($refDoc !== '') {
                 $referenceDetail = $this->resolveSuratJalanReferenceDetail($refDoc, $code, $refNoAcak);
                 if ($referenceDetail && ! empty($referenceDetail->fsatuan)) {
                     $sat = trim((string) $referenceDetail->fsatuan);
                 }
+                if ($referenceDetail) {
+                    $referenceQty = (float) ($referenceDetail->fqty ?? 0);
+                    $referenceQtyKecil = (float) ($referenceDetail->fqtykecil ?? 0);
+                    if ($referenceQty > 0 && $referenceQtyKecil > 0) {
+                        $referenceRatio = $referenceQtyKecil / $referenceQty;
+                    }
+                }
             }
 
             $qtyKecil = $qty;
-            if ($sat !== '' && $sat === trim((string) ($meta->fsatuanbesar ?? '')) && (float) $meta->fqtykecil > 0) {
+            if ($referenceRatio !== null && $referenceRatio > 0) {
+                $qtyKecil = $qty * $referenceRatio;
+            } elseif ($sat !== '' && $sat === trim((string) ($meta->fsatuanbesar ?? '')) && (float) $meta->fqtykecil > 0) {
                 $qtyKecil = $qty * (float) $meta->fqtykecil;
             } elseif ($sat !== '' && $sat === trim((string) ($meta->fsatuanbesar2 ?? '')) && (float) ($meta->fqtykecil2 ?? 0) > 0) {
                 $qtyKecil = $qty * (float) $meta->fqtykecil2;
@@ -1343,15 +1353,25 @@ class SuratJalanController extends Controller
             $refDoc = trim((string) ($frefso[$i] ?? ''));
             $refNoAcak = $this->normalizeReferenceRandomNumber($frefnoacaks[$i] ?? null);
 
+            $referenceRatio = null;
             if ($refDoc !== '') {
                 $referenceDetail = $this->resolveSuratJalanReferenceDetail($refDoc, $code, $refNoAcak);
                 if ($referenceDetail && ! empty($referenceDetail->fsatuan)) {
                     $sat = trim((string) $referenceDetail->fsatuan);
                 }
+                if ($referenceDetail) {
+                    $referenceQty = (float) ($referenceDetail->fqty ?? 0);
+                    $referenceQtyKecil = (float) ($referenceDetail->fqtykecil ?? 0);
+                    if ($referenceQty > 0 && $referenceQtyKecil > 0) {
+                        $referenceRatio = $referenceQtyKecil / $referenceQty;
+                    }
+                }
             }
 
             $qtyKecil = $qty;
-            if ($meta && $sat !== '' && $sat === trim((string) ($meta->fsatuanbesar ?? '')) && (float) $meta->fqtykecil > 0) {
+            if ($referenceRatio !== null && $referenceRatio > 0) {
+                $qtyKecil = $qty * $referenceRatio;
+            } elseif ($meta && $sat !== '' && $sat === trim((string) ($meta->fsatuanbesar ?? '')) && (float) $meta->fqtykecil > 0) {
                 $qtyKecil = $qty * (float) $meta->fqtykecil;
             } elseif ($meta && $sat !== '' && $sat === trim((string) ($meta->fsatuanbesar2 ?? '')) && (float) ($meta->fqtykecil2 ?? 0) > 0) {
                 $qtyKecil = $qty * (float) $meta->fqtykecil2;
@@ -1834,7 +1854,7 @@ class SuratJalanController extends Controller
                     $query->whereRaw("COALESCE(frefnoacak::text, fnoacak::text, '') = ?", [$refNoAcak]);
                 })
                 ->orderBy('fstockdtid')
-                ->first(['fstockdtid', 'fsatuan']);
+                ->first(['fstockdtid', 'fsatuan', 'fqty', 'fqtykecil']);
         }
 
         return DB::table('trsodt')
@@ -1844,7 +1864,7 @@ class SuratJalanController extends Controller
                 $query->whereRaw("COALESCE(fnoacak::text, '') = ?", [$refNoAcak]);
             })
             ->orderBy('ftrsodtid')
-            ->first(['ftrsodtid', 'fsatuan']);
+            ->first(['ftrsodtid', 'fsatuan', 'fqty', 'fqtykecil']);
     }
 
     private function isInvoiceReferenceDoc(string $docNo): bool
@@ -1909,10 +1929,11 @@ class SuratJalanController extends Controller
                     ->selectRaw("
                         TRIM(d.fsono) as ref_doc,
                         TRIM(d.fprdcode) as product_code,
+                        COALESCE(d.fnoacak::text, '') as ref_noacak,
                         MAX(COALESCE(p.fprdname, d.fprdcode)) as product_name,
                         SUM(COALESCE(d.fqtykecil, 0)) as source_qty_kecil
                     ")
-                    ->groupByRaw("TRIM(d.fsono), TRIM(d.fprdcode)")
+                    ->groupByRaw("TRIM(d.fsono), TRIM(d.fprdcode), COALESCE(d.fnoacak::text, '')")
                     ->get()
             );
         }

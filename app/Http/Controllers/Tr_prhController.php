@@ -171,7 +171,7 @@ class Tr_prhController extends Controller
             $data = $records->map(function ($record) {
                 return [
                     'fprno' => $record->fprno,
-                    'fprdate' => $record->fprdate,
+                    'fprdate' => $record->fprdate ? Carbon::parse($record->fprdate)->format('Y-m-d') : null,
                     'fsuppliername' => $record->fsuppliername,
                     'display_user' => $record->fuserupdate ?: $record->fusercreate,
                     'fuserupdate' => $record->fuserupdate,

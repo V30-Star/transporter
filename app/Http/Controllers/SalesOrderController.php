@@ -600,14 +600,32 @@ class SalesOrderController extends Controller
                 'm.fprdname as fitemname',
                 DB::raw("COALESCE(NULLIF(TRIM(trsodt.fsatuan), ''), NULLIF(TRIM(m.fsatuankecil), ''), '') as fsatuan"),
                 'trsodt.fqty',
+                'trsodt.fqtykecil',
+                'm.fsatuankecil',
+                'm.fsatuanbesar',
+                'm.fsatuanbesar2',
+                'm.fqtykecil as qtyratio_besar',
+                'm.fqtykecil2 as qtyratio_besar2',
                 'trsodt.fprice as fprice',
                 'trsodt.fprice as fharga',
             ])
             ->orderBy('trsodt.ftrsodtid')
             ->get()
             ->map(function ($item) use ($remainMap) {
-                $remain = (float) ($remainMap[(int) ($item->frefdtno ?? 0)] ?? 0);
-                $item->fqtyremain = $remain;
+                $remainKecil = (float) ($remainMap[(int) ($item->frefdtno ?? 0)] ?? 0);
+                $item->fqty_dokumen = (float) ($item->fqty ?? 0);
+                $item->fqtyremain = $remainKecil;
+                $item->maxqty = $remainKecil;
+                $item->fqtyremain_dokumen = $this->convertSoRemainToDisplayUnit(
+                    $remainKecil,
+                    (string) ($item->fsatuan ?? ''),
+                    (object) [
+                        'fsatuanbesar' => $item->fsatuanbesar,
+                        'fsatuanbesar2' => $item->fsatuanbesar2,
+                        'fprd_qtykonversi' => $item->qtyratio_besar,
+                        'fprd_qtykonversi2' => $item->qtyratio_besar2,
+                    ]
+                );
 
                 return $item;
             });
@@ -1807,12 +1825,77 @@ class SalesOrderController extends Controller
             return [];
         }
 
-        return DB::table('trsodt as d')
+        $sourceRows = DB::table('trsodt as d')
             ->whereIn('d.ftrsodtid', $ids)
-            ->selectRaw('d.ftrsodtid, GREATEST(COALESCE(d.fqtykecil, 0), 0) AS remain_kecil')
-            ->pluck('remain_kecil', 'd.ftrsodtid')
-            ->map(fn($value) => (float) $value)
+            ->selectRaw("
+                d.ftrsodtid,
+                TRIM(COALESCE(d.fsono, '')) as ref_doc,
+                TRIM(COALESCE(d.fprdcode, '')) as product_code,
+                COALESCE(d.fnoacak::text, '') as ref_noacak,
+                GREATEST(COALESCE(d.fqtykecil, 0), 0) AS source_qty_kecil
+            ")
+            ->get();
+
+        if ($sourceRows->isEmpty()) {
+            return [];
+        }
+
+        $docNos = $sourceRows
+            ->pluck('ref_doc')
+            ->map(fn($value) => trim((string) $value))
+            ->filter()
+            ->unique()
+            ->values()
             ->all();
+
+        $srjUsageRows = DB::table('trstockdt as d')
+            ->join('trstockmt as h', 'h.fstockmtno', '=', 'd.fstockmtno')
+            ->where('h.fstockmtcode', 'SRJ')
+            ->whereIn('d.frefso', $docNos)
+            ->selectRaw("
+                TRIM(COALESCE(d.frefso, '')) as ref_doc,
+                TRIM(COALESCE(d.fprdcode, '')) as product_code,
+                COALESCE(d.frefnoacak::text, '') as ref_noacak,
+                SUM(COALESCE(d.fqtykecil, 0)) as used_qty_kecil
+            ")
+            ->groupByRaw("TRIM(COALESCE(d.frefso, '')), TRIM(COALESCE(d.fprdcode, '')), COALESCE(d.frefnoacak::text, '')")
+            ->get();
+
+        $invoiceUsageRows = DB::table('trandt as d')
+            ->join('tranmt as h', 'h.fsono', '=', 'd.fsono')
+            ->where('h.ftrcode', 'INV')
+            ->whereRaw("TRIM(COALESCE(d.frefcode, '')) = 'SO'")
+            ->whereIn('d.frefso', $docNos)
+            ->selectRaw("
+                TRIM(COALESCE(d.frefso, '')) as ref_doc,
+                TRIM(COALESCE(d.fprdcode, '')) as product_code,
+                COALESCE(d.frefnosoacak::text, '') as ref_noacak,
+                SUM(COALESCE(d.fqtykecil, 0)) as used_qty_kecil
+            ")
+            ->groupByRaw("TRIM(COALESCE(d.frefso, '')), TRIM(COALESCE(d.fprdcode, '')), COALESCE(d.frefnosoacak::text, '')")
+            ->get();
+
+        $usageMap = [];
+
+        foreach ($srjUsageRows as $row) {
+            $key = trim((string) ($row->ref_doc ?? '')) . '|' . trim((string) ($row->product_code ?? '')) . '|' . trim((string) ($row->ref_noacak ?? ''));
+            $usageMap[$key] = ($usageMap[$key] ?? 0.0) + (float) ($row->used_qty_kecil ?? 0);
+        }
+
+        foreach ($invoiceUsageRows as $row) {
+            $key = trim((string) ($row->ref_doc ?? '')) . '|' . trim((string) ($row->product_code ?? '')) . '|' . trim((string) ($row->ref_noacak ?? ''));
+            $usageMap[$key] = ($usageMap[$key] ?? 0.0) + (float) ($row->used_qty_kecil ?? 0);
+        }
+
+        $result = [];
+        foreach ($sourceRows as $row) {
+            $key = trim((string) ($row->ref_doc ?? '')) . '|' . trim((string) ($row->product_code ?? '')) . '|' . trim((string) ($row->ref_noacak ?? ''));
+            $sourceQtyKecil = (float) ($row->source_qty_kecil ?? 0);
+            $usedQtyKecil = (float) ($usageMap[$key] ?? 0);
+            $result[(int) $row->ftrsodtid] = max(0, $sourceQtyKecil - $usedQtyKecil);
+        }
+
+        return $result;
     }
 
     private function convertSoRemainToDisplayUnit(float $qtyKecil, string $unit, object $detail): float

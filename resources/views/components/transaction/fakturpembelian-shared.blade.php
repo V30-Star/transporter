@@ -78,7 +78,7 @@ function formatDate(s) {
     const d = new Date(s);
     if (isNaN(d.getTime())) return '-';
     const pad = n => n.toString().padStart(2, '0');
-    return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
+    return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
 }
 @elseif ($section === 'desc_store')
 document.addEventListener('alpine:init', () => {

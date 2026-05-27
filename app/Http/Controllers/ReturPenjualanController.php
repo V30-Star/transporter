@@ -89,8 +89,8 @@ class ReturPenjualanController extends Controller
                     'b.fcabangname',
                     'tranmt.famountso',
                     'tranmt.fket',
-                    'tranmt.fusercreate',
-                    'tranmt.fclose'
+                    'tranmt.fuserid',
+                    'tranmt.fneedacc'
                 );
             $this->applyBranchVisibilityScope($query, 'tranmt.fbranchcode');
 
@@ -128,8 +128,8 @@ class ReturPenjualanController extends Controller
                 5 => 'c.fcustomername',
                 6 => 'tranmt.famountso',
                 7 => 'tranmt.fket',
-                8 => 'tranmt.fusercreate',
-                9 => 'tranmt.fclose',
+                8 => 'tranmt.fuserid',
+                9 => 'tranmt.fneedacc',
             ];
 
             if (isset($sortableColumns[$orderColIdx]) && $sortableColumns[$orderColIdx]) {
