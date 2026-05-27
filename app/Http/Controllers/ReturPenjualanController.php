@@ -76,6 +76,7 @@ class ReturPenjualanController extends Controller
 
             $query = Tranmt::query()
                 ->leftJoin('mscustomer as c', 'c.fcustomercode', '=', 'tranmt.fcustno')
+                ->leftJoin('mscabang as b', 'b.fcabangkode', '=', 'tranmt.fbranchcode')
                 ->where('tranmt.ftrcode', 'REJ')
                 ->select(
                     'tranmt.ftranmtid',
@@ -85,6 +86,7 @@ class ReturPenjualanController extends Controller
                     'tranmt.frefno',
                     'tranmt.fcustno',
                     'c.fcustomername',
+                    'b.fcabangname',
                     'tranmt.famountso',
                     'tranmt.fket',
                     'tranmt.fusercreate',
@@ -145,7 +147,10 @@ class ReturPenjualanController extends Controller
             $data = $records->map(function ($row) {
                 return [
                     'ftranmtid' => $row->ftranmtid,
-                    'fbranchcode' => $row->fbranchcode,
+                    'fbranchcode' => trim(implode(' - ', array_filter([
+                        trim((string) ($row->fbranchcode ?? '')),
+                        trim((string) ($row->fcabangname ?? '')),
+                    ]))) ?: trim((string) ($row->fbranchcode ?? $row->fcabangname ?? '')),
                     'fsono' => $row->fsono,
                     'fsodate' => $row->fsodate instanceof \Carbon\Carbon
                         ? $row->fsodate->format('Y-m-d')
@@ -1346,18 +1351,6 @@ class ReturPenjualanController extends Controller
         $salesmans = Salesman::orderBy('fsalesmanname', 'asc')
             ->get(['fsalesmanid', 'fsalesmanname', 'fsalesmancode']);
 
-        $raw = (Auth::guard('sysuser')->user() ?? Auth::user())?->fcabang;
-
-        $branch = DB::table('mscabang')
-            ->when(is_numeric($raw), fn($q) => $q->where('fcabangid', (int) $raw))
-            ->when(! is_numeric($raw), fn($q) => $q
-                ->where('fcabangkode', $raw)
-                ->orWhere('fcabangname', $raw))
-            ->first(['fcabangid', 'fcabangkode', 'fcabangname']);
-
-        $fcabang = $branch->fcabangname ?? (string) $raw;   // tampilan
-        $fbranchcode = $branch->fcabangkode ?? (string) $raw;   // hidden post
-
         $returpenjualan = Tranmt::with(['customer', 'details' => function ($q) {
             $q->leftJoin('msprd', function ($j) {
                 $j->on('msprd.fprdcode', '=', 'trandt.fprdcode');
@@ -1378,6 +1371,8 @@ class ReturPenjualanController extends Controller
         if (! $returpenjualan->customer) {
             $returpenjualan->setRelation('customer', Customer::where('fcustomercode', trim((string) $returpenjualan->fcustno))->first());
         }
+
+        ['fcabang' => $fcabang, 'fbranchcode' => $fbranchcode] = $this->resolveBranchContext($returpenjualan->fbranchcode ?? null);
 
         $usageLockMessage = $this->getUsageLockMessage($returpenjualan);
 
@@ -1499,18 +1494,6 @@ class ReturPenjualanController extends Controller
         $salesmans = Salesman::orderBy('fsalesmanname', 'asc')
             ->get(['fsalesmanid', 'fsalesmanname', 'fsalesmancode']);
 
-        $raw = (Auth::guard('sysuser')->user() ?? Auth::user())?->fcabang;
-
-        $branch = DB::table('mscabang')
-            ->when(is_numeric($raw), fn($q) => $q->where('fcabangid', (int) $raw))
-            ->when(! is_numeric($raw), fn($q) => $q
-                ->where('fcabangkode', $raw)
-                ->orWhere('fcabangname', $raw))
-            ->first(['fcabangid', 'fcabangkode', 'fcabangname']);
-
-        $fcabang = $branch->fcabangname ?? (string) $raw;   // tampilan
-        $fbranchcode = $branch->fcabangkode ?? (string) $raw;   // hidden post
-
         $returpenjualan = Tranmt::with(['customer', 'details' => function ($q) {
             $q->leftJoin('msprd', function ($j) {
                 $j->on('msprd.fprdcode', '=', 'trandt.fprdcode');
@@ -1531,6 +1514,8 @@ class ReturPenjualanController extends Controller
         if (! $returpenjualan->customer) {
             $returpenjualan->setRelation('customer', Customer::where('fcustomercode', trim((string) $returpenjualan->fcustno))->first());
         }
+
+        ['fcabang' => $fcabang, 'fbranchcode' => $fbranchcode] = $this->resolveBranchContext($returpenjualan->fbranchcode ?? null);
 
         $referenceSummary = $this->getReferenceSummaryByTranNo((string) $returpenjualan->fsono);
 
@@ -1983,18 +1968,6 @@ class ReturPenjualanController extends Controller
         $salesmans = Salesman::orderBy('fsalesmanname', 'asc')
             ->get(['fsalesmanid', 'fsalesmanname', 'fsalesmancode']);
 
-        $raw = (Auth::guard('sysuser')->user() ?? Auth::user())?->fcabang;
-
-        $branch = DB::table('mscabang')
-            ->when(is_numeric($raw), fn($q) => $q->where('fcabangid', (int) $raw))
-            ->when(! is_numeric($raw), fn($q) => $q
-                ->where('fcabangkode', $raw)
-                ->orWhere('fcabangname', $raw))
-            ->first(['fcabangid', 'fcabangkode', 'fcabangname']);
-
-        $fcabang = $branch->fcabangname ?? (string) $raw;   // tampilan
-        $fbranchcode = $branch->fcabangkode ?? (string) $raw;   // hidden post
-
         $returpenjualan = Tranmt::with(['customer', 'details' => function ($q) {
             $q->leftJoin('msprd', function ($j) {
                 $j->on('msprd.fprdcode', '=', 'trandt.fprdcode');
@@ -2015,6 +1988,8 @@ class ReturPenjualanController extends Controller
         if (! $returpenjualan->customer) {
             $returpenjualan->setRelation('customer', Customer::where('fcustomercode', trim((string) $returpenjualan->fcustno))->first());
         }
+
+        ['fcabang' => $fcabang, 'fbranchcode' => $fbranchcode] = $this->resolveBranchContext($returpenjualan->fbranchcode ?? null);
 
         $usageLockMessage = $this->getUsageLockMessage($returpenjualan);
 

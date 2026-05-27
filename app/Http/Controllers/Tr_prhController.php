@@ -456,8 +456,8 @@ class Tr_prhController extends Controller
 
     public function view(Request $request, $fprhid)
     {
-        $branchInfo = $this->getCurrentBranchInfo();
         $tr_prh = $this->findPrWithSupplier($fprhid);
+        $branchInfo = $this->getCurrentBranchInfo($tr_prh->fbranchcode ?? null);
         $pageData = $this->buildPrPageData($tr_prh, true);
 
         return view('tr_prh.edit', [
@@ -479,8 +479,8 @@ class Tr_prhController extends Controller
 
     public function edit(Request $request, $fprhid)
     {
-        $branchInfo = $this->getCurrentBranchInfo();
         $tr_prh = $this->findPrWithSupplier($fprhid);
+        $branchInfo = $this->getCurrentBranchInfo($tr_prh->fbranchcode ?? null);
         $pageData = $this->buildPrPageData($tr_prh, true);
 
         if ($message = $this->getPostedPeriodLockMessage($tr_prh->fprdate, 'Data ini')) {
@@ -716,8 +716,8 @@ class Tr_prhController extends Controller
 
     public function delete(Request $request, $fprhid)
     {
-        $branchInfo = $this->getCurrentBranchInfo();
         $tr_prh = $this->findPrWithSupplier($fprhid, true);
+        $branchInfo = $this->getCurrentBranchInfo($tr_prh->fbranchcode ?? null);
         $pageData = $this->buildPrPageData($tr_prh, false);
 
         if ($message = $this->getPostedPeriodLockMessage($tr_prh->fprdate, 'Data ini')) {
@@ -1042,29 +1042,19 @@ class Tr_prhController extends Controller
         })->toArray();
     }
 
-    private function getCurrentBranchInfo(): array
+    private function getCurrentBranchInfo($branchCode = null): array
     {
-        $raw = (Auth::guard('sysuser')->user() ?? Auth::user())?->fcabang;
-
-        $branch = DB::table('mscabang')
-            ->when(is_numeric($raw), fn ($query) => $query->where('fcabangid', (int) $raw))
-            ->when(
-                ! is_numeric($raw),
-                fn ($query) => $query
-                    ->where('fcabangkode', $raw)
-                    ->orWhere('fcabangname', $raw)
-            )
-            ->first(['fcabangid', 'fcabangkode', 'fcabangname']);
+        $context = $this->resolveBranchContext($branchCode);
 
         return [
-            'raw' => $raw,
-            'branch' => $branch,
-            'fcabang' => $branch->fcabangname ?? (string) $raw,
-            'fbranchcode' => $branch->fcabangkode ?? (string) $raw,
+            'raw' => $context['fbranchcode'],
+            'branch' => null,
+            'fcabang' => $context['fcabang'],
+            'fbranchcode' => $context['fbranchcode'],
             'fbranchlabel' => trim(implode(' - ', array_filter([
-                trim((string) ($branch->fcabangkode ?? '')),
-                trim((string) ($branch->fcabangname ?? '')),
-            ]))) ?: (string) $raw,
+                trim((string) ($context['fbranchcode'] ?? '')),
+                trim((string) ($context['fcabang'] ?? '')),
+            ]))) ?: (string) ($context['fbranchcode'] ?? ''),
         ];
     }
 

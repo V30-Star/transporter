@@ -462,7 +462,9 @@ class InvoiceController extends Controller
         // --- Handle Request AJAX dari DataTables ---
         if ($request->ajax()) {
 
-            $query = Tranmt::query();
+            $query = Tranmt::query()
+                ->leftJoin('mscabang as c', 'c.fcabangkode', '=', 'tranmt.fbranchcode')
+                ->select('tranmt.*', 'c.fcabangname');
             $this->applyBranchVisibilityScope($query, 'tranmt.fbranchcode');
 
             // DEBUG: Cek total data di tabel
@@ -515,7 +517,10 @@ class InvoiceController extends Controller
             $data = $records->map(function ($row) {
                 return [
                     'ftranmtid' => $row->ftranmtid,
-                    'fbranchcode' => $row->fbranchcode,
+                    'fbranchcode' => trim(implode(' - ', array_filter([
+                        trim((string) ($row->fbranchcode ?? '')),
+                        trim((string) ($row->fcabangname ?? '')),
+                    ]))) ?: trim((string) ($row->fbranchcode ?? $row->fcabangname ?? '')),
                     'fsono' => $row->fsono,
                     'fsodate' => $row->fsodate instanceof \Carbon\Carbon
                         ? $row->fsodate->format('Y-m-d')
@@ -1685,18 +1690,6 @@ class InvoiceController extends Controller
         $salesmans = Salesman::orderBy('fsalesmanname', 'asc')
             ->get(['fsalesmanid', 'fsalesmancode', 'fsalesmanname']);
 
-        $raw = (Auth::guard('sysuser')->user() ?? Auth::user())?->fcabang;
-
-        $branch = DB::table('mscabang')
-            ->when(is_numeric($raw), fn($q) => $q->where('fcabangid', (int) $raw))
-            ->when(! is_numeric($raw), fn($q) => $q
-                ->where('fcabangkode', $raw)
-                ->orWhere('fcabangname', $raw))
-            ->first(['fcabangid', 'fcabangkode', 'fcabangname']);
-
-        $fcabang = $branch->fcabangname ?? (string) $raw;   // tampilan
-        $fbranchcode = $branch->fcabangkode ?? (string) $raw;   // hidden post
-
         $invoice = Tranmt::with(['customer', 'details' => function ($q) {
             $q->leftJoin('msprd', 'msprd.fprdcode', '=', 'trandt.fprdcode')
                 ->leftJoin('trsomt as so_hdr', 'so_hdr.fsono', '=', 'trandt.frefso')
@@ -1722,6 +1715,8 @@ class InvoiceController extends Controller
         if (! $invoice->customer) {
             $invoice->setRelation('customer', Customer::where('fcustomercode', trim((string) $invoice->fcustno))->first());
         }
+
+        ['fcabang' => $fcabang, 'fbranchcode' => $fbranchcode] = $this->resolveBranchContext($invoice->fbranchcode ?? null);
 
         $usageLockMessage = $this->getUsageLockMessage($invoice);
 
@@ -1846,18 +1841,6 @@ class InvoiceController extends Controller
         $salesmans = Salesman::orderBy('fsalesmanname', 'asc')
             ->get(['fsalesmanid', 'fsalesmancode', 'fsalesmanname']);
 
-        $raw = (Auth::guard('sysuser')->user() ?? Auth::user())?->fcabang;
-
-        $branch = DB::table('mscabang')
-            ->when(is_numeric($raw), fn($q) => $q->where('fcabangid', (int) $raw))
-            ->when(! is_numeric($raw), fn($q) => $q
-                ->where('fcabangkode', $raw)
-                ->orWhere('fcabangname', $raw))
-            ->first(['fcabangid', 'fcabangkode', 'fcabangname']);
-
-        $fcabang = $branch->fcabangname ?? (string) $raw;   // tampilan
-        $fbranchcode = $branch->fcabangkode ?? (string) $raw;   // hidden post
-
         $invoice = Tranmt::with(['customer', 'details' => function ($q) {
             $q->leftJoin('msprd', 'msprd.fprdcode', '=', 'trandt.fprdcode')
                 ->leftJoin('trsomt as so_hdr', 'so_hdr.fsono', '=', 'trandt.frefso')
@@ -1875,6 +1858,8 @@ class InvoiceController extends Controller
         if (! $invoice->customer) {
             $invoice->setRelation('customer', Customer::where('fcustomercode', trim((string) $invoice->fcustno))->first());
         }
+
+        ['fcabang' => $fcabang, 'fbranchcode' => $fbranchcode] = $this->resolveBranchContext($invoice->fbranchcode ?? null);
 
         $approvalLockMessage = $this->getApprovalLockMessage($invoice);
 
@@ -2329,18 +2314,6 @@ class InvoiceController extends Controller
         $salesmans = Salesman::orderBy('fsalesmanname', 'asc')
             ->get(['fsalesmanid', 'fsalesmancode', 'fsalesmanname']);
 
-        $raw = (Auth::guard('sysuser')->user() ?? Auth::user())?->fcabang;
-
-        $branch = DB::table('mscabang')
-            ->when(is_numeric($raw), fn($q) => $q->where('fcabangid', (int) $raw))
-            ->when(! is_numeric($raw), fn($q) => $q
-                ->where('fcabangkode', $raw)
-                ->orWhere('fcabangname', $raw))
-            ->first(['fcabangid', 'fcabangkode', 'fcabangname']);
-
-        $fcabang = $branch->fcabangname ?? (string) $raw;   // tampilan
-        $fbranchcode = $branch->fcabangkode ?? (string) $raw;   // hidden post
-
         $invoice = Tranmt::with(['customer', 'details' => function ($q) {
             $q->leftJoin('msprd', 'msprd.fprdcode', '=', 'trandt.fprdcode')
                 ->leftJoin('trsomt as so_hdr', 'so_hdr.fsono', '=', 'trandt.frefso')
@@ -2366,6 +2339,8 @@ class InvoiceController extends Controller
         if (! $invoice->customer) {
             $invoice->setRelation('customer', Customer::where('fcustomercode', trim((string) $invoice->fcustno))->first());
         }
+
+        ['fcabang' => $fcabang, 'fbranchcode' => $fbranchcode] = $this->resolveBranchContext($invoice->fbranchcode ?? null);
 
         $usageLockMessage = $this->getUsageLockMessage($invoice);
 

@@ -731,15 +731,6 @@ class MutasiController extends Controller
     {
         $supplier = Supplier::all();
 
-        $raw = (Auth::guard('sysuser')->user() ?? Auth::user())?->fcabang;
-
-        $branch = DB::table('mscabang')
-            ->when(is_numeric($raw), fn ($q) => $q->where('fcabangid', (int) $raw))
-            ->when(! is_numeric($raw), fn ($q) => $q
-                ->where('fcabangkode', $raw)
-                ->orWhere('fcabangname', $raw))
-            ->first(['fcabangid', 'fcabangkode', 'fcabangname']);
-
         $warehouses = DB::table('mswh')
             ->select('fwhid', 'fwhcode', 'fwhname', 'fbranchcode', 'fnonactive')
             ->where('fnonactive', '0') // hanya yang aktif
@@ -751,9 +742,6 @@ class MutasiController extends Controller
             ->where('fnonactive', '0')
             ->orderBy('account')
             ->get();
-
-        $fcabang = $branch->fcabangname ?? (string) $raw;
-        $fbranchcode = $branch->fcabangkode ?? (string) $raw;
 
         $self = $this;
         $mutasi = PenerimaanPembelianHeader::with([
@@ -768,6 +756,7 @@ class MutasiController extends Controller
                 ->route('mutasi.view', $mutasi->fstockmtid)
                 ->with('error', $message);
         }
+        ['fcabang' => $fcabang, 'fbranchcode' => $fbranchcode] = $this->resolveBranchContext($mutasi->fbranchcode ?? null);
 
         $usageLockMessage = $this->getUsageLockMessage($mutasi);
 
@@ -1063,15 +1052,6 @@ class MutasiController extends Controller
     {
         $supplier = Supplier::all();
 
-        $raw = (Auth::guard('sysuser')->user() ?? Auth::user())?->fcabang;
-
-        $branch = DB::table('mscabang')
-            ->when(is_numeric($raw), fn ($q) => $q->where('fcabangid', (int) $raw))
-            ->when(! is_numeric($raw), fn ($q) => $q
-                ->where('fcabangkode', $raw)
-                ->orWhere('fcabangname', $raw))
-            ->first(['fcabangid', 'fcabangkode', 'fcabangname']);
-
         $warehouses = DB::table('mswh')
             ->select('fwhid', 'fwhcode', 'fwhname', 'fbranchcode', 'fnonactive')
             ->where('fnonactive', '0') // hanya yang aktif
@@ -1083,9 +1063,6 @@ class MutasiController extends Controller
             ->where('fnonactive', '0')
             ->orderBy('account')
             ->get();
-
-        $fcabang = $branch->fcabangname ?? (string) $raw;
-        $fbranchcode = $branch->fcabangkode ?? (string) $raw;
 
         $self = $this;
         $mutasi = PenerimaanPembelianHeader::with([
@@ -1100,6 +1077,7 @@ class MutasiController extends Controller
                 ->route('mutasi.view', $mutasi->fstockmtid)
                 ->with('error', $message);
         }
+        ['fcabang' => $fcabang, 'fbranchcode' => $fbranchcode] = $this->resolveBranchContext($mutasi->fbranchcode ?? null);
 
         $usageLockMessage = $this->getUsageLockMessage($mutasi);
 

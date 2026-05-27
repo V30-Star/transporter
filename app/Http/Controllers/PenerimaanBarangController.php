@@ -761,14 +761,7 @@ class PenerimaanBarangController extends Controller
             ->orderBy('fwhcode')
             ->get();
 
-        $raw = (Auth::guard('sysuser')->user() ?? Auth::user())?->fcabang;
-        $branch = DB::table('mscabang')
-            ->when(is_numeric($raw), fn($q) => $q->where('fcabangid', (int) $raw))
-            ->when(! is_numeric($raw), fn($q) => $q->where('fcabangkode', $raw)->orWhere('fcabangname', $raw))
-            ->first(['fcabangid', 'fcabangkode', 'fcabangname']);
-
-        $fcabang = $branch->fcabangname ?? (string) $raw;
-        $fbranchcode = $branch->fcabangkode ?? (string) $raw;
+        ['fcabang' => $fcabang, 'fbranchcode' => $fbranchcode] = $this->resolveBranchContext();
 
         $products = $this->browseProducts();
         $productMap = $this->browseProductMap($products);
@@ -1064,20 +1057,12 @@ class PenerimaanBarangController extends Controller
     {
         $suppliers = Supplier::orderBy('fsuppliername', 'asc')->get(['fsuppliercode', 'fsuppliername']);
 
-        $raw = (Auth::guard('sysuser')->user() ?? Auth::user())?->fcabang;
-        $branch = DB::table('mscabang')
-            ->when(is_numeric($raw), fn($q) => $q->where('fcabangid', (int) $raw))
-            ->when(! is_numeric($raw), fn($q) => $q->where('fcabangkode', $raw)->orWhere('fcabangname', $raw))
-            ->first(['fcabangid', 'fcabangkode', 'fcabangname']);
-
         $warehouses = DB::table('mswh')
             ->select('fwhid', 'fwhcode', 'fwhname', 'fbranchcode', 'fnonactive')
             ->where('fnonactive', '0')
             ->orderBy('fwhcode')
             ->get();
-
-        $defaultCabangName = $branch->fcabangname ?? (string) $raw;
-        $defaultBranchCode = $branch->fcabangkode ?? (string) $raw;
+        ['fcabang' => $defaultCabangName, 'fbranchcode' => $defaultBranchCode] = $this->resolveBranchContext();
 
         $penerimaanbarang = PenerimaanPembelianHeader::with([
             'details' => function ($q) {
@@ -1108,10 +1093,7 @@ class PenerimaanBarangController extends Controller
             }
         }
 
-        $selectedBranchCode = trim((string) ($penerimaanbarang->fbranchcode ?? ''));
-        $selectedBranchName = $selectedBranchCode !== ''
-            ? DB::table('mscabang')->where('fcabangkode', $selectedBranchCode)->value('fcabangname')
-            : null;
+        ['fcabang' => $selectedBranchName, 'fbranchcode' => $selectedBranchCode] = $this->resolveBranchContext($penerimaanbarang->fbranchcode ?? null);
         $usageLockMessage = $action === 'view' ? null : $this->getUsageLockMessage($penerimaanbarang);
 
         if (in_array($action, ['edit', 'delete'], true) && ! empty($usageLockMessage)) {

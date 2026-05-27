@@ -81,6 +81,40 @@ abstract class Controller
         return $query;
     }
 
+    protected function resolveBranchContext($branch = null): array
+    {
+        $needle = trim((string) ($branch ?? ''));
+
+        if ($needle === '') {
+            $needle = trim((string) ($this->getCurrentBranchCode() ?? ''));
+        }
+
+        if ($needle === '') {
+            return [
+                'fbranchcode' => '',
+                'fcabang' => '',
+            ];
+        }
+
+        $branchQuery = DB::table('mscabang');
+
+        if (is_numeric($needle)) {
+            $branchQuery->where('fcabangid', (int) $needle);
+        } else {
+            $branchQuery->where(function ($query) use ($needle) {
+                $query->whereRaw('LOWER(TRIM(fcabangkode)) = LOWER(?)', [$needle])
+                    ->orWhereRaw('LOWER(TRIM(fcabangname)) = LOWER(?)', [$needle]);
+            });
+        }
+
+        $resolved = $branchQuery->first(['fcabangkode', 'fcabangname']);
+
+        return [
+            'fbranchcode' => trim((string) ($resolved->fcabangkode ?? $needle)),
+            'fcabang' => trim((string) ($resolved->fcabangname ?? $needle)),
+        ];
+    }
+
     protected function getEditPeriodYm(): string
     {
         $raw = trim((string) DB::table('setini')->value('fyrmth'));

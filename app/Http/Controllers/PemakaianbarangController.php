@@ -741,23 +741,11 @@ class PemakaianbarangController extends Controller
             ->orderBy('fsubaccountcode')
             ->get();
 
-        $raw = (Auth::guard('sysuser')->user() ?? Auth::user())?->fcabang;
-
-        $branch = DB::table('mscabang')
-            ->when(is_numeric($raw), fn ($q) => $q->where('fcabangid', (int) $raw))
-            ->when(! is_numeric($raw), fn ($q) => $q
-                ->where('fcabangkode', $raw)
-                ->orWhere('fcabangname', $raw))
-            ->first(['fcabangid', 'fcabangkode', 'fcabangname']);
-
         $warehouses = DB::table('mswh')
             ->select('fwhid', 'fwhcode', 'fwhname', 'fbranchcode', 'fnonactive')
             ->where('fnonactive', '0') // hanya yang aktif
             ->orderBy('fwhcode')
             ->get();
-
-        $fcabang = $branch->fcabangname ?? (string) $raw;
-        $fbranchcode = $branch->fcabangkode ?? (string) $raw;
 
         // 1. Ambil data Header (trstockmt) DAN relasi Details (trstockdt)
         // Biarkan query ini. Sekarang $fstockmtid di sini adalah integer (misal: 8)
@@ -787,6 +775,7 @@ class PemakaianbarangController extends Controller
                 ->route('pemakaianbarang.view', $pemakaianbarang->fstockmtid)
                 ->with('error', $message);
         }
+        ['fcabang' => $fcabang, 'fbranchcode' => $fbranchcode] = $this->resolveBranchContext($pemakaianbarang->fbranchcode ?? null);
 
         $usageLockMessage = $this->getUsageLockMessage($pemakaianbarang);
 
@@ -895,23 +884,11 @@ class PemakaianbarangController extends Controller
             ->orderBy('fsubaccountcode')
             ->get();
 
-        $raw = (Auth::guard('sysuser')->user() ?? Auth::user())?->fcabang;
-
-        $branch = DB::table('mscabang')
-            ->when(is_numeric($raw), fn ($q) => $q->where('fcabangid', (int) $raw))
-            ->when(! is_numeric($raw), fn ($q) => $q
-                ->where('fcabangkode', $raw)
-                ->orWhere('fcabangname', $raw))
-            ->first(['fcabangid', 'fcabangkode', 'fcabangname']);
-
         $warehouses = DB::table('mswh')
             ->select('fwhid', 'fwhcode', 'fwhname', 'fbranchcode', 'fnonactive')
             ->where('fnonactive', '0') // hanya yang aktif
             ->orderBy('fwhcode')
             ->get();
-
-        $fcabang = $branch->fcabangname ?? (string) $raw;
-        $fbranchcode = $branch->fcabangkode ?? (string) $raw;
 
         // 1. Ambil data Header (trstockmt) DAN relasi Details (trstockdt)
         // Biarkan query ini. Sekarang $fstockmtid di sini adalah integer (misal: 8)
@@ -935,6 +912,8 @@ class PemakaianbarangController extends Controller
                     ->orderBy('trstockdt.fstockdtid', 'asc');
             },
         ])->findOrFail($fstockmtid);
+
+        ['fcabang' => $fcabang, 'fbranchcode' => $fbranchcode] = $this->resolveBranchContext($pemakaianbarang->fbranchcode ?? null);
 
         // 4. Map the data for savedItems (sudah menggunakan data yang benar)
         $savedItems = $pemakaianbarang->details->map(function ($d) {
@@ -1272,23 +1251,11 @@ class PemakaianbarangController extends Controller
             ->orderBy('fsubaccountcode')
             ->get();
 
-        $raw = (Auth::guard('sysuser')->user() ?? Auth::user())?->fcabang;
-
-        $branch = DB::table('mscabang')
-            ->when(is_numeric($raw), fn ($q) => $q->where('fcabangid', (int) $raw))
-            ->when(! is_numeric($raw), fn ($q) => $q
-                ->where('fcabangkode', $raw)
-                ->orWhere('fcabangname', $raw))
-            ->first(['fcabangid', 'fcabangkode', 'fcabangname']);
-
         $warehouses = DB::table('mswh')
             ->select('fwhid', 'fwhcode', 'fwhname', 'fbranchcode', 'fnonactive')
             ->where('fnonactive', '0') // hanya yang aktif
             ->orderBy('fwhcode')
             ->get();
-
-        $fcabang = $branch->fcabangname ?? (string) $raw;
-        $fbranchcode = $branch->fcabangkode ?? (string) $raw;
 
         // 1. Ambil data Header (trstockmt) DAN relasi Details (trstockdt)
         // Biarkan query ini. Sekarang $fstockmtid di sini adalah integer (misal: 8)
@@ -1318,6 +1285,7 @@ class PemakaianbarangController extends Controller
                 ->route('pemakaianbarang.view', $pemakaianbarang->fstockmtid)
                 ->with('error', $message);
         }
+        ['fcabang' => $fcabang, 'fbranchcode' => $fbranchcode] = $this->resolveBranchContext($pemakaianbarang->fbranchcode ?? null);
 
         $usageLockMessage = $this->getUsageLockMessage($pemakaianbarang);
 

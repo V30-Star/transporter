@@ -663,15 +663,6 @@ class AdjstockController extends Controller
     {
         $supplier = Supplier::all();
 
-        $raw = (Auth::guard('sysuser')->user() ?? Auth::user())?->fcabang;
-
-        $branch = DB::table('mscabang')
-            ->when(is_numeric($raw), fn ($q) => $q->where('fcabangid', (int) $raw))
-            ->when(! is_numeric($raw), fn ($q) => $q
-                ->where('fcabangkode', $raw)
-                ->orWhere('fcabangname', $raw))
-            ->first(['fcabangid', 'fcabangkode', 'fcabangname']);
-
         $warehouses = DB::table('mswh')
             ->select('fwhid', 'fwhcode', 'fwhname', 'fbranchcode', 'fnonactive')
             ->where('fnonactive', '0') // hanya yang aktif
@@ -683,9 +674,6 @@ class AdjstockController extends Controller
             ->where('fnonactive', '0')
             ->orderBy('account')
             ->get();
-
-        $fcabang = $branch->fcabangname ?? (string) $raw;
-        $fbranchcode = $branch->fcabangkode ?? (string) $raw;
 
         // 1. Ambil data Header (trstockmt) DAN relasi Details (trstockdt)
         // Biarkan query ini. Sekarang $fstockmtid di sini adalah integer (misal: 8)
@@ -710,6 +698,7 @@ class AdjstockController extends Controller
                 ->route('adjstock.view', $adjstock->fstockmtid)
                 ->with('error', $message);
         }
+        ['fcabang' => $fcabang, 'fbranchcode' => $fbranchcode] = $this->resolveBranchContext($adjstock->fbranchcode ?? null);
 
         $usageLockMessage = $this->getUsageLockMessage($adjstock);
 
@@ -790,15 +779,6 @@ class AdjstockController extends Controller
     {
         $supplier = Supplier::all();
 
-        $raw = (Auth::guard('sysuser')->user() ?? Auth::user())?->fcabang;
-
-        $branch = DB::table('mscabang')
-            ->when(is_numeric($raw), fn ($q) => $q->where('fcabangid', (int) $raw))
-            ->when(! is_numeric($raw), fn ($q) => $q
-                ->where('fcabangkode', $raw)
-                ->orWhere('fcabangname', $raw))
-            ->first(['fcabangid', 'fcabangkode', 'fcabangname']);
-
         $warehouses = DB::table('mswh')
             ->select('fwhid', 'fwhcode', 'fwhname', 'fbranchcode', 'fnonactive')
             ->where('fnonactive', '0') // hanya yang aktif
@@ -810,9 +790,6 @@ class AdjstockController extends Controller
             ->where('fnonactive', '0')
             ->orderBy('account')
             ->get();
-
-        $fcabang = $branch->fcabangname ?? (string) $raw;
-        $fbranchcode = $branch->fcabangkode ?? (string) $raw;
 
         // 1. Ambil data Header (trstockmt) DAN relasi Details (trstockdt)
         // Biarkan query ini. Sekarang $fstockmtid di sini adalah integer (misal: 8)
@@ -831,6 +808,7 @@ class AdjstockController extends Controller
             },
         ])
             ->findOrFail($fstockmtid); // Temukan header berdasarkan $fstockmtid dari URL
+        ['fcabang' => $fcabang, 'fbranchcode' => $fbranchcode] = $this->resolveBranchContext($adjstock->fbranchcode ?? null);
 
         // 4. Map the data for savedItems (sudah menggunakan data yang benar)
         $savedItems = $adjstock->details->map(function ($d) {
@@ -1159,15 +1137,6 @@ class AdjstockController extends Controller
     {
         $supplier = Supplier::all();
 
-        $raw = (Auth::guard('sysuser')->user() ?? Auth::user())?->fcabang;
-
-        $branch = DB::table('mscabang')
-            ->when(is_numeric($raw), fn ($q) => $q->where('fcabangid', (int) $raw))
-            ->when(! is_numeric($raw), fn ($q) => $q
-                ->where('fcabangkode', $raw)
-                ->orWhere('fcabangname', $raw))
-            ->first(['fcabangid', 'fcabangkode', 'fcabangname']);
-
         $warehouses = DB::table('mswh')
             ->select('fwhid', 'fwhcode', 'fwhname', 'fbranchcode', 'fnonactive')
             ->where('fnonactive', '0') // hanya yang aktif
@@ -1179,9 +1148,6 @@ class AdjstockController extends Controller
             ->where('fnonactive', '0')
             ->orderBy('account')
             ->get();
-
-        $fcabang = $branch->fcabangname ?? (string) $raw;
-        $fbranchcode = $branch->fcabangkode ?? (string) $raw;
 
         // 1. Ambil data Header (trstockmt) DAN relasi Details (trstockdt)
         // Biarkan query ini. Sekarang $fstockmtid di sini adalah integer (misal: 8)
@@ -1206,6 +1172,7 @@ class AdjstockController extends Controller
                 ->route('adjstock.view', $adjstock->fstockmtid)
                 ->with('error', $message);
         }
+        ['fcabang' => $fcabang, 'fbranchcode' => $fbranchcode] = $this->resolveBranchContext($adjstock->fbranchcode ?? null);
 
         $usageLockMessage = $this->getUsageLockMessage($adjstock);
 

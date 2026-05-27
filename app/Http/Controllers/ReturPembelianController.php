@@ -759,25 +759,14 @@ class ReturPembelianController extends Controller
             ->get();
 
         // --- Sisa kode Anda ---
-        $raw = (Auth::guard('sysuser')->user() ?? Auth::user())?->fcabang;
-
-        $branch = DB::table('mscabang')
-            ->when(is_numeric($raw), fn ($q) => $q->where('fcabangid', (int) $raw))
-            ->when(! is_numeric($raw), fn ($q) => $q
-                ->where('fcabangkode', $raw)
-                ->orWhere('fcabangname', $raw))
-            ->first(['fcabangid', 'fcabangkode', 'fcabangname']);
-
         $warehouses = DB::table('mswh')
             ->select('fwhid', 'fwhcode', 'fwhname', 'fbranchcode', 'fnonactive')
             ->where('fnonactive', '0') // hanya yang aktif
             ->orderBy('fwhcode')
             ->get();
 
-        $fcabang = $branch->fcabangname ?? (string) $raw;
-        $fbranchcode = $branch->fcabangkode ?? (string) $raw;
-
         // (Query $returpembelian sudah dipindah ke atas)
+        ['fcabang' => $fcabang, 'fbranchcode' => $fbranchcode] = $this->resolveBranchContext($returpembelian->fbranchcode ?? null);
 
         // 4. Map the data for savedItems
         $savedItems = $returpembelian->details->map(function ($d) {
@@ -882,25 +871,14 @@ class ReturPembelianController extends Controller
             ->get();
 
         // --- Sisa kode Anda ---
-        $raw = (Auth::guard('sysuser')->user() ?? Auth::user())?->fcabang;
-
-        $branch = DB::table('mscabang')
-            ->when(is_numeric($raw), fn ($q) => $q->where('fcabangid', (int) $raw))
-            ->when(! is_numeric($raw), fn ($q) => $q
-                ->where('fcabangkode', $raw)
-                ->orWhere('fcabangname', $raw))
-            ->first(['fcabangid', 'fcabangkode', 'fcabangname']);
-
         $warehouses = DB::table('mswh')
             ->select('fwhid', 'fwhcode', 'fwhname', 'fbranchcode', 'fnonactive')
             ->where('fnonactive', '0') // hanya yang aktif
             ->orderBy('fwhcode')
             ->get();
 
-        $fcabang = $branch->fcabangname ?? (string) $raw;
-        $fbranchcode = $branch->fcabangkode ?? (string) $raw;
-
         // (Query $returpembelian sudah dipindah ke atas)
+        ['fcabang' => $fcabang, 'fbranchcode' => $fbranchcode] = $this->resolveBranchContext($returpembelian->fbranchcode ?? null);
 
         // 4. Map the data for savedItems
         $savedItems = $returpembelian->details->map(function ($d) {
@@ -1282,25 +1260,14 @@ class ReturPembelianController extends Controller
             ->get();
 
         // --- Sisa kode Anda ---
-        $raw = (Auth::guard('sysuser')->user() ?? Auth::user())?->fcabang;
-
-        $branch = DB::table('mscabang')
-            ->when(is_numeric($raw), fn ($q) => $q->where('fcabangid', (int) $raw))
-            ->when(! is_numeric($raw), fn ($q) => $q
-                ->where('fcabangkode', $raw)
-                ->orWhere('fcabangname', $raw))
-            ->first(['fcabangid', 'fcabangkode', 'fcabangname']);
-
         $warehouses = DB::table('mswh')
             ->select('fwhid', 'fwhcode', 'fwhname', 'fbranchcode', 'fnonactive')
             ->where('fnonactive', '0') // hanya yang aktif
             ->orderBy('fwhcode')
             ->get();
 
-        $fcabang = $branch->fcabangname ?? (string) $raw;
-        $fbranchcode = $branch->fcabangkode ?? (string) $raw;
-
         // (Query $returpembelian sudah dipindah ke atas)
+        ['fcabang' => $fcabang, 'fbranchcode' => $fbranchcode] = $this->resolveBranchContext($returpembelian->fbranchcode ?? null);
 
         // 4. Map the data for savedItems
         $savedItems = $returpembelian->details->map(function ($d) {

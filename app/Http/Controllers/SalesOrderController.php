@@ -1139,18 +1139,6 @@ class SalesOrderController extends Controller
         $salesmans = Salesman::orderBy('fsalesmanname', 'asc')
             ->get(['fsalesmancode', 'fsalesmanname']);
 
-        $raw = (Auth::guard('sysuser')->user() ?? Auth::user())?->fcabang;
-
-        $branch = DB::table('mscabang')
-            ->when(is_numeric($raw), fn($q) => $q->where('fcabangid', (int) $raw))
-            ->when(! is_numeric($raw), fn($q) => $q
-                ->where('fcabangkode', $raw)
-                ->orWhere('fcabangname', $raw))
-            ->first(['fcabangid', 'fcabangkode', 'fcabangname']);
-
-        $fcabang = $branch->fcabangname ?? (string) $raw;   // tampilan
-        $fbranchcode = $branch->fcabangkode ?? (string) $raw;   // hidden post
-
         $salesorder = SalesOrderHeader::with(['customer', 'details' => function ($q) {
             $q->orderBy('trsodt.ftrsodtid')
                 ->leftJoin('msprd', function ($j) {
@@ -1178,6 +1166,8 @@ class SalesOrderController extends Controller
         if (! $salesorder->customer) {
             $salesorder->setRelation('customer', Customer::where('fcustomercode', trim((string) $salesorder->fcustno))->first());
         }
+
+        ['fcabang' => $fcabang, 'fbranchcode' => $fbranchcode] = $this->resolveBranchContext($salesorder->fbranchcode ?? null);
 
         $usageLockMessage = $this->getUsageLockMessage($salesorder);
 
@@ -1283,18 +1273,6 @@ class SalesOrderController extends Controller
 
         $salesmans = Salesman::orderBy('fsalesmanname', 'asc')
             ->get(['fsalesmancode', 'fsalesmanname']);
-        $raw = (Auth::guard('sysuser')->user() ?? Auth::user())?->fcabang;
-
-        $branch = DB::table('mscabang')
-            ->when(is_numeric($raw), fn($q) => $q->where('fcabangid', (int) $raw))
-            ->when(! is_numeric($raw), fn($q) => $q
-                ->where('fcabangkode', $raw)
-                ->orWhere('fcabangname', $raw))
-            ->first(['fcabangid', 'fcabangkode', 'fcabangname']);
-
-        $fcabang = $branch->fcabangname ?? (string) $raw;
-        $fbranchcode = $branch->fcabangkode ?? (string) $raw;
-
         $salesorder = SalesOrderHeader::with(['customer', 'details' => function ($q) {
             $q->orderBy('trsodt.ftrsodtid')
                 ->leftJoin('msprd', function ($j) {
@@ -1314,6 +1292,8 @@ class SalesOrderController extends Controller
         if (! $salesorder->customer) {
             $salesorder->setRelation('customer', Customer::where('fcustomercode', trim((string) $salesorder->fcustno))->first());
         }
+
+        ['fcabang' => $fcabang, 'fbranchcode' => $fbranchcode] = $this->resolveBranchContext($salesorder->fbranchcode ?? null);
 
         $approvalLockMessage = $this->getApprovalLockMessage($salesorder);
 
@@ -1668,18 +1648,6 @@ class SalesOrderController extends Controller
         $salesmans = Salesman::orderBy('fsalesmanname', 'asc')
             ->get(['fsalesmancode', 'fsalesmanname']);
 
-        $raw = (Auth::guard('sysuser')->user() ?? Auth::user())?->fcabang;
-
-        $branch = DB::table('mscabang')
-            ->when(is_numeric($raw), fn($q) => $q->where('fcabangid', (int) $raw))
-            ->when(! is_numeric($raw), fn($q) => $q
-                ->where('fcabangkode', $raw)
-                ->orWhere('fcabangname', $raw))
-            ->first(['fcabangid', 'fcabangkode', 'fcabangname']);
-
-        $fcabang = $branch->fcabangname ?? (string) $raw;   // tampilan
-        $fbranchcode = $branch->fcabangkode ?? (string) $raw;   // hidden post
-
         $salesorder = SalesOrderHeader::with(['customer', 'details' => function ($q) { // TAMBAHKAN 'customer' di sini
             $q->orderBy('trsodt.ftrsodtid')
                 ->leftJoin('msprd', function ($j) {
@@ -1703,6 +1671,8 @@ class SalesOrderController extends Controller
         if (! $salesorder->customer) {
             $salesorder->setRelation('customer', Customer::where('fcustomercode', trim((string) $salesorder->fcustno))->first());
         }
+
+        ['fcabang' => $fcabang, 'fbranchcode' => $fbranchcode] = $this->resolveBranchContext($salesorder->fbranchcode ?? null);
 
         $usageLockMessage = $this->getUsageLockMessage($salesorder);
 

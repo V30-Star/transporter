@@ -46,7 +46,7 @@
                 </div>
                 <div class="bg-gray-50 rounded-xl p-4">
                     <div class="text-xs text-gray-500">Branch</div>
-                    <div class="font-medium">{{ $hdr->fbranchcode ?? '-' }}</div>
+                    <div class="font-medium">{{ trim(implode(' - ', array_filter([trim((string) ($hdr->fbranchcode ?? '')), trim((string) ($hdr->cabang_name ?? ''))]))) ?: ($hdr->fbranchcode ?? '-') }}</div>
                 </div>
                 <div class="bg-gray-50 rounded-xl p-4">
                     <div class="text-xs text-gray-500">Tanggal Dibutuhkan</div>

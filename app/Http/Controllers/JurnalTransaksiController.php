@@ -746,21 +746,10 @@ class JurnalTransaksiController extends Controller
             ->orderBy('fsubaccountcode')
             ->get();
 
-        $raw = (Auth::guard('sysuser')->user() ?? Auth::user())?->fcabang;
-
-        $branch = DB::table('mscabang')
-            ->when(is_numeric($raw), fn ($q) => $q->where('fcabangid', (int) $raw))
-            ->when(! is_numeric($raw), fn ($q) => $q
-                ->where('fcabangkode', $raw)
-                ->orWhere('fcabangname', $raw))
-            ->first(['fcabangid', 'fcabangkode', 'fcabangname']);
-
         $warehouses = collect();
 
-        $fcabang = $branch->fcabangname ?? (string) $raw;
-        $fbranchcode = $branch->fcabangkode ?? (string) $raw;
-
         [$jurnaltransaksi, $savedItems] = $this->getJournalTransactionFormData($fstockmtid);
+        ['fcabang' => $fcabang, 'fbranchcode' => $fbranchcode] = $this->resolveBranchContext($jurnaltransaksi->fbranchcode ?? null);
         if ($message = $this->getPostedPeriodLockMessage($jurnaltransaksi->fjurnaldate, 'Jurnal ini')) {
             return redirect()->route('jurnaltransaksi.view', ['fcurrid' => $fstockmtid] + $this->resolveJournalIndexRouteParams($jurnaltransaksi->fjurnaltype))->with('error', $message);
         }
@@ -829,21 +818,10 @@ class JurnalTransaksiController extends Controller
             ->orderBy('fsubaccountcode')
             ->get();
 
-        $raw = (Auth::guard('sysuser')->user() ?? Auth::user())?->fcabang;
-
-        $branch = DB::table('mscabang')
-            ->when(is_numeric($raw), fn ($q) => $q->where('fcabangid', (int) $raw))
-            ->when(! is_numeric($raw), fn ($q) => $q
-                ->where('fcabangkode', $raw)
-                ->orWhere('fcabangname', $raw))
-            ->first(['fcabangid', 'fcabangkode', 'fcabangname']);
-
         $warehouses = collect();
 
-        $fcabang = $branch->fcabangname ?? (string) $raw;
-        $fbranchcode = $branch->fcabangkode ?? (string) $raw;
-
         [$jurnaltransaksi, $savedItems] = $this->getJournalTransactionFormData($fstockmtid);
+        ['fcabang' => $fcabang, 'fbranchcode' => $fbranchcode] = $this->resolveBranchContext($jurnaltransaksi->fbranchcode ?? null);
         $selectedSupplierCode = null;
 
         $products = Product::select(
@@ -1124,21 +1102,10 @@ class JurnalTransaksiController extends Controller
             ->orderBy('fsubaccountcode')
             ->get();
 
-        $raw = (Auth::guard('sysuser')->user() ?? Auth::user())?->fcabang;
-
-        $branch = DB::table('mscabang')
-            ->when(is_numeric($raw), fn ($q) => $q->where('fcabangid', (int) $raw))
-            ->when(! is_numeric($raw), fn ($q) => $q
-                ->where('fcabangkode', $raw)
-                ->orWhere('fcabangname', $raw))
-            ->first(['fcabangid', 'fcabangkode', 'fcabangname']);
-
         $warehouses = collect();
 
-        $fcabang = $branch->fcabangname ?? (string) $raw;
-        $fbranchcode = $branch->fcabangkode ?? (string) $raw;
-
         [$jurnaltransaksi, $savedItems] = $this->getJournalTransactionFormData($fstockmtid);
+        ['fcabang' => $fcabang, 'fbranchcode' => $fbranchcode] = $this->resolveBranchContext($jurnaltransaksi->fbranchcode ?? null);
         if ($message = $this->getPostedPeriodLockMessage($jurnaltransaksi->fjurnaldate, 'Jurnal ini')) {
             return redirect()->route('jurnaltransaksi.view', ['fcurrid' => $fstockmtid] + $this->resolveJournalIndexRouteParams($jurnaltransaksi->fjurnaltype))->with('error', $message);
         }

@@ -1098,8 +1098,6 @@ class Tr_pohController extends Controller
         $suppliers = Supplier::orderBy('fsuppliername', 'asc')
             ->get(['fsupplierid', 'fsuppliercode', 'fsuppliername', 'ftempo', 'fcurr']);
 
-        $raw = (Auth::guard('sysuser')->user() ?? Auth::user())?->fcabang;
-
         $currencies = DB::table('mscurrency')
             ->where(function ($q) {
                 $q->whereNull('fnonactive')
@@ -1108,16 +1106,6 @@ class Tr_pohController extends Controller
             })
             ->orderBy('fcurrname')
             ->get(['fcurrid', 'fcurrcode', 'fcurrname', 'frate']);
-
-        $branch = DB::table('mscabang')
-            ->when(is_numeric($raw), fn($q) => $q->where('fcabangid', (int) $raw))
-            ->when(! is_numeric($raw), fn($q) => $q
-                ->where('fcabangkode', $raw)
-                ->orWhere('fcabangname', $raw))
-            ->first(['fcabangid', 'fcabangkode', 'fcabangname']);
-
-        $fcabang = $branch->fcabangname ?? (string) $raw;
-        $fbranchcode = $branch->fcabangkode ?? (string) $raw;
 
         $tr_poh = Tr_poh::with(['details' => function ($q) {
             $q->leftJoin('msprd as m', 'm.fprdid', '=', 'tr_pod.fprdid')
@@ -1156,6 +1144,7 @@ class Tr_pohController extends Controller
                 ->route('tr_poh.view', $tr_poh->fpohid)
                 ->with('error', $message);
         }
+        ['fcabang' => $fcabang, 'fbranchcode' => $fbranchcode] = $this->resolveBranchContext($tr_poh->fbranchcode ?? null);
         $details = $this->getPoDetailsWithTerimaUsage($tr_poh->fpono);
 
         $existingTerima = DB::table('trstockdt')
@@ -1295,18 +1284,6 @@ class Tr_pohController extends Controller
         $suppliers = Supplier::orderBy('fsuppliername', 'asc')
             ->get(['fsupplierid', 'fsuppliercode', 'fsuppliername', 'ftempo', 'fcurr']);
 
-        $raw = (Auth::guard('sysuser')->user() ?? Auth::user())?->fcabang;
-
-        $branch = DB::table('mscabang')
-            ->when(is_numeric($raw), fn($q) => $q->where('fcabangid', (int) $raw))
-            ->when(! is_numeric($raw), fn($q) => $q
-                ->where('fcabangkode', $raw)
-                ->orWhere('fcabangname', $raw))
-            ->first(['fcabangid', 'fcabangkode', 'fcabangname']);
-
-        $fcabang = $branch->fcabangname ?? (string) $raw;
-        $fbranchcode = $branch->fcabangkode ?? (string) $raw;
-
         $tr_poh = Tr_poh::with(['details' => function ($q) {
             $q->leftJoin('msprd', function ($j) {
                 $j->on('msprd.fprdid', '=', 'tr_pod.fprdid');
@@ -1325,6 +1302,7 @@ class Tr_pohController extends Controller
                     DB::raw('COALESCE(r.total_terima, 0) AS fqtyterima')
                 );
         }])->findOrFail($fpohid);
+        ['fcabang' => $fcabang, 'fbranchcode' => $fbranchcode] = $this->resolveBranchContext($tr_poh->fbranchcode ?? null);
         $details = $this->getPoDetailsWithTerimaUsage($tr_poh->fpono);
 
         $currencies = DB::table('mscurrency')

@@ -969,23 +969,11 @@ class SuratJalanController extends Controller
         $customers = Customer::orderBy('fcustomername', 'asc')
             ->get(['fcustomercode', 'fcustomername']);
 
-        $raw = (Auth::guard('sysuser')->user() ?? Auth::user())?->fcabang;
-
-        $branch = DB::table('mscabang')
-            ->when(is_numeric($raw), fn($q) => $q->where('fcabangid', (int) $raw))
-            ->when(! is_numeric($raw), fn($q) => $q
-                ->where('fcabangkode', $raw)
-                ->orWhere('fcabangname', $raw))
-            ->first(['fcabangid', 'fcabangkode', 'fcabangname']);
-
         $warehouses = DB::table('mswh')
             ->select('fwhid', 'fwhcode', 'fwhname', 'fbranchcode', 'fnonactive')
             ->where('fnonactive', '0') // hanya yang aktif
             ->orderBy('fwhcode')
             ->get();
-
-        $fcabang = $branch->fcabangname ?? (string) $raw;
-        $fbranchcode = $branch->fcabangkode ?? (string) $raw;
 
         // 1. Ambil data Header (trstockmt) DAN relasi Details (trstockdt)
         // Biarkan query ini. Sekarang $fstockmtid di sini adalah integer (misal: 8)
@@ -1012,6 +1000,8 @@ class SuratJalanController extends Controller
                 ->route('suratjalan.view', $suratjalan->fstockmtid)
                 ->with('error', $message);
         }
+
+        ['fcabang' => $fcabang, 'fbranchcode' => $fbranchcode] = $this->resolveBranchContext($suratjalan->fbranchcode ?? null);
 
         // 4. Map the data for savedItems (sudah menggunakan data yang benar)
         $usageLockMessage = $this->getUsageLockMessage($suratjalan);
@@ -1115,23 +1105,11 @@ class SuratJalanController extends Controller
         $customers = Customer::orderBy('fcustomername', 'asc')
             ->get(['fcustomercode', 'fcustomername']);
 
-        $raw = (Auth::guard('sysuser')->user() ?? Auth::user())?->fcabang;
-
-        $branch = DB::table('mscabang')
-            ->when(is_numeric($raw), fn($q) => $q->where('fcabangid', (int) $raw))
-            ->when(! is_numeric($raw), fn($q) => $q
-                ->where('fcabangkode', $raw)
-                ->orWhere('fcabangname', $raw))
-            ->first(['fcabangid', 'fcabangkode', 'fcabangname']);
-
         $warehouses = DB::table('mswh')
             ->select('fwhid', 'fwhcode', 'fwhname', 'fbranchcode', 'fnonactive')
             ->where('fnonactive', '0') // hanya yang aktif
             ->orderBy('fwhcode')
             ->get();
-
-        $fcabang = $branch->fcabangname ?? (string) $raw;
-        $fbranchcode = $branch->fcabangkode ?? (string) $raw;
 
         // 1. Ambil data Header (trstockmt) DAN relasi Details (trstockdt)
         // Biarkan query ini. Sekarang $fstockmtid di sini adalah integer (misal: 8)
@@ -1152,6 +1130,8 @@ class SuratJalanController extends Controller
             ->leftJoin('mswh', 'mswh.fwhcode', '=', 'trstockmt.ffrom')
             ->select('trstockmt.*', 'mswh.fwhcode as ffrom_code')
             ->findOrFail($fstockmtid); // Temukan header berdasarkan $fstockmtid dari URL
+
+        ['fcabang' => $fcabang, 'fbranchcode' => $fbranchcode] = $this->resolveBranchContext($suratjalan->fbranchcode ?? null);
 
         // 4. Map the data for savedItems (sudah menggunakan data yang benar)
         $soReferenceStats = $this->getSoReferenceStats(
@@ -1670,23 +1650,11 @@ class SuratJalanController extends Controller
         $customers = Customer::orderBy('fcustomername', 'asc')
             ->get(['fcustomercode', 'fcustomername']);
 
-        $raw = (Auth::guard('sysuser')->user() ?? Auth::user())?->fcabang;
-
-        $branch = DB::table('mscabang')
-            ->when(is_numeric($raw), fn($q) => $q->where('fcabangid', (int) $raw))
-            ->when(! is_numeric($raw), fn($q) => $q
-                ->where('fcabangkode', $raw)
-                ->orWhere('fcabangname', $raw))
-            ->first(['fcabangid', 'fcabangkode', 'fcabangname']);
-
         $warehouses = DB::table('mswh')
             ->select('fwhid', 'fwhcode', 'fwhname', 'fbranchcode', 'fnonactive')
             ->where('fnonactive', '0') // hanya yang aktif
             ->orderBy('fwhcode')
             ->get();
-
-        $fcabang = $branch->fcabangname ?? (string) $raw;
-        $fbranchcode = $branch->fcabangkode ?? (string) $raw;
 
         // 1. Ambil data Header (trstockmt) DAN relasi Details (trstockdt)
         // Biarkan query ini. Sekarang $fstockmtid di sini adalah integer (misal: 8)
@@ -1713,6 +1681,8 @@ class SuratJalanController extends Controller
                 ->route('suratjalan.view', $suratjalan->fstockmtid)
                 ->with('error', $message);
         }
+
+        ['fcabang' => $fcabang, 'fbranchcode' => $fbranchcode] = $this->resolveBranchContext($suratjalan->fbranchcode ?? null);
 
         // 4. Map the data for savedItems (sudah menggunakan data yang benar)
         $usageLockMessage = $this->getUsageLockMessage($suratjalan);

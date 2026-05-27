@@ -22,7 +22,11 @@ class ApprovalController extends Controller
             return redirect()->route('tr_prh.index')->with('error', 'Link approval tidak valid.');
         }
 
-        $hdr = Tr_prh::where('fprno', $fprno)->first();
+        $hdr = Tr_prh::query()
+            ->leftJoin('mscabang as c', 'c.fcabangkode', '=', 'tr_prh.fbranchcode')
+            ->where('tr_prh.fprno', $fprno)
+            ->select('tr_prh.*', 'c.fcabangname as cabang_name')
+            ->first();
         if (! $hdr) {
             return redirect()->route('tr_prh.index')->with('error', 'Link approval tidak valid atau data tidak ditemukan.');
         }
