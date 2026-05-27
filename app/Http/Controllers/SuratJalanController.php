@@ -996,7 +996,12 @@ class SuratJalanController extends Controller
                     ->select(
                         'trstockdt.*', // Ambil semua kolom dari tabel detail
                         'msprd.fprdname', // Ambil nama produk
-                        'msprd.fprdcode as fitemcode_text' // Ambil KODE string produk
+                        'msprd.fprdcode as fitemcode_text', // Ambil KODE string produk
+                        'msprd.fsatuankecil',
+                        'msprd.fsatuanbesar',
+                        'msprd.fsatuanbesar2',
+                        'msprd.fqtykecil as fprd_qtykonversi',
+                        'msprd.fqtykecil2 as fprd_qtykonversi2'
                     )
                     ->orderBy('trstockdt.fstockdtid', 'asc');
             },
@@ -1029,7 +1034,7 @@ class SuratJalanController extends Controller
         $savedItems = $suratjalan->details->map(function ($d) use ($soReferenceStats) {
             $referenceKey = $this->buildSoReferenceUsageKey($d->frefso ?? '', $d->fprdcode ?? '', $d->frefnoacak ?? '');
             $stat = $soReferenceStats[$referenceKey] ?? null;
-            $maxqty = max(0, (float) ($d->fqty ?? 0) + (float) ($stat['remain_qty_kecil'] ?? 0));
+            $maxqty = max(0, (float) ($d->fqtykecil ?? 0) + (float) ($stat['remain_qty_kecil'] ?? 0));
             return [
                 'uid' => $d->fstockdtid,
                 'fitemcode' => $d->fitemcode_text ?? '',
@@ -1132,7 +1137,12 @@ class SuratJalanController extends Controller
                     ->select(
                         'trstockdt.*', // Ambil semua kolom dari tabel detail
                         'msprd.fprdname', // Ambil nama produk
-                        'msprd.fprdcode as fitemcode_text' // Ambil KODE string produk
+                        'msprd.fprdcode as fitemcode_text', // Ambil KODE string produk
+                        'msprd.fsatuankecil',
+                        'msprd.fsatuanbesar',
+                        'msprd.fsatuanbesar2',
+                        'msprd.fqtykecil as fprd_qtykonversi',
+                        'msprd.fqtykecil2 as fprd_qtykonversi2'
                     )
                     ->orderBy('trstockdt.fstockdtid', 'asc');
             },
@@ -1152,7 +1162,7 @@ class SuratJalanController extends Controller
         $savedItems = $suratjalan->details->map(function ($d) use ($soReferenceStats) {
             $referenceKey = $this->buildSoReferenceUsageKey($d->frefso ?? '', $d->fprdcode ?? '', $d->frefnoacak ?? '');
             $stat = $soReferenceStats[$referenceKey] ?? null;
-            $maxqty = max(0, (float) ($d->fqty ?? 0) + (float) ($stat['remain_qty_kecil'] ?? 0));
+            $maxqty = max(0, (float) ($d->fqtykecil ?? 0) + (float) ($stat['remain_qty_kecil'] ?? 0));
             return [
                 'uid' => $d->fstockdtid,
                 'fitemcode' => $d->fitemcode_text ?? '',
@@ -1687,7 +1697,12 @@ class SuratJalanController extends Controller
                     ->select(
                         'trstockdt.*', // Ambil semua kolom dari tabel detail
                         'msprd.fprdname', // Ambil nama produk
-                        'msprd.fprdcode as fitemcode_text' // Ambil KODE string produk
+                        'msprd.fprdcode as fitemcode_text', // Ambil KODE string produk
+                        'msprd.fsatuankecil',
+                        'msprd.fsatuanbesar',
+                        'msprd.fsatuanbesar2',
+                        'msprd.fqtykecil as fprd_qtykonversi',
+                        'msprd.fqtykecil2 as fprd_qtykonversi2'
                     )
                     ->orderBy('trstockdt.fstockdtid', 'asc');
             },
@@ -1720,7 +1735,7 @@ class SuratJalanController extends Controller
         $savedItems = $suratjalan->details->map(function ($d) use ($soReferenceStats) {
             $referenceKey = $this->buildSoReferenceUsageKey($d->frefso ?? '', $d->fprdcode ?? '', $d->frefnoacak ?? '');
             $stat = $soReferenceStats[$referenceKey] ?? null;
-            $maxqty = max(0, (float) ($d->fqty ?? 0) + (float) ($stat['remain_qty_kecil'] ?? 0));
+            $maxqty = max(0, (float) ($d->fqtykecil ?? 0) + (float) ($stat['remain_qty_kecil'] ?? 0));
             return [
                 'uid' => $d->fstockdtid,
                 'fitemcode' => $d->fitemcode_text ?? '',
