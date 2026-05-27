@@ -1855,8 +1855,28 @@
             }) {
                 const hidden = document.getElementById(hiddenId);
                 const select = document.getElementById(selectId);
-                const browseButton = (buttonId ? document.getElementById(buttonId) : null) || hidden
-                    ?.nextElementSibling;
+                const resolveBrowseButton = () => {
+                    if (buttonId) {
+                        const explicitButton = document.getElementById(buttonId);
+                        if (explicitButton) {
+                            return explicitButton;
+                        }
+                    }
+
+                    let candidate = hidden?.nextElementSibling || null;
+                    while (candidate) {
+                        const tagName = (candidate.tagName || '').toUpperCase();
+                        const inputType = (candidate.getAttribute?.('type') || '').toLowerCase();
+                        if (!(tagName === 'INPUT' && inputType === 'hidden')) {
+                            return candidate;
+                        }
+                        candidate = candidate.nextElementSibling;
+                    }
+
+                    return null;
+                };
+
+                const browseButton = resolveBrowseButton();
 
                 if (!hidden || !select || !browseButton || document.querySelector(`[data-browse-clear-for="${hiddenId}"]`)) {
                     return;
