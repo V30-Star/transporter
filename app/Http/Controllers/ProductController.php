@@ -46,6 +46,15 @@ class ProductController extends Controller
         };
     }
 
+    protected function resolveProductDefaultUnit(Product $product): string
+    {
+        return match ((string) ($product->fsatuandefault ?? '1')) {
+            '2' => trim((string) ($product->fsatuanbesar ?? '')),
+            '3' => trim((string) ($product->fsatuanbesar2 ?? '')),
+            default => trim((string) ($product->fsatuankecil ?? '')),
+        } ?: trim((string) ($product->fsatuankecil ?? ''));
+    }
+
     protected function getApprovalRecipients(): array
     {
         return array_values(array_filter([
@@ -223,6 +232,8 @@ class ProductController extends Controller
                 'msprd.fprdcode',
                 'msprd.fprdname',
                 'msprd.fsatuankecil',
+                'msprd.fsatuanbesar',
+                'msprd.fsatuanbesar2',
                 'msprd.fsatuandefault',
                 'msprd.fminstock',
                 'msprd.fimage1',
@@ -247,7 +258,7 @@ class ProductController extends Controller
                     'fprdcode' => $item->fprdcode,
                     'fprdname' => $item->fprdname,
                     'fmerek' => $item->merek_name,
-                    'fsatuankecil' => $item->fsatuankecil,
+                    'fsatuankecil' => $this->resolveProductDefaultUnit($item),
                     'fminstock' => $item->fminstock,
                     'fhpp_display' => $canViewHpp ? $this->resolveProductDefaultHpp($item) : null,
                     'fimage1' => $item->fimage1,
