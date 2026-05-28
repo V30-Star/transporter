@@ -2107,15 +2107,15 @@
                 }
                 row.fitemname = meta.name || '';
                 row.frefcode = meta.id || meta.fprdid || '';
-                // If this row came from a reference (SRJ / Invoice), keep its
-                // locked unit and do NOT override units/fsatuan from product meta.
-                const isRefRow = String(row.frefso ?? '').trim() !== '' ||
-                    String(row.frefsrj ?? '').trim() !== '';
-                if (!isRefRow) {
-                    const units = [...new Set((meta.units || []).map(u => (u ?? '').toString().trim()).filter(Boolean))];
-                    row.units = units;
-                    if (!units.includes(row.fsatuan)) row.fsatuan = units[0] || '';
-                    row.fsatuan = row.fsatuan;
+                const currentUnit = (row.fsatuan ?? '').toString().trim();
+                const units = [...new Set((meta.units || []).map(u => (u ?? '').toString().trim()).filter(Boolean))];
+                row.units = currentUnit
+                    ? [currentUnit, ...units.filter(u => u !== currentUnit)]
+                    : units;
+                if (!row.units.includes(currentUnit)) {
+                    row.fsatuan = row.units[0] || '';
+                } else {
+                    row.fsatuan = currentUnit;
                 }
                 if (meta.unit_ratios) row.unit_ratios = meta.unit_ratios;
                 row.maxqty = Number.isFinite(+row.maxqty) ? +row.maxqty : 0;
@@ -2212,11 +2212,13 @@
                     duplicates = [];
 
                 items.forEach(src => {
+                    const sourceUnit = (src.fsatuan ?? '').toString().trim();
                     const row = {
                         uid: cryptoRandom(),
                         fitemcode: src.fitemcode ?? '',
                         fitemname: src.fitemname ?? '',
-                        fsatuan: src.fsatuan ?? '',
+                        fsatuan: sourceUnit,
+                        fdisplayunit: (src.fdisplayunit ?? src.fsatuan ?? '').toString().trim(),
                         frefdtno: src.frefdtno ?? '',
                         fnouref: (src.frefdtno ?? src.fnouref ?? null),
                         frefpr: src.frefpr ?? (source === 'SRJ' ? (header?.fstockmtno ?? '') : (header
@@ -2237,10 +2239,20 @@
                         ftotal: Number(src.ftotal ?? 0),
                         fdesc: src.fdesc ?? '',
                         fketdt: src.fketdt ?? '',
-                        // Lock unit to the reference unit (single-element array = read-only display)
-                        units: [src.fsatuan ?? ''].filter(Boolean),
+                        units: sourceUnit
+                            ? [
+                                sourceUnit,
+                                ...(Array.isArray(src.units)
+                                    ? src.units.map(u => (u ?? '').toString().trim()).filter(Boolean).filter(u => u !== sourceUnit)
+                                    : []),
+                            ]
+                            : (Array.isArray(src.units)
+                                ? src.units.map(u => (u ?? '').toString().trim()).filter(Boolean)
+                                : []),
                         maxqty: Math.max(0, Number(src.maxqty ?? src.fqtyremain ?? src.fqty ?? 0)),
                     };
+
+                    this.hydrateRowFromMeta(row, this.productMeta(row.fitemcode));
 
                     const key = this.itemKey({
                         fitemcode: row.fitemcode,
@@ -2266,6 +2278,19 @@
                         ...this.createRow(),
                         ...row,
                         uid: cryptoRandom(),
+                    });
+                    this.$nextTick(() => {
+                        const target = this.savedItems[this.savedItems.length - 1];
+                        const lockedUnit = (target?.fdisplayunit ?? '').toString().trim();
+                        if (target && lockedUnit) {
+                            target.fsatuan = lockedUnit;
+                            if (!Array.isArray(target.units)) {
+                                target.units = [];
+                            }
+                            if (!target.units.includes(lockedUnit)) {
+                                target.units.unshift(lockedUnit);
+                            }
+                        }
                     });
                     existing.add(key);
                     added++;
@@ -2490,6 +2515,18 @@
                     fnoacak: this.normalizeNoAcak(item.fnoacak) || this.generateUniqueNoAcak(),
                     frefnoacak: this.normalizeRefNoAcak(item.frefnoacak),
                 }));
+                this.savedItems.forEach((item) => {
+                    const lockedUnit = (item?.fdisplayunit ?? '').toString().trim();
+                    if (lockedUnit) {
+                        item.fsatuan = lockedUnit;
+                        if (!Array.isArray(item.units)) {
+                            item.units = [];
+                        }
+                        if (!item.units.includes(lockedUnit)) {
+                            item.units.unshift(lockedUnit);
+                        }
+                    }
+                });
                 window.addEventListener('invoice-picked', (e) => this.onPrPicked(e, 'INV'), {
                     passive: true
                 });

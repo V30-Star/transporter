@@ -2880,15 +2880,15 @@
                     return;
                 }
                 row.fitemname = meta.name || '';
-                // If this row came from a reference (SRJ / Invoice), keep its
-                // locked unit and do NOT override units/fsatuan from product meta.
-                const isRefRow = String(row.frefso ?? '').trim() !== '' ||
-                    String(row.frefsrj ?? '').trim() !== '';
-                if (!isRefRow) {
-                    const units = [...new Set((meta.units || []).map(u => (u ?? '').toString().trim()).filter(Boolean))];
-                    row.units = units;
-                    if (!units.includes(row.fsatuan)) row.fsatuan = units[0] || '';
-                    row.fsatuan = row.fsatuan;
+                const currentUnit = (row.fsatuan ?? '').toString().trim();
+                const units = [...new Set((meta.units || []).map(u => (u ?? '').toString().trim()).filter(Boolean))];
+                row.units = currentUnit
+                    ? [currentUnit, ...units.filter(u => u !== currentUnit)]
+                    : units;
+                if (!row.units.includes(currentUnit)) {
+                    row.fsatuan = row.units[0] || '';
+                } else {
+                    row.fsatuan = currentUnit;
                 }
                 if (meta.unit_ratios) row.unit_ratios = meta.unit_ratios;
                 row.maxqty = Number.isFinite(+row.maxqty) ? +row.maxqty : 0;
@@ -3028,6 +3028,7 @@
                         fitemcode: itemcode,
                         fitemname: itemname,
                         fsatuan: satuan,
+                        fdisplayunit: (src.fdisplayunit ?? src.fsatuan ?? '').toString().trim(),
                         frefdtno: src.frefdtno ?? '',
                         fnouref: (src.frefdtno ?? src.fnouref ?? null),
                         frefcode: source,
@@ -3044,10 +3045,20 @@
                         ftotal: 0,
                         fdesc: src.fdesc ? src.fdesc.toString().trim() : '',
                         fketdt: src.fketdt ? src.fketdt.toString().trim() : '',
-                        // Lock unit to the reference unit (single-element array = read-only display)
-                        units: [satuan].filter(Boolean),
+                        units: satuan
+                            ? [
+                                satuan,
+                                ...(Array.isArray(src.units)
+                                    ? src.units.map(u => (u ?? '').toString().trim()).filter(Boolean).filter(u => u !== satuan)
+                                    : []),
+                            ]
+                            : (Array.isArray(src.units)
+                                ? src.units.map(u => (u ?? '').toString().trim()).filter(Boolean)
+                                : []),
                         maxqty: Math.max(0, Number(src.maxqty ?? src.fqtyremain ?? src.fqty ?? 0)),
                     };
+
+                    this.hydrateRowFromMeta(row, this.productMeta(itemcode));
 
                     const rowLimit = this.getRowQtyLimit(row);
                     if (!(rowLimit > 0)) return;
@@ -3061,6 +3072,19 @@
                         ...this.createRow(),
                         ...row,
                         uid: cryptoRandom(),
+                    });
+                    this.$nextTick(() => {
+                        const target = this.savedItems[this.savedItems.length - 1];
+                        const lockedUnit = (target?.fdisplayunit ?? '').toString().trim();
+                        if (target && lockedUnit) {
+                            target.fsatuan = lockedUnit;
+                            if (!Array.isArray(target.units)) {
+                                target.units = [];
+                            }
+                            if (!target.units.includes(lockedUnit)) {
+                                target.units.unshift(lockedUnit);
+                            }
+                        }
                     });
                     this.onRowUpdated(this.savedItems.length - 1);
                     added++;
@@ -3299,6 +3323,18 @@
                         frefnoacak: this.normalizeRefNoAcak(item.frefnoacak),
                         maxqty: Number.isFinite(soLimit) ? soLimit : 0,
                     };
+                });
+                this.savedItems.forEach((item) => {
+                    const lockedUnit = (item?.fdisplayunit ?? '').toString().trim();
+                    if (lockedUnit) {
+                        item.fsatuan = lockedUnit;
+                        if (!Array.isArray(item.units)) {
+                            item.units = [];
+                        }
+                        if (!item.units.includes(lockedUnit)) {
+                            item.units.unshift(lockedUnit);
+                        }
+                    }
                 });
 
                 window.getCurrentItemKeys = () => this.getCurrentItemKeys();

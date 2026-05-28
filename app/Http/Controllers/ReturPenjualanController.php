@@ -331,6 +331,9 @@ class ReturPenjualanController extends Controller
                 'trandt.frefso',
                 'trandt.frefsrj',
                 DB::raw("COALESCE(NULLIF(TRIM(trandt.fnoacak::text), ''), '') as frefnoacak"),
+                'm.fsatuankecil',
+                'm.fsatuanbesar',
+                'm.fsatuanbesar2',
             ])
             ->orderBy('trandt.fnou')
             ->get();
@@ -343,7 +346,32 @@ class ReturPenjualanController extends Controller
                 'fcustno' => trim((string) ($header->fcustno ?? '')),
                 'fsodate' => optional($header->fsodate)->format('Y-m-d H:i:s'),
             ],
-            'items' => $items,
+            'items' => $items->map(function ($item) {
+                $units = array_values(array_filter(array_map(
+                    fn ($value) => trim((string) $value),
+                    [
+                        $item->fsatuankecil ?? '',
+                        $item->fsatuanbesar ?? '',
+                        $item->fsatuanbesar2 ?? '',
+                    ]
+                )));
+
+                return [
+                    'frefdtno' => $item->frefdtno,
+                    'fitemcode' => trim((string) ($item->fitemcode ?? '')),
+                    'fitemname' => trim((string) ($item->fitemname ?? '')),
+                    'fqty' => (float) ($item->fqty ?? 0),
+                    'fsatuan' => trim((string) ($item->fsatuan ?? '')),
+                    'fdisplayunit' => trim((string) ($item->fsatuan ?? '')),
+                    'fprice' => (float) ($item->fprice ?? 0),
+                    'fdisc' => (string) ($item->fdisc ?? '0'),
+                    'fdesc' => (string) ($item->fdesc ?? ''),
+                    'frefso' => trim((string) ($item->frefso ?? '')),
+                    'frefsrj' => trim((string) ($item->frefsrj ?? '')),
+                    'frefnoacak' => trim((string) ($item->frefnoacak ?? '')),
+                    'units' => $units,
+                ];
+            })->values(),
         ]);
     }
 
