@@ -389,7 +389,7 @@
                                                     </div>
                                                 </td>
                                                 <td class="p-2" x-text="it.frefno_display || it.frefso || '-'"></td>
-                                                <td class="p-2 text-left italic" x-text="it.fsatuan"></td>
+                                                <td class="p-2 text-left italic text-gray-700" x-text="it.fsatuan || '-'"></td>
                                                 <td class="p-2 text-right" x-text="formatQtyValue(it.fqty)"></td>
                                                 <td class="hidden">
                                                     <input type="hidden" name="fitemcode[]" :value="it.fitemcode">
