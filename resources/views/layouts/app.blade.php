@@ -1954,53 +1954,11 @@
             }
 
             function installTransactionBrowseClearButtons() {
-                [{
-                        hiddenId: 'supplierCodeHidden',
-                        selectId: 'modal_filter_supplier_id',
-                        buttonId: 'supplierBrowseButton',
-                        title: 'Clear Supplier'
-                    },
-                    {
-                        hiddenId: 'customerCodeHidden',
-                        selectId: 'modal_filter_customer_id',
-                        title: 'Clear Customer',
-                        onClear: () => window.dispatchEvent(new CustomEvent('customer-selected', {
-                            detail: {
-                                fcustomercode: '',
-                                fcustomername: '',
-                                ftempo: '',
-                                fsalesman: '',
-                                f1: '',
-                                f2: '',
-                                f3: '',
-                                fkodefp: ''
-                            }
-                        }))
-                    },
+                [
                     {
                         hiddenId: 'salesmanCodeHidden',
                         selectId: 'modal_filter_salesman_id',
                         title: 'Clear Salesman'
-                    },
-                    {
-                        hiddenId: 'warehouseCodeHidden',
-                        selectId: 'warehouseSelect',
-                        title: 'Clear Gudang'
-                    },
-                    {
-                        hiddenId: 'warehouseCodeHiddenFrom',
-                        selectId: 'warehouseSelectFrom',
-                        title: 'Clear Gudang Dari'
-                    },
-                    {
-                        hiddenId: 'warehouseCodeHiddenTo',
-                        selectId: 'warehouseSelectTo',
-                        title: 'Clear Gudang Ke'
-                    },
-                    {
-                        hiddenId: 'accountCodeHidden',
-                        selectId: 'accountSelect',
-                        title: 'Clear Account'
                     }
                 ].forEach(ensureBrowseClearButton);
             }

@@ -1182,7 +1182,7 @@ class InvoiceController extends Controller
 
                 // --- INSERT HEADER DAN AMBIL ID ---
                 $ftranmtid = DB::table('tranmt')->insertGetId([
-                    'ftaxno' => mb_substr($request->ftaxno ?? '', 0, 50),
+                    'ftaxno' => mb_substr($fsono, 0, 50),
                     'fsono' => $fsono,
                     'fsodate' => $fsodate,
                     'fcustno' => mb_substr($request->fcustno, 0, 10),
@@ -2256,7 +2256,7 @@ class InvoiceController extends Controller
             ) {
                 // Update Header
                 DB::table('tranmt')->where('ftranmtid', $ftranmtid)->update([
-                    'ftaxno' => mb_substr($request->ftaxno ?? '', 0, 50),
+                    'ftaxno' => mb_substr((string) ($invoice->fsono ?? ''), 0, 50),
                     'fsodate' => $fsodate,
                     'fcustno' => mb_substr((string) $request->fcustno, 0, 10),
                     'fkodefp' => $fkodefp,

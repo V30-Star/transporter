@@ -203,8 +203,11 @@
 
                     <div class="lg:col-span-4">
                         <label class="block text-sm font-medium">Faktur Pajak#</label>
-                        <input type="text" name="ftaxno" value="{{ old('ftaxno') }}"
-                            class="w-full border rounded px-3 py-2 @error('ftaxno') border-red-500 @enderror">
+                        <input type="text" id="ftaxno" name="ftaxno" value="{{ old('ftaxno', old('fsono')) }}"
+                            placeholder="Mengikuti Faktur#"
+                            readonly
+                            class="w-full border rounded px-3 py-2 bg-gray-100 text-gray-600 @error('ftaxno') border-red-500 @enderror">
+                        <p class="text-[10px] text-blue-600 mt-1">* Sementara mengikuti nomor Faktur#</p>
                         @error('ftaxno')
                             <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                         @enderror
@@ -1245,6 +1248,13 @@
         window.syncInvoiceTempoFromSource(eventTempo || optionTempo || '0');
     };
 
+    window.syncInvoiceTaxNoFromInvoiceNo = function() {
+        const invoiceInput = document.querySelector('input[name="fsono"]');
+        const taxInput = document.getElementById('ftaxno');
+        if (!invoiceInput || !taxInput) return;
+        taxInput.value = String(invoiceInput.value ?? '').trim();
+    };
+
     document.addEventListener('customer-selected', function(event) {
         window.syncInvoiceCustomerTaxCode(event.detail || null);
         window.syncInvoiceTempoFromCustomer(event.detail || null);
@@ -1252,15 +1262,21 @@
 
     document.addEventListener('DOMContentLoaded', function() {
         const select = document.getElementById('modal_filter_customer_id');
+        const invoiceInput = document.querySelector('input[name="fsono"]');
         if (select) {
             select.addEventListener('change', function() {
                 window.syncInvoiceCustomerTaxCode();
                 window.syncInvoiceTempoFromCustomer();
             });
         }
+        if (invoiceInput) {
+            invoiceInput.addEventListener('input', window.syncInvoiceTaxNoFromInvoiceNo);
+            invoiceInput.addEventListener('change', window.syncInvoiceTaxNoFromInvoiceNo);
+        }
 
         window.syncInvoiceCustomerTaxCode();
         window.syncInvoiceTempoFromCustomer();
+        window.syncInvoiceTaxNoFromInvoiceNo();
     });
 
     window.getInvoiceDuplicateCode = function(form) {
