@@ -318,7 +318,7 @@
                             @enderror
                         </div>
 
-                        <div class="lg:col-span-12">
+                        <div class="lg:col-span-6">
                             <label class="block text-sm font-bold">Kirim ke</label>
                             <textarea name="fkirim" rows="3"
                                 class="w-full border rounded px-3 py-2 @error('fkirim') border-red-500 @enderror"
@@ -327,7 +327,7 @@
                                 <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                             @enderror
                         </div>
-                        <div class="lg:col-span-12">
+                        <div class="lg:col-span-6">
                             <label class="block text-sm font-bold">Keterangan</label>
                             <textarea name="fket" rows="3"
                                 class="w-full border rounded px-3 py-2 @error('fket') border-red-500 @enderror"

@@ -659,7 +659,7 @@
                             </div>
                             <div class="flex items-center gap-2">
                                 <label
-                                    class="flex items-center gap-1.5 select-none {{ $isEdit ?  font-bold'cursor-pointer' : '' }}">
+                                    class="flex items-center gap-1.5 select-none {{ $isEdit ? 'font-bold cursor-pointer' : '' }}">
                                     <input type="checkbox" name="fapplyppn" value="1" x-model="includePPN"
                                         {{ $isDelete ? 'disabled' : '' }}
                                         class="h-4 w-4 text-blue-600 border-gray-300 rounded {{ $isDelete ? 'cursor-not-allowed' : '' }}">
