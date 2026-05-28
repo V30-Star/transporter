@@ -343,10 +343,13 @@ class ReturPenjualanController extends Controller
                 'ftranmtid' => $header->ftranmtid,
                 'fsono' => $header->fsono,
                 'frefno' => trim((string) ($header->frefno ?? '')),
+                'fdisplayref' => trim((string) ($header->frefno ?? '')) !== ''
+                    ? trim((string) ($header->frefno ?? ''))
+                    : trim((string) ($header->fsono ?? '')),
                 'fcustno' => trim((string) ($header->fcustno ?? '')),
                 'fsodate' => optional($header->fsodate)->format('Y-m-d H:i:s'),
             ],
-            'items' => $items->map(function ($item) {
+            'items' => $items->map(function ($item) use ($header) {
                 $units = array_values(array_filter(array_map(
                     fn ($value) => trim((string) $value),
                     [
@@ -366,6 +369,10 @@ class ReturPenjualanController extends Controller
                     'fprice' => (float) ($item->fprice ?? 0),
                     'fdisc' => (string) ($item->fdisc ?? '0'),
                     'fdesc' => (string) ($item->fdesc ?? ''),
+                    'fnouref' => trim((string) ($header->fsono ?? '')),
+                    'frefpr' => trim((string) ($header->frefno ?? '')) !== ''
+                        ? trim((string) ($header->frefno ?? ''))
+                        : trim((string) ($header->fsono ?? '')),
                     'frefso' => trim((string) ($item->frefso ?? '')),
                     'frefsrj' => trim((string) ($item->frefsrj ?? '')),
                     'frefnoacak' => trim((string) ($item->frefnoacak ?? '')),
@@ -1234,12 +1241,12 @@ class ReturPenjualanController extends Controller
                 ->selectRaw("
                     TRIM(d.fsono) as ref_doc,
                     TRIM(d.fprdcode) as product_code,
-                    COALESCE(d.frefnosoacak::text, d.fnoacak::text, '') as ref_noacak,
+                    COALESCE(d.fnoacak::text, '') as ref_noacak,
                     MAX(COALESCE(p.fprdname, d.fprdcode)) as product_name,
                     MAX(COALESCE(d.fsatuan, '')) as source_unit,
                     SUM(COALESCE(d.fqtykecil, 0)) as source_qty_kecil
                 ")
-                ->groupByRaw("TRIM(d.fsono), TRIM(d.fprdcode), COALESCE(d.frefnosoacak::text, d.fnoacak::text, '')")
+                ->groupByRaw("TRIM(d.fsono), TRIM(d.fprdcode), COALESCE(d.fnoacak::text, '')")
                 ->get();
 
             $usageRows = DB::table('trandt as d')
@@ -1336,7 +1343,7 @@ class ReturPenjualanController extends Controller
                     d.ftrsodtid,
                     TRIM(d.fsono) as ref_doc,
                     TRIM(d.fprdcode) as product_code,
-                    COALESCE(d.frefnosoacak::text, d.fnoacak::text, '') as ref_noacak
+                    COALESCE(d.fnoacak::text, '') as ref_noacak
                 ")
                 ->get();
 

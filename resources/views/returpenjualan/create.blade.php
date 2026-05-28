@@ -309,6 +309,15 @@
                             @enderror
                         </div>
 
+                        <div class="lg:col-span-4">
+                            <label class="block text-sm font-medium">No. Referensi</label>
+                            <input type="text" id="headerReferenceDisplay"
+                                value="{{ old('frefdisplay_header', '') }}"
+                                class="w-full border rounded px-3 py-2 bg-gray-100 text-gray-600" readonly>
+                            <input type="hidden" name="frefdisplay_header" id="frefdisplay_header"
+                                value="{{ old('frefdisplay_header', '') }}">
+                        </div>
+
                         <div class="lg:col-span-12">
                             <label class="block text-sm font-medium">Keterangan</label>
                             <textarea name="fket" rows="3"
@@ -408,7 +417,7 @@
                                                 <div class="flex w-full max-w-full">
                                                     <input type="text"
                                                         class="min-w-0 flex-1 border rounded-l px-2 py-1 bg-gray-100 text-gray-600 text-sm"
-                                                        :value="it.frefcode || '-'"
+                                                        :value="it.frefpr || it.fnouref || it.frefcode || '-'"
                                                         disabled>
                                                     <button type="button" @click="openProductHistory(it)"
                                                         class="shrink-0 border border-l-0 px-2 py-1 bg-white hover:bg-gray-50 rounded-r"
@@ -503,6 +512,14 @@
                                 const inputRefCode = document.getElementById('frefcode');
                                 const inputRefSo = document.getElementById('frefso');
                                 const inputRefSrj = document.getElementById('frefsrj');
+                                const inputRefDisplay = document.getElementById('frefdisplay_header');
+                                const inputRefDisplayText = document.getElementById('headerReferenceDisplay');
+
+                                function setHeaderReferenceDisplay(value) {
+                                    const resolved = (value ?? '').toString().trim();
+                                    if (inputRefDisplay) inputRefDisplay.value = resolved;
+                                    if (inputRefDisplayText) inputRefDisplayText.value = resolved;
+                                }
 
                                 /**
                                  * Auto-fill customer dari header referensi (Faktur/SRJ).
@@ -544,6 +561,7 @@
                                     inputRefCode.value = 'INV';
                                     inputRefSo.value = header.fsono ?? '';
                                     inputRefSrj.value = ''; // Reset yang lain
+                                    setHeaderReferenceDisplay(header.fdisplayref ?? header.frefno ?? header.fsono ?? '');
 
                                     // Auto-fill customer dari faktur
                                     autoFillCustomer(
@@ -558,6 +576,7 @@
                                     inputRefCode.value = 'SRJ';
                                     inputRefSrj.value = header.fstockmtid; // Sesuaikan ID header SRJ
                                     inputRefSo.value = ''; // Reset yang lain
+                                    setHeaderReferenceDisplay(header.fdisplayref ?? header.frefno ?? header.fstockmtno ?? '');
 
                                     // Auto-fill customer dari SRJ (fsupplier = customer code)
                                     autoFillCustomer(
@@ -2213,6 +2232,12 @@
 
                 items.forEach(src => {
                     const sourceUnit = (src.fsatuan ?? '').toString().trim();
+                    const documentNo = (source === 'SRJ' ? (header?.fstockmtno ?? '') : (header?.fsono ?? ''))
+                        .toString()
+                        .trim();
+                    const referenceNo = (src.frefpr ?? header?.fdisplayref ?? header?.frefno ?? documentNo ?? '')
+                        .toString()
+                        .trim();
                     const row = {
                         uid: cryptoRandom(),
                         fitemcode: src.fitemcode ?? '',
@@ -2220,10 +2245,9 @@
                         fsatuan: sourceUnit,
                         fdisplayunit: (src.fdisplayunit ?? src.fsatuan ?? '').toString().trim(),
                         frefdtno: src.frefdtno ?? '',
-                        fnouref: (src.frefdtno ?? src.fnouref ?? null),
-                        frefpr: src.frefpr ?? (source === 'SRJ' ? (header?.fstockmtno ?? '') : (header
-                            ?.fsono ?? '')),
-                        frefcode: source === 'SRJ' ? (header?.fstockmtno ?? '') : (header?.fsono ?? ''),
+                        fnouref: ((src.fnouref ?? documentNo) ?? '').toString().trim(),
+                        frefpr: referenceNo,
+                        frefcode: documentNo,
 
                         frefso: source === 'SO' ? (header?.fsono ?? '') : ((src.frefso ?? '').toString().trim()),
                         frefsrj: source === 'SRJ' ? (header?.fstockmtno ?? '') : ((src.frefsrj ?? '').toString().trim()),

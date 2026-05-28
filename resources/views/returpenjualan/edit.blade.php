@@ -439,7 +439,7 @@
                                                 <td class="p-2">
                                                     <span
                                                         class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800"
-                                                        x-text="it.frefpr || it.frefcode || '-'">
+                                                        x-text="it.frefpr || it.fnouref || it.frefcode || '-'">
                                                     </span>
                                                 </td>
                                                 <td class="p-2 text-right">
@@ -940,6 +940,15 @@
                                 @enderror
                             </div>
 
+                            <div class="lg:col-span-4">
+                                <label class="block text-sm font-medium">No. Referensi</label>
+                                <input type="text" id="headerReferenceDisplay"
+                                    value="{{ old('frefdisplay_header', trim((string) ($returpenjualan->frefno ?: ($returpenjualan->frefsrj ?: $returpenjualan->frefso)))) }}"
+                                    class="w-full border rounded px-3 py-2 bg-gray-100 text-gray-600" readonly>
+                                <input type="hidden" name="frefdisplay_header" id="frefdisplay_header"
+                                    value="{{ old('frefdisplay_header', trim((string) ($returpenjualan->frefno ?: ($returpenjualan->frefsrj ?: $returpenjualan->frefso)))) }}">
+                            </div>
+
                             <div class="lg:col-span-12">
                                 <label class="block text-sm font-medium">Keterangan</label>
                                 <textarea name="fket" rows="3"
@@ -1040,7 +1049,7 @@
                                                     <div class="flex w-full max-w-full">
                                                         <input type="text"
                                                             class="min-w-0 flex-1 border rounded-l px-2 py-1 bg-gray-100 text-gray-600 text-sm"
-                                                            :value="it.frefpr || '-'"
+                                                            :value="it.frefpr || it.fnouref || it.frefcode || '-'"
                                                             disabled>
                                                         <button type="button" @click="openProductHistory(it)"
                                                             class="shrink-0 border border-l-0 px-2 py-1 bg-white hover:bg-gray-50 rounded-r"
@@ -1133,6 +1142,14 @@
                                     const inputRefCode = document.getElementById('frefcode_global');
                                     const inputRefSo = document.getElementById('frefso');
                                     const inputRefSrj = document.getElementById('frefsrj');
+                                    const inputRefDisplay = document.getElementById('frefdisplay_header');
+                                    const inputRefDisplayText = document.getElementById('headerReferenceDisplay');
+
+                                    function setHeaderReferenceDisplay(value) {
+                                        const resolved = (value ?? '').toString().trim();
+                                        if (inputRefDisplay) inputRefDisplay.value = resolved;
+                                        if (inputRefDisplayText) inputRefDisplayText.value = resolved;
+                                    }
 
                                     /**
                                      * Auto-fill customer dari header referensi (Faktur/SRJ).
@@ -1174,6 +1191,7 @@
                                         inputRefCode.value = 'INV';
                                         inputRefSo.value = header.fsono ?? '';
                                         inputRefSrj.value = ''; // Reset yang lain
+                                        setHeaderReferenceDisplay(header.fdisplayref ?? header.frefno ?? header.fsono ?? '');
 
                                         // Auto-fill customer dari faktur
                                         autoFillCustomer(
@@ -1188,6 +1206,7 @@
                                         inputRefCode.value = 'SRJ';
                                         inputRefSrj.value = header.fstockmtid; // Sesuaikan ID header SRJ
                                         inputRefSo.value = ''; // Reset yang lain
+                                        setHeaderReferenceDisplay(header.fdisplayref ?? header.frefno ?? header.fstockmtno ?? '');
 
                                         // Auto-fill customer dari SRJ (fsupplier = customer code)
                                         autoFillCustomer(
@@ -3030,9 +3049,9 @@
                         fsatuan: satuan,
                         fdisplayunit: (src.fdisplayunit ?? src.fsatuan ?? '').toString().trim(),
                         frefdtno: src.frefdtno ?? '',
-                        fnouref: (src.frefdtno ?? src.fnouref ?? null),
+                        fnouref: ((src.fnouref ?? docNo) ?? '').toString().trim(),
                         frefcode: source,
-                        frefpr: docNo,
+                        frefpr: (src.frefpr ?? header?.fdisplayref ?? header?.frefno ?? docNo ?? '').toString().trim(),
                         frefso: source === 'SO' ? docNo : ((src.frefso || '').toString().trim()),
                         frefsrj: source === 'SRJ' ? docNo : ((src.frefsrj || '').toString().trim()),
                         fnoacak: this.generateUniqueNoAcak(),
