@@ -132,18 +132,18 @@
             <div class="space-y-4">
                 <div class="grid grid-cols-1 lg:grid-cols-12 gap-4">
                     <div class="lg:col-span-4">
-                        <label class="block text-sm font-medium">Cabang</label>
+                        <label class="block text-sm font-bold">Cabang</label>
                         <input type="text" class="w-full border rounded px-3 py-2 bg-gray-200 cursor-not-allowed"
                             value="{{ $fcabang }}" disabled>
                         <input type="hidden" name="fbranchcode" value="{{ $fbranchcode }}">
                     </div>
 
                     <div class="lg:col-span-4" x-data="{ autoCode: true }">
-                        <label class="block text-sm font-medium mb-1">Transaksi#</label>
+                        <label class="block text-sm font-bold mb-1">Transaksi#</label>
                         <div class="flex items-center gap-3">
                             <input type="text" name="fpono" class="w-full border rounded px-3 py-2" value="{{ old('fpono') ?? $returpembelian->fstockmtno }}"
                                 :disabled="autoCode" :class="autoCode ? 'bg-gray-200 cursor-not-allowed' : 'bg-white'">
-                            <label class="inline-flex items-center select-none">
+                            <label class="inline-flex items-center select-none font-bold">
                                 <input type="checkbox" x-model="autoCode" checked>
                                 <span class="ml-2 text-sm text-gray-700">Auto</span>
                             </label>
@@ -151,7 +151,7 @@
                     </div>
 
                     <div class="lg:col-span-4">
-                        <label class="block text-sm font-medium">Tanggal</label>
+                        <label class="block text-sm font-bold">Tanggal</label>
                         <input disabled type="date" id="fstockmtdate" name="fstockmtdate"
                             value="{{ old('fstockmtdate', optional($returpembelian->fstockmtdate)->format('Y-m-d')) }}"
                             class="w-full border rounded px-3 py-2 bg-gray-100 @error('fstockmtdate') border-red-500 @enderror">
@@ -161,7 +161,7 @@
                     </div>
 
                     <div class="lg:col-span-4">
-                        <label class="block text-sm font-medium mb-1">Supplier</label>
+                        <label class="block text-sm font-bold mb-1">Supplier</label>
                         <div class="flex">
                             <div class="relative flex-1" for="modal_filter_supplier_id">
                                 <select id="modal_filter_supplier_id" name="filter_supplier_id"
@@ -199,7 +199,7 @@
                     </div>
 
                     <div class="lg:col-span-4">
-                        <label class="block text-sm font-medium mb-1">Gudang</label>
+                        <label class="block text-sm font-bold mb-1">Gudang</label>
                         <div class="flex">
                             <div class="relative flex-1">
                                 <select id="warehouseSelect"
@@ -237,7 +237,7 @@
                     </div>
 
                     <div class="lg:col-span-12">
-                        <label class="block text-sm font-medium">Keterangan</label>
+                        <label class="block text-sm font-bold">Keterangan</label>
                         <textarea readonly name="fket" rows="3"
                             class="w-full border rounded px-3 py-2 bg-gray-100 @error('fket') border-red-500 @enderror"
                             placeholder="Tulis keterangan tambahan di sini...">{{ old('fket', $returpembelian->fket) }}</textarea>
@@ -345,7 +345,7 @@
                                             <input disabled id="fapplyppn" type="checkbox" name="fapplyppn"
                                                 value="1" x-model="includePPN"
                                                 class="h-4 w-4 text-blue-600 border-gray-300 bg-gray-100 rounded">
-                                            <label for="fapplyppn" class="ml-2 text-sm font-medium text-gray-700">
+                                            <label for="fapplyppn" class="ml-2 text-sm font-bold text-gray-700">
                                                 <span class="font-bold">PPN</span>
                                             </label>
                                         </div>
@@ -500,7 +500,7 @@
                                     </div>
                                     <div class="rounded-lg border bg-gray-50 px-3 py-2 text-sm text-gray-800" x-text="descItemName || '-'"></div>
                                 </div>
-                                <label class="block text-sm text-gray-700">Deskripsi</label>
+                                <label class="block text-sm text-gray-700 font-bold">Deskripsi</label>
                                 <textarea x-model="descValue" rows="5"
                                     class="w-full border rounded px-3 py-2 bg-gray-100 cursor-not-allowed text-gray-600"
                                     readonly

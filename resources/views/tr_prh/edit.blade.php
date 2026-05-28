@@ -242,43 +242,43 @@
                     {{-- HEADER FORM READONLY --}}
                     <div class="grid grid-cols-1 lg:grid-cols-12 gap-4">
                         <div class="lg:col-span-4">
-                            <label class="block text-sm font-medium">Cabang</label>
+                            <label class="block text-sm font-bold">Cabang</label>
                             <input type="text" class="w-full border rounded px-3 py-2 bg-gray-200 cursor-not-allowed"
                                 value="{{ $fbranchlabel ?? $fcabang }}" disabled>
                         </div>
 
                         <div class="lg:col-span-4">
-                            <label class="block text-sm font-medium mb-1">PR#</label>
+                            <label class="block text-sm font-bold mb-1">PR#</label>
                             <input type="text" class="w-full border rounded px-3 py-2 bg-gray-200 cursor-not-allowed"
                                 value="{{ $tr_prh->fprno }}" disabled>
                         </div>
 
                         <div class="lg:col-span-4">
-                            <label class="block text-sm font-medium mb-1">Supplier</label>
+                            <label class="block text-sm font-bold mb-1">Supplier</label>
                             <input type="text" class="w-full border rounded px-3 py-2 bg-gray-200 cursor-not-allowed"
                                 value="{{ $tr_prh->fsuppliercode }} - {{ $tr_prh->fsuppliername }}" disabled>
                         </div>
 
                         <div class="lg:col-span-4">
-                            <label class="block text-sm font-medium">Tanggal</label>
+                            <label class="block text-sm font-bold">Tanggal</label>
                             <input disabled type="date" value="{{ $fmt($tr_prh->fprdate) }}"
                                 class="w-full border rounded px-3 py-2 text-gray-700">
                         </div>
 
                         <div class="lg:col-span-4">
-                            <label class="block text-sm font-medium">Tanggal Dibutuhkan</label>
+                            <label class="block text-sm font-bold">Tanggal Dibutuhkan</label>
                             <input disabled type="date" value="{{ $fmt($tr_prh->fneeddate) }}"
                                 class="w-full border rounded px-3 py-2 text-gray-700">
                         </div>
 
                         <div class="lg:col-span-4">
-                            <label class="block text-sm font-medium">Tanggal Paling Lambat</label>
+                            <label class="block text-sm font-bold">Tanggal Paling Lambat</label>
                             <input disabled type="date" value="{{ $fmt($tr_prh->fduedate) }}"
                                 class="w-full border rounded px-3 py-2 text-gray-700">
                         </div>
 
                         <div class="lg:col-span-12">
-                            <label class="block text-sm font-medium">Keterangan</label>
+                            <label class="block text-sm font-bold">Keterangan</label>
                             <textarea readonly rows="3" class="w-full border rounded px-3 py-2 text-gray-700">{{ $tr_prh->fket }}</textarea>
                         </div>
                     </div>
@@ -352,7 +352,7 @@
                                         <div class="rounded-lg border bg-gray-50 px-3 py-2 text-sm text-gray-800"
                                             x-text="descItemLabel || '-'"></div>
                                     </div>
-                                    <label class="block text-sm text-gray-700">Deskripsi</label>
+                                    <label class="block text-sm text-gray-700 font-bold">Deskripsi</label>
                                     <textarea x-model="descValue" rows="5"
                                         class="w-full border rounded px-3 py-2 bg-gray-100 text-gray-600 cursor-not-allowed" readonly></textarea>
                                 </div>
@@ -453,14 +453,14 @@
                     <div class="grid grid-cols-1 lg:grid-cols-12 gap-4"
                         :class="blockedByPO ? 'opacity-60 pointer-events-none' : ''">
                         <div class="lg:col-span-4">
-                            <label class="block text-sm font-medium">Cabang</label>
+                            <label class="block text-sm font-bold">Cabang</label>
                             <input type="text" class="w-full border rounded px-3 py-2 bg-gray-200"
                                 value="{{ $fbranchlabel ?? $fcabang }}" disabled>
                             <input type="hidden" name="fbranchcode" value="{{ $fbranchcode }}">
                         </div>
 
                         <div class="lg:col-span-4">
-                            <label class="block text-sm font-medium mb-1">PR#</label>
+                            <label class="block text-sm font-bold mb-1">PR#</label>
                             <input type="text" name="fprno" class="w-full border rounded px-3 py-2 bg-gray-200"
                                 value="{{ $tr_prh->fprno }}" disabled>
                         </div>
@@ -470,7 +470,7 @@
                             supplierDisplay: '{{ $tr_prh->fsuppliercode }} - {{ $tr_prh->fsuppliername }}'
                         }"
                             @supplier-chosen.window="supplierId = $event.detail.fsuppliercode; supplierDisplay = $event.detail.fsuppliername + ' (' + $event.detail.fsuppliercode + ')'">
-                            <label class="block text-sm font-medium mb-1">Supplier</label>
+                            <label class="block text-sm font-bold mb-1">Supplier</label>
                             <div class="flex">
                                 <input type="text" x-model="supplierDisplay"
                                     class="flex-1 border rounded-l px-3 py-2 bg-gray-100" readonly>
@@ -492,26 +492,26 @@
                         </div>
 
                         <div class="lg:col-span-4">
-                            <label class="block text-sm font-medium">Tanggal</label>
+                            <label class="block text-sm font-bold">Tanggal</label>
                             <input type="date" name="fprdate" value="{{ old('fprdate', $fmt($tr_prh->fprdate)) }}"
                                 class="w-full border rounded px-3 py-2">
                         </div>
 
                         <div class="lg:col-span-4">
-                            <label class="block text-sm font-medium">Tanggal Dibutuhkan</label>
+                            <label class="block text-sm font-bold">Tanggal Dibutuhkan</label>
                             <input type="date" name="fneeddate"
                                 value="{{ old('fneeddate', $fmt($tr_prh->fneeddate)) }}"
                                 class="w-full border rounded px-3 py-2">
                         </div>
 
                         <div class="lg:col-span-4">
-                            <label class="block text-sm font-medium">Tanggal Paling Lambat</label>
+                            <label class="block text-sm font-bold">Tanggal Paling Lambat</label>
                             <input type="date" name="fduedate" value="{{ old('fduedate', $fmt($tr_prh->fduedate)) }}"
                                 class="w-full border rounded px-3 py-2">
                         </div>
 
                         <div class="lg:col-span-12">
-                            <label class="block text-sm font-medium">Keterangan</label>
+                            <label class="block text-sm font-bold">Keterangan</label>
                             <textarea name="fket" rows="2" class="w-full border rounded px-3 py-2">{{ old('fket', $tr_prh->fket) }}</textarea>
                         </div>
                     </div>
@@ -649,7 +649,7 @@
                                         <div class="rounded-lg border bg-gray-50 px-3 py-2 text-sm text-gray-800"
                                             x-text="descItemLabel || '-'"></div>
                                     </div>
-                                    <label class="block text-sm text-gray-700">Deskripsi</label>
+                                    <label class="block text-sm text-gray-700 font-bold">Deskripsi</label>
                                     <textarea x-model="descValue" rows="5" class="w-full border rounded px-3 py-2"
                                         placeholder="Tulis deskripsi item di sini..." :readonly="blockedByPO"></textarea>
                                 </div>

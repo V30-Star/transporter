@@ -1129,14 +1129,11 @@
                         fnouref: src.fnouref ?? '',
                         frefpr: src.frefpr ?? (header?.fpono ?? header?.fsono ?? ''),
                         fprhid: src.fprhid ?? header?.fprhid ?? header?.fpohid ?? '',
-                        fqty: (src.fqtysisa !== null && src.fqtysisa !== undefined && Number(src.fqtysisa) >
-                                0) ?
-                            Number(src.fqtysisa) : ((src.fqtyremain !== null && src.fqtyremain !==
-                                undefined &&
-                                Number(src.fqtyremain) > 0) ? Number(src.fqtyremain) : ((src.fqty !==
-                                    null &&
-                                    src.fqty !== undefined && Number(src.fqty) > 0) ? Number(src.fqty) :
-                                1)),
+                        fqty: (src.fqtyremain_dokumen !== null && src.fqtyremain_dokumen !== undefined && Number(src.fqtyremain_dokumen) > 0) ?
+                            Number(src.fqtyremain_dokumen) : ((src.fqtysisa !== null && src.fqtysisa !== undefined && Number(src.fqtysisa) > 0) ?
+                                Number(src.fqtysisa) : ((src.fqtyremain !== null && src.fqtyremain !== undefined &&
+                                    Number(src.fqtyremain) > 0) ? Number(src.fqtyremain) : ((src.fqty !== null &&
+                                        src.fqty !== undefined && Number(src.fqty) > 0) ? Number(src.fqty) : 1))),
                         fterima: Number(src.fterima ?? 0),
                         fprice: Number(src.fprice ?? 0),
                         fdisc: src.fdisc ?? 0,

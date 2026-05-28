@@ -118,7 +118,7 @@
 
                 {{-- Cabang --}}
                 <div class="lg:col-span-4">
-                    <label class="block text-sm font-medium">Cabang</label>
+                    <label class="block text-sm font-bold">Cabang</label>
                     <input type="text" class="w-full border rounded px-3 py-2 bg-gray-200 cursor-not-allowed"
                         value="{{ trim(($fbranchcode ?? '') . ($fcabang ?? '' ? ' - ' . $fcabang : '')) }}" disabled>
                     <input type="hidden" name="fbranchcode" value="{{ $fbranchcode }}">
@@ -126,11 +126,11 @@
 
                 {{-- PO# --}}
                 <div class="lg:col-span-4">
-                    <label class="block text-sm font-medium mb-1">PO#</label>
+                    <label class="block text-sm font-bold mb-1">PO#</label>
                     <div class="flex items-center gap-3">
                         <input type="text" name="fpohid" class="w-full border rounded px-3 py-2" :disabled="autoCode"
                             :class="autoCode ? 'bg-gray-200 cursor-not-allowed' : 'bg-white'">
-                        <label class="inline-flex items-center select-none">
+                        <label class="inline-flex items-center select-none font-bold">
                             <input type="checkbox" x-model="autoCode" checked>
                             <span class="ml-2 text-sm text-gray-700">Auto</span>
                         </label>
@@ -139,7 +139,7 @@
 
                 {{-- Supplier --}}
                 <div class="lg:col-span-4">
-                    <label class="block text-sm font-medium mb-1">Supplier</label>
+                    <label class="block text-sm font-bold mb-1">Supplier</label>
                     <div class="flex">
                         <div class="relative flex-1">
                             <select id="modal_filter_supplier_id" name="filter_supplier_id"
@@ -178,7 +178,7 @@
 
                 {{-- Tanggal --}}
                 <div class="lg:col-span-4">
-                    <label class="block text-sm font-medium">Tanggal</label>
+                    <label class="block text-sm font-bold">Tanggal</label>
                     <input type="date" name="fpodate" value="{{ old('fpodate') ?? date('Y-m-d') }}"
                         class="w-full border rounded px-3 py-2 @error('fpodate') border-red-500 @enderror">
                     @error('fpodate')
@@ -188,7 +188,7 @@
 
                 {{-- Tgl. Kirim --}}
                 <div class="lg:col-span-4">
-                    <label class="block text-sm font-medium">Tgl. Kirim</label>
+                    <label class="block text-sm font-bold">Tgl. Kirim</label>
                     <input type="date" name="fkirimdate" value="{{ old('fkirimdate', '') }}"
                         class="w-full border rounded px-3 py-2 @error('fkirimdate') border-red-500 @enderror">
                     @error('fkirimdate')
@@ -198,7 +198,7 @@
 
                 {{-- Tempo --}}
                 <div class="lg:col-span-4">
-                    <label class="block text-sm font-medium mb-1">Tempo</label>
+                    <label class="block text-sm font-bold mb-1">Tempo</label>
                     <div class="flex items-center">
                         <input type="number" id="ftempohr" name="ftempohr" value="{{ old('ftempohr', 0) }}"
                             class="w-full border rounded px-3 py-2">
@@ -208,7 +208,7 @@
 
                 {{-- Currency --}}
                 <div class="lg:col-span-4">
-                    <label class="block text-sm font-medium">Currency</label>
+                    <label class="block text-sm font-bold">Currency</label>
                     <select name="fcurrency" id="currencySelect" x-model="selectedCurrId" @change="onCurrencyChange()"
                         class="w-full border rounded px-3 py-2 @error('fcurrency') border-red-500 @enderror">
                         <option value="">-- Pilih Currency --</option>
@@ -229,7 +229,7 @@
 
                 {{-- Rate --}}
                 <div class="lg:col-span-4">
-                    <label class="block text-sm font-medium">Rate</label>
+                    <label class="block text-sm font-bold">Rate</label>
                     <input type="number" step="0.01" min="0" name="frate" x-model.number="rateValue"
                         class="w-full border rounded px-3 py-2 @error('frate') border-red-500 @enderror"
                         placeholder="Rate akan terisi otomatis">
@@ -240,7 +240,7 @@
 
                 {{-- Keterangan --}}
                 <div class="lg:col-span-12">
-                    <label class="block text-sm font-medium">Keterangan</label>
+                    <label class="block text-sm font-bold">Keterangan</label>
                     <textarea name="fket" rows="3"
                         class="w-full border rounded px-3 py-2 @error('fket') border-red-500 @enderror"
                         placeholder="Tulis keterangan tambahan di sini...">{{ old('fket') }}</textarea>
@@ -449,7 +449,7 @@
                                 <div class="rounded-lg border bg-gray-50 px-3 py-2 text-sm text-gray-800"
                                     x-text="descItemName || '-'"></div>
                             </div>
-                            <label class="block text-sm text-gray-700">Deskripsi</label>
+                            <label class="block text-sm text-gray-700 font-bold">Deskripsi</label>
                             <textarea x-model="descValue" rows="5" class="w-full border rounded px-3 py-2"
                                 placeholder="Tulis deskripsi item di sini..."></textarea>
                         </div>
@@ -705,7 +705,7 @@
 
             <div class="flex justify-center items-center space-x-2 mt-6">
                 @if ($canApproval)
-                    <label class="block text-sm font-medium">Setujui Sekarang</label>
+                    <label class="block text-sm font-bold">Setujui Sekarang</label>
                     <input type="hidden" name="fapproval" value="0">
                     <label class="switch">
                         <input type="checkbox" name="fapproval" id="approvalToggle" value="1"

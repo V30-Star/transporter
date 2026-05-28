@@ -637,6 +637,9 @@ class SalesOrderController extends Controller
                 'fcustno' => $header->fcustno,
                 'fsodate' => $header->fsodate,
                 'ftempohr' => (float) ($header->ftempohr ?? 0),
+                'fapplyppn' => (int) ($header->fapplyppn ?? 0),
+                'fincludeppn' => (int) ($header->fincludeppn ?? 0),
+                'fppnpersen' => (float) ($header->fppnpersen ?? 11),
             ],
             'items' => $items,
         ]);
@@ -1204,7 +1207,6 @@ class SalesOrderController extends Controller
                 (string) ($d->fsatuan ?? ''),
                 $d
             );
-            $qtySrj = max(0, (float) ($d->fqty ?? 0) - $remainDisplay);
 
             return [
                 'uid' => $d->ftrsodtid,
@@ -1216,7 +1218,8 @@ class SalesOrderController extends Controller
                 'fnouref' => (string) ($d->fnouref ?? ''),
                 'fqty' => (float) ($d->fqty ?? 0),
                 'fqtyremain' => (float) ($soRemainMap[(int) ($d->ftrsodtid ?? 0)] ?? 0),
-                'fqtysrj' => $qtySrj,
+                'fqtyremain_dokumen' => $remainDisplay,
+                'fqtysrj' => $remainDisplay,
                 'fterima' => (float) ($d->fterima ?? 0),
                 'fprice' => (float) ($d->fprice ?? 0),
                 'fdisc' => (float) ($d->fdiscpersen ?? 0),
@@ -1324,7 +1327,6 @@ class SalesOrderController extends Controller
                 (string) ($d->fsatuan ?? ''),
                 $d
             );
-            $qtySrj = max(0, (float) ($d->fqty ?? 0) - $remainDisplay);
 
             return [
                 'uid' => $d->ftrsodtid,
@@ -1335,7 +1337,8 @@ class SalesOrderController extends Controller
                 'frefdtno' => (string) ($d->ftrsodtid ?? ''),
                 'fqty' => (float) ($d->fqty ?? 0),
                 'fqtyremain' => (float) ($soRemainMap[(int) ($d->ftrsodtid ?? 0)] ?? 0),
-                'fqtysrj' => $qtySrj,
+                'fqtyremain_dokumen' => $remainDisplay,
+                'fqtysrj' => $remainDisplay,
                 'fterima' => (float) ($d->fterima ?? 0),
                 'fprice' => (float) ($d->fprice ?? 0),
                 'fdisc' => (float) ($d->fdiscpersen ?? 0),
@@ -1709,7 +1712,6 @@ class SalesOrderController extends Controller
                 (string) ($d->fsatuan ?? ''),
                 $d
             );
-            $qtySrj = max(0, (float) ($d->fqty ?? 0) - $remainDisplay);
 
             return [
                 'uid' => $d->ftrsodtid,
@@ -1721,7 +1723,8 @@ class SalesOrderController extends Controller
                 'fnouref' => (string) ($d->fnouref ?? ''),
                 'fqty' => (float) ($d->fqty ?? 0),
                 'fqtyremain' => (float) ($soRemainMap[(int) ($d->ftrsodtid ?? 0)] ?? 0),
-                'fqtysrj' => $qtySrj,
+                'fqtyremain_dokumen' => $remainDisplay,
+                'fqtysrj' => $remainDisplay,
                 'fterima' => (float) ($d->fterima ?? 0),
                 'fprice' => (float) ($d->fprice ?? 0),
                 'fdisc' => (float) ($d->fdiscpersen ?? 0),

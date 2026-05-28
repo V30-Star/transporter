@@ -187,7 +187,7 @@
 
             {{-- Cabang --}}
             <div class="lg:col-span-4">
-                <label class="block text-sm font-medium">Cabang</label>
+                <label class="block text-sm font-bold">Cabang</label>
                 <input type="text" class="w-full border rounded px-3 py-2 bg-gray-200 cursor-not-allowed"
                     value="{{ trim(($fbranchcode ?? '') . ($fcabang ?? '' ? ' - ' . $fcabang : '')) }}" disabled>
                 <input type="hidden" name="fbranchcode" value="{{ $fbranchcode }}">
@@ -195,14 +195,14 @@
 
             {{-- PO# --}}
             <div class="lg:col-span-4">
-                <label class="block text-sm font-medium mb-1">PO#</label>
+                <label class="block text-sm font-bold mb-1">PO#</label>
                 <input type="text" name="fpohid" value="{{ old('fpohid', $tr_poh->fpono) }}"
                     class="w-full border rounded px-3 py-2 bg-gray-200 cursor-not-allowed" disabled>
             </div>
 
             {{-- Supplier --}}
             <div class="lg:col-span-4">
-                <label class="block text-sm font-medium mb-1">Supplier</label>
+                <label class="block text-sm font-bold mb-1">Supplier</label>
                 <div class="flex">
                     <div class="relative flex-1">
                         <select id="modal_filter_supplier_id" name="filter_supplier_id"
@@ -246,7 +246,7 @@
 
             {{-- Tanggal --}}
             <div class="lg:col-span-4">
-                <label class="block text-sm font-medium">Tanggal</label>
+                <label class="block text-sm font-bold">Tanggal</label>
                 <input type="date" name="fpodate" value="{{ old('fpodate', substr($tr_poh->fpodate ?? '', 0, 10)) }}"
                     {{ $disabled }}
                     class="w-full border rounded px-3 py-2 {{ $bgDisabled }} @error('fpodate') border-red-500 @enderror">
@@ -257,7 +257,7 @@
 
             {{-- Tgl. Kirim --}}
             <div class="lg:col-span-4">
-                <label class="block text-sm font-medium">Tgl. Kirim</label>
+                <label class="block text-sm font-bold">Tgl. Kirim</label>
                 <input type="date" name="fkirimdate"
                     value="{{ old('fkirimdate', substr($tr_poh->fkirimdate ?? '', 0, 10)) }}" {{ $disabled }}
                     class="w-full border rounded px-3 py-2 {{ $bgDisabled }} @error('fkirimdate') border-red-500 @enderror">
@@ -268,7 +268,7 @@
 
             {{-- Tempo --}}
             <div class="lg:col-span-4">
-                <label class="block text-sm font-medium mb-1">Tempo</label>
+                <label class="block text-sm font-bold mb-1">Tempo</label>
                 <div class="flex items-center">
                     <input type="number" id="ftempohr" name="ftempohr"
                         value="{{ old('ftempohr', $tr_poh->ftempohr ?? 0) }}" {{ $disabled }}
@@ -279,7 +279,7 @@
 
             {{-- Currency --}}
             <div class="lg:col-span-4">
-                <label class="block text-sm font-medium">Currency</label>
+                <label class="block text-sm font-bold">Currency</label>
                 @if ($isEdit)
                     <select name="fcurrency" id="currencySelect" x-model="selectedCurrId" @change="onCurrencyChange()"
                         class="w-full border rounded px-3 py-2 @error('fcurrency') border-red-500 @enderror">
@@ -306,7 +306,7 @@
 
             {{-- Rate --}}
             <div class="lg:col-span-4">
-                <label class="block text-sm font-medium">Rate</label>
+                <label class="block text-sm font-bold">Rate</label>
                 @if ($isEdit)
                     <input type="number" step="0.01" min="0" name="frate" x-model.number="rateValue"
                         class="w-full border rounded px-3 py-2 @error('frate') border-red-500 @enderror"
@@ -322,7 +322,7 @@
 
             {{-- Keterangan --}}
             <div class="lg:col-span-12">
-                <label class="block text-sm font-medium">Keterangan</label>
+                <label class="block text-sm font-bold">Keterangan</label>
                 <textarea name="fket" rows="3" {{ $readonly }}
                     class="w-full border rounded px-3 py-2 {{ $bgDisabled }} @error('fket') border-red-500 @enderror"
                     placeholder="Tulis keterangan tambahan di sini...">{{ old('fket', $tr_poh->fket) }}</textarea>
@@ -603,7 +603,7 @@
                             <div class="rounded-lg border bg-gray-50 px-3 py-2 text-sm text-gray-800"
                                 x-text="descItemName || '-'"></div>
                         </div>
-                        <label class="block text-sm text-gray-700">Deskripsi</label>
+                        <label class="block text-sm text-gray-700 font-bold">Deskripsi</label>
                         <textarea x-model="descValue" rows="5" class="w-full border rounded px-3 py-2" :readonly="descReadonly"
                             :class="descReadonly ? 'bg-gray-100 cursor-not-allowed text-gray-600' : ''"
                             placeholder="Tulis deskripsi item di sini..."></textarea>
@@ -648,7 +648,7 @@
                             </div>
                             <div class="flex items-center gap-2">
                                 <label
-                                    class="flex items-center gap-1.5 select-none {{ $isEdit ? 'cursor-pointer' : '' }}">
+                                    class="flex items-center gap-1.5 select-none {{ $isEdit ?  font-bold'cursor-pointer' : '' }}">
                                     <input type="checkbox" name="fapplyppn" value="1" x-model="includePPN"
                                         {{ $isDelete ? 'disabled' : '' }}
                                         class="h-4 w-4 text-blue-600 border-gray-300 rounded {{ $isDelete ? 'cursor-not-allowed' : '' }}">
@@ -868,7 +868,7 @@
 
         <div class="flex justify-center items-center space-x-2 mt-6">
             @if ($canApproval)
-                <label class="block text-sm font-medium">{{ $isEdit ? 'Setujui Sekarang' : 'Status Persetujuan' }}</label>
+                <label class="block text-sm font-bold">{{ $isEdit ? 'Setujui Sekarang' : 'Status Persetujuan' }}</label>
                 <input type="hidden" name="fapproval" value="0">
                 <label class="switch">
                     <input type="checkbox" name="fapproval" id="approvalToggle" value="1"

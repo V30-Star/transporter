@@ -476,7 +476,11 @@
                                         <tbody>
                                             <tr class="border-t align-top">
                                                 <td class="p-2" x-text="i + 1"></td>
-                                                <td class="p-2 font-mono" x-text="row.fprdcode"></td>
+                                                <td class="p-2 font-mono">
+                                                    <input type="text"
+                                                        class="w-full border rounded px-2 py-1 bg-gray-100 text-gray-600 font-mono"
+                                                        :value="row.fprdcode" disabled>
+                                                </td>
                                                 <td class="p-2">
                                                     <div class="flex w-full max-w-full">
                                                         <div class="min-w-0 flex-1 rounded-l border bg-gray-100 px-2 py-1 text-sm leading-5 text-gray-600 whitespace-normal break-words"
@@ -490,12 +494,11 @@
                                                 </td>
                                               <td class="p-2">
     <template x-if="row.units && row.units.length > 1">
-        <select class="w-full border rounded px-2 py-1 text-xs"
+        <select class="w-full border rounded px-2 py-1 text-xs bg-gray-100 text-gray-600"
             :id="'unit_row_' + i"
             x-model="row.fsatuan"
             x-effect="$el.value = row.fsatuan"
-            @change="row.fsatuan = $el.value; onRowUpdated(i)"
-            @keydown.enter.prevent="focusRowQty(i)">
+            disabled>
             <template x-for="u in row.units" :key="u">
                 <option :value="u" x-text="u"></option>
             </template>
@@ -506,7 +509,10 @@
         class="w-full border rounded px-2 py-1 bg-gray-100 text-gray-600 text-xs"
         :value="row.fsatuan || '-'" disabled>
 </td>
-                                                <td class="p-2 text-right font-medium" x-text="formatQtyValue(row.fqty)">
+                                                <td class="p-2 text-right">
+                                                    <input type="text"
+                                                        class="w-full border rounded px-2 py-1 text-right bg-gray-100 text-gray-600"
+                                                        :value="formatQtyValue(row.fqty)" disabled>
                                                 </td>
                                                 <td class="p-2 text-right">
                                                     <input type="text"
@@ -1609,11 +1615,14 @@
                 row.fitemname = row.fitemname || meta.name || '';
                 const units = [...new Set((meta.units || []).map((u) => (u ?? '').toString().trim()).filter(Boolean))];
                 const currentUnit = (row.fsatuan ?? '').toString().trim();
-                row.units = units;
-                row.fsatuan = currentUnit;
-                if (!units.includes(currentUnit)) {
-                    row.fsatuan = currentUnit || units[0] || '';
-                }
+                const matchedUnit = currentUnit === ''
+                    ? ''
+                    : (units.find((u) => u.toLowerCase() === currentUnit.toLowerCase()) || currentUnit);
+
+                row.units = matchedUnit !== ''
+                    ? [matchedUnit, ...units.filter((u) => u.toLowerCase() !== matchedUnit.toLowerCase())]
+                    : units;
+                row.fsatuan = matchedUnit || units[0] || '';
             },
 
             createRow(item = {}, index = 0) {
@@ -1651,8 +1660,10 @@
 
                 this.hydrateRowFromMeta(row, this.productMeta(row.fprdcode));
                 row.fsatuan = (row.fsatuan ?? '').toString().trim();
-                if (row.fsatuan && !row.units.includes(row.fsatuan)) {
-                    row.units.unshift(row.fsatuan);
+                if (row.fsatuan) {
+                    const matchedUnit = row.units.find((u) => (u ?? '').toString().trim().toLowerCase() === row.fsatuan.toLowerCase()) || row.fsatuan;
+                    row.units = [matchedUnit, ...row.units.filter((u) => (u ?? '').toString().trim().toLowerCase() !== matchedUnit.toLowerCase())];
+                    row.fsatuan = matchedUnit;
                 }
                 this.recalc(row);
                 return row;

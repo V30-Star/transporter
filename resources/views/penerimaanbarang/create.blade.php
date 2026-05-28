@@ -132,7 +132,7 @@
             {{-- HEADER FORM --}}
             <div class="grid grid-cols-1 lg:grid-cols-12 gap-4">
                 <div class="lg:col-span-4">
-                    <label class="block text-sm font-medium mb-1">Cabang</label>
+                    <label class="block text-sm font-bold mb-1">Cabang</label>
                     <input type="text"
                         class="w-full border rounded px-3 py-2 bg-gray-100 text-gray-700 cursor-not-allowed"
                         value="{{ trim(($fbranchcode ?? '') . ($fcabang ?? '' ? ' - ' . $fcabang : '')) }}" disabled>
@@ -140,11 +140,11 @@
                 </div>
 
                 <div class="lg:col-span-4" x-data="{ autoCode: true }">
-                    <label class="block text-sm font-medium mb-1">Transaksi#</label>
+                    <label class="block text-sm font-bold mb-1">Transaksi#</label>
                     <div class="flex items-center gap-3">
                         <input type="text" name="fstockmtno" class="w-full border rounded px-3 py-2"
                             :disabled="autoCode" :class="autoCode ? 'bg-gray-200 cursor-not-allowed' : 'bg-white'">
-                        <label class="inline-flex items-center select-none">
+                        <label class="inline-flex items-center select-none font-bold">
                             <input type="checkbox" x-model="autoCode" checked>
                             <span class="ml-2 text-sm text-gray-700">Auto</span>
                         </label>
@@ -152,7 +152,7 @@
                 </div>
 
                 <div class="lg:col-span-4">
-                    <label class="block text-sm font-medium mb-1">Supplier</label>
+                    <label class="block text-sm font-bold mb-1">Supplier</label>
                     <div class="flex">
                         <div class="relative flex-1">
                             <select id="modal_filter_supplier_id" name="filter_supplier_id"
@@ -188,7 +188,7 @@
                 </div>
 
                 <div class="lg:col-span-4">
-                    <label class="block text-sm font-medium mb-1">Gudang</label>
+                    <label class="block text-sm font-bold mb-1">Gudang</label>
                     <div class="flex">
                         <div class="relative flex-1">
                             <select id="warehouseSelect"
@@ -227,7 +227,7 @@
                 </div>
 
                 <div class="lg:col-span-4">
-                    <label class="block text-sm font-medium">Tanggal</label>
+                    <label class="block text-sm font-bold">Tanggal</label>
                     <input type="date" name="fstockmtdate" value="{{ old('fstockmtdate') ?? date('Y-m-d') }}"
                         class="w-full border rounded px-3 py-2 @error('fstockmtdate') border-red-500 @enderror">
                     @error('fstockmtdate')
@@ -236,7 +236,7 @@
                 </div>
 
                 <div class="lg:col-span-12">
-                    <label class="block text-sm font-medium">Keterangan</label>
+                    <label class="block text-sm font-bold">Keterangan</label>
                     <textarea name="fket" rows="3"
                         class="w-full border rounded px-3 py-2 @error('fket') border-red-500 @enderror"
                         placeholder="Tulis keterangan tambahan di sini...">{{ old('fket') }}</textarea>
@@ -550,7 +550,7 @@
                                 <div class="rounded-lg border bg-gray-50 px-3 py-2 text-sm text-gray-800"
                                     x-text="descItemName || '-'"></div>
                             </div>
-                            <label class="block text-sm text-gray-700">Deskripsi</label>
+                            <label class="block text-sm text-gray-700 font-bold">Deskripsi</label>
                             <textarea x-model="descValue" rows="5" class="w-full border rounded px-3 py-2"
                                 placeholder="Tulis deskripsi item di sini..."></textarea>
                         </div>

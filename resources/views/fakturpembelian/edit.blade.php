@@ -251,19 +251,19 @@
                     {{-- HEADER FORM --}}
                     <div class="grid grid-cols-1 lg:grid-cols-12 gap-4">
                         <div class="lg:col-span-4">
-                            <label class="block text-sm font-medium">Cabang</label>
+                            <label class="block text-sm font-bold">Cabang</label>
                             <input type="text" class="w-full border rounded px-3 py-2 bg-gray-200 cursor-not-allowed"
                                 value="{{ trim(($fbranchcode ?? '') . ($fcabang ?? '' ? ' - ' . $fcabang : '')) }}" disabled>
                             <input type="hidden" name="fbranchcode" value="{{ $fbranchcode }}">
                         </div>
 
                         <div class="lg:col-span-4" x-data="{ autoCode: true }">
-                            <label class="block text-sm font-medium mb-1">Transaksi#</label>
+                            <label class="block text-sm font-bold mb-1">Transaksi#</label>
                             <div class="flex items-center gap-3">
                                 <input type="text" name="fstockmtno" class="w-full border rounded px-3 py-2"
                                     value="{{ old('fstockmtno', $fakturpembelian->fstockmtno) }}" :disabled="autoCode"
                                     :class="autoCode ? 'bg-gray-200 cursor-not-allowed' : 'bg-white'">
-                                <label class="inline-flex items-center select-none">
+                                <label class="inline-flex items-center select-none font-bold">
                                     <input type="checkbox" x-model="autoCode" checked>
                                     <span class="ml-2 text-sm text-gray-700">Auto</span>
                                 </label>
@@ -271,7 +271,7 @@
                         </div>
 
                         <div class="lg:col-span-4">
-                            <label class="block text-sm font-medium">Type</label>
+                            <label class="block text-sm font-bold">Type</label>
                             @php
                                 $currentTypeBuy = old('ftypebuy', $fakturpembelian->ftypebuy);
                             @endphp
@@ -293,7 +293,7 @@
                         </div>
 
                         <div class="lg:col-span-4">
-                            <label class="block text-sm font-medium">Tanggal</label>
+                            <label class="block text-sm font-bold">Tanggal</label>
                             <input disabled type="date" id="fstockmtdate" name="fstockmtdate"
                                 value="{{ old('fstockmtdate') ?? date('Y-m-d', strtotime($fakturpembelian->fstockmtdate)) }}"
                                 class="w-full border rounded px-3 py-2 text-gray-700 @error('fstockmtdate') border-red-500 @enderror">
@@ -303,7 +303,7 @@
                         </div>
 
                         <div class="lg:col-span-4">
-                            <label class="block text-sm font-medium mb-1">Supplier</label>
+                            <label class="block text-sm font-bold mb-1">Supplier</label>
                             <div class="flex">
                                 <div class="relative flex-1" for="modal_filter_supplier_id">
                                     <select id="modal_filter_supplier_id" name="filter_supplier_id"
@@ -355,7 +355,7 @@
                         </div>
 
                         <div class="lg:col-span-4">
-                            <label class="block text-sm font-medium mb-1">Gudang</label>
+                            <label class="block text-sm font-bold mb-1">Gudang</label>
                             <div class="flex">
                                 <div class="relative flex-1">
                                     <select id="warehouseSelect"
@@ -395,7 +395,7 @@
                         </div>
 
                         <div class="lg:col-span-4">
-                            <label class="block text-sm font-medium mb-1">Account</label>
+                            <label class="block text-sm font-bold mb-1">Account</label>
                             <div class="flex">
                                 <div class="relative flex-1">
                                     <select disabled id="accountSelect" class="w-full border rounded-l px-3 py-2" ...>
@@ -451,18 +451,18 @@
                         </div>
 
                         <div class="lg:col-span-4">
-                            <label class="block text-npsm font-medium">Faktur</label>
+                            <label class="block text-npsm font-bold">Faktur</label>
                             <div class="flex items-center gap-3">
                                 <input disabled type="text" name="frefno"
                                     class="w-full border rounded px-3 py-2 text-gray-700"
                                     value="{{ old('frefno', $fakturpembelian->frefno) }}">
-                                <label class="inline-flex items-center select-none">
+                                <label class="inline-flex items-center select-none font-bold">
                                 </label>
                             </div>
                         </div>
 
                         <div class="lg:col-span-2">
-                            <label class="block text-sm font-medium">TOP (Hari)</label>
+                            <label class="block text-sm font-bold">TOP (Hari)</label>
                             <input disabled type="number" id="ftempohr" name="ftempohr"
                                 class="w-full border rounded px-3 py-2 text-gray-700" {{-- Hapus 'value' yang duplikat. Cukup satu baris ini: --}}
                                 value="{{ old('ftempohr', $fakturpembelian->ftempohr) }}"
@@ -473,7 +473,7 @@
                         </div>
 
                         <div class="lg:col-span-2">
-                            <label class="block text-sm font-medium">Tgl. Jatuh Tempo</label>
+                            <label class="block text-sm font-bold">Tgl. Jatuh Tempo</label>
                             <input disabled type="date" id="fjatuhtempo" name="fjatuhtempo"
                                 value="{{ old('fjatuhtempo', optional($fakturpembelian->fjatuhtempo)->format('Y-m-d') ?? optional($fakturpembelian->fstockmtdate)->format('Y-m-d')) }}"
                                 readonly
@@ -487,7 +487,7 @@
 
                     <div class="fpb-ket-biaya">
                         <div class="min-w-0">
-                            <label class="block text-sm font-medium">Keterangan</label>
+                            <label class="block text-sm font-bold">Keterangan</label>
                             <textarea name="fket" rows="3" readonly disabled
                                 class="w-full h-[96px] resize-none border rounded px-3 py-2 bg-gray-100 cursor-not-allowed text-gray-700 @error('fket') border-red-500 @enderror"
                                 placeholder="Tulis keterangan tambahan di sini...">{{ old('fket', $fakturpembelian->fket) }}</textarea>
@@ -497,7 +497,7 @@
                         </div>
 
                         <div class="min-w-0 overflow-hidden">
-                            <label class="block text-sm font-medium">Hitung Biaya</label>
+                            <label class="block text-sm font-bold">Hitung Biaya</label>
                             <div
                                 class="hpp-box h-[96px] bg-gray-50 p-3 rounded-lg border border-gray-200 shadow-sm flex items-center gap-3">
                                 <input type="text"
@@ -685,7 +685,7 @@
                                             <input disabled id="fapplyppn" type="checkbox" name="fapplyppn"
                                                 value="1" x-model="includePPN"
                                                 class="h-4 w-4 text-blue-600 border-gray-300 rounded">
-                                            <label for="fapplyppn" class="text-sm font-medium text-gray-700">
+                                            <label for="fapplyppn" class="text-sm font-bold text-gray-700">
                                                 <span class="font-bold">PPN</span>
                                             </label>
                                         </div>
@@ -755,7 +755,7 @@
                                         <div class="rounded-lg border bg-gray-50 px-3 py-2 text-sm text-gray-800"
                                             x-text="descItemName || '-'"></div>
                                     </div>
-                                    <label class="block text-sm text-gray-700">Deskripsi</label>
+                                    <label class="block text-sm text-gray-700 font-bold">Deskripsi</label>
                                     <textarea x-model="descValue" rows="5" class="w-full border rounded px-3 py-2" readonly
                                         placeholder="Belum ada deskripsi."></textarea>
                                 </div>
@@ -818,7 +818,7 @@
                         {{-- HEADER FORM --}}
                         <div class="grid grid-cols-1 lg:grid-cols-12 gap-4">
                             <div class="lg:col-span-4">
-                                <label class="block text-sm font-medium">Cabang</label>
+                                <label class="block text-sm font-bold">Cabang</label>
                                 <input type="text"
                                     class="w-full border rounded px-3 py-2 bg-gray-200 cursor-not-allowed"
                                     value="{{ trim(($fbranchcode ?? '') . ($fcabang ?? '' ? ' - ' . $fcabang : '')) }}" disabled>
@@ -826,13 +826,13 @@
                             </div>
 
                             <div class="lg:col-span-4" x-data="{ autoCode: true }">
-                                <label class="block text-sm font-medium mb-1">Transaksi#</label>
+                                <label class="block text-sm font-bold mb-1">Transaksi#</label>
                                 <div class="flex items-center gap-3">
                                     <input type="text" name="fstockmtno" class="w-full border rounded px-3 py-2"
                                         value="{{ old('fstockmtno', $fakturpembelian->fstockmtno) }}"
                                         :disabled="autoCode"
                                         :class="autoCode ? 'bg-gray-200 cursor-not-allowed' : 'bg-white'">
-                                    <label class="inline-flex items-center select-none">
+                                    <label class="inline-flex items-center select-none font-bold">
                                         <input type="checkbox" x-model="autoCode" checked>
                                         <span class="ml-2 text-sm text-gray-700">Auto</span>
                                     </label>
@@ -840,7 +840,7 @@
                             </div>
 
                             <div class="lg:col-span-4">
-                                <label class="block text-sm font-medium">Type</label>
+                                <label class="block text-sm font-bold">Type</label>
                                 @php
                                     $currentTypeBuy = old('ftypebuy', $fakturpembelian->ftypebuy);
                                 @endphp
@@ -862,7 +862,7 @@
                             </div>
 
                             <div class="lg:col-span-4">
-                                <label class="block text-sm font-medium">Tanggal</label>
+                                <label class="block text-sm font-bold">Tanggal</label>
                                 <input type="date" id="fstockmtdate" name="fstockmtdate"
                                     value="{{ old('fstockmtdate') ?? date('Y-m-d', strtotime($fakturpembelian->fstockmtdate)) }}"
                                     class="w-full border rounded px-3 py-2 @error('fstockmtdate') border-red-500 @enderror">
@@ -872,7 +872,7 @@
                             </div>
 
                             <div class="lg:col-span-4">
-                                <label class="block text-sm font-medium mb-1">Supplier</label>
+                                <label class="block text-sm font-bold mb-1">Supplier</label>
                                 <div class="flex">
                                     <div class="relative flex-1" for="modal_filter_supplier_id">
                                         <select id="modal_filter_supplier_id" name="filter_supplier_id"
@@ -924,7 +924,7 @@
                             </div>
 
                             <div class="lg:col-span-4">
-                                <label class="block text-sm font-medium mb-1">Gudang <span class="text-red-500">*</span></label>
+                                <label class="block text-sm font-bold mb-1">Gudang <span class="text-red-500">*</span></label>
                                 <div class="flex">
                                     <div class="relative flex-1">
                                         <select id="warehouseSelect"
@@ -967,7 +967,7 @@
                             </div>
 
                             <div class="lg:col-span-4">
-                                <label class="block text-sm font-medium mb-1">Account</label>
+                                <label class="block text-sm font-bold mb-1">Account</label>
                                 <div class="flex">
                                     <div class="relative flex-1">
                                         <select disabled id="accountSelect" class="w-full border rounded-l px-3 py-2" ...>
@@ -1023,17 +1023,17 @@
                             </div>
 
                             <div class="lg:col-span-4">
-                                <label class="block text-npsm font-medium mb-1">Faktur</label>
+                                <label class="block text-npsm font-bold mb-1">Faktur</label>
                                 <div class="flex items-center gap-3">
                                     <input type="text" name="frefno" required class="w-full border rounded px-3 py-2"
                                         value="{{ old('frefno', $fakturpembelian->frefno) }}">
-                                    <label class="inline-flex items-center select-none">
+                                    <label class="inline-flex items-center select-none font-bold">
                                     </label>
                                 </div>
                             </div>
 
                             <div class="lg:col-span-2">
-                                <label class="block text-sm font-medium">TOP (Hari)</label>
+                                <label class="block text-sm font-bold">TOP (Hari)</label>
                                 <input type="number" id="ftempohr" name="ftempohr"
                                     class="w-full border rounded px-3 py-2" {{-- Hapus 'value' yang duplikat. Cukup satu baris ini: --}}
                                     value="{{ old('ftempohr', $fakturpembelian->ftempohr) }}"
@@ -1044,7 +1044,7 @@
                             </div>
 
                             <div class="lg:col-span-2">
-                                <label class="block text-sm font-medium">Tgl. Jatuh Tempo</label>
+                                <label class="block text-sm font-bold">Tgl. Jatuh Tempo</label>
                                 <input type="date" id="fjatuhtempo" name="fjatuhtempo"
                                     value="{{ old('fjatuhtempo', optional($fakturpembelian->fjatuhtempo)->format('Y-m-d') ?? optional($fakturpembelian->fstockmtdate)->format('Y-m-d')) }}"
                                     readonly
@@ -1058,7 +1058,7 @@
 
                         <div class="fpb-ket-biaya mt-4">
                             <div class="min-w-0">
-                                <label class="block text-sm font-medium">Keterangan</label>
+                                <label class="block text-sm font-bold">Keterangan</label>
                                 <textarea name="fket" rows="3"
                                     class="w-full h-[96px] resize-none border rounded px-3 py-2 @error('fket') border-red-500 @enderror"
                                     placeholder="Tulis keterangan tambahan di sini...">{{ old('fket', $fakturpembelian->fket) }}</textarea>
@@ -1072,7 +1072,7 @@
                                     return window.getFpbItemsTableComponent?.()?.hasTerSourceItems ?? false;
                                 }
                             }">
-                                <label class="block text-sm font-medium mb-2">Hitung Biaya</label>
+                                <label class="block text-sm font-bold mb-2">Hitung Biaya</label>
                                 <div
                                     class="hpp-box h-[96px] bg-gray-50 p-3 rounded-lg border border-gray-200 shadow-sm flex items-center gap-3">
                                     <input type="text" id="editBiayaGlobalInput"
@@ -1514,7 +1514,7 @@
                                                 <input id="fapplyppn" type="checkbox" name="fapplyppn" value="1"
                                                     x-model="includePPN"
                                                     class="h-4 w-4 text-blue-600 border-gray-300 rounded">
-                                                <label for="fapplyppn" class="text-sm font-medium text-gray-700">
+                                                <label for="fapplyppn" class="text-sm font-bold text-gray-700">
                                                     <span class="font-bold">PPN</span>
                                                 </label>
                                             </div>
@@ -1605,7 +1605,7 @@
                                             <div class="rounded-lg border bg-gray-50 px-3 py-2 text-sm text-gray-800"
                                                 x-text="descItemName || '-'"></div>
                                         </div>
-                                        <label class="block text-sm text-gray-700">Deskripsi</label>
+                                        <label class="block text-sm text-gray-700 font-bold">Deskripsi</label>
                                         <textarea x-model="descValue" rows="5" class="w-full border rounded px-3 py-2" :readonly="descReadonly"
                                             placeholder="Tulis deskripsi item di sini..."></textarea>
                                     </div>

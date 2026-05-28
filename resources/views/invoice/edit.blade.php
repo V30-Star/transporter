@@ -413,7 +413,21 @@
                                                     <span class="align-middle text-gray-600" x-text="it.fdesc"></span>
                                                 </div>
                                             </td>
-                                            <td class="p-2" x-text="it.fsatuan"></td>
+                                            <td class="p-2">
+                                                <template x-if="it.units && it.units.length > 1">
+                                                    <select class="w-full border rounded px-2 py-1 text-sm focus:ring-1 focus:ring-blue-500"
+                                                        x-model="it.fsatuan"
+                                                        @change="onRowUpdated(i)">
+                                                        <template x-for="u in it.units" :key="u">
+                                                            <option :value="u" :selected="u === it.fsatuan" x-text="u"></option>
+                                                        </template>
+                                                    </select>
+                                                </template>
+                                                <template x-if="!(it.units && it.units.length > 1)">
+                                                    <div class="px-2 py-1 text-sm text-gray-600 bg-gray-50 border rounded"
+                                                        x-text="it.fsatuan || '-'"></div>
+                                                </template>
+                                            </td>
                                             <td class="p-2" x-text="it.frefno_display || it.frefcode || '-'"></td>
                                             <td class="p-2 text-right" x-text="fmt(it.fqty)"></td>
                                             <td class="p-2 text-right" x-text="fmt(it.fprice)"></td>
@@ -2568,6 +2582,7 @@
                         fitemcode: itemcode,
                         fitemname: (src.fitemname ?? '').toString().trim(),
                         fsatuan: (src.fsatuan ?? '').toString().trim(),
+                        fdisplayunit: (src.fdisplayunit ?? src.fsatuan ?? '').toString().trim(),
                         frefdtno: frefdtno,
                         fnouref: (src.frefdtno ?? src.fnouref ?? null),
                         frefno_display: refNo || src.frefcode || '',
@@ -2582,7 +2597,9 @@
                         fprice: Number(src.fprice ?? src.fharga ?? 0),
                         ftotal: 0,
                         fdesc: src.fdesc ? src.fdesc.toString().trim() : '',
-                        units: [(src.fsatuan ?? '').toString().trim()].filter(Boolean),
+                        units: Array.isArray(src.units) && src.units.length
+                            ? src.units.map(u => (u ?? '').toString().trim()).filter(Boolean)
+                            : [(src.fsatuan ?? '').toString().trim()].filter(Boolean),
                         maxqty: Math.max(0, Number(src.maxqty ?? src.fqtyremain ?? 0)),
                     };
 

@@ -1220,6 +1220,18 @@
         tempoInput.dispatchEvent(new Event('change', { bubbles: true }));
     };
 
+    window.syncInvoicePpnFromSource = function(header = null) {
+        const root = document.querySelector('[x-data*="itemsTable()"]');
+        const component = root && window.Alpine ? Alpine.$data(root) : null;
+        if (!component || !header) return;
+
+        component.includePPN = Number(header.fapplyppn ?? 0) === 1;
+        component.fapplyppn = Number(header.fincludeppn ?? 0) === 1 ? 1 : 0;
+
+        const rate = Number(header.fppnpersen ?? 11);
+        component.ppnRate = Number.isFinite(rate) && rate >= 0 ? rate : 11;
+    };
+
     window.syncInvoiceTempoFromCustomer = function(payload = null) {
         const normalize = (value) => String(value ?? '').trim();
         const select = document.getElementById('modal_filter_customer_id');
@@ -1904,6 +1916,7 @@
 
                 if (source === 'SO') {
                     window.syncInvoiceTempoFromSource?.(header?.ftempohr ?? 0);
+                    window.syncInvoicePpnFromSource?.(header);
                 }
 
                 items.forEach(src => {
@@ -1946,6 +1959,8 @@
                     });
 
                     if (existing.has(key)) return;
+
+                    this.hydrateRowFromMeta(row, this.productMeta(row.fitemcode));
 
                     const rowLimit = this.getRowQtyLimit(row);
                     if (!(rowLimit > 0)) return;

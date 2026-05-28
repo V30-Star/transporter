@@ -144,7 +144,7 @@
             <div class="grid grid-cols-1 lg:grid-cols-12 gap-4">
 
                 <div class="lg:col-span-4">
-                    <label class="block text-sm font-medium mb-1">Cabang</label>
+                    <label class="block text-sm font-bold mb-1">Cabang</label>
                     <input type="text"
                         class="w-full border rounded px-3 py-2 bg-gray-100 text-gray-700 cursor-not-allowed"
                         value="{{ trim(($fbranchcode ?? '') . ($fcabang ?? '' ? ' - ' . $fcabang : '')) }}" disabled>
@@ -153,7 +153,7 @@
 
                 {{-- Transaksi# â€” selalu disabled (nomor tidak bisa diubah) --}}
                 <div class="lg:col-span-4">
-                    <label class="block text-sm font-medium mb-1">Transaksi#</label>
+                    <label class="block text-sm font-bold mb-1">Transaksi#</label>
                     <div class="flex items-center gap-3">
                         <input type="text" class="w-full border rounded px-3 py-2 bg-gray-200 cursor-not-allowed"
                             value="{{ $penerimaanbarang->fstockmtno }}" disabled>
@@ -165,7 +165,7 @@
 
                 {{-- Supplier --}}
                 <div class="lg:col-span-4">
-                    <label class="block text-sm font-medium mb-1">Supplier</label>
+                    <label class="block text-sm font-bold mb-1">Supplier</label>
                     <div class="flex">
                         <div class="relative flex-1">
                             <select id="modal_filter_supplier_id" name="filter_supplier_id"
@@ -208,7 +208,7 @@
 
                 {{-- Gudang --}}
                 <div class="lg:col-span-4">
-                    <label class="block text-sm font-medium mb-1">Gudang</label>
+                    <label class="block text-sm font-bold mb-1">Gudang</label>
                     <div class="flex">
                         <div class="relative flex-1">
                             <select id="warehouseSelect"
@@ -251,7 +251,7 @@
 
                 {{-- Tanggal --}}
                 <div class="lg:col-span-4">
-                    <label class="block text-sm font-medium">Tanggal</label>
+                    <label class="block text-sm font-bold">Tanggal</label>
                     <input type="date" name="fstockmtdate"
                         value="{{ old('fstockmtdate', \Carbon\Carbon::parse($penerimaanbarang->fstockmtdate)->format('Y-m-d')) }}"
                         {{ $isReadOnly ? 'disabled' : '' }}
@@ -265,7 +265,7 @@
 
                 {{-- Keterangan --}}
                 <div class="lg:col-span-12">
-                    <label class="block text-sm font-medium">Keterangan</label>
+                    <label class="block text-sm font-bold">Keterangan</label>
                     <textarea name="fket" rows="3" {{ $isReadOnly ? 'disabled' : '' }}
                         class="w-full border rounded px-3 py-2
                             {{ $isReadOnly ? 'bg-gray-100 cursor-not-allowed' : '' }}
@@ -607,7 +607,7 @@
                                 <div class="rounded-lg border bg-gray-50 px-3 py-2 text-sm text-gray-800"
                                     x-text="descItemName || '-'"></div>
                             </div>
-                            <label class="block text-sm text-gray-700">Deskripsi</label>
+                            <label class="block text-sm text-gray-700 font-bold">Deskripsi</label>
                             <textarea x-model="descValue" rows="5" class="w-full border rounded px-3 py-2" :readonly="descReadonly"
                                 :class="descReadonly ? 'bg-gray-100 cursor-not-allowed text-gray-600' : ''"
                                 placeholder="Tulis deskripsi item di sini..."></textarea>
