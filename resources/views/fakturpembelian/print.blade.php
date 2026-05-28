@@ -3,7 +3,7 @@
 
 <head>
     <meta charset="utf-8">
-    <title>{{ "Faktur Pembelian" }} - {{ $hdr->fstockmtno ?? '-' }}</title>
+    <title>{{ "Faktur Pembelian" }} - {{ $displayFstockmtno ?? ($hdr->fstockmtno ?? '-') }}</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <style>
         :root {
@@ -229,7 +229,7 @@
             </div>
             <div>
                 <div class="title-so">{{ "Faktur Pembelian" }}</div>
-                <div class="so-no">{{ "No" }}. {{ $hdr->fstockmtno ?? '-' }}</div>
+                <div class="so-no">{{ "No" }}. {{ $displayFstockmtno ?? ($hdr->fstockmtno ?? '-') }}</div>
             </div>
         </div>
 
@@ -317,5 +317,4 @@
 </body>
 
 </html>
-
 

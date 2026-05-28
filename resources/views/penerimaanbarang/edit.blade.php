@@ -156,7 +156,7 @@
                     <label class="block text-sm font-bold mb-1">Transaksi#</label>
                     <div class="flex items-center gap-3">
                         <input type="text" class="w-full border rounded px-3 py-2 bg-gray-200 cursor-not-allowed"
-                            value="{{ $penerimaanbarang->fstockmtno }}" disabled>
+                            value="{{ $displayFstockmtno ?? $penerimaanbarang->fstockmtno }}" disabled>
                     </div>
                     <input type="hidden" name="fstockmtno" value="{{ $penerimaanbarang->fstockmtno }}">
                 </div>

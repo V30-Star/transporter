@@ -261,7 +261,7 @@
                             <label class="block text-sm font-bold mb-1">Transaksi#</label>
                             <div class="flex items-center gap-3">
                                 <input type="text" name="fstockmtno" class="w-full border rounded px-3 py-2"
-                                    value="{{ old('fstockmtno', $fakturpembelian->fstockmtno) }}" :disabled="autoCode"
+                                    value="{{ old('fstockmtno', $displayFstockmtno ?? $fakturpembelian->fstockmtno) }}" :disabled="autoCode"
                                     :class="autoCode ? 'bg-gray-200 cursor-not-allowed' : 'bg-white'">
                                 <label class="inline-flex items-center select-none font-bold">
                                     <input type="checkbox" x-model="autoCode" checked>
@@ -829,7 +829,7 @@
                                 <label class="block text-sm font-bold mb-1">Transaksi#</label>
                                 <div class="flex items-center gap-3">
                                     <input type="text" name="fstockmtno" class="w-full border rounded px-3 py-2"
-                                        value="{{ old('fstockmtno', $fakturpembelian->fstockmtno) }}"
+                                        value="{{ old('fstockmtno', $displayFstockmtno ?? $fakturpembelian->fstockmtno) }}"
                                         :disabled="autoCode"
                                         :class="autoCode ? 'bg-gray-200 cursor-not-allowed' : 'bg-white'">
                                     <label class="inline-flex items-center select-none font-bold">

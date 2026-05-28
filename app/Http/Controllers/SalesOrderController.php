@@ -20,6 +20,19 @@ use App\Support\ApprovalState;
 class SalesOrderController extends Controller
 {
     use ProductBrowseHelper;
+
+    private function formatDisplayTransactionNumber(?string $number, bool $useSlash = false): string
+    {
+        $normalized = trim((string) $number);
+        if ($normalized === '') {
+            return '-';
+        }
+
+        $separator = $useSlash ? '/' : '.';
+
+        return (string) preg_replace('/[.\/](\d+)$/', $separator.'$1', $normalized, 1);
+    }
+
     private function resolveProductDefaultUnit($product): string
     {
         return match ((int) $product->fsatuandefault) {
@@ -452,6 +465,7 @@ class SalesOrderController extends Controller
                     'ftrsomtid' => $row->ftrsomtid,
                     'fbranchcode' => $row->fbranchcode,
                     'fsono' => $row->fsono,
+                    'fsono_display' => $this->formatDisplayTransactionNumber($row->fsono, (int) ($row->fapplyppn ?? 0) === 1),
                     'fsodate' => $row->fsodate instanceof \Carbon\Carbon
                         ? $row->fsodate->format('Y-m-d')
                         : $row->fsodate,
@@ -754,6 +768,7 @@ class SalesOrderController extends Controller
         return view('salesorder.print', [
             'hdr' => $hdr,
             'dt' => $dt,
+            'displayFsono' => $this->formatDisplayTransactionNumber($hdr->fsono ?? null, (int) ($hdr->fapplyppn ?? 0) === 1),
             'fmt' => $fmt,
             'company_name' => config('app.company_name', 'PT. DEMO VERSION'),
             'company_city' => config('app.company_city', 'Tangerang'),

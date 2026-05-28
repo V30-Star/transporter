@@ -113,7 +113,7 @@
                             PO Tidak Dapat {{ $isDelete ? 'Dihapus' : 'Diedit' }}
                         </h3>
                         <p class="text-sm text-orange-500 mt-0.5">
-                            PO <strong>{{ $tr_poh->fpono }}</strong> sudah memiliki transaksi Penerimaan Barang:
+                            PO <strong>{{ $displayFpono ?? $tr_poh->fpono }}</strong> sudah memiliki transaksi Penerimaan Barang:
                         </p>
                     </div>
                     <button type="button" @click="open = false"
@@ -196,7 +196,7 @@
             {{-- PO# --}}
             <div class="lg:col-span-4">
                 <label class="block text-sm font-bold mb-1">PO#</label>
-                <input type="text" name="fpohid" value="{{ old('fpohid', $tr_poh->fpono) }}"
+                <input type="text" name="fpohid" value="{{ old('fpohid', $displayFpono ?? $tr_poh->fpono) }}"
                     class="w-full border rounded px-3 py-2 bg-gray-200 cursor-not-allowed" disabled>
             </div>
 
@@ -956,7 +956,7 @@
                     <div class="bg-white rounded-lg shadow-lg max-w-sm w-full p-6">
                         <h3 class="text-lg font-semibold mb-2">Konfirmasi Close</h3>
                         <p class="text-sm text-gray-600 mb-4">Apakah anda yakin mau close PO
-                            <strong>{{ $tr_poh->fpono }}</strong>?
+                            <strong>{{ $displayFpono ?? $tr_poh->fpono }}</strong>?
                         </p>
                         <div class="flex justify-end gap-2">
                             <button type="button" onclick="closeClosePoModal()"
@@ -987,7 +987,7 @@
             <div class="bg-white rounded-lg shadow-lg max-w-sm w-full p-6">
                 <h3 class="text-lg font-semibold mb-2">Konfirmasi Hapus</h3>
                 <p class="text-sm text-gray-600 mb-4">Yakin ingin menghapus Order Pembelian
-                    <strong>{{ $tr_poh->fpono }}</strong>? Tindakan ini tidak dapat dibatalkan.
+                    <strong>{{ $displayFpono ?? $tr_poh->fpono }}</strong>? Tindakan ini tidak dapat dibatalkan.
                 </p>
                 <form action="{{ route('tr_poh.destroy', $tr_poh->fpohid) }}" method="POST">
                     @csrf

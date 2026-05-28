@@ -3,7 +3,7 @@
 
 <head>
     <meta charset="utf-8">
-    <title>Order Pembelian - {{ $hdr->fpono ?? '-' }}</title>
+    <title>Order Pembelian - {{ $displayFpono ?? ($hdr->fpono ?? '-') }}</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <style>
         :root {
@@ -228,7 +228,7 @@
             </div>
             <div>
                 <div class="title-so">Order Pembelian</div>
-                <div class="so-no">No. {{ $hdr->fsono ?? 'SO2601.0001' }}</div>
+                <div class="so-no">No. {{ $displayFpono ?? ($hdr->fpono ?? '-') }}</div>
             </div>
         </div>
 
@@ -341,4 +341,3 @@
 </body>
 
 </html>
-

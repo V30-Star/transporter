@@ -17,6 +17,19 @@ use Illuminate\Validation\ValidationException;
 class PenerimaanBarangController extends Controller
 {
     use ProductBrowseHelper;
+
+    private function formatDisplayTransactionNumber(?string $number, bool $useSlash = false): string
+    {
+        $normalized = trim((string) $number);
+        if ($normalized === '') {
+            return '-';
+        }
+
+        $separator = $useSlash ? '/' : '.';
+
+        return (string) preg_replace('/[.\/](\d+)$/', $separator.'$1', $normalized, 1);
+    }
+
     public function index(Request $request)
     {
         $canCreate = in_array('createPenerimaanBarang', explode(',', session('user_restricted_permissions', '')));
@@ -100,6 +113,7 @@ class PenerimaanBarangController extends Controller
             $data = $records->map(fn($row) => [
                 'fstockmtid' => $row->fstockmtid,
                 'fstockmtno' => $row->fstockmtno,
+                'fstockmtno_display' => $this->formatDisplayTransactionNumber($row->fstockmtno, false),
                 'fstockmtdate' => Carbon::parse($row->fstockmtdate)->format('d/m/Y'),
                 'fwhname' => $warehouses[$row->ffrom] ?? '-',
                 'fsuppliername' => $suppliers[$row->fsupplier] ?? '-',
@@ -745,6 +759,7 @@ class PenerimaanBarangController extends Controller
         return view('penerimaanbarang.print', [
             'hdr' => $hdr,
             'dt' => $dt,
+            'displayFstockmtno' => $this->formatDisplayTransactionNumber($hdr->fstockmtno ?? null, false),
             'fmt' => $fmt,
             'company_name' => config('app.company_name', 'PT. DEMO VERSION'),
             'company_city' => config('app.company_city', 'Tangerang'),
@@ -1032,7 +1047,7 @@ class PenerimaanBarangController extends Controller
             return back()->withInput()->withErrors(['detail' => 'Gagal simpan: ' . $e->getMessage()]);
         }
 
-        return redirect()->route('penerimaanbarang.create')->with('success', "Penerimaan barang {$fstockmtno} berhasil disimpan.");
+        return redirect()->route('penerimaanbarang.create')->with('success', 'Penerimaan barang '.$this->formatDisplayTransactionNumber($fstockmtno, false).' berhasil disimpan.');
     }
 
     public function edit(Request $request, $fstockmtid)
@@ -1168,6 +1183,7 @@ class PenerimaanBarangController extends Controller
             'products' => $products,
             'productMap' => $productMap,
             'penerimaanbarang' => $penerimaanbarang,
+            'displayFstockmtno' => $this->formatDisplayTransactionNumber($penerimaanbarang->fstockmtno ?? null, false),
             'savedItems' => $savedItems,
             'ppnAmount' => (float) ($penerimaanbarang->famountpopajak ?? 0),
             'famountponet' => (float) ($penerimaanbarang->famountponet ?? 0),
@@ -1416,7 +1432,7 @@ class PenerimaanBarangController extends Controller
         }
 
         return redirect()->route('penerimaanbarang.index')
-            ->with('success', "Penerimaan barang {$header->fstockmtno} berhasil diupdate.");
+            ->with('success', 'Penerimaan barang '.$this->formatDisplayTransactionNumber($header->fstockmtno, false).' berhasil diupdate.');
     }
 
     public function destroy($fstockmtid)
@@ -1461,7 +1477,7 @@ class PenerimaanBarangController extends Controller
             });
 
             return redirect()->route('penerimaanbarang.index')
-                ->with('success', 'Penerimaan barang ' . $penerimaanbarang->fstockmtno . ' berhasil dihapus.');
+                ->with('success', 'Penerimaan barang ' . $this->formatDisplayTransactionNumber($penerimaanbarang->fstockmtno, false) . ' berhasil dihapus.');
         } catch (\Exception $e) {
             return redirect()->route('penerimaanbarang.delete', $fstockmtid)
                 ->with('error', 'Penerimaan barang belum bisa dihapus. Coba lagi.');

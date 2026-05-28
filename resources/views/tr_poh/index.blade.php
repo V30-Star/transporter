@@ -317,7 +317,7 @@
 
             // 1. Definisi Kolom
             const columns = [{
-                    data: 'fpono',
+                    data: 'fpono_display',
                     name: 'fpono'
                 },
                 {

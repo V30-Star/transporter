@@ -20,6 +20,18 @@ class FakturpembelianController extends Controller
 {
     use ProductBrowseHelper;
 
+    private function formatDisplayTransactionNumber(?string $number, bool $useSlash = false): string
+    {
+        $normalized = trim((string) $number);
+        if ($normalized === '') {
+            return '-';
+        }
+
+        $separator = $useSlash ? '/' : '.';
+
+        return (string) preg_replace('/[.\/](\d+)$/', $separator.'$1', $normalized, 1);
+    }
+
     private function getReferenceUnitMaps($details): array
     {
         $detailRows = collect($details);
@@ -181,6 +193,7 @@ class FakturpembelianController extends Controller
                 ->get([
                     'trstockmt.fstockmtid',
                     'trstockmt.fstockmtno',
+                    'trstockmt.fapplyppn',
                     'trstockmt.fstockmtdate',
                     'trstockmt.frefno',
                     'trstockmt.frefpo',
@@ -198,6 +211,7 @@ class FakturpembelianController extends Controller
                 return [
                     'fstockmtid' => $row->fstockmtid,
                     'fstockmtno' => $row->fstockmtno,
+                    'fstockmtno_display' => $this->formatDisplayTransactionNumber($row->fstockmtno, (int) ($row->fapplyppn ?? 0) === 1),
                     'fstockmtdate' => Carbon::parse($row->fstockmtdate)->format('d/m/Y'),
                     'ffakturno' => trim((string) ($row->frefno ?? '')),
                     'fgudang' => $warehouse !== '' ? trim($warehouseCode.' - '.$warehouse) : $warehouseCode,
@@ -1011,6 +1025,7 @@ class FakturpembelianController extends Controller
         return view('fakturpembelian.print', [
             'hdr' => $hdr,
             'dt' => $dt,
+            'displayFstockmtno' => $this->formatDisplayTransactionNumber($hdr->fstockmtno ?? null, (int) ($hdr->fapplyppn ?? 0) === 1),
             'fmt' => $fmt,
             'company_name' => config('app.company_name', 'PT. DEMO VERSION'),
             'company_city' => config('app.company_city', 'Tangerang'),
@@ -1413,7 +1428,7 @@ class FakturpembelianController extends Controller
             });
 
             return redirect()->route('fakturpembelian.create')
-                ->with('success', "Faktur pembelian $fstockmtno berhasil disimpan.");
+                ->with('success', 'Faktur pembelian '.$this->formatDisplayTransactionNumber($fstockmtno, $fapplyppn === 1).' berhasil disimpan.');
         } catch (\Exception $e) {
             Log::error('FakturPembelian@store ERROR: ' . $e->getMessage());
 
@@ -1598,6 +1613,7 @@ class FakturpembelianController extends Controller
             'currentAccountId' => $currentAccountId,
             'currentAccountName' => $currentAccountName,
             'fakturpembelian' => $fakturpembelian,
+            'displayFstockmtno' => $this->formatDisplayTransactionNumber($fakturpembelian->fstockmtno ?? null, (int) ($fakturpembelian->fapplyppn ?? 0) === 1),
             'savedItems' => $savedItems,
             'biayaGlobal' => $biayaGlobal,
             'ppnAmount' => (float) ($fakturpembelian->famountpopajak ?? 0),
@@ -1727,6 +1743,7 @@ class FakturpembelianController extends Controller
             'currentAccountId' => $currentAccountId,
             'currentAccountName' => $currentAccountName,
             'fakturpembelian' => $fakturpembelian,
+            'displayFstockmtno' => $this->formatDisplayTransactionNumber($fakturpembelian->fstockmtno ?? null, (int) ($fakturpembelian->fapplyppn ?? 0) === 1),
             'savedItems' => $savedItems,
             'biayaGlobal' => $biayaGlobal,
             'ppnAmount' => (float) ($fakturpembelian->famountpopajak ?? 0),
@@ -2148,7 +2165,7 @@ class FakturpembelianController extends Controller
 
             return redirect()
                 ->route('fakturpembelian.index')
-                ->with('success', "Faktur pembelian {$fstockmtno} berhasil diupdate.");
+                ->with('success', 'Faktur pembelian '.$this->formatDisplayTransactionNumber($fstockmtno, $fapplyppn === 1).' berhasil diupdate.');
         } catch (\Exception $e) {
 
             return back()
@@ -2272,6 +2289,7 @@ class FakturpembelianController extends Controller
             'currentAccountId' => $currentAccountId,
             'currentAccountName' => $currentAccountName,
             'fakturpembelian' => $fakturpembelian,
+            'displayFstockmtno' => $this->formatDisplayTransactionNumber($fakturpembelian->fstockmtno ?? null, (int) ($fakturpembelian->fapplyppn ?? 0) === 1),
             'savedItems' => $savedItems,
             'biayaGlobal' => $biayaGlobal,
             'ppnAmount' => (float) ($fakturpembelian->famountpopajak ?? 0),
@@ -2330,7 +2348,7 @@ class FakturpembelianController extends Controller
                 $fakturpembelian->delete();
             });
 
-            return redirect()->route('fakturpembelian.index')->with('success', 'Faktur pembelian ' . $fakturpembelian->fstockmtno . ' berhasil dihapus.');
+            return redirect()->route('fakturpembelian.index')->with('success', 'Faktur pembelian ' . $this->formatDisplayTransactionNumber($fakturpembelian->fstockmtno, (int) ($fakturpembelian->fapplyppn ?? 0) === 1) . ' berhasil dihapus.');
         } catch (\Exception $e) {
             // Jika terjadi kesalahan saat menghapus, kembali ke halaman delete dengan pesan error
             return redirect()->route('fakturpembelian.delete', $fstockmtid)->with('error', 'Faktur pembelian belum bisa dihapus. Coba lagi.');

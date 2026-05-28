@@ -348,7 +348,7 @@
 
             // 1. Definisi Kolom
             const columns = [{
-                    data: 'fstockmtno',
+                    data: 'fstockmtno_display',
                     name: 'fstockmtno'
                 },
                 {

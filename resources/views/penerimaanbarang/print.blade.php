@@ -3,7 +3,7 @@
 
 <head>
     <meta charset="utf-8">
-    <title>Penerimaan Barang - {{ $hdr->fsono ?? '-' }}</title>
+    <title>Penerimaan Barang - {{ $displayFstockmtno ?? ($hdr->fstockmtno ?? '-') }}</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <style>
         :root {
@@ -208,7 +208,7 @@
             </div>
             <div>
                 <div class="title-so">Penerimaan Barang</div>
-                <div class="so-no">No. {{ $hdr->fsono ?? 'SO2601.0001' }}</div>
+                <div class="so-no">No. {{ $displayFstockmtno ?? ($hdr->fstockmtno ?? '-') }}</div>
             </div>
         </div>
 
