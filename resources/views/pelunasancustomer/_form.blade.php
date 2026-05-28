@@ -79,8 +79,8 @@
                 </div>
             </div>
 
-            <!-- Row 2: Customer, Account -->
-            <div class="grid grid-cols-2 gap-3">
+            <!-- Row 2: Customer, Account, Giro/Cek -->
+            <div class="grid grid-cols-3 gap-3">
                 <div>
                     <label class="block text-sm font-bold mb-1">{{ 'Customer' }}</label>
                     <div class="flex">
@@ -125,10 +125,7 @@
                         <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                     @enderror
                 </div>
-            </div>
 
-            <!-- Row 3: Checking Number, Post-Dated Checking, Due Date -->
-            <div class="grid grid-cols-3 gap-3 items-end">
                 <div>
                     <label class="block text-sm font-bold mb-1">{{ 'No.Giro/Cek' }}</label>
                     <input type="text" name="fnogiro" value="{{ old('fnogiro', $giroNo ?? '') }}"
@@ -137,7 +134,10 @@
                         <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                     @enderror
                 </div>
+            </div>
 
+            <!-- Row 3: Giro Mundur, Due Date -->
+            <div class="grid grid-cols-3 gap-3 items-end">
                 <div>
                     <label class="inline-flex items-center gap-2 h-9 px-3 border rounded w-full bg-white">
                         <input type="checkbox" x-model="isGiroMundur" class="rounded">{{ 'Giro Mundur' }}
@@ -155,6 +155,8 @@
                         <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                     @enderror
                 </div>
+
+                <div></div>
             </div>
 
             <!-- Row 4: Description -->
