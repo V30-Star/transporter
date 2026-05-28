@@ -18,6 +18,7 @@
             document.documentElement.setAttribute('data-theme', preferredTheme);
             document.documentElement.style.colorScheme = preferredTheme;
         })();
+        window.showCustomerRequired = false;
     </script>
 
     <style>

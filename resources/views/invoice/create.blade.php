@@ -452,7 +452,7 @@
                                                     @change="onRowUpdated(i)"
                                                     @keydown.enter.prevent="focusRowQty(i)">
                                                     <template x-for="u in it.units" :key="u">
-                                                        <option :value="u" x-text="u"></option>
+                                                        <option :value="u" :selected="u === it.fsatuan" x-text="u"></option>
                                                     </template>
                                                 </select>
                                             </template>
@@ -1818,11 +1818,21 @@
                 row.fitemname = meta.name || '';
                 row.frefcode = meta.fprdcode || meta.id || '';
                 const units = [...new Set((meta.units || []).map(u => (u ?? '').toString().trim()).filter(Boolean))];
-                row.units = units;
-                if (forceDefaultUnit || !units.includes(row.fsatuan)) {
+                const preferredUnit = (row.fsatuan || '').toString().trim();
+                const matchedUnit = preferredUnit === '' ? '' : (units.find(u => u.toLowerCase() === preferredUnit.toLowerCase()) || '');
+                const preservedUnit = matchedUnit || preferredUnit;
+
+                row.units = preservedUnit !== ''
+                    ? [preservedUnit, ...units.filter(u => u.toLowerCase() !== preservedUnit.toLowerCase())]
+                    : units;
+
+                if (forceDefaultUnit) {
+                    row.fsatuan = units[0] || '';
+                } else if (preservedUnit !== '') {
+                    row.fsatuan = preservedUnit;
+                } else if (!row.units.includes(row.fsatuan)) {
                     row.fsatuan = units[0] || '';
                 }
-                row.fsatuan = row.fsatuan;
                 if (meta.unit_ratios) row.unit_ratios = meta.unit_ratios;
                 row.maxqty = Number.isFinite(+row.maxqty) ? +row.maxqty : 0;
             },
@@ -2033,6 +2043,13 @@
                     row.units.unshift(row.fsatuan);
                 }
 
+                const preferredUnit = (row.fsatuan || '').toString().trim();
+                if (preferredUnit !== '') {
+                    const matchedUnit = row.units.find((u) => (u ?? '').toString().trim().toLowerCase() === preferredUnit.toLowerCase()) || preferredUnit;
+                    row.units = [matchedUnit, ...row.units.filter((u) => (u ?? '').toString().trim().toLowerCase() !== matchedUnit.toLowerCase())];
+                    row.fsatuan = matchedUnit;
+                }
+
                 if (meta?.unit_ratios) {
                     row.unit_ratios = row.unit_ratios || meta.unit_ratios;
                 }
@@ -2046,6 +2063,7 @@
                     ...newRow(),
                     uid: overrides.uid || cryptoRandom(),
                     ...overrides,
+                    fsatuan: (overrides.fsatuan ?? '').toString().trim(),
                     fnoacak: this.normalizeNoAcak(overrides.fnoacak) || this.generateUniqueNoAcak(overrides.uid || null),
                     frefnoacak: this.normalizeRefNoAcak(overrides.frefnoacak),
                 };
