@@ -15,15 +15,28 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Schema;
 // sekalian biar aman untuk tanggal
 use Illuminate\Validation\ValidationException;
 use App\Support\ApprovalState;
 
 class InvoiceController extends Controller
 {
-    private function ensureNoDuplicateDetailCodes(array $codes): void
+    private ?bool $tranmtHasInternalNoteColumn = null;
+
+    private function tranmtHasInternalNoteColumn(): bool
     {
-        $seen = [];
+        if ($this->tranmtHasInternalNoteColumn === null) {
+            $this->tranmtHasInternalNoteColumn = Schema::hasColumn('tranmt', 'fketinternal');
+        }
+
+        return $this->tranmtHasInternalNoteColumn;
+    }
+
+    private function ensureNoDuplicateDetailCodes(array $codes, array $detailPayload = []): void
+    {
+        $seenCodes = [];
+        $seenSignatures = [];
         $duplicates = [];
 
         foreach ($codes as $index => $rawCode) {
@@ -32,12 +45,26 @@ class InvoiceController extends Controller
                 continue;
             }
 
-            if (isset($seen[$code])) {
+            $signatureParts = [$code];
+            foreach ($detailPayload as $field => $values) {
+                $value = is_array($values) ? ($values[$index] ?? '') : '';
+                $signatureParts[] = is_scalar($value) ? trim((string) $value) : json_encode($value);
+            }
+            $rowSignature = implode('|', $signatureParts);
+
+            // Abaikan baris payload yang identik persis dua kali dari form.
+            if (isset($seenSignatures[$rowSignature])) {
+                continue;
+            }
+
+            $seenSignatures[$rowSignature] = true;
+
+            if (isset($seenCodes[$code])) {
                 $duplicates[$index] = $code;
                 continue;
             }
 
-            $seen[$code] = true;
+            $seenCodes[$code] = true;
         }
 
         if ($duplicates === []) {
@@ -50,6 +77,68 @@ class InvoiceController extends Controller
         }
 
         throw ValidationException::withMessages($messages);
+    }
+
+    private function normalizeInvoiceDetailPayload(array $payload): array
+    {
+        if ($payload === []) {
+            return [];
+        }
+
+        $fields = array_keys($payload);
+        $rowCount = 0;
+
+        foreach ($payload as $values) {
+            if (is_array($values)) {
+                $rowCount = max($rowCount, count($values));
+            }
+        }
+
+        $uniqueRows = [];
+        $orderedKeys = [];
+
+        for ($index = 0; $index < $rowCount; $index++) {
+            $row = [];
+            foreach ($fields as $field) {
+                $values = $payload[$field] ?? [];
+                $row[$field] = is_array($values) ? ($values[$index] ?? null) : null;
+            }
+
+            $code = strtoupper(trim((string) ($row['fitemcode'] ?? '')));
+            if ($code === '') {
+                continue;
+            }
+
+            $signatureParts = [$code];
+            foreach ($fields as $field) {
+                if ($field === 'fitemcode') {
+                    continue;
+                }
+
+                $value = $row[$field] ?? '';
+                $signatureParts[] = is_scalar($value) ? trim((string) $value) : json_encode($value);
+            }
+
+            $signature = implode('|', $signatureParts);
+            if (!isset($uniqueRows[$signature])) {
+                $orderedKeys[] = $signature;
+            }
+            $uniqueRows[$signature] = $row;
+        }
+
+        $normalized = [];
+        foreach ($fields as $field) {
+            $normalized[$field] = [];
+        }
+
+        foreach ($orderedKeys as $signature) {
+            $row = $uniqueRows[$signature];
+            foreach ($fields as $field) {
+                $normalized[$field][] = $row[$field] ?? null;
+            }
+        }
+
+        return $normalized;
     }
 
     private function getReverseJournalBaseAmountByStockDocs(array $stockDocNos): float
@@ -441,112 +530,135 @@ class InvoiceController extends Controller
 
     public function index(Request $request)
     {
-        // Ambil izin (permissions)
         $canCreate = in_array('createInvoice', explode(',', session('user_restricted_permissions', '')));
         $canEdit = in_array('updateInvoice', explode(',', session('user_restricted_permissions', '')));
         $canDelete = in_array('deleteInvoice', explode(',', session('user_restricted_permissions', '')));
         $showActionsColumn = $canEdit || $canDelete;
 
-        // $status = $request->query('status');
         $year = $request->query('year');
         $month = $request->query('month');
 
-        // Ambil tahun-tahun yang tersedia dari data
-        $availableYearsQuery = Tranmt::selectRaw('DISTINCT EXTRACT(YEAR FROM fdatetime) as year')
-            ->whereNotNull('fdatetime');
+        $availableYearsQuery = Tranmt::query()
+            ->selectRaw('DISTINCT EXTRACT(YEAR FROM fsodate) as year')
+            ->where('ftrcode', 'INV')
+            ->whereNotNull('fsodate');
         $this->applyBranchVisibilityScope($availableYearsQuery, 'tranmt.fbranchcode');
         $availableYears = $availableYearsQuery
-            ->orderByRaw('EXTRACT(YEAR FROM fdatetime) DESC')
+            ->orderByRaw('EXTRACT(YEAR FROM fsodate) DESC')
             ->pluck('year');
 
-        // --- Handle Request AJAX dari DataTables ---
         if ($request->ajax()) {
+            $referenceSummaryQuery = DB::table('trandt as d')
+                ->selectRaw("
+                    d.fsono,
+                    STRING_AGG(DISTINCT NULLIF(TRIM(d.frefso), ''), ', ' ORDER BY NULLIF(TRIM(d.frefso), '')) as so_refs,
+                    STRING_AGG(DISTINCT NULLIF(TRIM(d.frefsrj), ''), ', ' ORDER BY NULLIF(TRIM(d.frefsrj), '')) as srj_refs
+                ")
+                ->groupBy('d.fsono');
 
             $query = Tranmt::query()
-                ->leftJoin('mscabang as c', 'c.fcabangkode', '=', 'tranmt.fbranchcode')
-                ->select('tranmt.*', 'c.fcabangname');
+                ->leftJoin('mscabang as b', 'b.fcabangkode', '=', 'tranmt.fbranchcode')
+                ->leftJoin('mscustomer as cust', 'cust.fcustomercode', '=', 'tranmt.fcustno')
+                ->leftJoinSub($referenceSummaryQuery, 'ref_summary', function ($join) {
+                    $join->on('ref_summary.fsono', '=', 'tranmt.fsono');
+                })
+                ->where('tranmt.ftrcode', 'INV')
+                ->select([
+                    'tranmt.ftranmtid',
+                    'tranmt.fbranchcode',
+                    'b.fcabangname',
+                    'tranmt.fsono',
+                    'tranmt.ftaxno',
+                    'tranmt.fsodate',
+                    'tranmt.frefno',
+                    'cust.fcustomername',
+                    'tranmt.famountso',
+                    'tranmt.famountremain',
+                    'tranmt.fuserid',
+                    'tranmt.fprdout',
+                    'tranmt.fapproval',
+                    'tranmt.fapproval2',
+                    DB::raw("COALESCE(ref_summary.so_refs, '') as so_refs"),
+                    DB::raw("COALESCE(ref_summary.srj_refs, '') as srj_refs"),
+                ]);
             $this->applyBranchVisibilityScope($query, 'tranmt.fbranchcode');
 
-            // DEBUG: Cek total data di tabel
             $totalRecords = (clone $query)->count();
 
-            // Handle Search
-            if ($search = $request->input('search.value')) {
-                $query->where('fsono', 'like', "%{$search}%");
+            if ($search = trim((string) $request->input('search.value', ''))) {
+                $query->where(function ($q) use ($search) {
+                    $q->where('tranmt.fsono', 'ilike', "%{$search}%")
+                        ->orWhere('tranmt.ftaxno', 'ilike', "%{$search}%")
+                        ->orWhere('tranmt.frefno', 'ilike', "%{$search}%")
+                        ->orWhere('cust.fcustomername', 'ilike', "%{$search}%")
+                        ->orWhereRaw("COALESCE(ref_summary.so_refs, '') ILIKE ?", ["%{$search}%"])
+                        ->orWhereRaw("COALESCE(ref_summary.srj_refs, '') ILIKE ?", ["%{$search}%"]);
+                });
             }
 
-            // Filter status - DEFAULT ke 'active' jika tidak ada
-            // $statusFilter = $request->query('status', 'active');
-
-            // if ($statusFilter === 'active') {
-            //   $query->where('fclose', '0');
-            // } elseif ($statusFilter === 'nonactive') {
-            //   $query->where('fclose', '1');
-            // }
-
-            // Filter tahun
             if ($year) {
-                $query->whereRaw('EXTRACT(YEAR FROM fdatetime) = ?', [$year]);
+                $query->whereRaw('EXTRACT(YEAR FROM tranmt.fsodate) = ?', [$year]);
             }
 
-            // Filter bulan
             if ($month) {
-                $query->whereRaw('EXTRACT(MONTH FROM fdatetime) = ?', [$month]);
+                $query->whereRaw('EXTRACT(MONTH FROM tranmt.fsodate) = ?', [$month]);
             }
 
             $filteredRecords = (clone $query)->count();
 
-            // Sorting
-            $orderColIdx = $request->input('order.0.column', 0);
-            $orderDir = $request->input('order.0.dir', 'asc');
-
-            $sortableColumns = ['fsono', 'fsodate'];
+            $orderColIdx = (int) $request->input('order.0.column', 3);
+            $orderDir = $request->input('order.0.dir', 'desc');
+            $sortableColumns = [
+                0 => 'tranmt.fbranchcode',
+                1 => 'tranmt.fsono',
+                2 => 'tranmt.ftaxno',
+                3 => 'tranmt.fsodate',
+                4 => 'ref_summary.srj_refs',
+                5 => 'ref_summary.so_refs',
+                6 => 'cust.fcustomername',
+                7 => 'tranmt.famountso',
+                8 => 'tranmt.famountremain',
+                9 => 'tranmt.frefno',
+                10 => 'tranmt.fuserid',
+                11 => 'tranmt.fprdout',
+            ];
 
             if (isset($sortableColumns[$orderColIdx])) {
                 $query->orderBy($sortableColumns[$orderColIdx], $orderDir);
+            } else {
+                $query->orderBy('tranmt.fsodate', 'desc')->orderBy('tranmt.fsono', 'desc');
             }
 
-            // Paginasi
-            $start = $request->input('start', 0);
-            $length = $request->input('length', 10);
-            $records = $query->skip($start)
-                ->take($length)
-                ->get();
+            $start = (int) $request->input('start', 0);
+            $length = (int) $request->input('length', 10);
+            $records = $query->skip($start)->take($length)->get();
 
-            // Format Data
             $data = $records->map(function ($row) {
+                $soRefs = trim((string) ($row->so_refs ?? ''));
+                $srjRefs = trim((string) ($row->srj_refs ?? ''));
+
                 return [
                     'ftranmtid' => $row->ftranmtid,
                     'fbranchcode' => trim(implode(' - ', array_filter([
                         trim((string) ($row->fbranchcode ?? '')),
                         trim((string) ($row->fcabangname ?? '')),
                     ]))) ?: trim((string) ($row->fbranchcode ?? $row->fcabangname ?? '')),
-                    'fsono' => $row->fsono,
+                    'fsono' => trim((string) ($row->fsono ?? '')),
+                    'ftaxno' => trim((string) ($row->ftaxno ?? '')),
                     'fsodate' => $row->fsodate instanceof \Carbon\Carbon
                         ? $row->fsodate->format('Y-m-d')
                         : $row->fsodate,
-                    'frefno' => $row->frefno ?? '',
-                    'fcustno' => $row->fcustno ?? '',
-                    'fsalesman' => $row->fsalesman,
-                    'fdiscpersen' => $row->fdiscpersen,
-                    'fdiscount' => $row->fdiscount,
-                    'famountgross' => $row->famountgross,
-                    'famountsonet' => $row->famountsonet,
-                    'famountpajak' => $row->famountpajak,
-                    'famountso' => $row->famountso,
-                    'fket' => $row->fket,
-                    'falamatkirim' => $row->falamatkirim,
-                    'fprdout' => $row->fprdout,
-                    'fusercreate' => $row->fusercreate,
-                    'fuserupdate' => $row->fuserupdate,
-                    'fdatetime' => $row->fdatetime,
-                    'fclose' => $row->fclose,
-                    'fincludeppn' => $row->fincludeppn,
-                    'fuseracc' => $row->fuseracc,
-                    'ftempohr' => $row->ftempohr,
-                    'fprint' => $row->fprint,
-                    'fapproval' => $row->fapproval,
-                    'fapproval2' => $row->fapproval2,
+                    'frefno' => $srjRefs !== '' ? $srjRefs : $soRefs,
+                    'fso_refs' => $soRefs,
+                    'fcustomername' => trim((string) ($row->fcustomername ?? '')),
+                    'famountso' => (float) ($row->famountso ?? 0),
+                    'famountremain' => (float) ($row->famountremain ?? 0),
+                    'frefpo' => trim((string) ($row->frefno ?? '')),
+                    'fuserid' => trim((string) ($row->fuserid ?? '')),
+                    'fprdout' => trim((string) ($row->fprdout ?? '0')),
+                    'fclose' => trim((string) ($row->fclose ?? '0')),
+                    'fapproval' => trim((string) ($row->fapproval ?? '')),
+                    'fapproval2' => trim((string) ($row->fapproval2 ?? '')),
                 ];
             });
 
@@ -558,13 +670,11 @@ class InvoiceController extends Controller
             ]);
         }
 
-        // --- Handle Request non-AJAX ---
         return view('invoice.index', compact(
             'canCreate',
             'canEdit',
             'canDelete',
             'showActionsColumn',
-            // 'status',
             'availableYears',
             'year',
             'month'
@@ -805,7 +915,7 @@ class InvoiceController extends Controller
 
         $prefix = sprintf('PO.%s.%s.%s.', $kodeCabang, $date->format('y'), $date->format('m'));
 
-        // kunci per (branch, tahun-bulan) — TANPA bikin tabel baru
+        // kunci per (branch, tahun-bulan) ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â TANPA bikin tabel baru
         $lockKey = crc32('PO|' . $kodeCabang . '|' . $date->format('Y-m'));
         DB::statement('SELECT pg_advisory_xact_lock(?)', [$lockKey]);
 
@@ -916,7 +1026,7 @@ class InvoiceController extends Controller
                         $p->fsatuanbesar2,
                     ])),
                     'stock' => $p->fminstock ?? 0,
-                    'unit_ratios' => [           // ← TAMBAH INI
+                    'unit_ratios' => [           // ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â TAMBAH INI
                         'satuankecil' => 1,
                         'satuanbesar' => (float) ($p->fqtykecil ?? 1),
                         'satuanbesar2' => (float) ($p->fqtykecil2 ?? 1),
@@ -970,7 +1080,29 @@ class InvoiceController extends Controller
             'fitemcode.required' => 'Minimal harus ada 1 item barang.',
         ]);
 
-        $this->ensureNoDuplicateDetailCodes($request->input('fitemcode', []));
+        $normalizedDetailPayload = $this->normalizeInvoiceDetailPayload([
+            'fitemcode' => $request->input('fitemcode', []),
+            'fitemname' => $request->input('fitemname', []),
+            'fsatuan' => $request->input('fsatuan', []),
+            'frefcode' => $request->input('frefcode', []),
+            'fnouref' => $request->input('fnouref', []),
+            'frefpr' => $request->input('frefpr', []),
+            'frefso' => $request->input('frefso', []),
+            'frefsrj' => $request->input('frefsrj', []),
+            'fnoacak' => $request->input('fnoacak', []),
+            'frefnoacak' => $request->input('frefnoacak', []),
+            'fqty' => $request->input('fqty', []),
+            'fprice' => $request->input('fprice', []),
+            'fdisc' => $request->input('fdisc', []),
+            'ftotal' => $request->input('ftotal', []),
+            'fdesc' => $request->input('fdesc', []),
+            'fketdt' => $request->input('fketdt', []),
+        ]);
+        $request->merge($normalizedDetailPayload);
+        $this->ensureNoDuplicateDetailCodes(
+            $normalizedDetailPayload['fitemcode'] ?? [],
+            $normalizedDetailPayload
+        );
 
         // 2. INISIALISASI DATA HEADER (Tetap sama)
         $fsodate = Carbon::parse($request->fsodate);
@@ -1182,7 +1314,7 @@ class InvoiceController extends Controller
                 $approvalState = $this->initializeApprovalState();
 
                 // --- INSERT HEADER DAN AMBIL ID ---
-                $ftranmtid = DB::table('tranmt')->insertGetId([
+                $headerInsert = [
                     'ftaxno' => mb_substr($fsono, 0, 50),
                     'fsono' => $fsono,
                     'fsodate' => $fsodate,
@@ -1206,7 +1338,6 @@ class InvoiceController extends Controller
                     'famountremain' => $grandTotal,
                     'famountremain_rp' => $grandTotal * $frate,
                     'fket' => $request->fket ?? '',
-                    'fketinternal' => mb_substr((string) $request->input('fketinternal', ''), 0, 300),
                     'fuserid' => $userid,
                     'fdatetime' => $now,
                     'fincludeppn' => $fincludeppn,
@@ -1219,7 +1350,11 @@ class InvoiceController extends Controller
                     'fuseracc' => $creditApproval['fuseracc'],
                     'fprint' => 0,
                     ...$approvalState,
-                ], 'ftranmtid');
+                ];
+                if ($this->tranmtHasInternalNoteColumn()) {
+                    $headerInsert['fketinternal'] = mb_substr((string) $request->input('fketinternal', ''), 0, 300);
+                }
+                $ftranmtid = DB::table('tranmt')->insertGetId($headerInsert, 'ftranmtid');
 
                 // --- UPDATE DETAIL ROWS DENGAN ID HEADER DAN NOMOR SONO ---
                 foreach ($detailRows as &$row) {
@@ -1244,7 +1379,7 @@ class InvoiceController extends Controller
         }
     }
 
-    // ✅ TAMBAHKAN METHOD HELPER UNTUK PARSE DISCOUNT
+    // ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¦ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã¢â‚¬Å“ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¦ TAMBAHKAN METHOD HELPER UNTUK PARSE DISCOUNT
     private function parseDiscount($discInput)
     {
         if ($discInput === null || $discInput === '') {
@@ -1825,7 +1960,7 @@ class InvoiceController extends Controller
                         $p->fsatuanbesar2,
                     ])),
                     'stock' => $p->fminstock ?? 0,
-                    'unit_ratios' => [           // ← TAMBAH INI
+                    'unit_ratios' => [           // ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â TAMBAH INI
                         'satuankecil' => 1,
                         'satuanbesar' => (float) ($p->fqtykecil ?? 1),
                         'satuanbesar2' => (float) ($p->fqtykecil2 ?? 1),
@@ -1988,7 +2123,29 @@ class InvoiceController extends Controller
             'frefnoacak.*' => ['nullable', 'regex:/^\d{3}$/'],
         ]);
 
-        $this->ensureNoDuplicateDetailCodes($request->input('fitemcode', []));
+        $normalizedDetailPayload = $this->normalizeInvoiceDetailPayload([
+            'fitemcode' => $request->input('fitemcode', []),
+            'fitemname' => $request->input('fitemname', []),
+            'fsatuan' => $request->input('fsatuan', []),
+            'frefcode' => $request->input('frefcode', []),
+            'fnouref' => $request->input('fnouref', []),
+            'frefpr' => $request->input('frefpr', []),
+            'frefso' => $request->input('frefso', []),
+            'frefsrj' => $request->input('frefsrj', []),
+            'fnoacak' => $request->input('fnoacak', []),
+            'frefnoacak' => $request->input('frefnoacak', []),
+            'fqty' => $request->input('fqty', []),
+            'fprice' => $request->input('fprice', []),
+            'fdisc' => $request->input('fdisc', []),
+            'ftotal' => $request->input('ftotal', []),
+            'fdesc' => $request->input('fdesc', []),
+            'fketdt' => $request->input('fketdt', []),
+        ]);
+        $request->merge($normalizedDetailPayload);
+        $this->ensureNoDuplicateDetailCodes(
+            $normalizedDetailPayload['fitemcode'] ?? [],
+            $normalizedDetailPayload
+        );
 
         // 2. LOAD HEADER
         $header = DB::table('tranmt')->where('ftranmtid', $ftranmtid)->first();
@@ -2030,19 +2187,6 @@ class InvoiceController extends Controller
         $frefsrj = $request->input('frefsrj', []);
         $fnoacaks = $request->input('fnoacak', []);
         $frefnoacaks = $request->input('frefnoacak', []);
-
-        // Konversi ID → fsono untuk SO
-        $soIds = collect($frefso)->filter()->unique()->values()->all();
-        $soNoMap = DB::table('trsomt')
-            ->whereIn('ftrsomtid', $soIds)
-            ->pluck('fsono', 'ftrsomtid'); // [id => fsono]
-
-        // Konversi ID → fstockmtno untuk SRJ
-        $srjIds = collect($frefsrj)->filter()->unique()->values()->all();
-        $srjNoMap = DB::table('trstockmt')
-            ->whereIn('fstockmtid', $srjIds)
-            ->pluck('fstockmtno', 'fstockmtid'); // [id => fstockmtno]
-
         // 4. BUILD DETAIL ROWS
         $detailRows = [];
         $totalGross = 0;
@@ -2258,8 +2402,8 @@ class InvoiceController extends Controller
                 &$shouldSendApprovalNotification
             ) {
                 // Update Header
-                DB::table('tranmt')->where('ftranmtid', $ftranmtid)->update([
-                    'ftaxno' => mb_substr((string) ($invoice->fsono ?? ''), 0, 50),
+                $headerUpdate = [
+                    'ftaxno' => mb_substr((string) ($header->fsono ?? ''), 0, 50),
                     'fsodate' => $fsodate,
                     'fcustno' => mb_substr((string) $request->fcustno, 0, 10),
                     'fkodefp' => $fkodefp,
@@ -2277,7 +2421,6 @@ class InvoiceController extends Controller
                     'famountso_rp' => $grandTotal * $frate,
                     'ftotalsalesnet' => $grandTotal,
                     'fket' => $request->fket ?? '',
-                    'fketinternal' => mb_substr((string) $request->input('fketinternal', ''), 0, 300),
                     'fuserid' => $userid,
                     'fdatetime' => $now,
                     'fincludeppn' => $fincludeppn,
@@ -2286,7 +2429,11 @@ class InvoiceController extends Controller
                     'ftypesales' => (int) $request->input('ftypesales', 0),
                     'fneedacc' => $needsApprovalNotification ? '1' : '0',
                     'fuseracc' => $creditApproval['fuseracc'],
-                ]);
+                ];
+                if ($this->tranmtHasInternalNoteColumn()) {
+                    $headerUpdate['fketinternal'] = mb_substr((string) $request->input('fketinternal', ''), 0, 300);
+                }
+                DB::table('tranmt')->where('ftranmtid', $ftranmtid)->update($headerUpdate);
 
                 $shouldSendApprovalNotification = false;
 

@@ -32,6 +32,20 @@ class ProductController extends Controller
         return in_array('approveProduct', explode(',', session('user_restricted_permissions', '')));
     }
 
+    protected function canViewProductHpp(): bool
+    {
+        return in_array('viewProductHpp', explode(',', session('user_restricted_permissions', '')));
+    }
+
+    protected function resolveProductDefaultHpp(Product $product): float
+    {
+        return match ((string) ($product->fsatuandefault ?? '1')) {
+            '2' => (float) ($product->fhpp2 ?? 0),
+            '3' => (float) ($product->fhpp3 ?? 0),
+            default => (float) ($product->fhpp ?? 0),
+        };
+    }
+
     protected function getApprovalRecipients(): array
     {
         return array_values(array_filter([
@@ -149,6 +163,8 @@ class ProductController extends Controller
             return $guard;
         }
 
+        $canViewHpp = $this->canViewProductHpp();
+
         if ($request->ajax()) {
             $query = Product::query()
                 ->from('msprd')
@@ -207,6 +223,7 @@ class ProductController extends Controller
                 'msprd.fprdcode',
                 'msprd.fprdname',
                 'msprd.fsatuankecil',
+                'msprd.fsatuandefault',
                 'msprd.fminstock',
                 'msprd.fimage1',
                 'msprd.fprdid',
@@ -214,10 +231,13 @@ class ProductController extends Controller
                 'msprd.fapproval',
                 'msprd.fapproval2',
                 'msprd.fmerek',
+                'msprd.fhpp',
+                'msprd.fhpp2',
+                'msprd.fhpp3',
                 'msmerek.fmerekname AS merek_name',
             ]);
 
-            $data = $products->map(function ($item) {
+            $data = $products->map(function ($item) use ($canViewHpp) {
                 $isActive = (string) $item->fnonactive === '0';
                 $statusBadge = $isActive
                     ? '<span class="inline-flex items-center px-2 py-0.5 rounded text-xs bg-green-100 text-green-700">Active</span>'
@@ -229,6 +249,7 @@ class ProductController extends Controller
                     'fmerek' => $item->merek_name,
                     'fsatuankecil' => $item->fsatuankecil,
                     'fminstock' => $item->fminstock,
+                    'fhpp_display' => $canViewHpp ? $this->resolveProductDefaultHpp($item) : null,
                     'fimage1' => $item->fimage1,
                     'status' => $statusBadge,
                     'fprdid' => $item->fprdid,
@@ -249,7 +270,7 @@ class ProductController extends Controller
         $canEdit = in_array('updateProduct', explode(',', session('user_restricted_permissions', '')));
         $canDelete = in_array('deleteProduct', explode(',', session('user_restricted_permissions', '')));
 
-        return view('product.index', compact('canCreate', 'canEdit', 'canDelete'));
+        return view('product.index', compact('canCreate', 'canEdit', 'canDelete', 'canViewHpp'));
     }
 
     public function suggestNames(Request $request)

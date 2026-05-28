@@ -7,6 +7,7 @@
         $canCreate = in_array('createProduct', explode(',', session('user_restricted_permissions', '')));
         $canEdit = in_array('updateProduct', explode(',', session('user_restricted_permissions', '')));
         $canDelete = in_array('deleteProduct', explode(',', session('user_restricted_permissions', '')));
+        $canViewHpp = $canViewHpp ?? in_array('viewProductHpp', explode(',', session('user_restricted_permissions', '')));
         $showActionsColumn = $canEdit || $canDelete;
     @endphp
 
@@ -149,6 +150,13 @@
                                 data-column="4" placeholder="Cari...">
                         </div>
                     </th>
+                    @if ($canViewHpp)
+                        <th class="border px-3 py-2 no-sort">
+                            <div class="flex items-center justify-between">
+                                <span>HPP</span>
+                            </div>
+                        </th>
+                    @endif
                     {{-- <th class="border px-3 py-2 no-sort text-center">
                         <div class="flex items-center justify-center">
                             <span>Image</span>
@@ -515,6 +523,7 @@
         $(function() {
             const canEdit = {{ $canEdit ? 'true' : 'false' }};
             const canDelete = {{ $canDelete ? 'true' : 'false' }};
+            const canViewHpp = {{ $canViewHpp ? 'true' : 'false' }};
 
             const isApprovedValue = (value) => {
                 const normalized = (value ?? '').toString().trim();
@@ -586,6 +595,26 @@
                         });
                     }
                 },
+            ];
+
+            if (canViewHpp) {
+                columns.push({
+                    data: 'fhpp_display',
+                    name: 'fhpp_display',
+                    orderable: false,
+                    searchable: false,
+                    render: function(value) {
+                        const num = Number(value ?? 0);
+                        if (!Number.isFinite(num)) return '0,00';
+                        return num.toLocaleString('id-ID', {
+                            minimumFractionDigits: 2,
+                            maximumFractionDigits: 2
+                        });
+                    }
+                });
+            }
+
+            columns.push(
                 // {
                 //     data: 'fimage1',
                 //     name: 'fimage1',
@@ -624,7 +653,7 @@
                     orderable: false,
                     searchable: false
                 },
-            ];
+            );
 
             if (hasActions) {
                 columns.push({

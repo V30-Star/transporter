@@ -143,7 +143,7 @@
                 class="text-white px-6 py-4 rounded-lg shadow-lg flex items-center space-x-3">
                 <span x-text="$store.trsomtStore.notificationMessage"></span>
                 <button @click="$store.trsomtStore.showNotification = false" class="ml-4 text-white hover:text-gray-200">
-                    ×
+                    Ã—
                 </button>
             </div>
         </div>
@@ -369,72 +369,72 @@
                 },
                 {
                     data: 'fsono',
-                    name: 'fsono',
-                    render: function(data, type) {
-                        if (type !== 'display') {
-                            return data;
-                        }
-
-                        if (!data) {
-                            return '';
-                        }
-
-                        return data.startsWith('INV') ? data : `INV${data}`;
-                    }
+                    name: 'fsono'
+                },
+                {
+                    data: 'ftaxno',
+                    name: 'ftaxno'
                 },
                 {
                     data: 'fsodate',
                     name: 'fsodate'
                 },
                 {
-                    data: 'frefno', // ← UBAH DARI fsono JADI frefno
+                    data: 'frefno',
                     name: 'frefno'
                 },
                 {
-                    data: 'fcustno',
-                    name: 'fcustno'
+                    data: 'fso_refs',
+                    name: 'fso_refs'
+                },
+                {
+                    data: 'fcustomername',
+                    name: 'fcustomername'
                 },
                 {
                     data: 'famountso',
                     name: 'famountso',
                     render: function(data) {
-                        // Format currency jika perlu
-                        return new Intl.NumberFormat('id-ID', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(data);
+                        return new Intl.NumberFormat('id-ID', {
+                            minimumFractionDigits: 2,
+                            maximumFractionDigits: 2
+                        }).format(data ?? 0);
                     }
                 },
                 {
-                    data: 'fusercreate',
-                    name: 'fusercreate'
+                    data: 'famountremain',
+                    name: 'famountremain',
+                    render: function(data) {
+                        return new Intl.NumberFormat('id-ID', {
+                            minimumFractionDigits: 2,
+                            maximumFractionDigits: 2
+                        }).format(data ?? 0);
+                    }
                 },
                 {
-                    data: 'fusercreate',
-                    name: 'fusercreate'
+                    data: 'frefpo',
+                    name: 'frefpo'
                 },
                 {
-                    data: 'fusercreate',
-                    name: 'fusercreate'
+                    data: 'fuserid',
+                    name: 'fuserid'
                 },
                 {
-                    data: 'fusercreate',
-                    name: 'fusercreate'
-                },
-                {
-                    data: 'fusercreate',
-                    name: 'fusercreate'
+                    data: 'fprdout',
+                    name: 'fprdout',
+                    render: function(data, type) {
+                        if (type !== 'display') {
+                            return data;
+                        }
+
+                        return (data ?? '0').toString().trim() === '1' ? 'Ya' : 'Tidak';
+                    }
                 },
                 {
                     data: 'fclose',
                     name: 'fclose',
                     visible: false,
-                    searchable: true,
-                    render: function(data) {
-                        // Render status sebagai badge
-                        if (data == '0') {
-                            return '<span class="px-2 py-1 bg-green-100 text-green-800 rounded text-xs">Active</span>';
-                        } else {
-                            return '<span class="px-2 py-1 bg-red-100 text-red-800 rounded text-xs">Closed</span>';
-                        }
-                    }
+                    searchable: true
                 }
             ];
 

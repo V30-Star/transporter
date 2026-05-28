@@ -277,6 +277,13 @@
                                         {{ isset($roleAccess) && in_array('deleteProduct', explode(',', $roleAccess->fpermission)) ? 'checked' : '' }}>
                                 </td>
                             </tr>
+                            <tr>
+                                <td class="px-3 py-2 font-semibold">Lihat HPP Produk</td>
+                                <td class="text-center" colspan="4">
+                                    <input type="checkbox" name="permission[]" value="viewProductHpp"
+                                        {{ isset($roleAccess) && in_array('viewProductHpp', explode(',', $roleAccess->fpermission)) ? 'checked' : '' }}>
+                                </td>
+                            </tr>
 
                             <tr>
                                 <td class="px-3 py-2 font-semibold">Supplier</td>

@@ -1082,7 +1082,7 @@ class ReturPenjualanController extends Controller
                     $label = trim((string) ($stat['product_name'] ?? $stat['product_code'] ?? $referenceKey));
                     $refno = trim((string) ($stat['ref_doc'] ?? ''));
                     $unit = trim((string) ($stat['source_unit'] ?? 'Qty'));
-                    return "Warning\nProduk {$label} @" . number_format((float) $qtyKecil, 2, ',', '.') . " {$unit}\nMelebihi Qty Sales Order" . ($refno !== '' ? " ({$refno})" : '') . " !!!";
+                    return "Warning\nProduk {$label} @" . number_format((float) $qtyKecil, 2, ',', '.') . " {$unit}\nMelebihi Qty Faktur Penjualan" . ($refno !== '' ? " ({$refno})" : '') . " !!!";
                 }
             }
         }
@@ -1235,9 +1235,11 @@ class ReturPenjualanController extends Controller
         }
 
         if ($type === 'SO') {
-            $sourceRows = DB::table('trsodt as d')
+            $sourceRows = DB::table('trandt as d')
+                ->join('tranmt as h', 'h.fsono', '=', 'd.fsono')
                 ->leftJoin('msprd as p', 'p.fprdcode', '=', 'd.fprdcode')
                 ->whereIn('d.fsono', $docNos)
+                ->where('h.fsono', 'like', 'INV.%')
                 ->selectRaw("
                     TRIM(d.fsono) as ref_doc,
                     TRIM(d.fprdcode) as product_code,

@@ -1291,8 +1291,23 @@
 
     window.getInvoiceDuplicateCode = function(form) {
         const seen = new Set();
-        const inputs = Array.from(form.querySelectorAll('input[name="fitemcode[]"]'));
+        const tableRoot = form.querySelector('[x-data*="itemsTable()"]');
+        const alpineData = tableRoot?._x_dataStack?.[0] || null;
+        const rows = Array.isArray(alpineData?.submitItems) ? alpineData.submitItems : null;
 
+        if (rows) {
+            for (const row of rows) {
+                const code = (row?.fitemcode || '').toString().trim().toUpperCase();
+                if (!code) continue;
+                if (seen.has(code)) {
+                    return code;
+                }
+                seen.add(code);
+            }
+            return '';
+        }
+
+        const inputs = Array.from(form.querySelectorAll('input[name="fitemcode[]"]'));
         for (const input of inputs) {
             const code = (input.value || '').toString().trim().toUpperCase();
             if (!code) continue;
