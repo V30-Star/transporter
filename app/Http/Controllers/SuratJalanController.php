@@ -554,6 +554,7 @@ class SuratJalanController extends Controller
             'fsupplier' => ['required', 'string', 'max:30'],
             'ffrom' => ['required', 'string', 'max:10'],
             'fket' => ['nullable', 'string', 'max:50'],
+            'fketinternal' => ['nullable', 'string', 'max:300'],
             'fkirim' => ['nullable', 'string', 'max:300'],
             'fbranchcode' => ['nullable', 'string', 'max:20'],
             'fitemcode' => ['required', 'array', 'min:1'],
@@ -592,6 +593,7 @@ class SuratJalanController extends Controller
         $fsupplier = trim((string) $request->input('fsupplier'));
         $ffrom = trim((string) $request->input('ffrom'));
         $fket = trim((string) $request->input('fket', ''));
+        $fketinternal = trim((string) $request->input('fketinternal', ''));
         $fkirim = trim((string) $request->input('fkirim', ''));
         $fbranchcode = $request->input('fbranchcode');
         $fcurrency = $request->input('fcurrency', 'IDR');
@@ -765,6 +767,7 @@ class SuratJalanController extends Controller
                 $ffrom,
                 $fket,
                 $fkirim,
+                $fketinternal,
                 $fbranchcode,
                 $fcurrency,
                 $frate,
@@ -834,6 +837,7 @@ class SuratJalanController extends Controller
                     'ffrom' => $ffrom,
                     'fto' => null,
                     'fkirim' => $fkirim,
+                    'fketinternal' => $fketinternal,
                     'fprdjadi' => null,
                     'fqtyjadi' => null,
                     'fket' => $fket,
@@ -1243,6 +1247,7 @@ class SuratJalanController extends Controller
             'fsupplier' => ['required', 'string', 'max:30'],
             'ffrom' => ['required', 'string', 'max:10'],
             'fket' => ['nullable', 'string', 'max:50'],
+            'fketinternal' => ['nullable', 'string', 'max:300'],
             'fkirim' => ['nullable', 'string', 'max:300'],
             'fbranchcode' => ['nullable', 'string', 'max:20'],
             'fitemcode' => ['required', 'array', 'min:1'],
@@ -1291,6 +1296,7 @@ class SuratJalanController extends Controller
         $fsupplier = trim((string) $request->input('fsupplier'));
         $ffrom = trim((string) $request->input('ffrom'));
         $fket = trim((string) $request->input('fket', ''));
+        $fketinternal = trim((string) $request->input('fketinternal', ''));
         $fkirim = trim((string) $request->input('fkirim', ''));
         $fbranchcode = $request->input('fbranchcode');
         $fcurrency = $request->input('fcurrency', 'IDR');
@@ -1473,6 +1479,7 @@ class SuratJalanController extends Controller
                 $ffrom,
                 $fket,
                 $fkirim,
+                $fketinternal,
                 $fbranchcode,
                 $fcurrency,
                 $frate,
@@ -1520,6 +1527,7 @@ class SuratJalanController extends Controller
                     'famountremain_rp' => ($subtotal + $ppnAmount) * $frate,
                     'ffrom' => $ffrom,
                     'fkirim' => $fkirim,
+                    'fketinternal' => $fketinternal,
                     'fket' => $fket,
                     'fuserupdate' => Auth::user()->fname ?? 'system',
                     'fdatetime' => $now,

@@ -178,7 +178,7 @@
     @endif
     <div x-data="{ open: true }">
         <div x-data="{ includePPN: false, ppnRate: 0, ppnAmount: 0, totalHarga: 100000 }" class="lg:col-span-5">
-            <div class="bg-white rounded shadow p-6 md:p-8 max-w-[96rem] mx-auto">
+            <div class="bg-white rounded shadow p-6 md:p-8 max-w-[128rem] mx-auto">
                 <form action="{{ route('suratjalan.store') }}" method="POST" class="mt-6" data-form-draft="true"
                     data-draft-key="suratjalan:create" x-data="{ showNoItems: false }"
                     @submit.prevent="
@@ -205,7 +205,8 @@
                         <div class="lg:col-span-4">
                             <label class="block text-sm font-bold">Cabang</label>
                             <input type="text" class="w-full border rounded px-3 py-2 bg-gray-200 cursor-not-allowed"
-                                value="{{ trim(($fbranchcode ?? '') . ($fcabang ?? '' ? ' - ' . $fcabang : '')) }}" disabled>
+                                value="{{ trim(($fbranchcode ?? '') . ($fcabang ?? '' ? ' - ' . $fcabang : '')) }}"
+                                disabled>
                             <input type="hidden" name="fbranchcode" value="{{ $fbranchcode }}">
                         </div>
                         <div class="lg:col-span-4" x-data="{ autoCode: true }">
@@ -318,7 +319,10 @@
                             @enderror
                         </div>
 
-                        <div class="lg:col-span-6">
+                        <div class="lg:col-span-4">
+                        </div>
+
+                        <div class="lg:col-span-4">
                             <label class="block text-sm font-bold">Kirim ke</label>
                             <textarea name="fkirim" rows="3"
                                 class="w-full border rounded px-3 py-2 @error('fkirim') border-red-500 @enderror"
@@ -327,12 +331,21 @@
                                 <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                             @enderror
                         </div>
-                        <div class="lg:col-span-6">
+                        <div class="lg:col-span-4">
                             <label class="block text-sm font-bold">Keterangan</label>
                             <textarea name="fket" rows="3"
                                 class="w-full border rounded px-3 py-2 @error('fket') border-red-500 @enderror"
                                 placeholder="Tulis keterangan tambahan di sini...">{{ old('fket') }}</textarea>
                             @error('fket')
+                                <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+                            @enderror
+                        </div>
+                        <div class="lg:col-span-4">
+                            <label class="block text-sm font-bold">Catatan Internal</label>
+                            <textarea name="fketinternal" id="fketinternal" rows="3"
+                                class="w-full border rounded px-3 py-2 @error('fketinternal') border-red-500 @enderror"
+                                placeholder="Tulis catatan internal di sini...">{{ old('fketinternal') }}</textarea>
+                            @error('fketinternal')
                                 <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                             @enderror
                         </div>
@@ -394,8 +407,8 @@
                                                 <template x-if="it.units && it.units.length > 1">
                                                     <select class="w-full border rounded px-2 py-1 text-xs"
                                                         :id="'unit_row_' + i" x-model="it.fsatuan"
-                                                        x-effect="$el.value = it.fsatuan"
-                                                        @change="onRowUpdated(i)" @keydown.enter.prevent="focusRowQty(i)">
+                                                        x-effect="$el.value = it.fsatuan" @change="onRowUpdated(i)"
+                                                        @keydown.enter.prevent="focusRowQty(i)">
                                                         <template x-for="u in it.units" :key="u">
                                                             <option :value="u" :selected="u === it.fsatuan"
                                                                 x-text="u"></option>
@@ -1088,7 +1101,8 @@
                 if (qty > limit) {
                     row.fqty = limit;
                     if (showToast) {
-                        window.toast?.error(`Qty melebihi sisa ${refLabel}. Maksimal ${this.formatQtyLimit(limit)} ${row.fsatuan || ''}`
+                        window.toast?.error(
+                            `Qty melebihi sisa ${refLabel}. Maksimal ${this.formatQtyLimit(limit)} ${row.fsatuan || ''}`
                             .trim());
                     }
                 }
@@ -1201,6 +1215,15 @@
                     return;
                 }
 
+                const internalNoteInput = document.getElementById('fketinternal');
+                if (internalNoteInput) {
+                    const currentValue = String(internalNoteInput.value ?? '').trim();
+                    const sourceValue = String(header?.fketinternal ?? '').trim();
+                    if (sourceValue !== '' && currentValue === '') {
+                        internalNoteInput.value = sourceValue;
+                    }
+                }
+
                 const existing = new Set(this.getCurrentItemKeys());
                 let added = 0,
                     duplicates = [],
@@ -1223,9 +1246,9 @@
                     }
 
                     const meta = this.productMeta(itemcode);
-                    const normalizedUnits = meta
-                        ? [...new Set((meta.units || []).map(u => (u ?? '').toString().trim()).filter(Boolean))]
-                        : [satuan].filter(Boolean);
+                    const normalizedUnits = meta ?
+                        [...new Set((meta.units || []).map(u => (u ?? '').toString().trim()).filter(Boolean))] :
+                        [satuan].filter(Boolean);
 
                     if (satuan && !normalizedUnits.includes(satuan)) {
                         normalizedUnits.unshift(satuan);

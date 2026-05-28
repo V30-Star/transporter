@@ -194,7 +194,7 @@
 
                         <!-- Field FROM -->
                         <div class="lg:col-span-4">
-                            <label class="block text-sm font-medium mb-1">Dari Gudang</label>
+                            <label class="block text-sm font-medium mb-1">Gudang (Dari)</label>
                             <div class="flex">
                                 <div class="relative flex-1">
                                     <select id="warehouseSelectFrom"
@@ -240,7 +240,7 @@
 
                         <!-- Field TO -->
                         <div class="lg:col-span-4">
-                            <label class="block text-sm font-medium mb-1">Ke Gudang</label>
+                            <label class="block text-sm font-medium mb-1">Gudang (Tujuan)</label>
                             <div class="flex">
                                 <div class="relative flex-1">
                                     <select id="warehouseSelectTo"

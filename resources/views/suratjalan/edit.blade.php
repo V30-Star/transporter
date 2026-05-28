@@ -228,7 +228,7 @@
     @endif
     <div x-data="{ open: true }">
         <div x-data="{ includePPN: false, ppnRate: 0, ppnAmount: 0, totalHarga: 100000 }" class="lg:col-span-5">
-            <div class="bg-white rounded shadow p-6 md:p-8 max-w-[96rem] mx-auto">
+            <div class="bg-white rounded shadow p-6 md:p-8 max-w-[128rem] mx-auto">
                 {{-- ============================================ --}}
                 {{-- MODE DELETE: VIEW ONLY + BUTTON HAPUS       --}}
                 {{-- ============================================ --}}
@@ -340,6 +340,15 @@
                                     <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                                 @enderror
                             </div>
+                            <div class="lg:col-span-12">
+                                <label class="block text-sm font-bold">Catatan Internal</label>
+                                <textarea readonly name="fketinternal" rows="3"
+                                    class="w-full border rounded px-3 py-2 text-gray-700 @error('fketinternal') border-red-500 @enderror"
+                                    placeholder="Tulis catatan internal di sini...">{{ old('fketinternal', $suratjalan->fketinternal) }}</textarea>
+                                @error('fketinternal')
+                                    <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+                                @enderror
+                            </div>
                         </div>
 
                         <div x-data="itemsTable()" x-init="init()" class="mt-6 space-y-2">
@@ -355,7 +364,7 @@
                                             <th class="p-2 text-left w-40">Kode Produk</th>
                                             <th class="p-2 text-left w-102">Nama Produk</th>
                                             <th class="p-2 text-left w-36">Ref.SO#</th>
-                                            <th class="p-2 text-right w-24">Sat</th>
+                                            <th class="p-2 text-left w-24">Sat</th>
                                             <th class="p-2 text-right w-28">Qty</th>
                                         </tr>
                                     </thead>
@@ -380,7 +389,7 @@
                                                     </div>
                                                 </td>
                                                 <td class="p-2" x-text="it.frefno_display || it.frefso || '-'"></td>
-                                                <td class="p-2 text-right" x-text="it.fsatuan"></td>
+                                                <td class="p-2 text-left italic" x-text="it.fsatuan"></td>
                                                 <td class="p-2 text-right" x-text="formatQtyValue(it.fqty)"></td>
                                                 <td class="hidden">
                                                     <input type="hidden" name="fitemcode[]" :value="it.fitemcode">
@@ -592,7 +601,10 @@
                                     </div>
                                 </div>
 
-                                <div class="lg:col-span-6">
+                                <div class="lg:col-span-4">
+                                </div>
+
+                                <div class="lg:col-span-4">
                                     <label class="block text-sm font-bold">Kirim Ke</label>
                                     <textarea name="fkirim" rows="3"
                                         class="w-full border rounded px-3 py-2 @error('fkirim') border-red-500 @enderror"
@@ -602,12 +614,21 @@
                                     @enderror
                                 </div>
 
-                                <div class="lg:col-span-6">
+                                <div class="lg:col-span-4">
                                     <label class="block text-sm font-bold">Keterangan</label>
                                     <textarea name="fket" rows="3"
                                         class="w-full border rounded px-3 py-2 @error('fket') border-red-500 @enderror"
                                         placeholder="Tulis keterangan tambahan di sini...">{{ old('fket', $suratjalan->fket) }}</textarea>
                                     @error('fket')
+                                        <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+                                    @enderror
+                                </div>
+                                <div class="lg:col-span-4">
+                                    <label class="block text-sm font-bold">Catatan Internal</label>
+                                    <textarea name="fketinternal" id="fketinternal" rows="3"
+                                        class="w-full border rounded px-3 py-2 @error('fketinternal') border-red-500 @enderror"
+                                        placeholder="Tulis catatan internal di sini...">{{ old('fketinternal', $suratjalan->fketinternal) }}</textarea>
+                                    @error('fketinternal')
                                         <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                                     @enderror
                                 </div>
@@ -665,22 +686,22 @@
                                                             class="w-full border rounded px-2 py-1 bg-gray-100 text-gray-600 text-sm"
                                                             :value="it.frefno_display || it.frefdtno || '-'" disabled>
                                                     </td>
-                                                     <template x-if="it.units && it.units.length > 1">
-                                                         <select class="w-full border rounded px-2 py-1 text-xs"
-                                                             :id="'unit_row_' + i" x-model="it.fsatuan"
-                                                             x-effect="$el.value = it.fsatuan" @change="onRowUpdated(i)"
-                                                             @keydown.enter.prevent="focusRowQty(i)">
-                                                             <template x-for="u in it.units" :key="u">
-                                                                 <option :value="u"
-                                                                     :selected="u === it.fsatuan" x-text="u"></option>
-                                                             </template>
-                                                         </select>
-                                                     </template>
-                                                     <template x-if="!(it.units && it.units.length > 1)">
-                                                         <input type="text"
-                                                             class="w-full border rounded px-2 py-1 bg-gray-100 text-gray-600 text-xs"
-                                                             :value="it.fsatuan || '-'" disabled>
-                                                     </template>
+                                                    <template x-if="it.units && it.units.length > 1">
+                                                        <select class="w-full border rounded px-2 py-1 text-xs"
+                                                            :id="'unit_row_' + i" x-model="it.fsatuan"
+                                                            x-effect="$el.value = it.fsatuan" @change="onRowUpdated(i)"
+                                                            @keydown.enter.prevent="focusRowQty(i)">
+                                                            <template x-for="u in it.units" :key="u">
+                                                                <option :value="u"
+                                                                    :selected="u === it.fsatuan" x-text="u"></option>
+                                                            </template>
+                                                        </select>
+                                                    </template>
+                                                    <template x-if="!(it.units && it.units.length > 1)">
+                                                        <input type="text"
+                                                            class="w-full border rounded px-2 py-1 bg-gray-100 text-gray-600 text-xs"
+                                                            :value="it.fsatuan || '-'" disabled>
+                                                    </template>
                                                     </td>
                                                     <td class="p-2 text-right">
                                                         <input type="number"
@@ -1608,6 +1629,15 @@
                     return;
                 }
 
+                const internalNoteInput = document.getElementById('fketinternal');
+                if (internalNoteInput) {
+                    const currentValue = String(internalNoteInput.value ?? '').trim();
+                    const sourceValue = String(header?.fketinternal ?? '').trim();
+                    if (sourceValue !== '' && currentValue === '') {
+                        internalNoteInput.value = sourceValue;
+                    }
+                }
+
                 const existing = new Set(this.getCurrentItemKeys());
                 let added = 0,
                     duplicates = [],
@@ -1630,9 +1660,8 @@
                     }
 
                     const meta = this.productMeta(itemcode);
-                    const normalizedUnits = meta ?
-                        [...new Set((meta.units || []).map(u => (u ?? '').toString().trim()).filter(Boolean))] :
-                        [satuan].filter(Boolean);
+                    const normalizedUnits = meta ? [...new Set((meta.units || []).map(u => (u ?? '').toString()
+                        .trim()).filter(Boolean))] : [satuan].filter(Boolean);
 
                     if (satuan && !normalizedUnits.includes(satuan)) {
                         normalizedUnits.unshift(satuan);

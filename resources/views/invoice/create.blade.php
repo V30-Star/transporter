@@ -382,6 +382,16 @@
                             <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                         @enderror
                     </div>
+
+                    <div class="lg:col-span-12">
+                        <label class="block text-sm font-medium">Catatan Internal</label>
+                        <textarea name="fketinternal" id="fketinternal" rows="3"
+                            class="w-full border rounded px-3 py-2 @error('fketinternal') border-red-500 @enderror"
+                            placeholder="Catatan internal isi di sini...">{{ old('fketinternal') }}</textarea>
+                        @error('fketinternal')
+                            <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+                        @enderror
+                    </div>
                 </div>
 
                 <div x-data="itemsTable()" x-init="init()" class="mt-6 space-y-2">
@@ -1933,6 +1943,15 @@
                 if (source === 'SO') {
                     window.syncInvoiceTempoFromSource?.(header?.ftempohr ?? 0);
                     window.syncInvoicePpnFromSource?.(header);
+                }
+
+                const internalNoteInput = document.getElementById('fketinternal');
+                if (internalNoteInput) {
+                    const currentValue = String(internalNoteInput.value ?? '').trim();
+                    const sourceValue = String(header?.fketinternal ?? '').trim();
+                    if (sourceValue !== '' && currentValue === '') {
+                        internalNoteInput.value = sourceValue;
+                    }
                 }
 
                 items.forEach(src => {

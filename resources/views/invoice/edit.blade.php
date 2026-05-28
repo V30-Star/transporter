@@ -366,16 +366,26 @@
                             });
                         </script>
 
-                        <div class="lg:col-span-12">
-                            <label class="block text-sm font-medium">Keterangan</label>
-                            <textarea name="fket" rows="3" disabled
-                                class="w-full border rounded px-3 py-2 @error('fket') border-red-500 @enderror"
-                                placeholder="Keterangan isi di sini...">{{ old('fket', $invoice->fket) }}</textarea>
-                            @error('fket')
-                                <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
-                            @enderror
+                            <div class="lg:col-span-12">
+                                <label class="block text-sm font-medium">Keterangan</label>
+                                <textarea name="fket" rows="3" disabled
+                                    class="w-full border rounded px-3 py-2 @error('fket') border-red-500 @enderror"
+                                    placeholder="Keterangan isi di sini...">{{ old('fket', $invoice->fket) }}</textarea>
+                                @error('fket')
+                                    <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+                                @enderror
+                            </div>
+
+                            <div class="lg:col-span-12">
+                                <label class="block text-sm font-medium">Catatan Internal</label>
+                                <textarea name="fketinternal" rows="3" readonly
+                                    class="w-full border rounded px-3 py-2 bg-gray-100 text-gray-600 @error('fketinternal') border-red-500 @enderror"
+                                    placeholder="Catatan internal isi di sini...">{{ old('fketinternal', $invoice->fketinternal) }}</textarea>
+                                @error('fketinternal')
+                                    <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+                                @enderror
+                            </div>
                         </div>
-                    </div>
 
                     <div x-data="itemsTable()" x-init="init()" class="mt-6 space-y-2">
 
@@ -1041,6 +1051,16 @@
                                     class="w-full border rounded px-3 py-2 @error('fket') border-red-500 @enderror"
                                     placeholder="Keterangan isi di sini...">{{ old('fket', $invoice->fket) }}</textarea>
                                 @error('fket')
+                                    <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+                                @enderror
+                            </div>
+
+                            <div class="lg:col-span-12">
+                                <label class="block text-sm font-medium">Catatan Internal</label>
+                                <textarea name="fketinternal" id="fketinternal" rows="3"
+                                    class="w-full border rounded px-3 py-2 @error('fketinternal') border-red-500 @enderror"
+                                    placeholder="Catatan internal isi di sini...">{{ old('fketinternal', $invoice->fketinternal) }}</textarea>
+                                @error('fketinternal')
                                     <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                                 @enderror
                             </div>
@@ -2562,6 +2582,15 @@
 
                 if (source === 'SO') {
                     window.syncInvoiceTempoFromSource?.(header?.ftempohr ?? 0);
+                }
+
+                const internalNoteInput = document.getElementById('fketinternal');
+                if (internalNoteInput) {
+                    const currentValue = String(internalNoteInput.value ?? '').trim();
+                    const sourceValue = String(header?.fketinternal ?? '').trim();
+                    if (sourceValue !== '' && currentValue === '') {
+                        internalNoteInput.value = sourceValue;
+                    }
                 }
 
                 const refNo = source === 'SRJ' ?

@@ -640,6 +640,7 @@ class SalesOrderController extends Controller
                 'fapplyppn' => (int) ($header->fapplyppn ?? 0),
                 'fincludeppn' => (int) ($header->fincludeppn ?? 0),
                 'fppnpersen' => (float) ($header->fppnpersen ?? 11),
+                'fketinternal' => trim((string) ($header->fketinternal ?? '')),
             ],
             'items' => $items,
         ]);
