@@ -529,8 +529,8 @@
 
                         <!-- Kanan: Panel Totals -->
                         <div class="mt-3 flex justify-end">
-                            <div class="w-[480px] shrink-0">
-                                <div class="rounded-lg border bg-gray-50 p-3 space-y-2 text-sm">
+                            <div class="w-[560px] shrink-0">
+                                <div class="rounded-lg border bg-gray-50 p-4 space-y-3 text-sm">
                                     <div class="flex items-center justify-between">
                                         <span class="font-bold text-gray-800">Total Harga</span>
                                         <span class="font-bold text-gray-900"
@@ -539,7 +539,6 @@
 
                                     <div class="flex items-center gap-2">
                                         <span class="font-bold text-gray-800">Discount</span>
-                                        <span class="flex-1"></span>
                                         <input type="number" min="0" max="100" step="0.01"
                                             name="fdiscpersen" x-model.number="headerDiscPercent"
                                             class="w-16 h-9 px-2 text-sm leading-tight text-right border rounded transition-opacity
@@ -547,6 +546,7 @@
                                                 [&::-webkit-outer-spin-button]:appearance-none
                                                 [&::-webkit-inner-spin-button]:appearance-none">
                                         <span class="text-gray-500">%</span>
+                                        <span class="flex-1"></span>
                                         <span class="font-medium text-right"
                                             x-text="rupiah(headerDiscAmount)"></span>
                                     </div>
@@ -591,9 +591,9 @@
 
                                     <div class="border-t my-1"></div>
 
-                                    <div class="flex items-center justify-between">
-                                        <span class="font-bold text-gray-800">Grand Total</span>
-                                        <span class="font-bold text-blue-700"
+                                    <div class="flex items-center justify-between text-base">
+                                        <span class="font-extrabold text-gray-900">Grand Total</span>
+                                        <span class="font-extrabold text-blue-700 text-lg"
                                             x-text="rupiah(grandTotal)"></span>
                                     </div>
                                 </div>
