@@ -14,28 +14,28 @@
 
         <div class="bg-gray-50 rounded-lg p-6 space-y-4">
             <div class="grid grid-cols-3 gap-4">
-                <div class="text-sm font-medium text-gray-500">Account #</div>
+                <div class="text-sm font-bold text-gray-700">Account #</div>
                 <div class="col-span-2 text-sm font-semibold text-gray-900 uppercase">
                     {{ $account->faccount }}
                 </div>
             </div>
 
             <div class="grid grid-cols-3 gap-4">
-                <div class="text-sm font-medium text-gray-500">Nama Account</div>
+                <div class="text-sm font-bold text-gray-700">Nama Account</div>
                 <div class="col-span-2 text-sm font-semibold text-gray-900 uppercase">
                     {{ $account->faccname }}
                 </div>
             </div>
 
             <div class="grid grid-cols-3 gap-4">
-                <div class="text-sm font-medium text-gray-500">Type Account</div>
+                <div class="text-sm font-bold text-gray-700">Type Account</div>
                 <div class="col-span-2 text-sm font-semibold text-gray-900">
                     {{ $account->fend == '1' ? 'Detil' : 'Header' }}
                 </div>
             </div>
 
             <div class="grid grid-cols-3 gap-4">
-                <div class="text-sm font-medium text-gray-500">Saldo Normal</div>
+                <div class="text-sm font-bold text-gray-700">Saldo Normal</div>
                 <div class="col-span-2 text-sm font-semibold text-gray-900">
                     {{ $account->fnormal == 'D' ? 'Debit' : 'Kredit' }}
                 </div>
@@ -43,7 +43,7 @@
 
             @if ($account->finitjurnal)
             <div class="grid grid-cols-3 gap-4">
-                <div class="text-sm font-medium text-gray-500">Initial Jurnal</div>
+                <div class="text-sm font-bold text-gray-700">Initial Jurnal</div>
                 <div class="col-span-2 text-sm font-semibold text-gray-900">
                     {{ $account->finitjurnal }}
                 </div>
@@ -52,7 +52,7 @@
 
             @if ($account->fhavesubaccount == 1)
             <div class="grid grid-cols-3 gap-4">
-                <div class="text-sm font-medium text-gray-500">Sub Account</div>
+                <div class="text-sm font-bold text-gray-700">Sub Account</div>
                 <div class="col-span-2 text-sm font-semibold text-gray-900">
                     Yes - 
                     @if(($account->ftypesubaccount ?? '') === 'S')
@@ -69,7 +69,7 @@
             @endif
 
             <div class="grid grid-cols-3 gap-4">
-                <div class="text-sm font-medium text-gray-500">Status</div>
+                <div class="text-sm font-bold text-gray-700">Status</div>
                 <div class="col-span-2">
                     <span class="inline-flex items-center px-2.5 py-0.5 rounded text-xs font-medium
                         {{ $account->fnonactive == '1' ? 'bg-red-100 text-red-700' : 'bg-green-100 text-green-700' }}">
@@ -80,7 +80,7 @@
 
             @if ($accountHeader)
             <div class="grid grid-cols-3 gap-4">
-                <div class="text-sm font-medium text-gray-500">Account Header</div>
+                <div class="text-sm font-bold text-gray-700">Account Header</div>
                 <div class="col-span-2 text-sm font-semibold text-gray-900 uppercase">
                     {{ $accountHeader->faccount }} - {{ $accountHeader->faccname }}
                 </div>
@@ -88,7 +88,7 @@
             @endif
 
             <div class="grid grid-cols-3 gap-4">
-                <div class="text-sm font-medium text-gray-500">User Level</div>
+                <div class="text-sm font-bold text-gray-700">User Level</div>
                 <div class="col-span-2 text-sm font-semibold text-gray-900">
                     @switch($account->fuserlevel)
                         @case('1') User @break
@@ -100,7 +100,7 @@
             </div>
 
             <div class="grid grid-cols-3 gap-4">
-                <div class="text-sm font-medium text-gray-500">Dibuat</div>
+                <div class="text-sm font-bold text-gray-700">Dibuat</div>
                 <div class="col-span-2 text-sm text-gray-700">
                     {{ $account->fcreatedby ?? '-' }} - 
                     {{ $account->fcreatedat ? \Carbon\Carbon::parse($account->fcreatedat)->format('d/m/Y H:i') : '-' }}

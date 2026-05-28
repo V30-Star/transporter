@@ -157,7 +157,7 @@
                 <div>
                     <!-- Group Produk Dropdown -->
                     <div class="mt-2 w-1/2" x-data="{ isEditable: false }">
-                        <label class="block text-sm font-medium">Group Produk</label>
+                        <label class="block text-sm font-bold">Group Produk</label>
                         <div class="flex items-center gap-2">
                             <select :disabled="!isEditable"
                                 class="w-full border rounded px-3 py-2 @error('fgroupcode') border-red-500 bg-red-50 @enderror"
@@ -193,7 +193,7 @@
 
                     <!-- Merek Dropdown + Button Create -->
                     <div class="mt-2 w-1/2" x-data="{ isMerekEditable: false }">
-                        <label class="block text-sm font-medium">Merek</label>
+                        <label class="block text-sm font-bold">Merek</label>
                         <div class="flex items-center gap-2">
                             <!-- Merek Dropdown -->
                             <select name="fmerek" id="merkSelect" :disabled="!isMerekEditable"
@@ -231,7 +231,7 @@
                     <div x-data="{ autoCode: true }" class="flex items-center gap-4">
                         <!-- Input Kode Produk -->
                         <div class="mt-2 w-1/3">
-                            <label class="block text-sm font-medium">Kode Produk</label>
+                            <label class="block text-sm font-bold">Kode Produk</label>
                             <input type="text" name="fprdcode" id="fprdcode"
                                 class="w-full border rounded px-3 py-2 uppercase" placeholder="Masukkan Kode Produk"
                                 :disabled="autoCode" :value="autoCode ? '' : '{{ old('fprdcode') }}'"
@@ -239,7 +239,7 @@
                         </div>
 
                         <!-- Checkbox Auto Generate -->
-                        <label class="inline-flex items-center mt-6">
+                        <label class="inline-flex items-center mt-6 font-bold">
                             <input type="checkbox" x-model="autoCode" class="form-checkbox text-indigo-600" checked>
                             <span class="ml-2 text-sm text-gray-700">Auto</span>
                         </label>
@@ -281,7 +281,7 @@
 
                 <!-- Nama Produk -->
                 <div class="mt-2 w-1/2">
-                    <label class="block text-sm font-medium">Nama Produk</label>
+                    <label class="block text-sm font-bold">Nama Produk</label>
                     <input type="text" name="fprdname" id="fprdname" value="{{ old('fprdname') }}"
                         class="w-full border rounded px-3 py-2 uppercase @error('fprdname') border-red-500 bg-red-50 @enderror"
                         autofocus>
@@ -292,7 +292,7 @@
 
                 <!-- Barcode -->
                 <div class="mt-2 w-1/3">
-                    <label class="block text-sm font-medium">Barcode</label>
+                    <label class="block text-sm font-bold">Barcode</label>
                     <input type="text" name="fbarcode" value="{{ old('fbarcode') }}"
                         class="w-full border rounded px-3 py-2 @error('fbarcode') border-red-500 @enderror">
                     @error('fbarcode')
@@ -304,7 +304,7 @@
                     {{-- 1. Satuan Kecil (Field Biru) --}}
                     <div class="mt-2 flex items-end gap-4">
                         <div class="w-1/3">
-                            <label class="block text-sm font-medium">Satuan 1</label>
+                            <label class="block text-sm font-bold">Satuan 1</label>
                             <select
                                 class="w-full border rounded px-3 py-2 bg-blue-50 border-blue-300 focus:ring-blue-500 @error('fsatuankecil') border-red-500 @enderror"
                                 name="fsatuankecil" id="fsatuankecil" onchange="updateSatuanLogic();">
@@ -321,7 +321,7 @@
                         <div class="w-1/4 invisible"></div>
 
                         <div class="w-1/6">
-                            <label class="block text-sm font-medium">HPP Satuan Kecil</label>
+                            <label class="block text-sm font-bold">HPP Satuan Kecil</label>
                             <input type="text" name="fhpp" id="fhpp"
                                 class="autonumeric w-full border border-blue-300 rounded px-3 py-2 bg-blue-50 focus:bg-white transition-colors"
                                 value="0">
@@ -332,7 +332,7 @@
                     <div id="satuan2-block" style="display: none;" class="mt-4">
                         <div class="flex items-start gap-4">
                             <div class="w-1/3">
-                                <label class="block text-sm font-medium">Satuan 2</label>
+                                <label class="block text-sm font-bold">Satuan 2</label>
                                 <select class="w-full border border-yellow-300 rounded px-3 py-2 bg-yellow-50"
                                     name="fsatuanbesar" id="fsatuanbesar" disabled onchange="updateSatuanLogic();">
                                     <option value="" selected>Pilih Satuan 2</option>
@@ -349,7 +349,7 @@
                             </div>
 
                             <div class="w-1/4 min-h-[96px]"> {{-- Kita lebarkan sedikit dari 1/6 ke 1/4 agar ruang teks lebih lega --}}
-                                <label class="block text-sm font-medium">Isi</label>
+                                <label class="block text-sm font-bold">Isi</label>
                                 <div
                                     class="flex items-center border border-yellow-300 rounded bg-yellow-50 focus-within:bg-white focus-within:ring-1 focus-within:ring-yellow-400 transition-all">
                                     {{-- Input tanpa border agar menyatu dengan container --}}
@@ -368,7 +368,7 @@
                             </div>
 
                             <div class="w-1/6">
-                                <label class="block text-sm font-medium">HPP Satuan 2</label>
+                                <label class="block text-sm font-bold">HPP Satuan 2</label>
                                 <input type="text" name="fhpp2" id="fhpp2"
                                     class="autonumeric w-full border border-yellow-300 rounded px-3 py-2 bg-yellow-50"
                                     readonly>
@@ -380,7 +380,7 @@
                     <div id="satuan3-block" style="display: none;" class="mt-4">
                         <div class="flex items-start gap-4">
                             <div class="w-1/3">
-                                <label class="block text-sm font-medium">Satuan 3</label>
+                                <label class="block text-sm font-bold">Satuan 3</label>
                                 <select class="w-full border border-purple-300 rounded px-3 py-2 bg-purple-50"
                                     name="fsatuanbesar2" id="fsatuanbesar2" disabled onchange="updateSatuanLogic();">
                                     <option value="" selected>Pilih Satuan 3</option>
@@ -397,7 +397,7 @@
                             </div>
 
                             <div class="w-1/4 min-h-[96px]"> {{-- Lebar dinaikkan ke 1/4 agar ruang teks lebih lega --}}
-                                <label class="block text-sm font-medium">Isi</label>
+                                <label class="block text-sm font-bold">Isi</label>
                                 <div
                                     class="flex items-center border border-purple-300 rounded bg-purple-50 focus-within:bg-white focus-within:ring-1 focus-within:ring-purple-400 transition-all">
                                     {{-- Input tanpa border agar menyatu dengan container --}}
@@ -416,7 +416,7 @@
                             </div>
 
                             <div class="w-1/6">
-                                <label class="block text-sm font-medium">HPP Satuan 3</label>
+                                <label class="block text-sm font-bold">HPP Satuan 3</label>
                                 <input type="text" name="fhpp3" id="fhpp3"
                                     class="autonumeric w-full border border-purple-300 rounded px-3 py-2 bg-purple-50"
                                     readonly>
@@ -472,7 +472,7 @@
 
                 <!-- Satuan Default Dropdown -->
                 <div class="mt-2 w-1/4">
-                    <label class="block text-sm font-medium">Satuan Default</label>
+                    <label class="block text-sm font-bold">Satuan Default</label>
                     <select name="fsatuandefault"
                         class="w-full border rounded px-3 py-2 @error('fsatuandefault') border-red-500 @enderror">
                         <option value="1"> Satuan 1 </option>
@@ -489,7 +489,7 @@
                 <div class="mt-2 grid grid-cols-1 sm:grid-cols-3 gap-4">
                     <!-- Harga Satuan 3 Level 1 -->
                     <div>
-                        <label for="fhargajuallevel1" class="block text-sm font-medium">Harga Jual 1 (<span
+                        <label for="fhargajuallevel1" class="block text-sm font-bold">Harga Jual 1 (<span
                                 id="hj-satuan-kecil-level1-label" class="uppercase">-</span>) Level
                             1</label>
                         <div class="d-flex">
@@ -506,7 +506,7 @@
 
                     <!-- Harga Satuan 3 Level 2 -->
                     <div>
-                        <label for="fhargajuallevel2" class="block text-sm font-medium">Harga Jual 1 (<span
+                        <label for="fhargajuallevel2" class="block text-sm font-bold">Harga Jual 1 (<span
                                 id="hj-satuan-kecil-level2-label" class="uppercase">-</span>) Level
                             2</label>
                         <div class="d-flex">
@@ -523,7 +523,7 @@
 
                     <!-- Harga Satuan 3 Level 3 -->
                     <div>
-                        <label for="fhargajuallevel3" class="block text-sm font-medium">Harga Jual 1 (<span
+                        <label for="fhargajuallevel3" class="block text-sm font-bold">Harga Jual 1 (<span
                                 id="hj-satuan-kecil-level3-label" class="uppercase">-</span>) Level
                             3</label>
                         <div class="d-flex">
@@ -543,7 +543,7 @@
                     <div class="mt-2 grid grid-cols-1 sm:grid-cols-3 gap-4">
                         <!-- HJ. Besar Level 1 -->
                         <div class="min-h-[96px]">
-                            <label for="fhargajual2level1" class="block text-sm font-medium">Harga Jual 2 (<span
+                            <label for="fhargajual2level1" class="block text-sm font-bold">Harga Jual 2 (<span
                                     id="hj-satuan-besar-level1-label" class="uppercase">-</span>) Level 1</label>
                             <div class="d-flex">
                                 <input type="text"
@@ -560,7 +560,7 @@
 
                         <!-- HJ. Besar Level 2 -->
                         <div class="min-h-[96px]">
-                            <label for="fhargajual2level2" class="block text-sm font-medium">Harga Jual 2 (<span
+                            <label for="fhargajual2level2" class="block text-sm font-bold">Harga Jual 2 (<span
                                     id="hj-satuan-besar-level2-label" class="uppercase">-</span>) Level 2</label>
                             <div class="d-flex">
                                 <input type="text"
@@ -577,7 +577,7 @@
 
                         <!-- HJ. Besar Level 3 -->
                         <div class="min-h-[96px]">
-                            <label for="fhargajual2level3" class="block text-sm font-medium">Harga Jual 2 (<span
+                            <label for="fhargajual2level3" class="block text-sm font-bold">Harga Jual 2 (<span
                                     id="hj-satuan-besar-level3-label" class="uppercase">-</span>) Level 3</label>
                             <div class="d-flex">
                                 <input type="text"
@@ -599,7 +599,7 @@
                     <div class="mt-2 grid grid-cols-1 sm:grid-cols-3 gap-4" id="hj-satuan-section">
                         <!-- HJ <PCS> Level 1 -->
                         <div class="min-h-[96px]">
-                            <label for="fhargajual3level1" class="block text-sm font-medium">
+                            <label for="fhargajual3level1" class="block text-sm font-bold">
                                 Harga Jual 3 (<span id="hj-satuan-kecil-label" class="uppercase">-</span>) Level 1
                             </label>
                             <div class="d-flex">
@@ -617,7 +617,7 @@
 
                         <!-- HJ <CTN> Level 1 -->
                         <div class="min-h-[96px]">
-                            <label for="fhargajual3level2" class="block text-sm font-medium">
+                            <label for="fhargajual3level2" class="block text-sm font-bold">
                                 Harga Jual 3 (<span id="hj-satuan-besar-label" class="uppercase">-</span>) Level 2
                             </label>
                             <div class="d-flex">
@@ -635,7 +635,7 @@
 
                         <!-- HJ <DUS> Level 1 -->
                         <div class="min-h-[96px]">
-                            <label for="fhargajual3level3" class="block text-sm font-medium">
+                            <label for="fhargajual3level3" class="block text-sm font-bold">
                                 Harga Jual 3 (<span id="hj-satuan-besar2-label" class="uppercase">-</span>) Level 3
                             </label>
                             <div class="d-flex">
@@ -654,7 +654,7 @@
                 </div>
 
                 <div class="mt-2 w-1/4">
-                    <label class="block text-sm font-medium mb-1">Min.Stok</label>
+                    <label class="block text-sm font-bold mb-1">Min.Stok</label>
 
                     {{-- Container utama dengan border dan background --}}
                     <div
@@ -679,7 +679,7 @@
 
                 {{-- Jenis --}}
                 <div class="mt-2 w-1/4">
-                    <label class="block text-sm font-medium">Jenis</label>
+                    <label class="block text-sm font-bold">Jenis</label>
                     <select name="ftype"
                         class="w-full border rounded px-3 py-2 @error('ftype') border-red-500 @enderror">
                         <option value="Produk">Produk</option>
@@ -698,7 +698,7 @@
                         <div class="space-y-4">
                             @foreach ($enabledImageNumbers as $imgNo)
                             <div>
-                                <label class="block text-xs font-semibold text-gray-600 mb-1">Foto {{ $imgNo }}</label>
+                                <label class="block text-xs font-bold text-gray-600 mb-1">Foto {{ $imgNo }}</label>
                                 <div class="flex items-center gap-4">
                                     <input type="file" name="fimage{{ $imgNo }}" id="fimage{{ $imgNo }}" accept="image/*"
                                         class="hidden" onchange="previewImage(this, {{ $imgNo }})">
@@ -741,7 +741,7 @@
                 @endphp
                 @if ($canApproval)
                     <div class="md:col-span-2 flex justify-center items-center space-x-2">
-                        <label class="block text-sm font-medium">Approve</label>
+                        <label class="block text-sm font-bold">Approve</label>
                         <label class="switch">
                             <input type="checkbox" name="fapproval" id="approvalToggle"
                                 {{ session('fapproval') ? 'checked' : '' }}>
@@ -837,7 +837,7 @@
             <h3 class="text-lg font-semibold mb-4 text-gray-800">Tambah Group Produk</h3>
             <div class="space-y-4 mt-2">
                 <div>
-                    <label class="block text-sm font-medium text-gray-700">Kode Group</label>
+                    <label class="block text-sm font-bold text-gray-700">Kode Group</label>
                     <input type="text" x-model="form.fgroupcode" class="w-full border rounded px-3 py-2 uppercase"
                         maxlength="10" :class="errors.fgroupcode ? 'border-red-500' : 'border-gray-300'">
                     <template x-if="errors.fgroupcode">
@@ -845,7 +845,7 @@
                     </template>
                 </div>
                 <div>
-                    <label class="block text-sm font-medium text-gray-700">Nama Group</label>
+                    <label class="block text-sm font-bold text-gray-700">Nama Group</label>
                     <input type="text" x-model="form.fgroupname" class="w-full border rounded px-3 py-2 uppercase"
                         :class="errors.fgroupname ? 'border-red-500' : 'border-gray-300'">
                     <template x-if="errors.fgroupname">
@@ -855,7 +855,7 @@
                 <div class="flex items-center gap-2">
                     <input type="checkbox" x-model="form.fnonactive" id="modal_group_fnonactive"
                         class="form-checkbox h-5 w-5 text-indigo-600">
-                    <label for="modal_group_fnonactive" class="text-sm font-medium text-gray-700">Non Aktif</label>
+                    <label for="modal_group_fnonactive" class="text-sm font-bold text-gray-700">Non Aktif</label>
                 </div>
             </div>
             <div class="mt-6 flex justify-end gap-3">
@@ -924,7 +924,7 @@
             <h3 class="text-lg font-semibold mb-4">Tambah Merek</h3>
             <div class="space-y-4 mt-2">
                 <div>
-                    <label class="block text-sm font-medium">Kode Merek</label>
+                    <label class="block text-sm font-bold">Kode Merek</label>
                     <input type="text" x-model="form.fmerekcode" class="w-full border rounded px-3 py-2 uppercase"
                         maxlength="10" :class="errors.fmerekcode ? 'border-red-500' : 'border-gray-300'">
                     <template x-if="errors.fmerekcode">
@@ -932,7 +932,7 @@
                     </template>
                 </div>
                 <div>
-                    <label class="block text-sm font-medium">Nama Merek</label>
+                    <label class="block text-sm font-bold">Nama Merek</label>
                     <input type="text" x-model="form.fmerekname" class="w-full border rounded px-3 py-2 uppercase"
                         :class="errors.fmerekname ? 'border-red-500' : 'border-gray-300'">
                     <template x-if="errors.fmerekname">
@@ -942,7 +942,7 @@
                 <div class="flex items-center gap-2">
                     <input type="checkbox" x-model="form.fnonactive" id="modal_fnonactive"
                         class="form-checkbox h-5 w-5 text-indigo-600">
-                    <label for="modal_fnonactive" class="block text-sm font-medium">Non Aktif</label>
+                    <label for="modal_fnonactive" class="block text-sm font-bold">Non Aktif</label>
                 </div>
             </div>
             <div class="mt-6 flex justify-end gap-3">

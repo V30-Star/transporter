@@ -21,7 +21,7 @@
 
                 <div class="space-y-4 mt-4">
                     <div>
-                        <label class="block text-sm font-medium">Kode Merek</label>
+                        <label class="block text-sm font-bold">Kode Merek</label>
                         <input type="text" name="fmerekcode" value="{{ old('fmerekcode') }}"
                             class="w-full border rounded px-3 py-2 uppercase @error('fmerekcode') border-red-500 @enderror" autofocus>
                         @error('fmerekcode')
@@ -29,7 +29,7 @@
                         @enderror
                     </div>
                     <div>
-                        <label class="block text-sm font-medium">Nama Merek</label>
+                        <label class="block text-sm font-bold">Nama Merek</label>
                         <input type="text" name="fmerekname" value="{{ old('fmerekname') }}"
                             class="w-full border rounded px-3 py-2 uppercase @error('fmerekname') border-red-500 @enderror">
                         @error('fmerekname')

@@ -10,7 +10,7 @@
         {{-- ============================================ --}}
         <div class="space-y-4">
             <div class="lg:col-span-4">
-                <label class="block text-sm font-medium mb-1" style="font-weight: bold;">Account Header</label>
+                <label class="block text-sm font-bold mb-1">Account Header</label>
                 <div class="flex">
                     <div class="relative flex-1">
                         <select id="accountSelect" class="bg-gray-100 w-full border rounded-l px-3 py-2" disabled>
@@ -36,25 +36,25 @@
             </div>
 
             <div>
-                <label class="block text-sm font-medium text-gray-700" style="font-weight: bold;">Kode Account</label>
+                <label class="block text-sm font-bold text-gray-700">Kode Account</label>
                 <input type="text" value="{{ $account->faccount }}"
                     class="w-full border rounded px-3 py-2 bg-gray-100 uppercase" readonly>
             </div>
 
             <div>
-                <label class="block text-sm font-medium text-gray-700" style="font-weight: bold;">Nama Account</label>
+                <label class="block text-sm font-bold text-gray-700">Nama Account</label>
                 <input type="text" value="{{ $account->faccname }}"
                     class="w-full border rounded px-3 py-2 bg-gray-100 uppercase" readonly>
             </div>
 
             <div>
-                <label class="block text-sm font-medium text-gray-700" style="font-weight: bold;">Saldo Normal</label>
+                <label class="block text-sm font-bold text-gray-700">Saldo Normal</label>
                 <input type="text" value="{{ $account->fnormal == 'D' ? 'Debit' : 'Kredit' }}"
                     class="w-full border rounded px-3 py-2 bg-gray-100" readonly>
             </div>
 
             <div>
-                <label class="block text-sm font-medium text-gray-700" style="font-weight: bold;">Type Account</label>
+                <label class="block text-sm font-bold text-gray-700">Type Account</label>
                 <input type="text" value="{{ $account->fend == '1' ? 'Detil' : 'Header' }}"
                     class="w-full border rounded px-3 py-2 bg-gray-100" readonly>
             </div>
@@ -62,12 +62,11 @@
             <div class="mt-4" x-data="{ subAccount: {{ old('fhavesubaccount', $account->fhavesubaccount) ? 'true' : 'false' }} }">
                 <label for="fhavesubaccount" class="flex items-center space-x-2">
                     <input type="checkbox" name="fhavesubaccount" id="fhavesubaccount" value="1" x-model="subAccount" disabled>
-                    <span class="text-sm" style="font-weight: bold;">Ada Sub Account?</span>
+                    <span class="text-sm font-bold">Ada Sub Account?</span>
                 </label>
 
                 <div class="mt-3" x-show="subAccount" x-transition>
-                    <label for="ftypesubaccount" class="block text-sm font-medium" style="font-weight: bold;">Type
-                        Sub Account</label>
+                    <label for="ftypesubaccount" class="block text-sm font-bold">Type Sub Account</label>
                     <select name="ftypesubaccount" id="ftypesubaccount" class="w-full border rounded px-3 py-2" disabled
                         :disabled="!subAccount" :class="!subAccount ? 'bg-gray-200' : ''">
                         <option value="Sub Account"
@@ -85,7 +84,7 @@
 
             {{-- Initial Jurnal --}}
             <div class="mt-4">
-                <label class="block text-sm font-medium" style="font-weight: bold;">Initial Jurnal#</label>
+                <label class="block text-sm font-bold">Initial Jurnal#</label>
                 <input disabled type="text" name="finitjurnal" value="{{ old('finitjurnal', $account->finitjurnal) }}"
                     class="w-full border rounded px-3 py-2 @error('finitjurnal') border-red-500 @enderror" maxlength="2">
                 @error('finitjurnal')
@@ -96,8 +95,7 @@
 
             {{-- User Level --}}
             <div class="mt-4">
-                <label for="fuserlevel" class="block text-sm font-medium" style="font-weight: bold;">User
-                    Level</label>
+                <label for="fuserlevel" class="block text-sm font-bold">User Level</label>
                 <select disabled name="fuserlevel" id="fuserlevel" class="w-full border rounded px-3 py-2">
                     <option value="1" {{ old('fuserlevel', $account->fuserlevel) == '1' ? 'selected' : '' }}>User
                     </option>
@@ -109,7 +107,7 @@
             </div>
 
             <div class="flex justify-center mt-4">
-                <label class="flex items-center justify-between w-40 p-3 border rounded-lg bg-gray-100">
+                <label class="flex items-center justify-between w-40 p-3 border rounded-lg bg-gray-100 font-bold">
                     <span class="text-sm font-medium">Non Active</span>
                     <input type="checkbox" class="h-5 w-5 text-green-600 rounded"
                         {{ $account->fnonactive == '1' ? 'checked' : '' }} disabled>

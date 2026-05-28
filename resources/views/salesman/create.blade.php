@@ -76,7 +76,7 @@
 
                 <div class="space-y-4 mt-4">
                     <div>
-                        <label class="block text-sm font-medium">Kode Salesman</label>
+                        <label class="block text-sm font-bold">Kode Salesman</label>
                         <input type="text" name="fsalesmancode" value="{{ old('fsalesmancode') }}"
                             class="w-full border rounded px-3 py-2 uppercase @error('fsalesmancode') border-red-500 @enderror"
                             autofocus>
@@ -85,7 +85,7 @@
                         @enderror
                     </div>
                     <div>
-                        <label class="block text-sm font-medium">Nama Salesman</label>
+                        <label class="block text-sm font-bold">Nama Salesman</label>
                         <input type="text" name="fsalesmanname" value="{{ old('fsalesmanname') }}"
                             class="w-full border rounded px-3 py-2 uppercase @error('fsalesmanname') border-red-500 @enderror">
                         @error('fsalesmanname')

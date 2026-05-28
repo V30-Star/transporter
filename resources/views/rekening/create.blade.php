@@ -22,7 +22,7 @@
                 <div class="space-y-4 mt-4">
                     <!-- Rekening Code -->
                     {{-- <div>
-                        <label class="block text-sm font-medium">Kode Rekening</label>
+                        <label class="block text-sm font-bold">Kode Rekening</label>
                         <input type="text" name="frekeningcode" value="{{ old('frekeningcode') }}"
                             class="w-full border rounded px-3 py-2 uppercase @error('frekeningcode') border-red-500 @enderror"
                             autofocus>
@@ -32,7 +32,7 @@
                     </div> --}}
                     <!-- Rekening Name -->
                     <div>
-                        <label class="block text-sm font-medium">Nama Rekening</label>
+                        <label class="block text-sm font-bold">Nama Rekening</label>
                         <textarea name="frekeningname" rows="6"
                             class="w-full border rounded px-3 py-2 uppercase @error('frekeningname') border-red-500 @enderror">{{ old('frekeningname') }}</textarea>
                         @error('frekeningname')

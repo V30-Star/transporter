@@ -20,7 +20,7 @@
 
                 <div class="space-y-4 mt-4">
                     <div>
-                        <label class="block text-sm font-medium">Kode Wilayah</label>
+                        <label class="block text-sm font-bold">Kode Wilayah</label>
                         <input type="text" name="fwilayahcode" value="{{ old('fwilayahcode') }}"
                             class="w-full border rounded px-3 py-2 uppercase @error('fwilayahcode') border-red-500 @enderror"
                             autofocus>
@@ -29,7 +29,7 @@
                         @enderror
                     </div>
                     <div>
-                        <label class="block text-sm font-medium">Nama Wilayah</label>
+                        <label class="block text-sm font-bold">Nama Wilayah</label>
                         <input type="text" name="fwilayahname" value="{{ old('fwilayahname') }}"
                             class="w-full border rounded px-3 py-2 uppercase @error('fwilayahname') border-red-500 @enderror">
                         @error('fwilayahname')

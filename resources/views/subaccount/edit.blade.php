@@ -11,19 +11,19 @@
         @if ($action === 'delete')
             <div class="space-y-4">
                 <div>
-                    <label class="block text-sm font-medium text-gray-700">Kode Sub Account</label>
+                    <label class="block text-sm font-bold text-gray-700">Kode Sub Account</label>
                     <input type="text" value="{{ $subaccount->fsubaccountcode }}"
                         class="w-full border rounded px-3 py-2 bg-gray-100 uppercase" readonly>
                 </div>
 
                 <div>
-                    <label class="block text-sm font-medium text-gray-700">Nama Sub Account</label>
+                    <label class="block text-sm font-bold text-gray-700">Nama Sub Account</label>
                     <input type="text" value="{{ $subaccount->fsubaccountname }}"
                         class="w-full border rounded px-3 py-2 bg-gray-100 uppercase" readonly>
                 </div>
 
                 <div class="flex justify-center mt-4">
-                    <label class="flex items-center justify-between w-40 p-3 border rounded-lg bg-gray-100">
+                    <label class="flex items-center justify-between w-40 p-3 border rounded-lg bg-gray-100 font-bold">
                         <span class="text-sm font-medium">Non Active</span>
                         <input type="checkbox" class="h-5 w-5 text-green-600 rounded"
                             {{ $subaccount->fnonactive == '1' ? 'checked' : '' }} disabled>
@@ -51,7 +51,7 @@
                 <div class="space-y-4 mt-4">
                     <!-- Subaccount Code -->
                     <div>
-                        <label class="block text-sm font-medium">Kode Subaccount</label>
+                        <label class="block text-sm font-bold">Kode Subaccount</label>
                         <input type="text" name="fsubaccountcode"
                             value="{{ old('fsubaccountcode', $subaccount->fsubaccountcode) }}"
                             class="w-full border rounded px-3 py-2 @error('fsubaccountcode') border-red-500 @enderror"
@@ -63,7 +63,7 @@
 
                     <!-- Subaccount Name -->
                     <div>
-                        <label class="block text-sm font-medium">Nama Subaccount</label>
+                        <label class="block text-sm font-bold">Nama Subaccount</label>
                         <input type="text" name="fsubaccountname"
                             value="{{ old('fsubaccountname', $subaccount->fsubaccountname) }}"
                             class="w-full border rounded px-3 py-2 @error('fsubaccountname') border-red-500 @enderror">

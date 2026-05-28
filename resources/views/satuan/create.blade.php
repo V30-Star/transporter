@@ -21,7 +21,7 @@
 
                 <div class="space-y-4 mt-4">
                     <div>
-                        <label class="block text-sm font-medium">Kode Satuan</label>
+                        <label class="block text-sm font-bold">Kode Satuan</label>
                         <input type="text" name="fsatuancode" value="{{ old('fsatuancode') }}"
                             class="w-full border rounded px-3 py-2 uppercase @error('fsatuancode') border-red-500 @enderror" autofocus
                             maxlength="10">
@@ -30,7 +30,7 @@
                         @enderror
                     </div>
                     <div>
-                        <label class="block text-sm font-medium">Nama Satuan</label>
+                        <label class="block text-sm font-bold">Nama Satuan</label>
                         <input type="text" name="fsatuanname" value="{{ old('fsatuanname') }}"
                             class="w-full border rounded px-3 py-2 uppercase @error('fsatuanname') border-red-500 @enderror">
                         @error('fsatuanname')

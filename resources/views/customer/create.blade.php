@@ -124,14 +124,14 @@
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
                     <div x-data="{ autoCode: true }" class="flex items-center gap-4">
                         <div class="flex-1">
-                            <label class="block text-sm font-medium">Kode Customer</label>
+                            <label class="block text-sm font-bold">Kode Customer</label>
                             <input type="text" name="fcustomercode" class="w-full border rounded px-3 py-2 uppercase"
                                 placeholder="Masukkan Kode Customer" :disabled="autoCode"
                                 :value="autoCode ? '' : '{{ old('fcustomercode') }}'"
                                 :class="autoCode ? 'bg-gray-200 cursor-not-allowed' : 'bg-white'">
                         </div>
 
-                        <label class="inline-flex items-center mt-6">
+                        <label class="inline-flex items-center mt-6 font-bold">
                             <input type="checkbox" x-model="autoCode" class="form-checkbox text-indigo-600" checked>
                             <span class="ml-2 text-sm text-gray-700">Auto</span>
                         </label>
@@ -139,7 +139,7 @@
 
                     <div class="flex items-center gap-4">
                         <div class="flex-1">
-                            <label class="block text-sm font-medium">Nama Customer</label>
+                            <label class="block text-sm font-bold">Nama Customer</label>
                             <input type="text"
                                 class="w-full border rounded px-3 py-2 uppercase @error('fcustomername') is-invalid @enderror"
                                 name="fcustomername" id="fcustomername" placeholder="Masukkan Nama Customer"
@@ -151,14 +151,14 @@
                             @enderror
                         </div>
 
-                        <label class="inline-flex items-center mt-6">
+                        <label class="inline-flex items-center mt-6 font-bold">
                             <input type="checkbox" x-model="autoCode" class="form-checkbox text-indigo-600" checked name="fblokir">
                             <span class="ml-2 text-sm text-red-600 font-bold">Blokir</span>
                         </label>
                     </div>
 
                     <div>
-                        <label class="block text-sm font-medium">Group Customer</label>
+                        <label class="block text-sm font-bold">Group Customer</label>
                         <select name="fgroup"
                             class="w-full border rounded px-3 py-2 @error('fgroup') border-red-500 @enderror"
                             id="groupSelect">
@@ -174,7 +174,7 @@
 
                     <div class="grid grid-cols-2 gap-4">
                         <div>
-                            <label class="block text-sm font-medium">Salesman</label>
+                            <label class="block text-sm font-bold">Salesman</label>
                             <select name="fsalesman"
                                 class="w-full border rounded px-3 py-2 @error('fsalesman') border-red-500 @enderror"
                                 id="salesmanSelect">
@@ -194,7 +194,7 @@
                         </div>
 
                         <div>
-                            <label class="block text-sm font-medium">Wilayah</label>
+                            <label class="block text-sm font-bold">Wilayah</label>
                             <select name="fwilayah"
                                 class="w-full border rounded px-3 py-2 @error('fwilayah') border-red-500 @enderror"
                                 id="wilayahSelect">
@@ -215,7 +215,7 @@
                     </div>
 
                     <div>
-                        <label class="block text-sm font-medium">NPWP</label>
+                        <label class="block text-sm font-bold">NPWP</label>
                         <input type="text" class="w-full border rounded px-3 py-2 @error('fnpwp') is-invalid @enderror"
                             name="fnpwp" id="fnpwp" placeholder="Masukkan NPWP" value="{{ old('fnpwp') }}">
                         @error('fnpwp')
@@ -226,7 +226,7 @@
                     </div>
 
                     <div>
-                        <label class="block text-sm font-medium">No. NIK</label>
+                        <label class="block text-sm font-bold">No. NIK</label>
                         <input type="text" class="w-full border rounded px-3 py-2 @error('fnik') is-invalid @enderror"
                             name="fnik" id="fnik" placeholder="Masukkan NIK" value="{{ old('fnik') }}">
                         @error('fnik')
@@ -237,7 +237,7 @@
                     </div>
 
                     <div>
-                        <label class="block text-sm font-medium">Jadwal Tukar Faktur</label>
+                        <label class="block text-sm font-bold">Jadwal Tukar Faktur</label>
                         <select name="fjadwaltukarfakturmingguan"
                             class="w-full border rounded px-3 py-2 @error('fjadwaltukarfakturmingguan') border-red-500 @enderror">
                             <option value="1">Setiap Minggu</option>
@@ -253,7 +253,7 @@
 
                     <div class="grid grid-cols-2 gap-4">
                         <div>
-                            <label class="block text-sm font-medium">Hari Tukar Faktur</label>
+                            <label class="block text-sm font-bold">Hari Tukar Faktur</label>
                             <select name="fjadwaltukarfakturhari"
                                 class="w-full border rounded px-3 py-2 @error('fjadwaltukarfakturhari') border-red-500 @enderror">
                                 <option value="">-- Pilih Hari --</option>
@@ -273,7 +273,7 @@
                         </div>
 
                         <div>
-                            <label class="block text-sm font-medium">Kode Faktur Pajak</label>
+                            <label class="block text-sm font-bold">Kode Faktur Pajak</label>
                             <input type="text"
                                 class="w-full border rounded px-3 py-2 @error('fkodefp') is-invalid @enderror"
                                 name="fkodefp" id="fkodefp" placeholder="010" value="{{ old('fkodefp', '010') }}"
@@ -287,7 +287,7 @@
                     </div>
 
                     <div class="md:col-span-2">
-                        <label class="block text-sm font-medium mb-2">Alamat</label>
+                        <label class="block text-sm font-bold mb-2">Alamat</label>
                         <div class="flex space-x-2 mb-4">
                             <button type="button" @click="selected = 'alamatsurat'"
                                 :class="selected === 'alamatsurat' ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-700'"
@@ -343,7 +343,7 @@
                     </div>
 
                     <div>
-                        <label class="block text-sm font-medium">Telp</label>
+                        <label class="block text-sm font-bold">Telp</label>
                         <input type="text"
                             class="w-full border rounded px-3 py-2 @error('ftelp') is-invalid @enderror" name="ftelp"
                             id="ftelp" placeholder="Masukkan Nomor Telepon" value="{{ old('ftelp') }}">
@@ -355,7 +355,7 @@
                     </div>
 
                     <div>
-                        <label class="block text-sm font-medium">Fax</label>
+                        <label class="block text-sm font-bold">Fax</label>
                         <input type="text" class="w-full border rounded px-3 py-2 @error('ffax') is-invalid @enderror"
                             name="ffax" id="ffax" placeholder="Masukkan Nomor Fax" value="{{ old('ffax') }}">
                         @error('ffax')
@@ -366,7 +366,7 @@
                     </div>
 
                     <div class="md:col-span-2">
-                        <label class="block text-sm font-medium">Email</label>
+                        <label class="block text-sm font-bold">Email</label>
                         <input type="email"
                             class="w-full border rounded px-3 py-2 @error('femail') is-invalid @enderror" name="femail"
                             id="femail" placeholder="Masukkan Email" value="{{ old('femail') }}">
@@ -378,7 +378,7 @@
                     </div>
 
                     <div>
-                        <label class="block text-sm font-medium">Jatuh Tempo (Hari)</label>
+                        <label class="block text-sm font-bold">Jatuh Tempo (Hari)</label>
                         <input type="number"
                             class="w-full border rounded px-3 py-2 @error('ftempo') is-invalid @enderror" name="ftempo"
                             id="ftempo" value="{{ old('ftempo', 0) }}" maxlength="3">
@@ -390,7 +390,7 @@
                     </div>
 
                     <div>
-                        <label class="block text-sm font-medium">Max JT Tempo</label>
+                        <label class="block text-sm font-bold">Max JT Tempo</label>
                         <input type="number"
                             class="w-full border rounded px-3 py-2 @error('fmaxtempo') is-invalid @enderror"
                             name="fmaxtempo" id="fmaxtempo" value="{{ old('fmaxtempo', 0) }}">
@@ -402,7 +402,7 @@
                     </div>
 
                     <div>
-                        <label class="block text-sm font-medium">Limit Piutang</label>
+                        <label class="block text-sm font-bold">Limit Piutang</label>
                         <input type="text"
                             class="w-full border rounded px-3 py-2 @error('flimit') is-invalid @enderror" name="flimit"
                             id="flimit" placeholder="Masukkan Limit Piutang" value="{{ old('flimit') }}">
@@ -414,7 +414,7 @@
                     </div>
 
                     <div>
-                        <label class="block text-sm font-medium">Set Harga</label>
+                        <label class="block text-sm font-bold">Set Harga</label>
                         <select class="w-full border rounded px-3 py-2 @error('fhargalevel') is-invalid @enderror"
                             name="fhargalevel" id="fhargalevel">
                             <option value="0" selected> Harga Level 1 </option>
@@ -429,7 +429,7 @@
                     </div>
 
                     <div>
-                        <label class="block text-sm font-medium">Kontak Person</label>
+                        <label class="block text-sm font-bold">Kontak Person</label>
                         <input type="text"
                             class="w-full border rounded px-3 py-2 @error('fkontakperson') is-invalid @enderror"
                             name="fkontakperson" id="fkontakperson" placeholder="Masukkan Nama Kontak Person"
@@ -441,7 +441,7 @@
                         @enderror
                     </div>
                     <div>
-                        <label class="block text-sm font-medium">Jabatan</label>
+                        <label class="block text-sm font-bold">Jabatan</label>
                         <input type="text"
                             class="w-full border rounded px-3 py-2 @error('fjabatan') is-invalid @enderror"
                             name="fjabatan" id="fjabatan" placeholder="Masukkan Jabatan"
@@ -454,7 +454,7 @@
                     </div>
 
                     <div class="md:col-span-2">
-                        <label class="block text-sm font-medium">Kode Rekening</label>
+                        <label class="block text-sm font-bold">Kode Rekening</label>
                         <select class="w-full border rounded px-3 py-2 @error('frekening') is-invalid @enderror"
                             name="frekening" id="frekening">
                             <option value="" selected> Pilih Kode Rekening </option>
@@ -472,7 +472,7 @@
                     </div>
 
                     <div class="md:col-span-2">
-                        <label class="block text-sm font-medium">Memo</label>
+                        <label class="block text-sm font-bold">Memo</label>
                         <textarea class="w-full border rounded px-3 py-2 @error('fmemo') is-invalid @enderror" name="fmemo" id="fmemo"
                             placeholder="Masukkan Memo" cols="10" rows="6">{{ old('fmemo') }}</textarea>
                         @error('fmemo')

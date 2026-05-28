@@ -7,7 +7,7 @@
     <div class="bg-white rounded shadow p-6 md:p-8 max-w-[96rem] mx-auto">
             <div class="space-y-4">
                 <div>
-                    <label class="block text-sm font-medium">Nama Rekening</label>
+                    <label class="block text-sm font-bold">Nama Rekening</label>
                     <textarea name="frekeningname" rows="6" readonly
                         class="w-full border rounded px-3 py-2 bg-gray-100 uppercase @error('frekeningname') border-red-500 @enderror">{{ old('frekeningname', $rekening->frekeningname) }}</textarea>
                     @error('frekeningname')
@@ -16,7 +16,7 @@
                 </div>
 
                 <div class="flex justify-center mt-4">
-                    <label class="flex items-center justify-between w-40 p-3 border rounded-lg bg-gray-100">
+                    <label class="flex items-center justify-between w-40 p-3 border rounded-lg bg-gray-100 font-bold">
                         <span class="text-sm font-medium">Non Active</span>
                         <input type="checkbox" class="h-5 w-5 text-green-600 rounded"
                             {{ $rekening->fnonactive == '1' ? 'checked' : '' }} disabled>

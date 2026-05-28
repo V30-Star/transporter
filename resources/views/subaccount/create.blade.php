@@ -77,7 +77,7 @@
                 <div class="space-y-4 mt-4">
                     <!-- Subaccount Code Field -->
                     <div>
-                        <label class="block text-sm font-medium">Kode Subaccount</label>
+                        <label class="block text-sm font-bold">Kode Subaccount</label>
                         <input type="text" name="fsubaccountcode" value="{{ old('fsubaccountcode') }}"
                             class="w-full border rounded px-3 py-2 uppercase @error('fsubaccountcode') border-red-500 @enderror"
                             autofocus>
@@ -88,7 +88,7 @@
 
                     <!-- Subaccount Name Field -->
                     <div>
-                        <label class="block text-sm font-medium">Nama Subaccount</label>
+                        <label class="block text-sm font-bold">Nama Subaccount</label>
                         <input type="text" name="fsubaccountname" value="{{ old('fsubaccountname') }}"
                             class="w-full border rounded px-3 py-2 uppercase @error('fsubaccountname') border-red-500 @enderror">
                         @error('fsubaccountname')

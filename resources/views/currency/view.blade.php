@@ -7,7 +7,7 @@
     <div class="bg-white rounded shadow p-6 md:p-8 max-w-[96rem] mx-auto">
             <div class="space-y-4">
                 <div>
-                    <label class="block text-sm font-medium">Kode Currency</label>
+                    <label class="block text-sm font-bold">Kode Currency</label>
                     <input disabled type="text" name="fcurrcode" value="{{ old('fcurrcode', $currency->fcurrcode) }}"
                         class="w-full border rounded px-3 py-2 bg-gray-100 uppercase @error('fcurrcode') border-red-500 @enderror"
                         {{ old('fcurrcode', $currency->fcurrcode) }} autofocus>
@@ -16,7 +16,7 @@
                     @enderror
                 </div>
                 <div>
-                    <label class="block text-sm font-medium">Nama Currency</label>
+                    <label class="block text-sm font-bold">Nama Currency</label>
                     <input disabled type="text" name="fcurrname"
                         class="w-full border rounded px-3 py-2 bg-gray-100 uppercase @error('fcurrname') border-red-500 @enderror"
                         value="{{ old('fcurrname', $currency->fcurrname) }}">
@@ -25,7 +25,7 @@
                     @enderror
                 </div>
                 <div>
-                    <label class="block text-sm font-medium">Rate</label>
+                    <label class="block text-sm font-bold">Rate</label>
                     <input disabled type="number" name="frate"
                         class="w-full border rounded px-3 py-2 bg-gray-100 uppercase @error('frate') border-red-500 @enderror"
                         value="{{ old('frate', $currency->frate) }}">
@@ -35,7 +35,7 @@
                 </div>
 
                 <div class="flex justify-center mt-4">
-                    <label class="flex items-center justify-between w-40 p-3 border rounded-lg bg-gray-100">
+                    <label class="flex items-center justify-between w-40 p-3 border rounded-lg bg-gray-100 font-bold">
                         <span class="text-sm font-medium">Non Active</span>
                         <input disabled type="checkbox" class="h-5 w-5 text-green-600 rounded"
                             {{ $currency->fnonactive == '1' ? 'checked' : '' }}>

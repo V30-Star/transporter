@@ -14,21 +14,21 @@
 
         <div class="bg-gray-50 rounded-lg p-6 space-y-4">
             <div class="grid grid-cols-3 gap-4">
-                <div class="text-sm font-medium text-gray-500">Kode Wilayah</div>
+                <div class="text-sm font-bold text-gray-700">Kode Wilayah</div>
                 <div class="col-span-2 text-sm font-semibold text-gray-900 uppercase">
                     {{ $wilayah->fwilayahcode }}
                 </div>
             </div>
 
             <div class="grid grid-cols-3 gap-4">
-                <div class="text-sm font-medium text-gray-500">Nama Wilayah</div>
+                <div class="text-sm font-bold text-gray-700">Nama Wilayah</div>
                 <div class="col-span-2 text-sm font-semibold text-gray-900 uppercase">
                     {{ $wilayah->fwilayahname }}
                 </div>
             </div>
 
             <div class="grid grid-cols-3 gap-4">
-                <div class="text-sm font-medium text-gray-500">Status</div>
+                <div class="text-sm font-bold text-gray-700">Status</div>
                 <div class="col-span-2">
                     <span class="inline-flex items-center px-2.5 py-0.5 rounded text-xs font-medium
                         {{ $wilayah->fnonactive == '1' ? 'bg-red-100 text-red-700' : 'bg-green-100 text-green-700' }}">
@@ -39,7 +39,7 @@
 
             @if($wilayah->fcreatedby)
             <div class="grid grid-cols-3 gap-4">
-                <div class="text-sm font-medium text-gray-500">Dibuat</div>
+                <div class="text-sm font-bold text-gray-700">Dibuat</div>
                 <div class="col-span-2 text-sm text-gray-700">
                     {{ $wilayah->fcreatedby ?? '-' }} -
                     {{ $wilayah->fcreatedat ? \Carbon\Carbon::parse($wilayah->fcreatedat)->format('d/m/Y H:i') : '-' }}
@@ -49,7 +49,7 @@
 
             @if($wilayah->fupdatedat)
             <div class="grid grid-cols-3 gap-4">
-                <div class="text-sm font-medium text-gray-500">Diupdate</div>
+                <div class="text-sm font-bold text-gray-700">Diupdate</div>
                 <div class="col-span-2 text-sm text-gray-700">
                     {{ $wilayah->fupdatedby ?? '-' }} -
                     {{ \Carbon\Carbon::parse($wilayah->fupdatedat)->format('d/m/Y H:i') }}

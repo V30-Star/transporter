@@ -21,7 +21,7 @@
 
                 <div class="space-y-4 mt-4">
                     <div>
-                        <label class="block text-sm font-medium">Kode Group</label>
+                        <label class="block text-sm font-bold">Kode Group</label>
                         <input type="text" name="fgroupcode" value="{{ old('fgroupcode', $groupcustomer->fgroupcode) }}"
                             class="w-full border rounded px-3 py-2 uppercase @error('fgroupcode') border-red-500 @enderror"
                             autofocus>
@@ -31,7 +31,7 @@
                     </div>
 
                     <div>
-                        <label class="block text-sm font-medium">Nama Group</label>
+                        <label class="block text-sm font-bold">Nama Group</label>
                         <input type="text" name="fgroupname" value="{{ old('fgroupname', $groupcustomer->fgroupname) }}"
                             class="w-full border rounded px-3 py-2 uppercase @error('fgroupname') border-red-500 @enderror">
                         @error('fgroupname')

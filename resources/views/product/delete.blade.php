@@ -14,14 +14,14 @@
 
         <div class="bg-gray-50 rounded-lg p-6 space-y-4">
             <div class="grid grid-cols-3 gap-4">
-                <div class="text-sm font-medium text-gray-500">Kode Produk</div>
+                <div class="text-sm font-bold text-gray-700">Kode Produk</div>
                 <div class="col-span-2 text-sm font-semibold text-gray-900 uppercase">
                     {{ $product->fprdcode }}
                 </div>
             </div>
 
             <div class="grid grid-cols-3 gap-4">
-                <div class="text-sm font-medium text-gray-500">Nama Produk</div>
+                <div class="text-sm font-bold text-gray-700">Nama Produk</div>
                 <div class="col-span-2 text-sm font-semibold text-gray-900 uppercase">
                     {{ $product->fprdname }}
                 </div>
@@ -29,7 +29,7 @@
 
             @if ($product->merek)
                 <div class="grid grid-cols-3 gap-4">
-                    <div class="text-sm font-medium text-gray-500">Merek</div>
+                    <div class="text-sm font-bold text-gray-700">Merek</div>
                     <div class="col-span-2 text-sm font-semibold text-gray-900">
                         {{ $product->merek->fmereknama ?? '-' }}
                     </div>
@@ -38,7 +38,7 @@
 
             @if ($product->fgroupprd)
                 <div class="grid grid-cols-3 gap-4">
-                    <div class="text-sm font-medium text-gray-500">Group Produk</div>
+                    <div class="text-sm font-bold text-gray-700">Group Produk</div>
                     <div class="col-span-2 text-sm font-semibold text-gray-900">
                         {{ $product->fgroupprd }}
                     </div>
@@ -53,35 +53,35 @@
                 ], fn ($value) => filled($value)));
             @endphp
             <div class="grid grid-cols-3 gap-4">
-                <div class="text-sm font-medium text-gray-500">Satuan</div>
+                <div class="text-sm font-bold text-gray-700">Satuan</div>
                 <div class="col-span-2 text-sm font-semibold text-gray-900">
                     {{ count($productSatuan) > 0 ? implode(' / ', $productSatuan) : '-' }}
                 </div>
             </div>
 
             <div class="grid grid-cols-3 gap-4">
-                <div class="text-sm font-medium text-gray-500">Min. Stok</div>
+                <div class="text-sm font-bold text-gray-700">Min. Stok</div>
                 <div class="col-span-2 text-sm font-semibold text-gray-900">
                     {{ number_format((float) ($product->fminstock ?? 0), 2, ',', '.') }}
                 </div>
             </div>
 
             <div class="grid grid-cols-3 gap-4">
-                <div class="text-sm font-medium text-gray-500">Harga Beli</div>
+                <div class="text-sm font-bold text-gray-700">Harga Beli</div>
                 <div class="col-span-2 text-sm font-semibold text-gray-900">
                     Rp {{ number_format($product->fhargabeli ?? 0, 2, ',', '.') }}
                 </div>
             </div>
 
             <div class="grid grid-cols-3 gap-4">
-                <div class="text-sm font-medium text-gray-500">Harga Jual</div>
+                <div class="text-sm font-bold text-gray-700">Harga Jual</div>
                 <div class="col-span-2 text-sm font-semibold text-gray-900">
                     Rp {{ number_format($product->fhargajual ?? 0, 2, ',', '.') }}
                 </div>
             </div>
 
             <div class="grid grid-cols-3 gap-4">
-                <div class="text-sm font-medium text-gray-500">Status</div>
+                <div class="text-sm font-bold text-gray-700">Status</div>
                 <div class="col-span-2">
                     <span
                         class="inline-flex items-center px-2.5 py-0.5 rounded text-xs font-medium
@@ -92,7 +92,7 @@
             </div>
 
             <div class="grid grid-cols-3 gap-4">
-                <div class="text-sm font-medium text-gray-500">Foto Produk</div>
+                <div class="text-sm font-bold text-gray-700">Foto Produk</div>
                 <div class="col-span-2">
                     <div class="flex flex-col gap-6">
                         @foreach ([1, 2, 3] as $imgNo)
@@ -144,7 +144,7 @@
 
             @if ($product->fcreatedby)
                 <div class="grid grid-cols-3 gap-4">
-                    <div class="text-sm font-medium text-gray-500">Dibuat</div>
+                    <div class="text-sm font-bold text-gray-700">Dibuat</div>
                     <div class="col-span-2 text-sm text-gray-700">
                         {{ $product->fcreatedby ?? '-' }} -
                         {{ $product->fcreatedat ? \Carbon\Carbon::parse($product->fcreatedat)->format('d/m/Y H:i') : '-' }}
@@ -154,7 +154,7 @@
 
             @if ($product->fupdatedat)
                 <div class="grid grid-cols-3 gap-4">
-                    <div class="text-sm font-medium text-gray-500">Diupdate</div>
+                    <div class="text-sm font-bold text-gray-700">Diupdate</div>
                     <div class="col-span-2 text-sm text-gray-700">
                         {{ $product->fupdatedby ?? '-' }} -
                         {{ \Carbon\Carbon::parse($product->fupdatedat)->format('d/m/Y H:i') }}

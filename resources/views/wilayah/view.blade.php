@@ -17,19 +17,19 @@
         <div class="bg-white rounded shadow p-6 md:p-8 max-w-[96rem] mx-auto">
             <div class="space-y-4 mt-4">
                 <div>
-                    <label class="block text-sm font-medium">Kode Wilayah</label>
+                    <label class="block text-sm font-bold">Kode Wilayah</label>
                     <input type="text" value="{{ old('fwilayahcode', $wilayah->fwilayahcode) }}"
                         class="w-full border rounded px-3 py-2 bg-gray-100 uppercase" readonly>
                 </div>
 
                 <div>
-                    <label class="block text-sm font-medium">Nama Wilayah</label>
+                    <label class="block text-sm font-bold">Nama Wilayah</label>
                     <input type="text" value="{{ old('fwilayahname', $wilayah->fwilayahname) }}"
                         class="w-full border rounded px-3 py-2 bg-gray-100 uppercase" readonly>
                 </div>
 
                 <div class="md:col-span-2 flex justify-center items-center space-x-2">
-                    <label class="flex items-center justify-between w-40 p-3 border rounded-lg bg-gray-100">
+                    <label class="flex items-center justify-between w-40 p-3 border rounded-lg bg-gray-100 font-bold">
                         <span class="text-sm font-medium">Non Aktif</span>
                         <input type="checkbox" class="h-5 w-5 text-green-600 rounded"
                             {{ old('fnonactive', $wilayah->fnonactive) == '1' ? 'checked' : '' }} disabled>

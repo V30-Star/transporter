@@ -115,14 +115,14 @@
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
                     <div x-data="{ autoCode: true }" class="flex items-center gap-4">
                         <div class="flex-1">
-                            <label class="block text-sm font-medium">Kode Customer</label>
+                            <label class="block text-sm font-bold">Kode Customer</label>
                             <input type="text" name="fcustomercode" readonly
                                 class="w-full border rounded px-3 py-2 uppercase" placeholder="Masukkan Kode Customer"
                                 :disabled="autoCode"
                                 :value="autoCode ? '{{ $customer->fcustomercode }}' : '{{ old('fcustomercode', $customer->fcustomercode) }}'"
                                 :class="autoCode ? 'bg-gray-200 cursor-not-allowed' : 'bg-white'">
                         </div>
-                        <label class="inline-flex items-center mt-6">
+                        <label class="inline-flex items-center mt-6 font-bold">
                             <input disabled type="checkbox" x-model="autoCode"
                                 class="form-checkbox text-indigo-600 uppercase"
                                 {{ old('fcustomercode', $customer->fcustomercode) ? 'checked' : '' }}>
@@ -131,7 +131,7 @@
                     </div>
 
                     <div>
-                        <label class="block text-sm font-medium">Nama Customer</label>
+                        <label class="block text-sm font-bold">Nama Customer</label>
                         <input type="text" readonly
                             class="w-full border rounded px-3 py-2 bg-gray-100 @error('fcustomername') is-invalid @enderror"
                             name="fcustomername" id="fcustomername" placeholder="Masukkan Nama Customer"
@@ -144,7 +144,7 @@
                     </div>
 
                     <div>
-                        <label class="block text-sm font-medium">Group Customer</label>
+                        <label class="block text-sm font-bold">Group Customer</label>
                         <select name="fgroup" disabled
                             class="w-full border rounded px-3 py-2 bg-gray-100 @error('fgroup') border-red-500 @enderror"
                             id="groupSelect">
@@ -160,7 +160,7 @@
 
                     <div class="grid grid-cols-2 gap-4">
                         <div>
-                            <label class="block text-sm font-medium">Salesman</label>
+                            <label class="block text-sm font-bold">Salesman</label>
                             <select name="fsalesman" disabled
                                 class="w-full border rounded px-3 py-2 bg-gray-100 @error('fsalesman') border-red-500 @enderror"
                                 id="salesmanSelect">
@@ -175,7 +175,7 @@
                         </div>
 
                         <div>
-                            <label class="block text-sm font-medium">Wilayah</label>
+                            <label class="block text-sm font-bold">Wilayah</label>
                             <select name="fwilayah" disabled
                                 class="w-full border rounded px-3 py-2 bg-gray-100 @error('fwilayah') border-red-500 @enderror"
                                 id="wilayahSelect">
@@ -191,7 +191,7 @@
                     </div>
 
                     <div>
-                        <label class="block text-sm font-medium">NPWP</label>
+                        <label class="block text-sm font-bold">NPWP</label>
                         <input type="text" readonly
                             class="w-full border rounded px-3 py-2 bg-gray-100 @error('fnpwp') is-invalid @enderror"
                             name="fnpwp" id="fnpwp" placeholder="Masukkan NPWP"
@@ -204,7 +204,7 @@
                     </div>
 
                     <div>
-                        <label class="block text-sm font-medium">No. NIK</label>
+                        <label class="block text-sm font-bold">No. NIK</label>
                         <input type="text" readonly
                             class="w-full border rounded px-3 py-2 bg-gray-100 @error('fnik') is-invalid @enderror"
                             name="fnik" id="fnik" placeholder="Masukkan NIK"
@@ -217,7 +217,7 @@
                     </div>
 
                     <div>
-                        <label class="block text-sm font-medium">Jadwal Tukar Faktur</label>
+                        <label class="block text-sm font-bold">Jadwal Tukar Faktur</label>
                         <select name="fjadwaltukarfakturmingguan" disabled
                             class="w-full border rounded px-3 py-2 bg-gray-100 @error('fjadwaltukarfakturmingguan') border-red-500 @enderror">
                             <option value="1" {{ old('fjadwaltukarfakturmingguan', $customer->fjadwaltukarfakturmingguan) == '1' ? 'selected' : '' }}>Setiap Minggu</option>
@@ -233,7 +233,7 @@
 
                     <div class="grid grid-cols-2 gap-4">
                         <div>
-                            <label class="block text-sm font-medium">Hari Tukar Faktur</label>
+                            <label class="block text-sm font-bold">Hari Tukar Faktur</label>
                             <select name="fjadwaltukarfakturhari" disabled
                                 class="w-full border rounded px-3 py-2 bg-gray-100 @error('fjadwaltukarfakturhari') border-red-500 @enderror">
                                 <option value="">-- Pilih Hari --</option>
@@ -253,7 +253,7 @@
                         </div>
 
                         <div>
-                            <label class="block text-sm font-medium">Kode Faktur Pajak</label>
+                            <label class="block text-sm font-bold">Kode Faktur Pajak</label>
                             <input type="text" readonly
                                 class="w-full border rounded px-3 py-2 bg-gray-100 @error('fkodefp') is-invalid @enderror"
                                 name="fkodefp" id="fkodefp" placeholder="010" value="{{ old('fkodefp', '010') }}"
@@ -267,7 +267,7 @@
                     </div>
 
                     <div class="md:col-span-2">
-                        <label class="block text-sm font-medium mb-2">Alamat</label>
+                        <label class="block text-sm font-bold mb-2">Alamat</label>
                         <div class="flex space-x-2 mb-4">
                             <button type="button" @click="selected = 'alamatsurat'"
                                 :class="selected === 'alamatsurat' ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-700'"
@@ -313,7 +313,7 @@
                     </div>
 
                     <div>
-                        <label class="block text-sm font-medium">Telp</label>
+                        <label class="block text-sm font-bold">Telp</label>
                         <input type="text" readonly
                             class="w-full border rounded px-3 py-2 bg-gray-100 @error('ftelp') is-invalid @enderror"
                             name="ftelp" id="ftelp" placeholder="Masukkan Nomor Telepon"
@@ -324,7 +324,7 @@
                     </div>
 
                     <div>
-                        <label class="block text-sm font-medium">Fax</label>
+                        <label class="block text-sm font-bold">Fax</label>
                         <input type="number" readonly
                             class="w-full border rounded px-3 py-2 bg-gray-100 @error('ffax') is-invalid @enderror"
                             name="ffax" id="ffax" placeholder="Masukkan Nomor Fax"
@@ -335,7 +335,7 @@
                     </div>
 
                     <div class="md:col-span-2">
-                        <label class="block text-sm font-medium">Email</label>
+                        <label class="block text-sm font-bold">Email</label>
                         <input type="email" readonly
                             class="w-full border rounded px-3 py-2 bg-gray-100 @error('femail') is-invalid @enderror"
                             name="femail" id="femail" placeholder="Masukkan Email"
@@ -346,7 +346,7 @@
                     </div>
 
                     <div>
-                        <label class="block text-sm font-medium">Jatuh Tempo (Hari)</label>
+                        <label class="block text-sm font-bold">Jatuh Tempo (Hari)</label>
                         <input type="number" readonly
                             class="w-full border rounded px-3 py-2 bg-gray-100 @error('ftempo') is-invalid @enderror"
                             name="ftempo" id="ftempo" value="{{ old('ftempo', $customer->ftempo) }}"
@@ -357,7 +357,7 @@
                     </div>
 
                     <div>
-                        <label class="block text-sm font-medium">Max JT Tempo</label>
+                        <label class="block text-sm font-bold">Max JT Tempo</label>
                         <input type="number" readonly
                             class="w-full border rounded px-3 py-2 bg-gray-100 @error('fmaxtempo') is-invalid @enderror"
                             name="fmaxtempo" id="fmaxtempo" value="{{ old('fmaxtempo', $customer->fmaxtempo) }}">
@@ -367,7 +367,7 @@
                     </div>
 
                     <div>
-                        <label class="block text-sm font-medium">Limit Piutang</label>
+                        <label class="block text-sm font-bold">Limit Piutang</label>
                         <input type="text" readonly
                             class="w-full border rounded px-3 py-2 bg-gray-100 @error('flimit') is-invalid @enderror"
                             name="flimit" id="flimit" placeholder="Masukkan Limit Piutang"
@@ -377,7 +377,7 @@
                         @enderror
                     </div>
                     <div>
-                        <label class="block text-sm font-medium">Set Harga</label>
+                        <label class="block text-sm font-bold">Set Harga</label>
                         <select disabled
                             class="w-full border rounded px-3 py-2 bg-gray-100 @error('fhargalevel') is-invalid @enderror"
                             name="fhargalevel" id="fhargalevel">
@@ -391,7 +391,7 @@
                     </div>
 
                     <div>
-                        <label class="block text-sm font-medium">Kontak Person</label>
+                        <label class="block text-sm font-bold">Kontak Person</label>
                         <input type="number" readonly
                             class="w-full border rounded px-3 py-2 bg-gray-100 @error('fkontakperson') is-invalid @enderror"
                             name="fkontakperson" id="fkontakperson" placeholder="Masukkan Nama Kontak Person"
@@ -401,7 +401,7 @@
                         @enderror
                     </div>
                     <div>
-                        <label class="block text-sm font-medium">Jabatan</label>
+                        <label class="block text-sm font-bold">Jabatan</label>
                         <input type="text" readonly
                             class="w-full border rounded px-3 py-2 bg-gray-100 @error('fjabatan') is-invalid @enderror"
                             name="fjabatan" id="fjabatan" placeholder="Masukkan Jabatan"
@@ -412,7 +412,7 @@
                     </div>
 
                     <div class="md:col-span-2">
-                        <label class="block text-sm font-medium">Kode Rekening</label>
+                        <label class="block text-sm font-bold">Kode Rekening</label>
                         <select disabled
                             class="w-full border rounded px-3 py-2 bg-gray-100 @error('frekening') is-invalid @enderror"
                             name="frekening" id="frekening">
@@ -430,7 +430,7 @@
                     </div>
 
                     <div class="md:col-span-2">
-                        <label class="block text-sm font-medium">Memo</label>
+                        <label class="block text-sm font-bold">Memo</label>
                         <textarea readonly class="w-full border rounded px-3 py-2 bg-gray-100 @error('fmemo') is-invalid @enderror"
                             name="fmemo" id="fmemo" placeholder="Masukkan Memo" cols="10" rows="6">{{ old('fmemo', $customer->fmemo) }}</textarea>
                         @error('fmemo')

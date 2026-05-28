@@ -10,19 +10,19 @@
         @if ($action === 'delete')
             <div class="space-y-4">
                 <div>
-                    <label class="block text-sm font-medium text-gray-700">Kode Satuan</label>
+                    <label class="block text-sm font-bold text-gray-700">Kode Satuan</label>
                     <input type="text" value="{{ $satuan->fsatuancode }}"
                         class="w-full border rounded px-3 py-2 bg-gray-100 uppercase" readonly>
                 </div>
 
                 <div>
-                    <label class="block text-sm font-medium text-gray-700">Nama Satuan</label>
+                    <label class="block text-sm font-bold text-gray-700">Nama Satuan</label>
                     <input type="text" value="{{ $satuan->fsatuanname }}"
                         class="w-full border rounded px-3 py-2 bg-gray-100 uppercase" readonly>
                 </div>
 
                 <div class="flex justify-center mt-4">
-                    <label class="flex items-center justify-between w-40 p-3 border rounded-lg bg-gray-100">
+                    <label class="flex items-center justify-between w-40 p-3 border rounded-lg bg-gray-100 font-bold">
                         <span class="text-sm font-medium">Non Active</span>
                         <input type="checkbox" class="h-5 w-5 text-green-600 rounded"
                             {{ $satuan->fnonactive == '1' ? 'checked' : '' }} disabled>
@@ -48,7 +48,7 @@
                 @method('PATCH')
                 <div class="space-y-4 mt-4">
                     <div>
-                        <label class="block text-sm font-medium">Kode Satuan</label>
+                        <label class="block text-sm font-bold">Kode Satuan</label>
                         <input type="text" name="fsatuancode" value="{{ old('fsatuancode', $satuan->fsatuancode) }}"
                             class="w-full border rounded px-3 py-2 uppercase @error('fsatuancode') border-red-500 @enderror"
                             maxlength="3" autofocus>
@@ -58,7 +58,7 @@
                     </div>
 
                     <div>
-                        <label class="block text-sm font-medium">Nama Satuan</label>
+                        <label class="block text-sm font-bold">Nama Satuan</label>
                         <input type="text" name="fsatuanname" value="{{ old('fsatuanname', $satuan->fsatuanname) }}"
                             class="w-full border rounded px-3 py-2 uppercase @error('fsatuanname') border-red-500 @enderror">
                         @error('fsatuanname')

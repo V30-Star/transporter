@@ -22,7 +22,7 @@
 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
                     <div>
-                        <label class="block text-sm font-medium">Kode Supplier</label>
+                        <label class="block text-sm font-bold">Kode Supplier</label>
                         <input type="text" name="fsuppliercode"
                             value="{{ old('fsuppliercode', $supplier->fsuppliercode) }}"
                             class="w-full border rounded px-3 py-2 uppercase @error('fsuppliercode') border-red-500 @enderror {{ !empty($isTransactionLocked) ? 'bg-gray-100 text-gray-500 cursor-not-allowed' : '' }}"
@@ -37,7 +37,7 @@
                     </div>
 
                     <div>
-                        <label class="block text-sm font-medium">Nama Supplier</label>
+                        <label class="block text-sm font-bold">Nama Supplier</label>
                         <input type="text" name="fsuppliername"
                             value="{{ old('fsuppliername', $supplier->fsuppliername) }}"
                             class="w-full border rounded px-3 py-2 uppercase @error('fsuppliername') border-red-500 @enderror">
@@ -47,7 +47,7 @@
                     </div>
 
                     <div>
-                        <label class="block text-sm font-medium">Mata Uang</label>
+                        <label class="block text-sm font-bold">Mata Uang</label>
                         <select name="fcurr"
                             class="w-full border rounded px-3 py-2 @error('fcurr') border-red-500 @enderror">
                             <option value="IDR" {{ old('fcurr', $supplier->fcurr) == 'IDR' ? 'selected' : '' }}>IDR (Rupiah)</option>
@@ -60,7 +60,7 @@
                     </div>
 
                     <div>
-                        <label class="block text-sm font-medium">NPWP</label>
+                        <label class="block text-sm font-bold">NPWP</label>
                         <input type="text" name="fnpwp" value="{{ old('fnpwp', $supplier->fnpwp) }}"
                             class="w-full border rounded px-3 py-2 @error('fnpwp') border-red-500 @enderror">
                         @error('fnpwp')
@@ -69,7 +69,7 @@
                     </div>
 
                     <div>
-                        <label class="block text-sm font-medium">Alamat</label>
+                        <label class="block text-sm font-bold">Alamat</label>
                         <textarea name="faddress" rows="3"
                             class="w-full border rounded px-3 py-2 resize-y @error('faddress') border-red-500 @enderror">{{ old('faddress', $supplier->faddress) }}</textarea>
                         @error('faddress')
@@ -78,7 +78,7 @@
                     </div>
 
                     <div>
-                        <label class="block text-sm font-medium">Telepon</label>
+                        <label class="block text-sm font-bold">Telepon</label>
                         <input type="text" name="ftelp" value="{{ old('ftelp', $supplier->ftelp) }}"
                             class="w-full border rounded px-3 py-2 @error('ftelp') border-red-500 @enderror">
                         @error('ftelp')
@@ -87,7 +87,7 @@
                     </div>
 
                     <div>
-                        <label class="block text-sm font-medium">Fax</label>
+                        <label class="block text-sm font-bold">Fax</label>
                         <input type="text" name="ffax" value="{{ old('ffax', $supplier->ffax) }}"
                             class="w-full border rounded px-3 py-2 @error('ffax') border-red-500 @enderror">
                         @error('ffax')
@@ -96,7 +96,7 @@
                     </div>
 
                     <div>
-                        <label class="block text-sm font-medium">Jatuh Tempo</label>
+                        <label class="block text-sm font-bold">Jatuh Tempo</label>
                         <input type="number" name="ftempo" value="{{ old('ftempo', $supplier->ftempo) }}"
                             class="w-full border rounded px-3 py-2 @error('ftempo') border-red-500 @enderror" min="0"
                             max="999" step="1"
@@ -107,7 +107,7 @@
                     </div>
 
                     <div>
-                        <label class="block text-sm font-medium">Kontak Person</label>
+                        <label class="block text-sm font-bold">Kontak Person</label>
                         <input type="text" name="fkontakperson"
                             value="{{ old('fkontakperson', $supplier->fkontakperson) }}"
                             class="w-full border rounded px-3 py-2 @error('fkontakperson') border-red-500 @enderror">
@@ -117,7 +117,7 @@
                     </div>
 
                     <div>
-                        <label class="block text-sm font-medium">Jabatan</label>
+                        <label class="block text-sm font-bold">Jabatan</label>
                         <input type="text" name="fjabatan" value="{{ old('fjabatan', $supplier->fjabatan) }}"
                             class="w-full border rounded px-3 py-2 @error('fjabatan') border-red-500 @enderror">
                         @error('fjabatan')
@@ -126,7 +126,7 @@
                     </div>
 
                     <div>
-                        <label class="block text-sm font-medium">No. Rekening</label>
+                        <label class="block text-sm font-bold">No. Rekening</label>
                         <input type="text" name="fnorekening"
                             value="{{ old('fnorekening', $supplier->fnorekening) }}"
                             class="w-full border rounded px-3 py-2 @error('fnorekening') border-red-500 @enderror">
@@ -136,7 +136,7 @@
                     </div>
 
                     <div>
-                        <label class="block text-sm font-medium">Memo</label>
+                        <label class="block text-sm font-bold">Memo</label>
                         <textarea name="fmemo" class="w-full border rounded px-3 py-2 @error('fmemo') border-red-500 @enderror">{{ old('fmemo', $supplier->fmemo) }}</textarea>
                         @error('fmemo')
                             <p class="text-red-600 text-sm mt-1">{{ $message }}</p>

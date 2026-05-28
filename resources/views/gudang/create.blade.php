@@ -22,7 +22,7 @@
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
                     <!-- Field 1: Cabang (Dropdown) -->
                     <div>
-                        <label class="block text-sm font-medium">Cabang</label>
+                        <label class="block text-sm font-bold">Cabang</label>
                         <select name="fbranchcode"
                             class="w-full border rounded px-3 py-2 @error('fbranchcode') border-red-500 @enderror">
                             <option value="">Pilih Cabang</option>
@@ -40,7 +40,7 @@
 
                     <!-- Field 2: Kode Gudang -->
                     <div>
-                        <label class="block text-sm font-medium">Kode Gudang</label>
+                        <label class="block text-sm font-bold">Kode Gudang</label>
                         <input type="text" name="fwhcode" value="{{ old('fwhcode') }}"
                             class="w-full border rounded px-3 py-2 uppercase @error('fwhcode') border-red-500 @enderror" autofocus>
                         @error('fwhcode')
@@ -50,7 +50,7 @@
 
                     <!-- Field 3: Nama Gudang -->
                     <div>
-                        <label class="block text-sm font-medium">Nama Gudang</label>
+                        <label class="block text-sm font-bold">Nama Gudang</label>
                         <input type="text" name="fwhname" value="{{ old('fwhname') }}"
                             class="w-full border rounded px-3 py-2 uppercase @error('fwhname') border-red-500 @enderror">
                         @error('fwhname')
@@ -60,7 +60,7 @@
 
                     <!-- Field 4: Alamat -->
                     <div>
-                        <label class="block text-sm font-medium">Alamat</label>
+                        <label class="block text-sm font-bold">Alamat</label>
                         <input type="text" name="faddress" value="{{ old('faddress') }}"
                             class="w-full border rounded px-3 py-2 @error('faddress') border-red-500 @enderror">
                         @error('faddress')

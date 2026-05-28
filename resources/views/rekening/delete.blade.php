@@ -14,14 +14,14 @@
 
         <div class="bg-gray-50 rounded-lg p-6 space-y-4">
             <div class="grid grid-cols-3 gap-4">
-                <div class="text-sm font-medium text-gray-500">Nama Rekening</div>
+                <div class="text-sm font-bold text-gray-700">Nama Rekening</div>
                 <div class="col-span-2 text-sm font-semibold text-gray-900 uppercase">
                     {{ $rekening->frekeningname }}
                 </div>
             </div>
 
             <div class="grid grid-cols-3 gap-4">
-                <div class="text-sm font-medium text-gray-500">Status</div>
+                <div class="text-sm font-bold text-gray-700">Status</div>
                 <div class="col-span-2">
                     <span class="inline-flex items-center px-2.5 py-0.5 rounded text-xs font-medium
                         {{ $rekening->fnonactive == '1' ? 'bg-red-100 text-red-700' : 'bg-green-100 text-green-700' }}">
@@ -31,7 +31,7 @@
             </div>
 
             <div class="grid grid-cols-3 gap-4">
-                <div class="text-sm font-medium text-gray-500">Dibuat</div>
+                <div class="text-sm font-bold text-gray-700">Dibuat</div>
                 <div class="col-span-2 text-sm text-gray-700">
                     {{ $rekening->fcreatedby ?? '-' }} - 
                     {{ $rekening->fcreatedat ? \Carbon\Carbon::parse($rekening->fcreatedat)->format('d/m/Y H:i') : '-' }}
@@ -40,7 +40,7 @@
 
             @if($rekening->fupdatedat)
             <div class="grid grid-cols-3 gap-4">
-                <div class="text-sm font-medium text-gray-500">Diupdate</div>
+                <div class="text-sm font-bold text-gray-700">Diupdate</div>
                 <div class="col-span-2 text-sm text-gray-700">
                     {{ $rekening->fupdatedby ?? '-' }} - 
                     {{ \Carbon\Carbon::parse($rekening->fupdatedat)->format('d/m/Y H:i') }}

@@ -11,7 +11,7 @@
         @if ($action === 'delete')
             <div class="space-y-4">
                 <div>
-                    <label class="block text-sm font-medium">Cabang</label>
+                    <label class="block text-sm font-bold">Cabang</label>
                     <select name="fbranchcode" disabled
                         class="w-full border rounded px-3 py-2 @error('fbranchcode') border-red-500 @enderror">
                         <option value="">Pilih Cabang</option>
@@ -29,7 +29,7 @@
 
                 <!-- Field 2: Kode Gudang -->
                 <div>
-                    <label class="block text-sm font-medium">Kode Gudang</label>
+                    <label class="block text-sm font-bold">Kode Gudang</label>
                     <input readonly type="text" name="fwhcode" value="{{ old('fwhcode', $gudang->fwhcode) }}"
                         class="w-full border rounded px-3 py-2 bg-gray-100 uppercase @error('fwhcode') border-red-500 @enderror">
                     @error('fwhcode')
@@ -39,7 +39,7 @@
 
                 <!-- Field 3: Nama Gudang -->
                 <div>
-                    <label class="block text-sm font-medium">Nama Gudang</label>
+                    <label class="block text-sm font-bold">Nama Gudang</label>
                     <input readonly type="text" name="fwhname" value="{{ old('fwhname', $gudang->fwhname) }}"
                         class="w-full border rounded px-3 py-2 uppercase bg-gray-100 @error('fwhname') border-red-500 @enderror">
                     @error('fwhname')
@@ -49,7 +49,7 @@
 
                 <!-- Field 4: Alamat -->
                 <div>
-                    <label class="block text-sm font-medium">Alamat</label>
+                    <label class="block text-sm font-bold">Alamat</label>
                     <input readonly type="text" name="faddress" value="{{ old('faddress', $gudang->faddress) }}"
                         class="w-full border rounded px-3 py-2 bg-gray-100 @error('faddress') border-red-500 @enderror">
                     @error('faddress')
@@ -87,7 +87,7 @@
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
                     <!-- Field 1: Cabang (Dropdown) -->
                     <div>
-                        <label class="block text-sm font-medium">Cabang</label>
+                        <label class="block text-sm font-bold">Cabang</label>
                         <select name="fbranchcode"
                             class="w-full border rounded px-3 py-2 @error('fbranchcode') border-red-500 @enderror">
                             <option value="">Pilih Cabang</option>
@@ -105,7 +105,7 @@
 
                     <!-- Field 2: Kode Gudang -->
                     <div>
-                        <label class="block text-sm font-medium">Kode Gudang</label>
+                        <label class="block text-sm font-bold">Kode Gudang</label>
                         <input type="text" name="fwhcode" value="{{ old('fwhcode', $gudang->fwhcode) }}"
                             class="w-full border rounded px-3 py-2 uppercase @error('fwhcode') border-red-500 @enderror {{ !empty($isTransactionLocked) ? 'bg-gray-100 text-gray-500 cursor-not-allowed' : '' }}"
                             {{ !empty($isTransactionLocked) ? 'readonly' : '' }}
@@ -120,7 +120,7 @@
 
                     <!-- Field 3: Nama Gudang -->
                     <div>
-                        <label class="block text-sm font-medium">Nama Gudang</label>
+                        <label class="block text-sm font-bold">Nama Gudang</label>
                         <input type="text" name="fwhname" value="{{ old('fwhname', $gudang->fwhname) }}"
                             class="w-full border rounded px-3 py-2 uppercase @error('fwhname') border-red-500 @enderror">
                         @error('fwhname')
@@ -130,7 +130,7 @@
 
                     <!-- Field 4: Alamat -->
                     <div>
-                        <label class="block text-sm font-medium">Alamat</label>
+                        <label class="block text-sm font-bold">Alamat</label>
                         <input type="text" name="faddress" value="{{ old('faddress', $gudang->faddress) }}"
                             class="w-full border rounded px-3 py-2 @error('faddress') border-red-500 @enderror">
                         @error('faddress')

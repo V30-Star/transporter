@@ -14,21 +14,21 @@
 
         <div class="bg-gray-50 rounded-lg p-6 space-y-4">
             <div class="grid grid-cols-3 gap-4">
-                <div class="text-sm font-medium text-gray-500">Kode Salesman</div>
+                <div class="text-sm font-bold text-gray-700">Kode Salesman</div>
                 <div class="col-span-2 text-sm font-semibold text-gray-900 uppercase">
                     {{ $salesman->fsalesmancode }}
                 </div>
             </div>
 
             <div class="grid grid-cols-3 gap-4">
-                <div class="text-sm font-medium text-gray-500">Nama Salesman</div>
+                <div class="text-sm font-bold text-gray-700">Nama Salesman</div>
                 <div class="col-span-2 text-sm font-semibold text-gray-900 uppercase">
                     {{ $salesman->fsalesmanname }}
                 </div>
             </div>
 
             <div class="grid grid-cols-3 gap-4">
-                <div class="text-sm font-medium text-gray-500">Status</div>
+                <div class="text-sm font-bold text-gray-700">Status</div>
                 <div class="col-span-2">
                     <span class="inline-flex items-center px-2.5 py-0.5 rounded text-xs font-medium
                         {{ $salesman->fnonactive == '1' ? 'bg-red-100 text-red-700' : 'bg-green-100 text-green-700' }}">
@@ -39,7 +39,7 @@
 
             @if($salesman->fcreatedby)
             <div class="grid grid-cols-3 gap-4">
-                <div class="text-sm font-medium text-gray-500">Dibuat</div>
+                <div class="text-sm font-bold text-gray-700">Dibuat</div>
                 <div class="col-span-2 text-sm text-gray-700">
                     {{ $salesman->fcreatedby ?? '-' }} - 
                     {{ $salesman->fcreatedat ? \Carbon\Carbon::parse($salesman->fcreatedat)->format('d/m/Y H:i') : '-' }}
@@ -49,7 +49,7 @@
 
             @if($salesman->fupdatedat)
             <div class="grid grid-cols-3 gap-4">
-                <div class="text-sm font-medium text-gray-500">Diupdate</div>
+                <div class="text-sm font-bold text-gray-700">Diupdate</div>
                 <div class="col-span-2 text-sm text-gray-700">
                     {{ $salesman->fupdatedby ?? '-' }} - 
                     {{ \Carbon\Carbon::parse($salesman->fupdatedat)->format('d/m/Y H:i') }}

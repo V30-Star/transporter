@@ -11,19 +11,19 @@
         @if ($action === 'delete')
             <div class="space-y-4">
                 <div>
-                    <label class="block text-sm font-medium text-gray-700">Kode Group</label>
+                    <label class="block text-sm font-bold text-gray-700">Kode Group</label>
                     <input type="text" value="{{ $groupproduct->fgroupcode }}"
                         class="w-full border rounded px-3 py-2 bg-gray-100 uppercase" readonly>
                 </div>
 
                 <div>
-                    <label class="block text-sm font-medium text-gray-700">Nama Group</label>
+                    <label class="block text-sm font-bold text-gray-700">Nama Group</label>
                     <input type="text" value="{{ $groupproduct->fgroupname }}"
                         class="w-full border rounded px-3 py-2 bg-gray-100 uppercase" readonly>
                 </div>
 
                 <div class="flex justify-center mt-4">
-                    <label class="flex items-center justify-between w-40 p-3 border rounded-lg bg-gray-100">
+                    <label class="flex items-center justify-between w-40 p-3 border rounded-lg bg-gray-100 font-bold">
                         <span class="text-sm font-medium">Non Active</span>
                         <input type="checkbox" class="h-5 w-5 text-green-600 rounded"
                             {{ $groupproduct->fnonactive == '1' ? 'checked' : '' }} disabled>
@@ -50,7 +50,7 @@
 
                 <div class="space-y-4 mt-4">
                     <div>
-                        <label class="block text-sm font-medium">Kode Group</label>
+                        <label class="block text-sm font-bold">Kode Group</label>
                         <input type="text" name="fgroupcode" value="{{ old('fgroupcode', $groupproduct->fgroupcode) }}"
                             class="w-full border rounded px-3 py-2 uppercase @error('fgroupcode') border-red-500 @enderror {{ $isUsedInTransactions ? 'bg-gray-100 cursor-not-allowed' : '' }}"
                             {{ $isUsedInTransactions ? 'readonly' : 'autofocus' }}>
@@ -63,7 +63,7 @@
                     </div>
 
                     <div>
-                        <label class="block text-sm font-medium">Nama Group</label>
+                        <label class="block text-sm font-bold">Nama Group</label>
                         <input type="text" name="fgroupname" value="{{ old('fgroupname', $groupproduct->fgroupname) }}"
                             class="w-full border rounded px-3 py-2 uppercase @error('fgroupname') border-red-500 @enderror">
                         @error('fgroupname')

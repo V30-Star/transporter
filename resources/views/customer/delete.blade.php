@@ -14,14 +14,14 @@
 
         <div class="bg-gray-50 rounded-lg p-6 space-y-4">
             <div class="grid grid-cols-3 gap-4">
-                <div class="text-sm font-medium text-gray-500">Kode Customer</div>
+                <div class="text-sm font-bold text-gray-700">Kode Customer</div>
                 <div class="col-span-2 text-sm font-semibold text-gray-900 uppercase">
                     {{ $customer->fcustomercode }}
                 </div>
             </div>
 
             <div class="grid grid-cols-3 gap-4">
-                <div class="text-sm font-medium text-gray-500">Nama Customer</div>
+                <div class="text-sm font-bold text-gray-700">Nama Customer</div>
                 <div class="col-span-2 text-sm font-semibold text-gray-900 uppercase">
                     {{ $customer->fcustomername }}
                 </div>
@@ -29,7 +29,7 @@
 
             @if($customer->faddress)
             <div class="grid grid-cols-3 gap-4">
-                <div class="text-sm font-medium text-gray-500">Alamat</div>
+                <div class="text-sm font-bold text-gray-700">Alamat</div>
                 <div class="col-span-2 text-sm text-gray-700">
                     {{ $customer->faddress }}
                 </div>
@@ -38,7 +38,7 @@
 
             @if($customer->faddress)
             <div class="grid grid-cols-3 gap-4">
-                <div class="text-sm font-medium text-gray-500">Kota</div>
+                <div class="text-sm font-bold text-gray-700">Kota</div>
                 <div class="col-span-2 text-sm font-semibold text-gray-900">
                     {{ $customer->faddress }}
                 </div>
@@ -47,7 +47,7 @@
 
             @if($customer->fphone)
             <div class="grid grid-cols-3 gap-4">
-                <div class="text-sm font-medium text-gray-500">Telepon</div>
+                <div class="text-sm font-bold text-gray-700">Telepon</div>
                 <div class="col-span-2 text-sm font-semibold text-gray-900">
                     {{ $customer->fphone }}
                 </div>
@@ -56,7 +56,7 @@
 
             @if($customer->fcustemail)
             <div class="grid grid-cols-3 gap-4">
-                <div class="text-sm font-medium text-gray-500">Email</div>
+                <div class="text-sm font-bold text-gray-700">Email</div>
                 <div class="col-span-2 text-sm font-semibold text-gray-900">
                     {{ $customer->fcustemail }}
                 </div>
@@ -64,14 +64,14 @@
             @endif
 
             <div class="grid grid-cols-3 gap-4">
-                <div class="text-sm font-medium text-gray-500">Tempo</div>
+                <div class="text-sm font-bold text-gray-700">Tempo</div>
                 <div class="col-span-2 text-sm font-semibold text-gray-900">
                     {{ $customer->ftempo ?? 0 }} Hari
                 </div>
             </div>
 
             <div class="grid grid-cols-3 gap-4">
-                <div class="text-sm font-medium text-gray-500">Status</div>
+                <div class="text-sm font-bold text-gray-700">Status</div>
                 <div class="col-span-2">
                     <span class="inline-flex items-center px-2.5 py-0.5 rounded text-xs font-medium
                         {{ $customer->fnonactive == '1' ? 'bg-red-100 text-red-700' : 'bg-green-100 text-green-700' }}">
@@ -82,7 +82,7 @@
 
             @if($customer->fcreatedby)
             <div class="grid grid-cols-3 gap-4">
-                <div class="text-sm font-medium text-gray-500">Dibuat</div>
+                <div class="text-sm font-bold text-gray-700">Dibuat</div>
                 <div class="col-span-2 text-sm text-gray-700">
                     {{ $customer->fcreatedby ?? '-' }} -
                     {{ $customer->fcreatedat ? \Carbon\Carbon::parse($customer->fcreatedat)->format('d/m/Y H:i') : '-' }}
@@ -92,7 +92,7 @@
 
             @if($customer->fupdatedat)
             <div class="grid grid-cols-3 gap-4">
-                <div class="text-sm font-medium text-gray-500">Diupdate</div>
+                <div class="text-sm font-bold text-gray-700">Diupdate</div>
                 <div class="col-span-2 text-sm text-gray-700">
                     {{ $customer->fupdatedby ?? '-' }} -
                     {{ \Carbon\Carbon::parse($customer->fupdatedat)->format('d/m/Y H:i') }}

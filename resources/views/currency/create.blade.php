@@ -22,7 +22,7 @@
                 <div class="space-y-4 mt-4">
                     <!-- Currency Code -->
                     <div>
-                        <label class="block text-sm font-medium">Kode Currency</label>
+                        <label class="block text-sm font-bold">Kode Currency</label>
                         <input type="text" name="fcurrcode"
                             class="w-full border rounded px-3 py-2 uppercase @error('fcurrcode') border-red-500 @enderror"
                             autofocus>
@@ -32,7 +32,7 @@
                     </div>
                     <!-- Currency Name -->
                     <div>
-                        <label class="block text-sm font-medium">Nama Currency</label>
+                        <label class="block text-sm font-bold">Nama Currency</label>
                         <input type="text" name="fcurrname"
                             class="w-full border rounded px-3 py-2 uppercase @error('fcurrname') border-red-500 @enderror">
                         @error('fcurrname')
@@ -41,7 +41,7 @@
                     </div>
                     {{-- Rate --}}
                     <div>
-                        <label class="block text-sm font-medium">Rate</label>
+                        <label class="block text-sm font-bold">Rate</label>
                         <input type="number" name="frate"
                             class="w-full border rounded px-3 py-2 uppercase @error('frate') border-red-500 @enderror">
                         @error('frate')
