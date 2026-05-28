@@ -66,8 +66,8 @@ class SupplierController extends Controller
                 'fnpwp' => 'required|string',
                 'faddress' => 'required|string',
                 'fkontakperson' => '',
-                'ftelp' => 'required|string',
-                'ffax' => 'required|string',
+                'ftelp' => 'nullable|string',
+                'ffax' => 'nullable|string',
                 'fcurr' => 'required|string',
                 'fjabatan' => '',
                 'ftempo' => '',
@@ -80,8 +80,6 @@ class SupplierController extends Controller
                 'fsuppliername.required' => 'Nama supplier wajib diisi.',
                 'fnpwp.required' => 'Npwp wajib diisi.',
                 'faddress.required' => 'Alamat wajib diisi.',
-                'ftelp.required' => 'Telepon wajib diisi.',
-                'ffax.required' => 'Fax wajib diisi.',
                 'fcurr.required' => 'Mata uang wajib diisi.',
             ]
         );
@@ -155,8 +153,8 @@ class SupplierController extends Controller
                 'ftempo' => '',
                 'fmemo' => '',
                 'faddress' => 'required|string',
-                'ftelp' => 'required|string',
-                'ffax' => 'required|string',
+                'ftelp' => 'nullable|string',
+                'ffax' => 'nullable|string',
                 'fcurr' => 'required|string',
                 'faddress' => '',
             ],
@@ -166,8 +164,6 @@ class SupplierController extends Controller
                 'fsuppliername.required' => 'Nama supplier wajib diisi.',
                 'fnpwp.required' => 'Npwp wajib diisi.',
                 'faddress.required' => 'Alamat wajib diisi.',
-                'ftelp.required' => 'Telepon wajib diisi.',
-                'ffax.required' => 'Fax wajib diisi.',
                 'fcurr.required' => 'Mata uang wajib diisi.',
             ]
         );
@@ -183,7 +179,13 @@ class SupplierController extends Controller
             $validated['fsuppliercode'] = $supplier->fsuppliercode;
         }
 
-        $supplier->update($validated);
+        try {
+            $supplier->update($validated);
+        } catch (\Throwable $e) {
+            return back()
+                ->withInput()
+                ->withErrors(['error' => 'Supplier belum bisa diupdate. Cek data supplier.']);
+        }
 
         return redirect()
             ->route('supplier.index')
