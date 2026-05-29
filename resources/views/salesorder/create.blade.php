@@ -941,7 +941,7 @@
                 row.fterima = Math.max(0, +row.fterima || 0);
                 row.fprice = Math.max(0, +row.fprice || 0);
                 if (typeof row.fpriceInput === 'undefined') {
-                    row.fpriceInput = row.fprice.toFixed(2);
+                    row.fpriceInput = this.fmt(row.fprice);
                 }
 
                 // Parse discount menggunakan fungsi baru
@@ -956,7 +956,12 @@
             },
 
             sanitizePriceValue(value) {
-                const raw = (value ?? '').toString().replace(',', '.').replace(/[^0-9.]/g, '');
+                let str = (value ?? '').toString().trim();
+                if (str === '') return '';
+                if (str.includes(',')) {
+                    str = str.replace(/\./g, '').replace(',', '.');
+                }
+                const raw = str.replace(/[^0-9.]/g, '');
                 const parts = raw.split('.');
                 if (parts.length <= 1) return raw;
                 return `${parts.shift()}.${parts.join('')}`;
@@ -975,7 +980,7 @@
 
             blurPriceInput(row) {
                 row.fprice = Math.max(0, +(row.fpriceInput || 0));
-                row.fpriceInput = row.fprice.toFixed(2);
+                row.fpriceInput = this.fmt(row.fprice);
                 this.recalc(row);
             },
 
@@ -1311,7 +1316,7 @@
                     ...source,
                     fnoacak: source.fnoacak || this.generateUniqueNoAcak(source.uid || null),
                 }, source.uid || cryptoRandom());
-                row.fpriceInput = Number(row.fprice || 0).toFixed(2);
+                row.fpriceInput = this.fmt(row.fprice);
                 return row;
             },
 

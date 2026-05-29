@@ -544,8 +544,8 @@
                                                     x-ref="draftQty">
                                             </td>
                                             <td class="p-2 text-right">
-                                                <input type="number" class="border rounded px-2 py-1 w-28 text-right"
-                                                    :value="Number(draft.fprice || 0).toFixed(2)"
+                                                <input type="text" class="border rounded px-2 py-1 w-28 text-right bg-gray-100 text-gray-600"
+                                                    :value="fmt(draft.fprice)"
                                                     disabled
                                                     x-ref="draftPrice">
                                             </td>
@@ -1099,13 +1099,13 @@
                                                             :value="fmt(it.fprice)" disabled>
                                                     </template>
                                                     <template x-if="action !== 'view'">
-                                                        <input type="number"
+                                                        <input type="text"
                                                             class="w-full border rounded px-2 py-1 text-right text-sm"
-                                                            min="0" step="0.01"
                                                             :id="'price_row_' + i"
-                                                            :value="Number(it.fprice || 0).toFixed(2)"
-                                                            @blur="it.fprice = Number($event.target.value) || 0; onRowUpdated(i)"
-                                                            @input="onRowUpdated(i)"
+                                                            x-model="it.fpriceInput"
+                                                            @focus="focusPriceInput(it)"
+                                                            @input="onPriceInput(it); onRowUpdated(i)"
+                                                            @blur="blurPriceInput(it); onRowUpdated(i)"
                                                             @keydown.enter.prevent="focusRowDisc(i)">
                                                     </template>
                                                 </td>
@@ -2750,6 +2750,33 @@
                 return this.fmt(value);
             },
 
+            sanitizePriceValue(value) {
+                let str = (value ?? '').toString().trim();
+                if (str === '') return '';
+                if (str.includes(',')) {
+                    str = str.replace(/\./g, '').replace(',', '.');
+                }
+                const raw = str.replace(/[^0-9.]/g, '');
+                const parts = raw.split('.');
+                if (parts.length <= 1) return raw;
+                return `${parts.shift()}.${parts.join('')}`;
+            },
+
+            focusPriceInput(row) {
+                const price = Math.max(0, +row.fprice || 0);
+                row.fpriceInput = price > 0 ? String(price) : '';
+            },
+
+            onPriceInput(row) {
+                row.fpriceInput = this.sanitizePriceValue(row.fpriceInput);
+                row.fprice = Math.max(0, +(row.fpriceInput || 0));
+            },
+
+            blurPriceInput(row) {
+                row.fprice = Math.max(0, +(row.fpriceInput || 0));
+                row.fpriceInput = this.fmt(row.fprice);
+            },
+
             // ✅ FUNGSI BARU: Parse diskon dengan format "10+2"
             parseDiscount(discStr) {
                 if (!discStr && discStr !== 0) return 0;
@@ -2816,6 +2843,9 @@
                 row.fqty = Math.max(0, +row.fqty || 0);
                 row.fterima = Math.max(0, +row.fterima || 0);
                 row.fprice = Math.max(0, +row.fprice || 0);
+                if (typeof row.fpriceInput === 'undefined') {
+                    row.fpriceInput = this.fmt(row.fprice);
+                }
 
                 // Parse discount menggunakan fungsi baru
                 const discPercent = this.parseDiscount(row.fdisc);
@@ -3116,11 +3146,13 @@
                     row.ftotal = Number((row.fqty * row.fprice).toFixed(2));
 
                     this.validateReferenceQty(row, false);
-                    this.savedItems.push({
+                    const nextRow = {
                         ...this.createRow(),
                         ...row,
                         uid: cryptoRandom(),
-                    });
+                    };
+                    nextRow.fpriceInput = this.fmt(nextRow.fprice);
+                    this.savedItems.push(nextRow);
                     this.$nextTick(() => {
                         const target = this.savedItems[this.savedItems.length - 1];
                         const lockedUnit = (target?.fdisplayunit ?? '').toString().trim();
@@ -3364,13 +3396,15 @@
 
                 this.savedItems = (this.savedItems || []).map(item => {
                     const soLimit = Number(item.maxqty ?? item.fqtyremain ?? 0);
-                    return {
+                    const row = {
                         ...this.createRow(),
                         ...item,
                         fnoacak: this.normalizeNoAcak(item.fnoacak) || this.generateUniqueNoAcak(),
                         frefnoacak: this.normalizeRefNoAcak(item.frefnoacak),
                         maxqty: Number.isFinite(soLimit) ? soLimit : 0,
                     };
+                    row.fpriceInput = this.fmt(row.fprice);
+                    return row;
                 });
                 this.savedItems.forEach((item) => {
                     const lockedUnit = (item?.fdisplayunit ?? '').toString().trim();
@@ -3453,6 +3487,7 @@
                 fterima: 0,
                 maxqty: 0,
                 fprice: 0,
+                fpriceInput: '0,00',
                 fdisc: 0,
                 ftotal: 0,
                 fdesc: '',

@@ -2333,7 +2333,7 @@
                 row.fqty = Math.max(0, +row.fqty || 0);
                 row.fprice = Math.max(0, +row.fprice || 0);
                 if (typeof row.fpriceInput === 'undefined') {
-                    row.fpriceInput = row.fprice.toFixed(2);
+                    row.fpriceInput = this.fmt(row.fprice);
                 }
                 const discPercent = this.parseDiscount(row.fdisc);
                 const subtotal = row.fqty * row.fprice;
@@ -2343,7 +2343,12 @@
             },
 
             sanitizePriceValue(value) {
-                const raw = (value ?? '').toString().replace(',', '.').replace(/[^0-9.]/g, '');
+                let str = (value ?? '').toString().trim();
+                if (str === '') return '';
+                if (str.includes(',')) {
+                    str = str.replace(/\./g, '').replace(',', '.');
+                }
+                const raw = str.replace(/[^0-9.]/g, '');
                 const parts = raw.split('.');
                 if (parts.length <= 1) return raw;
                 return `${parts.shift()}.${parts.join('')}`;
@@ -2361,7 +2366,7 @@
 
             blurPriceInput(row) {
                 row.fprice = Math.max(0, +(row.fpriceInput || 0));
-                row.fpriceInput = row.fprice.toFixed(2);
+                row.fpriceInput = this.fmt(row.fprice);
                 this.recalc(row);
             },
 
@@ -2736,7 +2741,7 @@
                     fnoacak: this.normalizeNoAcak(overrides.fnoacak) || this.generateUniqueNoAcak(overrides.uid || null),
                     frefnoacak: this.normalizeRefNoAcak(overrides.frefnoacak),
                 };
-                row.fpriceInput = Number(row.fprice || 0).toFixed(2);
+                row.fpriceInput = this.fmt(row.fprice);
                 return row;
             },
 
@@ -2864,7 +2869,7 @@
                 fqty: 0,
                 maxqty: 0,
                 fprice: 0,
-                fpriceInput: '0.00',
+                fpriceInput: '0,00',
                 fdisc: 0,
                 ftotal: 0,
                 fdesc: '',

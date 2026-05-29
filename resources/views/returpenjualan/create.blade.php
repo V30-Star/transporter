@@ -443,13 +443,13 @@
                                                 </div>
                                             </td>
                                             <td class="p-2 text-right">
-                                                <input type="number"
+                                                <input type="text"
                                                     class="w-full border rounded px-2 py-1 text-right text-sm"
-                                                    min="0" step="0.01"
                                                     :id="'price_row_' + i"
-                                                    :value="Number(it.fprice || 0).toFixed(2)"
-                                                    @blur="it.fprice = Number($event.target.value) || 0; onRowUpdated(i)"
-                                                    @input="onRowUpdated(i)"
+                                                    x-model="it.fpriceInput"
+                                                    @focus="focusPriceInput(it)"
+                                                    @input="onPriceInput(it); onRowUpdated(i)"
+                                                    @blur="blurPriceInput(it); onRowUpdated(i)"
                                                     @keydown.enter.prevent="focusRowDisc(i)">
                                             </td>
                                             <td class="p-2 text-right">
@@ -1948,6 +1948,33 @@
                 return this.fmt(value);
             },
 
+            sanitizePriceValue(value) {
+                let str = (value ?? '').toString().trim();
+                if (str === '') return '';
+                if (str.includes(',')) {
+                    str = str.replace(/\./g, '').replace(',', '.');
+                }
+                const raw = str.replace(/[^0-9.]/g, '');
+                const parts = raw.split('.');
+                if (parts.length <= 1) return raw;
+                return `${parts.shift()}.${parts.join('')}`;
+            },
+
+            focusPriceInput(row) {
+                const price = Math.max(0, +row.fprice || 0);
+                row.fpriceInput = price > 0 ? String(price) : '';
+            },
+
+            onPriceInput(row) {
+                row.fpriceInput = this.sanitizePriceValue(row.fpriceInput);
+                row.fprice = Math.max(0, +(row.fpriceInput || 0));
+            },
+
+            blurPriceInput(row) {
+                row.fprice = Math.max(0, +(row.fpriceInput || 0));
+                row.fpriceInput = this.fmt(row.fprice);
+            },
+
             // ✅ FUNGSI BARU: Parse diskon dengan format "10+2"
             parseDiscount(discStr) {
                 if (!discStr && discStr !== 0) return 0;
@@ -2015,6 +2042,9 @@
                 row.fterima = Math.max(0, +row.fterima || 0);
                 row.fprice = Math.max(0, +row.fprice || 0);
                 if (row.fprice < 0) row.fprice = 0;
+                if (typeof row.fpriceInput === 'undefined') {
+                    row.fpriceInput = this.fmt(row.fprice);
+                }
 
                 // Parse discount menggunakan fungsi baru
                 const discPercent = this.parseDiscount(row.fdisc);
@@ -2298,11 +2328,13 @@
                         row.fqty = Number(rowLimit);
                     }
                     this.validateReferenceQty(row, false);
-                    this.savedItems.push({
+                    const nextRow = {
                         ...this.createRow(),
                         ...row,
                         uid: cryptoRandom(),
-                    });
+                    };
+                    nextRow.fpriceInput = this.fmt(nextRow.fprice);
+                    this.savedItems.push(nextRow);
                     this.$nextTick(() => {
                         const target = this.savedItems[this.savedItems.length - 1];
                         const lockedUnit = (target?.fdisplayunit ?? '').toString().trim();
@@ -2533,12 +2565,16 @@
                 this.$watch('ppnRate', () => this.recalcTotals());
 
                 window.getCurrentItemKeys = () => this.getCurrentItemKeys();
-                this.savedItems = (this.savedItems || []).map(item => ({
-                    ...this.createRow(),
-                    ...item,
-                    fnoacak: this.normalizeNoAcak(item.fnoacak) || this.generateUniqueNoAcak(),
-                    frefnoacak: this.normalizeRefNoAcak(item.frefnoacak),
-                }));
+                this.savedItems = (this.savedItems || []).map(item => {
+                    const row = {
+                        ...this.createRow(),
+                        ...item,
+                        fnoacak: this.normalizeNoAcak(item.fnoacak) || this.generateUniqueNoAcak(),
+                        frefnoacak: this.normalizeRefNoAcak(item.frefnoacak),
+                    };
+                    row.fpriceInput = this.fmt(row.fprice);
+                    return row;
+                });
                 this.savedItems.forEach((item) => {
                     const lockedUnit = (item?.fdisplayunit ?? '').toString().trim();
                     if (lockedUnit) {
@@ -2618,6 +2654,7 @@
                 fqty: 0,
                 fterima: 0,
                 fprice: 0,
+                fpriceInput: '0,00',
                 fdisc: 0,
                 ftotal: 0,
                 fdesc: '',

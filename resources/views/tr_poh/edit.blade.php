@@ -1368,14 +1368,19 @@
                 row.fqty = qty;
                 row.fprice = price;
                 if (typeof row.fpriceInput === 'undefined') {
-                    row.fpriceInput = price.toFixed(2);
+                    row.fpriceInput = this.fmtCurr(price);
                 }
                 row.fdisc = disc;
                 row.ftotal = +(qty * price * (1 - disc / 100)).toFixed(2);
             },
 
             sanitizePriceValue(value) {
-                const raw = (value ?? '').toString().replace(',', '.').replace(/[^0-9.]/g, '');
+                let str = (value ?? '').toString().trim();
+                if (str === '') return '';
+                if (str.includes(',')) {
+                    str = str.replace(/\./g, '').replace(',', '.');
+                }
+                const raw = str.replace(/[^0-9.]/g, '');
                 const parts = raw.split('.');
                 if (parts.length <= 1) return raw;
                 return `${parts.shift()}.${parts.join('')}`;
@@ -1394,7 +1399,7 @@
 
             blurPriceInput(row) {
                 row.fprice = Math.max(0, +(row.fpriceInput || 0));
-                row.fpriceInput = row.fprice.toFixed(2);
+                row.fpriceInput = this.fmtCurr(row.fprice);
                 this.recalc(row);
             },
 
@@ -1543,7 +1548,7 @@
                 if (!hist) return;
                 if (!row.fprice || row.fprice === 0) {
                     row.fprice = hist.fprice;
-                    row.fpriceInput = Number(row.fprice || 0).toFixed(2);
+                    row.fpriceInput = this.fmtCurr(row.fprice);
                     row.fdisc = hist.fdisc ?? 0;
                     this.recalc(row);
                 }
@@ -1664,7 +1669,7 @@
                 row.fprno = (row.fprno || row.frefpr || '').toString();
                 row.fqty = Number(row.fqty || 0);
                 row.fprice = Number(row.fprice || 0);
-                row.fpriceInput = row.fprice.toFixed(2);
+                row.fpriceInput = this.fmtCurr(row.fprice);
                 row.fdisc = Number(row.fdisc || 0);
                 row.ftotal = Number(row.ftotal || 0);
                 row.fdesc = (row.fdesc || '').toString();
