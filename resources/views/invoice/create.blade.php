@@ -534,6 +534,7 @@
                                 <input type="hidden" name="fitemname[]" :value="it.fitemname">
                                 <input type="hidden" name="fsatuan[]" :value="it.fsatuan">
                                 <input type="hidden" name="frefdtno[]" :value="it.frefdtno">
+                                <input type="hidden" name="frefcode[]" :value="it.frefcode">
                                 <input type="hidden" name="fnouref[]" :value="it.fnouref">
                                 <input type="hidden" name="frefso[]" :value="it.frefso">
                                 <input type="hidden" name="frefsrj[]" :value="it.frefsrj">
@@ -552,7 +553,7 @@
                         </template>
                     </div>
 
-                    <input type="hidden" name="frefcode" id="frefcode" value="{{ old('frefcode') }}">
+                    <input type="hidden" name="frefcode_header" id="frefcode" value="{{ old('frefcode_header') }}">
                     <input type="hidden" name="frefso_header" id="frefso" value="{{ old('frefso_header') }}">
                     <input type="hidden" name="frefsrj_header" id="frefsrj" value="{{ old('frefsrj_header') }}">
 
@@ -1993,7 +1994,7 @@
                             Number(src.fqty) : 1,
                         fterima: Number(src.fterima ?? 0),
                         fprice: Number(src.fprice ?? 0),
-                        fdisc: src.fdisc ?? 0,
+                        fdisc: src.fdisc ?? src.fdiscpersen ?? 0,
                         ftotal: Number(src.ftotal ?? 0),
                         fdesc: src.fdesc ?? '',
                         fketdt: src.fketdt ?? '',

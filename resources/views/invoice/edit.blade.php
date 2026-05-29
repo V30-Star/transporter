@@ -2639,6 +2639,7 @@
                         fqty: (src.fqty !== null && src.fqty !== undefined && Number(src.fqty) > 0) ?
                             Number(src.fqty) : 1,
                         fprice: Number(src.fprice ?? src.fharga ?? 0),
+                        fdisc: src.fdisc ?? src.fdiscpersen ?? 0,
                         ftotal: 0,
                         fdesc: src.fdesc ? src.fdesc.toString().trim() : '',
                         units: Array.isArray(src.units) && src.units.length

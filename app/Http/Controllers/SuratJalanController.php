@@ -350,6 +350,7 @@ class SuratJalanController extends Controller
                 'msprd.fprdcode as fitemcode',
                 'msprd.fprdname as fitemname',
                 'trstockdt.fqty',
+                'trstockdt.fdiscpersen',
                 'trstockdt.fsatuan',
                 'trstockdt.fprice',
                 'trstockdt.ftotprice as ftotal'
