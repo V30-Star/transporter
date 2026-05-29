@@ -210,7 +210,7 @@
                         <div class="lg:col-span-4" x-data="{ autoCode: false }">
                             <label class="block text-sm font-medium mb-1">Faktur#</label>
                             <div class="flex items-center gap-3">
-                                <input type="text" name="fsono" value="{{ old('fsono', $invoice->fsono) }}"
+                                <input type="text" name="fsono" value="{{ old('fsono', $displayFsono ?? $invoice->fsono) }}"
                                     class="w-full border rounded px-3 py-2" :disabled="autoCode" readonly
                                     :class="autoCode ? 'bg-gray-200 cursor-not-allowed text-gray-500' : 'bg-white'">
 
@@ -401,7 +401,7 @@
                                         <th class="p-2 text-left w-96">Nama Produk</th>
                                         <th class="p-2 text-left w-36">Satuan</th>
                                         <th class="p-2 text-left w-36">No.Ref</th>
-                                        <th class="p-2 text-right w-36 whitespace-nowrap">Jumlah</th>
+                                        <th class="p-2 text-right w-36 whitespace-nowrap">Qty</th>
                                         <th class="p-2 text-right w-32 whitespace-nowrap">@ Harga</th>
                                         <th class="p-2 text-right w-36 whitespace-nowrap">Disc. %</th>
                                         <th class="p-2 text-right w-36 whitespace-nowrap">Total Harga</th>
@@ -843,7 +843,7 @@
                             <div class="lg:col-span-4" x-data="{ autoCode: false }">
                                 <label class="block text-sm font-medium mb-1">Faktur#</label>
                                 <div class="flex items-center gap-3">
-                                    <input type="text" name="fsono" value="{{ old('fsono', $invoice->fsono) }}"
+                                    <input type="text" name="fsono" value="{{ old('fsono', $displayFsono ?? $invoice->fsono) }}"
                                         class="w-full border rounded px-3 py-2" :disabled="autoCode"
                                         :class="autoCode ? 'bg-gray-200 cursor-not-allowed text-gray-500' : 'bg-white'">
 
@@ -1093,7 +1093,7 @@
                                             <th class="p-2 text-left w-96">Nama Produk</th>
                                             <th class="p-2 text-left w-36">Satuan</th>
                                             <th class="p-2 text-left w-36">No.Ref</th>
-                                            <th class="p-2 text-right w-36 whitespace-nowrap">Jumlah</th>
+                                            <th class="p-2 text-right w-36 whitespace-nowrap">Qty</th>
                                             <th class="p-2 text-right w-32 whitespace-nowrap">@ Harga</th>
                                             <th class="p-2 text-right w-36 whitespace-nowrap">Disc. %</th>
                                             <th class="p-2 text-right w-36 whitespace-nowrap">Total Harga</th>
@@ -2483,7 +2483,7 @@
                 if (qty > limit) {
                     row.fqty = limit;
                     if (showToast) window.toast?.error(
-                        `Jumlah melebihi sisa referensi. Maksimal ${limit} ${row.fsatuan || ''}`.trim());
+                        `Qty melebihi sisa referensi. Maksimal ${limit} ${row.fsatuan || ''}`.trim());
                 }
 
                 return Number(row?.fqty ?? 0) > 0;

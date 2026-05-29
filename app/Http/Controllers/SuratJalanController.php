@@ -9,12 +9,24 @@ use App\Models\Product;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-// Pastikan ini ada jika menggunakan throw new \Exception
 use Illuminate\Support\Facades\DB; // sekalian biar aman untuk tanggal
+use Illuminate\Support\Facades\Log; // sekalian biar aman untuk tanggal
 use Illuminate\Validation\ValidationException;
 
 class SuratJalanController extends Controller
 {
+    private function formatDisplayTransactionNumber(?string $number, bool $useSlash = false): string
+    {
+        $normalized = trim((string) $number);
+        if ($normalized === '') {
+            return '-';
+        }
+
+        $separator = $useSlash ? '/' : '.';
+
+        return (string) preg_replace('/[.\/](\d+)$/', $separator . '$1', $normalized, 1);
+    }
+
     private function ensureNoDuplicateDetailCodes(array $codes): void
     {
         $seen = [];
@@ -65,8 +77,8 @@ class SuratJalanController extends Controller
             ->orderBy('fwhname')
             ->pluck('fwhname')
             ->filter()
-            ->map(fn ($value) => trim((string) $value))
-            ->filter(fn ($value) => $value !== '')
+            ->map(fn($value) => trim((string) $value))
+            ->filter(fn($value) => $value !== '')
             ->unique()
             ->values();
 
@@ -186,6 +198,7 @@ class SuratJalanController extends Controller
                 return [
                     'fstockmtid' => $row->fstockmtid,
                     'fstockmtno' => $row->fstockmtno,
+                    'fstockmtno_display' => $this->formatDisplayTransactionNumber($row->fstockmtno ?? null, false),
                     'fstockmtdate' => Carbon::parse($row->fstockmtdate)->format('d/m/Y'),
                     'frefno' => (string) ($row->frefpo ?? ''),
                     'fsono' => (string) ($row->so_refs ?? ''),
@@ -468,6 +481,7 @@ class SuratJalanController extends Controller
         return view('suratjalan.print', [
             'hdr' => $hdr,
             'dt' => $dt,
+            'displayFstockmtno' => $this->formatDisplayTransactionNumber($hdr->fstockmtno ?? null, false),
             'fmt' => $fmt,
             'company_name' => config('app.company_name', 'PT. DEMO VERSION'),
             'company_city' => config('app.company_city', 'Tangerang'),
@@ -545,42 +559,60 @@ class SuratJalanController extends Controller
 
     public function store(Request $request)
     {
+        $userid = auth('sysuser')->user()->fsysuserid ?? 'admin';
+
+        // LOG 1: Mencatat awal transaksi masuk dan user pelaksana
+        Log::info("SuratJalan@store: Request masuk dari user [{$userid}].", [
+            'ip' => $request->ip(),
+            'fsupplier' => $request->input('fsupplier'),
+            'fbranchcode' => $request->input('fbranchcode'),
+            'total_items_payload' => count($request->input('fitemcode', []))
+        ]);
+
         // =========================
         // 1) VALIDASI INPUT
         // =========================
-        $request->validate([
-            'fstockmtno' => ['nullable', 'string', 'max:100'],
-            'fstockmtdate' => ['required', 'date'],
-            'fsupplier' => ['required', 'string', 'max:30'],
-            'ffrom' => ['required', 'string', 'max:10'],
-            'fket' => ['nullable', 'string', 'max:50'],
-            'fketinternal' => ['nullable', 'string', 'max:300'],
-            'fkirim' => ['nullable', 'string', 'max:300'],
-            'fbranchcode' => ['nullable', 'string', 'max:20'],
-            'fitemcode' => ['required', 'array', 'min:1'],
-            'fitemcode.*' => ['required', 'string', 'max:50'],
-            'fsatuan' => ['nullable', 'array'],
-            'fsatuan.*' => ['nullable', 'string', 'max:20'],
-            'frefdtno' => ['nullable', 'array'],
-            'frefdtno.*' => ['nullable', 'string', 'max:100'],
-            'fqty' => ['required', 'array'],
-            'fqty.*' => ['numeric', 'min:0'],
-            'fprice' => ['required', 'array'],
-            'fprice.*' => ['numeric', 'min:0'],
-            'fdesc' => ['nullable', 'array'],
-            'fdesc.*' => ['nullable', 'string', 'max:500'],
-            'fcurrency' => ['nullable', 'string', 'max:5'],
-            'frate' => ['nullable', 'numeric', 'min:0'],
-            'famountpopajak' => ['nullable', 'numeric', 'min:0'],
-            'frefso' => ['nullable', 'array'],
-            'frefso.*' => ['nullable', 'string', 'max:100'],
-            'fnoacak' => ['nullable', 'array'],
-            'fnoacak.*' => ['nullable', 'regex:/^[1-9]{3}$/'],
-            'frefnoacak' => ['nullable', 'array'],
-            'frefnoacak.*' => ['nullable', 'regex:/^\d{3}$/'],
-        ], [
-            'ffrom.required' => 'Gudang wajib diisi.',
-        ]);
+        try {
+            $request->validate([
+                'fstockmtno' => ['nullable', 'string', 'max:100'],
+                'fstockmtdate' => ['required', 'date'],
+                'fsupplier' => ['required', 'string', 'max:30'],
+                'ffrom' => ['required', 'string', 'max:10'],
+                'fket' => ['nullable', 'string', 'max:50'],
+                'fketinternal' => ['nullable', 'string', 'max:300'],
+                'fkirim' => ['nullable', 'string', 'max:300'],
+                'fbranchcode' => ['nullable', 'string', 'max:20'],
+                'fitemcode' => ['required', 'array', 'min:1'],
+                'fitemcode.*' => ['required', 'string', 'max:50'],
+                'fsatuan' => ['nullable', 'array'],
+                'fsatuan.*' => ['nullable', 'string', 'max:20'],
+                'frefdtno' => ['nullable', 'array'],
+                'frefdtno.*' => ['nullable', 'string', 'max:100'],
+                'fqty' => ['required', 'array'],
+                'fqty.*' => ['numeric', 'min:0'],
+                'fprice' => ['required', 'array'],
+                'fprice.*' => ['numeric', 'min:0'],
+                'fdesc' => ['nullable', 'array'],
+                'fdesc.*' => ['nullable', 'string', 'max:500'],
+                'fcurrency' => ['nullable', 'string', 'max:5'],
+                'frate' => ['nullable', 'numeric', 'min:0'],
+                'famountpopajak' => ['nullable', 'numeric', 'min:0'],
+                'frefso' => ['nullable', 'array'],
+                'frefso.*' => ['nullable', 'string', 'max:100'],
+                'fnoacak' => ['nullable', 'array'],
+                'fnoacak.*' => ['nullable', 'regex:/^[1-9]{3}$/'],
+                'frefnoacak' => ['nullable', 'array'],
+                'frefnoacak.*' => ['nullable', 'regex:/^\d{3}$/'],
+            ], [
+                'ffrom.required' => 'Gudang wajib diisi.',
+            ]);
+        } catch (\Illuminate\Validation\ValidationException $ve) {
+            // LOG 2: Validasi input form gagal
+            Log::warning("SuratJalan@store: Validasi form gagal untuk user [{$userid}].", [
+                'errors' => $ve->errors()
+            ]);
+            throw $ve;
+        }
 
         $this->ensureNoDuplicateDetailCodes($request->input('fitemcode', []));
 
@@ -602,7 +634,6 @@ class SuratJalanController extends Controller
             $frate = 1;
         }
         $ppnAmount = (float) $request->input('famountpopajak', 0);
-        $userid = auth('sysuser')->user()->fsysuserid ?? 'admin';
         $now = now();
 
         // =========================
@@ -641,7 +672,6 @@ class SuratJalanController extends Controller
                     return mb_substr($v, 0, 5);
                 }
             }
-
             return '';
         };
 
@@ -684,9 +714,9 @@ class SuratJalanController extends Controller
             $qtyKecil = $qty;
             if ($referenceRatio !== null && $referenceRatio > 0) {
                 $qtyKecil = $qty * $referenceRatio;
-            } elseif ($sat !== '' && $sat === trim((string) ($meta->fsatuanbesar ?? '')) && (float) $meta->fqtykecil > 0) {
+            } elseif ($meta && $sat !== '' && $sat === trim((string) ($meta->fsatuanbesar ?? '')) && (float) $meta->fqtykecil > 0) {
                 $qtyKecil = $qty * (float) $meta->fqtykecil;
-            } elseif ($sat !== '' && $sat === trim((string) ($meta->fsatuanbesar2 ?? '')) && (float) ($meta->fqtykecil2 ?? 0) > 0) {
+            } elseif ($meta && $sat !== '' && $sat === trim((string) ($meta->fsatuanbesar2 ?? '')) && (float) ($meta->fqtykecil2 ?? 0) > 0) {
                 $qtyKecil = $qty * (float) $meta->fqtykecil2;
             }
 
@@ -695,6 +725,8 @@ class SuratJalanController extends Controller
             }
             $sat = mb_substr($sat, 0, 5);
             if ($sat === '') {
+                // LOG 3: Deteksi item yang dilewati karena tidak punya satuan valid
+                Log::debug("SuratJalan@store: Detail baris index-{$i} dilewati karena satuan kosong.", ['code' => $code]);
                 continue;
             }
 
@@ -702,7 +734,7 @@ class SuratJalanController extends Controller
             $amount = $qty * $price;
             $subtotal += $amount;
 
-            $row = [
+            $rowsDt[] = [
                 'fprdcode' => $code,
                 'frefdtno' => $frefdtnoValue !== '' ? mb_substr($frefdtnoValue, 0, 100) : null,
                 'fqty' => $qty,
@@ -713,14 +745,10 @@ class SuratJalanController extends Controller
                 'fusercreate' => Auth::user()->fname ?? 'system',
                 'fdatetime' => $now,
                 'fketdt' => '',
-                'fcode' => $this->resolveSuratJalanFcode([
-                    'frefso' => $frefso[$i] ?? null,
-                ]),
+                'fcode' => $this->resolveSuratJalanFcode(['frefso' => $frefso[$i] ?? null]),
                 'frefso' => $frefso[$i] ?? null,
                 'fnoacak' => $this->normalizeRandomNumber($fnoacaks[$i] ?? null, $usedNoAcaks),
-                'frefnoacak' => trim((string) ($frefso[$i] ?? '')) !== ''
-                    ? $refNoAcak
-                    : null,
+                'frefnoacak' => trim((string) ($frefso[$i] ?? '')) !== '' ? $refNoAcak : null,
                 'fdesc' => $desc,
                 'fsatuan' => $sat,
                 'fclosedt' => '0',
@@ -729,11 +757,10 @@ class SuratJalanController extends Controller
                 'fqtykecil' => $qtyKecil,
                 'fqtyremain' => $qtyKecil,
             ];
-
-            $rowsDt[] = $row;
         }
 
         if (empty($rowsDt)) {
+            Log::warning("SuratJalan@store: Konstruksi baris detail menghasilkan array kosong.");
             return back()->withInput()->withErrors([
                 'detail' => 'Minimal satu item valid (Kode, Satuan, Qty > 0).',
             ]);
@@ -743,19 +770,26 @@ class SuratJalanController extends Controller
         $invoiceReferenceDocs = $this->extractInvoiceReferenceDocs($rowsDt);
 
         if ($validationMessage = $this->validateUniqueReferenceUsage($soUsageByReference)) {
-            return back()->withInput()->withErrors([
-                'detail' => $validationMessage,
-            ]);
+            Log::warning("SuratJalan@store: Gagal validateUniqueReferenceUsage.", ['msg' => $validationMessage]);
+            return back()->withInput()->withErrors(['detail' => $validationMessage]);
         }
 
         // =========================
         // 6.5) VALIDASI QTY REMAIN SO
         // =========================
         if ($validationMessage = $this->validateSoUsageRequest($soUsageByReference)) {
-            return back()->withInput()->withErrors([
-                'detail' => $validationMessage,
-            ]);
+            Log::warning("SuratJalan@store: Gagal validateSoUsageRequest (Qty SO Overlimit).", ['msg' => $validationMessage]);
+            return back()->withInput()->withErrors(['detail' => $validationMessage]);
         }
+
+        // LOG 4: Perhitungan nilai subtotal & PPN sebelum masuk block transaction
+        Log::info("SuratJalan@store: Struktur data siap disimpan ke database.", [
+            'subtotal' => $subtotal,
+            'rate' => $frate,
+            'ppn_amount' => $ppnAmount,
+            'grand_total' => $subtotal + $ppnAmount,
+            'total_rows_detail' => count($rowsDt)
+        ]);
 
         // =========================
         // 7) TRANSAKSI DB
@@ -811,6 +845,10 @@ class SuratJalanController extends Controller
                         ->value('lastno');
                     $next = (int) $last + 1;
                     $fstockmtno = $prefix . str_pad((string) $next, 4, '0', STR_PAD_LEFT);
+
+                    Log::debug("SuratJalan@store: Nomor SRJ di-generate otomatis [{$fstockmtno}].");
+                } else {
+                    Log::debug("SuratJalan@store: Menggunakan nomor SRJ manual dari request [{$fstockmtno}].");
                 }
 
                 // ---- 7.3. INSERT HEADER ----
@@ -854,7 +892,7 @@ class SuratJalanController extends Controller
                 $newStockMasterId = DB::table('trstockmt')->insertGetId($masterData, 'fstockmtid');
 
                 if (! $newStockMasterId) {
-                    throw new \Exception('Gagal menyimpan data master (header).');
+                    throw new \Exception('Gagal menyimpan data master (header) Surat Jalan.');
                 }
 
                 foreach ($rowsDt as &$r) {
@@ -899,7 +937,7 @@ class SuratJalanController extends Controller
                 $newJurnalMasterId = DB::table('jurnalmt')->insertGetId($jurnalHeader, 'fjurnalmtid');
 
                 if (! $newJurnalMasterId) {
-                    throw new \Exception('Gagal menyimpan data jurnal header.');
+                    throw new \Exception('Gagal menyimpan data jurnal header (jurnalmt).');
                 }
 
                 $jurnalDetails = [];
@@ -963,19 +1001,32 @@ class SuratJalanController extends Controller
                 ];
 
                 DB::table('jurnaldt')->insert($jurnalDetails);
+
+                // LOG 5: Sukses melakukan insert semua baris entitas di DB Transaction block
+                Log::info("SuratJalan@store: Query DB internal selesai. Nomor SRJ: [{$fstockmtno}], Nomor Jurnal: [{$fjurnalno}].");
             });
         } catch (\Throwable $e) {
+            // LOG 6: Menangkap crash system atau kegagalan query database
+            Log::error("SuratJalan@store: Gagal memproses transaksi! Database di-rollback.", [
+                'error_message' => $e->getMessage(),
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),
+                'trace' => $e->getTraceAsString(),
+                'attempted_fstockmtno' => $fstockmtno ?? 'N/A'
+            ]);
 
             return back()->withInput()->withErrors([
-                'detail' => 'Data belum berhasil disimpan. Cek isian transaksi.',
+                'detail' => 'Data belum berhasil disimpan. Cek data log internal.',
             ]);
         }
 
         $this->syncInvoiceOutFlags($invoiceReferenceDocs);
 
+        Log::info("SuratJalan@store: Flow penyimpanan sukses total untuk nomor [{$fstockmtno}].");
+
         return redirect()
             ->route('suratjalan.create')
-            ->with('success', "Surat jalan {$fstockmtno} berhasil disimpan.");
+            ->with('success', 'Surat jalan ' . $this->formatDisplayTransactionNumber($fstockmtno, false) . ' berhasil disimpan.');
     }
 
     public function edit(Request $request, $fstockmtid)
@@ -1108,6 +1159,7 @@ class SuratJalanController extends Controller
             'products' => $products,
             'productMap' => $productMap,
             'suratjalan' => $suratjalan,
+            'displayFstockmtno' => $this->formatDisplayTransactionNumber($suratjalan->fstockmtno ?? null, false),
             'savedItems' => $savedItems,
             'ppnAmount' => (float) ($suratjalan->famountpopajak ?? 0),
             'famountponet' => (float) ($suratjalan->famountponet ?? 0),
@@ -1225,6 +1277,7 @@ class SuratJalanController extends Controller
             'products' => $products,
             'productMap' => $productMap,
             'suratjalan' => $suratjalan,
+            'displayFstockmtno' => $this->formatDisplayTransactionNumber($suratjalan->fstockmtno ?? null, false),
             'savedItems' => $savedItems,
             'ppnAmount' => (float) ($suratjalan->famountpopajak ?? 0),
             'famountponet' => (float) ($suratjalan->famountponet ?? 0),
@@ -1680,7 +1733,7 @@ class SuratJalanController extends Controller
 
         return redirect()
             ->route('suratjalan.index')
-            ->with('success', "Surat jalan {$fstockmtno} berhasil diupdate.");
+            ->with('success', 'Surat jalan ' . $this->formatDisplayTransactionNumber($fstockmtno, false) . ' berhasil diupdate.');
     }
 
     public function delete(Request $request, $fstockmtid)
@@ -1802,6 +1855,7 @@ class SuratJalanController extends Controller
             'products' => $products,
             'productMap' => $productMap,
             'suratjalan' => $suratjalan,
+            'displayFstockmtno' => $this->formatDisplayTransactionNumber($suratjalan->fstockmtno ?? null, false),
             'savedItems' => $savedItems,
             'ppnAmount' => (float) ($suratjalan->famountpopajak ?? 0),
             'famountponet' => (float) ($suratjalan->famountponet ?? 0),
@@ -1843,7 +1897,7 @@ class SuratJalanController extends Controller
 
             $this->syncInvoiceOutFlags($invoiceReferenceDocs);
 
-            return redirect()->route('suratjalan.index')->with('success', 'Surat jalan ' . $suratjalan->fstockmtno . ' berhasil dihapus.');
+            return redirect()->route('suratjalan.index')->with('success', 'Surat jalan ' . $this->formatDisplayTransactionNumber($suratjalan->fstockmtno, false) . ' berhasil dihapus.');
         } catch (\Exception $e) {
             // Jika terjadi kesalahan saat menghapus, kembali ke halaman delete dengan pesan error
             return redirect()->route('suratjalan.delete', $fstockmtid)->with('error', 'Surat jalan belum bisa dihapus. Coba lagi.');

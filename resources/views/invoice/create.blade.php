@@ -207,7 +207,6 @@
                             placeholder="Mengikuti Faktur#"
                             readonly
                             class="w-full border rounded px-3 py-2 bg-gray-100 text-gray-600 @error('ftaxno') border-red-500 @enderror">
-                        <p class="text-[10px] text-blue-600 mt-1">* Sementara mengikuti nomor Faktur#</p>
                         @error('ftaxno')
                             <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                         @enderror
@@ -420,7 +419,7 @@
                                     <th class="p-2 text-left w-96">Nama Produk</th>
                                     <th class="p-2 text-left w-36">Satuan</th>
                                     <th class="p-2 text-left w-36">No.Ref</th>
-                                    <th class="p-2 text-right w-36 whitespace-nowrap">Jumlah</th>
+                                    <th class="p-2 text-right w-36 whitespace-nowrap">Qty</th>
                                     <th class="p-2 text-right w-32 whitespace-nowrap">@ Harga</th>
                                     <th class="p-2 text-right w-36 whitespace-nowrap">Disc. %</th>
                                     <th class="p-2 text-right w-36 whitespace-nowrap">Total Harga</th>
@@ -1824,7 +1823,7 @@
                 if (qty > limit) {
                     row.fqty = limit;
                     if (showToast) window.toast?.error(
-                        `Jumlah melebihi sisa referensi. Maksimal ${limit} ${row.fsatuan || ''}`.trim());
+                        `Qty melebihi sisa referensi. Maksimal ${limit} ${row.fsatuan || ''}`.trim());
                 }
 
                 return Number(row?.fqty ?? 0) > 0;

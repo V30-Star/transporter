@@ -3,7 +3,7 @@
 
 <head>
     <meta charset="utf-8">
-    <title>{{ "Surat Jalan" }} - {{ $hdr->fstockmtno ?? '-' }}</title>
+    <title>{{ "Surat Jalan" }} - {{ $displayFstockmtno ?? ($hdr->fstockmtno ?? '-') }}</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <style>
         :root {
@@ -190,7 +190,7 @@
             </div>
             <div>
                 <div class="title-so">{{ "Surat Jalan" }}</div>
-                <div class="so-no">{{ "No" }}. {{ $hdr->fstockmtno ?? '-' }}</div>
+                <div class="so-no">{{ "No" }}. {{ $displayFstockmtno ?? ($hdr->fstockmtno ?? '-') }}</div>
             </div>
         </div>
 
@@ -271,4 +271,3 @@
 </body>
 
 </html>
-

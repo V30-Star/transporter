@@ -24,6 +24,18 @@ class InvoiceController extends Controller
 {
     private ?bool $tranmtHasInternalNoteColumn = null;
 
+    private function formatDisplayTransactionNumber(?string $number, bool $useSlash = false): string
+    {
+        $normalized = trim((string) $number);
+        if ($normalized === '') {
+            return '-';
+        }
+
+        $separator = $useSlash ? '/' : '.';
+
+        return (string) preg_replace('/[.\/](\d+)$/', $separator.'$1', $normalized, 1);
+    }
+
     private function tranmtHasInternalNoteColumn(): bool
     {
         if ($this->tranmtHasInternalNoteColumn === null) {
@@ -568,6 +580,7 @@ class InvoiceController extends Controller
                     'tranmt.fbranchcode',
                     'b.fcabangname',
                     'tranmt.fsono',
+                    'tranmt.fincludeppn',
                     'tranmt.ftaxno',
                     'tranmt.fsodate',
                     'tranmt.frefno',
@@ -644,6 +657,7 @@ class InvoiceController extends Controller
                         trim((string) ($row->fcabangname ?? '')),
                     ]))) ?: trim((string) ($row->fbranchcode ?? $row->fcabangname ?? '')),
                     'fsono' => trim((string) ($row->fsono ?? '')),
+                    'fsono_display' => $this->formatDisplayTransactionNumber($row->fsono ?? null, (string) ($row->fincludeppn ?? '0') === '1'),
                     'ftaxno' => trim((string) ($row->ftaxno ?? '')),
                     'fsodate' => $row->fsodate instanceof \Carbon\Carbon
                         ? $row->fsodate->format('Y-m-d')
@@ -973,6 +987,7 @@ class InvoiceController extends Controller
         return view('invoice.print', [
             'hdr' => $hdr,
             'dt' => $dt,
+            'displayFsono' => $this->formatDisplayTransactionNumber($hdr->fsono ?? null, (string) ($hdr->fincludeppn ?? '0') === '1'),
             'fmt' => $fmt,
             'company_name' => config('app.company_name', 'PT. DEMO VERSION'),
             'company_city' => config('app.company_city', 'Tangerang'),
@@ -1372,7 +1387,7 @@ class InvoiceController extends Controller
                 $this->sendApprovalNotification($fsono, $userid);
             }
 
-            return redirect()->route('invoice.index')->with('success', 'Faktur penjualan berhasil disimpan.');
+            return redirect()->route('invoice.index')->with('success', 'Faktur penjualan '.$this->formatDisplayTransactionNumber($fsono, $fincludeppn === '1').' berhasil disimpan.');
         } catch (\Exception $e) {
             report($e);
             return back()->withInput()->with('error', 'Faktur penjualan belum bisa disimpan. Cek data.');
@@ -1979,6 +1994,7 @@ class InvoiceController extends Controller
             'products' => $products,
             'productMap' => $productMap,
             'invoice' => $invoice,
+            'displayFsono' => $this->formatDisplayTransactionNumber($invoice->fsono ?? null, (string) ($invoice->fincludeppn ?? '0') === '1'),
             'savedItems' => $savedItems,
             'ppnAmount' => (float) ($invoice->famountpopajak ?? 0), // total PPN from DB
             'famountgross' => (float) ($invoice->famountgross ?? 0),  // nilai Grand Total dari DB
@@ -2086,6 +2102,7 @@ class InvoiceController extends Controller
             'products' => $products,
             'productMap' => $productMap,
             'invoice' => $invoice,
+            'displayFsono' => $this->formatDisplayTransactionNumber($invoice->fsono ?? null, (string) ($invoice->fincludeppn ?? '0') === '1'),
             'savedItems' => $savedItems,
             'approvalLockMessage' => $approvalLockMessage,
             'ppnAmount' => (float) ($invoice->famountpopajak ?? 0), // total PPN from DB
@@ -2452,7 +2469,7 @@ class InvoiceController extends Controller
                 $this->sendApprovalNotification($header->fsono, $userid);
             }
 
-            return redirect()->route('invoice.index')->with('success', "Faktur penjualan {$header->fsono} berhasil diupdate.");
+            return redirect()->route('invoice.index')->with('success', 'Faktur penjualan '.$this->formatDisplayTransactionNumber($header->fsono, $fincludeppn === '1').' berhasil diupdate.');
         } catch (\Exception $e) {
             report($e);
             return back()->withInput()->with('error', 'Faktur penjualan belum bisa diupdate. Cek data.');
@@ -2566,6 +2583,7 @@ class InvoiceController extends Controller
             'products' => $products,
             'productMap' => $productMap,
             'invoice' => $invoice,
+            'displayFsono' => $this->formatDisplayTransactionNumber($invoice->fsono ?? null, (string) ($invoice->fincludeppn ?? '0') === '1'),
             'savedItems' => $savedItems,
             'ppnAmount' => (float) ($invoice->famountpopajak ?? 0), // total PPN from DB
             'famountgross' => (float) ($invoice->famountgross ?? 0),  // nilai Grand Total dari DB
@@ -2602,7 +2620,7 @@ class InvoiceController extends Controller
                 $invoice->delete();
             });
 
-            return redirect()->route('invoice.index')->with('success', 'Faktur penjualan ' . $invoice->fsono . ' berhasil dihapus.');
+            return redirect()->route('invoice.index')->with('success', 'Faktur penjualan ' . $this->formatDisplayTransactionNumber($invoice->fsono, (string) ($invoice->fincludeppn ?? '0') === '1') . ' berhasil dihapus.');
         } catch (\Exception $e) {
             // Jika terjadi kesalahan saat menghapus, kembali ke halaman delete dengan pesan error
             report($e);

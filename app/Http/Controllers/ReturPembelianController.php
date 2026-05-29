@@ -16,6 +16,18 @@ use Illuminate\Validation\ValidationException;
 
 class ReturPembelianController extends Controller
 {
+    private function formatDisplayTransactionNumber(?string $number, bool $useSlash = false): string
+    {
+        $normalized = trim((string) $number);
+        if ($normalized === '') {
+            return '-';
+        }
+
+        $separator = $useSlash ? '/' : '.';
+
+        return (string) preg_replace('/[.\/](\d+)$/', $separator.'$1', $normalized, 1);
+    }
+
     private function ensureNoDuplicateDetailCodes(array $codes): void
     {
         $seen = [];
@@ -126,6 +138,7 @@ class ReturPembelianController extends Controller
                 ->get([
                     'trstockmt.fstockmtid',
                     'trstockmt.fstockmtno',
+                    'trstockmt.fincludeppn',
                     'trstockmt.fstockmtdate',
                     'trstockmt.famountmt',
                     'warehouse.fwhname as warehouse_name',
@@ -179,6 +192,7 @@ class ReturPembelianController extends Controller
                 return [
                     'fstockmtid' => $row->fstockmtid,
                     'fstockmtno' => $row->fstockmtno,
+                    'fstockmtno_display' => $this->formatDisplayTransactionNumber($row->fstockmtno ?? null, (string) ($row->fincludeppn ?? '0') === '1'),
                     'fstockmtdate' => Carbon::parse($row->fstockmtdate)->format('d/m/Y'),
                     'fwhname' => (string) ($row->warehouse_name ?? ''),
                     'fsuppliername' => (string) ($row->supplier_name ?? ''),
@@ -384,6 +398,7 @@ class ReturPembelianController extends Controller
         return view('returpembelian.print', [
             'hdr' => $hdr,
             'dt' => $dt,
+            'displayFstockmtno' => $this->formatDisplayTransactionNumber($hdr->fstockmtno ?? null, (string) ($hdr->fincludeppn ?? '0') === '1'),
             'fmt' => $fmt,
             'company_name' => config('app.company_name', 'PT. DEMO VERSION'),
             'company_city' => config('app.company_city', 'Tangerang'),
@@ -703,7 +718,7 @@ class ReturPembelianController extends Controller
 
             return redirect()
                 ->route('returpembelian.create')
-                ->with('success', "Retur pembelian {$fstockmtno} berhasil disimpan.");
+                ->with('success', 'Retur pembelian '.$this->formatDisplayTransactionNumber($fstockmtno, (float) $ppnAmount > 0).' berhasil disimpan.');
         } catch (\Exception $e) {
             return back()
                 ->withInput()
@@ -826,6 +841,7 @@ class ReturPembelianController extends Controller
             'accounts' => $accounts,
             'productMap' => $productMap,
             'returpembelian' => $returpembelian,
+            'displayFstockmtno' => $this->formatDisplayTransactionNumber($returpembelian->fstockmtno ?? null, (string) ($returpembelian->fincludeppn ?? '0') === '1'),
             'savedItems' => $savedItems,
             'ppnAmount' => (float) ($returpembelian->famountpopajak ?? 0),
             'famountponet' => (float) ($returpembelian->famountponet ?? 0),
@@ -938,6 +954,7 @@ class ReturPembelianController extends Controller
             'accounts' => $accounts,
             'productMap' => $productMap,
             'returpembelian' => $returpembelian,
+            'displayFstockmtno' => $this->formatDisplayTransactionNumber($returpembelian->fstockmtno ?? null, (string) ($returpembelian->fincludeppn ?? '0') === '1'),
             'savedItems' => $savedItems,
             'ppnAmount' => (float) ($returpembelian->famountpopajak ?? 0),
             'famountponet' => (float) ($returpembelian->famountponet ?? 0),
@@ -1204,7 +1221,7 @@ class ReturPembelianController extends Controller
 
             return redirect()
                 ->route('returpembelian.index') // <-- Redirect kembali ke halaman edit
-                ->with('success', "Retur pembelian {$fstockmtno} berhasil diupdate.");
+                ->with('success', 'Retur pembelian '.$this->formatDisplayTransactionNumber($fstockmtno, (float) $ppnAmount > 0).' berhasil diupdate.');
         } catch (\Exception $e) {
             return back()
                 ->withInput()
@@ -1327,6 +1344,7 @@ class ReturPembelianController extends Controller
             'accounts' => $accounts,
             'productMap' => $productMap,
             'returpembelian' => $returpembelian,
+            'displayFstockmtno' => $this->formatDisplayTransactionNumber($returpembelian->fstockmtno ?? null, (string) ($returpembelian->fincludeppn ?? '0') === '1'),
             'savedItems' => $savedItems,
             'ppnAmount' => (float) ($returpembelian->famountpopajak ?? 0),
             'famountponet' => (float) ($returpembelian->famountponet ?? 0),
@@ -1356,7 +1374,7 @@ class ReturPembelianController extends Controller
                 $returpembelian->delete();
             });
 
-            return redirect()->route('returpembelian.index')->with('success', 'Retur pembelian '.$returpembelian->fstockmtno.' berhasil dihapus.');
+            return redirect()->route('returpembelian.index')->with('success', 'Retur pembelian '.$this->formatDisplayTransactionNumber($returpembelian->fstockmtno, (string) ($returpembelian->fincludeppn ?? '0') === '1').' berhasil dihapus.');
         } catch (\Exception $e) {
             // Jika terjadi kesalahan saat menghapus, kembali ke halaman delete dengan pesan error
             return redirect()->route('returpembelian.delete', $fstockmtid)->with('error', 'Retur pembelian belum bisa dihapus. Coba lagi.');

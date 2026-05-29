@@ -295,7 +295,7 @@
 
             // 1. Definisi Kolom - HARUS SELALU ADA 4 KOLOM (sesuai dengan <th> di HTML)
             const columns = [{
-                    data: 'fstockmtno',
+                    data: 'fstockmtno_display',
                     name: 'fstockmtno'
                 },
                 {

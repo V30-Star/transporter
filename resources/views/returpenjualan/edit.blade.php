@@ -213,7 +213,7 @@
                             <div class="lg:col-span-4" x-data="{ autoCode: false }">
                                 <label class="block text-sm font-medium mb-1">SO#</label>
                                 <div class="flex items-center gap-3">
-                                    <input type="text" name="fsono" value="{{ old('fsono', $returpenjualan->fsono) }}"
+                                    <input type="text" name="fsono" value="{{ old('fsono', $displayFsono ?? $returpenjualan->fsono) }}"
                                         class="w-full border rounded px-3 py-2" :disabled="autoCode" readonly
                                         :class="autoCode ? 'bg-gray-200 cursor-not-allowed text-gray-500' : 'bg-white'">
 

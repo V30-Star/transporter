@@ -306,7 +306,7 @@
                     name: 'fbranchcode'
                 },
                 {
-                    data: 'fsono',
+                    data: 'fsono_display',
                     name: 'fsono'
                 },
                 {

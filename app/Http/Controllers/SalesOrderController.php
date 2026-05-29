@@ -1121,7 +1121,7 @@ class SalesOrderController extends Controller
                 $this->sendApprovalNotification($fsono, $userid);
             }
 
-            return redirect()->route('salesorder.create')->with('success', "Sales Order {$fsono} berhasil disimpan.");
+            return redirect()->route('salesorder.create')->with('success', 'Sales Order '.$this->formatDisplayTransactionNumber($fsono, (int) $fapplyppn === 1).' berhasil disimpan.');
         } catch (\Exception $e) {
             report($e);
             return back()->withInput()->withErrors(['error' => 'Sales Order belum bisa disimpan. Cek data.']);
@@ -1292,6 +1292,7 @@ class SalesOrderController extends Controller
             'products' => $products,
             'productMap' => $productMap,
             'salesorder' => $salesorder,
+            'displayFsono' => $this->formatDisplayTransactionNumber($salesorder->fsono ?? null, (int) ($salesorder->fapplyppn ?? 0) === 1),
             'savedItems' => $savedItems,
             'ppnAmount' => (float) ($salesorder->famountpopajak ?? 0), // total PPN from DB
             'famountgross' => (float) ($salesorder->famountgross ?? 0),  // nilai Grand Total dari DB
@@ -1396,6 +1397,7 @@ class SalesOrderController extends Controller
             'productMap' => $productMap,
             'fppnpersen' => (float) ($salesorder->fppnpersen ?? 11),
             'salesorder' => $salesorder,
+            'displayFsono' => $this->formatDisplayTransactionNumber($salesorder->fsono ?? null, (int) ($salesorder->fapplyppn ?? 0) === 1),
             'savedItems' => $savedItems,
             'ppnAmount' => (float) ($salesorder->famountpopajak ?? 0),
             'famountgross' => (float) ($salesorder->famountgross ?? 0),
@@ -1675,7 +1677,7 @@ class SalesOrderController extends Controller
 
         return redirect()
             ->route('salesorder.index')
-            ->with('success', "Sales Order {$header->fsono} berhasil diupdate.");
+            ->with('success', 'Sales Order '.$this->formatDisplayTransactionNumber($header->fsono, (int) ($header->fapplyppn ?? 0) === 1).' berhasil diupdate.');
     }
 
     public function delete(Request $request, $ftrsomtid)
@@ -1783,6 +1785,7 @@ class SalesOrderController extends Controller
             'products' => $products,
             'productMap' => $productMap,
             'salesorder' => $salesorder,
+            'displayFsono' => $this->formatDisplayTransactionNumber($salesorder->fsono ?? null, (int) ($salesorder->fapplyppn ?? 0) === 1),
             'savedItems' => $savedItems,
             'fppnpersen' => (float) ($salesorder->fppnpersen ?? 11),
             'ppnAmount' => (float) ($salesorder->famountpopajak ?? 0), // total PPN from DB
@@ -1819,7 +1822,7 @@ class SalesOrderController extends Controller
                     ->delete();
             });
 
-            return redirect()->route('salesorder.index')->with('success', 'Sales Order ' . $salesorder->fsono . ' berhasil dihapus.');
+            return redirect()->route('salesorder.index')->with('success', 'Sales Order ' . $this->formatDisplayTransactionNumber($salesorder->fsono, (int) ($salesorder->fapplyppn ?? 0) === 1) . ' berhasil dihapus.');
         } catch (\Exception $e) {
             report($e);
             return redirect()->route('salesorder.view', $ftrsomtid)->with('error', 'Sales Order belum bisa dihapus. Coba lagi.');

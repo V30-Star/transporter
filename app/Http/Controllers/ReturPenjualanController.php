@@ -18,6 +18,18 @@ use Illuminate\Validation\ValidationException;
 
 class ReturPenjualanController extends Controller
 {
+    private function formatDisplayTransactionNumber(?string $number, bool $useSlash = false): string
+    {
+        $normalized = trim((string) $number);
+        if ($normalized === '') {
+            return '-';
+        }
+
+        $separator = $useSlash ? '/' : '.';
+
+        return (string) preg_replace('/[.\/](\d+)$/', $separator.'$1', $normalized, 1);
+    }
+
     private function ensureNoDuplicateDetailCodes(array $codes): void
     {
         $seen = [];
@@ -82,6 +94,7 @@ class ReturPenjualanController extends Controller
                     'tranmt.ftranmtid',
                     'tranmt.fbranchcode',
                     'tranmt.fsono',
+                    'tranmt.fincludeppn',
                     'tranmt.fsodate',
                     'tranmt.frefno',
                     'tranmt.fcustno',
@@ -152,6 +165,7 @@ class ReturPenjualanController extends Controller
                         trim((string) ($row->fcabangname ?? '')),
                     ]))) ?: trim((string) ($row->fbranchcode ?? $row->fcabangname ?? '')),
                     'fsono' => $row->fsono,
+                    'fsono_display' => $this->formatDisplayTransactionNumber($row->fsono ?? null, (string) ($row->fincludeppn ?? '0') === '1'),
                     'fsodate' => $row->fsodate instanceof \Carbon\Carbon
                         ? $row->fsodate->format('Y-m-d')
                         : $row->fsodate,
@@ -537,6 +551,7 @@ class ReturPenjualanController extends Controller
         return view('returpenjualan.print', [
             'hdr' => $hdr,
             'dt' => $dt,
+            'displayFsono' => $this->formatDisplayTransactionNumber($hdr->fsono ?? null, (string) ($hdr->fincludeppn ?? '0') === '1'),
             'fmt' => $fmt,
             'company_name' => config('app.company_name', 'PT. DEMO VERSION'),
             'company_city' => config('app.company_city', 'Tangerang'),
@@ -962,7 +977,7 @@ class ReturPenjualanController extends Controller
                 // Validasi sisa SO/SRJ berdasarkan fqtykecil dinonaktifkan.
             });
 
-            return redirect()->route('returpenjualan.index')->with('success', 'Retur penjualan berhasil disimpan.');
+            return redirect()->route('returpenjualan.index')->with('success', 'Retur penjualan '.$this->formatDisplayTransactionNumber($fsono, $fincludeppn === '1').' berhasil disimpan.');
         } catch (\Exception $e) {
 
             return back()->withInput()->with('error', 'Retur penjualan belum bisa disimpan. Cek data transaksi.');
@@ -1541,6 +1556,7 @@ class ReturPenjualanController extends Controller
             'products' => $products,
             'productMap' => $productMap,
             'returpenjualan' => $returpenjualan,
+            'displayFsono' => $this->formatDisplayTransactionNumber($returpenjualan->fsono ?? null, (string) ($returpenjualan->fincludeppn ?? '0') === '1'),
             'savedItems' => $savedItems,
             'ppnAmount' => (float) ($returpenjualan->famountpopajak ?? 0), // total PPN from DB
             'famountgross' => (float) ($returpenjualan->famountgross ?? 0),  // nilai Grand Total dari DB
@@ -1662,6 +1678,7 @@ class ReturPenjualanController extends Controller
             'products' => $products,
             'productMap' => $productMap,
             'returpenjualan' => $returpenjualan,
+            'displayFsono' => $this->formatDisplayTransactionNumber($returpenjualan->fsono ?? null, (string) ($returpenjualan->fincludeppn ?? '0') === '1'),
             'savedItems' => $savedItems,
             'ppnAmount' => (float) ($returpenjualan->famountpopajak ?? 0), // total PPN from DB
             'famountgross' => (float) ($returpenjualan->famountgross ?? 0),  // nilai Grand Total dari DB
@@ -2015,7 +2032,7 @@ class ReturPenjualanController extends Controller
                 // Validasi sisa SO/SRJ berdasarkan fqtykecil dinonaktifkan.
             });
 
-            return redirect()->route('returpenjualan.index')->with('success', "Retur penjualan {$header->fsono} berhasil diupdate.");
+            return redirect()->route('returpenjualan.index')->with('success', 'Retur penjualan '.$this->formatDisplayTransactionNumber($header->fsono, $fincludeppn === '1').' berhasil diupdate.');
         } catch (\Exception $e) {
             return back()->withInput()->with('error', 'Retur penjualan belum bisa diupdate. Cek data transaksi.');
         }
@@ -2136,6 +2153,7 @@ class ReturPenjualanController extends Controller
             'products' => $products,
             'productMap' => $productMap,
             'returpenjualan' => $returpenjualan,
+            'displayFsono' => $this->formatDisplayTransactionNumber($returpenjualan->fsono ?? null, (string) ($returpenjualan->fincludeppn ?? '0') === '1'),
             'savedItems' => $savedItems,
             'ppnAmount' => (float) ($returpenjualan->famountpopajak ?? 0), // total PPN from DB
             'famountgross' => (float) ($returpenjualan->famountgross ?? 0),  // nilai Grand Total dari DB
@@ -2187,7 +2205,7 @@ class ReturPenjualanController extends Controller
                 $returpenjualan->delete();
             });
 
-            return redirect()->route('returpenjualan.index')->with('success', 'Retur penjualan berhasil dihapus.');
+            return redirect()->route('returpenjualan.index')->with('success', 'Retur penjualan '.$this->formatDisplayTransactionNumber($fsono, (string) ($returpenjualan->fincludeppn ?? '0') === '1').' berhasil dihapus.');
         } catch (\Exception $e) {
             return redirect()->route('returpenjualan.index')->with('error', 'Retur penjualan belum bisa dihapus. Coba lagi.');
         }

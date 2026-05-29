@@ -3,7 +3,7 @@
 
 <head>
     <meta charset="utf-8">
-    <title>Faktur Penjualan - {{ $hdr->fsono ?? '-' }}</title>
+    <title>Faktur Penjualan - {{ $displayFsono ?? ($hdr->fsono ?? '-') }}</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <style>
         :root {
@@ -228,7 +228,7 @@
             </div>
             <div>
                 <div class="title-so">Faktur Penjualan</div>
-                <div class="so-no">No. {{ $hdr->fsono ?? 'SO2601.0001' }}</div>
+                <div class="so-no">No. {{ $displayFsono ?? ($hdr->fsono ?? '-') }}</div>
             </div>
         </div>
 
@@ -273,7 +273,7 @@
                 <tr>
                     <th style="width: 5%;">No.</th>
                     <th style="width: 45%;">Nama Produk</th>
-                    <th style="width: 15%; text-align: right;">Jumlah</th>
+                    <th style="width: 15%; text-align: right;">Qty</th>
                     <th style="width: 15%; text-align: right;">@ Harga</th>
                     <th style="width: 5%; text-align: center;">Disc.%</th>
                     <th style="width: 15%; text-align: right;">Total Harga</th>
