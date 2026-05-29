@@ -305,8 +305,8 @@
                         <div class="lg:col-span-4">
                             <label class="block text-sm font-bold mb-1">Supplier</label>
                             <div class="flex">
-                                <div class="relative flex-1" for="modal_filter_supplier_id">
-                                    <select id="modal_filter_supplier_id" name="filter_supplier_id"
+                                <div class="relative flex-1" for="modal_filter_supplier_id_readonly">
+                                    <select id="modal_filter_supplier_id_readonly" name="filter_supplier_id_readonly"
                                         class="w-full border rounded-l px-3 py-2 bg-gray-100 text-gray-700 cursor-not-allowed"
                                         disabled>
                                         <option value=""></option>
@@ -323,7 +323,7 @@
                                         @click="window.dispatchEvent(new CustomEvent('supplier-browse-open'))"></div>
                                 </div>
                                 {{-- kirim ID supplier ke server --}}
-                                <input type="hidden" name="fsupplier" id="supplierCodeHidden"
+                                <input type="hidden" name="fsupplier_readonly" id="supplierCodeHiddenReadonly"
                                     value="{{ old('fsupplier', $fakturpembelian->fsupplier) }}">
                                 <button type="button" id="supplierBrowseButtonReadonly"
                                     @click="window.dispatchEvent(new CustomEvent('supplier-browse-open'))"
@@ -358,7 +358,7 @@
                             <label class="block text-sm font-bold mb-1">Gudang</label>
                             <div class="flex">
                                 <div class="relative flex-1">
-                                    <select id="warehouseSelect"
+                                    <select id="warehouseSelectReadonly"
                                         class="w-full border rounded-l px-3 py-2 bg-gray-100 text-gray-700 cursor-not-allowed"
                                         disabled>
                                         <option value=""></option>
@@ -376,7 +376,7 @@
                                         @click="window.dispatchEvent(new CustomEvent('faktur-pembelian-warehouse-browse-open'))">
                                     </div>
                                 </div>
-                                <input type="hidden" name="ffrom" id="warehouseCodeHidden"
+                                <input type="hidden" name="ffrom_readonly" id="warehouseCodeHiddenReadonly"
                                     value="{{ old('ffrom', $fakturpembelian->ffrom) }}">
 
                                 {{-- Tombol-tombol Anda --}}
@@ -398,7 +398,7 @@
                             <label class="block text-sm font-bold mb-1">Account</label>
                             <div class="flex">
                                 <div class="relative flex-1">
-                                    <select disabled id="accountSelect" class="w-full border rounded-l px-3 py-2" ...>
+                                    <select disabled id="accountSelectReadonly" class="w-full border rounded-l px-3 py-2" ...>
                                         <option value=""></option>
 
                                         {{-- Tambahkan ini: jika account tersimpan tidak ada di list aktif --}}
@@ -423,9 +423,9 @@
                                 </div>
 
                                 {{-- 4. Isi 'value' dari hidden input dengan data PHP --}}
-                                <input type="hidden" name="fprdjadi" id="accountCodeHidden"
+                                <input type="hidden" name="fprdjadi_readonly" id="accountCodeHiddenReadonly"
                                     value="{{ $currentAccount }}">
-                                <input type="hidden" name="faccid" id="accountIdHidden"
+                                <input type="hidden" name="faccid_readonly" id="accountIdHiddenReadonly"
                                     value="{{ $currentAccountId }}">
 
                                 {{-- Tombol-tombol ini sudah benar --}}

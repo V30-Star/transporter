@@ -8,6 +8,70 @@
 @endphp
 
 <script>
+    window.applyTransactionAccountSelection = function(account = {}) {
+        const normalize = (value) => String(value ?? '').trim();
+        const code = normalize(account.faccount ?? account.account_code);
+
+        if (!code) {
+            return false;
+        }
+
+        const id = normalize(account.faccid ?? account.account_id);
+        const name = normalize(account.faccname ?? account.account_name);
+        const label = name ? `${code} - ${name}` : code;
+        const selects = Array.from(document.querySelectorAll('#accountSelect'));
+        const codeInputs = Array.from(document.querySelectorAll('#accountCodeHidden'));
+        const idInputs = Array.from(document.querySelectorAll('#accountIdHidden'));
+
+        selects.forEach((sel) => {
+            let opt = [...sel.options].find((o) => normalize(o.value) === code);
+
+            if (!opt) {
+                opt = new Option(label, code, true, true);
+                sel.add(opt);
+            } else {
+                opt.text = label;
+                opt.selected = true;
+            }
+
+            sel.value = code;
+            sel.dispatchEvent(new Event('change', {
+                bubbles: true
+            }));
+        });
+
+        codeInputs.forEach((hid) => {
+            hid.value = code;
+            hid.dispatchEvent(new Event('input', {
+                bubbles: true
+            }));
+            hid.dispatchEvent(new Event('change', {
+                bubbles: true
+            }));
+        });
+
+        idInputs.forEach((hid) => {
+            hid.value = id;
+            hid.dispatchEvent(new Event('input', {
+                bubbles: true
+            }));
+            hid.dispatchEvent(new Event('change', {
+                bubbles: true
+            }));
+        });
+
+        window.dispatchEvent(new CustomEvent('account-picked', {
+            detail: {
+                faccid: id,
+                faccount: code,
+                faccname: name,
+                fhavesubaccount: account.fhavesubaccount
+            }
+        }));
+
+        return selects.length > 0 || codeInputs.length > 0 || idInputs.length > 0;
+    };
+
     function accountBrowser() {
         return {
             open: false,
@@ -139,14 +203,7 @@
             },
 
             choose(row) {
-                window.dispatchEvent(new CustomEvent('account-picked', {
-                    detail: {
-                        faccid: row.faccid,
-                        faccount: row.faccount,
-                        faccname: row.faccname,
-                        fhavesubaccount: row.fhavesubaccount
-                    }
-                }));
+                window.applyTransactionAccountSelection(row);
                 this.close();
             },
 

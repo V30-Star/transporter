@@ -16,31 +16,43 @@
             return false;
         }
 
-        const sel = document.getElementById('modal_filter_customer_id');
-        const hid = document.getElementById('customerCodeHidden');
+        const selects = Array.from(document.querySelectorAll('#modal_filter_customer_id'));
+        const hiddenInputs = Array.from(document.querySelectorAll('#customerCodeHidden'));
 
-        if (!sel) {
+        if (!selects.length) {
             return false;
         }
 
         const name = normalize(customer.fcustomername ?? customer.customer_name ?? customer.fsuppliername);
         const label = name ? `${name} (${code})` : code;
-        let opt = [...sel.options].find(o => normalize(o.value) === code);
+        selects.forEach((sel) => {
+            let opt = [...sel.options].find(o => normalize(o.value) === code);
 
-        if (!opt) {
-            opt = new Option(label, code, true, true);
-            sel.add(opt);
-        } else {
-            opt.text = label;
-            opt.selected = true;
-        }
+            if (!opt) {
+                opt = new Option(label, code, true, true);
+                sel.add(opt);
+            } else {
+                opt.text = label;
+                opt.selected = true;
+            }
 
-        opt.dataset.fkodefp = normalize(customer.fkodefp);
-        sel.value = code;
+            opt.dataset.fkodefp = normalize(customer.fkodefp);
+            opt.dataset.ftempo = normalize(customer.ftempo);
+            sel.value = code;
+            sel.dispatchEvent(new Event('change', {
+                bubbles: true
+            }));
+        });
 
-        if (hid) {
+        hiddenInputs.forEach((hid) => {
             hid.value = code;
-        }
+            hid.dispatchEvent(new Event('input', {
+                bubbles: true
+            }));
+            hid.dispatchEvent(new Event('change', {
+                bubbles: true
+            }));
+        });
 
         window.dispatchEvent(new CustomEvent('customer-selected', {
             detail: {
@@ -53,10 +65,6 @@
                 f3: normalize(customer.fkirimaddress3 ?? customer.f3),
                 fkodefp: normalize(customer.fkodefp),
             }
-        }));
-
-        sel.dispatchEvent(new Event('change', {
-            bubbles: true
         }));
 
         return true;

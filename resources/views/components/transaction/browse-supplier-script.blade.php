@@ -9,6 +9,64 @@
 @endphp
 
 <script>
+    window.applyTransactionSupplierSelection = function(supplier = {}) {
+        const normalize = (value) => String(value ?? '').trim();
+        const code = normalize(supplier.fsuppliercode ?? supplier.fsupplier ?? supplier.supplier_code);
+
+        if (!code) {
+            return false;
+        }
+
+        const selects = Array.from(document.querySelectorAll('#modal_filter_supplier_id'));
+        const hiddenInputs = Array.from(document.querySelectorAll('#supplierCodeHidden'));
+        const name = normalize(supplier.fsuppliername ?? supplier.supplier_name);
+        const label = name ? `${name} (${code})` : code;
+        const tempo = normalize(supplier.ftempo);
+        const currency = normalize(supplier.fcurrency ?? supplier.currency_code).toUpperCase();
+        const supplierData = {
+            ...supplier,
+            fsuppliercode: code,
+            fsuppliername: name,
+            ftempo: tempo,
+            fcurrency: currency,
+        };
+
+        selects.forEach((sel) => {
+            let opt = [...sel.options].find(o => normalize(o.value) === code);
+
+            if (!opt) {
+                opt = new Option(label, code, true, true);
+                sel.add(opt);
+            } else {
+                opt.text = label;
+                opt.selected = true;
+            }
+
+            opt.dataset.tempo = tempo;
+            opt.dataset.currency = currency;
+            sel.value = code;
+            sel.dispatchEvent(new Event('change', {
+                bubbles: true
+            }));
+        });
+
+        hiddenInputs.forEach((hid) => {
+            hid.value = code;
+            hid.dispatchEvent(new Event('input', {
+                bubbles: true
+            }));
+            hid.dispatchEvent(new Event('change', {
+                bubbles: true
+            }));
+        });
+
+        window.dispatchEvent(new CustomEvent('supplier-picked', {
+            detail: supplierData
+        }));
+
+        return selects.length > 0 || hiddenInputs.length > 0;
+    };
+
     function supplierBrowser() {
         const dataTableLanguage = {
             processing: @json("Memuat data..."),
@@ -182,31 +240,10 @@
             },
 
             chooseSupplier(supplier) {
-                const sel = document.getElementById('modal_filter_supplier_id');
-                const hid = document.getElementById('supplierCodeHidden');
-                if (!sel) {
+                if (!window.applyTransactionSupplierSelection(supplier)) {
                     this.close();
                     return;
                 }
-                let opt = [...sel.options].find(o => o.value == String(supplier.fsuppliercode));
-                const label = `${supplier.fsuppliername} (${supplier.fsuppliercode})`;
-                if (!opt) {
-                    opt = new Option(label, supplier.fsuppliercode, true, true);
-                    sel.add(opt);
-                } else {
-                    opt.text = label;
-                    opt.selected = true;
-                }
-                sel.dispatchEvent(new Event('change'));
-                if (hid) {
-                    hid.value = supplier.fsuppliercode;
-                    hid.dispatchEvent(new Event('change', {
-                        bubbles: true
-                    }));
-                }
-                window.dispatchEvent(new CustomEvent('supplier-picked', {
-                    detail: supplier
-                }));
                 this.close();
             },
 

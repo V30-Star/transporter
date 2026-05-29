@@ -248,7 +248,7 @@
                                     </div>
 
                                     <!-- Hidden input yang akan dikirim ke server -->
-                                    <input type="hidden" name="fprdjadi" id="accountCodeHidden"
+                                    <input type="hidden" name="fprdjadi_readonly" id="accountCodeHiddenReadonly"
                                         value="{{ old('fprdjadi', $adjstock->fprdjadi ?? '') }}">
 
                                     <button type="button"
@@ -274,7 +274,7 @@
                                 <label class="block text-sm font-medium mb-1">Gudang</label>
                                 <div class="flex">
                                     <div class="relative flex-1">
-                                        <select id="warehouseSelect"
+                                        <select id="warehouseSelectReadonly"
                                             class="w-full border rounded-l px-3 py-2 bg-gray-100 text-gray-700 cursor-not-allowed"
                                             disabled>
                                             <option value=""></option>
@@ -292,7 +292,7 @@
                                             @click="window.dispatchEvent(new CustomEvent('warehouse-browse-open'))"></div>
                                     </div>
 
-                                    <input type="hidden" name="ffrom" id="warehouseCodeHidden"
+                                    <input type="hidden" name="ffrom_readonly" id="warehouseCodeHiddenReadonly"
                                         value="{{ old('ffrom', $adjstock->ffrom) }}">
 
                                     <button type="button"

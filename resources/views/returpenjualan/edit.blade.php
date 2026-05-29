@@ -264,8 +264,8 @@
                             <div class="lg:col-span-4">
                                 <label class="block text-sm font-medium mb-1">Customer</label>
                                 <div class="flex">
-                                    <div class="relative flex-1" for="modal_filter_customer_id">
-                                        <select id="modal_filter_customer_id" name="filter_customer_id"
+                                    <div class="relative flex-1" for="modal_filter_customer_id_readonly">
+                                        <select id="modal_filter_customer_id_readonly" name="filter_customer_id_readonly"
                                             class="w-full border rounded-l px-3 py-2 bg-gray-100 text-gray-700 bg-gray-200 cursor-not-allowed"
                                             disabled>
                                             <option value=""></option>
@@ -280,7 +280,7 @@
                                             @click="window.dispatchEvent(new CustomEvent('customer-browse-open'))">
                                         </div>
                                     </div>
-                                    <input type="hidden" name="fcustno" id="customerCodeHidden"
+                                    <input type="hidden" name="fcustno_readonly" id="customerCodeHiddenReadonly"
                                         value="{{ old('fcustno', $returpenjualan->fcustno) }}">
                                 </div>
                                 @error('fcustno')
@@ -292,8 +292,8 @@
                             <div class="lg:col-span-4">
                                 <label class="block text-sm font-medium mb-1">Salesman</label>
                                 <div class="flex">
-                                    <div class="relative flex-1" for="modal_filter_salesman_id">
-                                        <select id="modal_filter_salesman_id" name="filter_salesman_id"
+                                    <div class="relative flex-1" for="modal_filter_salesman_id_readonly">
+                                        <select id="modal_filter_salesman_id_readonly" name="filter_salesman_id_readonly"
                                             class="w-full border rounded-l px-3 py-2 bg-gray-100 text-gray-700 bg-gray-200 cursor-not-allowed"
                                             disabled>
                                             <option value=""></option>
@@ -309,7 +309,7 @@
                                             @click="window.dispatchEvent(new CustomEvent('salesman-browse-open'))">
                                         </div>
                                     </div>
-                                    <input type="hidden" name="fsalesman" id="salesmanCodeHidden"
+                                    <input type="hidden" name="fsalesman_readonly" id="salesmanCodeHiddenReadonly"
                                         value="{{ old('fsalesman', $returpenjualan->fsalesman) }}">
                                 </div>
                                 @error('fsalesman')
@@ -437,16 +437,14 @@
                                                         :value="it.frefpr || it.fnouref || it.frefcode || '-'" disabled>
                                                 </td>
                                                 <td class="p-2 text-right">
-                                                    <input type="number"
-                                                        class="w-full border rounded px-2 py-1 text-right"
-                                                        x-model.number="it.fqty"
-                                                        @input="recalc(it); enforceQtyRow(it); recalc(it);">
+                                                    <input type="text"
+                                                        class="w-full border rounded px-2 py-1 text-right bg-gray-100 text-gray-600 text-sm"
+                                                        :value="formatQtyValue(it.fqty)" disabled>
                                                 </td>
                                                 <td class="p-2 text-right">
-                                                    <input type="number"
-                                                        class="w-full border rounded px-2 py-1 text-right"
-                                                        :value="Number(it.fprice || 0).toFixed(2)"
-                                                        disabled>
+                                                    <input type="text"
+                                                        class="w-full border rounded px-2 py-1 text-right bg-gray-100 text-gray-600 text-sm"
+                                                        :value="fmt(it.fprice)" disabled>
                                                 </td>
                                                 <td class="p-2 text-right">
                                                     <input type="text"
@@ -1078,24 +1076,38 @@
                                                     </template>
                                                 </td>
                                                 <td class="p-2 text-right">
-                                                    <input type="number"
-                                                        class="w-full border rounded px-2 py-1 text-right text-sm"
-                                                        min="0" step="0.01"
-                                                        :id="'qty_row_' + i"
-                                                        x-model.number="it.fqty"
-                                                        @input="enforceQtyRow(it); onRowUpdated(i)"
-                                                        @change="enforceQtyRow(it); onRowUpdated(i)"
-                                                        @keydown.enter.prevent="focusRowPrice(i)">
+                                                    <template x-if="action === 'view'">
+                                                        <input type="text"
+                                                            class="w-full border rounded px-2 py-1 text-right bg-gray-100 text-gray-600 text-sm"
+                                                            :value="formatQtyValue(it.fqty)" disabled>
+                                                    </template>
+                                                    <template x-if="action !== 'view'">
+                                                        <input type="number"
+                                                            class="w-full border rounded px-2 py-1 text-right text-sm"
+                                                            min="0" step="0.01"
+                                                            :id="'qty_row_' + i"
+                                                            x-model.number="it.fqty"
+                                                            @input="enforceQtyRow(it); onRowUpdated(i)"
+                                                            @change="enforceQtyRow(it); onRowUpdated(i)"
+                                                            @keydown.enter.prevent="focusRowPrice(i)">
+                                                    </template>
                                                 </td>
                                                 <td class="p-2 text-right">
-                                                    <input type="number"
-                                                        class="w-full border rounded px-2 py-1 text-right text-sm"
-                                                        min="0" step="0.01"
-                                                        :id="'price_row_' + i"
-                                                        :value="Number(it.fprice || 0).toFixed(2)"
-                                                        @blur="it.fprice = Number($event.target.value) || 0; onRowUpdated(i)"
-                                                        @input="onRowUpdated(i)"
-                                                        @keydown.enter.prevent="focusRowDisc(i)">
+                                                    <template x-if="action === 'view'">
+                                                        <input type="text"
+                                                            class="w-full border rounded px-2 py-1 text-right bg-gray-100 text-gray-600 text-sm"
+                                                            :value="fmt(it.fprice)" disabled>
+                                                    </template>
+                                                    <template x-if="action !== 'view'">
+                                                        <input type="number"
+                                                            class="w-full border rounded px-2 py-1 text-right text-sm"
+                                                            min="0" step="0.01"
+                                                            :id="'price_row_' + i"
+                                                            :value="Number(it.fprice || 0).toFixed(2)"
+                                                            @blur="it.fprice = Number($event.target.value) || 0; onRowUpdated(i)"
+                                                            @input="onRowUpdated(i)"
+                                                            @keydown.enter.prevent="focusRowDisc(i)">
+                                                    </template>
                                                 </td>
                                                 <td class="p-2 text-right">
                                                     <input type="text"

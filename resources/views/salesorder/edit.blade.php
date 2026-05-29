@@ -272,8 +272,8 @@
                             <div class="lg:col-span-4">
                                 <label class="block text-sm font-medium mb-1">Customer</label>
                                 <div class="flex">
-                                    <div class="relative flex-1" for="modal_filter_customer_id">
-                                        <select id="modal_filter_customer_id" name="filter_customer_id"
+                                    <div class="relative flex-1" for="modal_filter_customer_id_readonly">
+                                        <select id="modal_filter_customer_id_readonly" name="filter_customer_id_readonly"
                                             class="w-full border rounded-l px-3 py-2 bg-gray-100 text-gray-700 bg-gray-200 cursor-not-allowed"
                                             disabled>
                                             <option value=""></option>
@@ -295,7 +295,7 @@
                                             aria-label="Browse Customer">
                                         </div>
                                     </div>
-                                    <input type="hidden" name="fcustno" id="customerCodeHidden"
+                                    <input type="hidden" name="fcustno_readonly" id="customerCodeHiddenReadonly"
                                         value="{{ old('fcustno', $salesorder->fcustno) }}">
                                 </div>
                                 @error('fcustno')
@@ -307,8 +307,8 @@
                             <div class="lg:col-span-4">
                                 <label class="block text-sm font-medium mb-1">Salesman</label>
                                 <div class="flex">
-                                    <div class="relative flex-1" for="modal_filter_salesman_id">
-                                        <select id="modal_filter_salesman_id" name="filter_salesman_id"
+                                    <div class="relative flex-1" for="modal_filter_salesman_id_readonly">
+                                        <select id="modal_filter_salesman_id_readonly" name="filter_salesman_id_readonly"
                                             class="w-full border rounded-l px-3 py-2 bg-gray-100 text-gray-700 bg-gray-200 cursor-not-allowed"
                                             disabled>
                                             <option value=""></option>
@@ -323,7 +323,7 @@
                                             aria-label="Browse Salesman">
                                         </div>
                                     </div>
-                                    <input type="hidden" name="fsalesman" id="salesmanCodeHidden"
+                                    <input type="hidden" name="fsalesman_readonly" id="salesmanCodeHiddenReadonly"
                                         value="{{ old('fsalesman', $salesorder->fsalesman) }}">
                                 </div>
                                 @error('fsalesman')

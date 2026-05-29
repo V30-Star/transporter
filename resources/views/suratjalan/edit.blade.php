@@ -270,8 +270,8 @@
                             <div class="lg:col-span-4">
                                 <label class="block text-sm font-bold mb-1">Customer</label>
                                 <div class="flex">
-                                    <div class="relative flex-1" for="modal_filter_customer_id">
-                                        <select id="modal_filter_customer_id" name="filter_customer_id"
+                                    <div class="relative flex-1" for="modal_filter_customer_id_readonly">
+                                        <select id="modal_filter_customer_id_readonly" name="filter_customer_id_readonly"
                                             class="w-full border rounded-l px-3 py-2 bg-gray-100 text-gray-700 bg-gray-200 cursor-not-allowed"
                                             disabled>
                                             <option value=""></option>
@@ -286,7 +286,7 @@
                                             @click="window.dispatchEvent(new CustomEvent('customer-browse-open'))">
                                         </div>
                                     </div>
-                                    <input type="hidden" name="fsupplier" id="customerCodeHidden"
+                                    <input type="hidden" name="fsupplier_readonly" id="customerCodeHiddenReadonly"
                                         value="{{ old('fsupplier', $suratjalan->fsupplier) }}">
                                 </div>
                                 @error('fsupplier')
@@ -299,7 +299,7 @@
                                 <div class="flex">
                                     <div class="relative flex-1">
 
-                                        <select id="warehouseSelect"
+                                        <select id="warehouseSelectReadonly"
                                             class="w-full border rounded-l px-3 py-2 bg-gray-100 text-gray-700 cursor-not-allowed"
                                             disabled>
                                             <option value=""></option>
@@ -316,7 +316,7 @@
                                         <div class="absolute inset-0" role="button" aria-label="{{ 'Browse Gudang' }}"
                                             @click="window.dispatchEvent(new CustomEvent('warehouse-browse-open'))"></div>
                                     </div>
-                                    <input type="hidden" name="ffrom" id="warehouseCodeHidden"
+                                    <input type="hidden" name="ffrom_readonly" id="warehouseCodeHiddenReadonly"
                                         value="{{ old('ffrom', $suratjalan->ffrom) }}">
                                 </div>
                             </div>

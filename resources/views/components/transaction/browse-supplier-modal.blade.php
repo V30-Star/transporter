@@ -201,31 +201,12 @@
             },
 
             chooseSupplier(supplier) {
-                const sel = document.getElementById('modal_filter_supplier_id');
-                const hid = document.getElementById('supplierCodeHidden');
-                if (!sel) {
+                if (typeof window.applyTransactionSupplierSelection === 'function') {
+                    window.applyTransactionSupplierSelection(supplier);
                     this.close();
                     return;
                 }
-                let opt = [...sel.options].find(o => o.value == String(supplier.fsuppliercode));
-                const label = `${supplier.fsuppliername} (${supplier.fsuppliercode})`;
-                if (!opt) {
-                    opt = new Option(label, supplier.fsuppliercode, true, true);
-                    sel.add(opt);
-                } else {
-                    opt.text = label;
-                    opt.selected = true;
-                }
-                sel.dispatchEvent(new Event('change'));
-                if (hid) {
-                    hid.value = supplier.fsuppliercode;
-                    hid.dispatchEvent(new Event('change', {
-                        bubbles: true
-                    }));
-                }
-                window.dispatchEvent(new CustomEvent('supplier-picked', {
-                    detail: supplier
-                }));
+
                 this.close();
             },
 

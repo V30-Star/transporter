@@ -8,6 +8,74 @@
 @endphp
 
 <script>
+    window.applyTransactionWarehouseSelection = function(warehouse = {}) {
+        const normalize = (value) => String(value ?? '').trim();
+        const code = normalize(warehouse.fwhcode ?? warehouse.warehouse_code);
+
+        if (!code) {
+            return false;
+        }
+
+        const id = normalize(warehouse.fwhid ?? warehouse.warehouse_id);
+        const name = normalize(warehouse.fwhname ?? warehouse.warehouse_name);
+        const label = name ? `${name} (${code})` : code;
+        const selects = Array.from(document.querySelectorAll(
+            '#warehouseSelect, #warehouseSelectFrom, #warehouseSelectTo'
+        ));
+        const codeInputs = Array.from(document.querySelectorAll(
+            '#warehouseCodeHidden, #warehouseCodeHiddenFrom, #warehouseCodeHiddenTo'
+        ));
+        const idInputs = Array.from(document.querySelectorAll('#warehouseIdHidden'));
+
+        selects.forEach((sel) => {
+            let opt = [...sel.options].find((o) => normalize(o.value) === code);
+
+            if (!opt) {
+                opt = new Option(label, code, true, true);
+                sel.add(opt);
+            } else {
+                opt.text = label;
+                opt.selected = true;
+            }
+
+            sel.value = code;
+            sel.dispatchEvent(new Event('change', {
+                bubbles: true
+            }));
+        });
+
+        codeInputs.forEach((hid) => {
+            hid.value = code;
+            hid.dispatchEvent(new Event('input', {
+                bubbles: true
+            }));
+            hid.dispatchEvent(new Event('change', {
+                bubbles: true
+            }));
+        });
+
+        idInputs.forEach((hid) => {
+            hid.value = id;
+            hid.dispatchEvent(new Event('input', {
+                bubbles: true
+            }));
+            hid.dispatchEvent(new Event('change', {
+                bubbles: true
+            }));
+        });
+
+        window.dispatchEvent(new CustomEvent('warehouse-picked', {
+            detail: {
+                fwhid: id,
+                fwhcode: code,
+                fwhname: name,
+                fbranchcode: normalize(warehouse.fbranchcode)
+            }
+        }));
+
+        return selects.length > 0 || codeInputs.length > 0 || idInputs.length > 0;
+    };
+
     window.warehouseBrowser = function() {
         const dataTableLanguage = {
             processing: @json("Memuat data..."),
@@ -144,14 +212,7 @@
             },
 
             choose(w) {
-                window.dispatchEvent(new CustomEvent('warehouse-picked', {
-                    detail: {
-                        fwhid: w.fwhid,
-                        fwhcode: w.fwhcode,
-                        fwhname: w.fwhname,
-                        fbranchcode: w.fbranchcode
-                    }
-                }));
+                window.applyTransactionWarehouseSelection(w);
                 this.close();
             },
 

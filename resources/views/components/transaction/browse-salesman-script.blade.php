@@ -7,6 +7,58 @@
 @endphp
 
 <script>
+    window.applyTransactionSalesmanSelection = function(salesman = {}) {
+        const normalize = (value) => String(value ?? '').trim();
+        const code = normalize(salesman.fsalesmancode ?? salesman.fsalesman ?? salesman.salesman_code);
+
+        if (!code) {
+            return false;
+        }
+
+        const selects = Array.from(document.querySelectorAll('#modal_filter_salesman_id'));
+        const hiddenInputs = Array.from(document.querySelectorAll('#salesmanCodeHidden'));
+
+        if (!selects.length) {
+            return false;
+        }
+
+        const name = normalize(salesman.fsalesmanname ?? salesman.salesman_name);
+        const label = name ? `${name} (${code})` : code;
+
+        selects.forEach((sel) => {
+            let opt = [...sel.options].find(o => normalize(o.value) === code);
+
+            if (!opt) {
+                opt = new Option(label, code, true, true);
+                sel.add(opt);
+            } else {
+                opt.text = label;
+                opt.selected = true;
+            }
+
+            sel.value = code;
+            sel.dispatchEvent(new Event('change', {
+                bubbles: true
+            }));
+        });
+
+        hiddenInputs.forEach((hid) => {
+            hid.value = code;
+            hid.dispatchEvent(new Event('input', {
+                bubbles: true
+            }));
+            hid.dispatchEvent(new Event('change', {
+                bubbles: true
+            }));
+        });
+
+        window.dispatchEvent(new CustomEvent('salesman-picked', {
+            detail: salesman
+        }));
+
+        return true;
+    };
+
     function salesmanBrowser() {
         const dataTableLanguage = {
             processing: @json("Memuat data..."),
@@ -156,33 +208,10 @@
             },
 
             chooseSalesman(salesman) {
-                const sel = document.getElementById('modal_filter_salesman_id');
-                const hid = document.getElementById('salesmanCodeHidden');
-
-                if (!sel) {
+                if (!window.applyTransactionSalesmanSelection(salesman)) {
                     this.close();
                     return;
                 }
-
-                let opt = [...sel.options].find(o => o.value == String(salesman.fsalesmancode));
-                const label = `${salesman.fsalesmanname} (${salesman.fsalesmancode})`;
-
-                if (!opt) {
-                    opt = new Option(label, salesman.fsalesmancode, true, true);
-                    sel.add(opt);
-                } else {
-                    opt.text = label;
-                    opt.selected = true;
-                }
-
-                sel.value = salesman.fsalesmancode;
-                if (hid) {
-                    hid.value = salesman.fsalesmancode;
-                }
-
-                sel.dispatchEvent(new Event('change', {
-                    bubbles: true
-                }));
                 this.close();
             },
 

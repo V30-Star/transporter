@@ -252,8 +252,8 @@
                         <div class="lg:col-span-4">
                             <label class="block text-sm font-bold mb-1">Supplier</label>
                             <div class="flex">
-                                <div class="relative flex-1" for="modal_filter_supplier_id">
-                                    <select id="modal_filter_supplier_id" name="filter_supplier_id"
+                                <div class="relative flex-1" for="modal_filter_supplier_id_readonly">
+                                    <select id="modal_filter_supplier_id_readonly" name="filter_supplier_id_readonly"
                                         class="w-full border rounded-l px-3 py-2 bg-gray-100 text-gray-700 cursor-not-allowed"
                                         disabled>
                                         <option value=""></option>
@@ -269,7 +269,7 @@
                                         @click="window.dispatchEvent(new CustomEvent('supplier-browse-open'))"></div>
                                 </div>
                                 {{-- kirim ID supplier ke server --}}
-                                <input type="hidden" name="fsupplier" id="supplierCodeHidden"
+                                <input type="hidden" name="fsupplier_readonly" id="supplierCodeHiddenReadonly"
                                     value="{{ old('fsupplier', $returpembelian->fsupplier) }}">
                                 <button type="button" disabled
                                     @click="window.dispatchEvent(new CustomEvent('supplier-browse-open'))"
@@ -294,7 +294,7 @@
                             <label class="block text-sm font-bold mb-1">Gudang</label>
                             <div class="flex">
                                 <div class="relative flex-1">
-                                    <select id="warehouseSelect"
+                                    <select id="warehouseSelectReadonly"
                                         class="w-full border rounded-l px-3 py-2 bg-gray-100 text-gray-700 cursor-not-allowed"
                                         disabled>
                                         <option value=""></option>
@@ -311,7 +311,7 @@
                                     <div class="absolute inset-0" role="button" aria-label="Browse warehouse"
                                         @click="window.dispatchEvent(new CustomEvent('warehouse-browse-open'))"></div>
                                 </div>
-                                <input type="hidden" name="ffrom" id="warehouseCodeHidden"
+                                <input type="hidden" name="ffrom_readonly" id="warehouseCodeHiddenReadonly"
                                     value="{{ old('ffrom', $returpembelian->ffrom) }}">
 
                                 {{-- Tombol-tombol Anda --}}
