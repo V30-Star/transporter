@@ -863,6 +863,7 @@ class ReturPenjualanController extends Controller
 
         // DATABASE TRANSACTION
         try {
+            $savedFsono = null;
             DB::transaction(function () use (
                 $request,
                 $fsodate,
@@ -880,7 +881,8 @@ class ReturPenjualanController extends Controller
                 $frate,
                 $ppnPersen,
                 $typeSales,
-                $fapplyppn
+                $fapplyppn,
+                &$savedFsono
             ) {
 
                 $fsono = $request->input('fsono');
@@ -900,6 +902,7 @@ class ReturPenjualanController extends Controller
 
                     $fsono = $prefix . str_pad($nextNumber, 4, '0', STR_PAD_LEFT);
                 }
+                $savedFsono = $fsono;
 
                 $headerData = [
                     'fsono' => $fsono,
@@ -977,7 +980,7 @@ class ReturPenjualanController extends Controller
                 // Validasi sisa SO/SRJ berdasarkan fqtykecil dinonaktifkan.
             });
 
-            return redirect()->route('returpenjualan.index')->with('success', 'Retur penjualan '.$this->formatDisplayTransactionNumber($fsono, $fincludeppn === '1').' berhasil disimpan.');
+            return redirect()->route('returpenjualan.index')->with('success', 'Retur penjualan '.$this->formatDisplayTransactionNumber($savedFsono, $fincludeppn === '1').' berhasil disimpan.');
         } catch (\Exception $e) {
 
             return back()->withInput()->with('error', 'Retur penjualan belum bisa disimpan. Cek data transaksi.');
