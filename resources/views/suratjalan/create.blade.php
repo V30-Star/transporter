@@ -453,6 +453,7 @@
                                     <input type="hidden" name="frefso[]" :value="it.frefso">
                                     <input type="hidden" name="fnoacak[]" :value="it.fnoacak">
                                     <input type="hidden" name="frefnoacak[]" :value="it.frefnoacak">
+                                    <input type="hidden" name="fdiscpersen[]" :value="it.fdiscpersen ?? 0">
                                     <input type="hidden" name="fqty[]" :value="it.fqty">
                                     <input type="hidden" name="fprice[]" :value="it.fprice">
                                     <input type="hidden" name="ftotal[]" :value="it.ftotal">
@@ -1265,6 +1266,7 @@
                         frefno_display: (src.frefpr ?? header?.fsono ?? '').toString().trim(),
                         frefpr: (src.frefpr ?? header?.fpono ?? header?.fsono ?? '').toString().trim(),
                         frefso: header?.fsono ?? null,
+                        fdiscpersen: Number(src.fdiscpersen ?? 0),
                         fqty: (src.fqty !== null && src.fqty !== undefined && Number(src.fqty) > 0) ?
                             Number(src.fqty) : 1,
                         fprice: Number(src.fprice ?? src.fharga ?? 0), // ← Boleh 0

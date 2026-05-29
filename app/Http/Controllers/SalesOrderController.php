@@ -614,6 +614,7 @@ class SalesOrderController extends Controller
                 'm.fprdname as fitemname',
                 DB::raw("COALESCE(NULLIF(TRIM(trsodt.fsatuan), ''), NULLIF(TRIM(m.fsatuankecil), ''), '') as fsatuan"),
                 'trsodt.fqty',
+                'trsodt.fdiscpersen',
                 'trsodt.fqtykecil',
                 'm.fsatuankecil',
                 'm.fsatuanbesar',

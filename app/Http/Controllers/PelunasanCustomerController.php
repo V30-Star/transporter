@@ -309,6 +309,7 @@ class PelunasanCustomerController extends Controller
             ],
             'details' => ['required', 'array', 'min:1'],
             'details.*.frefno' => ['required', 'string', 'max:30'],
+            'details.*.fdatetime' => ['nullable', 'date'],
             'details.*.fnilai_nota' => ['nullable', 'numeric'],
             'details.*.fsisa_piutang' => ['nullable', 'numeric'],
             'details.*.fdiscpersen' => ['nullable', 'numeric', 'min:0', 'max:100'],
@@ -419,7 +420,7 @@ class PelunasanCustomerController extends Controller
                     'fjurnal' => $entry['fjurnal'],
                     'fjurnal_rp' => $entry['fjurnal_rp'],
                     'fuserid' => $this->currentUserId(),
-                    'fdatetime' => $now,
+                    'fdatetime' => !empty($entry['fdatetime']) ? Carbon::parse($entry['fdatetime']) : $now,
                     'fdiscountrp' => $entry['fdiscountrp'],
                     'fnou' => $index + 1,
                     'freftype' => $entry['ftrcode'],
@@ -491,6 +492,7 @@ class PelunasanCustomerController extends Controller
             ],
             'details' => ['required', 'array', 'min:1'],
             'details.*.frefno' => ['required', 'string', 'max:30'],
+            'details.*.fdatetime' => ['nullable', 'date'],
             'details.*.fnilai_nota' => ['nullable', 'numeric'],
             'details.*.fsisa_piutang' => ['nullable', 'numeric'],
             'details.*.fdiscpersen' => ['nullable', 'numeric', 'min:0', 'max:100'],
@@ -596,7 +598,7 @@ class PelunasanCustomerController extends Controller
                     'fjurnal' => $entry['fjurnal'],
                     'fjurnal_rp' => $entry['fjurnal_rp'],
                     'fuserid' => $this->currentUserId(),
-                    'fdatetime' => $now,
+                    'fdatetime' => !empty($entry['fdatetime']) ? Carbon::parse($entry['fdatetime']) : $now,
                     'fdiscountrp' => $entry['fdiscountrp'],
                     'fnou' => $index + 1,
                     'freftype' => $entry['ftrcode'],
@@ -653,6 +655,7 @@ class PelunasanCustomerController extends Controller
 
                 return [
                     'frefno' => trim((string) ($detail['frefno'] ?? '')),
+                    'fdatetime' => !empty($detail['fdatetime']) ? Carbon::parse($detail['fdatetime'])->format('Y-m-d') : null,
                     'fnilai_nota' => round(abs((float) ($detail['fnilai_nota'] ?? 0)), 2),
                     'fsisa_piutang' => round(abs((float) ($detail['fsisa_piutang'] ?? 0)), 2),
                     'fdiscpersen' => round((float) ($detail['fdiscpersen'] ?? 0), 2),
@@ -701,6 +704,7 @@ class PelunasanCustomerController extends Controller
                 'fvalue_rp' => $journalAmount,
                 'fjurnal' => $journalAmount,
                 'fjurnal_rp' => $journalAmount,
+                'fdatetime' => $row['fdatetime'] ?? null,
                 'ftrcode' => $trCode,
             ];
         });
@@ -986,6 +990,7 @@ class PelunasanCustomerController extends Controller
                         'fdiscount' => (float) ($detail->fdiscount ?? 0),
                         'fkasdtvalue' => $paymentAmount,
                         'ftrcode' => $trCode,
+                        'fdatetime' => !empty($detail->fdatetime) ? Carbon::parse($detail->fdatetime)->format('Y-m-d') : null,
                     ];
                 })->all()
             : [];

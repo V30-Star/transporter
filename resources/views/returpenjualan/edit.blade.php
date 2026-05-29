@@ -3081,7 +3081,7 @@
 
                     const rowLimit = this.getRowQtyLimit(row);
                     if (!(rowLimit > 0)) return;
-                    if (rowLimit > 0) {
+                    if (!(Number(row.fqty) > 0) && rowLimit > 0) {
                         row.fqty = Number(rowLimit);
                     }
                     row.ftotal = Number((row.fqty * row.fprice).toFixed(2));

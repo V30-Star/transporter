@@ -22,6 +22,7 @@
                 'fdiscount' => (float) ($detail['fdiscount'] ?? 0),
                 'fkasdtvalue' => (float) ($detail['fkasdtvalue'] ?? 0),
                 'ftrcode' => trim((string) ($detail['ftrcode'] ?? $detail['freftype'] ?? 'INV')),
+                'fdatetime' => !empty($detail['fdatetime']) ? \Illuminate\Support\Carbon::parse($detail['fdatetime'])->format('Y-m-d') : '',
             ];
         })
         ->all();
@@ -180,6 +181,7 @@
                             <tr>
                                 <th class="border px-2 py-1.5 w-12">{{ 'No' }}</th>
                                 <th class="border px-2 py-1.5 min-w-[12rem]">{{ 'No.Nota' }}</th>
+                                <th class="border px-2 py-1.5 min-w-[10rem] text-left">{{ 'Tgl. Nota' }}</th>
                                 <th class="border px-2 py-1.5 min-w-[10rem] text-right">{{ 'Nilai Nota' }}</th>
                                 <th class="border px-2 py-1.5 min-w-[10rem] text-right">{{ 'Sisa Piutang' }}</th>
                                 <th class="border px-2 py-1.5 min-w-[8rem] text-right">{{ 'Disc%' }}</th>
@@ -198,6 +200,10 @@
                                         <input type="text" :name="`details[${index}][frefno]`" x-model="row.frefno"
                                             class="w-full border rounded px-2 py-1">
                                         <input type="hidden" :name="`details[${index}][ftrcode]`" :value="row.ftrcode || 'INV'">
+                                    </td>
+                                    <td class="border px-2 py-1">
+                                        <input type="date" :name="`details[${index}][fdatetime]`" x-model="row.fdatetime"
+                                            class="w-full border rounded px-2 py-1 bg-white">
                                     </td>
                                     <td class="border px-2 py-1">
                                         <input type="number" min="0" step="0.01" x-model="row.fnilai_nota"
@@ -660,6 +666,7 @@
                     return {
                         uid: this.makeUid(),
                         frefno: '',
+                        fdatetime: '',
                         fnilai_nota: 0,
                         fsisa_piutang: 0,
                         fdiscpersen: 0,
@@ -673,6 +680,7 @@
                     return {
                         uid: row.uid || `pc-row-${index}-${this.makeUid()}`,
                         frefno: String(row.frefno || '').trim(),
+                        fdatetime: row.fdatetime || '',
                         fnilai_nota: this.toNumber(row.fnilai_nota),
                         fsisa_piutang: this.toNumber(row.fsisa_piutang),
                         fdiscpersen: this.toNumber(row.fdiscpersen),
@@ -929,6 +937,7 @@
                             }
 
                             targetRow.frefno = fsono;
+                            targetRow.fdatetime = record.fsodate || '';
                             targetRow.fnilai_nota = Math.abs(amount);
                             targetRow.fsisa_piutang = remain;
                             targetRow.fdiscpersen = 0;

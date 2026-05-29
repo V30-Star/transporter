@@ -357,7 +357,7 @@ class SuratJalanController extends Controller
             ->get()
             ->map(function ($item) use ($remainMap) {
                 $remain = (float) ($remainMap[(int) ($item->frefdtid ?? 0)] ?? 0);
-                $item->fqty = $remain;
+                $item->fqty_dokumen = (float) ($item->fqty ?? 0);
                 $item->fqtyremain = $remain;
 
                 return $item;
@@ -599,6 +599,8 @@ class SuratJalanController extends Controller
                 'famountpopajak' => ['nullable', 'numeric', 'min:0'],
                 'frefso' => ['nullable', 'array'],
                 'frefso.*' => ['nullable', 'string', 'max:100'],
+                'fdiscpersen' => ['nullable', 'array'],
+                'fdiscpersen.*' => ['nullable', 'numeric', 'min:0', 'max:100'],
                 'fnoacak' => ['nullable', 'array'],
                 'fnoacak.*' => ['nullable', 'regex:/^[1-9]{3}$/'],
                 'frefnoacak' => ['nullable', 'array'],
@@ -646,6 +648,7 @@ class SuratJalanController extends Controller
         $prices = $request->input('fprice', []);
         $descs = $request->input('fdesc', []);
         $frefso = $request->input('frefso', []);
+        $fdiscpersens = $request->input('fdiscpersen', []);
         $fnoacaks = $request->input('fnoacak', []);
         $frefnoacaks = $request->input('frefnoacak', []);
 
@@ -752,7 +755,7 @@ class SuratJalanController extends Controller
                 'fdesc' => $desc,
                 'fsatuan' => $sat,
                 'fclosedt' => '0',
-                'fdiscpersen' => 0,
+                'fdiscpersen' => max(0, min(100, (float) ($fdiscpersens[$i] ?? 0))),
                 'fbiaya' => 0,
                 'fqtykecil' => $qtyKecil,
                 'fqtyremain' => $qtyKecil,
@@ -1320,6 +1323,8 @@ class SuratJalanController extends Controller
             'famountpopajak' => ['nullable', 'numeric', 'min:0'],
             'frefso' => ['nullable', 'array'],
             'frefso.*' => ['nullable', 'string', 'max:100'],
+            'fdiscpersen' => ['nullable', 'array'],
+            'fdiscpersen.*' => ['nullable', 'numeric', 'min:0', 'max:100'],
             'fnoacak' => ['nullable', 'array'],
             'fnoacak.*' => ['nullable', 'regex:/^[1-9]{3}$/'],
             'frefnoacak' => ['nullable', 'array'],
@@ -1371,6 +1376,7 @@ class SuratJalanController extends Controller
         $prices = $request->input('fprice', []);
         $descs = $request->input('fdesc', []);
         $frefso = $request->input('frefso', []);
+        $fdiscpersens = $request->input('fdiscpersen', []);
         $fnoacaks = $request->input('fnoacak', []);
         $frefnoacaks = $request->input('frefnoacak', []);
 
@@ -1481,7 +1487,7 @@ class SuratJalanController extends Controller
                 'fdesc' => $desc,
                 'fsatuan' => $sat,
                 'fclosedt' => '0',
-                'fdiscpersen' => 0,
+                'fdiscpersen' => max(0, min(100, (float) ($fdiscpersens[$i] ?? 0))),
                 'fbiaya' => 0,
                 'fqtykecil' => $qtyKecil,
                 'fqtyremain' => $qtyKecil,

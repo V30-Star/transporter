@@ -2294,7 +2294,7 @@
 
                     const rowLimit = this.getRowQtyLimit(row);
                     if (!(rowLimit > 0)) return;
-                    if (rowLimit > 0) {
+                    if (!(Number(row.fqty) > 0) && rowLimit > 0) {
                         row.fqty = Number(rowLimit);
                     }
                     this.validateReferenceQty(row, false);
