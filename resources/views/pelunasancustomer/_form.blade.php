@@ -202,8 +202,10 @@
                                         <input type="hidden" :name="`details[${index}][ftrcode]`" :value="row.ftrcode || 'INV'">
                                     </td>
                                     <td class="border px-2 py-1">
-                                        <input type="date" :name="`details[${index}][fdatetime]`" x-model="row.fdatetime"
-                                            class="w-full border rounded px-2 py-1 bg-white">
+                                        <input type="date" x-model="row.fdatetime"
+                                            class="w-full border rounded px-2 py-1 bg-gray-100 cursor-not-allowed"
+                                            readonly disabled>
+                                        <input type="hidden" :name="`details[${index}][fdatetime]`" :value="row.fdatetime">
                                     </td>
                                     <td class="border px-2 py-1">
                                         <input type="number" min="0" step="0.01" x-model="row.fnilai_nota"

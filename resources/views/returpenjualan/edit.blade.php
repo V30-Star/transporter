@@ -407,7 +407,11 @@
                                         <template x-for="(it, i) in savedItems" :key="it.uid || `item-${i}`">
                                             <tr class="border-t align-top transition-colors hover:bg-gray-50">
                                                 <td class="p-2" x-text="i + 1"></td>
-                                                <td class="p-2 font-mono" x-text="it.fitemcode"></td>
+                                                <td class="p-2">
+                                                    <input type="text"
+                                                        class="w-full border rounded px-2 py-1 bg-gray-100 text-gray-600 font-mono text-sm"
+                                                        :value="it.fitemcode" disabled>
+                                                </td>
                                                 <td class="p-2">
                                                     <div class="flex w-full max-w-full">
                                                         <div class="min-w-0 flex-1 rounded-l border bg-gray-100 px-2 py-1 text-sm leading-5 text-gray-600 whitespace-normal break-words"
@@ -423,24 +427,14 @@
                                                     </div>
                                                 </td>
                                                 <td class="p-2">
-                                                    <template x-if="it.units && it.units.length > 1">
-                                                        <select class="w-full border rounded px-2 py-1 text-xs"
-                                                            x-model="it.fsatuan">
-                                                            <template x-for="u in it.units" :key="u">
-                                                                <option :value="u" x-text="u"
-                                                                    :selected="u === it.fsatuan"></option>
-                                                            </template>
-                                                        </select>
-                                                    </template>
-                                                    <template x-if="!it.units || it.units.length <= 1">
-                                                        <span x-text="it.fsatuan"></span>
-                                                    </template>
+                                                    <input type="text"
+                                                        class="w-full border rounded px-2 py-1 bg-gray-100 text-gray-600 text-sm"
+                                                        :value="it.fsatuan || '-'" disabled>
                                                 </td>
                                                 <td class="p-2">
-                                                    <span
-                                                        class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800"
-                                                        x-text="it.frefpr || it.fnouref || it.frefcode || '-'">
-                                                    </span>
+                                                    <input type="text"
+                                                        class="w-full border rounded px-2 py-1 bg-gray-100 text-gray-600 text-sm"
+                                                        :value="it.frefpr || it.fnouref || it.frefcode || '-'" disabled>
                                                 </td>
                                                 <td class="p-2 text-right">
                                                     <input type="number"
@@ -493,7 +487,7 @@
                                         </template>
 
                                         <!-- ROW DRAFT UTAMA -->
-                                        <tr class="border-t align-top">
+                                        <tr class="border-t align-top" x-show="false">
                                             <td class="p-2" x-text="savedItems.length + 1"></td>
                                             <td class="p-2">
                                                 <div class="flex">
@@ -1000,19 +994,26 @@
                                             <tr class="border-t align-top transition-colors hover:bg-gray-50">
                                                 <td class="p-2" x-text="i + 1"></td>
                                                 <td class="p-2">
-                                                    <div class="flex">
+                                                    <template x-if="action === 'view'">
                                                         <input type="text"
-                                                            class="flex-1 border rounded-l px-2 py-1 font-mono text-sm"
-                                                            :id="'code_row_' + i"
-                                                            x-model.trim="it.fitemcode"
-                                                            @input="onCodeTypedRow(it, i)"
-                                                            @keydown.enter.prevent="focusRowUnit(it, i)">
-                                                        <button type="button" @click="openBrowseFor(i)"
-                                                            class="border border-l-0 px-2 py-1 bg-white hover:bg-gray-50"
-                                                            title="Cari Produk">
-                                                            <x-heroicon-o-magnifying-glass class="w-4 h-4" />
-                                                        </button>
-                                                    </div>
+                                                            class="w-full border rounded px-2 py-1 bg-gray-100 text-gray-600 font-mono text-sm"
+                                                            :value="it.fitemcode" disabled>
+                                                    </template>
+                                                    <template x-if="action !== 'view'">
+                                                        <div class="flex">
+                                                            <input type="text"
+                                                                class="flex-1 border rounded-l px-2 py-1 font-mono text-sm"
+                                                                :id="'code_row_' + i"
+                                                                x-model.trim="it.fitemcode"
+                                                                @input="onCodeTypedRow(it, i)"
+                                                                @keydown.enter.prevent="focusRowUnit(it, i)">
+                                                            <button type="button" @click="openBrowseFor(i)"
+                                                                class="border border-l-0 px-2 py-1 bg-white hover:bg-gray-50"
+                                                                title="Cari Produk">
+                                                                <x-heroicon-o-magnifying-glass class="w-4 h-4" />
+                                                            </button>
+                                                        </div>
+                                                    </template>
                                                 </td>
                                                 <td class="p-2">
                                                     <div class="flex w-full max-w-full">
@@ -1029,36 +1030,52 @@
                                                     </div>
                                                 </td>
                                                 <td class="p-2">
-                                                    <template x-if="it.units && it.units.length > 1">
-                                                        <select class="w-full border rounded px-2 py-1 text-xs"
-                                                            :id="'unit_row_' + i"
-                                                            x-model="it.fsatuan"
-                                                            @change="onRowUpdated(i)"
-                                                            @keydown.enter.prevent="focusRowQty(i)">
-                                                            <template x-for="u in it.units" :key="u">
-                                                                <option :value="u" x-text="u"></option>
-                                                            </template>
-                                                        </select>
+                                                    <template x-if="action === 'view'">
+                                                        <input type="text"
+                                                            class="w-full border rounded px-2 py-1 bg-gray-100 text-gray-600 text-sm"
+                                                            :value="it.fsatuan || '-'" disabled>
                                                     </template>
-                                                    <template x-if="!it.units || it.units.length <= 1">
-                                                        <div class="px-2 py-1 text-sm text-gray-600 bg-gray-50 border rounded"
-                                                            x-text="it.fsatuan || '-'"></div>
+                                                    <template x-if="action !== 'view'">
+                                                        <div>
+                                                            <template x-if="it.units && it.units.length > 1">
+                                                                <select class="w-full border rounded px-2 py-1 text-xs"
+                                                                    :id="'unit_row_' + i"
+                                                                    x-model="it.fsatuan"
+                                                                    @change="onRowUpdated(i)"
+                                                                    @keydown.enter.prevent="focusRowQty(i)">
+                                                                    <template x-for="u in it.units" :key="u">
+                                                                        <option :value="u" x-text="u"></option>
+                                                                    </template>
+                                                                </select>
+                                                            </template>
+                                                            <template x-if="!it.units || it.units.length <= 1">
+                                                                <div class="px-2 py-1 text-sm text-gray-600 bg-gray-50 border rounded"
+                                                                    x-text="it.fsatuan || '-'"></div>
+                                                            </template>
+                                                        </div>
                                                     </template>
                                                 </td>
                                                 <td class="p-2">
-                                                    <div class="flex w-full max-w-full">
+                                                    <template x-if="action === 'view'">
                                                         <input type="text"
-                                                            class="min-w-0 flex-1 border rounded-l px-2 py-1 bg-gray-100 text-gray-600 text-sm"
-                                                            :value="it.frefpr || it.fnouref || it.frefcode || '-'"
-                                                            disabled>
-                                                        <button type="button" @click="openProductHistory(it)"
-                                                            class="shrink-0 border border-l-0 px-2 py-1 bg-white hover:bg-gray-50 rounded-r"
-                                                            :disabled="!canOpenHistory(it)"
-                                                            :class="!canOpenHistory(it) ? 'opacity-50 cursor-not-allowed' : ''"
-                                                            title="Riwayat produk">
-                                                            <x-heroicon-o-clock class="w-4 h-4" />
-                                                        </button>
-                                                    </div>
+                                                            class="w-full border rounded px-2 py-1 bg-gray-100 text-gray-600 text-sm"
+                                                            :value="it.frefpr || it.fnouref || it.frefcode || '-'" disabled>
+                                                    </template>
+                                                    <template x-if="action !== 'view'">
+                                                        <div class="flex w-full max-w-full">
+                                                            <input type="text"
+                                                                class="min-w-0 flex-1 border rounded-l px-2 py-1 bg-gray-100 text-gray-600 text-sm"
+                                                                :value="it.frefpr || it.fnouref || it.frefcode || '-'"
+                                                                disabled>
+                                                            <button type="button" @click="openProductHistory(it)"
+                                                                class="shrink-0 border border-l-0 px-2 py-1 bg-white hover:bg-gray-50 rounded-r"
+                                                                :disabled="!canOpenHistory(it)"
+                                                                :class="!canOpenHistory(it) ? 'opacity-50 cursor-not-allowed' : ''"
+                                                                title="Riwayat produk">
+                                                                <x-heroicon-o-clock class="w-4 h-4" />
+                                                            </button>
+                                                        </div>
+                                                    </template>
                                                 </td>
                                                 <td class="p-2 text-right">
                                                     <input type="number"
