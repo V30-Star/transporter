@@ -590,10 +590,10 @@ class Tr_prhController extends Controller
         $oldDetails = DB::table('tr_prd')->where('fprno', $header->fprno)->get()->keyBy('fprdid');
 
         $poUsage = DB::table('tr_pod')
-            ->whereIn('frefdtno', $oldDetails->keys())
-            ->select('frefdtno', DB::raw('SUM(fqtykecil) as total_used'))
-            ->groupBy('frefdtno')
-            ->pluck('total_used', 'frefdtno');
+            ->whereIn('frefdtid', $oldDetails->keys())
+            ->select('frefdtid', DB::raw('SUM(fqtykecil) as total_used'))
+            ->groupBy('frefdtid')
+            ->pluck('total_used', 'frefdtid');
 
         $errors = new \Illuminate\Support\MessageBag;
 

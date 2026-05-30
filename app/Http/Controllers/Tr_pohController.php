@@ -291,7 +291,7 @@ class Tr_pohController extends Controller
                 DB::raw('COALESCE(d.fprice, 0) as fprice'),
                 DB::raw('0::numeric as fdisc'),
                 DB::raw('d.fprno::text as fnouref'),
-                DB::raw('d.fprdid::text as frefdtno'),
+                DB::raw('d.fprdid::text as frefdtid'),
                 DB::raw("COALESCE(d.fnoacak::text, '') as frefnoacak"),
                 'm.fsatuankecil',
                 'm.fsatuanbesar',
@@ -348,7 +348,7 @@ class Tr_pohController extends Controller
                     'fprice' => (float) $item->fprice,
                     'fdisc' => 0,
                     'fnouref' => $item->fnouref,
-                    'frefdtno' => $item->frefdtno,
+                    'frefdtid' => $item->frefdtid,
                     'frefnoacak' => (string) ($item->frefnoacak ?? ''),
                     'fqtypo' => $fqtypo,
                     'fqtysisapr' => $fqtysisapr,
@@ -437,7 +437,7 @@ class Tr_pohController extends Controller
     {
         $agg = [];
         foreach ($rowsPod as $r) {
-            $fid = (int) ($r['frefdtno'] ?? 0);
+            $fid = (int) ($r['frefdtid'] ?? 0);
             if ($fid <= 0) {
                 continue;
             }
@@ -498,9 +498,9 @@ class Tr_pohController extends Controller
         }
 
         $poUsageSub = DB::table('tr_pod')
-            ->selectRaw('CAST(frefdtno AS INTEGER) AS fprdid, SUM(COALESCE(fqtykecil, 0)) AS fqtykecilpo')
-            ->whereNotNull('frefdtno')
-            ->groupByRaw('CAST(frefdtno AS INTEGER)');
+            ->selectRaw('CAST(frefdtid AS INTEGER) AS fprdid, SUM(COALESCE(fqtykecil, 0)) AS fqtykecilpo')
+            ->whereNotNull('frefdtid')
+            ->groupByRaw('CAST(frefdtid AS INTEGER)');
 
         return DB::table('tr_prd as d')
             ->leftJoinSub($poUsageSub, 'po', function ($join) {
@@ -848,7 +848,7 @@ class Tr_pohController extends Controller
         $codes = $request->input('fitemcode', []);
         $satuans = $request->input('fsatuan', []);
         $refdtno = $request->input('frefdtno', []);
-        $frefdtnos = $request->input('frefdtno', []);
+        $frefdtids = $request->input('frefdtid', []);
         $fnoacaks = $request->input('fnoacak', []);
         $frefnoacaks = $request->input('frefnoacak', []);
         $qtys = $request->input('fqty', []);
@@ -887,7 +887,7 @@ class Tr_pohController extends Controller
         // BUILD DETAIL ROWS (use fprdid, not fprdid)
         $rowsPod = [];
         $totalHarga = 0.0; // recompute to be safe
-        $rowCount = max(count($codes), count($satuans), count($refdtno), count($frefdtnos), count($fnoacaks), count($frefnoacaks), count($qtys), count($prices), count($discs), count($refprs), count($descs));
+        $rowCount = max(count($codes), count($satuans), count($refdtno), count($frefdtids), count($fnoacaks), count($frefnoacaks), count($qtys), count($prices), count($discs), count($refprs), count($descs));
         $usedNoAcaks = [];
 
         for ($i = 0; $i < $rowCount; $i++) {
@@ -898,9 +898,9 @@ class Tr_pohController extends Controller
             $price = (float) ($prices[$i] ?? 0);
             $discP = (float) ($discs[$i] ?? 0);
             $desc = (string) ($descs[$i] ?? '');
-            $frefdtno = (int) ($frefdtnos[$i] ?? 0);
+            $frefdtid = (int) ($frefdtids[$i] ?? 0);
             $fnoacak = $this->normalizeRandomNumber($fnoacaks[$i] ?? null, $usedNoAcaks);
-            $frefnoacak = $this->normalizeReferenceRandomNumber($frefnoacaks[$i] ?? null, $frefdtno > 0);
+            $frefnoacak = $this->normalizeReferenceRandomNumber($frefnoacaks[$i] ?? null, $frefdtid > 0);
 
             if ($code === '' || $qty <= 0) {
                 continue;
@@ -909,9 +909,9 @@ class Tr_pohController extends Controller
             if ($sat === '') {
                 $sat = $pickDefaultSat($code);
             }
-            if ($frefdtno > 0) {
+            if ($frefdtid > 0) {
                 $prUnit = DB::table('tr_prd')
-                    ->where('fprdid', $frefdtno)
+                    ->where('fprdid', $frefdtid)
                     ->value('fsatuan');
                 if ($prUnit !== null) {
                     $sat = trim($prUnit);
@@ -958,7 +958,7 @@ class Tr_pohController extends Controller
                 'fdesc' => $desc,
                 'fqtykecil' => $qtyKecil,
                 'fqtyremain' => $qtyKecil,
-                'frefdtno' => $frefdtno ?: null,
+                'frefdtid' => $frefdtid ?: null,
                 'fnoacak' => $fnoacak,
                 'frefnoacak' => $frefnoacak,
             ];
@@ -1149,8 +1149,8 @@ class Tr_pohController extends Controller
                     'm.fsatuanbesar2',
                     DB::raw('COALESCE(m.fqtykecil, 0) as fqtykecil_master'),
                     DB::raw('COALESCE(m.fqtykecil2, 0) as fqtykecil2_master'),
-                    DB::raw('COALESCE((SELECT pr.fqty FROM tr_prd pr WHERE tr_pod.frefdtno IS NOT NULL AND pr.fprdid = CAST(tr_pod.frefdtno AS INTEGER) LIMIT 1), 0) as fqtypr'),
-                    DB::raw("COALESCE((SELECT pr.fsatuan FROM tr_prd pr WHERE tr_pod.frefdtno IS NOT NULL AND pr.fprdid = CAST(tr_pod.frefdtno AS INTEGER) LIMIT 1), '') as fqtypr_satuan"),
+                    DB::raw('COALESCE((SELECT pr.fqty FROM tr_prd pr WHERE tr_pod.frefdtid IS NOT NULL AND pr.fprdid = CAST(tr_pod.frefdtid AS INTEGER) LIMIT 1), 0) as fqtypr'),
+                    DB::raw("COALESCE((SELECT pr.fsatuan FROM tr_prd pr WHERE tr_pod.frefdtid IS NOT NULL AND pr.fprdid = CAST(tr_pod.frefdtid AS INTEGER) LIMIT 1), '') as fqtypr_satuan"),
                     DB::raw('COALESCE(r.total_terima, 0) AS fqtyterima')
                 );
         }])->findOrFail($fpohid);
@@ -1191,11 +1191,11 @@ class Tr_pohController extends Controller
         $productMap = $this->browseProductMap($products, 'fprdid');
 
         $oldUsageByRef = $details
-            ->groupBy(fn($d) => (int) ($d->frefdtno ?? 0))
+            ->groupBy(fn($d) => (int) ($d->frefdtid ?? 0))
             ->map(fn($rows) => (float) $rows->sum(fn($r) => (float) ($r->fqtykecil ?? 0)))
             ->all();
 
-        $prRemainMap = $this->getPrRemainByDetailIds($details->pluck('frefdtno')->all());
+        $prRemainMap = $this->getPrRemainByDetailIds($details->pluck('frefdtid')->all());
 
         $savedItems = $details->map(function ($d) use ($products, $oldUsageByRef, $prRemainMap) {
             $qtyPR = (float) $d->fqtypr;
@@ -1208,7 +1208,7 @@ class Tr_pohController extends Controller
 
             $prod = $products->firstWhere('fprdcode', $d->fitemcode);
 
-            $refId = (int) ($d->frefdtno ?? 0);
+            $refId = (int) ($d->frefdtid ?? 0);
             $sisaKecil = max(0, (float) ($prRemainMap[$refId] ?? 0) + (float) ($oldUsageByRef[$refId] ?? 0));
 
             // Siapkan units untuk dropdown
@@ -1252,7 +1252,7 @@ class Tr_pohController extends Controller
                 'ftotal' => (float) ($d->famount ?? 0),
                 'fdesc' => (string) ($d->fdesc ?? ''),
                 'fketdt' => (string) ($d->fketdt ?? ''),
-                'frefdtno' => (string) ($d->frefdtno ?? ''), // PASTIKAN INI ADA
+                'frefdtid' => (string) ($d->frefdtid ?? ''), // PASTIKAN INI ADA
                 'fnoacak' => (string) ($d->fnoacak ?? ''),
                 'frefnoacak' => (string) ($d->frefnoacak ?? ''),
                 // Data konversi untuk JavaScript
@@ -1487,7 +1487,7 @@ class Tr_pohController extends Controller
         $codes = $request->input('fitemcode', []);
         $satuans = $request->input('fsatuan', []);
         $refdtns = $request->input('frefdtno', []);
-        $frefdtnos = $request->input('frefdtno', []);
+        $frefdtids = $request->input('frefdtid', []);
         $fnoacaks = $request->input('fnoacak', []);
         $frefnoacaks = $request->input('frefnoacak', []);
         $qtys = $request->input('fqty', []);
@@ -1530,7 +1530,7 @@ class Tr_pohController extends Controller
             count($codes),
             count($satuans),
             count($refdtns),
-            count($frefdtnos),
+            count($frefdtids),
             count($fnoacaks),
             count($frefnoacaks),
             count($qtys),
@@ -1549,9 +1549,9 @@ class Tr_pohController extends Controller
             $price = (float) ($prices[$i] ?? 0);
             $discP = (float) ($discs[$i] ?? 0);
             $desc = (string) ($descs[$i] ?? '');
-            $frefdtno = (int) ($frefdtnos[$i] ?? 0);
+            $frefdtid = (int) ($frefdtids[$i] ?? 0);
             $fnoacak = $this->normalizeRandomNumber($fnoacaks[$i] ?? null, $usedNoAcaks);
-            $frefnoacak = $this->normalizeReferenceRandomNumber($frefnoacaks[$i] ?? null, $frefdtno > 0);
+            $frefnoacak = $this->normalizeReferenceRandomNumber($frefnoacaks[$i] ?? null, $frefdtid > 0);
 
             if ($code === '' || $qty <= 0) {
                 continue;
@@ -1574,9 +1574,9 @@ class Tr_pohController extends Controller
             if ($sat === '') {
                 $sat = $pickDefaultSat($code);
             }
-            if ($frefdtno > 0) {
+            if ($frefdtid > 0) {
                 $prUnit = DB::table('tr_prd')
-                    ->where('fprdid', $frefdtno)
+                    ->where('fprdid', $frefdtid)
                     ->value('fsatuan');
                 if ($prUnit !== null) {
                     $sat = trim($prUnit);
@@ -1612,7 +1612,7 @@ class Tr_pohController extends Controller
                 'fqtykecil' => $qtyKecil,
                 'fqtyremain' => $qtyKecil,
                 'frefdtno' => $refdt,
-                'frefdtno' => $frefdtno ?: null,
+                'frefdtid' => $frefdtid ?: null,
                 'fnoacak' => $fnoacak,
                 'frefnoacak' => $frefnoacak,
             ];
@@ -1632,9 +1632,9 @@ class Tr_pohController extends Controller
 
         $oldUsageByRef = DB::table('tr_pod')
             ->where('fpono', $header->fpono)
-            ->whereNotNull('frefdtno')
-            ->selectRaw('CAST(frefdtno AS INTEGER) AS fprdid, SUM(COALESCE(fqtykecil, 0)) AS used_kecil')
-            ->groupByRaw('CAST(frefdtno AS INTEGER)')
+            ->whereNotNull('frefdtid')
+            ->selectRaw('CAST(frefdtid AS INTEGER) AS fprdid, SUM(COALESCE(fqtykecil, 0)) AS used_kecil')
+            ->groupByRaw('CAST(frefdtid AS INTEGER)')
             ->pluck('used_kecil', 'fprdid')
             ->map(fn($value) => (float) $value)
             ->all();
@@ -1762,8 +1762,8 @@ class Tr_pohController extends Controller
                     'm.fsatuanbesar2',
                     'm.fqtykecil',
                     'm.fqtykecil2',
-                    DB::raw('COALESCE((SELECT pr.fqty FROM tr_prd pr WHERE tr_pod.frefdtno IS NOT NULL AND pr.fprdid = CAST(tr_pod.frefdtno AS INTEGER) LIMIT 1), 0) as fqtypr'),
-                    DB::raw("COALESCE((SELECT pr.fsatuan FROM tr_prd pr WHERE tr_pod.frefdtno IS NOT NULL AND pr.fprdid = CAST(tr_pod.frefdtno AS INTEGER) LIMIT 1), '') as fqtypr_satuan"),
+                    DB::raw('COALESCE((SELECT pr.fqty FROM tr_prd pr WHERE tr_pod.frefdtid IS NOT NULL AND pr.fprdid = CAST(tr_pod.frefdtid AS INTEGER) LIMIT 1), 0) as fqtypr'),
+                    DB::raw("COALESCE((SELECT pr.fsatuan FROM tr_prd pr WHERE tr_pod.frefdtid IS NOT NULL AND pr.fprdid = CAST(tr_pod.frefdtid AS INTEGER) LIMIT 1), '') as fqtypr_satuan"),
                     DB::raw('COALESCE(r.total_terima, 0) AS fqtyterima'),
                 );
         }])->findOrFail($fpohid);
@@ -1821,7 +1821,7 @@ class Tr_pohController extends Controller
                 'units' => $units,
                 'frefdtno' => (string) ($d->frefdtno ?? ''),
                 'fpono' => (string) ($d->fpono ?? ''),
-                'frefdtno' => (string) ($d->frefdtno ?? ''),
+                'frefdtid' => (string) ($d->frefdtid ?? ''),
                 'fnouref' => (string) ($d->fnouref ?? ''),
                 'fnoacak' => (string) ($d->fnoacak ?? ''),
                 'frefnoacak' => (string) ($d->frefnoacak ?? ''),
@@ -1880,8 +1880,8 @@ class Tr_pohController extends Controller
             DB::transaction(function () use ($tr_poh) {
                 $oldUsageByRef = DB::table('tr_pod')
                     ->where('fpono', $tr_poh->fpono)
-                    ->get(['frefdtno', 'fqtykecil'])
-                    ->groupBy(fn($row) => (int) ($row->frefdtno ?? 0))
+                    ->get(['frefdtid', 'fqtykecil'])
+                    ->groupBy(fn($row) => (int) ($row->frefdtid ?? 0))
                     ->map(fn($rows) => (float) $rows->sum(fn($row) => (float) ($row->fqtykecil ?? 0)))
                     ->all();
 
@@ -1904,7 +1904,7 @@ class Tr_pohController extends Controller
         return DB::table('tr_pod as d')
             ->leftJoin('msprd as p', 'p.fprdid', '=', 'd.fprdid')
             ->leftJoinSub($terimaUsageSub, 'ter', function ($join) {
-                $join->on('ter.frefdtno', '=', 'd.fpodid');
+                $join->on('ter.frefdtid', '=', 'd.fpodid');
             })
             ->where('d.fpono', $fpono)
             ->select([
@@ -1916,8 +1916,8 @@ class Tr_pohController extends Controller
                 'p.fsatuanbesar2',
                 DB::raw('COALESCE(p.fqtykecil, 0) as fqtykecil_master'),
                 DB::raw('COALESCE(p.fqtykecil2, 0) as fqtykecil2_master'),
-                DB::raw('COALESCE((SELECT pr.fqty FROM tr_prd pr WHERE d.frefdtno IS NOT NULL AND pr.fprdid = CAST(d.frefdtno AS INTEGER) LIMIT 1), 0) as fqtypr'),
-                DB::raw("COALESCE((SELECT pr.fsatuan FROM tr_prd pr WHERE d.frefdtno IS NOT NULL AND pr.fprdid = CAST(d.frefdtno AS INTEGER) LIMIT 1), '') as fqtypr_satuan"),
+                DB::raw('COALESCE((SELECT pr.fqty FROM tr_prd pr WHERE d.frefdtid IS NOT NULL AND pr.fprdid = CAST(d.frefdtid AS INTEGER) LIMIT 1), 0) as fqtypr'),
+                DB::raw("COALESCE((SELECT pr.fsatuan FROM tr_prd pr WHERE d.frefdtid IS NOT NULL AND pr.fprdid = CAST(d.frefdtid AS INTEGER) LIMIT 1), '') as fqtypr_satuan"),
                 DB::raw('COALESCE(ter.fqtyterima, 0) AS fqtyterima'),
             ])
             ->orderBy('d.fnou')
@@ -1936,7 +1936,7 @@ class Tr_pohController extends Controller
                     });
             })
             ->selectRaw("
-                CAST(d.frefdtno AS BIGINT) AS frefdtno,
+                CAST(d.frefdtid AS BIGINT) AS frefdtid,
                 SUM(
                     CASE
                         WHEN d.fsatuan = p.fsatuanbesar THEN COALESCE(NULLIF(d.fqtykecil, 0) / NULLIF(p.fqtykecil, 0), d.fqty, 0)
@@ -1945,8 +1945,8 @@ class Tr_pohController extends Controller
                     END
                 ) AS fqtyterima
             ")
-            ->whereNotNull('d.frefdtno')
-            ->groupBy(DB::raw('CAST(d.frefdtno AS BIGINT)'));
+            ->whereNotNull('d.frefdtid')
+            ->groupBy(DB::raw('CAST(d.frefdtid AS BIGINT)'));
     }
 
     private function getUsageLockMessage(Tr_poh $header): ?string
@@ -1968,7 +1968,7 @@ class Tr_pohController extends Controller
     private function validateUniqueReferenceUsage(array $rowsPod, ?string $exceptPono = null): ?string
     {
         $referenceDetailIds = collect($rowsPod)
-            ->pluck('frefdtno')
+            ->pluck('frefdtid')
             ->map(fn($id) => (int) $id)
             ->filter(fn($id) => $id > 0)
             ->unique()
@@ -1981,7 +1981,7 @@ class Tr_pohController extends Controller
 
         $query = DB::table('tr_pod as d')
             ->join('tr_poh as h', 'h.fpono', '=', 'd.fpono')
-            ->whereIn(DB::raw('CAST(d.frefdtno AS INTEGER)'), $referenceDetailIds);
+            ->whereIn(DB::raw('CAST(d.frefdtid AS INTEGER)'), $referenceDetailIds);
 
         if (! empty($exceptPono)) {
             $query->where('h.fpono', '<>', $exceptPono);
@@ -1991,7 +1991,7 @@ class Tr_pohController extends Controller
             ->orderBy('h.fpono')
             ->select(
                 'h.fpono as transaction_no',
-                DB::raw("COALESCE(NULLIF(TRIM(d.frefdtno), ''), CAST(d.frefdtno AS TEXT)) as ref_no")
+                DB::raw("COALESCE(NULLIF(TRIM(d.frefdtno), ''), CAST(d.frefdtid AS TEXT)) as ref_no")
             )
             ->first();
 

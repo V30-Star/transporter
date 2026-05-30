@@ -73,7 +73,7 @@
         $oldItemNames = old('fitemname', []);
         $oldSatuans = old('fsatuan', []);
         $oldRefDtNos = old('frefdtno', []);
-        $oldRefDtIds = old('frefdtno', []);
+        $oldRefDtIds = old('frefdtid', []);
         $oldNoAcaks = old('fnoacak', []);
         $oldRefNoAcaks = old('frefnoacak', []);
         $oldPonos = old('fpono', []);
@@ -94,7 +94,7 @@
                 'fitemname' => $oldItemNames[$index] ?? '',
                 'fsatuan' => $oldSatuans[$index] ?? '',
                 'frefdtno' => $oldRefDtNos[$index] ?? '',
-                'frefdtno' => $oldRefDtIds[$index] ?? '',
+                'frefdtid' => $oldRefDtIds[$index] ?? '',
                 'fnoacak' => $oldNoAcaks[$index] ?? '',
                 'frefnoacak' => $oldRefNoAcaks[$index] ?? '',
                 'fpono' => $oldPonos[$index] ?? '',
@@ -307,7 +307,7 @@
 
                                     {{-- Satuan --}}
                                     <td class="p-2 align-top">
-                                        <template x-if="unitOptions(it).length > 1 && !it.frefdtno">
+                                        <template x-if="unitOptions(it).length > 1 && !it.frefdtid">
                                             <select class="w-full border rounded px-2 py-1 text-sm" :id="'unit_saved_' + i"
                                                 x-model="it.fsatuan" @focus="activeRow = it.uid" @blur="activeRow = null"
                                                 @keydown.enter.prevent="focusSavedQty(i)" @change="onRowUpdated(i)">
@@ -316,7 +316,7 @@
                                                 </template>
                                             </select>
                                         </template>
-                                        <input type="text" x-show="unitOptions(it).length <= 1 || it.frefdtno"
+                                        <input type="text" x-show="unitOptions(it).length <= 1 || it.frefdtid"
                                             class="w-full border rounded px-2 py-1 bg-gray-100 text-gray-600 text-sm"
                                             :value="it.fsatuan || '-'" disabled>
                                     </td>
@@ -368,7 +368,7 @@
                                         <input type="hidden" name="fitemname[]" :value="it.fitemname">
                                         <input type="hidden" name="fsatuan[]" :value="it.fsatuan">
                                         <input type="hidden" name="frefdtno[]" :value="it.frefdtno">
-                                        <input type="hidden" name="frefdtno[]" :value="it.frefdtno">
+                                        <input type="hidden" name="frefdtid[]" :value="it.frefdtid">
                                         <input type="hidden" name="fnoacak[]" :value="it.fnoacak">
                                         <input type="hidden" name="frefnoacak[]" :value="it.frefnoacak">
                                         <input type="hidden" name="fpono[]" :value="it.fpono">
@@ -740,7 +740,7 @@
                         satuanbesar: 1,
                         satuanbesar2: 1
                     },
-                    frefdtno: '',
+                    frefdtid: '',
                     fqtykecil_ref: 0,
                     fqtypo: 0,
                     fqtysisapo: 0,
@@ -1160,8 +1160,8 @@
                     this.ensureMinimumRows();
                 },
                 isDupeItem(candidate) {
-                    const cPod = String(candidate.frefdtno ?? '').trim();
-                    if (cPod) return this.savedItems.some(it => String(it.frefdtno ?? '').trim() === cPod);
+                    const cPod = String(candidate.frefdtid ?? '').trim();
+                    if (cPod) return this.savedItems.some(it => String(it.frefdtid ?? '').trim() === cPod);
                     const cCode = (candidate.fitemcode || '').trim().toLowerCase();
                     return this.savedItems.some(it => (it.fitemcode || '').trim().toLowerCase() === cCode);
                 },
@@ -1181,7 +1181,7 @@
                             fitemcode: (src.fitemcode ?? '').trim(),
                             fitemname,
                             fsatuan,
-                            frefdtno: src.frefdtno ?? '',
+                            frefdtid: src.frefdtid ?? '',
                         };
                         if (this.isDupeItem(candidate)) {
                             skipped.push(src);
@@ -1215,7 +1215,7 @@
                             fqtymaxedit: Number(src.fqtymaxedit ?? src.fqtysisapo ?? src.maxqty ?? 0),
                             fqtykecil_ref: Number(src.fqtykecil_ref ?? src.fqtyremain ?? src.fqtykecil_sisa ??
                                 0),
-                            frefdtno: src.frefdtno ?? '',
+                            frefdtid: src.frefdtid ?? '',
                             fsatuankecil: src.fsatuankecil || meta?.fsatuankecil || '',
                             fsatuanbesar: src.fsatuanbesar || meta?.fsatuanbesar || '',
                             fsatuanbesar2: src.fsatuanbesar2 || meta?.fsatuanbesar2 || '',
@@ -1256,7 +1256,7 @@
                 },
                 getCurrentItemKeys() {
                     return this.savedItems.map(it => {
-                        const id = (it.frefdtno ?? '').toString().trim();
+                        const id = (it.frefdtid ?? '').toString().trim();
                         if (id) return `pod:${id}`;
                         return `manual:${(it.fitemcode ?? '').toString().trim()}::${(it.fsatuan ?? '').toString().trim()}`;
                     });
@@ -1631,7 +1631,7 @@
             $oldItemNames = old('fitemname', []);
             $oldSatuans = old('fsatuan', []);
             $oldRefDtNos = old('frefdtno', []);
-            $oldRefDtIds = old('frefdtno', []);
+            $oldRefDtIds = old('frefdtid', []);
             $oldNoAcaks = old('fnoacak', []);
             $oldRefNoAcaks = old('frefnoacak', []);
             $oldPonos = old('fpono', []);
@@ -1652,7 +1652,7 @@
                     'fitemname' => $oldItemNames[$index] ?? '',
                     'fsatuan' => $oldSatuans[$index] ?? '',
                     'frefdtno' => $oldRefDtNos[$index] ?? '',
-                    'frefdtno' => $oldRefDtIds[$index] ?? '',
+                    'frefdtid' => $oldRefDtIds[$index] ?? '',
                     'fnoacak' => $oldNoAcaks[$index] ?? '',
                     'frefnoacak' => $oldRefNoAcaks[$index] ?? '',
                     'fpono' => $oldPonos[$index] ?? '',

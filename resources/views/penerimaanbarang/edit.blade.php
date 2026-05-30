@@ -349,7 +349,7 @@
                                     {{-- Satuan --}}
                                     <td class="p-2 align-top">
                                         @if ($isEdit)
-                                            <template x-if="unitOptions(it).length > 1 && !it.frefdtno">
+                                            <template x-if="unitOptions(it).length > 1 && !it.frefdtid">
                                                 <select class="w-full border rounded px-2 py-1 text-sm"
                                                     :id="'unit_saved_' + i" x-model="it.fsatuan"
                                                     @focus="activeRow = it.uid" @blur="activeRow = null"
@@ -361,7 +361,7 @@
                                             </template>
                                         @endif
                                         <input type="text"
-                                            x-show="{{ $isReadOnly ? 'true' : 'unitOptions(it).length <= 1 || it.frefdtno' }}"
+                                            x-show="{{ $isReadOnly ? 'true' : 'unitOptions(it).length <= 1 || it.frefdtid' }}"
                                             class="w-full border rounded px-2 py-1 bg-gray-100 text-gray-600 text-sm"
                                             :value="it.fsatuan || '-'" disabled>
                                     </td>
@@ -382,7 +382,7 @@
                                                 @blur="activeRow = null" @input="onRowUpdated(i)"
                                                 @change="onRowUpdated(i)" @keydown.enter.prevent="focusSavedPrice(i)">
                                             <div class="text-[10px] text-amber-700 font-medium text-right mt-0.5"
-                                                x-show="it.frefdtno && calcMaxQty(it) > 0"
+                                                x-show="it.frefdtid && calcMaxQty(it) > 0"
                                                 x-html="formatPoRemainHint(it)">
                                             </div>
                                         @else
@@ -429,7 +429,7 @@
                                         <input type="hidden" name="fitemname[]" :value="it.fitemname">
                                         <input type="hidden" name="fsatuan[]" :value="it.fsatuan">
                                         <input type="hidden" name="frefdtno[]" :value="it.frefdtno">
-                                        <input type="hidden" name="frefdtno[]" :value="it.frefdtno">
+                                        <input type="hidden" name="frefdtid[]" :value="it.frefdtid">
                                         <input type="hidden" name="fnoacak[]" :value="it.fnoacak">
                                         <input type="hidden" name="frefnoacak[]" :value="it.frefnoacak">
                                         <input type="hidden" name="fnouref[]" :value="it.fnouref">
@@ -927,7 +927,7 @@
                         satuanbesar: 1,
                         satuanbesar2: 1
                     },
-                    frefdtno: '',
+                    frefdtid: '',
                     fqtykecil_ref: 0,
                     fqtypo: 0,
                     fqtysisapo: 0,
@@ -1086,7 +1086,7 @@
                     }
                     if (n < 0.001) row.fqty = 0.001;
 
-                    if (!row.frefdtno) return;
+                    if (!row.frefdtid) return;
                     row.maxqty = this.calcMaxQty(row);
                 },
 
@@ -1233,9 +1233,9 @@
                 },
 
                 isDupeItem(candidate) {
-                    const cPod = String(candidate.frefdtno ?? '').trim();
+                    const cPod = String(candidate.frefdtid ?? '').trim();
                     if (cPod) {
-                        return this.savedItems.some(it => String(it.frefdtno ?? '').trim() === cPod);
+                        return this.savedItems.some(it => String(it.frefdtid ?? '').trim() === cPod);
                     }
                     const cCode = (candidate.fitemcode || '').trim().toLowerCase();
                     const cName = (candidate.fitemname || '').trim().toLowerCase();
@@ -1358,7 +1358,7 @@
                             fitemcode: (src.fitemcode ?? '').trim(),
                             fitemname,
                             fsatuan,
-                            frefdtno: src.frefdtno ?? '',
+                            frefdtid: src.frefdtid ?? '',
                         };
                         if (this.isDupeItem(candidate)) {
                             skipped.push(src);
@@ -1392,7 +1392,7 @@
                             fqtymaxedit: Number(src.fqtymaxedit ?? src.fqtysisapo ?? src.maxqty ?? 0),
                             fqtykecil_ref: Number(src.fqtykecil_ref ?? src.fqtyremain ?? src.fqtykecil_sisa ??
                                 0),
-                            frefdtno: src.frefdtno ?? '',
+                            frefdtid: src.frefdtid ?? '',
                             fsatuankecil: src.fsatuankecil || meta?.fsatuankecil || '',
                             fsatuanbesar: src.fsatuanbesar || meta?.fsatuanbesar || '',
                             fsatuanbesar2: src.fsatuanbesar2 || meta?.fsatuanbesar2 || '',
@@ -1436,7 +1436,7 @@
                 },
 
                 itemKey(it) {
-                    const id = (it.frefdtno ?? '').toString().trim();
+                    const id = (it.frefdtid ?? '').toString().trim();
                     if (id) return `pod:${id}`;
                     return `manual:${(it.fitemcode??'').toString().trim()}::${(it.fsatuan??'').toString().trim()}`;
                 },

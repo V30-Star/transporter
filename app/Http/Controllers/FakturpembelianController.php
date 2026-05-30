@@ -37,15 +37,15 @@ class FakturpembelianController extends Controller
         $detailRows = collect($details);
 
         $poIds = $detailRows
-            ->filter(fn ($detail) => (int) ($detail->frefdtno ?? 0) > 0 && trim((string) ($detail->frefso ?? '')) !== '')
-            ->map(fn ($detail) => (int) $detail->frefdtno)
+            ->filter(fn ($detail) => (int) ($detail->frefdtid ?? 0) > 0 && trim((string) ($detail->frefso ?? '')) !== '')
+            ->map(fn ($detail) => (int) $detail->frefdtid)
             ->unique()
             ->values()
             ->all();
 
         $pbIds = $detailRows
-            ->filter(fn ($detail) => (int) ($detail->frefdtno ?? 0) > 0 && trim((string) ($detail->frefso ?? '')) === '')
-            ->map(fn ($detail) => (int) $detail->frefdtno)
+            ->filter(fn ($detail) => (int) ($detail->frefdtid ?? 0) > 0 && trim((string) ($detail->frefso ?? '')) === '')
+            ->map(fn ($detail) => (int) $detail->frefdtid)
             ->unique()
             ->values()
             ->all();
@@ -71,7 +71,7 @@ class FakturpembelianController extends Controller
 
     private function resolveDetailDisplayUnit($detail, array $poUnits = [], array $pbUnits = []): string
     {
-        $detailId = (int) ($detail->frefdtno ?? 0);
+        $detailId = (int) ($detail->frefdtid ?? 0);
         $storedUnit = trim((string) ($detail->fsatuan ?? ''));
 
         if ($detailId <= 0) {
@@ -332,7 +332,7 @@ class FakturpembelianController extends Controller
                     ->on('ter.fprdcode', '=', 'tr_pod.fprdcode');
             })
             ->select([
-                'tr_pod.fpodid as frefdtno',
+                'tr_pod.fpodid as frefdtid',
                 DB::raw('tr_pod.fpono as frefdtno'),
                 'tr_pod.fprdcode as fitemcode',
                 'm.fprdname as fitemname',
@@ -465,7 +465,7 @@ class FakturpembelianController extends Controller
                     ->on('buy.fprdcode', '=', 'trstockdt.fprdcode');
             })
             ->select([
-                'trstockdt.fstockdtid as frefdtno',
+                'trstockdt.fstockdtid as frefdtid',
                 'trstockdt.frefdtno',
                 'trstockdt.fprdcode as fitemcode',
                 'm.fprdname as fitemname',
@@ -1142,7 +1142,7 @@ class FakturpembelianController extends Controller
             $codes = $request->input('fitemcode', []);
             $satuans = $request->input('fsatuan', []);
             $refdtnos = $request->input('frefdtno', []);
-            $refdtids = $request->input('frefdtno', []);
+            $refdtids = $request->input('frefdtid', []);
             $sources = $request->input('fsource', []);
             $frefnoacaks = $request->input('frefnoacak', []);
             $qtys = $request->input('fqty', []);
@@ -1249,18 +1249,18 @@ class FakturpembelianController extends Controller
                 $isSaldoAwal = $this->isOpeningBalanceProductCode($code);
                 $sat = mb_substr(trim((string) ($satuans[$i] ?? $meta->fsatuankecil ?? '')), 0, 5);
                 $sourceType = $isSaldoAwal ? '' : strtoupper(trim((string) ($sources[$i] ?? '')));
-                $frefdtno = $isSaldoAwal ? null : (isset($refdtids[$i]) ? (int) $refdtids[$i] : null);
-                if (! $isSaldoAwal && $frefdtno > 0) {
+                $frefdtid = $isSaldoAwal ? null : (isset($refdtids[$i]) ? (int) $refdtids[$i] : null);
+                if (! $isSaldoAwal && $frefdtid > 0) {
                     if ($sourceType === 'PO') {
                         $refUnit = DB::table('tr_pod')
-                            ->where('fpodid', $frefdtno)
+                            ->where('fpodid', $frefdtid)
                             ->value('fsatuan');
                         if ($refUnit !== null) {
                             $sat = trim($refUnit);
                         }
                     } elseif ($sourceType === 'PB') {
                         $refUnit = DB::table('trstockdt')
-                            ->where('fstockdtid', $frefdtno)
+                            ->where('fstockdtid', $frefdtid)
                             ->value('fsatuan');
                         if ($refUnit !== null) {
                             $sat = trim($refUnit);
@@ -1292,7 +1292,7 @@ class FakturpembelianController extends Controller
                     'fnoacak' => $this->normalizeRandomNumber(null, $usedNoAcaks),
                     'frefdtno' => $isSaldoAwal ? null : (trim((string) ($refdtnos[$i] ?? '')) ?: null),
                     'frefso' => $sourceType === 'PO' ? (trim((string) ($refdtnos[$i] ?? '')) ?: null) : null,
-                    'frefdtno' => $isSaldoAwal ? null : (isset($refdtids[$i]) ? (int) $refdtids[$i] : null),
+                    'frefdtid' => $isSaldoAwal ? null : (isset($refdtids[$i]) ? (int) $refdtids[$i] : null),
                     'frefnoacak' => $isSaldoAwal ? null : $this->normalizeReferenceRandomNumberSingle($frefnoacaks[$i] ?? null),
                     'fqty' => $qty,
                     'fqtykecil' => $qtyKecil,
@@ -1499,7 +1499,7 @@ class FakturpembelianController extends Controller
         $currentAccountName = $currentAccountRecord?->faccname ?? '';
 
         $detailRefIds = $fakturpembelian->details
-            ->pluck('frefdtno')
+            ->pluck('frefdtid')
             ->filter(fn($id) => (int) $id > 0)
             ->map(fn($id) => (int) $id)
             ->unique()
@@ -1526,7 +1526,7 @@ class FakturpembelianController extends Controller
 
         $oldUsageBySourceRef = [];
         foreach ($fakturpembelian->details as $d) {
-            $detailId = (int) ($d->frefdtno ?? 0);
+            $detailId = (int) ($d->frefdtid ?? 0);
             if ($detailId <= 0) {
                 continue;
             }
@@ -1544,7 +1544,7 @@ class FakturpembelianController extends Controller
 
         // 4. Map the data for savedItems
         $savedItems = $fakturpembelian->details->map(function ($d) use ($poRefSet, $pbRefSet, $oldUsageBySourceRef, $poUnits, $pbUnits) {
-            $detailId = (int) ($d->frefdtno ?? 0);
+            $detailId = (int) ($d->frefdtid ?? 0);
             $sourceType = isset($poRefSet[$detailId]) ? 'PO' : (isset($pbRefSet[$detailId]) ? 'PB' : '');
             $sourceRemain = $sourceType !== '' && $detailId > 0 ? $this->getSourceRemain($sourceType, $detailId) : null;
 
@@ -1566,7 +1566,7 @@ class FakturpembelianController extends Controller
                 'famountponet' => $d->famountponet ?? null,
                 'famountpo' => $d->famountpo ?? null,
                 'frefdtno' => $d->frefdtno ?? null,
-                'frefdtno' => $detailId > 0 ? $detailId : null,
+                'frefdtid' => $detailId > 0 ? $detailId : null,
                 'frefnoacak' => $d->frefnoacak ?? null,
                 'fsource' => $sourceType,
                 'fqty' => (float) ($d->fqty ?? 0),
@@ -1863,7 +1863,7 @@ class FakturpembelianController extends Controller
             $codes = $request->input('fitemcode', []);
             $satuans = $request->input('fsatuan', []);
             $refdtno = $request->input('frefdtno', []);
-            $refdtids = $request->input('frefdtno', []);
+            $refdtids = $request->input('frefdtid', []);
             $sources = $request->input('fsource', []);
             $frefnoacaks = $request->input('frefnoacak', []);
             $qtys = $request->input('fqty', []);
@@ -1919,10 +1919,10 @@ class FakturpembelianController extends Controller
             $oldUsageBySourceRef = [];
             $oldDetails = DB::table('trstockdt')
                 ->where('fstockmtno', $header->fstockmtno)
-                ->get(['frefdtno', 'fqtykecil']);
+                ->get(['frefdtid', 'fqtykecil']);
 
             foreach ($oldDetails as $oldDetail) {
-                $detailId = (int) ($oldDetail->frefdtno ?? 0);
+                $detailId = (int) ($oldDetail->frefdtid ?? 0);
                 $qtyUsed = (float) ($oldDetail->fqtykecil ?? 0);
 
                 if ($detailId <= 0 || $qtyUsed <= 0) {
@@ -1994,18 +1994,18 @@ class FakturpembelianController extends Controller
                     $sat = $meta->fsatuankecil ?? '';
                 }
                 $sourceType = $isSaldoAwal ? '' : strtoupper(trim((string) ($sources[$i] ?? '')));
-                $frefdtno = $isSaldoAwal ? null : (isset($refdtids[$i]) ? (int) $refdtids[$i] : null);
-                if (! $isSaldoAwal && $frefdtno > 0) {
+                $frefdtid = $isSaldoAwal ? null : (isset($refdtids[$i]) ? (int) $refdtids[$i] : null);
+                if (! $isSaldoAwal && $frefdtid > 0) {
                     if ($sourceType === 'PO') {
                         $refUnit = DB::table('tr_pod')
-                            ->where('fpodid', $frefdtno)
+                            ->where('fpodid', $frefdtid)
                             ->value('fsatuan');
                         if ($refUnit !== null) {
                             $sat = trim($refUnit);
                         }
                     } elseif ($sourceType === 'PB') {
                         $refUnit = DB::table('trstockdt')
-                            ->where('fstockdtid', $frefdtno)
+                            ->where('fstockdtid', $frefdtid)
                             ->value('fsatuan');
                         if ($refUnit !== null) {
                             $sat = trim($refUnit);
@@ -2038,7 +2038,7 @@ class FakturpembelianController extends Controller
                     'fnoacak' => $this->normalizeRandomNumber(null, $usedNoAcaks),
                     'frefdtno' => $isSaldoAwal ? null : (! empty($refdtno[$i]) ? $refdtno[$i] : null),
                     'frefso' => $sourceType === 'PO' ? (! empty($refdtno[$i]) ? $refdtno[$i] : null) : null,
-                    'frefdtno' => $isSaldoAwal ? null : (isset($refdtids[$i]) ? (int) $refdtids[$i] : null),
+                    'frefdtid' => $isSaldoAwal ? null : (isset($refdtids[$i]) ? (int) $refdtids[$i] : null),
                     'frefnoacak' => $isSaldoAwal ? null : $this->normalizeReferenceRandomNumberSingle($frefnoacaks[$i] ?? null),
                     'fqty' => $qty,
                     'fqtykecil' => $qtyKecil,
@@ -2321,10 +2321,10 @@ class FakturpembelianController extends Controller
                 $oldUsageBySourceRef = [];
                 $oldDetails = DB::table('trstockdt')
                     ->where('fstockmtno', $fakturpembelian->fstockmtno)
-                    ->get(['frefdtno', 'fqtykecil']);
+                    ->get(['frefdtid', 'fqtykecil']);
 
                 foreach ($oldDetails as $oldDetail) {
-                    $detailId = (int) ($oldDetail->frefdtno ?? 0);
+                    $detailId = (int) ($oldDetail->frefdtid ?? 0);
                     $qtyUsed = (float) ($oldDetail->fqtykecil ?? 0);
 
                     if ($detailId <= 0 || $qtyUsed <= 0) {
