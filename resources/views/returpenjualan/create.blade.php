@@ -2158,11 +2158,13 @@
                 row.frefcode = meta.id || meta.fprdid || '';
                 const currentUnit = (row.fsatuan ?? '').toString().trim();
                 const units = [...new Set((meta.units || []).map(u => (u ?? '').toString().trim()).filter(Boolean))];
+                const defaultUnit = (meta.default_unit || '').toString().trim();
+                const resolvedDefaultUnit = defaultUnit && units.includes(defaultUnit) ? defaultUnit : (units[0] || '');
                 row.units = currentUnit
                     ? [currentUnit, ...units.filter(u => u !== currentUnit)]
                     : units;
                 if (!row.units.includes(currentUnit)) {
-                    row.fsatuan = row.units[0] || '';
+                    row.fsatuan = resolvedDefaultUnit;
                 } else {
                     row.fsatuan = currentUnit;
                 }

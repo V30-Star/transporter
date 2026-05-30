@@ -1081,24 +1081,7 @@ class InvoiceController extends Controller
             'fminstock'
         )->orderBy('fprdname')->get();
 
-        $productMap = $products->mapWithKeys(function ($p) {
-            return [
-                $p->fprdcode => [
-                    'name' => $p->fprdname,
-                    'units' => array_values(array_filter([
-                        $p->fsatuankecil,
-                        $p->fsatuanbesar,
-                        $p->fsatuanbesar2,
-                    ])),
-                    'stock' => $p->fminstock ?? 0,
-                    'unit_ratios' => [           // ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â TAMBAH INI
-                        'satuankecil' => 1,
-                        'satuanbesar' => (float) ($p->fqtykecil ?? 1),
-                        'satuanbesar2' => (float) ($p->fqtykecil2 ?? 1),
-                    ],
-                ],
-            ];
-        })->toArray();
+        $productMap = $this->buildProductMap($products);
 
         return view('invoice.create', [
             'newtr_prh_code' => $newtr_prh_code,
@@ -2017,24 +2000,7 @@ class InvoiceController extends Controller
         )->orderBy('fprdname')->get();
 
         // Prepare the product map for frontend
-        $productMap = $products->mapWithKeys(function ($p) {
-            return [
-                $p->fprdcode => [
-                    'name' => $p->fprdname,
-                    'units' => array_values(array_filter([
-                        $p->fsatuankecil,
-                        $p->fsatuanbesar,
-                        $p->fsatuanbesar2,
-                    ])),
-                    'stock' => $p->fminstock ?? 0,
-                    'unit_ratios' => [           // ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â TAMBAH INI
-                        'satuankecil' => 1,
-                        'satuanbesar' => (float) ($p->fqtykecil ?? 1),
-                        'satuanbesar2' => (float) ($p->fqtykecil2 ?? 1),
-                    ],
-                ],
-            ];
-        })->toArray();
+        $productMap = $this->buildProductMap($products);
 
         // Pass the data to the view
         return view('invoice.edit', [
@@ -2137,15 +2103,7 @@ class InvoiceController extends Controller
         )->orderBy('fprdname')->get();
 
         // Prepare the product map for frontend
-        $productMap = $products->mapWithKeys(function ($p) {
-            return [
-                $p->fprdcode => [
-                    'name' => $p->fprdname,
-                    'units' => array_values(array_filter([$p->fsatuankecil, $p->fsatuanbesar, $p->fsatuanbesar2])),
-                    'stock' => $p->fminstock ?? 0,
-                ],
-            ];
-        })->toArray();
+        $productMap = $this->buildProductMap($products);
 
         // Pass the data to the view
         return view('invoice.edit', [
@@ -2623,15 +2581,7 @@ class InvoiceController extends Controller
         )->orderBy('fprdname')->get();
 
         // Prepare the product map for frontend
-        $productMap = $products->mapWithKeys(function ($p) {
-            return [
-                $p->fprdcode => [
-                    'name' => $p->fprdname,
-                    'units' => array_values(array_filter([$p->fsatuankecil, $p->fsatuanbesar, $p->fsatuanbesar2])),
-                    'stock' => $p->fminstock ?? 0,
-                ],
-            ];
-        })->toArray();
+        $productMap = $this->buildProductMap($products);
 
         // Pass the data to the view
         return view('invoice.edit', [
@@ -2693,4 +2643,3 @@ class InvoiceController extends Controller
         return null;
     }
 }
-
