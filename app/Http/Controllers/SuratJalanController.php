@@ -773,7 +773,7 @@ class SuratJalanController extends Controller
 
             $rowsDt[] = [
                 'fprdcode' => $code,
-                'frefdtno' => $frefdtnoValue !== '' ? mb_substr($frefdtnoValue, 0, 100) : null,
+                'frefdtno' => $frefso[$i] ?? null,
                 'fqty' => $qty,
                 'fprice' => $price,
                 'fprice_rp' => $price * $frate,
@@ -797,7 +797,6 @@ class SuratJalanController extends Controller
         }
 
         if (empty($rowsDt)) {
-            Log::warning("SuratJalan@store: Konstruksi baris detail menghasilkan array kosong.");
             return back()->withInput()->withErrors([
                 'detail' => 'Minimal satu item valid (Kode, Satuan, Qty > 0).',
             ]);
@@ -807,7 +806,6 @@ class SuratJalanController extends Controller
         $invoiceReferenceDocs = $this->extractInvoiceReferenceDocs($rowsDt);
 
         if ($validationMessage = $this->validateUniqueReferenceUsage($soUsageByReference)) {
-            Log::warning("SuratJalan@store: Gagal validateUniqueReferenceUsage.", ['msg' => $validationMessage]);
             return back()->withInput()->withErrors(['detail' => $validationMessage]);
         }
 
@@ -815,18 +813,8 @@ class SuratJalanController extends Controller
         // 6.5) VALIDASI QTY REMAIN SO
         // =========================
         if ($validationMessage = $this->validateSoUsageRequest($soUsageByReference)) {
-            Log::warning("SuratJalan@store: Gagal validateSoUsageRequest (Qty SO Overlimit).", ['msg' => $validationMessage]);
             return back()->withInput()->withErrors(['detail' => $validationMessage]);
         }
-
-        // LOG 4: Perhitungan nilai subtotal & PPN sebelum masuk block transaction
-        Log::info("SuratJalan@store: Struktur data siap disimpan ke database.", [
-            'subtotal' => $subtotal,
-            'rate' => $frate,
-            'ppn_amount' => $ppnAmount,
-            'grand_total' => $subtotal + $ppnAmount,
-            'total_rows_detail' => count($rowsDt)
-        ]);
 
         // =========================
         // 7) TRANSAKSI DB

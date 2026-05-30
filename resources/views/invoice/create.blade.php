@@ -204,7 +204,6 @@
                     <div class="lg:col-span-4">
                         <label class="block text-sm font-medium">Faktur Pajak#</label>
                         <input type="text" id="ftaxno" name="ftaxno" value="{{ old('ftaxno', old('fsono')) }}"
-                            placeholder="Mengikuti Faktur#"
                             readonly
                             class="w-full border rounded px-3 py-2 bg-gray-100 text-gray-600 @error('ftaxno') border-red-500 @enderror">
                         @error('ftaxno')
@@ -435,8 +434,7 @@
                                             <div class="flex">
                                                 <input type="text"
                                                     class="flex-1 border rounded-l px-2 py-1 font-mono text-sm focus:ring-1 focus:ring-blue-500"
-                                                    x-model.trim="it.fitemcode"
-                                                    @input="onCodeTypedRow(it, i)"
+                                                    x-model.trim="it.fitemcode" @input="onCodeTypedRow(it, i)"
                                                     @keydown.enter.prevent="focusRowUnit(it, i)">
                                                 <button type="button" @click="openBrowseFor(i)"
                                                     class="border border-l-0 px-2 py-1 bg-white hover:bg-gray-50"
@@ -458,13 +456,13 @@
                                         </td>
                                         <td class="p-2">
                                             <template x-if="it.units && it.units.length > 1">
-                                                <select class="w-full border rounded px-2 py-1 text-sm focus:ring-1 focus:ring-blue-500"
-                                                    :id="'unit_row_' + i"
-                                                    x-model="it.fsatuan"
-                                                    @change="onRowUpdated(i)"
+                                                <select
+                                                    class="w-full border rounded px-2 py-1 text-sm focus:ring-1 focus:ring-blue-500"
+                                                    :id="'unit_row_' + i" x-model="it.fsatuan" @change="onRowUpdated(i)"
                                                     @keydown.enter.prevent="focusRowQty(i)">
                                                     <template x-for="u in it.units" :key="u">
-                                                        <option :value="u" :selected="u === it.fsatuan" x-text="u"></option>
+                                                        <option :value="u" :selected="u === it.fsatuan"
+                                                            x-text="u"></option>
                                                     </template>
                                                 </select>
                                             </template>
@@ -476,14 +474,12 @@
                                         <td class="p-2 text-blue-600 font-semibold text-xs">
                                             <input type="text"
                                                 class="w-full border rounded px-2 py-1 bg-gray-100 text-gray-600 text-sm"
-                                                :value="it.frefno_display || it.frefdtno || '-'"
-                                                disabled>
+                                                :value="it.frefno_display || it.frefdtno || '-'" disabled>
                                         </td>
                                         <td class="p-2 text-right">
                                             <input type="number"
                                                 class="w-full border rounded px-2 py-1 text-right text-sm"
-                                                :id="'qty_row_' + i"
-                                                x-model.number="it.fqty"
+                                                :id="'qty_row_' + i" x-model.number="it.fqty"
                                                 @input="enforceQtyRow(it); onRowUpdated(i)"
                                                 @change="enforceQtyRow(it); onRowUpdated(i)"
                                                 @keydown.enter.prevent="focusRowPrice(i)">
@@ -494,8 +490,7 @@
                                         <td class="p-2 text-right">
                                             <input type="text" inputmode="decimal"
                                                 class="w-full border rounded px-2 py-1 text-right text-sm"
-                                                :id="'price_row_' + i"
-                                                x-model="it.fpriceInput"
+                                                :id="'price_row_' + i" x-model="it.fpriceInput"
                                                 @focus="activeRow = it.uid; focusPriceInput(it); $event.target.select()"
                                                 @blur="activeRow = null; blurPriceInput(it)"
                                                 @input="onPriceInput(it); onRowUpdated(i)"
@@ -504,8 +499,7 @@
                                         <td class="p-2 text-right">
                                             <input type="text"
                                                 class="w-full border rounded px-2 py-1 text-right text-sm"
-                                                :id="'disc_row_' + i"
-                                                :value="normalizeDiscountValue(it.fdisc)"
+                                                :id="'disc_row_' + i" :value="normalizeDiscountValue(it.fdisc)"
                                                 @focus="activeRow = it.uid; $event.target.select()"
                                                 @blur="activeRow = null; normalizeDiscountInput($event, it)"
                                                 @input="it.fdisc = $event.target.value; onRowUpdated(i)"
@@ -858,6 +852,27 @@
                                     <span class="min-w-[140px] text-right font-medium"
                                         x-text="formatTransactionAmount(netTotal)"></span>
                                 </div>
+
+                                <div class="flex items-center justify-between gap-3">
+                                    <span class="text-sm text-gray-700">Discount</span>
+                                    <div class="flex items-center gap-2">
+                                        <input type="number" min="0" max="100" step="0.01"
+                                            name="fdiscpersen" x-model.number="headerDiscPercent"
+                                            class="w-20 h-9 px-2 text-sm leading-tight text-right border rounded transition-opacity
+                            [appearance:textfield]
+                            [&::-webkit-outer-spin-button]:appearance-none
+                            [&::-webkit-inner-spin-button]:appearance-none">
+                                        <span class="text-sm">%</span>
+                                        <span class="min-w-[140px] text-right font-medium"
+                                            x-text="rupiah(headerDiscAmount)"></span>
+                                    </div>
+                                </div>
+                                <div class="flex items-center justify-between">
+                                    <span class="text-sm text-gray-700">Total Setelah Disc</span>
+                                    <span class="min-w-[140px] text-right font-medium"
+                                        x-text="rupiah(totalSetelahDisc)"></span>
+                                </div>
+
                                 <div class="flex items-center justify-between gap-6">
                                     <!-- Checkbox -->
                                     <div class="flex items-center">
@@ -893,26 +908,6 @@
                                             x-text="rupiah(ppnAmount)"></span>
                                     </div>
 
-                                </div>
-
-                                <div class="flex items-center justify-between gap-3">
-                                    <span class="text-sm text-gray-700">Discount</span>
-                                    <div class="flex items-center gap-2">
-                                        <input type="number" min="0" max="100" step="0.01" name="fdiscpersen"
-                                            x-model.number="headerDiscPercent"
-                                            class="w-20 h-9 px-2 text-sm leading-tight text-right border rounded transition-opacity
-                            [appearance:textfield]
-                            [&::-webkit-outer-spin-button]:appearance-none
-                            [&::-webkit-inner-spin-button]:appearance-none">
-                                        <span class="text-sm">%</span>
-                                        <span class="min-w-[140px] text-right font-medium"
-                                            x-text="rupiah(headerDiscAmount)"></span>
-                                    </div>
-                                </div>
-                                <div class="flex items-center justify-between">
-                                    <span class="text-sm text-gray-700">Total Setelah Disc</span>
-                                    <span class="min-w-[140px] text-right font-medium"
-                                        x-text="rupiah(totalSetelahDisc)"></span>
                                 </div>
 
                                 <div class="border-t my-1"></div>
@@ -1050,7 +1045,8 @@
                                             {{ 'Copy' }}
                                         </button>
                                     </div>
-                                    <div class="rounded-lg border bg-gray-50 px-3 py-2 text-sm text-gray-800" x-text="descItemName || '-'"></div>
+                                    <div class="rounded-lg border bg-gray-50 px-3 py-2 text-sm text-gray-800"
+                                        x-text="descItemName || '-'"></div>
                                 </div>
                                 <label class="block text-sm text-gray-700">{{ 'Keterangan' }}</label>
                                 <textarea x-model="descValue" rows="5" class="w-full border rounded px-3 py-2"
@@ -1229,8 +1225,12 @@
         if (!tempoInput) return;
         const numericDays = Number(days ?? 0);
         tempoInput.value = Number.isFinite(numericDays) ? String(Math.max(0, numericDays)) : '0';
-        tempoInput.dispatchEvent(new Event('input', { bubbles: true }));
-        tempoInput.dispatchEvent(new Event('change', { bubbles: true }));
+        tempoInput.dispatchEvent(new Event('input', {
+            bubbles: true
+        }));
+        tempoInput.dispatchEvent(new Event('change', {
+            bubbles: true
+        }));
     };
 
     window.syncInvoicePpnFromSource = function(header = null) {
@@ -1249,9 +1249,10 @@
         const normalize = (value) => String(value ?? '').trim();
         const select = document.getElementById('modal_filter_customer_id');
         const hidden = document.getElementById('customerCodeHidden');
-        const customerCode = normalize(payload?.fcustomercode) || normalize(hidden?.value) || normalize(select?.value);
-        const selectedOption = customerCode ?
-            [...(select?.options || [])].find(option => normalize(option.value) === customerCode) :
+        const customerCode = normalize(payload?.fcustomercode) || normalize(hidden?.value) || normalize(select
+            ?.value);
+        const selectedOption = customerCode ? [...(select?.options || [])].find(option => normalize(option
+                .value) === customerCode) :
             select?.selectedOptions?.[0];
         const eventTempo = normalize(payload?.ftempo);
         const optionTempo = normalize(selectedOption?.dataset?.ftempo);
@@ -1461,8 +1462,7 @@
         } catch (error) {
             await window.showAppErrorAlert(
                 @json('Pemeriksaan Persetujuan Gagal'),
-                @json("Gagal memeriksa persetujuan customer.\nSilakan coba lagi."),
-                {
+                @json("Gagal memeriksa persetujuan customer.\nSilakan coba lagi."), {
                     html: `<div class="text-left whitespace-pre-line">@json("Gagal memeriksa persetujuan customer.\nSilakan coba lagi.")</div>`,
                     text: undefined
                 }
@@ -1476,8 +1476,10 @@
         @foreach ($products as $p)
             "{{ $p->fprdcode }}": {
                 name: @json($p->fprdname),
-                default_unit: @json(($productMap[$p->fprdcode]['default_unit'] ?? $p->fsatuankecil)),
-                units: @json(($productMap[$p->fprdcode]['units'] ?? array_values(array_filter([$p->fsatuankecil, $p->fsatuanbesar, $p->fsatuanbesar2])))),
+                default_unit: @json($productMap[$p->fprdcode]['default_unit'] ?? $p->fsatuankecil),
+                units: @json(
+                    $productMap[$p->fprdcode]['units'] ??
+                        array_values(array_filter([$p->fsatuankecil, $p->fsatuanbesar, $p->fsatuanbesar2]))),
                 stock: @json($p->fminstock ?? 0),
                 unit_ratios: {
                     satuankecil: 1,
@@ -1879,12 +1881,13 @@
                 row.frefcode = meta.fprdcode || meta.id || '';
                 const units = [...new Set((meta.units || []).map(u => (u ?? '').toString().trim()).filter(Boolean))];
                 const preferredUnit = (row.fsatuan || '').toString().trim();
-                const matchedUnit = preferredUnit === '' ? '' : (units.find(u => u.toLowerCase() === preferredUnit.toLowerCase()) || '');
+                const matchedUnit = preferredUnit === '' ? '' : (units.find(u => u.toLowerCase() === preferredUnit
+                    .toLowerCase()) || '');
                 const preservedUnit = matchedUnit || preferredUnit;
 
-                row.units = preservedUnit !== ''
-                    ? [preservedUnit, ...units.filter(u => u.toLowerCase() !== preservedUnit.toLowerCase())]
-                    : units;
+                row.units = preservedUnit !== '' ?
+                    [preservedUnit, ...units.filter(u => u.toLowerCase() !== preservedUnit.toLowerCase())] :
+                    units;
 
                 const defaultUnit = (meta.default_unit || '').toString().trim();
                 const resolvedDefaultUnit = defaultUnit && units.includes(defaultUnit) ? defaultUnit : (units[0] || '');
@@ -1939,9 +1942,9 @@
             generateUniqueNoAcak(exceptUid = null) {
                 const used = new Set(
                     this.savedItems
-                        .filter(item => item.uid !== exceptUid)
-                        .map(item => this.normalizeNoAcak(item.fnoacak))
-                        .filter(Boolean)
+                    .filter(item => item.uid !== exceptUid)
+                    .map(item => this.normalizeNoAcak(item.fnoacak))
+                    .filter(Boolean)
                 );
                 let candidate = '';
                 do {
@@ -2120,8 +2123,10 @@
 
                 const preferredUnit = (row.fsatuan || '').toString().trim();
                 if (preferredUnit !== '') {
-                    const matchedUnit = row.units.find((u) => (u ?? '').toString().trim().toLowerCase() === preferredUnit.toLowerCase()) || preferredUnit;
-                    row.units = [matchedUnit, ...row.units.filter((u) => (u ?? '').toString().trim().toLowerCase() !== matchedUnit.toLowerCase())];
+                    const matchedUnit = row.units.find((u) => (u ?? '').toString().trim().toLowerCase() ===
+                        preferredUnit.toLowerCase()) || preferredUnit;
+                    row.units = [matchedUnit, ...row.units.filter((u) => (u ?? '').toString().trim().toLowerCase() !==
+                        matchedUnit.toLowerCase())];
                     row.fsatuan = matchedUnit;
                 }
 
@@ -2139,7 +2144,8 @@
                     uid: overrides.uid || cryptoRandom(),
                     ...overrides,
                     fsatuan: (overrides.fsatuan ?? '').toString().trim(),
-                    fnoacak: this.normalizeNoAcak(overrides.fnoacak) || this.generateUniqueNoAcak(overrides.uid || null),
+                    fnoacak: this.normalizeNoAcak(overrides.fnoacak) || this.generateUniqueNoAcak(overrides.uid ||
+                        null),
                     frefnoacak: this.normalizeRefNoAcak(overrides.frefnoacak),
                 };
                 row.fpriceInput = this.fmt(row.fprice);
@@ -2215,9 +2221,9 @@
                 });
 
                 window.getCurrentItemKeys = () => this.getCurrentItemKeys();
-                this.savedItems = Array.isArray(this.savedItems)
-                    ? this.savedItems.map((item, index) => this.normalizeRestoredRow(item, index))
-                    : [];
+                this.savedItems = Array.isArray(this.savedItems) ?
+                    this.savedItems.map((item, index) => this.normalizeRestoredRow(item, index)) :
+                    [];
                 this.pruneEmptyRows();
                 this.ensureMinimumRows();
                 this.ensureTrailingRow();
@@ -2240,7 +2246,7 @@
                     row.fitemcode = (product.fprdcode || '').toString();
                     row.frefcode = product.fprdcode || product.id || '';
                     this.hydrateRowFromMeta(row, this.productMeta(row.fitemcode), true);
-                        this.rows.splice(this.browseTarget, 1, {
+                    this.rows.splice(this.browseTarget, 1, {
                         ...this.rows[this.browseTarget]
                     });
                     row.fnoacak = this.normalizeNoAcak(row.fnoacak) || this.generateUniqueNoAcak(row.uid);
@@ -2301,8 +2307,7 @@
     }
 </script>
 <script>
-    document.addEventListener('DOMContentLoaded', function() {
-    });
+    document.addEventListener('DOMContentLoaded', function() {});
 </script>
 <script>
     window.PRODUCT_MAP = @json($productMap ?? []);
