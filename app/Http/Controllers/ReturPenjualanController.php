@@ -79,7 +79,13 @@ class ReturPenjualanController extends Controller
         return (string) preg_replace('/[.\/](\d+)$/', $separator.'$1', $normalized, 1);
     }
 
-    private function ensureNoDuplicateDetailCodes(array $codes): void
+    private function ensureNoDuplicateDetailCodes(
+        array $codes,
+        array $referenceCodes = [],
+        array $referenceSo = [],
+        array $referenceSrj = [],
+        array $referenceNoAcak = []
+    ): void
     {
         $seen = [];
         $duplicates = [];
@@ -90,12 +96,22 @@ class ReturPenjualanController extends Controller
                 continue;
             }
 
-            if (isset($seen[$code])) {
+            $refCode = strtoupper(trim((string) ($referenceCodes[$index] ?? '')));
+            $refSo = strtoupper(trim((string) ($referenceSo[$index] ?? '')));
+            $refSrj = strtoupper(trim((string) ($referenceSrj[$index] ?? '')));
+            $refNoAcak = $this->normalizeReferenceRandomNumbers($referenceNoAcak[$index] ?? null);
+
+            $hasReference = $refCode !== '' || $refSo !== '' || $refSrj !== '' || $refNoAcak !== '';
+            $key = $hasReference
+                ? implode('|', [$code, $refCode, $refSo, $refSrj, $refNoAcak])
+                : $code;
+
+            if (isset($seen[$key])) {
                 $duplicates[$index] = $code;
                 continue;
             }
 
-            $seen[$code] = true;
+            $seen[$key] = true;
         }
 
         if ($duplicates === []) {
@@ -685,7 +701,13 @@ class ReturPenjualanController extends Controller
             throw $e; // tetap lempar agar Laravel handle redirect
         }
 
-        $this->ensureNoDuplicateDetailCodes($request->input('fitemcode', []));
+        $this->ensureNoDuplicateDetailCodes(
+            $request->input('fitemcode', []),
+            $request->input('frefcode', []),
+            $request->input('frefso', []),
+            $request->input('frefsrj', []),
+            $request->input('frefnoacak', [])
+        );
 
         // 2. INISIALISASI
         $fsodate = Carbon::parse($request->fsodate);
@@ -1127,7 +1149,7 @@ class ReturPenjualanController extends Controller
             $soStats = $this->getReturReferenceStats('SO', $this->extractReferenceDocsFromUsageKeys(array_keys($soUsageByReference)), $exceptFsono);
 
             foreach ($soUsageByReference as $referenceKey => $qtyKecil) {
-                $stat = $soStats[$referenceKey] ?? null;
+                $stat = $this->resolveReferenceStatWithFallback($soStats, (string) $referenceKey);
                 $available = max(0, (float) ($stat['remain_qty_kecil'] ?? 0));
                 if ((float) $qtyKecil - $available > 0.000001) {
                     $label = trim((string) ($stat['product_name'] ?? $stat['product_code'] ?? $referenceKey));
@@ -1142,7 +1164,7 @@ class ReturPenjualanController extends Controller
             $srjStats = $this->getReturReferenceStats('SRJ', $this->extractReferenceDocsFromUsageKeys(array_keys($srjUsageByReference)), $exceptFsono);
 
             foreach ($srjUsageByReference as $referenceKey => $qtyKecil) {
-                $stat = $srjStats[$referenceKey] ?? null;
+                $stat = $this->resolveReferenceStatWithFallback($srjStats, (string) $referenceKey);
                 $available = max(0, (float) ($stat['remain_qty_kecil'] ?? 0));
                 if ((float) $qtyKecil - $available > 0.000001) {
                     $label = trim((string) ($stat['product_name'] ?? $stat['product_code'] ?? $referenceKey));
@@ -1202,6 +1224,41 @@ class ReturPenjualanController extends Controller
             ->unique()
             ->values()
             ->all();
+    }
+
+    private function resolveReferenceStatWithFallback(array $stats, string $referenceKey): ?array
+    {
+        if (isset($stats[$referenceKey])) {
+            return $stats[$referenceKey];
+        }
+
+        [$docNo, $productCode, $refNoAcak] = array_pad(explode('|', $referenceKey), 3, '');
+        if (trim($refNoAcak) !== '') {
+            return null;
+        }
+
+        $matching = collect($stats)->filter(function ($value, $key) use ($docNo, $productCode) {
+            [$keyDocNo, $keyProductCode] = array_pad(explode('|', (string) $key), 2, '');
+
+            return trim($keyDocNo) === trim($docNo) && trim($keyProductCode) === trim($productCode);
+        })->values();
+
+        if ($matching->isEmpty()) {
+            return null;
+        }
+
+        $first = (array) $matching->first();
+
+        return [
+            'ref_doc' => trim((string) ($first['ref_doc'] ?? $docNo)),
+            'product_code' => trim((string) ($first['product_code'] ?? $productCode)),
+            'product_name' => trim((string) ($first['product_name'] ?? $productCode)),
+            'source_unit' => trim((string) ($first['source_unit'] ?? 'Qty')),
+            'source_qty_kecil' => (float) $matching->sum(fn($row) => (float) ($row['source_qty_kecil'] ?? 0)),
+            'used_qty_kecil' => (float) $matching->sum(fn($row) => (float) ($row['used_qty_kecil'] ?? 0)),
+            'remain_qty_kecil' => max(0, (float) $matching->sum(fn($row) => (float) ($row['remain_qty_kecil'] ?? 0))),
+            'used_by_transaction' => trim((string) ($first['used_by_transaction'] ?? '')),
+        ];
     }
 
     private function buildReturReferenceUsageMaps(array $detailRows): array
@@ -1350,12 +1407,14 @@ class ReturPenjualanController extends Controller
         $stats = [];
 
         foreach ($sourceRows as $row) {
-            $key = $this->buildReferenceUsageKey($row->ref_doc ?? '', $row->product_code ?? '', $row->ref_noacak ?? '');
+            $normalizedRefNoAcak = $this->normalizeReferenceRandomNumbers($row->ref_noacak ?? null) ?? '';
+            $key = $this->buildReferenceUsageKey($row->ref_doc ?? '', $row->product_code ?? '', $normalizedRefNoAcak);
             $stats[$key] = [
                 'ref_doc' => trim((string) ($row->ref_doc ?? '')),
                 'product_code' => trim((string) ($row->product_code ?? '')),
                 'product_name' => trim((string) ($row->product_name ?? '')),
                 'source_unit' => trim((string) ($row->source_unit ?? '')),
+                'ref_noacak' => $normalizedRefNoAcak,
                 'source_qty_kecil' => (float) ($row->source_qty_kecil ?? 0),
                 'used_qty_kecil' => 0.0,
                 'remain_qty_kecil' => (float) ($row->source_qty_kecil ?? 0),
@@ -1364,13 +1423,15 @@ class ReturPenjualanController extends Controller
         }
 
         foreach ($usageRows as $row) {
-            $key = $this->buildReferenceUsageKey($row->ref_doc ?? '', $row->product_code ?? '', $row->ref_noacak ?? '');
+            $normalizedRefNoAcak = $this->normalizeReferenceRandomNumbers($row->ref_noacak ?? null) ?? '';
+            $key = $this->buildReferenceUsageKey($row->ref_doc ?? '', $row->product_code ?? '', $normalizedRefNoAcak);
             if (! isset($stats[$key])) {
                 $stats[$key] = [
                     'ref_doc' => trim((string) ($row->ref_doc ?? '')),
                     'product_code' => trim((string) ($row->product_code ?? '')),
                     'product_name' => trim((string) ($row->product_code ?? '')),
                     'source_unit' => '',
+                    'ref_noacak' => $normalizedRefNoAcak,
                     'source_qty_kecil' => 0.0,
                     'used_qty_kecil' => 0.0,
                     'remain_qty_kecil' => 0.0,
@@ -1728,7 +1789,13 @@ class ReturPenjualanController extends Controller
             'frefnoacak.*' => ['nullable', 'regex:/^\d{3}$/'],
         ]);
 
-        $this->ensureNoDuplicateDetailCodes($request->input('fitemcode', []));
+        $this->ensureNoDuplicateDetailCodes(
+            $request->input('fitemcode', []),
+            $request->input('frefcode', []),
+            $request->input('frefso', []),
+            $request->input('frefsrj', []),
+            $request->input('frefnoacak', [])
+        );
 
         // 2. LOAD HEADER
         $header = DB::table('tranmt')->where('ftranmtid', $ftranmtid)->first();
