@@ -204,7 +204,7 @@ window.trPohCoreItemMethods = {
         row.maxqty = this.calcMaxQty(row);
     },
 
-    hydrateRowFromMeta(row, meta, keepMaxqty = false) {
+    hydrateRowFromMeta(row, meta, keepMaxqty = false, forceDefaultUnit = false) {
         if (!meta) {
             row.fitemname = '';
             row.units = [];
@@ -217,10 +217,14 @@ window.trPohCoreItemMethods = {
         }
         row.fitemname = meta.name || '';
         const units = [...new Set((meta.units || []).map(u => (u ?? '').toString().trim()).filter(Boolean))];
+        const defaultUnit = (meta.default_unit || '').toString().trim();
+        const resolvedDefaultUnit = defaultUnit && units.includes(defaultUnit) ? defaultUnit : (units[0] || '');
         const currentSatuan = (row.fsatuan || '').trim();
         if (currentSatuan && !units.includes(currentSatuan)) units.unshift(currentSatuan);
         row.units = units;
-        if (!currentSatuan) row.fsatuan = units[0] || '';
+        row.fsatuan = forceDefaultUnit
+            ? resolvedDefaultUnit
+            : (!currentSatuan ? (resolvedDefaultUnit || '') : currentSatuan);
         if (meta.unit_ratios) row.unit_ratios = meta.unit_ratios;
         if (!keepMaxqty) row.maxqty = 0;
 
@@ -234,11 +238,11 @@ window.trPohCoreItemMethods = {
     },
 
     onCodeTypedRow(row) {
-        this.hydrateRowFromMeta(row, this.productMeta(row.fitemcode));
+        this.hydrateRowFromMeta(row, this.productMeta(row.fitemcode), false, true);
         this.$nextTick(() => this.applyLastPrice(row));
     },
     onCodeTypedSaved(item) {
-        this.hydrateRowFromMeta(item, this.productMeta(item.fitemcode));
+        this.hydrateRowFromMeta(item, this.productMeta(item.fitemcode), false, true);
         this.$nextTick(() => this.applyLastPrice(item));
     },
 

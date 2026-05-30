@@ -1060,18 +1060,34 @@
     window.PRODUCT_MAP = {
         @foreach ($products as $p)
             @php
-                $defaultUnit = match ((string) ($p->fsatuandefault ?? '')) {
-                    '1' => trim((string) ($p->fsatuankecil ?? '')),
-                    '2' => trim((string) ($p->fsatuanbesar ?? '')),
-                    '3' => trim((string) ($p->fsatuanbesar2 ?? '')),
-                    default => trim((string) ($p->fsatuankecil ?? '')) ?: trim((string) ($p->fsatuanbesar ?? '')) ?: trim((string) ($p->fsatuanbesar2 ?? '')),
+                $smallUnit = trim((string) ($p->fsatuankecil ?? ''));
+                $largeUnit = trim((string) ($p->fsatuanbesar ?? ''));
+                $largeUnit2 = trim((string) ($p->fsatuanbesar2 ?? ''));
+                $defaultKey = trim((string) ($p->fsatuandefault ?? ''));
+                $defaultUnit = match ($defaultKey) {
+                    '1' => $smallUnit,
+                    '2' => $largeUnit,
+                    '3' => $largeUnit2,
+                    default => in_array(strtoupper($defaultKey), [
+                        strtoupper($smallUnit),
+                        strtoupper($largeUnit),
+                        strtoupper($largeUnit2),
+                    ], true)
+                        ? $defaultKey
+                        : ($smallUnit ?: $largeUnit ?: $largeUnit2),
                 };
+                $orderedUnits = array_values(array_unique(array_filter([
+                    $defaultUnit,
+                    $smallUnit,
+                    $largeUnit,
+                    $largeUnit2,
+                ])));
             @endphp
                 "{{ $p->fprdcode }}": {
                     id: @json($p->fprdid),
                     name: @json($p->fprdname),
                     default_unit: @json($defaultUnit),
-                    units: @json(array_values(array_filter([$p->fsatuankecil, $p->fsatuanbesar, $p->fsatuanbesar2]))),
+                    units: @json($orderedUnits),
                     stock: @json($p->fminstock ?? 0),
                     unit_ratios: {
                         satuankecil: 1,

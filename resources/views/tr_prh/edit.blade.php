@@ -1431,13 +1431,13 @@
                     const matchedUnit = units.find(unit => unit.toLowerCase() === existingUnit.toLowerCase()) ||
                         existingUnit;
                     row.fsatuan = forceDefaultUnit ?
-                        (units[0] || '') :
+                        resolvedDefaultUnit :
                         (matchedUnit || (units[0] || ''));
                     row.fnoacak = this.normalizeNoAcak(row.fnoacak) || this.generateUniqueNoAcak();
                 },
 
                 onCodeTyped(row, index = null) {
-                    this.hydrateRowFromMeta(row, this.productMeta(row.fitemcode), false);
+                    this.hydrateRowFromMeta(row, this.productMeta(row.fitemcode), true);
                     this.onRowUpdated(index);
                 },
 

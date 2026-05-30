@@ -11,14 +11,21 @@ trait ProductBrowseHelper
     protected function resolveBrowseProductDefaultUnit(object $product): string
     {
         $defaultKey = trim((string) ($product->fsatuandefault ?? ''));
+        $smallUnit = trim((string) ($product->fsatuankecil ?? ''));
+        $largeUnit = trim((string) ($product->fsatuanbesar ?? ''));
+        $largeUnit2 = trim((string) ($product->fsatuanbesar2 ?? ''));
 
         return match ($defaultKey) {
-            '1' => trim((string) ($product->fsatuankecil ?? '')),
-            '2' => trim((string) ($product->fsatuanbesar ?? '')),
-            '3' => trim((string) ($product->fsatuanbesar2 ?? '')),
-            default => trim((string) ($product->fsatuankecil ?? ''))
-                ?: trim((string) ($product->fsatuanbesar ?? ''))
-                ?: trim((string) ($product->fsatuanbesar2 ?? '')),
+            '1' => $smallUnit,
+            '2' => $largeUnit,
+            '3' => $largeUnit2,
+            default => in_array(strtoupper($defaultKey), [
+                strtoupper($smallUnit),
+                strtoupper($largeUnit),
+                strtoupper($largeUnit2),
+            ], true)
+                ? $defaultKey
+                : ($smallUnit ?: $largeUnit ?: $largeUnit2),
         };
     }
 
@@ -49,18 +56,21 @@ trait ProductBrowseHelper
             $key = $keyField === 'fprdid'
                 ? (int) ($product->{$keyField} ?? 0)
                 : trim((string) ($product->{$keyField} ?? ''));
+            $defaultUnit = $this->resolveBrowseProductDefaultUnit($product);
+            $orderedUnits = array_values(array_unique(array_filter(array_map('trim', [
+                $defaultUnit,
+                $product->fsatuankecil ?? '',
+                $product->fsatuanbesar ?? '',
+                $product->fsatuanbesar2 ?? '',
+            ]))));
 
             return [
                 $key => [
                     'id' => $product->fprdid ?? null,
                     'name' => $product->fprdname ?? '',
                     'code' => $product->fprdcode ?? '',
-                    'default_unit' => $this->resolveBrowseProductDefaultUnit($product),
-                    'units' => array_values(array_filter([
-                        $product->fsatuankecil ?? '',
-                        $product->fsatuanbesar ?? '',
-                        $product->fsatuanbesar2 ?? '',
-                    ])),
+                    'default_unit' => $defaultUnit,
+                    'units' => $orderedUnits,
                     'stock' => $product->fminstock ?? 0,
                     'fsatuankecil' => $product->fsatuankecil ?? '',
                     'fsatuanbesar' => $product->fsatuanbesar ?? '',

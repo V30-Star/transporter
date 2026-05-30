@@ -1027,22 +1027,25 @@
                 },
                 metaFromProductPayload(product) {
                     if (!product) return null;
+                    const smallUnit = (product.fsatuankecil ?? '').toString().trim();
+                    const largeUnit = (product.fsatuanbesar ?? '').toString().trim();
+                    const largeUnit2 = (product.fsatuanbesar2 ?? '').toString().trim();
+                    const defaultKey = (product.fsatuandefault ?? '').toString().trim();
+                    const upperDefaultKey = defaultKey.toUpperCase();
+                    const defaultUnit = ({
+                        '1': smallUnit,
+                        '2': largeUnit,
+                        '3': largeUnit2,
+                    }[defaultKey] || ([smallUnit, largeUnit, largeUnit2].find((unit) => unit.toUpperCase() ===
+                        upperDefaultKey) || smallUnit || largeUnit || largeUnit2));
+                    const units = [defaultUnit, smallUnit, largeUnit, largeUnit2]
+                        .filter(Boolean)
+                        .filter((value, index, self) => self.indexOf(value) === index);
                     return {
                         id: product.fprdid ?? null,
                         name: product.fprdname ?? '',
-                        default_unit: ({
-                                '1': (product.fsatuankecil ?? '').toString().trim(),
-                                '2': (product.fsatuanbesar ?? '').toString().trim(),
-                                '3': (product.fsatuanbesar2 ?? '').toString().trim(),
-                            } [(product.fsatuandefault ?? '').toString().trim()] || (product.fsatuankecil ?? '')
-                            .toString().trim() || (product.fsatuanbesar ?? '').toString().trim() || (product
-                                .fsatuanbesar2 ?? '').toString().trim()),
-                        units: [
-                            product.fsatuankecil ?? '',
-                            product.fsatuanbesar ?? '',
-                            product.fsatuanbesar2 ?? '',
-                        ].map(u => (u ?? '').toString().trim()).filter(Boolean).filter((value, index, self) => self
-                            .indexOf(value) === index),
+                        default_unit: defaultUnit,
+                        units,
                         stock: Number(product.fminstock ?? 0),
                         fsatuankecil: product.fsatuankecil ?? '',
                         fsatuanbesar: product.fsatuanbesar ?? '',

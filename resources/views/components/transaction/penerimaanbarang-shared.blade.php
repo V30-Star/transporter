@@ -7,10 +7,35 @@ window.CURRENCY_MAP = window.CURRENCY_MAP || {};
 
 window.PRODUCT_MAP = {
     @foreach ($products as $p)
+        @php
+            $smallUnit = trim((string) ($p->fsatuankecil ?? ''));
+            $largeUnit = trim((string) ($p->fsatuanbesar ?? ''));
+            $largeUnit2 = trim((string) ($p->fsatuanbesar2 ?? ''));
+            $defaultKey = trim((string) ($p->fsatuandefault ?? ''));
+            $resolvedDefaultUnit = match ($defaultKey) {
+                '1' => $smallUnit,
+                '2' => $largeUnit,
+                '3' => $largeUnit2,
+                default => in_array(strtoupper($defaultKey), [
+                    strtoupper($smallUnit),
+                    strtoupper($largeUnit),
+                    strtoupper($largeUnit2),
+                ], true)
+                    ? $defaultKey
+                    : ($smallUnit ?: $largeUnit ?: $largeUnit2),
+            };
+            $orderedUnits = array_values(array_unique(array_filter([
+                $resolvedDefaultUnit,
+                $smallUnit,
+                $largeUnit,
+                $largeUnit2,
+            ])));
+        @endphp
         "{{ $p->fprdcode }}": {
             id: @json($p->fprdid),
             name: @json($p->fprdname),
-            units: @json(array_values(array_filter([$p->fsatuankecil, $p->fsatuanbesar, $p->fsatuanbesar2]))),
+            default_unit: @json($resolvedDefaultUnit),
+            units: @json($orderedUnits),
             stock: @json($p->fminstock ?? 0),
             unit_ratios: {
                 satuankecil: 1,
@@ -35,9 +60,34 @@ window.cryptoRandom = window.cryptoRandom || function() {
 @elseif ($section === 'browser_globals_basic')
 window.PRODUCT_MAP = {
     @foreach ($products as $p)
+        @php
+            $smallUnit = trim((string) ($p->fsatuankecil ?? ''));
+            $largeUnit = trim((string) ($p->fsatuanbesar ?? ''));
+            $largeUnit2 = trim((string) ($p->fsatuanbesar2 ?? ''));
+            $defaultKey = trim((string) ($p->fsatuandefault ?? ''));
+            $resolvedDefaultUnit = match ($defaultKey) {
+                '1' => $smallUnit,
+                '2' => $largeUnit,
+                '3' => $largeUnit2,
+                default => in_array(strtoupper($defaultKey), [
+                    strtoupper($smallUnit),
+                    strtoupper($largeUnit),
+                    strtoupper($largeUnit2),
+                ], true)
+                    ? $defaultKey
+                    : ($smallUnit ?: $largeUnit ?: $largeUnit2),
+            };
+            $orderedUnits = array_values(array_unique(array_filter([
+                $resolvedDefaultUnit,
+                $smallUnit,
+                $largeUnit,
+                $largeUnit2,
+            ])));
+        @endphp
         "{{ $p->fprdcode }}": {
             name: @json($p->fprdname),
-            units: @json(array_values(array_filter([$p->fsatuankecil, $p->fsatuanbesar, $p->fsatuanbesar2]))),
+            default_unit: @json($resolvedDefaultUnit),
+            units: @json($orderedUnits),
             stock: @json($p->fminstock ?? 0)
         },
     @endforeach

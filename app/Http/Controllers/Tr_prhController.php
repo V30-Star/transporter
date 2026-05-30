@@ -19,14 +19,21 @@ class Tr_prhController extends Controller
     private function resolveProductDefaultUnit(object $product): string
     {
         $defaultKey = trim((string) ($product->fsatuandefault ?? ''));
+        $smallUnit = trim((string) ($product->fsatuankecil ?? ''));
+        $largeUnit = trim((string) ($product->fsatuanbesar ?? ''));
+        $largeUnit2 = trim((string) ($product->fsatuanbesar2 ?? ''));
 
         return match ($defaultKey) {
-            '1' => trim((string) ($product->fsatuankecil ?? '')),
-            '2' => trim((string) ($product->fsatuanbesar ?? '')),
-            '3' => trim((string) ($product->fsatuanbesar2 ?? '')),
-            default => trim((string) ($product->fsatuankecil ?? ''))
-                ?: trim((string) ($product->fsatuanbesar ?? ''))
-                ?: trim((string) ($product->fsatuanbesar2 ?? '')),
+            '1' => $smallUnit,
+            '2' => $largeUnit,
+            '3' => $largeUnit2,
+            default => in_array(strtoupper($defaultKey), [
+                strtoupper($smallUnit),
+                strtoupper($largeUnit),
+                strtoupper($largeUnit2),
+            ], true)
+                ? $defaultKey
+                : ($smallUnit ?: $largeUnit ?: $largeUnit2),
         };
     }
 
@@ -1021,16 +1028,20 @@ class Tr_prhController extends Controller
     private function buildProductMap($products): array
     {
         return $products->mapWithKeys(function ($product) {
+            $defaultUnit = $this->resolveProductDefaultUnit($product);
+            $orderedUnits = array_values(array_unique(array_filter(array_map('trim', [
+                $defaultUnit,
+                $product->fsatuankecil,
+                $product->fsatuanbesar,
+                $product->fsatuanbesar2,
+            ]))));
+
             return [
                 trim($product->fprdcode) => [
                     'id' => $product->fprdid ?? null,
                     'name' => $product->fprdname,
-                    'default_unit' => $this->resolveProductDefaultUnit($product),
-                    'units' => array_values(array_filter([
-                        $product->fsatuankecil,
-                        $product->fsatuanbesar,
-                        $product->fsatuanbesar2,
-                    ])),
+                    'default_unit' => $defaultUnit,
+                    'units' => $orderedUnits,
                     'stock' => $product->fminstock ?? 0,
                     'unit_ratios' => [
                         'satuankecil' => 1,
