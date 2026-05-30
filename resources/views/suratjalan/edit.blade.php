@@ -844,7 +844,7 @@
                                                         <path stroke-linecap="round" stroke-linejoin="round"
                                                             stroke-width="1.5" d="M12 4.5v15m7.5-7.5h-15" />
                                                     </svg>
-                                                    Add Faktur
+                                                    Add TER
                                                 </button>
                                             </div>
 
@@ -859,7 +859,7 @@
                                                     <div
                                                         class="px-6 py-4 border-b border-gray-200 flex items-center justify-between flex-shrink-0 bg-gradient-to-r from-sky-50 to-white">
                                                         <div>
-                                                            <h3 class="text-xl font-bold text-gray-800">Add Faktur
+                                                            <h3 class="text-xl font-bold text-gray-800">Add TER
                                                             </h3>
                                                             <p class="text-sm text-gray-500 mt-0.5">Pilih transaksi invoice
                                                                 kode INV yang belum dipakai</p>

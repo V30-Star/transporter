@@ -643,10 +643,6 @@ class SuratJalanController extends Controller
                 'ffrom.required' => 'Gudang wajib diisi.',
             ]);
         } catch (\Illuminate\Validation\ValidationException $ve) {
-            // LOG 2: Validasi input form gagal
-            Log::warning("SuratJalan@store: Validasi form gagal untuk user [{$userid}].", [
-                'errors' => $ve->errors()
-            ]);
             throw $ve;
         }
 
