@@ -1706,6 +1706,14 @@ class Tr_pohController extends Controller
 
                 DB::table('tr_pod')->insert($rowsPod);
                 $this->adjustPrReferenceQtyKecil($prdAgg, -1);
+
+                $this->syncPoJournalEntries(
+                    (string) $header->fpono,
+                    $fpodate,
+                    (string) ($request->input('fbranchcode') ?? ''),
+                    (string) ($request->input('fsupplier') ?? ''),
+                    (string) $userid
+                );
             });
         } catch (\RuntimeException $e) {
             return back()->withInput()->withErrors(['detail' => $e->getMessage()]);
@@ -1895,6 +1903,7 @@ class Tr_pohController extends Controller
 
                 $this->adjustPrReferenceQtyKecil($oldUsageByRef, 1);
                 DB::table('tr_pod')->where('fpono', $tr_poh->fpono)->delete();
+                $this->deletePoJournalEntries((string) $tr_poh->fpono);
                 $tr_poh->delete();
             });
 
@@ -2018,6 +2027,35 @@ class Tr_pohController extends Controller
                 'fdatetime' => $now,
             ],
         ]);
+    }
+
+    private function syncPoJournalEntries(
+        string $fpono,
+        Carbon $fpodate,
+        string $branchCode,
+        string $supplierCode,
+        string $userName
+    ): void {
+        $this->deletePoJournalEntries($fpono);
+        $this->createPoJournalEntries($fpono, $fpodate, $branchCode, $supplierCode, $userName);
+    }
+
+    private function deletePoJournalEntries(string $fpono): void
+    {
+        $existingJurnalIds = DB::table('jurnaldt')
+            ->where('frefno', $fpono)
+            ->where('fjurnaltype', 'JPO')
+            ->pluck('fjurnalmtid')
+            ->filter()
+            ->unique()
+            ->values();
+
+        if ($existingJurnalIds->isEmpty()) {
+            return;
+        }
+
+        DB::table('jurnaldt')->whereIn('fjurnalmtid', $existingJurnalIds->all())->delete();
+        DB::table('jurnalmt')->whereIn('fjurnalmtid', $existingJurnalIds->all())->delete();
     }
 
     private function getPoTerimaUsageSubquery()
