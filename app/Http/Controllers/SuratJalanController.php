@@ -758,8 +758,6 @@ class SuratJalanController extends Controller
             }
             $sat = mb_substr($sat, 0, 5);
             if ($sat === '') {
-                // LOG 3: Deteksi item yang dilewati karena tidak punya satuan valid
-                Log::debug("SuratJalan@store: Detail baris index-{$i} dilewati karena satuan kosong.", ['code' => $code]);
                 continue;
             }
 

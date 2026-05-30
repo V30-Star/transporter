@@ -834,7 +834,6 @@ class PenerimaanBarangController extends Controller
         $codes = $request->input('fitemcode', []);
         $satuans = $request->input('fsatuan', []);
         $fponos = $request->input('fpono', []);
-        $refdtids = $request->input('frefdtid', []);
         $fnoacaks = $request->input('fnoacak', []);
         $frefnoacaks = $request->input('frefnoacak', []);
         $qtys = $request->input('fqty', []);
@@ -868,16 +867,6 @@ class PenerimaanBarangController extends Controller
                 $sat = mb_substr($meta->fsatuankecil ?? $meta->fsatuanbesar ?? '', 0, 5);
             }
 
-            $frefdtid = isset($refdtids[$i]) ? (int) $refdtids[$i] : null;
-            if ($frefdtid > 0) {
-                $poUnit = DB::table('tr_pod')
-                    ->where('fpodid', $frefdtid)
-                    ->value('fsatuan');
-                if ($poUnit !== null) {
-                    $sat = trim($poUnit);
-                }
-            }
-
             $qtyKecil = $this->qtyPoToKecil($meta, $sat, $qty);
 
             $price = (float) ($prices[$i] ?? 0);
@@ -888,9 +877,8 @@ class PenerimaanBarangController extends Controller
                 'fprdcode' => $code,
                 'frefdtno' => trim((string) ($fponos[$i] ?? '')),
                 'frefso' => trim((string) ($fponos[$i] ?? '')),
-                'frefdtid' => $frefdtid,
                 'fnoacak' => $this->normalizeRandomNumber($fnoacaks[$i] ?? null, $usedNoAcaks),
-                'frefnoacak' => $frefdtid ? $this->normalizeReferenceRandomNumber($frefnoacaks[$i] ?? null) : null,
+                'frefnoacak' => $this->normalizeReferenceRandomNumber($frefnoacaks[$i] ?? null),
                 'fqty' => $qty,
                 'fqtykecil' => $qtyKecil,
                 'fqtyremain' => $qtyKecil,
@@ -1208,8 +1196,6 @@ class PenerimaanBarangController extends Controller
             'fitemcode.*' => ['required', 'string', 'max:50'],
             'frefdtno' => ['nullable', 'array'],
             'frefdtno.*' => ['nullable', 'string', 'max:50'],
-            'frefdtid' => ['nullable', 'array'],
-            'frefdtid.*' => ['nullable', 'integer'],
             'fsatuan' => ['nullable', 'array'],
             'fsatuan.*' => ['nullable', 'string', 'max:5'],
             'fqty' => ['required', 'array'],
@@ -1253,7 +1239,6 @@ class PenerimaanBarangController extends Controller
         $codes = $request->input('fitemcode', []);
         $satuans = $request->input('fsatuan', []);
         $refdtnos = $request->input('frefdtno', []);
-        $refdtids = $request->input('frefdtid', []);
         $fnoacaks = $request->input('fnoacak', []);
         $frefnoacaks = $request->input('frefnoacak', []);
         $qtys = $request->input('fqty', []);
@@ -1326,7 +1311,6 @@ class PenerimaanBarangController extends Controller
                 'fprdcode' => $code,
                 'frefdtno' => $rno ?: null,
                 'frefso' => $rno ?: null,
-                'frefdtid' => $rid,
                 'fnoacak' => $this->normalizeRandomNumber($fnoacaks[$i] ?? null, $usedNoAcaks),
                 'frefnoacak' => $rid ? $this->normalizeReferenceRandomNumber($frefnoacaks[$i] ?? null) : null,
                 'frefsoid' => null,
@@ -1358,7 +1342,7 @@ class PenerimaanBarangController extends Controller
         }
 
         $podAgg = $this->aggregatePodReceiptByPod($rowsDt);
-        $oldReceiptLines = DB::table('trstockdt')->where('fstockmtno', $header->fstockmtno)->get(['frefdtid', 'fqtykecil']);
+        $oldReceiptLines = DB::table('trstockdt')->where('fstockmtno', $header->fstockmtno)->get(['frefdtno', 'fqtykecil']);
 
         $grandTotal = $subtotal + $ppnAmount;
 
@@ -1381,7 +1365,7 @@ class PenerimaanBarangController extends Controller
             ) {
                 $oldUsageByPod = [];
                 foreach ($oldReceiptLines as $oldLine) {
-                    $oldRefId = (int) ($oldLine->frefdtid ?? 0);
+                    $oldRefId = (int) ($oldLine->frefdtno ?? 0);
                     if ($oldRefId <= 0) {
                         continue;
                     }
@@ -1451,8 +1435,8 @@ class PenerimaanBarangController extends Controller
             DB::transaction(function () use ($penerimaanbarang) {
                 $oldUsageByPod = DB::table('trstockdt')
                     ->where('fstockmtno', $penerimaanbarang->fstockmtno)
-                    ->get(['frefdtid', 'fqtykecil'])
-                    ->groupBy(fn($row) => (int) ($row->frefdtid ?? 0))
+                    ->get(['frefdtno', 'fqtykecil'])
+                    ->groupBy(fn($row) => (int) ($row->frefdtno ?? 0))
                     ->map(fn($rows) => (float) $rows->sum(fn($row) => (float) ($row->fqtykecil ?? 0)))
                     ->all();
 
