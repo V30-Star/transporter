@@ -861,7 +861,8 @@
         @foreach ($products as $p)
             "{{ $p->fprdcode }}": {
                 name: @json($p->fprdname),
-                units: @json(array_values(array_filter([$p->fsatuankecil, $p->fsatuanbesar, $p->fsatuanbesar2]))),
+                default_unit: @json(($productMap[$p->fprdcode]['default_unit'] ?? $p->fsatuankecil)),
+                units: @json(($productMap[$p->fprdcode]['units'] ?? array_values(array_filter([$p->fsatuankecil, $p->fsatuanbesar, $p->fsatuanbesar2])))),
                 stock: @json($p->fminstock ?? 0),
                 unit_ratios: {
                     satuankecil: 1,
@@ -1153,15 +1154,17 @@
                 const units = [...new Set((meta.units || []).map(u => (u ?? '').toString().trim()).filter(Boolean))];
                 const currentUnit = (row.fsatuan ?? '').toString().trim();
                 row.units = units;
+                const defaultUnit = (meta.default_unit || '').toString().trim();
+                const resolvedDefaultUnit = defaultUnit && units.includes(defaultUnit) ? defaultUnit : (units[0] || '');
                 if (forceDefaultUnit) {
-                    row.fsatuan = units[0] || '';
+                    row.fsatuan = resolvedDefaultUnit;
                 } else {
                     row.fsatuan = currentUnit;
                     if (currentUnit && !units.includes(currentUnit)) {
                         row.units.unshift(currentUnit);
                     }
                     if (!row.fsatuan) {
-                        row.fsatuan = units[0] || '';
+                        row.fsatuan = resolvedDefaultUnit;
                     }
                 }
                 if (meta.unit_ratios) row.unit_ratios = meta.unit_ratios;

@@ -15,6 +15,55 @@ use Illuminate\Validation\ValidationException;
 
 class SuratJalanController extends Controller
 {
+    private function resolveProductDefaultUnit($product): string
+    {
+        $defaultKey = trim((string) ($product->fsatuandefault ?? ''));
+        $smallUnit = trim((string) ($product->fsatuankecil ?? ''));
+        $largeUnit = trim((string) ($product->fsatuanbesar ?? ''));
+        $largeUnit2 = trim((string) ($product->fsatuanbesar2 ?? ''));
+
+        return match ($defaultKey) {
+            '1' => $smallUnit,
+            '2' => $largeUnit,
+            '3' => $largeUnit2,
+            default => in_array(strtoupper($defaultKey), [
+                strtoupper($smallUnit),
+                strtoupper($largeUnit),
+                strtoupper($largeUnit2),
+            ], true)
+                ? $defaultKey
+                : ($smallUnit ?: $largeUnit ?: $largeUnit2),
+        };
+    }
+
+    private function buildProductMap($products): array
+    {
+        return $products->mapWithKeys(function ($product) {
+            $defaultUnit = $this->resolveProductDefaultUnit($product);
+            $units = array_values(array_unique(array_filter([
+                $defaultUnit,
+                $product->fsatuankecil,
+                $product->fsatuanbesar,
+                $product->fsatuanbesar2,
+            ])));
+
+            return [
+                $product->fprdcode => [
+                    'fprdid' => $product->fprdid,
+                    'name' => $product->fprdname,
+                    'default_unit' => $defaultUnit,
+                    'units' => $units,
+                    'stock' => $product->fminstock ?? 0,
+                    'unit_ratios' => [
+                        'satuankecil' => 1,
+                        'satuanbesar' => (float) ($product->fqtykecil ?? 1),
+                        'satuanbesar2' => (float) ($product->fqtykecil2 ?? 1),
+                    ],
+                ],
+            ];
+        })->toArray();
+    }
+
     private function formatDisplayTransactionNumber(?string $number, bool $useSlash = false): string
     {
         $normalized = trim((string) $number);
@@ -519,6 +568,7 @@ class SuratJalanController extends Controller
             'fprdid',
             'fprdcode',
             'fprdname',
+            'fsatuandefault',
             'fsatuankecil',
             'fsatuanbesar',
             'fsatuanbesar2',
@@ -527,24 +577,7 @@ class SuratJalanController extends Controller
             'fminstock'
         )->orderBy('fprdname')->get();
 
-        $productMap = $products->mapWithKeys(function ($p) {
-            return [
-                $p->fprdcode => [
-                    'name' => $p->fprdname,
-                    'units' => array_values(array_filter([
-                        $p->fsatuankecil,
-                        $p->fsatuanbesar,
-                        $p->fsatuanbesar2,
-                    ])),
-                    'stock' => $p->fminstock ?? 0,
-                    'unit_ratios' => [           // ← TAMBAH INI
-                        'satuankecil' => 1,
-                        'satuanbesar' => (float) ($p->fqtykecil ?? 1),
-                        'satuanbesar2' => (float) ($p->fqtykecil2 ?? 1),
-                    ],
-                ],
-            ];
-        })->toArray();
+        $productMap = $this->buildProductMap($products);
 
         return view('suratjalan.create', [
             'newtr_prh_code' => $newtr_prh_code,
@@ -1127,6 +1160,7 @@ class SuratJalanController extends Controller
             'fprdid',
             'fprdcode',
             'fprdname',
+            'fsatuandefault',
             'fsatuankecil',
             'fsatuanbesar',
             'fsatuanbesar2',
@@ -1135,24 +1169,7 @@ class SuratJalanController extends Controller
             'fminstock'
         )->orderBy('fprdname')->get();
 
-        $productMap = $products->mapWithKeys(function ($p) {
-            return [
-                $p->fprdcode => [
-                    'name' => $p->fprdname,
-                    'units' => array_values(array_filter([
-                        $p->fsatuankecil,
-                        $p->fsatuanbesar,
-                        $p->fsatuanbesar2,
-                    ])),
-                    'stock' => $p->fminstock ?? 0,
-                    'unit_ratios' => [           // ← TAMBAH INI
-                        'satuankecil' => 1,
-                        'satuanbesar' => (float) ($p->fqtykecil ?? 1),
-                        'satuanbesar2' => (float) ($p->fqtykecil2 ?? 1),
-                    ],
-                ],
-            ];
-        })->toArray();
+        $productMap = $this->buildProductMap($products);
 
         return view('suratjalan.edit', [
             'customers' => $customers,
@@ -1256,21 +1273,16 @@ class SuratJalanController extends Controller
             'fprdid',
             'fprdcode',
             'fprdname',
+            'fsatuandefault',
             'fsatuankecil',
             'fsatuanbesar',
             'fsatuanbesar2',
+            'fqtykecil',
+            'fqtykecil2',
             'fminstock'
         )->orderBy('fprdname')->get();
 
-        $productMap = $products->mapWithKeys(function ($p) {
-            return [
-                $p->fprdcode => [
-                    'name' => $p->fprdname,
-                    'units' => array_values(array_filter([$p->fsatuankecil, $p->fsatuanbesar, $p->fsatuanbesar2])),
-                    'stock' => $p->fminstock ?? 0,
-                ],
-            ];
-        })->toArray();
+        $productMap = $this->buildProductMap($products);
 
         return view('suratjalan.edit', [
             'customers' => $customers,
@@ -1837,21 +1849,16 @@ class SuratJalanController extends Controller
             'fprdid',
             'fprdcode',
             'fprdname',
+            'fsatuandefault',
             'fsatuankecil',
             'fsatuanbesar',
             'fsatuanbesar2',
+            'fqtykecil',
+            'fqtykecil2',
             'fminstock'
         )->orderBy('fprdname')->get();
 
-        $productMap = $products->mapWithKeys(function ($p) {
-            return [
-                $p->fprdcode => [
-                    'name' => $p->fprdname,
-                    'units' => array_values(array_filter([$p->fsatuankecil, $p->fsatuanbesar, $p->fsatuanbesar2])),
-                    'stock' => $p->fminstock ?? 0,
-                ],
-            ];
-        })->toArray();
+        $productMap = $this->buildProductMap($products);
 
         return view('suratjalan.edit', [
             'customers' => $customers,

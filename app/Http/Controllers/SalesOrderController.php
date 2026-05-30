@@ -35,10 +35,22 @@ class SalesOrderController extends Controller
 
     private function resolveProductDefaultUnit($product): string
     {
-        return match ((int) $product->fsatuandefault) {
-            2 => (string) ($product->fsatuanbesar ?? ''),
-            3 => (string) ($product->fsatuanbesar2 ?? ''),
-            default => (string) ($product->fsatuankecil ?? ''),
+        $defaultKey = trim((string) ($product->fsatuandefault ?? ''));
+        $smallUnit = trim((string) ($product->fsatuankecil ?? ''));
+        $largeUnit = trim((string) ($product->fsatuanbesar ?? ''));
+        $largeUnit2 = trim((string) ($product->fsatuanbesar2 ?? ''));
+
+        return match ($defaultKey) {
+            '1' => $smallUnit,
+            '2' => $largeUnit,
+            '3' => $largeUnit2,
+            default => in_array(strtoupper($defaultKey), [
+                strtoupper($smallUnit),
+                strtoupper($largeUnit),
+                strtoupper($largeUnit2),
+            ], true)
+                ? $defaultKey
+                : ($smallUnit ?: $largeUnit ?: $largeUnit2),
         };
     }
     private function ensureNoDuplicateDetailCodes(array $codes): void
@@ -815,15 +827,19 @@ class SalesOrderController extends Controller
         )->orderBy('fprdname')->get();
 
         $productMap = $products->mapWithKeys(function ($p) {
+            $defaultUnit = $this->resolveProductDefaultUnit($p);
+            $orderedUnits = array_values(array_unique(array_filter(array_map('trim', [
+                $defaultUnit,
+                $p->fsatuankecil,
+                $p->fsatuanbesar,
+                $p->fsatuanbesar2,
+            ]))));
+
             return [
                 $p->fprdcode => [
                     'name'         => $p->fprdname,
-                    'default_unit' => $this->resolveProductDefaultUnit($p),
-                    'units'        => array_values(array_filter([
-                        $p->fsatuankecil,
-                        $p->fsatuanbesar,
-                        $p->fsatuanbesar2,
-                    ])),
+                    'default_unit' => $defaultUnit,
+                    'units'        => $orderedUnits,
                     'stock'        => $p->fminstock ?? 0,
                     'unit_ratios'  => [
                         'satuankecil'  => 1,
@@ -1263,15 +1279,19 @@ class SalesOrderController extends Controller
 
         // Prepare the product map for frontend
         $productMap = $products->mapWithKeys(function ($p) {
+            $defaultUnit = $this->resolveProductDefaultUnit($p);
+            $orderedUnits = array_values(array_unique(array_filter(array_map('trim', [
+                $defaultUnit,
+                $p->fsatuankecil,
+                $p->fsatuanbesar,
+                $p->fsatuanbesar2,
+            ]))));
+
             return [
                 $p->fprdcode => [
                     'name' => $p->fprdname,
-                    'default_unit' => $this->resolveProductDefaultUnit($p),
-                    'units' => array_values(array_filter([
-                        $p->fsatuankecil,
-                        $p->fsatuanbesar,
-                        $p->fsatuanbesar2,
-                    ])),
+                    'default_unit' => $defaultUnit,
+                    'units' => $orderedUnits,
                     'stock' => $p->fminstock ?? 0,
                     'unit_ratios' => [
                         'satuankecil' => 1,
@@ -1372,6 +1392,7 @@ class SalesOrderController extends Controller
             'fprdid',
             'fprdcode',
             'fprdname',
+            'fsatuandefault',
             'fsatuankecil',
             'fsatuanbesar',
             'fsatuanbesar2',
@@ -1379,10 +1400,19 @@ class SalesOrderController extends Controller
         )->orderBy('fprdname')->get();
 
         $productMap = $products->mapWithKeys(function ($p) {
+            $defaultUnit = $this->resolveProductDefaultUnit($p);
+            $orderedUnits = array_values(array_unique(array_filter(array_map('trim', [
+                $defaultUnit,
+                $p->fsatuankecil,
+                $p->fsatuanbesar,
+                $p->fsatuanbesar2,
+            ]))));
+
             return [
                 (string) $p->fprdcode => [
                     'name' => $p->fprdname,
-                    'units' => array_values(array_filter([$p->fsatuankecil, $p->fsatuanbesar, $p->fsatuanbesar2])),
+                    'default_unit' => $defaultUnit,
+                    'units' => $orderedUnits,
                     'stock' => (float) ($p->fminstock ?? 0),
                 ],
             ];
@@ -1759,6 +1789,7 @@ class SalesOrderController extends Controller
             'fprdid',
             'fprdcode',
             'fprdname',
+            'fsatuandefault',
             'fsatuankecil',
             'fsatuanbesar',
             'fsatuanbesar2',
@@ -1767,10 +1798,19 @@ class SalesOrderController extends Controller
 
         // Prepare the product map for frontend
         $productMap = $products->mapWithKeys(function ($p) {
+            $defaultUnit = $this->resolveProductDefaultUnit($p);
+            $orderedUnits = array_values(array_unique(array_filter(array_map('trim', [
+                $defaultUnit,
+                $p->fsatuankecil,
+                $p->fsatuanbesar,
+                $p->fsatuanbesar2,
+            ]))));
+
             return [
                 $p->fprdcode => [
                     'name' => $p->fprdname,
-                    'units' => array_values(array_filter([$p->fsatuankecil, $p->fsatuanbesar, $p->fsatuanbesar2])),
+                    'default_unit' => $defaultUnit,
+                    'units' => $orderedUnits,
                     'stock' => $p->fminstock ?? 0,
                 ],
             ];
