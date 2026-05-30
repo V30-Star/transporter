@@ -30,7 +30,7 @@ class SalesOrderController extends Controller
 
         $separator = $useSlash ? '/' : '.';
 
-        return (string) preg_replace('/[.\/](\d+)$/', $separator.'$1', $normalized, 1);
+        return (string) preg_replace('/[.\/](\d+)$/', $separator . '$1', $normalized, 1);
     }
 
     private function resolveProductDefaultUnit($product): string
@@ -1138,7 +1138,7 @@ class SalesOrderController extends Controller
                 $this->sendApprovalNotification($fsono, $userid);
             }
 
-            return redirect()->route('salesorder.create')->with('success', 'Sales Order '.$this->formatDisplayTransactionNumber($fsono, (int) $fapplyppn === 1).' berhasil disimpan.');
+            return redirect()->route('salesorder.create')->with('success', 'Sales Order ' . $this->formatDisplayTransactionNumber($fsono, (int) $fapplyppn === 1) . ' berhasil disimpan.');
         } catch (\Exception $e) {
             report($e);
             return back()->withInput()->withErrors(['error' => 'Sales Order belum bisa disimpan. Cek data.']);
@@ -1235,32 +1235,29 @@ class SalesOrderController extends Controller
         $soRemainMap = $this->getSoRemainByIds($salesorder->details->pluck('ftrsodtid')->all());
 
         $savedItems = $salesorder->details->map(function ($d) use ($soRemainMap) {
-            $remainDisplay = $this->convertSoRemainToDisplayUnit(
-                (float) ($soRemainMap[(int) ($d->ftrsodtid ?? 0)] ?? 0),
-                (string) ($d->fsatuan ?? ''),
-                $d
-            );
+            $id    = (int) ($d->ftrsodtid ?? 0);
+            $entry = $soRemainMap[$id] ?? ['remain_kecil' => 0, 'remain_dokumen' => 0];
 
             return [
-                'uid' => $d->ftrsodtid,
-                'fprdcode' => (string) ($d->fprdcode ?? ''),
-                'fitemname' => (string) ($d->fprdname ?? ''),
-                'fsatuan' => (string) ($d->fsatuan ?? ''),
-                'fnoacak' => (string) ($d->fnoacak ?? ''),
-                'frefdtno' => (string) ($d->ftrsodtid ?? ''),
-                'fnouref' => (string) ($d->fnouref ?? ''),
-                'fqty' => (float) ($d->fqty ?? 0),
-                'fqtyremain' => (float) ($soRemainMap[(int) ($d->ftrsodtid ?? 0)] ?? 0),
-                'fqtyremain_dokumen' => $remainDisplay,
-                'fqtysrj' => $remainDisplay,
-                'fterima' => (float) ($d->fterima ?? 0),
-                'fprice' => (float) ($d->fprice ?? 0),
-                'fdisc' => (float) ($d->fdiscpersen ?? 0),
-                'ftotal' => (float) ($d->famount ?? 0),
-                'fdesc' => (string) ($d->fdesc ?? ''),
-                'fketdt' => (string) ($d->fketdt ?? ''),
+                'uid'                => $d->ftrsodtid,
+                'fprdcode'           => (string) ($d->fprdcode ?? ''),
+                'fitemname'          => (string) ($d->fprdname ?? ''),
+                'fsatuan'            => (string) ($d->fsatuan ?? ''),
+                'fnoacak'            => (string) ($d->fnoacak ?? ''),
+                'frefdtno'           => (string) ($d->ftrsodtid ?? ''),
+                'fqty'               => (float) ($d->fqty ?? 0),
+                'fqtyremain'         => (float) $entry['remain_kecil'],
+                'fqtyremain_dokumen' => (float) $entry['remain_dokumen'],
+                'fqtysrj'            => (float) $entry['remain_dokumen'],
+                'fterima'            => (float) ($d->fterima ?? 0),
+                'fprice'             => (float) ($d->fprice ?? 0),
+                'fdisc'              => (float) ($d->fdiscpersen ?? 0),
+                'ftotal'             => (float) ($d->famount ?? 0),
+                'fdesc'              => (string) ($d->fdesc ?? ''),
+                'fketdt'             => (string) ($d->fketdt ?? ''),
             ];
         })->values();
+
         $selectedSupplierCode = $salesorder->fsupplier;
 
         // Fetch all products for product mapping
@@ -1360,29 +1357,26 @@ class SalesOrderController extends Controller
         $soRemainMap = $this->getSoRemainByIds($salesorder->details->pluck('ftrsodtid')->all());
 
         $savedItems = $salesorder->details->map(function ($d) use ($soRemainMap) {
-            $remainDisplay = $this->convertSoRemainToDisplayUnit(
-                (float) ($soRemainMap[(int) ($d->ftrsodtid ?? 0)] ?? 0),
-                (string) ($d->fsatuan ?? ''),
-                $d
-            );
+            $id    = (int) ($d->ftrsodtid ?? 0);
+            $entry = $soRemainMap[$id] ?? ['remain_kecil' => 0, 'remain_dokumen' => 0];
 
             return [
-                'uid' => $d->ftrsodtid,
-                'fprdcode' => (string) ($d->fprdcode ?? ''),
-                'fitemname' => (string) ($d->fprdname ?? ''),
-                'fsatuan' => (string) ($d->fsatuan ?? ''),
-                'fnoacak' => (string) ($d->fnoacak ?? ''),
-                'frefdtno' => (string) ($d->ftrsodtid ?? ''),
-                'fqty' => (float) ($d->fqty ?? 0),
-                'fqtyremain' => (float) ($soRemainMap[(int) ($d->ftrsodtid ?? 0)] ?? 0),
-                'fqtyremain_dokumen' => $remainDisplay,
-                'fqtysrj' => $remainDisplay,
-                'fterima' => (float) ($d->fterima ?? 0),
-                'fprice' => (float) ($d->fprice ?? 0),
-                'fdisc' => (float) ($d->fdiscpersen ?? 0),
-                'ftotal' => (float) ($d->famount ?? 0),
-                'fdesc' => (string) ($d->fdesc ?? ''),
-                'fketdt' => (string) ($d->fketdt ?? ''),
+                'uid'                => $d->ftrsodtid,
+                'fprdcode'           => (string) ($d->fprdcode ?? ''),
+                'fitemname'          => (string) ($d->fprdname ?? ''),
+                'fsatuan'            => (string) ($d->fsatuan ?? ''),
+                'fnoacak'            => (string) ($d->fnoacak ?? ''),
+                'frefdtno'           => (string) ($d->ftrsodtid ?? ''),
+                'fqty'               => (float) ($d->fqty ?? 0),
+                'fqtyremain'         => (float) $entry['remain_kecil'],
+                'fqtyremain_dokumen' => (float) $entry['remain_dokumen'],
+                'fqtysrj'            => (float) $entry['remain_dokumen'],
+                'fterima'            => (float) ($d->fterima ?? 0),
+                'fprice'             => (float) ($d->fprice ?? 0),
+                'fdisc'              => (float) ($d->fdiscpersen ?? 0),
+                'ftotal'             => (float) ($d->famount ?? 0),
+                'fdesc'              => (string) ($d->fdesc ?? ''),
+                'fketdt'             => (string) ($d->fketdt ?? ''),
             ];
         })->values();
 
@@ -1708,7 +1702,7 @@ class SalesOrderController extends Controller
 
         return redirect()
             ->route('salesorder.index')
-            ->with('success', 'Sales Order '.$this->formatDisplayTransactionNumber($header->fsono, (int) ($header->fapplyppn ?? 0) === 1).' berhasil diupdate.');
+            ->with('success', 'Sales Order ' . $this->formatDisplayTransactionNumber($header->fsono, (int) ($header->fapplyppn ?? 0) === 1) . ' berhasil diupdate.');
     }
 
     public function delete(Request $request, $ftrsomtid)
@@ -1756,32 +1750,29 @@ class SalesOrderController extends Controller
         $soRemainMap = $this->getSoRemainByIds($salesorder->details->pluck('ftrsodtid')->all());
 
         $savedItems = $salesorder->details->map(function ($d) use ($soRemainMap) {
-            $remainDisplay = $this->convertSoRemainToDisplayUnit(
-                (float) ($soRemainMap[(int) ($d->ftrsodtid ?? 0)] ?? 0),
-                (string) ($d->fsatuan ?? ''),
-                $d
-            );
+            $id    = (int) ($d->ftrsodtid ?? 0);
+            $entry = $soRemainMap[$id] ?? ['remain_kecil' => 0, 'remain_dokumen' => 0];
 
             return [
-                'uid' => $d->ftrsodtid,
-                'fprdcode' => (string) ($d->fprdcode ?? ''),
-                'fitemname' => (string) ($d->fprdname ?? ''),
-                'fsatuan' => (string) ($d->fsatuan ?? ''),
-                'fnoacak' => (string) ($d->fnoacak ?? ''),
-                'frefdtno' => (string) ($d->frefdtno ?? ''),
-                'fnouref' => (string) ($d->fnouref ?? ''),
-                'fqty' => (float) ($d->fqty ?? 0),
-                'fqtyremain' => (float) ($soRemainMap[(int) ($d->ftrsodtid ?? 0)] ?? 0),
-                'fqtyremain_dokumen' => $remainDisplay,
-                'fqtysrj' => $remainDisplay,
-                'fterima' => (float) ($d->fterima ?? 0),
-                'fprice' => (float) ($d->fprice ?? 0),
-                'fdisc' => (float) ($d->fdiscpersen ?? 0),
-                'ftotal' => (float) ($d->famount ?? 0),
-                'fdesc' => (string) ($d->fdesc ?? ''),
-                'fketdt' => (string) ($d->fketdt ?? ''),
+                'uid'                => $d->ftrsodtid,
+                'fprdcode'           => (string) ($d->fprdcode ?? ''),
+                'fitemname'          => (string) ($d->fprdname ?? ''),
+                'fsatuan'            => (string) ($d->fsatuan ?? ''),
+                'fnoacak'            => (string) ($d->fnoacak ?? ''),
+                'frefdtno'           => (string) ($d->ftrsodtid ?? ''),
+                'fqty'               => (float) ($d->fqty ?? 0),
+                'fqtyremain'         => (float) $entry['remain_kecil'],
+                'fqtyremain_dokumen' => (float) $entry['remain_dokumen'],
+                'fqtysrj'            => (float) $entry['remain_dokumen'],
+                'fterima'            => (float) ($d->fterima ?? 0),
+                'fprice'             => (float) ($d->fprice ?? 0),
+                'fdisc'              => (float) ($d->fdiscpersen ?? 0),
+                'ftotal'             => (float) ($d->famount ?? 0),
+                'fdesc'              => (string) ($d->fdesc ?? ''),
+                'fketdt'             => (string) ($d->fketdt ?? ''),
             ];
         })->values();
+
         $selectedSupplierCode = $salesorder->fsupplier;
 
         // Fetch all products for product mapping
@@ -1871,10 +1862,8 @@ class SalesOrderController extends Controller
     }
 
     /**
-     * Hitung sisa qty SO dinamis dalam satuan kecil per detail SO.
-     *
-     * @param  array<int, int|string>  $soDetailIds
-     * @return array<int, float>
+     * @param int[] $soDetailIds
+     * @return array<int, array{remain_kecil: float, remain_dokumen: float}>
      */
     private function getSoRemainByIds(array $soDetailIds): array
     {
@@ -1890,14 +1879,20 @@ class SalesOrderController extends Controller
         }
 
         $sourceRows = DB::table('trsodt as d')
+            ->leftJoin('msprd as p', DB::raw("TRIM(p.fprdcode)"), '=', DB::raw("TRIM(d.fprdcode)"))
             ->whereIn('d.ftrsodtid', $ids)
             ->selectRaw("
-                d.ftrsodtid,
-                TRIM(COALESCE(d.fsono, '')) as ref_doc,
-                TRIM(COALESCE(d.fprdcode, '')) as product_code,
-                COALESCE(d.fnoacak::text, '') as ref_noacak,
-                GREATEST(COALESCE(d.fqtykecil, 0), 0) AS source_qty_kecil
-            ")
+            d.ftrsodtid,
+            TRIM(COALESCE(d.fsono, '')) as ref_doc,
+            TRIM(COALESCE(d.fprdcode, '')) as product_code,
+            COALESCE(d.fnoacak::text, '') as ref_noacak,
+            COALESCE(d.fqtykecil, 0) as source_qty_kecil,
+            TRIM(d.fsatuan) as fsatuan,
+            TRIM(COALESCE(p.fsatuanbesar, '')) as fsatuanbesar,
+            TRIM(COALESCE(p.fsatuanbesar2, '')) as fsatuanbesar2,
+            COALESCE(p.fqtykecil, 0) as fqtykecil_konversi,
+            COALESCE(p.fqtykecil2, 0) as fqtykecil2_konversi
+        ")
             ->get();
 
         if ($sourceRows->isEmpty()) {
@@ -1917,11 +1912,11 @@ class SalesOrderController extends Controller
             ->where('h.fstockmtcode', 'SRJ')
             ->whereIn('d.frefso', $docNos)
             ->selectRaw("
-                TRIM(COALESCE(d.frefso, '')) as ref_doc,
-                TRIM(COALESCE(d.fprdcode, '')) as product_code,
-                COALESCE(d.frefnoacak::text, '') as ref_noacak,
-                SUM(COALESCE(d.fqtykecil, 0)) as used_qty_kecil
-            ")
+            TRIM(COALESCE(d.frefso, '')) as ref_doc,
+            TRIM(COALESCE(d.fprdcode, '')) as product_code,
+            COALESCE(d.frefnoacak::text, '') as ref_noacak,
+            SUM(COALESCE(d.fqtykecil, 0)) as used_qty_kecil
+        ")
             ->groupByRaw("TRIM(COALESCE(d.frefso, '')), TRIM(COALESCE(d.fprdcode, '')), COALESCE(d.frefnoacak::text, '')")
             ->get();
 
@@ -1931,32 +1926,56 @@ class SalesOrderController extends Controller
             ->whereRaw("TRIM(COALESCE(d.frefcode, '')) = 'SO'")
             ->whereIn('d.frefso', $docNos)
             ->selectRaw("
-                TRIM(COALESCE(d.frefso, '')) as ref_doc,
-                TRIM(COALESCE(d.fprdcode, '')) as product_code,
-                COALESCE(d.frefnosoacak::text, '') as ref_noacak,
-                SUM(COALESCE(d.fqtykecil, 0)) as used_qty_kecil
-            ")
+            TRIM(COALESCE(d.frefso, '')) as ref_doc,
+            TRIM(COALESCE(d.fprdcode, '')) as product_code,
+            COALESCE(d.frefnosoacak::text, '') as ref_noacak,
+            SUM(COALESCE(d.fqtykecil, 0)) as used_qty_kecil
+        ")
             ->groupByRaw("TRIM(COALESCE(d.frefso, '')), TRIM(COALESCE(d.fprdcode, '')), COALESCE(d.frefnosoacak::text, '')")
             ->get();
 
-        $usageMap = [];
-
+        $srjMap = [];
         foreach ($srjUsageRows as $row) {
             $key = trim((string) ($row->ref_doc ?? '')) . '|' . trim((string) ($row->product_code ?? '')) . '|' . trim((string) ($row->ref_noacak ?? ''));
-            $usageMap[$key] = ($usageMap[$key] ?? 0.0) + (float) ($row->used_qty_kecil ?? 0);
+            $srjMap[$key] = ($srjMap[$key] ?? 0.0) + (float) ($row->used_qty_kecil ?? 0);
         }
 
+        $invMap = [];
         foreach ($invoiceUsageRows as $row) {
             $key = trim((string) ($row->ref_doc ?? '')) . '|' . trim((string) ($row->product_code ?? '')) . '|' . trim((string) ($row->ref_noacak ?? ''));
-            $usageMap[$key] = ($usageMap[$key] ?? 0.0) + (float) ($row->used_qty_kecil ?? 0);
+            $invMap[$key] = ($invMap[$key] ?? 0.0) + (float) ($row->used_qty_kecil ?? 0);
         }
 
         $result = [];
         foreach ($sourceRows as $row) {
             $key = trim((string) ($row->ref_doc ?? '')) . '|' . trim((string) ($row->product_code ?? '')) . '|' . trim((string) ($row->ref_noacak ?? ''));
+
             $sourceQtyKecil = (float) ($row->source_qty_kecil ?? 0);
-            $usedQtyKecil = (float) ($usageMap[$key] ?? 0);
-            $result[(int) $row->ftrsodtid] = max(0, $sourceQtyKecil - $usedQtyKecil);
+            $srjQty         = (float) ($srjMap[$key] ?? 0);
+            $invQty         = (float) ($invMap[$key] ?? 0);
+
+            $remainKecil = max(0, $sourceQtyKecil - $srjQty - $invQty);
+
+            // fqtyremain_dokumen = GREATEST(SRJ - INV, 0) lalu konversi satuan
+            $srjMinInv     = max(0, $srjQty - $invQty);
+            $fsatuan       = trim((string) ($row->fsatuan ?? ''));
+            $fsatuanbesar  = trim((string) ($row->fsatuanbesar ?? ''));
+            $fsatuanbesar2 = trim((string) ($row->fsatuanbesar2 ?? ''));
+            $fqtykecil1    = (float) ($row->fqtykecil_konversi ?? 0);
+            $fqtykecil2    = (float) ($row->fqtykecil2_konversi ?? 0);
+
+            if ($fsatuan === $fsatuanbesar && $fqtykecil1 > 0) {
+                $remainDokumen = $srjMinInv / $fqtykecil1;
+            } elseif ($fsatuan === $fsatuanbesar2 && $fqtykecil2 > 0) {
+                $remainDokumen = $srjMinInv / $fqtykecil2;
+            } else {
+                $remainDokumen = $srjMinInv;
+            }
+
+            $result[(int) $row->ftrsodtid] = [
+                'remain_kecil'   => $remainKecil,
+                'remain_dokumen' => $remainDokumen,
+            ];
         }
 
         return $result;
