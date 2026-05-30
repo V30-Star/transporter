@@ -1131,6 +1131,14 @@ class SalesOrderController extends Controller
                     'famountso' => round($grandTotal, 2),
                 ]);
 
+                $this->syncSoJournalEntries(
+                    (string) $fsono,
+                    $fsodate,
+                    (string) mb_substr($request->input('fbranchcode', ''), 0, 2),
+                    (string) $request->input('fcustno', ''),
+                    (string) $userid
+                );
+
                 $shouldSendApprovalNotification = $needsApprovalNotification
                     && ApprovalState::hasApprovalProgress((object) $approvalState);
             });
@@ -1701,6 +1709,14 @@ class SalesOrderController extends Controller
             if (! empty($rowsSodt)) {
                 DB::table('trsodt')->insert($rowsSodt);
             }
+
+            $this->syncSoJournalEntries(
+                (string) $header->fsono,
+                $fsodate,
+                (string) mb_substr($request->input('fbranchcode', ''), 0, 2),
+                (string) $request->input('fcustno', ''),
+                (string) $userid
+            );
         });
 
         if ($needsApprovalNotification && $shouldSendApprovalNotification) {
@@ -1855,6 +1871,8 @@ class SalesOrderController extends Controller
                 DB::table('trsodt')
                     ->where('fsono', $salesorder->fsono)
                     ->delete();
+
+                $this->deleteSoJournalEntries((string) $salesorder->fsono);
 
                 DB::table('trsomt')
                     ->where('ftrsomtid', $salesorder->ftrsomtid)
@@ -2103,5 +2121,122 @@ class SalesOrderController extends Controller
         }
 
         return mb_substr($candidate, 0, 20);
+    }
+
+    private function createSoJournalEntries(
+        string $fsono,
+        Carbon $fsodate,
+        string $branchCode,
+        string $customerCode,
+        string $userName
+    ): void {
+        $kodeCabang = trim($branchCode) !== '' ? trim($branchCode) : trim((string) (session('fcabang') ?: '01'));
+        $customerCode = trim($customerCode);
+        $fjurnaltype = 'JSO';
+        $prefix = sprintf('%s.%s.%s.%s.', $fjurnaltype, $kodeCabang, $fsodate->format('y'), $fsodate->format('m'));
+
+        if (DB::getDriverName() === 'pgsql') {
+            $lockKey = crc32('JURNAL|'.$fjurnaltype.'|'.$kodeCabang.'|'.$fsodate->format('Y-m'));
+            DB::statement('SELECT pg_advisory_xact_lock(?)', [$lockKey]);
+
+            $lastNo = DB::table('jurnalmt')
+                ->where('fjurnalno', 'like', $prefix.'%')
+                ->selectRaw("MAX(CAST(split_part(fjurnalno, '.', 5) AS int)) AS lastno")
+                ->value('lastno');
+
+            $nextNo = (int) $lastNo + 1;
+        } else {
+            $lastJurnalNo = DB::table('jurnalmt')
+                ->where('fjurnalno', 'like', $prefix.'%')
+                ->orderByDesc('fjurnalno')
+                ->value('fjurnalno');
+
+            $nextNo = 1;
+            if ($lastJurnalNo && ($pos = strrpos($lastJurnalNo, '.')) !== false) {
+                $nextNo = ((int) substr($lastJurnalNo, $pos + 1)) + 1;
+            }
+        }
+
+        $fjurnalno = $prefix.str_pad((string) $nextNo, 4, '0', STR_PAD_LEFT);
+        $now = now();
+        $subaccount = $customerCode !== '' ? $customerCode : null;
+
+        $jurnalId = DB::table('jurnalmt')->insertGetId([
+            'fbranchcode' => $kodeCabang,
+            'fjurnalno' => $fjurnalno,
+            'fjurnaltype' => $fjurnaltype,
+            'fjurnaldate' => $fsodate,
+            'fjurnalnote' => 'Jurnal Sales Order '.$fsono,
+            'fbalance' => 0,
+            'fbalance_rp' => 0,
+            'fdatetime' => $now,
+            'fuserid' => $userName,
+        ], 'fjurnalmtid');
+
+        DB::table('jurnaldt')->insert([
+            [
+                'fjurnalmtid' => $jurnalId,
+                'fbranchcode' => $kodeCabang,
+                'fjurnaltype' => $fjurnaltype,
+                'fjurnalno' => $fjurnalno,
+                'flineno' => 1,
+                'faccount' => '11300',
+                'fdk' => 'D',
+                'fsubaccount' => $subaccount,
+                'frefno' => $fsono,
+                'frate' => 1,
+                'famount' => 0,
+                'famount_rp' => 0,
+                'faccountnote' => 'Memo SO '.$fsono,
+                'fusercreate' => $userName,
+                'fdatetime' => $now,
+            ],
+            [
+                'fjurnalmtid' => $jurnalId,
+                'fbranchcode' => $kodeCabang,
+                'fjurnaltype' => $fjurnaltype,
+                'fjurnalno' => $fjurnalno,
+                'flineno' => 2,
+                'faccount' => '41000',
+                'fdk' => 'K',
+                'fsubaccount' => $subaccount,
+                'frefno' => $fsono,
+                'frate' => 1,
+                'famount' => 0,
+                'famount_rp' => 0,
+                'faccountnote' => 'Memo SO '.$fsono,
+                'fusercreate' => $userName,
+                'fdatetime' => $now,
+            ],
+        ]);
+    }
+
+    private function syncSoJournalEntries(
+        string $fsono,
+        Carbon $fsodate,
+        string $branchCode,
+        string $customerCode,
+        string $userName
+    ): void {
+        $this->deleteSoJournalEntries($fsono);
+        $this->createSoJournalEntries($fsono, $fsodate, $branchCode, $customerCode, $userName);
+    }
+
+    private function deleteSoJournalEntries(string $fsono): void
+    {
+        $existingJurnalIds = DB::table('jurnaldt')
+            ->where('frefno', $fsono)
+            ->where('fjurnaltype', 'JSO')
+            ->pluck('fjurnalmtid')
+            ->filter()
+            ->unique()
+            ->values();
+
+        if ($existingJurnalIds->isEmpty()) {
+            return;
+        }
+
+        DB::table('jurnaldt')->whereIn('fjurnalmtid', $existingJurnalIds->all())->delete();
+        DB::table('jurnalmt')->whereIn('fjurnalmtid', $existingJurnalIds->all())->delete();
     }
 }
