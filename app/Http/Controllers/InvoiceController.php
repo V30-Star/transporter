@@ -1333,17 +1333,17 @@ class InvoiceController extends Controller
         $ppnAmount = ($fincludeppn === '1') ? ($amountNet * ($ppnPersen / 100)) : 0;
         $grandTotal = $amountNet + $ppnAmount;
 
-        if ($validationMessage = $this->validateReverseJournalBaseAmount($srjReferenceDocs, $grandTotal * $frate)) {
-            return back()->withInput()->with('error', $validationMessage);
-        }
+        // if ($validationMessage = $this->validateReverseJournalBaseAmount($srjReferenceDocs, $grandTotal * $frate)) {
+        //     return back()->withInput()->with('error', $validationMessage);
+        // }
 
-        if ($validationMessage = $this->validateInventoryBaseAmount($srjReferenceDocs)) {
-            return back()->withInput()->with('error', $validationMessage);
-        }
+        // if ($validationMessage = $this->validateInventoryBaseAmount($srjReferenceDocs)) {
+        //     return back()->withInput()->with('error', $validationMessage);
+        // }
 
-        if ($validationMessage = $this->validateAdvanceReductionAmount($srjReferenceDocs)) {
-            return back()->withInput()->with('error', $validationMessage);
-        }
+        // if ($validationMessage = $this->validateAdvanceReductionAmount($srjReferenceDocs)) {
+        //     return back()->withInput()->with('error', $validationMessage);
+        // }
 
         $creditApproval = $this->resolveInvoiceCreditApproval($request, $grandTotal);
         $fsono = trim((string) $request->input('fsono', ''));
@@ -2391,17 +2391,17 @@ class InvoiceController extends Controller
         $ppnAmount = ($fincludeppn === '1') ? ($amountNet * ($ppnPersen / 100)) : 0;
         $grandTotal = $amountNet + $ppnAmount;
 
-        if ($validationMessage = $this->validateReverseJournalBaseAmount($srjReferenceDocs, $grandTotal * $frate)) {
-            return back()->withInput()->with('error', $validationMessage);
-        }
+        // if ($validationMessage = $this->validateReverseJournalBaseAmount($srjReferenceDocs, $grandTotal * $frate)) {
+        //     return back()->withInput()->with('error', $validationMessage);
+        // }
 
-        if ($validationMessage = $this->validateInventoryBaseAmount($srjReferenceDocs)) {
-            return back()->withInput()->with('error', $validationMessage);
-        }
+        // if ($validationMessage = $this->validateInventoryBaseAmount($srjReferenceDocs)) {
+        //     return back()->withInput()->with('error', $validationMessage);
+        // }
 
-        if ($validationMessage = $this->validateAdvanceReductionAmount($srjReferenceDocs)) {
-            return back()->withInput()->with('error', $validationMessage);
-        }
+        // if ($validationMessage = $this->validateAdvanceReductionAmount($srjReferenceDocs)) {
+        //     return back()->withInput()->with('error', $validationMessage);
+        // }
 
         $creditApproval = $this->resolveInvoiceCreditApproval($request, $grandTotal, (int) $ftranmtid);
         $fsono = trim((string) $request->input('fsono', ''));
