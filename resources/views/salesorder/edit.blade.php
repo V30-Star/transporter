@@ -193,7 +193,7 @@
                         <h3 class="text-base font-bold text-orange-700">
                             {{ 'Sales Order' }} {{ $isDelete ? 'Tidak Dapat Dihapus' : 'Tidak Dapat Diedit' }}
                         </h3>
-                        <p class="text-sm text-orange-500 mt-0.5">{{ $usageLockMessage }}</p>
+                        <p class="text-sm text-orange-500 mt-0.5 whitespace-pre-line">{{ $usageLockMessage }}</p>
                     </div>
                     <button type="button" @click="open = false"
                         class="flex-shrink-0 w-8 h-8 rounded-full bg-orange-100 hover:bg-orange-200 flex items-center justify-center transition-colors"

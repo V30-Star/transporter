@@ -952,8 +952,7 @@
                                     <label class="block text-sm font-medium">Kode FP</label>
                                     <input type="text" name="fkodefp" id="invoiceFkodefp"
                                         value="{{ old('fkodefp', $invoice->fkodefp ?? optional($invoice->customer)->fkodefp) }}"
-                                        readonly
-                                        class="w-full border rounded px-3 py-2 bg-gray-100 @error('fkodefp') border-red-500 @enderror">
+                                        class="w-full border rounded px-3 py-2 @error('fkodefp') border-red-500 @enderror">
                                     @error('fkodefp')
                                         <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                                     @enderror
@@ -1946,6 +1945,19 @@
         }));
     };
 
+    window.syncInvoiceSalesmanFromSource = function(payload = null) {
+        const salesmanCode = String(
+            payload?.fsalesman ?? payload?.fsalesmancode ?? payload?.salesman_code ?? ''
+        ).trim();
+
+        if (!salesmanCode) return;
+
+        window.applyTransactionSalesmanSelection?.({
+            fsalesman: salesmanCode,
+            fsalesmancode: salesmanCode,
+        });
+    };
+
     window.syncInvoiceTempoFromCustomer = function(payload = null) {
         const normalize = (value) => String(value ?? '').trim();
         const select = document.getElementById('modal_filter_customer_id');
@@ -2645,6 +2657,7 @@
 
                 if (source === 'SO') {
                     window.syncInvoiceTempoFromSource?.(header?.ftempohr ?? 0);
+                    window.syncInvoiceSalesmanFromSource?.(header);
                 }
 
                 const internalNoteInput = document.getElementById('fketinternal');

@@ -1164,7 +1164,10 @@ class InvoiceController extends Controller
         $now = now();
         $fcurrency = $request->input('fcurrency', 'IDR');
         $frate = (float) $request->input('frate', 1);
-        $fkodefp = $this->getCustomerTaxCode((string) $request->input('fcustno', ''));
+        $fkodefp = trim((string) $request->input('fkodefp', ''));
+        if ($fkodefp === '') {
+            $fkodefp = (string) ($this->getCustomerTaxCode((string) $request->input('fcustno', '')) ?? '');
+        }
 
         // 3. PROSES DETAIL (ARRAY)
         $itemCodes = $request->input('fitemcode', []);
@@ -2205,7 +2208,10 @@ class InvoiceController extends Controller
         $userid = mb_substr(auth('sysuser')->user()->fname ?? 'admin', 0, 10);
         $now = now();
         $frate = (float) $request->input('frate', $header->frate ?? 1);
-        $fkodefp = $this->getCustomerTaxCode((string) $request->input('fcustno', ''));
+        $fkodefp = trim((string) $request->input('fkodefp', ''));
+        if ($fkodefp === '') {
+            $fkodefp = (string) ($this->getCustomerTaxCode((string) $request->input('fcustno', '')) ?? '');
+        }
 
         $itemCodes = $request->input('fitemcode', []);
         $typeSales = (int) $request->input('ftypesales');

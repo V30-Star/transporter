@@ -664,6 +664,7 @@ class SalesOrderController extends Controller
                 'fcustno' => $header->fcustno,
                 'fsodate' => $header->fsodate,
                 'ftempohr' => (float) ($header->ftempohr ?? 0),
+                'fsalesman' => trim((string) ($header->fsalesman ?? '')),
                 'fapplyppn' => (int) ($header->fapplyppn ?? 0),
                 'fincludeppn' => (int) ($header->fincludeppn ?? 0),
                 'fppnpersen' => (float) ($header->fppnpersen ?? 11),
@@ -2049,7 +2050,27 @@ class SalesOrderController extends Controller
             return null;
         }
 
-        return 'Sales Order ' . $fsono . ' tidak bisa diubah atau dihapus. Sudah direferensi di ' . implode('; ', $parts) . '.';
+        $formattedParts = [];
+
+        if ($usedBySrj->isNotEmpty()) {
+            $formattedParts[] = 'SRJ ' . $usedBySrj
+                ->map(fn($number) => $this->formatDisplayTransactionNumber((string) $number, false))
+                ->implode(', ');
+        }
+
+        if ($usedByInvoice->isNotEmpty()) {
+            $formattedParts[] = 'Faktur Penjualan ' . $usedByInvoice
+                ->map(fn($number) => $this->formatDisplayTransactionNumber((string) $number, false))
+                ->implode(', ');
+        }
+
+        if ($usedByRetur->isNotEmpty()) {
+            $formattedParts[] = 'Retur Penjualan ' . $usedByRetur
+                ->map(fn($number) => $this->formatDisplayTransactionNumber((string) $number, false))
+                ->implode(', ');
+        }
+
+        return "SO ini tidak boleh diedit/delete.\nSudah direferensi di :\n" . implode("\n", $formattedParts);
     }
 
     private function resolveSalesmanCode($primaryValue, $fallbackValue = null): ?string

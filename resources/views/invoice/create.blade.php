@@ -274,8 +274,8 @@
 
                     <div class="lg:col-span-4">
                         <label class="block text-sm font-medium">Kode FP</label>
-                        <input type="text" name="fkodefp" id="invoiceFkodefp" value="{{ old('fkodefp') }}" readonly
-                            class="w-full border rounded px-3 py-2 bg-gray-100 @error('fkodefp') border-red-500 @enderror">
+                        <input type="text" name="fkodefp" id="invoiceFkodefp" value="{{ old('fkodefp') }}"
+                            class="w-full border rounded px-3 py-2 @error('fkodefp') border-red-500 @enderror">
                         @error('fkodefp')
                             <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                         @enderror
@@ -1233,6 +1233,19 @@
         }));
     };
 
+    window.syncInvoiceSalesmanFromSource = function(payload = null) {
+        const salesmanCode = String(
+            payload?.fsalesman ?? payload?.fsalesmancode ?? payload?.salesman_code ?? ''
+        ).trim();
+
+        if (!salesmanCode) return;
+
+        window.applyTransactionSalesmanSelection?.({
+            fsalesman: salesmanCode,
+            fsalesmancode: salesmanCode,
+        });
+    };
+
     window.syncInvoicePpnFromSource = function(header = null) {
         const root = document.querySelector('[x-data*="itemsTable()"]');
         const component = root && window.Alpine ? Alpine.$data(root) : null;
@@ -1970,6 +1983,7 @@
 
                 if (source === 'SO') {
                     window.syncInvoiceTempoFromSource?.(header?.ftempohr ?? 0);
+                    window.syncInvoiceSalesmanFromSource?.(header);
                     window.syncInvoicePpnFromSource?.(header);
                 }
 
