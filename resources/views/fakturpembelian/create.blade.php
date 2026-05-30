@@ -788,7 +788,7 @@
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
                                                     d="M12 4.5v15m7.5-7.5h-15" />
                                             </svg>
-                                            Add Faktur
+                                            Add TER
                                         </button>
 
                                         <!-- PB Modal -->
@@ -978,7 +978,7 @@
 
                                 <div class="px-5 py-4">
                                     <p class="text-sm text-gray-700">
-                                        Supplier wajib dipilih sebelum input produk manual. Untuk Add PO atau Add Faktur,
+                                        Supplier wajib dipilih sebelum input produk manual. Untuk Add PO atau Add TER,
                                         supplier tidak wajib dipilih terlebih dahulu.
                                     </p>
                                 </div>

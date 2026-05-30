@@ -481,12 +481,12 @@
 
                                     {{-- MODAL SO --}}
                                     <div x-show="show" x-cloak x-transition.opacity
-                                        class="fixed inset-0 z-50 flex items-center justify-center p-4">
+                                        class="fixed inset-0 z-50 flex items-center justify-center overflow-hidden p-3 md:p-6">
                                         <div class="absolute inset-0 bg-black/50 backdrop-blur-sm" @click="closeModal()">
                                         </div>
 
-                                        <div class="relative bg-white rounded-2xl shadow-2xl w-[96vw] max-w-[110rem] flex flex-col overflow-hidden"
-                                            style="height: 85vh;">
+                                        <div class="relative w-full max-w-7xl rounded-xl bg-white shadow-2xl flex flex-col overflow-hidden"
+                                            style="height: min(760px, calc(100vh - 1.5rem));">
                                             <!-- Header -->
                                             <div
                                                 class="px-6 py-4 border-b border-gray-200 flex items-center justify-between flex-shrink-0 bg-gradient-to-r from-teal-50 to-white">
@@ -565,62 +565,51 @@
                                         </button>
                                     </div>
 
-                                    <div x-show="show" x-cloak x-transition.opacity
-                                        class="fixed inset-0 z-50 flex items-center justify-center p-4">
-                                        <div class="absolute inset-0 bg-black/50 backdrop-blur-sm" @click="closeModal()">
-                                        </div>
-
-                                        <div class="relative bg-white rounded-2xl shadow-2xl w-[96vw] max-w-[110rem] flex flex-col overflow-hidden"
-                                            style="height: 85vh;">
-                                            <div
-                                                class="px-6 py-4 border-b border-gray-200 flex items-center justify-between flex-shrink-0 bg-gradient-to-r from-sky-50 to-white">
-                                                <div>
-                                                    <h3 class="text-xl font-bold text-gray-800">Add TER</h3>
-                                                    <p class="text-sm text-gray-500 mt-0.5">Pilih transaksi penerimaan
-                                                        barang kode TER</p>
+                                    <div x-show="show" x-transition.opacity class="fixed inset-0 z-40 bg-black/50"
+                                        @keydown.escape.window="closeModal()"></div>
+                                    <div>
+                                        <div x-show="show" x-cloak x-transition.opacity
+                                            class="fixed inset-0 z-50 flex items-center justify-center overflow-hidden p-3 md:p-6"
+                                            aria-modal="true" role="dialog">
+                                            <div class="relative w-full max-w-7xl rounded-xl bg-white shadow-2xl flex flex-col overflow-hidden"
+                                                style="height: min(760px, calc(100vh - 1.5rem));">
+                                                <div
+                                                    class="px-6 py-4 border-b border-gray-200 flex items-center justify-between flex-shrink-0 bg-gradient-to-r from-sky-50 to-white">
+                                                    <div>
+                                                        <h3 class="text-xl font-bold text-gray-800">Add TER</h3>
+                                                        <p class="text-sm text-gray-500 mt-0.5">Pilih transaksi penerimaan
+                                                            barang kode TER</p>
+                                                    </div>
+                                                    <button type="button" @click="closeModal()"
+                                                        class="px-4 py-2 rounded-lg border-2 border-gray-300 bg-white hover:bg-gray-50 hover:border-gray-400 transition-all duration-150 font-medium text-gray-700 text-sm">
+                                                        Tutup
+                                                    </button>
                                                 </div>
-                                                <button type="button" @click="closeModal()"
-                                                    class="px-4 py-2 rounded-lg border-2 border-gray-300 bg-white hover:bg-gray-50 hover:border-gray-400 transition-all duration-150 font-bold text-gray-700 text-sm">
-                                                    Tutup
-                                                </button>
-                                            </div>
-
-                                            <div class="px-6 pt-4 pb-2 flex-shrink-0 border-b border-gray-100">
-                                                <div id="invoiceTableControls"></div>
-                                            </div>
-
-                                            <div class="flex-1 overflow-x-auto overflow-y-hidden px-6"
-                                                style="min-height: 0;">
-                                                <div class="bg-white">
+                                                <div class="flex-1 overflow-hidden p-6" style="min-height: 0;">
                                                     <table id="invoiceTable"
                                                         class="min-w-full text-sm display nowrap stripe hover"
                                                         style="width:100%">
                                                         <thead class="sticky top-0 z-10">
-                                                            <tr class="bg-gradient-to-r from-gray-50 to-gray-100">
-                                                                <th
-                                                                    class="text-left p-3 font-semibold text-gray-700 border-b-2 border-gray-200">
+                                                            <tr class="bg-gray-50 border-b-2 border-gray-200">
+                                                                <th class="p-3 text-left font-semibold text-gray-700">
                                                                     No TER</th>
-                                                                <th
-                                                                    class="text-left p-3 font-semibold text-gray-700 border-b-2 border-gray-200">
+                                                                <th class="p-3 text-left font-semibold text-gray-700">
                                                                     No Ref</th>
-                                                                <th
-                                                                    class="text-left p-3 font-semibold text-gray-700 border-b-2 border-gray-200">
+                                                                <th class="p-3 text-left font-semibold text-gray-700">
                                                                     Supplier</th>
-                                                                <th
-                                                                    class="text-left p-3 font-semibold text-gray-700 border-b-2 border-gray-200">
+                                                                <th class="p-3 text-left font-semibold text-gray-700">
                                                                     Tanggal</th>
-                                                                <th
-                                                                    class="text-center p-3 font-semibold text-gray-700 border-b-2 border-gray-200">
+                                                                <th class="p-3 text-center font-semibold text-gray-700">
                                                                     Aksi</th>
                                                             </tr>
                                                         </thead>
                                                         <tbody></tbody>
                                                     </table>
                                                 </div>
-                                            </div>
-
-                                            <div class="px-6 py-3 border-t border-gray-200 flex-shrink-0 bg-gray-50">
-                                                <div id="invoiceTablePagination"></div>
+                                                <div
+                                                    class="px-6 py-3 border-t border-gray-200 flex-shrink-0 bg-gray-50">
+                                                    <div id="invoiceTablePagination"></div>
+                                                </div>
                                             </div>
                                         </div>
                                     </div>
@@ -1495,15 +1484,15 @@
 
 @include('components.transaction.suratjalan-so-modal-script')
 @include('components.transaction.suratjalan-invoice-modal-script', [
-    'pickableRoute' => route('suratjalan.pickableTer'),
-    'itemsRouteTemplate' => route('suratjalan.itemsTer', ['id' => 'TER_ID_PLACEHOLDER']),
+    'pickableRoute' => route('fakturpembelian.pickablePB'),
+    'itemsRouteTemplate' => route('fakturpembelian.itemsPB', ['id' => 'TER_ID_PLACEHOLDER']),
     'itemsRoutePlaceholder' => 'TER_ID_PLACEHOLDER',
-    'numberColumnLabel' => 'fstockmtno_display',
-    'numberColumnName' => 'fstockmtno_display',
+    'numberColumnLabel' => 'fstockmtno',
+    'numberColumnName' => 'fstockmtno',
     'referenceColumnLabel' => 'frefpo',
     'referenceColumnName' => 'frefpo',
-    'partyColumnLabel' => 'fsuppliername',
-    'partyColumnName' => 'fsuppliername',
+    'partyColumnLabel' => 'fsupplier',
+    'partyColumnName' => 'fsupplier',
     'dateColumnLabel' => 'fstockmtdate',
     'dateColumnName' => 'fstockmtdate',
     'itemIdField' => 'fstockmtid',
