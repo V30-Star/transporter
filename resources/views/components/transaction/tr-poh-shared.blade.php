@@ -200,7 +200,7 @@ window.trPohCoreItemMethods = {
             return;
         }
         if (n < 1) row.fqty = 1;
-        if (!row.frefdtid) return;
+        if (!row.frefdtno) return;
         row.maxqty = this.calcMaxQty(row);
     },
 

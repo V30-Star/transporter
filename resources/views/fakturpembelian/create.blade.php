@@ -167,7 +167,7 @@
         $oldCodes = old('fitemcode', []);
         $oldSatuans = old('fsatuan', []);
         $oldRefDtnos = old('frefdtno', []);
-        $oldRefDtids = old('frefdtid', []);
+        $oldRefDtids = old('frefdtno', []);
         $oldRefNoAcaks = old('frefnoacak', []);
         $oldSources = old('fsource', []);
         $oldFnourefs = old('fnouref', []);
@@ -194,7 +194,7 @@
                 'fitemname' => '',
                 'fsatuan' => (string) ($oldSatuans[$i] ?? ''),
                 'frefdtno' => (string) ($oldRefDtnos[$i] ?? ''),
-                'frefdtid' => $oldRefDtids[$i] ?? null,
+                'frefdtno' => $oldRefDtids[$i] ?? null,
                 'frefnoacak' => (string) ($oldRefNoAcaks[$i] ?? ''),
                 'fsource' => (string) ($oldSources[$i] ?? ''),
                 'fnouref' => (string) ($oldFnourefs[$i] ?? ''),
@@ -593,7 +593,7 @@
 
                                             <!-- Satuan -->
                                             <td class="p-2 align-top">
-                                                <template x-if="it.units && it.units.length > 1 && !it.frefdtid">
+                                                <template x-if="it.units && it.units.length > 1 && !it.frefdtno">
                                                     <select class="w-full border rounded px-2 py-1 text-sm"
                                                         :id="'unit_saved_' + i" x-model="it.fsatuan"
                                                         @focus="activeRow = it.uid" @blur="activeRow = null"
@@ -604,7 +604,7 @@
                                                     </select>
                                                 </template>
                                                 <input type="text"
-                                                    x-show="!it.units || it.units.length <= 1 || it.frefdtid"
+                                                    x-show="!it.units || it.units.length <= 1 || it.frefdtno"
                                                     class="w-full border rounded px-2 py-1 bg-gray-100 text-gray-600 text-sm"
                                                     :value="it.fsatuan || '-'" disabled>
                                             </td>
@@ -1936,7 +1936,7 @@
                         fitemname: src.fitemname ?? '',
                         fsatuan: src.fsatuan ?? '',
                         frefdtno: frefdtnoVal,
-                        frefdtid: src.frefdtid ?? src.frefdtno ?? null,
+                        frefdtno: src.frefdtno ?? src.frefdtno ?? null,
                         frefnoacak: this.normalizeRefNoAcak(src.frefnoacak ?? ''),
                         fsource: sourceType,
                         fnouref: fnourefVal,
@@ -2053,7 +2053,7 @@
                     'fdesc',
                     'fketdt',
                     'frefdtno',
-                    'frefdtid',
+                    'frefdtno',
                     'frefnoacak',
                     'fsource',
                     'fnouref',
@@ -2202,7 +2202,7 @@
 
             itemKey(it) {
                 const code = (it.fitemcode ?? '').toString().trim();
-                const refId = (it.frefdtid ?? '').toString().trim();
+                const refId = (it.frefdtno ?? '').toString().trim();
                 const refNo = (it.frefdtno ?? '').toString().trim();
                 const satuan = (it.fsatuan ?? '').toString().trim();
                 return refId !== '' ? `${code}::${refId}` : `${code}::${refNo}::${satuan}`;
@@ -2424,7 +2424,7 @@
                 units: [],
                 fsatuan: '',
                 frefdtno: '',
-                frefdtid: '',
+                frefdtno: '',
                 frefnoacak: '',
                 fsource: '',
                 fnouref: '',
@@ -2593,7 +2593,7 @@
                     const currentKeys = new Set((window.getCurrentItemKeys?.() || []).map(String));
                     const keyOf = (src) => {
                         const code = (src.fitemcode ?? '').toString().trim();
-                        const refId = (src.frefdtid ?? '').toString().trim();
+                        const refId = (src.frefdtno ?? '').toString().trim();
                         const refNo = ((row?.fpono ?? src.frefdtno) ?? '').toString().trim();
                         const satuan = (src.fsatuan ?? '').toString().trim();
                         return refId !== '' ? `${code}::${refId}` : `${code}::${refNo}::${satuan}`;
@@ -2766,7 +2766,7 @@
                     const currentKeys = new Set((window.getCurrentItemKeys?.() || []).map(String));
                     const keyOf = (src) => {
                         const code = (src.fitemcode ?? '').toString().trim();
-                        const refId = (src.frefdtid ?? '').toString().trim();
+                        const refId = (src.frefdtno ?? '').toString().trim();
                         const refNo = ((row?.fstockmtno ?? src.frefdtno) ?? '').toString().trim();
                         const satuan = (src.fsatuan ?? '').toString().trim();
                         return refId !== '' ? `${code}::${refId}` : `${code}::${refNo}::${satuan}`;

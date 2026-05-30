@@ -146,10 +146,10 @@ class PenerimaanBarangController extends Controller
         $supplierCode = trim((string) $request->input('supplier', ''));
 
         $receiptSub = DB::table('trstockdt')
-            ->selectRaw('CAST(frefdtid AS BIGINT) AS fpodid, SUM(COALESCE(fqtykecil, 0)) AS fqtykecilterima')
+            ->selectRaw('CAST(frefdtno AS BIGINT) AS fpodid, SUM(COALESCE(fqtykecil, 0)) AS fqtykecilterima')
             ->where('fstockmtcode', 'TER')
-            ->whereNotNull('frefdtid')
-            ->groupBy(DB::raw('CAST(frefdtid AS BIGINT)'));
+            ->whereNotNull('frefdtno')
+            ->groupBy(DB::raw('CAST(frefdtno AS BIGINT)'));
 
         $query = DB::table('tr_poh')
             ->leftJoin('mssupplier', 'tr_poh.fsupplier', '=', 'mssupplier.fsuppliercode')
@@ -230,7 +230,7 @@ class PenerimaanBarangController extends Controller
                     ->on('st.frefnoacak', '=', 'd.fnoacak');
             })
             ->select([
-                'd.fpodid as frefdtid',
+                'd.fpodid as frefdtno',
                 'm.fprdcode as fitemcode',
                 'm.fprdname as fitemname',
                 'd.fqty',
@@ -367,14 +367,14 @@ class PenerimaanBarangController extends Controller
     }
 
     /**
-     * @param  array<int, array<string, mixed>>  $rows  baris sementara dengan frefdtid (fpodid) & fqtykecil
+     * @param  array<int, array<string, mixed>>  $rows  baris sementara dengan frefdtno (fpodid) & fqtykecil
      * @return array<int, float>
      */
     private function aggregatePodReceiptByPod(array $rows): array
     {
         $agg = [];
         foreach ($rows as $r) {
-            $fid = (int) ($r['frefdtid'] ?? 0);
+            $fid = (int) ($r['frefdtno'] ?? 0);
             if ($fid <= 0) {
                 continue;
             }
@@ -435,10 +435,10 @@ class PenerimaanBarangController extends Controller
         }
 
         $receiptSub = DB::table('trstockdt')
-            ->selectRaw('CAST(frefdtid AS INTEGER) AS fpodid, SUM(COALESCE(fqtykecil, 0)) AS fqtykecilterima')
+            ->selectRaw('CAST(frefdtno AS INTEGER) AS fpodid, SUM(COALESCE(fqtykecil, 0)) AS fqtykecilterima')
             ->where('fstockmtcode', 'TER')
-            ->whereNotNull('frefdtid')
-            ->groupByRaw('CAST(frefdtid AS INTEGER)');
+            ->whereNotNull('frefdtno')
+            ->groupByRaw('CAST(frefdtno AS INTEGER)');
 
         return DB::table('tr_pod as d')
             ->leftJoinSub($receiptSub, 'st', function ($join) {
@@ -539,10 +539,10 @@ class PenerimaanBarangController extends Controller
         }
 
         $receiptSub = DB::table('trstockdt')
-            ->selectRaw('CAST(frefdtid AS BIGINT) AS fpodid, SUM(COALESCE(fqtykecil, 0)) AS fqtykecilterima')
+            ->selectRaw('CAST(frefdtno AS BIGINT) AS fpodid, SUM(COALESCE(fqtykecil, 0)) AS fqtykecilterima')
             ->where('fstockmtcode', 'TER')
-            ->whereNotNull('frefdtid')
-            ->groupBy(DB::raw('CAST(frefdtid AS BIGINT)'));
+            ->whereNotNull('frefdtno')
+            ->groupBy(DB::raw('CAST(frefdtno AS BIGINT)'));
 
         $details = DB::table('tr_pod as d')
             ->leftJoinSub($receiptSub, 'ter', function ($join) {
@@ -1072,7 +1072,7 @@ class PenerimaanBarangController extends Controller
                 $q->leftJoin('msprd', 'msprd.fprdcode', '=', 'trstockdt.fprdcode')
                     ->leftJoin('trstockmt', 'trstockmt.fstockmtno', '=', 'trstockdt.fstockmtno')
                     ->leftJoin('mswh', 'mswh.fwhcode', '=', 'trstockmt.ffrom')
-                    ->leftJoin('tr_pod as pod', 'pod.fpodid', '=', 'trstockdt.frefdtid')
+                    ->leftJoin('tr_pod as pod', 'pod.fpono', '=', 'trstockdt.frefdtno')
                     ->select(
                         'trstockdt.*',
                         'msprd.fprdname',
@@ -1106,20 +1106,20 @@ class PenerimaanBarangController extends Controller
         }
 
         $oldUsageByPod = $penerimaanbarang->details
-            ->groupBy(fn($d) => (int) ($d->frefdtid ?? 0))
+            ->groupBy(fn($d) => (int) ($d->frefdtno ?? 0))
             ->map(fn($rows) => (float) $rows->sum(fn($r) => (float) ($r->fqtykecil ?? 0)))
             ->all();
 
-        $refPodIds = $penerimaanbarang->details->pluck('frefdtid')->all();
+        $refPodIds = $penerimaanbarang->details->pluck('frefdtno')->all();
         $podRemainMap = $this->getPodRemainByIds($refPodIds);
         $poMetricMap = $this->getPoReferenceMetricsByPodIds($refPodIds);
 
         $savedItems = $penerimaanbarang->details->map(function ($d) use ($oldUsageByPod, $podRemainMap, $poMetricMap) {
-            $remainKecil = $d->frefdtid
-                ? max(0, (float) ($podRemainMap[(int) $d->frefdtid] ?? 0) + (float) ($oldUsageByPod[(int) $d->frefdtid] ?? 0))
+            $remainKecil = $d->frefdtno
+                ? max(0, (float) ($podRemainMap[(int) $d->frefdtno] ?? 0) + (float) ($oldUsageByPod[(int) $d->frefdtno] ?? 0))
                 : 0;
-            $poMetrics = $d->frefdtid
-                ? ($poMetricMap[(int) $d->frefdtid] ?? ['fqtysisapo' => 0, 'fqtyditer' => 0])
+            $poMetrics = $d->frefdtno
+                ? ($poMetricMap[(int) $d->frefdtno] ?? ['fqtysisapo' => 0, 'fqtyditer' => 0])
                 : ['fqtysisapo' => 0, 'fqtyditer' => 0];
 
             return [
@@ -1129,7 +1129,7 @@ class PenerimaanBarangController extends Controller
                 'fsatuan' => $d->fsatuan ?? '',
                 'fprno' => $d->frefpr ?? '-',
                 'frefdtno' => $d->frefdtno ?? null,
-                'frefdtid' => $d->frefdtid ?? null,
+                'frefdtno' => $d->frefdtno ?? null,
                 'fnoacak' => $d->fnoacak ?? '',
                 'frefnoacak' => $d->frefnoacak ?? '',
                 'fqty' => (float) ($d->fqty ?? 0),
@@ -1491,7 +1491,7 @@ class PenerimaanBarangController extends Controller
     private function validateUniqueReferenceUsage(array $rowsDt, ?string $exceptStockMtNo = null): ?string
     {
         $referenceDetailIds = collect($rowsDt)
-            ->pluck('frefdtid')
+            ->pluck('frefdtno')
             ->map(fn ($id) => (int) $id)
             ->filter(fn ($id) => $id > 0)
             ->unique()
@@ -1505,7 +1505,7 @@ class PenerimaanBarangController extends Controller
         $query = DB::table('trstockdt as d')
             ->join('trstockmt as h', 'h.fstockmtno', '=', 'd.fstockmtno')
             ->where('h.fstockmtcode', 'TER')
-            ->whereIn('d.frefdtid', $referenceDetailIds);
+            ->whereIn('d.frefdtno', $referenceDetailIds);
 
         if (! empty($exceptStockMtNo)) {
             $query->where('h.fstockmtno', '<>', $exceptStockMtNo);
@@ -1548,7 +1548,7 @@ class PenerimaanBarangController extends Controller
 
         $usedBy = DB::table('trstockdt')
             ->where('fstockmtcode', 'BUY')
-            ->whereIn('frefdtid', $detailIds->all())
+            ->whereIn('frefdtno', $detailIds->all())
             ->select('fstockmtno')
             ->distinct()
             ->orderBy('fstockmtno')

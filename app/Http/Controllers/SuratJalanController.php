@@ -392,7 +392,7 @@ class SuratJalanController extends Controller
             ->leftJoin('msprd', 'msprd.fprdcode', '=', 'trstockdt.fprdcode')
             ->select(
                 'trstockdt.fstockmtno as frefdtno',
-                'trstockdt.fstockdtid as frefdtid',
+                'trstockdt.fstockdtid as frefdtno',
                 DB::raw("TRIM(BOTH ', ' FROM CONCAT_WS(', ', NULLIF(TRIM(COALESCE(trstockdt.frefnoacak::text, '')), ''), NULLIF(TRIM(COALESCE(trstockdt.fnoacak::text, '')), ''))) as frefnoacak"),
                 // UBAH BAGIAN INI: Ambil kolom kode dari msprd (misal: fprdcode_string)
                 // atau pastikan kolom ini memang yang berisi kode produk
@@ -406,7 +406,7 @@ class SuratJalanController extends Controller
             )
             ->get()
             ->map(function ($item) use ($remainMap) {
-                $remain = (float) ($remainMap[(int) ($item->frefdtid ?? 0)] ?? 0);
+                $remain = (float) ($remainMap[(int) ($item->frefdtno ?? 0)] ?? 0);
                 $item->fqty_dokumen = (float) ($item->fqty ?? 0);
                 $item->fqtyremain = $remain;
 

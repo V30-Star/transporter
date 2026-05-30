@@ -73,7 +73,7 @@
         $oldItemNames = old('fitemname', []);
         $oldSatuans = old('fsatuan', []);
         $oldRefDtNos = old('frefdtno', []);
-        $oldRefDtIds = old('frefdtid', []);
+        $oldRefDtIds = old('frefdtno', []);
         $oldNoUrefs = old('fnouref', []);
         $oldNoAcaks = old('fnoacak', []);
         $oldRefNoAcaks = old('frefnoacak', []);
@@ -93,7 +93,7 @@
                 'fitemname' => $oldItemNames[$index] ?? '',
                 'fsatuan' => $oldSatuans[$index] ?? '',
                 'frefdtno' => $oldRefDtNos[$index] ?? '',
-                'frefdtid' => $oldRefDtIds[$index] ?? '',
+                'frefdtno' => $oldRefDtIds[$index] ?? '',
                 'fnouref' => $oldNoUrefs[$index] ?? '',
                 'fnoacak' => $oldNoAcaks[$index] ?? '',
                 'frefnoacak' => $oldRefNoAcaks[$index] ?? '',
@@ -324,7 +324,7 @@
                                     </td>
 
                                     <td class="p-2">
-                                        <template x-if="row.units.length > 1 && !row.frefdtid">
+                                        <template x-if="row.units.length > 1 && !row.frefdtno">
                                             <select class="w-full border rounded px-2 py-1 text-sm" :id="'unit_row_' + i"
                                                 x-model="row.fsatuan" @focus="activeRow = row.uid"
                                                 @blur="activeRow = null" @change="onRowUpdated(i)"
@@ -334,7 +334,7 @@
                                                 </template>
                                             </select>
                                         </template>
-                                        <template x-if="row.units.length <= 1 || row.frefdtid">
+                                        <template x-if="row.units.length <= 1 || row.frefdtno">
                                             <input type="text"
                                                 class="w-full border rounded px-2 py-1 bg-gray-100 text-gray-600 text-sm"
                                                 :value="row.fsatuan || '-'" disabled>
@@ -354,7 +354,7 @@
                                             @blur="activeRow = null; enforcePrQtyRow(row)" @input="onRowUpdated(i)"
                                             @change="onRowUpdated(i)" @keydown.enter.prevent="focusRowPrice(i)">
                                         <div class="text-[10px] text-amber-700 font-medium text-right mt-0.5"
-                                            x-show="row.frefdtid && formatPrRemainHint(row)"
+                                            x-show="row.frefdtno && formatPrRemainHint(row)"
                                             x-html="formatPrRemainHint(row)">
                                         </div>
                                     </td>
@@ -412,7 +412,7 @@
                             <input type="hidden" name="fitemname[]" :value="row.fitemname">
                             <input type="hidden" name="fsatuan[]" :value="row.fsatuan">
                             <input type="hidden" name="frefdtno[]" :value="row.frefdtno">
-                            <input type="hidden" name="frefdtid[]" :value="row.frefdtid">
+                            <input type="hidden" name="frefdtno[]" :value="row.frefdtno">
                             <input type="hidden" name="fnouref[]" :value="row.fnouref">
                             <input type="hidden" name="fnoacak[]" :value="row.fnoacak">
                             <input type="hidden" name="frefnoacak[]" :value="row.frefnoacak">
@@ -889,7 +889,7 @@
                     satuanbesar2: 1
                 },
                 maxqty_satuan: '',
-                frefdtid: '',
+                frefdtno: '',
                 fqtypo: 0,
                 fqtysisapr: 0,
                 fqtydipo: 0,
@@ -1157,7 +1157,7 @@
                     return;
                 }
                 if (n < 0) row.fqty = 0;
-                if (!row.frefdtid) {
+                if (!row.frefdtno) {
                     this.recalc(row);
                     return;
                 }
@@ -1271,7 +1271,7 @@
                 row.fitemname = (row.fitemname || '').toString();
                 row.fsatuan = (row.fsatuan || '').toString().trim();
                 row.frefdtno = (row.frefdtno || '').toString();
-                row.frefdtid = (row.frefdtid || '').toString();
+                row.frefdtno = (row.frefdtno || '').toString();
                 row.fnouref = (row.fnouref || '').toString();
                 row.fnoacak = this.normalizeNoAcak(row.fnoacak) || this.generateUniqueNoAcak(row.uid);
                 row.frefnoacak = this.normalizeNoAcak(row.frefnoacak);
@@ -1517,7 +1517,7 @@
                         fqtykecil_ref: Number(src.fqtykecil_ref ?? src.fqtyremain ?? 0),
                         fqtypr: Number(src.fqtypr ?? src.fqty ?? 0),
                         fqtypr_satuan: (src.fqtypr_satuan ?? src.fsatuan ?? '').trim(),
-                        frefdtid: src.frefdtid ?? '',
+                        frefdtno: src.frefdtno ?? '',
                         fsatuankecil: src.fsatuankecil || meta?.fsatuankecil || '',
                         fsatuanbesar: src.fsatuanbesar || meta?.fsatuanbesar || '',
                         fsatuanbesar2: src.fsatuanbesar2 || meta?.fsatuanbesar2 || '',
@@ -1683,7 +1683,7 @@
 
                     row.fnoacak = this.normalizeNoAcak(row.fnoacak) || this.generateUniqueNoAcak(row.uid);
                     row.maxqty = this.calcMaxQty(row);
-                    if (!row.fqty && !row.frefdtid) row.fqty = 1;
+                    if (!row.fqty && !row.frefdtno) row.fqty = 1;
                     this.recalc(row);
 
                     const targetIndex = this.browseTarget;
