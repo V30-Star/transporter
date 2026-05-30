@@ -21,6 +21,9 @@ class SalesOrderController extends Controller
 {
     use ProductBrowseHelper;
 
+    private const MEMO_DEBIT_ACCOUNT = '11300';
+    private const MEMO_CREDIT_ACCOUNT = '41000';
+
     private function formatDisplayTransactionNumber(?string $number, bool $useSlash = false): string
     {
         $normalized = trim((string) $number);
@@ -2180,7 +2183,7 @@ class SalesOrderController extends Controller
                 'fjurnaltype' => $fjurnaltype,
                 'fjurnalno' => $fjurnalno,
                 'flineno' => 1,
-                'faccount' => '11300',
+                'faccount' => self::MEMO_DEBIT_ACCOUNT,
                 'fdk' => 'D',
                 'fsubaccount' => $subaccount,
                 'frefno' => $fsono,
@@ -2197,7 +2200,7 @@ class SalesOrderController extends Controller
                 'fjurnaltype' => $fjurnaltype,
                 'fjurnalno' => $fjurnalno,
                 'flineno' => 2,
-                'faccount' => '41000',
+                'faccount' => self::MEMO_CREDIT_ACCOUNT,
                 'fdk' => 'K',
                 'fsubaccount' => $subaccount,
                 'frefno' => $fsono,

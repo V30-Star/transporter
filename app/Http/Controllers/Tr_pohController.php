@@ -20,6 +20,9 @@ use Illuminate\Validation\ValidationException;
 
 class Tr_pohController extends Controller
 {
+    private const MEMO_DEBIT_ACCOUNT = '11400';
+    private const MEMO_CREDIT_ACCOUNT = '21100';
+
     use ProductBrowseHelper;
 
     private function formatDisplayTransactionNumber(?string $number, bool $useSlash = false): string
@@ -1998,7 +2001,7 @@ class Tr_pohController extends Controller
                 'fjurnaltype' => $fjurnaltype,
                 'fjurnalno' => $fjurnalno,
                 'flineno' => 1,
-                'faccount' => '11400',
+                'faccount' => self::MEMO_DEBIT_ACCOUNT,
                 'fdk' => 'D',
                 'fsubaccount' => $subaccount,
                 'frefno' => $fpono,
@@ -2015,7 +2018,7 @@ class Tr_pohController extends Controller
                 'fjurnaltype' => $fjurnaltype,
                 'fjurnalno' => $fjurnalno,
                 'flineno' => 2,
-                'faccount' => '21100',
+                'faccount' => self::MEMO_CREDIT_ACCOUNT,
                 'fdk' => 'K',
                 'fsubaccount' => $subaccount,
                 'frefno' => $fpono,

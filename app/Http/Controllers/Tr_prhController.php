@@ -16,6 +16,9 @@ use Illuminate\Validation\ValidationException;
 
 class Tr_prhController extends Controller
 {
+    private const MEMO_DEBIT_ACCOUNT = '11400';
+    private const MEMO_CREDIT_ACCOUNT = '21100';
+
     private function resolveProductDefaultUnit(object $product): string
     {
         $defaultKey = trim((string) ($product->fsatuandefault ?? ''));
@@ -1285,7 +1288,7 @@ class Tr_prhController extends Controller
                 'fjurnaltype' => $fjurnaltype,
                 'fjurnalno' => $fjurnalno,
                 'flineno' => 1,
-                'faccount' => '11400',
+                'faccount' => self::MEMO_DEBIT_ACCOUNT,
                 'fdk' => 'D',
                 'fsubaccount' => $subaccount,
                 'frefno' => $fprno,
@@ -1302,7 +1305,7 @@ class Tr_prhController extends Controller
                 'fjurnaltype' => $fjurnaltype,
                 'fjurnalno' => $fjurnalno,
                 'flineno' => 2,
-                'faccount' => '21100',
+                'faccount' => self::MEMO_CREDIT_ACCOUNT,
                 'fdk' => 'K',
                 'fsubaccount' => $subaccount,
                 'frefno' => $fprno,

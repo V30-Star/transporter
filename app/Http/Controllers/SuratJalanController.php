@@ -1890,6 +1890,8 @@ class SuratJalanController extends Controller
                     ->where('fstockmtno', $suratjalan->fstockmtno)
                     ->delete();
 
+                $this->deleteSuratJalanJournalEntries((string) $suratjalan->fstockmtno);
+
                 $suratjalan->delete();
             });
 
@@ -2268,5 +2270,23 @@ class SuratJalanController extends Controller
                     'fprdout' => $hasUsage ? '1' : '0',
                 ]);
         }
+    }
+
+    private function deleteSuratJalanJournalEntries(string $fstockmtno): void
+    {
+        $jurnalIds = DB::table('jurnaldt')
+            ->where('frefno', $fstockmtno)
+            ->where('fjurnaltype', 'JV')
+            ->pluck('fjurnalmtid')
+            ->filter()
+            ->unique()
+            ->values();
+
+        if ($jurnalIds->isEmpty()) {
+            return;
+        }
+
+        DB::table('jurnaldt')->whereIn('fjurnalmtid', $jurnalIds->all())->delete();
+        DB::table('jurnalmt')->whereIn('fjurnalmtid', $jurnalIds->all())->delete();
     }
 }

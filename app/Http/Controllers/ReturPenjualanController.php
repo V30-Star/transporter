@@ -18,6 +18,9 @@ use Illuminate\Validation\ValidationException;
 
 class ReturPenjualanController extends Controller
 {
+    private const MEMO_DEBIT_ACCOUNT = '11300';
+    private const MEMO_CREDIT_ACCOUNT = '41000';
+
     private function resolveProductDefaultUnit($product): string
     {
         $defaultKey = trim((string) ($product->fsatuandefault ?? ''));
@@ -1031,6 +1034,14 @@ class ReturPenjualanController extends Controller
                 unset($srow);
 
                 DB::table('trstockdt')->insert($stockDetailRows);
+
+                $this->syncReturPenjualanJournalEntries(
+                    (string) $fsono,
+                    $fsodate,
+                    (string) ($request->fbranchcode ?? 'BG'),
+                    (string) $request->fcustno,
+                    (string) $userid
+                );
 
                 // Validasi sisa SO/SRJ berdasarkan fqtykecil dinonaktifkan.
             });
@@ -2111,6 +2122,14 @@ class ReturPenjualanController extends Controller
                     DB::table('trstockdt')->insert($stockDetailRows);
                 }
 
+                $this->syncReturPenjualanJournalEntries(
+                    (string) $header->fsono,
+                    $fsodate,
+                    (string) ($request->fbranchcode ?? ($header->fbranchcode ?? 'BG')),
+                    (string) $request->fcustno,
+                    (string) $userid
+                );
+
                 // Validasi sisa SO/SRJ berdasarkan fqtykecil dinonaktifkan.
             });
 
@@ -2246,8 +2265,10 @@ class ReturPenjualanController extends Controller
     public function destroy($ftranmtid)
     {
         try {
-            DB::transaction(function () use ($ftranmtid) {
+            $deletedHeader = null;
+            DB::transaction(function () use ($ftranmtid, &$deletedHeader) {
                 $returpenjualan = Tranmt::findOrFail($ftranmtid);
+                $deletedHeader = $returpenjualan;
 
                 if ($message = $this->getPostedPeriodLockMessage($returpenjualan->fsodate, 'Retur ini')) {
                     throw new \RuntimeException($message);
@@ -2278,14 +2299,134 @@ class ReturPenjualanController extends Controller
                     DB::table('trstockmt')->where('fstockmtid', $stockHeader->fstockmtid)->delete();
                 }
 
+                $this->deleteReturPenjualanJournalEntries((string) $fsono);
+
                 // 3. Delete header (tranmt)
                 $returpenjualan->delete();
             });
 
-            return redirect()->route('returpenjualan.index')->with('success', 'Retur penjualan '.$this->formatDisplayTransactionNumber($fsono, (string) ($returpenjualan->fincludeppn ?? '0') === '1').' berhasil dihapus.');
+            $displayNo = $this->formatDisplayTransactionNumber((string) ($deletedHeader->fsono ?? ''), (string) ($deletedHeader->fincludeppn ?? '0') === '1');
+            return redirect()->route('returpenjualan.index')->with('success', 'Retur penjualan '.$displayNo.' berhasil dihapus.');
         } catch (\Exception $e) {
             return redirect()->route('returpenjualan.index')->with('error', 'Retur penjualan belum bisa dihapus. Coba lagi.');
         }
+    }
+
+    private function createReturPenjualanJournalEntries(
+        string $fsono,
+        Carbon $fsodate,
+        string $branchCode,
+        string $customerCode,
+        string $userName
+    ): void {
+        $kodeCabang = trim($branchCode) !== '' ? trim($branchCode) : trim((string) (session('fcabang') ?: '01'));
+        $customerCode = trim($customerCode);
+        $fjurnaltype = 'JRE';
+        $prefix = sprintf('%s.%s.%s.%s.', $fjurnaltype, $kodeCabang, $fsodate->format('y'), $fsodate->format('m'));
+
+        if (DB::getDriverName() === 'pgsql') {
+            $lockKey = crc32('JURNAL|'.$fjurnaltype.'|'.$kodeCabang.'|'.$fsodate->format('Y-m'));
+            DB::statement('SELECT pg_advisory_xact_lock(?)', [$lockKey]);
+
+            $lastNo = DB::table('jurnalmt')
+                ->where('fjurnalno', 'like', $prefix.'%')
+                ->selectRaw("MAX(CAST(split_part(fjurnalno, '.', 5) AS int)) AS lastno")
+                ->value('lastno');
+
+            $nextNo = (int) $lastNo + 1;
+        } else {
+            $lastJurnalNo = DB::table('jurnalmt')
+                ->where('fjurnalno', 'like', $prefix.'%')
+                ->orderByDesc('fjurnalno')
+                ->value('fjurnalno');
+
+            $nextNo = 1;
+            if ($lastJurnalNo && ($pos = strrpos($lastJurnalNo, '.')) !== false) {
+                $nextNo = ((int) substr($lastJurnalNo, $pos + 1)) + 1;
+            }
+        }
+
+        $fjurnalno = $prefix.str_pad((string) $nextNo, 4, '0', STR_PAD_LEFT);
+        $now = now();
+        $subaccount = $customerCode !== '' ? $customerCode : null;
+
+        $jurnalId = DB::table('jurnalmt')->insertGetId([
+            'fbranchcode' => $kodeCabang,
+            'fjurnalno' => $fjurnalno,
+            'fjurnaltype' => $fjurnaltype,
+            'fjurnaldate' => $fsodate,
+            'fjurnalnote' => 'Jurnal Retur Penjualan '.$fsono,
+            'fbalance' => 0,
+            'fbalance_rp' => 0,
+            'fdatetime' => $now,
+            'fuserid' => $userName,
+        ], 'fjurnalmtid');
+
+        DB::table('jurnaldt')->insert([
+            [
+                'fjurnalmtid' => $jurnalId,
+                'fbranchcode' => $kodeCabang,
+                'fjurnaltype' => $fjurnaltype,
+                'fjurnalno' => $fjurnalno,
+                'flineno' => 1,
+                'faccount' => self::MEMO_DEBIT_ACCOUNT,
+                'fdk' => 'D',
+                'fsubaccount' => $subaccount,
+                'frefno' => $fsono,
+                'frate' => 1,
+                'famount' => 0,
+                'famount_rp' => 0,
+                'faccountnote' => 'Memo Retur '.$fsono,
+                'fusercreate' => $userName,
+                'fdatetime' => $now,
+            ],
+            [
+                'fjurnalmtid' => $jurnalId,
+                'fbranchcode' => $kodeCabang,
+                'fjurnaltype' => $fjurnaltype,
+                'fjurnalno' => $fjurnalno,
+                'flineno' => 2,
+                'faccount' => self::MEMO_CREDIT_ACCOUNT,
+                'fdk' => 'K',
+                'fsubaccount' => $subaccount,
+                'frefno' => $fsono,
+                'frate' => 1,
+                'famount' => 0,
+                'famount_rp' => 0,
+                'faccountnote' => 'Memo Retur '.$fsono,
+                'fusercreate' => $userName,
+                'fdatetime' => $now,
+            ],
+        ]);
+    }
+
+    private function syncReturPenjualanJournalEntries(
+        string $fsono,
+        Carbon $fsodate,
+        string $branchCode,
+        string $customerCode,
+        string $userName
+    ): void {
+        $this->deleteReturPenjualanJournalEntries($fsono);
+        $this->createReturPenjualanJournalEntries($fsono, $fsodate, $branchCode, $customerCode, $userName);
+    }
+
+    private function deleteReturPenjualanJournalEntries(string $fsono): void
+    {
+        $existingJurnalIds = DB::table('jurnaldt')
+            ->where('frefno', $fsono)
+            ->where('fjurnaltype', 'JRE')
+            ->pluck('fjurnalmtid')
+            ->filter()
+            ->unique()
+            ->values();
+
+        if ($existingJurnalIds->isEmpty()) {
+            return;
+        }
+
+        DB::table('jurnaldt')->whereIn('fjurnalmtid', $existingJurnalIds->all())->delete();
+        DB::table('jurnalmt')->whereIn('fjurnalmtid', $existingJurnalIds->all())->delete();
     }
 
     private function getUsageLockMessage($header): ?string
