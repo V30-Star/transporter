@@ -1138,7 +1138,13 @@ class SalesOrderController extends Controller
                 $this->sendApprovalNotification($fsono, $userid);
             }
 
-            return redirect()->route('salesorder.create')->with('success', 'Sales Order ' . $this->formatDisplayTransactionNumber($fsono, (int) $fapplyppn === 1) . ' berhasil disimpan.');
+            return redirect()
+                ->route('salesorder.create')
+                ->with('success', 'Sales Order ' . $this->formatDisplayTransactionNumber($fsono, (int) $fapplyppn === 1) . ' berhasil disimpan.')
+                ->with('success_prompt', [
+                    'type' => 'salesorder_create_suratjalan',
+                    'redirect_url' => route('suratjalan.create'),
+                ]);
         } catch (\Exception $e) {
             report($e);
             return back()->withInput()->withErrors(['error' => 'Sales Order belum bisa disimpan. Cek data.']);

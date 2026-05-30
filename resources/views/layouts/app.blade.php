@@ -1353,6 +1353,7 @@
         <script>
             document.addEventListener('DOMContentLoaded', () => {
                 const successMessage = @json((string) session('success'));
+                const successPrompt = @json(session('success_prompt'));
 
                 if (successMessage === "Periode sudah di Update\njangan lupa diposting ulang.") {
                     Swal.fire({
@@ -1362,6 +1363,27 @@
                         confirmButtonText: 'Ok',
                         allowOutsideClick: false,
                         allowEscapeKey: false,
+                    });
+                    return;
+                }
+
+                if (successPrompt?.type === 'salesorder_create_suratjalan') {
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Sales Order Berhasil Disimpan',
+                        text: successMessage,
+                        showCancelButton: true,
+                        confirmButtonText: 'Yes',
+                        cancelButtonText: 'No',
+                        allowOutsideClick: false,
+                        allowEscapeKey: false,
+                    }).then((result) => {
+                        if (result.isConfirmed && successPrompt.redirect_url) {
+                            window.location.href = successPrompt.redirect_url;
+                            return;
+                        }
+
+                        window.showAppSuccessToast(successMessage);
                     });
                     return;
                 }

@@ -1,10 +1,26 @@
 @php
     $pickableRoute = $pickableRoute ?? route('invoice.pickable');
     $itemsRouteTemplate = $itemsRouteTemplate ?? route('invoice.items', ['id' => 'INV_ID_PLACEHOLDER']);
+    $itemsRoutePlaceholder = $itemsRoutePlaceholder ?? 'INV_ID_PLACEHOLDER';
+    $tableId = $tableId ?? 'invoiceTable';
+    $controlsId = $controlsId ?? 'invoiceTableControls';
+    $paginationId = $paginationId ?? 'invoiceTablePagination';
+    $numberColumnLabel = $numberColumnLabel ?? 'fsono';
+    $numberColumnName = $numberColumnName ?? 'fsono';
+    $referenceColumnLabel = $referenceColumnLabel ?? 'frefno';
+    $referenceColumnName = $referenceColumnName ?? 'frefno';
+    $partyColumnLabel = $partyColumnLabel ?? 'fcustomername';
+    $partyColumnName = $partyColumnName ?? 'fcustomername';
+    $dateColumnLabel = $dateColumnLabel ?? 'fsodate';
+    $dateColumnName = $dateColumnName ?? 'fsodate';
+    $itemIdField = $itemIdField ?? 'ftranmtid';
+    $pickEventName = $pickEventName ?? 'pr-picked';
+    $detailEntityLabel = $detailEntityLabel ?? 'Faktur Penjualan';
 @endphp
 
 <script>
     window.invoiceFormModal = function() {
+        const tableSelector = '#' + @js($tableId);
         return {
             show: false,
             table: null,
@@ -19,7 +35,7 @@
                     this.table.destroy();
                 }
 
-                this.table = $('#invoiceTable').DataTable({
+                this.table = $(tableSelector).DataTable({
                     processing: true,
                     serverSide: true,
                     ajax: {
@@ -37,29 +53,29 @@
                         }
                     },
                     columns: [{
-                            data: 'fsono',
-                            name: 'fsono',
+                            data: @js($numberColumnLabel),
+                            name: @js($numberColumnName),
                             className: 'font-mono text-sm'
                         },
                         {
-                            data: 'frefno',
-                            name: 'frefno',
+                            data: @js($referenceColumnLabel),
+                            name: @js($referenceColumnName),
                             className: 'font-mono text-sm',
                             render: function(data) {
                                 return data || '<span class="text-gray-400">-</span>';
                             }
                         },
                         {
-                            data: 'fcustomername',
-                            name: 'fcustomername',
+                            data: @js($partyColumnLabel),
+                            name: @js($partyColumnName),
                             className: 'text-sm',
                             render: function(data) {
                                 return data || '<span class="text-gray-400">-</span>';
                             }
                         },
                         {
-                            data: 'fsodate',
-                            name: 'fsodate',
+                            data: @js($dateColumnLabel),
+                            name: @js($dateColumnName),
                             className: 'text-sm',
                             render: function(data) {
                                 return formatDate(data);
@@ -81,7 +97,7 @@
                         [10, 25, 50, 100],
                         [10, 25, 50, 100]
                     ],
-                    dom: '<"#invoiceTableControls"fl>rt<"#invoiceTablePagination"ip>',
+                    dom: '<"#' + @js($controlsId) + '"fl>rt<"#' + @js($paginationId) + '"ip>',
                     language: {
                         processing: "Memuat data...",
                         search: "Cari:",
@@ -126,7 +142,7 @@
                 });
 
                 const self = this;
-                $('#invoiceTable').off('click', '.btn-pick').on('click', '.btn-pick', function() {
+                $(tableSelector).off('click', '.btn-pick').on('click', '.btn-pick', function() {
                     const data = self.table.row($(this).closest('tr')).data();
                     self.pick(data);
                 });
@@ -160,7 +176,8 @@
 
             async pick(row) {
                 try {
-                    const url = @js($itemsRouteTemplate).replace('INV_ID_PLACEHOLDER', row.ftranmtid);
+                    const itemId = row?.[@js($itemIdField)];
+                    const url = @js($itemsRouteTemplate).replace(@js($itemsRoutePlaceholder), itemId);
 
                     const res = await fetch(url, {
                         headers: {
@@ -197,7 +214,7 @@
                         return;
                     }
 
-                    window.dispatchEvent(new CustomEvent('pr-picked', {
+                    window.dispatchEvent(new CustomEvent(@js($pickEventName), {
                         detail: {
                             header: json.header,
                             items: items
@@ -207,7 +224,7 @@
                     this.closeModal();
                 } catch (e) {
                     console.error('Error:', e);
-                    window.toast?.error(`Gagal mengambil detail Faktur Penjualan: ${e.message}`);
+                    window.toast?.error(`Gagal mengambil detail ${@js($detailEntityLabel)}: ${e.message}`);
                 }
             }
         };

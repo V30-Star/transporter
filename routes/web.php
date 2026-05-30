@@ -432,6 +432,10 @@ Route::middleware('auth')->group(function () {
             ->name('suratjalan.print');
         Route::get('/suratjalan/{id}/items', [SuratJalanController::class, 'items'])
             ->name('suratjalan.items');
+        Route::get('/suratjalan/pickable-ter', [SuratJalanController::class, 'pickableTer'])
+            ->name('suratjalan.pickableTer');
+        Route::get('/suratjalan/{id}/items-ter', [SuratJalanController::class, 'itemsTer'])
+            ->name('suratjalan.itemsTer');
         Route::get('/suratjalan/pickable', [SuratJalanController::class, 'pickable'])
             ->name('suratjalan.pickable');
 

@@ -575,9 +575,9 @@
                                             <div
                                                 class="px-6 py-4 border-b border-gray-200 flex items-center justify-between flex-shrink-0 bg-gradient-to-r from-sky-50 to-white">
                                                 <div>
-                                                    <h3 class="text-xl font-bold text-gray-800">Add Faktur</h3>
-                                                    <p class="text-sm text-gray-500 mt-0.5">Pilih transaksi invoice kode
-                                                        INV yang belum dipakai</p>
+                                                    <h3 class="text-xl font-bold text-gray-800">Add TER</h3>
+                                                    <p class="text-sm text-gray-500 mt-0.5">Pilih transaksi penerimaan
+                                                        barang kode TER</p>
                                                 </div>
                                                 <button type="button" @click="closeModal()"
                                                     class="px-4 py-2 rounded-lg border-2 border-gray-300 bg-white hover:bg-gray-50 hover:border-gray-400 transition-all duration-150 font-bold text-gray-700 text-sm">
@@ -599,13 +599,13 @@
                                                             <tr class="bg-gradient-to-r from-gray-50 to-gray-100">
                                                                 <th
                                                                     class="text-left p-3 font-semibold text-gray-700 border-b-2 border-gray-200">
-                                                                    No Faktur</th>
+                                                                    No TER</th>
                                                                 <th
                                                                     class="text-left p-3 font-semibold text-gray-700 border-b-2 border-gray-200">
                                                                     No Ref</th>
                                                                 <th
                                                                     class="text-left p-3 font-semibold text-gray-700 border-b-2 border-gray-200">
-                                                                    Customer</th>
+                                                                    Supplier</th>
                                                                 <th
                                                                     class="text-left p-3 font-semibold text-gray-700 border-b-2 border-gray-200">
                                                                     Tanggal</th>
@@ -1238,7 +1238,7 @@
                     const itemcode = (src.fitemcode ?? '').toString().trim();
                     const itemname = (src.fitemname ?? '').toString().trim();
                     const satuan = (src.fsatuan ?? '').toString().trim();
-                    const frefdtno = (header?.fsono ?? src.frefdtno ?? '').toString().trim();
+                    const frefdtno = (header?.fstockmtno ?? header?.fsono ?? src.frefdtno ?? '').toString().trim();
 
                     // VALIDASI MINIMAL: harus ada kode, nama, dan satuan
                     if (!itemcode || !itemname || !satuan) {
@@ -1494,7 +1494,21 @@
 </script>
 
 @include('components.transaction.suratjalan-so-modal-script')
-@include('components.transaction.suratjalan-invoice-modal-script')
+@include('components.transaction.suratjalan-invoice-modal-script', [
+    'pickableRoute' => route('suratjalan.pickableTer'),
+    'itemsRouteTemplate' => route('suratjalan.itemsTer', ['id' => 'TER_ID_PLACEHOLDER']),
+    'itemsRoutePlaceholder' => 'TER_ID_PLACEHOLDER',
+    'numberColumnLabel' => 'fstockmtno_display',
+    'numberColumnName' => 'fstockmtno_display',
+    'referenceColumnLabel' => 'frefpo',
+    'referenceColumnName' => 'frefpo',
+    'partyColumnLabel' => 'fsuppliername',
+    'partyColumnName' => 'fsuppliername',
+    'dateColumnLabel' => 'fstockmtdate',
+    'dateColumnName' => 'fstockmtdate',
+    'itemIdField' => 'fstockmtid',
+    'detailEntityLabel' => 'penerimaan barang',
+])
 
 <script>
     // Helper function untuk format tanggal
