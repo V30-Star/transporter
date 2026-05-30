@@ -1929,6 +1929,9 @@
                     const sourceQtyKecil = Math.max(0, +(src.fqtykecil ?? src.fqtyremain ?? src.fqty ?? 0) ||
                     0);
                     const sourceLimit = sourceQty > 0 ? sourceQty : sourceQtyKecil;
+                    const sourceBiayaRaw = Math.max(0, +(src.fbiaya || 0));
+                    const sourceBiayaPerUnit = sourceType === 'PO' && sourceLimit > 0 ? (sourceBiayaRaw /
+                        sourceLimit) : sourceBiayaRaw;
 
                     const row = {
                         uid: cryptoRandom(),
@@ -1953,7 +1956,7 @@
                         // Financial
                         fprice: +(src.fprice || 0),
                         fdiscpersen: this.normalizeDiscountValue(src.fdiscpersen ?? src.fdisc ?? 0),
-                        fbiaya: +(src.fbiaya || 0),
+                        fbiaya: sourceBiayaPerUnit,
                         ftotprice: +(src.fharga || 0),
 
                         fdesc: src.fdesc || '',

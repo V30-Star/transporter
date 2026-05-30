@@ -2053,19 +2053,19 @@ class SalesOrderController extends Controller
         $formattedParts = [];
 
         if ($usedBySrj->isNotEmpty()) {
-            $formattedParts[] = 'SRJ ' . $usedBySrj
+            $formattedParts[] = '  SRJ: ' . $usedBySrj
                 ->map(fn($number) => $this->formatDisplayTransactionNumber((string) $number, false))
                 ->implode(', ');
         }
 
         if ($usedByInvoice->isNotEmpty()) {
-            $formattedParts[] = 'Faktur Penjualan ' . $usedByInvoice
+            $formattedParts[] = '  Faktur Penjualan: ' . $usedByInvoice
                 ->map(fn($number) => $this->formatDisplayTransactionNumber((string) $number, false))
                 ->implode(', ');
         }
 
         if ($usedByRetur->isNotEmpty()) {
-            $formattedParts[] = 'Retur Penjualan ' . $usedByRetur
+            $formattedParts[] = '  Retur Penjualan: ' . $usedByRetur
                 ->map(fn($number) => $this->formatDisplayTransactionNumber((string) $number, false))
                 ->implode(', ');
         }
