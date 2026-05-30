@@ -433,6 +433,14 @@ class Tr_prhController extends Controller
 
             Tr_prd::insert($detailRows);
 
+            $this->createPrJournalEntries(
+                (string) $tr_prh->fprno,
+                $fprdate,
+                (string) ($request->fbranchcode ?? ''),
+                (string) ($request->fsupplier ?? ''),
+                (string) $userName
+            );
+
             if ($isApproval === 1) {
                 $dt = Tr_prd::query()
                     ->leftJoin('msprd as p', 'p.fprdcode', '=', 'tr_prd.fprdcode')
@@ -714,6 +722,14 @@ class Tr_prhController extends Controller
                     DB::table('tr_prd')->insert($data);
                 }
             }
+
+            $this->syncPrJournalEntries(
+                (string) $header->fprno,
+                $fprdate,
+                (string) ($request->fbranchcode ?? ''),
+                (string) ($request->fsupplier ?? ''),
+                (string) $userName
+            );
         });
 
         return redirect()
@@ -773,6 +789,9 @@ class Tr_prhController extends Controller
                 DB::table('tr_prd')
                     ->where('fprno', $tr_prh->fprno)
                     ->delete();
+
+                $this->deletePrJournalEntries((string) $tr_prh->fprno);
+
                 $tr_prh->delete();
             });
 
@@ -1206,5 +1225,135 @@ class Tr_prhController extends Controller
                     END, 0) AS fqtydipo'),
             ])
             ->get();
+    }
+
+    private function createPrJournalEntries(
+        string $fprno,
+        Carbon $fprdate,
+        string $branchCode,
+        string $supplierCode,
+        string $userName
+    ): void {
+        $kodeCabang = trim($branchCode) !== '' ? trim($branchCode) : trim((string) (session('fcabang') ?: '01'));
+        $supplierCode = trim($supplierCode);
+        $fjurnaltype = 'JPR';
+        $prefix = sprintf('%s.%s.%s.%s.', $fjurnaltype, $kodeCabang, $fprdate->format('y'), $fprdate->format('m'));
+
+        if (DB::getDriverName() === 'pgsql') {
+            $lockKey = crc32('JURNAL|'.$fjurnaltype.'|'.$kodeCabang.'|'.$fprdate->format('Y-m'));
+            DB::statement('SELECT pg_advisory_xact_lock(?)', [$lockKey]);
+
+            $lastNo = DB::table('jurnalmt')
+                ->where('fjurnalno', 'like', $prefix.'%')
+                ->selectRaw("MAX(CAST(split_part(fjurnalno, '.', 5) AS int)) AS lastno")
+                ->value('lastno');
+
+            $nextNo = (int) $lastNo + 1;
+        } else {
+            $lastJurnalNo = DB::table('jurnalmt')
+                ->where('fjurnalno', 'like', $prefix.'%')
+                ->orderByDesc('fjurnalno')
+                ->value('fjurnalno');
+
+            $nextNo = 1;
+            if ($lastJurnalNo && ($pos = strrpos($lastJurnalNo, '.')) !== false) {
+                $nextNo = ((int) substr($lastJurnalNo, $pos + 1)) + 1;
+            }
+        }
+
+        $fjurnalno = $prefix.str_pad((string) $nextNo, 4, '0', STR_PAD_LEFT);
+        $now = now();
+
+        $jurnalId = DB::table('jurnalmt')->insertGetId([
+            'fbranchcode' => $kodeCabang,
+            'fjurnalno' => $fjurnalno,
+            'fjurnaltype' => $fjurnaltype,
+            'fjurnaldate' => $fprdate,
+            'fjurnalnote' => 'Jurnal Permintaan Pembelian '.$fprno,
+            'fbalance' => 0,
+            'fbalance_rp' => 0,
+            'fdatetime' => $now,
+            'fuserid' => $userName,
+        ], 'fjurnalmtid');
+
+        $subaccount = $supplierCode !== '' ? $supplierCode : null;
+
+        DB::table('jurnaldt')->insert([
+            [
+                'fjurnalmtid' => $jurnalId,
+                'fbranchcode' => $kodeCabang,
+                'fjurnaltype' => $fjurnaltype,
+                'fjurnalno' => $fjurnalno,
+                'flineno' => 1,
+                'faccount' => '11400',
+                'fdk' => 'D',
+                'fsubaccount' => $subaccount,
+                'frefno' => $fprno,
+                'frate' => 1,
+                'famount' => 0,
+                'famount_rp' => 0,
+                'faccountnote' => 'Memo PR '.$fprno,
+                'fusercreate' => $userName,
+                'fdatetime' => $now,
+            ],
+            [
+                'fjurnalmtid' => $jurnalId,
+                'fbranchcode' => $kodeCabang,
+                'fjurnaltype' => $fjurnaltype,
+                'fjurnalno' => $fjurnalno,
+                'flineno' => 2,
+                'faccount' => '21100',
+                'fdk' => 'K',
+                'fsubaccount' => $subaccount,
+                'frefno' => $fprno,
+                'frate' => 1,
+                'famount' => 0,
+                'famount_rp' => 0,
+                'faccountnote' => 'Memo PR '.$fprno,
+                'fusercreate' => $userName,
+                'fdatetime' => $now,
+            ],
+        ]);
+    }
+
+    private function syncPrJournalEntries(
+        string $fprno,
+        Carbon $fprdate,
+        string $branchCode,
+        string $supplierCode,
+        string $userName
+    ): void {
+        $existingJurnalIds = DB::table('jurnaldt')
+            ->where('frefno', $fprno)
+            ->where('fjurnaltype', 'JPR')
+            ->pluck('fjurnalmtid')
+            ->filter()
+            ->unique()
+            ->values();
+
+        if ($existingJurnalIds->isNotEmpty()) {
+            DB::table('jurnaldt')->whereIn('fjurnalmtid', $existingJurnalIds->all())->delete();
+            DB::table('jurnalmt')->whereIn('fjurnalmtid', $existingJurnalIds->all())->delete();
+        }
+
+        $this->createPrJournalEntries($fprno, $fprdate, $branchCode, $supplierCode, $userName);
+    }
+
+    private function deletePrJournalEntries(string $fprno): void
+    {
+        $existingJurnalIds = DB::table('jurnaldt')
+            ->where('frefno', $fprno)
+            ->where('fjurnaltype', 'JPR')
+            ->pluck('fjurnalmtid')
+            ->filter()
+            ->unique()
+            ->values();
+
+        if ($existingJurnalIds->isEmpty()) {
+            return;
+        }
+
+        DB::table('jurnaldt')->whereIn('fjurnalmtid', $existingJurnalIds->all())->delete();
+        DB::table('jurnalmt')->whereIn('fjurnalmtid', $existingJurnalIds->all())->delete();
     }
 }
