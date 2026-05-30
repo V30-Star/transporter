@@ -502,11 +502,11 @@ class SuratJalanController extends Controller
             ->selectRaw("
                 srj_use.frefdtno,
                 srj_use.fprdcode,
-                COALESCE(srj_use.frefnoacak, '') as frefnoacak,
+                COALESCE(srj_use.frefnoacak::text, '') as frefnoacak,
                 SUM(COALESCE(srj_use.fqtykecil, 0)) AS fqtykecilkeluar
             ")
             ->where('srj_use.fstockmtcode', 'SRJ')
-            ->groupBy('srj_use.frefdtno', 'srj_use.fprdcode', DB::raw("COALESCE(srj_use.frefnoacak, '')"));
+            ->groupBy('srj_use.frefdtno', 'srj_use.fprdcode', DB::raw("COALESCE(srj_use.frefnoacak::text, '')"));
 
         $items = DB::table('trstockdt')
             ->where('trstockdt.fstockmtno', $header->fstockmtno)
@@ -515,7 +515,7 @@ class SuratJalanController extends Controller
             ->leftJoinSub($usageSub, 'srj', function ($join) use ($header) {
                 $join->where('srj.frefdtno', '=', $header->fstockmtno)
                     ->on('srj.fprdcode', '=', 'trstockdt.fprdcode')
-                    ->whereRaw("srj.frefnoacak = COALESCE(trstockdt.frefnoacak, '')");
+                    ->whereRaw("srj.frefnoacak = COALESCE(trstockdt.frefnoacak::text, '')");
             })
             ->select([
                 'trstockdt.fstockdtid as frefdtid',
