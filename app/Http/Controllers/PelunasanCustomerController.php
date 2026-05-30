@@ -967,14 +967,50 @@ class PelunasanCustomerController extends Controller
                 ->first(['faccid', 'faccount', 'faccname']);
         }
 
+        $referenceRemainMap = collect();
+        if ($header) {
+            $refNos = $header->details
+                ->filter(fn($detail) => trim((string) ($detail->freftype ?? 'INV')) !== 'ADM')
+                ->pluck('frefno')
+                ->map(fn($value) => trim((string) $value))
+                ->filter()
+                ->unique()
+                ->values()
+                ->all();
+
+            if (!empty($refNos)) {
+                $referenceRemainMap = Tranmt::query()
+                    ->whereIn('fsono', $refNos)
+                    ->select(['fsono', 'famountso', 'famountremain', 'ftrcode'])
+                    ->get()
+                    ->keyBy(fn($row) => trim((string) ($row->fsono ?? '')));
+            }
+        }
+
         $detailRows = $header
             ? $header->details
                 ->filter(fn($detail) => trim((string)($detail->freftype ?? 'INV')) !== 'ADM')
                 ->values()
-                ->map(function ($detail, $index) {
+                ->map(function ($detail, $index) use ($referenceRemainMap) {
                     $trCode = trim((string) ($detail->freftype ?? 'INV'));
                     $baseAmount = (float) ($detail->fvalue_rp ?? $detail->fjurnal_rp ?? $detail->fkasdtvalue ?? 0);
                     $paymentAmount = (float) ($detail->fkasdtvalue ?? 0);
+                    $discountAmount = (float) ($detail->fdiscount ?? 0);
+                    $refNo = trim((string) ($detail->frefno ?? ''));
+                    $reference = $referenceRemainMap->get($refNo);
+
+                    if ($reference) {
+                        $currentNotaAmount = (float) ($reference->famountso ?? 0);
+                        $currentRemainAmount = (float) ($reference->famountremain ?? 0);
+
+                        if (strtoupper(trim((string) ($reference->ftrcode ?? $trCode))) === 'REJ') {
+                            $currentNotaAmount = abs($currentNotaAmount);
+                            $currentRemainAmount = abs($currentRemainAmount);
+                        }
+
+                        $baseAmount = $currentNotaAmount;
+                        $paymentAmount = max($currentRemainAmount - $discountAmount, 0);
+                    }
 
                     if (strtoupper($trCode) === 'REJ') {
                         $baseAmount = $baseAmount < 0 ? $baseAmount * -1 : $baseAmount;
@@ -983,11 +1019,11 @@ class PelunasanCustomerController extends Controller
 
                     return [
                         'uid' => 'pc-existing-' . $index . '-' . $detail->fkasdtid,
-                        'frefno' => trim((string) ($detail->frefno ?? '')),
+                        'frefno' => $refNo,
                         'fnilai_nota' => $baseAmount,
-                        'fsisa_piutang' => $baseAmount,
+                        'fsisa_piutang' => $reference ? max((float) ($reference->famountremain ?? 0), 0) : $baseAmount,
                         'fdiscpersen' => (float) ($detail->fdiscpersen ?? 0),
-                        'fdiscount' => (float) ($detail->fdiscount ?? 0),
+                        'fdiscount' => $discountAmount,
                         'fkasdtvalue' => $paymentAmount,
                         'ftrcode' => $trCode,
                         'fdatetime' => !empty($detail->fdatetime) ? Carbon::parse($detail->fdatetime)->format('Y-m-d') : null,

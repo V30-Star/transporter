@@ -1099,6 +1099,14 @@ class Tr_pohController extends Controller
 
                 DB::table('tr_pod')->insert($rowsPod);
                 $this->adjustPrReferenceQtyKecil($prdAgg, -1);
+
+                $this->createPoJournalEntries(
+                    (string) $fpono,
+                    $fpodate,
+                    (string) ($request->input('fbranchcode') ?? ''),
+                    (string) ($request->input('fsupplier') ?? ''),
+                    (string) $userid
+                );
             });
         } catch (\RuntimeException $e) {
             return back()->withInput()->withErrors(['detail' => $e->getMessage()]);
@@ -1922,6 +1930,94 @@ class Tr_pohController extends Controller
             ])
             ->orderBy('d.fnou')
             ->get();
+    }
+
+    private function createPoJournalEntries(
+        string $fpono,
+        Carbon $fpodate,
+        string $branchCode,
+        string $supplierCode,
+        string $userName
+    ): void {
+        $kodeCabang = trim($branchCode) !== '' ? trim($branchCode) : trim((string) (session('fcabang') ?: '01'));
+        $supplierCode = trim($supplierCode);
+        $fjurnaltype = 'JPO';
+        $prefix = sprintf('%s.%s.%s.%s.', $fjurnaltype, $kodeCabang, $fpodate->format('y'), $fpodate->format('m'));
+
+        if (DB::getDriverName() === 'pgsql') {
+            $lockKey = crc32('JURNAL|'.$fjurnaltype.'|'.$kodeCabang.'|'.$fpodate->format('Y-m'));
+            DB::statement('SELECT pg_advisory_xact_lock(?)', [$lockKey]);
+
+            $lastNo = DB::table('jurnalmt')
+                ->where('fjurnalno', 'like', $prefix.'%')
+                ->selectRaw("MAX(CAST(split_part(fjurnalno, '.', 5) AS int)) AS lastno")
+                ->value('lastno');
+
+            $nextNo = (int) $lastNo + 1;
+        } else {
+            $lastJurnalNo = DB::table('jurnalmt')
+                ->where('fjurnalno', 'like', $prefix.'%')
+                ->orderByDesc('fjurnalno')
+                ->value('fjurnalno');
+
+            $nextNo = 1;
+            if ($lastJurnalNo && ($pos = strrpos($lastJurnalNo, '.')) !== false) {
+                $nextNo = ((int) substr($lastJurnalNo, $pos + 1)) + 1;
+            }
+        }
+
+        $fjurnalno = $prefix.str_pad((string) $nextNo, 4, '0', STR_PAD_LEFT);
+        $now = now();
+        $subaccount = $supplierCode !== '' ? $supplierCode : null;
+
+        $jurnalId = DB::table('jurnalmt')->insertGetId([
+            'fbranchcode' => $kodeCabang,
+            'fjurnalno' => $fjurnalno,
+            'fjurnaltype' => $fjurnaltype,
+            'fjurnaldate' => $fpodate,
+            'fjurnalnote' => 'Jurnal Order Pembelian '.$fpono,
+            'fbalance' => 0,
+            'fbalance_rp' => 0,
+            'fdatetime' => $now,
+            'fuserid' => $userName,
+        ], 'fjurnalmtid');
+
+        DB::table('jurnaldt')->insert([
+            [
+                'fjurnalmtid' => $jurnalId,
+                'fbranchcode' => $kodeCabang,
+                'fjurnaltype' => $fjurnaltype,
+                'fjurnalno' => $fjurnalno,
+                'flineno' => 1,
+                'faccount' => '11400',
+                'fdk' => 'D',
+                'fsubaccount' => $subaccount,
+                'frefno' => $fpono,
+                'frate' => 1,
+                'famount' => 0,
+                'famount_rp' => 0,
+                'faccountnote' => 'Memo PO '.$fpono,
+                'fusercreate' => $userName,
+                'fdatetime' => $now,
+            ],
+            [
+                'fjurnalmtid' => $jurnalId,
+                'fbranchcode' => $kodeCabang,
+                'fjurnaltype' => $fjurnaltype,
+                'fjurnalno' => $fjurnalno,
+                'flineno' => 2,
+                'faccount' => '21100',
+                'fdk' => 'K',
+                'fsubaccount' => $subaccount,
+                'frefno' => $fpono,
+                'frate' => 1,
+                'famount' => 0,
+                'famount_rp' => 0,
+                'faccountnote' => 'Memo PO '.$fpono,
+                'fusercreate' => $userName,
+                'fdatetime' => $now,
+            ],
+        ]);
     }
 
     private function getPoTerimaUsageSubquery()
