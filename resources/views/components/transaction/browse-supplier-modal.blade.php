@@ -207,6 +207,54 @@
                     return;
                 }
 
+                const normalize = (value) => String(value ?? '').trim();
+                const code = normalize(supplier.fsuppliercode ?? supplier.fsupplier ?? supplier.supplier_code);
+                const name = normalize(supplier.fsuppliername ?? supplier.supplier_name);
+                const tempo = normalize(supplier.ftempo);
+                const currency = normalize(supplier.fcurrency ?? supplier.currency_code).toUpperCase();
+                const sel = document.getElementById('modal_filter_supplier_id');
+                const hid = document.getElementById('supplierCodeHidden');
+
+                if (sel && code) {
+                    let opt = [...sel.options].find((o) => normalize(o.value) === code);
+                    const label = name ? `${name} (${code})` : code;
+
+                    if (!opt) {
+                        opt = new Option(label, code, true, true);
+                        sel.add(opt);
+                    } else {
+                        opt.text = label;
+                        opt.selected = true;
+                    }
+
+                    opt.dataset.tempo = tempo;
+                    opt.dataset.currency = currency;
+                    sel.value = code;
+                    sel.dispatchEvent(new Event('change', {
+                        bubbles: true
+                    }));
+                }
+
+                if (hid) {
+                    hid.value = code;
+                    hid.dispatchEvent(new Event('input', {
+                        bubbles: true
+                    }));
+                    hid.dispatchEvent(new Event('change', {
+                        bubbles: true
+                    }));
+                }
+
+                window.dispatchEvent(new CustomEvent('supplier-picked', {
+                    detail: {
+                        ...supplier,
+                        fsuppliercode: code,
+                        fsuppliername: name,
+                        ftempo: tempo,
+                        fcurrency: currency,
+                    }
+                }));
+
                 this.close();
             },
 
