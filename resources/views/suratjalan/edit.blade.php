@@ -160,6 +160,7 @@
         $oldSjPrices = old('fprice', []);
         $oldSjTotals = old('ftotal', []);
         $oldSjDescs = old('fdesc', []);
+                $oldSjMaxQtys = old('fmaxqty', []);
         $oldSjKetdts = old('fketdt', []);
         $initialEditSuratJalanItems = [];
 
@@ -191,7 +192,7 @@
                 'ftotal' => (float) ($oldSjTotals[$index] ?? 0),
                 'fdesc' => (string) ($oldSjDescs[$index] ?? ''),
                 'fketdt' => (string) ($oldSjKetdts[$index] ?? ''),
-                'maxqty' => max(0, (float) ($oldSjQtys[$index] ?? 0)),
+                'maxqty' => max(0, (float) ($oldSjMaxQtys[$index] ?? $oldSjQtys[$index] ?? 0)),
             ];
         }
     @endphp
@@ -395,9 +396,8 @@
                                                     <input type="hidden" name="fitemcode[]" :value="it.fitemcode">
                                                     <input type="hidden" name="fitemname[]" :value="it.fitemname">
                                                     <input type="hidden" name="fsatuan[]" :value="it.fsatuan">
-
                                                     <input type="hidden" name="frefdtno[]" :value="it.frefdtno">
-
+                                                    <input type="hidden" name="fmaxqty[]" :value="it.maxqty">
                                                     <input type="hidden" name="frefpr[]" :value="it.frefpr">
                                                     <input type="hidden" name="fnoacak[]" :value="it.fnoacak">
                                                     <input type="hidden" name="frefnoacak[]" :value="it.frefnoacak">
@@ -739,6 +739,7 @@
                                             <input type="hidden" name="fdiscpersen[]" :value="it.fdiscpersen ?? it.fdisc ?? 0">
                                             <input type="hidden" name="fqty[]" :value="it.fqty">
                                             <input type="hidden" name="fprice[]" :value="it.fprice">
+                                            <input type="hidden" name="fmaxqty[]" :value="it.maxqty">
                                             <input type="hidden" name="ftotal[]" :value="it.ftotal">
                                             <input type="hidden" name="fdesc[]" :value="it.fdesc">
                                             <input type="hidden" name="fketdt[]" :value="it.fketdt">
@@ -1271,18 +1272,6 @@
     };
 
     window.getSuratJalanDuplicateCode = function(form) {
-        const seen = new Set();
-        const inputs = Array.from(form.querySelectorAll('input[name="fitemcode[]"]'));
-
-        for (const input of inputs) {
-            const code = (input.value || '').toString().trim().toUpperCase();
-            if (!code) continue;
-            if (seen.has(code)) {
-                return code;
-            }
-            seen.add(code);
-        }
-
         return '';
     };
 
@@ -1494,7 +1483,6 @@
 
                 const limit = this.getRowQtyLimit(row);
                 if (limit <= 0) {
-                    row.fqty = 0;
                     if (showToast) {
                         window.toast?.error(`Qty ${refLabel} untuk item ini sudah habis atau sudah digunakan.`);
                     }
@@ -1503,12 +1491,12 @@
 
                 const qty = Number(row?.fqty ?? 0);
                 if (qty > limit) {
-                    row.fqty = limit;
                     if (showToast) {
                         window.toast?.error(
                             `Qty melebihi sisa ${refLabel}. Maksimal ${this.formatQtyLimit(limit)} ${row.fsatuan || ''}`
                             .trim());
                     }
+                    return false;
                 }
 
                 return Number(row?.fqty ?? 0) > 0;
@@ -1540,7 +1528,6 @@
                     return;
                 }
                 if (n < 0) row.fqty = 0;
-                this.validateSoQtyRow(row, false);
             },
 
             hydrateRowFromMeta(row, meta, forceDefaultUnit = false) {
@@ -1575,6 +1562,12 @@
             },
 
             onCodeTypedRow(row, index = null) {
+                const hasReference = String(row?.frefso ?? '').trim() !== '' || String(row?.frefdtno ?? '').trim() !== '';
+                if (hasReference) {
+                    row.fitemcode = (row?.foriginalitemcode ?? row?.fitemcode ?? '').toString().trim();
+                    this.onRowUpdated(index);
+                    return;
+                }
                 this.hydrateRowFromMeta(row, this.productMeta(row.fitemcode), true);
                 row.fnoacak = this.normalizeNoAcak(row.fnoacak) || this.generateUniqueNoAcak(row.uid);
                 this.onRowUpdated(index);
@@ -1703,6 +1696,7 @@
                     rowsToAdd.push({
                         ...this.createRow(),
                         ...row,
+                        foriginalitemcode: row.fitemcode,
                     });
                     existing.add(key);
                     added++;
@@ -1782,6 +1776,7 @@
                     ...newRow(),
                     uid: overrides.uid || cryptoRandom(),
                     ...overrides,
+                    foriginalitemcode: (overrides.foriginalitemcode ?? overrides.fitemcode ?? '').toString().trim(),
                     fnoacak: this.normalizeNoAcak(overrides.fnoacak) || this.generateUniqueNoAcak(overrides.uid ||
                         null),
                     frefnoacak: this.normalizeNoAcak(overrides.frefnoacak),
@@ -1825,7 +1820,6 @@
                     const soLimit = Number(item.maxqty ?? item.fqtyremain ?? 0);
                     item.maxqty = Number.isFinite(soLimit) ? soLimit : 0;
                     item.hideQtyLimitHint = false;
-                    this.validateSoQtyRow(item, false);
                 });
                 if (!this.isReadOnlyMode) {
                     this.ensureMinimumRows();
@@ -1891,6 +1885,7 @@
                 frefno_display: '',
                 frefpr: '',
                 frefso: null,
+                foriginalitemcode: '',
                 fqty: 0,
                 fprice: 0,
                 ftotal: 0,

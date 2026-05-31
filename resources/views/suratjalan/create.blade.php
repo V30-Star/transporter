@@ -15,6 +15,7 @@
         $oldSjPrices = old('fprice', []);
         $oldSjTotals = old('ftotal', []);
         $oldSjDescs = old('fdesc', []);
+        $oldSjMaxQtys = old('fmaxqty', []); 
         $oldSjKetdts = old('fketdt', []);
         $initialSuratJalanItems = [];
 
@@ -42,11 +43,11 @@
                 'frefpr' => $refPr,
                 'frefso' => $refPr,
                 'fqty' => (float) ($oldSjQtys[$index] ?? 0),
+                'maxqty' => max(0, (float) ($oldSjMaxQtys[$index] ?? $oldSjQtys[$index] ?? 0)),
                 'fprice' => (float) ($oldSjPrices[$index] ?? 0),
                 'ftotal' => (float) ($oldSjTotals[$index] ?? 0),
                 'fdesc' => (string) ($oldSjDescs[$index] ?? ''),
                 'fketdt' => (string) ($oldSjKetdts[$index] ?? ''),
-                'maxqty' => max(0, (float) ($oldSjQtys[$index] ?? 0)),
             ];
         }
     @endphp
@@ -457,6 +458,7 @@
                                     <input type="hidden" name="fqty[]" :value="it.fqty">
                                     <input type="hidden" name="fprice[]" :value="it.fprice">
                                     <input type="hidden" name="ftotal[]" :value="it.ftotal">
+                                    <input type="hidden" name="fmaxqty[]" :value="it.maxqty">
                                     <input type="hidden" name="fdesc[]" :value="it.fdesc">
                                     <input type="hidden" name="fketdt[]" :value="it.fketdt">
                                 </div>
@@ -606,8 +608,7 @@
                                                         <tbody></tbody>
                                                     </table>
                                                 </div>
-                                                <div
-                                                    class="px-6 py-3 border-t border-gray-200 flex-shrink-0 bg-gray-50">
+                                                <div class="px-6 py-3 border-t border-gray-200 flex-shrink-0 bg-gray-50">
                                                     <div id="invoiceTablePagination"></div>
                                                 </div>
                                             </div>
@@ -850,8 +851,10 @@
         @foreach ($products as $p)
             "{{ $p->fprdcode }}": {
                 name: @json($p->fprdname),
-                default_unit: @json(($productMap[$p->fprdcode]['default_unit'] ?? $p->fsatuankecil)),
-                units: @json(($productMap[$p->fprdcode]['units'] ?? array_values(array_filter([$p->fsatuankecil, $p->fsatuanbesar, $p->fsatuanbesar2])))),
+                default_unit: @json($productMap[$p->fprdcode]['default_unit'] ?? $p->fsatuankecil),
+                units: @json(
+                    $productMap[$p->fprdcode]['units'] ??
+                        array_values(array_filter([$p->fsatuankecil, $p->fsatuanbesar, $p->fsatuanbesar2]))),
                 stock: @json($p->fminstock ?? 0),
                 unit_ratios: {
                     satuankecil: 1,
@@ -875,18 +878,6 @@
     };
 
     window.getSuratJalanDuplicateCode = function(form) {
-        const seen = new Set();
-        const inputs = Array.from(form.querySelectorAll('input[name="fitemcode[]"]'));
-
-        for (const input of inputs) {
-            const code = (input.value || '').toString().trim().toUpperCase();
-            if (!code) continue;
-            if (seen.has(code)) {
-                return code;
-            }
-            seen.add(code);
-        }
-
         return '';
     };
 
@@ -1081,7 +1072,6 @@
 
                 const limit = this.getRowQtyLimit(row);
                 if (limit <= 0) {
-                    row.fqty = 0;
                     if (showToast) {
                         window.toast?.error(`Qty ${refLabel} untuk item ini sudah habis atau sudah digunakan.`);
                     }
@@ -1090,12 +1080,12 @@
 
                 const qty = Number(row?.fqty ?? 0);
                 if (qty > limit) {
-                    row.fqty = limit;
                     if (showToast) {
                         window.toast?.error(
                             `Qty melebihi sisa ${refLabel}. Maksimal ${this.formatQtyLimit(limit)} ${row.fsatuan || ''}`
                             .trim());
                     }
+                    return false;
                 }
 
                 return Number(row?.fqty ?? 0) > 0;
@@ -1127,7 +1117,6 @@
                     return;
                 }
                 if (n < 0) row.fqty = 0;
-                this.validateSoQtyRow(row, false);
             },
 
             hydrateRowFromMeta(row, meta, forceDefaultUnit = false) {
@@ -1162,6 +1151,13 @@
             },
 
             onCodeTypedRow(row, index = null) {
+                const hasReference = String(row?.frefso ?? '').trim() !== '' || String(row?.frefdtno ?? '').trim() !==
+                    '';
+                if (hasReference) {
+                    row.fitemcode = (row?.foriginalitemcode ?? row?.fitemcode ?? '').toString().trim();
+                    this.onRowUpdated(index);
+                    return;
+                }
                 this.hydrateRowFromMeta(row, this.productMeta(row.fitemcode), true);
                 row.fnoacak = this.normalizeNoAcak(row.fnoacak) || this.generateUniqueNoAcak(row.uid);
                 this.onRowUpdated(index);
@@ -1227,7 +1223,8 @@
                     const itemcode = (src.fitemcode ?? '').toString().trim();
                     const itemname = (src.fitemname ?? '').toString().trim();
                     const satuan = (src.fsatuan ?? '').toString().trim();
-                    const frefdtno = (header?.fstockmtno ?? header?.fsono ?? src.frefdtno ?? '').toString().trim();
+                    const frefdtno = (header?.fstockmtno ?? header?.fsono ?? src.frefdtno ?? '').toString()
+                        .trim();
 
                     // VALIDASI MINIMAL: harus ada kode, nama, dan satuan
                     if (!itemcode || !itemname || !satuan) {
@@ -1239,9 +1236,8 @@
                     }
 
                     const meta = this.productMeta(itemcode);
-                    const normalizedUnits = meta ?
-                        [...new Set((meta.units || []).map(u => (u ?? '').toString().trim()).filter(Boolean))] :
-                        [satuan].filter(Boolean);
+                    const normalizedUnits = meta ? [...new Set((meta.units || []).map(u => (u ?? '').toString()
+                        .trim()).filter(Boolean))] : [satuan].filter(Boolean);
 
                     if (satuan && !normalizedUnits.includes(satuan)) {
                         normalizedUnits.unshift(satuan);
@@ -1290,6 +1286,7 @@
                     rowsToAdd.push({
                         ...this.createRow(),
                         ...row,
+                        foriginalitemcode: row.fitemcode,
                     });
                     existing.add(key);
                     added++;
@@ -1367,6 +1364,7 @@
                     ...newRow(),
                     uid: overrides.uid || cryptoRandom(),
                     ...overrides,
+                    foriginalitemcode: (overrides.foriginalitemcode ?? overrides.fitemcode ?? '').toString().trim(),
                     fnoacak: this.normalizeNoAcak(overrides.fnoacak) || this.generateUniqueNoAcak(overrides.uid ||
                         null),
                     frefnoacak: this.normalizeNoAcak(overrides.frefnoacak),
@@ -1467,6 +1465,7 @@
                 frefno_display: '',
                 frefpr: '',
                 frefso: null,
+                foriginalitemcode: '',
                 fqty: 0,
                 fdesc: '',
                 fketdt: '',

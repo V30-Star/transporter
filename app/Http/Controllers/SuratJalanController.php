@@ -76,23 +76,33 @@ class SuratJalanController extends Controller
         return (string) preg_replace('/[.\/](\d+)$/', $separator . '$1', $normalized, 1);
     }
 
-    private function ensureNoDuplicateDetailCodes(array $codes): void
+    private function ensureNoDuplicateDetailCodes(array $codes, array $refs = [], array $qtys = []): void
     {
         $seen = [];
         $duplicates = [];
+        $rowCount = max(count($codes), count($refs), count($qtys));
 
-        foreach ($codes as $index => $rawCode) {
+        for ($index = 0; $index < $rowCount; $index++) {
+            $rawCode = $codes[$index] ?? '';
             $code = strtoupper(trim((string) $rawCode));
             if ($code === '') {
                 continue;
             }
 
-            if (isset($seen[$code])) {
+            $qty = (float) ($qtys[$index] ?? 0);
+            if ($qty <= 0) {
+                continue;
+            }
+
+            $ref = strtoupper(trim((string) ($refs[$index] ?? '')));
+            $key = $code . '|' . $ref;
+
+            if (isset($seen[$key])) {
                 $duplicates[$index] = $code;
                 continue;
             }
 
-            $seen[$code] = true;
+            $seen[$key] = true;
         }
 
         if ($duplicates === []) {
@@ -646,7 +656,11 @@ class SuratJalanController extends Controller
             throw $ve;
         }
 
-        $this->ensureNoDuplicateDetailCodes($request->input('fitemcode', []));
+        $this->ensureNoDuplicateDetailCodes(
+            $request->input('fitemcode', []),
+            $request->input('frefdtno', []),
+            $request->input('fqty', [])
+        );
 
         // =========================
         // 2) HEADER FIELDS
@@ -1330,7 +1344,11 @@ class SuratJalanController extends Controller
             'ffrom.required' => 'Gudang wajib diisi.',
         ]);
 
-        $this->ensureNoDuplicateDetailCodes($request->input('fitemcode', []));
+        $this->ensureNoDuplicateDetailCodes(
+            $request->input('fitemcode', []),
+            $request->input('frefdtno', []),
+            $request->input('fqty', [])
+        );
 
         // =========================
         // 2) AMBIL DATA HEADER
@@ -2104,12 +2122,12 @@ class SuratJalanController extends Controller
             $docLabel = $this->isInvoiceReferenceDoc($docNo) ? 'Faktur Penjualan' : 'SO';
             if ($availableQtyKecil <= 0) {
                 $product = trim((string) ($stat['product_name'] ?? $stat['product_code'] ?? $referenceKey));
-                return 'Qty Surat Jalan untuk item ' . $product . ($docNo !== '' ? ' pada ' . $docLabel . ' ' . $docNo : '') . ' sudah habis atau sudah dipakai.';
+                return 'Qty Surat Jalan untuk item ' . $product . ' sudah habis atau sudah dipakai.';
             }
 
             if ((float) $requestedQtyKecil - $availableQtyKecil > 0.000001) {
                 $product = trim((string) ($stat['product_name'] ?? $stat['product_code'] ?? $referenceKey));
-                return 'Qty Surat Jalan untuk item ' . $product . ($docNo !== '' ? ' pada ' . $docLabel . ' ' . $docNo : '') . ' melebihi sisa qty yang tersedia.';
+                return 'Qty Surat Jalan untuk item ' . $product . ' melebihi sisa qty yang tersedia.';
             }
         }
 
