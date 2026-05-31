@@ -122,6 +122,7 @@
         $oldInvoiceTotals = old('ftotal', []);
         $oldInvoiceDescs = old('fdesc', []);
         $oldInvoiceKetdts = old('fketdt', []);
+        $oldInvoiceMaxQtys = old('fmaxqty', []);
         $initialEditInvoiceItems = [];
 
         foreach ($oldInvoiceItemCodes as $index => $itemCode) {
@@ -158,7 +159,7 @@
                 'ftotal' => (float) ($oldInvoiceTotals[$index] ?? 0),
                 'fdesc' => (string) ($oldInvoiceDescs[$index] ?? ''),
                 'fketdt' => (string) ($oldInvoiceKetdts[$index] ?? ''),
-                'maxqty' => max(0, (float) ($oldInvoiceQtys[$index] ?? 0)),
+                'maxqty' => max(0, (float) ($oldInvoiceMaxQtys[$index] ?? $oldInvoiceQtys[$index] ?? 0)),
             ];
         }
     @endphp
@@ -465,6 +466,7 @@
                                                 <input type="hidden" name="fnoacak[]" :value="it.fnoacak">
                                                 <input type="hidden" name="frefnoacak[]" :value="it.frefnoacak">
                                                 <input type="hidden" name="fqty[]" :value="it.fqty">
+                                                <input type="hidden" name="fmaxqty[]" :value="it.maxqty">
                                                 <input type="hidden" name="fterima[]" :value="it.fterima">
                                                 <input type="hidden" name="fprice[]" :value="it.fprice">
                                                 <input type="hidden" name="fdisc[]" :value="it.fdisc">
@@ -1233,6 +1235,7 @@
                                             <input type="hidden" name="fprice[]" :value="it.fprice">
                                             <input type="hidden" name="fdisc[]" :value="it.fdisc">
                                             <input type="hidden" name="ftotal[]" :value="it.ftotal">
+                                            <input type="hidden" name="fmaxqty[]" :value="it.maxqty">
                                             <input type="hidden" name="fdesc[]" :value="it.fdesc">
                                             <input type="hidden" name="fketdt[]" :value="it.fketdt">
                                         </div>
@@ -2530,16 +2533,15 @@
 
                 const limit = this.getRowQtyLimit(row);
                 if (limit <= 0) {
-                    row.fqty = 0;
                     if (showToast) window.toast?.error('Sisa referensi sudah habis.');
                     return false;
                 }
 
                 const qty = Number(row?.fqty ?? 0);
                 if (qty > limit) {
-                    row.fqty = limit;
                     if (showToast) window.toast?.error(
                         `Qty melebihi sisa referensi. Maksimal ${limit} ${row.fsatuan || ''}`.trim());
+                    return false;
                 }
 
                 return Number(row?.fqty ?? 0) > 0;
@@ -2553,7 +2555,6 @@
                     return;
                 }
                 if (n < 0) row.fqty = 0;
-                this.validateReferenceQty(row, false);
 
             },
 
@@ -2712,7 +2713,6 @@
                     const rowLimit = this.getRowQtyLimit(row);
                     if (!(rowLimit > 0)) return;
                     this.recalc(row);
-                    this.validateReferenceQty(row, false);
                     this.savedItems.push({
                         ...this.createRow(),
                         ...row,

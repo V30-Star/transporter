@@ -402,7 +402,7 @@
                                             <td class="p-2">
                                                 <input type="text"
                                                     class="w-full border rounded px-2 py-1 bg-gray-100 text-gray-600 text-sm"
-                                                    :value="it.frefno_display || it.frefdtno || '-'" disabled>
+                                                    :value="it.frefno_display || (it.frefdtno && it.frefdtno !== '0' ? it.frefdtno : '') || '-'" disabled>
                                             </td>
                                             <td class="p-2 text-right">
                                                 <template x-if="it.units && it.units.length > 1">
@@ -1125,7 +1125,7 @@
                     row.units = [];
                     row.fsatuan = '';
                     row.maxqty = 0;
-                    row.frefdtno = 0;
+                    row.frefdtno = '';
                     return;
                 }
                 row.fitemname = meta.name || '';
@@ -1147,7 +1147,6 @@
                 }
                 if (meta.unit_ratios) row.unit_ratios = meta.unit_ratios;
                 row.maxqty = Number.isFinite(+row.maxqty) ? +row.maxqty : 0;
-                row.frefdtno = meta.fprdid || 0;
             },
 
             onCodeTypedRow(row, index = null) {
@@ -1422,7 +1421,7 @@
                     const row = this.savedItems[index];
                     const apply = () => {
                         row.fitemcode = (product.fprdcode || '').toString();
-                        row.frefdtno = product.fprdid || '';
+                        row.frefdtno = '';
                         this.hydrateRowFromMeta(row, this.productMeta(row.fitemcode), true);
                         this.rows.splice(this.browseTarget, 1, {
                             ...this.rows[this.browseTarget]
@@ -1459,7 +1458,7 @@
                 fitemname: '',
                 units: [],
                 fsatuan: '',
-                frefdtno: 0,
+                frefdtno: '',
                 fnoacak: '',
                 frefnoacak: '',
                 frefno_display: '',

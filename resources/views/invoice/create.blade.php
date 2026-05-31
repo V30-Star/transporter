@@ -22,6 +22,7 @@
         $oldInvoiceTotals = old('ftotal', []);
         $oldInvoiceDescs = old('fdesc', []);
         $oldInvoiceKetdts = old('fketdt', []);
+        $oldInvoiceMaxQtys = old('fmaxqty', []); 
         $initialInvoiceItems = [];
 
         foreach ($oldInvoiceItemCodes as $index => $itemCode) {
@@ -58,7 +59,7 @@
                 'ftotal' => (float) ($oldInvoiceTotals[$index] ?? 0),
                 'fdesc' => (string) ($oldInvoiceDescs[$index] ?? ''),
                 'fketdt' => (string) ($oldInvoiceKetdts[$index] ?? ''),
-                'maxqty' => max(0, (float) ($oldInvoiceQtys[$index] ?? 0)),
+                'maxqty' => max(0, (float) ($oldInvoiceMaxQtys[$index] ?? $oldInvoiceQtys[$index] ?? 0)),
             ];
         }
     @endphp
@@ -542,6 +543,7 @@
                                 <input type="hidden" name="fdisc[]" :value="it.fdisc">
                                 <input type="hidden" name="ftotal[]" :value="it.ftotal">
                                 <input type="hidden" name="fdesc[]" :value="it.fdesc">
+                                <input type="hidden" name="fmaxqty[]" :value="it.maxqty">
                                 <input type="hidden" name="fketdt[]" :value="it.fketdt">
                             </div>
                         </template>
@@ -1837,16 +1839,15 @@
 
                 const limit = this.getRowQtyLimit(row);
                 if (limit <= 0) {
-                    row.fqty = 0;
                     if (showToast) window.toast?.error('Sisa referensi sudah habis.');
                     return false;
                 }
 
                 const qty = Number(row?.fqty ?? 0);
                 if (qty > limit) {
-                    row.fqty = limit;
                     if (showToast) window.toast?.error(
                         `Qty melebihi sisa referensi. Maksimal ${limit} ${row.fsatuan || ''}`.trim());
+                    return false;
                 }
 
                 return Number(row?.fqty ?? 0) > 0;
@@ -1878,7 +1879,6 @@
                     return;
                 }
                 if (n < 0) row.fqty = 0;
-                this.validateReferenceQty(row, false);
             },
 
             hydrateRowFromMeta(row, meta, forceDefaultUnit = false) {
@@ -2042,7 +2042,6 @@
                     const rowLimit = this.getRowQtyLimit(row);
                     if (!(rowLimit > 0)) return;
                     row.fpriceInput = this.fmt(row.fprice);
-                    this.validateReferenceQty(row, false);
                     const nextRow = {
                         ...this.createRow(),
                         ...row,

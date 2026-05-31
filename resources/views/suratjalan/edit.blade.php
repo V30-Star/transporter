@@ -684,7 +684,7 @@
                                                     <td class="p-2">
                                                         <input type="text"
                                                             class="w-full border rounded px-2 py-1 bg-gray-100 text-gray-600 text-sm"
-                                                            :value="it.frefno_display || it.frefdtno || '-'" disabled>
+                                                            :value="it.frefno_display || (it.frefdtno && it.frefdtno !== '0' ? it.frefdtno : '') || '-'" disabled>
                                                     </td>
                                                     <template x-if="it.units && it.units.length > 1">
                                                         <select class="w-full border rounded px-2 py-1 text-xs"
@@ -1536,7 +1536,7 @@
                     row.units = [];
                     row.fsatuan = '';
                     row.maxqty = 0;
-                    row.frefdtno = 0;
+                    row.frefdtno = '';
                     return;
                 }
                 row.fitemname = meta.name || '';
@@ -1558,7 +1558,6 @@
                 }
                 if (meta.unit_ratios) row.unit_ratios = meta.unit_ratios;
                 row.maxqty = Number.isFinite(+row.maxqty) ? +row.maxqty : 0;
-                row.frefdtno = meta.fprdid || 0;
             },
 
             onCodeTypedRow(row, index = null) {
