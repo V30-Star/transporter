@@ -2101,16 +2101,15 @@
 
                 const limit = this.getRowQtyLimit(row);
                 if (limit <= 0) {
-                    row.fqty = 0;
                     if (showToast) window.toast?.error('Qty referensi sudah habis atau sudah digunakan.');
                     return false;
                 }
 
                 const qty = Number(row?.fqty ?? 0);
                 if (qty > limit) {
-                    row.fqty = limit;
                     if (showToast) window.toast?.error(
                         `Qty melebihi sisa referensi. Maksimal ${limit} ${row.fsatuan || ''}`.trim());
+                    return false;
                 }
 
                 return Number(row?.fqty ?? 0) > 0;
@@ -2142,7 +2141,6 @@
                     return;
                 }
                 if (n < 0) row.fqty = 0;
-                this.validateReferenceQty(row, false);
             },
 
             hydrateRowFromMeta(row, meta) {
@@ -2329,7 +2327,6 @@
                     if (!(Number(row.fqty) > 0) && rowLimit > 0) {
                         row.fqty = Number(rowLimit);
                     }
-                    this.validateReferenceQty(row, false);
                     const nextRow = {
                         ...this.createRow(),
                         ...row,

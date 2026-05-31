@@ -1212,6 +1212,15 @@
                     }
                 }
 
+                const shippingAddressInput = document.querySelector('textarea[name="fkirim"]');
+                if (shippingAddressInput) {
+                    const currentValue = String(shippingAddressInput.value ?? '').trim();
+                    const sourceValue = String(header?.falamatkirim ?? '').trim();
+                    if (sourceValue !== '' && currentValue === '') {
+                        shippingAddressInput.value = sourceValue;
+                    }
+                }
+
                 const existing = new Set(this.getCurrentItemKeys());
                 let added = 0,
                     duplicates = [],
