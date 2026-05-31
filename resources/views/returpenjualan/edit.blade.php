@@ -101,7 +101,7 @@
         .view-readonly select,
         .view-readonly input:not([type="hidden"]),
         .view-readonly textarea,
-        .view-readonly button {
+        .view-readonly button:not(.view-allow-interaction) {
             background-color: #e5e7eb;
             cursor: not-allowed;
         }
@@ -1790,6 +1790,7 @@
 
                             <input type="hidden" id="itemsCount" :value="submitItems.length">
                         </div>
+                        </fieldset>
 
                         {{-- MODAL ERROR --}}
                         <div x-data="{ showNoItems: false }" x-init="window.addEventListener('returpenjualan-show-no-items', () => { showNoItems = true })"
@@ -2028,7 +2029,6 @@
                                 <x-heroicon-o-arrow-left class="w-5 h-5 mr-2" /> {{ $action === 'view' ? 'Kembali' : 'Keluar' }}
                             </button>
                         </div>
-                        </fieldset>
                     </form>
                 @endif
             </div>
