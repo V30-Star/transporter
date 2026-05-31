@@ -51,15 +51,22 @@
                             }
                         },
                         {
+                            data: 'fbranchcode',
+                            name: 'fbranchcode',
+                            defaultContent: '-',
+                            className: 'text-sm'
+                        },
+                        {
+                            data: 'ffrom',
+                            name: 'ffrom',
+                            defaultContent: '-',
+                            className: 'text-sm'
+                        },
+                        {
                             data: 'fcustomercode',
                             name: 'fcustomercode',
                             defaultContent: '-',
                             className: 'font-mono text-sm'
-                        },
-                        {
-                            data: 'fsuppliername',
-                            name: 'fsuppliername',
-                            defaultContent: '-',
                         },
                         {
                             data: 'faddress',

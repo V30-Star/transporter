@@ -1297,6 +1297,12 @@
                                                                                 {{ 'Tanggal' }}</th>
                                                                             <th
                                                                                 class="text-left p-3 font-semibold text-gray-700 border-b-2 border-gray-200">
+                                                                                {{ 'Cabang' }}</th>
+                                                                            <th
+                                                                                class="text-left p-3 font-semibold text-gray-700 border-b-2 border-gray-200">
+                                                                                {{ 'Gudang' }}</th>
+                                                                            <th
+                                                                                class="text-left p-3 font-semibold text-gray-700 border-b-2 border-gray-200">
                                                                                 {{ 'Customer' }}</th>
                                                                             <th
                                                                                 class="text-left p-3 font-semibold text-gray-700 border-b-2 border-gray-200">

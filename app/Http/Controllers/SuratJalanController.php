@@ -308,6 +308,8 @@ class SuratJalanController extends Controller
                 'trstockmt.fstockmtno',
                 'trstockmt.frefpo',
                 'trstockmt.fstockmtdate',
+                'trstockmt.fbranchcode',
+                'trstockmt.ffrom',
                 'mscustomer.fcustomercode',
                 'mscustomer.fcustomername as fsuppliername',
                 'mscustomer.faddress'

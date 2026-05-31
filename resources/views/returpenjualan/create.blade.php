@@ -642,6 +642,12 @@
                                                                     Tanggal</th>
                                                                 <th
                                                                     class="text-left p-3 font-semibold text-gray-700 border-b-2 border-gray-200">
+                                                                    Cabang</th>
+                                                                <th
+                                                                    class="text-left p-3 font-semibold text-gray-700 border-b-2 border-gray-200">
+                                                                    Gudang</th>
+                                                                <th
+                                                                    class="text-left p-3 font-semibold text-gray-700 border-b-2 border-gray-200">
                                                                     Customer #</th>
                                                                 <th
                                                                     class="text-left p-3 font-semibold text-gray-700 border-b-2 border-gray-200">
@@ -3131,6 +3137,18 @@
                             render: function(data) {
                                 return formatDate(data);
                             }
+                        },
+                        {
+                            data: 'fbranchcode',
+                            name: 'fbranchcode',
+                            defaultContent: '-',
+                            className: 'text-sm'
+                        },
+                        {
+                            data: 'ffrom',
+                            name: 'ffrom',
+                            defaultContent: '-',
+                            className: 'text-sm'
                         },
                         {
                             data: 'fcustomercode',
