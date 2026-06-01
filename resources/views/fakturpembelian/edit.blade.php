@@ -1339,7 +1339,7 @@
                                                 <td class="p-2 text-right">
                                                     <input type="number"
                                                         class="border rounded px-2 py-1 w-full text-right" min="0"
-                                                        step="0.01" :value="Number(it.fbiaya || 0).toFixed(2)"
+                                                        step="0.01" :value="it.fbiaya"
                                                         @focus="activeRow = it.uid; $event.target.select()"
                                                         @blur="activeRow = null; $event.target.value = (+it.fbiaya || 0).toFixed(2)"
                                                         @input="it.fbiaya = +$event.target.value; recalc(it)"

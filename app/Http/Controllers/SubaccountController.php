@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Subaccount;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class SubaccountController extends Controller
 {
@@ -124,6 +125,12 @@ class SubaccountController extends Controller
     {
         $subaccount = Subaccount::findOrFail($fsubaccountid);
 
+        if ($this->isUsedInTransaction($subaccount)) {
+            return redirect()
+                ->route('subaccount.index')
+                ->with('error', 'Subaccount ' . $subaccount->fsubaccountcode . ' - ' . $subaccount->fsubaccountname . ' tidak dapat dihapus karena sudah digunakan dalam transaksi.');
+        }
+
         return view('subaccount.delete', [
             'subaccount' => $subaccount,
         ]);
@@ -133,6 +140,13 @@ class SubaccountController extends Controller
     {
         try {
             $subaccount = Subaccount::findOrFail($fsubaccountid);
+
+            if ($this->isUsedInTransaction($subaccount)) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Subaccount ' . $subaccount->fsubaccountcode . ' - ' . $subaccount->fsubaccountname . ' tidak dapat dihapus karena sudah digunakan dalam transaksi.',
+                ], 422);
+            }
 
             $subaccount->delete();
 
@@ -147,6 +161,32 @@ class SubaccountController extends Controller
                 'message' => 'Subaccount belum bisa dihapus. Coba lagi.',
             ], 500);
         }
+    }
+
+    private function isUsedInTransaction(Subaccount $subaccount): bool
+    {
+        $code = strtoupper(trim((string) $subaccount->fsubaccountcode));
+
+        if ($code === '') {
+            return false;
+        }
+
+        // Jurnal Transaksi detail
+        if (DB::table('jurnaldt')->whereRaw('UPPER(TRIM(fsubaccount)) = ?', [$code])->exists()) {
+            return true;
+        }
+
+        // Kas (Penerimaan & Pengeluaran) detail
+        if (DB::table('trkasdt')->whereRaw('UPPER(TRIM(fsubaccount)) = ?', [$code])->exists()) {
+            return true;
+        }
+
+        // Pemakaian Barang (frefso in trstockdt stores subaccount code)
+        if (DB::table('trstockdt')->whereRaw('UPPER(TRIM(frefso)) = ?', [$code])->exists()) {
+            return true;
+        }
+
+        return false;
     }
 
     public function browse(Request $request)

@@ -1330,10 +1330,6 @@ class InvoiceController extends Controller
 
         [$soUsageByReference, $srjUsageByReference] = $this->buildInvoiceReferenceUsageMaps($detailRows);
 
-        if ($validationMessage = $this->validateUniqueReferenceTransaction($soUsageByReference, $srjUsageByReference)) {
-            return back()->withInput()->with('error', $validationMessage);
-        }
-
         if ($validationMessage = $this->validateReferenceUsage($soUsageByReference, $srjUsageByReference)) {
             return back()->withInput()->with('error', $validationMessage);
         }
@@ -2391,14 +2387,6 @@ class InvoiceController extends Controller
         [$oldSoRestoreByReference, $oldSrjRestoreByReference] = $this->buildInvoiceReferenceRestoreMaps($header->fsono);
 
         [$soUsageByReference, $srjUsageByReference] = $this->buildInvoiceReferenceUsageMaps($detailRows);
-
-        if ($validationMessage = $this->validateUniqueReferenceTransaction(
-            $soUsageByReference,
-            $srjUsageByReference,
-            $header->fsono
-        )) {
-            return back()->withInput()->with('error', $validationMessage);
-        }
 
         if ($validationMessage = $this->validateReferenceUsage(
             $soUsageByReference,

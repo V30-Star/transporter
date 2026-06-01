@@ -647,10 +647,12 @@
                                             <td class="p-2 text-right">
                                                 <input type="number" class="border rounded px-2 py-1 w-full text-right"
                                                     min="0" step="0.01"
-                                                    :value="Number(it.fbiaya || 0).toFixed(2)" :id="'biaya_saved_' + i"
+                                                    :id="'biaya_saved_' + i"
+                                                    :value="it.fbiaya" 
+                                                    x-init="it.fbiaya = (+it.fbiaya || 0).toFixed(2)"
                                                     @focus="activeRow = it.uid; $event.target.select()"
-                                                    @blur="activeRow = null; $event.target.value = (+it.fbiaya || 0).toFixed(2)"
-                                                    @input="it.fbiaya = +$event.target.value; recalc(it)"
+                                                    @blur="activeRow = null; it.fbiaya = (+it.fbiaya || 0).toFixed(2)"
+                                                    @input="it.fbiaya = $event.target.value; recalc(it)"
                                                     @change="recalc(it)"
                                                     @keydown.enter.prevent="$refs['disc_saved_' + i]?.focus()">
                                             </td>
