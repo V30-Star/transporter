@@ -2458,7 +2458,7 @@
                 fqty: 0,
                 fterima: 0,
                 fprice: 0,
-                fpriceInput: '0,00',
+                fpriceInput: undefined,
                 fdiscpersen: '0',
                 fbiaya: 0,
                 ftotprice: 0,

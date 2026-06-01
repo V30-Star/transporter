@@ -186,6 +186,56 @@
         $storedPpnRate = (float) ($fakturpembelian->fppnpersen ?? 0);
         $ppnRate = old('ppn_rate', $storedPpnRate > 0 ? $storedPpnRate : 11);
         $usageLocked = !empty($isUsageLocked);
+
+        $oldCodes = old('fitemcode', []);
+        if (count($oldCodes) > 0) {
+            $oldSatuans = old('fsatuan', []);
+            $oldRefDtnos = old('frefdtno', []);
+            $oldRefDtids = old('frefdtid', []);
+            $oldRefNoAcaks = old('frefnoacak', []);
+            $oldSources = old('fsource', []);
+            $oldFnourefs = old('fnouref', []);
+            $oldRefprs = old('frefpr', []);
+            $oldQtys = old('fqty', []);
+            $oldPrices = old('fprice', []);
+            $oldBiayas = old('fbiaya', []);
+            $oldDiscs = old('fdiscpersen', []);
+            $oldTotals = old('ftotal', []);
+            $oldDescs = old('fdesc', []);
+            $oldKetdts = old('fketdt', []);
+
+            $reconstructedItems = [];
+            for ($i = 0; $i < count($oldCodes); $i++) {
+                $code = trim((string) ($oldCodes[$i] ?? ''));
+                if ($code === '') {
+                    continue;
+                }
+                $reconstructedItems[] = [
+                    'uid' => 'old-' . $i,
+                    'fitemcode' => $code,
+                    'fitemname' => '',
+                    'fsatuan' => (string) ($oldSatuans[$i] ?? ''),
+                    'fdisplayunit' => (string) ($oldSatuans[$i] ?? ''),
+                    'frefdtno' => (string) ($oldRefDtnos[$i] ?? ''),
+                    'frefdtid' => $oldRefDtids[$i] ?? null,
+                    'frefnoacak' => (string) ($oldRefNoAcaks[$i] ?? ''),
+                    'fsource' => (string) ($oldSources[$i] ?? ''),
+                    'fnouref' => (string) ($oldFnourefs[$i] ?? ''),
+                    'frefpr' => (string) ($oldRefprs[$i] ?? ''),
+                    'fqty' => (float) ($oldQtys[$i] ?? 0),
+                    'fprice' => (float) ($oldPrices[$i] ?? 0),
+                    'fbiaya' => (float) ($oldBiayas[$i] ?? 0),
+                    'fdiscpersen' => (string) ($oldDiscs[$i] ?? 0),
+                    'ftotprice' => (float) ($oldTotals[$i] ?? 0),
+                    'fdesc' => (string) ($oldDescs[$i] ?? ''),
+                    'fketdt' => (string) ($oldKetdts[$i] ?? ''),
+                    'units' => [],
+                    'maxqty' => 0,
+                    'lockQty' => false,
+                ];
+            }
+            $savedItems = $reconstructedItems;
+        }
     @endphp
 
     @if ($usageLocked && !$isView)
@@ -3261,7 +3311,7 @@
                     fqty: 0,
                     fterima: 0,
                     fprice: 0,
-                    fpriceInput: '0,00',
+                    fpriceInput: undefined,
                     fdiscpersen: '0',
                     fbiaya: 0,
                     ftotprice: 0,

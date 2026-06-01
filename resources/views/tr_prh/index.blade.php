@@ -80,6 +80,7 @@
             <thead class="bg-gray-100">
                 <tr>
                     <th>No. PR</th>
+                    <th>Cab.</th>
                     <th>Tanggal</th>
                     <th>Nama Supplier</th>
                     <th>User-id</th>
@@ -372,16 +373,17 @@
             // --- 1. Definisi columnDefs ---
             // Kita hanya perlu menonaktifkan sort di kolom 'fprdin' (index 1)
             // Kolom Aksi akan ditambahkan di bawah
-            const columnDefs = [{
-                targets: [1], // Target 'fprdin'
-                orderable: false
-            }];
+            const columnDefs = [];
 
             // --- 2. Definisi Kolom ---
             // 'data' harus cocok dengan key JSON dari Controller baru
             const columns = [{
                     data: 'fprno',
                     name: 'fprno'
+                },
+                {
+                    data: 'fbranchcode',
+                    name: 'fbranchcode'
                 },
                 {
                     data: 'fprdate',

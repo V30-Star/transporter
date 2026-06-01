@@ -173,6 +173,7 @@ class SuratJalanController extends Controller
             if ($search = trim((string) $request->input('search.value'))) {
                 $query->where(function ($q) use ($search) {
                     $q->where('trstockmt.fstockmtno', 'ilike', "%{$search}%")
+                        ->orWhere('trstockmt.fbranchcode', 'ilike', "%{$search}%")
                         ->orWhere('trstockmt.frefpo', 'ilike', "%{$search}%")
                         ->orWhere('so_refs.so_refs', 'ilike', "%{$search}%")
                         ->orWhere('trstockmt.ffrom', 'ilike', "%{$search}%")
@@ -213,6 +214,7 @@ class SuratJalanController extends Controller
 
             $sortableColumns = [
                 'trstockmt.fstockmtno',
+                'trstockmt.fbranchcode',
                 'trstockmt.fstockmtdate',
                 'trstockmt.frefpo',
                 'so_refs.so_refs',
@@ -234,6 +236,7 @@ class SuratJalanController extends Controller
                 ->get([
                     'trstockmt.fstockmtid',
                     'trstockmt.fstockmtno',
+                    'trstockmt.fbranchcode',
                     'trstockmt.fstockmtdate',
                     'trstockmt.frefpo',
                     'trstockmt.ffrom',
@@ -256,6 +259,7 @@ class SuratJalanController extends Controller
                     'fstockmtid' => $row->fstockmtid,
                     'fstockmtno' => $row->fstockmtno,
                     'fstockmtno_display' => $this->formatDisplayTransactionNumber($row->fstockmtno ?? null, false),
+                    'fbranchcode' => $row->fbranchcode,
                     'fstockmtdate' => Carbon::parse($row->fstockmtdate)->format('d/m/Y'),
                     'frefno' => (string) ($row->frefpo ?? ''),
                     'fsono' => (string) ($row->so_refs ?? ''),

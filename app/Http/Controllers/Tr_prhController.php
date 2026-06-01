@@ -77,7 +77,7 @@ class Tr_prhController extends Controller
             $this->applyBranchVisibilityScope($query, 'tr_prh.fbranchcode');
             $totalRecords = (clone $query)->count();
 
-            $searchableColumns = ['tr_prh.fprno', 'tr_prh.fprdin', 'mssupplier.fsuppliername'];
+            $searchableColumns = ['tr_prh.fprno', 'tr_prh.fprdin', 'mssupplier.fsuppliername', 'tr_prh.fbranchcode'];
 
             if ($search = $request->input('search.value')) {
                 $query->where(function ($q) use ($search, $searchableColumns) {
@@ -144,12 +144,13 @@ class Tr_prhController extends Controller
 
             $columns = [
                 0 => 'tr_prh.fprno',
-                1 => 'tr_prh.fprdate',
-                2 => 'mssupplier.fsuppliername',
-                3 => 'tr_prh.fusercreate',
-                4 => 'tr_prh.fclose',
-                5 => 'tr_prh.fapproval',
-                6 => '',
+                1 => 'tr_prh.fbranchcode',
+                2 => 'tr_prh.fprdate',
+                3 => 'mssupplier.fsuppliername',
+                4 => 'tr_prh.fusercreate',
+                5 => 'tr_prh.fclose',
+                6 => 'tr_prh.fapproval',
+                7 => '',
             ];
 
             if (isset($columns[$orderColumnIndex]) && $columns[$orderColumnIndex] !== null && $columns[$orderColumnIndex] !== '') {
@@ -167,6 +168,7 @@ class Tr_prhController extends Controller
             $records = $query->get([
                 'tr_prh.fprhid',
                 'tr_prh.fprno',
+                'tr_prh.fbranchcode',
                 'tr_prh.fprdate',
                 'tr_prh.fsupplier',
                 'tr_prh.fusercreate',
@@ -181,6 +183,7 @@ class Tr_prhController extends Controller
             $data = $records->map(function ($record) {
                 return [
                     'fprno' => $record->fprno,
+                    'fbranchcode' => $record->fbranchcode,
                     'fprdate' => $record->fprdate ? Carbon::parse($record->fprdate)->format('Y-m-d') : null,
                     'fsuppliername' => $record->fsuppliername,
                     'display_user' => $record->fuserupdate ?: $record->fusercreate,
