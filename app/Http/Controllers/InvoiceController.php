@@ -150,18 +150,27 @@ class InvoiceController extends Controller
         }
 
         $fields = array_keys($payload);
-        $rowCount = 0;
+        $rowIndexes = [];
 
         foreach ($payload as $values) {
             if (is_array($values)) {
-                $rowCount = max($rowCount, count($values));
+                $rowIndexes = array_merge($rowIndexes, array_keys($values));
             }
         }
+
+        $rowIndexes = array_values(array_unique($rowIndexes));
+        usort($rowIndexes, static function ($a, $b) {
+            if (is_numeric($a) && is_numeric($b)) {
+                return (int) $a <=> (int) $b;
+            }
+
+            return strcmp((string) $a, (string) $b);
+        });
 
         $uniqueRows = [];
         $orderedKeys = [];
 
-        for ($index = 0; $index < $rowCount; $index++) {
+        foreach ($rowIndexes as $index) {
             $row = [];
             foreach ($fields as $field) {
                 $values = $payload[$field] ?? [];
@@ -187,7 +196,10 @@ class InvoiceController extends Controller
             if (!isset($uniqueRows[$signature])) {
                 $orderedKeys[] = $signature;
             }
-            $uniqueRows[$signature] = $row;
+            $uniqueRows[$signature] = [
+                'index' => $index,
+                'row' => $row,
+            ];
         }
 
         $normalized = [];
@@ -196,9 +208,10 @@ class InvoiceController extends Controller
         }
 
         foreach ($orderedKeys as $signature) {
-            $row = $uniqueRows[$signature];
+            $index = $uniqueRows[$signature]['index'];
+            $row = $uniqueRows[$signature]['row'];
             foreach ($fields as $field) {
-                $normalized[$field][] = $row[$field] ?? null;
+                $normalized[$field][$index] = $row[$field] ?? null;
             }
         }
 
