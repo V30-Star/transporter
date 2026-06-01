@@ -155,8 +155,7 @@
                         class="w-full border rounded px-3 py-2 bg-gray-100 cursor-not-allowed" readonly>
                 @else
                     <div>
-                        <select name="faccountheader" class="w-full border rounded px-3 py-2"
-                            :disabled="isGiroMundur">
+                        <select name="faccountheader" class="w-full border rounded px-3 py-2">
                             <option value="">{{ 'Pilih account' }}</option>
                             @foreach ($headerAccounts as $account)
                                 <option value="{{ $account->faccount }}"
@@ -166,10 +165,6 @@
                             @endforeach
                         </select>
                     </div>
-                    <template x-if="isGiroMundur">
-                        <input type="hidden" name="faccountheader"
-                            value="{{ $giroMundurHeaderAccount?->faccount ?? '' }}">
-                    </template>
                 @endif
                 @if ($isReadOnly)
                     <input type="hidden" name="faccountheader" value="{{ $selectedHeader }}">
