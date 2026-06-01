@@ -654,68 +654,6 @@ class PemakaianbarangController extends Controller
             unset($r);
 
             DB::table('trstockdt')->insert($rowsDt);
-
-            // =================================================================
-            // ---- 5.3. AKUNTANSI JURNAL (jurnalmt & jurnaldt) ----
-            // =================================================================
-
-            // 1. Definisikan Kode Akun (GANTI DENGAN KODE AKUN GL ASLI ANDA)
-            $INVENTORY_ACCOUNT_CODE = '11400'; // Contoh: Persediaan Barang Dagang
-
-            // 2. Generate Nomor Jurnal
-            $fjurnaltype = 'JV';
-            $jurnalPrefix = sprintf('%s.%s.%s.%s.', $fjurnaltype, $kodeCabang, $yy, $mm);
-
-            $jurnalLockKey = crc32('JURNAL|'.$fjurnaltype.'|'.$kodeCabang.'|'.$fstockmtdate->format('Y-m'));
-            DB::statement('SELECT pg_advisory_xact_lock(?)', [$jurnalLockKey]);
-
-            $lastJurnalNo = DB::table('jurnalmt')
-                ->where('fjurnalno', 'like', $jurnalPrefix.'%')
-                ->selectRaw("MAX(CAST(split_part(fjurnalno, '.', 5) AS int)) AS lastno")
-                ->value('lastno');
-
-            $nextJurnalNo = (int) $lastJurnalNo + 1;
-            $fjurnalno = $jurnalPrefix.str_pad((string) $nextJurnalNo, 4, '0', STR_PAD_LEFT);
-
-            // 3. INSERT JURNAL HEADER (jurnalmt)
-            $jurnalHeader = [
-                'fbranchcode' => $kodeCabang,
-                'fjurnalno' => $fjurnalno,
-                'fjurnaltype' => $fjurnaltype,
-                'fjurnaldate' => $fstockmtdate,
-                'fjurnalnote' => 'Jurnal Penerimaan Barang '.$fstockmtno,
-                'fdatetime' => $now,
-                'fuserid' => (Auth::user()->fname ?? 'system'),
-            ];
-
-            Log::debug('JURNAL HEADER INSERT:', $jurnalHeader); // Debugging
-
-            $newJurnalMasterId = DB::table('jurnalmt')->insertGetId($jurnalHeader, 'fjurnalmtid');
-
-            if (! $newJurnalMasterId) {
-                throw new Exception('Gagal menyimpan data jurnal header.');
-            }
-
-            // 4. INSERT JURNAL DETAIL (jurnaldt)
-            $jurnalDetails = [];
-            $flineno = 1;
-
-            // --- DEBIT: Persediaan (Nilai Subtotal) ---
-            $jurnalDetails[] = [
-                'fjurnalmtid' => $newJurnalMasterId,
-                'fbranchcode' => $kodeCabang,
-                'fjurnaltype' => $fjurnaltype,
-                'fjurnalno' => $fjurnalno,
-                'flineno' => $flineno++,
-                'faccount' => $INVENTORY_ACCOUNT_CODE,
-                'fdk' => 'D',
-                'frefno' => $fstockmtno,
-                'faccountnote' => 'Persediaan Barang Dagang '.$fstockmtno,
-                'fusercreate' => (Auth::user()->fname ?? 'system'),
-                'fdatetime' => $now,
-            ];
-
-            DB::table('jurnaldt')->insert($jurnalDetails);
         });
 
         // =================================================================
