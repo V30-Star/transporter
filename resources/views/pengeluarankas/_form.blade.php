@@ -28,8 +28,17 @@
         ? trim($resolvedBranchLabel->fcabangkode . ' - ' . $resolvedBranchLabel->fcabangname)
         : $resolvedBranchCode;
     $journalAccountValidation = $journalAccountValidation ?? ['system' => [], 'stock' => [], 'reference' => []];
+    $normalizeSubaccountType = function ($value) {
+        $normalized = strtoupper(trim((string) $value));
+
+        return match ($normalized) {
+            'C', 'CUSTOMER' => 'C',
+            'P', 'SUPPLIER' => 'P',
+            default => 'S',
+        };
+    };
     $accountCatalog = $accountOptions
-        ->mapWithKeys(function ($account) {
+        ->mapWithKeys(function ($account) use ($normalizeSubaccountType) {
             $code = strtoupper(trim((string) ($account->faccount ?? '')));
             if ($code === '') {
                 return [];
@@ -40,7 +49,7 @@
                     'faccount' => (string) ($account->faccount ?? ''),
                     'faccname' => (string) ($account->faccname ?? ''),
                     'fhavesubaccount' => (string) ($account->fhavesubaccount ?? '0'),
-                    'ftypesubaccount' => (string) ($account->ftypesubaccount ?? 'S'),
+                    'ftypesubaccount' => $normalizeSubaccountType($account->ftypesubaccount ?? 'S'),
                 ],
             ];
         })
@@ -289,7 +298,7 @@
                                             ? trim($detailAccount->faccname)
                                             : (string) ($detail->account_name ?? '');
                                         $detailHasSubaccount = (string) ($detailAccount->fhavesubaccount ?? '0') === '1';
-                                        $detailSubaccountType = trim((string) ($detailAccount->ftypesubaccount ?? 'S')) ?: 'S';
+                                        $detailSubaccountType = $normalizeSubaccountType($detailAccount->ftypesubaccount ?? 'S');
                                     @endphp
                                     @if ($isReadOnly)
                                         <input type="text" value="{{ $detailAccountCode }}"
@@ -484,11 +493,9 @@
 @unless ($isReadOnly)
     <x-transaction.browse-account-modal :fend="1" show-controls="true" show-pagination="true" />
     <x-transaction.browse-subaccount-modal show-controls="true" show-pagination="true" />
-    @if ($isPenerimaanKasForm)
-        <x-transaction.browse-customer-modal />
-        <x-transaction.browse-supplier-modal />
-        @include('components.transaction.browse-customer-script')
-    @endif
+    <x-transaction.browse-customer-modal />
+    <x-transaction.browse-supplier-modal />
+    @include('components.transaction.browse-customer-script')
 
     @push('scripts')
         <script>
@@ -541,7 +548,7 @@
                             const code = (event.detail?.faccount || '').toString().trim();
                             const name = (event.detail?.faccname || '').toString().trim();
                             const hasSubaccount = String(event.detail?.fhavesubaccount ?? '0') === '1';
-                            const subaccountType = (event.detail?.ftypesubaccount || 'S').toString().trim() || 'S';
+                            const subaccountType = this.normalizeSubaccountType(event.detail?.ftypesubaccount);
                             this.applyAccountLookupValue(this.activeLookupRow, code, name, hasSubaccount, subaccountType);
                         });
 
@@ -600,6 +607,20 @@
 
                     normalizeAccountCode(value) {
                         return (value || '').toString().trim().toUpperCase();
+                    },
+
+                    normalizeSubaccountType(value) {
+                        const normalized = (value || 'S').toString().trim().toUpperCase();
+
+                        if (normalized === 'C' || normalized === 'CUSTOMER') {
+                            return 'C';
+                        }
+
+                        if (normalized === 'P' || normalized === 'SUPPLIER') {
+                            return 'P';
+                        }
+
+                        return 'S';
                     },
 
                     getValidationAccountMeta(code) {
@@ -728,10 +749,13 @@
                         }
 
                         if (String(accountMeta.fhavesubaccount || '0') === '1' && subaccountCode === '') {
+                            const subaccountType = this.getRowSubaccountType(row);
+                            const subaccountLabel = subaccountType === 'C' ? 'Customer' : (subaccountType === 'P' ? 'Supplier' : 'Sub-Account');
+
                             return {
                                 status: 'ERROR',
-                                validasi: 'Sub-Account',
-                                message: 'Account ini memiliki Sub-Account. Harap pilih Sub-Account terlebih dahulu.',
+                                validasi: subaccountLabel,
+                                message: `Account ini memiliki ${subaccountLabel}. Harap pilih ${subaccountLabel} terlebih dahulu.`,
                                 fokus: 'fsubaccount',
                             };
                         }
@@ -759,13 +783,13 @@
                         }
 
                         const type = this.getRowSubaccountType(this.activeLookupRow);
-                        if (this.isPenerimaanKasForm && type === 'C') {
+                        if (type === 'C') {
                             this.activeLookupType = 'customer';
                             window.dispatchEvent(new CustomEvent('customer-browse-open'));
                             return;
                         }
 
-                        if (this.isPenerimaanKasForm && type === 'P') {
+                        if (type === 'P') {
                             this.activeLookupType = 'supplier';
                             window.dispatchEvent(new CustomEvent('supplier-browse-open'));
                             return;
@@ -857,7 +881,7 @@
                     },
 
                     getRowSubaccountType(row) {
-                        return (row?.querySelector('[data-role="account-subaccount-type"]')?.value || 'S').toString().trim() || 'S';
+                        return this.normalizeSubaccountType(row?.querySelector('[data-role="account-subaccount-type"]')?.value);
                     },
 
                     syncSubaccountState(row, forceEnabled = null, forceType = null) {
@@ -866,7 +890,7 @@
                         }
 
                         const enabled = forceEnabled ?? this.rowHasSubaccountEnabled(row);
-                        const type = forceType || this.getRowSubaccountType(row);
+                        const type = this.normalizeSubaccountType(forceType || this.getRowSubaccountType(row));
                         const displayField = row.querySelector('[data-role="subaccount-display"]');
                         const hiddenField = row.querySelector('input[name$="[fsubaccount]"]');
                         const browseButton = row.querySelector('.detail-subaccount-btn');

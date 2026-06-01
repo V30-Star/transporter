@@ -551,7 +551,7 @@ class PenerimaanKasController extends Controller
 
             $account = $accounts->get($accountCode);
             $hasSubaccount = (string) ($account?->fhavesubaccount ?? '0') === '1';
-            $subaccountType = trim((string) ($account?->ftypesubaccount ?? 'S')) ?: 'S';
+            $subaccountType = $this->normalizeSubaccountType($account?->ftypesubaccount ?? 'S');
 
             if ($subaccountCode === '') {
                 continue;
@@ -600,6 +600,17 @@ class PenerimaanKasController extends Controller
             })
             ->values()
             ->all();
+    }
+
+    private function normalizeSubaccountType($value): string
+    {
+        $normalized = strtoupper(trim((string) $value));
+
+        return match ($normalized) {
+            'C', 'CUSTOMER' => 'C',
+            'P', 'SUPPLIER' => 'P',
+            default => 'S',
+        };
     }
 
     private function normalizeDetails(array $details): Collection

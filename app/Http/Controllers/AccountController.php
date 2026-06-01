@@ -373,7 +373,7 @@ class AccountController extends Controller
 
         $data = $query->skip($start)
             ->take($length)
-            ->get();
+            ->get(['faccid', 'faccount', 'faccname', 'fhavesubaccount', 'ftypesubaccount']);
 
         // Response format untuk DataTables
         return response()->json([
