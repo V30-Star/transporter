@@ -149,52 +149,6 @@
     @endif
     @php
         $usageLocked = !empty($isUsageLocked);
-        $oldSjItemCodes = old('fitemcode', []);
-        $oldSjItemNames = old('fitemname', []);
-        $oldSjUnits = old('fsatuan', []);
-        $oldSjRefNos = old('frefdtno', []);
-        $oldSjRefPrs = old('frefpr', []);
-        $oldSjNoAcaks = old('fnoacak', []);
-        $oldSjRefNoAcaks = old('frefnoacak', []);
-        $oldSjQtys = old('fqty', []);
-        $oldSjPrices = old('fprice', []);
-        $oldSjTotals = old('ftotal', []);
-        $oldSjDescs = old('fdesc', []);
-        $oldSjMaxQtys = old('fmaxqty', []);
-        $oldSjKetdts = old('fketdt', []);
-        $initialEditSuratJalanItems = [];
-
-        foreach ($oldSjItemCodes as $index => $itemCode) {
-            $code = trim((string) $itemCode);
-            $name = trim((string) ($oldSjItemNames[$index] ?? ''));
-            if ($code === '' && $name === '') {
-                continue;
-            }
-
-            $unit = trim((string) ($oldSjUnits[$index] ?? ''));
-            $refPr = trim((string) ($oldSjRefPrs[$index] ?? ''));
-            $refDtNo = trim((string) ($oldSjRefNos[$index] ?? ''));
-
-            $initialEditSuratJalanItems[] = [
-                'uid' => 'old-sj-edit-' . $index,
-                'fitemcode' => $code,
-                'fitemname' => $name,
-                'units' => $unit !== '' ? [$unit] : [],
-                'fsatuan' => $unit,
-                'frefdtno' => $refDtNo,
-                'fnoacak' => trim((string) ($oldSjNoAcaks[$index] ?? '')),
-                'frefnoacak' => trim((string) ($oldSjRefNoAcaks[$index] ?? '')),
-                'frefno_display' => $refPr !== '' ? $refPr : $refDtNo,
-                'frefpr' => $refPr,
-                'frefso' => $refPr,
-                'fqty' => (float) ($oldSjQtys[$index] ?? 0),
-                'fprice' => (float) ($oldSjPrices[$index] ?? 0),
-                'ftotal' => (float) ($oldSjTotals[$index] ?? 0),
-                'fdesc' => (string) ($oldSjDescs[$index] ?? ''),
-                'fketdt' => (string) ($oldSjKetdts[$index] ?? ''),
-                'maxqty' => max(0, (float) ($oldSjMaxQtys[$index] ?? ($oldSjQtys[$index] ?? 0))),
-            ];
-        }
     @endphp
     @if ($usageLocked && !$isView)
         <div x-data="{ open: true }" x-show="open" x-cloak class="fixed inset-0 z-[99] flex items-center justify-center"
@@ -1312,8 +1266,8 @@
 
     function itemsTable() {
         return {
-            savedItems: @json(count($initialEditSuratJalanItems) ? $initialEditSuratJalanItems : $savedItems),
-            minimumVisibleRows: @json(count($initialEditSuratJalanItems) ? count($initialEditSuratJalanItems) + 5 : count($savedItems ?? []) + 5),
+            savedItems: @json($savedItems),
+            minimumVisibleRows: @json(count($savedItems ?? []) + 5),
             browseTarget: null,
             showDescModal: false,
             descSavedIndex: null,
