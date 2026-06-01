@@ -467,7 +467,7 @@
                     @else
                         <form action="{{ route('suratjalan.update', $suratjalan->fstockmtid) }}" method="POST"
                             class="mt-6" data-form-draft="true"
-                            data-draft-key="suratjalan:edit:{{ $suratjalan->fstockmtid }}" x-data="{ showNoItems: false }"
+                            data-draft-key="suratjalan:edit:{{ $suratjalan->fstockmtid }}" x-data="{ showNoItems: false, showWarehouseRequired: false }"
                             @submit.prevent="
         const duplicateCode = window.getSuratJalanDuplicateCode?.($el);
         if (duplicateCode) {
@@ -480,6 +480,13 @@
                     confirmButton: 'bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700'
                 }
             });
+            return;
+        }
+        const warehouseCode = (document.getElementById('warehouseCodeHidden')?.value || '').toString().trim();
+        showWarehouseRequired = false;
+        if (!warehouseCode) {
+            showWarehouseRequired = true;
+            window.toast?.error('Gudang wajib diisi sebelum simpan.');
             return;
         }
         const n = Number(document.getElementById('itemsCount')?.value || 0);
@@ -510,6 +517,9 @@
                                             <span class="ml-2 text-sm text-gray-700">Auto</span>
                                         </label>
                                     </div>
+                                    <p x-show="showWarehouseRequired" x-cloak class="text-red-600 text-sm mt-1">
+                                        Gudang harus diisi dahulu sebelum Simpan.
+                                    </p>
                                 </div>
 
                                 <div class="lg:col-span-4">

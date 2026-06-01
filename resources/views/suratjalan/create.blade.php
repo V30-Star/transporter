@@ -181,7 +181,7 @@
         <div x-data="{ includePPN: false, ppnRate: 0, ppnAmount: 0, totalHarga: 100000 }" class="lg:col-span-5">
             <div class="bg-white rounded shadow p-6 md:p-8 max-w-[128rem] mx-auto">
                 <form action="{{ route('suratjalan.store') }}" method="POST" class="mt-6" data-form-draft="true"
-                    data-draft-key="suratjalan:create" x-data="{ showNoItems: false }"
+                    data-draft-key="suratjalan:create" x-data="{ showNoItems: false, showWarehouseRequired: false }"
                     @submit.prevent="
         const duplicateCode = window.getSuratJalanDuplicateCode?.($el);
         if (duplicateCode) {
@@ -194,6 +194,13 @@
                     confirmButton: 'bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700'
                 }
             });
+            return;
+        }
+        const warehouseCode = (document.getElementById('warehouseCodeHidden')?.value || '').toString().trim();
+        showWarehouseRequired = false;
+        if (!warehouseCode) {
+            showWarehouseRequired = true;
+            window.toast?.error('Gudang wajib diisi sebelum simpan.');
             return;
         }
         const n = Number(document.getElementById('itemsCount')?.value || 0);
@@ -318,6 +325,9 @@
                             @error('ffrom')
                                 <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                             @enderror
+                            <p x-show="showWarehouseRequired" x-cloak class="text-red-600 text-sm mt-1">
+                                Gudang harus diisi dahulu sebelum Simpan.
+                            </p>
                         </div>
 
                         <div class="lg:col-span-4">
