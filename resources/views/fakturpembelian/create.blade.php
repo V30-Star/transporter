@@ -202,7 +202,7 @@
                 'fqty' => (float) ($oldQtys[$i] ?? 0),
                 'fprice' => (float) ($oldPrices[$i] ?? 0),
                 'fbiaya' => (float) ($oldBiayas[$i] ?? 0),
-                'fdiscpersen' => (string) ($oldDiscs[$i] ?? 0),
+                'fdiscpersen' => (string) ($oldDiscs[$i] ?? '0'),
                 'ftotprice' => (float) ($oldTotals[$i] ?? 0),
                 'fdesc' => (string) ($oldDescs[$i] ?? ''),
                 'fketdt' => (string) ($oldKetdts[$i] ?? ''),
@@ -646,10 +646,6 @@
                                             <!-- @ Biaya -->
                                             <td class="p-2 text-right">
                                                 <input type="number" class="border rounded px-2 py-1 w-full text-right"
-                                                    :disabled="hasTerSourceItems"
-                                                    :class="hasTerSourceItems ?
-                                                        'border rounded px-2 py-1 w-full text-right bg-gray-100 cursor-not-allowed text-gray-600' :
-                                                        'border rounded px-2 py-1 w-full text-right'"
                                                     min="0" step="0.01"
                                                     :value="Number(it.fbiaya || 0).toFixed(2)" :id="'biaya_saved_' + i"
                                                     @focus="activeRow = it.uid; $event.target.select()"
@@ -1471,11 +1467,12 @@
 
             normalizeDiscountValue(value) {
                 const cleaned = String(value ?? '').replace(/\s+/g, '');
-                if (cleaned === '') return '0.00';
+                if (cleaned === '') return '0';
                 if (!cleaned.includes('+')) {
                     const num = Number(cleaned);
                     if (Number.isFinite(num)) {
-                        return num.toFixed(2);
+                        // Remove unnecessary trailing zeros/decimals
+                        return String(parseFloat(num.toFixed(10)));
                     }
                 }
                 return cleaned;
@@ -1932,9 +1929,6 @@
                     const sourceQtyKecil = Math.max(0, +(src.fqtykecil ?? src.fqtyremain ?? src.fqty ?? 0) ||
                     0);
                     const sourceLimit = sourceQty > 0 ? sourceQty : sourceQtyKecil;
-                    const sourceBiayaRaw = Math.max(0, +(src.fbiaya || 0));
-                    const sourceBiayaPerUnit = sourceType === 'PO' && sourceLimit > 0 ? (sourceBiayaRaw /
-                        sourceLimit) : sourceBiayaRaw;
 
                     const row = {
                         uid: cryptoRandom(),
@@ -1959,7 +1953,7 @@
                         // Financial
                         fprice: +(src.fprice || 0),
                         fdiscpersen: this.normalizeDiscountValue(src.fdiscpersen ?? src.fdisc ?? 0),
-                        fbiaya: sourceBiayaPerUnit,
+                        fbiaya: 0,
                         ftotprice: +(src.fharga || 0),
 
                         fdesc: src.fdesc || '',
