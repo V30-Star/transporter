@@ -24,7 +24,10 @@
         $oldReturJualKetdts = old('fketdt', []);
         $initialReturPenjualanItems = [];
 
-        foreach ($oldReturJualCodes as $index => $itemCode) {
+        $oldReturJualIndexes = array_keys(is_array($oldReturJualCodes) ? $oldReturJualCodes : []);
+
+        foreach ($oldReturJualIndexes as $index) {
+            $itemCode = $oldReturJualCodes[$index] ?? '';
             $code = trim((string) $itemCode);
             $name = trim((string) ($oldReturJualNames[$index] ?? ''));
             if ($code === '' && $name === '') {
@@ -37,6 +40,8 @@
 
             $initialReturPenjualanItems[] = [
                 'uid' => 'old-returjual-' . $index,
+                'formIndex' => (int) $index,
+                'is_restored_old' => true,
                 'fitemcode' => $code,
                 'fitemname' => $name,
                 'frefcode' => trim((string) ($oldReturJualRefCodes[$index] ?? '')),
@@ -59,6 +64,8 @@
                 'maxqty' => max(0, (float) ($oldReturJualQtys[$index] ?? 0)),
             ];
         }
+
+        $nextReturPenjualanItemIndex = empty($oldReturJualIndexes) ? 0 : max(array_map('intval', $oldReturJualIndexes)) + 1;
     @endphp
     <style>
         input:focus,
@@ -480,24 +487,24 @@
                         <div class="hidden">
                             <template x-for="(it, i) in submitItems" :key="'submit-' + (it.uid || i)">
                                 <div>
-                                    <input type="hidden" name="fitemcode[]" :value="it.fitemcode">
-                                    <input type="hidden" name="fitemname[]" :value="it.fitemname">
-                                    <input type="hidden" name="fsatuan[]" :value="it.fsatuan">
-                                    <input type="hidden" name="frefcode[]" :value="it.frefcode">
-                                    <input type="hidden" name="frefdtno[]" :value="it.frefdtno">
-                                    <input type="hidden" name="fnouref[]" :value="it.fnouref">
-                                    <input type="hidden" name="frefpr[]" :value="it.frefpr">
-                                    <input type="hidden" name="frefso[]" :value="it.frefso">
-                                    <input type="hidden" name="frefsrj[]" :value="it.frefsrj">
-                                    <input type="hidden" name="fnoacak[]" :value="it.fnoacak">
-                                    <input type="hidden" name="frefnoacak[]" :value="it.frefnoacak">
-                                    <input type="hidden" name="fqty[]" :value="it.fqty">
-                                    <input type="hidden" name="fterima[]" :value="it.fterima">
-                                    <input type="hidden" name="fprice[]" :value="it.fprice">
-                                    <input type="hidden" name="fdisc[]" :value="it.fdisc">
-                                    <input type="hidden" name="ftotal[]" :value="it.ftotal">
-                                    <input type="hidden" name="fdesc[]" :value="it.fdesc">
-                                    <input type="hidden" name="fketdt[]" :value="it.fketdt">
+                                    <input type="hidden" :name="`fitemcode[${it.formIndex}]`" :value="it.fitemcode">
+                                    <input type="hidden" :name="`fitemname[${it.formIndex}]`" :value="it.fitemname">
+                                    <input type="hidden" :name="`fsatuan[${it.formIndex}]`" :value="it.fsatuan">
+                                    <input type="hidden" :name="`frefcode[${it.formIndex}]`" :value="it.frefcode">
+                                    <input type="hidden" :name="`frefdtno[${it.formIndex}]`" :value="it.frefdtno">
+                                    <input type="hidden" :name="`fnouref[${it.formIndex}]`" :value="it.fnouref">
+                                    <input type="hidden" :name="`frefpr[${it.formIndex}]`" :value="it.frefpr">
+                                    <input type="hidden" :name="`frefso[${it.formIndex}]`" :value="it.frefso">
+                                    <input type="hidden" :name="`frefsrj[${it.formIndex}]`" :value="it.frefsrj">
+                                    <input type="hidden" :name="`fnoacak[${it.formIndex}]`" :value="it.fnoacak">
+                                    <input type="hidden" :name="`frefnoacak[${it.formIndex}]`" :value="it.frefnoacak">
+                                    <input type="hidden" :name="`fqty[${it.formIndex}]`" :value="it.fqty">
+                                    <input type="hidden" :name="`fterima[${it.formIndex}]`" :value="it.fterima">
+                                    <input type="hidden" :name="`fprice[${it.formIndex}]`" :value="it.fprice">
+                                    <input type="hidden" :name="`fdisc[${it.formIndex}]`" :value="it.fdisc">
+                                    <input type="hidden" :name="`ftotal[${it.formIndex}]`" :value="it.ftotal">
+                                    <input type="hidden" :name="`fdesc[${it.formIndex}]`" :value="it.fdesc">
+                                    <input type="hidden" :name="`fketdt[${it.formIndex}]`" :value="it.fketdt">
                                 </div>
                             </template>
                         </div>
@@ -1863,6 +1870,7 @@
         return {
             showNoItems: false,
             savedItems: @json($initialReturPenjualanItems),
+            nextFormIndex: @json($nextReturPenjualanItemIndex),
             minimumVisibleRows: 5,
             browseTarget: null,
             editingIndex: null,
@@ -2525,8 +2533,15 @@
                 return {
                     ...newRow(),
                     uid: cryptoRandom(),
+                    formIndex: this.allocateFormIndex(),
                     fnoacak: this.generateUniqueNoAcak(),
                 };
+            },
+
+            allocateFormIndex() {
+                const index = Number(this.nextFormIndex || 0);
+                this.nextFormIndex = index + 1;
+                return index;
             },
 
             pruneEmptyRows() {
@@ -2608,9 +2623,6 @@
                         row.fitemcode = (product.fprdcode || '').toString();
                         row.frefcode = product.fprdid || product.id || '';
                         this.hydrateRowFromMeta(row, this.productMeta(row.fitemcode));
-                            this.rows.splice(this.browseTarget, 1, {
-                        ...this.rows[this.browseTarget]
-                    });
                         row.fnoacak = this.normalizeNoAcak(row.fnoacak) || this.generateUniqueNoAcak();
                         if (!row.fqty) row.fqty = 0;
                         this.recalc(row);
@@ -2644,6 +2656,7 @@
         function newRow() {
             return {
                 uid: null,
+                formIndex: null,
                 fitemcode: '',
                 fitemname: '',
                 frefcode: '',
@@ -3531,7 +3544,7 @@
 
         window.getReturPenjualanDuplicateCode = function(form) {
             const seen = new Set();
-            const inputs = Array.from(form.querySelectorAll('input[name="fitemcode[]"]'));
+            const inputs = Array.from(form.querySelectorAll('input[name^="fitemcode["]'));
 
             for (const input of inputs) {
                 const code = (input.value || '').toString().trim().toUpperCase();
