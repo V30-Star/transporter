@@ -474,7 +474,7 @@
                     name: 'fsodate'
                 },
                 {
-                    data: 'frefno', // ← UBAH DARI fsono JADI frefno
+                    data: 'frefno', 
                     name: 'frefno',
                     render: function(data, type, row) {
                         if (type !== 'display') {

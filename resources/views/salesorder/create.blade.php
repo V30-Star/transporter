@@ -1558,7 +1558,7 @@
                     </div>
                 `,
                 showCancelButton: true,
-                confirmButtonText: @json('Yes'),
+                confirmButtonText: @json('Ok'),
                 cancelButtonText: @json('No')
             });
 
