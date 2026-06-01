@@ -607,14 +607,6 @@ class SuratJalanController extends Controller
     {
         $userid = auth('sysuser')->user()->fsysuserid ?? 'admin';
 
-        // LOG 1: Mencatat awal transaksi masuk dan user pelaksana
-        Log::info("SuratJalan@store: Request masuk dari user [{$userid}].", [
-            'ip' => $request->ip(),
-            'fsupplier' => $request->input('fsupplier'),
-            'fbranchcode' => $request->input('fbranchcode'),
-            'total_items_payload' => count($request->input('fitemcode', []))
-        ]);
-
         // =========================
         // 1) VALIDASI INPUT
         // =========================
@@ -1039,18 +1031,8 @@ class SuratJalanController extends Controller
 
                 DB::table('jurnaldt')->insert($jurnalDetails);
 
-                // LOG 5: Sukses melakukan insert semua baris entitas di DB Transaction block
-                Log::info("SuratJalan@store: Query DB internal selesai. Nomor SRJ: [{$fstockmtno}], Nomor Jurnal: [{$fjurnalno}].");
             });
         } catch (\Throwable $e) {
-            // LOG 6: Menangkap crash system atau kegagalan query database
-            Log::error("SuratJalan@store: Gagal memproses transaksi! Database di-rollback.", [
-                'error_message' => $e->getMessage(),
-                'file' => $e->getFile(),
-                'line' => $e->getLine(),
-                'trace' => $e->getTraceAsString(),
-                'attempted_fstockmtno' => $fstockmtno ?? 'N/A'
-            ]);
 
             return back()->withInput()->withErrors([
                 'detail' => 'Data belum berhasil disimpan. Cek data log internal.',
