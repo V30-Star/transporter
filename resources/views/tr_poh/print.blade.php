@@ -287,7 +287,13 @@
                         <td class="text-right">{{ number_format($r->fqty ?? 100000, 2, ',', '.') }}
                             {{ $r->funit ?? 'KG' }}</td>
                         <td class="text-right">{{ number_format($r->fprice ?? 1115, 2, ',', '.') }}</td>
-                        <td class="text-center">{{ number_format((float)($r->fdisc ?? 0), 2, ',', '.') }}</td>
+                        <td class="text-center">
+                            @if (is_numeric($r->fdisc))
+                                {{ (float)$r->fdisc == (int)$r->fdisc ? (int)$r->fdisc : number_format((float)$r->fdisc, 2, ',', '.') }}
+                            @else
+                                {{ $r->fdisc }}
+                            @endif
+                        </td>
                         <td class="text-right">{{ number_format($r->famount ?? 111500000, 2, ',', '.') }}</td>
                     </tr>
                 @endforeach

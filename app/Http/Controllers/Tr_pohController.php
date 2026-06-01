@@ -811,7 +811,7 @@ class Tr_pohController extends Controller
             'fprice.*' => ['numeric', 'min:0'],
 
             'fdisc' => ['nullable', 'array'],
-            'fdisc.*' => ['numeric', 'min:0'],
+            'fdisc.*' => ['nullable', 'string', 'regex:/^\s*\d+(?:\.\d+)?(?:\s*\+\s*\d+(?:\.\d+)?)*\s*$/'],
 
             'frefpr' => ['nullable', 'array'],
             'frefpr.*' => ['nullable', 'string', 'max:30'],
@@ -827,6 +827,7 @@ class Tr_pohController extends Controller
             'fqty.*.gt' => 'Hapus baris atau isi qty. Qty tidak boleh 0.',
             'fnoacak.*.regex' => 'No. acak PO harus 3 digit 1-9.',
             'frefnoacak.*.regex' => 'No. referensi acak harus 3 digit.',
+            'fdisc.*.regex' => 'Format diskon item harus angka atau format seperti 10+2.',
         ]);
 
         if ($validator->fails()) {
@@ -899,7 +900,8 @@ class Tr_pohController extends Controller
             $refdt = trim((string) ($refdtno[$i] ?? ''));
             $qty = (float) ($qtys[$i] ?? 0);
             $price = (float) ($prices[$i] ?? 0);
-            $discP = (float) ($discs[$i] ?? 0);
+            $discRaw = $this->normalizeDiscountInput($discs[$i] ?? 0);
+            $discP = $this->parseDiscountExpression($discRaw);
             $desc = (string) ($descs[$i] ?? '');
             $frefdtid = (int) ($frefdtids[$i] ?? 0);
             $fnoacak = $this->normalizeRandomNumber($fnoacaks[$i] ?? null, $usedNoAcaks);
@@ -947,7 +949,7 @@ class Tr_pohController extends Controller
                 'fprdid' => $productId,   // <-- integer FK to msprd.fprdid
                 'fprdcode' => $product->fprdcode ?? '',   // <-- integer FK to msprd.fprdid
                 'fqty' => $qty,
-                'fdisc' => (string) $discP,
+                'fdisc' => $discRaw,
                 'fprice' => $price,
                 'fprice_rp' => $price,
                 'fpricegross' => $priceGross,
@@ -1259,7 +1261,7 @@ class Tr_pohController extends Controller
                 'fqtyterima' => (float) ($d->fqtyterima ?? 0),
                 'fterima' => (float) ($d->fterima ?? 0),
                 'fprice' => (float) ($d->fprice ?? 0),
-                'fdisc' => (float) ($d->fdisc ?? 0),
+                'fdisc' => $this->normalizeDiscountInput($d->fdisc ?? 0),
                 'ftotal' => (float) ($d->famount ?? 0),
                 'fdesc' => (string) ($d->fdesc ?? ''),
                 'fketdt' => (string) ($d->fketdt ?? ''),
@@ -1373,7 +1375,7 @@ class Tr_pohController extends Controller
                 'fqtyterima' => (float) ($d->fqtyterima ?? 0),
                 'fterima' => (float) ($d->fterima ?? 0),
                 'fprice' => (float) ($d->fprice ?? 0),
-                'fdisc' => (float) ($d->fdisc ?? 0),
+                'fdisc' => $this->normalizeDiscountInput($d->fdisc ?? 0),
                 'ftotal' => (float) ($d->famount ?? 0),
                 'fdesc' => (string) ($d->fdesc ?? ''),
                 'fketdt' => (string) ($d->fketdt ?? ''),
@@ -1459,7 +1461,7 @@ class Tr_pohController extends Controller
             'fprice' => ['nullable', 'array'],
             'fprice.*' => ['numeric', 'min:0'],
             'fdisc' => ['nullable', 'array'],
-            'fdisc.*' => ['numeric', 'min:0'],
+            'fdisc.*' => ['nullable', 'string', 'regex:/^\s*\d+(?:\.\d+)?(?:\s*\+\s*\d+(?:\.\d+)?)*\s*$/'],
             'frefpr' => ['nullable', 'array'],
             'frefpr.*' => ['nullable', 'string', 'max:30'],
             'fdesc' => ['nullable', 'array'],
@@ -1472,6 +1474,7 @@ class Tr_pohController extends Controller
             'fqty.*.gt' => 'Harap hapus data atau isi qty data pada detail item (Qty tidak boleh 0).',
             'fnoacak.*.regex' => 'No acak PO harus terdiri dari 3 digit angka 1-9 tanpa 0.',
             'frefnoacak.*.regex' => 'No referensi acak harus terdiri dari 3 digit angka.',
+            'fdisc.*.regex' => 'Format diskon item harus angka atau format seperti 10+2.',
         ]);
 
         if ($validator->fails()) {
@@ -1558,7 +1561,8 @@ class Tr_pohController extends Controller
             $refdt = trim((string) ($refdtns[$i] ?? ''));
             $qty = (float) ($qtys[$i] ?? 0);
             $price = (float) ($prices[$i] ?? 0);
-            $discP = (float) ($discs[$i] ?? 0);
+            $discRaw = $this->normalizeDiscountInput($discs[$i] ?? 0);
+            $discP = $this->parseDiscountExpression($discRaw);
             $desc = (string) ($descs[$i] ?? '');
             $frefdtid = (int) ($frefdtids[$i] ?? 0);
             $fnoacak = $this->normalizeRandomNumber($fnoacaks[$i] ?? null, $usedNoAcaks);
@@ -1609,7 +1613,7 @@ class Tr_pohController extends Controller
                 'fprdid' => $productId,
                 'fprdcode' => $product->fprdcode ?? '',
                 'fqty' => $qty,
-                'fdisc' => (string) $discP,
+                'fdisc' => $discRaw,
                 'fprice' => $price,
                 'fprice_rp' => $price,
                 'fpricegross' => $priceGross,
@@ -1851,7 +1855,7 @@ class Tr_pohController extends Controller
                 'fqty' => (float) ($d->fqty ?? 0),
                 'fterima' => (float) ($d->fterima ?? 0),
                 'fprice' => (float) ($d->fprice ?? 0),
-                'fdisc' => (float) ($d->fdisc ?? 0),
+                'fdisc' => $this->normalizeDiscountInput($d->fdisc ?? 0),
                 'ftotal' => (float) ($d->famount ?? 0),
                 'fdesc' => (string) ($d->fdesc ?? ''),
                 'fketdt' => (string) ($d->fketdt ?? ''),
@@ -2144,5 +2148,41 @@ class Tr_pohController extends Controller
         }
 
         return 'No. referensi ' . $refNo . ' sudah ada di transaksi ' . $transactionNo . '.';
+    }
+
+    private function normalizeDiscountInput($discInput): string
+    {
+        $value = trim((string) ($discInput ?? ''));
+        if ($value === '') {
+            return '0';
+        }
+
+        $value = preg_replace('/\s+/', '', $value) ?? '0';
+
+        return $value === '' ? '0' : mb_substr($value, 0, 50);
+    }
+
+    private function parseDiscountExpression($discInput): float
+    {
+        $normalized = $this->normalizeDiscountInput($discInput);
+
+        if ($normalized === '0') {
+            return 0;
+        }
+
+        $parts = array_filter(explode('+', $normalized), fn ($part) => $part !== '');
+        if (empty($parts)) {
+            return 0;
+        }
+
+        $total = 0.0;
+        foreach ($parts as $part) {
+            if (! is_numeric($part)) {
+                return 0;
+            }
+            $total += (float) $part;
+        }
+
+        return max(0, min(100, round($total, 4)));
     }
 }

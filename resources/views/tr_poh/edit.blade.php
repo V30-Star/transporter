@@ -524,17 +524,17 @@
                                 {{-- Disc. % --}}
                                 <td class="p-2 text-right">
                                     @if ($isEdit)
-                                        <input type="number" class="border rounded px-2 py-1 w-20 text-right text-sm"
-                                            min="0" max="100" step="0.01"
-                                            :value="Number(row.fdisc || 0).toFixed(2)"
-                                            @input="row.fdisc = +$event.target.value; recalc(row)" :id="'disc_row_' + i"
+                                        <input type="text" class="border rounded px-2 py-1 w-20 text-right text-sm"
+                                            placeholder="0"
+                                            :value="row.fdisc"
+                                            @input="row.fdisc = $event.target.value; recalc(row)" :id="'disc_row_' + i"
                                             @focus="activeRow = row.uid; $event.target.select()"
-                                            @blur="activeRow = null; $event.target.value = (+row.fdisc || 0).toFixed(2)"
-                                            @change="recalc(row)" @keydown.enter.prevent="onRowUpdated(i)">
+                                            @blur="activeRow = null; row.fdisc = normalizeDiscountValue(row.fdisc); recalc(row)"
+                                            @keydown.enter.prevent="onRowUpdated(i)">
                                     @else
                                         <input type="text"
                                             class="w-full border rounded px-2 py-1 bg-gray-100 text-gray-600 text-sm text-right"
-                                            :value="fmtCurr(row.fdisc)" disabled>
+                                            :value="row.fdisc" disabled>
                                     @endif
                                 </td>
 
@@ -1159,7 +1159,7 @@
                 fprno: '',
                 fqty: 0,
                 fprice: 0,
-                fdisc: 0,
+                fdisc: '0',
                 ftotal: 0,
                 fdesc: '',
                 fketdt: '',
@@ -1377,17 +1377,45 @@
                 }
             },
 
+            parseDiscount(value) {
+                if (value === null || value === undefined || value === '') return 0;
+                const cleaned = String(value).replace(/\s+/g, '');
+                if (!cleaned) return 0;
+                const parts = cleaned.split('+').filter(Boolean);
+                if (!parts.length) return 0;
+
+                let total = 0;
+                for (const part of parts) {
+                    const parsed = Number(part);
+                    if (!Number.isFinite(parsed)) return 0;
+                    total += parsed;
+                }
+
+                return Math.min(100, Math.max(0, total));
+            },
+
+            normalizeDiscountValue(value) {
+                const cleaned = String(value ?? '').replace(/\s+/g, '');
+                if (cleaned === '') return '0';
+                if (!cleaned.includes('+')) {
+                    const num = Number(cleaned);
+                    if (Number.isFinite(num)) {
+                        return String(num);
+                    }
+                }
+                return cleaned;
+            },
+
             recalc(row) {
                 const qty = Math.max(0, +row.fqty || 0);
                 const price = Math.max(0, +row.fprice || 0);
-                const disc = Math.min(100, Math.max(0, +row.fdisc || 0));
+                const discPercent = this.parseDiscount(row.fdisc);
                 row.fqty = qty;
                 row.fprice = price;
                 if (typeof row.fpriceInput === 'undefined') {
                     row.fpriceInput = this.fmtCurr(price);
                 }
-                row.fdisc = disc;
-                row.ftotal = +(qty * price * (1 - disc / 100)).toFixed(2);
+                row.ftotal = +(qty * price * (1 - discPercent / 100)).toFixed(2);
             },
 
             sanitizePriceValue(value) {
@@ -1565,7 +1593,7 @@
                 if (!row.fprice || row.fprice === 0) {
                     row.fprice = hist.fprice;
                     row.fpriceInput = this.fmtCurr(row.fprice);
-                    row.fdisc = hist.fdisc ?? 0;
+                    row.fdisc = this.normalizeDiscountValue(hist.fdisc ?? 0);
                     this.recalc(row);
                 }
             },
@@ -1686,7 +1714,7 @@
                 row.fqty = Number(row.fqty || 0);
                 row.fprice = Number(row.fprice || 0);
                 row.fpriceInput = this.fmtCurr(row.fprice);
-                row.fdisc = Number(row.fdisc || 0);
+                row.fdisc = this.normalizeDiscountValue(row.fdisc ?? 0);
                 row.ftotal = Number(row.ftotal || 0);
                 row.fdesc = (row.fdesc || '').toString();
                 row.fketdt = (row.fketdt || '').toString();
@@ -1822,7 +1850,7 @@
                         fqtykecil2,
                         maxqty_satuan: src.maxqty_satuan ?? fsatuankecil,
                         fprice: Number(src.fprice ?? 0),
-                        fdisc: Number(src.fdisc ?? 0),
+                        fdisc: this.normalizeDiscountValue(src.fdisc ?? 0),
                         ftotal: Number(src.ftotal ?? 0),
                         fdesc: src.fdesc ?? src.fketdt ?? '',
                         fketdt: src.fketdt ?? '',
@@ -1833,9 +1861,10 @@
                     if (Number(normalizedRow.maxqty) > 0) {
                         normalizedRow.fqty = Number(normalizedRow.maxqty);
                     }
-                    if (!normalizedRow.ftotal && normalizedRow.fqty && normalizedRow.fprice)
-                        normalizedRow.ftotal = +(normalizedRow.fqty * normalizedRow.fprice * (1 - normalizedRow
-                            .fdisc / 100)).toFixed(2);
+                    if (!normalizedRow.ftotal && normalizedRow.fqty && normalizedRow.fprice) {
+                         const parsedDisc = this.parseDiscount(normalizedRow.fdisc);
+                         normalizedRow.ftotal = +(normalizedRow.fqty * normalizedRow.fprice * (1 - parsedDisc / 100)).toFixed(2);
+                     }
                     toAdd.push(normalizedRow);
                     existingSet.add(key);
                 });
