@@ -134,13 +134,6 @@ class SubaccountController extends Controller
         try {
             $subaccount = Subaccount::findOrFail($fsubaccountid);
 
-            if (\Illuminate\Support\Facades\DB::table('jurnaldt')->where('fsubaccount', $subaccount->fsubaccount)->exists()) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Subaccount sudah dipakai transaksi jurnal.',
-                ], 422);
-            }
-
             $subaccount->delete();
 
             return response()->json([
