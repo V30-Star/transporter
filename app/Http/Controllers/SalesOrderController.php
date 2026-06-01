@@ -949,7 +949,7 @@ class SalesOrderController extends Controller
             $itemCode = trim($itemCodes[$i] ?? '');
             $qty = (float) ($qtys[$i] ?? 0);
             $price = (float) ($prices[$i] ?? 0);
-            $discInput = $discs[$i] ?? 0;
+            $discRaw = $this->normalizeDiscountInput($discs[$i] ?? 0);
 
             if (empty($itemCode) || $qty <= 0) {
                 continue;
@@ -988,7 +988,7 @@ class SalesOrderController extends Controller
             }
 
             // Hitung Diskon
-            $discPersen = $this->parseDiscount($discInput);
+            $discPersen = $this->parseDiscount($discRaw);
             $subtotal = $qty * $price;
             $discount = $subtotal * ($discPersen / 100);
             $amount = $subtotal - $discount;
@@ -1003,7 +1003,7 @@ class SalesOrderController extends Controller
                 'fdesc' => $descs[$i] ?? '',
                 'fqty' => $qty,
                 'fprice' => $price,
-                'fdiscpersen' => $discPersen,
+                'fdiscpersen' => $discRaw,
                 'fdiscount' => round($discount, 2),
                 'famount' => round($amount, 2),
                 'fqtykecil' => $qtyKecil,
@@ -1205,6 +1205,18 @@ class SalesOrderController extends Controller
         }
     }
 
+    private function normalizeDiscountInput($discInput): string
+    {
+        $value = trim((string) ($discInput ?? ''));
+        if ($value === '') {
+            return '0';
+        }
+
+        $value = preg_replace('/\s+/', '', $value) ?? '0';
+
+        return $value === '' ? '0' : mb_substr($value, 0, 50);
+    }
+
     public function edit(Request $request, $ftrsomtid)
     {
         $customers = Customer::orderBy('fcustomername', 'asc')
@@ -1270,7 +1282,7 @@ class SalesOrderController extends Controller
                 'fqtysrj'            => (float) $entry['remain_dokumen'],
                 'fterima'            => (float) ($d->fterima ?? 0),
                 'fprice'             => (float) ($d->fprice ?? 0),
-                'fdisc'              => (float) ($d->fdiscpersen ?? 0),
+                'fdisc'              => $this->normalizeDiscountInput($d->fdiscpersen ?? 0),
                 'ftotal'             => (float) ($d->famount ?? 0),
                 'fdesc'              => (string) ($d->fdesc ?? ''),
                 'fketdt'             => (string) ($d->fketdt ?? ''),
@@ -1392,7 +1404,7 @@ class SalesOrderController extends Controller
                 'fqtysrj'            => (float) $entry['remain_dokumen'],
                 'fterima'            => (float) ($d->fterima ?? 0),
                 'fprice'             => (float) ($d->fprice ?? 0),
-                'fdisc'              => (float) ($d->fdiscpersen ?? 0),
+                'fdisc'              => $this->normalizeDiscountInput($d->fdiscpersen ?? 0),
                 'ftotal'             => (float) ($d->famount ?? 0),
                 'fdesc'              => (string) ($d->fdesc ?? ''),
                 'fketdt'             => (string) ($d->fketdt ?? ''),
@@ -1570,7 +1582,7 @@ class SalesOrderController extends Controller
             $satuan = trim((string) ($satuans[$i] ?? ''));
             $qty = (float) ($qtys[$i] ?? 0);
             $price = (float) ($prices[$i] ?? 0);
-            $discInput = $discs[$i] ?? 0;
+            $discRaw = $this->normalizeDiscountInput($discs[$i] ?? 0);
             $desc = (string) ($descs[$i] ?? '');
 
             if (empty($itemCode) || $qty <= 0) {
@@ -1606,7 +1618,7 @@ class SalesOrderController extends Controller
                 $qtyKecil = $qty * (float) $produk->fqtykecil2;
             }
 
-            $discPersen = $this->parseDiscount($discInput);
+            $discPersen = $this->parseDiscount($discRaw);
             $subtotal = $qty * $price;
             $discount = $subtotal * ($discPersen / 100);
             $amount = $subtotal - $discount;
@@ -1623,7 +1635,7 @@ class SalesOrderController extends Controller
                 'fqty' => $qty,
                 'fprice' => $price,
                 'fpricenet' => $amount,
-                'fdiscpersen' => $discPersen,
+                'fdiscpersen' => $discRaw,
                 'fdiscount' => round($discount, 2),
                 'famount' => round($amount, 2),
                 'fqtykecil' => $qtyKecil,
@@ -1793,7 +1805,7 @@ class SalesOrderController extends Controller
                 'fqtysrj'            => (float) $entry['remain_dokumen'],
                 'fterima'            => (float) ($d->fterima ?? 0),
                 'fprice'             => (float) ($d->fprice ?? 0),
-                'fdisc'              => (float) ($d->fdiscpersen ?? 0),
+                'fdisc'              => $this->normalizeDiscountInput($d->fdiscpersen ?? 0),
                 'ftotal'             => (float) ($d->famount ?? 0),
                 'fdesc'              => (string) ($d->fdesc ?? ''),
                 'fketdt'             => (string) ($d->fketdt ?? ''),

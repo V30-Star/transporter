@@ -1287,7 +1287,8 @@ class InvoiceController extends Controller
                 $qtyKecil = $qty * (float) $product->fqtykecil2;
             }
 
-            $discPersen = $this->parseDiscount($discs[$i] ?? 0);
+            $discRaw = $this->normalizeDiscountInput($discs[$i] ?? 0);
+            $discPersen = $this->parseDiscount($discRaw);
             $subtotal = $qty * $price;
             $discAmount = $subtotal * ($discPersen / 100);
             $netPrice = $price - ($price * ($discPersen / 100));
@@ -1312,7 +1313,7 @@ class InvoiceController extends Controller
                 'fqtyremain' => $qtyKecil,
                 'fprice' => $price,
                 'fprice_rp' => $price * $frate,
-                'fdisc' => mb_substr((string) ($discs[$i] ?? '0'), 0, 10),
+                'fdisc' => $discRaw,
                 'fpricenet' => $netPrice,
                 'fpricenet_rp' => $netPrice * $frate,
                 'fsalesnet' => $fsalesnet,
@@ -1998,7 +1999,7 @@ class InvoiceController extends Controller
                 'fqty' => (float) ($d->fqty ?? 0),
                 'fterima' => (float) ($d->fterima ?? 0),
                 'fprice' => (float) ($d->fprice ?? 0),
-                'fdisc' => (float) ($d->fdisc ?? 0),
+                'fdisc' => $this->normalizeDiscountInput($d->fdisc ?? 0),
                 'ftotal' => (float) ($d->famount ?? 0),
                 'fdesc' => (string) ($d->fdesc ?? ''),
                 'frefpr' => $refNoDisplay,
@@ -2102,7 +2103,7 @@ class InvoiceController extends Controller
                 'fqty' => (float) ($d->fqty ?? 0),
                 'fterima' => (float) ($d->fterima ?? 0),
                 'fprice' => (float) ($d->fprice ?? 0),
-                'fdisc' => (float) ($d->fdisc ?? 0),
+                'fdisc' => $this->normalizeDiscountInput($d->fdisc ?? 0),
                 'ftotal' => (float) ($d->famount ?? 0),
                 'fdesc' => (string) ($d->fdesc ?? ''),
                 'frefcode' => (string) ($d->frefcode ?? ''),
@@ -2351,7 +2352,8 @@ class InvoiceController extends Controller
             }
 
             // Kalkulasi Baris
-            $discPersen = $this->parseDiscount($discs[$i] ?? 0);
+            $discRaw = $this->normalizeDiscountInput($discs[$i] ?? 0);
+            $discPersen = $this->parseDiscount($discRaw);
             $subtotal = $qty * $price;
             $discAmount = $subtotal * ($discPersen / 100);
             $netPrice = $price - ($price * ($discPersen / 100));
@@ -2370,7 +2372,7 @@ class InvoiceController extends Controller
                 'fqtyremain' => $qtyKecil,
                 'fprice' => $price,
                 'fprice_rp' => $price * $frate,
-                'fdisc' => mb_substr((string) ($discs[$i] ?? '0'), 0, 10),
+                'fdisc' => $discRaw,
                 'fpricenet' => $netPrice,
                 'fpricenet_rp' => $netPrice * $frate,
                 'famount' => $amountRow,
@@ -2592,7 +2594,7 @@ class InvoiceController extends Controller
                 'fqty' => (float) ($d->fqty ?? 0),
                 'fterima' => (float) ($d->fterima ?? 0),
                 'fprice' => (float) ($d->fprice ?? 0),
-                'fdisc' => (float) ($d->fdisc ?? 0),
+                'fdisc' => $this->normalizeDiscountInput($d->fdisc ?? 0),
                 'ftotal' => (float) ($d->famount ?? 0),
                 'fdesc' => (string) ($d->fdesc ?? ''),
                 'frefcode' => (string) ($d->frefcode ?? ''),
@@ -2800,5 +2802,17 @@ class InvoiceController extends Controller
 
         DB::table('jurnaldt')->whereIn('fjurnalmtid', $existingJurnalIds->all())->delete();
         DB::table('jurnalmt')->whereIn('fjurnalmtid', $existingJurnalIds->all())->delete();
+    }
+
+    private function normalizeDiscountInput($discInput): string
+    {
+        $value = trim((string) ($discInput ?? ''));
+        if ($value === '') {
+            return '0';
+        }
+
+        $value = preg_replace('/\s+/', '', $value) ?? '0';
+
+        return $value === '' ? '0' : mb_substr($value, 0, 50);
     }
 }

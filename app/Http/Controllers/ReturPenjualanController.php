@@ -449,7 +449,7 @@ class ReturPenjualanController extends Controller
                     'fsatuan' => trim((string) ($item->fsatuan ?? '')),
                     'fdisplayunit' => trim((string) ($item->fsatuan ?? '')),
                     'fprice' => (float) ($item->fprice ?? 0),
-                    'fdisc' => (string) ($item->fdisc ?? '0'),
+                    'fdisc' => $this->normalizeDiscountInput($item->fdisc ?? 0),
                     'fdesc' => (string) ($item->fdesc ?? ''),
                     'fnouref' => trim((string) ($header->fsono ?? '')),
                     'frefpr' => trim((string) ($header->frefno ?? '')) !== ''
@@ -835,7 +835,8 @@ class ReturPenjualanController extends Controller
                 $qtyKecil = $qty * (float) $product->fqtykecil2;
             }
 
-            $discPersen = $this->parseDiscount($discs[$i] ?? 0);
+            $discRaw = $this->normalizeDiscountInput($discs[$i] ?? 0);
+            $discPersen = $this->parseDiscount($discRaw);
             $subtotal = $qty * $price;
             $discAmount = $subtotal * ($discPersen / 100);
             $netPrice = $price * (1 - $discPersen / 100);
@@ -853,7 +854,7 @@ class ReturPenjualanController extends Controller
                 'fqtyremain' => $qty,
                 'fprice' => $price,
                 'fprice_rp' => $price * $frate,
-                'fdisc' => mb_substr((string) ($discs[$i] ?? '0'), 0, 10),
+                'fdisc' => $discRaw,
                 'fpricenet' => $netPrice,
                 'fpricenet_rp' => $netPrice * $frate,
                 'famount' => $amountRow,
@@ -1606,7 +1607,7 @@ class ReturPenjualanController extends Controller
                 'fqtyremain' => $maxqty,
                 'maxqty' => $maxqty,
                 'fprice' => (float) ($d->fprice ?? 0),
-                'fdisc' => (string) ($d->fdisc ?? '0'),
+                'fdisc' => $this->normalizeDiscountInput($d->fdisc ?? 0),
                 'ftotal' => (float) ($d->famount ?? 0),
                 'fdesc' => (string) ($d->fdesc ?? ''),
                 'frefcode' => $refCode,
@@ -1724,7 +1725,7 @@ class ReturPenjualanController extends Controller
                 'fterima' => (float) ($d->fterima ?? 0),
                 'fqtyremain' => (float) ($d->fqtyremain ?? 0),
                 'fprice' => (float) ($d->fprice ?? 0),
-                'fdisc' => (float) ($d->fdisc ?? 0),
+                'fdisc' => $this->normalizeDiscountInput($d->fdisc ?? 0),
                 'ftotal' => (float) ($d->famount ?? 0),
                 'fdesc' => (string) ($d->fdesc ?? ''),
                 'fketdt' => (string) ($d->fketdt ?? ''),
@@ -1937,7 +1938,8 @@ class ReturPenjualanController extends Controller
                 $qtyKecil = $qty * (float) $product->fqtykecil2;
             }
 
-            $discPersen = $this->parseDiscount($discs[$i] ?? 0);
+            $discRaw = $this->normalizeDiscountInput($discs[$i] ?? 0);
+            $discPersen = $this->parseDiscount($discRaw);
             $subtotal = $qty * $price;
             $discAmount = $subtotal * ($discPersen / 100);
             $netPrice = $price - ($price * ($discPersen / 100));
@@ -1956,7 +1958,7 @@ class ReturPenjualanController extends Controller
                 'fqtyremain' => $qty,
                 'fprice' => $price,
                 'fprice_rp' => $price * $frate,
-                'fdisc' => mb_substr((string) ($discs[$i] ?? '0'), 0, 10),
+                'fdisc' => $discRaw,
                 'fpricenet' => $netPrice,
                 'fpricenet_rp' => $netPrice * $frate,
                 'famount' => $amountRow,
@@ -2210,7 +2212,7 @@ class ReturPenjualanController extends Controller
                 'fterima' => (float) ($d->fterima ?? 0),
                 'fqtyremain' => (float) ($d->fqtyremain ?? 0),
                 'fprice' => (float) ($d->fprice ?? 0),
-                'fdisc' => (float) ($d->fdisc ?? 0),
+                'fdisc' => $this->normalizeDiscountInput($d->fdisc ?? 0),
                 'ftotal' => (float) ($d->famount ?? 0),
                 'fdesc' => (string) ($d->fdesc ?? ''),
                 'fketdt' => (string) ($d->fketdt ?? ''),
@@ -2432,5 +2434,17 @@ class ReturPenjualanController extends Controller
     private function getUsageLockMessage($header): ?string
     {
         return null;
+    }
+
+    private function normalizeDiscountInput($discInput): string
+    {
+        $value = trim((string) ($discInput ?? ''));
+        if ($value === '') {
+            return '0';
+        }
+
+        $value = preg_replace('/\s+/', '', $value) ?? '0';
+
+        return $value === '' ? '0' : mb_substr($value, 0, 50);
     }
 }

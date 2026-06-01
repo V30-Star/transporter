@@ -2831,11 +2831,11 @@
 
             normalizeDiscountValue(value) {
                 const cleaned = String(value ?? '').replace(/\s+/g, '');
-                if (cleaned === '') return '0.00';
+                if (cleaned === '') return '0';
                 if (!cleaned.includes('+')) {
                     const num = Number(cleaned);
                     if (Number.isFinite(num)) {
-                        return num.toFixed(2);
+                        return String(num);
                     }
                 }
                 return cleaned;

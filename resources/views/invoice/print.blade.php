@@ -284,7 +284,7 @@
                     @php
                         $discVal = $r->fdisc ?? '0';
                         if (is_numeric($discVal)) {
-                            $formattedDisc = number_format((float)$discVal, 2, ',', '.');
+                            $formattedDisc = (float)$discVal == (int)$discVal ? (int)$discVal : number_format((float)$discVal, 2, ',', '.');
                         } else {
                             $formattedDisc = $discVal;
                         }
