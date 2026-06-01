@@ -75,6 +75,7 @@
             <thead class="bg-gray-100">
                 <tr>
                     <th class="border px-2 py-1">{{ "No.Transaksi" }}</th>
+                    <th class="border px-2 py-1">{{ "Cab." }}</th>
                     <th class="border px-2 py-1">{{ "Tanggal" }}</th>
                     <th class="border px-2 py-1">{{ "No.Ref" }}</th>
                     <th class="border px-2 py-1">{{ "SO#" }}</th>
@@ -82,7 +83,7 @@
                         <div class="flex items-center justify-between">
                             <span>{{ "Gudang" }}</span>
                             <button type="button" class="col-search-btn p-1 hover:bg-gray-200 rounded"
-                                data-column="4" title="Cari Gudang">
+                                data-column="5" title="Cari Gudang">
                                 <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor"
                                     viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -93,7 +94,7 @@
                         <div class="col-search-input mt-2 hidden">
                             <input type="text"
                                 class="dt-column-search w-full px-2 py-1.5 border border-gray-300 rounded text-sm focus:outline-none focus:ring-1 focus:ring-blue-500"
-                                data-column="4" placeholder="Cari gudang...">
+                                data-column="5" placeholder="Cari gudang...">
                         </div>
                     </th>
                     <th class="border px-2 py-1">{{ "Nama Customer" }}</th>
@@ -339,6 +340,11 @@
             const columns = [{
                     data: 'fstockmtno_display',
                     name: 'fstockmtno'
+                },
+                {
+                    data: 'fbranchcode',
+                    name: 'fbranchcode',
+                    defaultContent: ''
                 },
                 {
                     data: 'fstockmtdate',
