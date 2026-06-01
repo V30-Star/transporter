@@ -293,6 +293,7 @@ class SuratJalanController extends Controller
     public function pickable(Request $request)
     {
         $customerCode = trim((string) $request->input('customer_code', $request->input('fcustno', $request->input('fsupplier', ''))));
+        $onlyRemaining = $request->boolean('only_remaining');
 
         $query = DB::table('trstockmt')
             ->leftJoin('mscustomer', 'trstockmt.fsupplier', '=', 'mscustomer.fcustomercode')
@@ -321,6 +322,21 @@ class SuratJalanController extends Controller
             $query->whereRaw('TRIM(COALESCE(trstockmt.fsupplier, \'\')) = ?', [$customerCode]);
         }
 
+        if ($onlyRemaining) {
+            $query->whereExists(function ($subQuery) {
+                $subQuery->select(DB::raw(1))
+                    ->from('trstockdt as d')
+                    ->whereColumn('d.fstockmtno', 'trstockmt.fstockmtno')
+                    ->whereRaw("COALESCE(d.fqtykecil, 0) - COALESCE((
+                        SELECT SUM(COALESCE(inv_dt.fqtykecil, 0))
+                        FROM trandt inv_dt
+                        WHERE TRIM(COALESCE(inv_dt.frefsrj, '')) = TRIM(COALESCE(trstockmt.fstockmtno, ''))
+                            AND TRIM(COALESCE(inv_dt.fprdcode, '')) = TRIM(COALESCE(d.fprdcode, ''))
+                            AND COALESCE(inv_dt.frefnosrjacak::text, '') = COALESCE(d.frefnoacak::text, '')
+                    ), 0) > 0");
+            });
+        }
+
         // Filter Search
         if ($request->filled('search')) {
             $search = $request->search;
@@ -338,6 +354,20 @@ class SuratJalanController extends Controller
             ->where('trstockmt.fprdout', '0')
             ->when($customerCode !== '', function ($query) use ($customerCode) {
                 $query->whereRaw('TRIM(COALESCE(trstockmt.fsupplier, \'\')) = ?', [$customerCode]);
+            })
+            ->when($onlyRemaining, function ($query) {
+                $query->whereExists(function ($subQuery) {
+                    $subQuery->select(DB::raw(1))
+                        ->from('trstockdt as d')
+                        ->whereColumn('d.fstockmtno', 'trstockmt.fstockmtno')
+                        ->whereRaw("COALESCE(d.fqtykecil, 0) - COALESCE((
+                            SELECT SUM(COALESCE(inv_dt.fqtykecil, 0))
+                            FROM trandt inv_dt
+                            WHERE TRIM(COALESCE(inv_dt.frefsrj, '')) = TRIM(COALESCE(trstockmt.fstockmtno, ''))
+                                AND TRIM(COALESCE(inv_dt.fprdcode, '')) = TRIM(COALESCE(d.fprdcode, ''))
+                                AND COALESCE(inv_dt.frefnosrjacak::text, '') = COALESCE(d.frefnoacak::text, '')
+                        ), 0) > 0");
+                });
             })
             ->whereNotExists(function ($subQuery) {
                 $subQuery->select(DB::raw(1))
@@ -602,6 +632,7 @@ class SuratJalanController extends Controller
             'products' => $products,
             'productMap' => $productMap,
             'filterSupplierId' => $request->query('filter_supplier_id'),
+            'autoLoadSalesOrderId' => $request->query('sales_order_id'),
         ]);
     }
 

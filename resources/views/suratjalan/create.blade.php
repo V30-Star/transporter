@@ -1490,6 +1490,43 @@
                 this.$nextTick(() => {
                     this.recalcTotals();
                 });
+
+                this.autoLoadSalesOrder();
+            },
+
+            async autoLoadSalesOrder() {
+                const salesOrderId = @json($autoLoadSalesOrderId ?? null);
+                if (!salesOrderId) return;
+
+                try {
+                    const url = @json(route('salesorder.items', ['id' => 'SO_ID_PLACEHOLDER']))
+                        .replace('SO_ID_PLACEHOLDER', salesOrderId);
+                    const res = await fetch(url, {
+                        headers: {
+                            'X-Requested-With': 'XMLHttpRequest'
+                        }
+                    });
+
+                    if (!res.ok) {
+                        throw new Error(`Server error: ${res.status}`);
+                    }
+
+                    const json = await res.json();
+                    window.applyTransactionCustomerSelection?.({
+                        fcustomercode: json.header?.fcustno ?? '',
+                        fcustomername: json.header?.fcustomername ?? '',
+                    });
+
+                    const shippingAddressInput = document.querySelector('textarea[name="fkirim"]');
+                    if (shippingAddressInput && String(shippingAddressInput.value ?? '').trim() === '') {
+                        shippingAddressInput.value = String(json.header?.falamatkirim ?? '').trim();
+                    }
+
+                    this.addManyFromPR(json.header, json.items || []);
+                } catch (e) {
+                    console.error('Auto-load Sales Order gagal:', e);
+                    window.toast?.error(`Gagal mengambil detail Sales Order: ${e.message}`);
+                }
             },
 
             openBrowseFor(index) {

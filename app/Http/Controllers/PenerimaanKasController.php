@@ -3,7 +3,9 @@
 namespace App\Http\Controllers;
 
 use App\Models\Account;
+use App\Models\Customer;
 use App\Models\Subaccount;
+use App\Models\Supplier;
 use App\Models\Trkasdt;
 use App\Models\Trkasmt;
 use Carbon\Carbon;
@@ -374,11 +376,17 @@ class PenerimaanKasController extends Controller
                 ->where('fend', 1)
                 ->where('fnonactive', '0')
                 ->orderBy('faccount')
-                ->get(['faccid', 'faccount', 'faccname', 'fhavesubaccount']),
+                ->get(['faccid', 'faccount', 'faccname', 'fhavesubaccount', 'ftypesubaccount']),
             'subaccounts' => Subaccount::query()
                 ->where('fnonactive', '0')
                 ->orderBy('fsubaccountcode')
                 ->get(['fsubaccountid', 'fsubaccountcode', 'fsubaccountname']),
+            'customers' => Customer::query()
+                ->orderBy('fcustomercode')
+                ->get(['fcustomerid', 'fcustomercode', 'fcustomername']),
+            'suppliers' => Supplier::query()
+                ->orderBy('fsuppliercode')
+                ->get(['fsupplierid', 'fsuppliercode', 'fsuppliername']),
             'journalAccountValidation' => $this->resolveJournalAccountValidationConfig(),
         ], $overrides);
     }
@@ -461,7 +469,7 @@ class PenerimaanKasController extends Controller
             ->all();
 
         $detailAccounts = DB::table('account')
-            ->select('faccount', 'faccname', 'fhavesubaccount')
+            ->select('faccount', 'faccname', 'fhavesubaccount', 'ftypesubaccount')
             ->where('fend', 1)
             ->whereIn(DB::raw('UPPER(faccount)'), $normalizedCodes)
             ->get()
@@ -514,12 +522,22 @@ class PenerimaanKasController extends Controller
     {
         $accounts = Account::query()
             ->whereIn('faccount', collect($details)->pluck('faccount')->filter()->all())
-            ->get(['faccount', 'fhavesubaccount'])
+            ->get(['faccount', 'fhavesubaccount', 'ftypesubaccount'])
             ->keyBy('faccount');
+
+        $subaccountCodes = collect($details)->pluck('fsubaccount')->filter()->unique()->values()->all();
         $subaccounts = Subaccount::query()
-            ->whereIn('fsubaccountcode', collect($details)->pluck('fsubaccount')->filter()->all())
+            ->whereIn('fsubaccountcode', $subaccountCodes)
             ->get(['fsubaccountcode'])
             ->keyBy('fsubaccountcode');
+        $customers = Customer::query()
+            ->whereIn('fcustomercode', $subaccountCodes)
+            ->get(['fcustomercode'])
+            ->keyBy('fcustomercode');
+        $suppliers = Supplier::query()
+            ->whereIn('fsuppliercode', $subaccountCodes)
+            ->get(['fsuppliercode'])
+            ->keyBy('fsuppliercode');
 
         $errors = [];
 
@@ -533,11 +551,7 @@ class PenerimaanKasController extends Controller
 
             $account = $accounts->get($accountCode);
             $hasSubaccount = (string) ($account?->fhavesubaccount ?? '0') === '1';
-
-            if ($subaccountCode !== '' && ! $subaccounts->has($subaccountCode)) {
-                $errors["details.$index.fsubaccount"] = 'Sub Account yang dipilih tidak ditemukan.';
-                continue;
-            }
+            $subaccountType = trim((string) ($account?->ftypesubaccount ?? 'S')) ?: 'S';
 
             if ($subaccountCode === '') {
                 continue;
@@ -545,6 +559,21 @@ class PenerimaanKasController extends Controller
 
             if (! $hasSubaccount) {
                 $errors["details.$index.fsubaccount"] = 'Sub Account hanya boleh diisi untuk account yang memang memakai Sub Account.';
+                continue;
+            }
+
+            if ($subaccountType === 'C' && ! $customers->has($subaccountCode)) {
+                $errors["details.$index.fsubaccount"] = 'Customer yang dipilih tidak ditemukan.';
+                continue;
+            }
+
+            if ($subaccountType === 'P' && ! $suppliers->has($subaccountCode)) {
+                $errors["details.$index.fsubaccount"] = 'Supplier yang dipilih tidak ditemukan.';
+                continue;
+            }
+
+            if (! in_array($subaccountType, ['C', 'P'], true) && ! $subaccounts->has($subaccountCode)) {
+                $errors["details.$index.fsubaccount"] = 'Sub Account yang dipilih tidak ditemukan.';
             }
         }
 

@@ -89,7 +89,12 @@ class SalesOrderController extends Controller
 
     private function canApproveCreditLimit(): bool
     {
-        return in_array('approveSalesOrder', explode(',', session('user_restricted_permissions', '')));
+        return in_array('approveSalesOrder', explode(',', session('user_restricted_permissions', '')), true);
+    }
+
+    private function canContinueToSuratJalan(): bool
+    {
+        return in_array('BolehLanjutKeSuratJalan', explode(',', session('user_restricted_permissions', '')), true);
     }
 
     private function getApprovalRecipients(): array
@@ -179,6 +184,24 @@ class SalesOrderController extends Controller
             array_slice($this->getApprovalRecipients(), 0, 2),
             fn() => \Illuminate\Support\Str::random(64)
         );
+    }
+
+    private function markApprovalStateApproved(array $approvalState, string $userid, $approvedAt): array
+    {
+        $approvalState['fapproval'] = '2';
+        $approvalState['fuserapproved'] = mb_substr($userid, 0, 30);
+        $approvalState['fdateapproved'] = $approvedAt;
+        $approvalState['fapproval_token'] = null;
+
+        if (array_key_exists('fapproval2', $approvalState)) {
+            $approvalState['fapproval2'] = null;
+            $approvalState['fuserapproved2'] = null;
+            $approvalState['fdateapproved2'] = null;
+            $approvalState['fapproval_reason2'] = null;
+            $approvalState['fapproval_token2'] = null;
+        }
+
+        return $approvalState;
     }
 
     private function shouldRequestSalesOrderApproval(Request $request): bool
@@ -534,6 +557,7 @@ class SalesOrderController extends Controller
     public function pickable(Request $request)
     {
         $customerCode = trim((string) $request->input('customer_code', $request->input('fcustno', '')));
+        $onlyRemaining = $request->boolean('only_remaining');
 
         $query = SalesOrderHeader::leftJoin('mscustomer', 'trsomt.fcustno', '=', 'mscustomer.fcustomercode')
             ->select(
@@ -555,6 +579,32 @@ class SalesOrderController extends Controller
             $query->whereRaw('TRIM(COALESCE(trsomt.fcustno, \'\')) = ?', [$customerCode]);
         }
 
+        if ($onlyRemaining) {
+            $query->whereExists(function ($subQuery) {
+                $subQuery->select(DB::raw(1))
+                    ->from('trsodt as d')
+                    ->whereColumn('d.fsono', 'trsomt.fsono')
+                    ->whereRaw("COALESCE(d.fqtykecil, 0) - COALESCE((
+                        SELECT SUM(COALESCE(srj_dt.fqtykecil, 0))
+                        FROM trstockdt srj_dt
+                        JOIN trstockmt srj_mt ON srj_mt.fstockmtno = srj_dt.fstockmtno
+                        WHERE srj_mt.fstockmtcode = 'SRJ'
+                            AND TRIM(COALESCE(srj_dt.frefso, '')) = TRIM(COALESCE(d.fsono, ''))
+                            AND TRIM(COALESCE(srj_dt.fprdcode, '')) = TRIM(COALESCE(d.fprdcode, ''))
+                            AND COALESCE(srj_dt.frefnoacak::text, '') = COALESCE(d.fnoacak::text, '')
+                    ), 0) - COALESCE((
+                        SELECT SUM(COALESCE(inv_dt.fqtykecil, 0))
+                        FROM trandt inv_dt
+                        JOIN tranmt inv_mt ON inv_mt.fsono = inv_dt.fsono
+                        WHERE inv_mt.ftrcode = 'INV'
+                            AND TRIM(COALESCE(inv_dt.frefcode, '')) = 'SO'
+                            AND TRIM(COALESCE(inv_dt.frefso, '')) = TRIM(COALESCE(d.fsono, ''))
+                            AND TRIM(COALESCE(inv_dt.fprdcode, '')) = TRIM(COALESCE(d.fprdcode, ''))
+                            AND COALESCE(inv_dt.frefnosoacak::text, '') = COALESCE(d.fnoacak::text, '')
+                    ), 0) > 0");
+            });
+        }
+
         $recordsTotal = SalesOrderHeader::query()
             ->where(function ($q) {
                 $q->whereNull('trsomt.fneedacc')
@@ -562,6 +612,31 @@ class SalesOrderController extends Controller
             })
             ->when($customerCode !== '', function ($q) use ($customerCode) {
                 $q->whereRaw('TRIM(COALESCE(trsomt.fcustno, \'\')) = ?', [$customerCode]);
+            })
+            ->when($onlyRemaining, function ($q) {
+                $q->whereExists(function ($subQuery) {
+                    $subQuery->select(DB::raw(1))
+                        ->from('trsodt as d')
+                        ->whereColumn('d.fsono', 'trsomt.fsono')
+                        ->whereRaw("COALESCE(d.fqtykecil, 0) - COALESCE((
+                            SELECT SUM(COALESCE(srj_dt.fqtykecil, 0))
+                            FROM trstockdt srj_dt
+                            JOIN trstockmt srj_mt ON srj_mt.fstockmtno = srj_dt.fstockmtno
+                            WHERE srj_mt.fstockmtcode = 'SRJ'
+                                AND TRIM(COALESCE(srj_dt.frefso, '')) = TRIM(COALESCE(d.fsono, ''))
+                                AND TRIM(COALESCE(srj_dt.fprdcode, '')) = TRIM(COALESCE(d.fprdcode, ''))
+                                AND COALESCE(srj_dt.frefnoacak::text, '') = COALESCE(d.fnoacak::text, '')
+                        ), 0) - COALESCE((
+                            SELECT SUM(COALESCE(inv_dt.fqtykecil, 0))
+                            FROM trandt inv_dt
+                            JOIN tranmt inv_mt ON inv_mt.fsono = inv_dt.fsono
+                            WHERE inv_mt.ftrcode = 'INV'
+                                AND TRIM(COALESCE(inv_dt.frefcode, '')) = 'SO'
+                                AND TRIM(COALESCE(inv_dt.frefso, '')) = TRIM(COALESCE(d.fsono, ''))
+                                AND TRIM(COALESCE(inv_dt.fprdcode, '')) = TRIM(COALESCE(d.fprdcode, ''))
+                                AND COALESCE(inv_dt.frefnosoacak::text, '') = COALESCE(d.fnoacak::text, '')
+                        ), 0) > 0");
+                });
             })
             ->count();
 
@@ -612,9 +687,10 @@ class SalesOrderController extends Controller
 
     public function items($id)
     {
+        $allowPending = request()->boolean('allow_pending');
         $header = SalesOrderHeader::where('ftrsomtid', $id)->firstOrFail();
-        abort_if(trim((string) ($header->fneedacc ?? '0')) === '1', 404);
-        abort_if(! ApprovalState::isApprovedRecord($header), 404);
+        abort_if(! $allowPending && trim((string) ($header->fneedacc ?? '0')) === '1', 404);
+        abort_if(! $allowPending && ! ApprovalState::isApprovedRecord($header), 404);
         $remainMap = $this->getSoRemainByIds(
             DB::table('trsodt')->where('fsono', $header->fsono)->pluck('ftrsodtid')->all()
         );
@@ -673,6 +749,7 @@ class SalesOrderController extends Controller
                 'fppnpersen' => (float) ($header->fppnpersen ?? 11),
                 'fketinternal' => trim((string) ($header->fketinternal ?? '')),
                 'falamatkirim' => trim((string) ($header->falamatkirim ?? '')),
+                'fcustomername' => trim((string) optional($header->customer)->fcustomername),
             ],
             'items' => $items,
         ]);
@@ -872,7 +949,8 @@ class SalesOrderController extends Controller
     public function store(Request $request)
     {
         $shouldSendApprovalNotification = false;
-        $needsApprovalNotification = $this->shouldRequestSalesOrderApproval($request);
+        $canContinueToSuratJalan = $this->canContinueToSuratJalan();
+        $needsApprovalNotification = ! $canContinueToSuratJalan && $this->shouldRequestSalesOrderApproval($request);
         // VALIDATION
         $request->validate([
             'fsono' => ['nullable', 'string', 'max:25'],
@@ -1032,9 +1110,15 @@ class SalesOrderController extends Controller
             $grandTotal = $amountNet;
         }
         $creditApproval = $this->resolveSalesOrderCreditApproval($request, $grandTotal);
+        if ($canContinueToSuratJalan) {
+            $creditApproval['fneedacc'] = '0';
+            $creditApproval['fuseracc'] = mb_substr($userid, 0, 30);
+        }
 
         // TRANSACTION
         try {
+            $ftrsomtid = null;
+
             DB::transaction(function () use (
                 $request,
                 $fsodate,
@@ -1053,7 +1137,9 @@ class SalesOrderController extends Controller
                 $resolvedSalesmanCode,
                 $creditApproval,
                 $needsApprovalNotification,
-                &$shouldSendApprovalNotification
+                $canContinueToSuratJalan,
+                &$shouldSendApprovalNotification,
+                &$ftrsomtid
 
             ) {
                 // A. Generate fsono (Auto Numbering)
@@ -1089,6 +1175,9 @@ class SalesOrderController extends Controller
                 $nextRefNo = $lastRefNo + 1;
 
                 $approvalState = $this->initializeApprovalState();
+                if ($canContinueToSuratJalan) {
+                    $approvalState = $this->markApprovalStateApproved($approvalState, $userid, $now);
+                }
                 $fppnpersen = $fapplyppn === 1 ? (float) $request->input('ppn_rate', 11) : 0;
 
                 // C. Insert Header
@@ -1151,12 +1240,17 @@ class SalesOrderController extends Controller
                 $this->sendApprovalNotification($fsono, $userid);
             }
 
-            return redirect()
+            $redirect = redirect()
                 ->route('salesorder.create')
-                ->with('success', 'Sales Order ' . $this->formatDisplayTransactionNumber($fsono, (int) $fapplyppn === 1) . ' berhasil disimpan.')
-                ->with('success_prompt', [
+                ->with('success', 'Sales Order ' . $this->formatDisplayTransactionNumber($fsono, (int) $fapplyppn === 1) . ' berhasil disimpan.');
+
+            if (! $canContinueToSuratJalan) {
+                return $redirect;
+            }
+
+            return $redirect->with('success_prompt', [
                     'type' => 'salesorder_create_suratjalan',
-                    'redirect_url' => route('suratjalan.create'),
+                    'redirect_url' => route('suratjalan.create', ['sales_order_id' => $ftrsomtid]),
                 ]);
         } catch (\Exception $e) {
             report($e);

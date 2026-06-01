@@ -18,6 +18,8 @@
     $headerAccountOptions = collect($headerAccounts ?? []);
     $accountOptions = collect($accounts ?? []);
     $subaccountOptions = collect($subaccounts ?? []);
+    $customerOptions = collect($customers ?? []);
+    $supplierOptions = collect($suppliers ?? []);
     $branchOptions = collect($branches ?? []);
     $resolvedBranchCode = (string) old('fbranchcode', $pengeluaranKas->fbranchcode ?? ($currentBranchCode ?? ''));
     $resolvedBranchLabel = $branchOptions
@@ -38,6 +40,7 @@
                     'faccount' => (string) ($account->faccount ?? ''),
                     'faccname' => (string) ($account->faccname ?? ''),
                     'fhavesubaccount' => (string) ($account->fhavesubaccount ?? '0'),
+                    'ftypesubaccount' => (string) ($account->ftypesubaccount ?? 'S'),
                 ],
             ];
         })
@@ -286,6 +289,7 @@
                                             ? trim($detailAccount->faccname)
                                             : (string) ($detail->account_name ?? '');
                                         $detailHasSubaccount = (string) ($detailAccount->fhavesubaccount ?? '0') === '1';
+                                        $detailSubaccountType = trim((string) ($detailAccount->ftypesubaccount ?? 'S')) ?: 'S';
                                     @endphp
                                     @if ($isReadOnly)
                                         <input type="text" value="{{ $detailAccountCode }}"
@@ -304,6 +308,8 @@
                                                     value="{{ $detailAccountCode }}">
                                                 <input type="hidden" value="{{ $detailHasSubaccount ? '1' : '0' }}"
                                                     data-role="account-has-subaccount">
+                                                <input type="hidden" value="{{ $detailSubaccountType }}"
+                                                    data-role="account-subaccount-type">
                                             </div>
                                             <button type="button" @click="openAccountBrowse($event)"
                                                 class="border rounded px-2 py-1 bg-white hover:bg-gray-50 shrink-0"
@@ -331,13 +337,19 @@
                                             'fsubaccountcode',
                                             $detailSubaccountCode,
                                         );
-                                        $detailSubaccountLabel = $detailSubaccount
-                                            ? trim(
-                                                $detailSubaccount->fsubaccountcode .
-                                                    ' - ' .
-                                                    $detailSubaccount->fsubaccountname,
-                                            )
-                                            : $detailSubaccountCode;
+                                        $detailCustomer = $customerOptions->firstWhere('fcustomercode', $detailSubaccountCode);
+                                        $detailSupplier = $supplierOptions->firstWhere('fsuppliercode', $detailSubaccountCode);
+                                        $detailSubaccountLabel = match ($detailSubaccountType) {
+                                            'C' => $detailCustomer
+                                                ? trim($detailCustomer->fcustomercode . ' - ' . $detailCustomer->fcustomername)
+                                                : $detailSubaccountCode,
+                                            'P' => $detailSupplier
+                                                ? trim($detailSupplier->fsuppliercode . ' - ' . $detailSupplier->fsuppliername)
+                                                : $detailSubaccountCode,
+                                            default => $detailSubaccount
+                                                ? trim($detailSubaccount->fsubaccountcode . ' - ' . $detailSubaccount->fsubaccountname)
+                                                : $detailSubaccountCode,
+                                        };
                                     @endphp
                                     @if ($isReadOnly)
                                         <input type="text" value="{{ $detailSubaccountLabel }}"
@@ -358,7 +370,7 @@
                                             </div>
                                             <button type="button" @click="openSubaccountBrowse($event)"
                                                 class="detail-subaccount-btn border rounded px-2 py-1 bg-white hover:bg-gray-50 shrink-0"
-                                                title="Cari Sub Account">
+                                                title="{{ $detailSubaccountType === 'C' ? 'Cari Customer' : ($detailSubaccountType === 'P' ? 'Cari Supplier' : 'Cari Sub Account') }}">
                                                 <x-heroicon-o-magnifying-glass class="w-4 h-4" />
                                             </button>
                                         </div>
@@ -472,6 +484,11 @@
 @unless ($isReadOnly)
     <x-transaction.browse-account-modal :fend="1" show-controls="true" show-pagination="true" />
     <x-transaction.browse-subaccount-modal show-controls="true" show-pagination="true" />
+    @if ($isPenerimaanKasForm)
+        <x-transaction.browse-customer-modal />
+        <x-transaction.browse-supplier-modal />
+        @include('components.transaction.browse-customer-script')
+    @endif
 
     @push('scripts')
         <script>
@@ -524,7 +541,8 @@
                             const code = (event.detail?.faccount || '').toString().trim();
                             const name = (event.detail?.faccname || '').toString().trim();
                             const hasSubaccount = String(event.detail?.fhavesubaccount ?? '0') === '1';
-                            this.applyAccountLookupValue(this.activeLookupRow, code, name, hasSubaccount);
+                            const subaccountType = (event.detail?.ftypesubaccount || 'S').toString().trim() || 'S';
+                            this.applyAccountLookupValue(this.activeLookupRow, code, name, hasSubaccount, subaccountType);
                         });
 
                         window.addEventListener('subaccount-picked', (event) => {
@@ -545,7 +563,37 @@
                             }
                         });
 
+                        window.addEventListener('customer-picked', (event) => {
+                            if (this.activeLookupType !== 'customer' || !this.activeLookupRow) {
+                                return;
+                            }
+
+                            const activeRow = this.activeLookupRow;
+                            const code = (event.detail?.fcustomercode || '').toString().trim();
+                            const name = (event.detail?.fcustomername || '').toString().trim();
+                            this.applyLookupValue(activeRow, 'fsubaccount', 'subaccount-display', code,
+                                code && name ? `${code} - ${name}` : code);
+                            this.validateActiveLookupRow(activeRow);
+                        });
+
+                        window.addEventListener('supplier-picked', (event) => {
+                            if (this.activeLookupType !== 'supplier' || !this.activeLookupRow) {
+                                return;
+                            }
+
+                            const activeRow = this.activeLookupRow;
+                            const code = (event.detail?.fsuppliercode || '').toString().trim();
+                            const name = (event.detail?.fsuppliername || '').toString().trim();
+                            this.applyLookupValue(activeRow, 'fsubaccount', 'subaccount-display', code,
+                                code && name ? `${code} - ${name}` : code);
+                            this.validateActiveLookupRow(activeRow);
+                        });
+
                         this.$nextTick(() => {
+                            document.querySelectorAll('#detailRows tr.detail-row').forEach((row) => {
+                                this.syncSubaccountState(row);
+                                this.syncRowAmountState(row);
+                            });
                             this.checkAndAutoAppendRow();
                         });
                     },
@@ -585,13 +633,15 @@
                         const accountCodeDisplay = row.querySelector('[data-role="account-code-display"]');
                         const accountNameDisplay = row.querySelector('[data-role="account-name-display"]');
                         const hasSubaccountField = row.querySelector('[data-role="account-has-subaccount"]');
+                        const subaccountTypeField = row.querySelector('[data-role="account-subaccount-type"]');
 
                         if (accountHidden) accountHidden.value = '';
                         if (accountCodeDisplay) accountCodeDisplay.value = '';
                         if (accountNameDisplay) accountNameDisplay.value = '';
                         if (hasSubaccountField) hasSubaccountField.value = '0';
+                        if (subaccountTypeField) subaccountTypeField.value = 'S';
 
-                        this.syncSubaccountState(row, false);
+                        this.syncSubaccountState(row, false, 'S');
                     },
 
                     focusValidationField(row, focusField) {
@@ -707,6 +757,20 @@
                         if (!this.rowHasSubaccountEnabled(this.activeLookupRow)) {
                             return;
                         }
+
+                        const type = this.getRowSubaccountType(this.activeLookupRow);
+                        if (this.isPenerimaanKasForm && type === 'C') {
+                            this.activeLookupType = 'customer';
+                            window.dispatchEvent(new CustomEvent('customer-browse-open'));
+                            return;
+                        }
+
+                        if (this.isPenerimaanKasForm && type === 'P') {
+                            this.activeLookupType = 'supplier';
+                            window.dispatchEvent(new CustomEvent('supplier-browse-open'));
+                            return;
+                        }
+
                         this.activeLookupType = 'subaccount';
                         window.dispatchEvent(new CustomEvent('subaccount-browse-open'));
                     },
@@ -732,7 +796,7 @@
                         this.checkAndAutoAppendRow();
                     },
 
-                    applyAccountLookupValue(row, code, name, hasSubaccount) {
+                    applyAccountLookupValue(row, code, name, hasSubaccount, subaccountType = 'S') {
                         if (!row) {
                             return;
                         }
@@ -741,6 +805,9 @@
                         const codeField = row.querySelector('[data-role="account-code-display"]');
                         const nameField = row.querySelector('[data-role="account-name-display"]');
                         const hasSubaccountField = row.querySelector('[data-role="account-has-subaccount"]');
+                        const subaccountTypeField = row.querySelector('[data-role="account-subaccount-type"]');
+                        const subaccountHiddenField = row.querySelector('input[name$="[fsubaccount]"]');
+                        const subaccountDisplayField = row.querySelector('[data-role="subaccount-display"]');
 
                         if (hiddenField) {
                             hiddenField.value = code || '';
@@ -758,7 +825,19 @@
                             hasSubaccountField.value = hasSubaccount ? '1' : '0';
                         }
 
-                        this.syncSubaccountState(row, hasSubaccount);
+                        if (subaccountTypeField) {
+                            subaccountTypeField.value = subaccountType || 'S';
+                        }
+
+                        if (subaccountHiddenField) {
+                            subaccountHiddenField.value = '';
+                        }
+
+                        if (subaccountDisplayField) {
+                            subaccountDisplayField.value = '';
+                        }
+
+                        this.syncSubaccountState(row, hasSubaccount, subaccountType);
                         const validationResult = this.validateJournalRow(row);
                         if (validationResult.status === 'ERROR') {
                             if (validationResult.validasi === 'Account Sistem' || validationResult.validasi ===
@@ -777,12 +856,17 @@
                         return String(field?.value || '0') === '1';
                     },
 
-                    syncSubaccountState(row, forceEnabled = null) {
+                    getRowSubaccountType(row) {
+                        return (row?.querySelector('[data-role="account-subaccount-type"]')?.value || 'S').toString().trim() || 'S';
+                    },
+
+                    syncSubaccountState(row, forceEnabled = null, forceType = null) {
                         if (!row) {
                             return;
                         }
 
                         const enabled = forceEnabled ?? this.rowHasSubaccountEnabled(row);
+                        const type = forceType || this.getRowSubaccountType(row);
                         const displayField = row.querySelector('[data-role="subaccount-display"]');
                         const hiddenField = row.querySelector('input[name$="[fsubaccount]"]');
                         const browseButton = row.querySelector('.detail-subaccount-btn');
@@ -800,8 +884,13 @@
 
                         if (browseButton) {
                             browseButton.disabled = !enabled;
+                            browseButton.title = type === 'C' ? 'Cari Customer' : (type === 'P' ? 'Cari Supplier' : 'Cari Sub Account');
                             browseButton.classList.toggle('opacity-50', !enabled);
                             browseButton.classList.toggle('cursor-not-allowed', !enabled);
+                        }
+
+                        if (displayField && !displayField.value) {
+                            displayField.placeholder = type === 'C' ? 'Pilih Customer' : (type === 'P' ? 'Pilih Supplier' : 'Pilih Sub Account');
                         }
 
                         if (hint) {
@@ -819,6 +908,7 @@
 
                         const clone = template.cloneNode(true);
                         clone.querySelectorAll('input, textarea').forEach((field) => field.value = '');
+                        clone.querySelectorAll('[data-role="account-subaccount-type"]').forEach((field) => field.value = 'S');
                         clone.querySelectorAll('select').forEach((field) => field.selectedIndex = 0);
                         tbody.appendChild(clone);
                         this.renumberRows();
@@ -910,6 +1000,15 @@
                                 event.preventDefault();
                                 this.presentValidationError(result, row);
                                 return;
+                            }
+                        }
+                    },
+
+                    validateActiveLookupRow(row) {
+                        if (row) {
+                            const result = this.validateJournalRow(row);
+                            if (result.status === 'ERROR') {
+                                this.presentValidationError(result, row);
                             }
                         }
                     },

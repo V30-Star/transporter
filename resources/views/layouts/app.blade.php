@@ -1367,14 +1367,16 @@
                     return;
                 }
 
-                if (successPrompt?.type === 'salesorder_create_suratjalan') {
+                if (successPrompt?.type === 'salesorder_create_suratjalan' && successPrompt.redirect_url) {
                     Swal.fire({
                         icon: 'success',
                         title: 'Sales Order Berhasil Disimpan',
-                        text: successMessage,
+                        html: `${successMessage}<br><br><span class="text-sm text-gray-600 block mt-2">Klik <strong>Ok</strong> untuk melanjutkan ke halaman Surat Jalan (Delivery Note) atau klik <strong>No modal closure</strong> untuk menutup modal dan tetap di halaman ini.</span>`,
                         showCancelButton: true,
-                        confirmButtonText: 'Yes',
-                        cancelButtonText: 'No',
+                        confirmButtonText: 'Ok',
+                        cancelButtonText: 'No modal closure',
+                        confirmButtonColor: '#2563eb',
+                        cancelButtonColor: '#6b7280',
                         allowOutsideClick: false,
                         allowEscapeKey: false,
                     }).then((result) => {
@@ -1382,8 +1384,6 @@
                             window.location.href = successPrompt.redirect_url;
                             return;
                         }
-
-                        window.showAppSuccessToast(successMessage);
                     });
                     return;
                 }

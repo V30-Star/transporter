@@ -367,7 +367,8 @@
                         faccid: row.faccid,
                         faccount: row.faccount,
                         faccname: row.faccname,
-                        fhavesubaccount: row.fhavesubaccount
+                        fhavesubaccount: row.fhavesubaccount,
+                        ftypesubaccount: row.ftypesubaccount
                     }
                 }));
                 this.close();

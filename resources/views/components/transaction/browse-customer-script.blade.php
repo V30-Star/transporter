@@ -243,10 +243,10 @@
             },
 
             chooseCustomer(customer) {
-                if (!window.applyTransactionCustomerSelection(customer)) {
-                    this.close();
-                    return;
-                }
+                window.dispatchEvent(new CustomEvent('customer-picked', {
+                    detail: customer || {}
+                }));
+                window.applyTransactionCustomerSelection(customer);
                 this.close();
             },
 

@@ -653,6 +653,14 @@
                             </tr>
 
                             <tr>
+                                <td class="px-3 py-2 font-semibold">BolehLanjutKeSuratJalan</td>
+                                <td class="text-center" colspan="4">
+                                    <input type="checkbox" name="permission[]" value="BolehLanjutKeSuratJalan"
+                                        {{ in_array('BolehLanjutKeSuratJalan', $selectedPermissions) ? 'checked' : '' }}>
+                                </td>
+                            </tr>
+
+                            <tr class="bg-gray-50">
                                 <td class="px-3 py-2 font-semibold">Boleh Approve SO</td>
                                 <td class="text-center" colspan="4">
                                     <input type="checkbox" name="permission[]" value="approveSalesOrder"
@@ -660,7 +668,7 @@
                                 </td>
                             </tr>
 
-                            <tr class="bg-gray-50">
+                            <tr>
                                 <td class="px-3 py-2 font-semibold">Boleh Approve Faktur Penjualan</td>
                                 <td class="text-center" colspan="4">
                                     <input type="checkbox" name="permission[]" value="approveFakturPenjualan"
@@ -668,7 +676,7 @@
                                 </td>
                             </tr>
 
-                            <tr>
+                            <tr class="bg-gray-50">
                                 <td class="px-3 py-2 font-semibold">Boleh Approve PR</td>
                                 <td class="text-center" colspan="4">
                                     <input type="checkbox" name="permission[]" value="approvePR"
@@ -676,7 +684,7 @@
                                 </td>
                             </tr>
 
-                            <tr class="bg-gray-50">
+                            <tr>
                                 <td class="px-3 py-2 font-semibold">Boleh Approve PO</td>
                                 <td class="text-center" colspan="4">
                                     <input type="checkbox" name="permission[]" value="approvePO"
@@ -684,7 +692,7 @@
                                 </td>
                             </tr>
 
-                            <tr>
+                            <tr class="bg-gray-50">
                                 <td class="px-3 py-2 font-semibold">Boleh Approve Produk</td>
                                 <td class="text-center" colspan="4">
                                     <input type="checkbox" name="permission[]" value="approveProduct"
