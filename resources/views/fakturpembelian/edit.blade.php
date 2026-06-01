@@ -719,7 +719,7 @@
                                     <div class="flex items-center justify-between bg-blue-50 p-2 rounded">
                                         <span class="text-sm font-bold text-blue-700">Total Biaya (HPP)</span>
                                         <span class="min-w-[140px] text-right font-bold text-blue-700"
-                                            x-text="rupiah(biayaGlobal)"></span>
+                                            x-text="rupiah(totalBiayaHPP)"></span>
                                     </div>
                                 </div>
 
@@ -1244,16 +1244,16 @@
                                                         :value="it.frefdtno" disabled placeholder="No Ref">
                                                 </td>
                                                 <td class="p-2">
-                                                    <template x-if="(it.units?.length || 0) > 1 && !it.frefdtid">
+                                                    <template x-if="(it.units?.length || 0) > 1">
                                                         <select class="w-full border rounded px-2 py-1 text-sm"
                                                             x-model="it.fsatuan" @focus="activeRow = it.uid"
                                                             @blur="activeRow = null" @change="onRowUpdated(i)">
                                                             <template x-for="u in it.units" :key="u">
-                                                                <option :value="u" x-text="u"></option>
+                                                                <option :value="u" :selected="u === it.fsatuan" x-text="u"></option>
                                                             </template>
                                                         </select>
                                                     </template>
-                                                    <template x-if="(it.units?.length || 0) <= 1 || it.frefdtid">
+                                                    <template x-if="(it.units?.length || 0) <= 1">
                                                         <input type="text"
                                                             class="w-full border rounded px-2 py-1 bg-gray-100 text-gray-600 text-sm"
                                                             :value="it.fsatuan || '-'" disabled>
@@ -1547,7 +1547,7 @@
                                         <div class="flex items-center justify-between bg-blue-50 p-2 rounded">
                                             <span class="text-sm font-bold text-blue-700">Total Biaya (HPP)</span>
                                             <span class="min-w-[140px] text-right font-bold text-blue-700"
-                                                x-text="rupiah(biayaGlobal)"></span>
+                                                x-text="rupiah(totalBiayaHPP)"></span>
                                         </div>
                                     </div>
 
@@ -2079,6 +2079,7 @@
                 pendingValidRows: [],
 
                 biayaGlobal: @json((float) ($biayaGlobal ?? 0)),
+                totalBiayaHPP: @json((float) ($biayaGlobal ?? 0)),
                 totalHarga: 0,
                 ppnRate: 11,
 
@@ -2257,7 +2258,7 @@
 
                 recalcTotals() {
                     this.totalHarga = this.savedItems.reduce((sum, item) => sum + (item.ftotprice || 0), 0);
-                    this.biayaGlobal = this.savedItems.reduce((sum, item) => sum + (item.fbiaya * item.fqty || 0), 0);
+                    this.totalBiayaHPP = this.savedItems.reduce((sum, item) => sum + (item.fbiaya * item.fqty || 0), 0);
                     window.syncFpbBiayaGlobalHeader?.();
                 },
 
@@ -3093,6 +3094,7 @@
                         const disc = this.parseDiscount(item.fdiscpersen);
                         const biaya = +item.fbiaya || 0;
                         item.ftotprice = (price + biaya) * qty - (qty * price * (disc / 100));
+                        item.fpriceInput = this.fmt(price);
                     });
                     if (this.savedItems.length === 0) {
                         this.savedItems = [this.createRow()];
@@ -3102,6 +3104,7 @@
                         this.ensureTrailingRow();
                     }
                     this.recalcTotals();
+                    this.biayaGlobal = @json((float) ($biayaGlobal ?? 0));
                     this.$watch('includePPN', () => this.recalcTotals());
                     this.$watch('fapplyppn', () => this.recalcTotals());
                     this.$watch('ppnRate', () => this.recalcTotals());
@@ -3152,6 +3155,25 @@
                 },
 
                 submitForm(form) {
+                    const warehouseCode = (document.getElementById('warehouseCodeHidden')?.value || '').toString().trim();
+                    if (!warehouseCode) {
+                        if (window.showTransactionErrorModal) {
+                            window.showTransactionErrorModal('Gudang wajib diisi sebelum menyimpan data.', {
+                                title: 'Gudang Kosong'
+                            });
+                        } else if (window.Swal) {
+                            window.Swal.fire({
+                                icon: 'warning',
+                                title: 'Gudang Kosong',
+                                text: 'Gudang wajib diisi sebelum menyimpan data.',
+                                confirmButtonText: 'OK'
+                            });
+                        } else {
+                            window.showAppWarningAlert('WARNING', 'Gudang wajib diisi sebelum menyimpan data.');
+                        }
+                        return;
+                    }
+
                     const validRows = this.savedItems.filter((row) => this.isRowSavable(row));
                     const warningRows = this.savedItems.filter((row) => this.isRowFilled(row) && !this.isRowSavable(row));
                     const seenCodes = new Set();

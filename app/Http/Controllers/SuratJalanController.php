@@ -80,9 +80,7 @@ class SuratJalanController extends Controller
     {
         $seen = [];
         $duplicates = [];
-        $rowCount = max(count($codes), count($refs), count($qtys));
-
-        for ($index = 0; $index < $rowCount; $index++) {
+        foreach ($codes as $index => $rawCode) {
             $rawCode = $codes[$index] ?? '';
             $code = strtoupper(trim((string) $rawCode));
             if ($code === '') {
@@ -690,7 +688,6 @@ class SuratJalanController extends Controller
         $fnoacaks = $request->input('fnoacak', []);
         $frefnoacaks = $request->input('frefnoacak', []);
 
-        $rowCount = count($codes);
         $uniqueCodes = array_values(array_unique(
             array_filter(array_map(fn($c) => trim((string) $c), $codes))
         ));
@@ -723,8 +720,8 @@ class SuratJalanController extends Controller
         $subtotal = 0.0;
         $usedNoAcaks = [];
 
-        for ($i = 0; $i < $rowCount; $i++) {
-            $code = trim((string) ($codes[$i] ?? ''));
+        foreach ($codes as $i => $rawCode) {
+            $code = trim((string) $rawCode);
             $sat = trim((string) ($satuans[$i] ?? ''));
             $rref = $refdtno[$i] ?? null;
             $qty = (float) ($qtys[$i] ?? 0);
@@ -1379,7 +1376,6 @@ class SuratJalanController extends Controller
         $fnoacaks = $request->input('fnoacak', []);
         $frefnoacaks = $request->input('frefnoacak', []);
 
-        $rowCount = count($codes);
         $uniqueCodes = array_values(array_unique(
             array_filter(array_map(fn($c) => trim((string) $c), $codes))
         ));
@@ -1413,8 +1409,8 @@ class SuratJalanController extends Controller
         $subtotal = 0.0;
         $usedNoAcaks = [];
 
-        for ($i = 0; $i < $rowCount; $i++) {
-            $code = trim((string) ($codes[$i] ?? ''));
+        foreach ($codes as $i => $rawCode) {
+            $code = trim((string) $rawCode);
             $sat = trim((string) ($satuans[$i] ?? ''));
             $rref = $refdtno[$i] ?? null;
             $qty = (float) ($qtys[$i] ?? 0);

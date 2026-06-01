@@ -71,18 +71,7 @@ class FakturpembelianController extends Controller
 
     private function resolveDetailDisplayUnit($detail, array $poUnits = [], array $pbUnits = []): string
     {
-        $detailId = (int) ($detail->frefdtid ?? 0);
-        $storedUnit = trim((string) ($detail->fsatuan ?? ''));
-
-        if ($detailId <= 0) {
-            return $storedUnit;
-        }
-
-        if (trim((string) ($detail->frefso ?? '')) !== '') {
-            return trim((string) ($poUnits[$detailId] ?? $storedUnit));
-        }
-
-        return trim((string) ($pbUnits[$detailId] ?? $storedUnit));
+        return trim((string) ($detail->fsatuan ?? ''));
     }
 
     private function getSupplierAdvanceWarningMap(): array
@@ -1250,23 +1239,6 @@ class FakturpembelianController extends Controller
                 $sat = mb_substr(trim((string) ($satuans[$i] ?? $meta->fsatuankecil ?? '')), 0, 5);
                 $sourceType = $isSaldoAwal ? '' : strtoupper(trim((string) ($sources[$i] ?? '')));
                 $frefdtid = $isSaldoAwal ? null : (isset($refdtids[$i]) ? (int) $refdtids[$i] : null);
-                if (! $isSaldoAwal && $frefdtid > 0) {
-                    if ($sourceType === 'PO') {
-                        $refUnit = DB::table('tr_pod')
-                            ->where('fpodid', $frefdtid)
-                            ->value('fsatuan');
-                        if ($refUnit !== null) {
-                            $sat = trim($refUnit);
-                        }
-                    } elseif ($sourceType === 'PB') {
-                        $refUnit = DB::table('trstockdt')
-                            ->where('fstockdtid', $frefdtid)
-                            ->value('fsatuan');
-                        if ($refUnit !== null) {
-                            $sat = trim($refUnit);
-                        }
-                    }
-                }
                 $qtyKecil = $qty;
                 if ($sat === trim((string) ($meta->fsatuanbesar ?? '')) && (float) ($meta->fqtykecil ?? 0) > 0) {
                     $qtyKecil = $qty * (float) $meta->fqtykecil;
@@ -2007,23 +1979,6 @@ class FakturpembelianController extends Controller
                 }
                 $sourceType = $isSaldoAwal ? '' : strtoupper(trim((string) ($sources[$i] ?? '')));
                 $frefdtid = $isSaldoAwal ? null : (isset($refdtids[$i]) ? (int) $refdtids[$i] : null);
-                if (! $isSaldoAwal && $frefdtid > 0) {
-                    if ($sourceType === 'PO') {
-                        $refUnit = DB::table('tr_pod')
-                            ->where('fpodid', $frefdtid)
-                            ->value('fsatuan');
-                        if ($refUnit !== null) {
-                            $sat = trim($refUnit);
-                        }
-                    } elseif ($sourceType === 'PB') {
-                        $refUnit = DB::table('trstockdt')
-                            ->where('fstockdtid', $frefdtid)
-                            ->value('fsatuan');
-                        if ($refUnit !== null) {
-                            $sat = trim($refUnit);
-                        }
-                    }
-                }
                 $price = (float) ($prices[$i] ?? 0);
                 $biaya = (float) ($biayas[$i] ?? 0);
                 $discRaw = $this->normalizeDiscountInput($discs[$i] ?? 0);

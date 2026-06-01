@@ -296,7 +296,7 @@
                     <input type="hidden" name="fcurrcode" :value="selectedCurrCode">
                 @else
                     <input type="text" disabled
-                        value="{{ $currentCurrency->fcurrname ?? ($tr_poh->fcurrency ?? 'IDR') }}"
+                        value="{{ isset($currentCurrency) ? ($currentCurrency->fcurrname . ' (' . $currentCurrency->fcurrcode . ')') : ($tr_poh->fcurrency ?? 'IDR') }}"
                         class="w-full border rounded px-3 py-2 bg-gray-100 cursor-not-allowed text-gray-500">
                 @endif
                 @error('fcurrency')
