@@ -160,7 +160,7 @@
         $oldSjPrices = old('fprice', []);
         $oldSjTotals = old('ftotal', []);
         $oldSjDescs = old('fdesc', []);
-                $oldSjMaxQtys = old('fmaxqty', []);
+        $oldSjMaxQtys = old('fmaxqty', []);
         $oldSjKetdts = old('fketdt', []);
         $initialEditSuratJalanItems = [];
 
@@ -192,7 +192,7 @@
                 'ftotal' => (float) ($oldSjTotals[$index] ?? 0),
                 'fdesc' => (string) ($oldSjDescs[$index] ?? ''),
                 'fketdt' => (string) ($oldSjKetdts[$index] ?? ''),
-                'maxqty' => max(0, (float) ($oldSjMaxQtys[$index] ?? $oldSjQtys[$index] ?? 0)),
+                'maxqty' => max(0, (float) ($oldSjMaxQtys[$index] ?? ($oldSjQtys[$index] ?? 0))),
             ];
         }
     @endphp
@@ -248,7 +248,8 @@
                                 <label class="block text-sm font-bold mb-1">Transaksi#</label>
                                 <div class="flex items-center gap-3">
                                     <input type="text" name="fstockmtno" class="w-full border rounded px-3 py-2"
-                                        value="{{ old('fstockmtno', $displayFstockmtno ?? $suratjalan->fstockmtno) }}" :disabled="autoCode"
+                                        value="{{ old('fstockmtno', $displayFstockmtno ?? $suratjalan->fstockmtno) }}"
+                                        :disabled="autoCode"
                                         :class="autoCode ? 'bg-gray-200 cursor-not-allowed' : 'bg-white'">
                                     <label class="inline-flex items-center select-none">
                                         <input type="checkbox" x-model="autoCode" checked disabled>
@@ -390,7 +391,8 @@
                                                     </div>
                                                 </td>
                                                 <td class="p-2" x-text="it.frefno_display || it.frefso || '-'"></td>
-                                                <td class="p-2 text-left italic text-gray-700" x-text="it.fsatuan || '-'"></td>
+                                                <td class="p-2 text-left italic text-gray-700" x-text="it.fsatuan || '-'">
+                                                </td>
                                                 <td class="p-2 text-right" x-text="formatQtyValue(it.fqty)"></td>
                                                 <td class="hidden">
                                                     <input type="hidden" name="fitemcode[]" :value="it.fitemcode">
@@ -684,7 +686,9 @@
                                                     <td class="p-2">
                                                         <input type="text"
                                                             class="w-full border rounded px-2 py-1 bg-gray-100 text-gray-600 text-sm"
-                                                            :value="it.frefno_display || (it.frefdtno && it.frefdtno !== '0' ? it.frefdtno : '') || '-'" disabled>
+                                                            :value="it.frefno_display || (it.frefdtno && it
+                                                                .frefdtno !== '0' ? it.frefdtno : '') || '-'"
+                                                            disabled>
                                                     </td>
                                                     <template x-if="it.units && it.units.length > 1">
                                                         <select class="w-full border rounded px-2 py-1 text-xs"
@@ -736,7 +740,8 @@
                                             <input type="hidden" name="frefso[]" :value="it.frefso">
                                             <input type="hidden" name="fnoacak[]" :value="it.fnoacak">
                                             <input type="hidden" name="frefnoacak[]" :value="it.frefnoacak">
-                                            <input type="hidden" name="fdiscpersen[]" :value="it.fdiscpersen ?? it.fdisc ?? 0">
+                                            <input type="hidden" name="fdiscpersen[]"
+                                                :value="it.fdiscpersen ?? it.fdisc ?? 0">
                                             <input type="hidden" name="fqty[]" :value="it.fqty">
                                             <input type="hidden" name="fprice[]" :value="it.fprice">
                                             <input type="hidden" name="fmaxqty[]" :value="it.maxqty">
@@ -845,11 +850,12 @@
                                                         <path stroke-linecap="round" stroke-linejoin="round"
                                                             stroke-width="1.5" d="M12 4.5v15m7.5-7.5h-15" />
                                                     </svg>
-                                                    Add TER
+                                                    Add Faktur
                                                 </button>
                                             </div>
 
-                                            <div x-show="show" x-transition.opacity class="fixed inset-0 z-40 bg-black/50"
+                                            <div x-show="show" x-transition.opacity
+                                                class="fixed inset-0 z-40 bg-black/50"
                                                 @keydown.escape.window="closeModal()"></div>
                                             <div>
                                                 <div x-show="show" x-cloak x-transition.opacity
@@ -860,7 +866,7 @@
                                                         <div
                                                             class="px-6 py-4 border-b border-gray-200 flex items-center justify-between flex-shrink-0 bg-gradient-to-r from-sky-50 to-white">
                                                             <div>
-                                                                <h3 class="text-xl font-bold text-gray-800">Add TER
+                                                                <h3 class="text-xl font-bold text-gray-800">Add Faktur
                                                                 </h3>
                                                                 <p class="text-sm text-gray-500 mt-0.5">Pilih transaksi
                                                                     penerimaan barang kode TER</p>
@@ -876,15 +882,20 @@
                                                                 style="width:100%">
                                                                 <thead class="sticky top-0 z-10">
                                                                     <tr class="bg-gray-50 border-b-2 border-gray-200">
-                                                                        <th class="p-3 text-left font-semibold text-gray-700">
+                                                                        <th
+                                                                            class="p-3 text-left font-semibold text-gray-700">
                                                                             No TER</th>
-                                                                        <th class="p-3 text-left font-semibold text-gray-700">
+                                                                        <th
+                                                                            class="p-3 text-left font-semibold text-gray-700">
                                                                             No Ref</th>
-                                                                        <th class="p-3 text-left font-semibold text-gray-700">
+                                                                        <th
+                                                                            class="p-3 text-left font-semibold text-gray-700">
                                                                             Supplier</th>
-                                                                        <th class="p-3 text-left font-semibold text-gray-700">
+                                                                        <th
+                                                                            class="p-3 text-left font-semibold text-gray-700">
                                                                             Tanggal</th>
-                                                                        <th class="p-3 text-center font-semibold text-gray-700">
+                                                                        <th
+                                                                            class="p-3 text-center font-semibold text-gray-700">
                                                                             Aksi</th>
                                                                     </tr>
                                                                 </thead>
@@ -1247,8 +1258,10 @@
         @foreach ($products as $p)
             "{{ $p->fprdcode }}": {
                 name: @json($p->fprdname),
-                default_unit: @json(($productMap[$p->fprdcode]['default_unit'] ?? $p->fsatuankecil)),
-                units: @json(($productMap[$p->fprdcode]['units'] ?? array_values(array_filter([$p->fsatuankecil, $p->fsatuanbesar, $p->fsatuanbesar2])))),
+                default_unit: @json($productMap[$p->fprdcode]['default_unit'] ?? $p->fsatuankecil),
+                units: @json(
+                    $productMap[$p->fprdcode]['units'] ??
+                        array_values(array_filter([$p->fsatuankecil, $p->fsatuanbesar, $p->fsatuanbesar2]))),
                 stock: @json($p->fminstock ?? 0),
                 unit_ratios: {
                     satuankecil: 1,
@@ -1561,7 +1574,8 @@
             },
 
             onCodeTypedRow(row, index = null) {
-                const hasReference = String(row?.frefso ?? '').trim() !== '' || String(row?.frefdtno ?? '').trim() !== '';
+                const hasReference = String(row?.frefso ?? '').trim() !== '' || String(row?.frefdtno ?? '').trim() !==
+                    '';
                 if (hasReference) {
                     row.fitemcode = (row?.foriginalitemcode ?? row?.fitemcode ?? '').toString().trim();
                     this.onRowUpdated(index);
@@ -1641,7 +1655,8 @@
                     const itemcode = (src.fitemcode ?? '').toString().trim();
                     const itemname = (src.fitemname ?? '').toString().trim();
                     const satuan = (src.fsatuan ?? '').toString().trim();
-                    const frefdtno = (header?.fstockmtno ?? header?.fsono ?? src.frefdtno ?? '').toString().trim();
+                    const frefdtno = (header?.fstockmtno ?? header?.fsono ?? src.frefdtno ?? '').toString()
+                        .trim();
 
                     // VALIDASI MINIMAL: harus ada kode, nama, dan satuan
                     if (!itemcode || !itemname || !satuan) {
