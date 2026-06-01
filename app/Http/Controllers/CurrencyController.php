@@ -215,15 +215,14 @@ class CurrencyController extends Controller
         }
 
         $codeReferencedTables = [
-            'trstockmt',
-            'trsomt',
-            'tranmt',
-            'mscustomer',
-            'account',
+            'trstockmt' => 'fcurrency',
+            'tranmt' => 'fcurrency',
+            'account' => 'fcurrency',
+            'mscustomer' => 'fcurr',
         ];
 
-        foreach ($codeReferencedTables as $table) {
-            if (DB::table($table)->where('fcurrency', $currencyCode)->exists()) {
+        foreach ($codeReferencedTables as $table => $column) {
+            if (DB::table($table)->where($column, $currencyCode)->exists()) {
                 return true;
             }
         }

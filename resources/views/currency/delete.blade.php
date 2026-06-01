@@ -118,36 +118,7 @@
         </div>
     </div>
 
-    <div x-data="notificationApp()" x-show="showNotification" x-cloak x-transition:enter="transition ease-out duration-300"
-        x-transition:enter-start="opacity-0 transform translate-y-2"
-        x-transition:enter-end="opacity-100 transform translate-y-0"
-        x-transition:leave="transition ease-in duration-200" x-transition:leave-start="opacity-100"
-        x-transition:leave-end="opacity-0" class="fixed top-4 right-4 z-50 max-w-sm">
-        <div :class="notificationType === 'success' ? 'bg-green-500' : 'bg-red-500'"
-            class="text-white px-6 py-4 rounded-lg shadow-lg flex items-center space-x-3">
-            <span x-text="notificationMessage"></span>
-            <button @click="showNotification = false" class="ml-4 text-white hover:text-gray-200">×</button>
-        </div>
-    </div>
-
     <script>
-        function notificationApp() {
-            return {
-                showNotification: false,
-                notificationMessage: '',
-                notificationType: 'success',
-
-                show(type, message) {
-                    this.notificationType = type;
-                    this.notificationMessage = message;
-                    this.showNotification = true;
-                    setTimeout(() => {
-                        this.showNotification = false;
-                    }, 3000);
-                }
-            }
-        }
-
         function showDeleteModal() {
             document.getElementById('deleteModal').classList.remove('hidden');
         }
@@ -183,28 +154,27 @@
             .then(data => {
                 closeDeleteModal();
                 
-                const notifApp = document.querySelector('[x-data]');
-                if (notifApp && notifApp._x_dataStack) {
-                    const dataComponent = notifApp._x_dataStack[0];
-                    if (dataComponent && typeof dataComponent.show === 'function') {
-                        dataComponent.show(data.success ? 'success' : 'error', data.message || (data.success ? 'Data berhasil dihapus.' : 'Hapus data gagal.'));
+                if (data.success) {
+                    if (typeof window.showAppSuccessToast === 'function') {
+                        window.showAppSuccessToast(data.message || 'Currency berhasil dihapus.');
                     }
-                }
-                
-                if (data.success || data.redirect) {
                     setTimeout(() => {
-                        window.location.href = '{{ route('currency.index') }}';
-                    }, 1000);
+                        window.location.href = data.redirect || '{{ route('currency.index') }}';
+                    }, 1500);
+                } else {
+                    if (typeof window.showAppErrorAlert === 'function') {
+                        window.showAppErrorAlert('Hapus data gagal', data.message || 'Currency tidak bisa dihapus.');
+                    } else {
+                        alert(data.message || 'Hapus data gagal.');
+                    }
                 }
             })
             .catch(error => {
                 closeDeleteModal();
-                const notifApp = document.querySelector('[x-data]');
-                if (notifApp && notifApp._x_dataStack) {
-                    const dataComponent = notifApp._x_dataStack[0];
-                    if (dataComponent && typeof dataComponent.show === 'function') {
-                        dataComponent.show('error', 'Terjadi kesalahan saat hapus data.');
-                    }
+                if (typeof window.showAppErrorAlert === 'function') {
+                    window.showAppErrorAlert('Terjadi kesalahan', 'Terjadi kesalahan saat hapus data.');
+                } else {
+                    alert('Terjadi kesalahan saat hapus data.');
                 }
             });
         }
