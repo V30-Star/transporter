@@ -15,6 +15,12 @@
                     <div class="relative flex-1">
                         <select id="accountSelect" class="bg-gray-100 w-full border rounded-l px-3 py-2" disabled>
                             <option value=""></option>
+                            @if ($selectedHeader && !$headers->contains('faccid', $selectedHeader->faccid))
+                                <option disabled value="{{ $selectedHeader->faccount }}" data-faccid="{{ $selectedHeader->faccid }}"
+                                    data-branch="{{ $selectedHeader->faccount }}" selected>
+                                    {{ $selectedHeader->faccount }} - {{ $selectedHeader->faccname }}
+                                </option>
+                            @endif
                             @foreach ($headers as $header)
                                 <option disabled value="{{ $header->faccount }}" data-faccid="{{ $header->faccid }}"
                                     data-branch="{{ $header->faccount }}"

@@ -448,7 +448,8 @@
                                     search: d.search.value,
                                     // Menambahkan parameter order untuk sorting (diperlukan serverSide)
                                     order_column: d.columns[d.order[0].column].data,
-                                    order_dir: d.order[0].dir
+                                    order_dir: d.order[0].dir,
+                                    fend: 0 // Only fetch header accounts
                                 };
                             },
                             dataSrc: function(json) {
@@ -599,6 +600,17 @@
                 const hidCode = document.getElementById('accountCodeHidden');
 
                 if (sel) {
+                    let option = sel.querySelector(`option[value="${faccount}"]`);
+                    if (!option && faccount) {
+                        option = document.createElement('option');
+                        option.value = faccount;
+                        if (faccid) {
+                            option.setAttribute('data-faccid', faccid);
+                        }
+                        option.setAttribute('data-branch', faccount);
+                        option.textContent = faccount + ' - ' + (ev.detail.faccname || '');
+                        sel.appendChild(option);
+                    }
                     sel.value = faccount || '';
                     sel.dispatchEvent(new Event('change', {
                         bubbles: true

@@ -144,6 +144,12 @@
                                 class="w-full border rounded-l px-3 py-2 {{ !empty($isUsedInTransaction) ? 'bg-gray-100 text-gray-700 cursor-not-allowed' : '' }}"
                                 disabled>
                                 <option value=""></option>
+                                @if ($selectedHeader && !$headers->contains('faccid', $selectedHeader->faccid))
+                                    <option value="{{ $selectedHeader->faccount }}" data-faccid="{{ $selectedHeader->faccid }}"
+                                        data-branch="{{ $selectedHeader->faccount }}" selected>
+                                        {{ $selectedHeader->faccount }} - {{ $selectedHeader->faccname }}
+                                    </option>
+                                @endif
                                 @foreach ($headers as $header)
                                     <option value="{{ $header->faccount }}" data-faccid="{{ $header->faccid }}"
                                         data-branch="{{ $header->faccount }}"
@@ -572,7 +578,8 @@
                                     search: d.search.value,
                                     // Menambahkan parameter order untuk sorting (diperlukan serverSide)
                                     order_column: d.columns[d.order[0].column].data,
-                                    order_dir: d.order[0].dir
+                                    order_dir: d.order[0].dir,
+                                    fend: 0 // Only fetch header accounts
                                 };
                             },
                             dataSrc: function(json) {
@@ -723,6 +730,17 @@
                 inputInit.placeholder = "Cek Initial jika ini Header khusus...";
 
                 if (sel) {
+                    let option = sel.querySelector(`option[value="${faccount}"]`);
+                    if (!option && faccount) {
+                        option = document.createElement('option');
+                        option.value = faccount;
+                        if (faccid) {
+                            option.setAttribute('data-faccid', faccid);
+                        }
+                        option.setAttribute('data-branch', faccount);
+                        option.textContent = faccount + ' - ' + (ev.detail.faccname || '');
+                        sel.appendChild(option);
+                    }
                     sel.value = faccount || '';
                     sel.dispatchEvent(new Event('change', {
                         bubbles: true

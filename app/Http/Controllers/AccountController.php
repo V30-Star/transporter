@@ -128,7 +128,7 @@ class AccountController extends Controller
         // header yang sedang terset di record ini (jika ada)
         $selectedHeader = null;
         if (! empty($account->faccupline)) {
-            $selectedHeader = Account::find($account->faccupline);
+            $selectedHeader = Account::where('faccount', $account->faccupline)->first();
         }
 
         return view('account.view', [
@@ -152,7 +152,7 @@ class AccountController extends Controller
         // header yang sedang terset di record ini (jika ada)
         $selectedHeader = null;
         if (! empty($account->faccupline)) {
-            $selectedHeader = Account::find($account->faccupline);
+            $selectedHeader = Account::where('faccount', $account->faccupline)->first();
         }
 
         return view('account.edit', [
@@ -236,7 +236,7 @@ class AccountController extends Controller
         $validated['faccupline'] = $isUsedInTransaction
             ? $account->faccupline
             : ($request->filled('faccupline')
-                ? (int) $request->input('faccupline')
+                ? trim((string) $request->input('faccupline'))
                 : null);
 
         $account->update($validated);
@@ -250,7 +250,7 @@ class AccountController extends Controller
 
         $accountHeader = null;
         if (! empty($account->faccupline)) {
-            $accountHeader = Account::find($account->faccupline);
+            $accountHeader = Account::where('faccount', $account->faccupline)->first();
         }
 
         return view('account.delete', [
