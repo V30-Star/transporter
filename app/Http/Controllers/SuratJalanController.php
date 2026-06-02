@@ -803,7 +803,7 @@ class SuratJalanController extends Controller
                 continue;
             }
 
-            $frefdtnoValue = $frefdtnoValue !== '' ? $frefdtnoValue : $refDoc;
+            $frefdtnoValue = $refDoc !== '' ? $refDoc : $frefdtnoValue;
             $amount = $qty * $price;
             $subtotal += $amount;
 
@@ -1390,7 +1390,7 @@ class SuratJalanController extends Controller
                 continue;
             }
 
-            $frefdtnoValue = $frefdtnoValue !== '' ? $frefdtnoValue : $refDoc;
+            $frefdtnoValue = $refDoc !== '' ? $refDoc : $frefdtnoValue;
             $amount = $qty * $price;
             $subtotal += $amount;
 
