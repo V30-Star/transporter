@@ -4,6 +4,7 @@ use App\Http\Controllers\AccountController;
 use App\Http\Controllers\AdjstockController;
 use App\Http\Controllers\ApprovalController;
 use App\Http\Controllers\AssemblingController;
+use App\Http\Controllers\BayarSupplierController;
 use App\Http\Controllers\CurrencyController;
 use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\EditPeriodeController;
@@ -258,6 +259,10 @@ Route::middleware('auth')->group(function () {
         Route::get('/pelunasancustomer/{fkasmtno}/delete', [PelunasanCustomerController::class, 'delete'])->name('pelunasancustomer.delete');
         Route::patch('/pelunasancustomer/{fkasmtno}', [PelunasanCustomerController::class, 'update'])->name('pelunasancustomer.update');
         Route::delete('/pelunasancustomer/{fkasmtno}', [PelunasanCustomerController::class, 'destroy'])->name('pelunasancustomer.destroy');
+        Route::get('/bayarsupplier', [BayarSupplierController::class, 'index'])->name('bayarsupplier.index');
+        Route::get('/bayarsupplier/create', [BayarSupplierController::class, 'create'])->name('bayarsupplier.create');
+        Route::post('/bayarsupplier', [BayarSupplierController::class, 'store'])->name('bayarsupplier.store');
+        Route::get('/bayarsupplier/pickable-pbl', [BayarSupplierController::class, 'pickablePbl'])->name('bayarsupplier.pickable-pbl');
 
         Route::get('/account', [AccountController::class, 'index'])->name('account.index');
         Route::post('/account', [AccountController::class, 'store'])->name('account.store');

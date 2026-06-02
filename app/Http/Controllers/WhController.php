@@ -270,9 +270,9 @@ class WhController extends Controller
             return $guard;
         }
 
-        // 1. Ambil kode cabang dari session user login
-        // Pastikan session 'fcabang' sudah diset saat proses login
-        $userBranch = session('fcabang');
+        // 1. Ambil kode cabang dari user login (sysuser table, column fbranch)
+        $sysuser = auth('sysuser')->user();
+        $userBranch = $sysuser ? ($sysuser->fbranch ?? $sysuser->fcabang) : session('fcabang');
 
         $rawPermissions = session('user_restricted_permissions', '');
         $userPermissions = array_map('trim', explode(',', $rawPermissions));

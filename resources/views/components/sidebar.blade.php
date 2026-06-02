@@ -585,6 +585,13 @@
                                 <span class="ml-3">{{ 'Pelunasan Customer' }}</span>
                             </a>
                         </li>
+                        <li>
+                            <a href="{{ route('bayarsupplier.index') }}"
+                                class="flex items-center p-2 rounded hover:bg-gray-700">
+                                <x-heroicon-o-receipt-percent class="w-5 h-5" />
+                                <span class="ml-3">{{ 'Bayar Supplier' }}</span>
+                            </a>
+                        </li>
                     @endif
                 </ul>
             </li>
