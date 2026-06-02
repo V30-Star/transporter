@@ -1733,14 +1733,16 @@ class SuratJalanController extends Controller
         }
 
         if ($this->isInvoiceReferenceDoc($docNo)) {
-            return DB::table('trstockdt')
-                ->where('fstockmtno', $docNo)
-                ->where('fprdcode', $productCode)
+            return DB::table('trandt as d')
+                ->join('tranmt as h', 'h.fsono', '=', 'd.fsono')
+                ->where('h.ftrcode', 'INV')
+                ->where('d.fsono', $docNo)
+                ->where('d.fprdcode', $productCode)
                 ->when($refNoAcak !== '', function ($query) use ($refNoAcak) {
-                    $query->whereRaw("COALESCE(frefnoacak::text, fnoacak::text, '') = ?", [$refNoAcak]);
+                    $query->whereRaw("COALESCE(d.fnoacak::text, '') = ?", [$refNoAcak]);
                 })
-                ->orderBy('fstockdtid')
-                ->first(['fstockdtid', 'fsatuan', 'fqty', 'fqtykecil']);
+                ->orderBy('d.ftrandtid')
+                ->first(['d.ftrandtid as fstockdtid', 'd.fsatuan', 'd.fqty', 'd.fqtykecil']);
         }
 
         return DB::table('trsodt')

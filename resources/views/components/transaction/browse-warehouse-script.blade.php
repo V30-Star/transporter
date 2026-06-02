@@ -123,23 +123,30 @@
                         }
                     },
                     columns: [{
-                            data: null,
-                            name: 'fwhcode',
-                            className: 'text-sm',
-                            render: (d, t, row) => `<span class="font-mono font-semibold">${row.fwhcode}</span> - ${row.fwhname}`
-                        },
-                        {
                             data: 'fbranchcode',
                             name: 'fbranchcode',
                             className: 'text-sm',
+                            width: '15%',
                             render: d => d || '<span class="text-gray-400">-</span>'
+                        },
+                        {
+                            data: 'fwhcode',
+                            name: 'fwhcode',
+                            className: 'font-mono text-sm font-semibold',
+                            width: '20%'
+                        },
+                        {
+                            data: 'fwhname',
+                            name: 'fwhname',
+                            className: 'text-sm',
+                            width: '50%'
                         },
                         {
                             data: null,
                             orderable: false,
                             searchable: false,
                             className: 'text-center',
-                            width: '100px',
+                            width: '15%',
                             render: function() {
                                 return '<button type="button" class="btn-choose px-4 py-1.5 rounded-md text-sm font-medium bg-blue-600 hover:bg-blue-700 text-white transition-colors duration-150">' + @json("Pilih") + '</button>';
                             }
@@ -153,11 +160,10 @@
                     dom: '<"flex justify-between items-center mb-4"f<"ml-auto"l>>rtip',
                     language: dataTableLanguage,
                     order: [
-                        [0, 'asc']
+                        [1, 'asc']
                     ],
                     autoWidth: false,
-                    scrollX: true,
-                    scrollCollapse: true,
+                    scrollX: false,
                     initComplete: function() {
                         const $c = $(this.api().table().container());
                         $c.find('.dt-search .dt-input, .dataTables_filter input').css({

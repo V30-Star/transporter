@@ -48,7 +48,8 @@
                                 length: d.length,
                                 search: d.search.value,
                                 order_column: d.columns[d.order[0].column].data,
-                                order_dir: d.order[0].dir
+                                order_dir: d.order[0].dir,
+                                customer_code: document.getElementById('customerCodeHidden')?.value || ''
                             };
                         }
                     },
@@ -56,6 +57,14 @@
                             data: @js($numberColumnLabel),
                             name: @js($numberColumnName),
                             className: 'font-mono text-sm'
+                        },
+                        {
+                            data: @js($dateColumnLabel),
+                            name: @js($dateColumnName),
+                            className: 'text-sm',
+                            render: function(data) {
+                                return formatDate(data);
+                            }
                         },
                         {
                             data: @js($referenceColumnLabel),
@@ -74,14 +83,6 @@
                             }
                         },
                         {
-                            data: @js($dateColumnLabel),
-                            name: @js($dateColumnName),
-                            className: 'text-sm',
-                            render: function(data) {
-                                return formatDate(data);
-                            }
-                        },
-                        {
                             data: null,
                             orderable: false,
                             searchable: false,
@@ -97,7 +98,7 @@
                         [10, 25, 50, 100],
                         [10, 25, 50, 100]
                     ],
-                    dom: '<"#' + @js($controlsId) + '"fl>rt<"#' + @js($paginationId) + '"ip>',
+                    dom: '<"#' + @js($controlsId) + '"lf>rt<"#' + @js($paginationId) + '"ip>',
                     language: {
                         processing: "Memuat data...",
                         search: "Cari:",
@@ -115,7 +116,7 @@
                         }
                     },
                     order: [
-                        [3, 'desc']
+                        [1, 'desc']
                     ],
                     autoWidth: false,
                     scrollX: true,
@@ -191,6 +192,10 @@
 
                     const json = await res.json();
                     const items = json.items || [];
+                    window.applyTransactionCustomerSelection?.({
+                        fcustomercode: json.header?.fcustno ?? row?.fcustno ?? '',
+                        fcustomername: json.header?.fcustomername ?? row?.fcustomername ?? '',
+                    });
                     const currentKeys = new Set((window.getCurrentItemKeys?.() || []).map(String));
                     const keyOf = (src) =>
                         (src.fitemcode ?? '').toString().trim().toUpperCase();

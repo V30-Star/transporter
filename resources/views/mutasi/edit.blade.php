@@ -508,16 +508,19 @@
                                 <!-- Table with fixed height and scroll -->
                                 <div class="flex-1 overflow-y-auto px-6" style="min-height: 0;">
                                     <div class="bg-white">
-                                        <table id="warehouseTable" class="min-w-full text-sm display nowrap stripe hover"
+                                        <table id="warehouseTable" class="min-w-full text-sm display stripe hover"
                                             style="width:100%">
                                             <thead class="sticky top-0 z-10">
                                                 <tr class="bg-gradient-to-r from-gray-50 to-gray-100">
                                                     <th
                                                         class="text-left p-3 font-semibold text-gray-700 border-b-2 border-gray-200">
-                                                        Gudang (Kode - Nama)</th>
+                                                        Branch</th>
                                                     <th
                                                         class="text-left p-3 font-semibold text-gray-700 border-b-2 border-gray-200">
-                                                        Branch</th>
+                                                        Kode Gudang</th>
+                                                    <th
+                                                        class="text-left p-3 font-semibold text-gray-700 border-b-2 border-gray-200">
+                                                        Nama Gudang</th>
                                                     <th
                                                         class="text-center p-3 font-semibold text-gray-700 border-b-2 border-gray-200">
                                                         Aksi</th>
@@ -963,16 +966,19 @@
                                 <!-- Table with fixed height and scroll -->
                                 <div class="flex-1 overflow-y-auto px-6" style="min-height: 0;">
                                     <div class="bg-white">
-                                        <table id="warehouseTable" class="min-w-full text-sm display nowrap stripe hover"
+                                        <table id="warehouseTable" class="min-w-full text-sm display stripe hover"
                                             style="width:100%">
                                             <thead class="sticky top-0 z-10">
                                                 <tr class="bg-gradient-to-r from-gray-50 to-gray-100">
                                                     <th
                                                         class="text-left p-3 font-semibold text-gray-700 border-b-2 border-gray-200">
-                                                        Gudang (Kode - Nama)</th>
+                                                        Branch</th>
                                                     <th
                                                         class="text-left p-3 font-semibold text-gray-700 border-b-2 border-gray-200">
-                                                        Branch</th>
+                                                        Kode Gudang</th>
+                                                    <th
+                                                        class="text-left p-3 font-semibold text-gray-700 border-b-2 border-gray-200">
+                                                        Nama Gudang</th>
                                                     <th
                                                         class="text-center p-3 font-semibold text-gray-700 border-b-2 border-gray-200">
                                                         Aksi</th>
@@ -1747,27 +1753,32 @@
                         }
                     },
                     columns: [{
-                            data: null,
-                            name: 'fwhcode',
-                            className: 'text-sm',
-                            render: function(data, type, row) {
-                                return `<span class="font-mono font-semibold">${row.fwhcode}</span> - ${row.fwhname}`;
-                            }
-                        },
-                        {
                             data: 'fbranchcode',
                             name: 'fbranchcode',
                             className: 'text-sm',
+                            width: '15%',
                             render: function(data) {
                                 return data || '<span class="text-gray-400">-</span>';
                             }
+                        },
+                        {
+                            data: 'fwhcode',
+                            name: 'fwhcode',
+                            className: 'font-mono text-sm font-semibold',
+                            width: '20%'
+                        },
+                        {
+                            data: 'fwhname',
+                            name: 'fwhname',
+                            className: 'text-sm',
+                            width: '50%'
                         },
                         {
                             data: null,
                             orderable: false,
                             searchable: false,
                             className: 'text-center',
-                            width: '100px',
+                            width: '15%',
                             render: function(data, type, row) {
                                 return '<button type="button" class="btn-choose px-4 py-1.5 rounded-md text-sm font-medium bg-blue-600 hover:bg-blue-700 text-white transition-colors duration-150">Pilih</button>';
                             }
@@ -1796,9 +1807,10 @@
                         }
                     },
                     order: [
-                        [0, 'asc']
+                        [1, 'asc']
                     ],
                     autoWidth: false,
+                    scrollX: false,
                     initComplete: function() {
                         const api = this.api();
                         const $container = $(api.table().container());

@@ -597,9 +597,8 @@
                                                 <div
                                                     class="px-6 py-4 border-b border-gray-200 flex items-center justify-between flex-shrink-0 bg-gradient-to-r from-sky-50 to-white">
                                                     <div>
-                                                        <h3 class="text-xl font-bold text-gray-800">Add TER</h3>
-                                                        <p class="text-sm text-gray-500 mt-0.5">Pilih transaksi penerimaan
-                                                            barang kode TER</p>
+                                                        <h3 class="text-xl font-bold text-gray-800">Add Faktur</h3>
+                                                        <p class="text-sm text-gray-500 mt-0.5">Pilih transaksi faktur penjualan</p>
                                                     </div>
                                                     <button type="button" @click="closeModal()"
                                                         class="px-4 py-2 rounded-lg border-2 border-gray-300 bg-white hover:bg-gray-50 hover:border-gray-400 transition-all duration-150 font-medium text-gray-700 text-sm">
@@ -613,13 +612,13 @@
                                                         <thead class="sticky top-0 z-10">
                                                             <tr class="bg-gray-50 border-b-2 border-gray-200">
                                                                 <th class="p-3 text-left font-semibold text-gray-700">
-                                                                    No TER</th>
+                                                                    No Faktur</th>
+                                                                <th class="p-3 text-left font-semibold text-gray-700">
+                                                                    Tanggal</th>
                                                                 <th class="p-3 text-left font-semibold text-gray-700">
                                                                     No Ref</th>
                                                                 <th class="p-3 text-left font-semibold text-gray-700">
-                                                                    Supplier</th>
-                                                                <th class="p-3 text-left font-semibold text-gray-700">
-                                                                    Tanggal</th>
+                                                                    Customer</th>
                                                                 <th class="p-3 text-center font-semibold text-gray-700">
                                                                     Aksi</th>
                                                             </tr>
@@ -1570,21 +1569,7 @@
 </script>
 
 @include('components.transaction.suratjalan-so-modal-script')
-@include('components.transaction.suratjalan-invoice-modal-script', [
-    'pickableRoute' => route('fakturpembelian.pickablePB'),
-    'itemsRouteTemplate' => route('fakturpembelian.itemsPB', ['id' => 'TER_ID_PLACEHOLDER']),
-    'itemsRoutePlaceholder' => 'TER_ID_PLACEHOLDER',
-    'numberColumnLabel' => 'fstockmtno',
-    'numberColumnName' => 'fstockmtno',
-    'referenceColumnLabel' => 'frefpo',
-    'referenceColumnName' => 'frefpo',
-    'partyColumnLabel' => 'fsupplier',
-    'partyColumnName' => 'fsupplier',
-    'dateColumnLabel' => 'fstockmtdate',
-    'dateColumnName' => 'fstockmtdate',
-    'itemIdField' => 'fstockmtid',
-    'detailEntityLabel' => 'penerimaan barang',
-])
+@include('components.transaction.suratjalan-invoice-modal-script')
 
 <script>
     // Helper function untuk format tanggal

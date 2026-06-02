@@ -835,8 +835,10 @@ class InvoiceController extends Controller
     public function items($id)
     {
         $header = DB::table('tranmt')
-            ->where('ftranmtid', $id)
-            ->where('ftrcode', 'INV')
+            ->leftJoin('mscustomer', 'mscustomer.fcustomercode', '=', 'tranmt.fcustno')
+            ->where('tranmt.ftranmtid', $id)
+            ->where('tranmt.ftrcode', 'INV')
+            ->select('tranmt.*', 'mscustomer.fcustomername')
             ->firstOrFail();
 
         $items = DB::table('trandt as d')
@@ -862,6 +864,7 @@ class InvoiceController extends Controller
                 'ftranmtid' => $header->ftranmtid,
                 'fsono' => $header->fsono,
                 'fcustno' => trim((string) ($header->fcustno ?? '')),
+                'fcustomername' => trim((string) ($header->fcustomername ?? '')),
                 'fsodate' => ! empty($header->fsodate) ? Carbon::parse($header->fsodate)->format('Y-m-d H:i:s') : null,
                 'ftrcode' => trim((string) ($header->ftrcode ?? 'INV')),
             ],

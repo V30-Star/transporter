@@ -27,13 +27,13 @@
         </div>
 
         <div class="flex-1 overflow-auto px-6" style="min-height: 0;">
-            <div class="bg-white min-w-max">
-                <table id="{{ $tableId }}" class="min-w-full text-sm display nowrap stripe hover" style="width:100%">
+            <div class="bg-white w-full">
+                <table id="{{ $tableId }}" class="min-w-full text-sm display stripe hover" style="width:100%">
                     <thead class="sticky top-0 z-10">
                         <tr class="bg-gradient-to-r from-gray-50 to-gray-100">
-                            <th class="text-left p-3 font-semibold text-gray-700 border-b-2 border-gray-200">{{ "Gudang" }}
-                                ({{ "Kode" }} - {{ "Nama" }})</th>
                             <th class="text-left p-3 font-semibold text-gray-700 border-b-2 border-gray-200">{{ "Cabang" }}</th>
+                            <th class="text-left p-3 font-semibold text-gray-700 border-b-2 border-gray-200">{{ "Kode Gudang" }}</th>
+                            <th class="text-left p-3 font-semibold text-gray-700 border-b-2 border-gray-200">{{ "Nama Gudang" }}</th>
                             <th class="text-center p-3 font-semibold text-gray-700 border-b-2 border-gray-200">{{ "Aksi" }}</th>
                         </tr>
                     </thead>
