@@ -1338,7 +1338,11 @@
                                                 </td>
                                                 <td class="p-2 text-right">
                                                     <input type="number"
-                                                        class="border rounded px-2 py-1 w-full text-right" min="0"
+                                                        class="border rounded px-2 py-1 w-full text-right"
+                                                        :disabled="(it.fsource || '').toString().trim().toUpperCase() === 'PB'"
+                                                        :class="(it.fsource || '').toString().trim().toUpperCase() === 'PB' ?
+                                                            'bg-gray-100 cursor-not-allowed text-gray-600' : ''"
+                                                        min="0"
                                                         step="0.01" :value="it.fbiaya"
                                                         @focus="activeRow = it.uid; $event.target.select()"
                                                         @blur="activeRow = null; $event.target.value = (+it.fbiaya || 0).toFixed(2)"
@@ -1499,9 +1503,11 @@
                                                                     <th class="p-3 text-left font-semibold text-gray-700">
                                                                         {{ 'No.Transaksi' }}</th>
                                                                     <th class="p-3 text-left font-semibold text-gray-700">
-                                                                        {{ 'Supplier' }}</th>
-                                                                    <th class="p-3 text-left font-semibold text-gray-700">
                                                                         {{ 'Tanggal' }}</th>
+                                                                    <th class="p-3 text-left font-semibold text-gray-700">
+                                                                        {{ 'No PO' }}</th>
+                                                                    <th class="p-3 text-left font-semibold text-gray-700">
+                                                                        {{ 'Supplier' }}</th>
                                                                     <th
                                                                         class="p-3 text-center font-semibold text-gray-700">
                                                                         {{ 'Aksi' }}</th>
@@ -2748,7 +2754,7 @@
                             // Financial
                             fprice: +(src.fprice || 0),
                             fdiscpersen: this.normalizeDiscountValue(src.fdiscpersen ?? src.fdisc ?? 0),
-                            fbiaya: 0,
+                            fbiaya: sourceType === 'PB' ? +(src.fbiaya || 0) : 0,
                             ftotprice: +(src.fharga || 0),
 
                             fdesc: src.fdesc || '',
@@ -3558,19 +3564,27 @@
                                 className: 'font-mono text-sm'
                             },
                             {
-                                data: 'fsupplier',
-                                name: 'fsupplier',
-                                className: 'text-sm',
-                                render: function(data) {
-                                    return data || '-';
-                                }
-                            },
-                            {
                                 data: 'fstockmtdate',
                                 name: 'fstockmtdate',
                                 className: 'text-sm',
                                 render: function(data) {
                                     return formatDate(data);
+                                }
+                            },
+                            {
+                                data: 'frefpo',
+                                name: 'frefpo',
+                                className: 'font-mono text-sm',
+                                render: function(data) {
+                                    return data || '-';
+                                }
+                            },
+                            {
+                                data: 'fsupplier',
+                                name: 'fsupplier',
+                                className: 'text-sm',
+                                render: function(data) {
+                                    return data || '-';
                                 }
                             },
                             {
@@ -3590,7 +3604,7 @@
                         ],
                         dom: '<"flex justify-between items-center mb-4"f<"ml-auto"l>>rtip',
                         order: [
-                            [2, 'desc']
+                            [1, 'desc']
                         ],
                         autoWidth: false
                     });

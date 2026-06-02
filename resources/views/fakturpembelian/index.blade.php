@@ -98,9 +98,10 @@
                                 data-column="3" placeholder="Cari Gudang...">
                         </div>
                     </th>
+                    <th class="border px-2 py-1">{{ "Cabang" }}</th>
                     <th class="border px-2 py-1">{{ "Nama Supplier" }}</th>
                     <th class="border px-2 py-1">{{ "Referensi#" }}</th>
-                    <th class="border px-2 py-1">{{ "Total Harga" }}</th>
+                    <th class="border px-2 py-1 text-right">{{ "Total Harga" }}</th>
 
                     @if ($showActionsColumn)
                         <th class="border px-2 py-1 col-aksi">{{ "Aksi" }}</th>
@@ -179,6 +180,15 @@
             vertical-align: middle;
         }
 
+        #fakturpembelianTable th.text-right,
+        #fakturpembelianTable td.text-right,
+        #fakturpembelianTable th.dt-right,
+        #fakturpembelianTable td.dt-right,
+        #fakturpembelianTable th.dt-body-right,
+        #fakturpembelianTable td.dt-body-right {
+            text-align: right !important;
+        }
+
         /* Kolom Aksi: jangan mepet, tapi tetap ringkas */
         #fakturpembelianTable th:last-child,
         #fakturpembelianTable td:last-child {
@@ -199,6 +209,15 @@
         #fakturpembelianTable td {
             text-align: left !important;
             vertical-align: middle;
+        }
+
+        #fakturpembelianTable th.text-right,
+        #fakturpembelianTable td.text-right,
+        #fakturpembelianTable th.dt-right,
+        #fakturpembelianTable td.dt-right,
+        #fakturpembelianTable th.dt-body-right,
+        #fakturpembelianTable td.dt-body-right {
+            text-align: right !important;
         }
 
         #fakturpembelianTable th:last-child,
@@ -366,6 +385,11 @@
                     defaultContent: '-'
                 },
                 {
+                    data: 'fbranchcode',
+                    name: 'fbranchcode',
+                    defaultContent: '-'
+                },
+                {
                     data: 'fsuppliername',
                     name: 'fsuppliername',
                     defaultContent: '-'
@@ -378,7 +402,7 @@
                 {
                     data: 'famountmt',
                     name: 'famountmt',
-                    className: 'text-right',
+                    className: 'text-right dt-body-right',
                     render: function(data, type) {
                         if (type === 'display' || type === 'filter') {
                             return Number(data || 0).toLocaleString('id-ID', {
