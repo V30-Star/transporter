@@ -1996,7 +1996,8 @@
             const hidCode = document.getElementById('warehouseCodeHidden');
 
             if (sel) {
-                sel.value = fwhcode || '';
+                const opt = [...sel.options].find(o => String(o.value).trim() === String(fwhcode).trim());
+                sel.value = opt ? opt.value : (fwhcode || '');
                 sel.dispatchEvent(new Event('change', {
                     bubbles: true
                 }));

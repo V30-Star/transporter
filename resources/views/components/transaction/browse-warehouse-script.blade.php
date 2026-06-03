@@ -27,6 +27,7 @@
         ));
         const idInputs = Array.from(document.querySelectorAll('#warehouseIdHidden'));
 
+        let activeValue = code;
         selects.forEach((sel) => {
             let opt = [...sel.options].find((o) => normalize(o.value) === code);
 
@@ -38,7 +39,8 @@
                 opt.selected = true;
             }
 
-            sel.value = code;
+            sel.value = opt.value;
+            activeValue = opt.value;
             sel.dispatchEvent(new Event('change', {
                 bubbles: true
             }));
@@ -67,7 +69,7 @@
         window.dispatchEvent(new CustomEvent('warehouse-picked', {
             detail: {
                 fwhid: id,
-                fwhcode: code,
+                fwhcode: activeValue,
                 fwhname: name,
                 fbranchcode: normalize(warehouse.fbranchcode)
             }
