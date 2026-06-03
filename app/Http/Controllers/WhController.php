@@ -270,27 +270,17 @@ class WhController extends Controller
             return $guard;
         }
 
-        // 1. Ambil kode cabang dari user login (sysuser table, column fbranch)
+        // Browse gudang harus mengikuti cabang user login.
+        // Beberapa instalasi menyimpan kode cabang user di fcabang, bukan fbranch.
         $sysuser = auth('sysuser')->user();
-        $userBranch = $sysuser ? ($sysuser->fbranch ?? $sysuser->fcabang) : session('fcabang');
+        $userBranch = trim((string) ($sysuser?->fbranch ?? $sysuser?->fcabang ?? ''));
 
-        $rawPermissions = session('user_restricted_permissions', '');
-        $userPermissions = array_map('trim', explode(',', $rawPermissions));
-
-        // 2. Base query
         $query = Wh::query();
 
-        $canAccessAllBranches = in_array('semuacabang', $userPermissions);
-
-        // 3. TAMBAHKAN VALIDASI CABANG DISINI
-        // Wh hanya boleh melihat data yang fbranchcode-nya sama dengan session user
-        if (! $canAccessAllBranches) {
-            if ($userBranch) {
-                $query->where('fbranchcode', $userBranch);
-            } else {
-                // Jika tidak punya akses semua dan tidak ada cabang, kosongkan data
-                $query->whereRaw('1 = 0');
-            }
+        if ($userBranch !== '') {
+            $query->whereRaw('TRIM(COALESCE(fbranchcode, \'\')) = ?', [$userBranch]);
+        } else {
+            $query->whereRaw('1 = 0');
         }
 
         // Total records tanpa filter pencarian (tapi tetap terfilter cabang)
