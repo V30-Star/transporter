@@ -493,22 +493,22 @@
                                                     </div>
                                                 </td>
                                               <td class="p-2">
-    <template x-if="row.units && row.units.length > 1">
-        <select class="w-full border rounded px-2 py-1 text-xs bg-gray-100 text-gray-600"
-            :id="'unit_row_' + i"
-            x-model="row.fsatuan"
-            x-effect="$el.value = row.fsatuan"
-            disabled>
-            <template x-for="u in row.units" :key="u">
-                <option :value="u" x-text="u"></option>
-            </template>
-        </select>
-    </template>
-    <input type="text"
-        x-show="!row.units || row.units.length <= 1"
-        class="w-full border rounded px-2 py-1 bg-gray-100 text-gray-600 text-xs"
-        :value="row.fsatuan || '-'" disabled>
-</td>
+                                                    <template x-if="row.units && row.units.length > 1">
+                                                        <select class="w-full border rounded px-2 py-1 text-xs bg-gray-100 text-gray-600"
+                                                            :id="'unit_row_' + i"
+                                                            x-model="row.fsatuan"
+                                                            x-effect="$el.value = row.fsatuan"
+                                                            disabled>
+                                                            <template x-for="u in row.units" :key="u">
+                                                                <option :value="u" x-text="u"></option>
+                                                            </template>
+                                                        </select>
+                                                    </template>
+                                                    <input type="text"
+                                                        x-show="!row.units || row.units.length <= 1"
+                                                        class="w-full border rounded px-2 py-1 bg-gray-100 text-gray-600 text-xs"
+                                                        :value="row.fsatuan || '-'" disabled>
+                                                </td>
                                                 <td class="p-2 text-right">
                                                     <input type="text"
                                                         class="w-full border rounded px-2 py-1 text-right bg-gray-100 text-gray-600"
@@ -1064,23 +1064,23 @@
                                                         </div>
                                                     </td>
                                                <td class="p-2">
-    <template x-if="row.units && row.units.length > 1">
-        <select class="w-full border rounded px-2 py-1 text-xs"
-            :id="'unit_row_' + i"
-            x-model="row.fsatuan"
-            x-effect="$el.value = row.fsatuan"
-            @change="row.fsatuan = $el.value; onRowUpdated(i)"
-            @keydown.enter.prevent="focusRowQty(i)">
-            <template x-for="u in row.units" :key="u">
-                <option :value="u" x-text="u"></option>
-            </template>
-        </select>
-    </template>
-    <input type="text"
-        x-show="!row.units || row.units.length <= 1"
-        class="w-full border rounded px-2 py-1 bg-gray-100 text-gray-600 text-xs"
-        :value="row.fsatuan || '-'" disabled>
-</td>
+                                                        <template x-if="row.units && row.units.length > 1">
+                                                            <select class="w-full border rounded px-2 py-1 text-xs"
+                                                                :id="'unit_row_' + i"
+                                                                x-model="row.fsatuan"
+                                                                x-effect="$el.value = row.fsatuan"
+                                                                @change="row.fsatuan = $el.value; onRowUpdated(i)"
+                                                                @keydown.enter.prevent="focusRowQty(i)">
+                                                                <template x-for="u in row.units" :key="u">
+                                                                    <option :value="u" x-text="u"></option>
+                                                                </template>
+                                                            </select>
+                                                        </template>
+                                                        <input type="text"
+                                                            x-show="!row.units || row.units.length <= 1"
+                                                            class="w-full border rounded px-2 py-1 bg-gray-100 text-gray-600 text-xs"
+                                                            :value="row.fsatuan || '-'" disabled>
+                                                    </td>
                                                     <td class="p-2 text-right">
                                                         <input type="number"
                                                             class="w-full border rounded px-2 py-1 text-right"

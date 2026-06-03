@@ -97,6 +97,11 @@ class SalesOrderController extends Controller
         return in_array('BolehLanjutKeSuratJalan', explode(',', session('user_restricted_permissions', '')), true);
     }
 
+    private function canCreateSuratJalan(): bool
+    {
+        return in_array('createSuratJalan', explode(',', session('user_restricted_permissions', '')), true);
+    }
+
     private function getApprovalRecipients(): array
     {
         return array_values(array_filter([
@@ -584,24 +589,7 @@ class SalesOrderController extends Controller
                 $subQuery->select(DB::raw(1))
                     ->from('trsodt as d')
                     ->whereColumn('d.fsono', 'trsomt.fsono')
-                    ->whereRaw("COALESCE(d.fqtykecil, 0) - COALESCE((
-                        SELECT SUM(COALESCE(srj_dt.fqtykecil, 0))
-                        FROM trstockdt srj_dt
-                        JOIN trstockmt srj_mt ON srj_mt.fstockmtno = srj_dt.fstockmtno
-                        WHERE srj_mt.fstockmtcode = 'SRJ'
-                            AND TRIM(COALESCE(srj_dt.frefso, '')) = TRIM(COALESCE(d.fsono, ''))
-                            AND TRIM(COALESCE(srj_dt.fprdcode, '')) = TRIM(COALESCE(d.fprdcode, ''))
-                            AND COALESCE(srj_dt.frefnoacak::text, '') = COALESCE(d.fnoacak::text, '')
-                    ), 0) - COALESCE((
-                        SELECT SUM(COALESCE(inv_dt.fqtykecil, 0))
-                        FROM trandt inv_dt
-                        JOIN tranmt inv_mt ON inv_mt.fsono = inv_dt.fsono
-                        WHERE inv_mt.ftrcode = 'INV'
-                            AND TRIM(COALESCE(inv_dt.frefcode, '')) = 'SO'
-                            AND TRIM(COALESCE(inv_dt.frefso, '')) = TRIM(COALESCE(d.fsono, ''))
-                            AND TRIM(COALESCE(inv_dt.fprdcode, '')) = TRIM(COALESCE(d.fprdcode, ''))
-                            AND COALESCE(inv_dt.frefnosoacak::text, '') = COALESCE(d.fnoacak::text, '')
-                    ), 0) > 0");
+                    ->whereRaw('COALESCE(d.fqtyremain, 0) > 0');
             });
         }
 
@@ -618,24 +606,7 @@ class SalesOrderController extends Controller
                     $subQuery->select(DB::raw(1))
                         ->from('trsodt as d')
                         ->whereColumn('d.fsono', 'trsomt.fsono')
-                        ->whereRaw("COALESCE(d.fqtykecil, 0) - COALESCE((
-                            SELECT SUM(COALESCE(srj_dt.fqtykecil, 0))
-                            FROM trstockdt srj_dt
-                            JOIN trstockmt srj_mt ON srj_mt.fstockmtno = srj_dt.fstockmtno
-                            WHERE srj_mt.fstockmtcode = 'SRJ'
-                                AND TRIM(COALESCE(srj_dt.frefso, '')) = TRIM(COALESCE(d.fsono, ''))
-                                AND TRIM(COALESCE(srj_dt.fprdcode, '')) = TRIM(COALESCE(d.fprdcode, ''))
-                                AND COALESCE(srj_dt.frefnoacak::text, '') = COALESCE(d.fnoacak::text, '')
-                        ), 0) - COALESCE((
-                            SELECT SUM(COALESCE(inv_dt.fqtykecil, 0))
-                            FROM trandt inv_dt
-                            JOIN tranmt inv_mt ON inv_mt.fsono = inv_dt.fsono
-                            WHERE inv_mt.ftrcode = 'INV'
-                                AND TRIM(COALESCE(inv_dt.frefcode, '')) = 'SO'
-                                AND TRIM(COALESCE(inv_dt.frefso, '')) = TRIM(COALESCE(d.fsono, ''))
-                                AND TRIM(COALESCE(inv_dt.fprdcode, '')) = TRIM(COALESCE(d.fprdcode, ''))
-                                AND COALESCE(inv_dt.frefnosoacak::text, '') = COALESCE(d.fnoacak::text, '')
-                        ), 0) > 0");
+                        ->whereRaw('COALESCE(d.fqtyremain, 0) > 0');
                 });
             })
             ->count();
@@ -707,6 +678,7 @@ class SalesOrderController extends Controller
                 'trsodt.fqty',
                 'trsodt.fdiscpersen',
                 'trsodt.fqtykecil',
+                'trsodt.fqtyremain as fqtyremain_source',
                 'm.fsatuankecil',
                 'm.fsatuanbesar',
                 'm.fsatuanbesar2',
@@ -718,7 +690,7 @@ class SalesOrderController extends Controller
             ->orderBy('trsodt.ftrsodtid')
             ->get()
             ->map(function ($item) use ($remainMap) {
-                $remainKecil = (float) ($remainMap[(int) ($item->frefdtno ?? 0)] ?? 0);
+                $remainKecil = max(0, (float) ($item->fqtyremain_source ?? 0));
                 $item->fqty_dokumen = (float) ($item->fqty ?? 0);
                 $item->fqtyremain = $remainKecil;
                 $item->maxqty = $remainKecil;
@@ -1110,6 +1082,7 @@ class SalesOrderController extends Controller
             $grandTotal = $amountNet;
         }
         $creditApproval = $this->resolveSalesOrderCreditApproval($request, $grandTotal);
+        $requiresApprovalBeforeContinue = trim((string) ($creditApproval['fneedacc'] ?? '0')) === '1';
         if ($canContinueToSuratJalan) {
             $creditApproval['fneedacc'] = '0';
             $creditApproval['fuseracc'] = mb_substr($userid, 0, 30);
@@ -1236,7 +1209,7 @@ class SalesOrderController extends Controller
                 ->route('salesorder.create')
                 ->with('success', 'Sales Order ' . $this->formatDisplayTransactionNumber($fsono, (int) $fapplyppn === 1) . ' berhasil disimpan.');
 
-            if (! $canContinueToSuratJalan) {
+            if (! $canContinueToSuratJalan || ! $this->canCreateSuratJalan() || $requiresApprovalBeforeContinue) {
                 return $redirect;
             }
 
@@ -1554,6 +1527,7 @@ class SalesOrderController extends Controller
     public function update(Request $request, $ftrsomtid)
     {
         $shouldSendApprovalNotification = false;
+        $canContinueToSuratJalan = $this->canContinueToSuratJalan();
         $needsApprovalNotification = $this->shouldRequestSalesOrderApproval($request);
         // 1. VALIDATION (Sama seperti store)
         $request->validate([
@@ -1752,6 +1726,7 @@ class SalesOrderController extends Controller
             $grandTotal = $amountNet;
         }
         $creditApproval = $this->resolveSalesOrderCreditApproval($request, $grandTotal);
+        $requiresApprovalBeforeContinue = trim((string) ($creditApproval['fneedacc'] ?? '0')) === '1';
 
         // 7. TRANSACTION
         DB::transaction(function () use (
@@ -1817,9 +1792,18 @@ class SalesOrderController extends Controller
             $this->sendApprovalNotification($header->fsono, $userid);
         }
 
-        return redirect()
+        $redirect = redirect()
             ->route('salesorder.index')
             ->with('success', 'Sales Order ' . $this->formatDisplayTransactionNumber($header->fsono, (int) ($header->fapplyppn ?? 0) === 1) . ' berhasil diupdate.');
+
+        if (! $canContinueToSuratJalan || ! $this->canCreateSuratJalan() || $requiresApprovalBeforeContinue) {
+            return $redirect;
+        }
+
+        return $redirect->with('success_prompt', [
+            'type' => 'salesorder_create_suratjalan',
+            'redirect_url' => route('suratjalan.create', ['sales_order_id' => $ftrsomtid]),
+        ]);
     }
 
     public function delete(Request $request, $ftrsomtid)
@@ -1999,17 +1983,17 @@ class SalesOrderController extends Controller
             ->leftJoin('msprd as p', DB::raw("TRIM(p.fprdcode)"), '=', DB::raw("TRIM(d.fprdcode)"))
             ->whereIn('d.ftrsodtid', $ids)
             ->selectRaw("
-            d.ftrsodtid,
-            TRIM(COALESCE(d.fsono, '')) as ref_doc,
-            TRIM(COALESCE(d.fprdcode, '')) as product_code,
-            COALESCE(d.fnoacak::text, '') as ref_noacak,
-            COALESCE(d.fqtykecil, 0) as source_qty_kecil,
-            TRIM(d.fsatuan) as fsatuan,
-            TRIM(COALESCE(p.fsatuanbesar, '')) as fsatuanbesar,
-            TRIM(COALESCE(p.fsatuanbesar2, '')) as fsatuanbesar2,
-            COALESCE(p.fqtykecil, 0) as fqtykecil_konversi,
-            COALESCE(p.fqtykecil2, 0) as fqtykecil2_konversi
-        ")
+                d.ftrsodtid,
+                TRIM(COALESCE(d.fsono, '')) as ref_doc,
+                TRIM(COALESCE(d.fprdcode, '')) as product_code,
+                COALESCE(d.fnoacak::text, '') as ref_noacak,
+                COALESCE(d.fqtykecil, 0) as source_qty_kecil,
+                TRIM(d.fsatuan) as fsatuan,
+                TRIM(COALESCE(p.fsatuanbesar, '')) as fsatuanbesar,
+                TRIM(COALESCE(p.fsatuanbesar2, '')) as fsatuanbesar2,
+                COALESCE(p.fqtykecil, 0) as fqtykecil_konversi,
+                COALESCE(p.fqtykecil2, 0) as fqtykecil2_konversi
+            ")
             ->get();
 
         if ($sourceRows->isEmpty()) {
@@ -2033,7 +2017,7 @@ class SalesOrderController extends Controller
             TRIM(COALESCE(d.fprdcode, '')) as product_code,
             COALESCE(d.frefnoacak::text, '') as ref_noacak,
             SUM(COALESCE(d.fqtykecil, 0)) as used_qty_kecil
-        ")
+            ")
             ->groupByRaw("TRIM(COALESCE(d.frefso, '')), TRIM(COALESCE(d.fprdcode, '')), COALESCE(d.frefnoacak::text, '')")
             ->get();
 
@@ -2047,7 +2031,7 @@ class SalesOrderController extends Controller
             TRIM(COALESCE(d.fprdcode, '')) as product_code,
             COALESCE(d.frefnosoacak::text, '') as ref_noacak,
             SUM(COALESCE(d.fqtykecil, 0)) as used_qty_kecil
-        ")
+            ")
             ->groupByRaw("TRIM(COALESCE(d.frefso, '')), TRIM(COALESCE(d.fprdcode, '')), COALESCE(d.frefnosoacak::text, '')")
             ->get();
 
@@ -2073,7 +2057,6 @@ class SalesOrderController extends Controller
 
             $remainKecil = max(0, $sourceQtyKecil - $srjQty - $invQty);
 
-            // fqtyremain_dokumen = GREATEST(SRJ - INV, 0) lalu konversi satuan
             $srjMinInv     = max(0, $srjQty - $invQty);
             $fsatuan       = trim((string) ($row->fsatuan ?? ''));
             $fsatuanbesar  = trim((string) ($row->fsatuanbesar ?? ''));

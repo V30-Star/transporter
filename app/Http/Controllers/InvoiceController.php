@@ -85,7 +85,7 @@ class InvoiceController extends Controller
 
         $separator = $useSlash ? '/' : '.';
 
-        return (string) preg_replace('/[.\/](\d+)$/', $separator.'$1', $normalized, 1);
+        return (string) preg_replace('/[.\/](\d+)$/', $separator . '$1', $normalized, 1);
     }
 
     private function tranmtHasInternalNoteColumn(): bool
@@ -654,6 +654,7 @@ class InvoiceController extends Controller
                     'tranmt.famountremain',
                     'tranmt.fuserid',
                     'tranmt.fprdout',
+                    'tranmt.fsudahtagih',
                     'tranmt.fapproval',
                     'tranmt.fapproval2',
                     DB::raw("COALESCE(ref_summary.so_refs, '') as so_refs"),
@@ -698,7 +699,7 @@ class InvoiceController extends Controller
                 8 => 'tranmt.famountremain',
                 9 => 'tranmt.frefno',
                 10 => 'tranmt.fuserid',
-                11 => 'tranmt.fprdout',
+                11 => 'tranmt.fsudahtagih',
             ];
 
             if (isset($sortableColumns[$orderColIdx])) {
@@ -717,10 +718,7 @@ class InvoiceController extends Controller
 
                 return [
                     'ftranmtid' => $row->ftranmtid,
-                    'fbranchcode' => trim(implode(' - ', array_filter([
-                        trim((string) ($row->fbranchcode ?? '')),
-                        trim((string) ($row->fcabangname ?? '')),
-                    ]))) ?: trim((string) ($row->fbranchcode ?? $row->fcabangname ?? '')),
+                    'fbranchcode' => $row->fbranchcode,
                     'fsono' => trim((string) ($row->fsono ?? '')),
                     'fsono_display' => $this->formatDisplayTransactionNumber($row->fsono ?? null, (string) ($row->fincludeppn ?? '0') === '1'),
                     'ftaxno' => trim((string) ($row->ftaxno ?? '')),
@@ -734,7 +732,7 @@ class InvoiceController extends Controller
                     'famountremain' => (float) ($row->famountremain ?? 0),
                     'frefpo' => trim((string) ($row->frefno ?? '')),
                     'fuserid' => trim((string) ($row->fuserid ?? '')),
-                    'fprdout' => trim((string) ($row->fprdout ?? '0')),
+                    'fsudahtagih' => trim((string) ($row->fsudahtagih ?? '0')),
                     'fclose' => trim((string) ($row->fclose ?? '0')),
                     'fapproval' => trim((string) ($row->fapproval ?? '')),
                     'fapproval2' => trim((string) ($row->fapproval2 ?? '')),
@@ -763,6 +761,7 @@ class InvoiceController extends Controller
     public function pickable(Request $request)
     {
         $customerCode = trim((string) $request->input('customer_code', $request->input('fcustno', '')));
+        $onlyRemaining = $request->boolean('only_remaining');
 
         $query = DB::table('tranmt as mt')
             ->leftJoin('mscustomer as c', 'c.fcustomercode', '=', 'mt.fcustno')
@@ -783,11 +782,28 @@ class InvoiceController extends Controller
             $query->whereRaw('TRIM(COALESCE(mt.fcustno, \'\')) = ?', [$customerCode]);
         }
 
+        if ($onlyRemaining) {
+            $query->whereExists(function ($subQuery) {
+                $subQuery->select(DB::raw(1))
+                    ->from('trandt as d')
+                    ->whereColumn('d.fsono', 'mt.fsono')
+                    ->whereRaw('COALESCE(d.fqtyremain, 0) > 0');
+            });
+        }
+
         $recordsTotal = DB::table('tranmt as mt')
             ->where('mt.ftrcode', 'INV')
             ->where('mt.fprdout', '0')
             ->when($customerCode !== '', function ($query) use ($customerCode) {
                 $query->whereRaw('TRIM(COALESCE(mt.fcustno, \'\')) = ?', [$customerCode]);
+            })
+            ->when($onlyRemaining, function ($query) {
+                $query->whereExists(function ($subQuery) {
+                    $subQuery->select(DB::raw(1))
+                        ->from('trandt as d')
+                        ->whereColumn('d.fsono', 'mt.fsono')
+                        ->whereRaw('COALESCE(d.fqtyremain, 0) > 0');
+                });
             })
             ->count();
 
@@ -811,7 +827,7 @@ class InvoiceController extends Controller
             if ($orderColumn === 'fcustomername') {
                 $query->orderBy('c.fcustomername', $orderDir);
             } else {
-                $query->orderBy('mt.'.$orderColumn, $orderDir);
+                $query->orderBy('mt.' . $orderColumn, $orderDir);
             }
         } else {
             $query->orderBy('mt.fsodate', 'desc');
@@ -1159,7 +1175,7 @@ class InvoiceController extends Controller
             'frefso'    => $request->input('frefso', []),
             'frefsrj'   => $request->input('frefsrj', []),
             'fnoacak'   => $request->input('fnoacak', []),
-            'frefnoacak'=> $request->input('frefnoacak', []),
+            'frefnoacak' => $request->input('frefnoacak', []),
             'fqty'      => $request->input('fqty', []),
             'fprice'    => $request->input('fprice', []),
             'fdisc'     => $request->input('fdisc', []),
@@ -1413,6 +1429,7 @@ class InvoiceController extends Controller
                     'fapplyppn' => $fapplyppn,
                     'fppnpersen' => $ppnPersen,
                     'ftypesales' => $request->input('ftypesales', 0),
+                    'fbranchcode' => $request->fbranchcode,
                     'ftrcode' => 'INV',
                     'fprdout' => '0',
                     'fneedacc' => $needsApprovalNotification ? '1' : '0',
@@ -1449,7 +1466,7 @@ class InvoiceController extends Controller
                 $this->sendApprovalNotification($fsono, $userid);
             }
 
-            return redirect()->route('invoice.index')->with('success', 'Faktur penjualan '.$this->formatDisplayTransactionNumber($fsono, $fincludeppn === '1').' berhasil disimpan.');
+            return redirect()->route('invoice.index')->with('success', 'Faktur penjualan ' . $this->formatDisplayTransactionNumber($fsono, $fincludeppn === '1') . ' berhasil disimpan.');
         } catch (\Exception $e) {
             report($e);
             return back()->withInput()->with('error', 'Faktur penjualan belum bisa disimpan. Cek data.');
@@ -1753,24 +1770,13 @@ class InvoiceController extends Controller
                     COALESCE(d.fnoacak::text, '') as ref_noacak,
                     MAX(COALESCE(p.fprdname, d.fprdcode)) as product_name,
                     MAX(COALESCE(d.fsatuan, '')) as source_unit,
-                    SUM(COALESCE(d.fqtykecil, 0)) as source_qty_kecil
+                    SUM(COALESCE(d.fqtykecil, 0)) as source_qty_kecil,
+                    SUM(COALESCE(d.fqtyremain, 0)) as remain_qty_kecil
                 ")
                 ->groupByRaw("TRIM(d.fsono), TRIM(d.fprdcode), COALESCE(d.fnoacak::text, '')")
                 ->get();
 
-            $usageRows = DB::table('trandt as d')
-                ->join('tranmt as h', 'h.fsono', '=', 'd.fsono')
-                ->whereIn('d.frefso', $docNos)
-                ->when($exceptFsono, fn($query) => $query->where('h.fsono', '<>', $exceptFsono))
-                ->selectRaw("
-                    TRIM(d.frefso) as ref_doc,
-                    TRIM(d.fprdcode) as product_code,
-                    COALESCE(d.frefnosoacak::text, '') as ref_noacak,
-                    SUM(COALESCE(d.fqtykecil, 0)) as used_qty_kecil,
-                    MIN(h.fsono) as used_by_transaction
-                ")
-                ->groupByRaw("TRIM(d.frefso), TRIM(d.fprdcode), COALESCE(d.frefnosoacak::text, '')")
-                ->get();
+            $usageRows = collect();
         } else {
             $sourceRows = DB::table('trstockdt as d')
                 ->leftJoin('msprd as p', 'p.fprdcode', '=', 'd.fprdcode')
@@ -1812,7 +1818,7 @@ class InvoiceController extends Controller
                 'source_unit' => trim((string) ($row->source_unit ?? '')),
                 'source_qty_kecil' => (float) ($row->source_qty_kecil ?? 0),
                 'used_qty_kecil' => 0.0,
-                'remain_qty_kecil' => (float) ($row->source_qty_kecil ?? 0),
+                'remain_qty_kecil' => (float) ($row->remain_qty_kecil ?? $row->source_qty_kecil ?? 0),
                 'used_by_transaction' => '',
             ];
         }
@@ -1961,7 +1967,7 @@ class InvoiceController extends Controller
         $referenceSummary = $this->getReferenceSummaryByTranNo((string) $invoice->fsono);
 
         $savedItems = $invoice->details->map(function ($d) use ($referenceSummary) {
-            $refCode = trim($d->frefcode ?? '');    
+            $refCode = trim($d->frefcode ?? '');
             if (empty($refCode)) {
                 if (! empty(trim($d->frefso ?? ''))) {
                     $refCode = 'SO';
@@ -2194,7 +2200,7 @@ class InvoiceController extends Controller
             'frefso'    => $request->input('frefso', []),
             'frefsrj'   => $request->input('frefsrj', []),
             'fnoacak'   => $request->input('fnoacak', []),
-            'frefnoacak'=> $request->input('frefnoacak', []),
+            'frefnoacak' => $request->input('frefnoacak', []),
             'fqty'      => $request->input('fqty', []),
             'fprice'    => $request->input('fprice', []),
             'fdisc'     => $request->input('fdisc', []),
@@ -2483,6 +2489,7 @@ class InvoiceController extends Controller
                     'fincludeppn' => $fincludeppn,
                     'fapplyppn' => $fapplyppn,
                     'fppnpersen' => $ppnPersen,
+                    'fbranchcode' => $request->fbranchcode,
                     'ftypesales' => (int) $request->input('ftypesales', 0),
                     'fneedacc' => $needsApprovalNotification ? '1' : '0',
                     'fuseracc' => $creditApproval['fuseracc'],
@@ -2517,7 +2524,7 @@ class InvoiceController extends Controller
                 $this->sendApprovalNotification($header->fsono, $userid);
             }
 
-            return redirect()->route('invoice.index')->with('success', 'Faktur penjualan '.$this->formatDisplayTransactionNumber($header->fsono, $fincludeppn === '1').' berhasil diupdate.');
+            return redirect()->route('invoice.index')->with('success', 'Faktur penjualan ' . $this->formatDisplayTransactionNumber($header->fsono, $fincludeppn === '1') . ' berhasil diupdate.');
         } catch (\Exception $e) {
             report($e);
             return back()->withInput()->with('error', 'Faktur penjualan belum bisa diupdate. Cek data.');
@@ -2691,18 +2698,18 @@ class InvoiceController extends Controller
         $prefix = sprintf('%s.%s.%s.%s.', $fjurnaltype, $kodeCabang, $fsodate->format('y'), $fsodate->format('m'));
 
         if (DB::getDriverName() === 'pgsql') {
-            $lockKey = crc32('JURNAL|'.$fjurnaltype.'|'.$kodeCabang.'|'.$fsodate->format('Y-m'));
+            $lockKey = crc32('JURNAL|' . $fjurnaltype . '|' . $kodeCabang . '|' . $fsodate->format('Y-m'));
             DB::statement('SELECT pg_advisory_xact_lock(?)', [$lockKey]);
 
             $lastNo = DB::table('jurnalmt')
-                ->where('fjurnalno', 'like', $prefix.'%')
+                ->where('fjurnalno', 'like', $prefix . '%')
                 ->selectRaw("MAX(CAST(split_part(fjurnalno, '.', 5) AS int)) AS lastno")
                 ->value('lastno');
 
             $nextNo = (int) $lastNo + 1;
         } else {
             $lastJurnalNo = DB::table('jurnalmt')
-                ->where('fjurnalno', 'like', $prefix.'%')
+                ->where('fjurnalno', 'like', $prefix . '%')
                 ->orderByDesc('fjurnalno')
                 ->value('fjurnalno');
 
@@ -2712,7 +2719,7 @@ class InvoiceController extends Controller
             }
         }
 
-        $fjurnalno = $prefix.str_pad((string) $nextNo, 4, '0', STR_PAD_LEFT);
+        $fjurnalno = $prefix . str_pad((string) $nextNo, 4, '0', STR_PAD_LEFT);
         $now = now();
         $subaccount = $customerCode !== '' ? $customerCode : null;
 
@@ -2721,7 +2728,7 @@ class InvoiceController extends Controller
             'fjurnalno' => $fjurnalno,
             'fjurnaltype' => $fjurnaltype,
             'fjurnaldate' => $fsodate,
-            'fjurnalnote' => 'Jurnal Faktur Penjualan '.$fsono,
+            'fjurnalnote' => 'Jurnal Faktur Penjualan ' . $fsono,
             'fbalance' => 0,
             'fbalance_rp' => 0,
             'fdatetime' => $now,
@@ -2742,7 +2749,7 @@ class InvoiceController extends Controller
                 'frate' => 1,
                 'famount' => 0,
                 'famount_rp' => 0,
-                'faccountnote' => 'Memo Invoice '.$fsono,
+                'faccountnote' => 'Memo Invoice ' . $fsono,
                 'fusercreate' => $userName,
                 'fdatetime' => $now,
             ],
@@ -2759,7 +2766,7 @@ class InvoiceController extends Controller
                 'frate' => 1,
                 'famount' => 0,
                 'famount_rp' => 0,
-                'faccountnote' => 'Memo Invoice '.$fsono,
+                'faccountnote' => 'Memo Invoice ' . $fsono,
                 'fusercreate' => $userName,
                 'fdatetime' => $now,
             ],

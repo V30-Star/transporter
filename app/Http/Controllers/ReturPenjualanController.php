@@ -271,6 +271,7 @@ class ReturPenjualanController extends Controller
     public function pickable(Request $request)
     {
         $customerCode = trim((string) $request->input('fcustno', ''));
+        $onlyRemaining = $request->boolean('only_remaining');
 
         $query = DB::table('tranmt as mt')
             ->leftJoin('mscustomer as cust', 'mt.fcustno', '=', 'cust.fcustomercode')
@@ -289,11 +290,28 @@ class ReturPenjualanController extends Controller
             $query->whereRaw('TRIM(COALESCE(mt.fcustno, \'\')) = ?', [$customerCode]);
         }
 
+        if ($onlyRemaining) {
+            $query->whereExists(function ($subQuery) {
+                $subQuery->select(DB::raw(1))
+                    ->from('trandt as d')
+                    ->whereColumn('d.fsono', 'mt.fsono')
+                    ->whereRaw('COALESCE(d.fqtyremain, 0) > 0');
+            });
+        }
+
         $recordsTotal = DB::table('tranmt as mt')
             ->where('mt.fsono', 'like', 'INV.%')
             ->whereRaw(ApprovalState::approvedSql('mt.'))
             ->when($customerCode !== '', function ($q) use ($customerCode) {
                 $q->whereRaw('TRIM(COALESCE(mt.fcustno, \'\')) = ?', [$customerCode]);
+            })
+            ->when($onlyRemaining, function ($query) {
+                $query->whereExists(function ($subQuery) {
+                    $subQuery->select(DB::raw(1))
+                        ->from('trandt as d')
+                        ->whereColumn('d.fsono', 'mt.fsono')
+                        ->whereRaw('COALESCE(d.fqtyremain, 0) > 0');
+                });
             })
             ->count();
 
@@ -406,6 +424,7 @@ class ReturPenjualanController extends Controller
                 'trandt.fprdcode as fitemcode',
                 'm.fprdname as fitemname',
                 'trandt.fqty',
+                'trandt.fqtyremain',
                 'trandt.fsatuan as fsatuan',
                 'trandt.fprice as fprice',
                 DB::raw("COALESCE(NULLIF(TRIM(trandt.fdisc), ''), '0') as fdisc"),
@@ -446,6 +465,8 @@ class ReturPenjualanController extends Controller
                     'fitemcode' => trim((string) ($item->fitemcode ?? '')),
                     'fitemname' => trim((string) ($item->fitemname ?? '')),
                     'fqty' => (float) ($item->fqty ?? 0),
+                    'fqtyremain' => max(0, (float) ($item->fqtyremain ?? 0)),
+                    'maxqty' => max(0, (float) ($item->fqtyremain ?? 0)),
                     'fsatuan' => trim((string) ($item->fsatuan ?? '')),
                     'fdisplayunit' => trim((string) ($item->fsatuan ?? '')),
                     'fprice' => (float) ($item->fprice ?? 0),
@@ -890,10 +911,6 @@ class ReturPenjualanController extends Controller
         }
 
         [$soUsageByReference, $srjUsageByReference] = $this->buildReturReferenceUsageMaps($detailRows);
-
-        if ($validationMessage = $this->validateUniqueReferenceTransaction($soUsageByReference, $srjUsageByReference)) {
-            return back()->withInput()->with('error', $validationMessage);
-        }
 
         if ($validationMessage = $this->validateReferenceUsage($soUsageByReference, $srjUsageByReference)) {
             return back()->withInput()->with('error', $validationMessage);
@@ -1358,25 +1375,13 @@ class ReturPenjualanController extends Controller
                     COALESCE(d.fnoacak::text, '') as ref_noacak,
                     MAX(COALESCE(p.fprdname, d.fprdcode)) as product_name,
                     MAX(COALESCE(d.fsatuan, '')) as source_unit,
-                    SUM(COALESCE(d.fqtykecil, 0)) as source_qty_kecil
+                    SUM(COALESCE(d.fqtykecil, 0)) as source_qty_kecil,
+                    SUM(COALESCE(d.fqtyremain, 0)) as remain_qty_kecil
                 ")
                 ->groupByRaw("TRIM(d.fsono), TRIM(d.fprdcode), COALESCE(d.fnoacak::text, '')")
                 ->get();
 
-            $usageRows = DB::table('trandt as d')
-                ->join('tranmt as h', 'h.fsono', '=', 'd.fsono')
-                ->whereIn('d.frefso', $docNos)
-                ->where('h.fsono', 'like', 'REJ.%')
-                ->when($exceptFsono, fn($query) => $query->where('h.fsono', '<>', $exceptFsono))
-                ->selectRaw("
-                    TRIM(d.frefso) as ref_doc,
-                    TRIM(d.fprdcode) as product_code,
-                    COALESCE(d.frefnoacak::text, '') as ref_noacak,
-                    SUM(COALESCE(d.fqtykecil, 0)) as used_qty_kecil,
-                    MIN(h.fsono) as used_by_transaction
-                ")
-                ->groupByRaw("TRIM(d.frefso), TRIM(d.fprdcode), COALESCE(d.frefnoacak::text, '')")
-                ->get();
+            $usageRows = collect();
         } else {
             $sourceRows = DB::table('trstockdt as d')
                 ->leftJoin('msprd as p', 'p.fprdcode', '=', 'd.fprdcode')
@@ -1387,25 +1392,13 @@ class ReturPenjualanController extends Controller
                     COALESCE(d.frefnoacak::text, d.fnoacak::text, '') as ref_noacak,
                     MAX(COALESCE(p.fprdname, d.fprdcode)) as product_name,
                     MAX(COALESCE(d.fsatuan, '')) as source_unit,
-                    SUM(COALESCE(d.fqtykecil, 0)) as source_qty_kecil
+                    SUM(COALESCE(d.fqtykecil, 0)) as source_qty_kecil,
+                    SUM(COALESCE(d.fqtyremain, 0)) as remain_qty_kecil
                 ")
                 ->groupByRaw("TRIM(d.fstockmtno), TRIM(d.fprdcode), COALESCE(d.frefnoacak::text, d.fnoacak::text, '')")
                 ->get();
 
-            $usageRows = DB::table('trandt as d')
-                ->join('tranmt as h', 'h.fsono', '=', 'd.fsono')
-                ->whereIn('d.frefsrj', $docNos)
-                ->where('h.fsono', 'like', 'REJ.%')
-                ->when($exceptFsono, fn($query) => $query->where('h.fsono', '<>', $exceptFsono))
-                ->selectRaw("
-                    TRIM(d.frefsrj) as ref_doc,
-                    TRIM(d.fprdcode) as product_code,
-                    COALESCE(d.frefnoacak::text, '') as ref_noacak,
-                    SUM(COALESCE(d.fqtykecil, 0)) as used_qty_kecil,
-                    MIN(h.fsono) as used_by_transaction
-                ")
-                ->groupByRaw("TRIM(d.frefsrj), TRIM(d.fprdcode), COALESCE(d.frefnoacak::text, '')")
-                ->get();
+            $usageRows = collect();
         }
 
         $stats = [];
@@ -1421,7 +1414,7 @@ class ReturPenjualanController extends Controller
                 'ref_noacak' => $normalizedRefNoAcak,
                 'source_qty_kecil' => (float) ($row->source_qty_kecil ?? 0),
                 'used_qty_kecil' => 0.0,
-                'remain_qty_kecil' => (float) ($row->source_qty_kecil ?? 0),
+                'remain_qty_kecil' => (float) ($row->remain_qty_kecil ?? $row->source_qty_kecil ?? 0),
                 'used_by_transaction' => '',
             ];
         }
@@ -1983,14 +1976,6 @@ class ReturPenjualanController extends Controller
         [$oldSoRestoreByReference, $oldSrjRestoreByReference] = $this->buildReturReferenceRestoreMaps($header->fsono);
 
         [$soUsageByReference, $srjUsageByReference] = $this->buildReturReferenceUsageMaps($detailRows);
-
-        if ($validationMessage = $this->validateUniqueReferenceTransaction(
-            $soUsageByReference,
-            $srjUsageByReference,
-            $header->fsono
-        )) {
-            return back()->withInput()->with('error', $validationMessage);
-        }
 
         if ($validationMessage = $this->validateReferenceUsage(
             $soUsageByReference,

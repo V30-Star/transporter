@@ -49,7 +49,8 @@
                                 search: d.search.value,
                                 order_column: d.columns[d.order[0].column].data,
                                 order_dir: d.order[0].dir,
-                                customer_code: document.getElementById('customerCodeHidden')?.value || ''
+                                customer_code: document.getElementById('customerCodeHidden')?.value || '',
+                                only_remaining: true
                             };
                         }
                     },
@@ -191,7 +192,11 @@
                     }
 
                     const json = await res.json();
-                    const items = json.items || [];
+                    const items = (json.items || []).filter(src => Number(src.maxqty ?? src.fqtyremain ?? 0) > 0);
+                    if (items.length === 0) {
+                        window.toast?.warning('Semua item Faktur ini sudah habis atau sudah digunakan.');
+                        return;
+                    }
                     window.applyTransactionCustomerSelection?.({
                         fcustomercode: json.header?.fcustno ?? row?.fcustno ?? '',
                         fcustomername: json.header?.fcustomername ?? row?.fcustomername ?? '',

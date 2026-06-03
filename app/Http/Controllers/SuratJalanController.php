@@ -327,13 +327,7 @@ class SuratJalanController extends Controller
                 $subQuery->select(DB::raw(1))
                     ->from('trstockdt as d')
                     ->whereColumn('d.fstockmtno', 'trstockmt.fstockmtno')
-                    ->whereRaw("COALESCE(d.fqtykecil, 0) - COALESCE((
-                        SELECT SUM(COALESCE(inv_dt.fqtykecil, 0))
-                        FROM trandt inv_dt
-                        WHERE TRIM(COALESCE(inv_dt.frefsrj, '')) = TRIM(COALESCE(trstockmt.fstockmtno, ''))
-                            AND TRIM(COALESCE(inv_dt.fprdcode, '')) = TRIM(COALESCE(d.fprdcode, ''))
-                            AND COALESCE(inv_dt.frefnosrjacak::text, '') = COALESCE(d.frefnoacak::text, '')
-                    ), 0) > 0");
+                    ->whereRaw('COALESCE(d.fqtyremain, 0) > 0');
             });
         }
 
@@ -360,13 +354,7 @@ class SuratJalanController extends Controller
                     $subQuery->select(DB::raw(1))
                         ->from('trstockdt as d')
                         ->whereColumn('d.fstockmtno', 'trstockmt.fstockmtno')
-                        ->whereRaw("COALESCE(d.fqtykecil, 0) - COALESCE((
-                            SELECT SUM(COALESCE(inv_dt.fqtykecil, 0))
-                            FROM trandt inv_dt
-                            WHERE TRIM(COALESCE(inv_dt.frefsrj, '')) = TRIM(COALESCE(trstockmt.fstockmtno, ''))
-                                AND TRIM(COALESCE(inv_dt.fprdcode, '')) = TRIM(COALESCE(d.fprdcode, ''))
-                                AND COALESCE(inv_dt.frefnosrjacak::text, '') = COALESCE(d.frefnoacak::text, '')
-                        ), 0) > 0");
+                        ->whereRaw('COALESCE(d.fqtyremain, 0) > 0');
                 });
             })
             ->whereNotExists(function ($subQuery) {
@@ -429,8 +417,6 @@ class SuratJalanController extends Controller
             return response()->json(['message' => 'Data SRJ belum bisa dipakai. Referensi sales order masih menunggu approval.'], 403);
         }
 
-        $remainMap = $this->getSrjRemainByStockNo($header->fstockmtno);
-
         $items = DB::table('trstockdt')
             ->where('trstockdt.fstockmtno', $header->fstockmtno)
             ->leftJoin('msprd', 'msprd.fprdcode', '=', 'trstockdt.fprdcode')
@@ -443,16 +429,18 @@ class SuratJalanController extends Controller
                 'msprd.fprdcode as fitemcode',
                 'msprd.fprdname as fitemname',
                 'trstockdt.fqty',
+                'trstockdt.fqtyremain',
                 'trstockdt.fdiscpersen',
                 'trstockdt.fsatuan',
                 'trstockdt.fprice',
                 'trstockdt.ftotprice as ftotal'
             )
             ->get()
-            ->map(function ($item) use ($remainMap) {
-                $remain = (float) ($remainMap[(int) ($item->frefdtid ?? 0)] ?? 0);
+            ->map(function ($item) {
+                $remain = max(0, (float) ($item->fqtyremain ?? 0));
                 $item->fqty_dokumen = (float) ($item->fqty ?? 0);
                 $item->fqtyremain = $remain;
+                $item->maxqty = $remain;
 
                 return $item;
             });
@@ -1809,7 +1797,8 @@ class SuratJalanController extends Controller
                         TRIM(d.fprdcode) as product_code,
                         COALESCE(d.fnoacak::text, '') as ref_noacak,
                         MAX(COALESCE(p.fprdname, d.fprdcode)) as product_name,
-                        SUM(COALESCE(d.fqtykecil, 0)) as source_qty_kecil
+                        SUM(COALESCE(d.fqtykecil, 0)) as source_qty_kecil,
+                        SUM(COALESCE(d.fqtyremain, 0)) as remain_qty_kecil
                     ")
                     ->groupByRaw("TRIM(d.fsono), TRIM(d.fprdcode), COALESCE(d.fnoacak::text, '')")
                     ->get()
@@ -1828,7 +1817,8 @@ class SuratJalanController extends Controller
                         TRIM(d.fprdcode) as product_code,
                         COALESCE(d.fnoacak::text, '') as ref_noacak,
                         MAX(COALESCE(p.fprdname, d.fprdcode)) as product_name,
-                        SUM(COALESCE(d.fqtykecil, 0)) as source_qty_kecil
+                        SUM(COALESCE(d.fqtykecil, 0)) as source_qty_kecil,
+                        SUM(COALESCE(d.fqtykecil, 0)) as remain_qty_kecil
                     ")
                     ->groupByRaw("TRIM(d.fsono), TRIM(d.fprdcode), COALESCE(d.fnoacak::text, '')")
                     ->get()
@@ -1860,12 +1850,15 @@ class SuratJalanController extends Controller
                 'product_name' => trim((string) ($row->product_name ?? '')),
                 'source_qty_kecil' => (float) ($row->source_qty_kecil ?? 0),
                 'used_qty_kecil' => 0.0,
-                'remain_qty_kecil' => (float) ($row->source_qty_kecil ?? 0),
+                'remain_qty_kecil' => (float) ($row->remain_qty_kecil ?? $row->source_qty_kecil ?? 0),
                 'used_by_transaction' => '',
             ];
         }
 
         foreach ($usageRows as $row) {
+            if (! $this->isInvoiceReferenceDoc((string) ($row->ref_doc ?? ''))) {
+                continue;
+            }
             $key = $this->buildSoReferenceUsageKey($row->ref_doc ?? '', $row->product_code ?? '', $row->ref_noacak ?? '');
             if (! isset($stats[$key])) {
                 $stats[$key] = [
@@ -1911,28 +1904,6 @@ class SuratJalanController extends Controller
             if ((float) $requestedQtyKecil - $availableQtyKecil > 0.000001) {
                 $product = trim((string) ($stat['product_name'] ?? $stat['product_code'] ?? $referenceKey));
                 return 'Qty Surat Jalan untuk item ' . $product . ' melebihi sisa qty yang tersedia.';
-            }
-        }
-
-        return null;
-    }
-
-    private function validateUniqueReferenceUsage(array $usageByReference, ?string $exceptStockMtNo = null): ?string
-    {
-        if (empty($usageByReference)) {
-            return null;
-        }
-
-        $stats = $this->getSoReferenceStats(
-            $this->extractSoReferenceDocsFromKeys(array_keys($usageByReference)),
-            $exceptStockMtNo
-        );
-
-        foreach ($usageByReference as $referenceKey => $qtyKecil) {
-            if ((float) ($stats[$referenceKey]['used_qty_kecil'] ?? 0) > 0) {
-                $refNo = trim((string) ($stats[$referenceKey]['ref_doc'] ?? ''));
-                $transactionNo = trim((string) ($stats[$referenceKey]['used_by_transaction'] ?? ''));
-                return 'No. referensi ' . $refNo . ' sudah ada di transaksi ' . $transactionNo . '.';
             }
         }
 

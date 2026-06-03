@@ -2315,7 +2315,8 @@
                                 length: d.length,
                                 search: d.search.value,
                                 order_column: d.columns[d.order[0].column].data,
-                                order_dir: d.order[0].dir
+                                order_dir: d.order[0].dir,
+                                only_remaining: true
                             };
                         }
                     },
@@ -3719,7 +3720,11 @@
 
                     const json = await res.json();
 
-                    const items = json.items || [];
+                    const items = (json.items || []).filter(src => Number(src.maxqty ?? src.fqtyremain ?? 0) > 0);
+                    if (items.length === 0) {
+                        window.toast?.warning('Semua item Faktur ini sudah habis atau sudah digunakan.');
+                        return;
+                    }
                     const currentKeys = new Set((window.getCurrentItemKeys?.() || []).map(String));
                     const keyOf = (src) =>
                         (src.fitemcode ?? '').toString().trim().toUpperCase();
@@ -3789,7 +3794,8 @@
                                 length: d.length,
                                 search: d.search.value,
                                 order_column: d.columns[d.order[0].column].data,
-                                order_dir: d.order[0].dir
+                                order_dir: d.order[0].dir,
+                                only_remaining: true
                             };
                             // Filter by selected customer
                             var custCode = (document.getElementById('customerCodeHidden')?.value || '').trim();
@@ -3983,7 +3989,11 @@
                     if (!res.ok) throw new Error(`Server error: ${res.status}`);
 
                     const json = await res.json();
-                    const items = json.items || [];
+                    const items = (json.items || []).filter(src => Number(src.maxqty ?? src.fqtyremain ?? 0) > 0);
+                    if (items.length === 0) {
+                        window.toast?.warning('Semua item SRJ ini sudah habis atau sudah digunakan.');
+                        return;
+                    }
 
                     const currentKeys = new Set((window.getCurrentItemKeys?.() || []).map(String));
                     const keyOf = (src) =>
@@ -4055,7 +4065,8 @@
                                 search: d.search.value,
                                 // Menambahkan parameter order untuk server-side processing
                                 order_column: d.columns[d.order[0].column].data,
-                                order_dir: d.order[0].dir
+                                order_dir: d.order[0].dir,
+                                only_remaining: true
                             };
                             // Filter by selected customer
                             var custCode = (document.getElementById('customerCodeHidden')?.value || '').trim();
@@ -4216,7 +4227,11 @@
                     });
                     const json = await res.json();
 
-                    const items = json.items || [];
+                    const items = (json.items || []).filter(src => Number(src.maxqty ?? src.fqtyremain ?? 0) > 0);
+                    if (items.length === 0) {
+                        window.toast?.warning('Semua item Faktur ini sudah habis atau sudah digunakan.');
+                        return;
+                    }
                     const currentKeys = new Set((window.getCurrentItemKeys?.() || []).map(String));
                     const keyOf = (src) =>
                         (src.fitemcode ?? '').toString().trim().toUpperCase();

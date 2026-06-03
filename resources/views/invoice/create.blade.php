@@ -863,7 +863,7 @@
                         <div x-data="prhFormModal()" class="w-full md:w-auto md:min-w-[550px] lg:min-w-[650px]">
                             <div class="rounded-lg border bg-gray-50 p-3 space-y-2">
                                 <div class="flex items-center justify-between">
-                                    <span class="text-sm text-gray-700">Total Harga (Net)</span>
+                                    <span class="text-sm text-gray-700">Total Harga</span>
                                     <span class="min-w-[140px] text-right font-medium"
                                         x-text="formatTransactionAmount(netTotal)"></span>
                                 </div>
@@ -929,12 +929,6 @@
 
                                 <div class="flex items-center justify-between">
                                     <span class="text-sm font-semibold text-gray-800">Grand Total</span>
-                                    <span class="min-w-[140px] text-right text-lg font-semibold"
-                                        x-text="rupiah(grandTotal)"></span>
-                                </div>
-
-                                <div class="flex items-center justify-between">
-                                    <span class="text-sm font-semibold text-gray-800">Grand Total (RP)</span>
                                     <span class="min-w-[140px] text-right text-lg font-semibold"
                                         x-text="rupiah(grandTotal)"></span>
                                 </div>

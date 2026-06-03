@@ -2748,6 +2748,7 @@
                         search: this.search ?? '',
                         per_page: this.perPage,
                         page: this.currentPage,
+                        only_remaining: true,
                     });
 
                     // Filter by selected customer
@@ -2809,7 +2810,11 @@
                     });
                     const json = await res.json();
 
-                    const items = json.items || [];
+                    const items = (json.items || []).filter(src => Number(src.maxqty ?? src.fqtyremain ?? 0) > 0);
+                    if (items.length === 0) {
+                        window.toast?.warning('Semua item Faktur ini sudah habis atau sudah digunakan.');
+                        return;
+                    }
                     const currentKeys = new Set((window.getCurrentItemKeys?.() || []).map(String));
 
                     const keyOf = (src) =>
@@ -2881,7 +2886,8 @@
                                 length: d.length,
                                 search: d.search.value,
                                 order_column: d.columns[d.order[0].column].data,
-                                order_dir: d.order[0].dir
+                                order_dir: d.order[0].dir,
+                                only_remaining: true
                             };
                             // Filter by selected customer
                             var custCode = (document.getElementById('customerCodeHidden')?.value || '').trim();
@@ -3051,7 +3057,11 @@
 
                     const json = await res.json();
 
-                    const items = json.items || [];
+                    const items = (json.items || []).filter(src => Number(src.maxqty ?? src.fqtyremain ?? 0) > 0);
+                    if (items.length === 0) {
+                        window.toast?.warning('Semua item Faktur ini sudah habis atau sudah digunakan.');
+                        return;
+                    }
                     const currentKeys = new Set((window.getCurrentItemKeys?.() || []).map(String));
                     const keyOf = (src) =>
                         (src.fitemcode ?? '').toString().trim().toUpperCase();
@@ -3130,7 +3140,8 @@
                                 length: d.length,
                                 search: d.search.value,
                                 order_column: d.columns[d.order[0].column].data,
-                                order_dir: d.order[0].dir
+                                order_dir: d.order[0].dir,
+                                only_remaining: true
                             };
                             // Filter by selected customer
                             var custCode = (document.getElementById('customerCodeHidden')?.value || '').trim();
@@ -3316,7 +3327,11 @@
                     if (!res.ok) throw new Error(`Server error: ${res.status}`);
 
                     const json = await res.json();
-                    const items = json.items || [];
+                    const items = (json.items || []).filter(src => Number(src.maxqty ?? src.fqtyremain ?? 0) > 0);
+                    if (items.length === 0) {
+                        window.toast?.warning('Semua item SRJ ini sudah habis atau sudah digunakan.');
+                        return;
+                    }
 
                     // Ambil key item yang sudah ada di table input (untuk cek duplikat)
                     const currentKeys = new Set((window.getCurrentItemKeys?.() || []).map(String));
