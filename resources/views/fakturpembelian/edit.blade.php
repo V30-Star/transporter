@@ -1501,13 +1501,17 @@
                                                             <thead class="sticky top-0 z-10">
                                                                 <tr class="bg-gray-50 border-b-2 border-gray-200">
                                                                     <th class="p-3 text-left font-semibold text-gray-700">
+                                                                        {{ 'Cabang' }}</th>
+                                                                    <th class="p-3 text-left font-semibold text-gray-700">
                                                                         {{ 'No.Transaksi' }}</th>
                                                                     <th class="p-3 text-left font-semibold text-gray-700">
                                                                         {{ 'Tanggal' }}</th>
                                                                     <th class="p-3 text-left font-semibold text-gray-700">
-                                                                        {{ 'No PO' }}</th>
-                                                                    <th class="p-3 text-left font-semibold text-gray-700">
                                                                         {{ 'Supplier' }}</th>
+                                                                    <th class="p-3 text-left font-semibold text-gray-700">
+                                                                        {{ 'Gudang' }}</th>
+                                                                    <th class="p-3 text-left font-semibold text-gray-700">
+                                                                        {{ 'No PO' }}</th>
                                                                     <th
                                                                         class="p-3 text-center font-semibold text-gray-700">
                                                                         {{ 'Aksi' }}</th>
@@ -2702,6 +2706,23 @@
 
                     this.setSupplierFromReferenceHeader(header);
                     this.setPpnFromReferenceHeader(header);
+
+                    // Automatically fill in the warehouse field
+                    if (header && (header.fgudang || header.ffrom)) {
+                        const whCode = header.fgudang || header.ffrom;
+                        const sel = document.getElementById('warehouseSelect');
+                        const hid = document.getElementById('warehouseCodeHidden');
+                        if (sel) {
+                            sel.value = whCode;
+                            sel.dispatchEvent(new Event('change', {
+                                bubbles: true
+                            }));
+                        }
+                        if (hid) {
+                            hid.value = whCode;
+                        }
+                    }
+
                     this.addManyFromSource(header, items, 'PB');
                 },
 
@@ -3559,6 +3580,14 @@
                             }
                         },
                         columns: [{
+                                data: 'fbranchcode',
+                                name: 'fbranchcode',
+                                className: 'text-sm',
+                                render: function(data) {
+                                    return data || '-';
+                                }
+                            },
+                            {
                                 data: 'fstockmtno',
                                 name: 'fstockmtno',
                                 className: 'font-mono text-sm'
@@ -3572,17 +3601,25 @@
                                 }
                             },
                             {
-                                data: 'frefpo',
-                                name: 'frefpo',
-                                className: 'font-mono text-sm',
+                                data: 'fsupplier',
+                                name: 'fsupplier',
+                                className: 'text-sm',
                                 render: function(data) {
                                     return data || '-';
                                 }
                             },
                             {
-                                data: 'fsupplier',
-                                name: 'fsupplier',
+                                data: 'fgudang',
+                                name: 'fgudang',
                                 className: 'text-sm',
+                                render: function(data) {
+                                    return data || '-';
+                                }
+                            },
+                            {
+                                data: 'frefpo',
+                                name: 'frefpo',
+                                className: 'font-mono text-sm',
                                 render: function(data) {
                                     return data || '-';
                                 }
@@ -3604,7 +3641,7 @@
                         ],
                         dom: '<"flex justify-between items-center mb-4"f<"ml-auto"l>>rtip',
                         order: [
-                            [1, 'desc']
+                            [2, 'desc']
                         ],
                         autoWidth: false
                     });

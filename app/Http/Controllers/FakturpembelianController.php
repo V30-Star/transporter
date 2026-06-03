@@ -125,10 +125,21 @@ class FakturpembelianController extends Controller
 
         if ($request->ajax()) {
             $referenceSub = DB::table('trstockdt')
-                ->select('fstockmtno')
-                ->selectRaw("string_agg(DISTINCT NULLIF(TRIM(COALESCE(frefdtno::text, '')), ''), ', ' ORDER BY NULLIF(TRIM(COALESCE(frefdtno::text, '')), '')) as frefdtno_summary")
-                ->where('fstockmtcode', 'BUY')
-                ->groupBy('fstockmtno');
+                ->leftJoin('trstockmt as ter_hdr', function ($join) {
+                    $join->on('ter_hdr.fstockmtno', '=', 'trstockdt.frefdtno')
+                        ->where('ter_hdr.fstockmtcode', '=', 'TER');
+                })
+                ->leftJoin('trstockdt as ter_dt', function ($join) {
+                    $join->on('ter_dt.fstockmtno', '=', 'ter_hdr.fstockmtno')
+                        ->where('ter_dt.fstockmtcode', '=', 'TER');
+                })
+                ->select('trstockdt.fstockmtno')
+                ->selectRaw("string_agg(DISTINCT NULLIF(TRIM(COALESCE(trstockdt.frefdtno::text, '')), ''), ', ' ORDER BY NULLIF(TRIM(COALESCE(trstockdt.frefdtno::text, '')), '')) as frefdtno_summary")
+                ->selectRaw("string_agg(DISTINCT NULLIF(TRIM(COALESCE(ter_dt.frefdtno::text, '')), ''), ', ' ORDER BY NULLIF(TRIM(COALESCE(ter_dt.frefdtno::text, '')), '')) as ter_po_summary")
+                ->selectRaw("string_agg(DISTINCT NULLIF(TRIM(COALESCE(ter_hdr.fbranchcode::text, '')), ''), ', ' ORDER BY NULLIF(TRIM(COALESCE(ter_hdr.fbranchcode::text, '')), '')) as ter_branch_summary")
+                ->selectRaw("string_agg(DISTINCT NULLIF(TRIM(COALESCE(TO_CHAR(ter_hdr.fstockmtdate, 'YYYY-MM-DD'), '')), ''), ', ' ORDER BY NULLIF(TRIM(COALESCE(TO_CHAR(ter_hdr.fstockmtdate, 'YYYY-MM-DD'), '')), '')) as ter_date_summary")
+                ->where('trstockdt.fstockmtcode', 'BUY')
+                ->groupBy('trstockdt.fstockmtno');
 
             $query = PenerimaanPembelianHeader::query()
                 ->where('trstockmt.fstockmtcode', 'BUY')
@@ -146,6 +157,9 @@ class FakturpembelianController extends Controller
                         ->orWhere('trstockmt.frefno', $likeOp, "%{$search}%")
                         ->orWhere('trstockmt.frefpo', $likeOp, "%{$search}%")
                         ->orWhere('refdt.frefdtno_summary', $likeOp, "%{$search}%")
+                        ->orWhere('refdt.ter_po_summary', $likeOp, "%{$search}%")
+                        ->orWhere('refdt.ter_branch_summary', $likeOp, "%{$search}%")
+                        ->orWhere('refdt.ter_date_summary', $likeOp, "%{$search}%")
                         ->orWhere('trstockmt.ffrom', $likeOp, "%{$search}%")
                         ->orWhere('trstockmt.fbranchcode', $likeOp, "%{$search}%")
                         ->orWhere('mssupplier.fsuppliername', $likeOp, "%{$search}%")
@@ -154,7 +168,7 @@ class FakturpembelianController extends Controller
             }
 
             // Pencarian per kolom
-            $colSearchGudang = $request->input('columns.3.search.value');
+            $colSearchGudang = $request->input('columns.4.search.value');
             if ($colSearchGudang !== null && $colSearchGudang !== '') {
                 $likeOp = DB::getDriverName() === 'pgsql' ? 'ILIKE' : 'LIKE';
                 $query->where(function ($q) use ($colSearchGudang, $likeOp) {
@@ -173,13 +187,16 @@ class FakturpembelianController extends Controller
             $orderDir = $request->input('order.0.dir', 'desc');
 
             $sortableColumns = [
+                'trstockmt.fbranchcode',
                 'trstockmt.fstockmtno',
                 'trstockmt.fstockmtdate',
                 'trstockmt.frefno',
                 'trstockmt.ffrom',
-                'trstockmt.fbranchcode',
                 'mssupplier.fsuppliername',
                 'refdt.frefdtno_summary',
+                'refdt.ter_po_summary',
+                'refdt.ter_branch_summary',
+                'refdt.ter_date_summary',
                 'trstockmt.famountmt',
             ];
 
@@ -205,10 +222,27 @@ class FakturpembelianController extends Controller
                     'mswh.fwhname',
                     'mssupplier.fsuppliername',
                     'refdt.frefdtno_summary',
+                    'refdt.ter_po_summary',
+                    'refdt.ter_branch_summary',
+                    'refdt.ter_date_summary',
                 ]);
 
             $data = $records->map(function ($row) {
                 $warehouseCode = trim((string) ($row->ffrom ?? ''));
+
+                // Format the TER Date if it exists
+                $terDates = '';
+                if (!empty($row->ter_date_summary)) {
+                    $dates = explode(', ', $row->ter_date_summary);
+                    $formattedDates = array_map(function($d) {
+                        try {
+                            return \Carbon\Carbon::parse($d)->format('d/m/Y');
+                        } catch (\Exception $e) {
+                            return $d;
+                        }
+                    }, $dates);
+                    $terDates = implode(', ', $formattedDates);
+                }
 
                 return [
                     'fstockmtid' => $row->fstockmtid,
@@ -220,6 +254,9 @@ class FakturpembelianController extends Controller
                     'fbranchcode' => trim((string) ($row->fbranchcode ?? '')),
                     'fsuppliername' => trim((string) ($row->fsuppliername ?? '')),
                     'freferensi' => trim((string) ($row->frefdtno_summary ?? '')),
+                    'ter_po_summary' => trim((string) ($row->ter_po_summary ?? '')),
+                    'ter_branch_summary' => trim((string) ($row->ter_branch_summary ?? '')),
+                    'ter_date_summary' => $terDates,
                     'famountmt' => (float) ($row->famountmt ?? 0),
                 ];
             });
@@ -392,19 +429,26 @@ class FakturpembelianController extends Controller
         $start = max(0, (int) $request->get('start', 0));
         $draw = (int) $request->get('draw', 0);
 
-        $buySub = DB::table('trstockdt')
-            ->selectRaw('frefdtno, fprdcode, SUM(COALESCE(fqtykecil, 0)) AS fqtybuy')
-            ->where('fstockmtcode', 'BUY')
-            ->groupBy('frefdtno', 'fprdcode');
+        $refdtQuery = DB::table('trstockdt')
+            ->select('fstockmtno')
+            ->selectRaw("string_agg(DISTINCT NULLIF(TRIM(COALESCE(frefdtno::text, '')), ''), ', ' ORDER BY NULLIF(TRIM(COALESCE(frefdtno::text, '')), '')) as frefdtno_summary")
+            ->where('fstockmtcode', 'TER')
+            ->groupBy('fstockmtno');
 
         $query = PenerimaanPembelianHeader::query()
             ->leftJoin('mssupplier', 'trstockmt.fsupplier', '=', 'mssupplier.fsuppliercode')
+            ->leftJoinSub($refdtQuery, 'refdt', function ($join) {
+                $join->on('refdt.fstockmtno', '=', 'trstockmt.fstockmtno');
+            })
             ->select([
                 'trstockmt.fstockmtid',
                 'trstockmt.fstockmtno',
                 'trstockmt.frefpo',
+                'trstockmt.fbranchcode',
                 'mssupplier.fsuppliername',
                 'trstockmt.fstockmtdate',
+                'refdt.frefdtno_summary',
+                'trstockmt.ffrom',
             ])
             ->where('trstockmt.fstockmtcode', 'TER')
             ->where('trstockmt.fprdout', '0');
@@ -420,6 +464,9 @@ class FakturpembelianController extends Controller
             $query->where(function ($q) use ($search, $likeOp) {
                 $q->where('trstockmt.fstockmtno', $likeOp, "%{$search}%")
                     ->orWhere('trstockmt.frefpo', $likeOp, "%{$search}%")
+                    ->orWhere('refdt.frefdtno_summary', $likeOp, "%{$search}%")
+                    ->orWhere('trstockmt.fbranchcode', $likeOp, "%{$search}%")
+                    ->orWhere('trstockmt.ffrom', $likeOp, "%{$search}%")
                     ->orWhere('mssupplier.fsuppliername', $likeOp, "%{$search}%")
                     ->orWhereRaw("TO_CHAR(trstockmt.fstockmtdate, 'YYYY-MM-DD HH24:MI:SS') {$likeOp} ?", ["%{$search}%"]);
             });
@@ -431,10 +478,16 @@ class FakturpembelianController extends Controller
             ->orderByDesc('trstockmt.fstockmtid');
 
         $rows = $query->skip($start)->take($perPage)->get()->map(function ($t) {
+            $poNo = trim((string) ($t->frefdtno_summary ?? ''));
+            if ($poNo === '') {
+                $poNo = trim((string) ($t->frefpo ?? ''));
+            }
             return [
                 'fstockmtid' => $t->fstockmtid,
                 'fstockmtno' => $t->fstockmtno,
-                'frefpo' => trim($t->frefpo ?? ''),
+                'frefpo' => $poNo !== '' ? $poNo : '-',
+                'fbranchcode' => trim($t->fbranchcode ?? ''),
+                'fgudang' => trim($t->ffrom ?? ''),
                 'fsupplier' => trim($t->fsuppliername ?? ''),
                 'fstockmtdate' => $t->fstockmtdate ? \Carbon\Carbon::parse($t->fstockmtdate)->format('Y-m-d H:i:s') : 'No Date',
                 'items_url' => route('fakturpembelian.itemsPB', $t->fstockmtid),
@@ -518,6 +571,8 @@ class FakturpembelianController extends Controller
                 'fstockmtno' => $header->fstockmtno,
                 'frefpo' => trim($header->frefpo ?? ''),
                 'fsupplier' => trim($header->fsupplier ?? ''),
+                'ffrom' => trim($header->ffrom ?? ''),
+                'fgudang' => trim($header->ffrom ?? ''),
                 'fstockmtdate' => optional($header->fstockmtdate)->format('Y-m-d H:i:s'),
                 'fapplyppn' => (int) ($items->first()->fapplyppn ?? 0),
                 'fincludeppn' => (int) ($items->first()->fincludeppn ?? 0),
