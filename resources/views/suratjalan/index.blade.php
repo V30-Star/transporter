@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', "Surat Jalan")
+@section('title', 'Surat Jalan')
 
 @section('content')
     <div x-data class="bg-white rounded shadow p-4">
@@ -20,27 +20,27 @@
             @if ($canCreate)
                 <a href="{{ route('suratjalan.create') }}"
                     class="inline-flex items-center bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
-                    <x-heroicon-o-plus class="w-4 h-4 mr-1" /> {{ "Tambah Baru" }}
+                    <x-heroicon-o-plus class="w-4 h-4 mr-1" /> {{ 'Tambah Baru' }}
                 </a>
             @endif
         </div>
 
         <div id="statusFilterTemplate" class="hidden">
             <div class="flex items-center gap-2" id="statusFilterWrap">
-                <span class="text-sm text-gray-700">{{ "Close" }}</span>
+                <span class="text-sm text-gray-700">{{ 'Close' }}</span>
                 <select data-role="status-filter" class="border rounded px-2 py-1 w-24">
-                    <option value="all">{{ "Semua" }}</option>
+                    <option value="all">{{ 'Semua' }}</option>
                     <option value="active" selected>Active</option>
-                    <option value="nonactive">{{ "Non Active" }}</option>
+                    <option value="nonactive">{{ 'Non Active' }}</option>
                 </select>
             </div>
         </div>
 
         <div id="yearFilterTemplate" class="hidden">
             <div class="flex items-center gap-2" id="yearFilterWrap">
-                <span class="text-sm text-gray-700">{{ "Tahun" }}</span>
+                <span class="text-sm text-gray-700">{{ 'Tahun' }}</span>
                 <select data-role="year-filter" class="border rounded px-2 py-1 w-24">
-                    <option value="">{{ "Semua" }}</option>
+                    <option value="">{{ 'Semua' }}</option>
                     @foreach ($availableYears as $yr)
                         <option value="{{ $yr }}" {{ $year == $yr ? 'selected' : '' }}>{{ $yr }}
                         </option>
@@ -52,21 +52,21 @@
         {{-- Template untuk filter Bulan --}}
         <div id="monthFilterTemplate" class="hidden">
             <div class="flex items-center gap-2" id="monthFilterWrap">
-                <span class="text-sm text-gray-700">{{ "Bulan" }}</span>
+                <span class="text-sm text-gray-700">{{ 'Bulan' }}</span>
                 <select data-role="month-filter" class="border rounded px-2 py-1">
-                    <option value="">{{ "Semua" }}</option>
-                    <option value="1" {{ $month == '1' ? 'selected' : '' }}>{{ "Januari" }}</option>
-                    <option value="2" {{ $month == '2' ? 'selected' : '' }}>{{ "Februari" }}</option>
-                    <option value="3" {{ $month == '3' ? 'selected' : '' }}>{{ "Maret" }}</option>
-                    <option value="4" {{ $month == '4' ? 'selected' : '' }}>{{ "April" }}</option>
-                    <option value="5" {{ $month == '5' ? 'selected' : '' }}>{{ "Mei" }}</option>
-                    <option value="6" {{ $month == '6' ? 'selected' : '' }}>{{ "Juni" }}</option>
-                    <option value="7" {{ $month == '7' ? 'selected' : '' }}>{{ "Juli" }}</option>
-                    <option value="8" {{ $month == '8' ? 'selected' : '' }}>{{ "Agustus" }}</option>
-                    <option value="9" {{ $month == '9' ? 'selected' : '' }}>{{ "September" }}</option>
-                    <option value="10" {{ $month == '10' ? 'selected' : '' }}>{{ "Oktober" }}</option>
-                    <option value="11" {{ $month == '11' ? 'selected' : '' }}>{{ "November" }}</option>
-                    <option value="12" {{ $month == '12' ? 'selected' : '' }}>{{ "Desember" }}</option>
+                    <option value="">{{ 'Semua' }}</option>
+                    <option value="1" {{ $month == '1' ? 'selected' : '' }}>{{ 'Januari' }}</option>
+                    <option value="2" {{ $month == '2' ? 'selected' : '' }}>{{ 'Februari' }}</option>
+                    <option value="3" {{ $month == '3' ? 'selected' : '' }}>{{ 'Maret' }}</option>
+                    <option value="4" {{ $month == '4' ? 'selected' : '' }}>{{ 'April' }}</option>
+                    <option value="5" {{ $month == '5' ? 'selected' : '' }}>{{ 'Mei' }}</option>
+                    <option value="6" {{ $month == '6' ? 'selected' : '' }}>{{ 'Juni' }}</option>
+                    <option value="7" {{ $month == '7' ? 'selected' : '' }}>{{ 'Juli' }}</option>
+                    <option value="8" {{ $month == '8' ? 'selected' : '' }}>{{ 'Agustus' }}</option>
+                    <option value="9" {{ $month == '9' ? 'selected' : '' }}>{{ 'September' }}</option>
+                    <option value="10" {{ $month == '10' ? 'selected' : '' }}>{{ 'Oktober' }}</option>
+                    <option value="11" {{ $month == '11' ? 'selected' : '' }}>{{ 'November' }}</option>
+                    <option value="12" {{ $month == '12' ? 'selected' : '' }}>{{ 'Desember' }}</option>
                 </select>
             </div>
         </div>
@@ -74,18 +74,18 @@
         <table id="penerimaanbarangTable" class="min-w-full border text-sm">
             <thead class="bg-gray-100">
                 <tr>
-                    <th class="border px-2 py-1">{{ "Cab." }}</th>
-                    <th class="border px-2 py-1">{{ "No.Transaksi" }}</th>
-                    <th class="border px-2 py-1">{{ "Tanggal" }}</th>
-                    <th class="border px-2 py-1">{{ "No.Ref" }}</th>
-                    <th class="border px-2 py-1">{{ "SO#" }}</th>
+                    <th class="border px-2 py-1">{{ 'Cab.' }}</th>
+                    <th class="border px-2 py-1">{{ 'No.Transaksi' }}</th>
+                    <th class="border px-2 py-1">{{ 'Tanggal' }}</th>
+                    <th class="border px-2 py-1">{{ 'Nama Customer' }}</th>
+                    <th class="border px-2 py-1">{{ 'No.Ref' }}</th>
+                    <th class="border px-2 py-1">{{ 'SO#' }}</th>
                     <th class="border px-2 py-1">
                         <div class="flex items-center justify-between">
-                            <span>{{ "Gudang" }}</span>
-                            <button type="button" class="col-search-btn p-1 hover:bg-gray-200 rounded"
-                                data-column="5" title="Cari Gudang">
-                                <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor"
-                                    viewBox="0 0 24 24">
+                            <span>{{ 'Gudang' }}</span>
+                            <button type="button" class="col-search-btn p-1 hover:bg-gray-200 rounded" data-column="5"
+                                title="Cari Gudang">
+                                <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                         d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
                                 </svg>
@@ -97,10 +97,10 @@
                                 data-column="5" placeholder="Cari gudang...">
                         </div>
                     </th>
-                    <th class="border px-2 py-1">{{ "Nama Customer" }}</th>
+                    <th class="border px-2 py-1">{{ 'User Id' }}</th>
 
                     @if ($showActionsColumn)
-                        <th class="border px-2 py-1 col-aksi">{{ "Aksi" }}</th>
+                        <th class="border px-2 py-1 col-aksi">{{ 'Aksi' }}</th>
                     @endif
                 </tr>
             </thead>
@@ -114,19 +114,19 @@
             class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" x-transition>
             <div @click.away="!$store.penerimaanbarangStore.isDeleting && $store.penerimaanbarangStore.closeDelete()"
                 class="bg-white rounded-lg shadow-lg max-w-sm w-full p-6">
-                <h3 class="text-lg font-semibold mb-4">{{ "Konfirmasi Hapus" }}</h3>
-                <p class="mb-6">{{ "Apakah Anda yakin ingin menghapus data ini?" }}</p>
+                <h3 class="text-lg font-semibold mb-4">{{ 'Konfirmasi Hapus' }}</h3>
+                <p class="mb-6">{{ 'Apakah Anda yakin ingin menghapus data ini?' }}</p>
                 <div class="flex justify-end space-x-2">
                     <button @click="$store.penerimaanbarangStore.closeDelete()"
                         class="px-4 py-2 bg-gray-300 rounded hover:bg-gray-400"
                         :disabled="$store.penerimaanbarangStore.isDeleting">
-                        {{ "Batal" }}
+                        {{ 'Batal' }}
                     </button>
                     <button @click="$store.penerimaanbarangStore.confirmDelete()"
                         class="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed"
                         :disabled="$store.penerimaanbarangStore.isDeleting">
-                        <span x-show="!$store.penerimaanbarangStore.isDeleting">{{ "Hapus" }}</span>
-                        <span x-show="$store.penerimaanbarangStore.isDeleting">{{ "Menghapus..." }}</span>
+                        <span x-show="!$store.penerimaanbarangStore.isDeleting">{{ 'Hapus' }}</span>
+                        <span x-show="$store.penerimaanbarangStore.isDeleting">{{ 'Menghapus...' }}</span>
                     </button>
                 </div>
             </div>
@@ -351,6 +351,11 @@
                     name: 'fstockmtdate'
                 },
                 {
+                    data: 'fcustomername',
+                    name: 'fcustomername',
+                    defaultContent: ''
+                },
+                {
                     data: 'frefdtno',
                     name: 'frefdtno',
                     defaultContent: ''
@@ -366,25 +371,24 @@
                     defaultContent: ''
                 },
                 {
-                    data: 'fcustomername',
-                    name: 'fcustomername',
-                    defaultContent: ''
+                    data: 'fusercreate',
+                    name: 'fusercreate'
                 },
             ];
 
             // Tambahkan kolom actions jika ada permission
             // if (hasActions) {
             if (hasActions) {
-            columns.push({
-                data: 'fstockmtid',
-                name: 'actions',
-                orderable: false,
-                searchable: false,
-                render: function(data, type, row) {
-                    let html = '<div class="flex justify-end gap-1.5 flex-nowrap">';
+                columns.push({
+                    data: 'fstockmtid',
+                    name: 'actions',
+                    orderable: false,
+                    searchable: false,
+                    render: function(data, type, row) {
+                        let html = '<div class="flex justify-end gap-1.5 flex-nowrap">';
 
-                    if (canView) {
-                    html += `<a href="suratjalan/${data}/view">
+                        if (canView) {
+                            html += `<a href="suratjalan/${data}/view">
                         <button class="inline-flex items-center bg-slate-500 text-white px-3 py-1.5 text-xs rounded hover:bg-slate-600">
                             <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
@@ -392,20 +396,20 @@
                             View
                         </button>
                     </a>`;
-                    }
+                        }
 
-                    if (canEdit) {
-                    html += `<a href="suratjalan/${data}/edit" class="inline-flex items-center bg-yellow-500 text-white px-3 py-1.5 text-xs rounded hover:bg-yellow-600">
+                        if (canEdit) {
+                            html += `<a href="suratjalan/${data}/edit" class="inline-flex items-center bg-yellow-500 text-white px-3 py-1.5 text-xs rounded hover:bg-yellow-600">
                             <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
                             </svg>
                             Edit
                         </a>`;
-                    }
+                        }
 
-                    if (canDelete) {
-                    let deleteUrl = '{{ route('suratjalan.index') }}/' + data + '/delete';
-                    html += `<a href="${deleteUrl}">
+                        if (canDelete) {
+                            let deleteUrl = '{{ route('suratjalan.index') }}/' + data + '/delete';
+                            html += `<a href="${deleteUrl}">
                                 <button class="inline-flex items-center bg-red-600 text-white px-3 py-1.5 text-xs rounded hover:bg-red-700">
                                     <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
@@ -413,24 +417,24 @@
                                     Hapus
                                 </button>
                             </a>`;
-                    }
+                        }
 
-                    html += '</div>';
-                    return html;
-                }
-            });
+                        html += '</div>';
+                        return html;
+                    }
+                });
             }
 
             // 2. Definisi columnDefs
             const columnDefs = [];
             // if (hasActions) {
             if (hasActions) {
-            columnDefs.push({
-                targets: -1,
-                orderable: false,
-                searchable: false,
-                width: '280px'
-            });
+                columnDefs.push({
+                    targets: -1,
+                    orderable: false,
+                    searchable: false,
+                    width: '280px'
+                });
             }
 
             // 3. Inisialisasi DataTables
@@ -513,7 +517,8 @@
                     }
 
                     function hasColumnSearchValue(columnIndex) {
-                        const $input = $container.find(`.dt-column-search[data-column="${columnIndex}"]`);
+                        const $input = $container.find(
+                            `.dt-column-search[data-column="${columnIndex}"]`);
                         return ($input.val() || '').trim() !== '';
                     }
 
@@ -522,8 +527,9 @@
                             const $wrapper = $(this);
                             const $input = $wrapper.find('.dt-column-search');
                             const columnIndex = Number($input.data('column'));
-                            const shouldShow = activeColumnSearch === columnIndex || hasColumnSearchValue(
-                                columnIndex);
+                            const shouldShow = activeColumnSearch === columnIndex ||
+                                hasColumnSearchValue(
+                                    columnIndex);
                             $wrapper.toggleClass('hidden', !shouldShow);
                         });
                     }
@@ -534,7 +540,8 @@
                         const $th = $(this).closest('th');
                         const $searchInputWrap = $th.find('.col-search-input');
 
-                        if (activeColumnSearch === columnIndex && !$searchInputWrap.hasClass('hidden')) {
+                        if (activeColumnSearch === columnIndex && !$searchInputWrap.hasClass(
+                                'hidden')) {
                             activeColumnSearch = null;
                             syncColumnSearchVisibility();
                             return;
@@ -555,9 +562,11 @@
                     });
 
                     $(document).on('click.suratjalan-column-search', function(e) {
-                        if (!$(e.target).closest('.col-search-btn').length && !$(e.target).closest(
+                        if (!$(e.target).closest('.col-search-btn').length && !$(e.target)
+                            .closest(
                                 '.col-search-input').length) {
-                            if (activeColumnSearch !== null && hasColumnSearchValue(activeColumnSearch)) {
+                            if (activeColumnSearch !== null && hasColumnSearchValue(
+                                    activeColumnSearch)) {
                                 syncColumnSearchVisibility();
                                 return;
                             }

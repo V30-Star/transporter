@@ -244,6 +244,7 @@ class SuratJalanController extends Controller
                     'trstockmt.fstockmtdate',
                     'trstockmt.frefpo',
                     'trstockmt.ffrom',
+                    'trstockmt.fusercreate',
                     'so_refs.frefdtno as frefdtno',
                     'warehouse.fwhname as warehouse_name',
                     'customer.fcustomername as customer_name',
@@ -263,6 +264,7 @@ class SuratJalanController extends Controller
                     'fsono' => (string) ($row->so_refs ?? ''),
                     'fgudang' => $warehouseCode,
                     'fcustomername' => (string) ($row->customer_name ?? ''),
+                    'fusercreate' => (string) ($row->fusercreate ?? ''),
                 ];
             });
 
