@@ -34,7 +34,7 @@ class Tr_pohController extends Controller
 
         $separator = $useSlash ? '/' : '.';
 
-        return (string) preg_replace('/[.\/](\d+)$/', $separator.'$1', $normalized, 1);
+        return (string) preg_replace('/[.\/](\d+)$/', $separator . '$1', $normalized, 1);
     }
 
     private function canApprovePurchaseOrder(): bool
@@ -86,12 +86,16 @@ class Tr_pohController extends Controller
                     'tr_poh.fusercreate',
                     'tr_poh.fapproval',
                     'tr_poh.fdatetime',
+                    'tr_poh.fbranchcode',
+                    'tr_poh.famountpo',
                     'mssupplier.fsuppliername',
                     'tr_prh.fprno',
+                    'mscurrency.fcurrname',
                     DB::raw('STRING_AGG(DISTINCT tr_pod.frefdtno, \', \') as frefdtno'),
                 ])
                 ->leftJoin('mssupplier', 'tr_poh.fsupplier', '=', 'mssupplier.fsuppliercode')
                 ->leftJoin('tr_pod', 'tr_poh.fpono', '=', 'tr_pod.fpono')
+                ->leftJoin('mscurrency', 'tr_poh.fcurrency', '=', 'mscurrency.fcurrcode')
                 ->leftJoin('tr_prh', 'tr_prh.fprno', '=', 'tr_pod.frefdtno');
             $this->applyBranchVisibilityScope($query, 'tr_poh.fbranchcode');
             $totalRecords = (clone $query)->distinct('tr_poh.fpohid')->count('tr_poh.fpohid');
@@ -140,9 +144,13 @@ class Tr_pohController extends Controller
                 'tr_poh.fprdin',
                 'tr_poh.fusercreate',
                 'tr_poh.fapproval',
+                'tr_poh.fbranchcode',
+                'tr_poh.famountpo',
+                'tr_poh.fcurrency',
                 'tr_poh.fdatetime', // Pastikan semua kolom tr_poh masuk atau gunakan agregat
                 'mssupplier.fsuppliername',
-                'tr_prh.fprno'
+                'tr_prh.fprno',
+                'mscurrency.fcurrname'
             );
 
             $filteredRecords = DB::table(DB::raw("({$query->toSql()}) as sub"))
@@ -177,7 +185,11 @@ class Tr_pohController extends Controller
                     'fapproval' => $row->fapproval,
                     'fsuppliername' => $row->fsuppliername,
                     'fprno' => $row->fprno, // Kolom dari tr_prd
-                    'frefdtno' => $row->frefdtno, // tambah ini
+                    'frefdtno' => $row->frefdtno,
+                    'fbranchcode' => $row->fbranchcode,
+                    'famountpo' => $row->famountpo,
+                    'fcurrency' => $row->fcurrency,
+                    'fcurrname' => $row->fcurrname,
                 ];
             });
 
@@ -1048,6 +1060,7 @@ class Tr_pohController extends Controller
                     'fcurrency' => $fcurrency,
                     'ftempohr' => $ftempohr,
                     'frate' => $frate,
+                    'fbranchcode' => $request->fbranchcode,
                     'fsupplier' => $request->input('fsupplier'),
                     'fincludeppn' => $fincludeppn,
                     'fapplyppn' => $fapplyppn,
@@ -1104,7 +1117,6 @@ class Tr_pohController extends Controller
 
                 DB::table('tr_pod')->insert($rowsPod);
                 $this->adjustPrReferenceQtyKecil($prdAgg, -1);
-
             });
         } catch (\RuntimeException $e) {
             return back()->withInput()->withErrors(['detail' => $e->getMessage()]);
@@ -1112,7 +1124,7 @@ class Tr_pohController extends Controller
 
         return redirect()
             ->route('tr_poh.create')
-            ->with('success', 'Order pembelian '.$this->formatDisplayTransactionNumber($fpono, $fapplyppn === 1).' berhasil disimpan.');
+            ->with('success', 'Order pembelian ' . $this->formatDisplayTransactionNumber($fpono, $fapplyppn === 1) . ' berhasil disimpan.');
     }
 
     public function edit(Request $request, $fpohid)
@@ -1429,7 +1441,7 @@ class Tr_pohController extends Controller
 
             return redirect()
                 ->route('tr_poh.index')
-                ->with('success', 'Status close PO '.$this->formatDisplayTransactionNumber($header->fpono, (int) ($header->fapplyppn ?? 0) === 1).' berhasil diupdate.');
+                ->with('success', 'Status close PO ' . $this->formatDisplayTransactionNumber($header->fpono, (int) ($header->fapplyppn ?? 0) === 1) . ' berhasil diupdate.');
         }
 
         $validator = Validator::make($request->all(), [
@@ -1706,7 +1718,6 @@ class Tr_pohController extends Controller
 
                 DB::table('tr_pod')->insert($rowsPod);
                 $this->adjustPrReferenceQtyKecil($prdAgg, -1);
-
             });
         } catch (\RuntimeException $e) {
             return back()->withInput()->withErrors(['detail' => $e->getMessage()]);
@@ -1716,7 +1727,7 @@ class Tr_pohController extends Controller
 
         return redirect()
             ->route('tr_poh.index')
-            ->with('success', 'Order pembelian '.$this->formatDisplayTransactionNumber($header->fpono, $fapplyppn === 1).' berhasil diupdate.');
+            ->with('success', 'Order pembelian ' . $this->formatDisplayTransactionNumber($header->fpono, $fapplyppn === 1) . ' berhasil diupdate.');
     }
 
     public function delete(Request $request, $fpohid)
@@ -1900,7 +1911,7 @@ class Tr_pohController extends Controller
             });
 
             return redirect()->route('tr_poh.index')
-                ->with('success', 'Order pembelian '.$this->formatDisplayTransactionNumber($tr_poh->fpono, (int) ($tr_poh->fapplyppn ?? 0) === 1).' berhasil dihapus.');
+                ->with('success', 'Order pembelian ' . $this->formatDisplayTransactionNumber($tr_poh->fpono, (int) ($tr_poh->fapplyppn ?? 0) === 1) . ' berhasil dihapus.');
         } catch (\Exception $e) {
             return redirect()->back()->with('error', 'Order pembelian belum bisa dihapus. Coba lagi.');
         }
@@ -2039,7 +2050,7 @@ class Tr_pohController extends Controller
             return 0;
         }
 
-        $parts = array_filter(explode('+', $normalized), fn ($part) => $part !== '');
+        $parts = array_filter(explode('+', $normalized), fn($part) => $part !== '');
         if (empty($parts)) {
             return 0;
         }

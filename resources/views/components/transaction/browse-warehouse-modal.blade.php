@@ -8,7 +8,7 @@
     class="fixed inset-0 z-50 flex items-center justify-center overflow-hidden p-3 md:p-6">
     <div class="absolute inset-0 bg-black/50 backdrop-blur-sm"></div>
 
-    <div class="relative bg-white rounded-2xl shadow-2xl w-full max-w-7xl flex flex-col overflow-hidden"
+    <div class="relative bg-white rounded-2xl shadow-2xl w-full w-[85vw] flex flex-col overflow-hidden"
         style="height: min(760px, calc(100vh - 1.5rem));">
         <div
             class="px-6 py-4 border-b border-gray-200 flex items-center justify-between flex-shrink-0 bg-gradient-to-r from-blue-50 to-white">

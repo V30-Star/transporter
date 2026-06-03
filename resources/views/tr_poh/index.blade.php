@@ -75,13 +75,16 @@
         <table id="tr_pohTable" class="min-w-full border text-sm">
             <thead class="bg-gray-100">
                 <tr>
+                    <th class="border px-2 py-1">Cab</th>
                     <th class="border px-2 py-1">No. PO</th>
-                    <th class="border px-2 py-1">Supplier ID</th> {{-- Sesuai data simpel (bukan nama) --}}
+                    <th class="border px-2 py-1">Supplier</th>
+                    <th class="border px-2 py-1">Currency</th>
                     <th class="border px-2 py-1">Tanggal</th>
-                    <th class="border px-2 py-1">User-id</th>
                     <th class="border px-2 py-1">Ref.PR</th>
                     <th class="border px-2 py-1">Status</th>
+                    <th class="border px-2 py-1">Total PO</th>
                     <th class="border px-2 py-1">Approved</th>
+                    <th class="border px-2 py-1">User Id</th>
                     @if ($showActionsColumn)
                         <th class="border px-2 py-1 col-aksi">Aksi</th>
                     @endif
@@ -317,6 +320,10 @@
 
             // 1. Definisi Kolom
             const columns = [{
+                    data: 'fbranchcode',
+                    name: 'fbranchcode'
+                },
+                {
                     data: 'fpono_display',
                     name: 'fpono'
                 },
@@ -325,12 +332,12 @@
                     name: 'fsuppliername'
                 },
                 {
-                    data: 'fpodate',
-                    name: 'fpodate'
+                    data: 'fcurrname',
+                    name: 'fcurrname'
                 },
                 {
-                    data: 'fusercreate',
-                    name: 'fusercreate'
+                    data: 'fpodate',
+                    name: 'fpodate'
                 },
                 {
                     data: 'fprno',
@@ -348,9 +355,17 @@
                     }
                 },
                 {
+                    data: 'famountpo',
+                    name: 'famountpo',
+                },
+                {
                     data: 'fapproval',
                     name: 'fapproval'
-                }
+                },
+                {
+                    data: 'fusercreate',
+                    name: 'fusercreate'
+                },
             ];
 
             if (hasActions) {
