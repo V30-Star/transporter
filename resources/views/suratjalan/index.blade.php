@@ -351,8 +351,8 @@
                     name: 'fstockmtdate'
                 },
                 {
-                    data: 'frefno',
-                    name: 'frefno',
+                    data: 'frefdtno',
+                    name: 'frefdtno',
                     defaultContent: ''
                 },
                 {
@@ -369,7 +369,7 @@
                     data: 'fcustomername',
                     name: 'fcustomername',
                     defaultContent: ''
-                }
+                },
             ];
 
             // Tambahkan kolom actions jika ada permission

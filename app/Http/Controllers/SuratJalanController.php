@@ -152,11 +152,11 @@ class SuratJalanController extends Controller
         if ($request->ajax()) {
             $soRefSubquery = DB::table('trstockdt')
                 ->selectRaw("
-                    fstockmtno,
+                    fstockmtno, frefdtno,
                     STRING_AGG(DISTINCT NULLIF(TRIM(COALESCE(frefso, '')), ''), ', ' ORDER BY NULLIF(TRIM(COALESCE(frefso, '')), '')) as so_refs
                 ")
                 ->whereNotNull('frefso')
-                ->groupBy('fstockmtno');
+                ->groupBy('fstockmtno', 'frefdtno');
 
             $baseQuery = DB::table('trstockmt')
                 ->leftJoin('mscustomer as customer', 'customer.fcustomercode', '=', 'trstockmt.fsupplier')
@@ -175,6 +175,7 @@ class SuratJalanController extends Controller
                     $q->where('trstockmt.fstockmtno', 'ilike', "%{$search}%")
                         ->orWhere('trstockmt.fbranchcode', 'ilike', "%{$search}%")
                         ->orWhere('trstockmt.frefpo', 'ilike', "%{$search}%")
+                        ->orWhere('so_refs.frefdtno', 'ilike', "%{$search}%")
                         ->orWhere('so_refs.so_refs', 'ilike', "%{$search}%")
                         ->orWhere('trstockmt.ffrom', 'ilike', "%{$search}%")
                         ->orWhere('warehouse.fwhname', 'ilike', "%{$search}%")
@@ -243,6 +244,7 @@ class SuratJalanController extends Controller
                     'trstockmt.fstockmtdate',
                     'trstockmt.frefpo',
                     'trstockmt.ffrom',
+                    'so_refs.frefdtno as frefdtno',
                     'warehouse.fwhname as warehouse_name',
                     'customer.fcustomername as customer_name',
                     DB::raw("COALESCE(so_refs.so_refs, '') as so_refs"),
@@ -257,7 +259,7 @@ class SuratJalanController extends Controller
                     'fstockmtno_display' => $this->formatDisplayTransactionNumber($row->fstockmtno ?? null, false),
                     'fbranchcode' => $row->fbranchcode,
                     'fstockmtdate' => Carbon::parse($row->fstockmtdate)->format('d/m/Y'),
-                    'frefno' => (string) ($row->frefpo ?? ''),
+                    'frefdtno' => (string) ($row->frefdtno ?? ''),
                     'fsono' => (string) ($row->so_refs ?? ''),
                     'fgudang' => $warehouseCode,
                     'fcustomername' => (string) ($row->customer_name ?? ''),
@@ -836,10 +838,6 @@ class SuratJalanController extends Controller
 
         $soUsageByReference = $this->buildSuratJalanReferenceUsageMap($rowsDt);
         $invoiceReferenceDocs = $this->extractInvoiceReferenceDocs($rowsDt);
-
-        if ($validationMessage = $this->validateUniqueReferenceUsage($soUsageByReference)) {
-            return back()->withInput()->withErrors(['detail' => $validationMessage]);
-        }
 
         // =========================
         // 6.5) VALIDASI QTY REMAIN SO
@@ -1436,12 +1434,6 @@ class SuratJalanController extends Controller
             ->values()
             ->all();
         $newInvoiceReferenceDocs = $this->extractInvoiceReferenceDocs($rowsDt);
-
-        if ($validationMessage = $this->validateUniqueReferenceUsage($soUsageByReference, $header->fstockmtno)) {
-            return back()->withInput()->withErrors([
-                'detail' => $validationMessage,
-            ]);
-        }
 
         // =========================
         // 5.5) VALIDASI QTY REMAIN SO
@@ -2078,6 +2070,4 @@ class SuratJalanController extends Controller
                 ]);
         }
     }
-
-
 }
