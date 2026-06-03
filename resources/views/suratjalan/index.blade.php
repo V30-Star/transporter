@@ -74,8 +74,8 @@
         <table id="penerimaanbarangTable" class="min-w-full border text-sm">
             <thead class="bg-gray-100">
                 <tr>
-                    <th class="border px-2 py-1">{{ "No.Transaksi" }}</th>
                     <th class="border px-2 py-1">{{ "Cab." }}</th>
+                    <th class="border px-2 py-1">{{ "No.Transaksi" }}</th>
                     <th class="border px-2 py-1">{{ "Tanggal" }}</th>
                     <th class="border px-2 py-1">{{ "No.Ref" }}</th>
                     <th class="border px-2 py-1">{{ "SO#" }}</th>
@@ -338,13 +338,13 @@
 
             // 1. Definisi Kolom
             const columns = [{
-                    data: 'fstockmtno_display',
-                    name: 'fstockmtno'
-                },
-                {
                     data: 'fbranchcode',
                     name: 'fbranchcode',
                     defaultContent: ''
+                },
+                {
+                    data: 'fstockmtno_display',
+                    name: 'fstockmtno'
                 },
                 {
                     data: 'fstockmtdate',
@@ -449,7 +449,7 @@
                 columns: columns,
                 columnDefs: columnDefs,
                 order: [
-                    [0, 'desc']
+                    [1, 'desc']
                 ],
                 layout: {
                     topStart: 'search',

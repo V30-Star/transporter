@@ -79,13 +79,13 @@
         <table id="tr_prhTable" class="min-w-full border text-sm">
             <thead class="bg-gray-100">
                 <tr>
-                    <th>No. PR</th>
                     <th>Cab.</th>
+                    <th>No. PR</th>
                     <th>Tanggal</th>
                     <th>Nama Supplier</th>
                     <th>User-id</th>
                     <th>Status</th>
-                    <th>Otorisasi</th>
+                    <th>Approve</th>
                     @if ($showActionsColumn)
                         <th class="border px-2 py-2 col-aksi">Aksi</th>
                     @endif
@@ -378,12 +378,12 @@
             // --- 2. Definisi Kolom ---
             // 'data' harus cocok dengan key JSON dari Controller baru
             const columns = [{
-                    data: 'fprno',
-                    name: 'fprno'
-                },
-                {
                     data: 'fbranchcode',
                     name: 'fbranchcode'
+                },
+                {
+                    data: 'fprno',
+                    name: 'fprno'
                 },
                 {
                     data: 'fprdate',

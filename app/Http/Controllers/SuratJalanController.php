@@ -202,7 +202,10 @@ class SuratJalanController extends Controller
 
             $warehouseSearch = trim((string) ($columnSearches->get('fgudang', '')));
             if ($warehouseSearch !== '') {
-                $query->whereRaw('LOWER(TRIM(COALESCE(warehouse.fwhname, \'\'))) = LOWER(?)', [$warehouseSearch]);
+                $query->where(function ($q) use ($warehouseSearch) {
+                    $q->where('trstockmt.ffrom', 'ilike', "%{$warehouseSearch}%")
+                        ->orWhere('warehouse.fwhname', 'ilike', "%{$warehouseSearch}%");
+                });
             }
 
             // Total records setelah filter
@@ -213,8 +216,8 @@ class SuratJalanController extends Controller
             $orderDir = $request->input('order.0.dir', 'desc');
 
             $sortableColumns = [
-                'trstockmt.fstockmtno',
                 'trstockmt.fbranchcode',
+                'trstockmt.fstockmtno',
                 'trstockmt.fstockmtdate',
                 'trstockmt.frefpo',
                 'so_refs.so_refs',
@@ -246,14 +249,7 @@ class SuratJalanController extends Controller
                 ]);
 
             $data = $records->map(function ($row) {
-                $warehouseLabel = trim((string) ($row->ffrom ?? ''));
-                $warehouseName = trim((string) ($row->warehouse_name ?? ''));
-
-                if ($warehouseLabel !== '' && $warehouseName !== '') {
-                    $warehouseLabel .= ' - ' . $warehouseName;
-                } elseif ($warehouseLabel === '') {
-                    $warehouseLabel = $warehouseName;
-                }
+                $warehouseCode = trim((string) ($row->ffrom ?? ''));
 
                 return [
                     'fstockmtid' => $row->fstockmtid,
@@ -263,7 +259,7 @@ class SuratJalanController extends Controller
                     'fstockmtdate' => Carbon::parse($row->fstockmtdate)->format('d/m/Y'),
                     'frefno' => (string) ($row->frefpo ?? ''),
                     'fsono' => (string) ($row->so_refs ?? ''),
-                    'fgudang' => $warehouseLabel,
+                    'fgudang' => $warehouseCode,
                     'fcustomername' => (string) ($row->customer_name ?? ''),
                 ];
             });
