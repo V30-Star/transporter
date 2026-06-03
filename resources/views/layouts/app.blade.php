@@ -776,7 +776,7 @@
                     return key;
                 });
 
-                result = result.replace(/\b(NPWP|NIK|PPN|PPH|PO|PR|SO|SJ|SRJ|INV|TER|FP|IDR|USD|EUR|TOP|JBL|SJU)\b/g, (
+                result = result.replace(/\b(NPWP|NIK|PPN|PPH|PO|PR|SO|SJ|SRJ|INV|TER|BUY|FP|IDR|USD|EUR|TOP|JBL|SJU)\b/g, (
                     match) => {
                     const key = `__TOKEN_${protectedTokens.length}__`;
                     protectedTokens.push({

@@ -250,6 +250,16 @@
                         </div>
 
                         <div class="lg:col-span-4">
+                            <label class="block text-sm font-bold">{{ 'Tanggal' }}</label>
+                            <input type="date" id="fstockmtdate" name="fstockmtdate"
+                                value="{{ old('fstockmtdate') ?? date('Y-m-d') }}"
+                                class="w-full border rounded px-3 py-2 @error('fstockmtdate') border-red-500 @enderror">
+                            @error('fstockmtdate')
+                                <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+                            @enderror
+                        </div>
+
+                        <div class="lg:col-span-4">
                             <label class="block text-sm font-bold">{{ 'Type' }}</label>
                             <select name="ftypebuy" x-model="selectedType"
                                 class="w-full border rounded px-3 py-2 @error('ftypebuy') border-red-500 @enderror">
@@ -261,16 +271,6 @@
                                 </option>
                             </select>
                             @error('ftypebuy')
-                                <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
-                            @enderror
-                        </div>
-
-                        <div class="lg:col-span-4">
-                            <label class="block text-sm font-bold">{{ 'Tanggal' }}</label>
-                            <input type="date" id="fstockmtdate" name="fstockmtdate"
-                                value="{{ old('fstockmtdate') ?? date('Y-m-d') }}"
-                                class="w-full border rounded px-3 py-2 @error('fstockmtdate') border-red-500 @enderror">
-                            @error('fstockmtdate')
                                 <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                             @enderror
                         </div>
