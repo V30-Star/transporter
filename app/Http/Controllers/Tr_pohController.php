@@ -1200,9 +1200,9 @@ class Tr_pohController extends Controller
                 ->with('error', $this->getUsageLockMessage($tr_poh));
         }
 
-        // Lookup currency berdasarkan fcurrency (integer ID) di tr_poh
+        // Lookup currency berdasarkan fcurrency (currency code) di tr_poh
         $currentCurrency = DB::table('mscurrency')
-            ->where('fcurrid', $tr_poh->fcurrency)
+            ->where('fcurrcode', $tr_poh->fcurrency)
             ->first(['fcurrid', 'fcurrcode', 'fcurrname', 'frate']);
 
         $products = $this->browseProducts();
@@ -1349,9 +1349,9 @@ class Tr_pohController extends Controller
             ->orderBy('fcurrname')
             ->get(['fcurrid', 'fcurrcode', 'fcurrname', 'frate']);
 
-        // Lookup currency aktif dari mscurrency berdasarkan fcurrency (integer ID)
+        // Lookup currency aktif dari mscurrency berdasarkan fcurrency (currency code)
         $currentCurrency = DB::table('mscurrency')
-            ->where('fcurrid', $tr_poh->fcurrency)
+            ->where('fcurrcode', $tr_poh->fcurrency)
             ->first(['fcurrid', 'fcurrcode', 'fcurrname', 'frate']);
 
         $products = $this->browseProducts();
@@ -1810,9 +1810,9 @@ class Tr_pohController extends Controller
                 ->with('error', $this->getUsageLockMessage($tr_poh));
         }
 
-        // Lookup currency berdasarkan fcurrency (integer ID) di tr_poh
+        // Lookup currency berdasarkan fcurrency (currency code) di tr_poh
         $currentCurrency = DB::table('mscurrency')
-            ->where('fcurrid', $tr_poh->fcurrency)
+            ->where('fcurrcode', $tr_poh->fcurrency)
             ->first(['fcurrid', 'fcurrcode', 'fcurrname', 'frate']);
 
         $products = $this->browseProducts();

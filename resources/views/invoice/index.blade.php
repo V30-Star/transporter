@@ -92,14 +92,15 @@
                     <th class="border px-2 py-1">No.Faktur</th> {{-- Sesuai data simpel (bukan nama) --}}
                     <th class="border px-2 py-1">Faktur Pajak#</th>
                     <th class="border px-2 py-1">Tanggal</th>
+                    <th class="border px-2 py-1">Nama Customer</th>
                     <th class="border px-2 py-1">No.Ref</th>
                     <th class="border px-2 py-1">SO#</th>
-                    <th class="border px-2 py-1">Nama Customer</th>
-                    <th class="border px-2 py-1">Nilai Faktur</th>
-                    <th class="border px-2 py-1">Sisa Piutang</th>
                     <th class="border px-2 py-1">Ref.PO</th>
-                    <th class="border px-2 py-1">User Id</th>
+                    <th class="border px-2 py-1">Nilai Faktur</th>
+                    <th class="border px-2 py-1">Sisa Piutang</th>                  
                     <th class="border px-2 py-1">Tagih?</th>
+                    <th class="border px-2 py-1">User Id</th>
+                    <th class="border px-2 py-1">User Id</th>
                     @if ($showActionsColumn)
                         <th class="border px-2 py-1 col-aksi">Aksi</th>
                     @endif
@@ -350,7 +351,8 @@
             };
 
             window.showInvoiceApprovalLocked = function() {
-                const message = 'Faktur Penjualan belum dapat diedit karena status approval saat ini belum mengizinkan edit.';
+                const message =
+                    'Faktur Penjualan belum dapat diedit karena status approval saat ini belum mengizinkan edit.';
                 if (typeof window.showAppInfoAlert === 'function') {
                     window.showAppInfoAlert('Edit Belum Tersedia', message, {
                         confirmButtonText: 'Tutup'
@@ -380,6 +382,10 @@
                     name: 'fsodate'
                 },
                 {
+                    data: 'fcustomername',
+                    name: 'fcustomername'
+                },
+                {
                     data: 'frefno',
                     name: 'frefno'
                 },
@@ -388,8 +394,8 @@
                     name: 'fso_refs'
                 },
                 {
-                    data: 'fcustomername',
-                    name: 'fcustomername'
+                    data: 'frefpo',
+                    name: 'frefpo'
                 },
                 {
                     data: 'famountso',
@@ -412,16 +418,8 @@
                     }
                 },
                 {
-                    data: 'frefpo',
-                    name: 'frefpo'
-                },
-                {
-                    data: 'fuserid',
-                    name: 'fuserid'
-                },
-                {
-                    data: 'fprdout',
-                    name: 'fprdout',
+                    data: 'fsudahtagih',
+                    name: 'fsudahtagih',
                     render: function(data, type) {
                         if (type !== 'display') {
                             return data;
@@ -435,23 +433,27 @@
                     name: 'fclose',
                     visible: false,
                     searchable: true
-                }
+                },
+                {
+                    data: 'fuserid',
+                    name: 'fuserid'
+                },
             ];
 
             // Tambahkan kolom actions jika ada permission
             // if (hasActions) {
             if (hasActions) {
-            columns.push({
-                data: 'ftranmtid',
-                name: 'actions',
-                orderable: false,
-                searchable: false,
-                render: function(data, type, row) {
-                    let html = '<div class="flex justify-end gap-1.5 flex-nowrap">';
-                    const editBlocked = isEditBlockedApproval(row);
+                columns.push({
+                    data: 'ftranmtid',
+                    name: 'actions',
+                    orderable: false,
+                    searchable: false,
+                    render: function(data, type, row) {
+                        let html = '<div class="flex justify-end gap-1.5 flex-nowrap">';
+                        const editBlocked = isEditBlockedApproval(row);
 
-                    if (canView) {
-                    html += `<a href="invoice/${data}/view">
+                        if (canView) {
+                            html += `<a href="invoice/${data}/view">
                         <button class="inline-flex items-center bg-slate-500 text-white px-3 py-1.5 text-xs rounded hover:bg-slate-600">
                             <svg class="w-3.5 h-3.5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
@@ -459,29 +461,29 @@
                             View
                         </button>
                     </a>`;
-                    }
+                        }
 
-                    if (canEdit) {
-                    if (editBlocked) {
-                    html += `<button type="button" onclick="showInvoiceApprovalLocked()" class="inline-flex items-center bg-yellow-500 text-white px-3 py-1.5 text-xs rounded hover:bg-yellow-600">
+                        if (canEdit) {
+                            if (editBlocked) {
+                                html += `<button type="button" onclick="showInvoiceApprovalLocked()" class="inline-flex items-center bg-yellow-500 text-white px-3 py-1.5 text-xs rounded hover:bg-yellow-600">
                             <svg class="w-3.5 h-3.5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
                             </svg>
                             Edit
                         </button>`;
-                    } else {
-                    html += `<a href="invoice/${data}/edit" class="inline-flex items-center bg-yellow-500 text-white px-3 py-1.5 text-xs rounded hover:bg-yellow-600">
+                            } else {
+                                html += `<a href="invoice/${data}/edit" class="inline-flex items-center bg-yellow-500 text-white px-3 py-1.5 text-xs rounded hover:bg-yellow-600">
                             <svg class="w-3.5 h-3.5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
                             </svg>
                             Edit
                         </a>`;
-                    }
-                    }
+                            }
+                        }
 
-                    if (canDelete) {
-                    let deleteUrl = '{{ route('invoice.index') }}/' + data + '/delete';
-                    html += `<a href="${deleteUrl}">
+                        if (canDelete) {
+                            let deleteUrl = '{{ route('invoice.index') }}/' + data + '/delete';
+                            html += `<a href="${deleteUrl}">
                                 <button class="inline-flex items-center bg-red-600 text-white px-3 py-1.5 text-xs rounded hover:bg-red-700">
                                     <svg class="w-3.5 h-3.5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
@@ -489,24 +491,24 @@
                                     Hapus
                                 </button>
                             </a>`;
-                    }
+                        }
 
-                    html += '</div>';
-                    return html;
-                }
-            });
+                        html += '</div>';
+                        return html;
+                    }
+                });
             }
 
             // 2. Definisi columnDefs
             const columnDefs = [];
             // if (hasActions) {
             if (hasActions) {
-            columnDefs.push({
-                targets: -1,
-                orderable: false,
-                searchable: false,
-                width: '280px'
-            });
+                columnDefs.push({
+                    targets: -1,
+                    orderable: false,
+                    searchable: false,
+                    width: '280px'
+                });
             }
 
             // 3. Inisialisasi DataTables
