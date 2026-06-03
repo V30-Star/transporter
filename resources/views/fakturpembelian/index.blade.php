@@ -80,7 +80,7 @@
                     <th class="border px-2 py-1">{{ "Cabang" }}</th>
                     <th class="border px-2 py-1">{{ "No.Transaksi" }}</th>
                     <th class="border px-2 py-1">{{ "Tanggal" }}</th>
-                    <th class="border px-2 py-1">{{ "Tipe Pembelian" }}</th>
+                    <th class="border px-2 py-1">{{ "Type" }}</th>
                     <th class="border px-2 py-1">{{ "Faktur#" }}</th>
                     <th class="border px-2 py-1">
                         <div class="flex items-center justify-between">
@@ -100,9 +100,27 @@
                                 data-column="5" placeholder="Cari Gudang...">
                         </div>
                     </th>
-                    <th class="border px-2 py-1">{{ "Nama Supplier" }}</th>
+                    <th class="border px-2 py-1">
+                        <div class="flex items-center justify-between">
+                            <span>{{ "Nama Supplier" }}</span>
+                            <button type="button" class="col-search-btn p-1 hover:bg-gray-200 rounded"
+                                data-column="6" title="Filter Supplier">
+                                <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor"
+                                    viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                                </svg>
+                            </button>
+                        </div>
+                        <div class="col-search-input mt-2 hidden">
+                            <input type="text"
+                                class="dt-column-search w-full px-2 py-1 border border-gray-300 rounded text-sm uppercase focus:outline-none focus:ring-1 focus:ring-blue-500"
+                                data-column="6" placeholder="Cari Supplier...">
+                        </div>
+                    </th>
                     <th class="border px-2 py-1">{{ "Referensi#" }}</th>
                     <th class="border px-2 py-1 text-right">{{ "Total Harga" }}</th>
+                    <th class="border px-2 py-1">{{ "User ID" }}</th>
 
                     @if ($showActionsColumn)
                         <th class="border px-2 py-1 col-aksi">{{ "Aksi" }}</th>
@@ -387,9 +405,9 @@
                     render: function(data, type) {
                         if (type === 'display' || type === 'filter') {
                             const val = String(data);
-                            if (val === '0') return 'Stock';
-                            if (val === '1') return 'Non-Stock';
-                            if (val === '2') return 'Down Payment';
+                            if (val === '0') return 'Stok';
+                            if (val === '1') return 'Non-Stok';
+                            if (val === '2') return 'Uang Muka';
                             return data || '-';
                         }
                         return data;
@@ -429,6 +447,11 @@
 
                         return data;
                     }
+                },
+                {
+                    data: 'fusercreate',
+                    name: 'fusercreate',
+                    defaultContent: '-'
                 },
                 @if ($showActionsColumn)
                 {

@@ -148,6 +148,7 @@ class FakturpembelianController extends Controller
                         ->orWhere('refdt.frefdtno_summary', $likeOp, "%{$search}%")
                         ->orWhere('trstockmt.ffrom', $likeOp, "%{$search}%")
                         ->orWhere('trstockmt.fbranchcode', $likeOp, "%{$search}%")
+                        ->orWhere('trstockmt.fusercreate', $likeOp, "%{$search}%")
                         ->orWhere('mssupplier.fsuppliername', $likeOp, "%{$search}%")
                         ->orWhere('mssupplier.fsuppliercode', $likeOp, "%{$search}%");
                 });
@@ -162,6 +163,16 @@ class FakturpembelianController extends Controller
                         ->orWhere('mswh.fwhname', $likeOp, "%{$colSearchGudang}%");
                 });
             }
+
+            $colSearchSupplier = $request->input('columns.6.search.value');
+            if ($colSearchSupplier !== null && $colSearchSupplier !== '') {
+                $likeOp = DB::getDriverName() === 'pgsql' ? 'ILIKE' : 'LIKE';
+                $query->where(function ($q) use ($colSearchSupplier, $likeOp) {
+                    $q->where('mssupplier.fsuppliername', $likeOp, "%{$colSearchSupplier}%")
+                        ->orWhere('mssupplier.fsuppliercode', $likeOp, "%{$colSearchSupplier}%");
+                });
+            }
+
             if ($year) {
                 $query->whereRaw('EXTRACT(YEAR FROM trstockmt.fdatetime) = ?', [$year]);
             }
@@ -181,6 +192,7 @@ class FakturpembelianController extends Controller
                 'trstockmt.ffrom',
                 'mssupplier.fsuppliername',
                 'refdt.frefdtno_summary',
+                'trstockmt.fusercreate',
                 'trstockmt.famountmt',
             ];
 
@@ -204,6 +216,7 @@ class FakturpembelianController extends Controller
                     'trstockmt.famountmt',
                     'trstockmt.ffrom',
                     'trstockmt.fbranchcode',
+                    'trstockmt.fusercreate',
                     'mswh.fwhname',
                     'mssupplier.fsuppliername',
                     'refdt.frefdtno_summary',
@@ -223,6 +236,7 @@ class FakturpembelianController extends Controller
                     'fbranchcode' => trim((string) ($row->fbranchcode ?? '')),
                     'fsuppliername' => trim((string) ($row->fsuppliername ?? '')),
                     'freferensi' => trim((string) ($row->frefdtno_summary ?? '')),
+                    'fusercreate' => trim((string) ($row->fusercreate ?? '')),
                     'famountmt' => (float) ($row->famountmt ?? 0),
                 ];
             });
