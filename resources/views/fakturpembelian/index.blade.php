@@ -80,12 +80,13 @@
                     <th class="border px-2 py-1">{{ "Cabang" }}</th>
                     <th class="border px-2 py-1">{{ "No.Transaksi" }}</th>
                     <th class="border px-2 py-1">{{ "Tanggal" }}</th>
+                    <th class="border px-2 py-1">{{ "Tipe Pembelian" }}</th>
                     <th class="border px-2 py-1">{{ "Faktur#" }}</th>
                     <th class="border px-2 py-1">
                         <div class="flex items-center justify-between">
                             <span>{{ "Gudang" }}</span>
                             <button type="button" class="col-search-btn p-1 hover:bg-gray-200 rounded"
-                                data-column="4" title="Filter Gudang">
+                                data-column="5" title="Filter Gudang">
                                 <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor"
                                     viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -96,14 +97,11 @@
                         <div class="col-search-input mt-2 hidden">
                             <input type="text"
                                 class="dt-column-search w-full px-2 py-1 border border-gray-300 rounded text-sm uppercase focus:outline-none focus:ring-1 focus:ring-blue-500"
-                                data-column="4" placeholder="Cari Gudang...">
+                                data-column="5" placeholder="Cari Gudang...">
                         </div>
                     </th>
                     <th class="border px-2 py-1">{{ "Nama Supplier" }}</th>
                     <th class="border px-2 py-1">{{ "Referensi#" }}</th>
-                    <th class="border px-2 py-1">{{ "No. PO" }}</th>
-                    <th class="border px-2 py-1">{{ "Cabang TER" }}</th>
-                    <th class="border px-2 py-1">{{ "Tanggal TER" }}</th>
                     <th class="border px-2 py-1 text-right">{{ "Total Harga" }}</th>
 
                     @if ($showActionsColumn)
@@ -383,6 +381,21 @@
                     name: 'fstockmtdate'
                 },
                 {
+                    data: 'ftypebuy',
+                    name: 'ftypebuy',
+                    defaultContent: '-',
+                    render: function(data, type) {
+                        if (type === 'display' || type === 'filter') {
+                            const val = String(data);
+                            if (val === '0') return 'Stock';
+                            if (val === '1') return 'Non-Stock';
+                            if (val === '2') return 'Down Payment';
+                            return data || '-';
+                        }
+                        return data;
+                    }
+                },
+                {
                     data: 'ffakturno',
                     name: 'ffakturno',
                     defaultContent: '-'
@@ -400,21 +413,6 @@
                 {
                     data: 'freferensi',
                     name: 'freferensi',
-                    defaultContent: '-'
-                },
-                {
-                    data: 'ter_po_summary',
-                    name: 'ter_po_summary',
-                    defaultContent: '-'
-                },
-                {
-                    data: 'ter_branch_summary',
-                    name: 'ter_branch_summary',
-                    defaultContent: '-'
-                },
-                {
-                    data: 'ter_date_summary',
-                    name: 'ter_date_summary',
                     defaultContent: '-'
                 },
                 {
