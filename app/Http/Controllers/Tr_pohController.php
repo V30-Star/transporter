@@ -217,10 +217,12 @@ class Tr_pohController extends Controller
     {
         // Base query dengan JOIN
         $query = Tr_prh::leftJoin('mssupplier', 'tr_prh.fsupplier', '=', 'mssupplier.fsuppliercode')
+            ->leftJoin('mscabang', 'tr_prh.fbranchcode', '=', 'mscabang.fcabangkode')
             ->select(
                 'tr_prh.*',
                 'mssupplier.fsuppliername',
-                'mssupplier.fsuppliercode'
+                'mssupplier.fsuppliercode',
+                'mscabang.fcabangname'
             )
             ->whereIn('tr_prh.fclose', ['0', ''])
             ->whereIn('tr_prh.fprdin', ['0', '']);
@@ -234,7 +236,9 @@ class Tr_pohController extends Controller
             $query->where(function ($q) use ($search) {
                 $q->where('tr_prh.fprno', 'ilike', "%{$search}%")
                     ->orWhere('mssupplier.fsuppliername', 'ilike', "%{$search}%")
-                    ->orWhere('mssupplier.fsuppliercode', 'ilike', "%{$search}%");
+                    ->orWhere('mssupplier.fsuppliercode', 'ilike', "%{$search}%")
+                    ->orWhere('tr_prh.fbranchcode', 'ilike', "%{$search}%")
+                    ->orWhere('mscabang.fcabangname', 'ilike', "%{$search}%");
             });
         }
 
@@ -245,11 +249,11 @@ class Tr_pohController extends Controller
         $orderColumn = $request->input('order_column', 'fprdate');
         $orderDir = $request->input('order_dir', 'desc');
 
-        $allowedColumns = ['fprno', 'fsupplier', 'fprdate'];
+        $allowedColumns = ['fprno', 'fsupplier', 'fsuppliername', 'fprdate', 'fbranchcode', 'fneeddate'];
         if (in_array($orderColumn, $allowedColumns)) {
-            if (in_array($orderColumn, ['fprno', 'fprdate'])) {
+            if ($orderColumn === 'fprno' || $orderColumn === 'fprdate' || $orderColumn === 'fbranchcode' || $orderColumn === 'fneeddate') {
                 $query->orderBy('tr_prh.' . $orderColumn, $orderDir);
-            } else {
+            } elseif ($orderColumn === 'fsupplier' || $orderColumn === 'fsuppliername') {
                 $query->orderBy('mssupplier.fsuppliername', $orderDir);
             }
         } else {

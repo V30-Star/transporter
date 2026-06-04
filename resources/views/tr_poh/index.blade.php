@@ -163,8 +163,13 @@
 
         #tr_pohTable th,
         #tr_pohTable td {
-            text-align: left;
+            text-align: left !important;
             vertical-align: middle;
+        }
+
+        #tr_pohTable th.text-right,
+        #tr_pohTable td.text-right {
+            text-align: right !important;
         }
 
         /* Kolom Aksi: jangan mepet, tapi tetap ringkas */

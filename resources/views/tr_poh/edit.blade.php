@@ -285,9 +285,9 @@
                         class="w-full border rounded px-3 py-2 @error('fcurrency') border-red-500 @enderror">
                         <option value="">-- Pilih Currency --</option>
                         @foreach ($currencies as $cur)
-                            <option value="{{ $cur->fcurrcode }}" data-code="{{ $cur->fcurrcode }}"
+                            <option value="{{ $cur->fcurrcode }}" data-id="{{ $cur->fcurrid }}"
                                 data-rate="{{ $cur->frate }}"
-                                {{ old('fcurrencyid', $currentCurrency->fcurrid ?? '') == $cur->fcurrid ? 'selected' : '' }}>
+                                {{ old('fcurrency', $currentCurrency->fcurrcode ?? '') == $cur->fcurrcode ? 'selected' : '' }}>
                                 {{ $cur->fcurrname }} ({{ $cur->fcurrcode }})
                             </option>
                         @endforeach
@@ -723,8 +723,10 @@
                                     <thead class="sticky top-0 z-10">
                                         <tr class="bg-gray-50 border-b-2 border-gray-200">
                                             <th class="p-3 text-left font-semibold text-gray-700">PR No</th>
+                                            <th class="p-3 text-left font-semibold text-gray-700">Cabang</th>
                                             <th class="p-3 text-left font-semibold text-gray-700">Supplier</th>
                                             <th class="p-3 text-left font-semibold text-gray-700">Tanggal</th>
+                                            <th class="p-3 text-left font-semibold text-gray-700">Tgl Kirim</th>
                                             <th class="p-3 text-center font-semibold text-gray-700">Aksi</th>
                                         </tr>
                                     </thead>
@@ -1188,7 +1190,7 @@
         return {
             autoCode: true,
             selectedCurrId: '{{ old('fcurrencyid', $currentCurrency->fcurrid ?? '') }}',
-            selectedCurrCode: '{{ $currentCurrency->fcurrcode ?? 'IDR' }}',
+            selectedCurrCode: '{{ old('fcurrency', $currentCurrency->fcurrcode ?? 'IDR') }}',
             rateValue: {{ old('frate', $tr_poh->frate ?? ($currentCurrency->frate ?? 1)) }},
             includePPN: {{ (int) old('fapplyppn', $tr_poh->fapplyppn ?? 0) === 1 ? 'true' : 'false' }},
             ppnMode: {{ old('ppn_mode', $tr_poh->fincludeppn ?? 0) }},
@@ -1367,7 +1369,7 @@
 
             onCurrencyChange() {
                 const code = this.selectedCurrCode;
-                const cur = Object.values(window.CURRENCY_MAP || {}).find(c => c.code === code);
+                const cur = Object.values(window.CURRENCY_MAP || {}).find(c => String(c.code).trim() === String(code).trim());
                 if (cur) {
                     this.selectedCurrId = String(cur.id);
                     this.rateValue = cur.rate;
@@ -1943,10 +1945,14 @@
                 this.restoreRows(@json($savedItems ?? []));
                 this.syncSupplierDisplay(@js(old('fsupplier', $tr_poh->fsupplier ?? '')));
 
-                const code = this.selectedCurrCode;
-                const cur = Object.values(window.CURRENCY_MAP || {}).find(c => c.code === code);
-                if (cur) {
-                    this.selectedCurrId = String(cur.id);
+                const currentCode = this.selectedCurrCode || 'IDR';
+                const curEntry = Object.values(window.CURRENCY_MAP).find((c) => String(c.code).trim() === String(currentCode).trim());
+                if (curEntry) {
+                    this.selectedCurrId = String(curEntry.id);
+                    this.selectedCurrCode = curEntry.code;
+                    if (!{{ old('frate') !== null ? 'true' : 'false' }}) {
+                        this.rateValue = curEntry.rate;
+                    }
                 }
 
                 if (!IS_EDIT) return;
@@ -2046,6 +2052,12 @@
                                 className: 'font-mono text-sm'
                             },
                             {
+                                data: 'fbranchcode',
+                                name: 'fbranchcode',
+                                className: 'text-sm',
+                                render: (d, t, r) => r.fcabangname ? `${d} - ${r.fcabangname}` : (d || '-')
+                            },
+                            {
                                 data: 'fsuppliername',
                                 name: 'fsuppliername',
                                 className: 'text-sm',
@@ -2054,6 +2066,12 @@
                             {
                                 data: 'fprdate',
                                 name: 'fprdate',
+                                className: 'text-sm',
+                                render: d => formatDate(d)
+                            },
+                            {
+                                data: 'fneeddate',
+                                name: 'fneeddate',
                                 className: 'text-sm',
                                 render: d => formatDate(d)
                             },
@@ -2089,7 +2107,7 @@
                             }
                         },
                         order: [
-                            [2, 'desc']
+                            [3, 'desc']
                         ],
                         autoWidth: false,
                         initComplete: function() {
