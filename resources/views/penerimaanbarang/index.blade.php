@@ -74,13 +74,14 @@
         <table id="penerimaanbarangTable" class="min-w-full border text-sm">
             <thead class="bg-gray-100">
                 <tr>
+                    <th class="border px-2 py-1">Cab</th>
                     <th class="border px-2 py-1">No. Penerimaan</th>
                     <th class="border px-2 py-1">Tanggal</th>
+                     <th class="border px-2 py-1">Nama Supplier</th>
                     <th class="border px-2 py-1">Gudang</th>
-                    <th class="border px-2 py-1">Nama Supplier</th>
-                    <th class="border px-2 py-1">Keterangan</th>
                     <th class="border px-2 py-1">Ref.PO#</th>
                     <th class="border px-2 py-1">Total Harga</th>
+                    <th class="border px-2 py-1">User Id</th>
 
                     @if ($showActionsColumn)
                         <th class="border px-2 py-1 col-aksi">Aksi</th>
@@ -301,6 +302,10 @@
 
             // 1. Definisi Kolom
             const columns = [{
+                    data: 'fbranchcode',
+                    name: 'fbranchcode'
+                },
+                {
                     data: 'fstockmtno_display',
                     name: 'fstockmtno'
                 },
@@ -309,18 +314,13 @@
                     name: 'fstockmtdate'
                 },
                 {
-                    data: 'fwhname',
-                    name: 'fwhname',
-                    orderable: false
-                },
-                {
                     data: 'fsuppliername',
                     name: 'fsuppliername',
                     orderable: false
                 },
                 {
-                    data: 'fket',
-                    name: 'fket',
+                    data: 'fwhcode',
+                    name: 'fwhcode',
                     orderable: false
                 },
                 {
@@ -332,6 +332,10 @@
                     data: 'famountmt',
                     name: 'famountmt',
                     orderable: false
+                },
+                {
+                    data: 'fusercreate',
+                    name: 'fusercreate',
                 }
             ];
 

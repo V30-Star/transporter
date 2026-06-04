@@ -82,7 +82,7 @@
                     <th class="border px-2 py-1">Tanggal</th>
                     <th class="border px-2 py-1">Ref.PR</th>
                     <th class="border px-2 py-1">Status</th>
-                    <th class="border px-2 py-1">Total PO</th>
+                    <th class="border px-2 py-1 text-right">Total PO</th>
                     <th class="border px-2 py-1">Approved</th>
                     <th class="border px-2 py-1">User Id</th>
                     @if ($showActionsColumn)
@@ -163,7 +163,7 @@
 
         #tr_pohTable th,
         #tr_pohTable td {
-            text-align: left !important;
+            text-align: left;
             vertical-align: middle;
         }
 
@@ -171,7 +171,7 @@
         #tr_pohTable th:last-child,
         #tr_pohTable td:last-child {
             white-space: nowrap;
-            text-align: center;
+            text-align: center !important;
         }
 
         #tr_pohTable td:last-child {
@@ -181,18 +181,6 @@
         .btn-aksi {
             padding: .25rem .5rem;
             font-size: .825rem;
-        }
-
-        #tr_pohTable th,
-        #tr_pohTable td {
-            text-align: left !important;
-            vertical-align: middle;
-        }
-
-        #tr_pohTable th:last-child,
-        #tr_pohTable td:last-child {
-            text-align: center;
-            white-space: nowrap;
         }
 
         .dataTables_wrapper .dt-search {
@@ -357,6 +345,16 @@
                 {
                     data: 'famountpo',
                     name: 'famountpo',
+                    className: 'text-right dt-body-right',
+                    render: function(data, type) {
+                        if (type === 'display' || type === 'filter') {
+                            return Number(data || 0).toLocaleString('id-ID', {
+                                minimumFractionDigits: 2,
+                                maximumFractionDigits: 2
+                            });
+                        }
+                        return data;
+                    }
                 },
                 {
                     data: 'fapproval',
