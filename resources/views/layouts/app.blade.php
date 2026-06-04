@@ -1413,6 +1413,29 @@
                     return;
                 }
 
+                if (successPrompt?.type === 'invoice_create_suratjalan' && successPrompt.redirect_url) {
+                    window.showAppSuccessToast(successMessage, {
+                        showConfirmButton: true,
+                        confirmButtonText: 'OK',
+                        timer: undefined,
+                    }).then(() => Swal.fire({
+                        icon: 'question',
+                        title: 'Input Surat Jalan?',
+                        showCancelButton: true,
+                        confirmButtonText: 'Yes',
+                        cancelButtonText: 'No',
+                        confirmButtonColor: '#2563eb',
+                        cancelButtonColor: '#6b7280',
+                        allowOutsideClick: false,
+                        allowEscapeKey: false,
+                    })).then((result) => {
+                        if (result.isConfirmed) {
+                            window.location.href = successPrompt.redirect_url;
+                        }
+                    });
+                    return;
+                }
+
                 window.showAppSuccessToast(successMessage);
             });
         </script>

@@ -352,6 +352,11 @@ class InvoiceController extends Controller
         return in_array('approveFakturPenjualan', explode(',', session('user_restricted_permissions', '')));
     }
 
+    private function canCreateSuratJalan(): bool
+    {
+        return in_array('createSuratJalan', explode(',', session('user_restricted_permissions', '')), true);
+    }
+
     private function getApprovalRecipients(): array
     {
         return array_values(array_filter([
@@ -1384,10 +1389,13 @@ class InvoiceController extends Controller
 
         $creditApproval = $this->resolveInvoiceCreditApproval($request, $grandTotal);
         $fsono = trim((string) $request->input('fsono', ''));
+        $hasSrjReference = ! empty($srjReferenceDocs);
 
         // 5. DATABASE TRANSACTION
         try {
-            DB::transaction(function () use ($fapplyppn, $request, $fsodate, $fincludeppn, $userid, $now, $detailRows, $totalGross, $totalDisc, $amountNet, $ppnAmount, $grandTotal, $fcurrency, $frate, $ppnPersen, $creditApproval, $fkodefp, $needsApprovalNotification, &$shouldSendApprovalNotification, &$fsono, $headerDiscPercent) {
+            $ftranmtid = null;
+
+            DB::transaction(function () use ($fapplyppn, $request, $fsodate, $fincludeppn, $userid, $now, $detailRows, $totalGross, $totalDisc, $amountNet, $ppnAmount, $grandTotal, $fcurrency, $frate, $ppnPersen, $creditApproval, $fkodefp, $needsApprovalNotification, &$shouldSendApprovalNotification, &$fsono, &$ftranmtid, $headerDiscPercent) {
 
                 // Penomoran Otomatis (Tetap sama)
                 if (empty($fsono)) {
@@ -1467,7 +1475,16 @@ class InvoiceController extends Controller
                 $this->sendApprovalNotification($fsono, $userid);
             }
 
-            return redirect()->route('invoice.index')->with('success', 'Faktur penjualan ' . $this->formatDisplayTransactionNumber($fsono, $fincludeppn === '1') . ' berhasil disimpan.');
+            $redirect = redirect()->route('invoice.index')->with('success', 'Faktur penjualan ' . $this->formatDisplayTransactionNumber($fsono, $fincludeppn === '1') . ' berhasil disimpan.');
+
+            if ($hasSrjReference || $needsApprovalNotification || ! $this->canCreateSuratJalan() || ! $ftranmtid) {
+                return $redirect;
+            }
+
+            return $redirect->with('success_prompt', [
+                'type' => 'invoice_create_suratjalan',
+                'redirect_url' => route('suratjalan.create', ['invoice_id' => $ftranmtid]),
+            ]);
         } catch (\Exception $e) {
             report($e);
             return back()->withInput()->with('error', 'Faktur penjualan belum bisa disimpan. Cek data.');
@@ -2437,6 +2454,7 @@ class InvoiceController extends Controller
 
         $creditApproval = $this->resolveInvoiceCreditApproval($request, $grandTotal, (int) $ftranmtid);
         $fsono = trim((string) $request->input('fsono', ''));
+        $hasSrjReference = ! empty($srjReferenceDocs);
 
         // 6. TRANSACTION
         try {
@@ -2525,7 +2543,16 @@ class InvoiceController extends Controller
                 $this->sendApprovalNotification($header->fsono, $userid);
             }
 
-            return redirect()->route('invoice.index')->with('success', 'Faktur penjualan ' . $this->formatDisplayTransactionNumber($header->fsono, $fincludeppn === '1') . ' berhasil diupdate.');
+            $redirect = redirect()->route('invoice.index')->with('success', 'Faktur penjualan ' . $this->formatDisplayTransactionNumber($header->fsono, $fincludeppn === '1') . ' berhasil diupdate.');
+
+            if ($hasSrjReference || $needsApprovalNotification || ! $this->canCreateSuratJalan()) {
+                return $redirect;
+            }
+
+            return $redirect->with('success_prompt', [
+                'type' => 'invoice_create_suratjalan',
+                'redirect_url' => route('suratjalan.create', ['invoice_id' => $ftranmtid]),
+            ]);
         } catch (\Exception $e) {
             report($e);
             return back()->withInput()->with('error', 'Faktur penjualan belum bisa diupdate. Cek data.');

@@ -632,6 +632,7 @@ class SuratJalanController extends Controller
             'productMap' => $productMap,
             'filterSupplierId' => $request->query('filter_supplier_id'),
             'autoLoadSalesOrderId' => $request->query('sales_order_id'),
+            'autoLoadInvoiceId' => $request->query('invoice_id'),
         ]);
     }
 

@@ -1511,6 +1511,7 @@
                 });
 
                 this.autoLoadSalesOrder();
+                this.autoLoadInvoice();
             },
 
             async autoLoadSalesOrder() {
@@ -1546,6 +1547,42 @@
                 } catch (e) {
                     console.error('Auto-load Sales Order gagal:', e);
                     window.toast?.error(`Gagal mengambil detail Sales Order: ${e.message}`);
+                }
+            },
+
+            async autoLoadInvoice() {
+                const invoiceId = @json($autoLoadInvoiceId ?? null);
+                if (!invoiceId) return;
+
+                try {
+                    const url = @json(route('invoice.items', ['id' => 'INV_ID_PLACEHOLDER']))
+                        .replace('INV_ID_PLACEHOLDER', invoiceId);
+                    const res = await fetch(url, {
+                        headers: {
+                            'X-Requested-With': 'XMLHttpRequest'
+                        }
+                    });
+
+                    if (!res.ok) {
+                        throw new Error(`Server error: ${res.status}`);
+                    }
+
+                    const json = await res.json();
+                    const items = (json.items || []).filter(src => Number(src.fqtyremain ?? 0) > 0);
+                    if (items.length === 0) {
+                        window.toast?.warning('Semua item Faktur ini sudah habis atau sudah digunakan.');
+                        return;
+                    }
+
+                    window.applyTransactionCustomerSelection?.({
+                        fcustomercode: json.header?.fcustno ?? '',
+                        fcustomername: json.header?.fcustomername ?? '',
+                    });
+
+                    this.addManyFromPR(json.header, items);
+                } catch (e) {
+                    console.error('Auto-load Faktur Penjualan gagal:', e);
+                    window.toast?.error(`Gagal mengambil detail Faktur Penjualan: ${e.message}`);
                 }
             },
 
