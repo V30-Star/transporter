@@ -47,6 +47,18 @@
                         }
                     },
                     columns: [{
+                            data: 'fbranchcode',
+                            name: 'trsomt.fbranchcode',
+                            className: 'text-sm',
+                            defaultContent: '-',
+                            render: function(data, type, row) {
+                                const code = (data || '').toString().trim();
+                                const name = (row.fcabangname || '').toString().trim();
+                                if (code && name) return `${code} - ${name}`;
+                                return code || name || '-';
+                            }
+                        },
+                        {
                             data: 'fsono',
                             name: 'trsomt.fsono',
                             className: 'font-mono text-sm'
@@ -68,15 +80,6 @@
                                 const name = (row.fcustomername || '').toString().trim();
                                 if (code && name) return `${code} - ${name}`;
                                 return code || name || '-';
-                            }
-                        },
-                        {
-                            data: 'faddress',
-                            name: 'faddress',
-                            className: 'text-sm',
-                            defaultContent: '-',
-                            render: function(data) {
-                                return (data || '').toString().trim() || '-';
                             }
                         },
                         {
@@ -104,7 +107,7 @@
                         [10, 25, 50, 100],
                         [10, 25, 50, 100]
                     ],
-                    dom: '<"#poTableControls"lf>rt<"#poTablePagination"ip>',
+                    dom: '<"#poTableControls"fl>rt<"#poTablePagination"ip>',
                     language: {
                         processing: "Memuat data...",
                         search: "Cari:",
@@ -122,7 +125,7 @@
                         }
                     },
                     order: [
-                        [1, 'desc']
+                        [2, 'desc']
                     ],
                     autoWidth: false,
                     scrollX: true,
@@ -130,6 +133,9 @@
                     initComplete: function() {
                         const api = this.api();
                         const $container = $(api.table().container());
+                        const $header = $container.find('#poTableControls');
+
+                        $header.addClass('flex items-center justify-between mb-4 gap-4');
 
                         $container.find('.dt-search .dt-input, .dataTables_filter input').css({
                             width: '300px',
@@ -152,6 +158,7 @@
                             overflowX: 'auto',
                             overflowY: 'auto'
                         });
+                        $container.find('#poTablePagination').addClass('flex items-center justify-between mt-4');
                     }
                 });
 

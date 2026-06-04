@@ -565,12 +565,15 @@ class SalesOrderController extends Controller
         $onlyRemaining = $request->boolean('only_remaining');
 
         $query = SalesOrderHeader::leftJoin('mscustomer', 'trsomt.fcustno', '=', 'mscustomer.fcustomercode')
+            ->leftJoin('mscabang', 'trsomt.fbranchcode', '=', 'mscabang.fcabangkode')
             ->select(
                 'trsomt.ftrsomtid',
                 'trsomt.fsono',
                 'trsomt.fcustno',
                 'trsomt.fsodate',
                 'trsomt.frefpo',
+                'trsomt.fbranchcode',
+                'mscabang.fcabangname',
                 'mscustomer.fcustomername',
                 'mscustomer.faddress'
             )
@@ -618,7 +621,9 @@ class SalesOrderController extends Controller
                     ->orWhere('trsomt.fcustno', 'ilike', "%{$search}%")
                     ->orWhere('mscustomer.fcustomername', 'ilike', "%{$search}%")
                     ->orWhere('mscustomer.faddress', 'ilike', "%{$search}%")
-                    ->orWhere('trsomt.frefpo', 'ilike', "%{$search}%");
+                    ->orWhere('trsomt.frefpo', 'ilike', "%{$search}%")
+                    ->orWhere('trsomt.fbranchcode', 'ilike', "%{$search}%")
+                    ->orWhere('mscabang.fcabangname', 'ilike', "%{$search}%");
             });
         }
 
@@ -627,13 +632,15 @@ class SalesOrderController extends Controller
         $orderColumn = $request->input('order_column', 'fsodate');
         $orderDir = $request->input('order_dir', 'desc');
 
-        $allowedColumns = ['fsono', 'fsodate', 'fcustno', 'fcustomername', 'faddress', 'frefpo'];
+        $allowedColumns = ['fbranchcode', 'fcabangname', 'fsono', 'fsodate', 'fcustno', 'fcustomername', 'faddress', 'frefpo'];
 
         if (in_array($orderColumn, $allowedColumns)) {
             if ($orderColumn == 'fcustomername') {
                 $query->orderBy('mscustomer.fcustomername', $orderDir);
             } elseif ($orderColumn == 'faddress') {
                 $query->orderBy('mscustomer.faddress', $orderDir);
+            } elseif ($orderColumn == 'fcabangname') {
+                $query->orderBy('mscabang.fcabangname', $orderDir);
             } else {
                 $query->orderBy('trsomt.' . $orderColumn, $orderDir);
             }

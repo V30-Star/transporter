@@ -1413,6 +1413,9 @@
                                                                             class="bg-gradient-to-r from-gray-50 to-gray-100">
                                                                             <th
                                                                                 class="text-left p-3 font-semibold text-gray-700 border-b-2 border-gray-200">
+                                                                                {{ 'Cab' }}</th>
+                                                                            <th
+                                                                                class="text-left p-3 font-semibold text-gray-700 border-b-2 border-gray-200">
                                                                                 {{ 'No. SO' }}</th>
                                                                             <th
                                                                                 class="text-left p-3 font-semibold text-gray-700 border-b-2 border-gray-200">
@@ -1422,10 +1425,7 @@
                                                                                 {{ 'Customer' }}</th>
                                                                             <th
                                                                                 class="text-left p-3 font-semibold text-gray-700 border-b-2 border-gray-200">
-                                                                                {{ 'Alamat' }}</th>
-                                                                            <th
-                                                                                class="text-left p-3 font-semibold text-gray-700 border-b-2 border-gray-200">
-                                                                                {{ 'No Ref' }}</th>
+                                                                                {{ 'No. PO' }}</th>
                                                                             <th
                                                                                 class="text-center p-3 font-semibold text-gray-700 border-b-2 border-gray-200">
                                                                                 {{ 'Aksi' }}</th>
