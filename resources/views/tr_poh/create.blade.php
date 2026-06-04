@@ -370,8 +370,7 @@
 
                                     <td class="p-2 text-right">
                                         <input type="text" class="border rounded px-2 py-1 w-20 text-right text-sm"
-                                            placeholder="0"
-                                            :value="row.fdisc"
+                                            placeholder="0" :value="row.fdisc"
                                             @input="row.fdisc = $event.target.value; recalc(row)" :id="'disc_row_' + i"
                                             @focus="activeRow = row.uid; $event.target.select()"
                                             @blur="activeRow = null; row.fdisc = normalizeDiscountValue(row.fdisc); recalc(row)"
@@ -785,20 +784,9 @@
                     '1' => $smallUnit,
                     '2' => $largeUnit,
                     '3' => $largeUnit2,
-                    default => in_array(strtoupper($defaultKey), [
-                        strtoupper($smallUnit),
-                        strtoupper($largeUnit),
-                        strtoupper($largeUnit2),
-                    ], true)
-                        ? $defaultKey
-                        : ($smallUnit ?: $largeUnit ?: $largeUnit2),
+                    default => in_array(strtoupper($defaultKey), [strtoupper($smallUnit), strtoupper($largeUnit), strtoupper($largeUnit2)], true) ? $defaultKey : ($smallUnit ?: $largeUnit ?: $largeUnit2),
                 };
-                $orderedUnits = array_values(array_unique(array_filter([
-                    $defaultUnit,
-                    $smallUnit,
-                    $largeUnit,
-                    $largeUnit2,
-                ])));
+                $orderedUnits = array_values(array_unique(array_filter([$defaultUnit, $smallUnit, $largeUnit, $largeUnit2])));
             @endphp
                 "{{ $p->fprdcode }}": {
                     id: @json($p->fprdid),
@@ -1646,7 +1634,8 @@
 
             init() {
                 const currentCode = this.selectedCurrCode || 'IDR';
-                const curEntry = Object.values(window.CURRENCY_MAP).find((c) => String(c.code).trim() === String(currentCode).trim());
+                const curEntry = Object.values(window.CURRENCY_MAP).find((c) => String(c.code).trim() === String(
+                    currentCode).trim());
                 if (curEntry) {
                     this.selectedCurrId = String(curEntry.id);
                     this.selectedCurrCode = curEntry.code;
@@ -1696,7 +1685,7 @@
 
                     row.fitemcode = candidate.fitemcode;
                     this.hydrateRowFromMeta(row, this.productMeta(row.fitemcode), true, true);
-                    
+
                     this.rows.splice(this.browseTarget, 1, {
                         ...this.rows[this.browseTarget]
                     });
@@ -1771,15 +1760,14 @@
                         })
                     },
                     columns: [{
+                            data: 'fbranchcode',
+                            name: 'fbranchcode',
+                            className: 'text-sm'
+                        }, 
+                        {
                             data: 'fprno',
                             name: 'fprno',
                             className: 'font-mono text-sm'
-                        },
-                        {
-                            data: 'fbranchcode',
-                            name: 'fbranchcode',
-                            className: 'text-sm',
-                            render: (d, t, r) => r.fcabangname ? `${d} - ${r.fcabangname}` : (d || '-')
                         },
                         {
                             data: 'fsuppliername',
