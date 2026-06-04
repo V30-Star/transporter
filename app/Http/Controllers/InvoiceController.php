@@ -1357,6 +1357,7 @@ class InvoiceController extends Controller
                 'frefcode' => $refCode,
                 'frefso'  => $refSoNo,
                 'frefsrj' => $refSrjNo,
+                'fnoacak' => $this->normalizeRandomNumber($fnoacaks[$i] ?? null, $usedNoAcaks),
             ], $this->buildReferenceRandomNumberColumns($refCode, $frefnoacaks[$i] ?? null));
         }
 
@@ -2031,7 +2032,7 @@ class InvoiceController extends Controller
                 'frefcode' => $refCode,
                 'frefso' => trim($d->frefso ?? ''),
                 'frefsrj' => trim($d->frefsrj ?? ''),
-                'fnoacak' => '',
+                'fnoacak' => (string) ($d->fnoacak ?? ''),
                 'frefnoacak' => (string) ($d->frefnosoacak ?? $d->frefnosrjacak ?? ''),
                 'frefno_display' => $refNoDisplay,
                 'fqty' => (float) ($d->fqty ?? 0),
@@ -2145,7 +2146,7 @@ class InvoiceController extends Controller
                 'ftotal' => (float) ($d->famount ?? 0),
                 'fdesc' => (string) ($d->fdesc ?? ''),
                 'frefcode' => (string) ($d->frefcode ?? ''),
-                'fnoacak' => '',
+                'fnoacak' => (string) ($d->fnoacak ?? ''),
                 'frefnoacak' => (string) ($d->frefnosoacak ?? $d->frefnosrjacak ?? ''),
                 'frefno_display' => $refNoDisplay,
                 'fketdt' => (string) ($d->fketdt ?? ''),
@@ -2429,6 +2430,7 @@ class InvoiceController extends Controller
                 'frefcode' => $refCode,
                 'frefso' => $refSoNo,
                 'frefsrj' => $refSrjNo,
+                'fnoacak' => $this->normalizeRandomNumber($fnoacaks[$i] ?? null, $usedNoAcaks),
             ], $this->buildReferenceRandomNumberColumns($refCode, $frefnoacaks[$i] ?? null));
 
             $detailRows[] = $rowData;
@@ -2647,7 +2649,7 @@ class InvoiceController extends Controller
                 'ftotal' => (float) ($d->famount ?? 0),
                 'fdesc' => (string) ($d->fdesc ?? ''),
                 'frefcode' => (string) ($d->frefcode ?? ''),
-                'fnoacak' => '',
+                'fnoacak' => (string) ($d->fnoacak ?? ''),
                 'frefnoacak' => (string) ($d->frefnosoacak ?? $d->frefnosrjacak ?? ''),
                 'frefno_display' => $refNoDisplay,
                 'fketdt' => (string) ($d->fketdt ?? ''),
