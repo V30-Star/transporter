@@ -281,11 +281,11 @@
             <div class="lg:col-span-4">
                 <label class="block text-sm font-bold">Currency</label>
                 @if ($isEdit)
-                    <select name="fcurrency" id="currencySelect" x-model="selectedCurrId" @change="onCurrencyChange()"
+                    <select name="fcurrency" id="currencySelect" x-model="selectedCurrCode" @change="onCurrencyChange()"
                         class="w-full border rounded px-3 py-2 @error('fcurrency') border-red-500 @enderror">
                         <option value="">-- Pilih Currency --</option>
                         @foreach ($currencies as $cur)
-                            <option value="{{ $cur->fcurrid }}" data-code="{{ $cur->fcurrcode }}"
+                            <option value="{{ $cur->fcurrcode }}" data-code="{{ $cur->fcurrcode }}"
                                 data-rate="{{ $cur->frate }}"
                                 {{ old('fcurrencyid', $currentCurrency->fcurrid ?? '') == $cur->fcurrid ? 'selected' : '' }}>
                                 {{ $cur->fcurrname }} ({{ $cur->fcurrcode }})
@@ -1366,13 +1366,13 @@
             },
 
             onCurrencyChange() {
-                const id = parseInt(this.selectedCurrId);
-                const cur = window.CURRENCY_MAP[id];
+                const code = this.selectedCurrCode;
+                const cur = Object.values(window.CURRENCY_MAP || {}).find(c => c.code === code);
                 if (cur) {
-                    this.selectedCurrCode = cur.code;
+                    this.selectedCurrId = String(cur.id);
                     this.rateValue = cur.rate;
                 } else {
-                    this.selectedCurrCode = '';
+                    this.selectedCurrId = '';
                     this.rateValue = 0;
                 }
             },
@@ -1943,9 +1943,10 @@
                 this.restoreRows(@json($savedItems ?? []));
                 this.syncSupplierDisplay(@js(old('fsupplier', $tr_poh->fsupplier ?? '')));
 
-                const currId = parseInt(this.selectedCurrId);
-                if (currId && window.CURRENCY_MAP[currId]) {
-                    this.selectedCurrCode = window.CURRENCY_MAP[currId].code;
+                const code = this.selectedCurrCode;
+                const cur = Object.values(window.CURRENCY_MAP || {}).find(c => c.code === code);
+                if (cur) {
+                    this.selectedCurrId = String(cur.id);
                 }
 
                 if (!IS_EDIT) return;

@@ -94,10 +94,7 @@ class PenerimaanBarangController extends Controller
 
             $start = $request->input('start', 0);
             $length = $request->input('length', 10);
-            $records = $query->skip($start)->take($length)->get(['fstockmtid', 'fstockmtno', 'fstockmtdate', 'ffrom', 'fsupplier', 'fket', 'famountmt']);
-
-            $warehouseCodes = $records->pluck('ffrom')->filter()->unique();
-            $warehouses = DB::table('mswh')->whereIn('fwhcode', $warehouseCodes)->pluck('fwhname', 'fwhcode');
+            $records = $query->skip($start)->take($length)->get(['fstockmtid', 'fstockmtno', 'fstockmtdate', 'ffrom', 'fsupplier', 'fket', 'famountmt', 'fbranchcode', 'fusercreate']);
 
             $supplierCodes = $records->pluck('fsupplier')->filter()->unique();
             $suppliers = DB::table('mssupplier')->whereIn('fsuppliercode', $supplierCodes)->pluck('fsuppliername', 'fsuppliercode');
@@ -112,14 +109,15 @@ class PenerimaanBarangController extends Controller
 
             $data = $records->map(fn($row) => [
                 'fstockmtid' => $row->fstockmtid,
+                'fbranchcode' => $row->fbranchcode,
                 'fstockmtno' => $row->fstockmtno,
                 'fstockmtno_display' => $this->formatDisplayTransactionNumber($row->fstockmtno, false),
                 'fstockmtdate' => Carbon::parse($row->fstockmtdate)->format('d/m/Y'),
-                'fwhname' => $warehouses[$row->ffrom] ?? '-',
+                'fwhcode' => $row->ffrom ?? '-',
                 'fsuppliername' => $suppliers[$row->fsupplier] ?? '-',
-                'fket' => $row->fket ?? '-',
                 'frefpo' => $trstockdts[$row->fstockmtno] ?? '-',
                 'famountmt' => 'Rp ' . number_format((float) $row->famountmt, 0, ',', '.'),
+                'fusercreate' => $row->fusercreate ?? '-',
             ]);
 
             return response()->json([

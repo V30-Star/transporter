@@ -238,9 +238,10 @@
                                             :name="`details[${index}][fdiscount]`" :value="row.fdiscount">
                                     </td>
                                     <td class="border px-2 py-1">
-                                        <input type="number" min="0" step="0.01" x-model="row.fkasdtvalue"
-                                            class="w-full border rounded px-2 py-1 text-right">
-                                        <input type="hidden" :name="`details[${index}][fkasdtvalue]`" :value="row.fkasdtvalue">
+                                        <input type="number" min="0" step="0.01"
+                                            :name="`details[${index}][fkasdtvalue]`" x-model="row.fkasdtvalue"
+                                            @input="syncTotalBayar(row)"
+                                            class="w-full border rounded px-2 py-1 text-right disabled:bg-gray-100 disabled:text-gray-400 disabled:cursor-not-allowed">
                                     </td>
                                     @if (!$isReadOnly)
                                         <td class="border px-2 py-1 text-center">
@@ -568,8 +569,17 @@
                 tempSelectedNotas: [],
 
                 init() {
+                    const isEdit = @js(isset($headerData));
                     this.rows = (Array.isArray(initialRows) && initialRows.length ? initialRows : [])
-                        .map((row, index) => this.normalizeRow(row, index));
+                        .map((row, index) => {
+                            const normalized = this.normalizeRow(row, index);
+                            if (isEdit) {
+                                normalized.originalSisa = normalized.fsisa_piutang + normalized.fkasdtvalue + normalized.fdiscount;
+                            } else {
+                                normalized.originalSisa = normalized.fsisa_piutang;
+                            }
+                            return normalized;
+                        });
 
                     this.ensureMinimumRows();
                     this.recalcTotals();
@@ -670,6 +680,7 @@
                         fdatetime: '',
                         fnilai_nota: 0,
                         fsisa_piutang: 0,
+                        originalSisa: 0,
                         fdiscpersen: 0,
                         fdiscount: 0,
                         fkasdtvalue: 0,
@@ -678,12 +689,14 @@
                 },
 
                 normalizeRow(row = {}, index = 0) {
+                    const sisa = this.toNumber(row.fsisa_piutang);
                     return {
                         uid: row.uid || `pc-row-${index}-${this.makeUid()}`,
                         frefno: String(row.frefno || '').trim(),
                         fdatetime: row.fdatetime || '',
                         fnilai_nota: this.toNumber(row.fnilai_nota),
-                        fsisa_piutang: this.toNumber(row.fsisa_piutang),
+                        fsisa_piutang: sisa,
+                        originalSisa: row.originalSisa !== undefined ? this.toNumber(row.originalSisa) : sisa,
                         fdiscpersen: this.toNumber(row.fdiscpersen),
                         fdiscount: this.toNumber(row.fdiscount),
                         fkasdtvalue: this.toNumber(row.fkasdtvalue),
@@ -941,6 +954,7 @@
                             targetRow.fdatetime = record.fsodate || '';
                             targetRow.fnilai_nota = Math.abs(amount);
                             targetRow.fsisa_piutang = remain;
+                            targetRow.originalSisa = remain;
                             targetRow.fdiscpersen = 0;
                             targetRow.fdiscount = 0;
                             targetRow.fkasdtvalue = remain;
@@ -974,16 +988,23 @@
 
                 syncDiscountFromPercent(row) {
                     const percent = this.toNumber(row.fdiscpersen);
-                    const basis = this.toNumber(row.fsisa_piutang || row.fnilai_nota);
-                    row.fdiscount = basis * percent / 100;
-                    row.fkasdtvalue = Math.max(basis - row.fdiscount, 0);
+                    const original = this.toNumber(row.originalSisa);
+                    if (percent > 0) {
+                        row.fdiscount = original * percent / 100;
+                        row.fkasdtvalue = Math.max(original - row.fdiscount, 0);
+                        row.fsisa_piutang = 0;
+                    } else {
+                        row.fdiscount = 0;
+                        row.fsisa_piutang = Math.max(original - row.fkasdtvalue, 0);
+                    }
                     this.recalcTotals();
                 },
 
                 syncTotalBayar(row) {
-                    const basis = this.toNumber(row.fsisa_piutang || row.fnilai_nota);
-                    const discount = this.toNumber(row.fdiscount);
-                    row.fkasdtvalue = Math.max(basis - discount, 0);
+                    const pay = this.toNumber(row.fkasdtvalue);
+                    const disc = this.toNumber(row.fdiscount);
+                    const original = this.toNumber(row.originalSisa);
+                    row.fsisa_piutang = Math.max(original - pay - disc, 0);
                     this.recalcTotals();
                 },
 

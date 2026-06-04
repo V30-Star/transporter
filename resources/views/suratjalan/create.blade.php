@@ -874,6 +874,11 @@
                     $productMap[$p->fprdcode]['units'] ??
                         array_values(array_filter([$p->fsatuankecil, $p->fsatuanbesar, $p->fsatuanbesar2]))),
                 stock: @json($p->fminstock ?? 0),
+                unit_names: {
+                    satuankecil: @json($p->fsatuankecil),
+                    satuanbesar: @json($p->fsatuanbesar),
+                    satuanbesar2: @json($p->fsatuanbesar2),
+                },
                 unit_ratios: {
                     satuankecil: 1,
                     satuanbesar: @json((float) ($p->fqtykecil ?? 1)),
@@ -982,6 +987,11 @@
                         name: '',
                         units: [],
                         stock: 0,
+                        unit_names: {
+                            satuankecil: '',
+                            satuanbesar: '',
+                            satuanbesar2: ''
+                        },
                         unit_ratios: {
                             satuankecil: 1,
                             satuanbesar: 1,
@@ -990,6 +1000,30 @@
                     };
                 }
                 return meta;
+            },
+
+            getUnitRatio(meta, satuan) {
+                const unit = (satuan || '').toString().trim();
+                const names = meta?.unit_names || {};
+                const ratios = meta?.unit_ratios || {};
+
+                if (unit && unit === (names.satuanbesar2 || '').toString().trim() && Number(ratios.satuanbesar2) > 0) {
+                    return Number(ratios.satuanbesar2);
+                }
+
+                if (unit && unit === (names.satuanbesar || '').toString().trim() && Number(ratios.satuanbesar) > 0) {
+                    return Number(ratios.satuanbesar);
+                }
+
+                return 1;
+            },
+
+            qtyKecilToUnit(qtyKecil, satuan, meta) {
+                const qty = Number(qtyKecil ?? 0);
+                if (!Number.isFinite(qty) || qty <= 0) return 0;
+
+                const ratio = this.getUnitRatio(meta, satuan);
+                return ratio > 0 ? qty / ratio : qty;
             },
 
             formatStockLimit(row) {
@@ -1051,25 +1085,8 @@
                 const limitSource = Number(row.maxqty ?? 0);
                 if (!Number.isFinite(limitSource) || limitSource <= 0) return 0;
 
-                const units = meta.units || [];
-                const ratios = meta.unit_ratios || {
-                    satuankecil: 1,
-                    satuanbesar: 1,
-                    satuanbesar2: 1
-                };
                 const satuan = row.fsatuan || '';
-                const satKecil = units[0] || 'pcs';
-                const satBesar = units[1] || '';
-                const satBesar2 = units[2] || '';
-
-                let ratio = 1;
-                if (satuan === satBesar2 && ratios.satuanbesar2 > 0) {
-                    ratio = ratios.satuanbesar2;
-                } else if (satuan === satBesar && ratios.satuanbesar > 0) {
-                    ratio = ratios.satuanbesar;
-                } else if (satuan === satKecil) {
-                    ratio = 1;
-                }
+                const ratio = this.getUnitRatio(meta, satuan);
 
                 const limit = limitSource / ratio;
                 return Number.isFinite(limit) && limit > 0 ? limit : 0;
@@ -1270,6 +1287,10 @@
                         normalizedUnits.unshift(satuan);
                     }
 
+                    const displayQty = Number(src.fqtyremain_dokumen ?? 0) > 0 ?
+                        Number(src.fqtyremain_dokumen) :
+                        this.qtyKecilToUnit(src.fqtyremain, satuan, meta);
+
                     const row = {
                         uid: cryptoRandom(),
                         fitemcode: itemcode,
@@ -1282,15 +1303,14 @@
                         frefpr: (src.frefpr ?? header?.fpono ?? header?.fsono ?? '').toString().trim(),
                         frefso: header?.fsono ?? null,
                         fdiscpersen: Number(src.fdiscpersen ?? 0),
-                        fqty: (src.fqty !== null && src.fqty !== undefined && Number(src.fqty) > 0) ?
-                            Number(src.fqty) : 1,
+                        fqty: displayQty > 0 ? displayQty : 1,
                         fprice: Number(src.fprice ?? src.fharga ?? 0), // ← Boleh 0
                         fterima: Number(src.fterima ?? 0),
                         ftotal: 0,
                         fdesc: src.fdesc ? src.fdesc.toString().trim() : '',
                         fketdt: src.fketdt ? src.fketdt.toString().trim() : '',
                         units: normalizedUnits,
-                        maxqty: Math.max(0, Number(src.maxqty ?? src.fqtyremain ?? src.fqty ?? 0)),
+                        maxqty: Math.max(0, Number(src.fqtyremain ?? 0)),
                     };
 
                     if (!(Number(row.maxqty) > 0)) return;

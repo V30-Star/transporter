@@ -192,7 +192,7 @@
                     }
 
                     const json = await res.json();
-                    const items = (json.items || []).filter(src => Number(src.maxqty ?? src.fqtyremain ?? 0) > 0);
+                    const items = (json.items || []).filter(src => Number(src.fqtyremain ?? 0) > 0);
                     if (items.length === 0) {
                         window.toast?.warning('Semua item Faktur ini sudah habis atau sudah digunakan.');
                         return;
