@@ -239,8 +239,7 @@
                                     </td>
                                     <td class="border px-2 py-1">
                                         <input type="number" min="0" step="0.01" x-model="row.fkasdtvalue"
-                                            class="w-full border rounded px-2 py-1 text-right bg-gray-100 cursor-not-allowed"
-                                            readonly disabled>
+                                            class="w-full border rounded px-2 py-1 text-right">
                                         <input type="hidden" :name="`details[${index}][fkasdtvalue]`" :value="row.fkasdtvalue">
                                     </td>
                                     @if (!$isReadOnly)
@@ -274,7 +273,7 @@
                 <div class="w-full max-w-2xl">
                     <div class="rounded-lg border border-gray-200 bg-gray-50 p-4 space-y-3">
                         <div class="flex items-center justify-between gap-4">
-                            <label class="text-sm font-semibold text-gray-700">{{ 'Biaya Admin Bank' }}</label>
+                            <label class="text-sm font-semibold text-gray-700">{{ 'Biaya Admin Bank (-)' }}</label>
                             <div class="w-52">
                                 <input type="number" min="0" step="0.01" name="fbiayaadminbank" x-model="bankAdminFee"
                                     @input="recalcTotals()"

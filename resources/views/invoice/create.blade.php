@@ -2017,7 +2017,7 @@
                         frefpr: src.frefpr ?? (header?.fstockmtno ?? header?.fsono ?? ''),
                         fnouref: (src.frefdtno ?? src.fnouref ?? null),
                         frefno_display: src.frefno_display ?? header?.fstockmtno ?? header?.fsono ?? '',
-                        frefso: source === 'SO' ? (header?.fsono ?? '') : '',
+                        frefso: source === 'SO' ? (header?.fsono ?? '') : (src.frefso ?? ''),
                         frefsrj: source === 'SRJ' ? (header?.fstockmtno ?? '') : '',
                         fnoacak: this.generateUniqueNoAcak(),
                         frefnoacak: this.normalizeRefNoAcak(src.frefnoacak ?? src.fnoacak ?? ''),
@@ -2299,6 +2299,49 @@
                 }, {
                     passive: true
                 });
+
+                this.autoLoadSuratJalan();
+            },
+
+            async autoLoadSuratJalan() {
+                const suratJalanId = @json($autoLoadSuratJalanId ?? null);
+                if (!suratJalanId) return;
+
+                try {
+                    const url = @json(route('suratjalan.items', ['id' => 'SRJ_ID_PLACEHOLDER']))
+                        .replace('SRJ_ID_PLACEHOLDER', suratJalanId);
+                    const res = await fetch(url, {
+                        headers: {
+                            'X-Requested-With': 'XMLHttpRequest'
+                        }
+                    });
+
+                    if (!res.ok) {
+                        throw new Error(`Server error: ${res.status}`);
+                    }
+
+                    const json = await res.json();
+                    const items = (json.items || []).filter(src => Number(src.maxqty ?? src.fqtyremain ?? 0) > 0);
+                    if (items.length === 0) {
+                        window.toast?.warning('Semua item SRJ ini sudah habis difakturkan.');
+                        return;
+                    }
+
+                    window.applyTransactionCustomerSelection?.({
+                        fcustomercode: json.header?.fsupplier ?? json.header?.fcustno ?? '',
+                        fcustomername: json.header?.fsuppliername ?? json.header?.fcustomername ?? '',
+                    });
+
+                    this.onPrPicked({
+                        detail: {
+                            header: json.header,
+                            items: items
+                        }
+                    }, 'SRJ');
+                } catch (e) {
+                    console.error('Auto-load Surat Jalan gagal:', e);
+                    window.toast?.error(`Gagal mengambil detail Surat Jalan: ${e.message}`);
+                }
             },
 
             openBrowseFor(index) {

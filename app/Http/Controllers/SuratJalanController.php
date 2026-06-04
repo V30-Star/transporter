@@ -417,6 +417,11 @@ class SuratJalanController extends Controller
             return response()->json(['message' => 'Data SRJ belum bisa dipakai. Referensi sales order masih menunggu approval.'], 403);
         }
 
+        $header->has_so_reference = DB::table('trstockdt')
+            ->where('fstockmtno', $header->fstockmtno)
+            ->whereRaw("TRIM(COALESCE(frefso, '')) <> ''")
+            ->exists();
+
         $items = DB::table('trstockdt')
             ->where('trstockdt.fstockmtno', $header->fstockmtno)
             ->leftJoin('msprd', 'msprd.fprdcode', '=', 'trstockdt.fprdcode')
@@ -431,6 +436,7 @@ class SuratJalanController extends Controller
                 'trstockdt.fqty',
                 'trstockdt.fqtyremain',
                 'trstockdt.fdiscpersen',
+                'trstockdt.frefso',
                 'trstockdt.fsatuan',
                 'trstockdt.fprice',
                 'trstockdt.ftotprice as ftotal'
@@ -449,6 +455,11 @@ class SuratJalanController extends Controller
             'header' => $header,
             'items' => $items,
         ]);
+    }
+
+    private function canCreateInvoice(): bool
+    {
+        return in_array('createInvoice', explode(',', session('user_restricted_permissions', '')), true);
     }
 
     private function normalizeRandomNumber($value, array &$usedNumbers): string
@@ -840,6 +851,8 @@ class SuratJalanController extends Controller
         // 7) TRANSAKSI DB
         // =========================
         try {
+            $newStockMasterId = null;
+
             DB::transaction(function () use (
                 $fstockmtdate,
                 $fsupplier,
@@ -855,7 +868,8 @@ class SuratJalanController extends Controller
                 &$fstockmtno,
                 &$rowsDt,
                 $subtotal,
-                $ppnAmount
+                $ppnAmount,
+                &$newStockMasterId
             ) {
                 // ---- 7.1. kodeCabang ----
                 $kodeCabang = null;
@@ -959,9 +973,18 @@ class SuratJalanController extends Controller
 
         Log::info("SuratJalan@store: Flow penyimpanan sukses total untuk nomor [{$fstockmtno}].");
 
-        return redirect()
+        $redirect = redirect()
             ->route('suratjalan.create')
             ->with('success', 'Surat jalan ' . $this->formatDisplayTransactionNumber($fstockmtno, false) . ' berhasil disimpan.');
+
+        if (! $this->canCreateInvoice() || ! $newStockMasterId) {
+            return $redirect;
+        }
+
+        return $redirect->with('success_prompt', [
+            'type' => 'suratjalan_create_invoice',
+            'redirect_url' => route('invoice.create', ['surat_jalan_id' => $newStockMasterId]),
+        ]);
     }
 
     public function edit(Request $request, $fstockmtid)
@@ -1523,9 +1546,18 @@ class SuratJalanController extends Controller
 
         $this->syncInvoiceOutFlags(array_merge($oldInvoiceReferenceDocs, $newInvoiceReferenceDocs));
 
-        return redirect()
+        $redirect = redirect()
             ->route('suratjalan.index')
             ->with('success', 'Surat jalan ' . $this->formatDisplayTransactionNumber($fstockmtno, false) . ' berhasil diupdate.');
+
+        if (! $this->canCreateInvoice()) {
+            return $redirect;
+        }
+
+        return $redirect->with('success_prompt', [
+            'type' => 'suratjalan_create_invoice',
+            'redirect_url' => route('invoice.create', ['surat_jalan_id' => $fstockmtid]),
+        ]);
     }
 
     public function delete(Request $request, $fstockmtid)

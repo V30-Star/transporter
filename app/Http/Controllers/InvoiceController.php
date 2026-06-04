@@ -1129,6 +1129,7 @@ class InvoiceController extends Controller
             'productMap' => $productMap,
             'filterSupplierId' => $request->query('filter_supplier_id'),
             'filterSalesmanId' => $request->query('filter_salesman_id'),
+            'autoLoadSuratJalanId' => $request->query('surat_jalan_id'),
         ]);
     }
 

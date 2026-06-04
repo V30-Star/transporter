@@ -308,7 +308,7 @@
 
                                     {{-- Overlay untuk buka browser gudang --}}
                                     <div class="absolute inset-0" role="button" aria-label="{{ 'Browse Gudang' }}"
-                                        @click="window.dispatchEvent(new CustomEvent('warehouse-browse-open'))"></div>
+                                        @click="window.suratJalanWarehouseLockedFromSalesOrder && document.getElementById('warehouseCodeHidden')?.value ? window.toast?.info('Gudang tidak bisa dipilih untuk data dari Sales Order.') : window.dispatchEvent(new CustomEvent('warehouse-browse-open'))"></div>
                                 </div>
 
                                 <input type="hidden" name="ffrom" id="warehouseCodeHidden"
@@ -317,7 +317,7 @@
                                     value="{{ old('fwhid') }}">
 
                                 <button type="button"
-                                    @click="window.dispatchEvent(new CustomEvent('warehouse-browse-open'))"
+                                    @click="window.suratJalanWarehouseLockedFromSalesOrder && document.getElementById('warehouseCodeHidden')?.value ? window.toast?.info('Gudang tidak bisa dipilih untuk data dari Sales Order.') : window.dispatchEvent(new CustomEvent('warehouse-browse-open'))"
                                     class="border -ml-px px-3 py-2 bg-white hover:bg-gray-50 rounded-r-none"
                                     title="{{ 'Browse Gudang' }}">
                                     <x-heroicon-o-magnifying-glass class="w-5 h-5" />
@@ -1511,6 +1511,7 @@
                     }
 
                     const json = await res.json();
+                    window.suratJalanWarehouseLockedFromSalesOrder = true;
                     window.applyTransactionCustomerSelection?.({
                         fcustomercode: json.header?.fcustno ?? '',
                         fcustomername: json.header?.fcustomername ?? '',
@@ -1584,6 +1585,7 @@
 
 <script>
     window.PRODUCT_MAP = @json($productMap ?? []);
+    window.suratJalanWarehouseLockedFromSalesOrder = false;
 </script>
 
 @include('components.transaction.browse-customer-script')
