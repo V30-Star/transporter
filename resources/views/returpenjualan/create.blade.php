@@ -2337,7 +2337,7 @@
                         frefpr: referenceNo,
                         frefcode: source,
 
-                        frefso: (source === 'SO' || source === 'INV') ? (header?.fsono ?? '') : ((src.frefso ?? '').toString().trim()),
+                        frefso: source === 'SRJ' ? '' : ((source === 'SO' || source === 'INV') ? (header?.fsono ?? '') : ((src.frefso ?? '').toString().trim())),
                         frefsrj: source === 'SRJ' ? (header?.fstockmtno ?? '') : ((src.frefsrj ?? '').toString().trim()),
                         fnoacak: this.generateUniqueNoAcak(),
                         frefnoacak: this.normalizeRefNoAcak(src.frefnoacak ?? src.fnoacak ?? ''),

@@ -1263,12 +1263,15 @@ class InvoiceController extends Controller
 
             $refSoNo = trim((string) ($frefso[$i] ?? ''));
             $refSrjNo = trim((string) ($frefsrj[$i] ?? ''));
+            if ($refSrjNo !== '') {
+                $refSoNo = '';
+            }
 
             $refCode = '';
-            if ($refSoNo !== '') {
-                $refCode = 'S';
-            } elseif ($refSrjNo !== '') {
+            if ($refSrjNo !== '') {
                 $refCode = 'R';
+            } elseif ($refSoNo !== '') {
+                $refCode = 'S';
             }
 
             $product = $products->get($code);
@@ -1277,10 +1280,10 @@ class InvoiceController extends Controller
 
             $referenceRatio = null;
             $referenceDetail = null;
-            if ($refSoNo !== '') {
-                $referenceDetail = $this->resolveInvoiceReferenceSourceDetail('SO', $refSoNo, $code, $frefnoacaks[$i] ?? null);
-            } elseif ($refSrjNo !== '') {
+            if ($refSrjNo !== '') {
                 $referenceDetail = $this->resolveInvoiceReferenceSourceDetail('SRJ', $refSrjNo, $code, $frefnoacaks[$i] ?? null);
+            } elseif ($refSoNo !== '') {
+                $referenceDetail = $this->resolveInvoiceReferenceSourceDetail('SO', $refSoNo, $code, $frefnoacaks[$i] ?? null);
             }
             if ($referenceDetail && ! empty($referenceDetail->fsatuan)) {
                 $sat = trim((string) $referenceDetail->fsatuan);
@@ -1699,14 +1702,15 @@ class InvoiceController extends Controller
             $soRefNoAcak = $this->normalizeReferenceRandomNumbers($row['frefnosoacak'] ?? null) ?? '';
             $srjRefNoAcak = $this->normalizeReferenceRandomNumbers($row['frefnosrjacak'] ?? null) ?? '';
 
-            if ($soDocNo !== '') {
-                $key = $this->buildReferenceUsageKey($soDocNo, $productCode, $soRefNoAcak);
-                $soUsage[$key] = ($soUsage[$key] ?? 0) + $qtyKecil;
-            }
-
             if ($srjDocNo !== '') {
                 $key = $this->buildReferenceUsageKey($srjDocNo, $productCode, $srjRefNoAcak);
                 $srjUsage[$key] = ($srjUsage[$key] ?? 0) + $qtyKecil;
+                continue;
+            }
+
+            if ($soDocNo !== '') {
+                $key = $this->buildReferenceUsageKey($soDocNo, $productCode, $soRefNoAcak);
+                $soUsage[$key] = ($soUsage[$key] ?? 0) + $qtyKecil;
             }
         }
 
@@ -1739,15 +1743,6 @@ class InvoiceController extends Controller
             $productCode = trim((string) ($row->fprdcode ?? ''));
             $refCode = strtoupper(trim((string) ($row->frefcode ?? '')));
 
-            if (trim((string) ($row->frefso ?? '')) !== '') {
-                $key = $this->buildReferenceUsageKey(
-                    trim((string) ($row->frefso ?? '')),
-                    $productCode,
-                    $this->normalizeReferenceRandomNumbers($row->frefnosoacak ?? null) ?? ''
-                );
-                $soRestore[$key] = ($soRestore[$key] ?? 0) + $qtyKecil;
-            }
-
             if (trim((string) ($row->frefsrj ?? '')) !== '') {
                 $key = $this->buildReferenceUsageKey(
                     trim((string) ($row->frefsrj ?? '')),
@@ -1755,6 +1750,16 @@ class InvoiceController extends Controller
                     $this->normalizeReferenceRandomNumbers($row->frefnosrjacak ?? null) ?? ''
                 );
                 $srjRestore[$key] = ($srjRestore[$key] ?? 0) + $qtyKecil;
+                continue;
+            }
+
+            if (trim((string) ($row->frefso ?? '')) !== '') {
+                $key = $this->buildReferenceUsageKey(
+                    trim((string) ($row->frefso ?? '')),
+                    $productCode,
+                    $this->normalizeReferenceRandomNumbers($row->frefnosoacak ?? null) ?? ''
+                );
+                $soRestore[$key] = ($soRestore[$key] ?? 0) + $qtyKecil;
             }
 
             if ($refCode === 'UM' && trim((string) ($row->frefso ?? '')) === '' && trim((string) ($row->frefsrj ?? '')) === '') {
@@ -1805,24 +1810,13 @@ class InvoiceController extends Controller
                     COALESCE(d.frefnoacak::text, d.fnoacak::text, '') as ref_noacak,
                     MAX(COALESCE(p.fprdname, d.fprdcode)) as product_name,
                     MAX(COALESCE(d.fsatuan, '')) as source_unit,
-                    SUM(COALESCE(d.fqtykecil, 0)) as source_qty_kecil
+                    SUM(COALESCE(d.fqtykecil, 0)) as source_qty_kecil,
+                    SUM(COALESCE(d.fqtyremain, 0)) as remain_qty_kecil
                 ")
                 ->groupByRaw("TRIM(d.fstockmtno), TRIM(d.fprdcode), COALESCE(d.frefnoacak::text, d.fnoacak::text, '')")
                 ->get();
 
-            $usageRows = DB::table('trandt as d')
-                ->join('tranmt as h', 'h.fsono', '=', 'd.fsono')
-                ->whereIn('d.frefsrj', $docNos)
-                ->when($exceptFsono, fn($query) => $query->where('h.fsono', '<>', $exceptFsono))
-                ->selectRaw("
-                    TRIM(d.frefsrj) as ref_doc,
-                    TRIM(d.fprdcode) as product_code,
-                    COALESCE(d.frefnosrjacak::text, '') as ref_noacak,
-                    SUM(COALESCE(d.fqtykecil, 0)) as used_qty_kecil,
-                    MIN(h.fsono) as used_by_transaction
-                ")
-                ->groupByRaw("TRIM(d.frefsrj), TRIM(d.fprdcode), COALESCE(d.frefnosrjacak::text, '')")
-                ->get();
+            $usageRows = collect();
         }
 
         $stats = [];
@@ -2314,12 +2308,15 @@ class InvoiceController extends Controller
 
             $refSoNo = trim((string) ($frefso[$i] ?? ''));
             $refSrjNo = trim((string) ($frefsrj[$i] ?? ''));
+            if ($refSrjNo !== '') {
+                $refSoNo = '';
+            }
 
             $refCode = '';
-            if ($refSoNo !== '') {
-                $refCode = 'SO';
-            } elseif ($refSrjNo !== '') {
+            if ($refSrjNo !== '') {
                 $refCode = 'SRJ';
+            } elseif ($refSoNo !== '') {
+                $refCode = 'SO';
             } elseif (is_array($frefcodes) && ! empty($frefcodes[$i])) {
                 $refCode = $frefcodes[$i];
             }
@@ -2339,10 +2336,10 @@ class InvoiceController extends Controller
 
             $referenceRatio = null;
             $referenceDetail = null;
-            if ($refSoNo !== '') {
-                $referenceDetail = $this->resolveInvoiceReferenceSourceDetail('SO', $refSoNo, $code, $frefnoacaks[$i] ?? null);
-            } elseif ($refSrjNo !== '') {
+            if ($refSrjNo !== '') {
                 $referenceDetail = $this->resolveInvoiceReferenceSourceDetail('SRJ', $refSrjNo, $code, $frefnoacaks[$i] ?? null);
+            } elseif ($refSoNo !== '') {
+                $referenceDetail = $this->resolveInvoiceReferenceSourceDetail('SO', $refSoNo, $code, $frefnoacaks[$i] ?? null);
             }
             if ($referenceDetail && ! empty($referenceDetail->fsatuan)) {
                 $sat = trim((string) $referenceDetail->fsatuan);

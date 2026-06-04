@@ -3167,7 +3167,7 @@
                         fnouref: ((src.fnouref ?? docNo) ?? '').toString().trim(),
                         frefcode: source,
                         frefpr: (src.frefpr ?? header?.fdisplayref ?? header?.frefno ?? docNo ?? '').toString().trim(),
-                        frefso: (source === 'SO' || source === 'INV') ? docNo : ((src.frefso || '').toString().trim()),
+                        frefso: source === 'SRJ' ? '' : ((source === 'SO' || source === 'INV') ? docNo : ((src.frefso || '').toString().trim())),
                         frefsrj: source === 'SRJ' ? docNo : ((src.frefsrj || '').toString().trim()),
                         fnoacak: this.generateUniqueNoAcak(),
                         frefnoacak: this.normalizeRefNoAcak(src.frefnoacak ?? src.fnoacak ?? ''),

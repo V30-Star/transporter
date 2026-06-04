@@ -552,6 +552,15 @@ class ReturPenjualanController extends Controller
         ];
     }
 
+    private function sanitizeReturReferences(array &$frefso, array $frefsrj): void
+    {
+        foreach ($frefsrj as $index => $srjDocNo) {
+            if (trim((string) $srjDocNo) !== '') {
+                $frefso[$index] = '';
+            }
+        }
+    }
+
     private function resolveReturReferenceSourceDetail(string $sourceCode, string $docNo, string $productCode, $refNoAcak = null): ?object
     {
         $sourceCode = strtoupper(trim($sourceCode));
@@ -730,14 +739,6 @@ class ReturPenjualanController extends Controller
             throw $e; // tetap lempar agar Laravel handle redirect
         }
 
-        $this->ensureNoDuplicateDetailCodes(
-            $request->input('fitemcode', []),
-            $request->input('frefcode', []),
-            $request->input('frefso', []),
-            $request->input('frefsrj', []),
-            $request->input('frefnoacak', [])
-        );
-
         // 2. INISIALISASI
         $fsodate = Carbon::parse($request->fsodate);
         $this->ensureCreateDateWithinEditPeriod($fsodate);
@@ -760,8 +761,17 @@ class ReturPenjualanController extends Controller
         $frefcodes = $request->input('frefcode', []);
         $frefso = $request->input('frefso', []);
         $frefsrj = $request->input('frefsrj', []);
+        $this->sanitizeReturReferences($frefso, $frefsrj);
         $fnoacaks = $request->input('fnoacak', []);
         $frefnoacaks = $request->input('frefnoacak', []);
+
+        $this->ensureNoDuplicateDetailCodes(
+            $itemCodes,
+            $frefcodes,
+            $frefso,
+            $frefsrj,
+            $frefnoacaks
+        );
 
         if ($typeSales === 1) {
             $frefcode = 'UM';
@@ -821,6 +831,9 @@ class ReturPenjualanController extends Controller
             // --- OVERRIDE unit dari referensi (SRJ / Invoice) ---
             $refSoDoc  = trim((string) ($frefso[$i]  ?? ''));
             $refSrjDoc = trim((string) ($frefsrj[$i] ?? ''));
+            if ($refSrjDoc !== '') {
+                $refSoDoc = '';
+            }
             $refNoAcak = $this->normalizeReferenceRandomNumbers($frefnoacaks[$i] ?? null);
             $referenceRatio = null;
             $referenceDetail = null;
@@ -889,10 +902,10 @@ class ReturPenjualanController extends Controller
                 'fuserid' => $userid,
                 'fdatetime' => $now,
                 'frefcode' => 'REJ',
-                'frefso' => trim((string) ($frefso[$i] ?? '')),
-                'frefsrj' => trim((string) ($frefsrj[$i] ?? '')),
+                'frefso' => $refSoDoc,
+                'frefsrj' => $refSrjDoc,
                 'fnoacak' => $this->normalizeRandomNumber($fnoacaks[$i] ?? null, $usedNoAcaks),
-            ], $this->buildReferenceRandomNumberColumns($frefcode ?? '', $frefnoacaks[$i] ?? null));
+            ], $this->buildReferenceRandomNumberColumns($refSrjDoc !== '' ? 'SRJ' : ($frefcode ?? ''), $frefnoacaks[$i] ?? null));
 
             $stockDetailRows[] = [
                 'fprdcode' => mb_substr($code, 0, 30),
@@ -1303,6 +1316,10 @@ class ReturPenjualanController extends Controller
             $srjDocNo = trim((string) ($row['frefsrj'] ?? ''));
             $refNoAcak = $this->normalizeReferenceRandomNumbers($row['frefnoacak'] ?? null) ?? '';
 
+            if ($srjDocNo !== '') {
+                $soDocNo = '';
+            }
+
             if ($soDocNo !== '') {
                 $key = $this->buildReferenceUsageKey($soDocNo, $productCode, $refNoAcak);
                 $soUsage[$key] = ($soUsage[$key] ?? 0) + $qtyKecil;
@@ -1340,14 +1357,16 @@ class ReturPenjualanController extends Controller
 
             $productCode = trim((string) ($row->fprdcode ?? ''));
             $refNoAcak = $this->normalizeReferenceRandomNumbers($row->frefnoacak ?? null) ?? '';
+            $srjDocNo = trim((string) ($row->frefsrj ?? ''));
+            $soDocNo = $srjDocNo !== '' ? '' : trim((string) ($row->frefso ?? ''));
 
-            if (trim((string) ($row->frefso ?? '')) !== '') {
-                $key = $this->buildReferenceUsageKey(trim((string) ($row->frefso ?? '')), $productCode, $refNoAcak);
+            if ($soDocNo !== '') {
+                $key = $this->buildReferenceUsageKey($soDocNo, $productCode, $refNoAcak);
                 $soRestore[$key] = ($soRestore[$key] ?? 0) + $qtyKecil;
             }
 
-            if (trim((string) ($row->frefsrj ?? '')) !== '') {
-                $key = $this->buildReferenceUsageKey(trim((string) ($row->frefsrj ?? '')), $productCode, $refNoAcak);
+            if ($srjDocNo !== '') {
+                $key = $this->buildReferenceUsageKey($srjDocNo, $productCode, $refNoAcak);
                 $srjRestore[$key] = ($srjRestore[$key] ?? 0) + $qtyKecil;
             }
         }
@@ -1791,14 +1810,6 @@ class ReturPenjualanController extends Controller
             'frefnoacak.*' => ['nullable', 'regex:/^\d{3}$/'],
         ]);
 
-        $this->ensureNoDuplicateDetailCodes(
-            $request->input('fitemcode', []),
-            $request->input('frefcode', []),
-            $request->input('frefso', []),
-            $request->input('frefsrj', []),
-            $request->input('frefnoacak', [])
-        );
-
         // 2. LOAD HEADER
         $header = DB::table('tranmt')->where('ftranmtid', $ftranmtid)->first();
         if (! $header) {
@@ -1832,8 +1843,17 @@ class ReturPenjualanController extends Controller
         $frefcodes = $request->input('frefcode', []);   // per baris, jika array
         $frefso = $request->input('frefso', []);
         $frefsrj = $request->input('frefsrj', []);
+        $this->sanitizeReturReferences($frefso, $frefsrj);
         $fnoacaks = $request->input('fnoacak', []);
         $frefnoacaks = $request->input('frefnoacak', []);
+
+        $this->ensureNoDuplicateDetailCodes(
+            $itemCodes,
+            $frefcodes,
+            $frefso,
+            $frefsrj,
+            $frefnoacaks
+        );
 
         if ($typeSales === 1) {
             $frefcode = 'UM';
@@ -1888,6 +1908,9 @@ class ReturPenjualanController extends Controller
             // --- OVERRIDE unit dari referensi (SRJ / Invoice) ---
             $refSoDoc  = trim((string) ($frefso[$i]  ?? ''));
             $refSrjDoc = trim((string) ($frefsrj[$i] ?? ''));
+            if ($refSrjDoc !== '') {
+                $refSoDoc = '';
+            }
             $refNoAcak = $this->normalizeReferenceRandomNumbers($frefnoacaks[$i] ?? null);
             $referenceRatio = null;
             $referenceDetail = null;
@@ -1957,10 +1980,10 @@ class ReturPenjualanController extends Controller
                 'fuserid' => $userid,
                 'fdatetime' => $now,
                 'frefcode' => 'REJ',
-                'frefso' => trim((string) ($frefso[$i] ?? '')),
-                'frefsrj' => trim((string) ($frefsrj[$i] ?? '')),
+                'frefso' => $refSoDoc,
+                'frefsrj' => $refSrjDoc,
                 'fnoacak' => $this->normalizeRandomNumber($fnoacaks[$i] ?? null, $usedNoAcaks),
-            ], $this->buildReferenceRandomNumberColumns($frefcode ?? '', $frefnoacaks[$i] ?? null));
+            ], $this->buildReferenceRandomNumberColumns($refSrjDoc !== '' ? 'SRJ' : ($frefcode ?? ''), $frefnoacaks[$i] ?? null));
 
             $stockDetailRows[] = [
                 'fprdcode' => mb_substr($code, 0, 30),
