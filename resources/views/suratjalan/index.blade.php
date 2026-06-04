@@ -77,13 +77,29 @@
                     <th class="border px-2 py-1">{{ 'Cab.' }}</th>
                     <th class="border px-2 py-1">{{ 'No.Transaksi' }}</th>
                     <th class="border px-2 py-1">{{ 'Tanggal' }}</th>
-                    <th class="border px-2 py-1">{{ 'Nama Customer' }}</th>
+                    <th class="border px-2 py-1">
+                        <div class="flex items-center justify-between">
+                            <span>{{ 'Nama Customer' }}</span>
+                            <button type="button" class="col-search-btn p-1 hover:bg-gray-200 rounded" data-column="3"
+                                title="Cari Nama Customer">
+                                <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                                </svg>
+                            </button>
+                        </div>
+                        <div class="col-search-input mt-2 hidden">
+                            <input type="text"
+                                class="dt-column-search w-full px-2 py-1.5 border border-gray-300 rounded text-sm focus:outline-none focus:ring-1 focus:ring-blue-500"
+                                data-column="3" placeholder="Cari customer...">
+                        </div>
+                    </th>
                     <th class="border px-2 py-1">{{ 'No.Ref' }}</th>
                     <th class="border px-2 py-1">{{ 'SO#' }}</th>
                     <th class="border px-2 py-1">
                         <div class="flex items-center justify-between">
                             <span>{{ 'Gudang' }}</span>
-                            <button type="button" class="col-search-btn p-1 hover:bg-gray-200 rounded" data-column="5"
+                            <button type="button" class="col-search-btn p-1 hover:bg-gray-200 rounded" data-column="6"
                                 title="Cari Gudang">
                                 <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -94,7 +110,7 @@
                         <div class="col-search-input mt-2 hidden">
                             <input type="text"
                                 class="dt-column-search w-full px-2 py-1.5 border border-gray-300 rounded text-sm focus:outline-none focus:ring-1 focus:ring-blue-500"
-                                data-column="5" placeholder="Cari gudang...">
+                                data-column="6" placeholder="Cari gudang...">
                         </div>
                     </th>
                     <th class="border px-2 py-1">{{ 'User Id' }}</th>

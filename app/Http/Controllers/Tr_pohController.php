@@ -133,6 +133,19 @@ class Tr_pohController extends Controller
                 $query->whereRaw('EXTRACT(MONTH FROM tr_poh.fdatetime) = ?', [$month]);
             }
 
+            $columnSearches = collect($request->input('columns', []))
+                ->mapWithKeys(function ($column) {
+                    $name = trim((string) ($column['name'] ?? ''));
+                    $value = trim((string) data_get($column, 'search.value', ''));
+
+                    return $name !== '' ? [$name => $value] : [];
+                });
+
+            $supplierSearch = trim((string) ($columnSearches->get('fsuppliername', '')));
+            if ($supplierSearch !== '') {
+                $query->where('mssupplier.fsuppliername', 'ILIKE', "%{$supplierSearch}%");
+            }
+
             // Karena join ke child (tr_pod), gunakan groupBy agar baris tidak double di index
             $query->groupBy(
                 'tr_poh.fpohid',

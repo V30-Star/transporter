@@ -209,6 +209,11 @@ class SuratJalanController extends Controller
                 });
             }
 
+            $customerSearch = trim((string) ($columnSearches->get('fcustomername', '')));
+            if ($customerSearch !== '') {
+                $query->where('customer.fcustomername', 'ilike', "%{$customerSearch}%");
+            }
+
             // Total records setelah filter
             $filteredRecords = (clone $query)->count();
 

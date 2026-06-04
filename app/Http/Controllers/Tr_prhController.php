@@ -87,6 +87,19 @@ class Tr_prhController extends Controller
                 });
             }
 
+            $columnSearches = collect($request->input('columns', []))
+                ->mapWithKeys(function ($column) {
+                    $name = trim((string) ($column['name'] ?? ''));
+                    $value = trim((string) data_get($column, 'search.value', ''));
+
+                    return $name !== '' ? [$name => $value] : [];
+                });
+
+            $supplierSearch = trim((string) ($columnSearches->get('fsuppliername', '')));
+            if ($supplierSearch !== '') {
+                $query->where('mssupplier.fsuppliername', 'like', "%{$supplierSearch}%");
+            }
+
             $statusFilter = trim((string) $request->query('status', 'all'));
             if ($statusFilter === 'open') {
                 $query->where('tr_prh.fclose', '0')

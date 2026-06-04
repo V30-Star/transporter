@@ -688,6 +688,19 @@ class InvoiceController extends Controller
                 $query->whereRaw('EXTRACT(MONTH FROM tranmt.fsodate) = ?', [$month]);
             }
 
+            $columnSearches = collect($request->input('columns', []))
+                ->mapWithKeys(function ($column) {
+                    $name = trim((string) ($column['name'] ?? ''));
+                    $value = trim((string) data_get($column, 'search.value', ''));
+
+                    return $name !== '' ? [$name => $value] : [];
+                });
+
+            $customerSearch = trim((string) ($columnSearches->get('fcustomername', '')));
+            if ($customerSearch !== '') {
+                $query->where('cust.fcustomername', 'ilike', "%{$customerSearch}%");
+            }
+
             $filteredRecords = (clone $query)->count();
 
             $orderColIdx = (int) $request->input('order.0.column', 3);
@@ -1249,6 +1262,7 @@ class InvoiceController extends Controller
                 'fsatuanbesar2',
                 'fqtykecil',
                 'fqtykecil2',
+                'fhpp',
             ])
             ->keyBy('fprdcode');
 
@@ -1354,6 +1368,7 @@ class InvoiceController extends Controller
                 'fqty' => $qty,
                 'fqtykecil' => $qtyKecil,
                 'fqtyremain' => $qtyKecil,
+                'fhpp' => (float) ($product->fhpp ?? 0),
                 'fprice' => $price,
                 'fprice_rp' => $price * $frate,
                 'fdisc' => $discRaw,
@@ -2329,6 +2344,7 @@ class InvoiceController extends Controller
                 'fsatuanbesar2',
                 'fqtykecil',
                 'fqtykecil2',
+                'fhpp',
             ])
             ->keyBy('fprdcode');
 
@@ -2449,6 +2465,7 @@ class InvoiceController extends Controller
                 'fqty' => $qty,
                 'fqtykecil' => $qtyKecil,
                 'fqtyremain' => $qtyKecil,
+                'fhpp' => (float) ($product->fhpp ?? 0),
                 'fprice' => $price,
                 'fprice_rp' => $price * $frate,
                 'fdisc' => $discRaw,

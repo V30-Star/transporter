@@ -49,13 +49,14 @@ class PenerimaanBarangController extends Controller
             ->pluck('year');
 
         if ($request->ajax()) {
-            $query = PenerimaanPembelianHeader::where('fstockmtcode', 'TER');
+            $query = PenerimaanPembelianHeader::where('trstockmt.fstockmtcode', 'TER')
+                ->leftJoin('mssupplier as s', 's.fsuppliercode', '=', 'trstockmt.fsupplier');
             $this->applyBranchVisibilityScope($query, 'trstockmt.fbranchcode');
             $totalRecords = (clone $query)->count();
 
             if ($search = $request->input('search.value')) {
                 $query->where(function ($q) use ($search) {
-                    $q->where('fstockmtno', 'like', "%{$search}%")
+                    $q->where('trstockmt.fstockmtno', 'like', "%{$search}%")
                         ->orWhereExists(function ($sub) use ($search) {
                             $sub->select(DB::raw(1))
                                 ->from('trstockdt')
@@ -65,10 +66,23 @@ class PenerimaanBarangController extends Controller
                 });
             }
             if ($year) {
-                $query->whereRaw('EXTRACT(YEAR FROM fdatetime) = ?', [$year]);
+                $query->whereRaw('EXTRACT(YEAR FROM trstockmt.fdatetime) = ?', [$year]);
             }
             if ($month) {
-                $query->whereRaw('EXTRACT(MONTH FROM fdatetime) = ?', [$month]);
+                $query->whereRaw('EXTRACT(MONTH FROM trstockmt.fdatetime) = ?', [$month]);
+            }
+
+            $columnSearches = collect($request->input('columns', []))
+                ->mapWithKeys(function ($column) {
+                    $name = trim((string) ($column['name'] ?? ''));
+                    $value = trim((string) data_get($column, 'search.value', ''));
+
+                    return $name !== '' ? [$name => $value] : [];
+                });
+
+            $supplierSearch = trim((string) ($columnSearches->get('fsuppliername', '')));
+            if ($supplierSearch !== '') {
+                $query->where('s.fsuppliername', 'ilike', "%{$supplierSearch}%");
             }
 
             $filteredRecords = (clone $query)->count();
@@ -77,24 +91,34 @@ class PenerimaanBarangController extends Controller
             $orderDir = $request->input('order.0.dir', 'desc');
 
             $sortableColumns = [
-                'fstockmtno',
-                'fstockmtdate',
-                'fstockmtdate',
-                'fstockmtdate',
-                'fket',
-                'fstockmtdate',
-                'famountmt',
+                'trstockmt.fstockmtno',
+                'trstockmt.fstockmtdate',
+                'trstockmt.fstockmtdate',
+                'trstockmt.fstockmtdate',
+                'trstockmt.fket',
+                'trstockmt.fstockmtdate',
+                'trstockmt.famountmt',
             ];
 
             if (isset($sortableColumns[$orderColIdx])) {
                 $query->orderBy($sortableColumns[$orderColIdx], $orderDir);
             } else {
-                $query->orderBy('fstockmtid', 'desc');
+                $query->orderBy('trstockmt.fstockmtid', 'desc');
             }
 
             $start = $request->input('start', 0);
             $length = $request->input('length', 10);
-            $records = $query->skip($start)->take($length)->get(['fstockmtid', 'fstockmtno', 'fstockmtdate', 'ffrom', 'fsupplier', 'fket', 'famountmt', 'fbranchcode', 'fusercreate']);
+            $records = $query->skip($start)->take($length)->get([
+                'trstockmt.fstockmtid', 
+                'trstockmt.fstockmtno', 
+                'trstockmt.fstockmtdate', 
+                'trstockmt.ffrom', 
+                'trstockmt.fsupplier', 
+                'trstockmt.fket', 
+                'trstockmt.famountmt', 
+                'trstockmt.fbranchcode', 
+                'trstockmt.fusercreate'
+            ]);
 
             $supplierCodes = $records->pluck('fsupplier')->filter()->unique();
             $suppliers = DB::table('mssupplier')->whereIn('fsuppliercode', $supplierCodes)->pluck('fsuppliername', 'fsuppliercode');

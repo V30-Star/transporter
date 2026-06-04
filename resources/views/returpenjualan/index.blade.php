@@ -82,7 +82,23 @@
                     <th class="border px-2 py-1">Tanggal</th>
                     <th class="border px-2 py-1">No.Ref</th>
                     <th class="border px-2 py-1">Customer #</th>
-                    <th class="border px-2 py-1">Nama Customer</th>
+                    <th class="border px-2 py-1">
+                        <div class="flex items-center justify-between">
+                            <span>Nama Customer</span>
+                            <button type="button" class="col-search-btn p-1 hover:bg-gray-200 rounded" data-column="5"
+                                title="Cari Nama Customer">
+                                <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                                </svg>
+                            </button>
+                        </div>
+                        <div class="col-search-input mt-2 hidden">
+                            <input type="text"
+                                class="dt-column-search w-full px-2 py-1.5 border border-gray-300 rounded text-sm focus:outline-none focus:ring-1 focus:ring-blue-500"
+                                data-column="5" placeholder="Cari customer...">
+                        </div>
+                    </th>
                     <th class="border px-2 py-1">Nilai Retur</th>
                     <th class="border px-2 py-1">Keterangan</th>
                     <th class="border px-2 py-1">User Id</th>
@@ -298,6 +314,7 @@
             const canView = {{ $canView ? 'true' : 'false' }};
             const canEdit = {{ $canEdit ? 'true' : 'false' }};
             const canDelete = {{ $canDelete ? 'true' : 'false' }};
+            let activeColumnSearch = null;
 
             // 1. Definisi Kolom
             // 1. Definisi Kolom
@@ -549,6 +566,70 @@
 
                         window.history.pushState({}, '', url.toString());
                     }
+
+                    const $container = $(api.table().container());
+
+                    function hasColumnSearchValue(columnIndex) {
+                        const $input = $container.find(
+                            `.dt-column-search[data-column="${columnIndex}"]`);
+                        return ($input.val() || '').trim() !== '';
+                    }
+
+                    function syncColumnSearchVisibility() {
+                        $container.find('.col-search-input').each(function() {
+                            const $wrapper = $(this);
+                            const $input = $wrapper.find('.dt-column-search');
+                            const columnIndex = Number($input.data('column'));
+                            const shouldShow = activeColumnSearch === columnIndex ||
+                                hasColumnSearchValue(
+                                    columnIndex);
+                            $wrapper.toggleClass('hidden', !shouldShow);
+                        });
+                    }
+
+                    $container.on('click', '.col-search-btn', function(e) {
+                        e.stopPropagation();
+                        const columnIndex = Number($(this).data('column'));
+                        const $th = $(this).closest('th');
+                        const $searchInputWrap = $th.find('.col-search-input');
+
+                        if (activeColumnSearch === columnIndex && !$searchInputWrap.hasClass(
+                                'hidden')) {
+                            activeColumnSearch = null;
+                            syncColumnSearchVisibility();
+                            return;
+                        }
+
+                        activeColumnSearch = columnIndex;
+                        syncColumnSearchVisibility();
+
+                        if (!$searchInputWrap.hasClass('hidden')) {
+                            $searchInputWrap.find('input').focus();
+                        }
+                    });
+
+                    $container.on('input', '.dt-column-search', function() {
+                        const columnIndex = Number($(this).data('column'));
+                        const searchValue = $(this).val();
+                        api.column(columnIndex).search(searchValue).draw();
+                    });
+
+                    $(document).on('click.returpenjualan-column-search', function(e) {
+                        if (!$(e.target).closest('.col-search-btn').length && !$(e.target)
+                            .closest(
+                                '.col-search-input').length) {
+                            if (activeColumnSearch !== null && hasColumnSearchValue(
+                                    activeColumnSearch)) {
+                                syncColumnSearchVisibility();
+                                return;
+                            }
+
+                            activeColumnSearch = null;
+                            syncColumnSearchVisibility();
+                        }
+                    });
+
+                    syncColumnSearchVisibility();
                 }
             });
         });

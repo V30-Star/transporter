@@ -200,6 +200,19 @@ class ReturPenjualanController extends Controller
                 $query->whereRaw('EXTRACT(MONTH FROM tranmt.fsodate) = ?', [$month]);
             }
 
+            $columnSearches = collect($request->input('columns', []))
+                ->mapWithKeys(function ($column) {
+                    $name = trim((string) ($column['name'] ?? ''));
+                    $value = trim((string) data_get($column, 'search.value', ''));
+
+                    return $name !== '' ? [$name => $value] : [];
+                });
+
+            $customerSearch = trim((string) ($columnSearches->get('fcustomername', '')));
+            if ($customerSearch !== '') {
+                $query->where('c.fcustomername', 'ilike', "%{$customerSearch}%");
+            }
+
             $filteredRecords = (clone $query)->count();
 
             $orderColIdx = $request->input('order.0.column', 0);
@@ -576,22 +589,18 @@ class ReturPenjualanController extends Controller
             return DB::table('trstockdt')
                 ->where('fstockmtno', $docNo)
                 ->where('fprdcode', $productCode)
-                ->when($normalizedRefNoAcak !== null, fn ($query) => $query->where(function ($q) use ($normalizedRefNoAcak) {
-                    $q->whereRaw("COALESCE(frefnoacak::text, fnoacak::text, '') = ?", [$normalizedRefNoAcak]);
-                }))
+                ->when($normalizedRefNoAcak !== null, fn ($query) => $query->where('fnoacak', $normalizedRefNoAcak))
                 ->orderBy('fstockdtid')
-                ->first(['fsatuan', 'fqty', 'fqtykecil']);
+                ->first(['fsatuan', 'fqty', 'fqtykecil', 'fnoacak']);
         }
 
         if (in_array($sourceCode, ['S', 'SO', 'INV'], true)) {
             return DB::table('trandt')
                 ->where('fsono', $docNo)
                 ->where('fprdcode', $productCode)
-                ->when($normalizedRefNoAcak !== null, fn ($query) => $query->where(function ($q) use ($normalizedRefNoAcak) {
-                    $q->whereRaw("COALESCE(frefnoacak::text, fnoacak::text, '') = ?", [$normalizedRefNoAcak]);
-                }))
+                ->when($normalizedRefNoAcak !== null, fn ($query) => $query->where('fnoacak', $normalizedRefNoAcak))
                 ->orderBy('ftrandtid')
-                ->first(['fsatuan', 'fqty', 'fqtykecil']);
+                ->first(['fsatuan', 'fqty', 'fqtykecil', 'fnoacak']);
         }
 
         return null;
@@ -743,6 +752,8 @@ class ReturPenjualanController extends Controller
         $fsodate = Carbon::parse($request->fsodate);
         $this->ensureCreateDateWithinEditPeriod($fsodate);
         $fincludeppn = $request->boolean('fincludeppn') ? '1' : '0';
+        $fapplyppn = $request->input('fapplyppn', '0');
+        $ppnPersen = (float) $request->input('fppnpersen', 11);
         $userid = mb_substr(auth('sysuser')->user()->fname ?? 'admin', 0, 10);
         $now = now();
         $fcurrency = $request->input('fcurrency', 'IDR');
@@ -811,6 +822,7 @@ class ReturPenjualanController extends Controller
         $detailRows = [];
         $totalGross = 0;
         $totalDisc = 0;
+        $totalSalesNet = 0.0;
         $nouCounter = 1;
         $usedNoAcaks = [];
 
@@ -829,11 +841,6 @@ class ReturPenjualanController extends Controller
             }
 
             // --- OVERRIDE unit dari referensi (SRJ / Invoice) ---
-            $refSoDoc  = trim((string) ($frefso[$i]  ?? ''));
-            $refSrjDoc = trim((string) ($frefsrj[$i] ?? ''));
-            if ($refSrjDoc !== '') {
-                $refSoDoc = '';
-            }
             $refNoAcak = $this->normalizeReferenceRandomNumbers($frefnoacaks[$i] ?? null);
             $referenceRatio = null;
             $referenceDetail = null;
@@ -841,6 +848,9 @@ class ReturPenjualanController extends Controller
                 $referenceDetail = $this->resolveReturReferenceSourceDetail('SRJ', $refSrjDoc, $code, $frefnoacaks[$i] ?? null);
             } elseif ($refSoDoc !== '') {
                 $referenceDetail = $this->resolveReturReferenceSourceDetail('INV', $refSoDoc, $code, $frefnoacaks[$i] ?? null);
+            }
+            if ($referenceDetail && ! empty($referenceDetail->fnoacak)) {
+                $refNoAcak = trim((string) $referenceDetail->fnoacak);
             }
             if ($referenceDetail && trim((string) ($referenceDetail->fsatuan ?? '')) !== '') {
                 $satuans[$i] = trim((string) $referenceDetail->fsatuan);
@@ -878,11 +888,18 @@ class ReturPenjualanController extends Controller
             $discPersen = $this->parseDiscount($discRaw);
             $subtotal = $qty * $price;
             $discAmount = $subtotal * ($discPersen / 100);
-            $netPrice = $price * (1 - $discPersen / 100);
+            $netPrice = $price - ($price * ($discPersen / 100));
             $amountRow = $subtotal - $discAmount;
 
             $totalGross += $subtotal;
             $totalDisc += $discAmount;
+
+            if ($fincludeppn == 1 && $fapplyppn == 1) {
+                $fsalesnet = (100 / (100 + $ppnPersen)) * $netPrice;
+            } else {
+                $fsalesnet = $netPrice;
+            }
+            $totalSalesNet += $qty * $fsalesnet;
 
             $detailRows[] = array_merge([
                 'fnou' => $nouCounter,
@@ -896,6 +913,7 @@ class ReturPenjualanController extends Controller
                 'fdisc' => $discRaw,
                 'fpricenet' => $netPrice,
                 'fpricenet_rp' => $netPrice * $frate,
+                'fsalesnet' => $fsalesnet,
                 'famount' => $amountRow,
                 'famount_rp' => $amountRow * $frate,
                 'fsatuan' => mb_substr($satuans[$i] ?? '', 0, 5),
@@ -905,7 +923,7 @@ class ReturPenjualanController extends Controller
                 'frefso' => $refSoDoc,
                 'frefsrj' => $refSrjDoc,
                 'fnoacak' => $this->normalizeRandomNumber($fnoacaks[$i] ?? null, $usedNoAcaks),
-            ], $this->buildReferenceRandomNumberColumns($refSrjDoc !== '' ? 'SRJ' : ($frefcode ?? ''), $frefnoacaks[$i] ?? null));
+            ], $this->buildReferenceRandomNumberColumns($refSrjDoc !== '' ? 'SRJ' : ($frefcode ?? ''), $refNoAcak));
 
             $stockDetailRows[] = [
                 'fprdcode' => mb_substr($code, 0, 30),
@@ -976,7 +994,8 @@ class ReturPenjualanController extends Controller
                 $ppnPersen,
                 $typeSales,
                 $fapplyppn,
-                &$savedFsono
+                &$savedFsono,
+                $totalSalesNet
             ) {
 
                 $fsono = $request->input('fsono');
@@ -1015,6 +1034,7 @@ class ReturPenjualanController extends Controller
                     'famountpajak_rp' => $ppnAmount * $frate,
                     'famountso' => $grandTotal,
                     'famountso_rp' => $grandTotal * $frate,
+                    'ftotalsalesnet' => $totalSalesNet,
                     'famountremain' => $grandTotal,
                     'famountremain_rp' => $grandTotal * $frate,
                     'fket' => $request->fket ?? '',
@@ -1413,13 +1433,13 @@ class ReturPenjualanController extends Controller
                 ->selectRaw("
                     TRIM(d.fstockmtno) as ref_doc,
                     TRIM(d.fprdcode) as product_code,
-                    COALESCE(d.frefnoacak::text, d.fnoacak::text, '') as ref_noacak,
+                    COALESCE(d.fnoacak::text, '') as ref_noacak,
                     MAX(COALESCE(p.fprdname, d.fprdcode)) as product_name,
                     MAX(COALESCE(d.fsatuan, '')) as source_unit,
                     SUM(COALESCE(d.fqtykecil, 0)) as source_qty_kecil,
                     SUM(COALESCE(d.fqtyremain, 0)) as remain_qty_kecil
                 ")
-                ->groupByRaw("TRIM(d.fstockmtno), TRIM(d.fprdcode), COALESCE(d.frefnoacak::text, d.fnoacak::text, '')")
+                ->groupByRaw("TRIM(d.fstockmtno), TRIM(d.fprdcode), COALESCE(d.fnoacak::text, '')")
                 ->get();
 
             $usageRows = collect();
@@ -1506,7 +1526,7 @@ class ReturPenjualanController extends Controller
                     COALESCE(d.fqtykecil, 0) as source_qty_kecil,
                     TRIM(d.fstockmtno) as ref_doc,
                     TRIM(d.fprdcode) as product_code,
-                    COALESCE(d.frefnoacak::text, d.fnoacak::text, '') as ref_noacak
+                    COALESCE(d.fnoacak::text, '') as ref_noacak
                 ")
                 ->get();
 
@@ -1828,6 +1848,8 @@ class ReturPenjualanController extends Controller
         $fsodate = Carbon::parse($request->fsodate);
         $this->ensureCreateDateWithinEditPeriod($fsodate, $header->fsodate);
         $fincludeppn = $request->boolean('fincludeppn') ? '1' : '0';
+        $fapplyppn = $request->input('fapplyppn', '0');
+        $ppnPersen = (float) $request->input('fppnpersen', 11);
         $userid = mb_substr(auth('sysuser')->user()->fname ?? 'admin', 0, 10);
         $now = now();
         $frate = (float) $request->input('frate', $header->frate ?? 1);
@@ -1880,6 +1902,7 @@ class ReturPenjualanController extends Controller
         $detailRows = [];
         $totalGross = 0;
         $totalDisc = 0;
+        $totalSalesNet = 0.0;
         $usedNoAcaks = [];
 
         $hasUM = in_array('UM', $itemCodes);
@@ -1906,11 +1929,6 @@ class ReturPenjualanController extends Controller
             $product = $products->get($code);
 
             // --- OVERRIDE unit dari referensi (SRJ / Invoice) ---
-            $refSoDoc  = trim((string) ($frefso[$i]  ?? ''));
-            $refSrjDoc = trim((string) ($frefsrj[$i] ?? ''));
-            if ($refSrjDoc !== '') {
-                $refSoDoc = '';
-            }
             $refNoAcak = $this->normalizeReferenceRandomNumbers($frefnoacaks[$i] ?? null);
             $referenceRatio = null;
             $referenceDetail = null;
@@ -1918,6 +1936,9 @@ class ReturPenjualanController extends Controller
                 $referenceDetail = $this->resolveReturReferenceSourceDetail('SRJ', $refSrjDoc, $code, $frefnoacaks[$i] ?? null);
             } elseif ($refSoDoc !== '') {
                 $referenceDetail = $this->resolveReturReferenceSourceDetail('INV', $refSoDoc, $code, $frefnoacaks[$i] ?? null);
+            }
+            if ($referenceDetail && ! empty($referenceDetail->fnoacak)) {
+                $refNoAcak = trim((string) $referenceDetail->fnoacak);
             }
             if ($referenceDetail && trim((string) ($referenceDetail->fsatuan ?? '')) !== '') {
                 $satuans[$i] = trim((string) $referenceDetail->fsatuan);
@@ -1961,6 +1982,13 @@ class ReturPenjualanController extends Controller
             $totalGross += $subtotal;
             $totalDisc += $discAmount;
 
+            if ($fincludeppn == 1 && $fapplyppn == 1) {
+                $fsalesnet = (100 / (100 + $ppnPersen)) * $netPrice;
+            } else {
+                $fsalesnet = $netPrice;
+            }
+            $totalSalesNet += $qty * $fsalesnet;
+
             $detailRows[] = array_merge([
                 'fsono' => $header->fsono,
                 'fnou' => $i + 1,
@@ -1974,6 +2002,7 @@ class ReturPenjualanController extends Controller
                 'fdisc' => $discRaw,
                 'fpricenet' => $netPrice,
                 'fpricenet_rp' => $netPrice * $frate,
+                'fsalesnet' => $fsalesnet,
                 'famount' => $amountRow,
                 'famount_rp' => $amountRow * $frate,
                 'fsatuan' => mb_substr($satuans[$i] ?? '', 0, 5),
@@ -1983,7 +2012,7 @@ class ReturPenjualanController extends Controller
                 'frefso' => $refSoDoc,
                 'frefsrj' => $refSrjDoc,
                 'fnoacak' => $this->normalizeRandomNumber($fnoacaks[$i] ?? null, $usedNoAcaks),
-            ], $this->buildReferenceRandomNumberColumns($refSrjDoc !== '' ? 'SRJ' : ($frefcode ?? ''), $frefnoacaks[$i] ?? null));
+            ], $this->buildReferenceRandomNumberColumns($refSrjDoc !== '' ? 'SRJ' : ($frefcode ?? ''), $refNoAcak));
 
             $stockDetailRows[] = [
                 'fprdcode' => mb_substr($code, 0, 30),
@@ -2058,7 +2087,8 @@ class ReturPenjualanController extends Controller
                 $grandTotal,
                 $frate,
                 $ppnPersen,
-                $fapplyppn
+                $fapplyppn,
+                $totalSalesNet
             ) {
                 // Update Header (tranmt)
                 DB::table('tranmt')->where('ftranmtid', $ftranmtid)->update([
@@ -2075,6 +2105,7 @@ class ReturPenjualanController extends Controller
                     'famountpajak_rp' => $ppnAmount * $frate,
                     'famountso' => $grandTotal,
                     'famountso_rp' => $grandTotal * $frate,
+                    'ftotalsalesnet' => $totalSalesNet,
                     'fket' => $request->fket ?? '',
                     'fuserid' => $userid,
                     'fdatetime' => $now,
