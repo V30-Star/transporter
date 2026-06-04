@@ -937,12 +937,14 @@ class InvoiceController extends Controller
             return [
                 'frefnosoacak' => $normalized,
                 'frefnosrjacak' => $normalized,
+                'frefnoacak' => $normalized,
             ];
         }
 
         return [
             'frefnosoacak' => null,
             'frefnosrjacak' => null,
+            'frefnoacak' => null,
         ];
     }
 
@@ -985,7 +987,7 @@ class InvoiceController extends Controller
                     });
                 })
                 ->orderBy('fstockdtid')
-                ->first(['fsatuan', 'fqty', 'fqtykecil']);
+                ->first(['fsatuan', 'fqty', 'fqtykecil', 'frefso']);
         }
 
         return null;
@@ -1263,7 +1265,7 @@ class InvoiceController extends Controller
             $refSoNo = trim((string) ($frefso[$i] ?? ''));
             $refSrjNo = trim((string) ($frefsrj[$i] ?? ''));
             if ($refSrjNo !== '') {
-                $refSoNo = $refSrjNo;
+                $refSoNo = ''; // Will resolve from trstockdt later
             } elseif ($refSoNo !== '') {
                 $refSrjNo = $refSoNo;
             }
@@ -1278,6 +1280,8 @@ class InvoiceController extends Controller
             }
             $refCode = $frefcodeVal;
 
+            $fnoacakVal = $this->normalizeRandomNumber($fnoacaks[$i] ?? null, $usedNoAcaks);
+
             $product = $products->get($code);
 
             $sat = trim((string) ($satuans[$i] ?? ''));
@@ -1286,6 +1290,11 @@ class InvoiceController extends Controller
             $referenceDetail = null;
             if ($refSrjNo !== '') {
                 $referenceDetail = $this->resolveInvoiceReferenceSourceDetail('SRJ', $refSrjNo, $code, $frefnoacaks[$i] ?? null);
+                if ($referenceDetail && ! empty($referenceDetail->frefso)) {
+                    $refSoNo = trim((string) $referenceDetail->frefso);
+                } else {
+                    $refSoNo = '';
+                }
             } elseif ($refSoNo !== '') {
                 $referenceDetail = $this->resolveInvoiceReferenceSourceDetail('SO', $refSoNo, $code, $frefnoacaks[$i] ?? null);
             }
@@ -1329,7 +1338,7 @@ class InvoiceController extends Controller
             $totalGross += $subtotal;
             $totalDisc += $discAmount;
 
-            if ($fapplyppn == 1) {
+            if ($fincludeppn == 1 && $fapplyppn == 1) {
                 $fsalesnet = (100 / (100 + $ppnPersen)) * $netPrice;
             } else {
                 $fsalesnet = $netPrice;
@@ -1357,7 +1366,7 @@ class InvoiceController extends Controller
                 'frefcode' => $refCode,
                 'frefso'  => $refSoNo,
                 'frefsrj' => $refSrjNo,
-                'fnoacak' => $this->normalizeRandomNumber($fnoacaks[$i] ?? null, $usedNoAcaks),
+                'fnoacak' => $fnoacakVal,
             ], $this->buildReferenceRandomNumberColumns($refCode, $frefnoacaks[$i] ?? null));
         }
 
@@ -2033,7 +2042,7 @@ class InvoiceController extends Controller
                 'frefso' => trim($d->frefso ?? ''),
                 'frefsrj' => trim($d->frefsrj ?? ''),
                 'fnoacak' => (string) ($d->fnoacak ?? ''),
-                'frefnoacak' => (string) ($d->frefnosoacak ?? $d->frefnosrjacak ?? ''),
+                'frefnoacak' => (string) ($d->frefnoacak ?? ''),
                 'frefno_display' => $refNoDisplay,
                 'fqty' => (float) ($d->fqty ?? 0),
                 'fterima' => (float) ($d->fterima ?? 0),
@@ -2147,7 +2156,7 @@ class InvoiceController extends Controller
                 'fdesc' => (string) ($d->fdesc ?? ''),
                 'frefcode' => (string) ($d->frefcode ?? ''),
                 'fnoacak' => (string) ($d->fnoacak ?? ''),
-                'frefnoacak' => (string) ($d->frefnosoacak ?? $d->frefnosrjacak ?? ''),
+                'frefnoacak' => (string) ($d->frefnoacak ?? ''),
                 'frefno_display' => $refNoDisplay,
                 'fketdt' => (string) ($d->fketdt ?? ''),
                 'fqtyterinvoice' => (float) ($summary['fqtyterinvoice'] ?? 0),
@@ -2274,6 +2283,7 @@ class InvoiceController extends Controller
         $userid = mb_substr(auth('sysuser')->user()->fname ?? 'admin', 0, 10);
         $now = now();
         $frate = (float) $request->input('frate', $header->frate ?? 1);
+        $ppnPersen = (float) $request->input('fppnpersen', 11);
         $fkodefp = trim((string) $request->input('fkodefp', ''));
         if ($fkodefp === '') {
             $fkodefp = (string) ($this->getCustomerTaxCode((string) $request->input('fcustno', '')) ?? '');
@@ -2331,7 +2341,7 @@ class InvoiceController extends Controller
             $refSoNo = trim((string) ($frefso[$i] ?? ''));
             $refSrjNo = trim((string) ($frefsrj[$i] ?? ''));
             if ($refSrjNo !== '') {
-                $refSoNo = $refSoNo;
+                $refSoNo = ''; // Will resolve from trstockdt later
             } elseif ($refSoNo !== '') {
                 $refSrjNo = $refSoNo;
             }
@@ -2347,6 +2357,8 @@ class InvoiceController extends Controller
                 $frefcodeVal = $frefcodes[$i];
             }
             $refCode = $frefcodeVal;
+
+            $fnoacakVal = $this->normalizeRandomNumber($fnoacaks[$i] ?? null, $usedNoAcaks);
             $product = $products->get($code);
 
             if (! $product) {
@@ -2365,6 +2377,11 @@ class InvoiceController extends Controller
             $referenceDetail = null;
             if ($refSrjNo !== '') {
                 $referenceDetail = $this->resolveInvoiceReferenceSourceDetail('SRJ', $refSrjNo, $code, $frefnoacaks[$i] ?? null);
+                if ($referenceDetail && ! empty($referenceDetail->frefso)) {
+                    $refSoNo = trim((string) $referenceDetail->frefso);
+                } else {
+                    $refSoNo = '';
+                }
             } elseif ($refSoNo !== '') {
                 $referenceDetail = $this->resolveInvoiceReferenceSourceDetail('SO', $refSoNo, $code, $frefnoacaks[$i] ?? null);
             }
@@ -2406,6 +2423,12 @@ class InvoiceController extends Controller
             $netPrice = $price - ($price * ($discPersen / 100));
             $amountRow = $subtotal - $discAmount;
 
+            if ($fapplyppn == 1) {
+                $fsalesnet = (100 / (100 + $ppnPersen)) * $netPrice;
+            } else {
+                $fsalesnet = $netPrice;
+            }
+
             $totalGross += $subtotal;
             $totalDisc += $discAmount;
 
@@ -2422,6 +2445,7 @@ class InvoiceController extends Controller
                 'fdisc' => $discRaw,
                 'fpricenet' => $netPrice,
                 'fpricenet_rp' => $netPrice * $frate,
+                'fsalesnet' => $fsalesnet,
                 'famount' => $amountRow,
                 'famount_rp' => $amountRow * $frate,
                 'fsatuan' => mb_substr($sat, 0, 5),
@@ -2430,7 +2454,7 @@ class InvoiceController extends Controller
                 'frefcode' => $refCode,
                 'frefso' => $refSoNo,
                 'frefsrj' => $refSrjNo,
-                'fnoacak' => $this->normalizeRandomNumber($fnoacaks[$i] ?? null, $usedNoAcaks),
+                'fnoacak' => $fnoacakVal,
             ], $this->buildReferenceRandomNumberColumns($refCode, $frefnoacaks[$i] ?? null));
 
             $detailRows[] = $rowData;
@@ -2650,7 +2674,7 @@ class InvoiceController extends Controller
                 'fdesc' => (string) ($d->fdesc ?? ''),
                 'frefcode' => (string) ($d->frefcode ?? ''),
                 'fnoacak' => (string) ($d->fnoacak ?? ''),
-                'frefnoacak' => (string) ($d->frefnosoacak ?? $d->frefnosrjacak ?? ''),
+                'frefnoacak' => (string) ($d->frefnoacak ?? ''),
                 'frefno_display' => $refNoDisplay,
                 'fketdt' => (string) ($d->fketdt ?? ''),
                 'fqtyterinvoice' => (float) ($summary['fqtyterinvoice'] ?? 0),

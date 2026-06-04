@@ -2736,7 +2736,7 @@
                         frefno_display: refNo || src.frefcode || '',
                         frefcode: src.frefcode || '',
                         frefpr: refNo,
-                        frefso: source === 'SO' ? (header?.fsono ?? '') : '',
+                        frefso: source === 'SO' ? (header?.fsono ?? '') : (src.frefso ?? ''),
                         frefsrj: source === 'SRJ' ? (header?.fstockmtno ?? '') : '',
                         fnoacak: this.generateUniqueNoAcak(),
                         frefnoacak: this.normalizeRefNoAcak(src.frefnoacak ?? src.fnoacak ?? ''),
