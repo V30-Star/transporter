@@ -2124,46 +2124,31 @@ class SalesOrderController extends Controller
             ->orderBy('mt.fsono')
             ->pluck('mt.fsono');
 
-        $parts = [];
-        if ($usedBySrj->isNotEmpty()) {
-            $parts[] = 'Surat Jalan: ' . $usedBySrj->implode(', ');
-        }
-
         $usedByInvoice = $usedBySalesDocs->filter(fn($no) => str_starts_with((string) $no, 'INV.'));
-        if ($usedByInvoice->isNotEmpty()) {
-            $parts[] = 'Faktur Penjualan: ' . $usedByInvoice->implode(', ');
-        }
-
         $usedByRetur = $usedBySalesDocs->filter(fn($no) => str_starts_with((string) $no, 'REJ.'));
-        if ($usedByRetur->isNotEmpty()) {
-            $parts[] = 'Retur Penjualan: ' . $usedByRetur->implode(', ');
-        }
 
-        if (empty($parts)) {
+        if ($usedBySrj->isEmpty() && $usedByInvoice->isEmpty() && $usedByRetur->isEmpty()) {
             return null;
         }
 
-        $formattedParts = [];
-
+        $formattedLines = [];
         if ($usedBySrj->isNotEmpty()) {
-            $formattedParts[] = '  SRJ: ' . $usedBySrj
-                ->map(fn($number) => $this->formatDisplayTransactionNumber((string) $number, false))
-                ->implode(', ');
+            foreach ($usedBySrj as $number) {
+                $formattedLines[] = '      ' . $this->formatDisplayTransactionNumber((string) $number, false);
+            }
         }
-
         if ($usedByInvoice->isNotEmpty()) {
-            $formattedParts[] = '  Faktur Penjualan: ' . $usedByInvoice
-                ->map(fn($number) => $this->formatDisplayTransactionNumber((string) $number, false))
-                ->implode(', ');
+            foreach ($usedByInvoice as $number) {
+                $formattedLines[] = '      ' . $this->formatDisplayTransactionNumber((string) $number, false);
+            }
         }
-
         if ($usedByRetur->isNotEmpty()) {
-            $formattedParts[] = '  Retur Penjualan: ' . $usedByRetur
-                ->map(fn($number) => $this->formatDisplayTransactionNumber((string) $number, false))
-                ->implode(', ');
+            foreach ($usedByRetur as $number) {
+                $formattedLines[] = '      ' . $this->formatDisplayTransactionNumber((string) $number, false);
+            }
         }
 
-        return "SO ini tidak boleh diedit/delete.\nSudah direferensi di :\n" . implode("\n", $formattedParts);
+        return "SO ini tidak boleh diedit/delete.\n    Sudah direferensi di :\n" . implode("\n", $formattedLines);
     }
 
     private function resolveSalesmanCode($primaryValue, $fallbackValue = null): ?string
