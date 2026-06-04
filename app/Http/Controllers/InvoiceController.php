@@ -981,13 +981,10 @@ class InvoiceController extends Controller
                 ->where('fstockmtno', $docNo)
                 ->where('fprdcode', $productCode)
                 ->when($normalizedRefNoAcak !== null, function ($query) use ($normalizedRefNoAcak) {
-                    $query->where(function ($q) use ($normalizedRefNoAcak) {
-                        $q->where('fnoacak', $normalizedRefNoAcak)
-                            ->orWhere('frefnoacak', $normalizedRefNoAcak);
-                    });
+                    $query->where('fnoacak', $normalizedRefNoAcak);
                 })
                 ->orderBy('fstockdtid')
-                ->first(['fsatuan', 'fqty', 'fqtykecil', 'frefso']);
+                ->first(['fsatuan', 'fqty', 'fqtykecil', 'frefso', 'fnoacak']);
         }
 
         return null;
@@ -1255,6 +1252,7 @@ class InvoiceController extends Controller
             ])
             ->keyBy('fprdcode');
 
+        $totalSalesNet = 0.0;
         foreach ($itemCodes as $i => $code) {
             $qty = (float) ($qtys[$i] ?? 0);
             $price = (float) ($prices[$i] ?? 0);
@@ -1288,12 +1286,16 @@ class InvoiceController extends Controller
 
             $referenceRatio = null;
             $referenceDetail = null;
+            $frefnoacakVal = $frefnoacaks[$i] ?? null;
             if ($refSrjNo !== '') {
                 $referenceDetail = $this->resolveInvoiceReferenceSourceDetail('SRJ', $refSrjNo, $code, $frefnoacaks[$i] ?? null);
                 if ($referenceDetail && ! empty($referenceDetail->frefso)) {
                     $refSoNo = trim((string) $referenceDetail->frefso);
                 } else {
                     $refSoNo = '';
+                }
+                if ($referenceDetail && ! empty($referenceDetail->fnoacak)) {
+                    $frefnoacakVal = trim((string) $referenceDetail->fnoacak);
                 }
             } elseif ($refSoNo !== '') {
                 $referenceDetail = $this->resolveInvoiceReferenceSourceDetail('SO', $refSoNo, $code, $frefnoacaks[$i] ?? null);
@@ -1367,7 +1369,7 @@ class InvoiceController extends Controller
                 'frefso'  => $refSoNo,
                 'frefsrj' => $refSrjNo,
                 'fnoacak' => $fnoacakVal,
-            ], $this->buildReferenceRandomNumberColumns($refCode, $frefnoacaks[$i] ?? null));
+            ], $this->buildReferenceRandomNumberColumns($refCode, $frefnoacakVal));
         }
 
         [$soUsageByReference, $srjUsageByReference] = $this->buildInvoiceReferenceUsageMaps($detailRows);
@@ -1412,7 +1414,7 @@ class InvoiceController extends Controller
         try {
             $ftranmtid = null;
 
-            DB::transaction(function () use ($fapplyppn, $request, $fsodate, $fincludeppn, $userid, $now, $detailRows, $totalGross, $totalDisc, $amountNet, $ppnAmount, $grandTotal, $fcurrency, $frate, $ppnPersen, $creditApproval, $fkodefp, $needsApprovalNotification, &$shouldSendApprovalNotification, &$fsono, &$ftranmtid, $headerDiscPercent) {
+            DB::transaction(function () use ($fapplyppn, $request, $fsodate, $fincludeppn, $userid, $now, $detailRows, $totalGross, $totalDisc, $amountNet, $ppnAmount, $grandTotal, $fcurrency, $frate, $ppnPersen, $creditApproval, $fkodefp, $needsApprovalNotification, &$shouldSendApprovalNotification, &$fsono, &$ftranmtid, $headerDiscPercent, $totalSalesNet) {
 
                 // Penomoran Otomatis (Tetap sama)
                 if (empty($fsono)) {
@@ -1445,7 +1447,7 @@ class InvoiceController extends Controller
                     'famountpajak_rp' => $ppnAmount * $frate,
                     'famountso' => $grandTotal,
                     'famountso_rp' => $grandTotal * $frate,
-                    'ftotalsalesnet' => $grandTotal,
+                    'ftotalsalesnet' => $totalSalesNet,
                     'famountremain' => $grandTotal,
                     'famountremain_rp' => $grandTotal * $frate,
                     'fket' => $request->fket ?? '',
@@ -1838,13 +1840,13 @@ class InvoiceController extends Controller
                 ->selectRaw("
                     TRIM(d.fstockmtno) as ref_doc,
                     TRIM(d.fprdcode) as product_code,
-                    COALESCE(d.frefnoacak::text, d.fnoacak::text, '') as ref_noacak,
+                    COALESCE(d.fnoacak::text, '') as ref_noacak,
                     MAX(COALESCE(p.fprdname, d.fprdcode)) as product_name,
                     MAX(COALESCE(d.fsatuan, '')) as source_unit,
                     SUM(COALESCE(d.fqtykecil, 0)) as source_qty_kecil,
                     SUM(COALESCE(d.fqtyremain, 0)) as remain_qty_kecil
                 ")
-                ->groupByRaw("TRIM(d.fstockmtno), TRIM(d.fprdcode), COALESCE(d.frefnoacak::text, d.fnoacak::text, '')")
+                ->groupByRaw("TRIM(d.fstockmtno), TRIM(d.fprdcode), COALESCE(d.fnoacak::text, '')")
                 ->get();
 
             $usageRows = collect();
@@ -1928,7 +1930,7 @@ class InvoiceController extends Controller
                     COALESCE(d.fqtykecil, 0) as source_qty_kecil,
                     TRIM(d.fstockmtno) as ref_doc,
                     TRIM(d.fprdcode) as product_code,
-                    COALESCE(d.frefnoacak::text, d.fnoacak::text, '') as ref_noacak
+                    COALESCE(d.fnoacak::text, '') as ref_noacak
                 ")
                 ->get();
 
@@ -2305,6 +2307,7 @@ class InvoiceController extends Controller
         $detailRows = [];
         $totalGross = 0;
         $totalDisc = 0;
+        $totalSalesNet = 0.0;
         $usedNoAcaks = [];
 
         $hasUM = in_array('UM', $itemCodes);
@@ -2375,12 +2378,16 @@ class InvoiceController extends Controller
 
             $referenceRatio = null;
             $referenceDetail = null;
+            $frefnoacakVal = $frefnoacaks[$i] ?? null;
             if ($refSrjNo !== '') {
                 $referenceDetail = $this->resolveInvoiceReferenceSourceDetail('SRJ', $refSrjNo, $code, $frefnoacaks[$i] ?? null);
                 if ($referenceDetail && ! empty($referenceDetail->frefso)) {
                     $refSoNo = trim((string) $referenceDetail->frefso);
                 } else {
                     $refSoNo = '';
+                }
+                if ($referenceDetail && ! empty($referenceDetail->fnoacak)) {
+                    $frefnoacakVal = trim((string) $referenceDetail->fnoacak);
                 }
             } elseif ($refSoNo !== '') {
                 $referenceDetail = $this->resolveInvoiceReferenceSourceDetail('SO', $refSoNo, $code, $frefnoacaks[$i] ?? null);
@@ -2423,11 +2430,13 @@ class InvoiceController extends Controller
             $netPrice = $price - ($price * ($discPersen / 100));
             $amountRow = $subtotal - $discAmount;
 
-            if ($fapplyppn == 1) {
+            if ($fincludeppn == 1 && $fapplyppn == 1) {
                 $fsalesnet = (100 / (100 + $ppnPersen)) * $netPrice;
             } else {
                 $fsalesnet = $netPrice;
             }
+
+            $totalSalesNet += $qty * $fsalesnet;
 
             $totalGross += $subtotal;
             $totalDisc += $discAmount;
@@ -2455,7 +2464,7 @@ class InvoiceController extends Controller
                 'frefso' => $refSoNo,
                 'frefsrj' => $refSrjNo,
                 'fnoacak' => $fnoacakVal,
-            ], $this->buildReferenceRandomNumberColumns($refCode, $frefnoacaks[$i] ?? null));
+            ], $this->buildReferenceRandomNumberColumns($refCode, $frefnoacakVal));
 
             $detailRows[] = $rowData;
         }
@@ -2530,7 +2539,8 @@ class InvoiceController extends Controller
                 $creditApproval,
                 $fkodefp,
                 $needsApprovalNotification,
-                &$shouldSendApprovalNotification
+                &$shouldSendApprovalNotification,
+                $totalSalesNet
             ) {
                 // Update Header
                 $headerUpdate = [
@@ -2550,7 +2560,7 @@ class InvoiceController extends Controller
                     'famountpajak_rp' => $ppnAmount * $frate,
                     'famountso' => $grandTotal,
                     'famountso_rp' => $grandTotal * $frate,
-                    'ftotalsalesnet' => $grandTotal,
+                    'ftotalsalesnet' => $totalSalesNet,
                     'fket' => $request->fket ?? '',
                     'fuserid' => $userid,
                     'fdatetime' => $now,

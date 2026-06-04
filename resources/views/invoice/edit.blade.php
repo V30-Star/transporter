@@ -2739,7 +2739,7 @@
                         frefso: source === 'SO' ? (header?.fsono ?? '') : (src.frefso ?? ''),
                         frefsrj: source === 'SRJ' ? (header?.fstockmtno ?? '') : '',
                         fnoacak: this.generateUniqueNoAcak(),
-                        frefnoacak: this.normalizeRefNoAcak(src.frefnoacak ?? src.fnoacak ?? ''),
+                        frefnoacak: this.normalizeRefNoAcak(source === 'SRJ' ? (src.fnoacak ?? '') : (src.frefnoacak ?? src.fnoacak ?? '')),
                         fqty: displayQty > 0 ? displayQty : 1,
                         fprice: Number(src.fprice ?? src.fharga ?? 0),
                         fdisc: src.fdisc ?? src.fdiscpersen ?? 0,

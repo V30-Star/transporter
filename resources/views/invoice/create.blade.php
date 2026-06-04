@@ -2064,7 +2064,7 @@
                         frefso: source === 'SO' ? (header?.fsono ?? '') : (src.frefso ?? ''),
                         frefsrj: source === 'SRJ' ? (header?.fstockmtno ?? '') : '',
                         fnoacak: this.generateUniqueNoAcak(),
-                        frefnoacak: this.normalizeRefNoAcak(src.frefnoacak ?? src.fnoacak ?? ''),
+                        frefnoacak: this.normalizeRefNoAcak(source === 'SRJ' ? (src.fnoacak ?? '') : (src.frefnoacak ?? src.fnoacak ?? '')),
                         frefpr: (src.frefpr ?? header?.fsono ?? header?.fpono ?? header?.fstockmtno ?? '')
                             .toString().trim(),
                         fprhid: src.fprhid ?? header?.fprhid ?? '',
