@@ -2083,6 +2083,11 @@
                         name: '',
                         units: [],
                         stock: 0,
+                        unit_names: {
+                            satuankecil: '',
+                            satuanbesar: '',
+                            satuanbesar2: ''
+                        },
                         unit_ratios: {
                             satuankecil: 1,
                             satuanbesar: 1,
@@ -2097,7 +2102,38 @@
                         satuanbesar2: 1
                     };
                 }
+                if (!meta.unit_names) {
+                    meta.unit_names = {
+                        satuankecil: meta.units?.[0] || '',
+                        satuanbesar: meta.units?.[1] || '',
+                        satuanbesar2: meta.units?.[2] || ''
+                    };
+                }
                 return meta;
+            },
+
+            getUnitRatio(meta, satuan) {
+                const unit = (satuan || '').toString().trim();
+                const names = meta?.unit_names || {};
+                const ratios = meta?.unit_ratios || {};
+
+                if (unit && unit === (names.satuanbesar2 || '').toString().trim() && Number(ratios.satuanbesar2) > 0) {
+                    return Number(ratios.satuanbesar2);
+                }
+
+                if (unit && unit === (names.satuanbesar || '').toString().trim() && Number(ratios.satuanbesar) > 0) {
+                    return Number(ratios.satuanbesar);
+                }
+
+                return 1;
+            },
+
+            qtyKecilToUnit(qtyKecil, satuan, meta) {
+                const qty = Number(qtyKecil ?? 0);
+                if (!Number.isFinite(qty) || qty <= 0) return 0;
+
+                const ratio = this.getUnitRatio(meta, satuan);
+                return ratio > 0 ? qty / ratio : qty;
             },
 
             formatStockLimit(row) {
@@ -2105,7 +2141,10 @@
             },
 
             getRowQtyLimit(row) {
-                return Math.max(0, Number(row?.maxqty ?? 0) || 0);
+                const limitSource = Math.max(0, Number(row?.maxqty ?? 0) || 0);
+                if (row?.maxqty_unit !== 'kecil') return limitSource;
+
+                return this.qtyKecilToUnit(limitSource, row?.fsatuan || '', this.productMeta(row?.fitemcode));
             },
 
             validateReferenceQty(row, showToast = true) {
@@ -2276,6 +2315,11 @@
 
                 items.forEach(src => {
                     const sourceUnit = (src.fsatuan ?? '').toString().trim();
+                    const itemcode = (src.fitemcode ?? '').toString().trim();
+                    const meta = this.productMeta(itemcode);
+                    const displayQty = Number(src.fqtyremain_dokumen ?? 0) > 0 ?
+                        Number(src.fqtyremain_dokumen) :
+                        this.qtyKecilToUnit(src.fqtyremain, sourceUnit, meta);
                     const documentNo = (source === 'SRJ' ? (header?.fstockmtno ?? '') : (header?.fsono ?? ''))
                         .toString()
                         .trim();
@@ -2284,7 +2328,7 @@
                         .trim();
                     const row = {
                         uid: cryptoRandom(),
-                        fitemcode: src.fitemcode ?? '',
+                        fitemcode: itemcode,
                         fitemname: src.fitemname ?? '',
                         fsatuan: sourceUnit,
                         fdisplayunit: (src.fdisplayunit ?? src.fsatuan ?? '').toString().trim(),
@@ -2299,8 +2343,7 @@
                         frefnoacak: this.normalizeRefNoAcak(src.frefnoacak ?? src.fnoacak ?? ''),
 
                         fprhid: src.fprhid ?? header?.fprhid ?? '',
-                        fqty: (src.fqty !== null && src.fqty !== undefined && Number(src.fqty) > 0) ?
-                            Number(src.fqty) : 1,
+                        fqty: displayQty > 0 ? displayQty : 1,
                         fterima: Number(src.fterima ?? 0),
                         fprice: Number(src.fprice ?? 0),
                         fdisc: src.fdisc ?? 0,
@@ -2317,7 +2360,8 @@
                             : (Array.isArray(src.units)
                                 ? src.units.map(u => (u ?? '').toString().trim()).filter(Boolean)
                                 : []),
-                        maxqty: Math.max(0, Number(src.maxqty ?? src.fqtyremain ?? src.fqty ?? 0)),
+                        maxqty: Math.max(0, Number(src.fqtyremain ?? 0)),
+                        maxqty_unit: 'kecil',
                     };
 
                     this.hydrateRowFromMeta(row, this.productMeta(row.fitemcode));
@@ -2678,6 +2722,7 @@
                 fdesc: '',
                 fketdt: '',
                 maxqty: 0,
+                maxqty_unit: '',
             };
         }
 
@@ -2810,7 +2855,7 @@
                     });
                     const json = await res.json();
 
-                    const items = (json.items || []).filter(src => Number(src.maxqty ?? src.fqtyremain ?? 0) > 0);
+                    const items = (json.items || []).filter(src => Number(src.fqtyremain ?? 0) > 0);
                     if (items.length === 0) {
                         window.toast?.warning('Semua item Faktur ini sudah habis atau sudah digunakan.');
                         return;
@@ -3057,7 +3102,7 @@
 
                     const json = await res.json();
 
-                    const items = (json.items || []).filter(src => Number(src.maxqty ?? src.fqtyremain ?? 0) > 0);
+                    const items = (json.items || []).filter(src => Number(src.fqtyremain ?? 0) > 0);
                     if (items.length === 0) {
                         window.toast?.warning('Semua item Faktur ini sudah habis atau sudah digunakan.');
                         return;
@@ -3327,7 +3372,7 @@
                     if (!res.ok) throw new Error(`Server error: ${res.status}`);
 
                     const json = await res.json();
-                    const items = (json.items || []).filter(src => Number(src.maxqty ?? src.fqtyremain ?? 0) > 0);
+                    const items = (json.items || []).filter(src => Number(src.fqtyremain ?? 0) > 0);
                     if (items.length === 0) {
                         window.toast?.warning('Semua item SRJ ini sudah habis atau sudah digunakan.');
                         return;

@@ -60,6 +60,11 @@ class ReturPenjualanController extends Controller
                     'default_unit' => $defaultUnit,
                     'units' => $units,
                     'stock' => $product->fminstock ?? 0,
+                    'unit_names' => [
+                        'satuankecil' => $product->fsatuankecil,
+                        'satuanbesar' => $product->fsatuanbesar,
+                        'satuanbesar2' => $product->fsatuanbesar2,
+                    ],
                     'unit_ratios' => [
                         'satuankecil' => 1,
                         'satuanbesar' => (float) ($product->fqtykecil ?? 1),
