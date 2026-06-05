@@ -16,7 +16,7 @@
 
         {{-- --- MODAL FILTER POP-UP --- --}}
         <div id="filterModal" class="fixed inset-0 z-50 bg-black bg-opacity-50 hidden flex items-center justify-center">
-            <div class="bg-white rounded-lg shadow-2xl max-w-xl w-full p-6" onclick="event.stopPropagation()">
+            <div class="bg-white rounded-lg shadow-2xl max-w-2xl w-full p-6" onclick="event.stopPropagation()">
                 <div class="flex justify-between items-center border-b pb-3 mb-4">
                     <h3 class="text-lg font-semibold">Laporan Permintaan Pembelian</h3>
                     <button onclick="toggleModal(false)"
@@ -25,6 +25,35 @@
 
                 <form method="GET" action="{{ route('reportingpr.printPrh') }}">
                     <div class="grid grid-cols-2 gap-4">
+                        {{-- Filter Cabang / Branch --}}
+                        <div class="col-span-2">
+                            <div class="flex justify-between items-center mb-2">
+                                <label class="block text-sm font-medium text-gray-700">Cabang / Branch</label>
+                                <div class="flex space-x-2">
+                                    <button type="button" onclick="selectAllBranches(true)"
+                                        class="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded hover:bg-blue-200">
+                                        Select All
+                                    </button>
+                                    <button type="button" onclick="selectAllBranches(false)"
+                                        class="text-xs bg-gray-100 text-gray-700 px-2 py-1 rounded hover:bg-gray-200">
+                                        Unselect All
+                                    </button>
+                                </div>
+                            </div>
+                            <div id="branchCheckboxesArea" class="border rounded-lg p-3 bg-gray-50 max-h-32 overflow-y-auto">
+                                <div class="grid grid-cols-2 gap-2">
+                                    @foreach ($branches as $b)
+                                        <label class="flex items-center text-sm cursor-pointer select-none">
+                                            <input type="checkbox" name="branch_codes[]" value="{{ $b->fcabangkode }}"
+                                                class="branch-checkbox mr-2 rounded border-gray-300 text-blue-600 focus:ring-blue-500 w-4 h-4"
+                                                {{ in_array($b->fcabangkode, (array) request()->input('branch_codes', [])) ? 'checked' : '' }}>
+                                            <span class="text-gray-700 font-medium">{{ $b->fcabangkode }} - {{ $b->fcabangname }}</span>
+                                        </label>
+                                    @endforeach
+                                </div>
+                            </div>
+                        </div>
+
                         {{-- Filter Tanggal Dari --}}
                         <div>
                             <label for="modal_filter_date_from" class="block text-sm font-medium text-gray-700">Tanggal
@@ -213,6 +242,12 @@
             }
         }
 
+        function selectAllBranches(status) {
+            document.querySelectorAll('#branchCheckboxesArea .branch-checkbox').forEach(checkbox => {
+                checkbox.checked = status;
+            });
+        }
+
         $(function() {
             // Tampilkan modal otomatis jika belum ada filter
             @if (!$hasFilter)
@@ -220,7 +255,7 @@
             @endif
 
             // Hanya inisialisasi DataTables jika ada data (bukan placeholder)
-            @if ($hasFilter && $pohData->count() > 0)
+            @if ($hasFilter && $prdData->count() > 0)
                 $('#pohReportTable').DataTable({
                     autoWidth: false,
                     pageLength: 10,

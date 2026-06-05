@@ -15,13 +15,25 @@
                     <div class="space-y-4">
                         {{-- Cabang / Branch checkboxes --}}
                         <div>
-                            <label class="block text-xs font-bold uppercase mb-2">Cabang / Branch</label>
-                            <div class="border rounded-lg p-3 bg-gray-50 max-h-40 overflow-y-auto">
+                            <div class="flex justify-between items-center mb-2">
+                                <label class="block text-xs font-bold uppercase">Cabang / Branch</label>
+                                <div class="flex space-x-2">
+                                    <button type="button" onclick="selectAllBranches(true)"
+                                        class="text-[10px] bg-blue-100 text-blue-700 px-2 py-0.5 rounded hover:bg-blue-200">
+                                        Select All
+                                    </button>
+                                    <button type="button" onclick="selectAllBranches(false)"
+                                        class="text-[10px] bg-gray-100 text-gray-700 px-2 py-0.5 rounded hover:bg-gray-200">
+                                        Unselect All
+                                    </button>
+                                </div>
+                            </div>
+                            <div id="branchCheckboxesArea" class="border rounded-lg p-3 bg-gray-50 max-h-40 overflow-y-auto">
                                 <div class="grid grid-cols-2 gap-2">
                                     @foreach ($branches as $b)
                                         <label class="flex items-center text-sm cursor-pointer select-none">
                                             <input type="checkbox" name="branch_codes[]" value="{{ $b->fcabangkode }}"
-                                                class="mr-2 rounded border-gray-300 text-blue-600 focus:ring-blue-500 w-4 h-4">
+                                                class="branch-checkbox mr-2 rounded border-gray-300 text-blue-600 focus:ring-blue-500 w-4 h-4">
                                             <span class="text-gray-700 font-medium">{{ $b->fcabangkode }} - {{ $b->fcabangname }}</span>
                                         </label>
                                     @endforeach
@@ -106,6 +118,11 @@
     <script>
         function toggleModal(show) {
             $('#filterModal').toggleClass('hidden', !show);
+        }
+        function selectAllBranches(status) {
+            document.querySelectorAll('#branchCheckboxesArea .branch-checkbox').forEach(checkbox => {
+                checkbox.checked = status;
+            });
         }
         $(document).ready(function() {
             $('.select2').select2({

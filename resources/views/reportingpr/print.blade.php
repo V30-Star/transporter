@@ -342,6 +342,8 @@
                 <div class="header-section">
                     <div class="supplier-info-kiri">
                         Supplier: {{ $activeSupplierName ?? 'Semua' }}
+                        <br>
+                        Cabang: {{ request()->has('branch_codes') ? implode(', ', (array) request()->input('branch_codes')) : 'Semua' }}
                     </div>
                     <h2>Listing Permintaan Pembelian / PR</h2>
                     <div class="info-tambahan">
@@ -372,11 +374,9 @@
                 <div class="a4-container">
                     <div class="header-section">
                         <div class="supplier-info-kiri">
-                            @if ($activeSupplierName)
-                                Supplier: {{ $activeSupplierName }}
-                            @else
-                                Supplier: Semua
-                            @endif
+                            Supplier: {{ $activeSupplierName ?? 'Semua' }}
+                            <br>
+                            Cabang: {{ request()->has('branch_codes') ? implode(', ', (array) request()->input('branch_codes')) : 'Semua' }}
                         </div>
                         <h2>Listing Permintaan Pembelian / PR</h2>
                         @if (request('filter_date_from') || request('filter_date_to'))
