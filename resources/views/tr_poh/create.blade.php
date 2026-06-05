@@ -1129,7 +1129,7 @@
 
             focusPriceInput(row) {
                 const price = Math.max(0, +row.fprice || 0);
-                row.fpriceInput = price > 0 ? String(price) : '';
+                row.fpriceInput = price > 0 ? this.fmtCurr(price) : '';
             },
 
             onPriceInput(row) {
@@ -1139,7 +1139,7 @@
             },
 
             blurPriceInput(row) {
-                row.fprice = Math.max(0, +(row.fpriceInput || 0));
+                row.fprice = Math.max(0, +(this.sanitizePriceValue(row.fpriceInput) || 0));
                 row.fpriceInput = this.fmtCurr(row.fprice);
                 this.recalc(row);
             },

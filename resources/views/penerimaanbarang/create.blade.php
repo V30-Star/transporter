@@ -850,19 +850,24 @@
                     row.fqty = qty;
                     row.fprice = price;
                     if (typeof row.fpriceInput === 'undefined') {
-                        row.fpriceInput = price.toFixed(2);
+                        row.fpriceInput = this.fmt(price);
                     }
                     row.ftotal = +(qty * price).toFixed(2);
                 },
                 sanitizePriceValue(value) {
-                    const raw = (value ?? '').toString().replace(',', '.').replace(/[^0-9.]/g, '');
+                    let str = (value ?? '').toString().trim();
+                    if (str === '') return '';
+                    if (str.includes(',')) {
+                        str = str.replace(/\./g, '').replace(',', '.');
+                    }
+                    const raw = str.replace(/[^0-9.]/g, '');
                     const parts = raw.split('.');
                     if (parts.length <= 1) return raw;
                     return `${parts.shift()}.${parts.join('')}`;
                 },
                 focusPriceInput(row) {
                     const price = Math.max(0, Number(row.fprice || 0));
-                    row.fpriceInput = price > 0 ? String(price) : '';
+                    row.fpriceInput = price > 0 ? this.fmt(price) : '';
                 },
                 onPriceInput(row) {
                     row.fpriceInput = this.sanitizePriceValue(row.fpriceInput);
@@ -870,8 +875,8 @@
                     this.recalc(row);
                 },
                 blurPriceInput(row) {
-                    row.fprice = Math.max(0, +(row.fpriceInput || 0));
-                    row.fpriceInput = row.fprice.toFixed(2);
+                    row.fprice = Math.max(0, +(this.sanitizePriceValue(row.fpriceInput) || 0));
+                    row.fpriceInput = this.fmt(row.fprice);
                     this.recalc(row);
                 },
                 enforceQtyRow(row) {

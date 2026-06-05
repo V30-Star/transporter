@@ -431,9 +431,9 @@
 
                                         <!-- @ Harga -->
                                         <td class="p-2 text-right">
-                                            <input type="number" class="border rounded px-2 py-1 w-28 text-right"
-                                                min="0" step="0.01" x-ref="editPrice"
-                                                x-model.number="editRow.fprice" @input="recalc(editRow)"
+                                            <input type="text" inputmode="decimal" class="border rounded px-2 py-1 w-28 text-right"
+                                                x-ref="editPrice" x-model="editRow.fpriceInput"
+                                                @input="onPriceInput(editRow)" @blur="blurPriceInput(editRow)"
                                                 @keydown.enter.prevent="$refs.editDisc?.focus()">
                                         </td>
 
@@ -521,9 +521,9 @@
 
                                         <!-- @ Harga -->
                                         <td class="p-2 text-right">
-                                            <input type="number" class="border rounded px-2 py-1 w-28 text-right"
-                                                min="0" step="0.01" x-ref="draftPrice"
-                                                x-model.number="draft.fprice" @input="recalc(draft)"
+                                            <input type="text" inputmode="decimal" class="border rounded px-2 py-1 w-28 text-right"
+                                                x-ref="draftPrice" x-model="draft.fpriceInput"
+                                                @input="onPriceInput(draft)" @blur="blurPriceInput(draft)"
                                                 @keydown.enter.prevent="$refs.draftDisc?.focus()">
                                         </td>
 
@@ -1256,9 +1256,36 @@
                 row.fqty = Math.max(0, +row.fqty || 0);
                 row.fterima = Math.max(0, +row.fterima || 0);
                 row.fprice = Math.max(0, +row.fprice || 0);
+                if (typeof row.fpriceInput === 'undefined') {
+                    row.fpriceInput = this.fmt(row.fprice);
+                }
                 row.fdiscpersen = Math.min(100, Math.max(0, +row.fdiscpersen || 0));
                 row.ftotprice = +(row.fqty * row.fprice * (1 - row.fdiscpersen / 100)).toFixed(2);
                 this.recalcTotals();
+            },
+
+            sanitizePriceValue(value) {
+                let str = (value ?? '').toString().trim();
+                if (str === '') return '';
+                if (str.includes(',')) {
+                    str = str.replace(/\./g, '').replace(',', '.');
+                }
+                const raw = str.replace(/[^0-9.]/g, '');
+                const parts = raw.split('.');
+                if (parts.length <= 1) return raw;
+                return `${parts.shift()}.${parts.join('')}`;
+            },
+
+            onPriceInput(row) {
+                row.fpriceInput = this.sanitizePriceValue(row.fpriceInput);
+                row.fprice = Math.max(0, +(row.fpriceInput || 0));
+                this.recalc(row);
+            },
+
+            blurPriceInput(row) {
+                row.fprice = Math.max(0, +(this.sanitizePriceValue(row.fpriceInput) || 0));
+                row.fpriceInput = this.fmt(row.fprice);
+                this.recalc(row);
             },
 
             recalcTotals() {
@@ -1330,6 +1357,7 @@
                         fqty: (src.fqty !== null && src.fqty !== undefined && Number(src.fqty) > 0) ? Number(src.fqty) : 1,
                         fterima: Number(src.fterima ?? 0),
                         fprice: Number(src.fprice ?? 0),
+                        fpriceInput: this.fmt(Number(src.fprice ?? 0)),
                         fdiscpersen: Number(src.fdiscpersen ?? 0),
                         ftotprice: Number(src.ftotprice ?? 0),
                         fdesc: src.fdesc ?? '',
@@ -1404,6 +1432,7 @@
                 this.editRow = {
                     ...this.savedItems[i]
                 };
+                this.editRow.fpriceInput = this.fmt(this.editRow.fprice);
                 this.hydrateRowFromMeta(this.editRow, this.productMeta(this.editRow.fitemcode));
                 this.$nextTick(() => this.$refs.editQty?.focus());
             },
@@ -1606,6 +1635,7 @@
                 fqty: 0,
                 fterima: 0,
                 fprice: 0,
+                fpriceInput: '0,00',
                 fdiscpersen: 0,
                 fbiaya: 0,
                 ftotprice: 0,

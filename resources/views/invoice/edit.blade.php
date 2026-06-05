@@ -552,9 +552,10 @@
 
                                     <!-- @ Harga -->
                                     <td class="p-2 text-right">
-                                        <input type="number" class="border rounded px-2 py-1 w-28 text-right"
-                                            min="0" step="0.01" x-ref="editPrice"
-                                            x-model.number="editRow.fprice" @input="recalc(editRow)"
+                                        <input type="text" inputmode="decimal"
+                                            class="border rounded px-2 py-1 w-28 text-right" x-ref="editPrice"
+                                            x-model="editRow.fpriceInput" @input="onPriceInput(editRow)"
+                                            @blur="blurPriceInput(editRow)"
                                             @keydown.enter.prevent="$refs.editDisc?.focus()">
                                     </td>
 
@@ -2403,7 +2404,7 @@
 
             focusPriceInput(row) {
                 const price = Math.max(0, +row.fprice || 0);
-                row.fpriceInput = price > 0 ? String(price) : '';
+                row.fpriceInput = price > 0 ? this.fmt(price) : '';
             },
 
             onPriceInput(row) {
@@ -2412,7 +2413,7 @@
             },
 
             blurPriceInput(row) {
-                row.fprice = Math.max(0, +(row.fpriceInput || 0));
+                row.fprice = Math.max(0, +(this.sanitizePriceValue(row.fpriceInput) || 0));
                 row.fpriceInput = this.fmt(row.fprice);
                 this.recalc(row);
             },
