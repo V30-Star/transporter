@@ -4,7 +4,7 @@
     <div id="filterModal" class="fixed inset-0 z-50 hidden overflow-y-auto">
         <div class="flex items-center justify-center min-h-screen p-4">
             <div class="fixed inset-0 bg-black bg-opacity-50" onclick="toggleModal(false)"></div>
-            <div class="relative bg-white rounded-xl shadow-2xl max-w-lg w-full p-6">
+            <div class="relative bg-white rounded-xl shadow-2xl max-w-2xl w-full p-6">
                 <div class="flex justify-between items-center border-b pb-4 mb-4">
                     <h3 class="text-xl font-bold text-gray-800">Filter Listing PR</h3>
                     <button onclick="toggleModal(false)"
