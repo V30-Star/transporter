@@ -253,6 +253,8 @@
                             @if (request('cust_to'))
                                 s/d {{ request('cust_to') }}
                             @endif
+                            <br>
+                            Cabang: {{ request()->has('branch_codes') ? implode(', ', (array) request()->input('branch_codes')) : 'Semua' }}
                         </div>
                         <div class="header-center">
                             <h2>SO Yang Belum Dikirim (By Produk)</h2>

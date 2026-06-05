@@ -25,6 +25,11 @@ class ReportingAdjStockController extends Controller
         $query = PenerimaanPembelianHeader::query();
         $this->applyBranchVisibilityScope($query, 'trstockmt.fbranchcode');
 
+        $selectedBranches = $request->input('branch_codes', []);
+        if (!empty($selectedBranches)) {
+            $query->whereIn('trstockmt.fbranchcode', (array) $selectedBranches);
+        }
+
         // Terapkan Filter Tanggal Mulai (fpodate >= filterDateFrom)
         if (! empty($filterDateFrom)) {
             $query->where('fstockmtdate', '>=', $filterDateFrom);
@@ -85,6 +90,8 @@ class ReportingAdjStockController extends Controller
         $suppliers = Supplier::orderBy('fsuppliername', 'asc')
             ->get(['fsuppliercode', 'fsuppliername']);
 
+        $branches = DB::table('mscabang')->orderBy('fcabangkode')->get();
+
         return view('reportingadjstock.index', [
             'prdData' => $prdData,
             'suppliers' => $suppliers,
@@ -92,6 +99,7 @@ class ReportingAdjStockController extends Controller
             'filterDateFrom' => $filterDateFrom,
             'filterDateTo' => $filterDateTo,
             'filterSupplierId' => $request->query('filter_supplier_id'),
+            'branches' => $branches,
         ]);
     }
 
@@ -109,6 +117,11 @@ class ReportingAdjStockController extends Controller
             ->leftJoin('account', 'trstockmt.fto', '=', 'account.faccid')
             ->where('fstockmtcode', 'ADJ');
         $this->applyBranchVisibilityScope($query, 'trstockmt.fbranchcode');
+
+        $selectedBranches = $request->input('branch_codes', []);
+        if (!empty($selectedBranches)) {
+            $query->whereIn('trstockmt.fbranchcode', (array) $selectedBranches);
+        }
 
         // Filter berdasarkan tanggal jika ada
         if ($request->filled('filter_date_from')) {

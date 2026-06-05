@@ -304,6 +304,8 @@
                     <div class="header-section">
                         <div class="customer-info-kiri">
                             Customer: {{ request('cust_from') ? '[' . request('cust_from') . ']' : 'Semua' }}
+                            <br>
+                            Cabang: {{ request()->has('branch_codes') ? implode(', ', (array) request()->input('branch_codes')) : 'Semua' }}
                         </div>
                         <h2>Listing Penjualan</h2>
                         <div class="filter-info">

@@ -13,6 +13,22 @@
 
                 <form method="GET" action="{{ route('listingpr.print') }}" target="_blank">
                     <div class="space-y-4">
+                        {{-- Cabang / Branch checkboxes --}}
+                        <div>
+                            <label class="block text-xs font-bold uppercase mb-2">Cabang / Branch</label>
+                            <div class="border rounded-lg p-3 bg-gray-50 max-h-40 overflow-y-auto">
+                                <div class="grid grid-cols-2 gap-2">
+                                    @foreach ($branches as $b)
+                                        <label class="flex items-center text-sm cursor-pointer select-none">
+                                            <input type="checkbox" name="branch_codes[]" value="{{ $b->fcabangkode }}"
+                                                class="mr-2 rounded border-gray-300 text-blue-600 focus:ring-blue-500 w-4 h-4">
+                                            <span class="text-gray-700 font-medium">{{ $b->fcabangkode }} - {{ $b->fcabangname }}</span>
+                                        </label>
+                                    @endforeach
+                                </div>
+                            </div>
+                        </div>
+
                         {{-- Periode Tanggal --}}
                         <div class="grid grid-cols-2 gap-4">
                             <div>

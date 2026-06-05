@@ -24,6 +24,22 @@
 
                 <form method="GET" action="{{ route('reportingassembling.printAssembling') }}">
                     <div class="grid grid-cols-2 gap-4">
+                        {{-- Cabang / Branch checkboxes --}}
+                        <div class="col-span-2">
+                            <label class="block text-sm font-medium mb-1 text-gray-700">Cabang / Branch</label>
+                            <div class="border rounded-lg p-3 bg-gray-50 max-h-40 overflow-y-auto">
+                                <div class="grid grid-cols-2 gap-2">
+                                    @foreach ($branches as $b)
+                                        <label class="flex items-center text-sm cursor-pointer select-none">
+                                            <input type="checkbox" name="branch_codes[]" value="{{ $b->fcabangkode }}"
+                                                class="mr-2 rounded border-gray-300 text-blue-600 focus:ring-blue-500 w-4 h-4">
+                                            <span class="text-gray-700 font-medium">{{ $b->fcabangkode }} - {{ $b->fcabangname }}</span>
+                                        </label>
+                                    @endforeach
+                                </div>
+                            </div>
+                        </div>
+
                         {{-- Filter Tanggal Dari --}}
                         <div>
                             <label for="modal_filter_date_from" class="block text-sm font-medium text-gray-700">Tanggal
@@ -219,7 +235,7 @@
             @endif
 
             // Hanya inisialisasi DataTables jika ada data (bukan placeholder)
-            @if ($hasFilter && $pohData->count() > 0)
+            @if ($hasFilter && $prdData->count() > 0)
                 $('#pohReportTable').DataTable({
                     autoWidth: false,
                     pageLength: 10,

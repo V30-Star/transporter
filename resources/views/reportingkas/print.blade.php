@@ -251,6 +251,7 @@
                 Dari {{ $filterDateFrom ?: '-' }} sampai {{ $filterDateTo ?: '-' }}
                 | Account: {{ $filterAccount ? ($filterAccount.' - '.($filterAccountName ?: '-')) : 'Semua Account' }}
                 | Giro Mundur: {{ $onlyGiroMundur ? 'Ya' : 'Tidak' }}
+                | Cabang: {{ request()->has('branch_codes') ? implode(', ', (array) request()->input('branch_codes')) : 'Semua' }}
             </div>
             <div class="info-tambahan">
                 <div><span class="info-label">Cetak</span>: {{ $printDate }}</div>

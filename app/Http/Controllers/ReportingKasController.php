@@ -41,6 +41,8 @@ class ReportingKasController extends Controller
             ->orderBy('faccount')
             ->get(['faccount', 'faccname']);
 
+        $branches = DB::table('mscabang')->orderBy('fcabangkode')->get();
+
         return view('reportingkas.index', [
             'pageTitle' => $tranCode === 'BKK' ? 'Laporan Pengeluaran Kas' : 'Laporan Penerimaan Kas',
             'printRoute' => $tranCode === 'BKK'
@@ -54,6 +56,7 @@ class ReportingKasController extends Controller
             'filterAccount' => $filterAccount,
             'onlyGiroMundur' => $onlyGiroMundur,
             'accounts' => $accounts,
+            'branches' => $branches,
         ]);
     }
 
@@ -72,6 +75,11 @@ class ReportingKasController extends Controller
                 'acc.faccname as header_account_name',
             ]);
         $this->applyBranchVisibilityScope($query, 'trkasmt.fbranchcode');
+
+        $selectedBranches = $request->input('branch_codes', []);
+        if (! empty($selectedBranches)) {
+            $query->whereIn('trkasmt.fbranchcode', (array) $selectedBranches);
+        }
 
         if (! empty($filterDateFrom)) {
             $query->whereDate('trkasmt.fkasmtdate', '>=', $filterDateFrom);

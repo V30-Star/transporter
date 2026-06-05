@@ -413,6 +413,8 @@
                             @else
                                 Supplier: Semua
                             @endif
+                            <br>
+                            Cabang: {{ request()->has('branch_codes') ? implode(', ', (array) request()->input('branch_codes')) : 'Semua' }}
                         </div>
                         <h2>Listing Adjustment Stock</h2>
                         @if (request('filter_date_from') || request('filter_date_to'))

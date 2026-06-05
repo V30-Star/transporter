@@ -16,8 +16,9 @@ class ListingSOBelumController extends Controller
         $customers = DB::table('mscustomer')->orderBy('fcustomercode')->get();
         $groupPrd = DB::table('ms_groupprd')->orderBy('fgroupcode')->get();
         $products = DB::table('msprd')->orderBy('fprdcode')->get();
+        $branches = DB::table('mscabang')->orderBy('fcabangkode')->get();
 
-        return view('listingsobelum.index', compact('customers', 'groupPrd', 'products'));
+        return view('listingsobelum.index', compact('customers', 'groupPrd', 'products', 'branches'));
     }
 
     public function printCustomer(Request $request)
@@ -53,6 +54,11 @@ class ListingSOBelumController extends Controller
             ->where('d.fqty', '>', 0)
             ->where('m.fclose', '0');
         $this->applyBranchVisibilityScope($query, 'm.fbranchcode');
+
+        $selectedBranches = $request->input('branch_codes', []);
+        if (!empty($selectedBranches)) {
+            $query->whereIn('m.fbranchcode', (array) $selectedBranches);
+        }
 
         if ($request->date_from) {
             $query->where('m.fsodate', '>=', $request->date_from);
@@ -137,6 +143,12 @@ class ListingSOBelumController extends Controller
         $writer->addRow($makeRow(['SO YANG BELUM DIKIRIM (BY CUSTOMER)'], $styleTitle));
         $writer->addRow($makeRow(['Tanggal:', date('d/m/Y').'  Jam: '.date('H:i')]));
         $writer->addRow($makeRow(['Periode:', $request->date_from.' s/d '.$request->date_to]));
+        $writer->addRow($makeRow([
+            'Cabang:',
+            !empty($request->branch_codes)
+                ? implode(', ', (array) $request->branch_codes)
+                : 'Semua',
+        ]));
         $writer->addRow($makeRow(['Customer:', $request->cust_from ? $request->cust_from.' s/d '.$request->cust_to : 'Semua']));
         $writer->addRow($makeRow(['Operator:', auth()->user()->fname ?? 'User']));
         $writer->addRow($makeRow([]));
@@ -244,6 +256,12 @@ class ListingSOBelumController extends Controller
         $writer->addRow($makeRow(['SO YANG BELUM DIKIRIM (BY PRODUK)'], $styleTitle));
         $writer->addRow($makeRow(['Tanggal:', date('d/m/Y').'  Jam: '.date('H:i')]));
         $writer->addRow($makeRow(['Periode:', $request->date_from.' s/d '.$request->date_to]));
+        $writer->addRow($makeRow([
+            'Cabang:',
+            !empty($request->branch_codes)
+                ? implode(', ', (array) $request->branch_codes)
+                : 'Semua',
+        ]));
         $writer->addRow($makeRow(['Customer:', $request->cust_from ? $request->cust_from.' s/d '.$request->cust_to : 'Semua']));
         $writer->addRow($makeRow(['Operator:', auth()->user()->fname ?? 'User']));
         $writer->addRow($makeRow([]));
@@ -344,6 +362,11 @@ class ListingSOBelumController extends Controller
             ->where('d.fqty', '>', 0)
             ->where('m.fclose', '0');
         $this->applyBranchVisibilityScope($query, 'm.fbranchcode');
+
+        $selectedBranches = $request->input('branch_codes', []);
+        if (!empty($selectedBranches)) {
+            $query->whereIn('m.fbranchcode', (array) $selectedBranches);
+        }
 
         if ($request->date_from) {
             $query->where('m.fsodate', '>=', $request->date_from);

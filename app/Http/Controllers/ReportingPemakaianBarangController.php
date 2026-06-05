@@ -24,6 +24,12 @@ class ReportingPemakaianBarangController extends Controller
         $query = PenerimaanPembelianHeader::query();
         $this->applyBranchVisibilityScope($query, 'trstockmt.fbranchcode');
 
+        // Terapkan Filter Cabang / Branch
+        $selectedBranches = $request->input('branch_codes', []);
+        if (! empty($selectedBranches)) {
+            $query->whereIn('trstockmt.fbranchcode', (array) $selectedBranches);
+        }
+
         // Terapkan Filter Tanggal Mulai (fpodate >= filterDateFrom)
         if (! empty($filterDateFrom)) {
             $query->where('fstockmtdate', '>=', $filterDateFrom);
@@ -63,7 +69,8 @@ class ReportingPemakaianBarangController extends Controller
         // Cek apakah ada filter yang dijalankan
         $hasFilter = $request->has('filter_date_from') ||
           $request->has('filter_date_to') ||
-          $request->has('filter_supplier_id');
+          $request->has('filter_supplier_id') ||
+          $request->has('branch_codes');
 
         // Hanya ambil data jika ada filter
         $prdData = $hasFilter
@@ -84,9 +91,12 @@ class ReportingPemakaianBarangController extends Controller
         $suppliers = Supplier::orderBy('fsuppliername', 'asc')
             ->get(['fsuppliercode', 'fsuppliername']);
 
+        $branches = DB::table('mscabang')->orderBy('fcabangkode')->get();
+
         return view('reportingpemakaianbarang.index', [
             'prdData' => $prdData,
             'suppliers' => $suppliers,
+            'branches' => $branches,
             'hasFilter' => $hasFilter,
             'filterDateFrom' => $filterDateFrom,
             'filterDateTo' => $filterDateTo,
@@ -109,6 +119,12 @@ class ReportingPemakaianBarangController extends Controller
             ->leftJoin('mswh', 'trstockmt.ffrom', '=', 'mswh.fwhcode')
             ->where('fstockmtcode', 'PBR');
         $this->applyBranchVisibilityScope($query, 'trstockmt.fbranchcode');
+
+        // Terapkan Filter Cabang / Branch
+        $selectedBranches = $request->input('branch_codes', []);
+        if (! empty($selectedBranches)) {
+            $query->whereIn('trstockmt.fbranchcode', (array) $selectedBranches);
+        }
 
         // Filter berdasarkan tanggal jika ada
         if ($request->filled('filter_date_from')) {
