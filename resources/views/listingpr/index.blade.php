@@ -19,11 +19,11 @@
                                 <label class="block text-xs font-bold uppercase">Cabang / Branch</label>
                                 <div class="flex space-x-2">
                                     <button type="button" onclick="selectAllBranches(true)"
-                                        class="text-[10px] bg-blue-100 text-blue-700 px-2 py-0.5 rounded hover:bg-blue-200">
+                                        class="text-xs bg-blue-100 text-blue-700 px-3 py-1 rounded hover:bg-blue-200">
                                         Select All
                                     </button>
                                     <button type="button" onclick="selectAllBranches(false)"
-                                        class="text-[10px] bg-gray-100 text-gray-700 px-2 py-0.5 rounded hover:bg-gray-200">
+                                        class="text-xs bg-gray-100 text-gray-700 px-3 py-1 rounded hover:bg-gray-200">
                                         Unselect All
                                     </button>
                                 </div>
