@@ -1360,6 +1360,8 @@ class InvoiceController extends Controller
                 $fsalesnet = $netPrice;
             }
 
+            $totalSalesNet += $qty * $fsalesnet;
+
             $detailRows[] = array_merge([
                 'fsono' => '', // Akan diisi di dalam transaksi
                 'fnou' => $i + 1,
