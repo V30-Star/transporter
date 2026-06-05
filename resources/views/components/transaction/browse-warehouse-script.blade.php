@@ -102,8 +102,8 @@
 
             initDataTable() {
                 if (this.table) {
-                    this.table.destroy();
-                    this.table = null;
+                    this.table.columns.adjust().draw(false);
+                    return;
                 }
 
                 $('#{{ $tableId }}').off('click.whpick');
@@ -194,8 +194,16 @@
                 });
 
                 $('#{{ $tableId }}').on('click.whpick', '.btn-choose', (e) => {
-                    const data = this.table.row($(e.target).closest('tr')).data();
-                    if (data) this.choose(data);
+                    e.preventDefault();
+                    e.stopPropagation();
+
+                    const data = this.table?.row($(e.currentTarget).closest('tr')).data();
+                    if (!data) {
+                        console.warn('Warehouse row data not found for selected row.');
+                        return;
+                    }
+
+                    this.choose(data);
                 });
             },
 

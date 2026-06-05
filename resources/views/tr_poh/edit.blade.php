@@ -1102,7 +1102,7 @@
 
     window.CURRENCY_MAP = {
         @foreach ($currencies as $cur)
-            {{ $cur->fcurrid }}: {
+            @json($cur->fcurrcode): {
                 id: {{ $cur->fcurrid }},
                 code: @json($cur->fcurrcode),
                 name: @json($cur->fcurrname),
@@ -1369,7 +1369,7 @@
 
             onCurrencyChange() {
                 const code = this.selectedCurrCode;
-                const cur = Object.values(window.CURRENCY_MAP || {}).find(c => String(c.code).trim() === String(code).trim());
+                const cur = window.CURRENCY_MAP?.[code];
                 if (cur) {
                     this.selectedCurrId = String(cur.id);
                     this.rateValue = cur.rate;
@@ -1946,7 +1946,7 @@
                 this.syncSupplierDisplay(@js(old('fsupplier', $tr_poh->fsupplier ?? '')));
 
                 const currentCode = this.selectedCurrCode || 'IDR';
-                const curEntry = Object.values(window.CURRENCY_MAP).find((c) => String(c.code).trim() === String(currentCode).trim());
+                const curEntry = window.CURRENCY_MAP?.[currentCode];
                 if (curEntry) {
                     this.selectedCurrId = String(curEntry.id);
                     this.selectedCurrCode = curEntry.code;
