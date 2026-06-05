@@ -1433,12 +1433,15 @@ class InvoiceController extends Controller
 
             DB::transaction(function () use ($fapplyppn, $request, $fsodate, $fincludeppn, $userid, $now, $detailRows, $totalGross, $totalDisc, $amountNet, $ppnAmount, $grandTotal, $fcurrency, $frate, $ppnPersen, $creditApproval, $fkodefp, $needsApprovalNotification, &$shouldSendApprovalNotification, &$fsono, &$ftranmtid, $headerDiscPercent, $totalSalesNet) {
 
-                // Penomoran Otomatis (Tetap sama)
+                // Penomoran Otomatis
                 if (empty($fsono)) {
-                    $prefix = 'INV.' . $fsodate->format('ym') . '.';
+                    $isAdvancePayment = (int) $request->input('ftypesales', 0) === 1;
+                    $branchCode = trim((string) ($request->fbranchcode ?? 'BG')) ?: 'BG';
+                    $prefix = $isAdvancePayment ? sprintf('UM.%s.', $branchCode) : 'INV.' . $fsodate->format('ym') . '.';
+                    $digits = $isAdvancePayment ? 3 : 4;
                     $lastRecord = DB::table('tranmt')->where('fsono', 'like', $prefix . '%')->orderBy('fsono', 'desc')->lockForUpdate()->first();
-                    $nextNumber = $lastRecord ? ((int) substr(trim($lastRecord->fsono), -4) + 1) : 1;
-                    $fsono = $prefix . str_pad($nextNumber, 4, '0', STR_PAD_LEFT);
+                    $nextNumber = $lastRecord ? ((int) substr(trim($lastRecord->fsono), -$digits) + 1) : 1;
+                    $fsono = $prefix . str_pad((string) $nextNumber, $digits, '0', STR_PAD_LEFT);
                 }
 
                 $approvalState = $this->initializeApprovalState();
