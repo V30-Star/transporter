@@ -546,7 +546,6 @@ class ReturPenjualanController extends Controller
             return [
                 'frefnoacak' => $normalized,
                 'frefnosoacak' => $normalized,
-                'frefnosrjacak' => null,
             ];
         }
 
@@ -554,14 +553,12 @@ class ReturPenjualanController extends Controller
             return [
                 'frefnoacak' => $normalized,
                 'frefnosoacak' => null,
-                'frefnosrjacak' => $normalized,
             ];
         }
 
         return [
             'frefnoacak' => $normalized,
             'frefnosoacak' => null,
-            'frefnosrjacak' => null,
         ];
     }
 

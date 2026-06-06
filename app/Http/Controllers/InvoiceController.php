@@ -946,17 +946,22 @@ class InvoiceController extends Controller
 
         $sourceCode = strtoupper(trim((string) ($sourceCode ?? '')));
 
-        if (in_array($sourceCode, ['S', 'SO', 'R', 'SRJ'], true)) {
+        if (in_array($sourceCode, ['S', 'SO'], true)) {
             return [
                 'frefnosoacak' => $normalized,
-                'frefnosrjacak' => $normalized,
+                'frefnoacak' => $normalized,
+            ];
+        }
+
+        if (in_array($sourceCode, ['R', 'SRJ'], true)) {
+            return [
+                'frefnosoacak' => null,
                 'frefnoacak' => $normalized,
             ];
         }
 
         return [
             'frefnosoacak' => null,
-            'frefnosrjacak' => null,
             'frefnoacak' => null,
         ];
     }
@@ -1603,7 +1608,7 @@ class InvoiceController extends Controller
                 'd.frefso',
                 'd.frefsrj',
                 'd.frefnosoacak',
-                'd.frefnosrjacak',
+                'd.frefnoacak',
                 'd.fprdcode',
                 'd.fsatuan',
                 'p.fqtykecil',
@@ -1626,7 +1631,7 @@ class InvoiceController extends Controller
             $docNoToCheck = trim((string) ($row->frefsrj ?? $row->frefso ?? ''));
             $isSrj = $refCode === 'SRJ' || $this->isDocumentSrj($docNoToCheck);
             $docNo = trim((string) ($isSrj ? ($row->frefsrj ?? '') : ($row->frefso ?? '')));
-            $refNoAcak = $this->normalizeReferenceRandomNumbers($isSrj ? ($row->frefnosrjacak ?? null) : ($row->frefnosoacak ?? null)) ?? '';
+            $refNoAcak = $this->normalizeReferenceRandomNumbers($isSrj ? ($row->frefnoacak ?? null) : ($row->frefnosoacak ?? null)) ?? '';
             $key = $this->buildReferenceUsageKey($docNo, (string) ($row->fprdcode ?? ''), $refNoAcak);
             $stat = $isSrj ? ($srjStats[$key] ?? null) : ($soStats[$key] ?? null);
             $usedQty = (float) ($stat['used_qty_kecil'] ?? 0);
@@ -1737,7 +1742,7 @@ class InvoiceController extends Controller
             $soDocNo = trim((string) ($row['frefso'] ?? ''));
             $srjDocNo = trim((string) ($row['frefsrj'] ?? ''));
             $soRefNoAcak = $this->normalizeReferenceRandomNumbers($row['frefnosoacak'] ?? null) ?? '';
-            $srjRefNoAcak = $this->normalizeReferenceRandomNumbers($row['frefnosrjacak'] ?? null) ?? '';
+            $srjRefNoAcak = $this->normalizeReferenceRandomNumbers($row['frefnoacak'] ?? null) ?? '';
 
             $isSrj = false;
             if ($srjDocNo !== '' && $this->isDocumentSrj($srjDocNo)) {
@@ -1774,7 +1779,7 @@ class InvoiceController extends Controller
                 'd.frefsrj',
                 'd.fprdcode',
                 'd.frefnosoacak',
-                'd.frefnosrjacak',
+                'd.frefnoacak',
                 'd.fqtykecil',
             ]);
 
@@ -1792,7 +1797,7 @@ class InvoiceController extends Controller
             $soDocNo = trim((string) ($row->frefso ?? ''));
             $srjDocNo = trim((string) ($row->frefsrj ?? ''));
             $soRefNoAcak = $this->normalizeReferenceRandomNumbers($row->frefnosoacak ?? null) ?? '';
-            $srjRefNoAcak = $this->normalizeReferenceRandomNumbers($row->frefnosrjacak ?? null) ?? '';
+            $srjRefNoAcak = $this->normalizeReferenceRandomNumbers($row->frefnoacak ?? null) ?? '';
 
             $isSrj = false;
             if ($srjDocNo !== '' && $this->isDocumentSrj($srjDocNo)) {
