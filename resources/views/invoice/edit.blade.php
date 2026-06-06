@@ -222,8 +222,7 @@
                             <div class="flex items-center gap-3">
                                 <input type="text" name="fsono"
                                     value="{{ old('fsono', $displayFsono ?? $invoice->fsono) }}"
-                                    class="w-full border rounded px-3 py-2" :disabled="autoCode" readonly
-                                    :class="autoCode ? 'bg-gray-200 cursor-not-allowed text-gray-500' : 'bg-white'">
+                                    class="w-full border rounded px-3 py-2 bg-gray-100 text-gray-700 cursor-not-allowed" readonly>
 
                                 <label class="inline-flex items-center select-none">
                                     <input type="checkbox" x-model="autoCode" disabled>
@@ -858,8 +857,9 @@
                                     <div class="flex items-center gap-3">
                                         <input type="text" name="fsono"
                                             value="{{ old('fsono', $displayFsono ?? $invoice->fsono) }}"
-                                            class="w-full border rounded px-3 py-2" :disabled="autoCode"
-                                            :class="autoCode ? 'bg-gray-200 cursor-not-allowed text-gray-500' : 'bg-white'">
+                                            class="w-full border rounded px-3 py-2"
+                                            :disabled="autoCode || '{{ $action }}' === 'view'"
+                                            :class="(autoCode || '{{ $action }}' === 'view') ? 'bg-gray-200 cursor-not-allowed text-gray-700' : 'bg-white'">
 
                                         <label class="inline-flex items-center select-none">
                                             <input type="checkbox" x-model="autoCode">
@@ -875,7 +875,7 @@
                                 <div class="lg:col-span-4">
                                     <label class="block text-sm font-medium">Faktur Pajak#</label>
                                     <input type="text" name="ftaxno" value="{{ old('ftaxno', $invoice->ftaxno) }}"
-                                        class="w-full border rounded px-3 py-2 @error('ftaxno') border-red-500 @enderror">
+                                        class="w-full border rounded px-3 py-2 disabled:bg-gray-100 disabled:text-gray-700 disabled:cursor-not-allowed @error('ftaxno') border-red-500 @enderror">
                                     @error('ftaxno')
                                         <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                                     @enderror
@@ -885,7 +885,7 @@
                                     <label class="block text-sm font-medium">Type</label>
                                     <select name="ftypesales" id="ftypesales" x-model.number="ftypesales"
                                         x-init="ftypesales = {{ old('ftypesales', $invoice->ftypesales) }}"
-                                        class="w-full border rounded px-3 py-2 @error('ftypesales') border-red-500 @enderror">
+                                        class="w-full border rounded px-3 py-2 disabled:bg-gray-100 disabled:text-gray-700 disabled:cursor-not-allowed @error('ftypesales') border-red-500 @enderror">
                                         <option value="0">Penjualan</option>
                                         <option value="1">Uang Muka</option>
                                     </select>
@@ -899,7 +899,7 @@
                                     <label class="block text-sm font-medium">Tanggal</label>
                                     <input type="date" id="fsodate" name="fsodate"
                                         value="{{ old('fsodate') ?? date('Y-m-d', strtotime($invoice->fsodate)) }}"
-                                        class="w-full border rounded px-3 py-2 @error('fsodate') border-red-500 @enderror">
+                                        class="w-full border rounded px-3 py-2 disabled:bg-gray-100 disabled:text-gray-700 disabled:cursor-not-allowed @error('fsodate') border-red-500 @enderror">
                                     @error('fsodate')
                                         <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                                     @enderror
@@ -955,7 +955,7 @@
                                     <label class="block text-sm font-medium">Kode FP</label>
                                     <input type="text" name="fkodefp" id="invoiceFkodefp"
                                         value="{{ old('fkodefp', $invoice->fkodefp ?? optional($invoice->customer)->fkodefp) }}"
-                                        class="w-full border rounded px-3 py-2 @error('fkodefp') border-red-500 @enderror">
+                                        class="w-full border rounded px-3 py-2 disabled:bg-gray-100 disabled:text-gray-700 disabled:cursor-not-allowed @error('fkodefp') border-red-500 @enderror">
                                     @error('fkodefp')
                                         <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                                     @enderror
@@ -1010,7 +1010,7 @@
                                     <label class="block text-sm font-medium">TOP (Hari)</label>
                                     <input type="number" id="ftempohr" name="ftempohr"
                                         value="{{ old('ftempohr', $invoice->ftempohr) }}"
-                                        class="w-full border rounded px-3 py-2 @error('ftempohr') border-red-500 @enderror"
+                                        class="w-full border rounded px-3 py-2 disabled:bg-gray-100 disabled:text-gray-700 disabled:cursor-not-allowed @error('ftempohr') border-red-500 @enderror"
                                         placeholder="Masukkan jumlah hari">
                                     @error('ftempohr')
                                         <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
@@ -1022,7 +1022,7 @@
                                     <input type="date" id="fjatuhtempo" name="fjatuhtempo"
                                         value="{{ old('fjatuhtempo') ?? date('Y-m-d', strtotime($invoice->fjatuhtempo)) }}"
                                         readonly
-                                        class="w-full border rounded px-3 py-2 bg-gray-100 @error('fjatuhtempo') border-red-500 @enderror">
+                                        class="w-full border rounded px-3 py-2 bg-gray-100 disabled:bg-gray-100 disabled:text-gray-700 disabled:cursor-not-allowed @error('fjatuhtempo') border-red-500 @enderror">
                                     @error('fjatuhtempo')
                                         <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                                     @enderror
@@ -1061,7 +1061,7 @@
                                 <div class="lg:col-span-12">
                                     <label class="block text-sm font-medium">Keterangan</label>
                                     <textarea name="fket" rows="3"
-                                        class="w-full border rounded px-3 py-2 @error('fket') border-red-500 @enderror"
+                                        class="w-full border rounded px-3 py-2 disabled:bg-gray-100 disabled:text-gray-700 disabled:cursor-not-allowed @error('fket') border-red-500 @enderror"
                                         placeholder="Keterangan isi di sini...">{{ old('fket', $invoice->fket) }}</textarea>
                                     @error('fket')
                                         <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
@@ -1071,7 +1071,7 @@
                                 <div class="lg:col-span-12">
                                     <label class="block text-sm font-medium">Catatan Internal</label>
                                     <textarea name="fketinternal" id="fketinternal" rows="3"
-                                        class="w-full border rounded px-3 py-2 @error('fketinternal') border-red-500 @enderror"
+                                        class="w-full border rounded px-3 py-2 disabled:bg-gray-100 disabled:text-gray-700 disabled:cursor-not-allowed @error('fketinternal') border-red-500 @enderror"
                                         placeholder="Catatan internal isi di sini...">{{ old('fketinternal', $invoice->fketinternal) }}</textarea>
                                     @error('fketinternal')
                                         <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
