@@ -1246,12 +1246,16 @@
         const salesmanCode = String(
             payload?.fsalesman ?? payload?.fsalesmancode ?? payload?.salesman_code ?? ''
         ).trim();
+        const salesmanName = String(
+            payload?.fsalesmanname ?? payload?.salesman_name ?? ''
+        ).trim();
 
         if (!salesmanCode) return;
 
         window.applyTransactionSalesmanSelection?.({
             fsalesman: salesmanCode,
             fsalesmancode: salesmanCode,
+            fsalesmanname: salesmanName,
         });
     };
 

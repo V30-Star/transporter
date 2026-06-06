@@ -723,6 +723,7 @@ class SalesOrderController extends Controller
                 'fsodate' => $header->fsodate,
                 'ftempohr' => (float) ($header->ftempohr ?? 0),
                 'fsalesman' => trim((string) ($header->fsalesman ?? '')),
+                'fsalesmanname' => trim((string) optional($header->salesman)->fsalesmanname),
                 'fapplyppn' => (int) ($header->fapplyppn ?? 0),
                 'fincludeppn' => (int) ($header->fincludeppn ?? 0),
                 'fppnpersen' => (float) ($header->fppnpersen ?? 11),

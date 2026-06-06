@@ -1054,7 +1054,7 @@ class SuratJalanController extends Controller
         $savedItems = $suratjalan->details->map(function ($d) use ($soReferenceStats) {
             $referenceKey = $this->buildSoReferenceUsageKey($d->frefso ?? '', $d->fprdcode ?? '', $d->frefnoacak ?? '');
             $stat = $soReferenceStats[$referenceKey] ?? null;
-            $maxqty = max(0, (float) ($d->fqtykecil ?? 0) + (float) ($stat['remain_qty_kecil'] ?? 0));
+            $maxqty = max(0, (float) ($stat['remain_qty_kecil'] ?? 0));
             return [
                 'uid' => $d->fstockdtid,
                 'fitemcode' => $d->fitemcode_text ?? '',
@@ -1167,7 +1167,7 @@ class SuratJalanController extends Controller
         $savedItems = $suratjalan->details->map(function ($d) use ($soReferenceStats) {
             $referenceKey = $this->buildSoReferenceUsageKey($d->frefso ?? '', $d->fprdcode ?? '', $d->frefnoacak ?? '');
             $stat = $soReferenceStats[$referenceKey] ?? null;
-            $maxqty = max(0, (float) ($d->fqtykecil ?? 0) + (float) ($stat['remain_qty_kecil'] ?? 0));
+            $maxqty = max(0, (float) ($stat['remain_qty_kecil'] ?? 0));
             return [
                 'uid' => $d->fstockdtid,
                 'fitemcode' => $d->fitemcode_text ?? '',
@@ -1627,7 +1627,7 @@ class SuratJalanController extends Controller
         $savedItems = $suratjalan->details->map(function ($d) use ($soReferenceStats) {
             $referenceKey = $this->buildSoReferenceUsageKey($d->frefso ?? '', $d->fprdcode ?? '', $d->frefnoacak ?? '');
             $stat = $soReferenceStats[$referenceKey] ?? null;
-            $maxqty = max(0, (float) ($d->fqtykecil ?? 0) + (float) ($stat['remain_qty_kecil'] ?? 0));
+            $maxqty = max(0, (float) ($stat['remain_qty_kecil'] ?? 0));
             return [
                 'uid' => $d->fstockdtid,
                 'fitemcode' => $d->fitemcode_text ?? '',
@@ -1857,27 +1857,12 @@ class SuratJalanController extends Controller
                         COALESCE(d.fnoacak::text, '') as ref_noacak,
                         MAX(COALESCE(p.fprdname, d.fprdcode)) as product_name,
                         SUM(COALESCE(d.fqtykecil, 0)) as source_qty_kecil,
-                        SUM(COALESCE(d.fqtykecil, 0)) as remain_qty_kecil
+                        SUM(COALESCE(d.fqtyremain, 0)) as remain_qty_kecil
                     ")
                     ->groupByRaw("TRIM(d.fsono), TRIM(d.fprdcode), COALESCE(d.fnoacak::text, '')")
                     ->get()
             );
         }
-
-        $usageRows = DB::table('trstockdt as d')
-            ->join('trstockmt as h', 'h.fstockmtno', '=', 'd.fstockmtno')
-            ->where('h.fstockmtcode', 'SRJ')
-            ->whereIn('d.frefso', $docNos)
-            ->when($exceptStockMtNo, fn($query) => $query->where('h.fstockmtno', '<>', $exceptStockMtNo))
-            ->selectRaw("
-                TRIM(d.frefso) as ref_doc,
-                TRIM(d.fprdcode) as product_code,
-                COALESCE(d.frefnoacak::text, '') as ref_noacak,
-                SUM(COALESCE(d.fqtykecil, 0)) as used_qty_kecil,
-                MIN(h.fstockmtno) as used_by_transaction
-            ")
-            ->groupByRaw("TRIM(d.frefso), TRIM(d.fprdcode), COALESCE(d.frefnoacak::text, '')")
-            ->get();
 
         $stats = [];
 
@@ -1889,31 +1874,9 @@ class SuratJalanController extends Controller
                 'product_name' => trim((string) ($row->product_name ?? '')),
                 'source_qty_kecil' => (float) ($row->source_qty_kecil ?? 0),
                 'used_qty_kecil' => 0.0,
-                'remain_qty_kecil' => (float) ($row->remain_qty_kecil ?? $row->source_qty_kecil ?? 0),
+                'remain_qty_kecil' => (float) ($row->remain_qty_kecil ?? 0),
                 'used_by_transaction' => '',
             ];
-        }
-
-        foreach ($usageRows as $row) {
-            if (! $this->isInvoiceReferenceDoc((string) ($row->ref_doc ?? ''))) {
-                continue;
-            }
-            $key = $this->buildSoReferenceUsageKey($row->ref_doc ?? '', $row->product_code ?? '', $row->ref_noacak ?? '');
-            if (! isset($stats[$key])) {
-                $stats[$key] = [
-                    'ref_doc' => trim((string) ($row->ref_doc ?? '')),
-                    'product_code' => trim((string) ($row->product_code ?? '')),
-                    'product_name' => trim((string) ($row->product_code ?? '')),
-                    'source_qty_kecil' => 0.0,
-                    'used_qty_kecil' => 0.0,
-                    'remain_qty_kecil' => 0.0,
-                    'used_by_transaction' => '',
-                ];
-            }
-
-            $stats[$key]['used_qty_kecil'] = (float) ($row->used_qty_kecil ?? 0);
-            $stats[$key]['remain_qty_kecil'] = max(0, (float) $stats[$key]['source_qty_kecil'] - (float) $stats[$key]['used_qty_kecil']);
-            $stats[$key]['used_by_transaction'] = trim((string) ($row->used_by_transaction ?? ''));
         }
 
         return $stats;
@@ -1968,7 +1931,7 @@ class SuratJalanController extends Controller
                 d.fstockdtid,
                 TRIM(COALESCE(d.fprdcode::text, '')) as product_code,
                 COALESCE(d.frefnoacak::text, '') as ref_noacak,
-                COALESCE(d.fqtykecil, 0) as source_qty_kecil
+                COALESCE(d.fqtyremain, 0) as remain_qty_kecil
             ")
             ->get();
 
@@ -1976,22 +1939,9 @@ class SuratJalanController extends Controller
             return [];
         }
 
-        $usageRows = DB::table('trandt as d')
-            ->where('d.frefsrj', $stockMtNo)
-            ->selectRaw("
-                TRIM(COALESCE(d.fprdcode::text, '')) as product_code,
-                COALESCE(d.frefnosrjacak::text, '') as ref_noacak,
-                SUM(COALESCE(d.fqtykecil, 0)) as used_kecil
-            ")
-            ->groupByRaw("TRIM(COALESCE(d.fprdcode::text, '')), COALESCE(d.frefnosrjacak::text, '')")
-            ->get()
-            ->keyBy(fn($row) => $this->buildSrjRemainKey($row->product_code ?? '', $row->ref_noacak ?? ''));
-
         $result = [];
         foreach ($sourceRows as $row) {
-            $key = $this->buildSrjRemainKey($row->product_code ?? '', $row->ref_noacak ?? '');
-            $used = (float) ($usageRows[$key]->used_kecil ?? 0);
-            $result[(int) $row->fstockdtid] = max(0, (float) ($row->source_qty_kecil ?? 0) - $used);
+            $result[(int) $row->fstockdtid] = max(0, (float) ($row->remain_qty_kecil ?? 0));
         }
 
         return $result;
