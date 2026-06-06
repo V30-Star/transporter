@@ -1161,6 +1161,7 @@ class InvoiceController extends Controller
         // 1. VALIDASI (Tetap sama)
         $request->validate([
             'fsodate' => ['required', 'date'],
+            'fjatuhtempo' => ['nullable', 'date'],
             'fcustno' => ['required', 'string', 'max:10'],
             'ftypesales' => ['required', 'in:0,1'],
             'fketinternal' => ['nullable', 'string', 'max:300'],
@@ -1213,6 +1214,7 @@ class InvoiceController extends Controller
 
         // 2. INISIALISASI DATA HEADER (Tetap sama)
         $fsodate = Carbon::parse($request->fsodate);
+        $fjatuhtempo = $request->input('fjatuhtempo') ? Carbon::parse($request->input('fjatuhtempo'))->startOfDay() : null;
         $this->ensureCreateDateWithinEditPeriod($fsodate);
         $fincludeppn = $request->boolean('fincludeppn') ? '1' : '0';
         $fapplyppn = $request->boolean('fapplyppn') ? '1' : '0';
@@ -1436,7 +1438,7 @@ class InvoiceController extends Controller
         try {
             $ftranmtid = null;
 
-            DB::transaction(function () use ($fapplyppn, $request, $fsodate, $fincludeppn, $userid, $now, $detailRows, $totalGross, $totalDisc, $amountNet, $ppnAmount, $grandTotal, $fcurrency, $frate, $ppnPersen, $creditApproval, $fkodefp, $needsApprovalNotification, &$shouldSendApprovalNotification, &$fsono, &$ftranmtid, $headerDiscPercent, $totalSalesNet) {
+            DB::transaction(function () use ($fapplyppn, $request, $fsodate, $fincludeppn, $userid, $now, $detailRows, $totalGross, $totalDisc, $amountNet, $ppnAmount, $grandTotal, $fcurrency, $frate, $ppnPersen, $creditApproval, $fkodefp, $needsApprovalNotification, &$shouldSendApprovalNotification, &$fsono, &$ftranmtid, $headerDiscPercent, $totalSalesNet, $fjatuhtempo) {
 
                 // Penomoran Otomatis
                 if (empty($fsono)) {
@@ -1488,6 +1490,7 @@ class InvoiceController extends Controller
                     'fneedacc' => $needsApprovalNotification ? '1' : '0',
                     'fuseracc' => $creditApproval['fuseracc'],
                     'fprint' => 0,
+                    'fjatuhtempo' => $fjatuhtempo,
                     ...$approvalState,
                 ];
                 if ($this->tranmtHasInternalNoteColumn()) {
@@ -2240,6 +2243,7 @@ class InvoiceController extends Controller
         // 1. VALIDASI
         $request->validate([
             'fsodate' => ['required', 'date'],
+            'fjatuhtempo' => ['nullable', 'date'],
             'fcustno' => ['required', 'string', 'max:10'],
             'ftypesales' => ['required', 'in:0,1'],
             'ftaxno' => ['nullable', 'string', 'max:50'],
@@ -2303,6 +2307,7 @@ class InvoiceController extends Controller
 
         // 3. INISIALISASI DATA
         $fsodate = Carbon::parse($request->fsodate);
+        $fjatuhtempo = $request->input('fjatuhtempo') ? Carbon::parse($request->input('fjatuhtempo'))->startOfDay() : null;
         $this->ensureCreateDateWithinEditPeriod($fsodate, $header->fsodate);
         $fincludeppn = $request->boolean('fincludeppn') ? '1' : '0';
         $fapplyppn = $request->boolean('fapplyppn') ? '1' : '0';
@@ -2567,7 +2572,8 @@ class InvoiceController extends Controller
                 $fkodefp,
                 $needsApprovalNotification,
                 &$shouldSendApprovalNotification,
-                $totalSalesNet
+                $totalSalesNet,
+                $fjatuhtempo
             ) {
                 // Update Header
                 $headerUpdate = [
@@ -2598,6 +2604,7 @@ class InvoiceController extends Controller
                     'ftypesales' => (int) $request->input('ftypesales', 0),
                     'fneedacc' => $needsApprovalNotification ? '1' : '0',
                     'fuseracc' => $creditApproval['fuseracc'],
+                    'fjatuhtempo' => $fjatuhtempo,
                 ];
                 if ($this->tranmtHasInternalNoteColumn()) {
                     $headerUpdate['fketinternal'] = mb_substr((string) $request->input('fketinternal', ''), 0, 300);
