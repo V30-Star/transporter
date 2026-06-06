@@ -1163,6 +1163,7 @@ class InvoiceController extends Controller
             'fsodate' => ['required', 'date'],
             'fjatuhtempo' => ['nullable', 'date'],
             'fcustno' => ['required', 'string', 'max:10'],
+            'frefno' => ['nullable', 'string', 'max:100'],
             'ftypesales' => ['required', 'in:0,1'],
             'fketinternal' => ['nullable', 'string', 'max:300'],
             'fitemcode' => ['required', 'array', 'min:1'],
@@ -1424,7 +1425,7 @@ class InvoiceController extends Controller
             ->unique()
             ->values()
             ->all();
-        $headerRefNo = implode(', ', $srjReferenceDocs);
+        $headerRefNo = trim((string) $request->input('frefno', ''));
 
         $amountNetBeforeHeaderDisc = $totalGross - $totalDisc;
         $headerDiscountAmount = $amountNetBeforeHeaderDisc * ($headerDiscPercent / 100);
@@ -2262,6 +2263,7 @@ class InvoiceController extends Controller
             'fsodate' => ['required', 'date'],
             'fjatuhtempo' => ['nullable', 'date'],
             'fcustno' => ['required', 'string', 'max:10'],
+            'frefno' => ['nullable', 'string', 'max:100'],
             'ftypesales' => ['required', 'in:0,1'],
             'ftaxno' => ['nullable', 'string', 'max:50'],
             'fketinternal' => ['nullable', 'string', 'max:300'],
@@ -2545,7 +2547,7 @@ class InvoiceController extends Controller
             ->unique()
             ->values()
             ->all();
-        $headerRefNo = implode(', ', $srjReferenceDocs);
+        $headerRefNo = trim((string) $request->input('frefno', ''));
 
         // 5. KALKULASI TOTAL AKHIR
         $amountNetBeforeHeaderDisc = $totalGross - $totalDisc;

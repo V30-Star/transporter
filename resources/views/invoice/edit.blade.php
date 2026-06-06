@@ -951,14 +951,25 @@
                                     @enderror
                                 </div>
 
-                                <div class="lg:col-span-4">
-                                    <label class="block text-sm font-medium">Kode FP</label>
-                                    <input type="text" name="fkodefp" id="invoiceFkodefp"
-                                        value="{{ old('fkodefp', $invoice->fkodefp ?? optional($invoice->customer)->fkodefp) }}"
-                                        class="w-full border rounded px-3 py-2 disabled:bg-gray-100 disabled:text-gray-700 disabled:cursor-not-allowed @error('fkodefp') border-red-500 @enderror">
-                                    @error('fkodefp')
-                                        <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
-                                    @enderror
+                                <div class="lg:col-span-4 grid grid-cols-1 md:grid-cols-2 gap-3">
+                                    <div>
+                                        <label class="block text-sm font-medium">Kode FP</label>
+                                        <input type="text" name="fkodefp" id="invoiceFkodefp"
+                                            value="{{ old('fkodefp', $invoice->fkodefp ?? optional($invoice->customer)->fkodefp) }}"
+                                            class="w-full border rounded px-3 py-2 disabled:bg-gray-100 disabled:text-gray-700 disabled:cursor-not-allowed @error('fkodefp') border-red-500 @enderror">
+                                        @error('fkodefp')
+                                            <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+                                        @enderror
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-medium">Reff.PO</label>
+                                        <input type="text" name="frefno" id="invoiceFrefno"
+                                            value="{{ old('frefno', $invoice->frefno ?? '') }}"
+                                            class="w-full border rounded px-3 py-2 disabled:bg-gray-100 disabled:text-gray-700 disabled:cursor-not-allowed @error('frefno') border-red-500 @enderror">
+                                        @error('frefno')
+                                            <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+                                        @enderror
+                                    </div>
                                 </div>
 
                                 {{-- Salesman --}}

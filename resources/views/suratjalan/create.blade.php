@@ -1287,9 +1287,11 @@
                         normalizedUnits.unshift(satuan);
                     }
 
-                    const displayQty = Number(src.fqtyremain_dokumen ?? 0) > 0 ?
-                        Number(src.fqtyremain_dokumen) :
-                        this.qtyKecilToUnit(src.fqtyremain, satuan, meta);
+                    const displayQty = Number(src.fqty ?? 0) > 0 ?
+                        Number(src.fqty) :
+                        (Number(src.fqtyremain_dokumen ?? 0) > 0 ?
+                            Number(src.fqtyremain_dokumen) :
+                            this.qtyKecilToUnit(src.fqtyremain, satuan, meta));
 
                     const row = {
                         uid: cryptoRandom(),

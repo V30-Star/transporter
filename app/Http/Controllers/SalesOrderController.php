@@ -719,6 +719,7 @@ class SalesOrderController extends Controller
             'header' => [
                 'ftrsomtid' => $header->ftrsomtid,
                 'fsono' => $header->fsono,
+                'frefpo' => trim((string) ($header->frefpo ?? '')),
                 'fcustno' => $header->fcustno,
                 'fsodate' => $header->fsodate,
                 'ftempohr' => (float) ($header->ftempohr ?? 0),
