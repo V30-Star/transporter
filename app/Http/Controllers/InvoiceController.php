@@ -1405,10 +1405,11 @@ class InvoiceController extends Controller
         $srjReferenceDocs = collect($detailRows)
             ->pluck('frefsrj')
             ->map(fn($value) => trim((string) $value))
-            ->filter(fn($value) => $this->isDocumentSrj($value))
+            ->filter()
             ->unique()
             ->values()
             ->all();
+        $headerRefNo = implode(', ', $srjReferenceDocs);
 
         $amountNetBeforeHeaderDisc = $totalGross - $totalDisc;
         $headerDiscountAmount = $amountNetBeforeHeaderDisc * ($headerDiscPercent / 100);
@@ -1438,7 +1439,7 @@ class InvoiceController extends Controller
         try {
             $ftranmtid = null;
 
-            DB::transaction(function () use ($fapplyppn, $request, $fsodate, $fincludeppn, $userid, $now, $detailRows, $totalGross, $totalDisc, $amountNet, $ppnAmount, $grandTotal, $fcurrency, $frate, $ppnPersen, $creditApproval, $fkodefp, $needsApprovalNotification, &$shouldSendApprovalNotification, &$fsono, &$ftranmtid, $headerDiscPercent, $totalSalesNet, $fjatuhtempo) {
+            DB::transaction(function () use ($fapplyppn, $request, $fsodate, $fincludeppn, $userid, $now, $detailRows, $totalGross, $totalDisc, $amountNet, $ppnAmount, $grandTotal, $fcurrency, $frate, $ppnPersen, $creditApproval, $fkodefp, $needsApprovalNotification, &$shouldSendApprovalNotification, &$fsono, &$ftranmtid, $headerDiscPercent, $totalSalesNet, $fjatuhtempo, $headerRefNo) {
 
                 // Penomoran Otomatis
                 if (empty($fsono)) {
@@ -1478,6 +1479,7 @@ class InvoiceController extends Controller
                     'famountremain' => $grandTotal,
                     'famountremain_rp' => $grandTotal * $frate,
                     'fket' => $request->fket ?? '',
+                    'frefno' => mb_substr($headerRefNo, 0, 100),
                     'fuserid' => $userid,
                     'fdatetime' => $now,
                     'fincludeppn' => $fincludeppn,
@@ -2516,10 +2518,11 @@ class InvoiceController extends Controller
         $srjReferenceDocs = collect($detailRows)
             ->pluck('frefsrj')
             ->map(fn($value) => trim((string) $value))
-            ->filter(fn($value) => $this->isDocumentSrj($value))
+            ->filter()
             ->unique()
             ->values()
             ->all();
+        $headerRefNo = implode(', ', $srjReferenceDocs);
 
         // 5. KALKULASI TOTAL AKHIR
         $amountNetBeforeHeaderDisc = $totalGross - $totalDisc;
@@ -2573,7 +2576,8 @@ class InvoiceController extends Controller
                 $needsApprovalNotification,
                 &$shouldSendApprovalNotification,
                 $totalSalesNet,
-                $fjatuhtempo
+                $fjatuhtempo,
+                $headerRefNo
             ) {
                 // Update Header
                 $headerUpdate = [
@@ -2595,6 +2599,7 @@ class InvoiceController extends Controller
                     'famountso_rp' => $grandTotal * $frate,
                     'ftotalsalesnet' => $totalSalesNet,
                     'fket' => $request->fket ?? '',
+                    'frefno' => mb_substr($headerRefNo, 0, 100),
                     'fuserid' => $userid,
                     'fdatetime' => $now,
                     'fincludeppn' => $fincludeppn,
