@@ -1257,8 +1257,15 @@ class InvoiceController extends Controller
             return back()->withInput()->with('error', 'Transaksi Uang Muka harus memakai produk UM.');
         }
 
+        $productCodes = collect($itemCodes)
+            ->map(fn($value) => trim((string) $value))
+            ->filter()
+            ->unique()
+            ->values()
+            ->all();
+
         $products = DB::table('msprd')
-            ->whereIn('fprdcode', array_filter($itemCodes))
+            ->whereIn('fprdcode', $productCodes)
             ->get([
                 'fprdid',
                 'fprdcode',
@@ -1275,6 +1282,7 @@ class InvoiceController extends Controller
 
         $totalSalesNet = 0.0;
         foreach ($itemCodes as $i => $code) {
+            $code = trim((string) $code);
             $qty = (float) ($qtys[$i] ?? 0);
             $price = (float) ($prices[$i] ?? 0);
             if (empty($code) || $qty <= 0) {
@@ -1302,6 +1310,13 @@ class InvoiceController extends Controller
             $fnoacakVal = $this->normalizeRandomNumber($fnoacaks[$i] ?? null, $usedNoAcaks);
 
             $product = $products->get($code);
+            if (! $product) {
+                return back()->withInput()->with('error', "Produk {$code} tidak ada.");
+            }
+
+            if ($product->fnonactive == '1') {
+                return back()->withInput()->with('error', "Produk {$product->fprdname} sudah tidak tersedia.");
+            }
 
             $sat = trim((string) ($satuans[$i] ?? ''));
 
@@ -2349,8 +2364,15 @@ class InvoiceController extends Controller
         }
 
         // Ambil data produk masal
+        $productCodes = collect($itemCodes)
+            ->map(fn($value) => trim((string) $value))
+            ->filter()
+            ->unique()
+            ->values()
+            ->all();
+
         $products = DB::table('msprd')
-            ->whereIn('fprdcode', array_filter($itemCodes))
+            ->whereIn('fprdcode', $productCodes)
             ->get([
                 'fprdid',
                 'fprdcode',
@@ -2366,6 +2388,7 @@ class InvoiceController extends Controller
             ->keyBy('fprdcode');
 
         foreach ($itemCodes as $i => $code) {
+            $code = trim((string) $code);
             $qty = (float) ($qtys[$i] ?? 0);
             $price = (float) ($prices[$i] ?? 0);
 
