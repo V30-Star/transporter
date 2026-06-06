@@ -2843,6 +2843,8 @@
                     }
                 }
 
+                row.fprice = Math.max(0, Number(row.fprice ?? 0) || 0);
+                row.fpriceInput = this.fmt(row.fprice);
                 this.recalc(row);
                 return row;
             },
