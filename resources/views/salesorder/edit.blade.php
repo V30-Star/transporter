@@ -1897,7 +1897,7 @@
 
             focusPriceInput(row) {
                 const price = Math.max(0, +row.fprice || 0);
-                row.fpriceInput = price > 0 ? String(price) : '';
+                row.fpriceInput = price > 0 ? this.fmt(price) : '';
             },
 
             onPriceInput(row) {
@@ -1907,7 +1907,7 @@
             },
 
             blurPriceInput(row) {
-                row.fprice = Math.max(0, +(row.fpriceInput || 0));
+                row.fprice = Math.max(0, +(this.sanitizePriceValue(row.fpriceInput) || 0));
                 row.fpriceInput = this.fmt(row.fprice);
                 this.recalc(row);
             },
@@ -2460,7 +2460,7 @@ this.$nextTick(() => {
                 fqty: 0,
                 fterima: 0,
                 fprice: 0,
-                fpriceInput: '0.00',
+                fpriceInput: '0,00',
                 fdisc: 0, // Bisa berupa string "10+2" atau angka 12
                 ftotal: 0,
                 fdesc: '',

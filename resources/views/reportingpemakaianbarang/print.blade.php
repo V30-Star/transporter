@@ -379,6 +379,8 @@
                 <div class="header-section">
                     <div class="supplier-info-kiri">
                         Supplier: {{ $activeSupplierName ?? 'Semua' }}
+                        <br>
+                        Cabang: {{ request()->has('branch_codes') ? implode(', ', (array) request()->input('branch_codes')) : 'Semua' }}
                     </div>
                     <h2>Listing Pemakaian Barang</h2>
                     <div class="info-tambahan">
@@ -414,6 +416,8 @@
                             @else
                                 Supplier: Semua
                             @endif
+                            <br>
+                            Cabang: {{ request()->has('branch_codes') ? implode(', ', (array) request()->input('branch_codes')) : 'Semua' }}
                         </div>
                         <h2>Listing Pemakaian Barang</h2>
                         @if (request('filter_date_from') || request('filter_date_to'))

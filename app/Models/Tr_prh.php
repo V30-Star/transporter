@@ -28,4 +28,9 @@ class Tr_prh extends Model
   {
     return $this->hasMany(Tr_prd::class, 'fprno', 'fprno');
   }
+
+  public function supplier()
+  {
+    return $this->belongsTo(Supplier::class, 'fsupplier', 'fsuppliercode');
+  }
 }

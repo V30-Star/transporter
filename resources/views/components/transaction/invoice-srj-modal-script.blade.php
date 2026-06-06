@@ -39,6 +39,12 @@
                         }
                     },
                     columns: [{
+                            data: 'fbranchcode',
+                            name: 'fbranchcode',
+                            defaultContent: '-',
+                            className: 'text-sm'
+                        },
+                        {
                             data: 'fstockmtno',
                             name: 'fstockmtno',
                             className: 'font-mono text-sm'
@@ -52,33 +58,16 @@
                             }
                         },
                         {
-                            data: 'fbranchcode',
-                            name: 'fbranchcode',
-                            defaultContent: '-',
-                            className: 'text-sm'
-                        },
-                        {
-                            data: 'ffrom',
-                            name: 'ffrom',
-                            defaultContent: '-',
-                            className: 'text-sm'
-                        },
-                        {
                             data: 'fcustomercode',
                             name: 'fcustomercode',
                             defaultContent: '-',
-                            className: 'font-mono text-sm'
-                        },
-                        {
-                            data: 'faddress',
-                            name: 'faddress',
-                            defaultContent: '-',
-                        },
-                        {
-                            data: 'frefpo',
-                            name: 'frefpo',
-                            defaultContent: '-',
-                            className: 'font-mono text-sm'
+                            className: 'text-sm',
+                            render: function(data, type, row) {
+                                const code = (data || '').toString().trim();
+                                const name = (row.fsuppliername || '').toString().trim();
+                                if (code && name) return `${code} - ${name}`;
+                                return code || name || '-';
+                            }
                         },
                         {
                             data: null,
@@ -108,7 +97,7 @@
                         }
                     },
                     order: [
-                        [1, 'desc']
+                        [2, 'desc']
                     ],
                     autoWidth: false,
                     scrollX: true,

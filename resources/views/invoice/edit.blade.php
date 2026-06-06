@@ -552,9 +552,10 @@
 
                                     <!-- @ Harga -->
                                     <td class="p-2 text-right">
-                                        <input type="number" class="border rounded px-2 py-1 w-28 text-right"
-                                            min="0" step="0.01" x-ref="editPrice"
-                                            x-model.number="editRow.fprice" @input="recalc(editRow)"
+                                        <input type="text" inputmode="decimal"
+                                            class="border rounded px-2 py-1 w-28 text-right" x-ref="editPrice"
+                                            x-model="editRow.fpriceInput" @input="onPriceInput(editRow)"
+                                            @blur="blurPriceInput(editRow)"
                                             @keydown.enter.prevent="$refs.editDisc?.focus()">
                                     </td>
 
@@ -1262,8 +1263,8 @@
                                                         @click="closeSrjModal()">
                                                     </div>
 
-                                                    <div class="relative bg-white rounded-2xl shadow-2xl w-[96vw] max-w-[110rem] flex flex-col overflow-hidden"
-                                                        style="height: 85vh;">
+                                                    <div class="relative bg-white rounded-2xl shadow-2xl w-full max-w-6xl flex flex-col overflow-hidden"
+                                                        style="height: 650px;">
                                                         <div
                                                             class="px-6 py-4 border-b border-gray-200 flex items-center justify-between flex-shrink-0 bg-gradient-to-r from-indigo-50 to-white">
                                                             <div>
@@ -1291,25 +1292,16 @@
                                                                             class="bg-gradient-to-r from-gray-50 to-gray-100">
                                                                             <th
                                                                                 class="text-left p-3 font-semibold text-gray-700 border-b-2 border-gray-200">
+                                                                                {{ 'Cabang' }}</th>
+                                                                            <th
+                                                                                class="text-left p-3 font-semibold text-gray-700 border-b-2 border-gray-200">
                                                                                 {{ 'No. SRJ' }}</th>
                                                                             <th
                                                                                 class="text-left p-3 font-semibold text-gray-700 border-b-2 border-gray-200">
                                                                                 {{ 'Tanggal' }}</th>
                                                                             <th
                                                                                 class="text-left p-3 font-semibold text-gray-700 border-b-2 border-gray-200">
-                                                                                {{ 'Cabang' }}</th>
-                                                                            <th
-                                                                                class="text-left p-3 font-semibold text-gray-700 border-b-2 border-gray-200">
-                                                                                {{ 'Gudang' }}</th>
-                                                                            <th
-                                                                                class="text-left p-3 font-semibold text-gray-700 border-b-2 border-gray-200">
                                                                                 {{ 'Customer' }}</th>
-                                                                            <th
-                                                                                class="text-left p-3 font-semibold text-gray-700 border-b-2 border-gray-200">
-                                                                                {{ 'Alamat' }}</th>
-                                                                            <th
-                                                                                class="text-left p-3 font-semibold text-gray-700 border-b-2 border-gray-200">
-                                                                                {{ 'No Ref' }}</th>
                                                                             <th
                                                                                 class="text-center p-3 font-semibold text-gray-700 border-b-2 border-gray-200">
                                                                                 {{ 'Aksi' }}</th>
@@ -2416,7 +2408,7 @@
 
             focusPriceInput(row) {
                 const price = Math.max(0, +row.fprice || 0);
-                row.fpriceInput = price > 0 ? String(price) : '';
+                row.fpriceInput = price > 0 ? this.fmt(price) : '';
             },
 
             onPriceInput(row) {
@@ -2425,7 +2417,7 @@
             },
 
             blurPriceInput(row) {
-                row.fprice = Math.max(0, +(row.fpriceInput || 0));
+                row.fprice = Math.max(0, +(this.sanitizePriceValue(row.fpriceInput) || 0));
                 row.fpriceInput = this.fmt(row.fprice);
                 this.recalc(row);
             },

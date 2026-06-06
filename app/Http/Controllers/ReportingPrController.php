@@ -24,6 +24,12 @@ class ReportingPrController extends Controller
         $query = Tr_prh::query();
         $this->applyBranchVisibilityScope($query, 'tr_prh.fbranchcode');
 
+        // Terapkan Filter Cabang / Branch
+        $selectedBranches = $request->input('branch_codes', []);
+        if (! empty($selectedBranches)) {
+            $query->whereIn('tr_prh.fbranchcode', (array) $selectedBranches);
+        }
+
         // Terapkan Filter Tanggal Mulai (fpodate >= filterDateFrom)
         if (! empty($filterDateFrom)) {
             $query->where('fprdate', '>=', $filterDateFrom);
@@ -63,19 +69,18 @@ class ReportingPrController extends Controller
         // Cek apakah ada filter yang dijalankan
         $hasFilter = $request->has('filter_date_from') ||
           $request->has('filter_date_to') ||
-          $request->has('filter_supplier_id');
+          $request->has('filter_supplier_id') ||
+          $request->has('branch_codes');
 
         // Hanya ambil data jika ada filter
         $prdData = $hasFilter
           ? $this->getPrdQuery($request)
               ->with('supplier:fsuppliercode,fsuppliername')
               ->get([
-                  'fpohid',
-                  'fpono',
+                  'fprhid',
+                  'fprno',
                   'fprdate',
                   'fsupplier',
-                  'famountpo',
-                  'fcurrency',
                   'fclose',
                   'fapproval',
               ])
@@ -85,9 +90,13 @@ class ReportingPrController extends Controller
         $suppliers = Supplier::orderBy('fsuppliername', 'asc')
             ->get(['fsuppliercode', 'fsuppliername']);
 
+        // Ambil SEMUA Cabang
+        $branches = DB::table('mscabang')->orderBy('fcabangkode')->get();
+
         return view('reportingpr.index', [
             'prdData' => $prdData,
             'suppliers' => $suppliers,
+            'branches' => $branches,
             'hasFilter' => $hasFilter,
             'filterDateFrom' => $filterDateFrom,
             'filterDateTo' => $filterDateTo,
@@ -106,6 +115,12 @@ class ReportingPrController extends Controller
 
         $query = DB::table('tr_prh')->select('tr_prh.*');
         $this->applyBranchVisibilityScope($query, 'tr_prh.fbranchcode');
+
+        // Filter Cabang / Branch
+        $selectedBranches = $request->input('branch_codes', []);
+        if (! empty($selectedBranches)) {
+            $query->whereIn('tr_prh.fbranchcode', (array) $selectedBranches);
+        }
 
         // Filter berdasarkan tanggal jika ada
         if ($request->filled('filter_date_from')) {
@@ -142,7 +157,7 @@ class ReportingPrController extends Controller
 
             foreach ($prh->details as $detail) {
                 $product = DB::table('msprd')
-                    ->where('fprdid', $detail->fprdcode)
+                    ->where('fprdcode', $detail->fprdcode)
                     ->first();
                 $detail->product_name = $product->fprdname ?? $detail->fprdcode;
             }
@@ -246,7 +261,7 @@ class ReportingPrController extends Controller
                 foreach ($details as $detail) {
                     // 3. Ambil Nama Produk per Detail
                     $product = DB::table('msprd')
-                        ->where('fprdid', $detail->fprdcode)
+                        ->where('fprdcode', $detail->fprdcode)
                         ->first();
                     $product_name = $product->fprdname ?? $detail->fprdcode;
 

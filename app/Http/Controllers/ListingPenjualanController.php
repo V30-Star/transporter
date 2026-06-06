@@ -16,8 +16,9 @@ class ListingPenjualanController extends Controller
         $groups = DB::table('ms_groupprd')->get();
         $mereks = DB::table('msmerek')->get();
         $salesmans = DB::table('mssalesman')->get();
+        $branches = DB::table('mscabang')->orderBy('fcabangkode')->get();
 
-        return view('listingpenjualan.index', compact('groups', 'mereks', 'salesmans'));
+        return view('listingpenjualan.index', compact('groups', 'mereks', 'salesmans', 'branches'));
     }
 
     // ─────────────────────────────────────────────────────────────
@@ -63,6 +64,11 @@ class ListingPenjualanController extends Controller
                 DB::raw('d.fsalesnet * d.fqty as famount')
             );
         $this->applyBranchVisibilityScope($query, 'm.fbranchcode');
+
+        $selectedBranches = $request->input('branch_codes', []);
+        if (!empty($selectedBranches)) {
+            $query->whereIn('m.fbranchcode', (array) $selectedBranches);
+        }
 
         if ($request->date_from) {
             $query->where('m.fsodate', '>=', $request->date_from);
@@ -158,8 +164,13 @@ class ListingPenjualanController extends Controller
         $customer = $request->cust_from ? '['.$request->cust_from.']' : 'Semua';
         $operator = auth()->user()->fname ?? 'admin';
 
+        $selectedBranchesStr = !empty($request->branch_codes)
+            ? implode(', ', (array) $request->branch_codes)
+            : 'Semua';
+
         $makeRow(['LISTING PENJUALAN'], $styleTitle);
         $makeRow(["Periode: {$periodeFrom} s/d {$periodeTo}"], $styleInfo);
+        $makeRow(["Cabang: {$selectedBranchesStr}"], $styleInfo);
         $makeRow(["Customer: {$customer}", '', '', '', '', '', '', 'Tanggal: '.date('d/m/Y'), '', 'Opr: '.$operator], $styleInfo);
         $makeRow([]);   // baris kosong
 

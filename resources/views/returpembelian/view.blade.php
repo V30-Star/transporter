@@ -1337,8 +1337,10 @@
 
             initDataTable() {
                 if (this.table) {
-                    this.table.destroy();
+                    this.table.columns.adjust().draw(false);
+                    return;
                 }
+                $('#warehouseTable').off('click.whpick');
                 this.table = $('#warehouseTable').DataTable({
                     processing: true,
                     serverSide: true,
@@ -1445,8 +1447,12 @@
                 });
 
                 // Handle button click
-                $('#warehouseTable').on('click', '.btn-choose', (e) => {
-                    const data = this.table.row($(e.target).closest('tr')).data();
+                $('#warehouseTable').on('click.whpick', '.btn-choose', (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+
+                    const data = this.table?.row($(e.currentTarget).closest('tr')).data();
+                    if (!data) return;
                     this.choose(data);
                 });
             },

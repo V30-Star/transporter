@@ -15,8 +15,9 @@ class ListingPOController extends Controller
     public function index()
     {
         $suppliers = DB::table('mssupplier')->orderBy('fsuppliercode')->get();
+        $branches = DB::table('mscabang')->orderBy('fcabangkode')->get();
 
-        return view('listingpo.index', compact('suppliers'));
+        return view('listingpo.index', compact('suppliers', 'branches'));
     }
 
     public function print(Request $request)
@@ -70,6 +71,12 @@ class ListingPOController extends Controller
         $writer->addRow($makeRow([
             'Periode:',
             ($request->date_from ?? '...').' s/d '.($request->date_to ?? '...'),
+        ]));
+        $writer->addRow($makeRow([
+            'Cabang:',
+            !empty($request->branch_codes)
+                ? implode(', ', (array) $request->branch_codes)
+                : 'Semua',
         ]));
         $writer->addRow($makeRow([]));
 
@@ -188,6 +195,11 @@ class ListingPOController extends Controller
                 DB::raw('COALESCE(ter.fqtyterima, 0) as fqtyterima')
             );
         $this->applyBranchVisibilityScope($query, 'h.fbranchcode');
+
+        $selectedBranches = $request->input('branch_codes', []);
+        if (!empty($selectedBranches)) {
+            $query->whereIn('h.fbranchcode', (array) $selectedBranches);
+        }
 
         if ($request->date_from) {
             $query->where('h.fpodate', '>=', $request->date_from);

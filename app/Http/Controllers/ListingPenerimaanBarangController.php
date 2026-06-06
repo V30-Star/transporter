@@ -16,8 +16,9 @@ class ListingPenerimaanBarangController extends Controller
     {
         $suppliers = DB::table('mssupplier')->orderBy('fsuppliercode')->get();
         $warehouses = DB::table('mswh')->where('fnonactive', '0')->orderBy('fwhcode')->get();
+        $branches = DB::table('mscabang')->orderBy('fcabangkode')->get();
 
-        return view('listingpenerimaanbarang.index', compact('suppliers', 'warehouses'));
+        return view('listingpenerimaanbarang.index', compact('suppliers', 'warehouses', 'branches'));
     }
 
     /**
@@ -65,6 +66,11 @@ class ListingPenerimaanBarangController extends Controller
             )
             ->where('m.fstockmtcode', 'TER');
         $this->applyBranchVisibilityScope($query, 'm.fbranchcode');
+
+        $selectedBranches = $request->input('branch_codes', []);
+        if (!empty($selectedBranches)) {
+            $query->whereIn('m.fbranchcode', (array) $selectedBranches);
+        }
 
         // Filter Tanggal
         if ($request->date_from) {
@@ -152,6 +158,12 @@ class ListingPenerimaanBarangController extends Controller
         $writer->addRow($makeRow([
             'Periode:',
             ($request->date_from ?? '...').' s/d '.($request->date_to ?? '...'),
+        ]));
+        $writer->addRow($makeRow([
+            'Cabang:',
+            !empty($request->branch_codes)
+                ? implode(', ', (array) $request->branch_codes)
+                : 'Semua',
         ]));
         $writer->addRow($makeRow([]));
 

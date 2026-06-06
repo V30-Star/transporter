@@ -16,8 +16,9 @@ class ListingSOController extends Controller
     {
         $customers = DB::table('mscustomer')->orderBy('fcustomercode')->get();
         $products = DB::table('msprd')->orderBy('fprdcode')->get();
+        $branches = DB::table('mscabang')->orderBy('fcabangkode')->get();
 
-        return view('listingso.index', compact('customers', 'products'));
+        return view('listingso.index', compact('customers', 'products', 'branches'));
     }
 
     public function print(Request $request)
@@ -27,6 +28,11 @@ class ListingSOController extends Controller
             ->leftJoin('public.mssalesman as sls', 'mt.fsalesman', '=', 'sls.fsalesmancode')
             ->select('mt.*', 'cust.fcustomercode', 'cust.fcustomername', 'sls.fsalesmanname');
         $this->applyBranchVisibilityScope($query, 'mt.fbranchcode');
+
+        $selectedBranches = $request->input('branch_codes', []);
+        if (!empty($selectedBranches)) {
+            $query->whereIn('mt.fbranchcode', (array) $selectedBranches);
+        }
 
         if ($request->date_from) {
             $query->where('mt.fsodate', '>=', $request->date_from);
@@ -77,6 +83,11 @@ class ListingSOController extends Controller
             ->leftJoin('public.mssalesman as sls', 'mt.fsalesman', '=', 'sls.fsalesmancode')
             ->select('mt.*', 'cust.fcustomercode', 'cust.fcustomername', 'sls.fsalesmanname');
         $this->applyBranchVisibilityScope($query, 'mt.fbranchcode');
+
+        $selectedBranches = $request->input('branch_codes', []);
+        if (!empty($selectedBranches)) {
+            $query->whereIn('mt.fbranchcode', (array) $selectedBranches);
+        }
 
         if ($request->date_from) {
             $query->where('mt.fsodate', '>=', $request->date_from);
@@ -141,6 +152,12 @@ class ListingSOController extends Controller
         $writer->addRow($makeRow([
             'Periode:',
             ($request->date_from ?? '...').' s/d '.($request->date_to ?? '...'),
+        ]));
+        $writer->addRow($makeRow([
+            'Cabang:',
+            !empty($request->branch_codes)
+                ? implode(', ', (array) $request->branch_codes)
+                : 'Semua',
         ]));
         $writer->addRow($makeRow([]));
 
