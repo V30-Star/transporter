@@ -1657,7 +1657,8 @@
         window.addEventListener('warehouse-picked', (ev) => {
             const {
                 fwhcode,
-                fwhid
+                fwhid,
+                fwhname
             } = ev.detail || {};
 
             const sel = document.getElementById('warehouseSelect');
@@ -1666,18 +1667,31 @@
             const codeHid = document.getElementById('warehouseCodeHidden');
 
             if (sel) {
-                const opt = [...sel.options].find(o => String(o.value).trim() === String(fwhcode).trim());
-                sel.value = opt ? opt.value : (fwhcode || '');
+                const code = String(fwhcode || '').trim();
+                let opt = [...sel.options].find(o => String(o.value).trim() === code);
+                if (code && !opt) {
+                    opt = new Option(fwhname ? `${fwhname} (${code})` : code, code, true, true);
+                    sel.add(opt);
+                }
+                sel.value = opt ? opt.value : code;
                 sel.dispatchEvent(new Event('change', {
                     bubbles: true
                 }));
             }
 
-            if (hid) hid.value = fwhid || '';
+            if (hid) {
+                hid.value = fwhid || '';
+                hid.dispatchEvent(new Event('change', {
+                    bubbles: true
+                }));
+            }
 
             // TAMBAHKAN LOGIKA INI:
             if (codeHid) {
                 codeHid.value = fwhcode || ''; // Ini yang akan mengisi 'ffrom'
+                codeHid.dispatchEvent(new Event('change', {
+                    bubbles: true
+                }));
             }
         });
     });

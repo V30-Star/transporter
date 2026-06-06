@@ -1871,14 +1871,31 @@
         // â”€â”€â”€ supplierBrowser â€” identik create â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
         window.addEventListener('warehouse-picked', (ev) => {
             const {
-                fwhcode
+                fwhcode,
+                fwhname
             } = ev.detail || {};
 
             const sel = document.getElementById('warehouseSelect');
             const hidFrom = document.getElementById('warehouseCodeHidden');
 
-            if (sel) sel.value = fwhcode || '';
-            if (hidFrom) hidFrom.value = fwhcode || '';
+            if (sel) {
+                const code = String(fwhcode || '').trim();
+                let opt = [...sel.options].find((o) => String(o.value).trim() === code);
+                if (code && !opt) {
+                    opt = new Option(fwhname ? `${fwhname} (${code})` : code, code, true, true);
+                    sel.add(opt);
+                }
+                sel.value = opt ? opt.value : code;
+                sel.dispatchEvent(new Event('change', {
+                    bubbles: true
+                }));
+            }
+            if (hidFrom) {
+                hidFrom.value = fwhcode || '';
+                hidFrom.dispatchEvent(new Event('change', {
+                    bubbles: true
+                }));
+            }
         });
 
         // â”€â”€â”€ productBrowser â€” identik create â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€

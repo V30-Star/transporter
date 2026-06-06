@@ -2011,21 +2011,37 @@
         window.addEventListener('warehouse-picked', (ev) => {
             const {
                 fwhcode,
-                fwhid
+                fwhid,
+                fwhname
             } = ev.detail || {};
             const sel = document.getElementById('warehouseSelect');
             const hidId = document.getElementById('warehouseIdHidden');
             const hidCode = document.getElementById('warehouseCodeHidden');
 
             if (sel) {
-                const opt = [...sel.options].find(o => String(o.value).trim() === String(fwhcode).trim());
-                sel.value = opt ? opt.value : (fwhcode || '');
+                const code = String(fwhcode || '').trim();
+                let opt = [...sel.options].find(o => String(o.value).trim() === code);
+                if (code && !opt) {
+                    opt = new Option(fwhname ? `${fwhname} (${code})` : code, code, true, true);
+                    sel.add(opt);
+                }
+                sel.value = opt ? opt.value : code;
                 sel.dispatchEvent(new Event('change', {
                     bubbles: true
                 }));
             }
-            if (hidId) hidId.value = fwhid || '';
-            if (hidCode) hidCode.value = fwhcode || '';
+            if (hidId) {
+                hidId.value = fwhid || '';
+                hidId.dispatchEvent(new Event('change', {
+                    bubbles: true
+                }));
+            }
+            if (hidCode) {
+                hidCode.value = fwhcode || '';
+                hidCode.dispatchEvent(new Event('change', {
+                    bubbles: true
+                }));
+            }
         });
     });
 </script>

@@ -107,6 +107,7 @@
                 }
 
                 $('#{{ $tableId }}').off('click.whpick');
+                $('#{{ $tableId }} tbody').off('click.whpick');
                 this.table = $('#{{ $tableId }}').DataTable({
                     processing: true,
                     serverSide: true,
@@ -200,6 +201,19 @@
                     const data = this.table?.row($(e.currentTarget).closest('tr')).data();
                     if (!data) {
                         console.warn('Warehouse row data not found for selected row.');
+                        return;
+                    }
+
+                    this.choose(data);
+                });
+
+                $('#{{ $tableId }} tbody').on('click.whpick', 'tr', (e) => {
+                    if ($(e.target).closest('button, a, input, select, textarea').length) {
+                        return;
+                    }
+
+                    const data = this.table?.row(e.currentTarget).data();
+                    if (!data) {
                         return;
                     }
 
