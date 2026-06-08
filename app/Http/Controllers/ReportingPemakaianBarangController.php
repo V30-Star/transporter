@@ -72,20 +72,7 @@ class ReportingPemakaianBarangController extends Controller
           $request->has('filter_supplier_id') ||
           $request->has('branch_codes');
 
-        // Hanya ambil data jika ada filter
-        $prdData = $hasFilter
-          ? $this->getPemakaianBarangQuery($request)
-              ->with('supplier:fsuppliercode,fsuppliername')
-              ->get([
-                  'fpohid',
-                  'fpono',
-                  'fstockmtdate',
-                  'fsupplier',
-                  'famountpo',
-                  'fcurrency',
-                  'fclose',
-              ])
-          : collect();
+        $prdData = collect();
 
         // Ambil SEMUA Supplier untuk dropdown filter
         $suppliers = Supplier::orderBy('fsuppliername', 'asc')

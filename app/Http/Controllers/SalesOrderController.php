@@ -1335,7 +1335,7 @@ class SalesOrderController extends Controller
 
         $savedItems = $salesorder->details->map(function ($d) use ($soRemainMap) {
             $id    = (int) ($d->ftrsodtid ?? 0);
-            $entry = $soRemainMap[$id] ?? ['remain_kecil' => 0, 'remain_dokumen' => 0];
+            $entry = $soRemainMap[$id] ?? ['remain_kecil' => 0, 'remain_dokumen' => 0, 'usage_dokumen' => 0];
 
             return [
                 'uid'                => $d->ftrsodtid,
@@ -1347,7 +1347,7 @@ class SalesOrderController extends Controller
                 'fqty'               => (float) ($d->fqty ?? 0),
                 'fqtyremain'         => (float) $entry['remain_kecil'],
                 'fqtyremain_dokumen' => (float) $entry['remain_dokumen'],
-                'fqtysrj'            => (float) $entry['remain_dokumen'],
+                'fqtysrj'            => (float) $entry['usage_dokumen'],
                 'fterima'            => (float) ($d->fterima ?? 0),
                 'fprice'             => (float) ($d->fprice ?? 0),
                 'fdisc'              => $this->normalizeDiscountInput($d->fdiscpersen ?? 0),
@@ -1457,7 +1457,7 @@ class SalesOrderController extends Controller
 
         $savedItems = $salesorder->details->map(function ($d) use ($soRemainMap) {
             $id    = (int) ($d->ftrsodtid ?? 0);
-            $entry = $soRemainMap[$id] ?? ['remain_kecil' => 0, 'remain_dokumen' => 0];
+            $entry = $soRemainMap[$id] ?? ['remain_kecil' => 0, 'remain_dokumen' => 0, 'usage_dokumen' => 0];
 
             return [
                 'uid'                => $d->ftrsodtid,
@@ -1469,7 +1469,7 @@ class SalesOrderController extends Controller
                 'fqty'               => (float) ($d->fqty ?? 0),
                 'fqtyremain'         => (float) $entry['remain_kecil'],
                 'fqtyremain_dokumen' => (float) $entry['remain_dokumen'],
-                'fqtysrj'            => (float) $entry['remain_dokumen'],
+                'fqtysrj'            => (float) $entry['usage_dokumen'],
                 'fterima'            => (float) ($d->fterima ?? 0),
                 'fprice'             => (float) ($d->fprice ?? 0),
                 'fdisc'              => $this->normalizeDiscountInput($d->fdiscpersen ?? 0),
@@ -1861,7 +1861,7 @@ class SalesOrderController extends Controller
 
         $savedItems = $salesorder->details->map(function ($d) use ($soRemainMap) {
             $id    = (int) ($d->ftrsodtid ?? 0);
-            $entry = $soRemainMap[$id] ?? ['remain_kecil' => 0, 'remain_dokumen' => 0];
+            $entry = $soRemainMap[$id] ?? ['remain_kecil' => 0, 'remain_dokumen' => 0, 'usage_dokumen' => 0];
 
             return [
                 'uid'                => $d->ftrsodtid,
@@ -1873,7 +1873,7 @@ class SalesOrderController extends Controller
                 'fqty'               => (float) ($d->fqty ?? 0),
                 'fqtyremain'         => (float) $entry['remain_kecil'],
                 'fqtyremain_dokumen' => (float) $entry['remain_dokumen'],
-                'fqtysrj'            => (float) $entry['remain_dokumen'],
+                'fqtysrj'            => (float) $entry['usage_dokumen'],
                 'fterima'            => (float) ($d->fterima ?? 0),
                 'fprice'             => (float) ($d->fprice ?? 0),
                 'fdisc'              => $this->normalizeDiscountInput($d->fdiscpersen ?? 0),
@@ -2034,14 +2034,14 @@ class SalesOrderController extends Controller
             ->join('tranmt as h', 'h.fsono', '=', 'd.fsono')
             ->where('h.ftrcode', 'INV')
             ->whereRaw("TRIM(COALESCE(d.frefcode, '')) = 'SO'")
-            ->whereIn('d.frefso', $docNos)
+            ->whereIn(DB::raw("COALESCE(NULLIF(TRIM(COALESCE(d.frefso, '')), ''), NULLIF(TRIM(COALESCE(d.frefsrj, '')), ''))"), $docNos)
             ->selectRaw("
-            TRIM(COALESCE(d.frefso, '')) as ref_doc,
+            COALESCE(NULLIF(TRIM(COALESCE(d.frefso, '')), ''), NULLIF(TRIM(COALESCE(d.frefsrj, '')), '')) as ref_doc,
             TRIM(COALESCE(d.fprdcode, '')) as product_code,
-            COALESCE(d.frefnosoacak::text, '') as ref_noacak,
+            COALESCE(d.frefnosoacak::text, d.frefnoacak::text, '') as ref_noacak,
             SUM(COALESCE(d.fqtykecil, 0)) as used_qty_kecil
             ")
-            ->groupByRaw("TRIM(COALESCE(d.frefso, '')), TRIM(COALESCE(d.fprdcode, '')), COALESCE(d.frefnosoacak::text, '')")
+            ->groupByRaw("COALESCE(NULLIF(TRIM(COALESCE(d.frefso, '')), ''), NULLIF(TRIM(COALESCE(d.frefsrj, '')), '')), TRIM(COALESCE(d.fprdcode, '')), COALESCE(d.frefnosoacak::text, d.frefnoacak::text, '')")
             ->get();
 
         $srjMap = [];
@@ -2075,15 +2075,19 @@ class SalesOrderController extends Controller
 
             if ($fsatuan === $fsatuanbesar && $fqtykecil1 > 0) {
                 $remainDokumen = $srjMinInv / $fqtykecil1;
+                $usageDokumen = ($srjQty + $invQty) / $fqtykecil1;
             } elseif ($fsatuan === $fsatuanbesar2 && $fqtykecil2 > 0) {
                 $remainDokumen = $srjMinInv / $fqtykecil2;
+                $usageDokumen = ($srjQty + $invQty) / $fqtykecil2;
             } else {
                 $remainDokumen = $srjMinInv;
+                $usageDokumen = $srjQty + $invQty;
             }
 
             $result[(int) $row->ftrsodtid] = [
                 'remain_kecil'   => $remainKecil,
                 'remain_dokumen' => $remainDokumen,
+                'usage_dokumen'  => $usageDokumen,
             ];
         }
 

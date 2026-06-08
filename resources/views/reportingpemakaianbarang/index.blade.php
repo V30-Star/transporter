@@ -16,7 +16,7 @@
 
         {{-- --- MODAL FILTER POP-UP --- --}}
         <div id="filterModal" class="fixed inset-0 z-50 bg-black bg-opacity-50 hidden flex items-center justify-center">
-            <div class="bg-white rounded-lg shadow-2xl max-w-xl w-full p-6" onclick="event.stopPropagation()">
+            <div class="bg-white rounded-lg shadow-2xl max-w-2xl w-full p-6" onclick="event.stopPropagation()">
                 <div class="flex justify-between items-center border-b pb-3 mb-4">
                     <h3 class="text-lg font-semibold">Laporan Pemakaian Barang</h3>
                     <button onclick="toggleModal(false)"
@@ -27,13 +27,25 @@
                     <div class="grid grid-cols-2 gap-4">
                         {{-- Cabang / Branch checkboxes --}}
                         <div class="col-span-2">
-                            <label class="block text-sm font-medium mb-1 text-gray-700">Cabang / Branch</label>
-                            <div class="border rounded-lg p-3 bg-gray-50 max-h-40 overflow-y-auto">
+                            <div class="flex justify-between items-center mb-2">
+                                <label class="block text-sm font-medium text-gray-700">Cabang / Branch</label>
+                                <div class="flex space-x-2">
+                                    <button type="button" onclick="selectAllBranches(true)"
+                                        class="text-xs bg-blue-100 text-blue-700 px-3 py-1 rounded hover:bg-blue-200">
+                                        Select All
+                                    </button>
+                                    <button type="button" onclick="selectAllBranches(false)"
+                                        class="text-xs bg-gray-100 text-gray-700 px-3 py-1 rounded hover:bg-gray-200">
+                                        Unselect All
+                                    </button>
+                                </div>
+                            </div>
+                            <div id="branchCheckboxesArea" class="border rounded-lg p-3 bg-gray-50 max-h-40 overflow-y-auto">
                                 <div class="grid grid-cols-2 gap-2">
                                     @foreach ($branches as $b)
                                         <label class="flex items-center text-sm cursor-pointer select-none">
                                             <input type="checkbox" name="branch_codes[]" value="{{ $b->fcabangkode }}"
-                                                class="mr-2 rounded border-gray-300 text-blue-600 focus:ring-blue-500 w-4 h-4">
+                                                class="branch-checkbox mr-2 rounded border-gray-300 text-blue-600 focus:ring-blue-500 w-4 h-4">
                                             <span class="text-gray-700 font-medium">{{ $b->fcabangkode }} - {{ $b->fcabangname }}</span>
                                         </label>
                                     @endforeach
@@ -227,6 +239,12 @@
             } else {
                 modal.classList.add('hidden');
             }
+        }
+
+        function selectAllBranches(status) {
+            document.querySelectorAll('#branchCheckboxesArea .branch-checkbox').forEach(checkbox => {
+                checkbox.checked = status;
+            });
         }
 
         $(function() {

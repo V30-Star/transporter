@@ -71,20 +71,7 @@ class ReportingAdjStockController extends Controller
           $request->has('filter_date_to') ||
           $request->has('filter_supplier_id');
 
-        // Hanya ambil data jika ada filter
-        $prdData = $hasFilter
-          ? $this->getAdjStockQuery($request)
-              ->with('supplier:fsuppliercode,fsuppliername')
-              ->get([
-                  'fpohid',
-                  'fpono',
-                  'fstockmtdate',
-                  'fsupplier',
-                  'famountpo',
-                  'fcurrency',
-                  'fclose',
-              ])
-          : collect();
+        $pohData = collect();
 
         // Ambil SEMUA Supplier untuk dropdown filter
         $suppliers = Supplier::orderBy('fsuppliername', 'asc')
@@ -93,7 +80,7 @@ class ReportingAdjStockController extends Controller
         $branches = DB::table('mscabang')->orderBy('fcabangkode')->get();
 
         return view('reportingadjstock.index', [
-            'prdData' => $prdData,
+            'pohData' => $pohData,
             'suppliers' => $suppliers,
             'hasFilter' => $hasFilter,
             'filterDateFrom' => $filterDateFrom,
