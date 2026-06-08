@@ -141,6 +141,215 @@
         }
     </style>
 
+    <script>
+        window.warehouseBrowser = function() {
+            return {
+                open: false,
+                table: null,
+                currentTarget: '',
+                initDataTable() {
+                    if (this.table) {
+                        this.table.columns.adjust().draw(false);
+                        return;
+                    }
+
+                    $('#warehouseTable').off('click.whpick');
+                    $('#warehouseTable tbody').off('click.whpick');
+                    this.table = $('#warehouseTable').DataTable({
+                        processing: true,
+                        serverSide: true,
+                        ajax: {
+                            url: "{{ route('gudang.browse') }}",
+                            type: 'GET',
+                            data: function(d) {
+                                return {
+                                    draw: d.draw,
+                                    start: d.start,
+                                    length: d.length,
+                                    search: d.search.value,
+                                    order_column: d.columns[d.order[0].column].data,
+                                    order_dir: d.order[0].dir
+                                };
+                            }
+                        },
+                        columns: [{
+                                data: 'fbranchcode',
+                                name: 'fbranchcode',
+                                className: 'text-sm',
+                                width: '15%',
+                                render: data => data || '<span class="text-gray-400">-</span>'
+                            },
+                            {
+                                data: 'fwhcode',
+                                name: 'fwhcode',
+                                className: 'font-mono text-sm font-semibold',
+                                width: '20%'
+                            },
+                            {
+                                data: 'fwhname',
+                                name: 'fwhname',
+                                className: 'text-sm',
+                                width: '50%'
+                            },
+                            {
+                                data: null,
+                                orderable: false,
+                                searchable: false,
+                                className: 'text-center',
+                                width: '15%',
+                                render: () => '<button type="button" class="btn-choose px-4 py-1.5 rounded-md text-sm font-medium bg-blue-600 hover:bg-blue-700 text-white transition-colors duration-150">Pilih</button>'
+                            }
+                        ],
+                        pageLength: 10,
+                        lengthMenu: [[10, 25, 50, 100], [10, 25, 50, 100]],
+                        dom: '<"flex justify-between items-center mb-4"f<"ml-auto"l>>rtip',
+                        language: {
+                            processing: 'Memuat data...',
+                            search: 'Cari:',
+                            lengthMenu: 'Tampilkan _MENU_',
+                            info: 'Menampilkan _START_ - _END_ dari _TOTAL_ data',
+                            infoEmpty: 'Tidak ada data',
+                            infoFiltered: '(disaring dari _MAX_ total data)',
+                            zeroRecords: 'Tidak ada data yang ditemukan',
+                            emptyTable: 'Tidak ada data tersedia',
+                            paginate: { first: 'Pertama', last: 'Terakhir', next: 'Selanjutnya', previous: 'Sebelumnya' }
+                        },
+                        order: [[1, 'asc']],
+                        autoWidth: false,
+                        scrollX: false,
+                        initComplete: function() {
+                            const $container = $(this.api().table().container());
+                            $container.find('.dt-search .dt-input, .dataTables_filter input').css({ width: '300px', padding: '8px 12px', border: '2px solid #e5e7eb', borderRadius: '8px', fontSize: '14px' }).focus();
+                            $container.find('.dt-length select, .dataTables_length select').css({ padding: '6px 32px 6px 10px', border: '2px solid #e5e7eb', borderRadius: '8px', fontSize: '14px' });
+                        }
+                    });
+
+                    $('#warehouseTable').on('click.whpick', '.btn-choose', (e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        const data = this.table?.row($(e.currentTarget).closest('tr')).data();
+                        if (data) this.choose(data);
+                    });
+                    $('#warehouseTable tbody').on('click.whpick', 'tr', (e) => {
+                        if ($(e.target).closest('button, a, input, select, textarea').length) return;
+                        const data = this.table?.row(e.currentTarget).data();
+                        if (data) this.choose(data);
+                    });
+                },
+                openModal(target) {
+                    this.currentTarget = target;
+                    this.open = true;
+                    this.$nextTick(() => this.initDataTable());
+                },
+                close() {
+                    this.open = false;
+                    if (this.table) this.table.search('').draw();
+                },
+                choose(w) {
+                    window.dispatchEvent(new CustomEvent('warehouse-picked', {
+                        detail: {
+                            fwhid: w.fwhid,
+                            fwhcode: w.fwhcode,
+                            fwhname: w.fwhname,
+                            fbranchcode: w.fbranchcode,
+                            target: this.currentTarget
+                        }
+                    }));
+                    this.close();
+                },
+                init() {
+                    window.addEventListener('warehouse-browse-open', (e) => this.openModal(e.detail));
+                }
+            };
+        };
+
+        window.productBrowser = function() {
+            return {
+                open: false,
+                forEdit: false,
+                table: null,
+                initDataTable() {
+                    if (this.table) this.table.destroy();
+                    $('#productTable').off('click.prodpick');
+                    $('#productTable tbody').off('click.prodpick');
+                    this.table = $('#productTable').DataTable({
+                        processing: true,
+                        serverSide: true,
+                        ajax: {
+                            url: "{{ route('products.browse') }}",
+                            type: 'GET',
+                            data: function(d) {
+                                return {
+                                    draw: d.draw,
+                                    start: d.start,
+                                    length: d.length,
+                                    search: d.search.value,
+                                    order_column: d.columns[d.order[0].column].data,
+                                    order_dir: d.order[0].dir
+                                };
+                            }
+                        },
+                        columns: [
+                            { data: 'fprdcode', name: 'fprdcode', className: 'font-mono text-sm' },
+                            { data: 'fprdname', name: 'fprdname', className: 'text-sm' },
+                            { data: 'fsatuanbesar', name: 'fsatuanbesar', className: 'text-sm', render: data => data || '-' },
+                            { data: 'fmerekname', name: 'fmerekname', className: 'text-center text-sm', render: data => data || '-' },
+                            { data: 'fminstock', name: 'fminstock', className: 'text-center text-sm' },
+                            { data: null, orderable: false, searchable: false, className: 'text-center', width: '100px', render: () => '<button type="button" class="btn-choose px-4 py-1.5 rounded-md text-sm font-medium bg-blue-600 hover:bg-blue-700 text-white transition-colors duration-150">Pilih</button>' }
+                        ],
+                        pageLength: 10,
+                        lengthMenu: [[10, 25, 50, 100], [10, 25, 50, 100]],
+                        dom: '<"flex justify-between items-center mb-4"f<"ml-auto"l>>rtip',
+                        language: {
+                            processing: 'Memuat data...',
+                            search: 'Cari:',
+                            lengthMenu: 'Tampilkan _MENU_',
+                            info: 'Menampilkan _START_ - _END_ dari _TOTAL_ data',
+                            infoEmpty: 'Tidak ada data',
+                            infoFiltered: '(disaring dari _MAX_ total data)',
+                            zeroRecords: 'Tidak ada data yang ditemukan',
+                            emptyTable: 'Tidak ada data tersedia',
+                            paginate: { first: 'Pertama', last: 'Terakhir', next: 'Selanjutnya', previous: 'Sebelumnya' }
+                        },
+                        order: [[1, 'asc']],
+                        autoWidth: false,
+                        initComplete: function() {
+                            const $container = $(this.api().table().container());
+                            $container.find('.dt-search .dt-input, .dataTables_filter input').css({ width: '300px', padding: '8px 12px', border: '2px solid #e5e7eb', borderRadius: '8px', fontSize: '14px' }).focus();
+                            $container.find('.dt-length select, .dataTables_length select').css({ padding: '6px 32px 6px 10px', border: '2px solid #e5e7eb', borderRadius: '8px', fontSize: '14px' });
+                        }
+                    });
+                    $('#productTable').on('click.prodpick', '.btn-choose', (e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        const data = this.table?.row($(e.currentTarget).closest('tr')).data();
+                        if (data) this.choose(data);
+                    });
+                    $('#productTable tbody').on('click.prodpick', 'tr', (e) => {
+                        if ($(e.target).closest('button, a, input, select, textarea').length) return;
+                        const data = this.table?.row(e.currentTarget).data();
+                        if (data) this.choose(data);
+                    });
+                },
+                close() {
+                    this.open = false;
+                    if (this.table) this.table.search('').draw();
+                },
+                choose(product) {
+                    window.dispatchEvent(new CustomEvent('product-chosen', { detail: { product, forEdit: this.forEdit } }));
+                    this.close();
+                },
+                init() {
+                    window.addEventListener('browse-open', (e) => {
+                        this.open = true;
+                        this.forEdit = !!(e.detail && e.detail.forEdit);
+                        this.$nextTick(() => this.initDataTable());
+                    }, { passive: true });
+                }
+            };
+        };
+    </script>
+
     <div x-data="{ open: true }">
         <div x-data="{
             open: true,
@@ -157,7 +366,8 @@
         }" class="lg:col-span-5">
             <div class="bg-white rounded shadow p-6 md:p-8 max-w-[96rem] mx-auto">
                 <form action="{{ route('mutasi.store') }}" method="POST" class="mt-6"
-                    data-form-draft="true" data-draft-key="mutasi:create" @submit="onSubmit($event)">
+                    data-form-draft="true" data-draft-key="mutasi:create"
+                    @submit="window.mutasiCreateItemsState?.onSubmit($event)">
                     @csrf
 
                     {{-- HEADER FORM --}}
@@ -392,6 +602,7 @@
                                     <input type="hidden" name="fdesc[]" :value="it.fdesc">
                                     <input type="hidden" name="fketdt[]" :value="it.fketdt">
                                 </div>
+                            </template>
                             <input type="hidden" id="itemsCount" :value="submitItems.length">
                         </div>
                     </div>
@@ -469,7 +680,7 @@
                     </div>
 
                     {{-- MODAL GUDANG --}}
-                    <div x-data="warehouseBrowser()" x-show="open" x-cloak x-transition.opacity
+                    <div x-data="warehouseBrowser()" x-init="init()" x-show="open" x-cloak x-transition.opacity
                         class="fixed inset-0 z-50 flex items-center justify-center p-4">
                         <div class="absolute inset-0 bg-black/50 backdrop-blur-sm"></div>
 
@@ -529,7 +740,7 @@
                     </div>
 
                     {{-- MODAL PRODUK --}}
-                    <div x-data="productBrowser()" x-show="open" x-cloak x-transition.opacity
+                    <div x-data="productBrowser()" x-init="init()" x-show="open" x-cloak x-transition.opacity
                         class="fixed inset-0 z-50 flex items-center justify-center p-4">
                         <div class="absolute inset-0 bg-black/50 backdrop-blur-sm"></div>
 
@@ -1070,6 +1281,7 @@
             },
 
             init() {
+                window.mutasiCreateItemsState = this;
                 this.savedItems = (Array.isArray(this.savedItems) ? this.savedItems : []).map(item => {
                     const row = {
                         ...this.createRow(),
@@ -1099,9 +1311,6 @@
                     const apply = (row) => {
                         row.fitemcode = (product.fprdcode || '').toString();
                         this.hydrateRowFromMeta(row, this.productMeta(row.fitemcode));
-                         this.rows.splice(this.browseTarget, 1, {
-                        ...this.rows[this.browseTarget]
-                    });
 
                         if (!row.fqty) row.fqty = @json((string) env('STOCKBOLEHMINUS', '0') === '1') ? 1 : 0;
                         this.recalc(row);
@@ -1173,6 +1382,7 @@ window.warehouseBrowser = function() {
                     return;
                 }
                 $('#warehouseTable').off('click.whpick');
+                $('#warehouseTable tbody').off('click.whpick');
                 this.table = $('#warehouseTable').DataTable({
                     processing: true,
                     serverSide: true,
@@ -1287,6 +1497,14 @@ window.warehouseBrowser = function() {
                     if (!data) return;
                     this.choose(data);
                 });
+
+                $('#warehouseTable tbody').on('click.whpick', 'tr', (e) => {
+                    if ($(e.target).closest('button, a, input, select, textarea').length) return;
+
+                    const data = this.table?.row(e.currentTarget).data();
+                    if (!data) return;
+                    this.choose(data);
+                });
             },
 
             openModal(target) {
@@ -1325,6 +1543,7 @@ window.warehouseBrowser = function() {
             const {
                 fwhcode,
                 fwhid,
+                fwhname,
                 target
             } = ev.detail || {};
 
@@ -1335,8 +1554,13 @@ window.warehouseBrowser = function() {
             const hid = document.getElementById('warehouseCodeHidden' + suffix);
 
             if (sel) {
-                // Set value select (fwhid harus cocok dengan value di <option>)
-                sel.value = fwhcode || '';
+                const code = String(fwhcode || '').trim();
+                let opt = [...sel.options].find((o) => String(o.value).trim() === code);
+                if (code && !opt) {
+                    opt = new Option(fwhname ? `${fwhname} (${code})` : code, code, true, true);
+                    sel.add(opt);
+                }
+                sel.value = opt ? opt.value : code;
                 // Penting: beritahu browser/Alpine bahwa value berubah
                 sel.dispatchEvent(new Event('change', {
                     bubbles: true
@@ -1345,6 +1569,9 @@ window.warehouseBrowser = function() {
 
             if (hid) {
                 hid.value = fwhcode || '';
+                hid.dispatchEvent(new Event('change', {
+                    bubbles: true
+                }));
             }
         });
     });
@@ -1482,9 +1709,22 @@ window.warehouseBrowser = function() {
                     });
 
                     // Handle button click
-                    $('#productTable').on('click', '.btn-choose', (e) => {
-                        const data = this.table.row($(e.target).closest('tr')).data();
-                        this.choose(data);
+                    $('#productTable').off('click.prodpick');
+                    $('#productTable tbody').off('click.prodpick');
+
+                    $('#productTable').on('click.prodpick', '.btn-choose', (e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+
+                        const data = this.table?.row($(e.currentTarget).closest('tr')).data();
+                        if (data) this.choose(data);
+                    });
+
+                    $('#productTable tbody').on('click.prodpick', 'tr', (e) => {
+                        if ($(e.target).closest('button, a, input, select, textarea').length) return;
+
+                        const data = this.table?.row(e.currentTarget).data();
+                        if (data) this.choose(data);
                     });
                 },
 
@@ -1496,6 +1736,7 @@ window.warehouseBrowser = function() {
                 },
 
                 choose(product) {
+                    if (!product) return;
                     window.dispatchEvent(new CustomEvent('product-chosen', {
                         detail: {
                             product: product,

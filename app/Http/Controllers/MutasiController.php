@@ -109,8 +109,8 @@ class MutasiController extends Controller
             if ($fromWarehouseSearch !== '') {
                 $query->where(function ($warehouseQuery) use ($fromWarehouseSearch) {
                     $warehouseQuery
-                        ->whereRaw('LOWER(TRIM(COALESCE(wf.fwhname, \'\'))) LIKE LOWER(?)', ['%'.$fromWarehouseSearch.'%'])
-                        ->orWhereRaw('LOWER(TRIM(COALESCE(trstockmt.ffrom, \'\'))) LIKE LOWER(?)', ['%'.$fromWarehouseSearch.'%']);
+                        ->whereRaw('LOWER(TRIM(COALESCE(wf.fwhname, \'\'))) LIKE LOWER(?)', ['%' . $fromWarehouseSearch . '%'])
+                        ->orWhereRaw('LOWER(TRIM(COALESCE(trstockmt.ffrom, \'\'))) LIKE LOWER(?)', ['%' . $fromWarehouseSearch . '%']);
                 });
             }
 
@@ -118,8 +118,8 @@ class MutasiController extends Controller
             if ($toWarehouseSearch !== '') {
                 $query->where(function ($warehouseQuery) use ($toWarehouseSearch) {
                     $warehouseQuery
-                        ->whereRaw('LOWER(TRIM(COALESCE(wt.fwhname, \'\'))) LIKE LOWER(?)', ['%'.$toWarehouseSearch.'%'])
-                        ->orWhereRaw('LOWER(TRIM(COALESCE(trstockmt.fto, \'\'))) LIKE LOWER(?)', ['%'.$toWarehouseSearch.'%']);
+                        ->whereRaw('LOWER(TRIM(COALESCE(wt.fwhname, \'\'))) LIKE LOWER(?)', ['%' . $toWarehouseSearch . '%'])
+                        ->orWhereRaw('LOWER(TRIM(COALESCE(trstockmt.fto, \'\'))) LIKE LOWER(?)', ['%' . $toWarehouseSearch . '%']);
                 });
             }
 
@@ -171,7 +171,7 @@ class MutasiController extends Controller
                 // if ($canView) {
                 // Asumsi route edit Anda: mutasi.edit
                 $viewUrl = route('mutasi.view', $row->fstockmtid);
-                $actions .= ' <a href="'.$viewUrl.'" class="inline-flex items-center bg-slate-500 text-white px-4 py-2 rounded hover:bg-slate-600">
+                $actions .= ' <a href="' . $viewUrl . '" class="inline-flex items-center bg-slate-500 text-white px-4 py-2 rounded hover:bg-slate-600">
                                     <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
                                     </svg> View
@@ -182,7 +182,7 @@ class MutasiController extends Controller
                 // if ($canEdit) {
                 // Asumsi route edit Anda: mutasi.edit
                 $editUrl = route('mutasi.edit', $row->fstockmtid);
-                $actions .= ' <a href="'.$editUrl.'" class="inline-flex items-center bg-yellow-500 text-white px-4 py-2 rounded hover:bg-yellow-600">
+                $actions .= ' <a href="' . $editUrl . '" class="inline-flex items-center bg-yellow-500 text-white px-4 py-2 rounded hover:bg-yellow-600">
                                     <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
                                     </svg> Edit
@@ -193,7 +193,7 @@ class MutasiController extends Controller
                 // if ($canDelete) {
                 // Asumsi route destroy Anda: mutasi.destroy
                 $deleteUrl = route('mutasi.delete', $row->fstockmtid);
-                $actions .= '<a href="'.$deleteUrl.'">
+                $actions .= '<a href="' . $deleteUrl . '">
                 <button class="inline-flex items-center bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700">
                     <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
@@ -244,10 +244,17 @@ class MutasiController extends Controller
         $warehouseName = trim((string) $name);
 
         if ($warehouseCode !== '' && $warehouseName !== '') {
-            return $warehouseCode.' - '.$warehouseName;
+            return $warehouseCode . ' - ' . $warehouseName;
         }
 
         return $warehouseCode !== '' ? $warehouseCode : $warehouseName;
+    }
+
+    private function normalizeReferenceRandomNumber($value): ?string
+    {
+        $value = trim((string) ($value ?? ''));
+
+        return preg_match('/^\d{3}$/', $value) ? $value : null;
     }
 
     public function pickable(Request $request)
@@ -285,7 +292,7 @@ class MutasiController extends Controller
         if (in_array($orderColumn, $allowedColumns)) {
             // Prefix table name untuk kolom di tr_poh
             if (in_array($orderColumn, ['fpono', 'fpodate'])) {
-                $query->orderBy('tr_poh.'.$orderColumn, $orderDir);
+                $query->orderBy('tr_poh.' . $orderColumn, $orderDir);
             } else {
                 $query->orderBy('mssupplier.fsuppliername', $orderDir);
             }
@@ -377,17 +384,17 @@ class MutasiController extends Controller
         $prefix = sprintf('PO.%s.%s.%s.', $kodeCabang, $date->format('y'), $date->format('m'));
 
         // kunci per (branch, tahun-bulan) — TANPA bikin tabel baru
-        $lockKey = crc32('PO|'.$kodeCabang.'|'.$date->format('Y-m'));
+        $lockKey = crc32('PO|' . $kodeCabang . '|' . $date->format('Y-m'));
         DB::statement('SELECT pg_advisory_xact_lock(?)', [$lockKey]);
 
         $last = DB::table('tr_poh')
-            ->where('fpono', 'like', $prefix.'%')
+            ->where('fpono', 'like', $prefix . '%')
             ->selectRaw("MAX(CAST(split_part(fpono, '.', 5) AS int)) AS lastno")
             ->value('lastno');
 
         $next = (int) $last + 1;
 
-        return $prefix.str_pad((string) $next, 4, '0', STR_PAD_LEFT);
+        return $prefix . str_pad((string) $next, 4, '0', STR_PAD_LEFT);
     }
 
     public function print(string $fstockmtno)
@@ -426,7 +433,7 @@ class MutasiController extends Controller
                 'trstockdt.fqtyremain',
             ]);
 
-        $fmt = fn ($d) => $d
+        $fmt = fn($d) => $d
             ? \Carbon\Carbon::parse($d)->locale('id')->translatedFormat('d F Y')
             : '-';
 
@@ -458,10 +465,10 @@ class MutasiController extends Controller
         $raw = (Auth::guard('sysuser')->user() ?? Auth::user())?->fcabang;
 
         $branch = DB::table('mscabang')
-            ->when(is_numeric($raw), fn ($q) => $q->where('fcabangid', (int) $raw))
+            ->when(is_numeric($raw), fn($q) => $q->where('fcabangid', (int) $raw))
             ->when(
                 ! is_numeric($raw),
-                fn ($q) => $q->where('fcabangkode', $raw)->orWhere('fcabangname', $raw)
+                fn($q) => $q->where('fcabangkode', $raw)->orWhere('fcabangname', $raw)
             )
             ->first(['fcabangid', 'fcabangkode', 'fcabangname']);
 
@@ -540,7 +547,7 @@ class MutasiController extends Controller
             // =========================
             $uniqueCodes = array_values(array_unique(
                 array_filter(
-                    array_map(fn ($c) => trim((string) $c), $request->input('fitemcode', []))
+                    array_map(fn($c) => trim((string) $c), $request->input('fitemcode', []))
                 )
             ));
 
@@ -693,15 +700,15 @@ class MutasiController extends Controller
 
                     $prefix = sprintf('MUT.%s.%s.%s.', $kodeCabang, $headerData['fstockmtdate']->format('y'), $headerData['fstockmtdate']->format('m'));
 
-                    $lockKey = crc32('STOCKMT|MUT|'.$kodeCabang.'|'.$headerData['fstockmtdate']->format('Y-m'));
+                    $lockKey = crc32('STOCKMT|MUT|' . $kodeCabang . '|' . $headerData['fstockmtdate']->format('Y-m'));
                     DB::statement('SELECT pg_advisory_xact_lock(?)', [$lockKey]);
 
                     $last = DB::table('trstockmt')
-                        ->where('fstockmtno', 'like', $prefix.'%')
+                        ->where('fstockmtno', 'like', $prefix . '%')
                         ->selectRaw("MAX(CAST(split_part(fstockmtno, '.', 5) AS int)) AS lastno")
                         ->value('lastno');
 
-                    $fstockmtno = $prefix.str_pad((string) ((int) $last + 1), 4, '0', STR_PAD_LEFT);
+                    $fstockmtno = $prefix . str_pad((string) ((int) $last + 1), 4, '0', STR_PAD_LEFT);
                     $headerData['fbranchcode'] = $kodeCabang;
                     $headerData['fstockmtno'] = $fstockmtno;
                 }
@@ -899,7 +906,7 @@ class MutasiController extends Controller
             }
 
             $uniqueCodes = array_values(array_unique(
-                array_filter(array_map(fn ($c) => trim((string) $c), $request->input('fitemcode', [])))
+                array_filter(array_map(fn($c) => trim((string) $c), $request->input('fitemcode', [])))
             ));
 
             $prodMeta = collect();
@@ -1207,7 +1214,7 @@ class MutasiController extends Controller
 
             DB::commit();
 
-            return redirect()->route('mutasi.index')->with('success', 'Mutasi '.$docNo.' berhasil dihapus.');
+            return redirect()->route('mutasi.index')->with('success', 'Mutasi ' . $docNo . ' berhasil dihapus.');
         } catch (\Exception $e) {
             if (DB::transactionLevel() > 0) {
                 DB::rollBack();
@@ -1285,7 +1292,7 @@ class MutasiController extends Controller
                 ->join('trstockmt as h', 'h.fstockmtno', '=', 'd.fstockmtno')
                 ->where('h.fstockmtcode', 'MUT')
                 ->whereIn('d.frefso', $referenceDocNos)
-                ->when(! empty($exceptStockMtNo), fn ($query) => $query->where('h.fstockmtno', '<>', $exceptStockMtNo))
+                ->when(! empty($exceptStockMtNo), fn($query) => $query->where('h.fstockmtno', '<>', $exceptStockMtNo))
                 ->selectRaw("
                     h.fstockmtno as transaction_no,
                     TRIM(COALESCE(d.frefso, '')) as ref_no,
@@ -1310,8 +1317,8 @@ class MutasiController extends Controller
 
         $referenceNos = collect($rowsDt)
             ->pluck('frefdtno')
-            ->map(fn ($value) => trim((string) ($value ?? '')))
-            ->filter(fn ($value) => $value !== '' && $value !== '0')
+            ->map(fn($value) => trim((string) ($value ?? '')))
+            ->filter(fn($value) => $value !== '' && $value !== '0')
             ->unique()
             ->values()
             ->all();
@@ -1355,7 +1362,7 @@ class MutasiController extends Controller
         }
 
         do {
-            $candidate = (string) random_int(1, 9).random_int(1, 9).random_int(1, 9);
+            $candidate = (string) random_int(1, 9) . random_int(1, 9) . random_int(1, 9);
         } while (in_array($candidate, $usedNumbers, true));
 
         $usedNumbers[] = $candidate;
