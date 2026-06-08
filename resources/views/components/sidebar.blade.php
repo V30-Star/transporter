@@ -470,6 +470,20 @@
                             </a>
                         </li>
                     @endif
+                    @if (
+                        $hasSidebarPermission(
+                            'createReturPembelian',
+                            'updateReturPembelian',
+                            'deleteReturPembelian',
+                            'printReturPembelian'))
+                        <li>
+                            <a href="{{ route('returpembelian.index') }}"
+                                class="flex items-center p-2 rounded hover:bg-gray-700">
+                                <x-heroicon-o-user-circle class="w-5 h-5" />
+                                <span class="ml-3">{{ 'Retur Pembelian' }}</span>
+                            </a>
+                        </li>
+                    @endif
                 </ul>
             </li>
 
@@ -516,20 +530,6 @@
                                 class="flex items-center p-2 rounded hover:bg-gray-700">
                                 <x-heroicon-o-user-circle class="w-5 h-5" />
                                 <span class="ml-3">{{ 'Pemakaian Barang' }}</span>
-                            </a>
-                        </li>
-                    @endif
-                    @if (
-                        $hasSidebarPermission(
-                            'createReturPembelian',
-                            'updateReturPembelian',
-                            'deleteReturPembelian',
-                            'printReturPembelian'))
-                        <li>
-                            <a href="{{ route('returpembelian.index') }}"
-                                class="flex items-center p-2 rounded hover:bg-gray-700">
-                                <x-heroicon-o-user-circle class="w-5 h-5" />
-                                <span class="ml-3">{{ 'Retur Pembelian' }}</span>
                             </a>
                         </li>
                     @endif

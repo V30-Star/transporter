@@ -357,7 +357,6 @@
                                                 class="w-28 h-9 px-2 text-sm leading-tight border bg-gray-100 rounded transition-opacity appearance-none
                                                            disabled:bg-gray-100 disabled:opacity-60 disabled:cursor-not-allowed">
                                                 <option value="0">Exclude</option>
-                                                <option value="1">Include</option>
                                             </select>
                                         </div>
 
@@ -381,12 +380,6 @@
 
                                     <div class="flex items-center justify-between">
                                         <span class="text-sm font-semibold text-gray-800">Grand Total</span>
-                                        <span class="min-w-[140px] text-right text-lg font-semibold"
-                                            x-text="rupiah(grandTotal)"></span>
-                                    </div>
-
-                                    <div class="flex items-center justify-between">
-                                        <span class="text-sm font-semibold text-gray-800">Grand Total (RP)</span>
                                         <span class="min-w-[140px] text-right text-lg font-semibold"
                                             x-text="rupiah(grandTotal)"></span>
                                     </div>

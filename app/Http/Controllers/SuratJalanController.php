@@ -64,6 +64,11 @@ class SuratJalanController extends Controller
         })->toArray();
     }
 
+    private function isSkippedSuratJalanProductCode(?string $code): bool
+    {
+        return in_array(strtoupper(trim((string) $code)), ['UM', 'AWAL'], true);
+    }
+
     private function formatDisplayTransactionNumber(?string $number, bool $useSlash = false): string
     {
         $normalized = trim((string) $number);
@@ -84,6 +89,10 @@ class SuratJalanController extends Controller
             $rawCode = $codes[$index] ?? '';
             $code = strtoupper(trim((string) $rawCode));
             if ($code === '') {
+                continue;
+            }
+
+            if ($this->isSkippedSuratJalanProductCode($code)) {
                 continue;
             }
 
@@ -730,7 +739,10 @@ class SuratJalanController extends Controller
         $frefnoacaks = $request->input('frefnoacak', []);
 
         $uniqueCodes = array_values(array_unique(
-            array_filter(array_map(fn($c) => trim((string) $c), $codes))
+            array_filter(
+                array_map(fn($c) => trim((string) $c), $codes),
+                fn($code) => $code !== '' && ! $this->isSkippedSuratJalanProductCode($code)
+            )
         ));
 
         // =========================
@@ -763,6 +775,10 @@ class SuratJalanController extends Controller
 
         foreach ($codes as $i => $rawCode) {
             $code = trim((string) $rawCode);
+            if ($this->isSkippedSuratJalanProductCode($code)) {
+                continue;
+            }
+
             $sat = trim((string) ($satuans[$i] ?? ''));
             $rref = $refdtno[$i] ?? null;
             $qty = (float) ($qtys[$i] ?? 0);
@@ -1326,7 +1342,10 @@ class SuratJalanController extends Controller
         $frefnoacaks = $request->input('frefnoacak', []);
 
         $uniqueCodes = array_values(array_unique(
-            array_filter(array_map(fn($c) => trim((string) $c), $codes))
+            array_filter(
+                array_map(fn($c) => trim((string) $c), $codes),
+                fn($code) => $code !== '' && ! $this->isSkippedSuratJalanProductCode($code)
+            )
         ));
 
         // =========================
@@ -1360,6 +1379,10 @@ class SuratJalanController extends Controller
 
         foreach ($codes as $i => $rawCode) {
             $code = trim((string) $rawCode);
+            if ($this->isSkippedSuratJalanProductCode($code)) {
+                continue;
+            }
+
             $sat = trim((string) ($satuans[$i] ?? ''));
             $rref = $refdtno[$i] ?? null;
             $qty = (float) ($qtys[$i] ?? 0);
