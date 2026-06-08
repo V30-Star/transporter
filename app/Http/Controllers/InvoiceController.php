@@ -1289,7 +1289,7 @@ class InvoiceController extends Controller
                 'fhpp',
             ])
             ->keyBy('fprdcode');
-        
+
         $totalSalesNet = 0.0;
         foreach ($itemCodes as $i => $code) {
             $code = trim((string) $code);
@@ -1479,13 +1479,20 @@ class InvoiceController extends Controller
 
                 $approvalState = $this->initializeApprovalState();
 
-                $fprdoutVal = '0';
                 foreach ($detailRows as $detail) {
-                    $prdCode = trim((string) ($detail['fprdcode'] ?? ''));
-                    $refCode = trim((string) ($detail['frefcode'] ?? ''));
-                    if (($prdCode === 'UM' || $prdCode === 'AWAL') && $refCode === 'SRJ') {
+                    $prdCode = $detail['fprdcode'];
+                    $refCode = $detail['frefcode'];
+                    if ($refCode === 'SRJ') {
                         $fprdoutVal = '1';
                         break;
+                    } elseif ($prdCode === 'AWAL') {
+                        $fprdoutVal = '1';
+                        break;
+                    } elseif ($prdCode === 'UM') {
+                        $fprdoutVal = '1';
+                        break;
+                    } else {
+                        $fprdoutVal = '0';
                     }
                 }
 
@@ -2623,13 +2630,20 @@ class InvoiceController extends Controller
                 $headerRefNo
             ) {
                 // Update Header
-                $fprdoutVal = '0';
                 foreach ($detailRows as $detail) {
-                    $prdCode = trim((string) ($detail['fprdcode'] ?? ''));
-                    $refCode = trim((string) ($detail['frefcode'] ?? ''));
-                    if (($prdCode === 'UM' || $prdCode === 'AWAL') && $refCode === 'SRJ') {
+                    $prdCode = $detail['fprdcode'];
+                    $refCode = $detail['frefcode'];
+                    if ($refCode === 'SRJ') {
                         $fprdoutVal = '1';
                         break;
+                    } elseif ($prdCode === 'AWAL') {
+                        $fprdoutVal = '1';
+                        break;
+                    } elseif ($prdCode === 'UM') {
+                        $fprdoutVal = '1';
+                        break;
+                    } else {
+                        $fprdoutVal = '0';
                     }
                 }
 
