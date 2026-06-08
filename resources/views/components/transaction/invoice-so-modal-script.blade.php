@@ -53,9 +53,8 @@
                             defaultContent: '-',
                             render: function(data, type, row) {
                                 const code = (data || '').toString().trim();
-                                const name = (row.fcabangname || '').toString().trim();
-                                if (code && name) return `${code} - ${name}`;
-                                return code || name || '-';
+                                if (code) return `${code}`;
+                                return code || '-';
                             }
                         },
                         {
