@@ -12,6 +12,7 @@
             $canDelete = in_array('deletePenerimaanBarang', $permissions, true);
             $canView = in_array('viewTr_prh', $permissions, true) || $canCreate || $canEdit || $canDelete;
             $showActionsColumn = $canView || $canEdit || $canDelete;
+            $canViewHpp = $canViewHpp ?? in_array('viewProductHpp', explode(',', session('user_restricted_permissions', '')));
             @endphp
 
         <div class="flex justify-end items-center mb-4">
@@ -96,7 +97,9 @@
                     </th>
                     <th class="border px-2 py-1">Gudang</th>
                     <th class="border px-2 py-1">Ref.PO#</th>
+                    @if ($canViewHpp)
                     <th class="border px-2 py-1">Total Harga</th>
+                    @endif
                     <th class="border px-2 py-1">User Id</th>
 
                     @if ($showActionsColumn)
@@ -345,11 +348,13 @@
                     name: 'frefpo',
                     orderable: false
                 },
+                @if ($canViewHpp)
                 {
                     data: 'famountmt',
                     name: 'famountmt',
                     orderable: false
                 },
+                @endif
                 {
                     data: 'fusercreate',
                     name: 'fusercreate',

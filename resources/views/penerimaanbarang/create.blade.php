@@ -3,6 +3,9 @@
 @section('title', 'Penerimaan Barang - New')
 
 @section('content')
+@php
+    $canViewHpp = $canViewHpp ?? in_array('viewProductHpp', explode(',', session('user_restricted_permissions', '')));
+@endphp
     <style>
         input:focus,
         select:focus,
@@ -260,8 +263,10 @@
                                 <th class="p-2 text-left w-28">Satuan</th>
                                 <th class="p-2 text-left w-32">Ref.PO#</th>
                                 <th class="p-2 text-right w-24 whitespace-nowrap">Qty</th>
+                                @if($canViewHpp)
                                 <th class="p-2 text-right w-28 whitespace-nowrap">@ Harga</th>
                                 <th class="p-2 text-right w-32 whitespace-nowrap">Total Harga</th>
+                                @endif
                                 <th class="p-2 text-center w-20">Aksi</th>
                             </tr>
                         </thead>
@@ -338,6 +343,7 @@
                                     </td>
 
                                     {{-- @ Harga --}}
+                                    @if ($canViewHpp)
                                     <td class="p-2 text-right">
                                         <input type="text" inputmode="decimal"
                                             class="border rounded px-2 py-1 w-28 text-right text-sm"
@@ -346,13 +352,16 @@
                                             @blur="activeRow = null; blurPriceInput(it)" @change="recalc(it)"
                                             @keydown.enter.prevent="focusSavedDisc(i)">
                                     </td>
+                                    @endif
 
                                     {{-- Total Harga --}}
+                                    @if ($canViewHpp)
                                     <td class="p-2">
                                         <input type="text"
                                             class="w-full border rounded px-2 py-1 bg-gray-100 text-gray-600 text-sm text-right"
                                             :value="formatTransactionAmount(it.ftotal)" disabled>
                                     </td>
+                                    @endif
 
                                     <td class="p-2 text-center">
                                         <div class="flex items-center justify-center">
@@ -404,6 +413,7 @@
                         </div>
 
                         {{-- Panel Totals --}}
+                        @if($canViewHpp)
                         <div class="w-[480px] shrink-0">
                             <div class="rounded-lg border bg-gray-50 p-3 space-y-2 text-sm">
                                 <div class="flex items-center justify-between">
@@ -413,6 +423,7 @@
                             </div>
                             <input type="hidden" name="famountponet" :value="totalHarga">
                         </div>
+                        @endif
                     </div>
 
                     {{-- Modal backdrop --}}
