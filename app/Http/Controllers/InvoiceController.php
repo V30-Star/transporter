@@ -1289,7 +1289,7 @@ class InvoiceController extends Controller
                 'fhpp',
             ])
             ->keyBy('fprdcode');
-
+        
         $totalSalesNet = 0.0;
         foreach ($itemCodes as $i => $code) {
             $code = trim((string) $code);
@@ -1479,7 +1479,16 @@ class InvoiceController extends Controller
 
                 $approvalState = $this->initializeApprovalState();
 
-                // --- INSERT HEADER DAN AMBIL ID ---
+                $fprdoutVal = '0';
+                foreach ($detailRows as $detail) {
+                    $prdCode = trim((string) ($detail['fprdcode'] ?? ''));
+                    $refCode = trim((string) ($detail['frefcode'] ?? ''));
+                    if (($prdCode === 'UM' || $prdCode === 'AWAL') && $refCode === 'SRJ') {
+                        $fprdoutVal = '1';
+                        break;
+                    }
+                }
+
                 $headerInsert = [
                     'ftaxno' => mb_substr($fsono, 0, 50),
                     'fsono' => $fsono,
@@ -1513,7 +1522,7 @@ class InvoiceController extends Controller
                     'ftypesales' => $request->input('ftypesales', 0),
                     'fbranchcode' => $request->fbranchcode,
                     'ftrcode' => 'INV',
-                    'fprdout' => '0',
+                    'fprdout' => $fprdoutVal,
                     'fneedacc' => $needsApprovalNotification ? '1' : '0',
                     'fuseracc' => $creditApproval['fuseracc'],
                     'fprint' => 0,
@@ -2614,6 +2623,16 @@ class InvoiceController extends Controller
                 $headerRefNo
             ) {
                 // Update Header
+                $fprdoutVal = '0';
+                foreach ($detailRows as $detail) {
+                    $prdCode = trim((string) ($detail['fprdcode'] ?? ''));
+                    $refCode = trim((string) ($detail['frefcode'] ?? ''));
+                    if (($prdCode === 'UM' || $prdCode === 'AWAL') && $refCode === 'SRJ') {
+                        $fprdoutVal = '1';
+                        break;
+                    }
+                }
+
                 $headerUpdate = [
                     'ftaxno' => mb_substr((string) ($header->fsono ?? ''), 0, 50),
                     'fsodate' => $fsodate,
@@ -2641,6 +2660,7 @@ class InvoiceController extends Controller
                     'fppnpersen' => $ppnPersen,
                     'fbranchcode' => $request->fbranchcode,
                     'ftypesales' => (int) $request->input('ftypesales', 0),
+                    'fprdout' => $fprdoutVal,
                     'fneedacc' => $needsApprovalNotification ? '1' : '0',
                     'fuseracc' => $creditApproval['fuseracc'],
                     'fjatuhtempo' => $fjatuhtempo,
