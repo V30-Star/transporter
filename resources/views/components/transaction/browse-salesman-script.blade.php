@@ -88,6 +88,7 @@
                 }
 
                 $('#{{ $tableId }}').off('click.salespick');
+                $('#{{ $tableId }} tbody').off('click.salespick');
                 this.dataTable = $('#{{ $tableId }}').DataTable({
                     processing: true,
                     serverSide: true,
@@ -173,10 +174,26 @@
                 });
 
                 $('#{{ $tableId }}').on('click.salespick', '.btn-choose', (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+
                     const data = this.dataTable.row($(e.target).closest('tr')).data();
                     if (data) {
                         this.chooseSalesman(data);
                     }
+                });
+
+                $('#{{ $tableId }} tbody').on('click.salespick', 'tr', (e) => {
+                    if ($(e.target).closest('button, a, input, select, textarea').length) {
+                        return;
+                    }
+
+                    const data = this.dataTable?.row(e.currentTarget).data();
+                    if (!data) {
+                        return;
+                    }
+
+                    this.chooseSalesman(data);
                 });
             },
 

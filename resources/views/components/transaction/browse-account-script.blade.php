@@ -66,6 +66,8 @@
                 faccount: code,
                 faccname: name,
                 fhavesubaccount: account.fhavesubaccount
+                    ?? account.has_subaccount,
+                ftypesubaccount: account.ftypesubaccount
             }
         }));
 
@@ -84,6 +86,7 @@
                 }
 
                 $('#{{ $tableId }}').off('click.accpick');
+                $('#{{ $tableId }} tbody').off('click.accpick');
                 this.table = $('#{{ $tableId }}').DataTable({
                     processing: true,
                     serverSide: true,
@@ -177,8 +180,24 @@
                 });
 
                 $('#{{ $tableId }}').on('click.accpick', '.btn-choose', (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+
                     const data = this.table.row($(e.target).closest('tr')).data();
                     if (data) this.choose(data);
+                });
+
+                $('#{{ $tableId }} tbody').on('click.accpick', 'tr', (e) => {
+                    if ($(e.target).closest('button, a, input, select, textarea').length) {
+                        return;
+                    }
+
+                    const data = this.table?.row(e.currentTarget).data();
+                    if (!data) {
+                        return;
+                    }
+
+                    this.choose(data);
                 });
             },
 

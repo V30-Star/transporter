@@ -538,6 +538,9 @@
                                                             <tr class="bg-gradient-to-r from-gray-50 to-gray-100">
                                                                 <th
                                                                     class="text-left p-3 font-semibold text-gray-700 border-b-2 border-gray-200">
+                                                                    Cab</th>
+                                                                <th
+                                                                    class="text-left p-3 font-semibold text-gray-700 border-b-2 border-gray-200">
                                                                     No.SO</th>
                                                                 <th
                                                                     class="text-left p-3 font-semibold text-gray-700 border-b-2 border-gray-200">
@@ -611,6 +614,8 @@
                                                         style="width:100%">
                                                         <thead class="sticky top-0 z-10">
                                                             <tr class="bg-gray-50 border-b-2 border-gray-200">
+                                                                <th class="p-3 text-left font-semibold text-gray-700">
+                                                                    Cab</th>
                                                                 <th class="p-3 text-left font-semibold text-gray-700">
                                                                     No Faktur</th>
                                                                 <th class="p-3 text-left font-semibold text-gray-700">

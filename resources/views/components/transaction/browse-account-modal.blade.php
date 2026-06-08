@@ -335,9 +335,28 @@
                     }
                 });
 
+                $('#{{ $tableId }}').off('click.accpick');
+                $('#{{ $tableId }} tbody').off('click.accpick');
+
                 $('#{{ $tableId }}').on('click.accpick', '.btn-choose', (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+
                     const data = this.table.row($(e.target).closest('tr')).data();
                     if (data) this.choose(data);
+                });
+
+                $('#{{ $tableId }} tbody').on('click.accpick', 'tr', (e) => {
+                    if ($(e.target).closest('button, a, input, select, textarea').length) {
+                        return;
+                    }
+
+                    const data = this.table?.row(e.currentTarget).data();
+                    if (!data) {
+                        return;
+                    }
+
+                    this.choose(data);
                 });
             },
 
@@ -362,6 +381,12 @@
             },
 
             choose(row) {
+                if (typeof window.applyTransactionAccountSelection === 'function') {
+                    window.applyTransactionAccountSelection(row);
+                    this.close();
+                    return;
+                }
+
                 window.dispatchEvent(new CustomEvent('account-picked', {
                     detail: {
                         faccid: row.faccid,

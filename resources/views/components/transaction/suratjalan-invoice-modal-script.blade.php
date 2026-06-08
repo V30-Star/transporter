@@ -55,6 +55,17 @@
                         }
                     },
                     columns: [{
+                            data: 'fbranchcode',
+                            name: 'mt.fbranchcode',
+                            className: 'text-sm',
+                            defaultContent: '-',
+                            render: function(data, type, row) {
+                                const code = (data || '').toString().trim();
+                                if (code) return code;
+                                return '-';
+                            }
+                        },
+                        {
                             data: @js($numberColumnLabel),
                             name: @js($numberColumnName),
                             className: 'font-mono text-sm'
@@ -117,7 +128,7 @@
                         }
                     },
                     order: [
-                        [1, 'desc']
+                        [2, 'desc']
                     ],
                     autoWidth: false,
                     scrollX: true,

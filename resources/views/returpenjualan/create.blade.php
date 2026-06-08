@@ -548,6 +548,14 @@
                                     const name = (customerName ?? '').toString().trim();
                                     const label = name !== '' ? `${name} (${code})` : code;
 
+                                    if (typeof window.applyTransactionCustomerSelection === 'function') {
+                                        window.applyTransactionCustomerSelection({
+                                            fcustomercode: code,
+                                            fcustomername: name,
+                                        });
+                                        return;
+                                    }
+
                                     // Set option di select dropdown
                                     let opt = [...sel.options].find(o => o.value === code);
                                     if (!opt) {
@@ -559,7 +567,15 @@
                                     }
 
                                     // Set hidden input
-                                    if (hid) hid.value = code;
+                                    if (hid) {
+                                        hid.value = code;
+                                        hid.dispatchEvent(new Event('change', {
+                                            bubbles: true
+                                        }));
+                                    }
+                                    sel.dispatchEvent(new Event('change', {
+                                        bubbles: true
+                                    }));
                                 }
 
                                 // Menangkap Event saat referensi faktur dipilih
@@ -1616,13 +1632,32 @@
                 });
 
                 // Handle button click
-                $('#customerBrowseTable').off('click', '.btn-choose').on('click', '.btn-choose', (e) => {
+                $('#customerBrowseTable').off('click.custpick');
+                $('#customerBrowseTable tbody').off('click.custpick');
+
+                $('#customerBrowseTable').on('click.custpick', '.btn-choose', (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+
                     const data = this.dataTable.row($(e.target).closest('tr')).data();
                     if (!data) return;
                     // Pastikan fblokir tidak bernilai 1 sebelum diproses
                     if (data.fblokir != 1) {
                         this.chooseCustomer(data);
                     }
+                });
+
+                $('#customerBrowseTable tbody').on('click.custpick', 'tr', (e) => {
+                    if ($(e.target).closest('button, a, input, select, textarea').length) {
+                        return;
+                    }
+
+                    const data = this.dataTable?.row(e.currentTarget).data();
+                    if (!data || data.fblokir == 1) {
+                        return;
+                    }
+
+                    this.chooseCustomer(data);
                 });
             },
 
@@ -1641,6 +1676,12 @@
             },
 
             chooseCustomer(customer) {
+                if (typeof window.applyTransactionCustomerSelection === 'function') {
+                    window.applyTransactionCustomerSelection(customer);
+                    this.close();
+                    return;
+                }
+
                 const sel = document.getElementById('modal_filter_customer_id');
                 const hid = document.getElementById('customerCodeHidden');
 
@@ -1658,7 +1699,12 @@
                     opt.text = label;
                     opt.selected = true;
                 }
-                if (hid) hid.value = customer.fcustomercode;
+                if (hid) {
+                    hid.value = customer.fcustomercode;
+                    hid.dispatchEvent(new Event('change', {
+                        bubbles: true
+                    }));
+                }
 
                 window.dispatchEvent(new CustomEvent('customer-selected', {
                     detail: {
@@ -1668,7 +1714,9 @@
                     }
                 }));
 
-                sel.dispatchEvent(new Event('change'));
+                sel.dispatchEvent(new Event('change', {
+                    bubbles: true
+                }));
                 this.close();
             },
 
@@ -1799,9 +1847,28 @@
                 });
 
                 // Handle button click
-                $('#salesmanBrowseTable').off('click', '.btn-choose').on('click', '.btn-choose', (e) => {
+                $('#salesmanBrowseTable').off('click.salespick');
+                $('#salesmanBrowseTable tbody').off('click.salespick');
+
+                $('#salesmanBrowseTable').on('click.salespick', '.btn-choose', (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+
                     const data = this.dataTable.row($(e.target).closest('tr')).data();
                     if (data) this.chooseSalesman(data);
+                });
+
+                $('#salesmanBrowseTable tbody').on('click.salespick', 'tr', (e) => {
+                    if ($(e.target).closest('button, a, input, select, textarea').length) {
+                        return;
+                    }
+
+                    const data = this.dataTable?.row(e.currentTarget).data();
+                    if (!data) {
+                        return;
+                    }
+
+                    this.chooseSalesman(data);
                 });
             },
 
@@ -1820,6 +1887,12 @@
             },
 
             chooseSalesman(salesman) {
+                if (typeof window.applyTransactionSalesmanSelection === 'function') {
+                    window.applyTransactionSalesmanSelection(salesman);
+                    this.close();
+                    return;
+                }
+
                 const sel = document.getElementById('modal_filter_salesman_id');
                 const hid = document.getElementById('salesmanCodeHidden');
 
@@ -1839,8 +1912,15 @@
                     opt.selected = true;
                 }
 
-                sel.dispatchEvent(new Event('change'));
-                if (hid) hid.value = salesman.fsalesmancode;
+                sel.dispatchEvent(new Event('change', {
+                    bubbles: true
+                }));
+                if (hid) {
+                    hid.value = salesman.fsalesmancode;
+                    hid.dispatchEvent(new Event('change', {
+                        bubbles: true
+                    }));
+                }
                 this.close();
             },
 
@@ -3551,9 +3631,28 @@
                     });
 
                     // Handle button click
-                    $('#productTable').off('click', '.btn-choose').on('click', '.btn-choose', (e) => {
+                    $('#productTable').off('click.prodpick');
+                    $('#productTable tbody').off('click.prodpick');
+
+                    $('#productTable').on('click.prodpick', '.btn-choose', (e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+
                         const data = this.table.row($(e.target).closest('tr')).data();
                         if (data) this.choose(data);
+                    });
+
+                    $('#productTable tbody').on('click.prodpick', 'tr', (e) => {
+                        if ($(e.target).closest('button, a, input, select, textarea').length) {
+                            return;
+                        }
+
+                        const data = this.table?.row(e.currentTarget).data();
+                        if (!data) {
+                            return;
+                        }
+
+                        this.choose(data);
                     });
                 },
 

@@ -99,6 +99,7 @@
                 }
 
                 $('#{{ $tableId }}').off('click.custpick');
+                $('#{{ $tableId }} tbody').off('click.custpick');
                 this.dataTable = $('#{{ $tableId }}').DataTable({
                     processing: true,
                     serverSide: true,
@@ -208,10 +209,26 @@
                 });
 
                 $('#{{ $tableId }}').on('click.custpick', '.btn-choose', (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+
                     const data = this.dataTable.row($(e.target).closest('tr')).data();
                     if (data && data.fblokir != 1) {
                         this.chooseCustomer(data);
                     }
+                });
+
+                $('#{{ $tableId }} tbody').on('click.custpick', 'tr', (e) => {
+                    if ($(e.target).closest('button, a, input, select, textarea').length) {
+                        return;
+                    }
+
+                    const data = this.dataTable?.row(e.currentTarget).data();
+                    if (!data || data.fblokir == 1) {
+                        return;
+                    }
+
+                    this.chooseCustomer(data);
                 });
             },
 

@@ -3883,23 +3883,35 @@
 
                     if (sel) {
                         // Cek apakah option sudah ada
-                        let opt = [...sel.options].find(o => o.value == faccount);
-                        const label = faccount + ' - ' + faccname;
+                        const code = String(faccount || '').trim();
+                        let opt = [...sel.options].find(o => String(o.value).trim() === code);
+                        const label = faccname ? `${code} - ${faccname}` : code;
 
-                        if (!opt) {
-                            opt = new Option(label, faccount, true, true);
+                        if (code && !opt) {
+                            opt = new Option(label, code, true, true);
                             sel.add(opt);
-                        } else {
+                        } else if (opt) {
                             opt.text = label;
                             opt.selected = true;
                         }
+                        sel.value = opt ? opt.value : code;
                         sel.dispatchEvent(new Event('change', {
                             bubbles: true
                         }));
                     }
 
-                    if (hidId) hidId.value = faccid || '';
-                    if (hidCode) hidCode.value = faccount || '';
+                    if (hidId) {
+                        hidId.value = faccid || '';
+                        hidId.dispatchEvent(new Event('change', {
+                            bubbles: true
+                        }));
+                    }
+                    if (hidCode) {
+                        hidCode.value = faccount || '';
+                        hidCode.dispatchEvent(new Event('change', {
+                            bubbles: true
+                        }));
+                    }
                 });
             });
             document.addEventListener('DOMContentLoaded', () => {
@@ -3933,8 +3945,18 @@
                     }));
                 }
 
-                if (hidCode) hidCode.value = currentCode;
-                if (hidId) hidId.value = currentId;
+                if (hidCode) {
+                    hidCode.value = currentCode;
+                    hidCode.dispatchEvent(new Event('change', {
+                        bubbles: true
+                    }));
+                }
+                if (hidId) {
+                    hidId.value = currentId;
+                    hidId.dispatchEvent(new Event('change', {
+                        bubbles: true
+                    }));
+                }
             });
         </script>
     @endpush

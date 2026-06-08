@@ -3049,7 +3049,8 @@
         window.addEventListener('account-picked', (ev) => {
             let {
                 faccount,
-                faccid
+                faccid,
+                faccname
             } = ev.detail || {};
 
             // Fallback untuk mencari faccid dari option jika tidak ada
@@ -3068,7 +3069,17 @@
             const hidCode = document.getElementById('accountCodeHidden');
 
             if (sel) {
-                sel.value = faccount || '';
+                const code = String(faccount || '').trim();
+                const label = faccname ? `${code} - ${faccname}` : code;
+                let opt = [...sel.options].find((o) => String(o.value).trim() === code);
+                if (code && !opt) {
+                    opt = new Option(label, code, true, true);
+                    sel.add(opt);
+                } else if (opt) {
+                    opt.text = label;
+                    opt.selected = true;
+                }
+                sel.value = opt ? opt.value : code;
                 sel.dispatchEvent(new Event('change', {
                     bubbles: true
                 }));
@@ -3076,10 +3087,16 @@
 
             if (hidId) {
                 hidId.value = faccid || '';
+                hidId.dispatchEvent(new Event('change', {
+                    bubbles: true
+                }));
             }
 
             if (hidCode) {
                 hidCode.value = faccount || '';
+                hidCode.dispatchEvent(new Event('change', {
+                    bubbles: true
+                }));
             }
         });
     });
@@ -3223,23 +3240,35 @@
 
                 if (sel) {
                     // Cek apakah option sudah ada
-                    let opt = [...sel.options].find(o => o.value == faccount);
-                    const label = faccount + ' - ' + faccname;
+                    const code = String(faccount || '').trim();
+                    let opt = [...sel.options].find(o => String(o.value).trim() === code);
+                    const label = faccname ? `${code} - ${faccname}` : code;
 
-                    if (!opt) {
-                        opt = new Option(label, faccount, true, true);
+                    if (code && !opt) {
+                        opt = new Option(label, code, true, true);
                         sel.add(opt);
-                    } else {
+                    } else if (opt) {
                         opt.text = label;
                         opt.selected = true;
                     }
+                    sel.value = opt ? opt.value : code;
                     sel.dispatchEvent(new Event('change', {
                         bubbles: true
                     }));
                 }
 
-                if (hidId) hidId.value = faccid || '';
-                if (hidCode) hidCode.value = faccount || '';
+                if (hidId) {
+                    hidId.value = faccid || '';
+                    hidId.dispatchEvent(new Event('change', {
+                        bubbles: true
+                    }));
+                }
+                if (hidCode) {
+                    hidCode.value = faccount || '';
+                    hidCode.dispatchEvent(new Event('change', {
+                        bubbles: true
+                    }));
+                }
             });
         });
     </script>

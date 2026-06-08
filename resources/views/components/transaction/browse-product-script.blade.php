@@ -40,7 +40,8 @@
                     this.table = null;
                 }
 
-                $('#{{ $tableId }}').off('click', '.btn-choose');
+                $('#{{ $tableId }}').off('click.prodpick');
+                $('#{{ $tableId }} tbody').off('click.prodpick');
 
                 this.table = $('#{{ $tableId }}').DataTable({
                     processing: true,
@@ -187,8 +188,26 @@
                     }
                 });
 
-                $('#{{ $tableId }}').on('click', '.btn-choose', (e) => {
+                $('#{{ $tableId }}').on('click.prodpick', '.btn-choose', (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+
                     const product = this.table.row($(e.target).closest('tr')).data();
+                    if (product) {
+                        this.choose(product);
+                    }
+                });
+
+                $('#{{ $tableId }} tbody').on('click.prodpick', 'tr', (e) => {
+                    if ($(e.target).closest('button, a, input, select, textarea').length) {
+                        return;
+                    }
+
+                    const product = this.table?.row(e.currentTarget).data();
+                    if (!product) {
+                        return;
+                    }
+
                     this.choose(product);
                 });
             },

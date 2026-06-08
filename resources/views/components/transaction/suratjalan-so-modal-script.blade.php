@@ -39,6 +39,17 @@
                         }
                     },
                     columns: [{
+                            data: 'fbranchcode',
+                            name: 'trsomt.fbranchcode',
+                            className: 'text-sm',
+                            defaultContent: '-',
+                            render: function(data, type, row) {
+                                const code = (data || '').toString().trim();
+                                if (code) return code;
+                                return '-';
+                            }
+                        },
+                        {
                             data: 'fsono',
                             name: 'trsomt.fsono',
                             className: 'font-mono text-sm'
@@ -114,7 +125,7 @@
                         }
                     },
                     order: [
-                        [1, 'desc']
+                        [2, 'desc']
                     ],
                     autoWidth: false,
                     scrollX: true,

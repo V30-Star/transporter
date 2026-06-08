@@ -783,6 +783,7 @@ class InvoiceController extends Controller
 
         $query = DB::table('tranmt as mt')
             ->leftJoin('mscustomer as c', 'c.fcustomercode', '=', 'mt.fcustno')
+            ->leftJoin('mscabang as cb', 'cb.fcabangkode', '=', 'mt.fbranchcode')
             ->where('mt.ftrcode', 'INV')
             ->where('mt.fprdout', '0')
             ->select(
@@ -791,6 +792,8 @@ class InvoiceController extends Controller
                 'mt.frefno',
                 'mt.fsodate',
                 'mt.fcustno',
+                'mt.fbranchcode',
+                'cb.fcabangname',
                 'mt.ftrcode',
                 'mt.fprdout',
                 'c.fcustomername'
@@ -831,7 +834,9 @@ class InvoiceController extends Controller
                 $q->where('mt.fsono', 'ilike', "%{$search}%")
                     ->orWhere('mt.frefno', 'ilike', "%{$search}%")
                     ->orWhere('mt.fcustno', 'ilike', "%{$search}%")
-                    ->orWhere('c.fcustomername', 'ilike', "%{$search}%");
+                    ->orWhere('c.fcustomername', 'ilike', "%{$search}%")
+                    ->orWhere('mt.fbranchcode', 'ilike', "%{$search}%")
+                    ->orWhere('cb.fcabangname', 'ilike', "%{$search}%");
             });
         }
 
@@ -840,10 +845,14 @@ class InvoiceController extends Controller
         $orderColumn = $request->input('order_column', 'fsodate');
         $orderDir = $request->input('order_dir', 'desc');
 
-        $allowedColumns = ['fsono', 'frefno', 'fsodate', 'fcustomername'];
+        $allowedColumns = ['fsono', 'frefno', 'fsodate', 'fcustomername', 'fbranchcode', 'fcabangname'];
         if (in_array($orderColumn, $allowedColumns, true)) {
             if ($orderColumn === 'fcustomername') {
                 $query->orderBy('c.fcustomername', $orderDir);
+            } elseif ($orderColumn === 'fbranchcode') {
+                $query->orderBy('mt.fbranchcode', $orderDir);
+            } elseif ($orderColumn === 'fcabangname') {
+                $query->orderBy('cb.fcabangname', $orderDir);
             } else {
                 $query->orderBy('mt.' . $orderColumn, $orderDir);
             }
