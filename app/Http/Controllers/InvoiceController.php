@@ -218,6 +218,20 @@ class InvoiceController extends Controller
         return $normalized;
     }
 
+    private function resolveInvoiceProductOutValue(array $detailRows): string
+    {
+        foreach ($detailRows as $detail) {
+            $refCode = strtoupper(trim((string) ($detail['frefcode'] ?? '')));
+            $productCode = strtoupper(trim((string) ($detail['fprdcode'] ?? '')));
+
+            if ($refCode !== 'SRJ' && ! in_array($productCode, ['AWAL', 'UM'], true)) {
+                return '0';
+            }
+        }
+
+        return $detailRows === [] ? '0' : '1';
+    }
+
     private function getReverseJournalBaseAmountByStockDocs(array $stockDocNos): float
     {
         $docNos = collect($stockDocNos)
@@ -1480,12 +1494,7 @@ class InvoiceController extends Controller
 
                 $approvalState = $this->initializeApprovalState();
 
-                foreach ($detailRows as $detail) {
-                    if ($detail['frefcode'] === 'SRJ' || in_array($detail['fprdcode'], ['AWAL', 'UM'])) {
-                        $fprdoutVal = '1';
-                        break;
-                    }
-                }
+                $fprdoutVal = $this->resolveInvoiceProductOutValue($detailRows);
 
                 $headerInsert = [
                     'ftaxno' => mb_substr($fsono, 0, 50),
@@ -1557,11 +1566,11 @@ class InvoiceController extends Controller
 
             $redirect = redirect()->route('invoice.index')->with('success', 'Faktur penjualan ' . $this->formatDisplayTransactionNumber($fsono, $fincludeppn === '1') . ' berhasil disimpan.');
 
-            if ($hasSrjReference || $needsApprovalNotification || ! $this->canCreateSuratJalan() || ! $ftranmtid) {
+            if ($needsApprovalNotification || ! $this->canCreateSuratJalan() || ! $ftranmtid) {
                 return $redirect;
             }
 
-            // Hanya tampilkan prompt buat surat jalan jika bukan transaksi UM/AWAL/SRJ
+            // Prompt tetap tampil jika invoice campuran masih punya produk normal yang perlu dibuatkan Surat Jalan.
             if ($fprdoutVal === '0') {
                 return $redirect->with('success_prompt', [
                     'type' => 'invoice_create_suratjalan',
@@ -2619,12 +2628,7 @@ class InvoiceController extends Controller
                 $fjatuhtempo,
                 $headerRefNo
             ) {
-                foreach ($detailRows as $detail) {
-                    if ($detail['frefcode'] === 'SRJ' || in_array($detail['fprdcode'], ['AWAL', 'UM'])) {
-                        $fprdoutVal = '1';
-                        break;
-                    }
-                }
+                $fprdoutVal = $this->resolveInvoiceProductOutValue($detailRows);
 
                 $headerUpdate = [
                     'ftaxno' => mb_substr((string) ($header->fsono ?? ''), 0, 50),
@@ -2690,11 +2694,11 @@ class InvoiceController extends Controller
 
             $redirect = redirect()->route('invoice.index')->with('success', 'Faktur penjualan ' . $this->formatDisplayTransactionNumber($header->fsono, $fincludeppn === '1') . ' berhasil diupdate.');
 
-            if ($hasSrjReference || $needsApprovalNotification || ! $this->canCreateSuratJalan()) {
+            if ($needsApprovalNotification || ! $this->canCreateSuratJalan()) {
                 return $redirect;
             }
 
-            // Hanya tampilkan prompt buat surat jalan jika bukan transaksi UM/AWAL/SRJ
+            // Prompt tetap tampil jika invoice campuran masih punya produk normal yang perlu dibuatkan Surat Jalan.
             if ($fprdoutVal === '0') {
                 return $redirect->with('success_prompt', [
                     'type' => 'invoice_create_suratjalan',
