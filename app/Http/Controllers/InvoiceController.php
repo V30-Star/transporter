@@ -946,17 +946,22 @@ class InvoiceController extends Controller
 
         $sourceCode = strtoupper(trim((string) ($sourceCode ?? '')));
 
-        if (in_array($sourceCode, ['S', 'SO', 'R', 'SRJ'], true)) {
+        if (in_array($sourceCode, ['S', 'SO'], true)) {
             return [
                 'frefnosoacak' => $normalized,
-                'frefnosrjacak' => $normalized,
+                'frefnoacak' => $normalized,
+            ];
+        }
+
+        if (in_array($sourceCode, ['R', 'SRJ'], true)) {
+            return [
+                'frefnosoacak' => null,
                 'frefnoacak' => $normalized,
             ];
         }
 
         return [
             'frefnosoacak' => null,
-            'frefnosrjacak' => null,
             'frefnoacak' => null,
         ];
     }
@@ -1156,7 +1161,9 @@ class InvoiceController extends Controller
         // 1. VALIDASI (Tetap sama)
         $request->validate([
             'fsodate' => ['required', 'date'],
+            'fjatuhtempo' => ['nullable', 'date'],
             'fcustno' => ['required', 'string', 'max:10'],
+            'frefno' => ['nullable', 'string', 'max:100'],
             'ftypesales' => ['required', 'in:0,1'],
             'fketinternal' => ['nullable', 'string', 'max:300'],
             'fitemcode' => ['required', 'array', 'min:1'],
@@ -1208,6 +1215,7 @@ class InvoiceController extends Controller
 
         // 2. INISIALISASI DATA HEADER (Tetap sama)
         $fsodate = Carbon::parse($request->fsodate);
+        $fjatuhtempo = $request->input('fjatuhtempo') ? Carbon::parse($request->input('fjatuhtempo'))->startOfDay() : null;
         $this->ensureCreateDateWithinEditPeriod($fsodate);
         $fincludeppn = $request->boolean('fincludeppn') ? '1' : '0';
         $fapplyppn = $request->boolean('fapplyppn') ? '1' : '0';
@@ -1250,8 +1258,15 @@ class InvoiceController extends Controller
             return back()->withInput()->with('error', 'Transaksi Uang Muka harus memakai produk UM.');
         }
 
+        $productCodes = collect($itemCodes)
+            ->map(fn($value) => trim((string) $value))
+            ->filter()
+            ->unique()
+            ->values()
+            ->all();
+
         $products = DB::table('msprd')
-            ->whereIn('fprdcode', array_filter($itemCodes))
+            ->whereIn('fprdcode', $productCodes)
             ->get([
                 'fprdid',
                 'fprdcode',
@@ -1268,6 +1283,7 @@ class InvoiceController extends Controller
 
         $totalSalesNet = 0.0;
         foreach ($itemCodes as $i => $code) {
+            $code = trim((string) $code);
             $qty = (float) ($qtys[$i] ?? 0);
             $price = (float) ($prices[$i] ?? 0);
             if (empty($code) || $qty <= 0) {
@@ -1295,6 +1311,13 @@ class InvoiceController extends Controller
             $fnoacakVal = $this->normalizeRandomNumber($fnoacaks[$i] ?? null, $usedNoAcaks);
 
             $product = $products->get($code);
+            if (! $product) {
+                return back()->withInput()->with('error', "Produk {$code} tidak ada.");
+            }
+
+            if ($product->fnonactive == '1') {
+                return back()->withInput()->with('error', "Produk {$product->fprdname} sudah tidak tersedia.");
+            }
 
             $sat = trim((string) ($satuans[$i] ?? ''));
 
@@ -1398,10 +1421,11 @@ class InvoiceController extends Controller
         $srjReferenceDocs = collect($detailRows)
             ->pluck('frefsrj')
             ->map(fn($value) => trim((string) $value))
-            ->filter(fn($value) => $this->isDocumentSrj($value))
+            ->filter()
             ->unique()
             ->values()
             ->all();
+        $headerRefNo = trim((string) $request->input('frefno', ''));
 
         $amountNetBeforeHeaderDisc = $totalGross - $totalDisc;
         $headerDiscountAmount = $amountNetBeforeHeaderDisc * ($headerDiscPercent / 100);
@@ -1431,7 +1455,7 @@ class InvoiceController extends Controller
         try {
             $ftranmtid = null;
 
-            DB::transaction(function () use ($fapplyppn, $request, $fsodate, $fincludeppn, $userid, $now, $detailRows, $totalGross, $totalDisc, $amountNet, $ppnAmount, $grandTotal, $fcurrency, $frate, $ppnPersen, $creditApproval, $fkodefp, $needsApprovalNotification, &$shouldSendApprovalNotification, &$fsono, &$ftranmtid, $headerDiscPercent, $totalSalesNet) {
+            DB::transaction(function () use ($fapplyppn, $request, $fsodate, $fincludeppn, $userid, $now, $detailRows, $totalGross, $totalDisc, $amountNet, $ppnAmount, $grandTotal, $fcurrency, $frate, $ppnPersen, $creditApproval, $fkodefp, $needsApprovalNotification, &$shouldSendApprovalNotification, &$fsono, &$ftranmtid, $headerDiscPercent, $totalSalesNet, $fjatuhtempo, $headerRefNo) {
 
                 // Penomoran Otomatis
                 if (empty($fsono)) {
@@ -1471,6 +1495,7 @@ class InvoiceController extends Controller
                     'famountremain' => $grandTotal,
                     'famountremain_rp' => $grandTotal * $frate,
                     'fket' => $request->fket ?? '',
+                    'frefno' => mb_substr($headerRefNo, 0, 100),
                     'fuserid' => $userid,
                     'fdatetime' => $now,
                     'fincludeppn' => $fincludeppn,
@@ -1483,6 +1508,7 @@ class InvoiceController extends Controller
                     'fneedacc' => $needsApprovalNotification ? '1' : '0',
                     'fuseracc' => $creditApproval['fuseracc'],
                     'fprint' => 0,
+                    'fjatuhtempo' => $fjatuhtempo,
                     ...$approvalState,
                 ];
                 if ($this->tranmtHasInternalNoteColumn()) {
@@ -1603,7 +1629,7 @@ class InvoiceController extends Controller
                 'd.frefso',
                 'd.frefsrj',
                 'd.frefnosoacak',
-                'd.frefnosrjacak',
+                'd.frefnoacak',
                 'd.fprdcode',
                 'd.fsatuan',
                 'p.fqtykecil',
@@ -1626,7 +1652,7 @@ class InvoiceController extends Controller
             $docNoToCheck = trim((string) ($row->frefsrj ?? $row->frefso ?? ''));
             $isSrj = $refCode === 'SRJ' || $this->isDocumentSrj($docNoToCheck);
             $docNo = trim((string) ($isSrj ? ($row->frefsrj ?? '') : ($row->frefso ?? '')));
-            $refNoAcak = $this->normalizeReferenceRandomNumbers($isSrj ? ($row->frefnosrjacak ?? null) : ($row->frefnosoacak ?? null)) ?? '';
+            $refNoAcak = $this->normalizeReferenceRandomNumbers($isSrj ? ($row->frefnoacak ?? null) : ($row->frefnosoacak ?? null)) ?? '';
             $key = $this->buildReferenceUsageKey($docNo, (string) ($row->fprdcode ?? ''), $refNoAcak);
             $stat = $isSrj ? ($srjStats[$key] ?? null) : ($soStats[$key] ?? null);
             $usedQty = (float) ($stat['used_qty_kecil'] ?? 0);
@@ -1737,7 +1763,7 @@ class InvoiceController extends Controller
             $soDocNo = trim((string) ($row['frefso'] ?? ''));
             $srjDocNo = trim((string) ($row['frefsrj'] ?? ''));
             $soRefNoAcak = $this->normalizeReferenceRandomNumbers($row['frefnosoacak'] ?? null) ?? '';
-            $srjRefNoAcak = $this->normalizeReferenceRandomNumbers($row['frefnosrjacak'] ?? null) ?? '';
+            $srjRefNoAcak = $this->normalizeReferenceRandomNumbers($row['frefnoacak'] ?? null) ?? '';
 
             $isSrj = false;
             if ($srjDocNo !== '' && $this->isDocumentSrj($srjDocNo)) {
@@ -1774,7 +1800,7 @@ class InvoiceController extends Controller
                 'd.frefsrj',
                 'd.fprdcode',
                 'd.frefnosoacak',
-                'd.frefnosrjacak',
+                'd.frefnoacak',
                 'd.fqtykecil',
             ]);
 
@@ -1792,7 +1818,7 @@ class InvoiceController extends Controller
             $soDocNo = trim((string) ($row->frefso ?? ''));
             $srjDocNo = trim((string) ($row->frefsrj ?? ''));
             $soRefNoAcak = $this->normalizeReferenceRandomNumbers($row->frefnosoacak ?? null) ?? '';
-            $srjRefNoAcak = $this->normalizeReferenceRandomNumbers($row->frefnosrjacak ?? null) ?? '';
+            $srjRefNoAcak = $this->normalizeReferenceRandomNumbers($row->frefnoacak ?? null) ?? '';
 
             $isSrj = false;
             if ($srjDocNo !== '' && $this->isDocumentSrj($srjDocNo)) {
@@ -2235,7 +2261,9 @@ class InvoiceController extends Controller
         // 1. VALIDASI
         $request->validate([
             'fsodate' => ['required', 'date'],
+            'fjatuhtempo' => ['nullable', 'date'],
             'fcustno' => ['required', 'string', 'max:10'],
+            'frefno' => ['nullable', 'string', 'max:100'],
             'ftypesales' => ['required', 'in:0,1'],
             'ftaxno' => ['nullable', 'string', 'max:50'],
             'fketinternal' => ['nullable', 'string', 'max:300'],
@@ -2298,6 +2326,7 @@ class InvoiceController extends Controller
 
         // 3. INISIALISASI DATA
         $fsodate = Carbon::parse($request->fsodate);
+        $fjatuhtempo = $request->input('fjatuhtempo') ? Carbon::parse($request->input('fjatuhtempo'))->startOfDay() : null;
         $this->ensureCreateDateWithinEditPeriod($fsodate, $header->fsodate);
         $fincludeppn = $request->boolean('fincludeppn') ? '1' : '0';
         $fapplyppn = $request->boolean('fapplyppn') ? '1' : '0';
@@ -2337,8 +2366,15 @@ class InvoiceController extends Controller
         }
 
         // Ambil data produk masal
+        $productCodes = collect($itemCodes)
+            ->map(fn($value) => trim((string) $value))
+            ->filter()
+            ->unique()
+            ->values()
+            ->all();
+
         $products = DB::table('msprd')
-            ->whereIn('fprdcode', array_filter($itemCodes))
+            ->whereIn('fprdcode', $productCodes)
             ->get([
                 'fprdid',
                 'fprdcode',
@@ -2354,6 +2390,7 @@ class InvoiceController extends Controller
             ->keyBy('fprdcode');
 
         foreach ($itemCodes as $i => $code) {
+            $code = trim((string) $code);
             $qty = (float) ($qtys[$i] ?? 0);
             $price = (float) ($prices[$i] ?? 0);
 
@@ -2506,10 +2543,11 @@ class InvoiceController extends Controller
         $srjReferenceDocs = collect($detailRows)
             ->pluck('frefsrj')
             ->map(fn($value) => trim((string) $value))
-            ->filter(fn($value) => $this->isDocumentSrj($value))
+            ->filter()
             ->unique()
             ->values()
             ->all();
+        $headerRefNo = trim((string) $request->input('frefno', ''));
 
         // 5. KALKULASI TOTAL AKHIR
         $amountNetBeforeHeaderDisc = $totalGross - $totalDisc;
@@ -2562,7 +2600,9 @@ class InvoiceController extends Controller
                 $fkodefp,
                 $needsApprovalNotification,
                 &$shouldSendApprovalNotification,
-                $totalSalesNet
+                $totalSalesNet,
+                $fjatuhtempo,
+                $headerRefNo
             ) {
                 // Update Header
                 $headerUpdate = [
@@ -2584,6 +2624,7 @@ class InvoiceController extends Controller
                     'famountso_rp' => $grandTotal * $frate,
                     'ftotalsalesnet' => $totalSalesNet,
                     'fket' => $request->fket ?? '',
+                    'frefno' => mb_substr($headerRefNo, 0, 100),
                     'fuserid' => $userid,
                     'fdatetime' => $now,
                     'fincludeppn' => $fincludeppn,
@@ -2593,6 +2634,7 @@ class InvoiceController extends Controller
                     'ftypesales' => (int) $request->input('ftypesales', 0),
                     'fneedacc' => $needsApprovalNotification ? '1' : '0',
                     'fuseracc' => $creditApproval['fuseracc'],
+                    'fjatuhtempo' => $fjatuhtempo,
                 ];
                 if ($this->tranmtHasInternalNoteColumn()) {
                     $headerUpdate['fketinternal'] = mb_substr((string) $request->input('fketinternal', ''), 0, 300);

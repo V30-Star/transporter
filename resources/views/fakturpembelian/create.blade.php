@@ -1693,6 +1693,8 @@
             setSupplierFromReferenceHeader(header) {
                 const supplierCode = (header?.fsupplier || header?.fsuppliercode || '').toString().trim();
                 if (!supplierCode) return;
+                const supplierName = (header?.fsuppliername || header?.supplier_name || '').toString().trim();
+                const supplierLabel = supplierName ? `${supplierName} (${supplierCode})` : supplierCode;
 
                 const hiddenInput = document.getElementById('supplierCodeHidden');
                 const selectInput = document.getElementById('modal_filter_supplier_id');
@@ -1708,6 +1710,16 @@
                 }
 
                 if (selectInput) {
+                    let option = Array.from(selectInput.options || []).find(opt => (opt.value || '').trim() ===
+                        supplierCode);
+                    if (!option) {
+                        option = new Option(supplierLabel, supplierCode, true, true);
+                        selectInput.add(option);
+                    } else {
+                        option.text = supplierLabel;
+                        option.selected = true;
+                    }
+
                     selectInput.value = supplierCode;
                     selectInput.dispatchEvent(new Event('change', {
                         bubbles: true
@@ -1721,8 +1733,6 @@
                         tempoApplied = true;
                     }
 
-                    const option = Array.from(selectInput.options || []).find(opt => (opt.value || '').trim() ===
-                        supplierCode);
                     const tempo = Number(option?.getAttribute('data-tempo') || 0);
                     if (!tempoApplied && tempoInput && Number.isFinite(tempo)) {
                         tempoInput.value = tempo;
@@ -3080,17 +3090,29 @@
     document.addEventListener('DOMContentLoaded', () => {
         window.addEventListener('warehouse-picked', (ev) => {
             const {
-                fwhcode
+                fwhcode,
+                fwhname
             } = ev.detail || {};
             const sel = document.getElementById('warehouseSelect');
             const hid = document.getElementById('warehouseCodeHidden');
             if (sel) {
-                sel.value = fwhcode || '';
+                const code = String(fwhcode || '').trim();
+                let opt = [...sel.options].find((o) => String(o.value).trim() === code);
+                if (code && !opt) {
+                    opt = new Option(fwhname ? `${fwhname} (${code})` : code, code, true, true);
+                    sel.add(opt);
+                }
+                sel.value = opt ? opt.value : code;
                 sel.dispatchEvent(new Event('change', {
                     bubbles: true
                 }));
             }
-            if (hid) hid.value = fwhcode || '';
+            if (hid) {
+                hid.value = fwhcode || '';
+                hid.dispatchEvent(new Event('change', {
+                    bubbles: true
+                }));
+            }
         });
     });
 </script>

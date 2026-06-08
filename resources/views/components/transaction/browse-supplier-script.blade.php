@@ -96,6 +96,7 @@
                 }
 
                 $('#{{ $tableId }}').off('click.suppick');
+                $('#{{ $tableId }} tbody').off('click.suppick');
                 this.dataTable = $('#{{ $tableId }}').DataTable({
                     processing: true,
                     serverSide: true,
@@ -207,8 +208,24 @@
                 });
 
                 $('#{{ $tableId }}').on('click.suppick', '.btn-choose', (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+
                     const data = this.dataTable.row($(e.target).closest('tr')).data();
                     if (data) this.chooseSupplier(data);
+                });
+
+                $('#{{ $tableId }} tbody').on('click.suppick', 'tr', (e) => {
+                    if ($(e.target).closest('button, a, input, select, textarea').length) {
+                        return;
+                    }
+
+                    const data = this.dataTable?.row(e.currentTarget).data();
+                    if (!data) {
+                        return;
+                    }
+
+                    this.chooseSupplier(data);
                 });
             },
 
