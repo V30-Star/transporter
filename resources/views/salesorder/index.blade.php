@@ -81,38 +81,12 @@
                     <th class="border px-2 py-1">
                         <div class="flex items-center justify-between">
                             <span>{{ "No.SO" }}</span>
-                            <button type="button" class="col-search-btn p-1 hover:bg-gray-200 rounded"
-                                data-column="1" title="Filter No.SO">
-                                <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor"
-                                    viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                        d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
-                                </svg>
-                            </button>
-                        </div>
-                        <div class="col-search-input mt-2 hidden">
-                            <input type="text"
-                                class="dt-column-search w-full px-2 py-1 border border-gray-300 rounded text-sm uppercase focus:outline-none focus:ring-1 focus:ring-blue-500"
-                                data-column="1" placeholder="Cari No.SO...">
                         </div>
                     </th>
                     <th class="border px-2 py-1">{{ "Tanggal" }}</th>
                     <th class="border px-2 py-1">
                         <div class="flex items-center justify-between">
-                            <span>{{ "No.Ref" }}</span>
-                            <button type="button" class="col-search-btn p-1 hover:bg-gray-200 rounded"
-                                data-column="3" title="Filter No.Ref">
-                                <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor"
-                                    viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                        d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
-                                </svg>
-                            </button>
-                        </div>
-                        <div class="col-search-input mt-2 hidden">
-                            <input type="text"
-                                class="dt-column-search w-full px-2 py-1 border border-gray-300 rounded text-sm uppercase focus:outline-none focus:ring-1 focus:ring-blue-500"
-                                data-column="3" placeholder="Cari No.Ref...">
+                            <span>{{ "Ref.PO" }}</span>
                         </div>
                     </th>
                     <th class="border px-2 py-1">
