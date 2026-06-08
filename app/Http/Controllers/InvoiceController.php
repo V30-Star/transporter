@@ -1222,7 +1222,7 @@ class InvoiceController extends Controller
             $normalizedDetailPayload
         );
 
-        // 2. INISIALISASI DATA HEADER (Tetap sama)
+        // 2. INISIALISASI DATA HEADER
         $fsodate = Carbon::parse($request->fsodate);
         $fjatuhtempo = $request->input('fjatuhtempo') ? Carbon::parse($request->input('fjatuhtempo'))->startOfDay() : null;
         $this->ensureCreateDateWithinEditPeriod($fsodate);
@@ -1258,7 +1258,7 @@ class InvoiceController extends Controller
         $totalDisc = 0;
         $usedNoAcaks = [];
 
-        // Logika UM (Tetap sama)
+        // Logika UM
         $hasUM = in_array('UM', $itemCodes);
         if ($hasUM && $typeSales === 0) {
             return back()->withInput()->with('error', 'Produk UM hanya bisa dipakai pada transaksi Uang Muka.');
@@ -1463,8 +1463,9 @@ class InvoiceController extends Controller
         // 5. DATABASE TRANSACTION
         try {
             $ftranmtid = null;
+            $fprdoutVal = '0'; // default sebelum transaksi
 
-            DB::transaction(function () use ($fapplyppn, $request, $fsodate, $fincludeppn, $userid, $now, $detailRows, $totalGross, $totalDisc, $amountNet, $ppnAmount, $grandTotal, $fcurrency, $frate, $ppnPersen, $creditApproval, $fkodefp, $needsApprovalNotification, &$shouldSendApprovalNotification, &$fsono, &$ftranmtid, $headerDiscPercent, $totalSalesNet, $fjatuhtempo, $headerRefNo) {
+            DB::transaction(function () use ($fapplyppn, $request, $fsodate, $fincludeppn, $userid, $now, $detailRows, $totalGross, $totalDisc, $amountNet, $ppnAmount, $grandTotal, $fcurrency, $frate, $ppnPersen, $creditApproval, $fkodefp, $needsApprovalNotification, &$shouldSendApprovalNotification, &$fsono, &$ftranmtid, &$fprdoutVal, $headerDiscPercent, $totalSalesNet, $fjatuhtempo, $headerRefNo) {
 
                 // Penomoran Otomatis
                 if (empty($fsono)) {
@@ -1480,19 +1481,9 @@ class InvoiceController extends Controller
                 $approvalState = $this->initializeApprovalState();
 
                 foreach ($detailRows as $detail) {
-                    $prdCode = $detail['fprdcode'];
-                    $refCode = $detail['frefcode'];
-                    if ($refCode === 'SRJ') {
+                    if ($detail['frefcode'] === 'SRJ' || in_array($detail['fprdcode'], ['AWAL', 'UM'])) {
                         $fprdoutVal = '1';
                         break;
-                    } elseif ($prdCode === 'AWAL') {
-                        $fprdoutVal = '1';
-                        break;
-                    } elseif ($prdCode === 'UM') {
-                        $fprdoutVal = '1';
-                        break;
-                    } else {
-                        $fprdoutVal = '0';
                     }
                 }
 
@@ -1541,7 +1532,6 @@ class InvoiceController extends Controller
                 }
                 $ftranmtid = DB::table('tranmt')->insertGetId($headerInsert, 'ftranmtid');
 
-                // --- UPDATE DETAIL ROWS DENGAN ID HEADER DAN NOMOR SONO ---
                 foreach ($detailRows as &$row) {
                     $row['fsono'] = $fsono;
                 }
@@ -1571,10 +1561,15 @@ class InvoiceController extends Controller
                 return $redirect;
             }
 
-            return $redirect->with('success_prompt', [
-                'type' => 'invoice_create_suratjalan',
-                'redirect_url' => route('suratjalan.create', ['invoice_id' => $ftranmtid]),
-            ]);
+            // Hanya tampilkan prompt buat surat jalan jika bukan transaksi UM/AWAL/SRJ
+            if ($fprdoutVal === '0') {
+                return $redirect->with('success_prompt', [
+                    'type' => 'invoice_create_suratjalan',
+                    'redirect_url' => route('suratjalan.create', ['invoice_id' => $ftranmtid]),
+                ]);
+            }
+
+            return $redirect;
         } catch (\Exception $e) {
             report($e);
             return back()->withInput()->with('error', 'Faktur penjualan belum bisa disimpan. Cek data.');
@@ -2335,7 +2330,6 @@ class InvoiceController extends Controller
         // 2. LOAD HEADER
         $header = DB::table('tranmt')->where('ftranmtid', $ftranmtid)->first();
         if (! $header) {
-
             return abort(404, 'Faktur penjualan tidak ada.');
         }
         if ($message = $this->getPostedPeriodLockMessage($header->fsodate, 'Faktur ini')) {
@@ -2344,7 +2338,6 @@ class InvoiceController extends Controller
         if ($message = $this->getApprovalLockMessage((object) $header)) {
             return redirect()->route('invoice.view', $ftranmtid)->with('error', $message);
         }
-
         if ($message = $this->getUsageLockMessage((object) $header)) {
             return redirect()->route('invoice.index')->with('error', $message);
         }
@@ -2377,6 +2370,7 @@ class InvoiceController extends Controller
         $frefsrj = $request->input('frefsrj', []);
         $fnoacaks = $request->input('fnoacak', []);
         $frefnoacaks = $request->input('frefnoacak', []);
+
         // 4. BUILD DETAIL ROWS
         $detailRows = [];
         $totalGross = 0;
@@ -2386,11 +2380,9 @@ class InvoiceController extends Controller
 
         $hasUM = in_array('UM', $itemCodes);
         if ($hasUM && $typeSales === 0) {
-
             return back()->withInput()->with('error', 'Produk UM hanya bisa dipakai pada transaksi Uang Muka.');
         }
 
-        // Ambil data produk masal
         $productCodes = collect($itemCodes)
             ->map(fn($value) => trim((string) $value))
             ->filter()
@@ -2420,7 +2412,6 @@ class InvoiceController extends Controller
             $price = (float) ($prices[$i] ?? 0);
 
             if (empty($code) || $qty <= 0) {
-
                 continue;
             }
 
@@ -2448,7 +2439,6 @@ class InvoiceController extends Controller
             $product = $products->get($code);
 
             if (! $product) {
-
                 return back()->withInput()->with('error', "Produk {$code} tidak ada.");
             }
 
@@ -2456,7 +2446,6 @@ class InvoiceController extends Controller
                 return back()->withInput()->with('error', "Produk {$product->fprdname} sudah tidak tersedia.");
             }
 
-            // Konversi Satuan
             $sat = trim((string) ($satuans[$i] ?? ''));
 
             $referenceRatio = null;
@@ -2505,7 +2494,6 @@ class InvoiceController extends Controller
                 $qtyKecil = $qty * (float) $product->fqtykecil2;
             }
 
-            // Kalkulasi Baris
             $discRaw = $this->normalizeDiscountInput($discs[$i] ?? 0);
             $discPersen = $this->parseDiscount($discRaw);
             $subtotal = $qty * $price;
@@ -2520,7 +2508,6 @@ class InvoiceController extends Controller
             }
 
             $totalSalesNet += $qty * $fsalesnet;
-
             $totalGross += $subtotal;
             $totalDisc += $discAmount;
 
@@ -2601,6 +2588,8 @@ class InvoiceController extends Controller
 
         // 6. TRANSACTION
         try {
+            $fprdoutVal = '0'; // default sebelum transaksi
+
             DB::transaction(function () use (
                 $request,
                 $ftranmtid,
@@ -2625,25 +2614,15 @@ class InvoiceController extends Controller
                 $fkodefp,
                 $needsApprovalNotification,
                 &$shouldSendApprovalNotification,
+                &$fprdoutVal,
                 $totalSalesNet,
                 $fjatuhtempo,
                 $headerRefNo
             ) {
-                // Update Header
                 foreach ($detailRows as $detail) {
-                    $prdCode = $detail['fprdcode'];
-                    $refCode = $detail['frefcode'];
-                    if ($refCode === 'SRJ') {
+                    if ($detail['frefcode'] === 'SRJ' || in_array($detail['fprdcode'], ['AWAL', 'UM'])) {
                         $fprdoutVal = '1';
                         break;
-                    } elseif ($prdCode === 'AWAL') {
-                        $fprdoutVal = '1';
-                        break;
-                    } elseif ($prdCode === 'UM') {
-                        $fprdoutVal = '1';
-                        break;
-                    } else {
-                        $fprdoutVal = '0';
                     }
                 }
 
@@ -2715,16 +2694,21 @@ class InvoiceController extends Controller
                 return $redirect;
             }
 
-            return $redirect->with('success_prompt', [
-                'type' => 'invoice_create_suratjalan',
-                'redirect_url' => route('suratjalan.create', ['invoice_id' => $ftranmtid]),
-            ]);
+            // Hanya tampilkan prompt buat surat jalan jika bukan transaksi UM/AWAL/SRJ
+            if ($fprdoutVal === '0') {
+                return $redirect->with('success_prompt', [
+                    'type' => 'invoice_create_suratjalan',
+                    'redirect_url' => route('suratjalan.create', ['invoice_id' => $ftranmtid]),
+                ]);
+            }
+
+            return $redirect;
         } catch (\Exception $e) {
             report($e);
             return back()->withInput()->with('error', 'Faktur penjualan belum bisa diupdate. Cek data.');
         }
     }
-
+    
     public function delete(Request $request, $ftranmtid)
     {
         $customers = Customer::orderBy('fcustomername', 'asc')
