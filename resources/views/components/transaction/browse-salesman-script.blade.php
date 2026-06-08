@@ -11,10 +11,6 @@
         const normalize = (value) => String(value ?? '').trim();
         const code = normalize(salesman.fsalesmancode ?? salesman.fsalesman ?? salesman.salesman_code);
 
-        if (!code) {
-            return false;
-        }
-
         const selects = Array.from(document.querySelectorAll('#modal_filter_salesman_id'));
         const hiddenInputs = Array.from(document.querySelectorAll('#salesmanCodeHidden'));
 
@@ -26,24 +22,23 @@
         const label = name ? `${name} (${code})` : code;
 
         selects.forEach((sel) => {
-            let opt = [...sel.options].find(o => normalize(o.value) === code);
+            let opt = code ? [...sel.options].find(o => normalize(o.value) === code) : null;
 
             if (!opt) {
-                opt = new Option(label, code, true, true);
-                sel.add(opt);
+                sel.value = "";
             } else {
-                opt.text = label;
                 opt.selected = true;
+                sel.value = code;
             }
 
-            sel.value = code;
             sel.dispatchEvent(new Event('change', {
                 bubbles: true
             }));
         });
 
         hiddenInputs.forEach((hid) => {
-            hid.value = code;
+            let opt = code ? [...(selects[0]?.options || [])].find(o => normalize(o.value) === code) : null;
+            hid.value = opt ? code : "";
             hid.dispatchEvent(new Event('input', {
                 bubbles: true
             }));

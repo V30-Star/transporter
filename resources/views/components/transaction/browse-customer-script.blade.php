@@ -38,6 +38,7 @@
 
             opt.dataset.fkodefp = normalize(customer.fkodefp);
             opt.dataset.ftempo = normalize(customer.ftempo);
+            opt.dataset.fsalesman = normalize(customer.fsalesman);
             sel.value = code;
             sel.dispatchEvent(new Event('change', {
                 bubbles: true

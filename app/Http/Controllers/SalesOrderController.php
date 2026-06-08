@@ -438,12 +438,12 @@ class SalesOrderController extends Controller
                     'c.fcustomername',
                     DB::raw("
                         CASE
-                            WHEN NULLIF(TRIM(COALESCE(trsomt.frefno, '')), '') IS NOT NULL
+                            WHEN NULLIF(TRIM(COALESCE(trsomt.frefpo, '')), '') IS NOT NULL
                                 AND EXISTS (
                                     SELECT 1
                                     FROM trsomt so2
                                     WHERE TRIM(COALESCE(so2.fcustno, '')) = TRIM(COALESCE(trsomt.fcustno, ''))
-                                      AND TRIM(COALESCE(so2.frefno, '')) = TRIM(COALESCE(trsomt.frefno, ''))
+                                      AND TRIM(COALESCE(so2.frefpo, '')) = TRIM(COALESCE(trsomt.frefpo, ''))
                                       AND so2.ftrsomtid <> trsomt.ftrsomtid
                                 )
                             THEN 'Yes'
@@ -457,7 +457,7 @@ class SalesOrderController extends Controller
             if ($search = $request->input('search.value')) {
                 $query->where(function ($q) use ($search) {
                     $q->where('trsomt.fsono', 'like', "%{$search}%")
-                        ->orWhere('trsomt.frefno', 'like', "%{$search}%")
+                        ->orWhere('trsomt.frefpo', 'like', "%{$search}%")
                         ->orWhere('c.fcustomername', 'like', "%{$search}%");
                 });
             }
@@ -470,7 +470,7 @@ class SalesOrderController extends Controller
 
             $colSearchRef = $request->input('columns.3.search.value');
             if ($colSearchRef !== null && $colSearchRef !== '') {
-                $query->where('trsomt.frefno', 'ilike', "%{$colSearchRef}%");
+                $query->where('trsomt.frefpo', 'ilike', "%{$colSearchRef}%");
             }
 
             $colSearchCust = $request->input('columns.4.search.value');
@@ -491,7 +491,7 @@ class SalesOrderController extends Controller
             $orderColIdx = $request->input('order.0.column', 0);
             $orderDir = $request->input('order.0.dir', 'asc');
 
-            $sortableColumns = ['fbranchcode', 'fsono', 'fsodate', 'frefno', 'fcustomername', 'famountso', 'fusercreate'];
+            $sortableColumns = ['fbranchcode', 'fsono', 'fsodate', 'fcustomername', 'famountso', 'fusercreate'];
 
             if (isset($sortableColumns[$orderColIdx])) {
                 $query->orderBy($sortableColumns[$orderColIdx], $orderDir);
@@ -512,7 +512,7 @@ class SalesOrderController extends Controller
                     'fsodate' => $row->fsodate instanceof \Carbon\Carbon
                         ? $row->fsodate->format('Y-m-d')
                         : $row->fsodate,
-                    'frefno' => $row->frefno ?? '',
+                    'frefpo' => $row->frefpo ?? '',
                     'frefno_confirm' => $row->frefno_confirm ?? 'No',
                     'fcustno' => $row->fcustno ?? '',
                     'fsalesman' => $row->fsalesman,
@@ -1152,7 +1152,7 @@ class SalesOrderController extends Controller
                 }
 
                 $lastRefNo = DB::table('trsomt')
-                    ->selectRaw("MAX(NULLIF(frefno, '')::int) as max_no")
+                    ->selectRaw("MAX(NULLIF(frefpo, '')::int) as max_no")
                     ->value('max_no') ?? 0;
                 $nextRefNo = $lastRefNo + 1;
 
@@ -1165,7 +1165,6 @@ class SalesOrderController extends Controller
                 // C. Insert Header
                 $ftrsomtid = DB::table('trsomt')->insertGetId([
                     'fsono' => $fsono,
-                    'frefno' => (string) $nextRefNo,
                     'fsodate' => $fsodate,
                     'fbranchcode' => mb_substr($request->input('fbranchcode', ''), 0, 2),
                     'fcustno' => mb_substr($request->input('fcustno', ''), 0, 20),
@@ -1223,9 +1222,9 @@ class SalesOrderController extends Controller
             }
 
             return $redirect->with('success_prompt', [
-                    'type' => 'salesorder_create_suratjalan',
-                    'redirect_url' => route('suratjalan.create', ['sales_order_id' => $ftrsomtid]),
-                ]);
+                'type' => 'salesorder_create_suratjalan',
+                'redirect_url' => route('suratjalan.create', ['sales_order_id' => $ftrsomtid]),
+            ]);
         } catch (\Exception $e) {
             report($e);
             return back()->withInput()->withErrors(['error' => 'Sales Order belum bisa disimpan. Cek data.']);
@@ -2195,6 +2194,4 @@ class SalesOrderController extends Controller
 
         return mb_substr($candidate, 0, 20);
     }
-
-
 }

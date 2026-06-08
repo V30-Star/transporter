@@ -1111,7 +1111,7 @@ class InvoiceController extends Controller
     public function create(Request $request)
     {
         $customers = Customer::orderBy('fcustomername', 'asc')
-            ->get(['fcustomerid', 'fcustomercode', 'fcustomername', 'fkodefp']);
+            ->get(['fcustomerid', 'fcustomercode', 'fcustomername', 'fkodefp', 'fsalesman']);
 
         $salesmans = Salesman::orderBy('fsalesmanname', 'asc')
             ->get(['fsalesmanid', 'fsalesmancode', 'fsalesmanname']);
@@ -2025,7 +2025,7 @@ class InvoiceController extends Controller
     public function edit(Request $request, $ftranmtid)
     {
         $customers = Customer::orderBy('fcustomername', 'asc')
-            ->get(['fcustomerid', 'fcustomercode', 'fcustomername', 'fkodefp']);
+            ->get(['fcustomerid', 'fcustomercode', 'fcustomername', 'fkodefp', 'fsalesman']);
 
         $salesmans = Salesman::orderBy('fsalesmanname', 'asc')
             ->get(['fsalesmanid', 'fsalesmancode', 'fsalesmanname']);

@@ -253,6 +253,7 @@
                                         <option value="{{ $customer->fcustomercode }}"
                                             data-ftempo="{{ (int) ($customer->ftempo ?? 0) }}"
                                             data-fkodefp="{{ $customer->fkodefp }}"
+                                            data-fsalesman="{{ $customer->fsalesman }}"
                                             {{ $filterSupplierId == $customer->fcustomercode ? 'selected' : '' }}>
                                             {{ $customer->fcustomername }} ({{ $customer->fcustomercode }})
                                         </option>
@@ -1286,6 +1287,20 @@
         window.syncInvoiceTempoFromSource(eventTempo || optionTempo || '0');
     };
 
+    window.syncInvoiceSalesmanFromCustomer = function(payload = null) {
+        const normalize = (value) => String(value ?? '').trim();
+        const select = document.getElementById('modal_filter_customer_id');
+        const hidden = document.getElementById('customerCodeHidden');
+        const customerCode = normalize(payload?.fcustomercode) || normalize(hidden?.value) || normalize(select?.value);
+        const selectedOption = customerCode ? [...(select?.options || [])].find(option => normalize(option.value) === customerCode) : select?.selectedOptions?.[0];
+        
+        const salesmanCode = normalize(payload?.fsalesman) || normalize(selectedOption?.dataset?.fsalesman);
+        
+        window.applyTransactionSalesmanSelection?.({
+            fsalesmancode: salesmanCode,
+        });
+    };
+
     window.syncInvoiceTaxNoFromInvoiceNo = function() {
         const invoiceInput = document.querySelector('input[name="fsono"]');
         const taxInput = document.getElementById('ftaxno');
@@ -1296,6 +1311,7 @@
     document.addEventListener('customer-selected', function(event) {
         window.syncInvoiceCustomerTaxCode(event.detail || null);
         window.syncInvoiceTempoFromCustomer(event.detail || null);
+        window.syncInvoiceSalesmanFromCustomer(event.detail || null);
     });
 
     document.addEventListener('DOMContentLoaded', function() {
@@ -1305,6 +1321,7 @@
             select.addEventListener('change', function() {
                 window.syncInvoiceCustomerTaxCode();
                 window.syncInvoiceTempoFromCustomer();
+                window.syncInvoiceSalesmanFromCustomer();
             });
         }
         if (invoiceInput) {
@@ -1314,6 +1331,9 @@
 
         window.syncInvoiceCustomerTaxCode();
         window.syncInvoiceTempoFromCustomer();
+        if (!document.getElementById('salesmanCodeHidden')?.value) {
+            window.syncInvoiceSalesmanFromCustomer();
+        }
         window.syncInvoiceTaxNoFromInvoiceNo();
     });
 

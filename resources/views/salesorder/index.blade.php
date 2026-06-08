@@ -474,17 +474,8 @@
                     name: 'fsodate'
                 },
                 {
-                    data: 'frefno', 
-                    name: 'frefno',
-                    render: function(data, type, row) {
-                        if (type !== 'display') {
-                            return data;
-                        }
-
-                        return (row?.frefno_confirm ?? data ?? '').toString().trim().toLowerCase() === 'yes'
-                            ? '<span class="inline-flex items-center rounded-full bg-amber-100 px-2 py-1 text-xs font-semibold text-amber-700">Yes</span>'
-                            : '<span class="inline-flex items-center rounded-full bg-slate-100 px-2 py-1 text-xs font-semibold text-slate-700">No</span>';
-                    }
+                    data: 'frefpo', 
+                    name: 'frefpo',
                 },
                 {
                     data: 'fcustomername',
