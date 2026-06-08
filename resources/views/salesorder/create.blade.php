@@ -1785,13 +1785,19 @@
                     let salesmanOption = [...salesmanSelect.options].find((option) => normalizeCode(option.value) ===
                         normalizeCode(salesmanCode));
                     if (!salesmanOption) {
-                        salesmanOption = new Option(salesmanCode, salesmanCode, true, true);
-                        salesmanSelect.add(salesmanOption);
+                        salesmanSelect.value = "";
+                        salesmanHidden.value = "";
                     } else {
                         salesmanOption.selected = true;
+                        salesmanSelect.value = salesmanOption.value;
+                        salesmanHidden.value = salesmanCode;
                     }
-                    salesmanSelect.value = salesmanOption.value;
-                    salesmanHidden.value = salesmanCode;
+                    salesmanSelect.dispatchEvent(new Event('change', {
+                        bubbles: true
+                    }));
+                } else {
+                    salesmanSelect.value = "";
+                    salesmanHidden.value = "";
                     salesmanSelect.dispatchEvent(new Event('change', {
                         bubbles: true
                     }));
