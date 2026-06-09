@@ -78,6 +78,8 @@ class ReportingAdjStockController extends Controller
             ->get(['fsuppliercode', 'fsuppliername']);
 
         $branches = DB::table('mscabang')->orderBy('fcabangkode')->get();
+        $isAuthorized = $this->canAccessAllBranches();
+        $userBranchCode = $this->getCurrentBranchCode();
 
         return view('reportingadjstock.index', [
             'pohData' => $pohData,
@@ -87,6 +89,8 @@ class ReportingAdjStockController extends Controller
             'filterDateTo' => $filterDateTo,
             'filterSupplierId' => $request->query('filter_supplier_id'),
             'branches' => $branches,
+            'isAuthorized' => $isAuthorized,
+            'userBranchCode' => $userBranchCode,
         ]);
     }
 

@@ -42,6 +42,8 @@ class ReportingKasController extends Controller
             ->get(['faccount', 'faccname']);
 
         $branches = DB::table('mscabang')->orderBy('fcabangkode')->get();
+        $isAuthorized = $this->canAccessAllBranches();
+        $userBranchCode = $this->getCurrentBranchCode();
 
         return view('reportingkas.index', [
             'pageTitle' => $tranCode === 'BKK' ? 'Laporan Pengeluaran Kas' : 'Laporan Penerimaan Kas',
@@ -57,6 +59,8 @@ class ReportingKasController extends Controller
             'onlyGiroMundur' => $onlyGiroMundur,
             'accounts' => $accounts,
             'branches' => $branches,
+            'isAuthorized' => $isAuthorized,
+            'userBranchCode' => $userBranchCode,
         ]);
     }
 

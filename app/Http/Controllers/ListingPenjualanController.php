@@ -18,7 +18,10 @@ class ListingPenjualanController extends Controller
         $salesmans = DB::table('mssalesman')->get();
         $branches = DB::table('mscabang')->orderBy('fcabangkode')->get();
 
-        return view('listingpenjualan.index', compact('groups', 'mereks', 'salesmans', 'branches'));
+        $isAuthorized = $this->canAccessAllBranches();
+        $userBranchCode = $this->getCurrentBranchCode();
+
+        return view('listingpenjualan.index', compact('groups', 'mereks', 'salesmans', 'branches', 'isAuthorized', 'userBranchCode'));
     }
 
     // ─────────────────────────────────────────────────────────────

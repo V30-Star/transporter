@@ -80,6 +80,8 @@ class ReportingAssemblingController extends Controller
             ->get(['fsuppliercode', 'fsuppliername']);
 
         $branches = DB::table('mscabang')->orderBy('fcabangkode')->get();
+        $isAuthorized = $this->canAccessAllBranches();
+        $userBranchCode = $this->getCurrentBranchCode();
 
         return view('reportingassembling.index', [
             'prdData' => $prdData,
@@ -89,6 +91,8 @@ class ReportingAssemblingController extends Controller
             'filterDateFrom' => $filterDateFrom,
             'filterDateTo' => $filterDateTo,
             'filterSupplierId' => $request->query('filter_supplier_id'),
+            'isAuthorized' => $isAuthorized,
+            'userBranchCode' => $userBranchCode,
         ]);
     }
 

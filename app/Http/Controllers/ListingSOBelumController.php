@@ -18,7 +18,10 @@ class ListingSOBelumController extends Controller
         $products = DB::table('msprd')->orderBy('fprdcode')->get();
         $branches = DB::table('mscabang')->orderBy('fcabangkode')->get();
 
-        return view('listingsobelum.index', compact('customers', 'groupPrd', 'products', 'branches'));
+        $isAuthorized = $this->canAccessAllBranches();
+        $userBranchCode = $this->getCurrentBranchCode();
+
+        return view('listingsobelum.index', compact('customers', 'groupPrd', 'products', 'branches', 'isAuthorized', 'userBranchCode'));
     }
 
     public function printCustomer(Request $request)

@@ -17,7 +17,10 @@ class ListingPOController extends Controller
         $suppliers = DB::table('mssupplier')->orderBy('fsuppliercode')->get();
         $branches = DB::table('mscabang')->orderBy('fcabangkode')->get();
 
-        return view('listingpo.index', compact('suppliers', 'branches'));
+        $isAuthorized = $this->canAccessAllBranches();
+        $userBranchCode = $this->getCurrentBranchCode();
+
+        return view('listingpo.index', compact('suppliers', 'branches', 'isAuthorized', 'userBranchCode'));
     }
 
     public function print(Request $request)

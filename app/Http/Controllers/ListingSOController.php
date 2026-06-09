@@ -18,7 +18,10 @@ class ListingSOController extends Controller
         $products = DB::table('msprd')->orderBy('fprdcode')->get();
         $branches = DB::table('mscabang')->orderBy('fcabangkode')->get();
 
-        return view('listingso.index', compact('customers', 'products', 'branches'));
+        $isAuthorized = $this->canAccessAllBranches();
+        $userBranchCode = $this->getCurrentBranchCode();
+
+        return view('listingso.index', compact('customers', 'products', 'branches', 'isAuthorized', 'userBranchCode'));
     }
 
     public function print(Request $request)

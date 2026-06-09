@@ -92,6 +92,8 @@ class ReportingPrController extends Controller
 
         // Ambil SEMUA Cabang
         $branches = DB::table('mscabang')->orderBy('fcabangkode')->get();
+        $isAuthorized = $this->canAccessAllBranches();
+        $userBranchCode = $this->getCurrentBranchCode();
 
         return view('reportingpr.index', [
             'prdData' => $prdData,
@@ -101,6 +103,8 @@ class ReportingPrController extends Controller
             'filterDateFrom' => $filterDateFrom,
             'filterDateTo' => $filterDateTo,
             'filterSupplierId' => $request->query('filter_supplier_id'),
+            'isAuthorized' => $isAuthorized,
+            'userBranchCode' => $userBranchCode,
         ]);
     }
 

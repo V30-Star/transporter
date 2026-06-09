@@ -17,7 +17,10 @@ class ListingPRController extends Controller
         $suppliers = DB::table('mssupplier')->orderBy('fsuppliercode')->get();
         $branches = DB::table('mscabang')->orderBy('fcabangkode')->get();
 
-        return view('listingpr.index', compact('suppliers', 'branches'));
+        $isAuthorized = $this->canAccessAllBranches();
+        $userBranchCode = $this->getCurrentBranchCode();
+
+        return view('listingpr.index', compact('suppliers', 'branches', 'isAuthorized', 'userBranchCode'));
     }
 
     public function print(Request $request)

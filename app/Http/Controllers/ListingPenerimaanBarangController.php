@@ -18,7 +18,10 @@ class ListingPenerimaanBarangController extends Controller
         $warehouses = DB::table('mswh')->where('fnonactive', '0')->orderBy('fwhcode')->get();
         $branches = DB::table('mscabang')->orderBy('fcabangkode')->get();
 
-        return view('listingpenerimaanbarang.index', compact('suppliers', 'warehouses', 'branches'));
+        $isAuthorized = $this->canAccessAllBranches();
+        $userBranchCode = $this->getCurrentBranchCode();
+
+        return view('listingpenerimaanbarang.index', compact('suppliers', 'warehouses', 'branches', 'isAuthorized', 'userBranchCode'));
     }
 
     /**

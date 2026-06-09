@@ -16,8 +16,10 @@ class ListingFakturPembelianController extends Controller
     {
         $suppliers = DB::table('mssupplier')->orderBy('fsuppliercode')->get();
         $branches = DB::table('mscabang')->orderBy('fcabangkode')->get();
+        $isAuthorized = $this->canAccessAllBranches();
+        $userBranchCode = $this->getCurrentBranchCode();
 
-        return view('listingfakturpembelian.index', compact('suppliers', 'branches'));
+        return view('listingfakturpembelian.index', compact('suppliers', 'branches', 'isAuthorized', 'userBranchCode'));
     }
 
     public function print(Request $request)
