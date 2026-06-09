@@ -24,11 +24,17 @@
         selects.forEach((sel) => {
             let opt = code ? [...sel.options].find(o => normalize(o.value) === code) : null;
 
-            if (!opt) {
-                sel.value = "";
-            } else {
+            if (code && !opt) {
+                opt = new Option(label, code, true, true);
+                sel.add(opt);
+            }
+
+            if (opt) {
+                opt.text = label;
                 opt.selected = true;
                 sel.value = code;
+            } else {
+                sel.value = "";
             }
 
             sel.dispatchEvent(new Event('change', {
@@ -37,8 +43,7 @@
         });
 
         hiddenInputs.forEach((hid) => {
-            let opt = code ? [...(selects[0]?.options || [])].find(o => normalize(o.value) === code) : null;
-            hid.value = opt ? code : "";
+            hid.value = code;
             hid.dispatchEvent(new Event('input', {
                 bubbles: true
             }));
@@ -78,8 +83,8 @@
 
             initDataTable() {
                 if (this.dataTable) {
-                    this.dataTable.destroy();
-                    this.dataTable = null;
+                    this.dataTable.columns.adjust().draw(false);
+                    return;
                 }
 
                 $('#{{ $tableId }}').off('click.salespick');
@@ -172,10 +177,12 @@
                     e.preventDefault();
                     e.stopPropagation();
 
-                    const data = this.dataTable.row($(e.target).closest('tr')).data();
-                    if (data) {
-                        this.chooseSalesman(data);
+                    const data = this.dataTable?.row($(e.currentTarget).closest('tr')).data();
+                    if (!data) {
+                        return;
                     }
+
+                    this.chooseSalesman(data);
                 });
 
                 $('#{{ $tableId }} tbody').on('click.salespick', 'tr', (e) => {

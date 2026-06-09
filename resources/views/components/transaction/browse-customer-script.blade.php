@@ -95,8 +95,8 @@
 
             initDataTable() {
                 if (this.dataTable) {
-                    this.dataTable.destroy();
-                    this.dataTable = null;
+                    this.dataTable.columns.adjust().draw(false);
+                    return;
                 }
 
                 $('#{{ $tableId }}').off('click.custpick');
@@ -213,10 +213,12 @@
                     e.preventDefault();
                     e.stopPropagation();
 
-                    const data = this.dataTable.row($(e.target).closest('tr')).data();
-                    if (data && data.fblokir != 1) {
-                        this.chooseCustomer(data);
+                    const data = this.dataTable?.row($(e.currentTarget).closest('tr')).data();
+                    if (!data || data.fblokir == 1) {
+                        return;
                     }
+
+                    this.chooseCustomer(data);
                 });
 
                 $('#{{ $tableId }} tbody').on('click.custpick', 'tr', (e) => {
