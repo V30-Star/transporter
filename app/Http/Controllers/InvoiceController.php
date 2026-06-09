@@ -1349,11 +1349,7 @@ class InvoiceController extends Controller
             $frefnoacakVal = $frefnoacaks[$i] ?? null;
             if ($refSrjNo !== '') {
                 $referenceDetail = $this->resolveInvoiceReferenceSourceDetail('SRJ', $refSrjNo, $code, $frefnoacaks[$i] ?? null);
-                if ($referenceDetail && ! empty($referenceDetail->frefso)) {
-                    $refSoNo = trim((string) $referenceDetail->frefso);
-                } else {
-                    $refSoNo = '';
-                }
+                $refSoNo = '';
                 if ($referenceDetail && ! empty($referenceDetail->fnoacak)) {
                     $frefnoacakVal = trim((string) $referenceDetail->fnoacak);
                 }
@@ -2502,11 +2498,7 @@ class InvoiceController extends Controller
             $frefnoacakVal = $frefnoacaks[$i] ?? null;
             if ($refSrjNo !== '') {
                 $referenceDetail = $this->resolveInvoiceReferenceSourceDetail('SRJ', $refSrjNo, $code, $frefnoacaks[$i] ?? null);
-                if ($referenceDetail && ! empty($referenceDetail->frefso)) {
-                    $refSoNo = trim((string) $referenceDetail->frefso);
-                } else {
-                    $refSoNo = '';
-                }
+                $refSoNo = '';
                 if ($referenceDetail && ! empty($referenceDetail->fnoacak)) {
                     $frefnoacakVal = trim((string) $referenceDetail->fnoacak);
                 }
