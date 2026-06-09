@@ -3,7 +3,7 @@
     $controlsId = $controlsId ?? 'salesmanTableControls';
     $routeName = $routeName ?? 'salesman.browse';
     $openDelay = $openDelay ?? 0;
-    $destroyOnClose = $destroyOnClose ?? false;
+    $destroyOnClose = $destroyOnClose ?? true;
 @endphp
 
 <script>
@@ -24,27 +24,23 @@
         selects.forEach((sel) => {
             let opt = code ? [...sel.options].find(o => normalize(o.value) === code) : null;
 
-            if (!opt) {
-                sel.value = "";
-            } else {
+            if (!opt && code) {
+                opt = new Option(label, code, true, true);
+                sel.add(opt);
+            } else if (opt) {
                 opt.selected = true;
-                sel.value = code;
+            } else {
+                sel.value = '';
             }
 
-            sel.dispatchEvent(new Event('change', {
-                bubbles: true
-            }));
+            sel.value = code || '';
+            sel.dispatchEvent(new Event('change', { bubbles: true }));
         });
 
         hiddenInputs.forEach((hid) => {
-            let opt = code ? [...(selects[0]?.options || [])].find(o => normalize(o.value) === code) : null;
-            hid.value = opt ? code : "";
-            hid.dispatchEvent(new Event('input', {
-                bubbles: true
-            }));
-            hid.dispatchEvent(new Event('change', {
-                bubbles: true
-            }));
+            hid.value = code || '';
+            hid.dispatchEvent(new Event('input', { bubbles: true }));
+            hid.dispatchEvent(new Event('change', { bubbles: true }));
         });
 
         window.dispatchEvent(new CustomEvent('salesman-picked', {
@@ -77,13 +73,16 @@
             dataTable: null,
 
             initDataTable() {
+                // Always destroy & clear listeners before reinitialising
                 if (this.dataTable) {
                     this.dataTable.destroy();
                     this.dataTable = null;
                 }
 
+                // Clear any stale listeners on the element (before DataTable rewrites the DOM)
                 $('#{{ $tableId }}').off('click.salespick');
                 $('#{{ $tableId }} tbody').off('click.salespick');
+
                 this.dataTable = $('#{{ $tableId }}').DataTable({
                     processing: true,
                     serverSide: true,
@@ -135,8 +134,6 @@
                         [1, 'asc']
                     ],
                     autoWidth: false,
-                    scrollX: true,
-                    scrollCollapse: true,
                     initComplete: function() {
                         const api = this.api();
                         const $container = $(api.table().container());
@@ -155,29 +152,25 @@
                             borderRadius: '8px',
                             fontSize: '14px'
                         });
-
-                        $container.find('.dataTables_scroll').css({
-                            width: '100%'
-                        });
-
-                        $container.find('.dataTables_scrollBody').css({
-                            overflowX: 'auto',
-                            overflowY: 'auto'
-                        });
-
                     }
                 });
 
+                // Re-clear listeners after DataTable rewrites DOM, then attach fresh ones
+                $('#{{ $tableId }}').off('click.salespick');
+                $('#{{ $tableId }} tbody').off('click.salespick');
+
+                // Pilih button click
                 $('#{{ $tableId }}').on('click.salespick', '.btn-choose', (e) => {
                     e.preventDefault();
                     e.stopPropagation();
 
-                    const data = this.dataTable.row($(e.target).closest('tr')).data();
+                    const data = this.dataTable?.row($(e.target).closest('tr')).data();
                     if (data) {
                         this.chooseSalesman(data);
                     }
                 });
 
+                // Single-row click (anywhere on the row except interactive elements)
                 $('#{{ $tableId }} tbody').on('click.salespick', 'tr', (e) => {
                     if ($(e.target).closest('button, a, input, select, textarea').length) {
                         return;
@@ -206,24 +199,18 @@
 
             close() {
                 this.open = false;
-                if (!this.dataTable) {
-                    return;
-                }
 
-                if (@json($destroyOnClose)) {
+                // Always destroy so listeners are fully cleared on next open
+                if (this.dataTable) {
+                    $('#{{ $tableId }}').off('click.salespick');
+                    $('#{{ $tableId }} tbody').off('click.salespick');
                     this.dataTable.destroy();
                     this.dataTable = null;
-                    return;
                 }
-
-                this.dataTable.search('').draw();
             },
 
             chooseSalesman(salesman) {
-                if (!window.applyTransactionSalesmanSelection(salesman)) {
-                    this.close();
-                    return;
-                }
+                window.applyTransactionSalesmanSelection(salesman);
                 this.close();
             },
 
