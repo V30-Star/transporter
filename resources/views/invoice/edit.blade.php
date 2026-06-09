@@ -2027,6 +2027,18 @@
         });
     };
 
+    window.syncInvoicePpnFromSource = function(header = null) {
+        const root = document.querySelector('[x-data*="itemsTable()"]');
+        const component = root && window.Alpine ? Alpine.$data(root) : null;
+        if (!component || !header) return;
+
+        component.includePPN = Number(header.fincludeppn ?? 0) === 1;
+        component.fapplyppn = Number(header.fapplyppn ?? 0) === 1 ? 1 : 0;
+
+        const rate = Number(header.fppnpersen ?? 11);
+        component.ppnRate = Number.isFinite(rate) && rate >= 0 ? rate : 11;
+    };
+
     window.syncInvoiceTempoFromCustomer = function(payload = null) {
         const normalize = (value) => String(value ?? '').trim();
         const select = document.getElementById('modal_filter_customer_id');
@@ -2782,10 +2794,9 @@
                 const existing = new Set(this.getCurrentItemKeys());
                 let added = 0;
 
-                if (source === 'SO') {
-                    window.syncInvoiceTempoFromSource?.(header?.ftempohr ?? 0);
-                    window.syncInvoiceSalesmanFromSource?.(header);
-                }
+                window.syncInvoiceTempoFromSource?.(header?.ftempohr ?? header?.ftempo ?? 0);
+                window.syncInvoiceSalesmanFromSource?.(header);
+                window.syncInvoicePpnFromSource?.(header);
 
                 const internalNoteInput = document.getElementById('fketinternal');
                 if (internalNoteInput) {

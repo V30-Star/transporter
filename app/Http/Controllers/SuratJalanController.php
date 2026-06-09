@@ -436,6 +436,25 @@ class SuratJalanController extends Controller
             ->whereRaw("TRIM(COALESCE(frefso, '')) <> ''")
             ->exists();
 
+        $sourceSoHeader = DB::table('trstockdt as dt')
+            ->join('trsomt as so', 'so.fsono', '=', 'dt.frefso')
+            ->where('dt.fstockmtno', $header->fstockmtno)
+            ->whereRaw("TRIM(COALESCE(dt.frefso, '')) <> ''")
+            ->orderBy('dt.fstockdtid')
+            ->first(['so.fsalesman', 'so.ftempohr', 'so.fincludeppn', 'so.fapplyppn', 'so.fppnpersen']);
+
+        if ($sourceSoHeader) {
+            $header->fsalesman = trim((string) ($sourceSoHeader->fsalesman ?? ''));
+            $header->ftempohr = (float) ($sourceSoHeader->ftempohr ?? 0);
+            $header->fincludeppn = (int) ($sourceSoHeader->fincludeppn ?? 0);
+            $header->fapplyppn = (int) ($sourceSoHeader->fapplyppn ?? 0);
+            $header->fppnpersen = (float) ($sourceSoHeader->fppnpersen ?? 11);
+        } else {
+            $customerDefaults = DB::table('mscustomer')->where('fcustomercode', $header->fsupplier)->first(['ftempo', 'fsalesman']);
+            $header->ftempohr = (float) ($customerDefaults->ftempo ?? 0);
+            $header->fsalesman = trim((string) ($customerDefaults->fsalesman ?? ''));
+        }
+
         $items = DB::table('trstockdt')
             ->where('trstockdt.fstockmtno', $header->fstockmtno)
             ->leftJoin('msprd', 'msprd.fprdcode', '=', 'trstockdt.fprdcode')
