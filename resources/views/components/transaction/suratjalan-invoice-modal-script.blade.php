@@ -27,7 +27,7 @@
             showDupModal: false,
             dupCount: 0,
             dupSample: [],
-            pendingHeader: null,
+            pendingHeader: null,BKK
             pendingUniques: [],
 
             initDataTable() {

@@ -339,6 +339,7 @@ class PelunasanCustomerController extends Controller
             ->where('faccount', $validated['faccountheader'])
             ->firstOrFail(['faccid', 'faccount', 'faccname']);
         $detailRows = $this->normalizeDetails($validated['details']);
+        $this->validatePaymentDoesNotExceedRemainingReceivable($detailRows);
         $detailEntries = $this->buildJournalDetailEntries($detailRows, $validated['fkasmtdate'], $customer);
         $bankAdminFee = round((float) ($validated['fbiayaadminbank'] ?? 0), 2);
         if ($bankAdminFee > 0 && !empty($validated['faccountadmin'])) {
@@ -522,6 +523,7 @@ class PelunasanCustomerController extends Controller
             ->where('faccount', $validated['faccountheader'])
             ->firstOrFail(['faccid', 'faccount', 'faccname']);
         $detailRows = $this->normalizeDetails($validated['details']);
+        $this->validatePaymentDoesNotExceedRemainingReceivable($detailRows, $header);
         $detailEntries = $this->buildJournalDetailEntries($detailRows, $validated['fkasmtdate'], $customer);
         $bankAdminFee = round((float) ($validated['fbiayaadminbank'] ?? 0), 2);
         if ($bankAdminFee > 0 && !empty($validated['faccountadmin'])) {
@@ -708,6 +710,50 @@ class PelunasanCustomerController extends Controller
                 'ftrcode' => $trCode,
             ];
         });
+    }
+
+    private function validatePaymentDoesNotExceedRemainingReceivable(Collection $detailRows, ?Trkasmt $exceptHeader = null): void
+    {
+        $refNos = $detailRows
+            ->pluck('frefno')
+            ->map(fn($value) => trim((string) $value))
+            ->filter()
+            ->unique()
+            ->values();
+
+        if ($refNos->isEmpty()) {
+            return;
+        }
+
+        $remainingByRef = Tranmt::query()
+            ->whereIn('fsono', $refNos)
+            ->whereIn('ftrcode', ['INV', 'REJ'])
+            ->pluck('famountremain', 'fsono')
+            ->mapWithKeys(fn($remain, $refNo) => [trim((string) $refNo) => abs((float) $remain)]);
+
+        $existingPaymentByRef = collect();
+        if ($exceptHeader) {
+            $existingPaymentByRef = Trkasdt::query()
+                ->where('fkasmtid', $exceptHeader->fkasmtid)
+                ->whereIn('frefno', $refNos)
+                ->whereRaw("TRIM(COALESCE(freftype, '')) != 'ADM'")
+                ->selectRaw("TRIM(COALESCE(frefno, '')) as frefno, SUM(ABS(COALESCE(fkasdtvalue, 0))) as total_payment")
+                ->groupByRaw("TRIM(COALESCE(frefno, ''))")
+                ->pluck('total_payment', 'frefno')
+                ->mapWithKeys(fn($payment, $refNo) => [trim((string) $refNo) => (float) $payment]);
+        }
+
+        foreach ($detailRows as $index => $row) {
+            $refNo = trim((string) ($row['frefno'] ?? ''));
+            $payment = round(abs((float) ($row['fkasdtvalue'] ?? 0)), 2);
+            $allowed = round(($remainingByRef->get($refNo, 0) + $existingPaymentByRef->get($refNo, 0)), 2);
+
+            if ($payment > $allowed) {
+                throw ValidationException::withMessages([
+                    "details.{$index}.fkasdtvalue" => 'Total bayar tidak boleh melebihi sisa piutang.',
+                ]);
+            }
+        }
     }
 
     private function resolveReferenceTransactions(Collection $detailRows, Carbon $paymentDate): array
@@ -905,7 +951,7 @@ class PelunasanCustomerController extends Controller
 
     private function generateVoucherNo(Carbon $date): string
     {
-        $prefix = 'BKM.' . $date->format('ym') . '.';
+        $prefix = 'RCP.' . $date->format('ym') . '.';
         $lastNumber = DB::table('trkasmt')
             ->where('fkasmtno', 'like', $prefix . '%')
             ->selectRaw("MAX(CAST(split_part(fkasmtno, '.', 3) AS integer)) as last_no")

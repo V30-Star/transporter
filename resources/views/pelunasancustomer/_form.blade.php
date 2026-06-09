@@ -208,13 +208,13 @@
                                         <input type="hidden" :name="`details[${index}][fdatetime]`" :value="row.fdatetime">
                                     </td>
                                     <td class="border px-2 py-1">
-                                        <input type="number" min="0" step="0.01" x-model="row.fnilai_nota"
+                                        <input type="text" :value="formatNumber(row.fnilai_nota)"
                                             class="w-full border rounded px-2 py-1 text-right bg-gray-100 cursor-not-allowed"
                                             readonly disabled>
                                         <input type="hidden" :name="`details[${index}][fnilai_nota]`" :value="row.fnilai_nota">
                                     </td>
                                     <td class="border px-2 py-1">
-                                        <input type="number" min="0" step="0.01" x-model="row.fsisa_piutang"
+                                        <input type="text" :value="formatNumber(row.fsisa_piutang)"
                                             class="w-full border rounded px-2 py-1 text-right bg-gray-100 cursor-not-allowed"
                                             readonly disabled>
                                         <input type="hidden" :name="`details[${index}][fsisa_piutang]`" :value="row.fsisa_piutang">
@@ -229,19 +229,24 @@
                                             :name="`details[${index}][fdiscpersen]`" :value="row.fdiscpersen">
                                     </td>
                                     <td class="border px-2 py-1">
-                                        <input type="number" min="0" step="0.01"
-                                            :name="`details[${index}][fdiscount]`" x-model="row.fdiscount"
-                                            @input="syncTotalBayar(row)"
+                                        <input type="text" x-init="$el.value = formatNumber(row.fdiscount)"
+                                            x-effect="if (document.activeElement !== $el) $el.value = formatNumber(row.fdiscount)"
+                                            @focus="showRawNumber($event, row, 'fdiscount')"
+                                            @input="setNumericField(row, 'fdiscount', $event.target.value); syncTotalBayar(row)"
+                                            @blur="formatNumericField($event, row, 'fdiscount')"
                                             :disabled="isDiscountDisabled(row)"
                                             class="w-full border rounded px-2 py-1 text-right disabled:bg-gray-100 disabled:text-gray-400 disabled:cursor-not-allowed">
-                                        <input type="hidden" x-show="isDiscountDisabled(row)"
+                                        <input type="hidden"
                                             :name="`details[${index}][fdiscount]`" :value="row.fdiscount">
                                     </td>
                                     <td class="border px-2 py-1">
-                                        <input type="number" min="0" step="0.01"
-                                            :name="`details[${index}][fkasdtvalue]`" x-model="row.fkasdtvalue"
-                                            @input="syncTotalBayar(row)"
+                                        <input type="text" x-init="$el.value = formatNumber(row.fkasdtvalue)"
+                                            x-effect="if (document.activeElement !== $el) $el.value = formatNumber(row.fkasdtvalue)"
+                                            @focus="showRawNumber($event, row, 'fkasdtvalue')"
+                                            @input="setNumericField(row, 'fkasdtvalue', $event.target.value); syncTotalBayar(row)"
+                                            @blur="formatNumericField($event, row, 'fkasdtvalue')"
                                             class="w-full border rounded px-2 py-1 text-right disabled:bg-gray-100 disabled:text-gray-400 disabled:cursor-not-allowed">
+                                        <input type="hidden" :name="`details[${index}][fkasdtvalue]`" :value="row.fkasdtvalue">
                                     </td>
                                     @if (!$isReadOnly)
                                         <td class="border px-2 py-1 text-center">
@@ -731,6 +736,18 @@
                 },
 
                 toNumber(value) {
+                    if (typeof value === 'string') {
+                        value = value.trim();
+                        if (value.includes(',') && value.includes('.')) {
+                            value = value.lastIndexOf(',') > value.lastIndexOf('.')
+                                ? value.replace(/\./g, '').replace(',', '.')
+                                : value.replace(/,/g, '');
+                        } else if (value.includes(',')) {
+                            value = value.replace(/\./g, '').replace(',', '.');
+                        } else {
+                            value = value.replace(/,/g, '');
+                        }
+                    }
                     const number = Number(value);
                     return Number.isFinite(number) ? number : 0;
                 },
@@ -740,6 +757,20 @@
                         minimumFractionDigits: 2,
                         maximumFractionDigits: 2
                     });
+                },
+
+                showRawNumber(event, row, field) {
+                    event.target.value = this.toNumber(row?.[field]).toFixed(2);
+                    event.target.select();
+                },
+
+                setNumericField(row, field, value) {
+                    row[field] = this.toNumber(value);
+                },
+
+                formatNumericField(event, row, field) {
+                    row[field] = this.toNumber(row?.[field]);
+                    event.target.value = this.formatNumber(row[field]);
                 },
 
                 formatDateDisplay(value) {
@@ -1004,7 +1035,10 @@
                     const pay = this.toNumber(row.fkasdtvalue);
                     const disc = this.toNumber(row.fdiscount);
                     const original = this.toNumber(row.originalSisa);
-                    row.fsisa_piutang = Math.max(original - pay - disc, 0);
+                    if (pay > Math.max(original - disc, 0)) {
+                        row.fkasdtvalue = Math.max(original - disc, 0);
+                    }
+                    row.fsisa_piutang = Math.max(original - this.toNumber(row.fkasdtvalue) - disc, 0);
                     this.recalcTotals();
                 },
 
