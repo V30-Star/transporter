@@ -202,7 +202,7 @@
                                         class="w-full border rounded-l px-3 py-2 bg-gray-100 text-gray-700 cursor-not-allowed"
                                         disabled>
                                         <option value=""></option>
-                                        @foreach ($warehouses as $wh)
+                                        @foreach (($fromWarehouses ?? $warehouses) as $wh)
                                             <option value="{{ $wh->fwhcode }}" data-id="{{ $wh->fwhid }}"
                                                 data-branch="{{ $wh->fbranchcode }}"
                                                 {{ old('ffrom', $mutasi->ffrom ?? '') == $wh->fwhcode ? 'selected' : '' }}>
@@ -1174,6 +1174,7 @@ window.warehouseBrowser = function() {
                 }
                 $('#warehouseTable').off('click.whpick');
                 $('#warehouseTable tbody').off('click.whpick');
+                const browser = this;
                 this.table = $('#warehouseTable').DataTable({
                     processing: true,
                     serverSide: true,
@@ -1187,7 +1188,8 @@ window.warehouseBrowser = function() {
                                 length: d.length,
                                 search: d.search.value,
                                 order_column: d.columns[d.order[0].column].data,
-                                order_dir: d.order[0].dir
+                                order_dir: d.order[0].dir,
+                                branch_scope: browser.currentTarget === 'to' ? 'all' : 'user'
                             };
                         }
                     },
@@ -1303,6 +1305,9 @@ window.warehouseBrowser = function() {
                 this.open = true;
                 this.$nextTick(() => {
                     this.initDataTable();
+                    if (this.table) {
+                        this.table.ajax.reload(null, false);
+                    }
                 });
             },
 

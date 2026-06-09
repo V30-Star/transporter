@@ -107,7 +107,7 @@
                         [10, 25, 50, 100],
                         [10, 25, 50, 100]
                     ],
-                    dom: '<"#poTableControls"lf>rt<"#poTablePagination"ip>',
+                    dom: '<"#poTableControls.flex flex-col gap-3 md:flex-row md:items-center mb-4"<"w-full md:w-auto"f><"w-full md:w-auto md:ml-auto md:text-right"l>>rt<"#poTablePagination"ip>',
                     language: {
                         processing: "Memuat data...",
                         search: "Cari:",

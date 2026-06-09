@@ -277,7 +277,11 @@ class WhController extends Controller
 
         $query = Wh::query();
 
-        if ($userBranch !== '') {
+        $browseAllBranches = $request->input('branch_scope') === 'all';
+
+        if ($browseAllBranches) {
+            // Mutasi stok gudang tujuan boleh lintas cabang.
+        } elseif ($userBranch !== '') {
             $query->whereRaw('TRIM(COALESCE(fbranchcode, \'\')) = ?', [$userBranch]);
         } else {
             $query->whereRaw('1 = 0');

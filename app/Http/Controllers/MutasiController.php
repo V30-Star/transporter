@@ -250,6 +250,49 @@ class MutasiController extends Controller
         return $warehouseCode !== '' ? $warehouseCode : $warehouseName;
     }
 
+    private function resolveCurrentUserBranchCode(): string
+    {
+        $raw = trim((string) ((Auth::guard('sysuser')->user() ?? Auth::user())?->fcabang ?? ''));
+
+        if ($raw === '') {
+            return '';
+        }
+
+        if (is_numeric($raw)) {
+            return trim((string) DB::table('mscabang')->where('fcabangid', (int) $raw)->value('fcabangkode'));
+        }
+
+        return trim((string) (DB::table('mscabang')
+            ->whereRaw('LOWER(fcabangkode)=LOWER(?)', [$raw])
+            ->orWhereRaw('LOWER(fcabangname)=LOWER(?)', [$raw])
+            ->value('fcabangkode') ?: $raw));
+    }
+
+    private function mutasiWarehouseErrors(Request $request): array
+    {
+        $from = trim((string) $request->input('ffrom', ''));
+        $to = trim((string) $request->input('fto', ''));
+        $userBranch = $this->resolveCurrentUserBranchCode();
+        $errors = [];
+
+        if ($userBranch === '' || ! DB::table('mswh')
+            ->whereRaw('TRIM(COALESCE(fwhcode, \'\')) = ?', [$from])
+            ->whereRaw('TRIM(COALESCE(fbranchcode, \'\')) = ?', [$userBranch])
+            ->where('fnonactive', '0')
+            ->exists()) {
+            $errors['ffrom'] = 'Gudang (Dari) harus gudang cabang user login.';
+        }
+
+        if (! DB::table('mswh')
+            ->whereRaw('TRIM(COALESCE(fwhcode, \'\')) = ?', [$to])
+            ->where('fnonactive', '0')
+            ->exists()) {
+            $errors['fto'] = 'Gudang (Tujuan) tidak valid.';
+        }
+
+        return $errors;
+    }
+
     private function normalizeReferenceRandomNumber($value): ?string
     {
         $value = trim((string) ($value ?? ''));
@@ -474,6 +517,10 @@ class MutasiController extends Controller
 
         $fcabang = $branch->fcabangname ?? (string) $raw;
         $fbranchcode = $branch->fcabangkode ?? (string) $raw;
+        $fromWarehouseBranch = $this->resolveCurrentUserBranchCode();
+        $fromWarehouses = $warehouses
+            ->filter(fn($wh) => trim((string) ($wh->fbranchcode ?? '')) === $fromWarehouseBranch)
+            ->values();
 
         $newtr_prh_code = $this->generatetr_poh_Code(now(), $fbranchcode);
 
@@ -490,6 +537,7 @@ class MutasiController extends Controller
         return view('mutasi.create', [
             'newtr_prh_code' => $newtr_prh_code,
             'warehouses' => $warehouses,
+            'fromWarehouses' => $fromWarehouses,
             'accounts' => $accounts,
             'supplier' => $supplier,
             'fcabang' => $fcabang,
@@ -541,6 +589,9 @@ class MutasiController extends Controller
             ]);
 
             $this->ensureNoDuplicateDetailCodes($request->input('fitemcode', []));
+            if ($errors = $this->mutasiWarehouseErrors($request)) {
+                return back()->withInput()->withErrors($errors);
+            }
 
             // =========================
             // TAHAP 2: AMBIL DATA MASTER PRODUK
@@ -764,6 +815,10 @@ class MutasiController extends Controller
                 ->with('error', $message);
         }
         ['fcabang' => $fcabang, 'fbranchcode' => $fbranchcode] = $this->resolveBranchContext($mutasi->fbranchcode ?? null);
+        $fromWarehouseBranch = $this->resolveCurrentUserBranchCode();
+        $fromWarehouses = $warehouses
+            ->filter(fn($wh) => trim((string) ($wh->fbranchcode ?? '')) === $fromWarehouseBranch)
+            ->values();
 
         $usageLockMessage = $this->getUsageLockMessage($mutasi);
 
@@ -827,6 +882,7 @@ class MutasiController extends Controller
             'fcabang' => $fcabang,
             'fbranchcode' => $fbranchcode,
             'warehouses' => $warehouses,
+            'fromWarehouses' => $fromWarehouses,
             'accounts' => $accounts,
             'products' => $products,
             'productMap' => $productMap,
@@ -892,6 +948,9 @@ class MutasiController extends Controller
             ]);
 
             $this->ensureNoDuplicateDetailCodes($request->input('fitemcode', []));
+            if ($errors = $this->mutasiWarehouseErrors($request)) {
+                return back()->withInput()->withErrors($errors);
+            }
 
             // =========================
             // 2) AMBIL DATA MASTER
@@ -1085,6 +1144,10 @@ class MutasiController extends Controller
                 ->with('error', $message);
         }
         ['fcabang' => $fcabang, 'fbranchcode' => $fbranchcode] = $this->resolveBranchContext($mutasi->fbranchcode ?? null);
+        $fromWarehouseBranch = $this->resolveCurrentUserBranchCode();
+        $fromWarehouses = $warehouses
+            ->filter(fn($wh) => trim((string) ($wh->fbranchcode ?? '')) === $fromWarehouseBranch)
+            ->values();
 
         $usageLockMessage = $this->getUsageLockMessage($mutasi);
 
@@ -1148,6 +1211,7 @@ class MutasiController extends Controller
             'fcabang' => $fcabang,
             'fbranchcode' => $fbranchcode,
             'warehouses' => $warehouses,
+            'fromWarehouses' => $fromWarehouses,
             'accounts' => $accounts,
             'products' => $products,
             'productMap' => $productMap,

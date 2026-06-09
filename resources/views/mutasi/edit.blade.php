@@ -255,7 +255,7 @@
                                             class="w-full border rounded-l px-3 py-2 bg-gray-100 text-gray-700 cursor-not-allowed"
                                             disabled>
                                             <option value=""></option>
-                                            @foreach ($warehouses as $wh)
+                                            @foreach (($fromWarehouses ?? $warehouses) as $wh)
                                                 <option value="{{ $wh->fwhcode }}" data-id="{{ $wh->fwhid }}"
                                                     data-branch="{{ $wh->fbranchcode }}"
                                                     {{ old('ffrom', $mutasi->ffrom) == $wh->fwhcode ? 'selected' : '' }}>
@@ -301,7 +301,7 @@
                                             class="w-full border rounded-l px-3 py-2 bg-gray-100 text-gray-700 cursor-not-allowed"
                                             disabled>
                                             <option value=""></option>
-                                            @foreach ($warehouses as $wh)
+                                            @foreach (($fromWarehouses ?? $warehouses) as $wh)
                                                 <option value="{{ $wh->fwhcode }}" data-id="{{ $wh->fwhid }}"
                                                     data-branch="{{ $wh->fbranchcode }}"
                                                     {{ old('fto', $mutasi->fto) == $wh->fwhcode ? 'selected' : '' }}>
@@ -1738,6 +1738,7 @@
                 }
                 $('#warehouseTable').off('click.whpick');
                 $('#warehouseTable tbody').off('click.whpick');
+                const browser = this;
                 this.table = $('#warehouseTable').DataTable({
                     processing: true,
                     serverSide: true,
@@ -1751,7 +1752,8 @@
                                 length: d.length,
                                 search: d.search.value,
                                 order_column: d.columns[d.order[0].column].data,
-                                order_dir: d.order[0].dir
+                                order_dir: d.order[0].dir,
+                                branch_scope: browser.currentTarget === 'to' ? 'all' : 'user'
                             };
                         }
                     },
@@ -1867,6 +1869,9 @@
                 this.open = true;
                 this.$nextTick(() => {
                     this.initDataTable();
+                    if (this.table) {
+                        this.table.ajax.reload(null, false);
+                    }
                 });
             },
 
