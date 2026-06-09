@@ -25,10 +25,14 @@
         return is_numeric($value) ? (float) $value : 0.0;
     };
     $oldDetails = old('details', []);
-    $seedDetails = is_array($oldDetails) && count($oldDetails) > 0 ? $oldDetails : ($detailRows ?? [[]]);
+    $oldDetailSnapshot = old('detail_snapshot');
+    $snapshotDetails = is_string($oldDetailSnapshot) ? json_decode($oldDetailSnapshot, true) : null;
+    $seedDetails = is_array($snapshotDetails) && count($snapshotDetails) > 0
+        ? $snapshotDetails
+        : (is_array($oldDetails) && count($oldDetails) > 0 ? $oldDetails : ($detailRows ?? [[]]));
     $initialDetailRows = collect($seedDetails)
         ->values()
-        ->map(function ($detail, $index) {
+        ->map(function ($detail, $index) use ($parseAmount) {
             return [
                 'uid' => 'pc-' . $index . '-' . substr(md5((string) $index), 0, 8),
                 'frefno' => trim((string) ($detail['frefno'] ?? '')),
@@ -57,7 +61,7 @@
 
 <div class="bg-white rounded shadow p-6 md:p-8 max-w-[96rem] mx-auto"
     x-data="pelunasanCustomerForm(@js($initialDetailRows), @js($selectedCustomerTempo))" x-init="init()">
-    <form action="{{ $formAction }}" method="POST" class="space-y-6"
+    <form action="{{ $formAction }}" method="POST" class="space-y-6" @submit="syncDetailSnapshot()"
         @if (!$isReadOnly && !empty($draftKey)) data-form-draft="true" data-draft-key="{{ $draftKey }}" @endif>
         @csrf
         @if ($formMethod !== 'POST')
@@ -65,6 +69,7 @@
         @endif
 
         <input type="hidden" name="fcustomer_tempo" x-model="customerTempo">
+        <input type="hidden" name="detail_snapshot" x-ref="detailSnapshot" value="{{ old('detail_snapshot') }}">
         <fieldset @disabled($isReadOnly) class="space-y-3.5">
             <!-- Row 1: Branch, Voucher Number, Date -->
             <div class="grid grid-cols-3 gap-3">
@@ -227,13 +232,13 @@
                                         <input type="text" :value="formatNumber(row.fnilai_nota)"
                                             class="w-full border rounded px-2 py-1 text-right bg-gray-100 cursor-not-allowed"
                                             readonly disabled>
-                                        <input type="hidden" :name="`details[${index}][fnilai_nota]`" :value="row.fnilai_nota" :disabled="false">
+                                        <input type="hidden" :name="`details[${index}][fnilai_nota]`" x-model="row.fnilai_nota" :disabled="false">
                                     </td>
                                     <td class="border px-2 py-1">
                                         <input type="text" :value="formatNumber(row.fsisa_piutang)"
                                             class="w-full border rounded px-2 py-1 text-right bg-gray-100 cursor-not-allowed"
                                             readonly disabled>
-                                        <input type="hidden" :name="`details[${index}][fsisa_piutang]`" :value="row.fsisa_piutang" :disabled="false">
+                                        <input type="hidden" :name="`details[${index}][fsisa_piutang]`" x-model="row.fsisa_piutang" :disabled="false">
                                     </td>
                                     <td class="border px-2 py-1">
                                         <input type="number" min="0" max="100" step="0.01"
@@ -253,7 +258,7 @@
                                             :disabled="isDiscountDisabled(row)"
                                             class="w-full border rounded px-2 py-1 text-right disabled:bg-gray-100 disabled:text-gray-400 disabled:cursor-not-allowed">
                                         <input type="hidden"
-                                            :name="`details[${index}][fdiscount]`" :value="row.fdiscount" :disabled="false">
+                                            :name="`details[${index}][fdiscount]`" x-model="row.fdiscount" :disabled="false">
                                     </td>
                                     <td class="border px-2 py-1">
                                         <input type="text" x-init="$el.value = formatNumber(row.fkasdtvalue)"
@@ -262,7 +267,7 @@
                                             @input="setNumericField(row, 'fkasdtvalue', $event.target.value); syncTotalBayar(row)"
                                             @blur="formatNumericField($event, row, 'fkasdtvalue')"
                                             class="w-full border rounded px-2 py-1 text-right disabled:bg-gray-100 disabled:text-gray-400 disabled:cursor-not-allowed">
-                                        <input type="hidden" :name="`details[${index}][fkasdtvalue]`" :value="row.fkasdtvalue" :disabled="false">
+                                        <input type="hidden" :name="`details[${index}][fkasdtvalue]`" x-model="row.fkasdtvalue" :disabled="false">
                                     </td>
                                     @if (!$isReadOnly)
                                         <td class="border px-2 py-1 text-center">
@@ -728,6 +733,22 @@
                 rowHasContent(row) {
                     if (!row) return false;
                     return String(row.frefno || '').trim() !== '';
+                },
+
+                syncDetailSnapshot() {
+                    if (!this.$refs.detailSnapshot) return;
+                    this.$refs.detailSnapshot.value = JSON.stringify(this.rows
+                        .filter((row) => this.rowHasContent(row))
+                        .map((row) => ({
+                            frefno: String(row.frefno || '').trim(),
+                            fdatetime: row.fdatetime || '',
+                            fnilai_nota: this.toNumber(row.fnilai_nota),
+                            fsisa_piutang: this.toNumber(row.fsisa_piutang),
+                            fdiscpersen: this.toNumber(row.fdiscpersen),
+                            fdiscount: this.toNumber(row.fdiscount),
+                            fkasdtvalue: this.toNumber(row.fkasdtvalue),
+                            ftrcode: String(row.ftrcode || 'INV').trim() || 'INV',
+                        })));
                 },
 
                 ensureMinimumRows() {
