@@ -3,7 +3,7 @@
 
 <head>
     <meta charset="utf-8">
-    <title>Slip Jurnal Umum - {{ $hdr->fjurnalno ?? '-' }}</title>
+    <title>Voucher Jurnal - {{ $hdr->fjurnalno ?? '-' }}</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <style>
         :root {
@@ -63,18 +63,6 @@
             text-align: right;
         }
 
-        .info-table {
-            width: 100%;
-            font-size: 12px;
-            margin-top: 10px;
-            border-collapse: collapse;
-        }
-
-        .info-table td {
-            padding: 2px 4px;
-            vertical-align: top;
-        }
-
         /* Table Journal */
         .tb {
             width: 100%;
@@ -105,14 +93,6 @@
             text-align: center;
         }
 
-        .debit-row td {
-            background: #fff;
-        }
-
-        .kredit-row td {
-            background: #fafafa;
-        }
-
         .total-row td {
             border-top: 2px solid #000;
             font-weight: bold;
@@ -123,15 +103,42 @@
             margin-top: 30px;
         }
 
-        .note-box {
-            font-size: 11px;
-            margin-top: 8px;
+        /* Terbilang box — same style as other print views */
+        .terbilang-box {
+            float: left;
+            width: 60%;
             font-style: italic;
-            color: #444;
+            font-weight: bold;
+            text-decoration: underline;
+            font-size: 11px;
+            margin-top: 5px;
         }
 
+        .summary-box {
+            float: right;
+            width: 35%;
+            margin-top: 5px;
+        }
+
+        .summary-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 1px 0;
+        }
+
+        .grand-total {
+            border-top: 1px solid #000;
+            border-bottom: 3px double #000;
+            margin-top: 5px;
+            padding: 4px 0;
+            font-weight: bold;
+            color: var(--blue);
+            font-size: 14px;
+        }
+
+        /* Signature */
         .sign-container {
-            margin-top: 40px;
+            margin-top: 30px;
             clear: both;
             display: flex;
             align-items: flex-end;
@@ -155,9 +162,11 @@
             padding-bottom: 5px;
         }
 
-        .timestamp {
+        .caption-note {
             font-size: 10px;
             margin-left: 10px;
+            font-style: italic;
+            color: #444;
         }
 
         @media print {
@@ -202,26 +211,11 @@
         </div>
 
         {{-- Info --}}
-        <table class="info-table" style="width:auto; margin-top:12px;">
+        <table style="width:auto; margin-top:12px; font-size:12px; border-collapse:collapse;">
             <tr>
-                <td style="width:90px;">Tanggal</td>
-                <td>:</td>
-                <td>{{ $fmt($hdr->fjurnaldate) }}</td>
-            </tr>
-            <tr>
-                <td>Tipe</td>
-                <td>:</td>
-                <td>{{ $hdr->fjurnaltype ?? '-' }}</td>
-            </tr>
-            <tr>
-                <td>Cabang</td>
-                <td>:</td>
-                <td>{{ $hdr->cabang_name ?? $hdr->fbranchcode ?? '-' }}</td>
-            </tr>
-            <tr>
-                <td>Keterangan</td>
-                <td>:</td>
-                <td>{{ $hdr->fjurnalnote ?? '-' }}</td>
+                <td style="width:90px; padding:2px 4px;">Tanggal</td>
+                <td style="padding:2px 4px;">:</td>
+                <td style="padding:2px 4px;">{{ $fmt($hdr->fjurnaldate) }}</td>
             </tr>
         </table>
 
@@ -235,25 +229,25 @@
             <thead>
                 <tr>
                     <th style="width:5%;">No.</th>
-                    <th style="width:14%;">Kode Akun</th>
-                    <th style="width:30%;">Nama Akun</th>
-                    <th style="width:16%;">Sub Akun</th>
+                    <th style="width:15%;">Kode Akun</th>
+                    <th style="width:45%;">Nama Akun</th>
+                    <th style="width:15%;">Sub Akun</th>
                     <th style="width:5%; text-align:center;">D/K</th>
                     <th style="width:15%; text-align:right;">Jumlah (Rp)</th>
-                    <th style="width:15%;">Keterangan</th>
                 </tr>
             </thead>
             <tbody>
                 @foreach ($dt as $i => $r)
                     @php
                         $isDebit = strtoupper($r->fdk ?? '') === 'D';
+                        $amount  = (float) ($r->famount_rp ?? $r->famount ?? 0);
                         if ($isDebit) {
-                            $totalDebit += (float) ($r->famount_rp ?? $r->famount ?? 0);
+                            $totalDebit += $amount;
                         } else {
-                            $totalKredit += (float) ($r->famount_rp ?? $r->famount ?? 0);
+                            $totalKredit += $amount;
                         }
                     @endphp
-                    <tr class="{{ $isDebit ? 'debit-row' : 'kredit-row' }}">
+                    <tr>
                         <td class="text-center">{{ $i + 1 }}</td>
                         <td>{{ $r->faccount ?? '-' }}</td>
                         <td>{{ $r->account_name ?? '-' }}</td>
@@ -262,23 +256,16 @@
                             {{ $isDebit ? 'D' : 'K' }}
                         </td>
                         <td class="text-right">
-                            {{ number_format((float) ($r->famount_rp ?? $r->famount ?? 0), 2, ',', '.') }}
+                            {{ number_format($amount, 2, ',', '.') }}
                         </td>
-                        <td>{{ $r->faccountnote ?? '-' }}</td>
                     </tr>
                 @endforeach
-                {{-- Totals --}}
+
+                {{-- Single "Total" row (Debit = Kredit by design) --}}
                 <tr class="total-row">
-                    <td colspan="5" class="text-right">Total Debit</td>
+                    <td colspan="5" class="text-right">Total</td>
                     <td class="text-right" style="color:#1d4ed8;">
                         {{ number_format($totalDebit, 2, ',', '.') }}
-                    </td>
-                    <td></td>
-                </tr>
-                <tr class="total-row">
-                    <td colspan="5" class="text-right">Total Kredit</td>
-                    <td class="text-right" style="color:#dc2626;">
-                        {{ number_format($totalKredit, 2, ',', '.') }}
                     </td>
                     <td></td>
                 </tr>
@@ -286,6 +273,21 @@
         </table>
 
         <div class="footer-line"></div>
+
+        {{-- Terbilang + summary --}}
+        <div class="terbilang-box">
+            Terbilang :<br>
+            <span style="font-weight:normal; text-decoration:none; font-style:normal;">
+                # {{ strtoupper(terbilang($totalDebit)) }} #
+            </span>
+        </div>
+
+        <div class="summary-box">
+            <div class="summary-row grand-total">
+                <span>Total</span>
+                <span>Rp {{ number_format($totalDebit, 2, ',', '.') }}</span>
+            </div>
+        </div>
 
         {{-- Signature --}}
         <div class="sign-container">
@@ -301,8 +303,9 @@
                     <td class="box-content"></td>
                 </tr>
             </table>
-            <div class="timestamp">
-                {{ date('d/m/Y g:i:s A') }}
+            {{-- Caption = fjurnalnote --}}
+            <div class="caption-note">
+                {{ $hdr->fjurnalnote ?? '' }}
             </div>
         </div>
     </div>
