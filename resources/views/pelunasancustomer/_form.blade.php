@@ -381,11 +381,7 @@
         </fieldset>
 
         <div class="flex items-center justify-center gap-3">
-            <a href="{{ $backRoute }}"
-                class="inline-flex items-center px-4 py-2 rounded border border-gray-300 bg-white hover:bg-gray-50">
-                {{ 'Keluar' }}
-            </a>
-            @if ($isDeleteMode)
+             @if ($isDeleteMode)
                 <button type="submit"
                     class="inline-flex items-center px-4 py-2 rounded bg-red-600 text-white hover:bg-red-700">
                     {{ $submitLabel }}
@@ -396,6 +392,10 @@
                     {{ $submitLabel }}
                 </button>
             @endif
+            <a href="{{ $backRoute }}"
+                class="inline-flex items-center px-4 py-2 rounded border border-gray-300 bg-white hover:bg-gray-50">
+                {{ 'Keluar' }}
+            </a>
         </div>
         @if (!$isReadOnly)
             <div x-cloak x-show="notaModalOpen" x-transition.opacity

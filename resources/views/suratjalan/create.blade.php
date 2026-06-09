@@ -382,10 +382,10 @@
                                     <tr>
                                         <th class="p-2 text-left w-10">#</th>
                                         <th class="p-2 text-left w-40">Kode Produk</th>
-                                        <th class="p-2 text-left w-102">Nama Produk</th>
-                                        <th class="p-2 text-left w-36">No. Ref</th>
+                                        <th class="p-2 text-left w-90">Nama Produk</th>
+                                        <th class="p-2 text-left" style="width: 18%;">No. Ref</th>
                                         <th class="p-2 text-right w-24">Sat</th>
-                                        <th class="p-2 text-right w-28">Qty</th>
+                                        <th class="p-2 text-right w-24">Qty</th>
                                         <th class="p-2 text-center w-36">Aksi</th>
                                     </tr>
                                 </thead>
