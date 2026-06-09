@@ -530,6 +530,7 @@ class CustomerController extends Controller
 
         $query = DB::table('mscustomer')
             ->leftJoin('mswilayah as w', 'w.fwilayahid', '=', 'mscustomer.fwilayah')
+            ->leftJoin('mssalesman as s', 's.fsalesmancode', '=', 'mscustomer.fsalesman')
             ->select(
                 'mscustomer.fcustomerid',
                 'mscustomer.fcustomercode',
@@ -537,6 +538,7 @@ class CustomerController extends Controller
                 'mscustomer.faddress',
                 'mscustomer.ftempo',
                 'mscustomer.fsalesman',
+                's.fsalesmanname',
                 'mscustomer.fkirimaddress1',
                 'mscustomer.fkirimaddress2',
                 'mscustomer.fkirimaddress3',
@@ -592,6 +594,7 @@ class CustomerController extends Controller
                     'faddress' => (string) ($customer->faddress ?? ''),
                     'ftempo' => (string) ($customer->ftempo ?? '0'),
                     'fsalesman' => (string) ($customer->fsalesman ?? ''),
+                    'fsalesmanname' => (string) ($customer->fsalesmanname ?? ''),
                     'fkirimaddress1' => (string) ($customer->fkirimaddress1 ?? ''),
                     'fkirimaddress2' => (string) ($customer->fkirimaddress2 ?? ''),
                     'fkirimaddress3' => (string) ($customer->fkirimaddress3 ?? ''),

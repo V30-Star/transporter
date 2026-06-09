@@ -2115,9 +2115,14 @@
             .value) === customerCode) : select?.selectedOptions?.[0];
 
         const salesmanCode = normalize(payload?.fsalesman) || normalize(selectedOption?.dataset?.fsalesman);
+        if (!salesmanCode) return;
+        const salesmanSelect = document.getElementById('modal_filter_salesman_id');
+        const salesmanOption = [...(salesmanSelect?.options || [])].find(option => normalize(option.value) === salesmanCode);
+        const salesmanName = normalize(payload?.fsalesmanname) || normalize(salesmanOption?.textContent).replace(new RegExp(`\\s*\\(${salesmanCode.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\)\\s*$`), '');
 
         window.applyTransactionSalesmanSelection?.({
             fsalesmancode: salesmanCode,
+            fsalesmanname: salesmanName,
         });
     };
 

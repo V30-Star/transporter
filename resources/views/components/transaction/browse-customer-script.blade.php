@@ -55,6 +55,7 @@
                 fcustomername: name,
                 ftempo: normalize(customer.ftempo),
                 fsalesman: normalize(customer.fsalesman),
+                fsalesmanname: normalize(customer.fsalesmanname ?? customer.salesman_name),
                 f1: normalize(customer.fkirimaddress1 ?? customer.f1),
                 f2: normalize(customer.fkirimaddress2 ?? customer.f2),
                 f3: normalize(customer.fkirimaddress3 ?? customer.f3),
