@@ -80,8 +80,7 @@
                 }
 
                 // Clear any stale listeners on the element (before DataTable rewrites the DOM)
-                $('#{{ $tableId }}').off('click.salespick');
-                $('#{{ $tableId }} tbody').off('click.salespick');
+                $('#{{ $tableId }}').off('.salespick');
 
                 this.dataTable = $('#{{ $tableId }}').DataTable({
                     processing: true,
@@ -155,28 +154,26 @@
                     }
                 });
 
-                // Re-clear listeners after DataTable rewrites DOM, then attach fresh ones
-                $('#{{ $tableId }}').off('click.salespick');
-                $('#{{ $tableId }} tbody').off('click.salespick');
-
-                // Pilih button click
+                // Pilih button click (delegated on table)
                 $('#{{ $tableId }}').on('click.salespick', '.btn-choose', (e) => {
                     e.preventDefault();
                     e.stopPropagation();
 
-                    const data = this.dataTable?.row($(e.target).closest('tr')).data();
+                    const tr = $(e.currentTarget).closest('tr')[0];
+                    const data = this.dataTable?.row(tr).data();
                     if (data) {
                         this.chooseSalesman(data);
                     }
                 });
 
-                // Single-row click (anywhere on the row except interactive elements)
-                $('#{{ $tableId }} tbody').on('click.salespick', 'tr', (e) => {
+                // Single-row click (delegated on table, targeting tbody tr)
+                $('#{{ $tableId }}').on('click.salespick', 'tbody tr', (e) => {
                     if ($(e.target).closest('button, a, input, select, textarea').length) {
                         return;
                     }
 
-                    const data = this.dataTable?.row(e.currentTarget).data();
+                    const tr = e.currentTarget;
+                    const data = this.dataTable?.row(tr).data();
                     if (!data) {
                         return;
                     }
@@ -202,8 +199,7 @@
 
                 // Always destroy so listeners are fully cleared on next open
                 if (this.dataTable) {
-                    $('#{{ $tableId }}').off('click.salespick');
-                    $('#{{ $tableId }} tbody').off('click.salespick');
+                    $('#{{ $tableId }}').off('.salespick');
                     this.dataTable.destroy();
                     this.dataTable = null;
                 }
