@@ -3,7 +3,7 @@
 
 <head>
     <meta charset="utf-8">
-    <title>Pemakaian Barang - {{ $hdr->fstockmtno ?? '-' }}</title>
+    <title>Voucher Jurnal - {{ $hdr->fjurnalno ?? '-' }}</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <style>
         :root {
@@ -35,7 +35,6 @@
             position: relative;
         }
 
-        /* Header Styles */
         .header-row {
             display: flex;
             justify-content: space-between;
@@ -64,37 +63,7 @@
             text-align: right;
         }
 
-        /* Box Container (Supplier/Info) */
-        .customer-container {
-            border: 1px solid #000;
-            border-radius: 10px;
-            padding: 5px 12px;
-            width: 450px;
-            min-height: 70px;
-            position: relative;
-            margin-top: 10px;
-        }
-
-        .customer-label {
-            position: absolute;
-            top: -8px;
-            left: 15px;
-            background: #fff;
-            padding: 0 5px;
-            font-size: 11px;
-        }
-
-        .info-table {
-            float: right;
-            font-size: 12px;
-            margin-top: -60px;
-        }
-
-        .info-table td {
-            padding: 1px 2px;
-        }
-
-        /* Table Item */
+        /* Table Journal */
         .tb {
             width: 100%;
             border-collapse: collapse;
@@ -106,12 +75,14 @@
             border-bottom: 1px solid #000;
             padding: 5px;
             text-align: left;
-            font-weight: normal;
+            font-weight: bold;
+            background: #f5f5f5;
         }
 
         .tb td {
             padding: 5px;
             vertical-align: top;
+            border-bottom: 1px solid #eee;
         }
 
         .text-right {
@@ -122,13 +93,17 @@
             text-align: center;
         }
 
-        /* Footer Section */
-        .footer-line {
-            border-top: 1.5px solid #000;
-            margin-top: 40px;
-            /* Jarak disesuaikan untuk Pemakaian Barang */
+        .total-row td {
+            border-top: 2px solid #000;
+            font-weight: bold;
         }
 
+        .footer-line {
+            border-top: 1.5px solid #000;
+            margin-top: 30px;
+        }
+
+        /* Terbilang box — same style as other print views */
         .terbilang-box {
             float: left;
             width: 60%;
@@ -171,8 +146,7 @@
 
         .sign-table {
             border-collapse: collapse;
-            width: 450px;
-            /* Lebar ditambah untuk 3 kolom */
+            width: 400px;
         }
 
         .sign-table td {
@@ -188,9 +162,11 @@
             padding-bottom: 5px;
         }
 
-        .timestamp {
+        .caption-note {
             font-size: 10px;
             margin-left: 10px;
+            font-style: italic;
+            color: #444;
         }
 
         @media print {
@@ -222,99 +198,117 @@
     </div>
 
     <div class="sheet">
+        {{-- Header --}}
         <div class="header-row">
             <div>
                 <div class="comp-name">{{ strtoupper($company_name) }}</div>
                 <div>{{ $company_city }}</div>
             </div>
             <div>
-                <div class="title-so">Pemakaian Barang</div>
-                <div class="so-no">No. {{ $hdr->fstockmtno ?? '-' }}</div>
+                <div class="title-so">Voucher Jurnal</div>
+                <div class="so-no">No. {{ $hdr->fjurnalno ?? '-' }}</div>
             </div>
         </div>
 
-        <div style="overflow: hidden; margin-top: 10px;">
-            <div class="customer-container">
-                <span class="customer-label">Supplier</span>
-                <div style="font-weight: bold;">{{ $hdr->supplier_name ?? '-' }}</div>
-                <div style="font-size: 11px;">
-                    Gudang : {{ $hdr->fwhnamen ?? '-' }}
-                </div>
-            </div>
+        {{-- Info --}}
+        <table style="width:auto; margin-top:12px; font-size:12px; border-collapse:collapse;">
+            <tr>
+                <td style="width:90px; padding:2px 4px;">Tanggal</td>
+                <td style="padding:2px 4px;">:</td>
+                <td style="padding:2px 4px;">{{ $fmt($hdr->fjurnaldate) }}</td>
+            </tr>
+        </table>
 
-            <table class="info-table">
-                <tr>
-                    <td>Tanggal</td>
-                    <td>:</td>
-                    <td>{{ $fmt($hdr->fstockmtdate) }}</td>
-                </tr>
-                <tr>
-                    <td colspan="3" style="text-align: right; font-size: 10px; padding-top: 20px;">Hal : 1 / 1</td>
-                </tr>
-            </table>
-        </div>
+        {{-- Detail Table --}}
+        @php
+            $totalDebit  = 0;
+            $totalKredit = 0;
+        @endphp
 
         <table class="tb">
             <thead>
                 <tr>
-                    <th style="width: 5%;">No.</th>
-                    <th style="width: 20%;">Kode Barang</th>
-                    <th style="width: 50%;">Nama Barang</th>
-                    <th style="width: 10%; text-align: center;">Qty.</th>
-                    <th style="width: 15%; text-align: center;">Satuan</th>
+                    <th style="width:5%;">No.</th>
+                    <th style="width:15%;">Kode Akun</th>
+                    <th style="width:45%;">Nama Akun</th>
+                    <th style="width:15%;">Sub Akun</th>
+                    <th style="width:5%; text-align:center;">D/K</th>
+                    <th style="width:15%; text-align:right;">Jumlah (Rp)</th>
                 </tr>
             </thead>
             <tbody>
                 @foreach ($dt as $i => $r)
+                    @php
+                        $isDebit = strtoupper($r->fdk ?? '') === 'D';
+                        $amount  = (float) ($r->famount_rp ?? $r->famount ?? 0);
+                        if ($isDebit) {
+                            $totalDebit += $amount;
+                        } else {
+                            $totalKredit += $amount;
+                        }
+                    @endphp
                     <tr>
                         <td class="text-center">{{ $i + 1 }}</td>
-                        <td>{{ $r->product_code ?? '-' }}</td>
-                        <td>
-                            <div>{{ $r->product_name ?? '-' }}</div>
-                            @if (!empty($r->fdesc))
-                                <div style="font-size: 10px; color: #555;">({{ $r->fdesc }})</div>
-                            @endif
+                        <td>{{ $r->faccount ?? '-' }}</td>
+                        <td>{{ $r->account_name ?? '-' }}</td>
+                        <td>{{ $r->subaccount_name ?? ($r->fsubaccount ?? '-') }}</td>
+                        <td class="text-center" style="font-weight:bold; color:{{ $isDebit ? '#1d4ed8' : '#dc2626' }};">
+                            {{ $isDebit ? 'D' : 'K' }}
                         </td>
-                        <td class="text-center">{{ number_format((float) ($r->fqty ?? 0), 2, ',', '.') }}</td>
-                        <td class="text-center">{{ $r->fsatuan ?? '-' }}</td>
+                        <td class="text-right">
+                            {{ number_format($amount, 2, ',', '.') }}
+                        </td>
                     </tr>
                 @endforeach
+
+                {{-- Single "Total" row (Debit = Kredit by design) --}}
+                <tr class="total-row">
+                    <td colspan="5" class="text-right">Total</td>
+                    <td class="text-right" style="color:#1d4ed8;">
+                        {{ number_format($totalDebit, 2, ',', '.') }}
+                    </td>
+                    <td></td>
+                </tr>
             </tbody>
         </table>
 
         <div class="footer-line"></div>
 
+        {{-- Terbilang + summary --}}
         <div class="terbilang-box">
-            Note : <br>
-            <span
-                style="font-weight: normal; text-decoration: none; font-style: normal;">{{ $hdr->fket ?? '-' }}</span>
+            Terbilang :<br>
+            <span style="font-weight:normal; text-decoration:none; font-style:normal;">
+                # {{ strtoupper(terbilang($totalDebit)) }} #
+            </span>
         </div>
 
         <div class="summary-box">
-            <div style="text-align: right; font-style: italic; font-size: 10px; color: #555;">
-                * Dokumen ini sah sebagai bukti penerimaan stok.
+            <div class="summary-row grand-total">
+                <span>Total</span>
+                <span>Rp {{ number_format($totalDebit, 2, ',', '.') }}</span>
             </div>
         </div>
 
+        {{-- Signature --}}
         <div class="sign-container">
             <table class="sign-table">
                 <tr>
                     <td>Dibuat</td>
-                    <td>User</td>
-                    <td>Plant Manager</td>
+                    <td>Diperiksa</td>
+                    <td>Disetujui</td>
                 </tr>
                 <tr>
-                    <td class="box-content">{{ strtoupper($hdr->fusercreate ?? '') }}</td>
+                    <td class="box-content">{{ strtoupper($hdr->fuserid ?? '') }}</td>
                     <td class="box-content"></td>
                     <td class="box-content"></td>
                 </tr>
             </table>
-            <div class="timestamp">
-                {{ date('d/m/Y g:i:s A') }}
+            {{-- Caption = fjurnalnote --}}
+            <div class="caption-note">
+                {{ $hdr->fjurnalnote ?? '' }}
             </div>
         </div>
     </div>
 </body>
 
 </html>
-

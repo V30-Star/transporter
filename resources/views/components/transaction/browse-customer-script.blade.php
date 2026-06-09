@@ -3,14 +3,13 @@
     $controlsId = $controlsId ?? 'customerTableControls';
     $routeName = $routeName ?? 'customer.browse';
     $openDelay = $openDelay ?? 0;
-    $destroyOnClose = $destroyOnClose ?? false;
+    $destroyOnClose = $destroyOnClose ?? true;
 @endphp
 
 <script>
     window.applyTransactionCustomerSelection = function(customer = {}) {
         const normalize = (value) => String(value ?? '').trim();
-        const code = normalize(customer.fcustomercode ?? customer.fcustno ?? customer.customer_code ?? customer
-            .fsupplier);
+        const code = normalize(customer.fcustomercode ?? customer.fcustno ?? customer.customer_code ?? customer.fsupplier);
 
         if (!code) {
             return false;
@@ -25,6 +24,7 @@
 
         const name = normalize(customer.fcustomername ?? customer.customer_name ?? customer.fsuppliername);
         const label = name ? `${name} (${code})` : code;
+
         selects.forEach((sel) => {
             let opt = [...sel.options].find(o => normalize(o.value) === code);
 
@@ -40,19 +40,13 @@
             opt.dataset.ftempo = normalize(customer.ftempo);
             opt.dataset.fsalesman = normalize(customer.fsalesman);
             sel.value = code;
-            sel.dispatchEvent(new Event('change', {
-                bubbles: true
-            }));
+            sel.dispatchEvent(new Event('change', { bubbles: true }));
         });
 
         hiddenInputs.forEach((hid) => {
             hid.value = code;
-            hid.dispatchEvent(new Event('input', {
-                bubbles: true
-            }));
-            hid.dispatchEvent(new Event('change', {
-                bubbles: true
-            }));
+            hid.dispatchEvent(new Event('input', { bubbles: true }));
+            hid.dispatchEvent(new Event('change', { bubbles: true }));
         });
 
         window.dispatchEvent(new CustomEvent('customer-selected', {
@@ -94,13 +88,15 @@
             dataTable: null,
 
             initDataTable() {
+                // Always destroy & clear listeners before reinitialising
                 if (this.dataTable) {
                     this.dataTable.columns.adjust().draw(false);
                     return;
                 }
 
-                $('#{{ $tableId }}').off('click.custpick');
-                $('#{{ $tableId }} tbody').off('click.custpick');
+                // Clear any stale listeners on the element (before DataTable rewrites the DOM)
+                $('#{{ $tableId }}').off('.custpick');
+
                 this.dataTable = $('#{{ $tableId }}').DataTable({
                     processing: true,
                     serverSide: true,
@@ -159,7 +155,7 @@
                             width: '15%',
                             render: function(data, type, row) {
                                 if (row.fblokir == 1) {
-                                    return '<span class="text-xs font-bold text-red-500">' + @json("BLOKIR") + '</span>';
+                                     return '<span class="text-xs font-bold text-red-500">' + @json("BLOKIR") + '</span>';
                                 }
                                 return '<button type="button" class="btn-choose px-4 py-1.5 rounded-md text-sm font-medium bg-blue-600 hover:bg-blue-700 text-white transition-colors duration-150">' + @json("Pilih") + '</button>';
                             }
@@ -176,8 +172,6 @@
                         [1, 'asc']
                     ],
                     autoWidth: false,
-                    scrollX: true,
-                    scrollCollapse: true,
                     initComplete: function() {
                         const api = this.api();
                         const $container = $(api.table().container());
@@ -196,19 +190,10 @@
                             borderRadius: '8px',
                             fontSize: '14px'
                         });
-
-                        $container.find('.dataTables_scroll').css({
-                            width: '100%'
-                        });
-
-                        $container.find('.dataTables_scrollBody').css({
-                            overflowX: 'auto',
-                            overflowY: 'auto'
-                        });
-
                     }
                 });
 
+                // Pilih button click (delegated on table)
                 $('#{{ $tableId }}').on('click.custpick', '.btn-choose', (e) => {
                     e.preventDefault();
                     e.stopPropagation();
@@ -221,12 +206,14 @@
                     this.chooseCustomer(data);
                 });
 
-                $('#{{ $tableId }} tbody').on('click.custpick', 'tr', (e) => {
+                // Single-row click (delegated on table, targeting tbody tr)
+                $('#{{ $tableId }}').on('click.custpick', 'tbody tr', (e) => {
                     if ($(e.target).closest('button, a, input, select, textarea').length) {
                         return;
                     }
 
-                    const data = this.dataTable?.row(e.currentTarget).data();
+                    const tr = e.currentTarget;
+                    const data = this.dataTable?.row(tr).data();
                     if (!data || data.fblokir == 1) {
                         return;
                     }
@@ -249,24 +236,20 @@
 
             close() {
                 this.open = false;
-                if (!this.dataTable) {
-                    return;
-                }
 
-                if (@json($destroyOnClose)) {
+                // Always destroy so listeners are fully cleared on next open
+                if (this.dataTable) {
+                    $('#{{ $tableId }}').off('.custpick');
                     this.dataTable.destroy();
                     this.dataTable = null;
-                    return;
                 }
-
-                this.dataTable.search('').draw();
             },
 
             chooseCustomer(customer) {
+                window.applyTransactionCustomerSelection(customer);
                 window.dispatchEvent(new CustomEvent('customer-picked', {
                     detail: customer || {}
                 }));
-                window.applyTransactionCustomerSelection(customer);
                 this.close();
             },
 

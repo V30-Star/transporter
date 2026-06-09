@@ -1436,6 +1436,29 @@
                     return;
                 }
 
+                if (successPrompt?.type === 'jurnaltransaksi_create' && successPrompt.redirect_url) {
+                    window.showAppSuccessToast(successMessage, {
+                        showConfirmButton: true,
+                        confirmButtonText: 'OK',
+                        timer: undefined,
+                    }).then(() => Swal.fire({
+                        icon: 'question',
+                        title: 'Print Voucher Jurnal?',
+                        showCancelButton: true,
+                        confirmButtonText: 'Yes',
+                        cancelButtonText: 'No',
+                        confirmButtonColor: '#2563eb',
+                        cancelButtonColor: '#6b7280',
+                        allowOutsideClick: false,
+                        allowEscapeKey: false,
+                    })).then((result) => {
+                        if (result.isConfirmed) {
+                            window.open(successPrompt.redirect_url, '_blank');
+                        }
+                    });
+                    return;
+                }
+
                 window.showAppSuccessToast(successMessage);
             });
         </script>

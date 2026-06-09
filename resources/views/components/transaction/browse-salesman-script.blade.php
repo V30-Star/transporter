@@ -3,7 +3,7 @@
     $controlsId = $controlsId ?? 'salesmanTableControls';
     $routeName = $routeName ?? 'salesman.browse';
     $openDelay = $openDelay ?? 0;
-    $destroyOnClose = $destroyOnClose ?? false;
+    $destroyOnClose = $destroyOnClose ?? true;
 @endphp
 
 <script>
@@ -37,9 +37,8 @@
                 sel.value = "";
             }
 
-            sel.dispatchEvent(new Event('change', {
-                bubbles: true
-            }));
+            sel.value = code || '';
+            sel.dispatchEvent(new Event('change', { bubbles: true }));
         });
 
         hiddenInputs.forEach((hid) => {
@@ -82,13 +81,15 @@
             dataTable: null,
 
             initDataTable() {
+                // Always destroy & clear listeners before reinitialising
                 if (this.dataTable) {
                     this.dataTable.columns.adjust().draw(false);
                     return;
                 }
 
-                $('#{{ $tableId }}').off('click.salespick');
-                $('#{{ $tableId }} tbody').off('click.salespick');
+                // Clear any stale listeners on the element (before DataTable rewrites the DOM)
+                $('#{{ $tableId }}').off('.salespick');
+
                 this.dataTable = $('#{{ $tableId }}').DataTable({
                     processing: true,
                     serverSide: true,
@@ -140,8 +141,6 @@
                         [1, 'asc']
                     ],
                     autoWidth: false,
-                    scrollX: true,
-                    scrollCollapse: true,
                     initComplete: function() {
                         const api = this.api();
                         const $container = $(api.table().container());
@@ -160,19 +159,10 @@
                             borderRadius: '8px',
                             fontSize: '14px'
                         });
-
-                        $container.find('.dataTables_scroll').css({
-                            width: '100%'
-                        });
-
-                        $container.find('.dataTables_scrollBody').css({
-                            overflowX: 'auto',
-                            overflowY: 'auto'
-                        });
-
                     }
                 });
 
+                // Pilih button click (delegated on table)
                 $('#{{ $tableId }}').on('click.salespick', '.btn-choose', (e) => {
                     e.preventDefault();
                     e.stopPropagation();
@@ -185,12 +175,14 @@
                     this.chooseSalesman(data);
                 });
 
-                $('#{{ $tableId }} tbody').on('click.salespick', 'tr', (e) => {
+                // Single-row click (delegated on table, targeting tbody tr)
+                $('#{{ $tableId }}').on('click.salespick', 'tbody tr', (e) => {
                     if ($(e.target).closest('button, a, input, select, textarea').length) {
                         return;
                     }
 
-                    const data = this.dataTable?.row(e.currentTarget).data();
+                    const tr = e.currentTarget;
+                    const data = this.dataTable?.row(tr).data();
                     if (!data) {
                         return;
                     }
@@ -213,24 +205,17 @@
 
             close() {
                 this.open = false;
-                if (!this.dataTable) {
-                    return;
-                }
 
-                if (@json($destroyOnClose)) {
+                // Always destroy so listeners are fully cleared on next open
+                if (this.dataTable) {
+                    $('#{{ $tableId }}').off('.salespick');
                     this.dataTable.destroy();
                     this.dataTable = null;
-                    return;
                 }
-
-                this.dataTable.search('').draw();
             },
 
             chooseSalesman(salesman) {
-                if (!window.applyTransactionSalesmanSelection(salesman)) {
-                    this.close();
-                    return;
-                }
+                window.applyTransactionSalesmanSelection(salesman);
                 this.close();
             },
 

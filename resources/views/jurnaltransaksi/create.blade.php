@@ -73,7 +73,7 @@
                             <input type="hidden" name="fjurnaltype" value="{{ $fixedJournalType }}">
                         @else
                             <select name="fjurnaltype" class="w-full border rounded px-3 py-2">
-                                <option value="JV" @selected(old('fjurnaltype', $journalType ?? 'JV') === 'JV')>JV - Journal Voucher</option>
+                                <option value="SJU" @selected(old('fjurnaltype', $journalType ?? 'SJU') === 'SJU')>SJU - Journal Voucher</option>
                                 <option value="AP" @selected(old('fjurnaltype', $journalType) === 'AP')>AP - Accounts Payable</option>
                                 <option value="AR" @selected(old('fjurnaltype', $journalType) === 'AR')>AR - Accounts Receivable</option>
                             </select>
