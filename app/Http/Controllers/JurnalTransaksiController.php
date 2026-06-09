@@ -929,7 +929,7 @@ class JurnalTransaksiController extends Controller
         $this->ensureCreateDateWithinEditPeriod($fjurnaldate, $header->fjurnaldate);
         $fjurnaltype = $header->fjurnaltype === self::PURCHASE_JOURNAL_TYPE
             ? self::PURCHASE_JOURNAL_TYPE
-            : strtoupper(trim((string) $request->input('fjurnaltype', 'JV')));
+            : strtoupper(trim((string) $request->input('fjurnaltype', 'SJU')));
         $fjurnalnote = trim((string) $request->input('fjurnalnote', ''));
         $fbranchcode = $request->input('fbranchcode');
         $now = now();
