@@ -103,7 +103,7 @@ class JurnalTransaksiController extends Controller
         $showActionsColumn = $canEdit || $canDelete;
         $year = trim((string) $request->query('year', ''));
         $month = trim((string) $request->query('month', ''));
-        $journalType = strtoupper(trim((string) $request->query('journal_type', '')));
+        $journalType = strtoupper(trim((string) $request->query('journal_type', self::GENERAL_JOURNAL_TYPE)));
         $pageMeta = $this->resolveJournalPageMeta($journalType);
 
         $availableYearsQuery = DB::table('jurnalmt')
