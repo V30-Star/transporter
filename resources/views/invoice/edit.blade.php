@@ -339,11 +339,31 @@
                             <label class="block text-sm font-medium">Tgl. Jatuh Tempo</label>
                             <input type="date" id="fjatuhtempo" name="fjatuhtempo" readonly
                                 value="{{ old('fjatuhtempo') ?? date('Y-m-d', strtotime($invoice->fjatuhtempo)) }}"
-                                readonly
                                 class="w-full border rounded px-3 py-2 bg-gray-100 @error('fjatuhtempo') border-red-500 @enderror">
                             @error('fjatuhtempo')
                                 <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                             @enderror
+                        </div>
+
+                        <div class="lg:col-span-4 grid grid-cols-1 md:grid-cols-2 gap-3">
+                            <div>
+                                <label class="block text-sm font-medium">Kode FP</label>
+                                <input type="text" name="fkodefp" id="invoiceFkodefp"
+                                    value="{{ old('fkodefp', $invoice->fkodefp ?? optional($invoice->customer)->fkodefp) }}"
+                                    class="w-full border rounded px-3 py-2 bg-gray-100 text-gray-700 cursor-not-allowed" readonly>
+                                @error('fkodefp')
+                                    <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+                                @enderror
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium">Reff.PO</label>
+                                <input type="text" name="frefno" id="invoiceFrefno"
+                                    value="{{ old('frefno', $invoice->frefno ?? '') }}"
+                                    class="w-full border rounded px-3 py-2 bg-gray-100 text-gray-700 cursor-not-allowed" readonly>
+                                @error('frefno')
+                                    <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+                                @enderror
+                            </div>
                         </div>
 
                         <script>
@@ -1917,9 +1937,13 @@
                 (string) $customer->fcustomercode => (string) ($customer->fkodefp ?? ''),
             ]));
 
-    window.syncInvoiceCustomerTaxCode = function(payload = null) {
+    window.syncInvoiceCustomerTaxCode = function(payload = null, isInitial = false) {
         const kodeFpInput = document.getElementById('invoiceFkodefp');
         if (!kodeFpInput) {
+            return;
+        }
+
+        if (isInitial && kodeFpInput.value.trim() !== '') {
             return;
         }
 
@@ -2013,7 +2037,7 @@
             });
         }
 
-        window.syncInvoiceCustomerTaxCode();
+        window.syncInvoiceCustomerTaxCode(null, true);
         window.syncInvoiceTempoFromCustomer();
     });
 

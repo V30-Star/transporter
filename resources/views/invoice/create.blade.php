@@ -1209,9 +1209,13 @@
                 (string) $customer->fcustomercode => (string) ($customer->fkodefp ?? ''),
             ]));
 
-    window.syncInvoiceCustomerTaxCode = function(payload = null) {
+    window.syncInvoiceCustomerTaxCode = function(payload = null, isInitial = false) {
         const kodeFpInput = document.getElementById('invoiceFkodefp');
         if (!kodeFpInput) {
+            return;
+        }
+
+        if (isInitial && kodeFpInput.value.trim() !== '') {
             return;
         }
 
@@ -1329,7 +1333,7 @@
             invoiceInput.addEventListener('change', window.syncInvoiceTaxNoFromInvoiceNo);
         }
 
-        window.syncInvoiceCustomerTaxCode();
+        window.syncInvoiceCustomerTaxCode(null, true);
         window.syncInvoiceTempoFromCustomer();
         if (!document.getElementById('salesmanCodeHidden')?.value) {
             window.syncInvoiceSalesmanFromCustomer();
