@@ -1393,20 +1393,58 @@ class FakturpembelianController extends Controller
 
                 $yy = $fstockmtdate->format('y');
                 $mm = $fstockmtdate->format('m');
-                $fstockmtcode = 'BUY';
+                $isAdvancePayment = (int) $ftypebuy === 2;
+                $fstockmtcode = $isAdvancePayment ? 'UM' : 'BUY';
 
                 // B. Penomoran
                 if (empty($fstockmtno)) {
-                    $prefix = "$fstockmtcode.$kodeCabang.$yy.$mm.";
-                    $lockKey = crc32("STOCKMT|$fstockmtcode|$kodeCabang|" . $fstockmtdate->format('Y-m'));
-                    DB::statement('SELECT pg_advisory_xact_lock(?)', [$lockKey]);
+                    if ($isAdvancePayment) {
+                        $year = $fstockmtdate->format('Y'); // 4-digit year format, e.g. 2026
+                        $month = $fstockmtdate->format('m'); // 2-digit month format, e.g. 06
+                        $digits = 3;
+                        $likePattern = sprintf('UM.%s.%%.%s.%s', $kodeCabang, $year, $month);
 
-                    $last = DB::table('trstockmt')
-                        ->where('fstockmtno', 'like', "$prefix%")
-                        ->selectRaw("MAX(CAST(split_part(fstockmtno, '.', 5) AS int)) AS lastno")
-                        ->value('lastno');
+                        $records = DB::table('trstockmt')
+                            ->where('fstockmtno', 'like', $likePattern)
+                            ->lockForUpdate()
+                            ->get();
 
-                    $fstockmtno = $prefix . str_pad((string) ((int) $last + 1), 4, '0', STR_PAD_LEFT);
+                        $nextNumber = 1;
+                        foreach ($records as $rec) {
+                            $parts = explode('.', trim($rec->fstockmtno));
+                            if (isset($parts[2])) {
+                                $num = (int) $parts[2];
+                                if ($num >= $nextNumber) {
+                                    $nextNumber = $num + 1;
+                                }
+                            }
+                        }
+                        $fstockmtno = sprintf('UM.%s.%s.%s.%s', $kodeCabang, str_pad((string) $nextNumber, $digits, '0', STR_PAD_LEFT), $year, $month);
+                    } else {
+                        $prefix = "$fstockmtcode.$kodeCabang.$yy.$mm.";
+                        $lockKey = crc32("STOCKMT|$fstockmtcode|$kodeCabang|" . $fstockmtdate->format('Y-m'));
+                        if (DB::getDriverName() === 'pgsql') {
+                            DB::statement('SELECT pg_advisory_xact_lock(?)', [$lockKey]);
+                        }
+
+                        if (DB::getDriverName() === 'pgsql') {
+                            $last = DB::table('trstockmt')
+                                ->where('fstockmtno', 'like', "$prefix%")
+                                ->selectRaw("MAX(CAST(split_part(fstockmtno, '.', 5) AS int)) AS lastno")
+                                ->value('lastno');
+                        } else {
+                            $lastRecord = DB::table('trstockmt')
+                                ->where('fstockmtno', 'like', "$prefix%")
+                                ->orderByDesc('fstockmtno')
+                                ->value('fstockmtno');
+                            $last = 0;
+                            if ($lastRecord && ($pos = strrpos($lastRecord, '.')) !== false) {
+                                $last = (int) substr($lastRecord, $pos + 1);
+                            }
+                        }
+
+                        $fstockmtno = $prefix . str_pad((string) ((int) $last + 1), 4, '0', STR_PAD_LEFT);
+                    }
                 }
 
                 // C. Insert Header
