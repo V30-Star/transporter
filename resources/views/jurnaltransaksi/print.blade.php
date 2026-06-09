@@ -3,7 +3,7 @@
 
 <head>
     <meta charset="utf-8">
-    <title>Voucher Jurnal - {{ $hdr->fjurnalno ?? '-' }}</title>
+    <title>Slip Jurnal Umum - {{ $hdr->fjurnalno ?? '-' }}</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <style>
         :root {
@@ -286,10 +286,6 @@
         </table>
 
         <div class="footer-line"></div>
-
-        <div class="note-box">
-            * Dokumen ini merupakan bukti voucher jurnal yang sah.
-        </div>
 
         {{-- Signature --}}
         <div class="sign-container">
