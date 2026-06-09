@@ -730,7 +730,7 @@ class JurnalTransaksiController extends Controller
         });
 
         return redirect()
-            ->route('jurnaltransaksi.view', array_merge(
+            ->route('jurnaltransaksi.create', array_merge(
                 ['fcurrid' => $newJurnalMtId],
                 $this->resolveJournalIndexRouteParams($fjurnaltype)
             ))
@@ -1090,7 +1090,7 @@ class JurnalTransaksiController extends Controller
         });
 
         return redirect()
-            ->route('jurnaltransaksi.view', array_merge(
+            ->route('jurnaltransaksi.edit', array_merge(
                 ['fcurrid' => $fstockmtid],
                 $this->resolveJournalIndexRouteParams($fjurnaltype)
             ))
