@@ -1188,6 +1188,7 @@ class InvoiceController extends Controller
             'fcustno' => ['required', 'string', 'max:10'],
             'frefno' => ['nullable', 'string', 'max:100'],
             'ftypesales' => ['required', 'in:0,1'],
+            'ftaxno' => ['nullable', 'string', 'max:50'],
             'fketinternal' => ['nullable', 'string', 'max:300'],
             'fitemcode' => ['required', 'array', 'min:1'],
             'fitemcode.*' => ['required', 'string', 'max:30'],
@@ -1532,8 +1533,9 @@ class InvoiceController extends Controller
 
                 $fprdoutVal = $this->resolveInvoiceProductOutValue($detailRows);
 
+                $ftaxnoInput = trim((string) $request->input('ftaxno', ''));
                 $headerInsert = [
-                    'ftaxno' => mb_substr($fsono, 0, 50),
+                    'ftaxno' => mb_substr($ftaxnoInput !== '' ? $ftaxnoInput : $fsono, 0, 50),
                     'fsono' => $fsono,
                     'fsodate' => $fsodate,
                     'fcustno' => mb_substr($request->fcustno, 0, 10),
@@ -2662,8 +2664,9 @@ class InvoiceController extends Controller
             ) {
                 $fprdoutVal = $this->resolveInvoiceProductOutValue($detailRows);
 
+                $ftaxnoInput = trim((string) $request->input('ftaxno', ''));
                 $headerUpdate = [
-                    'ftaxno' => mb_substr((string) ($header->fsono ?? ''), 0, 50),
+                    'ftaxno' => mb_substr($ftaxnoInput !== '' ? $ftaxnoInput : (string) ($header->fsono ?? ''), 0, 50),
                     'fsodate' => $fsodate,
                     'fcustno' => mb_substr((string) $request->fcustno, 0, 10),
                     'fkodefp' => $fkodefp,

@@ -234,10 +234,17 @@
                                 saat simpan</p>
                         </div>
 
-                        <div class="lg:col-span-4">
-                            <label class="block text-sm font-medium">Faktur Pajak#</label>
-                            <input type="text" name="ftaxno" value="{{ old('ftaxno', $invoice->ftaxno) }}"
-                                class="w-full border rounded px-3 py-2 @error('ftaxno') border-red-500 @enderror" readonly>
+                        <div class="lg:col-span-4" x-data="{ autoTax: {{ trim((string)$invoice->ftaxno) === trim((string)$invoice->fsono) ? 'true' : 'false' }} }">
+                            <label class="block text-sm font-medium mb-1">Faktur Pajak#</label>
+                            <div class="flex items-center gap-3">
+                                <input type="text" name="ftaxno" value="{{ old('ftaxno', $invoice->ftaxno) }}"
+                                    class="w-full border rounded px-3 py-2 bg-gray-100 text-gray-700 cursor-not-allowed" readonly>
+
+                                <label class="inline-flex items-center select-none">
+                                    <input type="checkbox" x-model="autoTax" disabled>
+                                    <span class="ml-2 text-sm text-gray-700">Auto</span>
+                                </label>
+                            </div>
                             @error('ftaxno')
                                 <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                             @enderror
@@ -892,14 +899,30 @@
                                         saat simpan</p>
                                 </div>
 
-                                <div class="lg:col-span-4">
-                                    <label class="block text-sm font-medium">Faktur Pajak#</label>
-                                    <input type="text" name="ftaxno" value="{{ old('ftaxno', $invoice->ftaxno) }}"
-                                        class="w-full border rounded px-3 py-2 disabled:bg-gray-100 disabled:text-gray-700 disabled:cursor-not-allowed @error('ftaxno') border-red-500 @enderror">
-                                    @error('ftaxno')
-                                        <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
-                                    @enderror
-                                </div>
+                                 @php
+                                     $isAutoTax = trim((string) ($invoice->ftaxno ?? '')) === trim((string) ($invoice->fsono ?? ''));
+                                 @endphp
+                                 <div class="lg:col-span-4" x-data="{ autoTax: {{ (old('_token') !== null) ? (old('ftax_auto') == '1' ? 'true' : 'false') : ($isAutoTax ? 'true' : 'false') }} }">
+                                     <label class="block text-sm font-medium mb-1">Faktur Pajak#</label>
+                                     <div class="flex items-center gap-3">
+                                         <input type="text" id="ftaxno" name="ftaxno"
+                                             value="{{ old('ftaxno', $invoice->ftaxno) }}"
+                                             :disabled="autoTax || '{{ $action }}' === 'view'"
+                                             :class="(autoTax || '{{ $action }}' === 'view') ? 'bg-gray-200 cursor-not-allowed text-gray-700' : 'bg-white'"
+                                             class="w-full border rounded px-3 py-2 @error('ftaxno') border-red-500 @enderror">
+ 
+                                         <label class="inline-flex items-center select-none">
+                                             <input type="checkbox" id="taxAutoCheckbox" name="ftax_auto" value="1"
+                                                 x-model="autoTax"
+                                                 @change="if (autoTax) window.syncInvoiceTaxNoFromInvoiceNo()"
+                                                 :disabled="'{{ $action }}' === 'view'">
+                                             <span class="ml-2 text-sm text-gray-700">Auto</span>
+                                         </label>
+                                     </div>
+                                     @error('ftaxno')
+                                         <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+                                     @enderror
+                                 </div>
 
                                 <div class="lg:col-span-4">
                                     <label class="block text-sm font-medium">Type</label>
@@ -1705,7 +1728,7 @@
                                     <p class="text-sm text-gray-700">
                                         Anda belum menambahkan item apa pun pada tabel. Silakan isi baris
                                         â€œDetail
-                                        Itemâ€
+                                        Itemâ€ 
                                         terlebih
                                         dahulu.
                                     </p>
@@ -1963,6 +1986,17 @@
         kodeFpInput.value = eventValue || optionValue || mappedValue || '';
     };
 
+    window.syncInvoiceTaxNoFromInvoiceNo = function() {
+        const taxAutoCheckbox = document.getElementById('taxAutoCheckbox');
+        if (taxAutoCheckbox && !taxAutoCheckbox.checked) {
+            return;
+        }
+        const invoiceInput = document.querySelector('input[name="fsono"]');
+        const taxInput = document.getElementById('ftaxno');
+        if (!invoiceInput || !taxInput) return;
+        taxInput.value = String(invoiceInput.value ?? '').trim();
+    };
+
     window.syncInvoiceTempoFromSource = function(days) {
         const tempoInput = document.getElementById('ftempohr');
         if (!tempoInput) return;
@@ -2029,6 +2063,7 @@
 
     document.addEventListener('DOMContentLoaded', function() {
         const select = document.getElementById('modal_filter_customer_id');
+        const invoiceInput = document.querySelector('input[name="fsono"]');
         if (select) {
             select.addEventListener('change', function() {
                 window.syncInvoiceCustomerTaxCode();
@@ -2036,9 +2071,14 @@
                 window.syncInvoiceSalesmanFromCustomer();
             });
         }
+        if (invoiceInput) {
+            invoiceInput.addEventListener('input', window.syncInvoiceTaxNoFromInvoiceNo);
+            invoiceInput.addEventListener('change', window.syncInvoiceTaxNoFromInvoiceNo);
+        }
 
         window.syncInvoiceCustomerTaxCode(null, true);
         window.syncInvoiceTempoFromCustomer();
+        window.syncInvoiceTaxNoFromInvoiceNo();
     });
 
     window.getInvoiceDuplicateCode = function(form) {

@@ -209,11 +209,21 @@
                         </div>
                     </div>
 
-                    <div class="lg:col-span-4">
-                        <label class="block text-sm font-medium">Faktur Pajak#</label>
-                        <input type="text" id="ftaxno" name="ftaxno" value="{{ old('ftaxno', old('fsono')) }}"
-                            readonly
-                            class="w-full border rounded px-3 py-2 bg-gray-100 text-gray-600 @error('ftaxno') border-red-500 @enderror">
+                    <div class="lg:col-span-4" x-data="{ autoTax: {{ (old('_token') !== null) ? (old('ftax_auto') == '1' ? 'true' : 'false') : 'true' }} }">
+                        <label class="block text-sm font-medium mb-1">Faktur Pajak#</label>
+                        <div class="flex items-center gap-3">
+                            <input type="text" id="ftaxno" name="ftaxno"
+                                value="{{ old('ftaxno') }}"
+                                :disabled="autoTax"
+                                :class="autoTax ? 'bg-gray-200 cursor-not-allowed text-gray-700' : 'bg-white'"
+                                class="w-full border rounded px-3 py-2 @error('ftaxno') border-red-500 @enderror">
+                            <label class="inline-flex items-center select-none">
+                                <input type="checkbox" id="taxAutoCheckbox" name="ftax_auto" value="1"
+                                    x-model="autoTax"
+                                    @change="if (autoTax) window.syncInvoiceTaxNoFromInvoiceNo()">
+                                <span class="ml-2 text-sm text-gray-700">Auto</span>
+                            </label>
+                        </div>
                         @error('ftaxno')
                             <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                         @enderror
@@ -1306,6 +1316,10 @@
     };
 
     window.syncInvoiceTaxNoFromInvoiceNo = function() {
+        const taxAutoCheckbox = document.getElementById('taxAutoCheckbox');
+        if (taxAutoCheckbox && !taxAutoCheckbox.checked) {
+            return;
+        }
         const invoiceInput = document.querySelector('input[name="fsono"]');
         const taxInput = document.getElementById('ftaxno');
         if (!invoiceInput || !taxInput) return;
