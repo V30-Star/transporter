@@ -3349,8 +3349,8 @@
 @push('scripts')
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
     <script src="https://cdn.datatables.net/1.13.7/js/jquery.dataTables.min.js"></script>
-    @include('components.transaction.browse-customer-script')
-    @include('components.transaction.browse-salesman-script')
+    @include('components.transaction.browse-customer-script', ['openDelay' => 3000])
+    @include('components.transaction.browse-salesman-script', ['openDelay' => 3000])
     @include('components.transaction.invoice-so-modal-script')
     @include('components.transaction.invoice-srj-modal-script')
     @include('components.transaction.browse-product-script', [
