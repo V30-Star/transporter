@@ -482,13 +482,13 @@ class JurnalTransaksiController extends Controller
 
             // jurnaldt (array)
             'faccount' => ['required', 'array', 'min:1'],
-            'faccount.*' => ['required', 'string', 'max:50'],
+            'faccount.*' => ['nullable', 'string', 'max:50'],
 
             'fsubaccount' => ['nullable', 'array'],
             'fsubaccount.*' => ['nullable', 'string', 'max:50'],
 
             'fdk' => ['required', 'array'],
-            'fdk.*' => ['required', 'string', 'in:D,K'],
+            'fdk.*' => ['nullable', 'string', 'in:D,K'],
 
             'faccountnote' => ['nullable', 'array'],
             'faccountnote.*' => ['nullable', 'string', 'max:255'],
@@ -497,7 +497,7 @@ class JurnalTransaksiController extends Controller
             'frefno.*' => ['nullable', 'string', 'max:100'],
 
             'famount' => ['required', 'array'],
-            'famount.*' => ['numeric', 'min:0'],
+            'famount.*' => ['nullable', 'numeric', 'min:0'],
 
             'frate' => ['nullable', 'array'],
             'frate.*' => ['nullable', 'numeric', 'min:0'],
@@ -579,6 +579,10 @@ class JurnalTransaksiController extends Controller
             $frate = $this->normalizeDecimal($rates[$i] ?? 1, 4);
             if ($frate <= 0) {
                 $frate = 1;
+            }
+
+            if ($faccount === '' && $famount <= 0 && $fsubaccount === null && $fnote === null && $frefno === null) {
+                continue;
             }
 
             if ($frefno !== null && ! isset($referenceAllowedAccountCodes[strtoupper($faccount)])) {
@@ -879,13 +883,13 @@ class JurnalTransaksiController extends Controller
             'fbranchcode' => ['nullable', 'string', 'max:20'],
 
             'faccount' => ['required', 'array', 'min:1'],
-            'faccount.*' => ['required', 'string', 'max:50'],
+            'faccount.*' => ['nullable', 'string', 'max:50'],
 
             'fsubaccount' => ['nullable', 'array'],
             'fsubaccount.*' => ['nullable', 'string', 'max:50'],
 
             'fdk' => ['required', 'array'],
-            'fdk.*' => ['required', 'string', 'in:D,K'],
+            'fdk.*' => ['nullable', 'string', 'in:D,K'],
 
             'faccountnote' => ['nullable', 'array'],
             'faccountnote.*' => ['nullable', 'string', 'max:255'],
@@ -894,7 +898,7 @@ class JurnalTransaksiController extends Controller
             'frefno.*' => ['nullable', 'string', 'max:100'],
 
             'famount' => ['required', 'array'],
-            'famount.*' => ['numeric', 'min:0'],
+            'famount.*' => ['nullable', 'numeric', 'min:0'],
 
             'frate' => ['nullable', 'array'],
             'frate.*' => ['nullable', 'numeric', 'min:0'],
@@ -951,10 +955,14 @@ class JurnalTransaksiController extends Controller
             $fdk = strtoupper(trim((string) ($dks[$i] ?? '')));
             $fnote = trim((string) ($notes[$i] ?? '')) ?: null;
             $frefno = trim((string) ($refnos[$i] ?? '')) ?: null;
-            $famount = round((float) ($amounts[$i] ?? 0), 2);
-            $frate = round((float) ($rates[$i] ?? 1), 4);
+            $famount = $this->normalizeDecimal($amounts[$i] ?? 0, 2);
+            $frate = $this->normalizeDecimal($rates[$i] ?? 1, 4);
             if ($frate <= 0) {
                 $frate = 1;
+            }
+
+            if ($faccount === '' && $famount <= 0 && $fsubaccount === null && $fnote === null && $frefno === null) {
+                continue;
             }
 
             if ($frefno !== null && ! isset($referenceAllowedAccountCodes[strtoupper($faccount)])) {
