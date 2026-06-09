@@ -355,40 +355,29 @@ class JurnalTransaksiController extends Controller
         return $prefix.str_pad((string) $next, 4, '0', STR_PAD_LEFT);
     }
 
-    public function print(string $fstockmtno)
+    public function print(string $fjurnalno)
     {
-        $supplierSub = Supplier::select('fsupplierid', 'fsuppliercode', 'fsuppliername');
-
-        $hdr = PenerimaanPembelianHeader::query()
-            ->leftJoinSub($supplierSub, 's', function ($join) {
-                $join->on('s.fsupplierid', '=', 'trstockmt.fsupplier');
-            })
-            ->leftJoin('mscabang as c', 'c.fcabangkode', '=', 'trstockmt.fbranchcode')
-            ->leftJoin('mswh as w', 'w.fwhid', '=', 'trstockmt.ffrom')
-            ->where('trstockmt.fstockmtno', $fstockmtno)
+        $hdr = DB::table('jurnalmt')
+            ->leftJoin('mscabang as c', 'c.fcabangkode', '=', 'jurnalmt.fbranchcode')
+            ->where('jurnalmt.fjurnalno', $fjurnalno)
             ->first([
-                'trstockmt.*',
-                's.fsuppliername as supplier_name',
+                'jurnalmt.*',
                 'c.fcabangname as cabang_name',
-                'w.fwhname as fwhnamen',
             ]);
 
         if (! $hdr) {
             return redirect()->back()->with('error', 'Jurnal tidak ada.');
         }
 
-        DB::table('trstockmt')->where('fstockmtno', $hdr->fstockmtno)->update(['fprint' => 1]);
-
-        $dt = PenerimaanPembelianDetail::query()
-            ->leftJoin('msprd as p', 'p.fprdid', '=', 'trstockdt.fprdcode')
-            ->where('trstockdt.fstockmtno', $fstockmtno)
-            ->orderBy('trstockdt.fprdcode')
+        $dt = DB::table('jurnaldt')
+            ->leftJoin('account as a', 'a.faccount', '=', 'jurnaldt.faccount')
+            ->leftJoin('mssubaccount as sa', 'sa.fsubaccountcode', '=', 'jurnaldt.fsubaccount')
+            ->where('jurnaldt.fjurnalno', $fjurnalno)
+            ->orderBy('jurnaldt.flineno')
             ->get([
-                'trstockdt.*',
-                'p.fprdname as product_name',
-                'p.fprdcode as product_code',
-                'p.fminstock as stock',
-                'trstockdt.fqtyremain',
+                'jurnaldt.*',
+                'a.faccname as account_name',
+                'sa.fsubaccountname as subaccount_name',
             ]);
 
         $fmt = fn ($d) => $d
@@ -396,9 +385,9 @@ class JurnalTransaksiController extends Controller
           : '-';
 
         return view('jurnaltransaksi.print', [
-            'hdr' => $hdr,
-            'dt' => $dt,
-            'fmt' => $fmt,
+            'hdr'          => $hdr,
+            'dt'           => $dt,
+            'fmt'          => $fmt,
             'company_name' => config('app.company_name', 'PT. DEMO VERSION'),
             'company_city' => config('app.company_city', 'Tangerang'),
         ]);
@@ -646,6 +635,7 @@ class JurnalTransaksiController extends Controller
         // 4) TRANSAKSI DB
         // =========================================================
         $newJurnalMtId = null;
+        $fjurnalno = null;
 
         DB::transaction(function () use (
             $request,
@@ -659,7 +649,8 @@ class JurnalTransaksiController extends Controller
             $fuserid,
             $totalDebit,
             &$rowsDt,
-            &$newJurnalMtId
+            &$newJurnalMtId,
+            &$fjurnalno
         ) {
             // ── 4.1. Generate / ambil fjurnalno ──
             $fjurnalno = trim((string) $request->input('fjurnalno', ''));
@@ -729,12 +720,18 @@ class JurnalTransaksiController extends Controller
             DB::table('jurnaldt')->insert($details);
         });
 
+        $printUrl = route('jurnaltransaksi.print', ['fjurnalno' => $fjurnalno]);
+
         return redirect()
             ->route('jurnaltransaksi.create', array_merge(
                 ['fcurrid' => $newJurnalMtId],
                 $this->resolveJournalIndexRouteParams($fjurnaltype)
             ))
-            ->with('success', $fjurnaltype === self::PURCHASE_JOURNAL_TYPE ? 'Jurnal faktur pembelian berhasil disimpan.' : 'Jurnal transaksi berhasil disimpan.');
+            ->with('success', $fjurnaltype === self::PURCHASE_JOURNAL_TYPE ? 'Jurnal faktur pembelian berhasil disimpan.' : 'Jurnal transaksi berhasil disimpan.')
+            ->with('success_prompt', [
+                'type'         => 'jurnaltransaksi_create',
+                'redirect_url' => $printUrl,
+            ]);
     }
 
     public function edit($fstockmtid)

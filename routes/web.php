@@ -221,6 +221,9 @@ Route::middleware('auth')->group(function () {
         Route::get('/jurnaltransaksi/{fcurrid}/delete', [JurnalTransaksiController::class, 'delete'])->name('jurnaltransaksi.delete');
         Route::patch('/jurnaltransaksi/{fcurrid}', [JurnalTransaksiController::class, 'update'])->name('jurnaltransaksi.update');
         Route::delete('/jurnaltransaksi/{fcurrid}', [JurnalTransaksiController::class, 'destroy'])->name('jurnaltransaksi.destroy');
+        Route::get('/jurnaltransaksi/{fjurnalno}/print', [JurnalTransaksiController::class, 'print'])
+            ->where('fjurnalno', '.*')
+            ->name('jurnaltransaksi.print');
 
         Route::get('/jurnalpembelian', fn () => redirect()->route('jurnaltransaksi.index', ['journal_type' => 'JBL']))->name('jurnalpembelian.index');
         Route::post('/jurnalpembelian', [JurnalTransaksiController::class, 'store'])->name('jurnalpembelian.store');
