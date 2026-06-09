@@ -164,11 +164,13 @@
                 'ftotal' => (float) ($oldInvoiceTotals[$index] ?? 0),
                 'fdesc' => (string) ($oldInvoiceDescs[$index] ?? ''),
                 'fketdt' => (string) ($oldInvoiceKetdts[$index] ?? ''),
-                'maxqty' => max(0, (float) ($oldInvoiceMaxQtys[$index] ?? $oldInvoiceQtys[$index] ?? 0)),
+                'maxqty' => max(0, (float) ($oldInvoiceMaxQtys[$index] ?? ($oldInvoiceQtys[$index] ?? 0))),
             ];
         }
 
-        $nextInvoiceItemIndex = empty($oldInvoiceIndexes) ? count($savedItems ?? []) : max(array_map('intval', $oldInvoiceIndexes)) + 1;
+        $nextInvoiceItemIndex = empty($oldInvoiceIndexes)
+            ? count($savedItems ?? [])
+            : max(array_map('intval', $oldInvoiceIndexes)) + 1;
     @endphp
     @if ($usageLocked)
         <div x-data="{ open: true }" x-show="open" x-cloak class="fixed inset-0 z-[99] flex items-center justify-center"
@@ -222,7 +224,8 @@
                             <div class="flex items-center gap-3">
                                 <input type="text" name="fsono"
                                     value="{{ old('fsono', $displayFsono ?? $invoice->fsono) }}"
-                                    class="w-full border rounded px-3 py-2 bg-gray-100 text-gray-700 cursor-not-allowed" readonly>
+                                    class="w-full border rounded px-3 py-2 bg-gray-100 text-gray-700 cursor-not-allowed"
+                                    readonly>
 
                                 <label class="inline-flex items-center select-none">
                                     <input type="checkbox" x-model="autoCode" disabled>
@@ -234,11 +237,12 @@
                                 saat simpan</p>
                         </div>
 
-                        <div class="lg:col-span-4" x-data="{ autoTax: {{ trim((string)$invoice->ftaxno) === trim((string)$invoice->fsono) ? 'true' : 'false' }} }">
+                        <div class="lg:col-span-4" x-data="{ autoTax: {{ trim((string) $invoice->ftaxno) === trim((string) $invoice->fsono) ? 'true' : 'false' }} }">
                             <label class="block text-sm font-medium mb-1">Faktur Pajak#</label>
                             <div class="flex items-center gap-3">
                                 <input type="text" name="ftaxno" value="{{ old('ftaxno', $invoice->ftaxno) }}"
-                                    class="w-full border rounded px-3 py-2 bg-gray-100 text-gray-700 cursor-not-allowed" readonly>
+                                    class="w-full border rounded px-3 py-2 bg-gray-100 text-gray-700 cursor-not-allowed"
+                                    readonly>
 
                                 <label class="inline-flex items-center select-none">
                                     <input type="checkbox" x-model="autoTax" disabled>
@@ -357,7 +361,8 @@
                                 <label class="block text-sm font-medium">Kode FP</label>
                                 <input type="text" name="fkodefp" id="invoiceFkodefp"
                                     value="{{ old('fkodefp', $invoice->fkodefp ?? optional($invoice->customer)->fkodefp) }}"
-                                    class="w-full border rounded px-3 py-2 bg-gray-100 text-gray-700 cursor-not-allowed" readonly>
+                                    class="w-full border rounded px-3 py-2 bg-gray-100 text-gray-700 cursor-not-allowed"
+                                    readonly>
                                 @error('fkodefp')
                                     <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                                 @enderror
@@ -366,7 +371,8 @@
                                 <label class="block text-sm font-medium">Reff.PO</label>
                                 <input type="text" name="frefno" id="invoiceFrefno"
                                     value="{{ old('frefno', $invoice->frefno ?? '') }}"
-                                    class="w-full border rounded px-3 py-2 bg-gray-100 text-gray-700 cursor-not-allowed" readonly>
+                                    class="w-full border rounded px-3 py-2 bg-gray-100 text-gray-700 cursor-not-allowed"
+                                    readonly>
                                 @error('frefno')
                                     <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                                 @enderror
@@ -488,24 +494,42 @@
                                         <!-- Hidden inputs row -->
                                         <tr class="hidden">
                                             <td colspan="9">
-                                                <input type="hidden" :name="`fitemcode[${it.formIndex}]`" :value="it.fitemcode">
-                                                <input type="hidden" :name="`fitemname[${it.formIndex}]`" :value="it.fitemname">
-                                                <input type="hidden" :name="`fsatuan[${it.formIndex}]`" :value="it.fsatuan">
-                                                <input type="hidden" :name="`frefcode[${it.formIndex}]`" :value="it.frefcode">
-                                                <input type="hidden" :name="`fnouref[${it.formIndex}]`" :value="it.fnouref">
-                                                <input type="hidden" :name="`frefpr[${it.formIndex}]`" :value="it.frefpr">
-                                                <input type="hidden" :name="`frefso[${it.formIndex}]`" :value="it.frefso">
-                                                <input type="hidden" :name="`frefsrj[${it.formIndex}]`" :value="it.frefsrj">
-                                                <input type="hidden" :name="`fnoacak[${it.formIndex}]`" :value="it.fnoacak">
-                                                <input type="hidden" :name="`frefnoacak[${it.formIndex}]`" :value="it.frefnoacak">
-                                                <input type="hidden" :name="`fqty[${it.formIndex}]`" :value="it.fqty">
-                                                <input type="hidden" :name="`fmaxqty[${it.formIndex}]`" :value="it.maxqty">
-                                                <input type="hidden" :name="`fterima[${it.formIndex}]`" :value="it.fterima">
-                                                <input type="hidden" :name="`fprice[${it.formIndex}]`" :value="it.fprice">
-                                                <input type="hidden" :name="`fdisc[${it.formIndex}]`" :value="it.fdisc">
-                                                <input type="hidden" :name="`ftotal[${it.formIndex}]`" :value="it.ftotal">
-                                                <input type="hidden" :name="`fdesc[${it.formIndex}]`" :value="it.fdesc">
-                                                <input type="hidden" :name="`fketdt[${it.formIndex}]`" :value="it.fketdt">
+                                                <input type="hidden" :name="`fitemcode[${it.formIndex}]`"
+                                                    :value="it.fitemcode">
+                                                <input type="hidden" :name="`fitemname[${it.formIndex}]`"
+                                                    :value="it.fitemname">
+                                                <input type="hidden" :name="`fsatuan[${it.formIndex}]`"
+                                                    :value="it.fsatuan">
+                                                <input type="hidden" :name="`frefcode[${it.formIndex}]`"
+                                                    :value="it.frefcode">
+                                                <input type="hidden" :name="`fnouref[${it.formIndex}]`"
+                                                    :value="it.fnouref">
+                                                <input type="hidden" :name="`frefpr[${it.formIndex}]`"
+                                                    :value="it.frefpr">
+                                                <input type="hidden" :name="`frefso[${it.formIndex}]`"
+                                                    :value="it.frefso">
+                                                <input type="hidden" :name="`frefsrj[${it.formIndex}]`"
+                                                    :value="it.frefsrj">
+                                                <input type="hidden" :name="`fnoacak[${it.formIndex}]`"
+                                                    :value="it.fnoacak">
+                                                <input type="hidden" :name="`frefnoacak[${it.formIndex}]`"
+                                                    :value="it.frefnoacak">
+                                                <input type="hidden" :name="`fqty[${it.formIndex}]`"
+                                                    :value="it.fqty">
+                                                <input type="hidden" :name="`fmaxqty[${it.formIndex}]`"
+                                                    :value="it.maxqty">
+                                                <input type="hidden" :name="`fterima[${it.formIndex}]`"
+                                                    :value="it.fterima">
+                                                <input type="hidden" :name="`fprice[${it.formIndex}]`"
+                                                    :value="it.fprice">
+                                                <input type="hidden" :name="`fdisc[${it.formIndex}]`"
+                                                    :value="it.fdisc">
+                                                <input type="hidden" :name="`ftotal[${it.formIndex}]`"
+                                                    :value="it.ftotal">
+                                                <input type="hidden" :name="`fdesc[${it.formIndex}]`"
+                                                    :value="it.fdesc">
+                                                <input type="hidden" :name="`fketdt[${it.formIndex}]`"
+                                                    :value="it.fketdt">
                                             </td>
                                         </tr>
 
@@ -885,8 +909,11 @@
                                         <input type="text" name="fsono"
                                             value="{{ old('fsono', $displayFsono ?? $invoice->fsono) }}"
                                             class="w-full border rounded px-3 py-2"
-                                            :disabled="autoCode || '{{ $action }}' === 'view'"
-                                            :class="(autoCode || '{{ $action }}' === 'view') ? 'bg-gray-200 cursor-not-allowed text-gray-700' : 'bg-white'">
+                                            :disabled="autoCode || '{{ $action }}'
+                                            === 'view'"
+                                            :class="(autoCode || '{{ $action }}'
+                                                === 'view') ? 'bg-gray-200 cursor-not-allowed text-gray-700' :
+                                            'bg-white'">
 
                                         <label class="inline-flex items-center select-none">
                                             <input type="checkbox" x-model="autoCode">
@@ -899,30 +926,36 @@
                                         saat simpan</p>
                                 </div>
 
-                                 @php
-                                     $isAutoTax = trim((string) ($invoice->ftaxno ?? '')) === trim((string) ($invoice->fsono ?? ''));
-                                 @endphp
-                                 <div class="lg:col-span-4" x-data="{ autoTax: {{ (old('_token') !== null) ? (old('ftax_auto') == '1' ? 'true' : 'false') : ($isAutoTax ? 'true' : 'false') }} }">
-                                     <label class="block text-sm font-medium mb-1">Faktur Pajak#</label>
-                                     <div class="flex items-center gap-3">
-                                         <input type="text" id="ftaxno" name="ftaxno"
-                                             value="{{ old('ftaxno', $invoice->ftaxno) }}"
-                                             :disabled="autoTax || '{{ $action }}' === 'view'"
-                                             :class="(autoTax || '{{ $action }}' === 'view') ? 'bg-gray-200 cursor-not-allowed text-gray-700' : 'bg-white'"
-                                             class="w-full border rounded px-3 py-2 @error('ftaxno') border-red-500 @enderror">
- 
-                                         <label class="inline-flex items-center select-none">
-                                             <input type="checkbox" id="taxAutoCheckbox" name="ftax_auto" value="1"
-                                                 x-model="autoTax"
-                                                 @change="if (autoTax) window.syncInvoiceTaxNoFromInvoiceNo()"
-                                                 :disabled="'{{ $action }}' === 'view'">
-                                             <span class="ml-2 text-sm text-gray-700">Auto</span>
-                                         </label>
-                                     </div>
-                                     @error('ftaxno')
-                                         <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
-                                     @enderror
-                                 </div>
+                                @php
+                                    $isAutoTax =
+                                        trim((string) ($invoice->ftaxno ?? '')) ===
+                                        trim((string) ($invoice->fsono ?? ''));
+                                @endphp
+                                <div class="lg:col-span-4" x-data="{ autoTax: {{ old('_token') !== null ? (old('ftax_auto') == '1' ? 'true' : 'false') : ($isAutoTax ? 'true' : 'false') }} }">
+                                    <label class="block text-sm font-medium mb-1">Faktur Pajak#</label>
+                                    <div class="flex items-center gap-3">
+                                        <input type="text" id="ftaxno" name="ftaxno"
+                                            value="{{ old('ftaxno', $invoice->ftaxno) }}"
+                                            :disabled="autoTax || '{{ $action }}'
+                                            === 'view'"
+                                            :class="(autoTax || '{{ $action }}'
+                                                === 'view') ? 'bg-gray-200 cursor-not-allowed text-gray-700' :
+                                            'bg-white'"
+                                            class="w-full border rounded px-3 py-2 @error('ftaxno') border-red-500 @enderror">
+
+                                        <label class="inline-flex items-center select-none">
+                                            <input type="checkbox" id="taxAutoCheckbox" name="ftax_auto" value="1"
+                                                x-model="autoTax"
+                                                @change="if (autoTax) window.syncInvoiceTaxNoFromInvoiceNo()"
+                                                :disabled="'{{ $action }}'
+                                                === 'view'">
+                                            <span class="ml-2 text-sm text-gray-700">Auto</span>
+                                        </label>
+                                    </div>
+                                    @error('ftaxno')
+                                        <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+                                    @enderror
+                                </div>
 
                                 <div class="lg:col-span-4">
                                     <label class="block text-sm font-medium">Type</label>
@@ -968,7 +1001,8 @@
                                                 @endforeach
                                             </select>
                                             @if ($action !== 'view')
-                                                <div class="absolute inset-0 cursor-pointer z-10" role="button" aria-label="Browse Customer"
+                                                <div class="absolute inset-0 cursor-pointer z-10" role="button"
+                                                    aria-label="Browse Customer"
                                                     @click="window.dispatchEvent(new CustomEvent('customer-browse-open'))">
                                                 </div>
                                             @endif
@@ -1034,7 +1068,8 @@
                                                 @endforeach
                                             </select>
                                             @if ($action !== 'view')
-                                                <div class="absolute inset-0 cursor-pointer z-10" role="button" aria-label="Browse Salesman"
+                                                <div class="absolute inset-0 cursor-pointer z-10" role="button"
+                                                    aria-label="Browse Salesman"
                                                     @click="window.dispatchEvent(new CustomEvent('salesman-browse-open'))">
                                                 </div>
                                             @endif
@@ -1277,24 +1312,41 @@
                                 <div class="hidden">
                                     <template x-for="(it, i) in submitItems" :key="'submit-' + (it.uid || i)">
                                         <div>
-                                            <input type="hidden" :name="`fitemcode[${it.formIndex}]`" :value="it.fitemcode">
-                                            <input type="hidden" :name="`fitemname[${it.formIndex}]`" :value="it.fitemname">
-                                            <input type="hidden" :name="`fsatuan[${it.formIndex}]`" :value="it.fsatuan">
-                                            <input type="hidden" :name="`frefcode[${it.formIndex}]`" :value="it.frefcode">
-                                            <input type="hidden" :name="`fnouref[${it.formIndex}]`" :value="it.fnouref">
-                                            <input type="hidden" :name="`frefpr[${it.formIndex}]`" :value="it.frefpr">
-                                            <input type="hidden" :name="`frefso[${it.formIndex}]`" :value="it.frefso">
-                                            <input type="hidden" :name="`frefsrj[${it.formIndex}]`" :value="it.frefsrj">
-                                            <input type="hidden" :name="`fnoacak[${it.formIndex}]`" :value="it.fnoacak">
-                                            <input type="hidden" :name="`frefnoacak[${it.formIndex}]`" :value="it.frefnoacak">
+                                            <input type="hidden" :name="`fitemcode[${it.formIndex}]`"
+                                                :value="it.fitemcode">
+                                            <input type="hidden" :name="`fitemname[${it.formIndex}]`"
+                                                :value="it.fitemname">
+                                            <input type="hidden" :name="`fsatuan[${it.formIndex}]`"
+                                                :value="it.fsatuan">
+                                            <input type="hidden" :name="`frefcode[${it.formIndex}]`"
+                                                :value="it.frefcode">
+                                            <input type="hidden" :name="`fnouref[${it.formIndex}]`"
+                                                :value="it.fnouref">
+                                            <input type="hidden" :name="`frefpr[${it.formIndex}]`"
+                                                :value="it.frefpr">
+                                            <input type="hidden" :name="`frefso[${it.formIndex}]`"
+                                                :value="it.frefso">
+                                            <input type="hidden" :name="`frefsrj[${it.formIndex}]`"
+                                                :value="it.frefsrj">
+                                            <input type="hidden" :name="`fnoacak[${it.formIndex}]`"
+                                                :value="it.fnoacak">
+                                            <input type="hidden" :name="`frefnoacak[${it.formIndex}]`"
+                                                :value="it.frefnoacak">
                                             <input type="hidden" :name="`fqty[${it.formIndex}]`" :value="it.fqty">
-                                            <input type="hidden" :name="`fterima[${it.formIndex}]`" :value="it.fterima">
-                                            <input type="hidden" :name="`fprice[${it.formIndex}]`" :value="it.fprice">
-                                            <input type="hidden" :name="`fdisc[${it.formIndex}]`" :value="it.fdisc">
-                                            <input type="hidden" :name="`ftotal[${it.formIndex}]`" :value="it.ftotal">
-                                            <input type="hidden" :name="`fmaxqty[${it.formIndex}]`" :value="it.maxqty">
-                                            <input type="hidden" :name="`fdesc[${it.formIndex}]`" :value="it.fdesc">
-                                            <input type="hidden" :name="`fketdt[${it.formIndex}]`" :value="it.fketdt">
+                                            <input type="hidden" :name="`fterima[${it.formIndex}]`"
+                                                :value="it.fterima">
+                                            <input type="hidden" :name="`fprice[${it.formIndex}]`"
+                                                :value="it.fprice">
+                                            <input type="hidden" :name="`fdisc[${it.formIndex}]`"
+                                                :value="it.fdisc">
+                                            <input type="hidden" :name="`ftotal[${it.formIndex}]`"
+                                                :value="it.ftotal">
+                                            <input type="hidden" :name="`fmaxqty[${it.formIndex}]`"
+                                                :value="it.maxqty">
+                                            <input type="hidden" :name="`fdesc[${it.formIndex}]`"
+                                                :value="it.fdesc">
+                                            <input type="hidden" :name="`fketdt[${it.formIndex}]`"
+                                                :value="it.fketdt">
                                         </div>
                                     </template>
                                 </div>
@@ -1728,7 +1780,7 @@
                                     <p class="text-sm text-gray-700">
                                         Anda belum menambahkan item apa pun pada tabel. Silakan isi baris
                                         â€œDetail
-                                        Itemâ€ 
+                                        Itemâ€
                                         terlebih
                                         dahulu.
                                     </p>
@@ -2057,11 +2109,13 @@
         const normalize = (value) => String(value ?? '').trim();
         const select = document.getElementById('modal_filter_customer_id');
         const hidden = document.getElementById('customerCodeHidden');
-        const customerCode = normalize(payload?.fcustomercode) || normalize(hidden?.value) || normalize(select?.value);
-        const selectedOption = customerCode ? [...(select?.options || [])].find(option => normalize(option.value) === customerCode) : select?.selectedOptions?.[0];
-        
+        const customerCode = normalize(payload?.fcustomercode) || normalize(hidden?.value) || normalize(select
+            ?.value);
+        const selectedOption = customerCode ? [...(select?.options || [])].find(option => normalize(option
+            .value) === customerCode) : select?.selectedOptions?.[0];
+
         const salesmanCode = normalize(payload?.fsalesman) || normalize(selectedOption?.dataset?.fsalesman);
-        
+
         window.applyTransactionSalesmanSelection?.({
             fsalesmancode: salesmanCode,
         });
@@ -2717,8 +2771,8 @@
                     .toLowerCase()) || '');
                 const preservedUnit = matchedUnit || preferredUnit;
 
-                row.units = preservedUnit !== '' ?
-                    [preservedUnit, ...units.filter(u => u.toLowerCase() !== preservedUnit.toLowerCase())] :
+                row.units = preservedUnit !== '' ? [preservedUnit, ...units.filter(u => u.toLowerCase() !==
+                        preservedUnit.toLowerCase())] :
                     units;
 
                 const defaultUnit = (meta.default_unit || '').toString().trim();
@@ -2845,15 +2899,16 @@
                         frefso: source === 'SO' ? (header?.fsono ?? '') : '',
                         frefsrj: source === 'SRJ' ? (header?.fstockmtno ?? '') : '',
                         fnoacak: this.generateUniqueNoAcak(),
-                        frefnoacak: this.normalizeRefNoAcak(source === 'SRJ' ? (src.fnoacak ?? '') : (src.frefnoacak ?? src.fnoacak ?? '')),
+                        frefnoacak: this.normalizeRefNoAcak(source === 'SRJ' ? (src.fnoacak ?? '') : (src
+                            .frefnoacak ?? src.fnoacak ?? '')),
                         fqty: displayQty > 0 ? displayQty : 1,
                         fprice: Number(src.fprice ?? src.fharga ?? 0),
                         fdisc: src.fdisc ?? src.fdiscpersen ?? 0,
                         ftotal: 0,
                         fdesc: src.fdesc ? src.fdesc.toString().trim() : '',
                         units: Array.isArray(src.units) && src.units.length ?
-                            src.units.map(u => (u ?? '').toString().trim()).filter(Boolean) :
-                            [(src.fsatuan ?? '').toString().trim()].filter(Boolean),
+                            src.units.map(u => (u ?? '').toString().trim()).filter(Boolean) : [(src
+                                .fsatuan ?? '').toString().trim()].filter(Boolean),
                         maxqty: remainingQty,
                         maxqty_unit: 'kecil',
                     };
@@ -3020,8 +3075,7 @@
                 });
                 window.getCurrentItemKeys = () => this.getCurrentItemKeys();
                 this.savedItems = Array.isArray(this.savedItems) ?
-                    this.savedItems.map((item, index) => this.normalizeRestoredRow(item, index)) :
-                    [];
+                    this.savedItems.map((item, index) => this.normalizeRestoredRow(item, index)) : [];
                 this.pruneEmptyRows();
                 this.ensureMinimumRows();
                 this.ensureTrailingRow();
@@ -3349,8 +3403,8 @@
 @push('scripts')
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
     <script src="https://cdn.datatables.net/1.13.7/js/jquery.dataTables.min.js"></script>
-    @include('components.transaction.browse-customer-script', ['openDelay' => 8000])
-    @include('components.transaction.browse-salesman-script', ['openDelay' => 8000])
+    @include('components.transaction.browse-customer-script')
+    @include('components.transaction.browse-salesman-script')
     @include('components.transaction.invoice-so-modal-script')
     @include('components.transaction.invoice-srj-modal-script')
     @include('components.transaction.browse-product-script', [

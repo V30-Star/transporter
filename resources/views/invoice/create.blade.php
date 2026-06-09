@@ -2485,8 +2485,8 @@
 <script>
     window.PRODUCT_MAP = window.PRODUCT_MAP || @json($productMap ?? []);
 </script>
-@include('components.transaction.browse-customer-script', ['openDelay' => 8000])
-@include('components.transaction.browse-salesman-script', ['openDelay' => 8000])
+@include('components.transaction.browse-customer-script')
+@include('components.transaction.browse-salesman-script')
 
 <script>
     window.prhFormModal = function() {
