@@ -952,9 +952,9 @@
                                 <div class="lg:col-span-4">
                                     <label class="block text-sm font-medium mb-1">Customer</label>
                                     <div class="flex">
-                                        <div class="relative flex-1" for="modal_filter_customer_id">
+                                        <div class="relative flex-1">
                                             <select id="modal_filter_customer_id" name="filter_customer_id"
-                                                class="w-full border rounded-l px-3 py-2 bg-gray-100 text-gray-700 cursor-not-allowed"
+                                                class="w-full border rounded-l px-3 py-2 bg-white cursor-pointer pointer-events-none"
                                                 disabled>
                                                 <option value=""></option>
                                                 @foreach ($customers as $customer)
@@ -968,7 +968,7 @@
                                                 @endforeach
                                             </select>
                                             @if ($action !== 'view')
-                                                <div class="absolute inset-0" role="button" aria-label="Browse Customer"
+                                                <div class="absolute inset-0 cursor-pointer z-10" role="button" aria-label="Browse Customer"
                                                     @click="window.dispatchEvent(new CustomEvent('customer-browse-open'))">
                                                 </div>
                                             @endif
@@ -1021,9 +1021,9 @@
                                 <div class="lg:col-span-4">
                                     <label class="block text-sm font-medium mb-1">Salesman</label>
                                     <div class="flex">
-                                        <div class="relative flex-1" for="modal_filter_salesman_id">
+                                        <div class="relative flex-1">
                                             <select id="modal_filter_salesman_id" name="filter_salesman_id"
-                                                class="w-full border rounded-l px-3 py-2 bg-gray-100 text-gray-700 cursor-not-allowed"
+                                                class="w-full border rounded-l px-3 py-2 bg-white cursor-pointer pointer-events-none"
                                                 disabled>
                                                 <option value=""></option>
                                                 @foreach ($salesmans as $salesman)
@@ -1034,7 +1034,7 @@
                                                 @endforeach
                                             </select>
                                             @if ($action !== 'view')
-                                                <div class="absolute inset-0" role="button" aria-label="Browse Salesman"
+                                                <div class="absolute inset-0 cursor-pointer z-10" role="button" aria-label="Browse Salesman"
                                                     @click="window.dispatchEvent(new CustomEvent('salesman-browse-open'))">
                                                 </div>
                                             @endif
@@ -3349,8 +3349,8 @@
 @push('scripts')
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
     <script src="https://cdn.datatables.net/1.13.7/js/jquery.dataTables.min.js"></script>
-    @include('components.transaction.browse-customer-script', ['openDelay' => 3000])
-    @include('components.transaction.browse-salesman-script', ['openDelay' => 3000])
+    @include('components.transaction.browse-customer-script', ['openDelay' => 8000])
+    @include('components.transaction.browse-salesman-script', ['openDelay' => 8000])
     @include('components.transaction.invoice-so-modal-script')
     @include('components.transaction.invoice-srj-modal-script')
     @include('components.transaction.browse-product-script', [
