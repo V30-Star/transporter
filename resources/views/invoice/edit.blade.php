@@ -2629,12 +2629,18 @@
             },
 
             ensureMinimumRows() {
+                if (this.action === 'view') {
+                    return;
+                }
                 while (this.savedItems.length < this.minimumVisibleRows) {
                     this.savedItems.push(this.createRow());
                 }
             },
 
             ensureTrailingRow(index = null) {
+                if (this.action === 'view') {
+                    return;
+                }
                 if (!this.savedItems.length) {
                     this.ensureMinimumRows();
                     return;
