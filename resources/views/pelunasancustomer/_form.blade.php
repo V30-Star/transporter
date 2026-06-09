@@ -8,6 +8,22 @@
     $backRoute = $backRoute ?? route('pelunasancustomer.index');
     $draftKey = $draftKey ?? 'pelunasancustomer:create';
     $headerData = $headerData ?? null;
+    $parseAmount = function ($value): float {
+        if (is_string($value)) {
+            $value = trim($value);
+            if (str_contains($value, ',') && str_contains($value, '.')) {
+                $value = strrpos($value, ',') > strrpos($value, '.')
+                    ? str_replace(',', '.', str_replace('.', '', $value))
+                    : str_replace(',', '', $value);
+            } elseif (str_contains($value, ',')) {
+                $value = str_replace(',', '.', str_replace('.', '', $value));
+            } else {
+                $value = str_replace(',', '', $value);
+            }
+        }
+
+        return is_numeric($value) ? (float) $value : 0.0;
+    };
     $oldDetails = old('details', []);
     $seedDetails = is_array($oldDetails) && count($oldDetails) > 0 ? $oldDetails : ($detailRows ?? [[]]);
     $initialDetailRows = collect($seedDetails)
@@ -16,11 +32,11 @@
             return [
                 'uid' => 'pc-' . $index . '-' . substr(md5((string) $index), 0, 8),
                 'frefno' => trim((string) ($detail['frefno'] ?? '')),
-                'fnilai_nota' => (float) ($detail['fnilai_nota'] ?? 0),
-                'fsisa_piutang' => (float) ($detail['fsisa_piutang'] ?? 0),
-                'fdiscpersen' => (float) ($detail['fdiscpersen'] ?? 0),
-                'fdiscount' => (float) ($detail['fdiscount'] ?? 0),
-                'fkasdtvalue' => (float) ($detail['fkasdtvalue'] ?? 0),
+                'fnilai_nota' => $parseAmount($detail['fnilai_nota'] ?? 0),
+                'fsisa_piutang' => $parseAmount($detail['fsisa_piutang'] ?? 0),
+                'fdiscpersen' => $parseAmount($detail['fdiscpersen'] ?? 0),
+                'fdiscount' => $parseAmount($detail['fdiscount'] ?? 0),
+                'fkasdtvalue' => $parseAmount($detail['fkasdtvalue'] ?? 0),
                 'ftrcode' => trim((string) ($detail['ftrcode'] ?? $detail['freftype'] ?? 'INV')),
                 'fdatetime' => !empty($detail['fdatetime']) ? \Illuminate\Support\Carbon::parse($detail['fdatetime'])->format('Y-m-d') : '',
             ];
@@ -211,13 +227,13 @@
                                         <input type="text" :value="formatNumber(row.fnilai_nota)"
                                             class="w-full border rounded px-2 py-1 text-right bg-gray-100 cursor-not-allowed"
                                             readonly disabled>
-                                        <input type="hidden" :name="`details[${index}][fnilai_nota]`" :value="row.fnilai_nota">
+                                        <input type="hidden" :name="`details[${index}][fnilai_nota]`" :value="row.fnilai_nota" :disabled="false">
                                     </td>
                                     <td class="border px-2 py-1">
                                         <input type="text" :value="formatNumber(row.fsisa_piutang)"
                                             class="w-full border rounded px-2 py-1 text-right bg-gray-100 cursor-not-allowed"
                                             readonly disabled>
-                                        <input type="hidden" :name="`details[${index}][fsisa_piutang]`" :value="row.fsisa_piutang">
+                                        <input type="hidden" :name="`details[${index}][fsisa_piutang]`" :value="row.fsisa_piutang" :disabled="false">
                                     </td>
                                     <td class="border px-2 py-1">
                                         <input type="number" min="0" max="100" step="0.01"
@@ -237,7 +253,7 @@
                                             :disabled="isDiscountDisabled(row)"
                                             class="w-full border rounded px-2 py-1 text-right disabled:bg-gray-100 disabled:text-gray-400 disabled:cursor-not-allowed">
                                         <input type="hidden"
-                                            :name="`details[${index}][fdiscount]`" :value="row.fdiscount">
+                                            :name="`details[${index}][fdiscount]`" :value="row.fdiscount" :disabled="false">
                                     </td>
                                     <td class="border px-2 py-1">
                                         <input type="text" x-init="$el.value = formatNumber(row.fkasdtvalue)"
@@ -246,7 +262,7 @@
                                             @input="setNumericField(row, 'fkasdtvalue', $event.target.value); syncTotalBayar(row)"
                                             @blur="formatNumericField($event, row, 'fkasdtvalue')"
                                             class="w-full border rounded px-2 py-1 text-right disabled:bg-gray-100 disabled:text-gray-400 disabled:cursor-not-allowed">
-                                        <input type="hidden" :name="`details[${index}][fkasdtvalue]`" :value="row.fkasdtvalue">
+                                        <input type="hidden" :name="`details[${index}][fkasdtvalue]`" :value="row.fkasdtvalue" :disabled="false">
                                     </td>
                                     @if (!$isReadOnly)
                                         <td class="border px-2 py-1 text-center">
