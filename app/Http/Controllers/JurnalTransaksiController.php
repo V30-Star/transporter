@@ -645,6 +645,8 @@ class JurnalTransaksiController extends Controller
         // =========================================================
         // 4) TRANSAKSI DB
         // =========================================================
+        $newJurnalMtId = null;
+
         DB::transaction(function () use (
             $request,
             $fjurnaldate,
@@ -656,7 +658,8 @@ class JurnalTransaksiController extends Controller
             $now,
             $fuserid,
             $totalDebit,
-            &$rowsDt
+            &$rowsDt,
+            &$newJurnalMtId
         ) {
             // ── 4.1. Generate / ambil fjurnalno ──
             $fjurnalno = trim((string) $request->input('fjurnalno', ''));
