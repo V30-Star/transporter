@@ -1485,11 +1485,51 @@ class InvoiceController extends Controller
                 if (empty($fsono)) {
                     $isAdvancePayment = (int) $request->input('ftypesales', 0) === 1;
                     $branchCode = trim((string) ($request->fbranchcode ?? 'BG')) ?: 'BG';
-                    $prefix = $isAdvancePayment ? sprintf('UM.%s.', $branchCode) : 'INV.' . $fsodate->format('ym') . '.';
-                    $digits = $isAdvancePayment ? 3 : 4;
-                    $lastRecord = DB::table('tranmt')->where('fsono', 'like', $prefix . '%')->orderBy('fsono', 'desc')->lockForUpdate()->first();
-                    $nextNumber = $lastRecord ? ((int) substr(trim($lastRecord->fsono), -$digits) + 1) : 1;
-                    $fsono = $prefix . str_pad((string) $nextNumber, $digits, '0', STR_PAD_LEFT);
+                    if ($isAdvancePayment) {
+                        $year = $fsodate->format('Y'); // 4-digit year format, e.g. 2026
+                        $month = $fsodate->format('m'); // 2-digit month format, e.g. 06
+                        $digits = 3;
+                        $likePattern = sprintf('UM.%s.%%.%s.%s', $branchCode, $year, $month);
+                        
+                        $records = DB::table('tranmt')
+                            ->where('fsono', 'like', $likePattern)
+                            ->lockForUpdate()
+                            ->get();
+
+                        $nextNumber = 1;
+                        foreach ($records as $rec) {
+                            $parts = explode('.', trim($rec->fsono));
+                            if (isset($parts[2])) {
+                                $num = (int) $parts[2];
+                                if ($num >= $nextNumber) {
+                                    $nextNumber = $num + 1;
+                                }
+                            }
+                        }
+                        $fsono = sprintf('UM.%s.%s.%s.%s', $branchCode, str_pad((string) $nextNumber, $digits, '0', STR_PAD_LEFT), $year, $month);
+                    } else {
+                        $year = $fsodate->format('Y'); // 4-digit year format, e.g. 2026
+                        $month = $fsodate->format('m'); // 2-digit month format, e.g. 06
+                        $digits = 4;
+                        $likePattern = sprintf('INV.%s.%%.%s.%s', $branchCode, $year, $month);
+
+                        $records = DB::table('tranmt')
+                            ->where('fsono', 'like', $likePattern)
+                            ->lockForUpdate()
+                            ->get();
+
+                        $nextNumber = 1;
+                        foreach ($records as $rec) {
+                            $parts = explode('.', trim($rec->fsono));
+                            if (isset($parts[2])) {
+                                $num = (int) $parts[2];
+                                if ($num >= $nextNumber) {
+                                    $nextNumber = $num + 1;
+                                }
+                            }
+                        }
+                        $fsono = sprintf('INV.%s.%s.%s.%s', $branchCode, str_pad((string) $nextNumber, $digits, '0', STR_PAD_LEFT), $year, $month);
+                    }
                 }
 
                 $approvalState = $this->initializeApprovalState();
