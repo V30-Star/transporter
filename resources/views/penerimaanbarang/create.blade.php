@@ -282,15 +282,9 @@
                                     <td class="p-2">
                                         <div class="flex">
                                             <input type="text"
-                                                class="flex-1 border rounded-l px-2 py-1 font-mono text-sm min-w-0"
+                                                class="flex-1 border rounded px-2 py-1 font-mono text-sm min-w-0 bg-gray-100 text-gray-600 cursor-not-allowed"
                                                 x-model.trim="it.fitemcode" @focus="activeRow = it.uid"
-                                                @blur="activeRow = null" @input="onCodeTypedSaved(it, i)"
-                                                @keydown.enter.prevent="focusSavedUnit(it, i)">
-                                            <button type="button" @click="openBrowseFor('saved', i)"
-                                                class="border border-l-0 px-2 py-1 bg-white hover:bg-gray-50"
-                                                title="Cari Produk">
-                                                <x-heroicon-o-magnifying-glass class="w-4 h-4" />
-                                            </button>
+                                                @blur="activeRow = null" readonly>
                                         </div>
                                     </td>
 
@@ -1278,16 +1272,7 @@
                     });
                 },
                 openBrowseFor(where, idx = null) {
-                    if (!this.getSupplier()) {
-                        this.showNoSupplier = true;
-                        return;
-                    }
-                    this.browseTarget = (where === 'saved' && idx !== null) ? idx : null;
-                    window.dispatchEvent(new CustomEvent('browse-open', {
-                        detail: {
-                            forEdit: false
-                        }
-                    }));
+                    return;
                 },
                 submitForm(form) {
                     const seenCodes = new Set();
@@ -1348,39 +1333,7 @@
                         passive: true
                     });
                     window.addEventListener('product-chosen', (e) => {
-                        const {
-                            product
-                        } = e.detail || {};
-                        if (!product) return;
-                        if (typeof this.browseTarget !== 'number') return;
-                        const row = this.savedItems[this.browseTarget];
-                        if (!row) return;
-                        row.fitemcode = (product.fprdcode || '').toString();
-                        const payloadMeta = this.metaFromProductPayload(product);
-                        if (payloadMeta) {
-                            row.fitemname = payloadMeta.name || row.fitemname || '';
-                            row.fsatuankecil = payloadMeta.fsatuankecil || row.fsatuankecil || '';
-                            row.fsatuanbesar = payloadMeta.fsatuanbesar || row.fsatuanbesar || '';
-                            row.fsatuanbesar2 = payloadMeta.fsatuanbesar2 || row.fsatuanbesar2 || '';
-                            row.fqtykecil = Number(row.fqtykecil || payloadMeta.fqtykecil || 0);
-                            row.fqtykecil2 = Number(row.fqtykecil2 || payloadMeta.fqtykecil2 || 0);
-                            row.units = this.unitOptions({
-                                ...row,
-                                units: payloadMeta.units,
-                                fsatuankecil: payloadMeta.fsatuankecil,
-                                fsatuanbesar: payloadMeta.fsatuanbesar,
-                                fsatuanbesar2: payloadMeta.fsatuanbesar2,
-                            });
-                        }
-                        this.hydrateRowFromMeta(row, this.productMeta(row.fitemcode) || payloadMeta, true);
-                        this.rows.splice(this.browseTarget, 1, {
-                            ...this.rows[this.browseTarget]
-                        });
-                        row.fnoacak = this.normalizeNoAcak(row.fnoacak) || this.generateUniqueNoAcak();
-                        if (!row.fqty) row.fqty = 1;
-                        this.recalc(row);
-                        this.onRowUpdated(this.browseTarget);
-                        this.$nextTick(() => this.applyLastPrice(row));
+                        return;
                     }, {
                         passive: true
                     });

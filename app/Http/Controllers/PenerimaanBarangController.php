@@ -891,13 +891,17 @@ class PenerimaanBarangController extends Controller
             }
 
             $frefdtid = isset($refdtids[$i]) ? (int) $refdtids[$i] : null;
+            if (! $frefdtid) {
+                return back()->withInput()->withErrors(['detail' => 'Penerimaan Barang hanya boleh input produk dari Add PO.']);
+            }
             if ($frefdtid > 0) {
                 $poUnit = DB::table('tr_pod')
                     ->where('fpodid', $frefdtid)
                     ->value('fsatuan');
-                if ($poUnit !== null) {
-                    $sat = trim($poUnit);
+                if ($poUnit === null) {
+                    return back()->withInput()->withErrors(['detail' => 'Detail PO tidak valid untuk produk ' . $code . '.']);
                 }
+                $sat = trim($poUnit);
             }
 
             $qtyKecil = $this->qtyPoToKecil($meta, $sat, $qty);
@@ -1281,6 +1285,10 @@ class PenerimaanBarangController extends Controller
                 continue;
             }
 
+            if (! $rid) {
+                return back()->withInput()->withErrors(['detail' => 'Penerimaan Barang hanya boleh input produk dari Add PO.']);
+            }
+
             if ($sat === '') {
                 $sat = $pickDefaultSat($meta);
             }
@@ -1288,9 +1296,10 @@ class PenerimaanBarangController extends Controller
                 $poUnit = DB::table('tr_pod')
                     ->where('fpodid', $rid)
                     ->value('fsatuan');
-                if ($poUnit !== null) {
-                    $sat = trim($poUnit);
+                if ($poUnit === null) {
+                    return back()->withInput()->withErrors(['detail' => 'Detail PO tidak valid untuk produk ' . $code . '.']);
                 }
+                $sat = trim($poUnit);
             }
             $sat = mb_substr($sat, 0, 5);
             if ($sat === '') {
