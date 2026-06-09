@@ -1019,7 +1019,7 @@ class SuratJalanController extends Controller
             ->route('suratjalan.create')
             ->with('success', 'Surat jalan ' . $this->formatDisplayTransactionNumber($fstockmtno, false) . ' berhasil disimpan.');
 
-        if (! $this->canCreateInvoice() || ! $newStockMasterId) {
+        if (! $this->canCreateInvoice() || ! $newStockMasterId || ! empty($invoiceReferenceDocs)) {
             return $redirect;
         }
 
