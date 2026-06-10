@@ -3140,8 +3140,21 @@
                     row.fqty = 0;
                     return;
                 }
-                if (n < 0) row.fqty = 0;
+                if (n < 0) {
+                    row.fqty = 0;
+                    return;
+                }
 
+                // Enforce reference limit validation
+                const hasRef = String(row?.frefso ?? '').trim() !== '' ||
+                    String(row?.frefsrj ?? '').trim() !== '';
+                if (hasRef) {
+                    const limit = this.getRowQtyLimit(row);
+                    if (n > limit) {
+                        row.fqty = limit;
+                        window.toast?.error(`Qty melebihi sisa referensi. Maksimal ${limit} ${row.fsatuan || ''}`.trim());
+                    }
+                }
             },
 
             hydrateRowFromMeta(row, meta) {
@@ -3389,6 +3402,7 @@
             onRowUpdated(index = null) {
                 const row = typeof index === 'number' ? this.savedItems[index] : null;
                 if (row) {
+                    this.enforceQtyRow(row);
                     if (row.fitemcode === 'UM' && this.ftypesales === 0) {
                         this.showToast('Produk UM hanya untuk tipe Uang Muka!', 'error');
                         row.fitemcode = '';
@@ -3424,6 +3438,13 @@
                     $event.preventDefault();
                     this.showNoItems = true;
                     return;
+                }
+
+                for (const row of this.submitItems) {
+                    if (!this.validateReferenceQty(row, true)) {
+                        $event.preventDefault();
+                        return;
+                    }
                 }
             },
 

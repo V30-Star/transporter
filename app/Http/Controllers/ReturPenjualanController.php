@@ -846,6 +846,8 @@ class ReturPenjualanController extends Controller
             }
 
             // --- OVERRIDE unit dari referensi (SRJ / Invoice) ---
+            $refSrjDoc = trim((string) ($frefsrj[$i] ?? ''));
+            $refSoDoc = trim((string) ($frefso[$i] ?? ''));
             $refNoAcak = $this->normalizeReferenceRandomNumbers($frefnoacaks[$i] ?? null);
             $referenceRatio = null;
             $referenceDetail = null;
@@ -1951,6 +1953,8 @@ class ReturPenjualanController extends Controller
             $product = $products->get($code);
 
             // --- OVERRIDE unit dari referensi (SRJ / Invoice) ---
+            $refSrjDoc = trim((string) ($frefsrj[$i] ?? ''));
+            $refSoDoc = trim((string) ($frefso[$i] ?? ''));
             $refNoAcak = $this->normalizeReferenceRandomNumbers($frefnoacaks[$i] ?? null);
             $referenceRatio = null;
             $referenceDetail = null;

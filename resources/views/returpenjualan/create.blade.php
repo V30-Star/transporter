@@ -1521,6 +1521,28 @@
 {{-- DATA & SCRIPTS --}}
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
+    // Fallback toast system if not defined
+    if (!window.toast) {
+        window.toast = {
+            success: (msg) => {
+                if (typeof window.showAppSuccessToast === 'function') window.showAppSuccessToast(msg);
+                else console.log('Success:', msg);
+            },
+            error: (msg) => {
+                if (typeof window.showAppErrorAlert === 'function') window.showAppErrorAlert('Terjadi Kesalahan', msg);
+                else console.error('Error:', msg);
+            },
+            info: (msg) => {
+                if (typeof window.showAppInfoAlert === 'function') window.showAppInfoAlert('Information', msg);
+                else console.info('Info:', msg);
+            },
+            warning: (msg) => {
+                if (typeof window.showAppInfoAlert === 'function') window.showAppInfoAlert('Warning', msg);
+                else console.warn('Warning:', msg);
+            }
+        };
+    }
+
     // Map produk untuk auto-fill tabel
     // Standardized Product Map initialization
     window.PRODUCT_MAP = @json($productMap ?? []);
@@ -2307,7 +2329,21 @@
                     row.fqty = 0;
                     return;
                 }
-                if (n < 0) row.fqty = 0;
+                if (n < 0) {
+                    row.fqty = 0;
+                    return;
+                }
+
+                // Enforce reference limit validation
+                const hasRef = String(row?.frefso ?? '').trim() !== '' ||
+                    String(row?.frefsrj ?? '').trim() !== '';
+                if (hasRef) {
+                    const limit = this.getRowQtyLimit(row);
+                    if (n > limit) {
+                        row.fqty = limit;
+                        window.toast?.error(`Qty melebihi sisa referensi. Maksimal ${limit} ${row.fsatuan || ''}`.trim());
+                    }
+                }
             },
 
             hydrateRowFromMeta(row, meta) {
@@ -2533,6 +2569,7 @@
             onRowUpdated(index = null) {
                 const row = typeof index === 'number' ? this.savedItems[index] : null;
                 if (row) {
+                    this.enforceQtyRow(row);
                     if (row.fitemcode === 'UM' && this.ftypesales === 0) {
                         this.showToast('Produk UM hanya untuk tipe Uang Muka!', 'error');
                         row.fitemcode = '';
@@ -2567,6 +2604,13 @@
                     $event.preventDefault();
                     this.showNoItems = true;
                     return;
+                }
+
+                for (const row of this.submitItems) {
+                    if (!this.validateReferenceQty(row, true)) {
+                        $event.preventDefault();
+                        return;
+                    }
                 }
             },
 
