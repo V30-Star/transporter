@@ -897,6 +897,28 @@ class JurnalTransaksiController extends Controller
         $referenceAllowedAccountCodes = $this->resolveReferenceAllowedAccountCodes();
         $indexUrl = route('jurnaltransaksi.index', $this->resolveJournalIndexRouteParams($jurnaltransaksi->fjurnaltype));
 
+        $journalTypes = DB::table('tbmaster')
+            ->whereRaw('TRIM(ftblcode) = ?', ['JURNAL'])
+            ->orderBy('fmastercode')
+            ->get()
+            ->map(function ($item) {
+                $item->fmastercode = trim($item->fmastercode);
+                $item->fmastername = trim($item->fmastername);
+                return $item;
+            });
+
+        $currentType = trim($jurnaltransaksi->fjurnaltype);
+        $hasCurrentType = $journalTypes->contains(function ($item) use ($currentType) {
+            return $item->fmastercode === $currentType;
+        });
+
+        if (!$hasCurrentType && $currentType !== '') {
+            $journalTypes->push((object)[
+                'fmastercode' => $currentType,
+                'fmastername' => $currentType === self::PURCHASE_JOURNAL_TYPE ? 'JURNAL PEMBELIAN (JBL)' : $currentType,
+            ]);
+        }
+
         return view('jurnaltransaksi.view', [
             'supplier' => $supplier,
             'selectedSupplierCode' => $selectedSupplierCode,
@@ -914,6 +936,7 @@ class JurnalTransaksiController extends Controller
             'ppnAmount' => 0,
             'famountponet' => 0,
             'famountpo' => 0,
+            'journalTypes' => $journalTypes,
             'pageTitle' => $jurnaltransaksi->fjurnaltype === self::PURCHASE_JOURNAL_TYPE ? 'View Jurnal Faktur Pembelian' : 'View Jurnal Transaksi',
             'indexUrl' => $indexUrl,
         ]);

@@ -12,7 +12,7 @@
         <div class="grid grid-cols-1 lg:grid-cols-12 gap-4">
             <div class="lg:col-span-4">
                 <label class="block text-sm font-medium mb-1">Cabang</label>
-                <input type="text" value="{{ $fcabang }}"
+                <input type="text" value="{{ $fbranchcode }}"
                     class="w-full border rounded px-3 py-2 bg-gray-100 cursor-not-allowed" disabled>
             </div>
 
@@ -24,8 +24,13 @@
 
             <div class="lg:col-span-2">
                 <label class="block text-sm font-medium mb-1">Tipe Jurnal</label>
-                <input type="text" value="{{ $jurnaltransaksi->fjurnaltype }}"
-                    class="w-full border rounded px-3 py-2 bg-gray-100 cursor-not-allowed" disabled>
+                <select name="fjurnaltype" class="w-full border rounded px-3 py-2 bg-white">
+                    @foreach ($journalTypes as $type)
+                        <option value="{{ $type->fmastercode }}" @selected(trim($jurnaltransaksi->fjurnaltype) === $type->fmastercode)>
+                            {{ $type->fmastercode }} - {{ $type->fmastername }}
+                        </option>
+                    @endforeach
+                </select>
             </div>
 
             <div class="lg:col-span-2">

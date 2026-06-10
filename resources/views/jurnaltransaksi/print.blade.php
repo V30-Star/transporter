@@ -230,8 +230,8 @@
                 <tr>
                     <th style="width:5%;">No.</th>
                     <th style="width:15%;">Kode Akun</th>
-                    <th style="width:45%;">Nama Akun</th>
-                    <th style="width:15%;">Sub Akun</th>
+                    <th style="width:30%;">Nama Akun</th>
+                    <th style="width:30%;">Uraian</th>
                     <th style="width:5%; text-align:center;">D/K</th>
                     <th style="width:15%; text-align:right;">Jumlah (Rp)</th>
                 </tr>
@@ -251,7 +251,7 @@
                         <td class="text-center">{{ $i + 1 }}</td>
                         <td>{{ $r->faccount ?? '-' }}</td>
                         <td>{{ $r->account_name ?? '-' }}</td>
-                        <td>{{ $r->subaccount_name ?? ($r->fsubaccount ?? '-') }}</td>
+                        <td>{{ $r->faccountnote ?? '-' }}</td>
                         <td class="text-center" style="font-weight:bold; color:{{ $isDebit ? '#1d4ed8' : '#dc2626' }};">
                             {{ $isDebit ? 'D' : 'K' }}
                         </td>
@@ -305,7 +305,7 @@
             </table>
             {{-- Caption = fjurnalnote --}}
             <div class="caption-note">
-                {{ $hdr->fjurnalnote ?? '' }}
+                Ket : {{ $hdr->fjurnalnote ?? '' }}
             </div>
         </div>
     </div>
