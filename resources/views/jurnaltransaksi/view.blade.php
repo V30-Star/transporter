@@ -24,7 +24,7 @@
 
             <div class="lg:col-span-2">
                 <label class="block text-sm font-medium mb-1">Tipe Jurnal</label>
-                <select name="fjurnaltype" class="w-full border rounded px-3 py-2 bg-white">
+                <select name="fjurnaltype" class="w-full border rounded px-3 py-2 bg-gray-100 cursor-not-allowed" disabled>
                     @foreach ($journalTypes as $type)
                         <option value="{{ $type->fmastercode }}" @selected(trim($jurnaltransaksi->fjurnaltype) === $type->fmastercode)>
                             {{ $type->fmastercode }} - {{ $type->fmastername }}
