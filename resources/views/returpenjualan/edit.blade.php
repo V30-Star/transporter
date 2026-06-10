@@ -212,13 +212,13 @@
                             <div class="lg:col-span-4">
                                 <label class="block text-sm font-medium">Cabang</label>
                                 <input type="text" class="w-full border rounded px-3 py-2 bg-gray-200 cursor-not-allowed"
-                                    value="{{ trim(($fbranchcode ?? '') . ($fcabang ?? '' ? ' - ' . $fcabang : '')) }}" disabled>
+                                    value="{{ trim($fbranchcode) }}" disabled>
                                 <input type="hidden" name="fbranchcode" value="{{ $fbranchcode }}">
                             </div>
 
-                            {{-- SO# --}}
+                            {{-- Transaksi# --}}
                             <div class="lg:col-span-4" x-data="{ autoCode: false }">
-                                <label class="block text-sm font-medium mb-1">SO#</label>
+                                <label class="block text-sm font-medium mb-1">Transaksi#</label>
                                 <div class="flex items-center gap-3">
                                     <input type="text" name="fsono" value="{{ old('fsono', $displayFsono ?? $returpenjualan->fsono) }}"
                                         class="w-full border rounded px-3 py-2" :disabled="autoCode" readonly
@@ -804,12 +804,12 @@
                                 <label class="block text-sm font-medium">Cabang</label>
                                 <input type="text"
                                     class="w-full border rounded px-3 py-2 bg-gray-200 cursor-not-allowed"
-                                    value="{{ trim(($fbranchcode ?? '') . ($fcabang ?? '' ? ' - ' . $fcabang : '')) }}" disabled>
+                                    value="{{ trim($fbranchcode) }}" disabled>
                                 <input type="hidden" name="fbranchcode" value="{{ $fbranchcode }}">
                             </div>
 
                             <div class="lg:col-span-4" x-data="{ autoCode: true }">
-                                <label class="block text-sm font-medium mb-1">SO#</label>
+                                <label class="block text-sm font-medium mb-1">Transaksi#</label>
                                 <div class="flex items-center gap-3">
                                     <input type="text" name="fsono" class="w-full border rounded px-3 py-2"
                                         :disabled="autoCode" value="{{ $returpenjualan->fsono }}"
