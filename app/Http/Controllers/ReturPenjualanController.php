@@ -246,10 +246,7 @@ class ReturPenjualanController extends Controller
             $data = $records->map(function ($row) {
                 return [
                     'ftranmtid' => $row->ftranmtid,
-                    'fbranchcode' => trim(implode(' - ', array_filter([
-                        trim((string) ($row->fbranchcode ?? '')),
-                        trim((string) ($row->fcabangname ?? '')),
-                    ]))) ?: trim((string) ($row->fbranchcode ?? $row->fcabangname ?? '')),
+                    'fbranchcode' => $row->fbranchcode,
                     'fsono' => $row->fsono,
                     'fsono_display' => $this->formatDisplayTransactionNumber($row->fsono ?? null, (string) ($row->fincludeppn ?? '0') === '1'),
                     'fsodate' => $row->fsodate instanceof \Carbon\Carbon
@@ -731,7 +728,7 @@ class ReturPenjualanController extends Controller
             $request->validate([
                 'fsodate' => ['required', 'date'],
                 'fcustno' => ['required', 'string', 'max:10'],
-                'ffrom' => ['required', 'string', 'max:10'],
+                'ffrom' => ['nullable', 'string', 'max:30'],
                 'ftypesales' => ['required', 'in:0,1'],
                 'fitemcode' => ['required', 'array', 'min:1'],
                 'fitemcode.*' => ['nullable', 'string', 'max:30'],
@@ -1056,6 +1053,7 @@ class ReturPenjualanController extends Controller
                     'fprdout' => '0',
                     'ftaxno' => $request->ftaxno ?? '0',
                     'fprint' => 0,
+                    'fbranchcode' => $request->fbranchcode,
                 ];
 
                 $ftranmtid = DB::table('tranmt')->insertGetId($headerData, 'ftranmtid');

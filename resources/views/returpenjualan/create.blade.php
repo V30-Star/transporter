@@ -639,6 +639,45 @@
                                         header.fsuppliername ?? header.fcustomername ?? ''
                                     );
                                 });
+
+                                // Auto-sync salesman ketika customer dipilih/diisi
+                                window.addEventListener('customer-selected', async (e) => {
+                                    const customerCode = (e.detail?.fcustomercode ?? '').toString().trim();
+                                    if (!customerCode) return;
+
+                                    const fsalesman = (e.detail?.fsalesman ?? '').toString().trim();
+                                    const fsalesmanname = (e.detail?.fsalesmanname ?? '').toString().trim();
+
+                                    if (fsalesman) {
+                                        if (typeof window.applyTransactionSalesmanSelection === 'function') {
+                                            window.applyTransactionSalesmanSelection({
+                                                fsalesmancode: fsalesman,
+                                                fsalesmanname: fsalesmanname
+                                            });
+                                        }
+                                    } else {
+                                        try {
+                                            const url = `{{ route('customer.browse') }}?search=${encodeURIComponent(customerCode)}`;
+                                            const res = await fetch(url, {
+                                                headers: { 'X-Requested-With': 'XMLHttpRequest' }
+                                            });
+                                            if (res.ok) {
+                                                const json = await res.json();
+                                                const customer = (json.data || []).find(c => String(c.fcustomercode).trim() === customerCode);
+                                                if (customer && customer.fsalesman) {
+                                                    if (typeof window.applyTransactionSalesmanSelection === 'function') {
+                                                        window.applyTransactionSalesmanSelection({
+                                                            fsalesmancode: customer.fsalesman,
+                                                            fsalesmanname: customer.fsalesmanname
+                                                        });
+                                                    }
+                                                }
+                                            }
+                                        } catch (err) {
+                                            console.error('Error fetching customer salesman:', err);
+                                        }
+                                    }
+                                });
                             });
                         </script>
 
