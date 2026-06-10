@@ -50,6 +50,6 @@ class Product extends Model
         // fmerek adalah foreign key lokal di tabel products (msprd)
         // 'Merek::class' adalah model tujuan (msmerek)
         // 'id' adalah primary key di tabel merek (msmerek)
-        return $this->belongsTo(Merek::class, 'fmerek', 'fmerekid');
+        return $this->belongsTo(Merek::class, 'fmerek', 'fmerekcode');
     }
 }

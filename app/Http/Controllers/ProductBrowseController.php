@@ -33,7 +33,7 @@ class ProductBrowseController extends Controller
 
         // Base untuk filtered count & data
         $baseQuery = fn () => DB::table('msprd')
-            ->leftJoin('msmerek', 'msprd.fmerek', '=', 'msmerek.fmerekid')
+            ->leftJoin('msmerek', 'msprd.fmerek', '=', 'msmerek.fmerekcode')
             ->where(function ($q) {
                 $q->where('msprd.fnonactive', '!=', 1);
             })

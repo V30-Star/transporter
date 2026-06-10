@@ -675,6 +675,12 @@ class ReturPenjualanController extends Controller
         $salesmans = Salesman::orderBy('fsalesmanname', 'asc')
             ->get(['fsalesmanid', 'fsalesmanname', 'fsalesmancode']);
 
+        $warehouses = DB::table('mswh')
+            ->select('fwhid', 'fwhcode', 'fwhname', 'fbranchcode', 'fnonactive')
+            ->where('fnonactive', '0')
+            ->orderBy('fwhcode')
+            ->get();
+
         $raw = (Auth::guard('sysuser')->user() ?? Auth::user())?->fcabang;
 
         $branch = DB::table('mscabang')
@@ -709,6 +715,7 @@ class ReturPenjualanController extends Controller
             'newtr_prh_code' => $newtr_prh_code,
             'customers' => $customers,
             'salesmans' => $salesmans,
+            'warehouses' => $warehouses,
             'fcabang' => $fcabang,
             'fbranchcode' => $fbranchcode,
             'products' => $products,
@@ -724,6 +731,7 @@ class ReturPenjualanController extends Controller
             $request->validate([
                 'fsodate' => ['required', 'date'],
                 'fcustno' => ['required', 'string', 'max:10'],
+                'ffrom' => ['required', 'string', 'max:10'],
                 'ftypesales' => ['required', 'in:0,1'],
                 'fitemcode' => ['required', 'array', 'min:1'],
                 'fitemcode.*' => ['nullable', 'string', 'max:30'],
@@ -1019,6 +1027,7 @@ class ReturPenjualanController extends Controller
                     'fsodate' => $fsodate,
                     'fcustno' => mb_substr($request->fcustno, 0, 10),
                     'fsalesman' => mb_substr((string) ($request->fsalesman ?? ''), 0, 30),
+                    'ffrom' => mb_substr((string) ($request->ffrom ?? ''), 0, 10),
                     'fcurrency' => $fcurrency,
                     'frate' => $frate,
                     'fdiscount' => $totalDisc,
@@ -1064,6 +1073,7 @@ class ReturPenjualanController extends Controller
                     'fstockmtdate' => $fsodate,
                     'fprdout' => '0',
                     'fsupplier' => mb_substr($request->fcustno, 0, 10),
+                    'ffrom' => mb_substr((string) ($request->ffrom ?? ''), 0, 10),
                     'famount' => $amountNet,
                     'famount_rp' => $amountNet * $frate,
                     'famountpajak' => $ppnAmount,
@@ -1568,6 +1578,12 @@ class ReturPenjualanController extends Controller
         $salesmans = Salesman::orderBy('fsalesmanname', 'asc')
             ->get(['fsalesmanid', 'fsalesmanname', 'fsalesmancode']);
 
+        $warehouses = DB::table('mswh')
+            ->select('fwhid', 'fwhcode', 'fwhname', 'fbranchcode', 'fnonactive')
+            ->where('fnonactive', '0')
+            ->orderBy('fwhcode')
+            ->get();
+
         $returpenjualan = Tranmt::with(['customer', 'details' => function ($q) {
             $q->leftJoin('msprd', function ($j) {
                 $j->on('msprd.fprdcode', '=', 'trandt.fprdcode');
@@ -1669,6 +1685,7 @@ class ReturPenjualanController extends Controller
         return view('returpenjualan.edit', [
             'customers' => $customers,
             'salesmans' => $salesmans,
+            'warehouses' => $warehouses,
             'selectedSupplierCode' => $selectedSupplierCode, // Kirim kode supplier ke view
             'fcabang' => $fcabang,
             'fbranchcode' => $fbranchcode,
@@ -1695,6 +1712,12 @@ class ReturPenjualanController extends Controller
 
         $salesmans = Salesman::orderBy('fsalesmanname', 'asc')
             ->get(['fsalesmanid', 'fsalesmanname', 'fsalesmancode']);
+
+        $warehouses = DB::table('mswh')
+            ->select('fwhid', 'fwhcode', 'fwhname', 'fbranchcode', 'fnonactive')
+            ->where('fnonactive', '0')
+            ->orderBy('fwhcode')
+            ->get();
 
         $returpenjualan = Tranmt::with(['customer', 'details' => function ($q) {
             $q->leftJoin('msprd', function ($j) {
@@ -1786,6 +1809,7 @@ class ReturPenjualanController extends Controller
         return view('returpenjualan.edit', [
             'customers' => $customers,
             'salesmans' => $salesmans,
+            'warehouses' => $warehouses,
             'selectedSupplierCode' => $selectedSupplierCode, // Kirim kode supplier ke view
             'fcabang' => $fcabang,
             'fbranchcode' => $fbranchcode,
@@ -1811,6 +1835,7 @@ class ReturPenjualanController extends Controller
         $request->validate([
             'fsodate' => ['required', 'date'],
             'fcustno' => ['required', 'string', 'max:10'],
+            'ffrom' => ['required', 'string', 'max:10'],
             'ftypesales' => ['required', 'in:0,1'], // Pastikan ftypesales divalidasi
             'fitemcode' => ['required', 'array', 'min:1'],
             'fitemcode.*' => ['required', 'string', 'max:30'],
@@ -2092,6 +2117,7 @@ class ReturPenjualanController extends Controller
                     'fsodate' => $fsodate,
                     'fcustno' => mb_substr($request->fcustno, 0, 10),
                     'fsalesman' => mb_substr((string) ($request->fsalesman ?? ''), 0, 30),
+                    'ffrom' => mb_substr((string) ($request->ffrom ?? ''), 0, 10),
                     'fdiscount' => $totalDisc,
                     'fdiscount_rp' => $totalDisc * $frate,
                     'famountgross' => $totalGross,
@@ -2132,6 +2158,7 @@ class ReturPenjualanController extends Controller
                     DB::table('trstockmt')->where('fstockmtid', $stockHeader->fstockmtid)->update([
                         'fstockmtdate' => $fsodate,
                         'fsupplier' => mb_substr($request->fcustno, 0, 10),
+                        'ffrom' => mb_substr((string) ($request->ffrom ?? ''), 0, 10),
                         'famount' => $amountNet,
                         'famount_rp' => $amountNet * $frate,
                         'famountpajak' => $ppnAmount,
@@ -2173,6 +2200,12 @@ class ReturPenjualanController extends Controller
 
         $salesmans = Salesman::orderBy('fsalesmanname', 'asc')
             ->get(['fsalesmanid', 'fsalesmanname', 'fsalesmancode']);
+
+        $warehouses = DB::table('mswh')
+            ->select('fwhid', 'fwhcode', 'fwhname', 'fbranchcode', 'fnonactive')
+            ->where('fnonactive', '0')
+            ->orderBy('fwhcode')
+            ->get();
 
         $returpenjualan = Tranmt::with(['customer', 'details' => function ($q) {
             $q->leftJoin('msprd', function ($j) {
@@ -2270,6 +2303,7 @@ class ReturPenjualanController extends Controller
         return view('returpenjualan.edit', [
             'customers' => $customers,
             'salesmans' => $salesmans,
+            'warehouses' => $warehouses,
             'selectedSupplierCode' => $selectedSupplierCode, // Kirim kode supplier ke view
             'fcabang' => $fcabang,
             'fbranchcode' => $fbranchcode,

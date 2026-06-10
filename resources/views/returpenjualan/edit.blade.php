@@ -324,6 +324,31 @@
                                 @enderror
                             </div>
 
+                            {{-- Gudang --}}
+                            <div class="lg:col-span-4">
+                                <label class="block text-sm font-medium mb-1">Gudang</label>
+                                <div class="flex">
+                                    <div class="relative flex-1" for="warehouseSelectReadonly">
+                                        <select id="warehouseSelectReadonly" name="filter_warehouse_id_readonly"
+                                            class="w-full border rounded-l px-3 py-2 bg-gray-100 text-gray-700 bg-gray-200 cursor-not-allowed"
+                                            disabled>
+                                            <option value=""></option>
+                                            @foreach ($warehouses as $wh)
+                                                <option value="{{ $wh->fwhcode }}"
+                                                    {{ old('ffrom', $returpenjualan->ffrom) == $wh->fwhcode ? 'selected' : '' }}>
+                                                    {{ $wh->fwhname }} ({{ $wh->fwhcode }})
+                                                </option>
+                                            @endforeach
+                                        </select>
+                                    </div>
+                                    <input type="hidden" name="ffrom_readonly" id="warehouseCodeHiddenReadonly"
+                                        value="{{ old('ffrom', $returpenjualan->ffrom) }}">
+                                </div>
+                                @error('ffrom')
+                                    <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+                                @enderror
+                            </div>
+
                             <div class="lg:col-span-4">
                                 <label class="block text-sm font-medium">Tgl. Jatuh Tempo</label>
                                 <input type="date" id="fjatuhtempo" name="fjatuhtempo" readonly
@@ -935,6 +960,40 @@
                                     @endif
                                 </div>
                                 @error('fsalesman')
+                                    <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+                                @enderror
+                            </div>
+
+                            {{-- Gudang --}}
+                            <div class="lg:col-span-4">
+                                <label class="block text-sm font-medium mb-1">Gudang</label>
+                                <div class="flex">
+                                    <div class="relative flex-1" for="warehouseSelect">
+                                        <select id="warehouseSelect" name="filter_warehouse_id"
+                                            class="w-full border rounded-l px-3 py-2 bg-gray-100 text-gray-700 cursor-not-allowed"
+                                            disabled>
+                                            <option value=""></option>
+                                            @foreach ($warehouses as $wh)
+                                                <option value="{{ $wh->fwhcode }}"
+                                                    {{ old('ffrom', $returpenjualan->ffrom) == $wh->fwhcode ? 'selected' : '' }}>
+                                                    {{ $wh->fwhname }} ({{ $wh->fwhcode }})
+                                                </option>
+                                            @endforeach
+                                        </select>
+                                        <div class="absolute inset-0" role="button" aria-label="Browse Gudang"
+                                            @click="window.dispatchEvent(new CustomEvent('warehouse-browse-open'))">
+                                        </div>
+                                    </div>
+                                    <input type="hidden" name="ffrom" id="warehouseCodeHidden"
+                                        value="{{ old('ffrom', $returpenjualan->ffrom ?? '') }}">
+                                    <button type="button"
+                                        @click="window.dispatchEvent(new CustomEvent('warehouse-browse-open'))"
+                                        class="border -ml-px px-3 py-2 bg-white hover:bg-gray-50 rounded-r"
+                                        title="Browse Gudang">
+                                        <x-heroicon-o-magnifying-glass class="w-5 h-5" />
+                                    </button>
+                                </div>
+                                @error('ffrom')
                                     <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                                 @enderror
                             </div>
@@ -1966,6 +2025,10 @@
                                 </div>
                             </div>
                         </div>
+
+                        @if ($action === 'edit')
+                            <x-transaction.browse-warehouse-modal />
+                        @endif
 
                         {{-- MODAL PRODUK --}}
                         <div x-data="productBrowser()" x-show="open" x-cloak x-transition.opacity
@@ -4412,6 +4475,7 @@
 @push('scripts')
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
     <script src="https://cdn.datatables.net/1.13.7/js/jquery.dataTables.min.js"></script>
+    @include('components.transaction.browse-warehouse-script')
 
     <script>
         // Modal produk dengan DataTables

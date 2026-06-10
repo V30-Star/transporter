@@ -177,7 +177,7 @@ class ProductController extends Controller
         if ($request->ajax()) {
             $query = Product::query()
                 ->from('msprd')
-                ->leftJoin('msmerek', 'msmerek.fmerekid', '=', 'msprd.fmerek');
+                ->leftJoin('msmerek', 'msmerek.fmerekcode', '=', 'msprd.fmerek');
 
             $status = $request->input('status', 'active');
             if ($status === 'active') {
@@ -359,7 +359,7 @@ class ProductController extends Controller
         $groups = Groupproduct::where('fnonactive', 0)->get();
         $merks = Merek::where('fnonactive', 0)->get();
         $satuan = Satuan::where('fnonactive', 0)->get();
-        $newProductCode = $this->generateProductCode($groups->first()->fgroupcode ?? 1, $merks->first()->fmerekid ?? 1);
+        $newProductCode = $this->generateProductCode($groups->first()->fgroupcode ?? 1, $merks->first()->fmerekcode ?? 1);
         $enabledImageNumbers = $this->getEnabledProductImageNumbers();
 
         return view('product.create', compact('groups', 'merks', 'satuan', 'newProductCode', 'enabledImageNumbers'));
