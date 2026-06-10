@@ -60,7 +60,7 @@
 
         @php
             $hasRelatedData = \Illuminate\Support\Facades\DB::table('msprd')
-                ->where('fmerek', $merek->fmerekid)
+                ->where('fmerek', $merek->fmerekcode)
                 ->exists();
         @endphp
 

@@ -227,8 +227,8 @@
                                     id="merkSelect">
                                     <option value=""></option>
                                     @foreach ($merks as $merk)
-                                        <option value="{{ $merk->fmerekid }}"
-                                            {{ old('fmerek', $product->fmerek) == $merk->fmerekid ? 'selected' : '' }}>
+                                        <option value="{{ $merk->fmerekcode }}"
+                                            {{ old('fmerek', $product->fmerek) == $merk->fmerekcode ? 'selected' : '' }}>
                                             {{ $merk->fmerekname }} ({{ $merk->fmerekcode }})
                                         </option>
                                     @endforeach
@@ -821,8 +821,8 @@
                                     id="merkSelect">
                                     <option value=""></option>
                                     @foreach ($merks as $merk)
-                                        <option value="{{ $merk->fmerekid }}"
-                                            {{ old('fmerek', $product->fmerek) == $merk->fmerekid ? 'selected' : '' }}>
+                                        <option value="{{ $merk->fmerekcode }}"
+                                            {{ old('fmerek', $product->fmerek) == $merk->fmerekcode ? 'selected' : '' }}>
                                             {{ $merk->fmerekcode }} - {{ $merk->fmerekname }}
                                         </option>
                                     @endforeach
@@ -1729,16 +1729,16 @@
                     }
                 })
                 .done((res) => {
-                    if (res && res.id && res.name) {
+                    if (res && res.code && res.name) {
                         // 1. Buat opsi baru dan masukkan ke Select
-                        const opt = new Option(res.name, res.id, true, true);
+                        const opt = new Option(res.name, res.code, true, true);
                         $('#merkSelect').append(opt).trigger('change');
     
                         // 2. SINKRONISASI KE INPUT HIDDEN (PENTING!)
                         // Tanpa ini, server akan tetap menerima data lama dari input hidden
                         const hidMerek = document.getElementById('fmerek');
                         if (hidMerek) {
-                            hidMerek.value = res.id;
+                            hidMerek.value = res.code;
                         }
     
                         // 3. TUTUP MODAL & RESET
@@ -2145,7 +2145,7 @@
 
     function chooseMerek(merek) {
         // Set value to the select dropdown
-        document.querySelector('#merkSelect').value = merek.fmerekid;
+        document.querySelector('#merkSelect').value = merek.fmerekcode;
 
         // Optionally trigger 'change' event if needed
         $(document).find('#merkSelect').trigger('change');
@@ -2314,14 +2314,14 @@
             const hid = document.getElementById('fmerek');
 
             if (sel) {
-                sel.value = fmerekid || '';
+                sel.value = fmerekcode || '';
                 sel.dispatchEvent(new Event('change', {
                     bubbles: true
                 }));
             }
 
             if (hid) {
-                hid.value = fmerekid || '';
+                hid.value = fmerekcode || '';
             }
 
             // Optional: Enable select after picking

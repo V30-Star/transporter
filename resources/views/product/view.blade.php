@@ -160,8 +160,8 @@
                                 id="merkSelect">
                                 <option value=""></option>
                                 @foreach ($merks as $merk)
-                                    <option value="{{ $merk->fmerekid }}"
-                                        {{ old('fmerek', $product->fmerek) == $merk->fmerekid ? 'selected' : '' }}>
+                                    <option value="{{ $merk->fmerekcode }}"
+                                        {{ old('fmerek', $product->fmerek) == $merk->fmerekcode ? 'selected' : '' }}>
                                         {{ $merk->fmerekname }}
                                     </option>
                                 @endforeach

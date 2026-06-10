@@ -185,7 +185,7 @@ class MerekController extends Controller
         try {
             $merek = Merek::findOrFail($fmerekid);
 
-            if (\Illuminate\Support\Facades\DB::table('msprd')->where('fmerek', $merek->fmerekid)->exists()) {
+            if (\Illuminate\Support\Facades\DB::table('msprd')->where('fmerek', $merek->fmerekcode)->exists()) {
                 return response()->json([
                     'success' => false,
                     'message' => 'Merek tidak bisa dihapus. Sudah direferensi di produk.',

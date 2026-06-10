@@ -200,8 +200,8 @@
                                 class="w-full border rounded px-3 py-2 @error('fmerek') border-red-500 bg-red-50 @enderror">
                                 <option value="">-- Pilih Merek --</option>
                                 @foreach ($merks as $merk)
-                                    <option value="{{ $merk->fmerekid }}"
-                                        {{ old('fmerek') == $merk->fmerekid ? 'selected' : '' }}>
+                                    <option value="{{ $merk->fmerekcode }}"
+                                        {{ old('fmerek') == $merk->fmerekcode ? 'selected' : '' }}>
                                         {{ $merk->fmerekcode }} - {{ $merk->fmerekname }}
                                     </option>
                                 @endforeach
@@ -894,11 +894,11 @@
                     }
                 })
                 .done((res) => {
-                    if (res && res.id && res.name) {
-                        const opt = new Option(res.name, res.id, true, true);
+                    if (res && res.code && res.name) {
+                        const opt = new Option(res.name, res.code, true, true);
                         $('#merkSelect').append(opt).trigger('change');
                         const hidMerek = document.getElementById('fmerek');
-                        if (hidMerek) { hidMerek.value = res.id; }
+                        if (hidMerek) { hidMerek.value = res.code; }
                         this.open = false;
                         this.form = { fmerekcode: '', fmerekname: '', fnonactive: false };
                         this.errors = {};
@@ -1466,14 +1466,14 @@
             const hid = document.getElementById('fmerek');
 
             if (sel) {
-                sel.value = fmerekid || '';
+                sel.value = fmerekcode || '';
                 sel.dispatchEvent(new Event('change', {
                     bubbles: true
                 }));
             }
 
             if (hid) {
-                hid.value = fmerekid || '';
+                hid.value = fmerekcode || '';
             }
 
             // Optional: Enable select after picking
