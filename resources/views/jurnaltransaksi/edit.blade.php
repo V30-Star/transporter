@@ -146,11 +146,14 @@
                                 class="w-full border rounded px-3 py-2 bg-gray-100 cursor-not-allowed" disabled>
                             <input type="hidden" name="fjurnaltype" value="{{ old('fjurnaltype', $jurnaltransaksi->fjurnaltype) }}">
                         @else
-                            <select name="fjurnaltype" class="w-full border rounded px-3 py-2">
-                                @foreach (['JV' => 'JV - Journal Voucher', 'AP' => 'AP - Accounts Payable', 'AR' => 'AR - Accounts Receivable'] as $code => $label)
-                                    <option value="{{ $code }}" @selected(old('fjurnaltype', $jurnaltransaksi->fjurnaltype) === $code)>{{ $label }}</option>
+                            <select class="w-full border rounded px-3 py-2 bg-gray-100 cursor-not-allowed" disabled>
+                                @foreach ($journalTypes as $type)
+                                    <option value="{{ $type->fmastercode }}" @selected(old('fjurnaltype', $jurnaltransaksi->fjurnaltype) === $type->fmastercode)>
+                                        {{ $type->fmastercode }} - {{ $type->fmastername }}
+                                    </option>
                                 @endforeach
                             </select>
+                            <input type="hidden" name="fjurnaltype" value="{{ old('fjurnaltype', $jurnaltransaksi->fjurnaltype) }}">
                         @endif
                     </div>
 

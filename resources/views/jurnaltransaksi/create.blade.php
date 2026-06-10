@@ -72,11 +72,14 @@
                                 class="w-full border rounded px-3 py-2 bg-gray-100 cursor-not-allowed" disabled>
                             <input type="hidden" name="fjurnaltype" value="{{ $fixedJournalType }}">
                         @else
-                            <select name="fjurnaltype" class="w-full border rounded px-3 py-2">
-                                <option value="SJU" @selected(old('fjurnaltype', $journalType ?? 'SJU') === 'SJU')>SJU - Journal Voucher</option>
-                                <option value="AP" @selected(old('fjurnaltype', $journalType) === 'AP')>AP - Accounts Payable</option>
-                                <option value="AR" @selected(old('fjurnaltype', $journalType) === 'AR')>AR - Accounts Receivable</option>
+                            <select class="w-full border rounded px-3 py-2 bg-gray-100 cursor-not-allowed" disabled>
+                                @foreach ($journalTypes as $type)
+                                    <option value="{{ $type->fmastercode }}" @selected(old('fjurnaltype', ($journalType ?: 'SJU')) === $type->fmastercode)>
+                                        {{ $type->fmastercode }} - {{ $type->fmastername }}
+                                    </option>
+                                @endforeach
                             </select>
+                            <input type="hidden" name="fjurnaltype" value="{{ old('fjurnaltype', ($journalType ?: 'SJU')) }}">
                         @endif
                     </div>
 

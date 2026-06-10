@@ -342,13 +342,25 @@ class JurnalTransaksiController extends Controller
         $prefix = sprintf('PBR.%s.%s.%s.', $kodeCabang, $date->format('y'), $date->format('m'));
 
         // kunci per (branch, tahun-bulan) — TANPA bikin tabel baru
-        $lockKey = crc32('PBR|'.$kodeCabang.'|'.$date->format('Y-m'));
-        DB::statement('SELECT pg_advisory_xact_lock(?)', [$lockKey]);
+        $driver = DB::getDriverName();
+        if ($driver === 'pgsql') {
+            $lockKey = crc32('PBR|'.$kodeCabang.'|'.$date->format('Y-m'));
+            DB::statement('SELECT pg_advisory_xact_lock(?)', [$lockKey]);
 
-        $last = DB::table('tr_poh')
-            ->where('fpono', 'like', $prefix.'%')
-            ->selectRaw("MAX(CAST(split_part(fpono, '.', 5) AS int)) AS lastno")
-            ->value('lastno');
+            $last = DB::table('tr_poh')
+                ->where('fpono', 'like', $prefix.'%')
+                ->selectRaw("MAX(CAST(split_part(fpono, '.', 5) AS int)) AS lastno")
+                ->value('lastno');
+        } else {
+            $last = DB::table('tr_poh')
+                ->where('fpono', 'like', $prefix.'%')
+                ->get()
+                ->map(function ($row) {
+                    $parts = explode('.', $row->fpono);
+                    return isset($parts[4]) ? (int) $parts[4] : 0;
+                })
+                ->max();
+        }
 
         $next = (int) $last + 1;
 
@@ -440,6 +452,16 @@ class JurnalTransaksiController extends Controller
 
         $referenceAllowedAccountCodes = $this->resolveReferenceAllowedAccountCodes();
 
+        $journalTypes = DB::table('tbmaster')
+            ->whereRaw('TRIM(ftblcode) = ?', ['JURNAL'])
+            ->orderBy('fmastercode')
+            ->get()
+            ->map(function ($item) {
+                $item->fmastercode = trim($item->fmastercode);
+                $item->fmastername = trim($item->fmastername);
+                return $item;
+            });
+
         return view('jurnaltransaksi.create', [
             'newtr_prh_code' => $newtr_prh_code,
             'accounts' => $accounts,
@@ -452,6 +474,7 @@ class JurnalTransaksiController extends Controller
             'pageTitle' => $pageMeta['pageTitle'],
             'fixedJournalType' => $fixedJournalType,
             'journalType' => $pageMeta['journalType'],
+            'journalTypes' => $journalTypes,
             'indexUrl' => route('jurnaltransaksi.index', $this->resolveJournalIndexRouteParams($pageMeta['journalType'])),
         ]);
     }
@@ -657,13 +680,25 @@ class JurnalTransaksiController extends Controller
 
             if (empty($fjurnalno)) {
                 $prefix = sprintf('%s.%s.%s.%s.', $fjurnaltype, $kodeCabang, $yy, $mm);
-                $lockKey = crc32('JURNAL|'.$fjurnaltype.'|'.$kodeCabang.'|'.$fjurnaldate->format('Y-m'));
-                DB::statement('SELECT pg_advisory_xact_lock(?)', [$lockKey]);
+                $driver = DB::getDriverName();
+                if ($driver === 'pgsql') {
+                    $lockKey = crc32('JURNAL|'.$fjurnaltype.'|'.$kodeCabang.'|'.$fjurnaldate->format('Y-m'));
+                    DB::statement('SELECT pg_advisory_xact_lock(?)', [$lockKey]);
 
-                $lastNo = DB::table('jurnalmt')
-                    ->where('fjurnalno', 'like', $prefix.'%')
-                    ->selectRaw("MAX(CAST(split_part(fjurnalno, '.', 5) AS int)) AS lastno")
-                    ->value('lastno');
+                    $lastNo = DB::table('jurnalmt')
+                        ->where('fjurnalno', 'like', $prefix.'%')
+                        ->selectRaw("MAX(CAST(split_part(fjurnalno, '.', 5) AS int)) AS lastno")
+                        ->value('lastno');
+                } else {
+                    $lastNo = DB::table('jurnalmt')
+                        ->where('fjurnalno', 'like', $prefix.'%')
+                        ->get()
+                        ->map(function ($row) {
+                            $parts = explode('.', $row->fjurnalno);
+                            return isset($parts[4]) ? (int) $parts[4] : 0;
+                        })
+                        ->max();
+                }
 
                 $fjurnalno = $prefix.str_pad((string) ((int) $lastNo + 1), 4, '0', STR_PAD_LEFT);
             }
@@ -782,6 +817,16 @@ class JurnalTransaksiController extends Controller
         $referenceAllowedAccountCodes = $this->resolveReferenceAllowedAccountCodes();
         $indexUrl = route('jurnaltransaksi.index', $this->resolveJournalIndexRouteParams($jurnaltransaksi->fjurnaltype));
 
+        $journalTypes = DB::table('tbmaster')
+            ->whereRaw('TRIM(ftblcode) = ?', ['JURNAL'])
+            ->orderBy('fmastercode')
+            ->get()
+            ->map(function ($item) {
+                $item->fmastercode = trim($item->fmastercode);
+                $item->fmastername = trim($item->fmastername);
+                return $item;
+            });
+
         return view('jurnaltransaksi.edit', [
             'supplier' => $supplier,
             'selectedSupplierCode' => $selectedSupplierCode,
@@ -802,6 +847,7 @@ class JurnalTransaksiController extends Controller
             'action' => 'edit',
             'pageTitle' => $jurnaltransaksi->fjurnaltype === self::PURCHASE_JOURNAL_TYPE ? 'Edit Jurnal Faktur Pembelian' : 'Edit Jurnal Transaksi',
             'lockJournalType' => $jurnaltransaksi->fjurnaltype === self::PURCHASE_JOURNAL_TYPE,
+            'journalTypes' => $journalTypes,
             'indexUrl' => $indexUrl,
         ]);
     }
