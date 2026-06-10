@@ -332,8 +332,7 @@
                             <div class="flex justify-end">
                                 <input type="number" min="0" step="0.01" name="fhargaadmin" x-model="hargaAdmin"
                                     @input="recalcTotals()"
-                                    :disabled="!adminAccountCode"
-                                    class="w-52 border rounded px-3 py-2 text-right text-sm @error('fhargaadmin') border-red-500 @enderror disabled:bg-gray-100 disabled:text-gray-400 disabled:cursor-not-allowed">
+                                    class="w-52 border rounded px-3 py-2 text-right text-sm @error('fhargaadmin') border-red-500 @enderror">
                                 @error('fhargaadmin')
                                     <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                                 @enderror
@@ -361,8 +360,7 @@
                             <div class="flex justify-end">
                                 <input type="number" min="0" step="0.01" name="fhargaadmin2" x-model="hargaAdmin2"
                                     @input="recalcTotals()"
-                                    :disabled="!adminAccount2Code"
-                                    class="w-52 border rounded px-3 py-2 text-right text-sm @error('fhargaadmin2') border-red-500 @enderror disabled:bg-gray-100 disabled:text-gray-400 disabled:cursor-not-allowed">
+                                    class="w-52 border rounded px-3 py-2 text-right text-sm @error('fhargaadmin2') border-red-500 @enderror">
                                 @error('fhargaadmin2')
                                     <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                                 @enderror
@@ -680,23 +678,10 @@
                         this.recalcTotals();
                     });
 
-                    this.$watch('adminAccountCode', (value) => {
-                        if (!value) {
-                            this.hargaAdmin = 0;
-                            this.recalcTotals();
-                        }
-                    });
-
                     this.$watch('hargaAdmin2', () => {
                         this.recalcTotals();
                     });
 
-                    this.$watch('adminAccount2Code', (value) => {
-                        if (!value) {
-                            this.hargaAdmin2 = 0;
-                            this.recalcTotals();
-                        }
-                    });
                 },
 
                 emptyRow() {
