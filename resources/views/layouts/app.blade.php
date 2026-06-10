@@ -758,7 +758,7 @@
                 let result = compactPopupMessage(value);
                 const protectedTokens = [];
 
-                result = result.replace(/\b([A-Z]{2,}\d+[A-Z0-9./-]*)\b/g, (match) => {
+                result = result.replace(/\b([A-Z]{2,}(?:\d+|[./])[A-Z0-9./-]*)\b/g, (match) => {
                     const key = `__TOKEN_${protectedTokens.length}__`;
                     protectedTokens.push({
                         key,
