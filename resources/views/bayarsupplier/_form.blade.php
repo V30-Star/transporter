@@ -3,22 +3,42 @@
     $formAction = $formAction ?? route('bayarsupplier.store');
     $formMethod = strtoupper($formMethod ?? 'POST');
     $isReadOnly = (bool) ($isReadOnly ?? false);
+    $isDeleteMode = (bool) ($isDeleteMode ?? false);
     $submitLabel = $submitLabel ?? 'Simpan';
     $backRoute = $backRoute ?? route('bayarsupplier.index');
     $draftKey = $draftKey ?? 'bayarsupplier:create';
+    $headerData = $headerData ?? null;
+
+    $parseAmount = function ($value): float {
+        if (is_string($value)) {
+            $value = trim($value);
+            if (str_contains($value, ',') && str_contains($value, '.')) {
+                $value = strrpos($value, ',') > strrpos($value, '.')
+                    ? str_replace(',', '.', str_replace('.', '', $value))
+                    : str_replace(',', '', $value);
+            } elseif (str_contains($value, ',')) {
+                $value = str_replace(',', '.', str_replace('.', '', $value));
+            } else {
+                $value = str_replace(',', '', $value);
+            }
+        }
+
+        return is_numeric($value) ? (float) $value : 0.0;
+    };
+
     $oldDetails = old('details', []);
     $seedDetails = is_array($oldDetails) && count($oldDetails) > 0 ? $oldDetails : ($detailRows ?? [[]]);
     $initialDetailRows = collect($seedDetails)
         ->values()
-        ->map(function ($detail, $index) {
+        ->map(function ($detail, $index) use ($parseAmount) {
             return [
                 'uid' => 'bs-' . $index . '-' . substr(md5((string) $index), 0, 8),
                 'frefno' => trim((string) ($detail['frefno'] ?? '')),
-                'fnilai_order' => (float) ($detail['fnilai_order'] ?? 0),
-                'fsisa_hutang' => (float) ($detail['fsisa_hutang'] ?? 0),
-                'fdiscpersen' => (float) ($detail['fdiscpersen'] ?? 0),
-                'fdiscount' => (float) ($detail['fdiscount'] ?? 0),
-                'fkasdtvalue' => (float) ($detail['fkasdtvalue'] ?? 0),
+                'fnilai_order' => $parseAmount($detail['fnilai_order'] ?? 0),
+                'fsisa_hutang' => $parseAmount($detail['fsisa_hutang'] ?? 0),
+                'fdiscpersen' => $parseAmount($detail['fdiscpersen'] ?? 0),
+                'fdiscount' => $parseAmount($detail['fdiscount'] ?? 0),
+                'fkasdtvalue' => $parseAmount($detail['fkasdtvalue'] ?? 0),
             ];
         })
         ->all();
@@ -45,7 +65,7 @@
 
         <input type="hidden" name="fsupplier_tempo" x-model="supplierTempo">
         <fieldset @disabled($isReadOnly) class="space-y-3.5">
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+            <div class="grid grid-cols-3 gap-3">
                 <div>
                     <label class="block text-sm font-bold mb-1">{{ 'Cabang' }}</label>
                     <input type="text" value="{{ $currentBranchLabel ?? old('fbranchcode', $currentBranchCode) }}"
@@ -74,7 +94,8 @@
                 </div>
             </div>
 
-            <div class="grid grid-cols-1 md:grid-cols-4 gap-3">
+            {{-- Row 2: Supplier, Account, No.Giro --}}
+            <div class="grid grid-cols-3 gap-3">
                 <div>
                     <label class="block text-sm font-bold mb-1">{{ 'Supplier' }}</label>
                     <div class="flex">
@@ -120,7 +141,19 @@
                 </div>
 
                 <div>
-                    <label class="inline-flex items-center gap-2 h-9 mt-6 px-3 border rounded w-full bg-white">
+                    <label class="block text-sm font-bold mb-1">{{ 'No.Giro' }}</label>
+                    <input type="text" name="fnogiro" value="{{ old('fnogiro', $giroNo ?? '') }}"
+                        class="w-full border rounded px-3 py-1.5 @error('fnogiro') border-red-500 @enderror">
+                    @error('fnogiro')
+                        <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+                    @enderror
+                </div>
+            </div>
+
+            {{-- Row 3: Giro Mundur, Tgl.Jatuh Tempo --}}
+            <div class="grid grid-cols-3 gap-3 items-end">
+                <div>
+                    <label class="inline-flex items-center gap-2 h-9 px-3 border rounded w-full bg-white">
                         <input type="checkbox" x-model="isGiroMundur" class="rounded">{{ 'Giro Mundur' }}
                     </label>
                     <input type="hidden" name="fgiromundur" :value="isGiroMundur ? '1' : '0'">
@@ -136,17 +169,11 @@
                         <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                     @enderror
                 </div>
+
+                <div></div>
             </div>
 
-            <div>
-                <label class="block text-sm font-bold mb-1">{{ 'No.Giro' }}</label>
-                <input type="text" name="fnogiro" value="{{ old('fnogiro', $giroNo ?? '') }}"
-                    class="w-full border rounded px-3 py-1.5 @error('fnogiro') border-red-500 @enderror">
-                @error('fnogiro')
-                    <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
-                @enderror
-            </div>
-
+            {{-- Row 4: Keterangan --}}
             <div>
                 <label class="block text-sm font-bold mb-1">{{ 'Keterangan' }}</label>
                 <input type="text" name="fket" value="{{ old('fket', $noteValue ?? '') }}"
@@ -186,12 +213,12 @@
                                             class="w-full border rounded px-2 py-1">
                                     </td>
                                     <td class="border px-2 py-1">
-                                        <input type="number" min="0" step="0.01" x-model="row.fnilai_order"
+                                        <input type="text" :value="formatNumber(row.fnilai_order)"
                                             class="w-full border rounded px-2 py-1 text-right bg-gray-100 cursor-not-allowed" readonly disabled>
                                         <input type="hidden" :name="`details[${index}][fnilai_order]`" :value="row.fnilai_order">
                                     </td>
                                     <td class="border px-2 py-1">
-                                        <input type="number" min="0" step="0.01" x-model="row.fsisa_hutang"
+                                        <input type="text" :value="formatNumber(row.fsisa_hutang)"
                                             class="w-full border rounded px-2 py-1 text-right bg-gray-100 cursor-not-allowed" readonly disabled>
                                         <input type="hidden" :name="`details[${index}][fsisa_hutang]`" :value="row.fsisa_hutang">
                                     </td>
@@ -199,17 +226,28 @@
                                         <input type="number" min="0" max="100" step="0.01"
                                             :name="`details[${index}][fdiscpersen]`" x-model="row.fdiscpersen"
                                             @input="syncDiscountFromPercent(row)"
-                                            class="w-full border rounded px-2 py-1 text-right">
+                                            :disabled="isDiscPercentDisabled(row)"
+                                            class="w-full border rounded px-2 py-1 text-right disabled:bg-gray-100 disabled:text-gray-400 disabled:cursor-not-allowed">
+                                        <input type="hidden" x-show="isDiscPercentDisabled(row)"
+                                            :name="`details[${index}][fdiscpersen]`" :value="row.fdiscpersen">
                                     </td>
                                     <td class="border px-2 py-1">
-                                        <input type="number" min="0" step="0.01"
-                                            :name="`details[${index}][fdiscount]`" x-model="row.fdiscount"
-                                            @input="syncTotalBayar(row)"
-                                            class="w-full border rounded px-2 py-1 text-right">
+                                        <input type="text" x-init="$el.value = formatNumber(row.fdiscount)"
+                                            x-effect="if (document.activeElement !== $el) $el.value = formatNumber(row.fdiscount)"
+                                            @focus="showRawNumber($event, row, 'fdiscount')"
+                                            @input="setNumericField(row, 'fdiscount', $event.target.value); syncTotalBayar(row)"
+                                            @blur="formatNumericField($event, row, 'fdiscount')"
+                                            :disabled="isDiscountDisabled(row)"
+                                            class="w-full border rounded px-2 py-1 text-right disabled:bg-gray-100 disabled:text-gray-400 disabled:cursor-not-allowed">
+                                        <input type="hidden" :name="`details[${index}][fdiscount]`" :value="row.fdiscount">
                                     </td>
                                     <td class="border px-2 py-1">
-                                        <input type="number" min="0" step="0.01" x-model="row.fkasdtvalue"
-                                            class="w-full border rounded px-2 py-1 text-right bg-gray-100 cursor-not-allowed" readonly disabled>
+                                        <input type="text" x-init="$el.value = formatNumber(row.fkasdtvalue)"
+                                            x-effect="if (document.activeElement !== $el) $el.value = formatNumber(row.fkasdtvalue)"
+                                            @focus="showRawNumber($event, row, 'fkasdtvalue')"
+                                            @input="setNumericField(row, 'fkasdtvalue', $event.target.value); syncTotalBayar(row)"
+                                            @blur="formatNumericField($event, row, 'fkasdtvalue')"
+                                            class="w-full border rounded px-2 py-1 text-right disabled:bg-gray-100 disabled:text-gray-400 disabled:cursor-not-allowed">
                                         <input type="hidden" :name="`details[${index}][fkasdtvalue]`" :value="row.fkasdtvalue">
                                     </td>
                                     @if (!$isReadOnly)
@@ -237,50 +275,97 @@
                 <div class="w-full max-w-2xl">
                     <div class="rounded-lg border border-gray-200 bg-gray-50 p-4 space-y-3">
                         <div class="flex items-center justify-between gap-4">
-                            <label class="text-sm font-semibold text-gray-700">{{ 'Biaya Admin Bank' }}</label>
-                            <input type="number" min="0" step="0.01" name="fbiayaadminbank" x-model="bankAdminFee"
-                                @input="recalcTotals()"
-                                class="w-52 border rounded px-3 py-2 text-right @error('fbiayaadminbank') border-red-500 @enderror">
+                            <label class="text-sm font-semibold text-gray-700">{{ 'Biaya Admin Bank (-)' }}</label>
+                            <div class="w-52">
+                                <input type="number" min="0" step="0.01" name="fbiayaadminbank" x-model="bankAdminFee"
+                                    @input="recalcTotals()"
+                                    class="w-full border rounded px-3 py-2 text-right @error('fbiayaadminbank') border-red-500 @enderror">
+                            </div>
                         </div>
                         @error('fbiayaadminbank')
                             <p class="text-red-600 text-sm">{{ $message }}</p>
                         @enderror
 
                         <div class="grid grid-cols-2 gap-3">
-                            <div class="flex">
-                                <input type="text" x-model="adminAccountLabel"
-                                    class="w-full border rounded-l px-3 py-2 text-sm bg-gray-100 cursor-not-allowed" readonly>
-                                <input type="hidden" name="faccountadmin" x-model="adminAccountCode">
-                                @if (!$isReadOnly)
-                                    <button type="button" @click="activeAccountField = 'admin'; window.dispatchEvent(new CustomEvent('account-browse-open'))"
-                                        class="border -ml-px px-3 py-2 bg-white hover:bg-gray-50 rounded-r" title="Browse Account Admin">
-                                        <x-heroicon-o-magnifying-glass class="w-5 h-5" />
-                                    </button>
-                                @endif
+                            <div>
+                                <div class="flex">
+                                    <input type="text" x-model="adminAccountLabel"
+                                        class="w-full border rounded-l px-3 py-2 text-sm bg-gray-100 cursor-not-allowed" readonly>
+                                    <input type="hidden" name="faccountadmin" x-model="adminAccountCode">
+                                    @if (!$isReadOnly)
+                                        <button type="button" @click="activeAccountField = 'admin'; window.dispatchEvent(new CustomEvent('admin-account-browse-open'))"
+                                            class="border -ml-px px-3 py-2 bg-white hover:bg-gray-50 rounded-r" title="Browse Account Admin">
+                                            <x-heroicon-o-magnifying-glass class="w-5 h-5" />
+                                        </button>
+                                    @endif
+                                </div>
+                                @error('faccountadmin')
+                                    <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+                                @enderror
                             </div>
-                            <div class="flex items-center justify-between gap-4 border-t md:border-t-0 pt-3 md:pt-0">
-                                <span class="text-sm font-semibold text-gray-800">{{ 'Total Bayar' }}</span>
-                                <input type="text" x-model="totalBayarDisplay"
-                                    class="w-52 border rounded px-3 py-2 bg-gray-100 text-right font-semibold cursor-not-allowed" readonly>
+
+                            <div class="flex justify-end">
+                                <input type="number" min="0" step="0.01" name="fhargaadmin" x-model="hargaAdmin"
+                                    @input="recalcTotals()"
+                                    class="w-52 border rounded px-3 py-2 text-right text-sm @error('fhargaadmin') border-red-500 @enderror">
+                                @error('fhargaadmin')
+                                    <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+                                @enderror
                             </div>
                         </div>
-                        @error('faccountadmin')
-                            <p class="text-red-600 text-sm">{{ $message }}</p>
-                        @enderror
+
+                        <div class="grid grid-cols-2 gap-3">
+                            <div>
+                                <div class="flex">
+                                    <input type="text" x-model="adminAccount2Label"
+                                        class="w-full border rounded-l px-3 py-2 text-sm bg-gray-100 cursor-not-allowed" readonly>
+                                    <input type="hidden" name="faccountadmin2" x-model="adminAccount2Code">
+                                    @if (!$isReadOnly)
+                                        <button type="button" @click="activeAccountField = 'admin2'; window.dispatchEvent(new CustomEvent('admin-account-browse-open'))"
+                                            class="border -ml-px px-3 py-2 bg-white hover:bg-gray-50 rounded-r" title="Browse Account Admin 2">
+                                            <x-heroicon-o-magnifying-glass class="w-5 h-5" />
+                                        </button>
+                                    @endif
+                                </div>
+                                @error('faccountadmin2')
+                                    <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+                                @enderror
+                            </div>
+
+                            <div class="flex justify-end">
+                                <input type="number" min="0" step="0.01" name="fhargaadmin2" x-model="hargaAdmin2"
+                                    @input="recalcTotals()"
+                                    class="w-52 border rounded px-3 py-2 text-right text-sm @error('fhargaadmin2') border-red-500 @enderror">
+                                @error('fhargaadmin2')
+                                    <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+                                @enderror
+                            </div>
+                        </div>
+
+                        <div class="flex items-center justify-between gap-4 border-t pt-3">
+                            <span class="text-sm font-semibold text-gray-800">{{ 'Total Bayar' }}</span>
+                            <input type="text" x-model="totalBayarDisplay"
+                                class="w-52 border rounded px-3 py-2 bg-gray-100 text-right font-semibold cursor-not-allowed"
+                                readonly>
+                        </div>
                     </div>
                 </div>
             </div>
         </fieldset>
 
         <div class="flex items-center justify-center gap-3">
-            <a href="{{ $backRoute }}" class="inline-flex items-center px-4 py-2 rounded border border-gray-300 bg-white hover:bg-gray-50">
-                {{ 'Keluar' }}
-            </a>
-            @if (!$isReadOnly && !empty($submitLabel))
+            @if ($isDeleteMode)
+                <button type="submit" class="inline-flex items-center px-4 py-2 rounded bg-red-600 text-white hover:bg-red-700">
+                    {{ $submitLabel }}
+                </button>
+            @elseif (!$isReadOnly && !empty($submitLabel))
                 <button type="submit" class="inline-flex items-center px-4 py-2 rounded bg-blue-600 text-white hover:bg-blue-700">
                     {{ $submitLabel }}
                 </button>
             @endif
+            <a href="{{ $backRoute }}" class="inline-flex items-center px-4 py-2 rounded border border-gray-300 bg-white hover:bg-gray-50">
+                {{ 'Keluar' }}
+            </a>
         </div>
 
         @if (!$isReadOnly)
@@ -394,6 +479,15 @@
 @if (!$isReadOnly)
     <x-transaction.browse-supplier-modal />
     <x-transaction.browse-account-modal />
+    <x-transaction.browse-account-modal
+        table-id="adminAccountTable"
+        controls-id="adminAccountTableControls"
+        pagination-id="adminAccountTablePagination"
+        event-name="admin-account-browse-open"
+        :fend="1"
+        show-controls="true"
+        show-pagination="true"
+    />
 @endif
 
 @push('styles')
@@ -421,11 +515,15 @@
                 accountLabel: @js($selectedAccountCode !== '' ? trim($selectedAccountCode . ' - ' . $selectedAccountName) : ''),
                 adminAccountCode: @js($selectedAdminAccount->faccount ?? ''),
                 adminAccountLabel: @js(isset($selectedAdminAccount) ? trim($selectedAdminAccount->faccount . ' - ' . $selectedAdminAccount->faccname) : ''),
+                adminAccount2Code: @js($selectedAdminAccount2->faccount ?? ''),
+                adminAccount2Label: @js(isset($selectedAdminAccount2) ? trim($selectedAdminAccount2->faccount . ' - ' . $selectedAdminAccount2->faccname) : ''),
                 activeAccountField: null,
                 transactionDate: @js(old('fkasmtdate', $transactionDate)),
                 dueDate: @js(old('ftgljatuhtempo', $dueDate ?? '')),
                 isGiroMundur: @js(old('fgiromundur', ($giroMundur ?? false) ? '1' : '0') === '1'),
                 bankAdminFee: @js((float) old('fbiayaadminbank', $bankAdminFee ?? 0)),
+                hargaAdmin: @js((float) old('fhargaadmin', $hargaAdminValue ?? 0)),
+                hargaAdmin2: @js((float) old('fhargaadmin2', $hargaAdmin2Value ?? 0)),
                 totalBayarDisplay: '0.00',
                 pblModalOpen: false,
                 pblLoading: false,
@@ -439,7 +537,18 @@
                 tempSelectedPbls: [],
 
                 init() {
-                    this.rows = (Array.isArray(initialRows) && initialRows.length ? initialRows : []).map((row, index) => this.normalizeRow(row, index));
+                    const isEdit = @js(isset($headerData));
+                    this.rows = (Array.isArray(initialRows) && initialRows.length ? initialRows : [])
+                        .map((row, index) => {
+                            const normalized = this.normalizeRow(row, index);
+                            if (isEdit) {
+                                normalized.originalSisa = normalized.fsisa_hutang + normalized.fkasdtvalue + normalized.fdiscount;
+                            } else {
+                                normalized.originalSisa = normalized.fsisa_hutang;
+                            }
+                            return normalized;
+                        });
+
                     this.ensureMinimumRows();
                     this.recalcTotals();
 
@@ -450,9 +559,25 @@
 
                     window.addEventListener('supplier-picked', (event) => {
                         const detail = event.detail || {};
-                        this.supplierCode = String(detail.fsuppliercode || '').trim();
+                        const code = String(detail.fsuppliercode || '').trim();
+                        const name = String(detail.fsuppliername || '').trim();
+
+                        this.supplierCode = code;
                         this.supplierTempo = Number(detail.ftempo || 0);
                         if (this.isGiroMundur) this.syncDueDate();
+
+                        const select = document.getElementById('modal_filter_supplier_id');
+                        if (select) {
+                            const label = name ? `${name} (${code})` : code;
+                            let option = Array.from(select.options).find((item) => item.value === code);
+                            if (!option) {
+                                option = new Option(label, code, true, true);
+                                select.add(option);
+                            } else {
+                                option.text = label;
+                                option.selected = true;
+                            }
+                        }
                     });
 
                     window.addEventListener('account-picked', (event) => {
@@ -462,6 +587,9 @@
                         if (this.activeAccountField === 'admin') {
                             this.adminAccountCode = code;
                             this.adminAccountLabel = code && name ? `${code} - ${name}` : code;
+                        } else if (this.activeAccountField === 'admin2') {
+                            this.adminAccount2Code = code;
+                            this.adminAccount2Label = code && name ? `${code} - ${name}` : code;
                         } else {
                             this.accountCode = code;
                             this.accountLabel = code && name ? `${code} - ${name}` : code;
@@ -471,18 +599,22 @@
                     this.$watch('transactionDate', () => { if (this.isGiroMundur) this.syncDueDate(); });
                     this.$watch('isGiroMundur', (value) => value ? this.syncDueDate() : this.dueDate = '');
                     this.$watch('bankAdminFee', () => this.recalcTotals());
+                    this.$watch('hargaAdmin', () => this.recalcTotals());
+                    this.$watch('hargaAdmin2', () => this.recalcTotals());
                 },
 
                 emptyRow() {
-                    return { uid: this.makeUid(), frefno: '', fnilai_order: 0, fsisa_hutang: 0, fdiscpersen: 0, fdiscount: 0, fkasdtvalue: 0 };
+                    return { uid: this.makeUid(), frefno: '', fnilai_order: 0, fsisa_hutang: 0, originalSisa: 0, fdiscpersen: 0, fdiscount: 0, fkasdtvalue: 0 };
                 },
 
                 normalizeRow(row = {}, index = 0) {
+                    const sisa = this.toNumber(row.fsisa_hutang);
                     return {
                         uid: row.uid || `bs-row-${index}-${this.makeUid()}`,
                         frefno: String(row.frefno || '').trim(),
                         fnilai_order: this.toNumber(row.fnilai_order),
-                        fsisa_hutang: this.toNumber(row.fsisa_hutang),
+                        fsisa_hutang: sisa,
+                        originalSisa: row.originalSisa !== undefined ? this.toNumber(row.originalSisa) : sisa,
                         fdiscpersen: this.toNumber(row.fdiscpersen),
                         fdiscount: this.toNumber(row.fdiscount),
                         fkasdtvalue: this.toNumber(row.fkasdtvalue),
@@ -494,11 +626,32 @@
                 makeUid() { return `${Date.now()}-${Math.random().toString(36).slice(2, 10)}`; },
                 toNumber(value) { const number = Number(value); return Number.isFinite(number) ? number : 0; },
                 formatNumber(value) { return this.toNumber(value).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }); },
+                showRawNumber(event, row, field) {
+                    event.target.value = this.toNumber(row?.[field]).toFixed(2);
+                    event.target.select();
+                },
+                setNumericField(row, field, value) {
+                    row[field] = this.toNumber(value);
+                },
+                formatNumericField(event, row, field) {
+                    row[field] = this.toNumber(row?.[field]);
+                    event.target.value = this.formatNumber(row[field]);
+                },
                 formatDateDisplay(value) {
                     if (!value) return '-';
                     const date = new Date(`${value}T00:00:00`);
                     if (Number.isNaN(date.getTime())) return value;
                     return `${String(date.getDate()).padStart(2, '0')}/${String(date.getMonth() + 1).padStart(2, '0')}/${date.getFullYear()}`;
+                },
+
+                isDiscPercentDisabled(row) {
+                    const percent = this.toNumber(row?.fdiscpersen);
+                    const discount = this.toNumber(row?.fdiscount);
+                    return percent <= 0 && discount > 0;
+                },
+                isDiscountDisabled(row) {
+                    const percent = this.toNumber(row?.fdiscpersen);
+                    return percent > 0;
                 },
 
                 openPblModal() {
@@ -587,6 +740,7 @@
                         targetRow.frefno = refNo;
                         targetRow.fnilai_order = this.toNumber(record.famountmt);
                         targetRow.fsisa_hutang = remain;
+                        targetRow.originalSisa = remain;
                         targetRow.fdiscpersen = 0;
                         targetRow.fdiscount = 0;
                         targetRow.fkasdtvalue = remain;
@@ -597,18 +751,33 @@
                 },
                 removeRow(index) { this.rows.splice(index, 1); this.recalcTotals(); },
                 syncDiscountFromPercent(row) {
-                    const basis = this.toNumber(row.fsisa_hutang || row.fnilai_order);
-                    row.fdiscount = basis * this.toNumber(row.fdiscpersen) / 100;
-                    row.fkasdtvalue = Math.max(basis - row.fdiscount, 0);
+                    const percent = this.toNumber(row.fdiscpersen);
+                    const original = this.toNumber(row.originalSisa);
+                    if (percent > 0) {
+                        row.fdiscount = original * percent / 100;
+                        row.fkasdtvalue = Math.max(original - row.fdiscount, 0);
+                        row.fsisa_hutang = 0;
+                    } else {
+                        row.fdiscount = 0;
+                        row.fsisa_hutang = Math.max(original - row.fkasdtvalue, 0);
+                    }
                     this.recalcTotals();
                 },
                 syncTotalBayar(row) {
-                    const basis = this.toNumber(row.fsisa_hutang || row.fnilai_order);
-                    row.fkasdtvalue = Math.max(basis - this.toNumber(row.fdiscount), 0);
+                    const pay = this.toNumber(row.fkasdtvalue);
+                    const disc = this.toNumber(row.fdiscount);
+                    const original = this.toNumber(row.originalSisa);
+                    if (pay > Math.max(original - disc, 0)) {
+                        row.fkasdtvalue = Math.max(original - disc, 0);
+                    }
+                    row.fsisa_hutang = Math.max(original - this.toNumber(row.fkasdtvalue) - disc, 0);
                     this.recalcTotals();
                 },
                 recalcTotals() {
-                    const totalBayar = this.rows.reduce((sum, row) => sum + this.toNumber(row.fkasdtvalue), 0) + this.toNumber(this.bankAdminFee);
+                    const totalBayar = this.rows.reduce((sum, row) => sum + this.toNumber(row.fkasdtvalue), 0)
+                        + this.toNumber(this.bankAdminFee)
+                        + this.toNumber(this.hargaAdmin)
+                        + this.toNumber(this.hargaAdmin2);
                     this.totalBayarDisplay = this.formatNumber(totalBayar);
                 },
                 syncDueDate() {

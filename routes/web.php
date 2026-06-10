@@ -266,6 +266,11 @@ Route::middleware('auth')->group(function () {
         Route::get('/bayarsupplier/create', [BayarSupplierController::class, 'create'])->name('bayarsupplier.create');
         Route::post('/bayarsupplier', [BayarSupplierController::class, 'store'])->name('bayarsupplier.store');
         Route::get('/bayarsupplier/pickable-pbl', [BayarSupplierController::class, 'pickablePbl'])->name('bayarsupplier.pickable-pbl');
+        Route::get('/bayarsupplier/{fkasmtno}/view', [BayarSupplierController::class, 'view'])->name('bayarsupplier.view');
+        Route::get('/bayarsupplier/{fkasmtno}/edit', [BayarSupplierController::class, 'edit'])->name('bayarsupplier.edit');
+        Route::get('/bayarsupplier/{fkasmtno}/delete', [BayarSupplierController::class, 'delete'])->name('bayarsupplier.delete');
+        Route::patch('/bayarsupplier/{fkasmtno}', [BayarSupplierController::class, 'update'])->name('bayarsupplier.update');
+        Route::delete('/bayarsupplier/{fkasmtno}', [BayarSupplierController::class, 'destroy'])->name('bayarsupplier.destroy');
 
         Route::get('/account', [AccountController::class, 'index'])->name('account.index');
         Route::post('/account', [AccountController::class, 'store'])->name('account.store');
