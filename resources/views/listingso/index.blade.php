@@ -13,6 +13,7 @@
             </div>
 
             <form method="GET" action="{{ route('listingso.print') }}" target="_blank">
+                <input type="hidden" name="selected_products" id="selected_products_input">
                 <div class="space-y-4">
                      {{-- Cabang / Branch checkboxes --}}
                     <div>
@@ -65,47 +66,67 @@
                     </div>
 
                     {{-- Customer --}}
-                    <div class="grid grid-cols-2 gap-4">
-                        <div>
-                            <label class="block text-xs font-bold uppercase mb-1">Cust From</label>
-                            <select name="cust_from" id="cust_from" class="select2 w-full">
-                                <option value="">-- All --</option>
-                                @foreach($customers as $c) <option value="{{$c->fcustomercode}}">{{$c->fcustomercode}} - {{$c->fcustomername}}</option> @endforeach
-                            </select>
-                        </div>
-                        <div>
-                            <label class="block text-xs font-bold uppercase mb-1">Cust To</label>
-                            <select name="cust_to" id="cust_to" class="select2 w-full">
-                                <option value="">-- All --</option>
-                                @foreach($customers as $c) <option value="{{$c->fcustomercode}}">{{$c->fcustomercode}} - {{$c->fcustomername}}</option> @endforeach
-                            </select>
-                        </div>
+                    <div>
+                        <label class="block text-xs font-bold uppercase mb-1">Customer</label>
+                        <select name="customer_code" id="customer_code" class="select2 w-full">
+                            <option value="">-- Semua / All --</option>
+                            @foreach($customers as $c)
+                                <option value="{{$c->fcustomercode}}">{{$c->fcustomercode}} - {{$c->fcustomername}}</option>
+                            @endforeach
+                        </select>
                     </div>
 
                     {{-- Produk --}}
+                    <div>
+                        <p class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Filter Produk</p>
+                        <div class="border border-gray-200 rounded-lg p-3 bg-gray-50">
+                            <div class="flex gap-2 mb-2">
+                                <select id="prd_selector" class="select2 flex-1 border border-gray-300 rounded-lg text-sm">
+                                    <option value="">-- Pilih Produk --</option>
+                                    @foreach($products as $p)
+                                        <option value="{{$p->fprdcode}}">{{$p->fprdcode}} - {{$p->fprdname}}</option>
+                                    @endforeach
+                                </select>
+                                <button type="button" onclick="addProduct()"
+                                    class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-bold">
+                                    + Add
+                                </button>
+                            </div>
+                            <div id="prd_list"
+                                class="flex flex-wrap gap-2 min-h-[38px] p-2 bg-white border border-gray-200 rounded-lg">
+                                <span class="text-xs text-gray-400 italic self-center">Belum ada produk dipilih</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    {{-- Product Group & Brand --}}
                     <div class="grid grid-cols-2 gap-4">
                         <div>
-                            <label class="block text-xs font-bold uppercase mb-1">Prd From</label>
-                            <select name="prd_from" id="prd_from" class="select2 w-full">
-                                <option value="">-- All --</option>
-                                @foreach($products as $p) <option value="{{$p->fprdcode}}">{{$p->fprdcode}}</option> @endforeach
+                            <label class="block text-xs font-bold uppercase mb-1">Product Group</label>
+                            <select name="group_code" id="group_code" class="select2 w-full">
+                                <option value="">-- Semua / All --</option>
+                                @foreach($groups as $g)
+                                    <option value="{{$g->fgroupcode}}">{{$g->fgroupcode}} - {{$g->fgroupname}}</option>
+                                @endforeach
                             </select>
                         </div>
                         <div>
-                            <label class="block text-xs font-bold uppercase mb-1">Prd To</label>
-                            <select name="prd_to" id="prd_to" class="select2 w-full">
-                                <option value="">-- All --</option>
-                                @foreach($products as $p) <option value="{{$p->fprdcode}}">{{$p->fprdcode}}</option> @endforeach
+                            <label class="block text-xs font-bold uppercase mb-1">Brand</label>
+                            <select name="merek_code" id="merek_code" class="select2 w-full">
+                                <option value="">-- Semua / All --</option>
+                                @foreach($mereks as $m)
+                                    <option value="{{$m->fmerekcode}}">{{$m->fmerekcode}} - {{$m->fmerekname}}</option>
+                                @endforeach
                             </select>
                         </div>
                     </div>
 
                     <div class="grid grid-cols-2 gap-2 bg-gray-50 p-3 rounded border">
-                        <label class="flex items-center text-sm font-semibold">
-                            <input type="checkbox" name="all_so" id="all_so" checked class="mr-2 w-4 h-4"> Semua SO
+                        <label class="flex items-center text-sm font-semibold cursor-pointer">
+                            <input type="radio" name="so_filter" id="all_so" value="all" checked class="mr-2 w-4 h-4 text-blue-600 focus:ring-blue-500"> Semua SO
                         </label>
-                        <label class="flex items-center text-sm font-semibold">
-                            <input type="checkbox" name="only_pending" id="only_pending" class="mr-2 w-4 h-4"> Hanya SO yg Belum Kirim
+                        <label class="flex items-center text-sm font-semibold cursor-pointer">
+                            <input type="radio" name="so_filter" id="only_pending" value="only_pending" class="mr-2 w-4 h-4 text-blue-600 focus:ring-blue-500"> Hanya SO yg Belum Kirim
                         </label>
                     </div>
                 </div>
@@ -120,23 +141,47 @@
 </div>
 
 <script>
+    let selectedProducts = [];
+
     $(document).ready(function() {
         $('.select2').select2({ width: '100%' });
         toggleModal(true);
-
-        $('#all_so').change(function() {
-            if($(this).is(':checked')) {
-                $('#only_pending').prop('checked', false).prop('disabled', true);
-            } else {
-                $('#only_pending').prop('disabled', false);
-            }
-        }).trigger('change');
     });
     function toggleModal(show) { $('#filterModal').toggleClass('hidden', !show); }
     function selectAllBranches(status) {
         document.querySelectorAll('#branchCheckboxesArea .branch-checkbox').forEach(checkbox => {
             checkbox.checked = status;
         });
+    }
+
+    function addProduct() {
+        const sel = document.getElementById('prd_selector');
+        const code = sel.value;
+        if (code && !selectedProducts.includes(code)) {
+            selectedProducts.push(code);
+            renderPrdList();
+        }
+    }
+
+    function removePrd(code) {
+        selectedProducts = selectedProducts.filter(c => c !== code);
+        renderPrdList();
+    }
+
+    function renderPrdList() {
+        const container = document.getElementById('prd_list');
+        if (selectedProducts.length === 0) {
+            container.innerHTML =
+                '<span class="text-xs text-gray-400 italic self-center">Belum ada produk dipilih</span>';
+        } else {
+            container.innerHTML = selectedProducts.map(c =>
+                `<span class="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded-md flex items-center gap-1 border border-blue-200">
+                    ${c}
+                    <button type="button" onclick="removePrd('${c}')" class="text-red-500 font-bold leading-none">&times;</button>
+                </span>`
+            ).join('');
+        }
+        document.getElementById('selected_products_input').value = selectedProducts.join(',');
     }
 </script>
 @endsection

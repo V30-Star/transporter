@@ -276,7 +276,7 @@
             @foreach ($chunkedData as $pageIndex => $pageData)
                 <div class="a4-container">
                     <div class="header-section">
-                        <div class="supplier-info-kiri">Customer: {{ request('cust_from') ?? 'Semua' }}
+                        <div class="supplier-info-kiri">Customer: {{ request('customer_code') ?: (request('cust_from') ?: 'Semua') }}
                             <br>
                             Cabang: {{ request()->has('branch_codes') ? implode(', ', (array) request()->input('branch_codes')) : 'Semua' }}
                         </div>

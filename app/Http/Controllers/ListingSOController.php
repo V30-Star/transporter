@@ -17,11 +17,13 @@ class ListingSOController extends Controller
         $customers = DB::table('mscustomer')->orderBy('fcustomercode')->get();
         $products = DB::table('msprd')->orderBy('fprdcode')->get();
         $branches = DB::table('mscabang')->orderBy('fcabangkode')->get();
+        $groups = DB::table('ms_groupprd')->orderBy('fgroupcode')->get();
+        $mereks = DB::table('msmerek')->orderBy('fmerekcode')->get();
 
         $isAuthorized = $this->canAccessAllBranches();
         $userBranchCode = $this->getCurrentBranchCode();
 
-        return view('listingso.index', compact('customers', 'products', 'branches', 'isAuthorized', 'userBranchCode'));
+        return view('listingso.index', compact('customers', 'products', 'branches', 'groups', 'mereks', 'isAuthorized', 'userBranchCode'));
     }
 
     public function print(Request $request)
@@ -44,20 +46,62 @@ class ListingSOController extends Controller
             $query->where('mt.fsodate', '<=', $request->date_to.' 23:59:59');
         }
 
-        if ($request->cust_from && $request->cust_to) {
+        if ($request->customer_code) {
+            $query->where('cust.fcustomercode', $request->customer_code);
+        } elseif ($request->cust_from && $request->cust_to) {
             $query->whereBetween('cust.fcustomercode', [$request->cust_from, $request->cust_to]);
         }
 
-        if ($request->prd_from && $request->prd_to) {
+        $selectedProducts = collect(explode(',', (string) $request->selected_products))
+            ->map(fn ($code) => trim($code))
+            ->filter()
+            ->values()
+            ->all();
+
+        if (!empty($selectedProducts)) {
+            $query->whereExists(function ($q) use ($selectedProducts) {
+                $q->select(DB::raw(1))
+                    ->from('public.trsodt as dt')
+                    ->whereRaw('dt.fsono = mt.fsono')
+                    ->whereIn('dt.fprdcode', $selectedProducts);
+            });
+        } elseif ($request->product_code) {
             $query->whereExists(function ($q) use ($request) {
                 $q->select(DB::raw(1))
                     ->from('public.trsodt as dt')
                     ->whereRaw('dt.fsono = mt.fsono')
-                    ->whereBetween('dt.fitemno', [$request->prd_from, $request->prd_to]);
+                    ->where('dt.fprdcode', $request->product_code);
+            });
+        } elseif ($request->prd_from && $request->prd_to) {
+            $query->whereExists(function ($q) use ($request) {
+                $q->select(DB::raw(1))
+                    ->from('public.trsodt as dt')
+                    ->whereRaw('dt.fsono = mt.fsono')
+                    ->whereBetween('dt.fprdcode', [$request->prd_from, $request->prd_to]);
             });
         }
 
-        if (! $request->has('all_so') && $request->has('only_pending')) {
+        if ($request->group_code) {
+            $query->whereExists(function ($q) use ($request) {
+                $q->select(DB::raw(1))
+                    ->from('public.trsodt as dt')
+                    ->join('public.msprd as p', 'dt.fprdcode', '=', 'p.fprdcode')
+                    ->whereRaw('dt.fsono = mt.fsono')
+                    ->where('p.fgroupcode', $request->group_code);
+            });
+        }
+
+        if ($request->merek_code) {
+            $query->whereExists(function ($q) use ($request) {
+                $q->select(DB::raw(1))
+                    ->from('public.trsodt as dt')
+                    ->join('public.msprd as p', 'dt.fprdcode', '=', 'p.fprdcode')
+                    ->whereRaw('dt.fsono = mt.fsono')
+                    ->where('p.fmerek', $request->merek_code);
+            });
+        }
+
+        if ($request->input('so_filter') === 'only_pending' || (! $request->has('all_so') && $request->has('only_pending'))) {
             $query->where('mt.fclose', '0');
         }
 
@@ -99,20 +143,62 @@ class ListingSOController extends Controller
             $query->where('mt.fsodate', '<=', $request->date_to.' 23:59:59');
         }
 
-        if ($request->cust_from && $request->cust_to) {
+        if ($request->customer_code) {
+            $query->where('cust.fcustomercode', $request->customer_code);
+        } elseif ($request->cust_from && $request->cust_to) {
             $query->whereBetween('cust.fcustomercode', [$request->cust_from, $request->cust_to]);
         }
 
-        if ($request->prd_from && $request->prd_to) {
+        $selectedProducts = collect(explode(',', (string) $request->selected_products))
+            ->map(fn ($code) => trim($code))
+            ->filter()
+            ->values()
+            ->all();
+
+        if (!empty($selectedProducts)) {
+            $query->whereExists(function ($q) use ($selectedProducts) {
+                $q->select(DB::raw(1))
+                    ->from('public.trsodt as dt')
+                    ->whereRaw('dt.fsono = mt.fsono')
+                    ->whereIn('dt.fprdcode', $selectedProducts);
+            });
+        } elseif ($request->product_code) {
             $query->whereExists(function ($q) use ($request) {
                 $q->select(DB::raw(1))
                     ->from('public.trsodt as dt')
                     ->whereRaw('dt.fsono = mt.fsono')
-                    ->whereBetween('dt.fitemno', [$request->prd_from, $request->prd_to]);
+                    ->where('dt.fprdcode', $request->product_code);
+            });
+        } elseif ($request->prd_from && $request->prd_to) {
+            $query->whereExists(function ($q) use ($request) {
+                $q->select(DB::raw(1))
+                    ->from('public.trsodt as dt')
+                    ->whereRaw('dt.fsono = mt.fsono')
+                    ->whereBetween('dt.fprdcode', [$request->prd_from, $request->prd_to]);
             });
         }
 
-        if (! $request->has('all_so') && $request->has('only_pending')) {
+        if ($request->group_code) {
+            $query->whereExists(function ($q) use ($request) {
+                $q->select(DB::raw(1))
+                    ->from('public.trsodt as dt')
+                    ->join('public.msprd as p', 'dt.fprdcode', '=', 'p.fprdcode')
+                    ->whereRaw('dt.fsono = mt.fsono')
+                    ->where('p.fgroupcode', $request->group_code);
+            });
+        }
+
+        if ($request->merek_code) {
+            $query->whereExists(function ($q) use ($request) {
+                $q->select(DB::raw(1))
+                    ->from('public.trsodt as dt')
+                    ->join('public.msprd as p', 'dt.fprdcode', '=', 'p.fprdcode')
+                    ->whereRaw('dt.fsono = mt.fsono')
+                    ->where('p.fmerek', $request->merek_code);
+            });
+        }
+
+        if ($request->input('so_filter') === 'only_pending' || (! $request->has('all_so') && $request->has('only_pending'))) {
             $query->where('mt.fclose', '0');
         }
 
@@ -148,9 +234,11 @@ class ListingSOController extends Controller
         $writer->addRow($makeRow(['LISTING SALES ORDER'], $styleTitle));
         $writer->addRow($makeRow([
             'Customer:',
-            $request->cust_from
-                ? '['.$request->cust_from.'] s/d ['.$request->cust_to.']'
-                : 'Semua',
+            $request->customer_code
+                ? $request->customer_code
+                : ($request->cust_from
+                    ? '['.$request->cust_from.'] s/d ['.$request->cust_to.']'
+                    : 'Semua'),
         ]));
         $writer->addRow($makeRow([
             'Periode:',
