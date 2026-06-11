@@ -534,7 +534,7 @@
 @if (!$isReadOnly)
     @include('components.transaction.browse-customer-modal')
     @include('components.transaction.browse-customer-script')
-    <x-transaction.browse-account-modal />
+    <x-transaction.browse-account-modal :fend="1" :fnonactive="0" show-controls="true" show-pagination="true" />
     <x-transaction.browse-account-modal 
         table-id="adminAccountTable" 
         controls-id="adminAccountTableControls" 
