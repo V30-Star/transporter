@@ -61,7 +61,7 @@
 
 <div class="bg-white rounded shadow p-6 md:p-8 max-w-[96rem] mx-auto"
     x-data="pelunasanCustomerForm(@js($initialDetailRows), @js($selectedCustomerTempo))" x-init="init()">
-    <form action="{{ $formAction }}" method="POST" class="space-y-6" @submit="syncDetailSnapshot()"
+    <form action="{{ $formAction }}" method="POST" class="space-y-6" @submit="handleFormSubmit($event)"
         @if (!$isReadOnly && !empty($draftKey)) data-form-draft="true" data-draft-key="{{ $draftKey }}" @endif>
         @csrf
         @if ($formMethod !== 'POST')
@@ -724,6 +724,17 @@
                     return String(row.frefno || '').trim() !== '';
                 },
 
+                handleFormSubmit(event) {
+                    const isDelete = @js($isDeleteMode);
+                    if (!isDelete) {
+                        if (!confirm('Is this invoice really owned by this customer?')) {
+                            event.preventDefault();
+                            return;
+                        }
+                    }
+                    this.syncDetailSnapshot();
+                },
+
                 syncDetailSnapshot() {
                     if (!this.$refs.detailSnapshot) return;
                     this.$refs.detailSnapshot.value = JSON.stringify(this.rows
@@ -942,7 +953,11 @@
                     const selectedCustomer = String(this.customerCode || '').trim();
                     const notaCustomer = String(record.fcustno || '').trim();
 
-                    return selectedCustomer === '' || notaCustomer === '' || selectedCustomer === notaCustomer;
+                    if (notaCustomer === '') {
+                        return false;
+                    }
+
+                    return selectedCustomer === '' || selectedCustomer === notaCustomer;
                 },
 
                 syncCustomerFromNota(record) {
@@ -974,6 +989,12 @@
                 },
 
                 toggleNotaSelection(record) {
+                    const notaCustomer = String(record.fcustno || '').trim();
+                    if (notaCustomer === '') {
+                        this.showNotaSelectionError('no customer exists.');
+                        return;
+                    }
+
                     if (!this.isNotaCustomerValid(record)) {
                         this.showNotaSelectionError('Nota harus sesuai customer yang dipilih.');
                         return;
@@ -1028,7 +1049,11 @@
 
                     const invalidCustomer = this.tempSelectedNotas.find(record => !this.isNotaCustomerValid(record));
                     if (invalidCustomer) {
-                        this.showNotaSelectionError('Nota harus sesuai customer yang dipilih.');
+                        if (String(invalidCustomer.fcustno || '').trim() === '') {
+                            this.showNotaSelectionError('no customer exists.');
+                        } else {
+                            this.showNotaSelectionError('Nota harus sesuai customer yang dipilih.');
+                        }
                         return;
                     }
 

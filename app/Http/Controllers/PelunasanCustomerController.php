@@ -769,7 +769,13 @@ class PelunasanCustomerController extends Controller
             $refNo = trim((string) ($row['frefno'] ?? ''));
             $refCustomer = $customerByRef->get($refNo, '');
 
-            if ($refCustomer !== '' && $refCustomer !== $customerCode) {
+            if ($refCustomer === '') {
+                throw ValidationException::withMessages([
+                    "details.{$index}.frefno" => 'no customer exists.',
+                ]);
+            }
+
+            if ($refCustomer !== $customerCode) {
                 throw ValidationException::withMessages([
                     "details.{$index}.frefno" => 'Nota harus sesuai customer yang dipilih.',
                 ]);
