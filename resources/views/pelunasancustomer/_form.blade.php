@@ -724,15 +724,29 @@
                     return String(row.frefno || '').trim() !== '';
                 },
 
-                handleFormSubmit(event) {
+                async handleFormSubmit(event) {
                     const isDelete = @js($isDeleteMode);
                     if (!isDelete) {
-                        if (!confirm('Is this invoice really owned by this customer?')) {
-                            event.preventDefault();
+                        event.preventDefault();
+                        const result = await Swal.fire({
+                            icon: 'question',
+                            title: 'Konfirmasi',
+                            text: 'Apakah faktur ini benar-benar milik pelanggan ini?',
+                            showCancelButton: true,
+                            confirmButtonText: 'Ya',
+                            cancelButtonText: 'Tidak',
+                            customClass: {
+                                confirmButton: 'bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700',
+                                cancelButton: 'bg-gray-500 text-white px-6 py-2 rounded hover:bg-gray-600'
+                            }
+                        });
+
+                        if (!result.isConfirmed) {
                             return;
                         }
                     }
                     this.syncDetailSnapshot();
+                    event.target.submit();
                 },
 
                 syncDetailSnapshot() {
