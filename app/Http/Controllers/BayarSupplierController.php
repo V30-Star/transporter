@@ -17,7 +17,6 @@ use Illuminate\Validation\ValidationException;
 class BayarSupplierController extends Controller
 {
     private const TRAN_CODE = 'BKK';
-    private const PAYABLE_SET_ACCOUNT = 'HUTANGDAGANG';
 
     public function index()
     {
@@ -234,7 +233,10 @@ class BayarSupplierController extends Controller
         $this->resolveReferenceTransactions($detailRows, Carbon::parse($validated['fkasmtdate']));
         $this->validatePaymentDoesNotExceedRemainingPayable($detailRows);
 
-        $payableAccount = $this->resolveRequiredAccount(self::PAYABLE_SET_ACCOUNT, 'Akun hutang dagang belum disetting.');
+        $payableCode = trim((string) DB::table('set_account')->where('faccount_name', 'HUTANGDAGANG')->value('faccount'));
+        $payableAccount = $payableCode !== ''
+            ? Account::query()->where('faccount', $payableCode)->where('fend', 1)->first(['faccid', 'faccount', 'faccname'])
+            : null;
         $bankAdminFee = round((float) ($validated['fbiayaadminbank'] ?? 0), 2);
         $adminAccount = null;
 
@@ -287,8 +289,8 @@ class BayarSupplierController extends Controller
                     'fkasdtid' => $nextDetailId + $index,
                     'fkasmtid' => $headerId,
                     'ftrancode' => self::TRAN_CODE,
-                    'faccount' => $payableAccount->faccount,
-                    'faccountid' => $payableAccount->faccid,
+                    'faccount' => $payableAccount?->faccount,
+                    'faccountid' => $payableAccount?->faccid,
                     'fdk' => 'D',
                     'frefno' => $row['frefno'],
                     'fnote' => $supplier->fsuppliername,
@@ -389,7 +391,10 @@ class BayarSupplierController extends Controller
         $this->resolveReferenceTransactions($detailRows, Carbon::parse($validated['fkasmtdate']));
         $this->validatePaymentDoesNotExceedRemainingPayable($detailRows, $header);
 
-        $payableAccount = $this->resolveRequiredAccount(self::PAYABLE_SET_ACCOUNT, 'Akun hutang dagang belum disetting.');
+        $payableCode = trim((string) DB::table('set_account')->where('faccount_name', 'HUTANGDAGANG')->value('faccount'));
+        $payableAccount = $payableCode !== ''
+            ? Account::query()->where('faccount', $payableCode)->where('fend', 1)->first(['faccid', 'faccount', 'faccname'])
+            : null;
         $bankAdminFee = round((float) ($validated['fbiayaadminbank'] ?? 0), 2);
         $adminAccount = null;
 
@@ -437,8 +442,8 @@ class BayarSupplierController extends Controller
                     'fkasdtid' => $nextDetailId + $index,
                     'fkasmtid' => $header->fkasmtid,
                     'ftrancode' => self::TRAN_CODE,
-                    'faccount' => $payableAccount->faccount,
-                    'faccountid' => $payableAccount->faccid,
+                    'faccount' => $payableAccount?->faccount,
+                    'faccountid' => $payableAccount?->faccid,
                     'fdk' => 'D',
                     'frefno' => $row['frefno'],
                     'fnote' => $supplier->fsuppliername,
@@ -521,19 +526,7 @@ class BayarSupplierController extends Controller
             ->values();
     }
 
-    private function resolveRequiredAccount(string $accountName, string $message): Account
-    {
-        $accountCode = trim((string) DB::table('set_account')->where('faccount_name', $accountName)->value('faccount'));
 
-        if ($accountCode === '') {
-            throw ValidationException::withMessages(['faccountheader' => $message]);
-        }
-
-        return Account::query()
-            ->where('faccount', $accountCode)
-            ->first(['faccid', 'faccount', 'faccname'])
-            ?? throw ValidationException::withMessages(['faccountheader' => $message]);
-    }
 
     private function resolveBranchCode(): string
     {
