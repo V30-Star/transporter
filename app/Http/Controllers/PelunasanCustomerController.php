@@ -1132,6 +1132,45 @@ class PelunasanCustomerController extends Controller
             'giroMundur' => old('fgiromundur', ($header?->fgiromundur ?? '0')) === '1',
             'noteValue' => old('fket', $header?->fket),
             'giroNo' => old('fnogiro', $header?->fnogiro),
+            'headerAccounts' => $this->resolveHeaderAccounts(),
         ], $overrides);
+    }
+
+    private function resolveSetAccountCodes(array $accountNames): array
+    {
+        return DB::table('set_account')
+            ->whereIn('faccount_name', $accountNames)
+            ->pluck('faccount')
+            ->filter()
+            ->map(fn ($value) => trim((string) $value))
+            ->filter(fn ($value) => $value !== '')
+            ->values()
+            ->all();
+    }
+
+    private function resolveHeaderAccounts(): Collection
+    {
+        $kasBankHeaderCode = $this->resolveSetAccountCode('KASBANKHEADER');
+        $uangMukaCodes = $this->resolveSetAccountCodes(['UANGMUKAPEMBELIAN', 'UANGMUKAPENJUALAN']);
+
+        return Account::query()
+            ->where('fend', 1)
+            ->where('fnonactive', '0')
+            ->where(function ($query) use ($kasBankHeaderCode, $uangMukaCodes) {
+                if (! empty($kasBankHeaderCode)) {
+                    $query->orWhere('faccupline', $kasBankHeaderCode);
+                }
+
+                if (! empty($uangMukaCodes)) {
+                    $query->orWhereIn('faccount', $uangMukaCodes);
+                }
+            })
+            ->orderBy('faccount')
+            ->get([
+                'faccid',
+                'faccount',
+                'faccname',
+                'faccupline',
+            ]);
     }
 }
