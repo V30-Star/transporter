@@ -252,9 +252,10 @@
                                         <input type="number" min="0" max="100" step="0.01"
                                             :name="`details[${index}][fdiscpersen]`" x-model="row.fdiscpersen"
                                             @input="syncDiscountFromPercent(row, $event)"
-                                            :disabled="isDiscPercentDisabled(row)"
+                                            :disabled="isDiscPercentDisabled(row) || isRejRow(row)"
+                                            :class="isRejRow(row) ? 'rej-disabled-text' : ''"
                                             class="w-full border rounded px-2 py-1 text-right disabled:bg-gray-100 disabled:text-gray-400 disabled:cursor-not-allowed">
-                                        <input type="hidden" x-show="isDiscPercentDisabled(row)"
+                                        <input type="hidden" x-show="isDiscPercentDisabled(row) || isRejRow(row)"
                                             :name="`details[${index}][fdiscpersen]`" :value="row.fdiscpersen">
                                     </td>
                                     <td class="border px-2 py-1">
@@ -263,7 +264,8 @@
                                             @focus="showRawNumber($event, row, 'fdiscount')"
                                             @input="syncDiscountFromRp(row, $event.target.value)"
                                             @blur="formatNumericField($event, row, 'fdiscount')"
-                                            :disabled="isDiscountDisabled(row)"
+                                            :disabled="isDiscountDisabled(row) || isRejRow(row)"
+                                            :class="isRejRow(row) ? 'rej-disabled-text' : ''"
                                             class="w-full border rounded px-2 py-1 text-right disabled:bg-gray-100 disabled:text-gray-400 disabled:cursor-not-allowed">
                                         <input type="hidden"
                                             :name="`details[${index}][fdiscount]`" x-model="row.fdiscount" :disabled="false">
@@ -274,6 +276,8 @@
                                             @focus="showRawNumber($event, row, 'fkasdtvalue')"
                                             @input="syncTotalBayarInput(row, $event.target.value)"
                                             @blur="formatNumericField($event, row, 'fkasdtvalue')"
+                                            :disabled="isRejRow(row)"
+                                            :class="isRejRow(row) ? 'rej-disabled-text' : ''"
                                             class="w-full border rounded px-2 py-1 text-right disabled:bg-gray-100 disabled:text-gray-400 disabled:cursor-not-allowed">
                                         <input type="hidden" :name="`details[${index}][fkasdtvalue]`" x-model="row.fkasdtvalue" :disabled="false">
                                     </td>
@@ -563,6 +567,9 @@
             border-color: #2563eb;
             box-shadow: 0 0 0 2px rgba(37, 99, 235, .2);
         }
+        .rej-disabled-text:disabled {
+            color: black !important;
+        }
     </style>
 @endpush
 
@@ -709,6 +716,7 @@
 
                 normalizeRow(row = {}, index = 0) {
                     const sisa = this.toNumber(row.fsisa_piutang);
+                    const isRej = String(row.ftrcode || '').trim().toUpperCase() === 'REJ';
                     return {
                         uid: row.uid || `pc-row-${index}-${this.makeUid()}`,
                         frefno: String(row.frefno || '').trim(),
@@ -716,9 +724,9 @@
                         fnilai_nota: this.toNumber(row.fnilai_nota),
                         fsisa_piutang: sisa,
                         originalSisa: row.originalSisa !== undefined ? this.toNumber(row.originalSisa) : sisa,
-                        fdiscpersen: this.toNumber(row.fdiscpersen),
-                        fdiscount: this.toNumber(row.fdiscount),
-                        fkasdtvalue: this.toNumber(row.fkasdtvalue),
+                        fdiscpersen: isRej ? 0 : this.toNumber(row.fdiscpersen),
+                        fdiscount: isRej ? 0 : this.toNumber(row.fdiscount),
+                        fkasdtvalue: isRej ? -sisa : this.toNumber(row.fkasdtvalue),
                         ftrcode: String(row.ftrcode || 'INV').trim() || 'INV',
                     };
                 },
@@ -1109,7 +1117,7 @@
                             targetRow.originalSisa = remain;
                             targetRow.fdiscpersen = 0;
                             targetRow.fdiscount = 0;
-                            targetRow.fkasdtvalue = remain;
+                            targetRow.fkasdtvalue = trCode.toUpperCase() === 'REJ' ? -remain : remain;
                             targetRow.ftrcode = trCode;
                         }
                     });
@@ -1137,6 +1145,10 @@
                     return this.toNumber(row?.fdiscpersen) > 0;
                 },
 
+                isRejRow(row) {
+                    return String(row?.ftrcode || '').trim().toUpperCase() === 'REJ';
+                },
+
                 showValidationError(message) {
                     if (window.showTransactionErrorModal) {
                         window.showTransactionErrorModal(message);
@@ -1154,6 +1166,7 @@
                  *   Sisa Piutang = 0
                  */
                 syncDiscountFromPercent(row, event) {
+                    if (this.isRejRow(row)) { row.fdiscpersen = 0; if (event?.target) event.target.value = 0; return; }
                     const percent = this.toNumber(row.fdiscpersen);
                     const original = this.toNumber(row.originalSisa);
 
@@ -1188,6 +1201,7 @@
                  *   Sisa Piutang = 0
                  */
                 syncDiscountFromRp(row, inputValue) {
+                    if (this.isRejRow(row)) { row.fdiscount = 0; return; }
                     const discount = this.toNumber(inputValue);
                     const original = this.toNumber(row.originalSisa);
 
@@ -1214,6 +1228,7 @@
                  * effectiveDiscount = (Disc% > 0) ? originalSisa × Disc%/100 : Discount(Rp)
                  */
                 syncTotalBayarInput(row, inputValue) {
+                    if (this.isRejRow(row)) { row.fkasdtvalue = -this.toNumber(row.originalSisa); return; }
                     const pay = this.toNumber(inputValue);
                     const original = this.toNumber(row.originalSisa);
 

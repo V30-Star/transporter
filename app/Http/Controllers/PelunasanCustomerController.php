@@ -219,9 +219,7 @@ class PelunasanCustomerController extends Controller
                 if (strtoupper($trCode) === 'REJ') {
                     $amount *= -1;
                     $amountSo *= -1;
-                    if ($amountRemain < 0) {
-                        $amountRemain *= -1;
-                    }
+                    $amountRemain = -abs($amountRemain);
                 }
 
                 return [
@@ -624,14 +622,16 @@ class PelunasanCustomerController extends Controller
             ->map(function (array $detail) {
                 $trCode = strtoupper(trim((string) ($detail['ftrcode'] ?? 'INV')));
 
+                $sisa = round(abs((float) ($detail['fsisa_piutang'] ?? 0)), 2);
+
                 return [
                     'frefno' => trim((string) ($detail['frefno'] ?? '')),
                     'fdatetime' => !empty($detail['fdatetime']) ? Carbon::parse($detail['fdatetime'])->format('Y-m-d') : null,
                     'fnilai_nota' => round(abs((float) ($detail['fnilai_nota'] ?? 0)), 2),
-                    'fsisa_piutang' => round(abs((float) ($detail['fsisa_piutang'] ?? 0)), 2),
-                    'fdiscpersen' => round((float) ($detail['fdiscpersen'] ?? 0), 2),
-                    'fdiscount' => round(abs((float) ($detail['fdiscount'] ?? 0)), 2),
-                    'fkasdtvalue' => round(abs((float) ($detail['fkasdtvalue'] ?? 0)), 2),
+                    'fsisa_piutang' => $sisa,
+                    'fdiscpersen' => $trCode === 'REJ' ? 0 : round((float) ($detail['fdiscpersen'] ?? 0), 2),
+                    'fdiscount' => $trCode === 'REJ' ? 0 : round(abs((float) ($detail['fdiscount'] ?? 0)), 2),
+                    'fkasdtvalue' => $trCode === 'REJ' ? $sisa : round(abs((float) ($detail['fkasdtvalue'] ?? 0)), 2),
                     'ftrcode' => $trCode !== '' ? $trCode : 'INV',
                 ];
             })
