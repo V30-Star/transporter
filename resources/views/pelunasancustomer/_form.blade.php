@@ -243,7 +243,7 @@
                                     <td class="border px-2 py-1">
                                         <input type="number" min="0" max="100" step="0.01"
                                             :name="`details[${index}][fdiscpersen]`" x-model="row.fdiscpersen"
-                                            @input="syncDiscountFromPercent(row)"
+                                            @input="syncDiscountFromPercent(row, $event)"
                                             :disabled="isDiscPercentDisabled(row)"
                                             class="w-full border rounded px-2 py-1 text-right disabled:bg-gray-100 disabled:text-gray-400 disabled:cursor-not-allowed">
                                         <input type="hidden" x-show="isDiscPercentDisabled(row)"
@@ -253,7 +253,7 @@
                                         <input type="text" x-init="$el.value = formatNumber(row.fdiscount)"
                                             x-effect="if (document.activeElement !== $el) $el.value = formatNumber(row.fdiscount)"
                                             @focus="showRawNumber($event, row, 'fdiscount')"
-                                            @input="setNumericField(row, 'fdiscount', $event.target.value); syncTotalBayar(row)"
+                                            @input="syncDiscountFromRp(row, $event.target.value)"
                                             @blur="formatNumericField($event, row, 'fdiscount')"
                                             :disabled="isDiscountDisabled(row)"
                                             class="w-full border rounded px-2 py-1 text-right disabled:bg-gray-100 disabled:text-gray-400 disabled:cursor-not-allowed">
@@ -264,7 +264,7 @@
                                         <input type="text" x-init="$el.value = formatNumber(row.fkasdtvalue)"
                                             x-effect="if (document.activeElement !== $el) $el.value = formatNumber(row.fkasdtvalue)"
                                             @focus="showRawNumber($event, row, 'fkasdtvalue')"
-                                            @input="setNumericField(row, 'fkasdtvalue', $event.target.value); syncTotalBayar(row)"
+                                            @input="syncTotalBayarInput(row, $event.target.value)"
                                             @blur="formatNumericField($event, row, 'fkasdtvalue')"
                                             class="w-full border rounded px-2 py-1 text-right disabled:bg-gray-100 disabled:text-gray-400 disabled:cursor-not-allowed">
                                         <input type="hidden" :name="`details[${index}][fkasdtvalue]`" x-model="row.fkasdtvalue" :disabled="false">
@@ -1029,38 +1029,113 @@
                 },
 
                 isDiscPercentDisabled(row) {
-                    const percent = this.toNumber(row?.fdiscpersen);
-                    const discount = this.toNumber(row?.fdiscount);
-                    return percent <= 0 && discount > 0;
+                    // Disc% disabled when Discount (Rp) has been manually filled
+                    return this.toNumber(row?.fdiscount) > 0;
                 },
 
                 isDiscountDisabled(row) {
-                    const percent = this.toNumber(row?.fdiscpersen);
-                    return percent > 0;
+                    // Discount (Rp) disabled when Disc% has been manually filled
+                    return this.toNumber(row?.fdiscpersen) > 0;
                 },
 
-                syncDiscountFromPercent(row) {
+                showValidationError(message) {
+                    if (window.showTransactionErrorModal) {
+                        window.showTransactionErrorModal(message);
+                    } else if (typeof Swal !== 'undefined') {
+                        Swal.fire({ icon: 'warning', title: 'Validasi', text: message });
+                    } else {
+                        alert(message);
+                    }
+                },
+
+                /**
+                 * When user inputs Disc%:
+                 *   Total Bayar  = originalSisa - (originalSisa × Disc% / 100)
+                 *   Discount(Rp) = 0 and DISABLED (mutually exclusive)
+                 *   Sisa Piutang = 0
+                 */
+                syncDiscountFromPercent(row, event) {
                     const percent = this.toNumber(row.fdiscpersen);
                     const original = this.toNumber(row.originalSisa);
-                    if (percent > 0) {
-                        row.fdiscount = original * percent / 100;
-                        row.fkasdtvalue = Math.max(original - row.fdiscount, 0);
+
+                    // VALIDATION: Disc% must be between 0 and 100
+                    if (percent > 100) {
+                        this.showValidationError('Disc% tidak boleh melebihi 100%');
+                        row.fdiscpersen = 100;
+                        if (event && event.target) event.target.value = 100;
+                    }
+
+                    const validPercent = Math.min(Math.max(this.toNumber(row.fdiscpersen), 0), 100);
+                    row.fdiscpersen = validPercent;
+
+                    // Discount (Rp) is always 0 when Disc% is used
+                    row.fdiscount = 0;
+
+                    if (validPercent > 0) {
+                        const discAmount = parseFloat((original * validPercent / 100).toFixed(2));
+                        row.fkasdtvalue = parseFloat(Math.max(original - discAmount, 0).toFixed(2));
                         row.fsisa_piutang = 0;
                     } else {
-                        row.fdiscount = 0;
-                        row.fsisa_piutang = Math.max(original - row.fkasdtvalue, 0);
+                        row.fkasdtvalue = parseFloat(Math.max(original, 0).toFixed(2));
+                        row.fsisa_piutang = 0;
                     }
                     this.recalcTotals();
                 },
 
-                syncTotalBayar(row) {
-                    const pay = this.toNumber(row.fkasdtvalue);
-                    const disc = this.toNumber(row.fdiscount);
+                /**
+                 * When user inputs Discount (Rp):
+                 *   Total Bayar  = originalSisa - Discount(Rp)
+                 *   Disc%        = 0 and DISABLED (mutually exclusive)
+                 *   Sisa Piutang = 0
+                 */
+                syncDiscountFromRp(row, inputValue) {
+                    const discount = this.toNumber(inputValue);
                     const original = this.toNumber(row.originalSisa);
-                    if (pay > Math.max(original - disc, 0)) {
-                        row.fkasdtvalue = Math.max(original - disc, 0);
+
+                    // VALIDATION: Discount must not exceed originalSisa
+                    if (discount > original) {
+                        this.showValidationError('Discount tidak boleh melebihi Sisa Piutang awal');
+                        row.fdiscount = original;
+                    } else {
+                        row.fdiscount = parseFloat(Math.max(discount, 0).toFixed(2));
                     }
-                    row.fsisa_piutang = Math.max(original - this.toNumber(row.fkasdtvalue) - disc, 0);
+
+                    // Disc% is always 0 when Discount (Rp) is used
+                    row.fdiscpersen = 0;
+
+                    row.fkasdtvalue = parseFloat(Math.max(original - row.fdiscount, 0).toFixed(2));
+                    row.fsisa_piutang = 0;
+                    this.recalcTotals();
+                },
+
+                /**
+                 * When user inputs Total Bayar:
+                 *   Sisa Piutang = originalSisa - Total Bayar - effectiveDiscount
+                 *   Disc% and Discount(Rp) do NOT change.
+                 * effectiveDiscount = (Disc% > 0) ? originalSisa × Disc%/100 : Discount(Rp)
+                 */
+                syncTotalBayarInput(row, inputValue) {
+                    const pay = this.toNumber(inputValue);
+                    const original = this.toNumber(row.originalSisa);
+
+                    // Determine the active discount source
+                    const effectiveDiscount = row.fdiscpersen > 0
+                        ? parseFloat((original * row.fdiscpersen / 100).toFixed(2))
+                        : parseFloat(Math.max(this.toNumber(row.fdiscount), 0).toFixed(2));
+
+                    const maxPay = parseFloat(Math.max(original - effectiveDiscount, 0).toFixed(2));
+
+                    // VALIDATION: Total Bayar tidak boleh melebihi sisa piutang
+                    if (pay > maxPay) {
+                        this.showValidationError('Total Bayar melebihi tagihan yang tersisa');
+                        row.fkasdtvalue = maxPay;
+                        row.fsisa_piutang = 0;
+                        this.recalcTotals();
+                        return;
+                    }
+
+                    row.fkasdtvalue = parseFloat(Math.max(pay, 0).toFixed(2));
+                    row.fsisa_piutang = parseFloat(Math.max(original - row.fkasdtvalue - effectiveDiscount, 0).toFixed(2));
                     this.recalcTotals();
                 },
 
