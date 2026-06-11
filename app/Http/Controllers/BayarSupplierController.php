@@ -762,7 +762,6 @@ class BayarSupplierController extends Controller
         }
 
         $referenceRemainMap = collect();
-        $externalPaymentMap = collect();
         if ($header) {
             $refNos = $header->details
                 ->filter(fn($detail) => trim((string) ($detail->freftype ?? 'PBL')) !== 'ADM')
@@ -780,15 +779,6 @@ class BayarSupplierController extends Controller
                     ->select(['fstockmtno', 'famountmt', 'famountremain'])
                     ->get()
                     ->keyBy(fn($row) => trim((string) ($row->fstockmtno ?? '')));
-
-                $externalPaymentMap = Trkasdt::query()
-                    ->whereIn('frefno', $refNos)
-                    ->where('fkasmtid', '!=', $header->fkasmtid)
-                    ->whereRaw("TRIM(COALESCE(freftype, '')) != 'ADM'")
-                    ->selectRaw("TRIM(COALESCE(frefno, '')) as frefno, SUM(ABS(COALESCE(fkasdtvalue, 0))) as total_payment, SUM(ABS(COALESCE(fdiscount, 0))) as total_discount")
-                    ->groupByRaw("TRIM(COALESCE(frefno, ''))")
-                    ->get()
-                    ->keyBy(fn($row) => trim((string) ($row->frefno ?? '')));
             }
         }
 
@@ -797,7 +787,7 @@ class BayarSupplierController extends Controller
             $detailRows = $header->details
                 ->filter(fn($detail) => trim((string)($detail->freftype ?? 'PBL')) !== 'ADM')
                 ->values()
-                ->map(function ($detail, $index) use ($referenceRemainMap, $externalPaymentMap) {
+                ->map(function ($detail, $index) use ($referenceRemainMap) {
                     $refNo = trim((string) ($detail->frefno ?? ''));
                     $reference = $referenceRemainMap->get($refNo);
 
@@ -811,18 +801,8 @@ class BayarSupplierController extends Controller
                         $fsisaHutang = (float) ($reference->famountremain ?? 0);
                     }
 
-                    $externalPayment = 0;
-                    $externalDiscount = 0;
-                    if ($reference) {
-                        $extRow = $externalPaymentMap->get($refNo);
-                        if ($extRow) {
-                            $externalPayment = (float) ($extRow->total_payment ?? 0);
-                            $externalDiscount = (float) ($extRow->total_discount ?? 0);
-                        }
-                    }
-
                     $adjustedRemain = $reference
-                        ? max(abs((float) ($reference->famountremain ?? 0)) - $externalPayment - $externalDiscount - $actualPayment - $actualDiscount, 0)
+                        ? max(abs((float) ($reference->famountremain ?? 0)) - $actualPayment - $actualDiscount, 0)
                         : $fnilaiOrder;
 
                     return [
@@ -832,7 +812,7 @@ class BayarSupplierController extends Controller
                         'fsisa_hutang' => $adjustedRemain,
                         'fdiscpersen' => (float) ($detail->fdiscpersen ?? 0),
                         'fdiscount' => (float) ($detail->fdiscount ?? 0),
-                        'fkasdtvalue' => (float) ($detail->fkasdtvalue ?? 0),
+                        'fkasdtvalue' => $actualPayment,
                     ];
                 })
                 ->all();
