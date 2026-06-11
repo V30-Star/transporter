@@ -808,20 +808,9 @@
 
 
                 openNotaModal() {
-                    if (!this.customerCode) {
-                        if (window.showTransactionErrorModal) {
-                            window.showTransactionErrorModal('Pilih customer terlebih dahulu sebelum browse nota.');
-                            return;
-                        }
-
-                        Swal.fire({
-                            icon: 'error',
-                            title: 'Terjadi kesalahan',
-                            text: 'Pilih customer terlebih dahulu sebelum browse nota.'
-                        });
-                        return;
-                    }
-
+                    // No customer validation — modal opens freely.
+                    // If a customer is selected, fetchNotaRecords will filter by that customer.
+                    // If no customer is selected, all invoices are shown.
                     this.tempSelectedNotas = [];
                     this.rows.forEach(row => {
                         if (row.frefno) {
