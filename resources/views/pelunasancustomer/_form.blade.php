@@ -921,19 +921,63 @@
                     return this.tempSelectedNotas.some(item => String(item.fsono).trim() === String(record.fsono).trim());
                 },
 
+                showNotaSelectionError(message) {
+                    if (window.showTransactionErrorModal) {
+                        window.showTransactionErrorModal(message);
+                        return;
+                    }
+
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Terjadi kesalahan',
+                        text: message
+                    });
+                },
+
+                isNotaCustomerValid(record) {
+                    const selectedCustomer = String(this.customerCode || '').trim();
+                    const notaCustomer = String(record.fcustno || '').trim();
+
+                    return selectedCustomer === '' || notaCustomer === '' || selectedCustomer === notaCustomer;
+                },
+
+                syncCustomerFromNota(record) {
+                    const code = String(record.fcustno || '').trim();
+                    if (!code || String(this.customerCode || '').trim()) {
+                        return;
+                    }
+
+                    const name = String(record.fcustomername || '').trim();
+                    this.customerCode = code;
+                    this.customerTempo = Number(record.ftempo || 0);
+
+                    if (this.isGiroMundur) {
+                        this.syncDueDate();
+                    }
+
+                    const select = document.getElementById('modal_filter_customer_id');
+                    if (select) {
+                        const label = name ? `${name} (${code})` : code;
+                        let option = Array.from(select.options).find((item) => item.value === code);
+                        if (!option) {
+                            option = new Option(label, code, true, true);
+                            select.add(option);
+                        } else {
+                            option.text = label;
+                            option.selected = true;
+                        }
+                    }
+                },
+
                 toggleNotaSelection(record) {
+                    if (!this.isNotaCustomerValid(record)) {
+                        this.showNotaSelectionError('Nota harus sesuai customer yang dipilih.');
+                        return;
+                    }
+
                     const remain = this.toNumber(record.famountremain);
                     if (remain <= 0) {
-                        if (window.showTransactionErrorModal) {
-                            window.showTransactionErrorModal('Nota tidak bisa dipilih karena sisa piutang harus lebih besar dari 0.');
-                            return;
-                        }
-
-                        Swal.fire({
-                            icon: 'error',
-                            title: 'Terjadi kesalahan',
-                            text: 'Nota tidak bisa dipilih karena sisa piutang harus lebih besar dari 0.'
-                        });
+                        this.showNotaSelectionError('Nota tidak bisa dipilih karena sisa piutang harus lebih besar dari 0.');
                         return;
                     }
 
@@ -941,6 +985,7 @@
                     if (idx > -1) {
                         this.tempSelectedNotas.splice(idx, 1);
                     } else {
+                        this.syncCustomerFromNota(record);
                         this.tempSelectedNotas.push(record);
                     }
                 },
@@ -958,17 +1003,31 @@
                     this.notaRecords.forEach(record => {
                         const remain = this.toNumber(record.famountremain);
                         if (remain <= 0) return;
+                        if (!this.isNotaCustomerValid(record)) return;
 
                         const idx = this.tempSelectedNotas.findIndex(item => String(item.fsono).trim() === String(record.fsono).trim());
                         if (allSelected) {
                             if (idx > -1) this.tempSelectedNotas.splice(idx, 1);
                         } else {
-                            if (idx === -1) this.tempSelectedNotas.push(record);
+                            if (idx === -1) {
+                                this.syncCustomerFromNota(record);
+                                this.tempSelectedNotas.push(record);
+                            }
                         }
                     });
                 },
 
                 submitSelectedNotas() {
+                    if (!String(this.customerCode || '').trim() && this.tempSelectedNotas.length) {
+                        this.syncCustomerFromNota(this.tempSelectedNotas[0]);
+                    }
+
+                    const invalidCustomer = this.tempSelectedNotas.find(record => !this.isNotaCustomerValid(record));
+                    if (invalidCustomer) {
+                        this.showNotaSelectionError('Nota harus sesuai customer yang dipilih.');
+                        return;
+                    }
+
                     const selectedSonos = this.tempSelectedNotas.map(item => String(item.fsono).trim());
                     
                     this.rows = this.rows.filter(row => {

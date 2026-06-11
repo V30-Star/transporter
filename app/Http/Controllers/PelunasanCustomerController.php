@@ -166,6 +166,7 @@ class PelunasanCustomerController extends Controller
                 'mt.famountremain',
                 'mt.fjatuhtempo',
                 'c.fcustomername',
+                'c.ftempo',
                 DB::raw('COALESCE(SUM(COALESCE(dt.famount, 0)), 0) as famount'),
                 DB::raw('COUNT(dt.ftrandtid) as detail_count'),
             ])
@@ -177,7 +178,8 @@ class PelunasanCustomerController extends Controller
                 'mt.ftrcode',
                 'mt.famountremain',
                 'mt.fjatuhtempo',
-                'c.fcustomername'
+                'c.fcustomername',
+                'c.ftempo'
             );
 
         $recordsTotal = (clone $baseQuery)
@@ -234,6 +236,7 @@ class PelunasanCustomerController extends Controller
                     'fsodate' => !empty($row->fsodate) ? Carbon::parse($row->fsodate)->format('Y-m-d') : null,
                     'fcustno' => trim((string) ($row->fcustno ?? '')),
                     'fcustomername' => trim((string) ($row->fcustomername ?? '')),
+                    'ftempo' => (int) ($row->ftempo ?? 0),
                     'ftrcode' => $trCode,
                     'famount' => $amount,
                     'famountso' => $amountSo,
@@ -331,6 +334,7 @@ class PelunasanCustomerController extends Controller
             ->where('faccount', $validated['faccountheader'])
             ->firstOrFail(['faccid', 'faccount', 'faccname']);
         $detailRows = $this->normalizeDetails($validated['details']);
+        $this->validateReferenceCustomers($detailRows, $customer->fcustomercode);
         $this->validatePaymentDoesNotExceedRemainingReceivable($detailRows);
         $detailEntries = $this->buildJournalDetailEntries($detailRows, $validated['fkasmtdate'], $customer);
         $bankAdminFee = round((float) ($validated['fbiayaadminbank'] ?? 0), 2);
@@ -507,6 +511,7 @@ class PelunasanCustomerController extends Controller
             ->where('faccount', $validated['faccountheader'])
             ->firstOrFail(['faccid', 'faccount', 'faccname']);
         $detailRows = $this->normalizeDetails($validated['details']);
+        $this->validateReferenceCustomers($detailRows, $customer->fcustomercode);
         $this->validatePaymentDoesNotExceedRemainingReceivable($detailRows, $header);
         $detailEntries = $this->buildJournalDetailEntries($detailRows, $validated['fkasmtdate'], $customer);
         $bankAdminFee = round((float) ($validated['fbiayaadminbank'] ?? 0), 2);
@@ -735,6 +740,38 @@ class PelunasanCustomerController extends Controller
             if ($payment > $allowed) {
                 throw ValidationException::withMessages([
                     "details.{$index}.fkasdtvalue" => 'Total bayar tidak boleh melebihi sisa piutang.',
+                ]);
+            }
+        }
+    }
+
+    private function validateReferenceCustomers(Collection $detailRows, string $customerCode): void
+    {
+        $customerCode = trim($customerCode);
+        $refNos = $detailRows
+            ->pluck('frefno')
+            ->map(fn($value) => trim((string) $value))
+            ->filter()
+            ->unique()
+            ->values();
+
+        if ($customerCode === '' || $refNos->isEmpty()) {
+            return;
+        }
+
+        $customerByRef = Tranmt::query()
+            ->whereIn('fsono', $refNos)
+            ->whereIn('ftrcode', ['INV', 'REJ'])
+            ->pluck('fcustno', 'fsono')
+            ->mapWithKeys(fn($custNo, $refNo) => [trim((string) $refNo) => trim((string) $custNo)]);
+
+        foreach ($detailRows as $index => $row) {
+            $refNo = trim((string) ($row['frefno'] ?? ''));
+            $refCustomer = $customerByRef->get($refNo, '');
+
+            if ($refCustomer !== '' && $refCustomer !== $customerCode) {
+                throw ValidationException::withMessages([
+                    "details.{$index}.frefno" => 'Nota harus sesuai customer yang dipilih.',
                 ]);
             }
         }
