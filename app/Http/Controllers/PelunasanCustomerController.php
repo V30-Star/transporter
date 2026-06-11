@@ -366,7 +366,7 @@ class PelunasanCustomerController extends Controller
                 'fwhom' => $customer->fcustomername,
                 'faccountheader' => $headerAccount->faccount,
                 'faccountheaderid' => $headerAccount->faccid,
-                'fdkheader' => 'D',
+                'fdkheader' => $this->resolveHeaderDk($netPaymentAmount),
                 'fcustomer' => $customer->fcustomerid,
                 'fket' => $validated['fket'] ?? null,
                 'famountpay' => $netPaymentAmount,
@@ -530,6 +530,7 @@ class PelunasanCustomerController extends Controller
                 'fwhom' => $customer->fcustomername,
                 'faccountheader' => $headerAccount->faccount,
                 'faccountheaderid' => $headerAccount->faccid,
+                'fdkheader' => $this->resolveHeaderDk($netPaymentAmount),
                 'fcustomer' => $customer->fcustomerid,
                 'fket' => $validated['fket'] ?? null,
                 'famountpay' => $netPaymentAmount,
@@ -1125,12 +1126,17 @@ class PelunasanCustomerController extends Controller
                     $query->orWhereIn('faccount', $uangMukaCodes);
                 }
             })
-            ->orderBy('faccount')
+             ->orderBy('faccount')
             ->get([
                 'faccid',
                 'faccount',
                 'faccname',
                 'faccupline',
             ]);
+    }
+
+    private function resolveHeaderDk(float $amount): string
+    {
+        return $amount >= 0 ? 'D' : 'K';
     }
 }

@@ -1119,6 +1119,10 @@
                             targetRow.fdiscpersen = 0;
                             targetRow.fdiscount = 0;
                             targetRow.ftrcode = trCode;
+
+                            if (trCode !== 'REJ') {
+                                targetRow.fsisa_piutang = Math.max(targetRow.originalSisa - targetRow.fkasdtvalue - (targetRow.fdiscount || 0), 0);
+                            }
                         }
                     });
 
