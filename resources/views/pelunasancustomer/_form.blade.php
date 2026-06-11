@@ -991,7 +991,7 @@
                 toggleNotaSelection(record) {
                     const notaCustomer = String(record.fcustno || '').trim();
                     if (notaCustomer === '') {
-                        this.showNotaSelectionError('no customer exists.');
+                        this.showNotaSelectionError('customer belum terisi.');
                         return;
                     }
 
@@ -1050,7 +1050,7 @@
                     const invalidCustomer = this.tempSelectedNotas.find(record => !this.isNotaCustomerValid(record));
                     if (invalidCustomer) {
                         if (String(invalidCustomer.fcustno || '').trim() === '') {
-                            this.showNotaSelectionError('no customer exists.');
+                            this.showNotaSelectionError('customer belum terisi.');
                         } else {
                             this.showNotaSelectionError('Nota harus sesuai customer yang dipilih.');
                         }
