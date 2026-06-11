@@ -273,14 +273,7 @@ class PelunasanCustomerController extends Controller
             'fkasmtdate' => ['required', 'date'],
             'fbranchcode' => ['required', 'string', 'max:10'],
             'fcustomer' => ['required', 'string', 'max:20', Rule::exists('mscustomer', 'fcustomercode')],
-            'faccountheader' => [
-                'required',
-                'string',
-                'max:15',
-                Rule::exists('account', 'faccount')->where(function ($query) {
-                    $query->where('fend', 1);
-                }),
-            ],
+            'faccountheader' => ['required'],
             'fnogiro' => ['nullable', 'string', 'max:35'],
             'fgiromundur' => ['nullable', 'in:0,1'],
             'ftgljatuhtempo' => ['nullable', 'date', Rule::requiredIf($request->input('fgiromundur') === '1'), 'after_or_equal:fkasmtdate'],
@@ -450,14 +443,7 @@ class PelunasanCustomerController extends Controller
             'fkasmtdate' => ['required', 'date'],
             'fbranchcode' => ['required', 'string', 'max:10'],
             'fcustomer' => ['required', 'string', 'max:20', Rule::exists('mscustomer', 'fcustomercode')],
-            'faccountheader' => [
-                'required',
-                'string',
-                'max:15',
-                Rule::exists('account', 'faccount')->where(function ($query) {
-                    $query->where('fend', 1);
-                }),
-            ],
+            'faccountheader' => ['required'],
             'fnogiro' => ['nullable', 'string', 'max:35'],
             'fgiromundur' => ['nullable', 'in:0,1'],
             'ftgljatuhtempo' => ['nullable', 'date', Rule::requiredIf($request->input('fgiromundur') === '1'), 'after_or_equal:fkasmtdate'],

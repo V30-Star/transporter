@@ -124,17 +124,22 @@
 
                 <div>
                     <label class="block text-sm font-bold mb-1">{{ 'Account' }}</label>
-                    <div class="flex">
-                        <input type="text" x-model="accountLabel"
-                            class="w-full border rounded-l px-3 py-1.5 bg-gray-100 cursor-not-allowed" readonly>
-                        <input type="hidden" name="faccountheader" x-model="accountCode">
-                        @if (!$isReadOnly)
-                            <button type="button" @click="activeAccountField = 'main'; window.dispatchEvent(new CustomEvent('account-browse-open'))"
-                                class="border -ml-px px-3 py-1.5 bg-white hover:bg-gray-50 rounded-r" title="Browse Account">
-                                <x-heroicon-o-magnifying-glass class="w-5 h-5" />
-                            </button>
-                        @endif
-                    </div>
+                    @if ($isReadOnly)
+                        <input type="text" value="{{ $selectedAccountCode !== '' ? trim($selectedAccountCode . ' - ' . $selectedAccountName) : '' }}"
+                            class="w-full border rounded px-3 py-1.5 bg-gray-100 cursor-not-allowed text-gray-700" readonly>
+                        <input type="hidden" name="faccountheader" value="{{ $selectedAccountCode }}">
+                    @else
+                        <div>
+                            <select name="faccountheader" x-model="accountCode" class="w-full border rounded px-3 py-1.5 bg-white text-gray-900 @error('faccountheader') border-red-500 @enderror">
+                                <option value="">{{ 'Pilih account' }}</option>
+                                @foreach ($headerAccounts as $account)
+                                    <option value="{{ $account->faccount }}">
+                                        {{ $account->faccount }} - {{ $account->faccname }}
+                                    </option>
+                                @endforeach
+                            </select>
+                        </div>
+                    @endif
                     @error('faccountheader')
                         <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                     @enderror
@@ -478,7 +483,6 @@
 
 @if (!$isReadOnly)
     <x-transaction.browse-supplier-modal />
-    <x-transaction.browse-account-modal :fend="1" show-controls="true" show-pagination="true" />
     <x-transaction.browse-account-modal
         table-id="adminAccountTable"
         controls-id="adminAccountTableControls"

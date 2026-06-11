@@ -199,7 +199,7 @@ class BayarSupplierController extends Controller
             'fkasmtdate' => ['required', 'date'],
             'fbranchcode' => ['required', 'string', 'max:10'],
             'fsupplier' => ['required', 'string', 'max:30', Rule::exists('mssupplier', 'fsuppliercode')],
-            'faccountheader' => ['required', 'string', 'max:15', Rule::exists('account', 'faccount')->where(fn ($query) => $query->where('fend', 1))],
+            'faccountheader' => ['required'],
             'fnogiro' => ['nullable', 'string', 'max:35'],
             'fgiromundur' => ['nullable', 'in:0,1'],
             'ftgljatuhtempo' => ['nullable', 'date', Rule::requiredIf($request->input('fgiromundur') === '1'), 'after_or_equal:fkasmtdate'],
@@ -354,7 +354,7 @@ class BayarSupplierController extends Controller
             'fkasmtdate' => ['required', 'date'],
             'fbranchcode' => ['required', 'string', 'max:10'],
             'fsupplier' => ['required', 'string', 'max:30', Rule::exists('mssupplier', 'fsuppliercode')],
-            'faccountheader' => ['required', 'string', 'max:15', Rule::exists('account', 'faccount')->where(fn ($query) => $query->where('fend', 1))],
+            'faccountheader' => ['required'],
             'fnogiro' => ['nullable', 'string', 'max:35'],
             'fgiromundur' => ['nullable', 'in:0,1'],
             'ftgljatuhtempo' => ['nullable', 'date', Rule::requiredIf($request->input('fgiromundur') === '1'), 'after_or_equal:fkasmtdate'],
@@ -841,6 +841,56 @@ class BayarSupplierController extends Controller
             'giroMundur' => old('fgiromundur', ($header?->fgiromundur ?? '0')) === '1',
             'noteValue' => old('fket', $header?->fket),
             'giroNo' => old('fnogiro', $header?->fnogiro),
+            'headerAccounts' => $this->resolveHeaderAccounts(),
         ], $overrides);
+    }
+
+    private function resolveSetAccountCode(string $accountName): ?string
+    {
+        $accountCode = DB::table('set_account')
+            ->where('faccount_name', $accountName)
+            ->value('faccount');
+
+        $accountCode = trim((string) $accountCode);
+
+        return $accountCode !== '' ? $accountCode : null;
+    }
+
+    private function resolveSetAccountCodes(array $accountNames): array
+    {
+        return DB::table('set_account')
+            ->whereIn('faccount_name', $accountNames)
+            ->pluck('faccount')
+            ->filter()
+            ->map(fn ($value) => trim((string) $value))
+            ->filter(fn ($value) => $value !== '')
+            ->values()
+            ->all();
+    }
+
+    private function resolveHeaderAccounts(): Collection
+    {
+        $kasBankHeaderCode = $this->resolveSetAccountCode('KASBANKHEADER');
+        $uangMukaCodes = $this->resolveSetAccountCodes(['UANGMUKAPEMBELIAN', 'UANGMUKAPENJUALAN']);
+
+        return Account::query()
+            ->where('fend', 1)
+            ->where('fnonactive', '0')
+            ->where(function ($query) use ($kasBankHeaderCode, $uangMukaCodes) {
+                if (! empty($kasBankHeaderCode)) {
+                    $query->orWhere('faccupline', $kasBankHeaderCode);
+                }
+
+                if (! empty($uangMukaCodes)) {
+                    $query->orWhereIn('faccount', $uangMukaCodes);
+                }
+            })
+            ->orderBy('faccount')
+            ->get([
+                'faccid',
+                'faccount',
+                'faccname',
+                'faccupline',
+            ]);
     }
 }
