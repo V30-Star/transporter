@@ -987,6 +987,7 @@ class PelunasanCustomerController extends Controller
         }
 
         $referenceRemainMap = collect();
+        $externalPaymentMap = collect();
         if ($header) {
             $refNos = $header->details
                 ->filter(fn($detail) => trim((string) ($detail->freftype ?? 'INV')) !== 'ADM')
@@ -1003,6 +1004,15 @@ class PelunasanCustomerController extends Controller
                     ->select(['fsono', 'famountso', 'famountremain', 'ftrcode'])
                     ->get()
                     ->keyBy(fn($row) => trim((string) ($row->fsono ?? '')));
+
+                $externalPaymentMap = Trkasdt::query()
+                    ->whereIn('frefno', $refNos)
+                    ->where('fkasmtid', '!=', $header->fkasmtid)
+                    ->whereRaw("TRIM(COALESCE(freftype, '')) != 'ADM'")
+                    ->selectRaw("TRIM(COALESCE(frefno, '')) as frefno, SUM(ABS(COALESCE(fkasdtvalue, 0))) as total_payment, SUM(ABS(COALESCE(fdiscount, 0))) as total_discount")
+                    ->groupByRaw("TRIM(COALESCE(frefno, ''))")
+                    ->get()
+                    ->keyBy(fn($row) => trim((string) ($row->frefno ?? '')));
             }
         }
 
@@ -1010,11 +1020,13 @@ class PelunasanCustomerController extends Controller
             ? $header->details
                 ->filter(fn($detail) => trim((string)($detail->freftype ?? 'INV')) !== 'ADM')
                 ->values()
-                ->map(function ($detail, $index) use ($referenceRemainMap) {
+                ->map(function ($detail, $index) use ($referenceRemainMap, $externalPaymentMap) {
                     $trCode = trim((string) ($detail->freftype ?? 'INV'));
                     $baseAmount = (float) ($detail->fvalue_rp ?? $detail->fjurnal_rp ?? $detail->fkasdtvalue ?? 0);
-                    $paymentAmount = (float) ($detail->fkasdtvalue ?? 0);
-                    $discountAmount = (float) ($detail->fdiscount ?? 0);
+                    $actualPayment = (float) ($detail->fkasdtvalue ?? 0);
+                    $actualDiscount = (float) ($detail->fdiscount ?? 0);
+                    $paymentAmount = $actualPayment;
+                    $discountAmount = $actualDiscount;
                     $refNo = trim((string) ($detail->frefno ?? ''));
                     $reference = $referenceRemainMap->get($refNo);
 
@@ -1036,11 +1048,25 @@ class PelunasanCustomerController extends Controller
                         $paymentAmount = $paymentAmount < 0 ? $paymentAmount * -1 : $paymentAmount;
                     }
 
+                    $externalPayment = 0;
+                    $externalDiscount = 0;
+                    if ($reference) {
+                        $extRow = $externalPaymentMap->get($refNo);
+                        if ($extRow) {
+                            $externalPayment = (float) ($extRow->total_payment ?? 0);
+                            $externalDiscount = (float) ($extRow->total_discount ?? 0);
+                        }
+                    }
+
+                    $adjustedRemain = $reference
+                        ? max(abs((float) ($reference->famountremain ?? 0)) - $externalPayment - $externalDiscount - $actualPayment - $actualDiscount, 0)
+                        : $baseAmount;
+
                     return [
                         'uid' => 'pc-existing-' . $index . '-' . $detail->fkasdtid,
                         'frefno' => $refNo,
                         'fnilai_nota' => $baseAmount,
-                        'fsisa_piutang' => $reference ? max((float) ($reference->famountremain ?? 0), 0) : $baseAmount,
+                        'fsisa_piutang' => $adjustedRemain,
                         'fdiscpersen' => (float) ($detail->fdiscpersen ?? 0),
                         'fdiscount' => $discountAmount,
                         'fkasdtvalue' => $paymentAmount,

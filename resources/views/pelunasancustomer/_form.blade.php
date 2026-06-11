@@ -1030,12 +1030,6 @@
                         return;
                     }
 
-                    const remain = this.toNumber(record.famountremain);
-                    if (remain <= 0) {
-                        this.showNotaSelectionError('Nota tidak bisa dipilih karena sisa piutang harus lebih besar dari 0.');
-                        return;
-                    }
-
                     const idx = this.tempSelectedNotas.findIndex(item => String(item.fsono).trim() === String(record.fsono).trim());
                     if (idx > -1) {
                         this.tempSelectedNotas.splice(idx, 1);
