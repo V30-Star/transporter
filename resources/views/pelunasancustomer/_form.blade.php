@@ -612,7 +612,9 @@
                         .map((row, index) => {
                             const normalized = this.normalizeRow(row, index);
                             if (isEdit) {
-                                normalized.originalSisa = normalized.fsisa_piutang + normalized.fkasdtvalue + normalized.fdiscount;
+                                normalized.originalSisa = this.isRejRow(normalized)
+                                    ? Math.abs(normalized.fkasdtvalue) + Math.abs(normalized.fdiscount)
+                                    : normalized.fsisa_piutang + normalized.fkasdtvalue + normalized.fdiscount;
                             } else {
                                 normalized.originalSisa = normalized.fsisa_piutang;
                             }
@@ -726,7 +728,7 @@
                         originalSisa: row.originalSisa !== undefined ? this.toNumber(row.originalSisa) : sisa,
                         fdiscpersen: isRej ? 0 : this.toNumber(row.fdiscpersen),
                         fdiscount: isRej ? 0 : this.toNumber(row.fdiscount),
-                        fkasdtvalue: isRej ? -sisa : this.toNumber(row.fkasdtvalue),
+                        fkasdtvalue: isRej ? -Math.abs(this.toNumber(row.fkasdtvalue)) : this.toNumber(row.fkasdtvalue),
                         ftrcode: String(row.ftrcode || 'INV').trim() || 'INV',
                     };
                 },
@@ -1090,7 +1092,8 @@
 
                     this.tempSelectedNotas.forEach(record => {
                         const remain = this.toNumber(record.famountremain);
-                        if (remain <= 0) return;
+                        const trCode = String(record.ftrcode || 'INV').trim().toUpperCase() || 'INV';
+                        if (remain <= 0 && trCode !== 'REJ') return;
 
                         const fsono = String(record.fsono || '').trim();
                         const existing = this.rows.find((row) => String(row.frefno || '').trim() === fsono);
@@ -1098,20 +1101,23 @@
                         if (!existing) {
                             const targetRow = this.findTargetRowForNota();
                             let amount = this.toNumber(record.famountso ?? record.famount);
-                            const trCode = String(record.ftrcode || 'INV').trim() || 'INV';
 
-                            if (trCode.toUpperCase() === 'REJ') {
+                            if (trCode === 'REJ') {
                                 amount = amount * -1;
+                                targetRow.fsisa_piutang = 0;
+                                targetRow.originalSisa = Math.abs(remain);
+                                targetRow.fkasdtvalue = -Math.abs(remain);
+                            } else {
+                                targetRow.fsisa_piutang = remain;
+                                targetRow.originalSisa = remain;
+                                targetRow.fkasdtvalue = remain;
                             }
 
                             targetRow.frefno = fsono;
                             targetRow.fdatetime = record.fsodate || '';
                             targetRow.fnilai_nota = Math.abs(amount);
-                            targetRow.fsisa_piutang = remain;
-                            targetRow.originalSisa = remain;
                             targetRow.fdiscpersen = 0;
                             targetRow.fdiscount = 0;
-                            targetRow.fkasdtvalue = trCode.toUpperCase() === 'REJ' ? -remain : remain;
                             targetRow.ftrcode = trCode;
                         }
                     });

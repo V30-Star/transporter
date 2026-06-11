@@ -219,7 +219,9 @@ class PelunasanCustomerController extends Controller
                 if (strtoupper($trCode) === 'REJ') {
                     $amount *= -1;
                     $amountSo *= -1;
-                    $amountRemain = -abs($amountRemain);
+                    if ($amountRemain < 0) {
+                        $amountRemain *= -1;
+                    }
                 }
 
                 return [
@@ -631,7 +633,7 @@ class PelunasanCustomerController extends Controller
                     'fsisa_piutang' => $sisa,
                     'fdiscpersen' => $trCode === 'REJ' ? 0 : round((float) ($detail['fdiscpersen'] ?? 0), 2),
                     'fdiscount' => $trCode === 'REJ' ? 0 : round(abs((float) ($detail['fdiscount'] ?? 0)), 2),
-                    'fkasdtvalue' => $trCode === 'REJ' ? $sisa : round(abs((float) ($detail['fkasdtvalue'] ?? 0)), 2),
+                    'fkasdtvalue' => round(abs((float) ($detail['fkasdtvalue'] ?? 0)), 2),
                     'ftrcode' => $trCode !== '' ? $trCode : 'INV',
                 ];
             })
@@ -1039,7 +1041,7 @@ class PelunasanCustomerController extends Controller
                     }
 
                     $adjustedRemain = $reference
-                        ? max(abs((float) ($reference->famountremain ?? 0)) - $actualPayment - $actualDiscount, 0)
+                        ? (strtoupper($trCode) === 'REJ' ? 0 : max(abs((float) ($reference->famountremain ?? 0)) - $actualPayment - $actualDiscount, 0))
                         : $baseAmount;
 
                     return [
