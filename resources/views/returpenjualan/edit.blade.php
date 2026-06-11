@@ -1416,31 +1416,19 @@
                                                                 <tr class="bg-gradient-to-r from-gray-50 to-gray-100">
                                                                     <th
                                                                         class="text-left p-3 font-semibold text-gray-700 border-b-2 border-gray-200">
-                                                                        No. SRJ</th>
+                                                                        {{ 'Cabang' }}</th>
                                                                     <th
                                                                         class="text-left p-3 font-semibold text-gray-700 border-b-2 border-gray-200">
-                                                                        Tanggal</th>
+                                                                        {{ 'No. SRJ' }}</th>
                                                                     <th
                                                                         class="text-left p-3 font-semibold text-gray-700 border-b-2 border-gray-200">
-                                                                        Cabang</th>
+                                                                        {{ 'Tanggal' }}</th>
                                                                     <th
                                                                         class="text-left p-3 font-semibold text-gray-700 border-b-2 border-gray-200">
-                                                                        Gudang</th>
-                                                                    <th
-                                                                        class="text-left p-3 font-semibold text-gray-700 border-b-2 border-gray-200">
-                                                                        Customer #</th>
-                                                                    <th
-                                                                        class="text-left p-3 font-semibold text-gray-700 border-b-2 border-gray-200">
-                                                                        Nama Customer</th>
-                                                                    <th
-                                                                        class="text-left p-3 font-semibold text-gray-700 border-b-2 border-gray-200">
-                                                                        Alamat</th>
-                                                                    <th
-                                                                        class="text-left p-3 font-semibold text-gray-700 border-b-2 border-gray-200">
-                                                                        Ref PO</th>
+                                                                        {{ 'Customer' }}</th>
                                                                     <th
                                                                         class="text-center p-3 font-semibold text-gray-700 border-b-2 border-gray-200">
-                                                                        Aksi</th>
+                                                                        {{ 'Aksi' }}</th>
                                                                 </tr>
                                                             </thead>
                                                             <tbody></tbody>
@@ -4006,277 +3994,7 @@
                     window.toast?.error(`${@json('Gagal mengambil detail Faktur Penjualan:')} ${e.message}`);
                 }
             }
-        };
-    };
-
-    window.srjFormModal = function() {
-        return {
-            showSrjModal: false,
-            table: null,
-
-            // Fitur Duplikasi (mirip logic SO)
-            showDupModal: false,
-            dupCount: 0,
-            dupSample: [],
-            pendingHeader: null,
-            pendingUniques: [],
-
-            initDataTable() {
-                if (this.table) {
-                    this.table.destroy();
-                }
-
-                this.table = $('#srjTable').DataTable({
-                    processing: true,
-                    serverSide: true,
-                    ajax: {
-                        url: "{{ route('suratjalan.pickable') }}", // Pastikan route ini ada di web.php
-                        type: 'GET',
-                        data: function(d) {
-                            var params = {
-                                draw: d.draw,
-                                start: d.start,
-                                length: d.length,
-                                search: d.search.value,
-                                order_column: d.columns[d.order[0].column].data,
-                                order_dir: d.order[0].dir,
-                                only_remaining: true
-                            };
-                            // Filter by selected customer
-                            var custCode = (document.getElementById('customerCodeHidden')?.value || '').trim();
-                            if (custCode) params.fcustno = custCode;
-                            return params;
-                        }
-                    },
-                    columns: [{
-                            data: 'fstockmtno',
-                            name: 'fstockmtno',
-                            className: 'font-mono text-sm'
-                        },
-                        {
-                            data: 'fstockmtdate',
-                            name: 'fstockmtdate',
-                            className: 'text-sm',
-                            render: function(data) {
-                                return formatDate(data);
-                            }
-                        },
-                        {
-                            data: 'fbranchcode',
-                            name: 'fbranchcode',
-                            defaultContent: '-',
-                            className: 'text-sm'
-                        },
-                        {
-                            data: 'ffrom',
-                            name: 'ffrom',
-                            defaultContent: '-',
-                            className: 'text-sm'
-                        },
-                        {
-                            data: 'fcustomercode',
-                            name: 'fcustomercode',
-                            defaultContent: '-',
-                            className: 'font-mono text-sm'
-                        },
-                        {
-                            data: 'fsuppliername',
-                            name: 'fsuppliername',
-                            defaultContent: '-',
-                        },
-                        {
-                            data: 'faddress',
-                            name: 'faddress',
-                            defaultContent: '-',
-                        },
-                        {
-                            data: 'frefpo',
-                            name: 'frefpo',
-                            defaultContent: '-',
-                            className: 'font-mono text-sm'
-                        },
-                        {
-                            data: null,
-                            orderable: false,
-                            searchable: false,
-                            className: 'text-center',
-                            width: '100px',
-                            render: function() {
-                                return '<button type="button" class="btn-pick-srj px-4 py-1.5 rounded-md text-sm font-bold bg-indigo-600 hover:bg-indigo-700 text-white transition-colors duration-150">{{ 'Pilih' }}</button>';
-                            }
-                        }
-                    ],
-                    pageLength: 10,
-                    dom: '<"#srjHeader"fl>rt<"#srjFooter"ip>',
-                    language: {
-                        processing: @json('Memuat data...'),
-                        search: @json('Search' . ':'),
-                        lengthMenu: @json('Tampilkan _MENU_'),
-                        paginate: {
-                            next: "Selanjutnya",
-                            previous: "Sebelumnya"
-                        }
-                    },
-                    order: [
-                        [2, 'desc']
-                    ], // Urutkan berdasarkan tanggal
-                    autoWidth: false,
-                    initComplete: function() {
-                        const api = this.api();
-                        const $container = $(api.table().container());
-
-                        // 1. Bungkus Header (Search & Length) supaya sejajar (Flex)
-                        const $header = $container.find('#srjHeader');
-                        $header.addClass('flex items-center justify-between mb-4 gap-4');
-
-                        // 2. Styling Input Search
-                        $header.find('.dataTables_filter input').css({
-                            'width': '300px',
-                            'padding': '8px 12px',
-                            'border': '2px solid #e5e7eb',
-                            'border-radius': '8px',
-                            'outline': 'none'
-                        }).addClass('focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500');
-
-                        // 3. Styling Dropdown "Tampilkan 10" (Length Menu)
-                        $header.find('.dataTables_length select').css({
-                            'padding': '6px 30px 6px 12px', // Beri padding kanan lebih untuk icon panah
-                            'border': '2px solid #e5e7eb',
-                            'border-radius': '8px',
-                            'background-position': 'right 8px center',
-                            'appearance': 'none', // Hilangkan style default browser
-                            'min-width': '80px'
-                        }).addClass('focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500');
-
-                        // 4. Bungkus Footer (Info & Pagination)
-                        const $footer = $container.find('#srjFooter');
-                        $footer.addClass('flex items-center justify-between mt-4');
-                    }
-                });
-
-                // Handle button click (pola delegasi jQuery)
-                const self = this;
-                $('#srjTable').off('click', '.btn-pick-srj').on('click', '.btn-pick-srj', function() {
-                    const data = self.table.row($(this).closest('tr')).data();
-                    self.pick(data);
-                });
-            },
-
-            // Handler Modal SRJ
-            openSrjModal() {
-                this.showSrjModal = true;
-                this.$nextTick(() => {
-                    this.initDataTable();
-                });
-            },
-
-            closeSrjModal() {
-                this.showSrjModal = false;
-                if (this.table) {
-                    this.table.search('').draw();
-                }
-            },
-
-            // Fitur Duplikasi SRJ
-            openDupModal(header, duplicates, uniques) {
-                this.dupCount = duplicates.length;
-                this.dupSample = duplicates.slice(0, 6);
-                this.pendingHeader = header;
-                this.pendingUniques = uniques;
-                this.showDupModal = true;
-            },
-
-            closeDupModal() {
-                this.showDupModal = false;
-            },
-
-            confirmAddUniques() {
-                const currentKeys = new Set((window.getCurrentItemKeys?.() || []).map(String));
-                const keyOf = (src) =>
-                    (src.fitemcode ?? '').toString().trim().toUpperCase();
-
-                const safeUniques = this.pendingUniques.filter(src => !currentKeys.has(keyOf(src)));
-
-                if (safeUniques.length > 0) {
-                    window.dispatchEvent(new CustomEvent('srj-picked', {
-                        detail: {
-                            header: this.pendingHeader,
-                            items: safeUniques
-                        }
-                    }));
-                }
-                this.closeDupModal();
-                this.closeSrjModal();
-            },
-
-            async pick(row) {
-                try {
-                    if (row.fnonactive == '1') {
-                        Swal.fire({
-                            icon: 'warning',
-                            title: @json('Produk Discontinue'),
-                            html: `${@json('Produk :name sudah tidak diproduksi lagi.').replace('__NAME__', `<b>${row.fprdname}</b>`)}<br><br>${@json('Penyimpanan Batal')}.`,
-                            confirmButtonColor: '#f59e0b', // Warna orange amber
-                            confirmButtonText: 'Kembali'
-                        });
-                        return; // Hentikan proses, jangan tambahkan ke tabel
-                    }
-                    // Pastikan route srj.items sudah didefinisikan di Laravel
-                    const url = `{{ route('suratjalan.items', ['id' => 'PLACEHOLDER']) }}`
-                        .replace('PLACEHOLDER', row.fstockmtid);
-
-                    const res = await fetch(url, {
-                        headers: {
-                            'X-Requested-With': 'XMLHttpRequest'
-                        }
-                    });
-
-                    if (!res.ok) throw new Error(`Server error: ${res.status}`);
-
-                    const json = await res.json();
-                    const items = (json.items || []).filter(src => Number(src.fqtyremain ?? 0) > 0);
-                    if (items.length === 0) {
-                        window.toast?.warning('Semua item SRJ ini sudah habis atau sudah digunakan.');
-                        return;
-                    }
-
-                    const currentKeys = new Set((window.getCurrentItemKeys?.() || []).map(String));
-                    const keyOf = (src) =>
-                        (src.fitemcode ?? '').toString().trim().toUpperCase();
-
-                    const seenKeys = new Set(currentKeys);
-                    const duplicates = [];
-                    const uniques = [];
-
-                    items.forEach(src => {
-                        const key = keyOf(src);
-                        if (seenKeys.has(key)) {
-                            duplicates.push(src);
-                        } else {
-                            uniques.push(src);
-                            seenKeys.add(key);
-                        }
-                    });
-
-                    if (duplicates.length > 0) {
-                        this.openDupModal(json.header, duplicates, uniques);
-                        return;
-                    }
-
-                    window.dispatchEvent(new CustomEvent('srj-picked', {
-                        detail: {
-                            header: json.header,
-                            items: uniques
-                        }
-                    }));
-
-                    this.closeSrjModal();
-                } catch (e) {
-                    console.error('Error SRJ:', e);
-                    window.toast?.error(`${@json('Gagal mengambil detail Surat Jalan:')} ${e.message}`);
-                }
-            }
-        };
+          };
     };
 
     window.prhFormModal = function() {
@@ -4536,6 +4254,10 @@
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
     <script src="https://cdn.datatables.net/1.13.7/js/jquery.dataTables.min.js"></script>
     @include('components.transaction.browse-warehouse-script')
+    @include('components.transaction.invoice-srj-modal-script', [
+        'customerParamName' => 'fcustno',
+        'warningText' => 'Semua item SRJ ini sudah habis atau sudah digunakan.'
+    ])
 
     <script>
         // Modal produk dengan DataTables

@@ -1,6 +1,8 @@
 @php
     $pickableRoute = $pickableRoute ?? route('suratjalan.pickable');
     $itemsRouteTemplate = $itemsRouteTemplate ?? route('suratjalan.items', ['id' => 'PLACEHOLDER']);
+    $customerParamName = $customerParamName ?? 'customer_code';
+    $warningText = $warningText ?? 'Semua item SRJ ini sudah habis difakturkan.';
 @endphp
 
 <script>
@@ -26,16 +28,18 @@
                         url: @js($pickableRoute),
                         type: 'GET',
                         data: function(d) {
-                            return {
+                            const params = {
                                 draw: d.draw,
                                 start: d.start,
                                 length: d.length,
                                 search: d.search.value,
                                 order_column: d.columns[d.order[0].column].data,
                                 order_dir: d.order[0].dir,
-                                customer_code: document.getElementById('customerCodeHidden')?.value || '',
                                 only_remaining: 1
                             };
+                            const custVal = document.getElementById('customerCodeHidden')?.value || '';
+                            params[@js($customerParamName)] = custVal;
+                            return params;
                         }
                     },
                     columns: [{
@@ -139,9 +143,23 @@
                 });
 
                 const self = this;
-                $('#srjTable').off('click', '.btn-pick-srj').on('click', '.btn-pick-srj', function() {
+                $('#srjTable').off('click.srjpick');
+                $('#srjTable').on('click.srjpick', '.btn-pick-srj', function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
                     const data = self.table.row($(this).closest('tr')).data();
-                    self.pick(data);
+                    if (data) {
+                        self.pick(data);
+                    }
+                });
+                $('#srjTable').on('click.srjpick', 'tbody tr', function(e) {
+                    if ($(e.target).closest('button, a, input, select, textarea').length) {
+                        return;
+                    }
+                    const data = self.table.row(this).data();
+                    if (data) {
+                        self.pick(data);
+                    }
                 });
             },
 
@@ -214,7 +232,7 @@
                     const json = await res.json();
                     const items = (json.items || []).filter(src => Number(src.fqtyremain ?? 0) > 0);
                     if (items.length === 0) {
-                        window.toast?.warning('Semua item SRJ ini sudah habis difakturkan.');
+                        window.toast?.warning(@js($warningText));
                         return;
                     }
                     window.applyTransactionCustomerSelection?.({
