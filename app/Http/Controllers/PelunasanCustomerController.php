@@ -18,12 +18,6 @@ use Illuminate\Validation\ValidationException;
 class PelunasanCustomerController extends Controller
 {
     private const TRAN_CODE = 'BKM';
-    private const RECEIVABLE_SET_ACCOUNT = 'PIUTANGDAGANG';
-    private const RETURN_RECEIVABLE_SET_ACCOUNT_CANDIDATES = [
-        'RETURPENJUALANBELUMPOTONGPIUTANG',
-        'RETURPENJUALAN_BELUM_POTONG_PIUTANG',
-        'RETUR PENJUALAN BELUM POTONG PIUTANG',
-    ];
 
     public function index()
     {
@@ -647,11 +641,16 @@ class PelunasanCustomerController extends Controller
 
     private function buildJournalDetailEntries(Collection $detailRows, string $paymentDate, Customer $customer): Collection
     {
-        $receivableAccount = $this->resolveRequiredAccount(self::RECEIVABLE_SET_ACCOUNT, 'Akun piutang dagang belum disetting.');
-        $returnReceivableAccount = $this->resolveRequiredAccountFromCandidates(
-            self::RETURN_RECEIVABLE_SET_ACCOUNT_CANDIDATES,
-            'Akun retur penjualan belum potong piutang belum disetting.'
-        );
+        $receivableCode = trim((string) DB::table('set_account')->where('faccount_name', 'PIUTANGDAGANG')->value('faccount'));
+        $receivableAccount = $receivableCode !== ''
+            ? Account::query()->where('faccount', $receivableCode)->where('fend', 1)->first(['faccid', 'faccount', 'faccname'])
+            : null;
+
+        $returnReceivableCode = trim((string) DB::table('set_account')->where('faccount_name', 'RETJUALBLMPOTPIUTANG')->value('faccount'));
+        $returnReceivableAccount = $returnReceivableCode !== ''
+            ? Account::query()->where('faccount', $returnReceivableCode)->where('fend', 1)->first(['faccid', 'faccount', 'faccname'])
+            : null;
+
         $referenceMap = $this->resolveReferenceTransactions($detailRows, Carbon::parse($paymentDate));
 
         return $detailRows->values()->map(function (array $row) use ($customer, $receivableAccount, $returnReceivableAccount, $referenceMap) {
@@ -855,46 +854,7 @@ class PelunasanCustomerController extends Controller
         return $accountCode !== '' ? $accountCode : null;
     }
 
-    private function resolveRequiredAccount(string $accountName, string $message): Account
-    {
-        $accountCode = $this->resolveSetAccountCode($accountName);
 
-        if (!$accountCode) {
-            throw ValidationException::withMessages([
-                'faccountheader' => $message,
-            ]);
-        }
-
-        return Account::query()
-            ->where('faccount', $accountCode)
-            ->first(['faccid', 'faccount', 'faccname'])
-            ?? throw ValidationException::withMessages([
-                'faccountheader' => $message,
-            ]);
-    }
-
-    private function resolveRequiredAccountFromCandidates(array $accountNames, string $message): Account
-    {
-        foreach ($accountNames as $accountName) {
-            $accountCode = $this->resolveSetAccountCode($accountName);
-
-            if (!$accountCode) {
-                continue;
-            }
-
-            $account = Account::query()
-                ->where('faccount', $accountCode)
-                ->first(['faccid', 'faccount', 'faccname']);
-
-            if ($account) {
-                return $account;
-            }
-        }
-
-        throw ValidationException::withMessages([
-            'faccountheader' => $message,
-        ]);
-    }
 
     private function resolveBranchCode(): string
     {
