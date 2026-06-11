@@ -17,6 +17,7 @@ use Illuminate\Validation\ValidationException;
 class BayarSupplierController extends Controller
 {
     private const TRAN_CODE = 'BKK';
+    private const GIRO_MUNDUR_ACCOUNT_NAME = 'HUTANGGIRO';
 
     public function index()
     {
@@ -187,10 +188,13 @@ class BayarSupplierController extends Controller
 
     public function store(Request $request)
     {
+        $isGiroMundur = $request->boolean('fgiromundur');
+        $giroAccount = trim((string) $this->resolveSetAccountCode(self::GIRO_MUNDUR_ACCOUNT_NAME));
+
         $request->merge([
             'details' => $this->filterEmptyDetailRows($request->input('details', [])),
             'fbranchcode' => trim((string) $request->input('fbranchcode', $this->resolveBranchCode())),
-            'fgiromundur' => $request->boolean('fgiromundur') ? '1' : '0',
+            'fgiromundur' => $isGiroMundur ? '1' : '0',
         ]);
 
         $validated = $request->validate([
@@ -201,7 +205,7 @@ class BayarSupplierController extends Controller
             'faccountheader' => ['required'],
             'fnogiro' => ['nullable', 'string', 'max:35'],
             'fgiromundur' => ['nullable', 'in:0,1'],
-            'ftgljatuhtempo' => ['nullable', 'date', Rule::requiredIf($request->input('fgiromundur') === '1'), 'after_or_equal:fkasmtdate'],
+            'ftgljatuhtempo' => ['nullable', 'date', Rule::requiredIf($isGiroMundur), 'before_or_equal:fkasmtdate'],
             'fket' => ['nullable', 'string', 'max:50'],
             'fbiayaadminbank' => ['nullable', 'numeric', 'min:0'],
             'faccountadmin' => [Rule::requiredIf((float) $request->input('fbiayaadminbank') > 0), 'nullable', 'string', 'max:15', Rule::exists('account', 'faccount')->where(fn ($query) => $query->where('fend', 1))],
@@ -216,11 +220,16 @@ class BayarSupplierController extends Controller
             'fsupplier.required' => 'Supplier wajib dipilih.',
             'faccountheader.required' => 'Account wajib dipilih.',
             'ftgljatuhtempo.required' => 'Tgl. jatuh tempo wajib diisi saat giro mundur aktif.',
+            'ftgljatuhtempo.before_or_equal' => 'Tgl. jatuh tempo tidak boleh melebihi tanggal transaksi.',
             'faccountadmin.required' => 'Account biaya admin bank wajib diisi.',
             'details.required' => 'Minimal 1 faktur wajib diisi.',
             'details.*.frefno.required' => 'No. penerimaan wajib diisi.',
             'details.*.fkasdtvalue.required' => 'Total bayar wajib diisi.',
         ]);
+
+        if ($isGiroMundur && $giroAccount !== '') {
+            $validated['faccountheader'] = $giroAccount;
+        }
 
         $supplier = Supplier::query()
             ->where('fsuppliercode', $validated['fsupplier'])
@@ -339,11 +348,13 @@ class BayarSupplierController extends Controller
     public function update(Request $request, $fkasmtno)
     {
         $header = $this->findHeader($fkasmtno);
+        $isGiroMundur = $request->boolean('fgiromundur');
+        $giroAccount = trim((string) $this->resolveSetAccountCode(self::GIRO_MUNDUR_ACCOUNT_NAME));
 
         $request->merge([
             'details' => $this->filterEmptyDetailRows($request->input('details', [])),
             'fbranchcode' => trim((string) $request->input('fbranchcode', $header->fbranchcode ?: $this->resolveBranchCode())),
-            'fgiromundur' => $request->boolean('fgiromundur') ? '1' : '0',
+            'fgiromundur' => $isGiroMundur ? '1' : '0',
         ]);
 
         $validated = $request->validate([
@@ -359,7 +370,7 @@ class BayarSupplierController extends Controller
             'faccountheader' => ['required'],
             'fnogiro' => ['nullable', 'string', 'max:35'],
             'fgiromundur' => ['nullable', 'in:0,1'],
-            'ftgljatuhtempo' => ['nullable', 'date', Rule::requiredIf($request->input('fgiromundur') === '1'), 'after_or_equal:fkasmtdate'],
+            'ftgljatuhtempo' => ['nullable', 'date', Rule::requiredIf($isGiroMundur), 'before_or_equal:fkasmtdate'],
             'fket' => ['nullable', 'string', 'max:50'],
             'fbiayaadminbank' => ['nullable', 'numeric', 'min:0'],
             'faccountadmin' => [Rule::requiredIf((float) $request->input('fbiayaadminbank') > 0), 'nullable', 'string', 'max:15', Rule::exists('account', 'faccount')->where(fn ($query) => $query->where('fend', 1))],
@@ -374,11 +385,16 @@ class BayarSupplierController extends Controller
             'fsupplier.required' => 'Supplier wajib dipilih.',
             'faccountheader.required' => 'Account wajib dipilih.',
             'ftgljatuhtempo.required' => 'Tgl. jatuh tempo wajib diisi saat giro mundur aktif.',
+            'ftgljatuhtempo.before_or_equal' => 'Tgl. jatuh tempo tidak boleh melebihi tanggal transaksi.',
             'faccountadmin.required' => 'Account biaya admin bank wajib diisi.',
             'details.required' => 'Minimal 1 faktur wajib diisi.',
             'details.*.frefno.required' => 'No. penerimaan wajib diisi.',
             'details.*.fkasdtvalue.required' => 'Total bayar wajib diisi.',
         ]);
+
+        if ($isGiroMundur && $giroAccount !== '') {
+            $validated['faccountheader'] = $giroAccount;
+        }
 
         $supplier = Supplier::query()
             ->where('fsuppliercode', $validated['fsupplier'])
@@ -838,6 +854,9 @@ class BayarSupplierController extends Controller
             'hargaAdmin2Value' => old('fhargaadmin2', $hargaAdmin2Value),
             'dueDate' => old('ftgljatuhtempo', optional($header?->ftgljatuhtempo)->format('Y-m-d')),
             'giroMundur' => old('fgiromundur', ($header?->fgiromundur ?? '0')) === '1',
+            'giroMundurHeaderAccount' => ($giroCode = $this->resolveSetAccountCode(self::GIRO_MUNDUR_ACCOUNT_NAME))
+                ? Account::query()->where('faccount', $giroCode)->first(['faccid', 'faccount', 'faccname'])
+                : null,
             'noteValue' => old('fket', $header?->fket),
             'giroNo' => old('fnogiro', $header?->fnogiro),
             'headerAccounts' => $this->resolveHeaderAccounts(),
