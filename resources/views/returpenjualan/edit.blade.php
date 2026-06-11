@@ -234,29 +234,6 @@
                                     saat simpan</p>
                             </div>
 
-                            <div class="lg:col-span-4">
-                                <label class="block text-sm font-medium">Retur Pajak#</label>
-                                <input type="text" name="ftaxno" value="{{ old('ftaxno', $returpenjualan->ftaxno) }}"
-                                    class="w-full border rounded px-3 py-2 @error('ftaxno') border-red-500 @enderror"
-                                    readonly>
-                                @error('ftaxno')
-                                    <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
-                                @enderror
-                            </div>
-
-                            <div class="lg:col-span-4">
-                                <label class="block text-sm font-medium">Type</label>
-                                <select name="ftypesales" id="ftypesales" x-model.number="ftypesales"
-                                    x-init="ftypesales = 0" disabled
-                                    class="w-full border rounded px-3 py-2 @error('ftypesales') border-red-500 @enderror">
-                                    <option value="0">Penjualan</option>
-                                    <option value="1">Uang Muka</option>
-                                </select>
-                                @error('ftypesales')
-                                    <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
-                                @enderror
-                            </div>
-
                             {{-- Tanggal --}}
                             <div class="lg:col-span-4">
                                 <label class="block text-sm font-medium">Tanggal</label>
@@ -348,6 +325,8 @@
                                     <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                                 @enderror
                             </div>
+
+                            <input type="hidden" name="ftaxno" value="{{ $returpenjualan->ftaxno }}">
 
                             <div class="lg:col-span-4">
                                 <label class="block text-sm font-medium">Tgl. Jatuh Tempo</label>
@@ -847,29 +826,6 @@
                             </div>
 
                             <div class="lg:col-span-4">
-                                <label class="block text-sm font-medium">Retur Pajak#</label>
-                                <input type="text" name="ftaxno"
-                                    value="{{ old('ftaxno', $returpenjualan->ftaxno) }}"
-                                    class="w-full border rounded px-3 py-2 @error('ftaxno') border-red-500 @enderror">
-                                @error('ftaxno')
-                                    <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
-                                @enderror
-                            </div>
-
-                            <div class="lg:col-span-4">
-                                <label class="block text-sm font-medium">Type</label>
-                                <select name="ftypesales" id="ftypesales" x-model.number="ftypesales"
-                                    x-init="ftypesales = {{ old('ftypesales', $returpenjualan->ftypesales) }}"
-                                    class="w-full border rounded px-3 py-2 @error('ftypesales') border-red-500 @enderror">
-                                    <option value="0">Penjualan</option>
-                                    <option value="1">Uang Muka</option>
-                                </select>
-                                @error('ftypesales')
-                                    <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
-                                @enderror
-                            </div>
-
-                            <div class="lg:col-span-4">
                                 <label class="block text-sm font-medium">Tanggal</label>
                                 <input type="date" id="fsodate" name="fsodate"
                                     value="{{ old('fsodate', \Carbon\Carbon::parse($returpenjualan->fsodate)->format('Y-m-d')) }}"
@@ -998,14 +954,7 @@
                                 @enderror
                             </div>
 
-                            <div class="lg:col-span-4">
-                                <label class="block text-sm font-medium">No. Referensi</label>
-                                <input type="text" id="headerReferenceDisplay"
-                                    value="{{ old('frefdisplay_header', trim((string) ($returpenjualan->frefno ?: ($returpenjualan->frefsrj ?: $returpenjualan->frefso)))) }}"
-                                    class="w-full border rounded px-3 py-2 bg-gray-100 text-gray-600" readonly>
-                                <input type="hidden" name="frefdisplay_header" id="frefdisplay_header"
-                                    value="{{ old('frefdisplay_header', trim((string) ($returpenjualan->frefno ?: ($returpenjualan->frefsrj ?: $returpenjualan->frefso)))) }}">
-                            </div>
+                            <input type="hidden" name="ftaxno" value="{{ old('ftaxno', $returpenjualan->ftaxno) }}">
 
                             <div class="lg:col-span-12">
                                 <label class="block text-sm font-medium">Keterangan</label>
@@ -1394,7 +1343,7 @@
                                                 <div
                                                     class="px-6 py-4 border-b border-gray-200 flex items-center justify-between flex-shrink-0 bg-gradient-to-r from-indigo-50 to-white">
                                                     <div>
-                                                        <h3 class="text-xl font-bold text-gray-800">Browse Surat Jalan
+                                                        <h3 class="text-xl font-bold text-gray-800">Pilih Surat Jalan
                                                         </h3>
                                                     </div>
                                                     <button type="button" @click="closeSrjModal()"
@@ -2857,6 +2806,7 @@
 
             includePPN: @json($returpenjualan->fincludeppn == '1'),
             fapplyppn: @json((int) ($returpenjualan->fapplyppn ?? 0)),
+            ftypesales: @json((int) ($returpenjualan->ftypesales ?? 0)),
 
             get ppnIncluded() {
                 const total = +this.totalHarga || 0;
@@ -4250,14 +4200,12 @@
     }
 </script>
 
+@include('components.transaction.invoice-srj-modal-script')
+
 @push('scripts')
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
     <script src="https://cdn.datatables.net/1.13.7/js/jquery.dataTables.min.js"></script>
     @include('components.transaction.browse-warehouse-script')
-    @include('components.transaction.invoice-srj-modal-script', [
-        'customerParamName' => 'fcustno',
-        'warningText' => 'Semua item SRJ ini sudah habis atau sudah digunakan.'
-    ])
 
     <script>
         // Modal produk dengan DataTables

@@ -114,13 +114,16 @@
                             </select>
                             @if (!$isReadOnly)
                                 <div class="absolute inset-0" role="button" aria-label="Browse Customer"
-                                    @click="window.dispatchEvent(new CustomEvent('customer-browse-open'))"></div>
+                                    :class="hasSelectedNotas ? 'cursor-not-allowed' : 'cursor-pointer'"
+                                    @click="if (!hasSelectedNotas) window.dispatchEvent(new CustomEvent('customer-browse-open'))"></div>
                             @endif
                         </div>
                         <input type="hidden" name="fcustomer" id="customerCodeHidden" x-model="customerCode">
                         @if (!$isReadOnly)
-                            <button type="button" @click="window.dispatchEvent(new CustomEvent('customer-browse-open'))"
-                                class="border -ml-px px-3 py-1.5 bg-white hover:bg-gray-50 rounded-r" title="Browse Customer">
+                            <button type="button" @click="if (!hasSelectedNotas) window.dispatchEvent(new CustomEvent('customer-browse-open'))"
+                                :class="hasSelectedNotas ? 'bg-gray-100 text-gray-400 cursor-not-allowed' : 'bg-white hover:bg-gray-50'"
+                                :disabled="hasSelectedNotas"
+                                class="border -ml-px px-3 py-1.5 rounded-r" title="Browse Customer">
                                 <x-heroicon-o-magnifying-glass class="w-5 h-5" />
                             </button>
                         @endif
@@ -618,6 +621,7 @@
                     }, { deep: true });
 
                     window.addEventListener('customer-selected', (event) => {
+                        if (this.hasSelectedNotas) return;
                         const detail = event.detail || {};
                         const code = String(detail.fcustomercode || '').trim();
                         const name = String(detail.fcustomername || '').trim();
@@ -717,6 +721,10 @@
                         fkasdtvalue: this.toNumber(row.fkasdtvalue),
                         ftrcode: String(row.ftrcode || 'INV').trim() || 'INV',
                     };
+                },
+
+                get hasSelectedNotas() {
+                    return this.rows.some(row => this.rowHasContent(row));
                 },
 
                 rowHasContent(row) {

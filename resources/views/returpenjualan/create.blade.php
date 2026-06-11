@@ -184,7 +184,6 @@
       ">
                     @csrf
 
-                    {{-- HEADER FORM --}}
                     <div class="grid grid-cols-1 lg:grid-cols-12 gap-4">
                         <div class="lg:col-span-4">
                             <label class="block text-sm font-medium">Cabang</label>
@@ -204,27 +203,6 @@
                                     <span class="ml-2 text-sm text-gray-700">Auto</span>
                                 </label>
                             </div>
-                        </div>
-
-                        <div class="lg:col-span-4">
-                            <label class="block text-sm font-medium">Retur Pajak#</label>
-                            <input type="text" name="ftaxno" value="{{ old('ftaxno') }}"
-                                class="w-full border rounded px-3 py-2 @error('ftaxno') border-red-500 @enderror">
-                            @error('ftaxno')
-                                <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
-                            @enderror
-                        </div>
-
-                        <div class="lg:col-span-4">
-                            <label class="block text-sm font-medium">Type</label>
-                            <select name="ftypesales" id="ftypesales" x-model.number="ftypesales" x-init="ftypesales = 0"
-                                class="w-full border rounded px-3 py-2 @error('ftypesales') border-red-500 @enderror">
-                                <option value="0">Penjualan</option>
-                                <option value="1">Uang Muka</option>
-                            </select>
-                            @error('ftypesales')
-                                <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
-                            @enderror
                         </div>
 
                         <div class="lg:col-span-4">
@@ -348,14 +326,7 @@
                             @enderror
                         </div>
 
-                        <div class="lg:col-span-4">
-                            <label class="block text-sm font-medium">No. Referensi</label>
-                            <input type="text" id="headerReferenceDisplay"
-                                value="{{ old('frefdisplay_header', '') }}"
-                                class="w-full border rounded px-3 py-2 bg-gray-100 text-gray-600" readonly>
-                            <input type="hidden" name="frefdisplay_header" id="frefdisplay_header"
-                                value="{{ old('frefdisplay_header', '') }}">
-                        </div>
+                        <input type="hidden" name="ftaxno" value="0">
 
                         <div class="lg:col-span-12">
                             <label class="block text-sm font-medium">Keterangan</label>
@@ -708,7 +679,7 @@
                                             <div
                                                 class="px-6 py-4 border-b border-gray-200 flex items-center justify-between flex-shrink-0 bg-gradient-to-r from-indigo-50 to-white">
                                                 <div>
-                                                    <h3 class="text-xl font-bold text-gray-800">Browse Surat Jalan
+                                                    <h3 class="text-xl font-bold text-gray-800">Pilih Surat Jalan
                                                     </h3>
                                                 </div>
                                                 <button type="button" @click="closeSrjModal()"
@@ -2041,6 +2012,7 @@
 
             totalHarga: 0,
             ppnRate: 11,
+            ftypesales: 0,
 
             initialGrandTotal: @json($famountso ?? 0),
             initialPpnAmount: @json($famountpopajak ?? 0),
@@ -3342,14 +3314,12 @@
 
 </script>
 
+@include('components.transaction.invoice-srj-modal-script')
+
 @push('scripts')
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
     <script src="https://cdn.datatables.net/1.13.7/js/jquery.dataTables.min.js"></script>
     @include('components.transaction.browse-warehouse-script')
-    @include('components.transaction.invoice-srj-modal-script', [
-        'customerParamName' => 'fcustno',
-        'warningText' => 'Semua item SRJ ini sudah habis atau sudah digunakan.'
-    ])
 
     <script>
         // Modal produk dengan DataTables

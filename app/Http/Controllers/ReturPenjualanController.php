@@ -729,7 +729,6 @@ class ReturPenjualanController extends Controller
                 'fsodate' => ['required', 'date'],
                 'fcustno' => ['required', 'string', 'max:10'],
                 'ffrom' => ['nullable', 'string', 'max:30'],
-                'ftypesales' => ['required', 'in:0,1'],
                 'fitemcode' => ['required', 'array', 'min:1'],
                 'fitemcode.*' => ['nullable', 'string', 'max:30'],
                 'fqty' => ['required', 'array'],
@@ -746,7 +745,7 @@ class ReturPenjualanController extends Controller
                 'frefnoacak' => ['nullable', 'array'],
                 'frefnoacak.*' => ['nullable', 'regex:/^\d{3}$/'],
             ]);
-        } catch (\Illuminate\Validation\ValidationException $e) {
+        } catch (\IlluminateValidation\ValidationException $e) {
             throw $e; // tetap lempar agar Laravel handle redirect
         }
 
@@ -760,7 +759,7 @@ class ReturPenjualanController extends Controller
         $now = now();
         $fcurrency = $request->input('fcurrency', 'IDR');
         $frate = (float) $request->input('frate', 1);
-        $typeSales = (int) $request->input('ftypesales');
+        $typeSales = (int) $request->input('ftypesales', 0);
 
         // 3. ARRAY INPUT
         $itemCodes = $request->input('fitemcode', []);
@@ -1836,7 +1835,6 @@ class ReturPenjualanController extends Controller
             'fsodate' => ['required', 'date'],
             'fcustno' => ['required', 'string', 'max:10'],
             'ffrom' => ['required', 'string', 'max:10'],
-            'ftypesales' => ['required', 'in:0,1'], // Pastikan ftypesales divalidasi
             'fitemcode' => ['required', 'array', 'min:1'],
             'fitemcode.*' => ['required', 'string', 'max:30'],
             'fqty' => ['required', 'array'],
@@ -1877,7 +1875,7 @@ class ReturPenjualanController extends Controller
         $frate = (float) $request->input('frate', $header->frate ?? 1);
 
         $itemCodes = $request->input('fitemcode', []);
-        $typeSales = (int) $request->input('ftypesales'); // 0: Penjualan, 1: Uang Muka
+        $typeSales = (int) $request->input('ftypesales', 0); // 0: Penjualan, 1: Uang Muka
         $itemDescs = $request->input('fitemname', []);
         $satuans = $request->input('fsatuan', []);
         $qtys = $request->input('fqty', []);
