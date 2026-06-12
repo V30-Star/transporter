@@ -25,6 +25,7 @@ class Trkasmt extends Model
         'famountpay_rp' => 'decimal:2',
         'frate' => 'decimal:2',
         'ftotdiscountrp' => 'decimal:2',
+        'fadminbank' => 'decimal:2',
     ];
 
     public function details()

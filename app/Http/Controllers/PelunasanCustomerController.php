@@ -364,7 +364,7 @@ class PelunasanCustomerController extends Controller
         $ftotdiscountrp = round((float) $detailRows->sum(fn(array $row) => (float) ($row['fdiscount'] ?? 0)), 2);
         $now = now();
 
-        DB::transaction(function () use ($validated, $customer, $headerAccount, $detailEntries, $voucherNo, $netPaymentAmount, $ftotdiscountrp, $now) {
+        DB::transaction(function () use ($validated, $customer, $headerAccount, $detailEntries, $voucherNo, $netPaymentAmount, $ftotdiscountrp, $bankAdminFee, $now) {
             $headerId = $this->nextIntegerId('trkasmt', 'fkasmtid');
             $nextDetailId = $this->nextIntegerId('trkasdt', 'fkasdtid');
 
@@ -396,6 +396,7 @@ class PelunasanCustomerController extends Controller
                 'faccadj2' => $validated['faccountadmin2'] ?? null,
                 'fadjustment2' => (float) ($validated['fhargaadmin2'] ?? 0),
                 'ftotdiscountrp' => $ftotdiscountrp,
+                'fadminbank' => $bankAdminFee,
             ]);
 
             foreach ($detailEntries as $index => $entry) {
@@ -544,7 +545,7 @@ class PelunasanCustomerController extends Controller
         $ftotdiscountrp = round((float) $detailRows->sum(fn(array $row) => (float) ($row['fdiscount'] ?? 0)), 2);
         $now = now();
 
-        DB::transaction(function () use ($validated, $customer, $headerAccount, $detailEntries, $voucherNo, $netPaymentAmount, $ftotdiscountrp, $now, $header) {
+        DB::transaction(function () use ($validated, $customer, $headerAccount, $detailEntries, $voucherNo, $netPaymentAmount, $ftotdiscountrp, $bankAdminFee, $now, $header) {
             $header->update([
                 'fkasmtno' => $voucherNo,
                 'fkasmtdate' => $validated['fkasmtdate'],
@@ -569,6 +570,7 @@ class PelunasanCustomerController extends Controller
                 'faccadj2' => $validated['faccountadmin2'] ?? null,
                 'fadjustment2' => (float) ($validated['fhargaadmin2'] ?? 0),
                 'ftotdiscountrp' => $ftotdiscountrp,
+                'fadminbank' => $bankAdminFee,
             ]);
 
             Trkasdt::where('fkasmtid', $header->fkasmtid)->delete();
