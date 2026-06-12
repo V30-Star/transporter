@@ -447,7 +447,7 @@
                 <div class="w-full max-w-md">
                     <div class="rounded-lg border bg-gray-50 p-3">
                         <div class="flex items-center justify-between">
-                            <span class="text-sm font-semibold text-gray-800">{{ 'Total' }}</span>
+                            <span class="text-sm font-semibold text-gray-800">{{ 'Total Pengeluaran' }}</span>
                             <input type="text" id="detailTotal"
                                 value="{{ number_format($totalAmount, 2, '.', ',') }}"
                                 class="w-48 border rounded px-1.5 py-1 text-right bg-gray-100 font-semibold" readonly>
