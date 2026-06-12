@@ -31,28 +31,14 @@ class PenerimaanKasController extends Controller
             ->where('trkasmt.ftrancode', self::TRAN_CODE)
             ->leftJoin('trkasdt as dt', 'dt.fkasmtid', '=', 'trkasmt.fkasmtid')
             ->leftJoin('account as acc', 'acc.faccount', '=', 'dt.faccount')
-            ->leftJoin('mscabang as cb', 'cb.fcabangkode', '=', 'trkasmt.fbranchcode')
             ->select([
                 'trkasmt.fkasmtid',
                 'trkasmt.fkasmtno',
                 'trkasmt.fkasmtdate',
                 'trkasmt.fnogiro',
                 'trkasmt.fdkheader',
-                DB::raw("
-                    COALESCE(
-                        NULLIF(concat_ws(' - ', NULLIF(trim(trkasmt.fbranchcode), ''), NULLIF(trim(cb.fcabangname), '')), ''),
-                        COALESCE(NULLIF(trim(trkasmt.fbranchcode), ''), '-')
-                    ) as fbranchcode
-                "),
-                DB::raw("
-                    COALESCE(
-                        string_agg(
-                            DISTINCT concat_ws(' - ', dt.faccount, acc.faccname),
-                            ', ' ORDER BY concat_ws(' - ', dt.faccount, acc.faccname)
-                        ),
-                        '-'
-                    ) as account_summary
-                "),
+                'trkasmt.fbranchcode',
+                'trkasmt.faccountno as account_summary',
                 DB::raw("
                     COALESCE(
                         string_agg(
@@ -64,7 +50,7 @@ class PenerimaanKasController extends Controller
                 "),
                 DB::raw('ABS(COALESCE(SUM(COALESCE(dt.fkasdtvalue, 0)), COALESCE(trkasmt.famountpay, 0), 0)) as payment_amount'),
             ])
-            ->groupBy('trkasmt.fkasmtid', 'trkasmt.fkasmtno', 'trkasmt.fkasmtdate', 'trkasmt.fbranchcode', 'cb.fcabangname', 'trkasmt.fnogiro', 'trkasmt.fket', 'trkasmt.fdkheader')
+            ->groupBy('trkasmt.fkasmtid', 'trkasmt.fkasmtno', 'trkasmt.fkasmtdate', 'trkasmt.fbranchcode', 'trkasmt.fnogiro', 'trkasmt.fket', 'trkasmt.fdkheader')
             ->orderByDesc('trkasmt.fkasmtdate')
             ->orderByDesc('trkasmt.fkasmtid')
             ->get();

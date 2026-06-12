@@ -70,8 +70,8 @@ class JurnalTransaksiController extends Controller
             ->whereIn('faccount_name', self::REFERENCE_ALLOWED_ACCOUNT_NAMES)
             ->pluck('faccount')
             ->filter()
-            ->map(fn ($value) => trim((string) $value))
-            ->filter(fn ($value) => $value !== '')
+            ->map(fn($value) => trim((string) $value))
+            ->filter(fn($value) => $value !== '')
             ->values()
             ->all();
     }
@@ -107,7 +107,7 @@ class JurnalTransaksiController extends Controller
         $pageMeta = $this->resolveJournalPageMeta($journalType);
 
         $availableYearsQuery = DB::table('jurnalmt')
-            ->when($journalType !== '', fn ($query) => $query->where('fjurnaltype', $journalType))
+            ->when($journalType !== '', fn($query) => $query->where('fjurnaltype', $journalType))
             ->whereNotNull('fjurnaldate')
             ->selectRaw('DISTINCT EXTRACT(YEAR FROM fjurnaldate) as year');
         $this->applyBranchVisibilityScope($availableYearsQuery, 'jurnalmt.fbranchcode');
@@ -143,13 +143,14 @@ class JurnalTransaksiController extends Controller
             $filteredRecords = (clone $query)->count();
 
             $orderColIdx = $request->input('order.0.column', 0);
-            $orderDir = $request->input('order.0.dir', 'asc');
+            $orderDir = $request->input('order.0.dir', 'desc'); 
             $sortableColumns = ['fjurnalno', 'fjurnaldate', 'fbranchcode', 'fbalance_rp', 'fjurnalnote'];
 
             if (isset($sortableColumns[$orderColIdx])) {
                 $query->orderBy($sortableColumns[$orderColIdx], $orderDir);
+                $query->orderBy('fdatetime', 'desc'); 
             } else {
-                $query->orderBy('fjurnalmtid', 'desc');
+                $query->orderBy('fdatetime', 'desc'); 
             }
 
             $start = $request->input('start', 0);
@@ -161,12 +162,14 @@ class JurnalTransaksiController extends Controller
                     'fjurnalno',
                     'fjurnaldate',
                     'fbranchcode',
-                    'fbalance',
                     'fbalance_rp',
-                    'fjurnalnote',
+                    'fbalance',
+                    'fjurnalnote', // Perbaikan typo kolom dari kode lama
+                    'fuserid',
+                    'fdatetime',   // Meload fdatetime ke query select
                 ]);
 
-            $data = $records->map(function ($row) use ($journalType) {
+            $data = $records->map(function ($row) use ($journalType, $canEdit, $canDelete) {
                 $actions = '';
                 $routeParams = array_merge(
                     ['fcurrid' => $row->fjurnalmtid],
@@ -174,28 +177,34 @@ class JurnalTransaksiController extends Controller
                 );
 
                 $viewUrl = route('jurnaltransaksi.view', $routeParams);
-                $actions .= ' <a href="'.$viewUrl.'" class="inline-flex items-center bg-slate-500 text-white px-3 py-1.5 text-xs rounded hover:bg-slate-600">
+                $actions .= ' <a href="' . $viewUrl . '" class="inline-flex items-center bg-slate-500 text-white px-3 py-1.5 text-xs rounded hover:bg-slate-600">
                                     <svg class="w-3.5 h-3.5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
                                     </svg> View
                                 </a>';
 
-                $editUrl = route('jurnaltransaksi.edit', $routeParams);
-                $actions .= ' <a href="'.$editUrl.'" class="inline-flex items-center bg-yellow-500 text-white px-3 py-1.5 text-xs rounded hover:bg-yellow-600">
-                                    <svg class="w-3.5 h-3.5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
-                                    </svg> Edit
-                                </a>';
+                // Tombol Edit hanya muncul jika user memiliki permission ($canEdit)
+                if ($canEdit) {
+                    $editUrl = route('jurnaltransaksi.edit', $routeParams);
+                    $actions .= ' <a href="' . $editUrl . '" class="inline-flex items-center bg-yellow-500 text-white px-3 py-1.5 text-xs rounded hover:bg-yellow-600">
+                                        <svg class="w-3.5 h-3.5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+                                        </svg> Edit
+                                    </a>';
+                }
 
-                $deleteUrl = route('jurnaltransaksi.delete', $routeParams);
-                $actions .= '<a href="'.$deleteUrl.'">
-                <button class="inline-flex items-center bg-red-600 text-white px-3 py-1.5 text-xs rounded hover:bg-red-700">
-                    <svg class="w-3.5 h-3.5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
-                    </svg>
-                    Hapus
-                </button>
-            </a>';
+                // Tombol Hapus hanya muncul jika user memiliki permission ($canDelete)
+                if ($canDelete) {
+                    $deleteUrl = route('jurnaltransaksi.delete', $routeParams);
+                    $actions .= ' <a href="' . $deleteUrl . '">
+                                    <button class="inline-flex items-center bg-red-600 text-white px-3 py-1.5 text-xs rounded hover:bg-red-700">
+                                        <svg class="w-3.5 h-3.5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                                        </svg> Hapus
+                                    </button>
+                                </a>';
+                }
 
                 return [
                     'fjurnalno' => $row->fjurnalno,
@@ -203,6 +212,7 @@ class JurnalTransaksiController extends Controller
                     'fbranchcode' => (string) ($row->fbranchcode ?? ''),
                     'fbalance_rp' => number_format((float) ($row->fbalance_rp ?? $row->fbalance ?? 0), 2, ',', '.'),
                     'fjurnalnote' => $row->fjurnalnote,
+                    'fuserid' => $row->fuserid,
                     'actions' => $actions,
                 ];
             });
@@ -284,10 +294,10 @@ class JurnalTransaksiController extends Controller
 
         // Mengambil detail dari tr_pod
         $items = DB::table('tr_pod')
-          // Detail PO sekarang dihubungkan lewat fpono
+            // Detail PO sekarang dihubungkan lewat fpono
             ->where('tr_pod.fpono', $header->fpono)
 
-          // PERBAIKAN JOIN: tr_pod.fprdcode (sekarang integer) di-join ke msprd.fprdid (integer)
+            // PERBAIKAN JOIN: tr_pod.fprdcode (sekarang integer) di-join ke msprd.fprdid (integer)
             ->leftJoin('msprd as m', 'm.fprdid', '=', 'tr_pod.fprdcode')
             ->select([
                 DB::raw("COALESCE(NULLIF(tr_pod.frefdtno, ''), tr_pod.fpodid::text) as frefdtno"),
@@ -320,9 +330,9 @@ class JurnalTransaksiController extends Controller
         $date = $onDate ?: now();
 
         $branch = $branch
-          ?? Auth::guard('sysuser')->user()?->fcabang
-          ?? Auth::user()?->fcabang
-          ?? null;
+            ?? Auth::guard('sysuser')->user()?->fcabang
+            ?? Auth::user()?->fcabang
+            ?? null;
 
         // resolve kode cabang
         $kodeCabang = null;
@@ -332,7 +342,7 @@ class JurnalTransaksiController extends Controller
                 $kodeCabang = DB::table('mscabang')->where('fcabangid', (int) $needle)->value('fcabangkode');
             } else {
                 $kodeCabang = DB::table('mscabang')->whereRaw('LOWER(fcabangkode)=LOWER(?)', [$needle])->value('fcabangkode')
-                  ?: DB::table('mscabang')->whereRaw('LOWER(fcabangname)=LOWER(?)', [$needle])->value('fcabangkode');
+                    ?: DB::table('mscabang')->whereRaw('LOWER(fcabangname)=LOWER(?)', [$needle])->value('fcabangkode');
             }
         }
         if (! $kodeCabang) {
@@ -344,16 +354,16 @@ class JurnalTransaksiController extends Controller
         // kunci per (branch, tahun-bulan) — TANPA bikin tabel baru
         $driver = DB::getDriverName();
         if ($driver === 'pgsql') {
-            $lockKey = crc32('PBR|'.$kodeCabang.'|'.$date->format('Y-m'));
+            $lockKey = crc32('PBR|' . $kodeCabang . '|' . $date->format('Y-m'));
             DB::statement('SELECT pg_advisory_xact_lock(?)', [$lockKey]);
 
             $last = DB::table('tr_poh')
-                ->where('fpono', 'like', $prefix.'%')
+                ->where('fpono', 'like', $prefix . '%')
                 ->selectRaw("MAX(CAST(split_part(fpono, '.', 5) AS int)) AS lastno")
                 ->value('lastno');
         } else {
             $last = DB::table('tr_poh')
-                ->where('fpono', 'like', $prefix.'%')
+                ->where('fpono', 'like', $prefix . '%')
                 ->get()
                 ->map(function ($row) {
                     $parts = explode('.', $row->fpono);
@@ -364,7 +374,7 @@ class JurnalTransaksiController extends Controller
 
         $next = (int) $last + 1;
 
-        return $prefix.str_pad((string) $next, 4, '0', STR_PAD_LEFT);
+        return $prefix . str_pad((string) $next, 4, '0', STR_PAD_LEFT);
     }
 
     public function print(string $fjurnalno)
@@ -392,9 +402,9 @@ class JurnalTransaksiController extends Controller
                 'sa.fsubaccountname as subaccount_name',
             ]);
 
-        $fmt = fn ($d) => $d
-          ? \Carbon\Carbon::parse($d)->locale('id')->translatedFormat('d F Y')
-          : '-';
+        $fmt = fn($d) => $d
+            ? \Carbon\Carbon::parse($d)->locale('id')->translatedFormat('d F Y')
+            : '-';
 
         return view('jurnaltransaksi.print', [
             'hdr'          => $hdr,
@@ -425,10 +435,10 @@ class JurnalTransaksiController extends Controller
         $raw = (Auth::guard('sysuser')->user() ?? Auth::user())?->fcabang;
 
         $branch = DB::table('mscabang')
-            ->when(is_numeric($raw), fn ($q) => $q->where('fcabangid', (int) $raw))
+            ->when(is_numeric($raw), fn($q) => $q->where('fcabangid', (int) $raw))
             ->when(
                 ! is_numeric($raw),
-                fn ($q) => $q->where('fcabangkode', $raw)->orWhere('fcabangname', $raw)
+                fn($q) => $q->where('fcabangkode', $raw)->orWhere('fcabangname', $raw)
             )
             ->first(['fcabangid', 'fcabangkode', 'fcabangname']);
 
@@ -572,7 +582,7 @@ class JurnalTransaksiController extends Controller
         $amounts = $request->input('famount', []);
         $rates = $request->input('frate', []);
         $referenceAllowedAccountCodes = collect($this->resolveReferenceAllowedAccountCodes())
-            ->map(fn ($code) => strtoupper(trim((string) $code)))
+            ->map(fn($code) => strtoupper(trim((string) $code)))
             ->flip()
             ->all();
 
@@ -599,7 +609,7 @@ class JurnalTransaksiController extends Controller
 
             if ($frefno !== null && ! isset($referenceAllowedAccountCodes[strtoupper($faccount)])) {
                 return back()->withInput()->withErrors([
-                    'detail' => "Ref No di baris ".($i + 1)." tidak boleh diisi untuk account ini.",
+                    'detail' => "Ref No di baris " . ($i + 1) . " tidak boleh diisi untuk account ini.",
                 ]);
             }
 
@@ -682,16 +692,16 @@ class JurnalTransaksiController extends Controller
                 $prefix = sprintf('%s.%s.%s.%s.', $fjurnaltype, $kodeCabang, $yy, $mm);
                 $driver = DB::getDriverName();
                 if ($driver === 'pgsql') {
-                    $lockKey = crc32('JURNAL|'.$fjurnaltype.'|'.$kodeCabang.'|'.$fjurnaldate->format('Y-m'));
+                    $lockKey = crc32('JURNAL|' . $fjurnaltype . '|' . $kodeCabang . '|' . $fjurnaldate->format('Y-m'));
                     DB::statement('SELECT pg_advisory_xact_lock(?)', [$lockKey]);
 
                     $lastNo = DB::table('jurnalmt')
-                        ->where('fjurnalno', 'like', $prefix.'%')
+                        ->where('fjurnalno', 'like', $prefix . '%')
                         ->selectRaw("MAX(CAST(split_part(fjurnalno, '.', 5) AS int)) AS lastno")
                         ->value('lastno');
                 } else {
                     $lastNo = DB::table('jurnalmt')
-                        ->where('fjurnalno', 'like', $prefix.'%')
+                        ->where('fjurnalno', 'like', $prefix . '%')
                         ->get()
                         ->map(function ($row) {
                             $parts = explode('.', $row->fjurnalno);
@@ -700,7 +710,7 @@ class JurnalTransaksiController extends Controller
                         ->max();
                 }
 
-                $fjurnalno = $prefix.str_pad((string) ((int) $lastNo + 1), 4, '0', STR_PAD_LEFT);
+                $fjurnalno = $prefix . str_pad((string) ((int) $lastNo + 1), 4, '0', STR_PAD_LEFT);
             }
 
             // ── 4.2. INSERT jurnalmt ──
@@ -712,7 +722,7 @@ class JurnalTransaksiController extends Controller
                 'fjurnalno' => $fjurnalno,
                 'fjurnaltype' => $fjurnaltype,
                 'fjurnaldate' => $fjurnaldate,
-                'fjurnalnote' => $fjurnalnote ?: ('Jurnal '.$fjurnalno),
+                'fjurnalnote' => $fjurnalnote ?: ('Jurnal ' . $fjurnalno),
                 'fbalance' => $totalDebit,   // total = debit = kredit
                 'fbalance_rp' => $totalDebit,
                 'fdatetime' => $now,
@@ -1009,7 +1019,7 @@ class JurnalTransaksiController extends Controller
         $amounts = $request->input('famount', []);
         $rates = $request->input('frate', []);
         $referenceAllowedAccountCodes = collect($this->resolveReferenceAllowedAccountCodes())
-            ->map(fn ($code) => strtoupper(trim((string) $code)))
+            ->map(fn($code) => strtoupper(trim((string) $code)))
             ->flip()
             ->all();
 
@@ -1036,7 +1046,7 @@ class JurnalTransaksiController extends Controller
 
             if ($frefno !== null && ! isset($referenceAllowedAccountCodes[strtoupper($faccount)])) {
                 return back()->withInput()->withErrors([
-                    'detail' => "Ref No di baris ".($i + 1)." tidak boleh diisi untuk account ini.",
+                    'detail' => "Ref No di baris " . ($i + 1) . " tidak boleh diisi untuk account ini.",
                 ]);
             }
 
@@ -1120,7 +1130,7 @@ class JurnalTransaksiController extends Controller
                     'fbranchcode' => $kodeCabang,
                     'fjurnaltype' => $fjurnaltype,
                     'fjurnaldate' => $fjurnaldate,
-                    'fjurnalnote' => $fjurnalnote ?: ('Jurnal '.$header->fjurnalno),
+                    'fjurnalnote' => $fjurnalnote ?: ('Jurnal ' . $header->fjurnalno),
                     'fbalance' => $totalDebit,
                     'fbalance_rp' => $totalDebit,
                     'fdatetime' => $now,
@@ -1252,7 +1262,7 @@ class JurnalTransaksiController extends Controller
             });
 
             $redirectUrl = route('jurnaltransaksi.index', $this->resolveJournalIndexRouteParams($jurnaltransaksi->fjurnaltype ?? null));
-            $message = (($jurnaltransaksi->fjurnaltype ?? null) === self::PURCHASE_JOURNAL_TYPE ? 'Data jurnal faktur pembelian ' : 'Data jurnal transaksi ').trim((string) $jurnaltransaksi->fjurnalno).' berhasil dihapus.';
+            $message = (($jurnaltransaksi->fjurnaltype ?? null) === self::PURCHASE_JOURNAL_TYPE ? 'Data jurnal faktur pembelian ' : 'Data jurnal transaksi ') . trim((string) $jurnaltransaksi->fjurnalno) . ' berhasil dihapus.';
 
             if (request()->expectsJson()) {
                 return response()->json([
@@ -1371,8 +1381,8 @@ class JurnalTransaksiController extends Controller
     {
         $referenceNos = collect($rowsDt)
             ->pluck('frefno')
-            ->map(fn ($value) => trim((string) ($value ?? '')))
-            ->filter(fn ($value) => $value !== '')
+            ->map(fn($value) => trim((string) ($value ?? '')))
+            ->filter(fn($value) => $value !== '')
             ->unique()
             ->values()
             ->all();
@@ -1415,7 +1425,7 @@ class JurnalTransaksiController extends Controller
         }
 
         do {
-            $candidate = (string) random_int(1, 9).random_int(1, 9).random_int(1, 9);
+            $candidate = (string) random_int(1, 9) . random_int(1, 9) . random_int(1, 9);
         } while (in_array($candidate, $usedNumbers, true));
 
         $usedNumbers[] = $candidate;

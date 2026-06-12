@@ -1,6 +1,11 @@
 @extends('layouts.app')
 
-@section('title', $pageMeta['pageTitle'] ?? (($journalType ?? '') === 'JBL' ? 'Jurnal Faktur Pembelian' : 'Jurnal Transaksi'))
+@section('title',
+    $pageMeta['pageTitle'] ??
+    (($journalType ?? '') === 'JBL'
+    ? 'Jurnal Faktur Pembelian'
+    : 'Jurnal
+    Transaksi'))
 
 @section('content')
     <div x-data="{
@@ -70,8 +75,9 @@
                     <th class="border px-2 py-1">Cab</th>
                     <th class="border px-2 py-1">No.Jurnal</th>
                     <th class="border px-2 py-1">Tanggal</th>
-                    <th class="border px-2 py-1 text-right">Saldo</th>
                     <th class="border px-2 py-1">Keterangan</th>
+                    <th class="border px-2 py-1 text-right">Saldo</th>
+                    <th class="border px-2 py-1 text-right">User-Id</th>
                     <th class="border px-2 py-1 col-aksi">Aksi</th>
                 </tr>
             </thead>
@@ -153,6 +159,13 @@
             flex-wrap: wrap;
         }
 
+        .dt-container .dt-search .dt-input,
+        .dataTables_wrapper .dt-search .dt-input {
+            width: 28rem !important;
+            min-width: 28rem !important;
+            max-width: 100%;
+        }
+
         .dataTables_wrapper .dt-search .dt-input {
             width: 28rem;
             max-width: 100%;
@@ -201,11 +214,15 @@
                         data: 'fjurnaldate'
                     },
                     {
+                        data: 'fjurnalnote'
+                    },
+                    {
                         data: 'fbalance_rp',
                         className: 'text-right'
                     },
                     {
-                        data: 'fjurnalnote'
+                        data: 'fuserid',
+                        className: 'text-right'
                     },
                     {
                         data: 'actions',
@@ -226,7 +243,7 @@
                     const api = this.api();
                     const $toolbarSearch = $(api.table().container()).find('.dt-search');
                     const $searchInput = $toolbarSearch.find('.dt-input');
-                    $searchInput.attr('placeholder', 'Cari No.Jurnal / Keterangan');
+                    $searchInput.attr('placeholder', 'Cari...');
 
                     const $yearFilter = $('#yearFilterTemplate #yearFilterWrap').clone(true, true);
                     const $yearSelect = $yearFilter.find('select[data-role="year-filter"]');
