@@ -328,7 +328,7 @@ class PelunasanCustomerController extends Controller
             ->firstOrFail(['fcustomerid', 'fcustomercode', 'fcustomername']);
         $headerAccount = Account::query()
             ->where('faccount', $validated['faccountheader'])
-            ->firstOrFail(['faccid', 'faccount', 'faccname']);
+            ->firstOrFail(['faccid', 'faccount', 'faccname', 'finitjurnal']);
         $detailRows = $this->normalizeDetails($validated['details']);
         $this->validateReferenceCustomers($detailRows, $customer->fcustomercode);
         $this->validatePaymentDoesNotExceedRemainingReceivable($detailRows);
@@ -355,7 +355,7 @@ class PelunasanCustomerController extends Controller
                 'ftrcode' => 'ADM',
             ]);
         }
-        $voucherNo = trim((string) ($validated['fkasmtno'] ?? '')) ?: $this->generateVoucherNo(Carbon::parse($validated['fkasmtdate']));
+        $voucherNo = trim((string) ($validated['fkasmtno'] ?? '')) ?: $this->generateVoucherNo(Carbon::parse($validated['fkasmtdate']), $headerAccount);
         $hargaAdmin = round((float) ($validated['fhargaadmin'] ?? 0), 2);
         $hargaAdmin2 = round((float) ($validated['fhargaadmin2'] ?? 0), 2);
         $totalPenerimaan = round((float) $detailRows->sum(fn(array $row) => (float) ($row['fkasdtvalue'] ?? 0)), 2);
@@ -505,7 +505,7 @@ class PelunasanCustomerController extends Controller
             ->firstOrFail(['fcustomerid', 'fcustomercode', 'fcustomername']);
         $headerAccount = Account::query()
             ->where('faccount', $validated['faccountheader'])
-            ->firstOrFail(['faccid', 'faccount', 'faccname']);
+            ->firstOrFail(['faccid', 'faccount', 'faccname', 'finitjurnal']);
         $detailRows = $this->normalizeDetails($validated['details']);
         $this->validateReferenceCustomers($detailRows, $customer->fcustomercode);
         $this->validatePaymentDoesNotExceedRemainingReceivable($detailRows, $header);
@@ -941,15 +941,34 @@ class PelunasanCustomerController extends Controller
         return $user->fsysuserid ?? $user->name ?? $user->fname ?? null;
     }
 
-    private function generateVoucherNo(Carbon $date): string
+    private function generateVoucherNo(Carbon $date, ?Account $headerAccount = null): string
     {
-        $prefix = 'RCP.' . $date->format('ym') . '.';
+        $branchCode = $this->resolveBranchCode();
+        $bankType = $this->resolveBankType($headerAccount);
+        $prefix = sprintf('%s.%s.%s%s', self::TRAN_CODE, $branchCode, $date->format('ym'), $bankType);
+
         $lastNumber = DB::table('trkasmt')
+            ->where('ftrancode', self::TRAN_CODE)
             ->where('fkasmtno', 'like', $prefix . '%')
-            ->selectRaw("MAX(CAST(split_part(fkasmtno, '.', 3) AS integer)) as last_no")
+            ->selectRaw("
+                MAX(
+                    CASE
+                        WHEN RIGHT(fkasmtno, 4) ~ '^[0-9]{4}$'
+                        THEN CAST(RIGHT(fkasmtno, 4) AS integer)
+                        ELSE NULL
+                    END
+                ) as last_no
+            ")
             ->value('last_no');
 
         return $prefix . str_pad((string) (((int) $lastNumber) + 1), 4, '0', STR_PAD_LEFT);
+    }
+
+    private function resolveBankType(?Account $headerAccount = null): string
+    {
+        $bankType = trim((string) ($headerAccount?->finitjurnal ?? ''));
+
+        return $bankType !== '' ? $bankType : '00';
     }
 
     private function findHeader(string $fkasmtno): Trkasmt

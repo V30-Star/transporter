@@ -60,7 +60,7 @@
 @endphp
 
 <div class="bg-white rounded shadow p-6 md:p-8 max-w-[96rem] mx-auto"
-    x-data="pelunasanCustomerForm(@js($initialDetailRows), @js($selectedCustomerTempo))" x-init="init()">
+    x-data="pelunasanCustomerForm(@js($initialDetailRows), @js($selectedCustomerTempo), @js(old('fkasmtno', $voucherNo)))" x-init="init()">
     <form action="{{ $formAction }}" method="POST" class="space-y-6" @submit="handleFormSubmit($event)"
         @if (!$isReadOnly && !empty($draftKey)) data-form-draft="true" data-draft-key="{{ $draftKey }}" @endif>
         @csrf
@@ -82,9 +82,16 @@
 
                 <div>
                     <label class="block text-sm font-bold mb-1">{{ 'No. Voucher' }}</label>
-                    <input type="text" name="fkasmtno" value="{{ old('fkasmtno', $voucherNo) }}"
-                        class="w-full border rounded px-3 py-1.5 @error('fkasmtno') border-red-500 @enderror"
-                        placeholder="Kosongkan untuk auto number">
+                    <div class="flex items-center gap-3">
+                        <input type="text" name="fkasmtno" x-model="voucherNo" :disabled="autoCode"
+                            class="w-full border rounded px-3 py-1.5 @error('fkasmtno') border-red-500 @enderror"
+                            :class="autoCode ? 'bg-gray-100 cursor-not-allowed' : 'bg-white'"
+                            placeholder="Kosongkan untuk auto number">
+                        <label class="inline-flex items-center select-none">
+                            <input type="checkbox" x-model="autoCode">
+                            <span class="ml-2 text-sm text-gray-700">{{ 'Auto' }}</span>
+                        </label>
+                    </div>
                     @error('fkasmtno')
                         <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                     @enderror
@@ -576,7 +583,7 @@
 @push('scripts')
     <script src="https://cdn.datatables.net/2.1.6/js/dataTables.min.js"></script>
     <script>
-        function pelunasanCustomerForm(initialRows, initialTempo) {
+        function pelunasanCustomerForm(initialRows, initialTempo, initialVoucherNo) {
             return {
                 rows: [],
                 customerCode: @js($selectedCustomerCode),
@@ -595,6 +602,8 @@
                 hargaAdmin: @js((float) old('fhargaadmin', $hargaAdminValue ?? 0)),
                 hargaAdmin2: @js((float) old('fhargaadmin2', $hargaAdmin2Value ?? 0)),
                 totalPenerimaanDisplay: '0.00',
+                voucherNo: initialVoucherNo || '',
+                autoCode: !initialVoucherNo,
                 notaModalOpen: false,
                 notaLoading: false,
                 notaSearch: '',
