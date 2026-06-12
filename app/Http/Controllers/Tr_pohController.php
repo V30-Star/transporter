@@ -88,6 +88,7 @@ class Tr_pohController extends Controller
                     'tr_poh.fdatetime',
                     'tr_poh.fbranchcode',
                     'tr_poh.famountpo',
+                    'tr_poh.fcurrency',
                     'mssupplier.fsuppliername',
                     'tr_prh.fprno',
                     'mscurrency.fcurrname',

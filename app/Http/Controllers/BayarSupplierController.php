@@ -372,7 +372,7 @@ class BayarSupplierController extends Controller
             'fbranchcode' => ['required', 'string', 'max:10'],
             'fsupplier' => ['required', 'string', 'max:30', Rule::exists('mssupplier', 'fsuppliercode')],
             'faccountheader' => ['required'],
-            'fnogiro' => ['nullable', 'string', 'max:35',, 'max:35', Rule::unique('trkasmt', 'fnogiro')->ignore($request->fkasmtid, 'fkasmtid')],
+            'fnogiro' => ['nullable', 'string', 'max:35', Rule::unique('trkasmt', 'fnogiro')->ignore($request->fkasmtid, 'fkasmtid')],
             'fgiromundur' => ['nullable', 'in:0,1'],
             'ftgljatuhtempo' => ['nullable', 'date', Rule::requiredIf($isGiroMundur), 'before_or_equal:fkasmtdate'],
             'fket' => ['nullable', 'string', 'max:50'],

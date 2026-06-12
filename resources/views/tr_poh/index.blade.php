@@ -77,6 +77,7 @@
                 <tr>
                     <th class="border px-2 py-1">Cab</th>
                     <th class="border px-2 py-1">No. PO</th>
+                    <th class="border px-2 py-1">Tanggal</th>
                     <th class="border px-2 py-1">
                         <div class="flex items-center justify-between">
                             <span>Nama Supplier</span>
@@ -94,12 +95,11 @@
                                 data-column="2" placeholder="Cari supplier...">
                         </div>
                     </th>
-                    <th class="border px-2 py-1">Currency</th>
-                    <th class="border px-2 py-1">Tanggal</th>
                     <th class="border px-2 py-1">Ref.PR</th>
-                    <th class="border px-2 py-1">Status</th>
+                    <th class="border px-2 py-1">Currency</th>
                     <th class="border px-2 py-1 text-right">Total PO</th>
                     <th class="border px-2 py-1">Approved</th>
+                    <th class="border px-2 py-1">Status</th>
                     <th class="border px-2 py-1">User Id</th>
                     @if ($showActionsColumn)
                         <th class="border px-2 py-1 col-aksi">Aksi</th>
@@ -338,31 +338,20 @@
                     name: 'fpono'
                 },
                 {
-                    data: 'fsuppliername',
-                    name: 'fsuppliername'
-                },
-                {
-                    data: 'fcurrname',
-                    name: 'fcurrname'
-                },
-                {
                     data: 'fpodate',
                     name: 'fpodate'
+                },
+                {
+                    data: 'fsuppliername',
+                    name: 'fsuppliername'
                 },
                 {
                     data: 'fprno',
                     name: 'fprno'
                 },
                 {
-                    data: 'fclose',
-                    name: 'fclose',
-                    render: function(data, type, row) {
-                        if (type !== 'display') {
-                            return data;
-                        }
-
-                        return renderPoStatus(row);
-                    }
+                    data: 'fcurrency',
+                    name: 'fcurrency'
                 },
                 {
                     data: 'famountpo',
@@ -381,6 +370,17 @@
                 {
                     data: 'fapproval',
                     name: 'fapproval'
+                },
+                {
+                    data: 'fclose',
+                    name: 'fclose',
+                    render: function(data, type, row) {
+                        if (type !== 'display') {
+                            return data;
+                        }
+
+                        return renderPoStatus(row);
+                    }
                 },
                 {
                     data: 'fusercreate',
