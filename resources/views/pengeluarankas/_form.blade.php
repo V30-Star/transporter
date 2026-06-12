@@ -101,14 +101,6 @@
 
 <div x-data="pengeluaranKasForm(@js($isReadOnly), @js(old('fkasmtno', $pengeluaranKas->fkasmtno ?? '')), @js($isGiroMundur), @js($isPenerimaanKasForm), @js($journalAccountValidation), @js($accountCatalog))" x-init="init()" class="bg-white rounded shadow p-6 md:p-8 max-w-[96rem] mx-auto">
 
-    @if ($isDeleteMode)
-        <div class="mb-6 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-red-700">
-            <p class="font-semibold">{{ 'Konfirmasi Hapus ' . $transactionLabel }}</p>
-            <p class="mt-1 text-sm">
-                {{ 'Data akan dihapus permanen. Pastikan data yang ditampilkan sudah benar sebelum melanjutkan.' }}</p>
-        </div>
-    @endif
-
     <form action="{{ $formAction }}" method="POST" @submit="handleSubmit($event)">
         @csrf
         @if (strtoupper($formMethod) !== 'POST')
