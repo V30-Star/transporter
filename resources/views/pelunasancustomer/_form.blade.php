@@ -706,6 +706,9 @@
                         uid: this.makeUid(),
                         frefno: '',
                         fdatetime: '',
+                        fcustno: '',
+                        fcustomername: '',
+                        ftempo: 0,
                         fnilai_nota: 0,
                         fsisa_piutang: 0,
                         originalSisa: 0,
@@ -723,6 +726,9 @@
                         uid: row.uid || `pc-row-${index}-${this.makeUid()}`,
                         frefno: String(row.frefno || '').trim(),
                         fdatetime: row.fdatetime || '',
+                        fcustno: String(row.fcustno || '').trim(),
+                        fcustomername: String(row.fcustomername || '').trim(),
+                        ftempo: Number(row.ftempo || 0),
                         fnilai_nota: this.toNumber(row.fnilai_nota),
                         fsisa_piutang: sisa,
                         originalSisa: row.originalSisa !== undefined ? this.toNumber(row.originalSisa) : sisa,
@@ -774,6 +780,9 @@
                         .map((row) => ({
                             frefno: String(row.frefno || '').trim(),
                             fdatetime: row.fdatetime || '',
+                            fcustno: String(row.fcustno || '').trim(),
+                            fcustomername: String(row.fcustomername || '').trim(),
+                            ftempo: Number(row.ftempo || 0),
                             fnilai_nota: this.toNumber(row.fnilai_nota),
                             fsisa_piutang: this.toNumber(row.fsisa_piutang),
                             fdiscpersen: this.toNumber(row.fdiscpersen),
@@ -863,6 +872,9 @@
                         if (row.frefno) {
                             this.tempSelectedNotas.push({
                                 fsono: row.frefno,
+                                fcustno: String(row.fcustno || this.customerCode || '').trim(),
+                                fcustomername: String(row.fcustomername || '').trim(),
+                                ftempo: Number(row.ftempo || this.customerTempo || 0),
                                 famount: row.fnilai_nota,
                                 famountremain: row.fsisa_piutang,
                                 ftrcode: row.ftrcode
@@ -1036,7 +1048,6 @@
                     if (idx > -1) {
                         this.tempSelectedNotas.splice(idx, 1);
                     } else {
-                        this.syncCustomerFromNota(record);
                         this.tempSelectedNotas.push(record);
                     }
                 },
@@ -1051,17 +1062,49 @@
 
                 toggleAllOnPage() {
                     const allSelected = this.isAllOnPageSelected();
+                    let hasInvalidCustomer = false;
+                    let hasMissingCustomer = false;
+                    const selectedCustomer = String(this.customerCode || '').trim();
+
                     this.notaRecords.forEach(record => {
                         const remain = this.toNumber(record.famountremain);
                         if (remain <= 0) return;
-                        if (!this.isNotaCustomerValid(record)) return;
+
+                        const notaCustomer = String(record.fcustno || '').trim();
+                        if (notaCustomer === '') {
+                            hasMissingCustomer = true;
+                            return;
+                        }
+
+                        if (selectedCustomer !== '' && selectedCustomer !== notaCustomer) {
+                            hasInvalidCustomer = true;
+                            return;
+                        }
+                    });
+
+                    if (hasMissingCustomer) {
+                        this.showNotaSelectionError('customer belum terisi.');
+                        return;
+                    }
+
+                    if (hasInvalidCustomer) {
+                        this.showNotaSelectionError('Nota harus sesuai customer yang dipilih.');
+                        return;
+                    }
+
+                    this.notaRecords.forEach(record => {
+                        const remain = this.toNumber(record.famountremain);
+                        if (remain <= 0) return;
+
+                        const notaCustomer = String(record.fcustno || '').trim();
+                        if (notaCustomer === '') return;
+                        if (selectedCustomer !== '' && selectedCustomer !== notaCustomer) return;
 
                         const idx = this.tempSelectedNotas.findIndex(item => String(item.fsono).trim() === String(record.fsono).trim());
                         if (allSelected) {
                             if (idx > -1) this.tempSelectedNotas.splice(idx, 1);
                         } else {
                             if (idx === -1) {
-                                this.syncCustomerFromNota(record);
                                 this.tempSelectedNotas.push(record);
                             }
                         }
@@ -1069,11 +1112,20 @@
                 },
 
                 submitSelectedNotas() {
-                    if (!String(this.customerCode || '').trim() && this.tempSelectedNotas.length) {
-                        this.syncCustomerFromNota(this.tempSelectedNotas[0]);
-                    }
+                    const selectedCustomer = String(this.customerCode || '').trim();
+                    const inferredCustomer = selectedCustomer !== ''
+                        ? selectedCustomer
+                        : String(this.tempSelectedNotas[0]?.fcustno || '').trim();
 
-                    const invalidCustomer = this.tempSelectedNotas.find(record => !this.isNotaCustomerValid(record));
+                    const invalidCustomer = this.tempSelectedNotas.find(record => {
+                        const notaCustomer = String(record.fcustno || '').trim();
+                        if (notaCustomer === '') {
+                            return true;
+                        }
+
+                        return inferredCustomer !== '' && notaCustomer !== inferredCustomer;
+                    });
+
                     if (invalidCustomer) {
                         if (String(invalidCustomer.fcustno || '').trim() === '') {
                             this.showNotaSelectionError('customer belum terisi.');
@@ -1081,6 +1133,10 @@
                             this.showNotaSelectionError('Nota harus sesuai customer yang dipilih.');
                         }
                         return;
+                    }
+
+                    if (!selectedCustomer && this.tempSelectedNotas.length) {
+                        this.syncCustomerFromNota(this.tempSelectedNotas[0]);
                     }
 
                     const selectedSonos = this.tempSelectedNotas.map(item => String(item.fsono).trim());
@@ -1115,6 +1171,9 @@
 
                             targetRow.frefno = fsono;
                             targetRow.fdatetime = record.fsodate || '';
+                            targetRow.fcustno = String(record.fcustno || '').trim();
+                            targetRow.fcustomername = String(record.fcustomername || '').trim();
+                            targetRow.ftempo = Number(record.ftempo || 0);
                             targetRow.fnilai_nota = Math.abs(amount);
                             targetRow.fdiscpersen = 0;
                             targetRow.fdiscount = 0;
