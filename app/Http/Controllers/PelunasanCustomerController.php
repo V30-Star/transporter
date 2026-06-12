@@ -300,6 +300,7 @@ class PelunasanCustomerController extends Controller
             'details.*.fdatetime' => ['nullable', 'date'],
             'details.*.fnilai_nota' => ['nullable', 'numeric'],
             'details.*.fsisa_piutang' => ['nullable', 'numeric'],
+            'details.*.original_sisa' => ['nullable', 'numeric'],
             'details.*.fdiscpersen' => ['nullable', 'numeric', 'min:0', 'max:100'],
             'details.*.fdiscount' => ['nullable', 'numeric'],
             'details.*.fkasdtvalue' => ['required', 'numeric', 'not_in:0'],
@@ -360,9 +361,10 @@ class PelunasanCustomerController extends Controller
         $hargaAdmin2 = round((float) ($validated['fhargaadmin2'] ?? 0), 2);
         $totalPenerimaan = round((float) $detailRows->sum(fn(array $row) => (float) ($row['fkasdtvalue'] ?? 0)), 2);
         $netPaymentAmount = round($totalPenerimaan - $bankAdminFee - $hargaAdmin - $hargaAdmin2, 2);
+        $ftotdiscountrp = round((float) $detailRows->sum(fn(array $row) => (float) ($row['fdiscount'] ?? 0)), 2);
         $now = now();
 
-        DB::transaction(function () use ($validated, $customer, $headerAccount, $detailEntries, $voucherNo, $netPaymentAmount, $now) {
+        DB::transaction(function () use ($validated, $customer, $headerAccount, $detailEntries, $voucherNo, $netPaymentAmount, $ftotdiscountrp, $now) {
             $headerId = $this->nextIntegerId('trkasmt', 'fkasmtid');
             $nextDetailId = $this->nextIntegerId('trkasdt', 'fkasdtid');
 
@@ -393,6 +395,7 @@ class PelunasanCustomerController extends Controller
                 'fadjustment' => (float) ($validated['fhargaadmin'] ?? 0),
                 'faccadj2' => $validated['faccountadmin2'] ?? null,
                 'fadjustment2' => (float) ($validated['fhargaadmin2'] ?? 0),
+                'ftotdiscountrp' => $ftotdiscountrp,
             ]);
 
             foreach ($detailEntries as $index => $entry) {
@@ -477,6 +480,7 @@ class PelunasanCustomerController extends Controller
             'details.*.fdatetime' => ['nullable', 'date'],
             'details.*.fnilai_nota' => ['nullable', 'numeric'],
             'details.*.fsisa_piutang' => ['nullable', 'numeric'],
+            'details.*.original_sisa' => ['nullable', 'numeric'],
             'details.*.fdiscpersen' => ['nullable', 'numeric', 'min:0', 'max:100'],
             'details.*.fdiscount' => ['nullable', 'numeric'],
             'details.*.fkasdtvalue' => ['required', 'numeric', 'not_in:0'],
@@ -537,9 +541,10 @@ class PelunasanCustomerController extends Controller
         $hargaAdmin2 = round((float) ($validated['fhargaadmin2'] ?? 0), 2);
         $totalPenerimaan = round((float) $detailRows->sum(fn(array $row) => (float) ($row['fkasdtvalue'] ?? 0)), 2);
         $netPaymentAmount = round($totalPenerimaan - $bankAdminFee - $hargaAdmin - $hargaAdmin2, 2);
+        $ftotdiscountrp = round((float) $detailRows->sum(fn(array $row) => (float) ($row['fdiscount'] ?? 0)), 2);
         $now = now();
 
-        DB::transaction(function () use ($validated, $customer, $headerAccount, $detailEntries, $voucherNo, $netPaymentAmount, $now, $header) {
+        DB::transaction(function () use ($validated, $customer, $headerAccount, $detailEntries, $voucherNo, $netPaymentAmount, $ftotdiscountrp, $now, $header) {
             $header->update([
                 'fkasmtno' => $voucherNo,
                 'fkasmtdate' => $validated['fkasmtdate'],
@@ -563,6 +568,7 @@ class PelunasanCustomerController extends Controller
                 'fadjustment' => (float) ($validated['fhargaadmin'] ?? 0),
                 'faccadj2' => $validated['faccountadmin2'] ?? null,
                 'fadjustment2' => (float) ($validated['fhargaadmin2'] ?? 0),
+                'ftotdiscountrp' => $ftotdiscountrp,
             ]);
 
             Trkasdt::where('fkasmtid', $header->fkasmtid)->delete();
@@ -642,14 +648,25 @@ class PelunasanCustomerController extends Controller
                 $trCode = strtoupper(trim((string) ($detail['ftrcode'] ?? 'INV')));
 
                 $sisa = round(abs((float) ($detail['fsisa_piutang'] ?? 0)), 2);
+                $originalSisa = round(abs((float) ($detail['original_sisa'] ?? 0)), 2);
+                $discPersen = $trCode === 'REJ' ? 0 : round((float) ($detail['fdiscpersen'] ?? 0), 2);
+
+                if ($trCode === 'REJ') {
+                    $discount = 0.0;
+                } elseif ($discPersen > 0) {
+                    $discount = round(($originalSisa * $discPersen / 100), 2);
+                } else {
+                    $discount = round(abs((float) ($detail['fdiscount'] ?? 0)), 2);
+                }
 
                 return [
                     'frefno' => trim((string) ($detail['frefno'] ?? '')),
                     'fdatetime' => !empty($detail['fdatetime']) ? Carbon::parse($detail['fdatetime'])->format('Y-m-d') : null,
                     'fnilai_nota' => round(abs((float) ($detail['fnilai_nota'] ?? 0)), 2),
                     'fsisa_piutang' => $sisa,
-                    'fdiscpersen' => $trCode === 'REJ' ? 0 : round((float) ($detail['fdiscpersen'] ?? 0), 2),
-                    'fdiscount' => $trCode === 'REJ' ? 0 : round(abs((float) ($detail['fdiscount'] ?? 0)), 2),
+                    'original_sisa' => $originalSisa,
+                    'fdiscpersen' => $discPersen,
+                    'fdiscount' => $discount,
                     'fkasdtvalue' => round(abs((float) ($detail['fkasdtvalue'] ?? 0)), 2),
                     'ftrcode' => $trCode !== '' ? $trCode : 'INV',
                 ];

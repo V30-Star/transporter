@@ -254,6 +254,7 @@
                                             class="w-full border rounded px-2 py-1 text-right bg-gray-100 cursor-not-allowed"
                                             readonly disabled>
                                         <input type="hidden" :name="`details[${index}][fsisa_piutang]`" x-model="row.fsisa_piutang" :disabled="false">
+                                        <input type="hidden" :name="`details[${index}][original_sisa]`" :value="row.originalSisa">
                                     </td>
                                     <td class="border px-2 py-1">
                                         <input type="number" min="0" max="100" step="0.01"
@@ -384,6 +385,14 @@
                                     <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                                 @enderror
                             </div>
+                        </div>
+
+                        <div class="flex items-center justify-between gap-4 border-t pt-3">
+                            <span class="text-sm font-semibold text-gray-800">{{ 'Total Discount' }}</span>
+                            <input type="text" :value="formatNumber(totalDiscount)"
+                                class="w-52 border rounded px-3 py-2 bg-gray-100 text-right font-semibold cursor-not-allowed"
+                                readonly>
+                            <input type="hidden" name="ftotdiscountrp" :value="totalDiscount">
                         </div>
 
                         <div class="flex items-center justify-between gap-4 border-t pt-3">
@@ -602,6 +611,7 @@
                 hargaAdmin: @js((float) old('fhargaadmin', $hargaAdminValue ?? 0)),
                 hargaAdmin2: @js((float) old('fhargaadmin2', $hargaAdmin2Value ?? 0)),
                 totalPenerimaanDisplay: '0.00',
+                totalDiscount: 0,
                 voucherNo: initialVoucherNo || '',
                 autoCode: !initialVoucherNo,
                 notaModalOpen: false,
@@ -1325,10 +1335,20 @@
                     this.recalcTotals();
                 },
 
+                getRowDiscount(row) {
+                    if (!this.rowHasContent(row)) return 0;
+                    if (this.isRejRow(row)) return 0;
+                    if (this.toNumber(row.fdiscpersen) > 0) {
+                        return parseFloat((this.toNumber(row.originalSisa) * this.toNumber(row.fdiscpersen) / 100).toFixed(2));
+                    }
+                    return this.toNumber(row.fdiscount);
+                },
+
                 recalcTotals() {
                     const totalBayar = this.rows.reduce((sum, row) => sum + this.toNumber(row.fkasdtvalue), 0);
                     const netPenerimaan = totalBayar - this.toNumber(this.bankAdminFee) - this.toNumber(this.hargaAdmin) - this.toNumber(this.hargaAdmin2);
                     this.totalPenerimaanDisplay = this.formatNumber(netPenerimaan);
+                    this.totalDiscount = this.rows.reduce((sum, row) => sum + this.getRowDiscount(row), 0);
                 },
 
                 syncDueDate() {
