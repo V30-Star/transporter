@@ -16,7 +16,7 @@ use Illuminate\Validation\ValidationException;
 
 class BayarSupplierController extends Controller
 {
-    private const TRAN_CODE = 'BKK';
+    private const TRAN_CODE = 'PAY';
     private const GIRO_MUNDUR_ACCOUNT_NAME = 'HUTANGGIRO';
 
     public function index()
@@ -603,7 +603,7 @@ class BayarSupplierController extends Controller
 
     private function generateVoucherNo(Carbon $date): string
     {
-        $prefix = 'BKK.' . $date->format('ym') . '.';
+        $prefix = 'PAY.' . $date->format('ym') . '.';
         $lastNumber = DB::table('trkasmt')
             ->where('fkasmtno', 'like', $prefix . '%')
             ->selectRaw("MAX(CAST(split_part(fkasmtno, '.', 3) AS integer)) as last_no")

@@ -17,7 +17,7 @@ use Illuminate\Validation\ValidationException;
 
 class PelunasanCustomerController extends Controller
 {
-    private const TRAN_CODE = 'BKM';
+    private const TRAN_CODE = 'RCP';
     private const GIRO_MUNDUR_ACCOUNT_NAME = 'PIUTANGGIRO';
 
     public function index()
