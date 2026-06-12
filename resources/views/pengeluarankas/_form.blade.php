@@ -76,7 +76,7 @@
             ? 'border-blue-200 bg-blue-50 text-blue-700'
             : 'border-amber-200 bg-amber-50 text-amber-700';
     };
-    $totalAmount = $detailRows->sum(fn($row) => abs((float) ($row->fkasdtvalue ?? 0)));
+    $totalAmount = $detailRows->sum(fn($row) => (float) ($row->fkasdtvalue ?? 0));
 @endphp
 
 <style>
@@ -411,7 +411,7 @@
                                     @endphp
                                     @if ($isReadOnly)
                                         <input type="text"
-                                            value="{{ number_format(abs((float) ($detailAmountValue ?: 0)), 2, '.', ',') }}"
+                                            value="{{ number_format((float) ($detailAmountValue ?: 0), 2, '.', ',') }}"
                                             class="detail-amount w-full border rounded px-1.5 py-1 text-right bg-gray-100"
                                             readonly>
                                         <input type="hidden" name="details[{{ $index }}][fkasdtvalue]"
@@ -1041,7 +1041,7 @@
 
             function refreshPengeluaranKasTotal() {
                 const total = Array.from(document.querySelectorAll('.detail-amount'))
-                    .reduce((sum, field) => sum + Math.abs(parseFloat(field.value || 0) || 0), 0);
+                    .reduce((sum, field) => sum + (parseFloat(field.value || 0) || 0), 0);
 
                 const totalField = document.getElementById('detailTotal');
                 if (totalField) {

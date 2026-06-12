@@ -299,7 +299,7 @@
                         <td>{{ $row->frefno ?: '-' }}</td>
                         <td>{{ $row->fnote ?: '-' }}</td>
                         <td class="text-center">{{ $row->fdk ?: '-' }}</td>
-                        <td class="text-right">{{ number_format(abs((float) ($row->fkasdtvalue ?? 0)), 2, ',', '.') }}</td>
+                        <td class="text-right">{{ number_format((float) ($row->fkasdtvalue ?? 0), 2, ',', '.') }}</td>
                     </tr>
                 @empty
                     <tr>

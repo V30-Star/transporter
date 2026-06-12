@@ -205,12 +205,12 @@ class BayarSupplierController extends Controller
             'fbranchcode' => ['required', 'string', 'max:10'],
             'fsupplier' => ['required', 'string', 'max:30', Rule::exists('mssupplier', 'fsuppliercode')],
             'faccountheader' => ['required'],
-            'fnogiro' => ['nullable', 'string', 'max:35'],
+            'fnogiro' => ['nullable', 'string', 'max:35', Rule::unique('trkasmt', 'fnogiro')->ignore($request->fkasmtid, 'fkasmtid')],
             'fgiromundur' => ['nullable', 'in:0,1'],
             'ftgljatuhtempo' => ['nullable', 'date', Rule::requiredIf($isGiroMundur), 'before_or_equal:fkasmtdate'],
             'fket' => ['nullable', 'string', 'max:50'],
             'fbiayaadminbank' => ['nullable', 'numeric', 'min:0'],
-            'faccountadmin' => [Rule::requiredIf((float) $request->input('fbiayaadminbank') > 0), 'nullable', 'string', 'max:15', Rule::exists('account', 'faccount')->where(fn ($query) => $query->where('fend', 1))],
+            'faccountadmin' => [Rule::requiredIf((float) $request->input('fbiayaadminbank') > 0), 'nullable', 'string', 'max:15', Rule::exists('account', 'faccount')->where(fn($query) => $query->where('fend', 1))],
             'details' => ['required', 'array', 'min:1'],
             'details.*.frefno' => ['required', 'string', 'max:30'],
             'details.*.fnilai_order' => ['nullable', 'numeric'],
@@ -227,6 +227,7 @@ class BayarSupplierController extends Controller
             'details.required' => 'Minimal 1 faktur wajib diisi.',
             'details.*.frefno.required' => 'No. penerimaan wajib diisi.',
             'details.*.fkasdtvalue.required' => 'Total bayar wajib diisi.',
+            'fnogiro.unique' => 'No. giro / cek sudah dipakai.',
         ]);
 
         if ($isGiroMundur && $giroAccount !== '') {
@@ -259,7 +260,7 @@ class BayarSupplierController extends Controller
         }
 
         $voucherNo = trim((string) ($validated['fkasmtno'] ?? '')) ?: $this->generateVoucherNo(Carbon::parse($validated['fkasmtdate']));
-        $totalBayar = round((float) $detailRows->sum(fn (array $row) => (float) ($row['fkasdtvalue'] ?? 0)), 2);
+        $totalBayar = round((float) $detailRows->sum(fn(array $row) => (float) ($row['fkasdtvalue'] ?? 0)), 2);
         $totalKasKeluar = round($totalBayar + $bankAdminFee, 2);
         $now = now();
 
@@ -371,12 +372,12 @@ class BayarSupplierController extends Controller
             'fbranchcode' => ['required', 'string', 'max:10'],
             'fsupplier' => ['required', 'string', 'max:30', Rule::exists('mssupplier', 'fsuppliercode')],
             'faccountheader' => ['required'],
-            'fnogiro' => ['nullable', 'string', 'max:35'],
+            'fnogiro' => ['nullable', 'string', 'max:35',, 'max:35', Rule::unique('trkasmt', 'fnogiro')->ignore($request->fkasmtid, 'fkasmtid')],
             'fgiromundur' => ['nullable', 'in:0,1'],
             'ftgljatuhtempo' => ['nullable', 'date', Rule::requiredIf($isGiroMundur), 'before_or_equal:fkasmtdate'],
             'fket' => ['nullable', 'string', 'max:50'],
             'fbiayaadminbank' => ['nullable', 'numeric', 'min:0'],
-            'faccountadmin' => [Rule::requiredIf((float) $request->input('fbiayaadminbank') > 0), 'nullable', 'string', 'max:15', Rule::exists('account', 'faccount')->where(fn ($query) => $query->where('fend', 1))],
+            'faccountadmin' => [Rule::requiredIf((float) $request->input('fbiayaadminbank') > 0), 'nullable', 'string', 'max:15', Rule::exists('account', 'faccount')->where(fn($query) => $query->where('fend', 1))],
             'details' => ['required', 'array', 'min:1'],
             'details.*.frefno' => ['required', 'string', 'max:30'],
             'details.*.fnilai_order' => ['nullable', 'numeric'],
@@ -393,6 +394,7 @@ class BayarSupplierController extends Controller
             'details.required' => 'Minimal 1 faktur wajib diisi.',
             'details.*.frefno.required' => 'No. penerimaan wajib diisi.',
             'details.*.fkasdtvalue.required' => 'Total bayar wajib diisi.',
+            'fnogiro.unique' => 'No. giro / cek sudah dipakai.',
         ]);
 
         if ($isGiroMundur && $giroAccount !== '') {
@@ -425,7 +427,7 @@ class BayarSupplierController extends Controller
         }
 
         $voucherNo = trim((string) ($validated['fkasmtno'] ?? '')) ?: $header->fkasmtno;
-        $totalBayar = round((float) $detailRows->sum(fn (array $row) => (float) ($row['fkasdtvalue'] ?? 0)), 2);
+        $totalBayar = round((float) $detailRows->sum(fn(array $row) => (float) ($row['fkasdtvalue'] ?? 0)), 2);
         $totalKasKeluar = round($totalBayar + $bankAdminFee, 2);
         $now = now();
 
@@ -526,7 +528,7 @@ class BayarSupplierController extends Controller
     private function filterEmptyDetailRows(array $details): array
     {
         return collect($details)
-            ->filter(fn ($detail) => is_array($detail) && (trim((string) ($detail['frefno'] ?? '')) !== '' || (float) ($detail['fkasdtvalue'] ?? 0) !== 0.0))
+            ->filter(fn($detail) => is_array($detail) && (trim((string) ($detail['frefno'] ?? '')) !== '' || (float) ($detail['fkasdtvalue'] ?? 0) !== 0.0))
             ->values()
             ->all();
     }
@@ -534,7 +536,7 @@ class BayarSupplierController extends Controller
     private function normalizeDetails(array $details): Collection
     {
         return collect($details)
-            ->map(fn (array $detail) => [
+            ->map(fn(array $detail) => [
                 'frefno' => trim((string) ($detail['frefno'] ?? '')),
                 'fsupplier' => trim((string) ($detail['fsupplier'] ?? '')),
                 'fsuppliername' => trim((string) ($detail['fsuppliername'] ?? '')),
@@ -545,7 +547,7 @@ class BayarSupplierController extends Controller
                 'fdiscount' => round(abs((float) ($detail['fdiscount'] ?? 0)), 2),
                 'fkasdtvalue' => round(abs((float) ($detail['fkasdtvalue'] ?? 0)), 2),
             ])
-            ->filter(fn (array $detail) => $detail['frefno'] !== '' && (float) $detail['fkasdtvalue'] > 0)
+            ->filter(fn(array $detail) => $detail['frefno'] !== '' && (float) $detail['fkasdtvalue'] > 0)
             ->values();
     }
 
@@ -763,8 +765,8 @@ class BayarSupplierController extends Controller
                 ->first(['faccid', 'faccount', 'faccname']);
         }
 
-        $adminFeeDetail = $header 
-            ? $header->details->firstWhere('freftype', 'ADM') 
+        $adminFeeDetail = $header
+            ? $header->details->firstWhere('freftype', 'ADM')
             : null;
 
         $bankAdminFee = 0;
@@ -888,9 +890,9 @@ class BayarSupplierController extends Controller
 
         return array_merge([
             'voucherNo' =>
-                old('fkasmtno', $header?->fkasmtno),
+            old('fkasmtno', $header?->fkasmtno),
             'transactionDate' =>
-                old('fkasmtdate', optional($header?->fkasmtdate)->format('Y-m-d') ?? now()->format('Y-m-d')),
+            old('fkasmtdate', optional($header?->fkasmtdate)->format('Y-m-d') ?? now()->format('Y-m-d')),
             'currentBranchCode' => $branchCode,
             'currentBranchLabel' => $this->resolveBranchLabel((string) $branchCode),
             'selectedSupplier' => $selectedSupplier,
@@ -930,8 +932,8 @@ class BayarSupplierController extends Controller
             ->whereIn('faccount_name', $accountNames)
             ->pluck('faccount')
             ->filter()
-            ->map(fn ($value) => trim((string) $value))
-            ->filter(fn ($value) => $value !== '')
+            ->map(fn($value) => trim((string) $value))
+            ->filter(fn($value) => $value !== '')
             ->values()
             ->all();
     }

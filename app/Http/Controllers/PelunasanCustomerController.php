@@ -272,7 +272,7 @@ class PelunasanCustomerController extends Controller
             'fbranchcode' => ['required', 'string', 'max:10'],
             'fcustomer' => ['required', 'string', 'max:20', Rule::exists('mscustomer', 'fcustomercode')],
             'faccountheader' => ['required'],
-            'fnogiro' => ['nullable', 'string', 'max:35'],
+            'fnogiro' => ['nullable', 'string', 'max:35', Rule::unique('trkasmt', 'fnogiro')->ignore($request->fkasmtid, 'fkasmtid')],
             'fgiromundur' => ['nullable', 'in:0,1'],
             'ftgljatuhtempo' => ['nullable', 'date', Rule::requiredIf($isGiroMundur), 'before_or_equal:fkasmtdate'],
             'fket' => ['nullable', 'string', 'max:50'],
@@ -322,6 +322,7 @@ class PelunasanCustomerController extends Controller
             'details.*.frefno.required' => 'No. nota wajib diisi.',
             'details.*.fkasdtvalue.required' => 'Total bayar wajib diisi.',
             'details.*.fkasdtvalue.not_in' => 'Total bayar tidak boleh 0.',
+            'fnogiro.unique' => 'No. giro / cek sudah dipakai.',
         ]);
 
         if ($isGiroMundur && $giroAccount !== '') {
@@ -457,7 +458,7 @@ class PelunasanCustomerController extends Controller
             'fbranchcode' => ['required', 'string', 'max:10'],
             'fcustomer' => ['required', 'string', 'max:20', Rule::exists('mscustomer', 'fcustomercode')],
             'faccountheader' => ['required'],
-            'fnogiro' => ['nullable', 'string', 'max:35'],
+            'fnogiro' => ['nullable', 'string', 'max:35', Rule::unique('trkasmt', 'fnogiro')->ignore($header->fkasmtid, 'fkasmtid')],
             'fgiromundur' => ['nullable', 'in:0,1'],
             'ftgljatuhtempo' => ['nullable', 'date', Rule::requiredIf($isGiroMundur), 'before_or_equal:fkasmtdate'],
             'fket' => ['nullable', 'string', 'max:50'],
@@ -507,6 +508,7 @@ class PelunasanCustomerController extends Controller
             'details.*.frefno.required' => 'No. nota wajib diisi.',
             'details.*.fkasdtvalue.required' => 'Total bayar wajib diisi.',
             'details.*.fkasdtvalue.not_in' => 'Total bayar tidak boleh 0.',
+            'fnogiro.unique' => 'No. giro / cek sudah dipakai.',
         ]);
 
         if ($isGiroMundur && $giroAccount !== '') {

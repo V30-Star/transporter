@@ -344,7 +344,7 @@ class PenerimaanKasController extends Controller
                 'sub.fsubaccountname as subaccount_name',
             ]);
 
-        $totalAmount = (float) $details->sum(fn($detail) => abs((float) ($detail->fkasdtvalue ?? 0)));
+        $totalAmount = (float) $details->sum(fn($detail) => (float) ($detail->fkasdtvalue ?? 0));
         $fmt = fn($date) => $date ? Carbon::parse($date)->translatedFormat('d F Y') : '-';
 
         return view('penerimaankas.print', [
