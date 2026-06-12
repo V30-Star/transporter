@@ -136,6 +136,7 @@ class BayarSupplierController extends Controller
             'mt.famountremain',
             'mt.ftgljatuhtempo',
             's.fsuppliername',
+            's.ftempo',
         ]);
 
         $recordsTotal = (clone $baseQuery)->count('mt.fstockmtid');
@@ -171,6 +172,7 @@ class BayarSupplierController extends Controller
                     'fstockmtdate' => !empty($row->fstockmtdate) ? Carbon::parse($row->fstockmtdate)->format('Y-m-d') : null,
                     'fsupplier' => trim((string) ($row->fsupplier ?? '')),
                     'fsuppliername' => trim((string) ($row->fsuppliername ?? '')),
+                    'ftempo' => (int) ($row->ftempo ?? 0),
                     'famountmt' => (float) ($row->famountmt ?? 0),
                     'famountremain' => (float) ($row->famountremain ?? 0),
                     'ftgljatuhtempo' => !empty($row->ftgljatuhtempo) ? Carbon::parse($row->ftgljatuhtempo)->format('Y-m-d') : null,
@@ -239,6 +241,7 @@ class BayarSupplierController extends Controller
             ->firstOrFail(['faccid', 'faccount', 'faccname']);
         $detailRows = $this->normalizeDetails($validated['details']);
 
+        $this->validateReferenceSuppliers($detailRows, $supplier->fsuppliercode);
         $this->resolveReferenceTransactions($detailRows, Carbon::parse($validated['fkasmtdate']));
         $this->validatePaymentDoesNotExceedRemainingPayable($detailRows);
 
@@ -404,6 +407,7 @@ class BayarSupplierController extends Controller
             ->firstOrFail(['faccid', 'faccount', 'faccname']);
         $detailRows = $this->normalizeDetails($validated['details']);
 
+        $this->validateReferenceSuppliers($detailRows, $supplier->fsuppliercode);
         $this->resolveReferenceTransactions($detailRows, Carbon::parse($validated['fkasmtdate']));
         $this->validatePaymentDoesNotExceedRemainingPayable($detailRows, $header);
 
@@ -532,6 +536,9 @@ class BayarSupplierController extends Controller
         return collect($details)
             ->map(fn (array $detail) => [
                 'frefno' => trim((string) ($detail['frefno'] ?? '')),
+                'fsupplier' => trim((string) ($detail['fsupplier'] ?? '')),
+                'fsuppliername' => trim((string) ($detail['fsuppliername'] ?? '')),
+                'ftempo' => (int) ($detail['ftempo'] ?? 0),
                 'fnilai_order' => round(abs((float) ($detail['fnilai_order'] ?? 0)), 2),
                 'fsisa_hutang' => round(abs((float) ($detail['fsisa_hutang'] ?? 0)), 2),
                 'fdiscpersen' => round((float) ($detail['fdiscpersen'] ?? 0), 2),
@@ -653,6 +660,38 @@ class BayarSupplierController extends Controller
             if ($payment > $allowed) {
                 throw ValidationException::withMessages([
                     "details.{$index}.fkasdtvalue" => 'Total bayar tidak boleh melebihi sisa hutang.',
+                ]);
+            }
+        }
+    }
+
+    private function validateReferenceSuppliers(Collection $detailRows, string $supplierCode): void
+    {
+        $supplierCode = trim($supplierCode);
+        $refNos = $detailRows
+            ->pluck('frefno')
+            ->map(fn($value) => trim((string) $value))
+            ->filter()
+            ->unique()
+            ->values();
+
+        if ($supplierCode === '' || $refNos->isEmpty()) {
+            return;
+        }
+
+        $supplierByRef = DB::table('trstockmt')
+            ->whereIn('fstockmtno', $refNos)
+            ->where('fstockmtcode', 'BUY')
+            ->pluck('fsupplier', 'fstockmtno')
+            ->mapWithKeys(fn($supplier, $refNo) => [trim((string) $refNo) => trim((string) $supplier)]);
+
+        foreach ($detailRows as $index => $row) {
+            $refNo = trim((string) ($row['frefno'] ?? ''));
+            $refSupplier = $supplierByRef->get($refNo, '');
+
+            if ($refSupplier !== '' && $refSupplier !== $supplierCode) {
+                throw ValidationException::withMessages([
+                    "details.{$index}.frefno" => 'Nota harus sesuai supplier yang dipilih.',
                 ]);
             }
         }
@@ -792,7 +831,15 @@ class BayarSupplierController extends Controller
                 $referenceRemainMap = DB::table('trstockmt')
                     ->whereIn('fstockmtno', $refNos)
                     ->where('fstockmtcode', 'BUY')
-                    ->select(['fstockmtno', 'famountmt', 'famountremain'])
+                    ->leftJoin('mssupplier as s', 's.fsuppliercode', '=', 'trstockmt.fsupplier')
+                    ->select([
+                        'trstockmt.fstockmtno',
+                        'trstockmt.famountmt',
+                        'trstockmt.famountremain',
+                        'trstockmt.fsupplier',
+                        's.fsuppliername',
+                        's.ftempo',
+                    ])
                     ->get()
                     ->keyBy(fn($row) => trim((string) ($row->fstockmtno ?? '')));
             }
@@ -824,6 +871,9 @@ class BayarSupplierController extends Controller
                     return [
                         'uid' => 'bs-existing-' . $index . '-' . $detail->fkasdtid,
                         'frefno' => $refNo,
+                        'fsupplier' => trim((string) ($reference->fsupplier ?? '')),
+                        'fsuppliername' => trim((string) ($reference->fsuppliername ?? '')),
+                        'ftempo' => (int) ($reference->ftempo ?? 0),
                         'fnilai_order' => $fnilaiOrder,
                         'fsisa_hutang' => $adjustedRemain,
                         'fdiscpersen' => (float) ($detail->fdiscpersen ?? 0),

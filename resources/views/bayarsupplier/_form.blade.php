@@ -34,6 +34,9 @@
             return [
                 'uid' => 'bs-' . $index . '-' . substr(md5((string) $index), 0, 8),
                 'frefno' => trim((string) ($detail['frefno'] ?? '')),
+                'fsupplier' => trim((string) ($detail['fsupplier'] ?? '')),
+                'fsuppliername' => trim((string) ($detail['fsuppliername'] ?? '')),
+                'ftempo' => (int) ($detail['ftempo'] ?? 0),
                 'fnilai_order' => $parseAmount($detail['fnilai_order'] ?? 0),
                 'fsisa_hutang' => $parseAmount($detail['fsisa_hutang'] ?? 0),
                 'fdiscpersen' => $parseAmount($detail['fdiscpersen'] ?? 0),
@@ -216,6 +219,9 @@
                                     <td class="border px-2 py-1">
                                         <input type="text" :name="`details[${index}][frefno]`" x-model="row.frefno"
                                             class="w-full border rounded px-2 py-1">
+                                        <input type="hidden" :name="`details[${index}][fsupplier]`" :value="row.fsupplier">
+                                        <input type="hidden" :name="`details[${index}][fsuppliername]`" :value="row.fsuppliername">
+                                        <input type="hidden" :name="`details[${index}][ftempo]`" :value="row.ftempo">
                                     </td>
                                     <td class="border px-2 py-1">
                                         <input type="text" :value="formatNumber(row.fnilai_order)"
@@ -562,6 +568,7 @@
                     }, { deep: true });
 
                     window.addEventListener('supplier-picked', (event) => {
+                        if (this.hasSelectedPbls) return;
                         const detail = event.detail || {};
                         const code = String(detail.fsuppliercode || '').trim();
                         const name = String(detail.fsuppliername || '').trim();
@@ -607,8 +614,12 @@
                     this.$watch('hargaAdmin2', () => this.recalcTotals());
                 },
 
+                get hasSelectedPbls() {
+                    return this.rows.some(row => String(row?.frefno || '').trim() !== '');
+                },
+
                 emptyRow() {
-                    return { uid: this.makeUid(), frefno: '', fnilai_order: 0, fsisa_hutang: 0, originalSisa: 0, fdiscpersen: 0, fdiscount: 0, fkasdtvalue: 0 };
+                    return { uid: this.makeUid(), frefno: '', fsupplier: '', fsuppliername: '', ftempo: 0, fnilai_order: 0, fsisa_hutang: 0, originalSisa: 0, fdiscpersen: 0, fdiscount: 0, fkasdtvalue: 0 };
                 },
 
                 normalizeRow(row = {}, index = 0) {
@@ -616,6 +627,9 @@
                     return {
                         uid: row.uid || `bs-row-${index}-${this.makeUid()}`,
                         frefno: String(row.frefno || '').trim(),
+                        fsupplier: String(row.fsupplier || '').trim(),
+                        fsuppliername: String(row.fsuppliername || '').trim(),
+                        ftempo: Number(row.ftempo || 0),
                         fnilai_order: this.toNumber(row.fnilai_order),
                         fsisa_hutang: sisa,
                         originalSisa: row.originalSisa !== undefined ? this.toNumber(row.originalSisa) : sisa,
@@ -658,10 +672,14 @@
                 },
 
                 openPblModal() {
-                    // No supplier validation — modal opens freely.
-                    // If a supplier is selected, fetchPblRecords will filter by that supplier.
-                    // If no supplier is selected, all faktur are shown.
-                    this.tempSelectedPbls = this.rows.filter(row => row.frefno).map(row => ({ fstockmtno: row.frefno, famountmt: row.fnilai_order, famountremain: row.fsisa_hutang }));
+                    this.tempSelectedPbls = this.rows.filter(row => row.frefno).map(row => ({
+                        fstockmtno: row.frefno,
+                        fsupplier: String(row.fsupplier || this.supplierCode || '').trim(),
+                        fsuppliername: String(row.fsuppliername || '').trim(),
+                        ftempo: Number(row.ftempo || this.supplierTempo || 0),
+                        famountmt: row.fnilai_order,
+                        famountremain: row.fsisa_hutang,
+                    }));
                     this.pblPage = 1;
                     this.pblModalOpen = true;
                     this.fetchPblRecords();
@@ -708,17 +726,93 @@
                 prevPblPage() { if (this.pblPage > 1) { this.pblPage -= 1; this.fetchPblRecords(); } },
                 nextPblPage() { if (this.canNextPblPage) { this.pblPage += 1; this.fetchPblRecords(); } },
                 isPblSelected(record) { return this.tempSelectedPbls.some(item => String(item.fstockmtno).trim() === String(record.fstockmtno).trim()); },
+                showPblSelectionError(message) {
+                    if (window.showTransactionErrorModal) {
+                        window.showTransactionErrorModal(message);
+                        return;
+                    }
+                    Swal.fire({ icon: 'error', title: 'Terjadi kesalahan', text: message });
+                },
+                isPblSupplierValid(record, supplierCode = null) {
+                    const selectedSupplier = String(supplierCode ?? this.supplierCode || '').trim();
+                    const pblSupplier = String(record.fsupplier || '').trim();
+                    if (pblSupplier === '') return false;
+                    return selectedSupplier === '' || selectedSupplier === pblSupplier;
+                },
+                syncSupplierFromPbl(record) {
+                    const code = String(record.fsupplier || '').trim();
+                    if (!code || String(this.supplierCode || '').trim()) return;
+
+                    const name = String(record.fsuppliername || '').trim();
+                    this.supplierCode = code;
+                    this.supplierTempo = Number(record.ftempo || 0);
+                    if (this.isGiroMundur) this.syncDueDate();
+
+                    const select = document.getElementById('modal_filter_supplier_id');
+                    if (select) {
+                        const label = name ? `${name} (${code})` : code;
+                        let option = Array.from(select.options).find((item) => item.value === code);
+                        if (!option) {
+                            option = new Option(label, code, true, true);
+                            select.add(option);
+                        } else {
+                            option.text = label;
+                            option.selected = true;
+                        }
+                    }
+                },
                 togglePblSelection(record) {
                     const remain = this.toNumber(record.famountremain);
                     if (remain <= 0) return;
+
+                    const pblSupplier = String(record.fsupplier || '').trim();
+                    if (pblSupplier === '') {
+                        this.showPblSelectionError('supplier belum terisi.');
+                        return;
+                    }
+
+                    if (!this.isPblSupplierValid(record)) {
+                        this.showPblSelectionError('Nota harus sesuai supplier yang dipilih.');
+                        return;
+                    }
+
                     const idx = this.tempSelectedPbls.findIndex(item => String(item.fstockmtno).trim() === String(record.fstockmtno).trim());
                     if (idx > -1) this.tempSelectedPbls.splice(idx, 1); else this.tempSelectedPbls.push(record);
                 },
                 isAllOnPageSelected() { return this.pblRecords.length > 0 && this.pblRecords.every(record => this.toNumber(record.famountremain) <= 0 || this.isPblSelected(record)); },
                 toggleAllOnPage() {
                     const allSelected = this.isAllOnPageSelected();
+                    let hasInvalidSupplier = false;
+                    let hasMissingSupplier = false;
+                    const selectedSupplier = String(this.supplierCode || '').trim();
+
                     this.pblRecords.forEach(record => {
                         if (this.toNumber(record.famountremain) <= 0) return;
+                        const pblSupplier = String(record.fsupplier || '').trim();
+                        if (pblSupplier === '') {
+                            hasMissingSupplier = true;
+                            return;
+                        }
+                        if (selectedSupplier !== '' && selectedSupplier !== pblSupplier) {
+                            hasInvalidSupplier = true;
+                            return;
+                        }
+                    });
+
+                    if (hasMissingSupplier) {
+                        this.showPblSelectionError('supplier belum terisi.');
+                        return;
+                    }
+                    if (hasInvalidSupplier) {
+                        this.showPblSelectionError('Nota harus sesuai supplier yang dipilih.');
+                        return;
+                    }
+
+                    this.pblRecords.forEach(record => {
+                        if (this.toNumber(record.famountremain) <= 0) return;
+                        const pblSupplier = String(record.fsupplier || '').trim();
+                        if (pblSupplier === '') return;
+                        if (selectedSupplier !== '' && selectedSupplier !== pblSupplier) return;
                         const idx = this.tempSelectedPbls.findIndex(item => String(item.fstockmtno).trim() === String(record.fstockmtno).trim());
                         if (allSelected) { if (idx > -1) this.tempSelectedPbls.splice(idx, 1); }
                         else if (idx === -1) this.tempSelectedPbls.push(record);
@@ -732,6 +826,30 @@
                     return row;
                 },
                 submitSelectedPbls() {
+                    const selectedSupplier = String(this.supplierCode || '').trim();
+                    const inferredSupplier = selectedSupplier !== ''
+                        ? selectedSupplier
+                        : String(this.tempSelectedPbls[0]?.fsupplier || '').trim();
+
+                    const invalidSupplier = this.tempSelectedPbls.find(record => {
+                        const pblSupplier = String(record.fsupplier || '').trim();
+                        if (pblSupplier === '') return true;
+                        return inferredSupplier !== '' && pblSupplier !== inferredSupplier;
+                    });
+
+                    if (invalidSupplier) {
+                        if (String(invalidSupplier.fsupplier || '').trim() === '') {
+                            this.showPblSelectionError('supplier belum terisi.');
+                        } else {
+                            this.showPblSelectionError('Nota harus sesuai supplier yang dipilih.');
+                        }
+                        return;
+                    }
+
+                    if (!selectedSupplier && this.tempSelectedPbls.length) {
+                        this.syncSupplierFromPbl(this.tempSelectedPbls[0]);
+                    }
+
                     const selectedNos = this.tempSelectedPbls.map(item => String(item.fstockmtno).trim());
                     this.rows = this.rows.filter(row => String(row.frefno || '').trim() === '' || selectedNos.includes(String(row.frefno || '').trim()));
                     this.tempSelectedPbls.forEach(record => {
@@ -740,6 +858,9 @@
                         const targetRow = this.findTargetRowForPbl();
                         const remain = this.toNumber(record.famountremain);
                         targetRow.frefno = refNo;
+                        targetRow.fsupplier = String(record.fsupplier || '').trim();
+                        targetRow.fsuppliername = String(record.fsuppliername || '').trim();
+                        targetRow.ftempo = Number(record.ftempo || 0);
                         targetRow.fnilai_order = this.toNumber(record.famountmt);
                         targetRow.fsisa_hutang = remain;
                         targetRow.originalSisa = remain;
