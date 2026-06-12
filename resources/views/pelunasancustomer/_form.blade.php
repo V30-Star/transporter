@@ -387,13 +387,7 @@
                             </div>
                         </div>
 
-                        <div class="flex items-center justify-between gap-4 border-t pt-3">
-                            <span class="text-sm font-semibold text-gray-800">{{ 'Total Discount' }}</span>
-                            <input type="text" :value="formatNumber(totalDiscount)"
-                                class="w-52 border rounded px-3 py-2 bg-gray-100 text-right font-semibold cursor-not-allowed"
-                                readonly>
-                            <input type="hidden" name="ftotdiscountrp" :value="totalDiscount">
-                        </div>
+                        <input type="hidden" name="ftotdiscountrp" :value="totalDiscount">
 
                         <div class="flex items-center justify-between gap-4 border-t pt-3">
                             <span class="text-sm font-semibold text-gray-800">{{ 'Total Penerimaan' }}</span>
@@ -771,6 +765,16 @@
                     const isDelete = @js($isDeleteMode);
                     if (!isDelete) {
                         event.preventDefault();
+
+                        if (this.toNumber(this.hargaAdmin) > 0 && !this.adminAccountCode) {
+                            this.showValidationError('Account admin bank wajib diisi saat biaya admin diinput.');
+                            return;
+                        }
+                        if (this.toNumber(this.hargaAdmin2) > 0 && !this.adminAccount2Code) {
+                            this.showValidationError('Account admin bank 2 wajib diisi saat biaya admin 2 diinput.');
+                            return;
+                        }
+
                         const result = await Swal.fire({
                             icon: 'question',
                             title: 'Konfirmasi',

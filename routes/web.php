@@ -14,6 +14,7 @@ use App\Http\Controllers\GroupproductController;
 use App\Http\Controllers\InvoiceController;
 use App\Http\Controllers\JurnalTransaksiController;
 use App\Http\Controllers\ListingFakturPembelianController;
+use App\Http\Controllers\ListingJurnalController;
 use App\Http\Controllers\ListingPenerimaanBarangController;
 use App\Http\Controllers\ListingPenjualanController;
 use App\Http\Controllers\ListingPOController;
@@ -568,6 +569,8 @@ Route::middleware('auth')->group(function () {
         Route::get('/listingpenjualan', [ListingPenjualanController::class, 'index'])->name('listingpenjualan.index');
         Route::get('/listingpenjualan/print', [ListingPenjualanController::class, 'print'])->name('listingpenjualan.print');
         Route::get('/listingpenjualan/excel', [ListingPenjualanController::class, 'exportExcel'])->name('listingpenjualan.excel');
+
+        Route::get('/listingjurnal', [ListingJurnalController::class, 'index'])->name('listingjurnal.index');
 
         Route::get('/gudang/browse', [WhController::class, 'browse'])
             ->name('gudang.browse');

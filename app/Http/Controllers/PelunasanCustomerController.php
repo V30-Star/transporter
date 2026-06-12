@@ -279,6 +279,7 @@ class PelunasanCustomerController extends Controller
             'fbiayaadminbank' => ['nullable', 'numeric', 'min:0'],
             'fhargaadmin' => ['nullable', 'numeric', 'min:0'],
             'faccountadmin' => [
+                Rule::requiredIf(fn() => (float) $request->input('fhargaadmin') > 0),
                 'nullable',
                 'string',
                 'max:15',
@@ -288,6 +289,7 @@ class PelunasanCustomerController extends Controller
             ],
             'fhargaadmin2' => ['nullable', 'numeric', 'min:0'],
             'faccountadmin2' => [
+                Rule::requiredIf(fn() => (float) $request->input('fhargaadmin2') > 0),
                 'nullable',
                 'string',
                 'max:15',
@@ -312,7 +314,9 @@ class PelunasanCustomerController extends Controller
             'faccountheader.exists' => 'Account tidak valid atau bukan account detail (fend=1).',
             'ftgljatuhtempo.required' => 'Tgl. jatuh tempo wajib diisi saat giro mundur aktif.',
             'ftgljatuhtempo.before_or_equal' => 'Tgl. jatuh tempo tidak boleh melebihi tanggal transaksi.',
+            'faccountadmin.required' => 'Account admin bank wajib diisi saat biaya admin diinput.',
             'faccountadmin.exists' => 'Account admin bank tidak valid atau bukan account detail (fend=1).',
+            'faccountadmin2.required' => 'Account admin bank 2 wajib diisi saat biaya admin 2 diinput.',
             'faccountadmin2.exists' => 'Account admin bank 2 tidak valid atau bukan account detail (fend=1).',
             'details.required' => 'Minimal 1 detail faktur wajib diisi.',
             'details.*.frefno.required' => 'No. nota wajib diisi.',
@@ -460,6 +464,7 @@ class PelunasanCustomerController extends Controller
             'fbiayaadminbank' => ['nullable', 'numeric', 'min:0'],
             'fhargaadmin' => ['nullable', 'numeric', 'min:0'],
             'faccountadmin' => [
+                Rule::requiredIf(fn() => (float) $request->input('fhargaadmin') > 0),
                 'nullable',
                 'string',
                 'max:15',
@@ -469,6 +474,7 @@ class PelunasanCustomerController extends Controller
             ],
             'fhargaadmin2' => ['nullable', 'numeric', 'min:0'],
             'faccountadmin2' => [
+                Rule::requiredIf(fn() => (float) $request->input('fhargaadmin2') > 0),
                 'nullable',
                 'string',
                 'max:15',
@@ -493,7 +499,9 @@ class PelunasanCustomerController extends Controller
             'faccountheader.exists' => 'Account tidak valid atau bukan account detail (fend=1).',
             'ftgljatuhtempo.required' => 'Tgl. jatuh tempo wajib diisi saat giro mundur aktif.',
             'ftgljatuhtempo.before_or_equal' => 'Tgl. jatuh tempo tidak boleh melebihi tanggal transaksi.',
+            'faccountadmin.required' => 'Account admin bank wajib diisi saat biaya admin diinput.',
             'faccountadmin.exists' => 'Account admin bank tidak valid atau bukan account detail (fend=1).',
+            'faccountadmin2.required' => 'Account admin bank 2 wajib diisi saat biaya admin 2 diinput.',
             'faccountadmin2.exists' => 'Account admin bank 2 tidak valid atau bukan account detail (fend=1).',
             'details.required' => 'Minimal 1 detail faktur wajib diisi.',
             'details.*.frefno.required' => 'No. nota wajib diisi.',
