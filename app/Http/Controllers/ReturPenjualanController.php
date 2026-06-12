@@ -166,6 +166,7 @@ class ReturPenjualanController extends Controller
                 ->select(
                     'tranmt.ftranmtid',
                     'tranmt.fbranchcode',
+                    'tranmt.ffrom',
                     'tranmt.fsono',
                     'tranmt.fincludeppn',
                     'tranmt.fsodate',
@@ -223,7 +224,7 @@ class ReturPenjualanController extends Controller
                 1 => 'tranmt.fsono',
                 2 => 'tranmt.fsodate',
                 3 => 'tranmt.frefno',
-                4 => 'tranmt.fcustno',
+                4 => 'tranmt.ffrom',
                 5 => 'c.fcustomername',
                 6 => 'tranmt.famountso',
                 7 => 'tranmt.fket',
@@ -253,11 +254,11 @@ class ReturPenjualanController extends Controller
                         ? $row->fsodate->format('Y-m-d')
                         : $row->fsodate,
                     'frefno' => $row->frefno ?? '',
-                    'fcustno' => $row->fcustno ?? '',
+                    'ffrom' => $row->ffrom ?? '',
                     'fcustomername' => $row->fcustomername ?? '',
                     'famountso' => (float) ($row->famountso ?? 0),
                     'fket' => $row->fket ?? '',
-                    'fusercreate' => $row->fusercreate ?? '',
+                    'fusercreate' => $row->fuserid ?? '',
                     'fclose' => $row->fclose ?? '0',
                 ];
             });
@@ -745,8 +746,8 @@ class ReturPenjualanController extends Controller
                 'frefnoacak' => ['nullable', 'array'],
                 'frefnoacak.*' => ['nullable', 'regex:/^\d{3}$/'],
             ]);
-        } catch (\IlluminateValidation\ValidationException $e) {
-            throw $e; // tetap lempar agar Laravel handle redirect
+        } catch (ValidationException $e) {
+            return back()->withInput()->withErrors($e->errors());
         }
 
         // 2. INISIALISASI

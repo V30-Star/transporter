@@ -488,8 +488,8 @@ class SalesOrderController extends Controller
 
             $filteredRecords = (clone $query)->count();
 
-            $orderColIdx = $request->input('order.0.column', 0);
-            $orderDir = $request->input('order.0.dir', 'asc');
+            $orderColIdx = $request->input('order.0.column', 2);
+            $orderDir = $request->input('order.0.dir', 'desc');
 
             $sortableColumns = ['fbranchcode', 'fsono', 'fsodate', 'fcustomername', 'famountso', 'fusercreate'];
 

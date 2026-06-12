@@ -94,8 +94,6 @@
                                 data-column="3" placeholder="Cari customer...">
                         </div>
                     </th>
-                    <th class="border px-2 py-1">{{ 'No.Ref' }}</th>
-                    <th class="border px-2 py-1">{{ 'SO#' }}</th>
                     <th class="border px-2 py-1">
                         <div class="flex items-center justify-between">
                             <span>{{ 'Gudang' }}</span>
@@ -113,6 +111,8 @@
                                 data-column="6" placeholder="Cari gudang...">
                         </div>
                     </th>
+                    <th class="border px-2 py-1">{{ 'No.Ref' }}</th>
+                    <th class="border px-2 py-1">{{ 'SO#' }}</th>
                     <th class="border px-2 py-1">{{ 'User Id' }}</th>
 
                     @if ($showActionsColumn)
@@ -372,6 +372,11 @@
                     defaultContent: ''
                 },
                 {
+                    data: 'fgudang',
+                    name: 'fgudang',
+                    defaultContent: ''
+                },
+                {
                     data: 'frefdtno',
                     name: 'frefdtno',
                     defaultContent: ''
@@ -379,11 +384,6 @@
                 {
                     data: 'fsono',
                     name: 'fsono',
-                    defaultContent: ''
-                },
-                {
-                    data: 'fgudang',
-                    name: 'fgudang',
                     defaultContent: ''
                 },
                 {

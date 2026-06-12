@@ -381,7 +381,6 @@
             };
 
             // 1. Definisi Kolom
-            // 1. Definisi Kolom
             const columns = [{
                     data: 'fbranchcode',
                     name: 'fbranchcode'

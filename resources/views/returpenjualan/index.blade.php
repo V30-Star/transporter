@@ -80,8 +80,7 @@
                     <th class="border px-2 py-1">Cab.</th>
                     <th class="border px-2 py-1">No.Retur</th>
                     <th class="border px-2 py-1">Tanggal</th>
-                    <th class="border px-2 py-1">No.Ref</th>
-                    <th class="border px-2 py-1">Customer #</th>
+                    <th class="border px-2 py-1">Kode Gudang</th>
                     <th class="border px-2 py-1">
                         <div class="flex items-center justify-between">
                             <span>Nama Customer</span>
@@ -102,9 +101,9 @@
                     <th class="border px-2 py-1">Nilai Retur</th>
                     <th class="border px-2 py-1">Keterangan</th>
                     <th class="border px-2 py-1">User Id</th>
-                    @if ($showActionsColumn)
+                    {{-- @if ($showActionsColumn) --}}
                         <th class="border px-2 py-1 col-aksi">Aksi</th>
-                    @endif
+                    {{-- @endif --}}
                 </tr>
             </thead>
             <tbody>
@@ -331,12 +330,8 @@
                     name: 'fsodate'
                 },
                 {
-                    data: 'frefno', // ← UBAH DARI fsono JADI frefno
-                    name: 'frefno'
-                },
-                {
-                    data: 'fcustno',
-                    name: 'fcustno'
+                    data: 'ffrom',
+                    name: 'ffrom'
                 },
                 {
                     data: 'fcustomername',
