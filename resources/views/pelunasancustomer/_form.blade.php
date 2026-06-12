@@ -1318,7 +1318,7 @@
 
                 recalcTotals() {
                     const totalBayar = this.rows.reduce((sum, row) => sum + this.toNumber(row.fkasdtvalue), 0);
-                    const netPenerimaan = Math.max(totalBayar - this.toNumber(this.bankAdminFee) - this.toNumber(this.hargaAdmin) - this.toNumber(this.hargaAdmin2), 0);
+                    const netPenerimaan = totalBayar - this.toNumber(this.bankAdminFee) - this.toNumber(this.hargaAdmin) - this.toNumber(this.hargaAdmin2);
                     this.totalPenerimaanDisplay = this.formatNumber(netPenerimaan);
                 },
 
