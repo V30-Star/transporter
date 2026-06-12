@@ -37,8 +37,8 @@
                     <th class="border px-2 py-2">{{ "Cab." }}</th>
                     <th class="border px-2 py-2">{{ "Voucher No." }}</th>
                     <th class="border px-2 py-2">{{ "Tanggal" }}</th>
-                    <th class="border px-2 py-2">{{ "No.Giro/Cek" }}</th>
                     <th class="border px-2 py-2">{{ "Account" }}</th>
+                    <th class="border px-2 py-2">{{ "No.Giro/Cek" }}</th>
                     <th class="border px-2 py-2" style="width: 24%; min-width: 16rem;">{{ "Keterangan" }}</th>
                     <th class="border px-2 py-2 text-right">{{ "Nilai Bayar" }}</th>
                     <th class="border px-2 py-2 no-sort">{{ "Aksi" }}</th>
@@ -54,8 +54,8 @@
                         <td class="border px-2 py-2">
                             {{ optional($record->fkasmtdate)->format('d/m/Y') ?? \Carbon\Carbon::parse($record->fkasmtdate)->format('d/m/Y') }}
                         </td>
-                        <td class="border px-2 py-2">{{ $record->fnogiro ?: '-' }}</td>
                         <td class="border px-2 py-2">{{ $record->account_summary }}</td>
+                        <td class="border px-2 py-2">{{ $record->fnogiro ?: '-' }}</td>
                         <td class="border px-2 py-1" style="width: 24%; min-width: 16rem;">
                             <div class="kas-description-cell">{{ $record->description_summary }}</div>
                         </td>
@@ -198,8 +198,7 @@
                         searchable: false
                     },
                     {
-                        targets: 5,
-                        className: 'text-right'
+                        targets: 5
                     },
                     {
                         targets: [1, 3, 5],
