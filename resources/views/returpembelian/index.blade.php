@@ -76,11 +76,13 @@
         <table id="returpembelianTable" class="min-w-full border text-sm">
             <thead class="bg-gray-100">
                 <tr>
+                    <th class="border px-2 py-1">Cab.</th>
                     <th class="border px-2 py-1">No.Transaksi</th>
                     <th class="border px-2 py-1">Tanggal</th>
-                    <th class="border px-2 py-1">Nama Gudang</th>
+                    <th class="border px-2 py-1">Gudang</th>
                     <th class="border px-2 py-1">Nama Supplier</th>
                     <th class="border px-2 py-1">Total Harga</th>
+                    <th class="border px-2 py-1">User Id</th>
 
                     @if ($showActionsColumn)
                         <th class="border px-2 py-1 col-aksi">Aksi</th>
@@ -295,6 +297,10 @@
 
             // 1. Definisi Kolom - HARUS SELALU ADA 4 KOLOM (sesuai dengan <th> di HTML)
             const columns = [{
+                    data: 'fbranchcode',
+                    name: 'fbranchcode'
+                },
+                {
                     data: 'fstockmtno_display',
                     name: 'fstockmtno'
                 },
@@ -303,8 +309,8 @@
                     name: 'fstockmtdate'
                 },
                 {
-                    data: 'fwhname',
-                    name: 'fwhname',
+                    data: 'ffrom',
+                    name: 'ffrom',
                     defaultContent: ''
                 },
                 {
@@ -317,23 +323,33 @@
                     name: 'famountmt',
                     defaultContent: ''
                 },
-                @if ($showActionsColumn)
                 {
-                    data: 'actions',
-                    name: 'actions',
-                    orderable: false,
-                    searchable: false
-                }
+                    data: 'fusercreate',
+                    name: 'fusercreate',
+                    defaultContent: ''
+                },
+                @if ($showActionsColumn)
+                    {
+                        data: 'actions',
+                        name: 'actions',
+                        orderable: false,
+                        searchable: false
+                    }
                 @endif
             ];
 
             // 2. Definisi columnDefs
-            const columnDefs = @if ($showActionsColumn) [{
-                targets: -1,
-                orderable: false,
-                searchable: false,
-                width: '280px'
-            }] @else [] @endif;
+            const columnDefs =
+                @if ($showActionsColumn)
+                    [{
+                        targets: -1,
+                        orderable: false,
+                        searchable: false,
+                        width: '280px'
+                    }]
+                @else
+                    []
+                @endif ;
 
             // 3. Inisialisasi DataTables
             $('#returpembelianTable').DataTable({

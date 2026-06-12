@@ -85,7 +85,7 @@
         <table id="mutasiTable" class="min-w-full border text-sm">
             <thead class="bg-gray-100">
                 <tr>
-                    <th class="border px-2 py-1">Cabang</th>
+                    <th class="border px-2 py-1">Cab.</th>
                     <th class="border px-2 py-1">No. Mutasi</th>
                     <th class="border px-2 py-1">Tanggal</th>
                     <th class="border px-2 py-1">
@@ -119,6 +119,7 @@
                         </div>
                     </th>
                     <th class="border px-2 py-1">Keterangan</th>
+                    <th class="border px-2 py-1">User Id</th>
 
                     @if ($showActionsColumn)
                         <th class="border px-2 py-1 col-aksi">Aksi</th>
@@ -288,8 +289,8 @@
             // 1. Definisi Kolom (Sangat Penting)
             // 'data' harus cocok dengan key JSON dari Controller
             const columns = [{
-                    data: 'fcabang',
-                    name: 'fcabang'
+                    data: 'fbranchcode',
+                    name: 'fbranchcode'
                 },
                 {
                     data: 'fstockmtno',
@@ -310,6 +311,10 @@
                 {
                     data: 'fket',
                     name: 'fket'
+                },
+                {
+                    data: 'fusercreate',
+                    name: 'fusercreate'
                 },
             ];
 

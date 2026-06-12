@@ -25,7 +25,7 @@ class ReturPembelianController extends Controller
 
         $separator = $useSlash ? '/' : '.';
 
-        return (string) preg_replace('/[.\/](\d+)$/', $separator.'$1', $normalized, 1);
+        return (string) preg_replace('/[.\/](\d+)$/', $separator . '$1', $normalized, 1);
     }
 
     private function ensureNoDuplicateDetailCodes(array $codes): void
@@ -120,6 +120,7 @@ class ReturPembelianController extends Controller
                 'trstockmt.fstockmtno',
                 'trstockmt.fstockmtdate',
                 'warehouse.fwhname',
+                'trstockmt.ffrom',
                 'supplier.fsuppliername',
                 'trstockmt.famountmt',
             ];
@@ -136,11 +137,14 @@ class ReturPembelianController extends Controller
             $records = $query->skip($start)
                 ->take($length)
                 ->get([
+                    'trstockmt.fbranchcode',
                     'trstockmt.fstockmtid',
                     'trstockmt.fstockmtno',
                     'trstockmt.fincludeppn',
                     'trstockmt.fstockmtdate',
+                    'trstockmt.fusercreate',
                     'trstockmt.famountmt',
+                    'trstockmt.ffrom',
                     'warehouse.fwhname as warehouse_name',
                     'supplier.fsuppliername as supplier_name',
                 ]);
@@ -156,7 +160,7 @@ class ReturPembelianController extends Controller
                 // if ($canView) {
                 // Asumsi route edit Anda: returpembelian.edit
                 $viewUrl = route('returpembelian.view', $row->fstockmtid);
-                $actions .= ' <a href="'.$viewUrl.'" class="inline-flex items-center bg-slate-500 text-white px-4 py-2 rounded hover:bg-slate-600">
+                $actions .= ' <a href="' . $viewUrl . '" class="inline-flex items-center bg-slate-500 text-white px-4 py-2 rounded hover:bg-slate-600">
                                     <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
                                     </svg> View
@@ -165,7 +169,7 @@ class ReturPembelianController extends Controller
 
                 // Edit Button
                 // if ($canEdit) {
-                $actions .= '<a href="'.route('returpembelian.edit', $row->fstockmtid).'" class="inline-flex items-center bg-yellow-500 text-white px-4 py-2 rounded hover:bg-yellow-600">
+                $actions .= '<a href="' . route('returpembelian.edit', $row->fstockmtid) . '" class="inline-flex items-center bg-yellow-500 text-white px-4 py-2 rounded hover:bg-yellow-600">
               <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
               </svg>
@@ -176,7 +180,7 @@ class ReturPembelianController extends Controller
                 // Delete Button
                 // if ($canDelete) {
                 $deleteUrl = route('returpembelian.delete', $row->fstockmtid);
-                $actions .= '<a href="'.$deleteUrl.'">
+                $actions .= '<a href="' . $deleteUrl . '">
                 <button class="inline-flex items-center bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700">
                     <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
@@ -195,6 +199,9 @@ class ReturPembelianController extends Controller
                     'fstockmtno_display' => $this->formatDisplayTransactionNumber($row->fstockmtno ?? null, (string) ($row->fincludeppn ?? '0') === '1'),
                     'fstockmtdate' => Carbon::parse($row->fstockmtdate)->format('d/m/Y'),
                     'fwhname' => (string) ($row->warehouse_name ?? ''),
+                    'ffrom' => $row->ffrom,
+                    'fbranchcode' => $row->fbranchcode,
+                    'fusercreate' => $row->fusercreate,
                     'fsuppliername' => (string) ($row->supplier_name ?? ''),
                     'famountmt' => number_format((float) ($row->famountmt ?? 0), 2, ',', '.'),
                     'actions' => $actions,
@@ -320,9 +327,9 @@ class ReturPembelianController extends Controller
         $date = $onDate ?: now();
 
         $branch = $branch
-          ?? Auth::guard('sysuser')->user()?->fcabang
-          ?? Auth::user()?->fcabang
-          ?? null;
+            ?? Auth::guard('sysuser')->user()?->fcabang
+            ?? Auth::user()?->fcabang
+            ?? null;
 
         // resolve kode cabang
         $kodeCabang = null;
@@ -332,7 +339,7 @@ class ReturPembelianController extends Controller
                 $kodeCabang = DB::table('mscabang')->where('fcabangid', (int) $needle)->value('fcabangkode');
             } else {
                 $kodeCabang = DB::table('mscabang')->whereRaw('LOWER(fcabangkode)=LOWER(?)', [$needle])->value('fcabangkode')
-                  ?: DB::table('mscabang')->whereRaw('LOWER(fcabangname)=LOWER(?)', [$needle])->value('fcabangkode');
+                    ?: DB::table('mscabang')->whereRaw('LOWER(fcabangname)=LOWER(?)', [$needle])->value('fcabangkode');
             }
         }
         if (! $kodeCabang) {
@@ -342,17 +349,17 @@ class ReturPembelianController extends Controller
         $prefix = sprintf('PO.%s.%s.%s.', $kodeCabang, $date->format('y'), $date->format('m'));
 
         // kunci per (branch, tahun-bulan) — TANPA bikin tabel baru
-        $lockKey = crc32('PO|'.$kodeCabang.'|'.$date->format('Y-m'));
+        $lockKey = crc32('PO|' . $kodeCabang . '|' . $date->format('Y-m'));
         DB::statement('SELECT pg_advisory_xact_lock(?)', [$lockKey]);
 
         $last = DB::table('tr_poh')
-            ->where('fpono', 'like', $prefix.'%')
+            ->where('fpono', 'like', $prefix . '%')
             ->selectRaw("MAX(CAST(split_part(fpono, '.', 5) AS int)) AS lastno")
             ->value('lastno');
 
         $next = (int) $last + 1;
 
-        return $prefix.str_pad((string) $next, 4, '0', STR_PAD_LEFT);
+        return $prefix . str_pad((string) $next, 4, '0', STR_PAD_LEFT);
     }
 
     public function print(string $fstockmtno)
@@ -391,9 +398,9 @@ class ReturPembelianController extends Controller
                 'trstockdt.fqtyremain',
             ]);
 
-        $fmt = fn ($d) => $d
-          ? \Carbon\Carbon::parse($d)->locale('id')->translatedFormat('d F Y')
-          : '-';
+        $fmt = fn($d) => $d
+            ? \Carbon\Carbon::parse($d)->locale('id')->translatedFormat('d F Y')
+            : '-';
 
         return view('returpembelian.print', [
             'hdr' => $hdr,
@@ -425,10 +432,10 @@ class ReturPembelianController extends Controller
         $raw = (Auth::guard('sysuser')->user() ?? Auth::user())?->fcabang;
 
         $branch = DB::table('mscabang')
-            ->when(is_numeric($raw), fn ($q) => $q->where('fcabangid', (int) $raw))
+            ->when(is_numeric($raw), fn($q) => $q->where('fcabangid', (int) $raw))
             ->when(
                 ! is_numeric($raw),
-                fn ($q) => $q->where('fcabangkode', $raw)->orWhere('fcabangname', $raw)
+                fn($q) => $q->where('fcabangkode', $raw)->orWhere('fcabangname', $raw)
             )
             ->first(['fcabangid', 'fcabangkode', 'fcabangname']);
 
@@ -520,7 +527,7 @@ class ReturPembelianController extends Controller
             $grandTotal = (float) $request->input('famountmt', 0);
 
             // LOAD PRODUCT METADATA
-            $uniqueCodes = array_values(array_unique(array_filter(array_map(fn ($c) => trim((string) $c), $codes))));
+            $uniqueCodes = array_values(array_unique(array_filter(array_map(fn($c) => trim((string) $c), $codes))));
 
             $prodMeta = DB::table('msprd')
                 ->whereIn('fprdcode', $uniqueCodes)
@@ -649,7 +656,7 @@ class ReturPembelianController extends Controller
                             $kodeCabang = DB::table('mscabang')->where('fcabangid', (int) $needle)->value('fcabangkode');
                         } else {
                             $kodeCabang = DB::table('mscabang')->whereRaw('LOWER(fcabangkode)=LOWER(?)', [$needle])->value('fcabangkode')
-                              ?: DB::table('mscabang')->whereRaw('LOWER(fcabangname)=LOWER(?)', [$needle])->value('fcabangkode');
+                                ?: DB::table('mscabang')->whereRaw('LOWER(fcabangname)=LOWER(?)', [$needle])->value('fcabangkode');
                         }
                     }
                 }
@@ -666,16 +673,16 @@ class ReturPembelianController extends Controller
                 if (empty($fstockmtno)) {
                     $prefix = sprintf('%s.%s.%s.%s.', $fstockmtcode, $kodeCabang, $yy, $mm);
 
-                    $lockKey = crc32('STOCKMT|'.$fstockmtcode.'|'.$kodeCabang.'|'.$fstockmtdate->format('Y-m'));
+                    $lockKey = crc32('STOCKMT|' . $fstockmtcode . '|' . $kodeCabang . '|' . $fstockmtdate->format('Y-m'));
                     DB::statement('SELECT pg_advisory_xact_lock(?)', [$lockKey]);
 
                     $last = DB::table('trstockmt')
-                        ->where('fstockmtno', 'like', $prefix.'%')
+                        ->where('fstockmtno', 'like', $prefix . '%')
                         ->selectRaw("MAX(CAST(split_part(fstockmtno, '.', 5) AS int)) AS lastno")
                         ->value('lastno');
 
                     $next = (int) $last + 1;
-                    $fstockmtno = $prefix.str_pad((string) $next, 4, '0', STR_PAD_LEFT);
+                    $fstockmtno = $prefix . str_pad((string) $next, 4, '0', STR_PAD_LEFT);
                 }
 
                 // INSERT HEADER
@@ -718,7 +725,7 @@ class ReturPembelianController extends Controller
 
             return redirect()
                 ->route('returpembelian.create')
-                ->with('success', 'Retur pembelian '.$this->formatDisplayTransactionNumber($fstockmtno, (float) $ppnAmount > 0).' berhasil disimpan.');
+                ->with('success', 'Retur pembelian ' . $this->formatDisplayTransactionNumber($fstockmtno, (float) $ppnAmount > 0) . ' berhasil disimpan.');
         } catch (\Exception $e) {
             return back()
                 ->withInput()
@@ -1033,7 +1040,7 @@ class ReturPembelianController extends Controller
             $grandTotal = (float) $request->input('famountmt', 0);
 
             // LOAD PRODUCT METADATA
-            $uniqueCodes = array_values(array_unique(array_filter(array_map(fn ($c) => trim((string) $c), $codes))));
+            $uniqueCodes = array_values(array_unique(array_filter(array_map(fn($c) => trim((string) $c), $codes))));
 
             $prodMeta = DB::table('msprd')
                 ->whereIn('fprdcode', $uniqueCodes)
@@ -1163,7 +1170,7 @@ class ReturPembelianController extends Controller
                             $kodeCabang = DB::table('mscabang')->where('fcabangid', (int) $needle)->value('fcabangkode');
                         } else {
                             $kodeCabang = DB::table('mscabang')->whereRaw('LOWER(fcabangkode)=LOWER(?)', [$needle])->value('fcabangkode')
-                              ?: DB::table('mscabang')->whereRaw('LOWER(fcabangname)=LOWER(?)', [$needle])->value('fcabangkode');
+                                ?: DB::table('mscabang')->whereRaw('LOWER(fcabangname)=LOWER(?)', [$needle])->value('fcabangkode');
                         }
                     }
                 }
@@ -1221,7 +1228,7 @@ class ReturPembelianController extends Controller
 
             return redirect()
                 ->route('returpembelian.index') // <-- Redirect kembali ke halaman edit
-                ->with('success', 'Retur pembelian '.$this->formatDisplayTransactionNumber($fstockmtno, (float) $ppnAmount > 0).' berhasil diupdate.');
+                ->with('success', 'Retur pembelian ' . $this->formatDisplayTransactionNumber($fstockmtno, (float) $ppnAmount > 0) . ' berhasil diupdate.');
         } catch (\Exception $e) {
             return back()
                 ->withInput()
@@ -1374,7 +1381,7 @@ class ReturPembelianController extends Controller
                 $returpembelian->delete();
             });
 
-            return redirect()->route('returpembelian.index')->with('success', 'Retur pembelian '.$this->formatDisplayTransactionNumber($returpembelian->fstockmtno, (string) ($returpembelian->fincludeppn ?? '0') === '1').' berhasil dihapus.');
+            return redirect()->route('returpembelian.index')->with('success', 'Retur pembelian ' . $this->formatDisplayTransactionNumber($returpembelian->fstockmtno, (string) ($returpembelian->fincludeppn ?? '0') === '1') . ' berhasil dihapus.');
         } catch (\Exception $e) {
             // Jika terjadi kesalahan saat menghapus, kembali ke halaman delete dengan pesan error
             return redirect()->route('returpembelian.delete', $fstockmtid)->with('error', 'Retur pembelian belum bisa dihapus. Coba lagi.');
@@ -1404,8 +1411,8 @@ class ReturPembelianController extends Controller
     private function validateUniqueHeaderReference($frefno, $frefpo, ?string $exceptStockMtNo = null): ?string
     {
         $references = collect([$frefno, $frefpo])
-            ->map(fn ($value) => trim((string) ($value ?? '')))
-            ->filter(fn ($value) => $value !== '')
+            ->map(fn($value) => trim((string) ($value ?? '')))
+            ->filter(fn($value) => $value !== '')
             ->unique()
             ->values();
 
@@ -1450,7 +1457,7 @@ class ReturPembelianController extends Controller
         }
 
         do {
-            $candidate = (string) random_int(1, 9).random_int(1, 9).random_int(1, 9);
+            $candidate = (string) random_int(1, 9) . random_int(1, 9) . random_int(1, 9);
         } while (in_array($candidate, $usedNumbers, true));
 
         $usedNumbers[] = $candidate;

@@ -51,8 +51,12 @@
         <table id="mutasiTable" class="min-w-full border text-sm">
             <thead class="bg-gray-100">
                 <tr>
-                    <th class="border px-2 py-1">No. Pemakaian Barang</th>
+                    <th class="border px-2 py-1">Cab.</th>
+                    <th class="border px-2 py-1">No. Transaksi</th>
                     <th class="border px-2 py-1">Tanggal</th>
+                    <th class="border px-2 py-1">Gudang</th>
+                    <th class="border px-2 py-1">Keterangan</th>
+                    <th class="border px-2 py-1">User Id</th>
 
                     @if ($showActionsColumn)
                         <th class="border px-2 py-1 col-aksi">Aksi</th>
@@ -169,11 +173,23 @@
             // 1. Definisi Kolom (Sangat Penting)
             // 'data' harus cocok dengan key JSON dari Controller
             const columns = [{
+                    data: 'fbranchcode'
+                }, // data dari 'fbranchcode'
+                {
                     data: 'fstockmtno'
                 }, // data dari 'fstockmtno'
                 {
                     data: 'fstockmtdate'
                 }, // data dari 'fstockmtdate'
+                {
+                    data: 'ffrom'
+                }, // data dari 'ffrom'
+                {
+                    data: 'fket'
+                }, // data dari 'fket'
+                {
+                    data: 'fusercreate'
+                } // data dari 'fusercreate'
             ];
 
             // 2. Tambah Kolom Aksi (jika ada izin)

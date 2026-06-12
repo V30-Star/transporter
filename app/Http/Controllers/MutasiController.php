@@ -155,6 +155,7 @@ class MutasiController extends Controller
                     'trstockmt.fstockmtdate',
                     'trstockmt.fket',
                     'trstockmt.fbranchcode',
+                    'trstockmt.fusercreate',
                     'c.fcabangname',
                     'trstockmt.ffrom',
                     'trstockmt.fto',
@@ -204,15 +205,13 @@ class MutasiController extends Controller
                 // }
 
                 return [
-                    'fcabang' => trim(implode(' - ', array_filter([
-                        trim((string) ($row->fbranchcode ?? '')),
-                        trim((string) ($row->fcabangname ?? '')),
-                    ]))) ?: trim((string) ($row->fbranchcode ?? $row->fcabangname ?? '')),
+                    'fbranchcode' =>$row->fbranchcode,
                     'fstockmtno' => $row->fstockmtno,
                     'fstockmtdate' => Carbon::parse($row->fstockmtdate)->format('d/m/Y'),
                     'fgudang_dari' => $this->formatWarehouseLabel($row->ffrom ?? '', $row->from_warehouse_name ?? ''),
                     'fgudang_ke' => $this->formatWarehouseLabel($row->fto ?? '', $row->to_warehouse_name ?? ''),
                     'fket' => trim((string) ($row->fket ?? '')),
+                    'fusercreate' => trim((string) ($row->fusercreate ?? '')),
                     'actions' => $actions,
                 ];
             });

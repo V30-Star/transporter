@@ -138,8 +138,11 @@ class PemakaianbarangController extends Controller
 
                 return [
                     'fstockmtno' => $row->fstockmtno,
-                    // Format tanggal agar rapi di tabel
                     'fstockmtdate' => Carbon::parse($row->fstockmtdate)->format('d/m/Y'),
+                    'fbranchcode' => $row->fbranchcode,
+                    'ffrom' => $row->ffrom,
+                    'fket' => $row->fket,
+                    'fusercreate' => $row->fusercreate,
                     'actions' => $actions,
                 ];
             });
