@@ -409,8 +409,8 @@ class PelunasanCustomerController extends Controller
                     'fkasdtid' => $nextDetailId + $index,
                     'fkasmtid' => $headerId,
                     'ftrancode' => self::TRAN_CODE,
-                    'faccount' => $entry['account']->faccount,
-                    'faccountid' => $entry['account']->faccid,
+                    'faccount' => $entry['faccount'] ?? $entry['account']->faccount,
+                    'faccountid' => $entry['faccountid'] ?? $entry['account']->faccid,
                     'fdk' => $entry['fdk'],
                     'frefno' => $entry['frefno'],
                     'fnote' => $entry['fnote'],
@@ -591,8 +591,8 @@ class PelunasanCustomerController extends Controller
                     'fkasdtid' => $nextDetailId + $index,
                     'fkasmtid' => $header->fkasmtid,
                     'ftrancode' => self::TRAN_CODE,
-                    'faccount' => $entry['account']->faccount,
-                    'faccountid' => $entry['account']->faccid,
+                    'faccount' => $entry['faccount'] ?? $entry['account']->faccount,
+                    'faccountid' => $entry['faccountid'] ?? $entry['account']->faccid,
                     'fdk' => $entry['fdk'],
                     'frefno' => $entry['frefno'],
                     'fnote' => $entry['fnote'],
@@ -694,7 +694,10 @@ class PelunasanCustomerController extends Controller
 
     private function buildJournalDetailEntries(Collection $detailRows, string $paymentDate, Customer $customer): Collection
     {
-        $receivableCode = trim((string) DB::table('set_account')->where('faccount_name', 'PIUTANGDAGANG')->value('faccount'));
+        $receivableCode = trim((string) (
+            DB::table('set_account')->where('faccount_name', 'PIUTANGDAGANG')->value('faccount') 
+            ?? DB::table('set_account')->where('faccount_name', 'ACCOUNTS RECEIVABLES')->value('faccount')
+        ));
         $receivableAccount = $receivableCode !== ''
             ? Account::query()->where('faccount', $receivableCode)->where('fend', 1)->first(['faccid', 'faccount', 'faccname'])
             : null;
@@ -706,7 +709,7 @@ class PelunasanCustomerController extends Controller
 
         $referenceMap = $this->resolveReferenceTransactions($detailRows, Carbon::parse($paymentDate));
 
-        return $detailRows->values()->map(function (array $row) use ($customer, $receivableAccount, $returnReceivableAccount, $referenceMap) {
+        return $detailRows->values()->map(function (array $row) use ($customer, $receivableAccount, $returnReceivableAccount, $referenceMap, $receivableCode, $returnReceivableCode) {
             $refNo = trim((string) ($row['frefno'] ?? ''));
             $reference = $referenceMap[$refNo] ?? null;
             $trCode = strtoupper(trim((string) ($row['ftrcode'] ?? $reference?->ftrcode ?? 'INV')));
@@ -718,11 +721,13 @@ class PelunasanCustomerController extends Controller
             $journalAmount = $trCode === 'REJ'
                 ? $paymentAmount
                 : round($paymentAmount + $discountAmount, 2);
-            $account = $trCode === 'REJ' ? $returnReceivableAccount : $receivableAccount;
+            $faccountCode = $trCode === 'REJ' ? $returnReceivableCode : $receivableCode;
+            $faccountId = $trCode === 'REJ' ? ($returnReceivableAccount?->faccid ?? null) : ($receivableAccount?->faccid ?? null);
             $note = mb_substr($refNo . ' (' . $customer->fcustomername . ')', 0, 100);
 
             return [
-                'account' => $account,
+                'faccount' => $faccountCode,
+                'faccountid' => $faccountId,
                 'fdk' => $trCode === 'REJ' ? 'D' : 'K',
                 'frefno' => $refNo,
                 'fnote' => $note,
