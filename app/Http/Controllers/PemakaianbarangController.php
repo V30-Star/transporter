@@ -276,7 +276,7 @@ class PemakaianbarangController extends Controller
             $kodeCabang = 'NA';
         }
 
-        $prefix = sprintf('PBR.%s.%s.%s.', $kodeCabang, $date->format('y'), $date->format('m'));
+        $prefix = sprintf('PBR.%s.%s.%s.', $kodeCabang, $date->format('Y'), $date->format('m'));
 
         // kunci per (branch, tahun-bulan) — TANPA bikin tabel baru
         $lockKey = crc32('PBR|'.$kodeCabang.'|'.$date->format('Y-m'));
@@ -599,7 +599,7 @@ class PemakaianbarangController extends Controller
                 $kodeCabang = 'NA';
             }
 
-            $yy = $fstockmtdate->format('y');
+            $yy = $fstockmtdate->format('Y');
             $mm = $fstockmtdate->format('m');
             $fstockmtcode = 'PBR';
 

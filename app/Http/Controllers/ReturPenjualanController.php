@@ -601,14 +601,15 @@ class ReturPenjualanController extends Controller
         return null;
     }
 
-    private function generateInvoiceCode(?Carbon $onDate = null): string
+    private function generateInvoiceCode(?Carbon $onDate = null, ?string $branchCode = null): string
     {
         $date = $onDate ?: now();
-        $prefix = 'REJ.' . $date->format('ym') . '.';
+        $branchCode = trim((string) ($branchCode ?: 'NA')) ?: 'NA';
+        $prefix = sprintf('REJ.%s.%s.%s.', $branchCode, $date->format('Y'), $date->format('m'));
 
         $last = DB::table('tranmt')
             ->where('fsono', 'like', $prefix . '%')
-            ->selectRaw("MAX(CAST(substr(trim(fsono), length('" . $prefix . "') + 1) AS int)) AS lastno")
+            ->selectRaw("MAX(CAST(split_part(fsono, '.', 5) AS int)) AS lastno")
             ->value('lastno');
 
         $next = (int) $last + 1;
@@ -692,7 +693,7 @@ class ReturPenjualanController extends Controller
         $fcabang = $branch->fcabangname ?? (string) $raw;
         $fbranchcode = $branch->fcabangkode ?? (string) $raw;
 
-        $newtr_prh_code = $this->generateInvoiceCode(now());
+        $newtr_prh_code = $this->generateInvoiceCode(now(), $fbranchcode);
 
         $products = Product::select(
             'fprdid',
@@ -1005,11 +1006,12 @@ class ReturPenjualanController extends Controller
                 $fsono = $request->input('fsono');
 
                 if (empty($fsono)) {
-                    $prefix = 'REJ.' . $fsodate->format('ym') . '.';
+                    $branchCode = trim((string) ($request->input('fbranchcode') ?: 'NA')) ?: 'NA';
+                    $prefix = sprintf('REJ.%s.%s.%s.', $branchCode, $fsodate->format('Y'), $fsodate->format('m'));
 
                     $lastRecord = DB::table('tranmt')
                         ->where('fsono', 'like', $prefix . '%')
-                        ->orderBy('fsono', 'desc')
+                        ->orderByRaw("CAST(split_part(fsono, '.', 5) AS int) DESC")
                         ->lockForUpdate()
                         ->first();
 

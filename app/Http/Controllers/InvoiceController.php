@@ -1055,7 +1055,7 @@ class InvoiceController extends Controller
             $kodeCabang = 'NA';
         }
 
-        $prefix = sprintf('PO.%s.%s.%s.', $kodeCabang, $date->format('y'), $date->format('m'));
+        $prefix = sprintf('PO.%s.%s.%s.', $kodeCabang, $date->format('Y'), $date->format('m'));
 
         // kunci per (branch, tahun-bulan) ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â TANPA bikin tabel baru
         $lockKey = crc32('PO|' . $kodeCabang . '|' . $date->format('Y-m'));
@@ -1485,47 +1485,27 @@ class InvoiceController extends Controller
                     if ($isAdvancePayment) {
                         $year = $fsodate->format('Y'); // 4-digit year format, e.g. 2026
                         $month = $fsodate->format('m'); // 2-digit month format, e.g. 06
-                        $digits = 3;
-                        $likePattern = sprintf('UM.%s.%%.%s.%s', $branchCode, $year, $month);
-                        
-                        $records = DB::table('tranmt')
-                            ->where('fsono', 'like', $likePattern)
+                        $digits = 4;
+                        $prefix = sprintf('UM.%s.%s.%s.', $branchCode, $year, $month);
+                        $last = DB::table('tranmt')
+                            ->where('fsono', 'like', $prefix . '%')
                             ->lockForUpdate()
-                            ->get();
+                            ->selectRaw("MAX(CAST(split_part(fsono, '.', 5) AS int)) AS lastno")
+                            ->value('lastno');
 
-                        $nextNumber = 1;
-                        foreach ($records as $rec) {
-                            $parts = explode('.', trim($rec->fsono));
-                            if (isset($parts[2])) {
-                                $num = (int) $parts[2];
-                                if ($num >= $nextNumber) {
-                                    $nextNumber = $num + 1;
-                                }
-                            }
-                        }
-                        $fsono = sprintf('UM.%s.%s.%s.%s', $branchCode, str_pad((string) $nextNumber, $digits, '0', STR_PAD_LEFT), $year, $month);
+                        $fsono = $prefix . str_pad((string) ((int) $last + 1), $digits, '0', STR_PAD_LEFT);
                     } else {
                         $year = $fsodate->format('Y'); // 4-digit year format, e.g. 2026
                         $month = $fsodate->format('m'); // 2-digit month format, e.g. 06
                         $digits = 4;
-                        $likePattern = sprintf('INV.%s.%%.%s.%s', $branchCode, $year, $month);
-
-                        $records = DB::table('tranmt')
-                            ->where('fsono', 'like', $likePattern)
+                        $prefix = sprintf('INV.%s.%s.%s.', $branchCode, $year, $month);
+                        $last = DB::table('tranmt')
+                            ->where('fsono', 'like', $prefix . '%')
                             ->lockForUpdate()
-                            ->get();
+                            ->selectRaw("MAX(CAST(split_part(fsono, '.', 5) AS int)) AS lastno")
+                            ->value('lastno');
 
-                        $nextNumber = 1;
-                        foreach ($records as $rec) {
-                            $parts = explode('.', trim($rec->fsono));
-                            if (isset($parts[2])) {
-                                $num = (int) $parts[2];
-                                if ($num >= $nextNumber) {
-                                    $nextNumber = $num + 1;
-                                }
-                            }
-                        }
-                        $fsono = sprintf('INV.%s.%s.%s.%s', $branchCode, str_pad((string) $nextNumber, $digits, '0', STR_PAD_LEFT), $year, $month);
+                        $fsono = $prefix . str_pad((string) ((int) $last + 1), $digits, '0', STR_PAD_LEFT);
                     }
                 }
 
@@ -2912,7 +2892,7 @@ class InvoiceController extends Controller
         $kodeCabang = trim($branchCode) !== '' ? trim($branchCode) : trim((string) (session('fcabang') ?: '01'));
         $customerCode = trim($customerCode);
         $fjurnaltype = 'JIV';
-        $prefix = sprintf('%s.%s.%s.%s.', $fjurnaltype, $kodeCabang, $fsodate->format('y'), $fsodate->format('m'));
+        $prefix = sprintf('%s.%s.%s.%s.', $fjurnaltype, $kodeCabang, $fsodate->format('Y'), $fsodate->format('m'));
 
         if (DB::getDriverName() === 'pgsql') {
             $lockKey = crc32('JURNAL|' . $fjurnaltype . '|' . $kodeCabang . '|' . $fsodate->format('Y-m'));

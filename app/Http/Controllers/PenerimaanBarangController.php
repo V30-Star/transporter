@@ -732,7 +732,7 @@ class PenerimaanBarangController extends Controller
         $lockKey = crc32("STOCKMT|{$prefix}|{$kodeCabang}|" . $date->format('Y-m'));
         DB::statement('SELECT pg_advisory_xact_lock(?)', [$lockKey]);
 
-        $noPrefix = sprintf('%s.%s.%s.%s.', $prefix, $kodeCabang, $date->format('y'), $date->format('m'));
+        $noPrefix = sprintf('%s.%s.%s.%s.', $prefix, $kodeCabang, $date->format('Y'), $date->format('m'));
 
         $last = DB::table('trstockmt')
             ->where('fstockmtno', 'like', $noPrefix . '%')
@@ -973,7 +973,7 @@ class PenerimaanBarangController extends Controller
                     ->orWhere('fcabangkode', $rawBranch)
                     ->value('fcabangkode') ?? 'NA';
 
-                $yy = $fstockmtdate->format('y');
+                $yy = $fstockmtdate->format('Y');
                 $mm = $fstockmtdate->format('m');
                 $fstockmtcode = 'TER';
 

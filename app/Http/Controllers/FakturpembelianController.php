@@ -999,7 +999,7 @@ class FakturpembelianController extends Controller
             $kodeCabang = 'NA';
         }
 
-        $prefix = sprintf('PO.%s.%s.%s.', $kodeCabang, $date->format('y'), $date->format('m'));
+        $prefix = sprintf('PO.%s.%s.%s.', $kodeCabang, $date->format('Y'), $date->format('m'));
 
         $lockKey = crc32('PO|' . $kodeCabang . '|' . $date->format('Y-m'));
         if (DB::getDriverName() === 'pgsql') {
@@ -1391,7 +1391,7 @@ class FakturpembelianController extends Controller
                     ->orWhere('fcabangkode', $rawBranch)
                     ->value('fcabangkode') ?? 'NA';
 
-                $yy = $fstockmtdate->format('y');
+                $yy = $fstockmtdate->format('Y');
                 $mm = $fstockmtdate->format('m');
                 $isAdvancePayment = (int) $ftypebuy === 2;
                 $fstockmtcode = $isAdvancePayment ? 'UM' : 'BUY';
@@ -1401,25 +1401,15 @@ class FakturpembelianController extends Controller
                     if ($isAdvancePayment) {
                         $year = $fstockmtdate->format('Y'); // 4-digit year format, e.g. 2026
                         $month = $fstockmtdate->format('m'); // 2-digit month format, e.g. 06
-                        $digits = 3;
-                        $likePattern = sprintf('UM.%s.%%.%s.%s', $kodeCabang, $year, $month);
-
-                        $records = DB::table('trstockmt')
-                            ->where('fstockmtno', 'like', $likePattern)
+                        $digits = 4;
+                        $prefix = sprintf('UM.%s.%s.%s.', $kodeCabang, $year, $month);
+                        $last = DB::table('trstockmt')
+                            ->where('fstockmtno', 'like', $prefix . '%')
                             ->lockForUpdate()
-                            ->get();
+                            ->selectRaw("MAX(CAST(split_part(fstockmtno, '.', 5) AS int)) AS lastno")
+                            ->value('lastno');
 
-                        $nextNumber = 1;
-                        foreach ($records as $rec) {
-                            $parts = explode('.', trim($rec->fstockmtno));
-                            if (isset($parts[2])) {
-                                $num = (int) $parts[2];
-                                if ($num >= $nextNumber) {
-                                    $nextNumber = $num + 1;
-                                }
-                            }
-                        }
-                        $fstockmtno = sprintf('UM.%s.%s.%s.%s', $kodeCabang, str_pad((string) $nextNumber, $digits, '0', STR_PAD_LEFT), $year, $month);
+                        $fstockmtno = $prefix . str_pad((string) ((int) $last + 1), $digits, '0', STR_PAD_LEFT);
                     } else {
                         $prefix = "$fstockmtcode.$kodeCabang.$yy.$mm.";
                         $lockKey = crc32("STOCKMT|$fstockmtcode|$kodeCabang|" . $fstockmtdate->format('Y-m'));
@@ -2554,7 +2544,7 @@ class FakturpembelianController extends Controller
         $this->deleteFakturPembelianJournalEntries($fstockmtno);
 
         $fjurnaltype = 'JBL';
-        $yy = $fstockmtdate->format('y');
+        $yy = $fstockmtdate->format('Y');
         $mm = $fstockmtdate->format('m');
         $jurnalPrefix = sprintf('%s.%s.%s.%s.', $fjurnaltype, $kodeCabang, $yy, $mm);
 

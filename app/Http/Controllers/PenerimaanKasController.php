@@ -93,7 +93,7 @@ class PenerimaanKasController extends Controller
             );
             $voucherNo = $voucherNoInput !== ''
                 ? $voucherNoInput
-                : $this->generateVoucherNo(Carbon::parse($payload['fkasmtdate']));
+                : $this->generateVoucherNo(Carbon::parse($payload['fkasmtdate']), $payload['fbranchcode']);
             $headerId = $this->nextIntegerId('trkasmt', 'fkasmtid');
             $savedHeaderId = $headerId;
 
@@ -782,12 +782,13 @@ class PenerimaanKasController extends Controller
             ->firstOrFail();
     }
 
-    private function generateVoucherNo(Carbon $date): string
+    private function generateVoucherNo(Carbon $date, ?string $branchCode = null): string
     {
-        $prefix = 'KM.' . $date->format('ym') . '.';
+        $branchCode = trim((string) ($branchCode ?: $this->resolveBranchCode())) ?: 'NA';
+        $prefix = sprintf('%s.%s.%s.%s.', self::TRAN_CODE, $branchCode, $date->format('Y'), $date->format('m'));
         $lastNumber = DB::table('trkasmt')
             ->where('fkasmtno', 'like', $prefix . '%')
-            ->selectRaw("MAX(CAST(split_part(fkasmtno, '.', 3) AS integer)) as last_no")
+            ->selectRaw("MAX(CAST(split_part(fkasmtno, '.', 5) AS integer)) as last_no")
             ->value('last_no');
 
         return $prefix . str_pad((string) (((int) $lastNumber) + 1), 4, '0', STR_PAD_LEFT);

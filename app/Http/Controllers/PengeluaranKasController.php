@@ -90,7 +90,7 @@ class PengeluaranKasController extends Controller
             );
             $voucherNo = $voucherNoInput !== ''
                 ? $voucherNoInput
-                : $this->generateVoucherNo(Carbon::parse($payload['fkasmtdate']), $headerAccount);
+                : $this->generateVoucherNo(Carbon::parse($payload['fkasmtdate']), $payload['fbranchcode'], $headerAccount);
             $headerId = $this->nextIntegerId('trkasmt', 'fkasmtid');
             $savedHeaderId = $headerId;
 
@@ -704,11 +704,10 @@ class PengeluaranKasController extends Controller
             ->firstOrFail();
     }
 
-    private function generateVoucherNo(Carbon $date, ?Account $headerAccount = null): string
+    private function generateVoucherNo(Carbon $date, ?string $branchCode = null, ?Account $headerAccount = null): string
     {
-        $branchCode = $this->resolveBranchCode();
-        $bankType = $this->resolveBankType($headerAccount);
-        $prefix = sprintf('%s.%s.%s%s', self::TRAN_CODE, $branchCode, $date->format('ym'), $bankType);
+        $branchCode = trim((string) ($branchCode ?: $this->resolveBranchCode())) ?: 'NA';
+        $prefix = sprintf('%s.%s.%s.%s.', self::TRAN_CODE, $branchCode, $date->format('Y'), $date->format('m'));
 
         $lastNumber = DB::table('trkasmt')
             ->where('ftrancode', self::TRAN_CODE)
@@ -716,8 +715,8 @@ class PengeluaranKasController extends Controller
             ->selectRaw("
                 MAX(
                     CASE
-                        WHEN RIGHT(fkasmtno, 4) ~ '^[0-9]{4}$'
-                        THEN CAST(RIGHT(fkasmtno, 4) AS integer)
+                        WHEN split_part(fkasmtno, '.', 5) ~ '^[0-9]+$'
+                        THEN CAST(split_part(fkasmtno, '.', 5) AS integer)
                         ELSE NULL
                     END
                 ) as last_no

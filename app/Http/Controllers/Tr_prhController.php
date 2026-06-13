@@ -265,7 +265,7 @@ class Tr_prhController extends Controller
             $kodeCabang = 'NA';
         }
 
-        $prefix = sprintf('PR.%s.%s.%s.', trim($kodeCabang), $date->format('y'), $date->format('m'));
+        $prefix = sprintf('PR.%s.%s.%s.', trim($kodeCabang), $date->format('Y'), $date->format('m'));
 
         return DB::transaction(function () use ($prefix) {
             $last = \App\Models\Tr_prh::where('fprno', 'like', $prefix.'%')

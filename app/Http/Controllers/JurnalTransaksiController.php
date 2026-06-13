@@ -341,7 +341,7 @@ class JurnalTransaksiController extends Controller
             $kodeCabang = 'NA';
         }
 
-        $prefix = sprintf('PBR.%s.%s.%s.', $kodeCabang, $date->format('y'), $date->format('m'));
+        $prefix = sprintf('PBR.%s.%s.%s.', $kodeCabang, $date->format('Y'), $date->format('m'));
 
         // kunci per (branch, tahun-bulan) — TANPA bikin tabel baru
         $driver = DB::getDriverName();
@@ -560,7 +560,7 @@ class JurnalTransaksiController extends Controller
             $kodeCabang = 'NA';
         }
 
-        $yy = $fjurnaldate->format('y');
+        $yy = $fjurnaldate->format('Y');
         $mm = $fjurnaldate->format('m');
 
         // =========================================================

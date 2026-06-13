@@ -296,7 +296,7 @@ class AdjstockController extends Controller
             $kodeCabang = 'NA';
         }
 
-        $prefix = sprintf('PO.%s.%s.%s.', $kodeCabang, $date->format('y'), $date->format('m'));
+        $prefix = sprintf('PO.%s.%s.%s.', $kodeCabang, $date->format('Y'), $date->format('m'));
 
         // kunci per (branch, tahun-bulan) — TANPA bikin tabel baru
         $lockKey = crc32('PO|'.$kodeCabang.'|'.$date->format('Y-m'));
@@ -623,7 +623,7 @@ class AdjstockController extends Controller
                     }
                     $kodeCabang = $kodeCabang ?: 'NA';
 
-                    $prefix = sprintf('%s.%s.%s.%s.', $headerData['fstockmtcode'], $kodeCabang, $headerData['fstockmtdate']->format('y'), $headerData['fstockmtdate']->format('m'));
+                    $prefix = sprintf('%s.%s.%s.%s.', $headerData['fstockmtcode'], $kodeCabang, $headerData['fstockmtdate']->format('Y'), $headerData['fstockmtdate']->format('m'));
 
                     $lockKey = crc32('STOCKMT|'.$headerData['fstockmtcode'].'|'.$kodeCabang.'|'.$headerData['fstockmtdate']->format('Y-m'));
                     DB::statement('SELECT pg_advisory_xact_lock(?)', [$lockKey]);

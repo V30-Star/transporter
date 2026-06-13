@@ -346,7 +346,7 @@ class ReturPembelianController extends Controller
             $kodeCabang = 'NA';
         }
 
-        $prefix = sprintf('PO.%s.%s.%s.', $kodeCabang, $date->format('y'), $date->format('m'));
+        $prefix = sprintf('PO.%s.%s.%s.', $kodeCabang, $date->format('Y'), $date->format('m'));
 
         // kunci per (branch, tahun-bulan) — TANPA bikin tabel baru
         $lockKey = crc32('PO|' . $kodeCabang . '|' . $date->format('Y-m'));
@@ -666,7 +666,7 @@ class ReturPembelianController extends Controller
                 }
 
                 // GENERATE DOCUMENT NUMBER
-                $yy = $fstockmtdate->format('y');
+                $yy = $fstockmtdate->format('Y');
                 $mm = $fstockmtdate->format('m');
                 $fstockmtcode = 'REB';
 
