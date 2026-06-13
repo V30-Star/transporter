@@ -34,6 +34,7 @@
             return [
                 'uid' => 'bs-' . $index . '-' . substr(md5((string) $index), 0, 8),
                 'frefno' => trim((string) ($detail['frefno'] ?? '')),
+                'ftrcode' => trim((string) ($detail['ftrcode'] ?? $detail['freftype'] ?? 'BUY')),
                 'fsupplier' => trim((string) ($detail['fsupplier'] ?? '')),
                 'fsuppliername' => trim((string) ($detail['fsuppliername'] ?? '')),
                 'ftempo' => (int) ($detail['ftempo'] ?? 0),
@@ -218,18 +219,22 @@
                                     <td class="border px-2 py-1 text-center" x-text="index + 1"></td>
                                     <td class="border px-2 py-1">
                                         <input type="text" :name="`details[${index}][frefno]`" x-model="row.frefno"
+                                            :class="referenceTextClass(row)"
                                             class="w-full border rounded px-2 py-1">
+                                        <input type="hidden" :name="`details[${index}][ftrcode]`" :value="row.ftrcode || 'BUY'">
                                         <input type="hidden" :name="`details[${index}][fsupplier]`" :value="row.fsupplier">
                                         <input type="hidden" :name="`details[${index}][fsuppliername]`" :value="row.fsuppliername">
                                         <input type="hidden" :name="`details[${index}][ftempo]`" :value="row.ftempo">
                                     </td>
                                     <td class="border px-2 py-1">
                                         <input type="text" :value="formatNumber(row.fnilai_order)"
+                                            :class="referenceTextClass(row)"
                                             class="w-full border rounded px-2 py-1 text-right bg-gray-100 cursor-not-allowed" readonly disabled>
                                         <input type="hidden" :name="`details[${index}][fnilai_order]`" :value="row.fnilai_order">
                                     </td>
                                     <td class="border px-2 py-1">
                                         <input type="text" :value="formatNumber(row.fsisa_hutang)"
+                                            :class="referenceTextClass(row)"
                                             class="w-full border rounded px-2 py-1 text-right bg-gray-100 cursor-not-allowed" readonly disabled>
                                         <input type="hidden" :name="`details[${index}][fsisa_hutang]`" :value="row.fsisa_hutang">
                                     </td>
@@ -238,6 +243,7 @@
                                             :name="`details[${index}][fdiscpersen]`" x-model="row.fdiscpersen"
                                             @input="syncDiscountFromPercent(row, $event)"
                                             :disabled="isDiscPercentDisabled(row)"
+                                            :class="referenceTextClass(row)"
                                             class="w-full border rounded px-2 py-1 text-right disabled:bg-gray-100 disabled:text-gray-400 disabled:cursor-not-allowed">
                                         <input type="hidden" x-show="isDiscPercentDisabled(row)"
                                             :name="`details[${index}][fdiscpersen]`" :value="row.fdiscpersen">
@@ -249,6 +255,7 @@
                                             @input="syncDiscountFromRp(row, $event.target.value)"
                                             @blur="formatNumericField($event, row, 'fdiscount')"
                                             :disabled="isDiscountDisabled(row)"
+                                            :class="referenceTextClass(row)"
                                             class="w-full border rounded px-2 py-1 text-right disabled:bg-gray-100 disabled:text-gray-400 disabled:cursor-not-allowed">
                                         <input type="hidden" :name="`details[${index}][fdiscount]`" :value="row.fdiscount">
                                     </td>
@@ -258,6 +265,7 @@
                                             @focus="showRawNumber($event, row, 'fkasdtvalue')"
                                             @input="syncTotalBayarInput(row, $event.target.value)"
                                             @blur="formatNumericField($event, row, 'fkasdtvalue')"
+                                            :class="referenceTextClass(row)"
                                             class="w-full border rounded px-2 py-1 text-right">
                                         <input type="hidden" :name="`details[${index}][fkasdtvalue]`" :value="row.fkasdtvalue">
                                     </td>
@@ -510,6 +518,10 @@
             border-color: #2563eb;
             box-shadow: 0 0 0 2px rgba(37, 99, 235, .2);
         }
+
+        .transaction-code-red:disabled {
+            color: #dc2626 !important;
+        }
     </style>
 @endpush
 
@@ -619,7 +631,7 @@
                 },
 
                 emptyRow() {
-                    return { uid: this.makeUid(), frefno: '', fsupplier: '', fsuppliername: '', ftempo: 0, fnilai_order: 0, fsisa_hutang: 0, originalSisa: 0, fdiscpersen: 0, fdiscount: 0, fkasdtvalue: 0 };
+                    return { uid: this.makeUid(), frefno: '', ftrcode: 'BUY', fsupplier: '', fsuppliername: '', ftempo: 0, fnilai_order: 0, fsisa_hutang: 0, originalSisa: 0, fdiscpersen: 0, fdiscount: 0, fkasdtvalue: 0 };
                 },
 
                 normalizeRow(row = {}, index = 0) {
@@ -627,6 +639,7 @@
                     return {
                         uid: row.uid || `bs-row-${index}-${this.makeUid()}`,
                         frefno: String(row.frefno || '').trim(),
+                        ftrcode: String(row.ftrcode || 'BUY').trim() || 'BUY',
                         fsupplier: String(row.fsupplier || '').trim(),
                         fsuppliername: String(row.fsuppliername || '').trim(),
                         ftempo: Number(row.ftempo || 0),
@@ -669,6 +682,11 @@
                 isDiscountDisabled(row) {
                     // Discount (Rp) disabled when Disc% has been manually filled
                     return this.toNumber(row?.fdiscpersen) > 0;
+                },
+
+                referenceTextClass(row) {
+                    const code = String(row?.ftrcode || '').trim().toUpperCase();
+                    return ['REJ'].includes(code) ? 'text-red-600 transaction-code-red' : 'text-black';
                 },
 
                 openPblModal() {
@@ -858,6 +876,7 @@
                         const targetRow = this.findTargetRowForPbl();
                         const remain = this.toNumber(record.famountremain);
                         targetRow.frefno = refNo;
+                        targetRow.ftrcode = String(record.ftrcode || record.fstockmtcode || 'BUY').trim() || 'BUY';
                         targetRow.fsupplier = String(record.fsupplier || '').trim();
                         targetRow.fsuppliername = String(record.fsuppliername || '').trim();
                         targetRow.ftempo = Number(record.ftempo || 0);

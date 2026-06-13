@@ -129,6 +129,7 @@ class BayarSupplierController extends Controller
 
         $query = (clone $baseQuery)->select([
             'mt.fstockmtid',
+            'mt.fstockmtcode',
             'mt.fstockmtno',
             'mt.fstockmtdate',
             'mt.fsupplier',
@@ -168,6 +169,8 @@ class BayarSupplierController extends Controller
             ->map(function ($row) {
                 return [
                     'fstockmtid' => (int) ($row->fstockmtid ?? 0),
+                    'fstockmtcode' => trim((string) ($row->fstockmtcode ?? 'BUY')),
+                    'ftrcode' => trim((string) ($row->fstockmtcode ?? 'BUY')),
                     'fstockmtno' => trim((string) ($row->fstockmtno ?? '')),
                     'fstockmtdate' => !empty($row->fstockmtdate) ? Carbon::parse($row->fstockmtdate)->format('Y-m-d') : null,
                     'fsupplier' => trim((string) ($row->fsupplier ?? '')),
@@ -837,6 +840,7 @@ class BayarSupplierController extends Controller
                     ->leftJoin('mssupplier as s', 's.fsuppliercode', '=', 'trstockmt.fsupplier')
                     ->select([
                         'trstockmt.fstockmtno',
+                        'trstockmt.fstockmtcode',
                         'trstockmt.famountmt',
                         'trstockmt.famountremain',
                         'trstockmt.fsupplier',
@@ -874,6 +878,7 @@ class BayarSupplierController extends Controller
                     return [
                         'uid' => 'bs-existing-' . $index . '-' . $detail->fkasdtid,
                         'frefno' => $refNo,
+                        'ftrcode' => trim((string) ($reference->fstockmtcode ?? $detail->freftype ?? 'BUY')),
                         'fsupplier' => trim((string) ($reference->fsupplier ?? '')),
                         'fsuppliername' => trim((string) ($reference->fsuppliername ?? '')),
                         'ftempo' => (int) ($reference->ftempo ?? 0),

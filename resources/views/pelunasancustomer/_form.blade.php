@@ -234,23 +234,27 @@
                                     <td class="border px-2 py-1 text-center" x-text="index + 1"></td>
                                     <td class="border px-2 py-1">
                                         <input type="text" :name="`details[${index}][frefno]`" x-model="row.frefno"
+                                            :class="referenceTextClass(row)"
                                             class="w-full border rounded px-2 py-1">
                                         <input type="hidden" :name="`details[${index}][ftrcode]`" :value="row.ftrcode || 'INV'">
                                     </td>
                                     <td class="border px-2 py-1">
                                         <input type="date" x-model="row.fdatetime"
+                                            :class="referenceTextClass(row)"
                                             class="w-full border rounded px-2 py-1 bg-gray-100 cursor-not-allowed"
                                             readonly disabled>
                                         <input type="hidden" :name="`details[${index}][fdatetime]`" :value="row.fdatetime">
                                     </td>
                                     <td class="border px-2 py-1">
                                         <input type="text" :value="formatNumber(row.fnilai_nota)"
+                                            :class="referenceTextClass(row)"
                                             class="w-full border rounded px-2 py-1 text-right bg-gray-100 cursor-not-allowed"
                                             readonly disabled>
                                         <input type="hidden" :name="`details[${index}][fnilai_nota]`" x-model="row.fnilai_nota" :disabled="false">
                                     </td>
                                     <td class="border px-2 py-1">
                                         <input type="text" :value="formatNumber(row.fsisa_piutang)"
+                                            :class="referenceTextClass(row)"
                                             class="w-full border rounded px-2 py-1 text-right bg-gray-100 cursor-not-allowed"
                                             readonly disabled>
                                         <input type="hidden" :name="`details[${index}][fsisa_piutang]`" x-model="row.fsisa_piutang" :disabled="false">
@@ -261,7 +265,7 @@
                                             :name="`details[${index}][fdiscpersen]`" x-model="row.fdiscpersen"
                                             @input="syncDiscountFromPercent(row, $event)"
                                             :disabled="isDiscPercentDisabled(row) || isRejRow(row)"
-                                            :class="isRejRow(row) ? 'rej-disabled-text' : ''"
+                                            :class="referenceTextClass(row)"
                                             class="w-full border rounded px-2 py-1 text-right disabled:bg-gray-100 disabled:text-gray-400 disabled:cursor-not-allowed">
                                         <input type="hidden" x-show="isDiscPercentDisabled(row) || isRejRow(row)"
                                             :name="`details[${index}][fdiscpersen]`" :value="row.fdiscpersen">
@@ -273,7 +277,7 @@
                                             @input="syncDiscountFromRp(row, $event.target.value)"
                                             @blur="formatNumericField($event, row, 'fdiscount')"
                                             :disabled="isDiscountDisabled(row) || isRejRow(row)"
-                                            :class="isRejRow(row) ? 'rej-disabled-text' : ''"
+                                            :class="referenceTextClass(row)"
                                             class="w-full border rounded px-2 py-1 text-right disabled:bg-gray-100 disabled:text-gray-400 disabled:cursor-not-allowed">
                                         <input type="hidden"
                                             :name="`details[${index}][fdiscount]`" x-model="row.fdiscount" :disabled="false">
@@ -285,7 +289,7 @@
                                             @input="syncTotalBayarInput(row, $event.target.value)"
                                             @blur="formatNumericField($event, row, 'fkasdtvalue')"
                                             :disabled="isRejRow(row)"
-                                            :class="isRejRow(row) ? 'rej-disabled-text' : ''"
+                                            :class="referenceTextClass(row)"
                                             class="w-full border rounded px-2 py-1 text-right disabled:bg-gray-100 disabled:text-gray-400 disabled:cursor-not-allowed">
                                         <input type="hidden" :name="`details[${index}][fkasdtvalue]`" x-model="row.fkasdtvalue" :disabled="false">
                                     </td>
@@ -577,8 +581,8 @@
             border-color: #2563eb;
             box-shadow: 0 0 0 2px rgba(37, 99, 235, .2);
         }
-        .rej-disabled-text:disabled {
-            color: black !important;
+        .transaction-code-red:disabled {
+            color: #dc2626 !important;
         }
     </style>
 @endpush
@@ -1233,6 +1237,11 @@
 
                 isRejRow(row) {
                     return String(row?.ftrcode || '').trim().toUpperCase() === 'REJ';
+                },
+
+                referenceTextClass(row) {
+                    const code = String(row?.ftrcode || '').trim().toUpperCase();
+                    return ['REJ', 'REB'].includes(code) ? 'text-red-600 transaction-code-red' : 'text-black';
                 },
 
                 showValidationError(message) {
