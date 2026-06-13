@@ -671,6 +671,11 @@ class PelunasanCustomerController extends Controller
                     $discount = round(abs((float) ($detail['fdiscount'] ?? 0)), 2);
                 }
 
+                $fkasdtvalue = round(abs((float) ($detail['fkasdtvalue'] ?? 0)), 2);
+                if ($trCode === 'REJ') {
+                    $fkasdtvalue = -$fkasdtvalue;
+                }
+
                 return [
                     'frefno' => trim((string) ($detail['frefno'] ?? '')),
                     'fdatetime' => !empty($detail['fdatetime']) ? Carbon::parse($detail['fdatetime'])->format('Y-m-d') : null,
@@ -679,7 +684,7 @@ class PelunasanCustomerController extends Controller
                     'original_sisa' => $originalSisa,
                     'fdiscpersen' => $discPersen,
                     'fdiscount' => $discount,
-                    'fkasdtvalue' => round(abs((float) ($detail['fkasdtvalue'] ?? 0)), 2),
+                    'fkasdtvalue' => $fkasdtvalue,
                     'ftrcode' => $trCode !== '' ? $trCode : 'INV',
                 ];
             })
@@ -706,28 +711,29 @@ class PelunasanCustomerController extends Controller
             $reference = $referenceMap[$refNo] ?? null;
             $trCode = strtoupper(trim((string) ($row['ftrcode'] ?? $reference?->ftrcode ?? 'INV')));
             $paymentAmount = round(abs((float) ($row['fkasdtvalue'] ?? 0)), 2);
+            if ($trCode === 'REJ') {
+                $paymentAmount = -$paymentAmount;
+            }
             $discountAmount = round(abs((float) ($row['fdiscount'] ?? 0)), 2);
             $journalAmount = $trCode === 'REJ'
                 ? $paymentAmount
                 : round($paymentAmount + $discountAmount, 2);
             $account = $trCode === 'REJ' ? $returnReceivableAccount : $receivableAccount;
-            $note = $trCode === 'REJ'
-                ? 'Retur ' . $customer->fcustomername
-                : $customer->fcustomername;
+            $note = mb_substr($refNo . ' (' . $customer->fcustomername . ')', 0, 100);
 
             return [
                 'account' => $account,
                 'fdk' => $trCode === 'REJ' ? 'D' : 'K',
                 'frefno' => $refNo,
                 'fnote' => $note,
-                'fsubaccount' => $trCode === 'REJ' ? null : $customer->fcustomercode,
+                'fsubaccount' => $customer->fcustomercode,
                 'fdiscpersen' => round((float) ($row['fdiscpersen'] ?? 0), 2),
                 'fdiscount' => $discountAmount,
                 'fdiscountrp' => $discountAmount,
                 'fkasdtvalue' => $paymentAmount,
-                'fvalue_rp' => $journalAmount,
-                'fjurnal' => $journalAmount,
-                'fjurnal_rp' => $journalAmount,
+                'fvalue_rp' => abs($journalAmount),
+                'fjurnal' => abs($journalAmount),
+                'fjurnal_rp' => abs($journalAmount),
                 'fdatetime' => $row['fdatetime'] ?? null,
                 'ftrcode' => $trCode,
             ];
@@ -1105,7 +1111,9 @@ class PelunasanCustomerController extends Controller
                     }
 
                     $adjustedRemain = $reference
-                        ? (strtoupper($trCode) === 'REJ' ? 0 : max(abs((float) ($reference->famountremain ?? 0)) - $actualPayment - $actualDiscount, 0))
+                        ? (strtoupper($trCode) === 'REJ'
+                            ? max(abs((float) ($reference->famountremain ?? 0)) - abs($actualPayment), 0)
+                            : max(abs((float) ($reference->famountremain ?? 0)) - $actualPayment - $actualDiscount, 0))
                         : $baseAmount;
 
                     return [

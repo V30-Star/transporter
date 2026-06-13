@@ -236,7 +236,7 @@
                                         <input type="text" :name="`details[${index}][frefno]`" x-model="row.frefno"
                                             :class="referenceTextClass(row)"
                                             class="w-full border rounded px-2 py-1">
-                                        <input type="hidden" :name="`details[${index}][ftrcode]`" :value="row.ftrcode || 'INV'">
+                                        <input type="hidden" :name="`details[${index}][ftrcode]`" :value="isRejRow(row) ? 'REJ' : (row.ftrcode || 'INV')">
                                     </td>
                                     <td class="border px-2 py-1">
                                         <input type="date" x-model="row.fdatetime"
@@ -288,7 +288,6 @@
                                             @focus="showRawNumber($event, row, 'fkasdtvalue')"
                                             @input="syncTotalBayarInput(row, $event.target.value)"
                                             @blur="formatNumericField($event, row, 'fkasdtvalue')"
-                                            :disabled="isRejRow(row)"
                                             :class="referenceTextClass(row)"
                                             class="w-full border rounded px-2 py-1 text-right disabled:bg-gray-100 disabled:text-gray-400 disabled:cursor-not-allowed">
                                         <input type="hidden" :name="`details[${index}][fkasdtvalue]`" x-model="row.fkasdtvalue" :disabled="false">
@@ -629,9 +628,7 @@
                         .map((row, index) => {
                             const normalized = this.normalizeRow(row, index);
                             if (isEdit) {
-                                normalized.originalSisa = this.isRejRow(normalized)
-                                    ? Math.abs(normalized.fkasdtvalue) + Math.abs(normalized.fdiscount)
-                                    : normalized.fsisa_piutang + normalized.fkasdtvalue + normalized.fdiscount;
+                                normalized.originalSisa = normalized.fsisa_piutang + Math.abs(normalized.fkasdtvalue) + Math.abs(normalized.fdiscount);
                             } else {
                                 normalized.originalSisa = normalized.fsisa_piutang;
                             }
@@ -642,6 +639,12 @@
                     this.recalcTotals();
 
                     this.$watch('rows', () => {
+                        this.rows.forEach(row => {
+                            if (this.isRejRow(row)) {
+                                if (row.fdiscpersen !== 0) row.fdiscpersen = 0;
+                                if (row.fdiscount !== 0) row.fdiscount = 0;
+                            }
+                        });
                         this.ensureMinimumRows();
                         this.ensureTrailingRow();
                     }, { deep: true });
@@ -815,7 +818,7 @@
                             fdiscpersen: this.toNumber(row.fdiscpersen),
                             fdiscount: this.toNumber(row.fdiscount),
                             fkasdtvalue: this.toNumber(row.fkasdtvalue),
-                            ftrcode: String(row.ftrcode || 'INV').trim() || 'INV',
+                            ftrcode: this.isRejRow(row) ? 'REJ' : (String(row.ftrcode || 'INV').trim() || 'INV'),
                         })));
                 },
 
@@ -1236,7 +1239,9 @@
                 },
 
                 isRejRow(row) {
-                    return String(row?.ftrcode || '').trim().toUpperCase() === 'REJ';
+                    const code = String(row?.ftrcode || '').trim().toUpperCase();
+                    const refNo = String(row?.frefno || '').trim().toUpperCase();
+                    return code === 'REJ' || refNo.startsWith('REJ.');
                 },
 
                 referenceTextClass(row) {
@@ -1323,9 +1328,23 @@
                  * effectiveDiscount = (Disc% > 0) ? originalSisa × Disc%/100 : Discount(Rp)
                  */
                 syncTotalBayarInput(row, inputValue) {
-                    if (this.isRejRow(row)) { row.fkasdtvalue = -this.toNumber(row.originalSisa); return; }
-                    const pay = this.toNumber(inputValue);
                     const original = this.toNumber(row.originalSisa);
+                    if (this.isRejRow(row)) {
+                        const pay = Math.abs(this.toNumber(inputValue));
+                        if (pay > original) {
+                            this.showValidationError('Total Bayar tidak boleh melebihi sisa retur');
+                            row.fkasdtvalue = -original;
+                            row.fsisa_piutang = 0;
+                            this.recalcTotals();
+                            return;
+                        }
+                        row.fkasdtvalue = -pay;
+                        row.fsisa_piutang = parseFloat(Math.max(original - pay, 0).toFixed(2));
+                        this.recalcTotals();
+                        return;
+                    }
+
+                    const pay = this.toNumber(inputValue);
 
                     // Determine the active discount source
                     const effectiveDiscount = row.fdiscpersen > 0

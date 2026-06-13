@@ -1116,8 +1116,10 @@
                                                     <template x-if="action !== 'view'">
                                                         <input type="text"
                                                             class="w-full border rounded px-2 py-1 text-right text-sm"
+                                                            :class="isSRJRow(it) ? 'bg-gray-100 text-gray-500 cursor-not-allowed' : ''"
                                                             :id="'price_row_' + i"
                                                             x-model="it.fpriceInput"
+                                                            :disabled="isSRJRow(it)"
                                                             @focus="focusPriceInput(it)"
                                                             @input="onPriceInput(it); onRowUpdated(i)"
                                                             @blur="blurPriceInput(it); onRowUpdated(i)"
@@ -1127,8 +1129,10 @@
                                                 <td class="p-2 text-right">
                                                     <input type="text"
                                                         class="w-full border rounded px-2 py-1 text-right text-sm"
+                                                        :class="isSRJRow(it) ? 'bg-gray-100 text-gray-500 cursor-not-allowed' : ''"
                                                         :id="'disc_row_' + i"
                                                         :value="normalizeDiscountValue(it.fdisc)"
+                                                        :disabled="isSRJRow(it)"
                                                         @blur="normalizeDiscountInput($event, it); onRowUpdated(i)"
                                                         @input="it.fdisc = $event.target.value; onRowUpdated(i)"
                                                         @keydown.enter.prevent="onRowUpdated(i)">
@@ -2977,18 +2981,25 @@
             recalc(row) {
                 row.fqty = Math.max(0, +row.fqty || 0);
                 row.fterima = Math.max(0, +row.fterima || 0);
-                row.fprice = Math.max(0, +row.fprice || 0);
-                if (typeof row.fpriceInput === 'undefined') {
-                    row.fpriceInput = this.fmt(row.fprice);
+                if (this.isSRJRow(row)) {
+                    row.fprice = 0;
+                    row.fpriceInput = this.fmt(0);
+                    row.fdisc = '0';
+                    row.ftotal = 0;
+                } else {
+                    row.fprice = Math.max(0, +row.fprice || 0);
+                    if (typeof row.fpriceInput === 'undefined') {
+                        row.fpriceInput = this.fmt(row.fprice);
+                    }
+
+                    // Parse discount menggunakan fungsi baru
+                    const discPercent = this.parseDiscount(row.fdisc);
+
+                    // Hitung total
+                    const subtotal = row.fqty * row.fprice;
+                    const discAmount = subtotal * (discPercent / 100);
+                    row.ftotal = +(subtotal - discAmount).toFixed(2);
                 }
-
-                // Parse discount menggunakan fungsi baru
-                const discPercent = this.parseDiscount(row.fdisc);
-
-                // Hitung total
-                const subtotal = row.fqty * row.fprice;
-                const discAmount = subtotal * (discPercent / 100);
-                row.ftotal = +(subtotal - discAmount).toFixed(2);
 
                 this.recalcTotals();
             },
@@ -3179,6 +3190,11 @@
             isRowSavable(row) {
                 if (!row) return false;
                 return String(row.fitemcode ?? '').trim() !== '' && Number(row.fqty ?? 0) > 0;
+            },
+
+            isSRJRow(row) {
+                if (!row) return false;
+                return row.frefcode === 'SRJ' || String(row.frefsrj ?? '').trim() !== '';
             },
 
             ensureMinimumRows() {
@@ -3606,7 +3622,7 @@
                         frefnoacak: this.normalizeRefNoAcak(item.frefnoacak),
                         maxqty: Number.isFinite(soLimit) ? soLimit : 0,
                     };
-                    row.fpriceInput = this.fmt(row.fprice);
+                    this.recalc(row);
                     return row;
                 });
                 this.savedItems.forEach((item) => {
