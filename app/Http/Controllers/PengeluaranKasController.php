@@ -358,7 +358,7 @@ class PengeluaranKasController extends Controller
                 ->where('fend', 1)
                 ->where('fnonactive', '0')
                 ->orderBy('faccount')
-                ->get(['faccid', 'faccount', 'faccname', 'fhavesubaccount']),
+                ->get(['faccid', 'faccount', 'faccname', 'fhavesubaccount', 'ftypesubaccount']),
             'subaccounts' => Subaccount::query()
                 ->where('fnonactive', '0')
                 ->orderBy('fsubaccountcode')
@@ -447,6 +447,7 @@ class PengeluaranKasController extends Controller
         $detailAccounts = DB::table('account')
             ->select('faccount', 'faccname', 'fhavesubaccount')
             ->where('fend', 1)
+            ->where('fnonactive', '0')
             ->whereIn(DB::raw('UPPER(faccount)'), $normalizedCodes)
             ->get()
             ->keyBy(fn ($account) => strtoupper(trim((string) $account->faccount)));
@@ -482,7 +483,7 @@ class PengeluaranKasController extends Controller
 
             if (! $account) {
                 throw ValidationException::withMessages([
-                    "details.$index.faccount" => 'Account yang dipilih tidak ditemukan atau bukan account detail.',
+                    "details.$index.faccount" => 'Account yang dipilih tidak ditemukan, bukan account detail, atau nonaktif.',
                 ]);
             }
 

@@ -294,7 +294,8 @@
                                     @endphp
                                     @if ($isReadOnly)
                                         <input type="text" value="{{ $detailAccountCode }}"
-                                            class="w-full border rounded px-1.5 py-1 bg-gray-100 cursor-not-allowed"
+                                            class="w-full border rounded px-1.5 py-1 bg-gray-100 cursor-text select-all"
+                                            @focus="$event.target.select()" @click="$event.target.select()"
                                             readonly>
                                         <input type="hidden" name="details[{{ $index }}][faccount]"
                                             value="{{ $detailAccountCode }}">
@@ -302,11 +303,13 @@
                                         <div class="flex items-center gap-1">
                                             <div class="flex-1 min-w-0">
                                                 <input type="text"
-                                                    class="detail-account-code w-full border rounded px-1.5 py-1 bg-white"
-                                                    value="{{ $detailAccountCode }}" readonly
+                                                    class="detail-account-code w-full border rounded px-1.5 py-1 bg-white cursor-text select-all"
+                                                    name="details[{{ $index }}][faccount]"
+                                                    value="{{ $detailAccountCode }}"
+                                                    @focus="$event.target.select()" @click="$event.target.select()"
+                                                    @input="handleAccountCodeInput($event)"
+                                                    @blur="handleAccountCodeBlur($event)"
                                                     data-role="account-code-display">
-                                                <input type="hidden" name="details[{{ $index }}][faccount]"
-                                                    value="{{ $detailAccountCode }}">
                                                 <input type="hidden" value="{{ $detailHasSubaccount ? '1' : '0' }}"
                                                     data-role="account-has-subaccount">
                                                 <input type="hidden" value="{{ $detailSubaccountType }}"
@@ -620,6 +623,47 @@
                         return this.accountCatalog?.[normalized] || null;
                     },
 
+                    handleAccountCodeInput(event) {
+                        const row = event.target.closest('tr.detail-row');
+                        const rawCode = this.normalizeAccountCode(event.target.value);
+                        event.target.value = rawCode;
+
+                        if (rawCode === '') {
+                            this.clearAccountSelection(row);
+                            return;
+                        }
+
+                        const account = this.getValidationAccountMeta(rawCode);
+                        const nameField = row?.querySelector('[data-role="account-name-display"]');
+                        const hasSubaccountField = row?.querySelector('[data-role="account-has-subaccount"]');
+                        const subaccountTypeField = row?.querySelector('[data-role="account-subaccount-type"]');
+                        const subaccountHiddenField = row?.querySelector('input[name$="[fsubaccount]"]');
+                        const subaccountDisplayField = row?.querySelector('[data-role="subaccount-display"]');
+
+                        if (!account) {
+                            if (nameField) nameField.value = '';
+                            if (hasSubaccountField) hasSubaccountField.value = '0';
+                            if (subaccountTypeField) subaccountTypeField.value = 'S';
+                            if (subaccountHiddenField) subaccountHiddenField.value = '';
+                            if (subaccountDisplayField) subaccountDisplayField.value = '';
+                            this.syncSubaccountState(row, false, 'S');
+                            this.checkAndAutoAppendRow();
+                            return;
+                        }
+
+                        const hasSubaccount = String(account.fhavesubaccount || '0') === '1';
+                        const subaccountType = this.normalizeSubaccountType(account.ftypesubaccount);
+                        this.applyAccountLookupValue(row, account.faccount || rawCode, account.faccname || '', hasSubaccount, subaccountType);
+                    },
+
+                    handleAccountCodeBlur(event) {
+                        const row = event.target.closest('tr.detail-row');
+                        const result = this.validateJournalRow(row);
+                        if (result.status === 'ERROR') {
+                            this.presentValidationError(result, row);
+                        }
+                    },
+
                     getValidationAccountLabel(code) {
                         const normalized = this.normalizeAccountCode(code);
                         const meta = this.getValidationAccountMeta(normalized);
@@ -663,7 +707,7 @@
                         }
 
                         const focusTarget = {
-                            faccount: row.querySelector('button[title="Cari Account"]') || row.querySelector('[data-role="account-code-display"]'),
+                            faccount: row.querySelector('[data-role="account-code-display"]') || row.querySelector('button[title="Cari Account"]'),
                             fsubaccount: row.querySelector('.detail-subaccount-btn') || row.querySelector('[data-role="subaccount-display"]'),
                             frefno: row.querySelector('[data-role="detail-reference-input"]'),
                         }[focusField];
