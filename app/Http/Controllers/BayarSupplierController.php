@@ -89,6 +89,10 @@ class BayarSupplierController extends Controller
     {
         $header = $this->findHeader($fkasmtno);
 
+        if ($message = $this->getClearedGiroLockMessage($header, 'Bayar supplier ini')) {
+            return redirect()->route('bayarsupplier.view', $header->fkasmtno)->with('error', $message);
+        }
+
         return view('bayarsupplier.edit', $this->formViewData($header, [
             'pageTitle' => 'Edit Bayar Supplier',
             'formAction' => route('bayarsupplier.update', $header->fkasmtno),
@@ -103,6 +107,10 @@ class BayarSupplierController extends Controller
     public function delete($fkasmtno)
     {
         $header = $this->findHeader($fkasmtno);
+
+        if ($message = $this->getClearedGiroLockMessage($header, 'Bayar supplier ini')) {
+            return redirect()->route('bayarsupplier.view', $header->fkasmtno)->with('error', $message);
+        }
 
         return view('bayarsupplier.delete', $this->formViewData($header, [
             'pageTitle' => 'Hapus Bayar Supplier',
@@ -245,6 +253,8 @@ class BayarSupplierController extends Controller
             ->firstOrFail(['faccid', 'faccount', 'faccname']);
         $detailRows = $this->normalizeDetails($validated['details']);
 
+        $this->ensureCreateDateWithinEditPeriod($validated['fkasmtdate']);
+
         $this->validateReferenceSuppliers($detailRows, $supplier->fsuppliercode);
         $this->resolveReferenceTransactions($detailRows, Carbon::parse($validated['fkasmtdate']));
         $this->validatePaymentDoesNotExceedRemainingPayable($detailRows);
@@ -355,6 +365,10 @@ class BayarSupplierController extends Controller
     public function update(Request $request, $fkasmtno)
     {
         $header = $this->findHeader($fkasmtno);
+
+        if ($message = $this->getClearedGiroLockMessage($header, 'Bayar supplier ini')) {
+            return redirect()->route('bayarsupplier.view', $header->fkasmtno)->with('error', $message);
+        }
         $isGiroMundur = $request->boolean('fgiromundur');
         $giroAccount = trim((string) $this->resolveSetAccountCode(self::GIRO_MUNDUR_ACCOUNT_NAME));
 
@@ -411,6 +425,8 @@ class BayarSupplierController extends Controller
             ->where('faccount', $validated['faccountheader'])
             ->firstOrFail(['faccid', 'faccount', 'faccname']);
         $detailRows = $this->normalizeDetails($validated['details']);
+
+        $this->ensureCreateDateWithinEditPeriod($validated['fkasmtdate'], $header->fkasmtdate);
 
         $this->validateReferenceSuppliers($detailRows, $supplier->fsuppliercode);
         $this->resolveReferenceTransactions($detailRows, Carbon::parse($validated['fkasmtdate']));
@@ -517,6 +533,10 @@ class BayarSupplierController extends Controller
     public function destroy($fkasmtno)
     {
         $header = $this->findHeader($fkasmtno);
+
+        if ($message = $this->getClearedGiroLockMessage($header, 'Bayar supplier ini')) {
+            return redirect()->route('bayarsupplier.view', $header->fkasmtno)->with('error', $message);
+        }
 
         DB::transaction(function () use ($header) {
             Trkasdt::where('fkasmtid', $header->fkasmtid)->delete();

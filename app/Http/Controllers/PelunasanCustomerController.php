@@ -110,6 +110,10 @@ class PelunasanCustomerController extends Controller
     {
         $header = $this->findHeader($fkasmtno);
 
+        if ($message = $this->getClearedGiroLockMessage($header, 'Pelunasan customer ini')) {
+            return redirect()->route('pelunasancustomer.view', $header->fkasmtno)->with('error', $message);
+        }
+
         return view('pelunasancustomer.edit', $this->formViewData($header, [
             'pageTitle' => 'Edit Pelunasan Customer',
             'formAction' => route('pelunasancustomer.update', $header->fkasmtno),
@@ -124,6 +128,10 @@ class PelunasanCustomerController extends Controller
     public function delete($fkasmtno)
     {
         $header = $this->findHeader($fkasmtno);
+
+        if ($message = $this->getClearedGiroLockMessage($header, 'Pelunasan customer ini')) {
+            return redirect()->route('pelunasancustomer.view', $header->fkasmtno)->with('error', $message);
+        }
 
         return view('pelunasancustomer.delete', $this->formViewData($header, [
             'pageTitle' => 'Hapus Pelunasan Customer',
@@ -329,6 +337,8 @@ class PelunasanCustomerController extends Controller
             $validated['faccountheader'] = $giroAccount;
         }
 
+        $this->ensureCreateDateWithinEditPeriod($validated['fkasmtdate']);
+
         $customer = Customer::query()
             ->where('fcustomercode', $validated['fcustomer'])
             ->firstOrFail(['fcustomerid', 'fcustomercode', 'fcustomername']);
@@ -439,6 +449,10 @@ class PelunasanCustomerController extends Controller
     public function update(Request $request, $fkasmtno)
     {
         $header = $this->findHeader($fkasmtno);
+
+        if ($message = $this->getClearedGiroLockMessage($header, 'Pelunasan customer ini')) {
+            return redirect()->route('pelunasancustomer.view', $header->fkasmtno)->with('error', $message);
+        }
         $isGiroMundur = $request->boolean('fgiromundur');
         $giroAccount = trim((string) $this->resolveSetAccountCode(self::GIRO_MUNDUR_ACCOUNT_NAME));
 
@@ -515,6 +529,8 @@ class PelunasanCustomerController extends Controller
         if ($isGiroMundur && $giroAccount !== '') {
             $validated['faccountheader'] = $giroAccount;
         }
+
+        $this->ensureCreateDateWithinEditPeriod($validated['fkasmtdate'], $header->fkasmtdate);
 
         $customer = Customer::query()
             ->where('fcustomercode', $validated['fcustomer'])
@@ -622,6 +638,10 @@ class PelunasanCustomerController extends Controller
     public function destroy($fkasmtno)
     {
         $header = $this->findHeader($fkasmtno);
+
+        if ($message = $this->getClearedGiroLockMessage($header, 'Pelunasan customer ini')) {
+            return redirect()->route('pelunasancustomer.view', $header->fkasmtno)->with('error', $message);
+        }
 
         DB::transaction(function () use ($header) {
             Trkasdt::where('fkasmtid', $header->fkasmtid)->delete();

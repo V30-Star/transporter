@@ -177,6 +177,10 @@ class PenerimaanKasController extends Controller
             return redirect()->route('penerimaankas.view', $header->fkasmtno)->with('error', $message);
         }
 
+        if ($message = $this->getClearedGiroLockMessage($header, 'Penerimaan kas ini')) {
+            return redirect()->route('penerimaankas.view', $header->fkasmtno)->with('error', $message);
+        }
+
         return view('penerimaankas.edit', $this->formViewData($header, $header->details, [
             'pageTitle' => 'Edit Penerimaan Kas',
             'formAction' => route('penerimaankas.update', $header->fkasmtno),
@@ -193,6 +197,10 @@ class PenerimaanKasController extends Controller
             return redirect()->route('penerimaankas.view', $header->fkasmtno)->with('error', $message);
         }
 
+        if ($message = $this->getClearedGiroLockMessage($header, 'Penerimaan kas ini')) {
+            return redirect()->route('penerimaankas.view', $header->fkasmtno)->with('error', $message);
+        }
+
         return view('penerimaankas.delete', $this->formViewData($header, $header->details, [
             'pageTitle' => 'Hapus Penerimaan Kas',
             'formAction' => route('penerimaankas.destroy', $header->fkasmtno),
@@ -206,6 +214,10 @@ class PenerimaanKasController extends Controller
         $header = $this->findHeader($fkasmtno);
 
         if ($message = $this->getPostedPeriodLockMessage($header->fkasmtdate)) {
+            return redirect()->route('penerimaankas.view', $header->fkasmtno)->with('error', $message);
+        }
+
+        if ($message = $this->getClearedGiroLockMessage($header, 'Penerimaan kas ini')) {
             return redirect()->route('penerimaankas.view', $header->fkasmtno)->with('error', $message);
         }
         $payload = $this->validatePayload($request, $header);
@@ -283,6 +295,9 @@ class PenerimaanKasController extends Controller
         $header = $this->findHeader($fkasmtno);
 
         if ($message = $this->getPostedPeriodLockMessage($header->fkasmtdate)) {
+            return redirect()->route('penerimaankas.view', $header->fkasmtno)->with('error', $message);
+        }
+        if ($message = $this->getClearedGiroLockMessage($header, 'Penerimaan kas ini')) {
             return redirect()->route('penerimaankas.view', $header->fkasmtno)->with('error', $message);
         }
         $deletedNo = $header->fkasmtno;

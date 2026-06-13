@@ -172,7 +172,7 @@ abstract class Controller
         }
 
         throw ValidationException::withMessages([
-            'period' => "Information\nTanggal transaksi tidak boleh kurang dari periode " . $this->getEditPeriodYm() . " !!!",
+            'period' => "Information\nPeriode " . Carbon::parse($originalDate ?: $date)->format('Ym') . " sudah diposting !!!",
         ]);
     }
 
@@ -183,5 +183,14 @@ abstract class Controller
         }
 
         return "Information\n{$subject} tidak dapat di-Edit/Delete.\nPeriode (" . Carbon::parse($date)->format('d-m-Y') . ") sudah di posting !!!";
+    }
+
+    protected function getClearedGiroLockMessage($header, string $subject = 'Transaksi ini'): ?string
+    {
+        if ((string) ($header->fgiromundur ?? '0') === '1' && (string) ($header->fstatusgiro ?? '0') === '1') {
+            return "Information\n{$subject} tidak dapat di-Edit/Delete.\nGiro mundur sudah cair !!!";
+        }
+
+        return null;
     }
 }
