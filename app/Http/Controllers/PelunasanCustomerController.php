@@ -337,6 +337,7 @@ class PelunasanCustomerController extends Controller
             ->firstOrFail(['faccid', 'faccount', 'faccname', 'finitjurnal']);
         $detailRows = $this->normalizeDetails($validated['details']);
         $this->validateReferenceCustomers($detailRows, $customer->fcustomercode);
+        $this->validateRemainingReceivableDoesNotExceedInvoiceValue($detailRows);
         $this->validatePaymentDoesNotExceedRemainingReceivable($detailRows);
         $detailEntries = $this->buildJournalDetailEntries($detailRows, $validated['fkasmtdate'], $customer);
         $bankAdminFee = round((float) ($validated['fbiayaadminbank'] ?? 0), 2);
@@ -523,6 +524,7 @@ class PelunasanCustomerController extends Controller
             ->firstOrFail(['faccid', 'faccount', 'faccname', 'finitjurnal']);
         $detailRows = $this->normalizeDetails($validated['details']);
         $this->validateReferenceCustomers($detailRows, $customer->fcustomercode);
+        $this->validateRemainingReceivableDoesNotExceedInvoiceValue($detailRows);
         $this->validatePaymentDoesNotExceedRemainingReceivable($detailRows, $header);
         $detailEntries = $this->buildJournalDetailEntries($detailRows, $validated['fkasmtdate'], $customer);
         $bankAdminFee = round((float) ($validated['fbiayaadminbank'] ?? 0), 2);
@@ -784,6 +786,20 @@ class PelunasanCustomerController extends Controller
             if ($payment > $allowed) {
                 throw ValidationException::withMessages([
                     "details.{$index}.fkasdtvalue" => 'Total bayar tidak boleh melebihi sisa piutang.',
+                ]);
+            }
+        }
+    }
+
+    private function validateRemainingReceivableDoesNotExceedInvoiceValue(Collection $detailRows): void
+    {
+        foreach ($detailRows as $index => $row) {
+            $sisa = round(abs((float) ($row['fsisa_piutang'] ?? 0)), 2);
+            $nilaiNota = round(abs((float) ($row['fnilai_nota'] ?? 0)), 2);
+
+            if ($sisa > $nilaiNota) {
+                throw ValidationException::withMessages([
+                    "details.{$index}.fsisa_piutang" => 'Sisa piutang tidak boleh melebihi nilai nota.',
                 ]);
             }
         }

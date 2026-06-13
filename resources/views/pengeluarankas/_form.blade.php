@@ -653,7 +653,13 @@
 
                         const hasSubaccount = String(account.fhavesubaccount || '0') === '1';
                         const subaccountType = this.normalizeSubaccountType(account.ftypesubaccount);
-                        this.applyAccountLookupValue(row, account.faccount || rawCode, account.faccname || '', hasSubaccount, subaccountType);
+                        if (nameField) nameField.value = account.faccname || '';
+                        if (hasSubaccountField) hasSubaccountField.value = hasSubaccount ? '1' : '0';
+                        if (subaccountTypeField) subaccountTypeField.value = subaccountType;
+                        if (subaccountHiddenField) subaccountHiddenField.value = '';
+                        if (subaccountDisplayField) subaccountDisplayField.value = '';
+                        this.syncSubaccountState(row, hasSubaccount, subaccountType);
+                        this.checkAndAutoAppendRow();
                     },
 
                     handleAccountCodeBlur(event) {
