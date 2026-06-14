@@ -234,6 +234,8 @@
                                     <td class="border px-2 py-1 text-center" x-text="index + 1"></td>
                                     <td class="border px-2 py-1">
                                         <input type="text" :name="`details[${index}][frefno]`" x-model="row.frefno"
+                                            @input.debounce.500ms="handleManualNotaInput(row); resolveManualNota(row, true)"
+                                            @blur="resolveManualNota(row)"
                                             :class="referenceTextClass(row)"
                                             class="w-full border rounded px-2 py-1">
                                         <input type="hidden" :name="`details[${index}][ftrcode]`" :value="isRejRow(row) ? 'REJ' : (row.ftrcode || 'INV')">
@@ -673,6 +675,7 @@
                                 option.text = label;
                                 option.selected = true;
                             }
+                            select.value = code;
                         }
                     });
 
@@ -782,6 +785,20 @@
                             return;
                         }
 
+                        const refs = new Set();
+                        const duplicate = this.rows.find(row => {
+                            const refNo = String(row.frefno || '').trim().toUpperCase();
+                            if (!refNo) return false;
+                            if (refs.has(refNo)) return true;
+                            refs.add(refNo);
+                            return false;
+                        });
+
+                        if (duplicate) {
+                            this.showValidationError(`No. nota ${duplicate.frefno} tidak boleh sama.`);
+                            return;
+                        }
+
                         const result = await Swal.fire({
                             icon: 'question',
                             title: 'Konfirmasi',
@@ -837,6 +854,126 @@
                     if (this.rowHasContent(lastRow)) {
                         this.rows.push(this.emptyRow());
                     }
+                },
+
+                handleManualNotaInput(row) {
+                    row.frefno = String(row.frefno || '').trim().toUpperCase();
+                    if (!row.frefno) {
+                        this.clearNotaRow(row);
+                        return;
+                    }
+                    const prefix = row.frefno.split('.')[0] || '';
+                    row.ftrcode = prefix === 'REJ' ? 'REJ' : 'INV';
+                },
+
+                clearNotaRow(row, keepRef = true) {
+                    if (!row) return;
+                    const refNo = keepRef ? String(row.frefno || '').trim() : '';
+                    row.frefno = refNo;
+                    row.fdatetime = '';
+                    row.fcustno = '';
+                    row.fcustomername = '';
+                    row.ftempo = 0;
+                    row.fnilai_nota = 0;
+                    row.fsisa_piutang = 0;
+                    row.originalSisa = 0;
+                    row.fdiscpersen = 0;
+                    row.fdiscount = 0;
+                    row.fkasdtvalue = 0;
+                    row.ftrcode = 'INV';
+                    this.recalcTotals();
+                },
+
+                async resolveManualNota(row, silent = false) {
+                    const refNo = String(row?.frefno || '').trim();
+                    if (!refNo) {
+                        this.clearNotaRow(row, false);
+                        return;
+                    }
+
+                    if (silent && refNo.length < 5) return;
+
+                    const duplicate = this.rows.find(item => item !== row && String(item.frefno || '').trim().toUpperCase() === refNo.toUpperCase());
+                    if (duplicate) {
+                        if (!silent) this.showValidationError(`No. nota ${refNo} tidak boleh sama.`);
+                        this.clearNotaRow(row, false);
+                        row.frefno = '';
+                        return;
+                    }
+
+                    try {
+                        const params = new URLSearchParams({
+                            customer_code: this.customerCode || '',
+                            search: refNo,
+                            start: '0',
+                            length: '10',
+                            draw: '1',
+                            order_column: 'fsodate',
+                            order_dir: 'desc'
+                        });
+                        const response = await fetch(`{{ route('pelunasancustomer.pickable-nota') }}?${params.toString()}`, {
+                            headers: { 'X-Requested-With': 'XMLHttpRequest', 'Accept': 'application/json' }
+                        });
+                        if (!response.ok) throw new Error('Gagal memuat data nota.');
+
+                        const payload = await response.json();
+                        const record = (Array.isArray(payload.data) ? payload.data : [])
+                            .find(item => String(item.fsono || '').trim().toUpperCase() === refNo.toUpperCase());
+
+                        if (!record) {
+                            this.clearNotaRow(row);
+                            if (!silent) this.showValidationError(`No. nota ${refNo} tidak ditemukan.`);
+                            return;
+                        }
+
+                        if (!this.isNotaCustomerValid(record)) {
+                            this.clearNotaRow(row);
+                            if (!silent) this.showValidationError('Nota harus sesuai customer yang dipilih.');
+                            return;
+                        }
+
+                        this.applyNotaToRow(row, record);
+                    } catch (error) {
+                        this.clearNotaRow(row);
+                        if (!silent) this.showValidationError(error?.message || 'Gagal memuat data nota.');
+                    }
+                },
+
+                applyNotaToRow(targetRow, record) {
+                    const remain = this.toNumber(record.famountremain);
+                    const trCode = String(record.ftrcode || 'INV').trim().toUpperCase() || 'INV';
+                    let amount = this.toNumber(record.famountso ?? record.famount);
+
+                    targetRow.frefno = String(record.fsono || '').trim();
+                    targetRow.fdatetime = record.fsodate || '';
+                    targetRow.fcustno = String(record.fcustno || '').trim();
+                    targetRow.fcustomername = String(record.fcustomername || '').trim();
+                    targetRow.ftempo = Number(record.ftempo || 0);
+                    if (!String(this.customerCode || '').trim() && targetRow.fcustno) {
+                        this.syncCustomerFromNota(record);
+                    }
+                    targetRow.ftrcode = trCode;
+                    targetRow.fdiscpersen = 0;
+                    targetRow.fdiscount = 0;
+
+                    if (trCode === 'REJ') {
+                        amount = amount * -1;
+                        targetRow.fsisa_piutang = 0;
+                        targetRow.originalSisa = Math.abs(remain);
+                        targetRow.fkasdtvalue = -Math.abs(remain);
+                    } else {
+                        targetRow.fsisa_piutang = remain;
+                        targetRow.originalSisa = remain;
+                        targetRow.fkasdtvalue = remain;
+                    }
+
+                    targetRow.fnilai_nota = Math.abs(amount);
+                    if (trCode !== 'REJ') {
+                        targetRow.fsisa_piutang = Math.max(targetRow.originalSisa - targetRow.fkasdtvalue - (targetRow.fdiscount || 0), 0);
+                    }
+
+                    this.recalcTotals();
+                    this.ensureTrailingRow();
                 },
 
                 makeUid() {
@@ -1055,11 +1192,12 @@
                         if (!option) {
                             option = new Option(label, code, true, true);
                             select.add(option);
-                        } else {
-                            option.text = label;
-                            option.selected = true;
+                            } else {
+                                option.text = label;
+                                option.selected = true;
+                            }
+                            select.value = code;
                         }
-                    }
                 },
 
                 toggleNotaSelection(record) {

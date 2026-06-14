@@ -346,6 +346,8 @@ class PelunasanCustomerController extends Controller
             ->where('faccount', $validated['faccountheader'])
             ->firstOrFail(['faccid', 'faccount', 'faccname', 'finitjurnal']);
         $detailRows = $this->normalizeDetails($validated['details']);
+        $this->validateUniqueReferenceRows($detailRows);
+        $this->validateReferencesNotAlreadyUsed($detailRows);
         $this->validateReferenceCustomers($detailRows, $customer->fcustomercode);
         $this->validateRemainingReceivableDoesNotExceedInvoiceValue($detailRows);
         $this->validatePaymentDoesNotExceedRemainingReceivable($detailRows);
@@ -539,6 +541,8 @@ class PelunasanCustomerController extends Controller
             ->where('faccount', $validated['faccountheader'])
             ->firstOrFail(['faccid', 'faccount', 'faccname', 'finitjurnal']);
         $detailRows = $this->normalizeDetails($validated['details']);
+        $this->validateUniqueReferenceRows($detailRows);
+        $this->validateReferencesNotAlreadyUsed($detailRows, $header);
         $this->validateReferenceCustomers($detailRows, $customer->fcustomercode);
         $this->validateRemainingReceivableDoesNotExceedInvoiceValue($detailRows);
         $this->validatePaymentDoesNotExceedRemainingReceivable($detailRows, $header);
@@ -806,6 +810,65 @@ class PelunasanCustomerController extends Controller
             if ($payment > $allowed) {
                 throw ValidationException::withMessages([
                     "details.{$index}.fkasdtvalue" => 'Total bayar tidak boleh melebihi sisa piutang.',
+                ]);
+            }
+        }
+    }
+
+    private function validateUniqueReferenceRows(Collection $detailRows): void
+    {
+        $seen = [];
+
+        foreach ($detailRows as $index => $row) {
+            $refNo = trim((string) ($row['frefno'] ?? ''));
+
+            if ($refNo === '') {
+                continue;
+            }
+
+            $key = strtoupper($refNo);
+            if (isset($seen[$key])) {
+                throw ValidationException::withMessages([
+                    "details.{$index}.frefno" => "No. nota {$refNo} tidak boleh sama.",
+                ]);
+            }
+
+            $seen[$key] = true;
+        }
+    }
+
+    private function validateReferencesNotAlreadyUsed(Collection $detailRows, ?Trkasmt $exceptHeader = null): void
+    {
+        $refNos = $detailRows
+            ->pluck('frefno')
+            ->map(fn($value) => trim((string) $value))
+            ->filter()
+            ->unique()
+            ->values();
+
+        if ($refNos->isEmpty()) {
+            return;
+        }
+
+        $usedRefs = Trkasdt::query()
+            ->where('ftrancode', self::TRAN_CODE)
+            ->whereIn('frefno', $refNos)
+            ->whereRaw("TRIM(COALESCE(freftype, '')) != 'ADM'")
+            ->when($exceptHeader, fn($query) => $query->where('fkasmtid', '!=', $exceptHeader->fkasmtid))
+            ->pluck('frefno')
+            ->map(fn($value) => strtoupper(trim((string) $value)))
+            ->flip();
+
+        if ($usedRefs->isEmpty()) {
+            return;
+        }
+
+        foreach ($detailRows as $index => $row) {
+            $refNo = trim((string) ($row['frefno'] ?? ''));
+
+            if ($refNo !== '' && $usedRefs->has(strtoupper($refNo))) {
+                throw ValidationException::withMessages([
+                    "details.{$index}.frefno" => "No. nota {$refNo} sudah pernah dibuat Pelunasan Customer.",
                 ]);
             }
         }
