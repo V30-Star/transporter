@@ -129,6 +129,7 @@ class BayarSupplierController extends Controller
 
         $baseQuery = DB::table('trstockmt as mt')
             ->leftJoin('mssupplier as s', 's.fsuppliercode', '=', 'mt.fsupplier')
+            ->leftJoin('mscustomer as c', 'c.fcustomercode', '=', 'mt.fsupplier')
             ->whereIn('mt.fstockmtcode', ['BUY', 'REB'])
             ->whereRaw('COALESCE(mt.famountremain, 0) > 0')
             ->when($supplierCode !== '', function ($query) use ($supplierCode) {
@@ -144,8 +145,8 @@ class BayarSupplierController extends Controller
             'mt.famountmt',
             'mt.famountremain',
             'mt.ftgljatuhtempo',
-            's.fsuppliername',
-            's.ftempo',
+            DB::raw('COALESCE(s.fsuppliername, c.fcustomername) as fsuppliername'),
+            DB::raw('COALESCE(s.ftempo, c.ftempo) as ftempo'),
         ]);
 
         $recordsTotal = (clone $baseQuery)->count('mt.fstockmtid');
@@ -286,6 +287,20 @@ class BayarSupplierController extends Controller
 
             $fdkHeader = $totalKasKeluar < 0 ? 'D' : 'K';
 
+            $customerId = null;
+            foreach ($detailRows as $row) {
+                $refNo = trim((string) ($row['frefno'] ?? ''));
+                $reference = $references[$refNo] ?? null;
+                $refSupplierCode = $reference ? trim((string) $reference->fsupplier) : '';
+                if ($refSupplierCode !== '' && str_starts_with(strtoupper($refSupplierCode), 'CU')) {
+                    $customer = DB::table('mscustomer')->where('fcustomercode', $refSupplierCode)->first();
+                    if ($customer) {
+                        $customerId = $customer->fcustomerid;
+                        break;
+                    }
+                }
+            }
+
             Trkasmt::create([
                 'fkasmtid' => $headerId,
                 'fkasmtno' => $voucherNo,
@@ -297,6 +312,7 @@ class BayarSupplierController extends Controller
                 'faccountheaderid' => $headerAccount->faccid,
                 'fdkheader' => $fdkHeader,
                 'fsupplier' => $supplier->fsupplierid,
+                'fcustomer' => $customerId,
                 'fket' => $validated['fket'] ?? null,
                 'famountpay' => $totalKasKeluar,
                 'famountpay_rp' => $totalKasKeluar,
@@ -319,10 +335,19 @@ class BayarSupplierController extends Controller
                 $refNo = trim((string) ($row['frefno'] ?? ''));
                 $reference = $references[$refNo] ?? null;
                 $refCode = $reference ? trim((string) $reference->fstockmtcode) : '';
+                $refSupplierCode = $reference ? trim((string) $reference->fsupplier) : '';
 
                 $isReb = ($refCode === 'REB' || str_starts_with(strtoupper($refNo), 'REB'));
                 $fdkDetail = $isReb ? 'K' : 'D';
                 $freftypeDetail = $isReb ? 'REB' : 'PBL';
+
+                $subAccount = $supplier->fsuppliercode;
+                if ($refSupplierCode !== '' && str_starts_with(strtoupper($refSupplierCode), 'CU')) {
+                    $customer = DB::table('mscustomer')->where('fcustomercode', $refSupplierCode)->first();
+                    if ($customer) {
+                        $subAccount = $customer->fcustomerid;
+                    }
+                }
 
                 Trkasdt::create([
                     'fkasdtid' => $nextDetailId + $index,
@@ -334,7 +359,7 @@ class BayarSupplierController extends Controller
                     'fdk' => $fdkDetail,
                     'frefno' => $row['frefno'],
                     'fnote' => $supplier->fsuppliername,
-                    'fsubaccount' => $supplier->fsuppliercode,
+                    'fsubaccount' => $subAccount,
                     'fdiscpersen' => $row['fdiscpersen'],
                     'fdiscount' => $discountAmount,
                     'fdiscountrp' => $discountAmount,
@@ -471,6 +496,20 @@ class BayarSupplierController extends Controller
         DB::transaction(function () use ($validated, $supplier, $headerAccount, $detailRows, $payableAccount, $adminAccount, $bankAdminFee, $voucherNo, $totalKasKeluar, $now, $header, $references) {
             $fdkHeader = $totalKasKeluar < 0 ? 'D' : 'K';
 
+            $customerId = null;
+            foreach ($detailRows as $row) {
+                $refNo = trim((string) ($row['frefno'] ?? ''));
+                $reference = $references[$refNo] ?? null;
+                $refSupplierCode = $reference ? trim((string) $reference->fsupplier) : '';
+                if ($refSupplierCode !== '' && str_starts_with(strtoupper($refSupplierCode), 'CU')) {
+                    $customer = DB::table('mscustomer')->where('fcustomercode', $refSupplierCode)->first();
+                    if ($customer) {
+                        $customerId = $customer->fcustomerid;
+                        break;
+                    }
+                }
+            }
+
             $header->update([
                 'fkasmtno' => $voucherNo,
                 'fkasmtdate' => $validated['fkasmtdate'],
@@ -479,6 +518,7 @@ class BayarSupplierController extends Controller
                 'faccountheaderid' => $headerAccount->faccid,
                 'fdkheader' => $fdkHeader,
                 'fsupplier' => $supplier->fsupplierid,
+                'fcustomer' => $customerId,
                 'fket' => $validated['fket'] ?? null,
                 'famountpay' => $totalKasKeluar,
                 'famountpay_rp' => $totalKasKeluar,
@@ -503,10 +543,19 @@ class BayarSupplierController extends Controller
                 $refNo = trim((string) ($row['frefno'] ?? ''));
                 $reference = $references[$refNo] ?? null;
                 $refCode = $reference ? trim((string) $reference->fstockmtcode) : '';
+                $refSupplierCode = $reference ? trim((string) $reference->fsupplier) : '';
 
                 $isReb = ($refCode === 'REB' || str_starts_with(strtoupper($refNo), 'REB'));
                 $fdkDetail = $isReb ? 'K' : 'D';
                 $freftypeDetail = $isReb ? 'REB' : 'PBL';
+
+                $subAccount = $supplier->fsuppliercode;
+                if ($refSupplierCode !== '' && str_starts_with(strtoupper($refSupplierCode), 'CU')) {
+                    $customer = DB::table('mscustomer')->where('fcustomercode', $refSupplierCode)->first();
+                    if ($customer) {
+                        $subAccount = $customer->fcustomerid;
+                    }
+                }
 
                 Trkasdt::create([
                     'fkasdtid' => $nextDetailId + $index,
@@ -518,7 +567,7 @@ class BayarSupplierController extends Controller
                     'fdk' => $fdkDetail,
                     'frefno' => $row['frefno'],
                     'fnote' => $supplier->fsuppliername,
-                    'fsubaccount' => $supplier->fsuppliercode,
+                    'fsubaccount' => $subAccount,
                     'fdiscpersen' => $row['fdiscpersen'],
                     'fdiscount' => $discountAmount,
                     'fdiscountrp' => $discountAmount,
@@ -842,7 +891,7 @@ class BayarSupplierController extends Controller
         $references = DB::table('trstockmt')
             ->whereIn('fstockmtno', $refNos)
             ->whereIn('fstockmtcode', ['BUY', 'REB'])
-            ->get(['fstockmtno', 'fstockmtdate', 'fstockmtcode'])
+            ->get(['fstockmtno', 'fstockmtdate', 'fstockmtcode', 'fsupplier'])
             ->keyBy(fn($row) => trim((string) $row->fstockmtno));
 
         foreach ($detailRows as $index => $row) {
@@ -965,14 +1014,15 @@ class BayarSupplierController extends Controller
                     ->whereIn('fstockmtno', $refNos)
                     ->whereIn('trstockmt.fstockmtcode', ['BUY', 'REB'])
                     ->leftJoin('mssupplier as s', 's.fsuppliercode', '=', 'trstockmt.fsupplier')
+                    ->leftJoin('mscustomer as c', 'c.fcustomercode', '=', 'trstockmt.fsupplier')
                     ->select([
                         'trstockmt.fstockmtno',
                         'trstockmt.fstockmtcode',
                         'trstockmt.famountmt',
                         'trstockmt.famountremain',
                         'trstockmt.fsupplier',
-                        's.fsuppliername',
-                        's.ftempo',
+                        DB::raw('COALESCE(s.fsuppliername, c.fcustomername) as fsuppliername'),
+                        DB::raw('COALESCE(s.ftempo, c.ftempo) as ftempo'),
                     ])
                     ->get()
                     ->keyBy(fn($row) => trim((string) ($row->fstockmtno ?? '')));
