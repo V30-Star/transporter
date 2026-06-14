@@ -196,7 +196,9 @@ class AssemblingController extends Controller
                         trim((string) ($row->fcabangname ?? '')),
                     ]))) ?: trim((string) ($row->fbranchcode ?? $row->fcabangname ?? '')),
                     'fstockmtno' => $row->fstockmtno,
-                    'fstockmtdate' => Carbon::parse($row->fstockmtdate)->format('d/m/Y'),
+                    'fstockmtdate' => $row->fstockmtdate
+                        ? ($row->fstockmtdate instanceof \Carbon\Carbon ? $row->fstockmtdate : \Carbon\Carbon::parse($row->fstockmtdate))->format('d-m-Y')
+                        : '',
                     'fgudang' => trim((string) ($row->fwhname ?? '')),
                     'fket' => trim((string) ($row->fket ?? '')),
                     'actions' => $actions,

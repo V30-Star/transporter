@@ -200,7 +200,9 @@ class JurnalTransaksiController extends Controller
 
                 return [
                     'fjurnalno' => $row->fjurnalno,
-                    'fjurnaldate' => Carbon::parse($row->fjurnaldate)->format('d/m/Y'),
+                    'fjurnaldate' => $row->fjurnaldate
+                        ? ($row->fjurnaldate instanceof \Carbon\Carbon ? $row->fjurnaldate : \Carbon\Carbon::parse($row->fjurnaldate))->format('d-m-Y')
+                        : '',
                     'fbranchcode' => (string) ($row->fbranchcode ?? ''),
                     'fbalance_rp' => number_format((float) ($row->fbalance_rp ?? $row->fbalance ?? 0), 2, ',', '.'),
                     'fjurnalnote' => $row->fjurnalnote,

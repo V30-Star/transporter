@@ -331,7 +331,19 @@
                 },
                 {
                     data: 'fstockmtdate',
-                    name: 'fstockmtdate'
+                    name: 'fstockmtdate',
+                    render: function(data) {
+                        if (!data) return '';
+                        const clean = data.split(' ')[0].replace(/\//g, '-');
+                        if (clean.includes('-')) {
+                            const parts = clean.split('-');
+                            if (parts.length === 3 && parts[0].length === 4) {
+                                return `${parts[2]}-${parts[1]}-${parts[0]}`;
+                            }
+                            return clean;
+                        }
+                        return data;
+                    }
                 },
                 {
                     data: 'fsuppliername',

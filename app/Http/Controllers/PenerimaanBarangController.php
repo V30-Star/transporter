@@ -136,7 +136,9 @@ class PenerimaanBarangController extends Controller
                 'fbranchcode' => $row->fbranchcode,
                 'fstockmtno' => $row->fstockmtno,
                 'fstockmtno_display' => $this->formatDisplayTransactionNumber($row->fstockmtno, false),
-                'fstockmtdate' => Carbon::parse($row->fstockmtdate)->format('d/m/Y'),
+                'fstockmtdate' => $row->fstockmtdate
+                    ? ($row->fstockmtdate instanceof \Carbon\Carbon ? $row->fstockmtdate : \Carbon\Carbon::parse($row->fstockmtdate))->format('d-m-Y')
+                    : '',
                 'fwhcode' => $row->ffrom ?? '-',
                 'fsuppliername' => $suppliers[$row->fsupplier] ?? '-',
                 'frefpo' => $trstockdts[$row->fstockmtno] ?? '-',

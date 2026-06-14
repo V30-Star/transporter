@@ -197,7 +197,9 @@ class Tr_prhController extends Controller
                 return [
                     'fprno' => $record->fprno,
                     'fbranchcode' => $record->fbranchcode,
-                    'fprdate' => $record->fprdate ? Carbon::parse($record->fprdate)->format('Y-m-d') : null,
+                    'fprdate' => $record->fprdate
+                        ? ($record->fprdate instanceof \Carbon\Carbon ? $record->fprdate : \Carbon\Carbon::parse($record->fprdate))->format('d-m-Y')
+                        : '',
                     'fsuppliername' => $record->fsuppliername,
                     'display_user' => $record->fuserupdate ?: $record->fusercreate,
                     'fuserupdate' => $record->fuserupdate,

@@ -192,7 +192,9 @@ class Tr_pohController extends Controller
                     'fpono_display' => $this->formatDisplayTransactionNumber($row->fpono, (int) ($row->fapplyppn ?? 0) === 1),
                     'fpohid' => $row->fpohid,
                     'fsupplier' => $row->fsupplier,
-                    'fpodate' => $row->fpodate,
+                    'fpodate' => $row->fpodate
+                        ? ($row->fpodate instanceof \Carbon\Carbon ? $row->fpodate : \Carbon\Carbon::parse($row->fpodate))->format('d-m-Y')
+                        : '',
                     'fprdin' => (string) ($row->fprdin ?? '0'),
                     'fclose' => (string) ($row->fclose ?? '0'),
                     'fusercreate' => $row->fusercreate,

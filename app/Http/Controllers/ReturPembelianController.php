@@ -197,7 +197,9 @@ class ReturPembelianController extends Controller
                     'fstockmtid' => $row->fstockmtid,
                     'fstockmtno' => $row->fstockmtno,
                     'fstockmtno_display' => $this->formatDisplayTransactionNumber($row->fstockmtno ?? null, (string) ($row->fincludeppn ?? '0') === '1'),
-                    'fstockmtdate' => Carbon::parse($row->fstockmtdate)->format('d/m/Y'),
+                    'fstockmtdate' => $row->fstockmtdate
+                        ? ($row->fstockmtdate instanceof \Carbon\Carbon ? $row->fstockmtdate : \Carbon\Carbon::parse($row->fstockmtdate))->format('d-m-Y')
+                        : '',
                     'fwhname' => (string) ($row->warehouse_name ?? ''),
                     'ffrom' => $row->ffrom,
                     'fbranchcode' => $row->fbranchcode,

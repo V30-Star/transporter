@@ -207,7 +207,9 @@ class MutasiController extends Controller
                 return [
                     'fbranchcode' =>$row->fbranchcode,
                     'fstockmtno' => $row->fstockmtno,
-                    'fstockmtdate' => Carbon::parse($row->fstockmtdate)->format('d/m/Y'),
+                    'fstockmtdate' => $row->fstockmtdate
+                        ? ($row->fstockmtdate instanceof \Carbon\Carbon ? $row->fstockmtdate : \Carbon\Carbon::parse($row->fstockmtdate))->format('d-m-Y')
+                        : '',
                     'fgudang_dari' => $this->formatWarehouseLabel($row->ffrom ?? '', $row->from_warehouse_name ?? ''),
                     'fgudang_ke' => $this->formatWarehouseLabel($row->fto ?? '', $row->to_warehouse_name ?? ''),
                     'fket' => trim((string) ($row->fket ?? '')),

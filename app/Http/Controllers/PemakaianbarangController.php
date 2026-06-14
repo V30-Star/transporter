@@ -138,7 +138,9 @@ class PemakaianbarangController extends Controller
 
                 return [
                     'fstockmtno' => $row->fstockmtno,
-                    'fstockmtdate' => Carbon::parse($row->fstockmtdate)->format('d/m/Y'),
+                    'fstockmtdate' => $row->fstockmtdate
+                        ? ($row->fstockmtdate instanceof \Carbon\Carbon ? $row->fstockmtdate : \Carbon\Carbon::parse($row->fstockmtdate))->format('d-m-Y')
+                        : '',
                     'fbranchcode' => $row->fbranchcode,
                     'ffrom' => $row->ffrom,
                     'fket' => $row->fket,

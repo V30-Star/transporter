@@ -229,7 +229,9 @@ class FakturpembelianController extends Controller
                     'fstockmtid' => $row->fstockmtid,
                     'fstockmtno' => $row->fstockmtno,
                     'fstockmtno_display' => $this->formatDisplayTransactionNumber($row->fstockmtno, (int) ($row->fapplyppn ?? 0) === 1),
-                    'fstockmtdate' => Carbon::parse($row->fstockmtdate)->format('d/m/Y'),
+                    'fstockmtdate' => $row->fstockmtdate
+                        ? ($row->fstockmtdate instanceof \Carbon\Carbon ? $row->fstockmtdate : \Carbon\Carbon::parse($row->fstockmtdate))->format('d-m-Y')
+                        : '',
                     'ftypebuy' => $row->ftypebuy,
                     'ffakturno' => trim((string) ($row->frefno ?? '')),
                     'fgudang' => $warehouseCode,
