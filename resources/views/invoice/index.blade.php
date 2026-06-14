@@ -395,7 +395,17 @@
                 },
                 {
                     data: 'fsodate',
-                    name: 'fsodate'
+                    name: 'fsodate',
+                    render: function(data) {
+                        if (!data) return '';
+                        if (data.includes('-')) {
+                            const parts = data.split(' ')[0].split('-');
+                            if (parts.length === 3 && parts[0].length === 4) {
+                                return `${parts[2]}-${parts[1]}-${parts[0]}`;
+                            }
+                        }
+                        return data;
+                    }
                 },
                 {
                     data: 'fcustomername',

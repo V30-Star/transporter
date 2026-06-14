@@ -250,9 +250,9 @@ class ReturPenjualanController extends Controller
                     'fbranchcode' => $row->fbranchcode,
                     'fsono' => $row->fsono,
                     'fsono_display' => $this->formatDisplayTransactionNumber($row->fsono ?? null, (string) ($row->fincludeppn ?? '0') === '1'),
-                    'fsodate' => $row->fsodate instanceof \Carbon\Carbon
-                        ? $row->fsodate->format('Y-m-d')
-                        : $row->fsodate,
+                    'fsodate' => $row->fsodate
+                        ? ($row->fsodate instanceof \Carbon\Carbon ? $row->fsodate : \Carbon\Carbon::parse($row->fsodate))->format('d-m-Y')
+                        : '',
                     'frefno' => $row->frefno ?? '',
                     'ffrom' => $row->ffrom ?? '',
                     'fcustomername' => $row->fcustomername ?? '',

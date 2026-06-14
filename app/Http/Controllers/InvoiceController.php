@@ -754,9 +754,9 @@ class InvoiceController extends Controller
                     'fsono' => trim((string) ($row->fsono ?? '')),
                     'fsono_display' => $this->formatDisplayTransactionNumber($row->fsono ?? null, (string) ($row->fincludeppn ?? '0') === '1'),
                     'ftaxno' => trim((string) ($row->ftaxno ?? '')),
-                    'fsodate' => $row->fsodate instanceof \Carbon\Carbon
-                        ? $row->fsodate->format('Y-m-d')
-                        : $row->fsodate,
+                    'fsodate' => $row->fsodate
+                        ? ($row->fsodate instanceof \Carbon\Carbon ? $row->fsodate : \Carbon\Carbon::parse($row->fsodate))->format('d-m-Y')
+                        : '',
                     'frefno' => $srjRefs !== '' ? $srjRefs : $soRefs,
                     'fso_refs' => $soRefs,
                     'fcustomername' => trim((string) ($row->fcustomername ?? '')),

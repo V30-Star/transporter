@@ -509,9 +509,9 @@ class SalesOrderController extends Controller
                     'fbranchcode' => $row->fbranchcode,
                     'fsono' => $row->fsono,
                     'fsono_display' => $this->formatDisplayTransactionNumber($row->fsono, (int) ($row->fapplyppn ?? 0) === 1),
-                    'fsodate' => $row->fsodate instanceof \Carbon\Carbon
-                        ? $row->fsodate->format('Y-m-d')
-                        : $row->fsodate,
+                    'fsodate' => $row->fsodate
+                        ? ($row->fsodate instanceof \Carbon\Carbon ? $row->fsodate : \Carbon\Carbon::parse($row->fsodate))->format('d-m-Y')
+                        : '',
                     'frefpo' => $row->frefpo ?? '',
                     'frefno_confirm' => $row->frefno_confirm ?? 'No',
                     'fcustno' => $row->fcustno ?? '',
