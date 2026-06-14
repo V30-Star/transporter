@@ -64,7 +64,6 @@
                         <th class="border px-2 py-1 text-left">Account Name</th>
                         <th class="border px-2 py-1 text-left">Ref No</th>
                         <th class="border px-2 py-1 text-left">Sub Account</th>
-                        <th class="border px-2 py-1 text-left">Project</th>
                         <th class="border px-2 py-1 text-center">D/K</th>
                         <th class="border px-2 py-1 text-right">Rate</th>
                         <th class="border px-2 py-1 text-right">Amount</th>
@@ -89,7 +88,6 @@
                             <td class="border px-2 py-1 min-w-40">{{ $row->faccname }}</td>
                             <td class="border px-2 py-1 whitespace-nowrap">{{ $row->frefno }}</td>
                             <td class="border px-2 py-1 whitespace-nowrap">{{ $row->fsubaccount }}</td>
-                            <td class="border px-2 py-1 whitespace-nowrap">{{ $row->fproject }}</td>
                             <td class="border px-2 py-1 text-center">{{ $row->fdk }}</td>
                             <td class="border px-2 py-1 text-right">{{ number_format((float) $row->frate, 2) }}</td>
                             <td class="border px-2 py-1 text-right">{{ number_format((float) $row->famount, 2) }}</td>

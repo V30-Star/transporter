@@ -316,6 +316,7 @@ class BayarSupplierController extends Controller
                 Trkasdt::create([
                     'fkasdtid' => $nextDetailId + $index,
                     'fkasmtid' => $headerId,
+                    'fkasmtno' => $voucherNo,
                     'ftrancode' => self::TRAN_CODE,
                     'faccount' => $payableAccount?->faccount,
                     'faccountid' => $payableAccount?->faccid,
@@ -341,6 +342,7 @@ class BayarSupplierController extends Controller
                 Trkasdt::create([
                     'fkasdtid' => $nextDetailId + $detailRows->count(),
                     'fkasmtid' => $headerId,
+                    'fkasmtno' => $voucherNo,
                     'ftrancode' => self::TRAN_CODE,
                     'faccount' => $adminAccount->faccount,
                     'faccountid' => $adminAccount->faccid,
@@ -486,6 +488,7 @@ class BayarSupplierController extends Controller
                 Trkasdt::create([
                     'fkasdtid' => $nextDetailId + $index,
                     'fkasmtid' => $header->fkasmtid,
+                    'fkasmtno' => $voucherNo,
                     'ftrancode' => self::TRAN_CODE,
                     'faccount' => $payableAccount?->faccount,
                     'faccountid' => $payableAccount?->faccid,
@@ -511,6 +514,7 @@ class BayarSupplierController extends Controller
                 Trkasdt::create([
                     'fkasdtid' => $nextDetailId + $detailRows->count(),
                     'fkasmtid' => $header->fkasmtid,
+                    'fkasmtno' => $voucherNo,
                     'ftrancode' => self::TRAN_CODE,
                     'faccount' => $adminAccount->faccount,
                     'faccountid' => $adminAccount->faccid,

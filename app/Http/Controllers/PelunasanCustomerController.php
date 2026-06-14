@@ -421,6 +421,7 @@ class PelunasanCustomerController extends Controller
                 Trkasdt::create([
                     'fkasdtid' => $nextDetailId + $index,
                     'fkasmtid' => $headerId,
+                    'fkasmtno' => $voucherNo,
                     'ftrancode' => self::TRAN_CODE,
                     'faccount' => $entry['faccount'] ?? $entry['account']->faccount,
                     'faccountid' => $entry['faccountid'] ?? $entry['account']->faccid,
@@ -612,6 +613,7 @@ class PelunasanCustomerController extends Controller
                 Trkasdt::create([
                     'fkasdtid' => $nextDetailId + $index,
                     'fkasmtid' => $header->fkasmtid,
+                    'fkasmtno' => $voucherNo,
                     'ftrancode' => self::TRAN_CODE,
                     'faccount' => $entry['faccount'] ?? $entry['account']->faccount,
                     'faccountid' => $entry['faccountid'] ?? $entry['account']->faccid,
