@@ -566,7 +566,7 @@
                         .map((row, index) => {
                             const normalized = this.normalizeRow(row, index);
                             if (isEdit) {
-                                normalized.originalSisa = normalized.fsisa_hutang + normalized.fkasdtvalue + normalized.fdiscount;
+                                normalized.originalSisa = Math.abs(normalized.fsisa_hutang) + Math.abs(normalized.fkasdtvalue) + Math.abs(normalized.fdiscount);
                             } else {
                                 normalized.originalSisa = normalized.fsisa_hutang;
                             }
@@ -638,6 +638,7 @@
 
                 normalizeRow(row = {}, index = 0) {
                     const sisa = this.toNumber(row.fsisa_hutang);
+                    const absSisa = Math.abs(sisa);
                     return {
                         uid: row.uid || `bs-row-${index}-${this.makeUid()}`,
                         frefno: String(row.frefno || '').trim(),
@@ -647,7 +648,7 @@
                         ftempo: Number(row.ftempo || 0),
                         fnilai_order: this.toNumber(row.fnilai_order),
                         fsisa_hutang: sisa,
-                        originalSisa: row.originalSisa !== undefined ? this.toNumber(row.originalSisa) : sisa,
+                        originalSisa: row.originalSisa !== undefined ? Math.abs(this.toNumber(row.originalSisa)) : absSisa,
                         fdiscpersen: this.toNumber(row.fdiscpersen),
                         fdiscount: this.toNumber(row.fdiscount),
                         fkasdtvalue: this.toNumber(row.fkasdtvalue),
@@ -677,18 +678,27 @@
                     return `${String(date.getDate()).padStart(2, '0')}/${String(date.getMonth() + 1).padStart(2, '0')}/${date.getFullYear()}`;
                 },
 
+                isRebRow(row) {
+                    const code = String(row?.ftrcode || '').trim().toUpperCase();
+                    const refNo = String(row?.frefno || '').trim().toUpperCase();
+                    return code === 'REB' || refNo.startsWith('REB.');
+                },
+
                 isDiscPercentDisabled(row) {
+                    if (this.isRebRow(row)) return true;
                     // Disc% disabled when Discount (Rp) has been manually filled
                     return this.toNumber(row?.fdiscount) > 0;
                 },
+
                 isDiscountDisabled(row) {
+                    if (this.isRebRow(row)) return true;
                     // Discount (Rp) disabled when Disc% has been manually filled
                     return this.toNumber(row?.fdiscpersen) > 0;
                 },
 
                 referenceTextClass(row) {
                     const code = String(row?.ftrcode || '').trim().toUpperCase();
-                    return ['REJ'].includes(code) ? 'text-red-600 transaction-code-red' : 'text-black';
+                    return ['REJ', 'REB'].includes(code) ? 'text-red-600 transaction-code-red' : 'text-black';
                 },
 
                 handleManualPblInput(row) {
@@ -780,11 +790,14 @@
                         this.syncSupplierFromPbl(record);
                     }
                     targetRow.fnilai_order = this.toNumber(record.famountmt);
-                    targetRow.fsisa_hutang = remain;
+                    
+                    const isReb = this.isRebRow(targetRow);
+                    targetRow.fsisa_hutang = isReb ? 0 : remain;
                     targetRow.originalSisa = remain;
                     targetRow.fdiscpersen = 0;
                     targetRow.fdiscount = 0;
-                    targetRow.fkasdtvalue = remain;
+                    targetRow.fkasdtvalue = isReb ? -remain : remain;
+                    
                     this.recalcTotals();
                     this.ensureTrailingRow();
                 },
@@ -1052,9 +1065,24 @@
                  * effectiveDiscount = (Disc% > 0) ? originalSisa × Disc%/100 : Discount(Rp)
                  */
                 syncTotalBayarInput(row, inputValue) {
-                    const pay = this.toNumber(inputValue);
                     const original = this.toNumber(row.originalSisa);
 
+                    if (this.isRebRow(row)) {
+                        const pay = Math.abs(this.toNumber(inputValue));
+                        if (pay > original) {
+                            this.showValidationError('Total Bayar tidak boleh melebihi sisa retur');
+                            row.fkasdtvalue = -original;
+                            row.fsisa_hutang = 0;
+                            this.recalcTotals();
+                            return;
+                        }
+                        row.fkasdtvalue = -pay;
+                        row.fsisa_hutang = parseFloat(Math.max(original - pay, 0).toFixed(2));
+                        this.recalcTotals();
+                        return;
+                    }
+
+                    const pay = this.toNumber(inputValue);
                     const effectiveDiscount = row.fdiscpersen > 0
                         ? parseFloat((original * row.fdiscpersen / 100).toFixed(2))
                         : parseFloat(Math.max(this.toNumber(row.fdiscount), 0).toFixed(2));

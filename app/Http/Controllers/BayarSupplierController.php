@@ -129,7 +129,7 @@ class BayarSupplierController extends Controller
 
         $baseQuery = DB::table('trstockmt as mt')
             ->leftJoin('mssupplier as s', 's.fsuppliercode', '=', 'mt.fsupplier')
-            ->where('mt.fstockmtcode', 'BUY')
+            ->whereIn('mt.fstockmtcode', ['BUY', 'REB'])
             ->whereRaw('COALESCE(mt.famountremain, 0) > 0')
             ->when($supplierCode !== '', function ($query) use ($supplierCode) {
                 $query->whereRaw('TRIM(COALESCE(mt.fsupplier, \'\')) = ?', [$supplierCode]);
@@ -228,7 +228,7 @@ class BayarSupplierController extends Controller
             'details.*.fsisa_hutang' => ['nullable', 'numeric'],
             'details.*.fdiscpersen' => ['nullable', 'numeric', 'min:0', 'max:100'],
             'details.*.fdiscount' => ['nullable', 'numeric', 'min:0'],
-            'details.*.fkasdtvalue' => ['required', 'numeric', 'min:0.01'],
+            'details.*.fkasdtvalue' => ['required', 'numeric', 'not_in:0'],
         ], [
             'fsupplier.required' => 'Supplier wajib dipilih.',
             'faccountheader.required' => 'Account wajib dipilih.',
@@ -238,6 +238,7 @@ class BayarSupplierController extends Controller
             'details.required' => 'Minimal 1 faktur wajib diisi.',
             'details.*.frefno.required' => 'No. penerimaan wajib diisi.',
             'details.*.fkasdtvalue.required' => 'Total bayar wajib diisi.',
+            'details.*.fkasdtvalue.not_in' => 'Total bayar tidak boleh 0.',
             'fnogiro.unique' => 'No. giro / cek sudah dipakai.',
         ]);
 
@@ -258,7 +259,7 @@ class BayarSupplierController extends Controller
         $this->validateReferencesNotAlreadyUsed($detailRows);
 
         $this->validateReferenceSuppliers($detailRows, $supplier->fsuppliercode);
-        $this->resolveReferenceTransactions($detailRows, Carbon::parse($validated['fkasmtdate']));
+        $references = $this->resolveReferenceTransactions($detailRows, Carbon::parse($validated['fkasmtdate']));
         $this->validatePaymentDoesNotExceedRemainingPayable($detailRows);
 
         $payableCode = trim((string) DB::table('set_account')->where('faccount_name', 'HUTANGDAGANG')->value('faccount'));
@@ -279,9 +280,11 @@ class BayarSupplierController extends Controller
         $totalKasKeluar = round($totalBayar + $bankAdminFee, 2);
         $now = now();
 
-        DB::transaction(function () use ($validated, $supplier, $headerAccount, $detailRows, $payableAccount, $adminAccount, $bankAdminFee, $voucherNo, $totalKasKeluar, $now) {
+        DB::transaction(function () use ($validated, $supplier, $headerAccount, $detailRows, $payableAccount, $adminAccount, $bankAdminFee, $voucherNo, $totalKasKeluar, $now, $references) {
             $headerId = $this->nextIntegerId('trkasmt', 'fkasmtid');
             $nextDetailId = $this->nextIntegerId('trkasdt', 'fkasdtid');
+
+            $fdkHeader = $totalKasKeluar < 0 ? 'D' : 'K';
 
             Trkasmt::create([
                 'fkasmtid' => $headerId,
@@ -292,7 +295,7 @@ class BayarSupplierController extends Controller
                 'fwhom' => $supplier->fsuppliername,
                 'faccountheader' => $headerAccount->faccount,
                 'faccountheaderid' => $headerAccount->faccid,
-                'fdkheader' => 'K',
+                'fdkheader' => $fdkHeader,
                 'fsupplier' => $supplier->fsupplierid,
                 'fket' => $validated['fket'] ?? null,
                 'famountpay' => $totalKasKeluar,
@@ -313,6 +316,14 @@ class BayarSupplierController extends Controller
                 $discountAmount = round((float) $row['fdiscount'], 2);
                 $journalAmount = round($paymentAmount + $discountAmount, 2);
 
+                $refNo = trim((string) ($row['frefno'] ?? ''));
+                $reference = $references[$refNo] ?? null;
+                $refCode = $reference ? trim((string) $reference->fstockmtcode) : '';
+
+                $isReb = ($refCode === 'REB' || str_starts_with(strtoupper($refNo), 'REB'));
+                $fdkDetail = $isReb ? 'K' : 'D';
+                $freftypeDetail = $isReb ? 'REB' : 'PBL';
+
                 Trkasdt::create([
                     'fkasdtid' => $nextDetailId + $index,
                     'fkasmtid' => $headerId,
@@ -320,7 +331,7 @@ class BayarSupplierController extends Controller
                     'ftrancode' => self::TRAN_CODE,
                     'faccount' => $payableAccount?->faccount,
                     'faccountid' => $payableAccount?->faccid,
-                    'fdk' => 'D',
+                    'fdk' => $fdkDetail,
                     'frefno' => $row['frefno'],
                     'fnote' => $supplier->fsuppliername,
                     'fsubaccount' => $supplier->fsuppliercode,
@@ -334,7 +345,7 @@ class BayarSupplierController extends Controller
                     'fuserid' => $this->currentUserId(),
                     'fdatetime' => $now,
                     'fnou' => $index + 1,
-                    'freftype' => 'PBL',
+                    'freftype' => $freftypeDetail,
                 ]);
             }
 
@@ -405,7 +416,7 @@ class BayarSupplierController extends Controller
             'details.*.fsisa_hutang' => ['nullable', 'numeric'],
             'details.*.fdiscpersen' => ['nullable', 'numeric', 'min:0', 'max:100'],
             'details.*.fdiscount' => ['nullable', 'numeric', 'min:0'],
-            'details.*.fkasdtvalue' => ['required', 'numeric', 'min:0.01'],
+            'details.*.fkasdtvalue' => ['required', 'numeric', 'not_in:0'],
         ], [
             'fsupplier.required' => 'Supplier wajib dipilih.',
             'faccountheader.required' => 'Account wajib dipilih.',
@@ -415,6 +426,7 @@ class BayarSupplierController extends Controller
             'details.required' => 'Minimal 1 faktur wajib diisi.',
             'details.*.frefno.required' => 'No. penerimaan wajib diisi.',
             'details.*.fkasdtvalue.required' => 'Total bayar wajib diisi.',
+            'details.*.fkasdtvalue.not_in' => 'Total bayar tidak boleh 0.',
             'fnogiro.unique' => 'No. giro / cek sudah dipakai.',
         ]);
 
@@ -435,7 +447,7 @@ class BayarSupplierController extends Controller
         $this->validateReferencesNotAlreadyUsed($detailRows, $header);
 
         $this->validateReferenceSuppliers($detailRows, $supplier->fsuppliercode);
-        $this->resolveReferenceTransactions($detailRows, Carbon::parse($validated['fkasmtdate']));
+        $references = $this->resolveReferenceTransactions($detailRows, Carbon::parse($validated['fkasmtdate']));
         $this->validatePaymentDoesNotExceedRemainingPayable($detailRows, $header);
 
         $payableCode = trim((string) DB::table('set_account')->where('faccount_name', 'HUTANGDAGANG')->value('faccount'));
@@ -456,13 +468,16 @@ class BayarSupplierController extends Controller
         $totalKasKeluar = round($totalBayar + $bankAdminFee, 2);
         $now = now();
 
-        DB::transaction(function () use ($validated, $supplier, $headerAccount, $detailRows, $payableAccount, $adminAccount, $bankAdminFee, $voucherNo, $totalKasKeluar, $now, $header) {
+        DB::transaction(function () use ($validated, $supplier, $headerAccount, $detailRows, $payableAccount, $adminAccount, $bankAdminFee, $voucherNo, $totalKasKeluar, $now, $header, $references) {
+            $fdkHeader = $totalKasKeluar < 0 ? 'D' : 'K';
+
             $header->update([
                 'fkasmtno' => $voucherNo,
                 'fkasmtdate' => $validated['fkasmtdate'],
                 'fwhom' => $supplier->fsuppliername,
                 'faccountheader' => $headerAccount->faccount,
                 'faccountheaderid' => $headerAccount->faccid,
+                'fdkheader' => $fdkHeader,
                 'fsupplier' => $supplier->fsupplierid,
                 'fket' => $validated['fket'] ?? null,
                 'famountpay' => $totalKasKeluar,
@@ -485,6 +500,14 @@ class BayarSupplierController extends Controller
                 $discountAmount = round((float) $row['fdiscount'], 2);
                 $journalAmount = round($paymentAmount + $discountAmount, 2);
 
+                $refNo = trim((string) ($row['frefno'] ?? ''));
+                $reference = $references[$refNo] ?? null;
+                $refCode = $reference ? trim((string) $reference->fstockmtcode) : '';
+
+                $isReb = ($refCode === 'REB' || str_starts_with(strtoupper($refNo), 'REB'));
+                $fdkDetail = $isReb ? 'K' : 'D';
+                $freftypeDetail = $isReb ? 'REB' : 'PBL';
+
                 Trkasdt::create([
                     'fkasdtid' => $nextDetailId + $index,
                     'fkasmtid' => $header->fkasmtid,
@@ -492,7 +515,7 @@ class BayarSupplierController extends Controller
                     'ftrancode' => self::TRAN_CODE,
                     'faccount' => $payableAccount?->faccount,
                     'faccountid' => $payableAccount?->faccid,
-                    'fdk' => 'D',
+                    'fdk' => $fdkDetail,
                     'frefno' => $row['frefno'],
                     'fnote' => $supplier->fsuppliername,
                     'fsubaccount' => $supplier->fsuppliercode,
@@ -506,7 +529,7 @@ class BayarSupplierController extends Controller
                     'fuserid' => $this->currentUserId(),
                     'fdatetime' => $now,
                     'fnou' => $index + 1,
-                    'freftype' => 'PBL',
+                    'freftype' => $freftypeDetail,
                 ]);
             }
 
@@ -567,18 +590,35 @@ class BayarSupplierController extends Controller
     private function normalizeDetails(array $details): Collection
     {
         return collect($details)
-            ->map(fn(array $detail) => [
-                'frefno' => trim((string) ($detail['frefno'] ?? '')),
-                'fsupplier' => trim((string) ($detail['fsupplier'] ?? '')),
-                'fsuppliername' => trim((string) ($detail['fsuppliername'] ?? '')),
-                'ftempo' => (int) ($detail['ftempo'] ?? 0),
-                'fnilai_order' => round(abs((float) ($detail['fnilai_order'] ?? 0)), 2),
-                'fsisa_hutang' => round(abs((float) ($detail['fsisa_hutang'] ?? 0)), 2),
-                'fdiscpersen' => round((float) ($detail['fdiscpersen'] ?? 0), 2),
-                'fdiscount' => round(abs((float) ($detail['fdiscount'] ?? 0)), 2),
-                'fkasdtvalue' => round(abs((float) ($detail['fkasdtvalue'] ?? 0)), 2),
-            ])
-            ->filter(fn(array $detail) => $detail['frefno'] !== '' && (float) $detail['fkasdtvalue'] > 0)
+            ->map(function(array $detail) {
+                $refNo = trim((string) ($detail['frefno'] ?? ''));
+                $isReb = str_starts_with(strtoupper($refNo), 'REB');
+
+                $nilaiOrder = round(abs((float) ($detail['fnilai_order'] ?? 0)), 2);
+                $sisaHutang = round(abs((float) ($detail['fsisa_hutang'] ?? 0)), 2);
+                $discount = round(abs((float) ($detail['fdiscount'] ?? 0)), 2);
+                $kasdtValue = round(abs((float) ($detail['fkasdtvalue'] ?? 0)), 2);
+
+                if ($isReb) {
+                    $nilaiOrder = -$nilaiOrder;
+                    $sisaHutang = -$sisaHutang;
+                    $discount = -$discount;
+                    $kasdtValue = -$kasdtValue;
+                }
+
+                return [
+                    'frefno' => $refNo,
+                    'fsupplier' => trim((string) ($detail['fsupplier'] ?? '')),
+                    'fsuppliername' => trim((string) ($detail['fsuppliername'] ?? '')),
+                    'ftempo' => (int) ($detail['ftempo'] ?? 0),
+                    'fnilai_order' => $nilaiOrder,
+                    'fsisa_hutang' => $sisaHutang,
+                    'fdiscpersen' => round((float) ($detail['fdiscpersen'] ?? 0), 2),
+                    'fdiscount' => $discount,
+                    'fkasdtvalue' => $kasdtValue,
+                ];
+            })
+            ->filter(fn(array $detail) => $detail['frefno'] !== '' && (float) $detail['fkasdtvalue'] !== 0.0)
             ->values();
     }
 
@@ -670,7 +710,7 @@ class BayarSupplierController extends Controller
 
         $remainingByRef = DB::table('trstockmt')
             ->whereIn('fstockmtno', $refNos)
-            ->where('fstockmtcode', 'BUY')
+            ->whereIn('fstockmtcode', ['BUY', 'REB'])
             ->pluck('famountremain', 'fstockmtno')
             ->mapWithKeys(fn($remain, $refNo) => [trim((string) $refNo) => abs((float) $remain)]);
 
@@ -774,7 +814,7 @@ class BayarSupplierController extends Controller
 
         $supplierByRef = DB::table('trstockmt')
             ->whereIn('fstockmtno', $refNos)
-            ->where('fstockmtcode', 'BUY')
+            ->whereIn('fstockmtcode', ['BUY', 'REB'])
             ->pluck('fsupplier', 'fstockmtno')
             ->mapWithKeys(fn($supplier, $refNo) => [trim((string) $refNo) => trim((string) $supplier)]);
 
@@ -801,8 +841,8 @@ class BayarSupplierController extends Controller
 
         $references = DB::table('trstockmt')
             ->whereIn('fstockmtno', $refNos)
-            ->where('fstockmtcode', 'BUY')
-            ->get(['fstockmtno', 'fstockmtdate'])
+            ->whereIn('fstockmtcode', ['BUY', 'REB'])
+            ->get(['fstockmtno', 'fstockmtdate', 'fstockmtcode'])
             ->keyBy(fn($row) => trim((string) $row->fstockmtno));
 
         foreach ($detailRows as $index => $row) {
@@ -923,7 +963,7 @@ class BayarSupplierController extends Controller
             if (!empty($refNos)) {
                 $referenceRemainMap = DB::table('trstockmt')
                     ->whereIn('fstockmtno', $refNos)
-                    ->where('fstockmtcode', 'BUY')
+                    ->whereIn('trstockmt.fstockmtcode', ['BUY', 'REB'])
                     ->leftJoin('mssupplier as s', 's.fsuppliercode', '=', 'trstockmt.fsupplier')
                     ->select([
                         'trstockmt.fstockmtno',
