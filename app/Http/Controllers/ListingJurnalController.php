@@ -9,11 +9,8 @@ class ListingJurnalController extends Controller
 {
     public function index(Request $request)
     {
-        $dateFrom = $request->input('date_from', now()->startOfMonth()->toDateString());
-        $dateTo = $request->input('date_to', now()->toDateString());
-        $journalTypes = $request->input('journal_types', []);
-        $journalTypes = array_values(array_filter(array_map('trim', (array) $journalTypes)));
-        $sortBy = $request->input('sort_by', 'date_no_line');
+        $dateFrom = now()->startOfMonth()->toDateString();
+        $dateTo = now()->toDateString();
 
         $typeOptions = DB::table('tbmaster')
             ->whereRaw('TRIM(ftblcode) = ?', ['JURNAL'])
@@ -25,18 +22,33 @@ class ListingJurnalController extends Controller
                 return $item;
             });
 
-        $rows = $this->buildQuery($dateFrom, $dateTo, $journalTypes, $sortBy)
-            ->paginate(50)
-            ->withQueryString();
-
         return view('listingjurnal.index', [
-            'rows' => $rows,
             'typeOptions' => $typeOptions,
             'dateFrom' => $dateFrom,
             'dateTo' => $dateTo,
-            'selectedTypes' => $journalTypes,
-            'sortBy' => $sortBy,
             'sortOptions' => $this->sortOptions(),
+        ]);
+    }
+
+    public function print(Request $request)
+    {
+        $dateFrom = $request->input('date_from', now()->startOfMonth()->toDateString());
+        $dateTo = $request->input('date_to', now()->toDateString());
+        $journalTypes = $request->input('journal_types', []);
+        $journalTypes = array_values(array_filter(array_map('trim', (array) $journalTypes)));
+        $sortBy = $request->input('sort_by', 'date_no_line');
+
+        $results = $this->buildQuery($dateFrom, $dateTo, $journalTypes, $sortBy)->get();
+        $groupedData = $results->groupBy('fjurnalno');
+        $chunkedData = $groupedData->chunk(5);
+
+        return view('listingjurnal.print', [
+            'chunkedData' => $chunkedData,
+            'totalPages' => $chunkedData->count(),
+            'dateFrom' => $dateFrom,
+            'dateTo' => $dateTo,
+            'selectedTypes' => $journalTypes,
+            'user_session' => auth()->user(),
         ]);
     }
 

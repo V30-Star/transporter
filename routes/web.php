@@ -571,6 +571,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/listingpenjualan/excel', [ListingPenjualanController::class, 'exportExcel'])->name('listingpenjualan.excel');
 
         Route::get('/listingjurnal', [ListingJurnalController::class, 'index'])->name('listingjurnal.index');
+        Route::get('/listingjurnal/print', [ListingJurnalController::class, 'print'])->name('listingjurnal.print');
 
         Route::get('/gudang/browse', [WhController::class, 'browse'])
             ->name('gudang.browse');
