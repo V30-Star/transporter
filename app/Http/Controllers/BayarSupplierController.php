@@ -254,6 +254,8 @@ class BayarSupplierController extends Controller
         $detailRows = $this->normalizeDetails($validated['details']);
 
         $this->ensureCreateDateWithinEditPeriod($validated['fkasmtdate']);
+        $this->validateUniqueReferenceRows($detailRows);
+        $this->validateReferencesNotAlreadyUsed($detailRows);
 
         $this->validateReferenceSuppliers($detailRows, $supplier->fsuppliercode);
         $this->resolveReferenceTransactions($detailRows, Carbon::parse($validated['fkasmtdate']));
@@ -427,6 +429,8 @@ class BayarSupplierController extends Controller
         $detailRows = $this->normalizeDetails($validated['details']);
 
         $this->ensureCreateDateWithinEditPeriod($validated['fkasmtdate'], $header->fkasmtdate);
+        $this->validateUniqueReferenceRows($detailRows);
+        $this->validateReferencesNotAlreadyUsed($detailRows, $header);
 
         $this->validateReferenceSuppliers($detailRows, $supplier->fsuppliercode);
         $this->resolveReferenceTransactions($detailRows, Carbon::parse($validated['fkasmtdate']));
@@ -686,6 +690,65 @@ class BayarSupplierController extends Controller
             if ($payment > $allowed) {
                 throw ValidationException::withMessages([
                     "details.{$index}.fkasdtvalue" => 'Total bayar tidak boleh melebihi sisa hutang.',
+                ]);
+            }
+        }
+    }
+
+    private function validateUniqueReferenceRows(Collection $detailRows): void
+    {
+        $seen = [];
+
+        foreach ($detailRows as $index => $row) {
+            $refNo = trim((string) ($row['frefno'] ?? ''));
+
+            if ($refNo === '') {
+                continue;
+            }
+
+            $key = strtoupper($refNo);
+            if (isset($seen[$key])) {
+                throw ValidationException::withMessages([
+                    "details.{$index}.frefno" => "No. penerimaan {$refNo} tidak boleh sama.",
+                ]);
+            }
+
+            $seen[$key] = true;
+        }
+    }
+
+    private function validateReferencesNotAlreadyUsed(Collection $detailRows, ?Trkasmt $exceptHeader = null): void
+    {
+        $refNos = $detailRows
+            ->pluck('frefno')
+            ->map(fn($value) => trim((string) $value))
+            ->filter()
+            ->unique()
+            ->values();
+
+        if ($refNos->isEmpty()) {
+            return;
+        }
+
+        $usedRefs = Trkasdt::query()
+            ->where('ftrancode', self::TRAN_CODE)
+            ->whereIn('frefno', $refNos)
+            ->whereRaw("TRIM(COALESCE(freftype, '')) != 'ADM'")
+            ->when($exceptHeader, fn($query) => $query->where('fkasmtid', '!=', $exceptHeader->fkasmtid))
+            ->pluck('frefno')
+            ->map(fn($value) => strtoupper(trim((string) $value)))
+            ->flip();
+
+        if ($usedRefs->isEmpty()) {
+            return;
+        }
+
+        foreach ($detailRows as $index => $row) {
+            $refNo = trim((string) ($row['frefno'] ?? ''));
+
+            if ($refNo !== '' && $usedRefs->has(strtoupper($refNo))) {
+                throw ValidationException::withMessages([
+                    "details.{$index}.frefno" => "No. penerimaan {$refNo} sudah pernah dibuat Bayar Supplier.",
                 ]);
             }
         }

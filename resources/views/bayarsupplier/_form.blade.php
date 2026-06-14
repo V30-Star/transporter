@@ -219,6 +219,8 @@
                                     <td class="border px-2 py-1 text-center" x-text="index + 1"></td>
                                     <td class="border px-2 py-1">
                                         <input type="text" :name="`details[${index}][frefno]`" x-model="row.frefno"
+                                            @input.debounce.500ms="handleManualPblInput(row); resolveManualPbl(row, true)"
+                                            @blur="resolveManualPbl(row)"
                                             :class="referenceTextClass(row)"
                                             class="w-full border rounded px-2 py-1">
                                         <input type="hidden" :name="`details[${index}][ftrcode]`" :value="row.ftrcode || 'BUY'">
@@ -689,6 +691,104 @@
                     return ['REJ'].includes(code) ? 'text-red-600 transaction-code-red' : 'text-black';
                 },
 
+                handleManualPblInput(row) {
+                    row.frefno = String(row.frefno || '').trim().toUpperCase();
+                    if (!row.frefno) {
+                        this.clearPblRow(row, false);
+                        return;
+                    }
+                    row.ftrcode = 'BUY';
+                },
+
+                clearPblRow(row, keepRef = true) {
+                    if (!row) return;
+                    const refNo = keepRef ? String(row.frefno || '').trim() : '';
+                    row.frefno = refNo;
+                    row.ftrcode = 'BUY';
+                    row.fsupplier = '';
+                    row.fsuppliername = '';
+                    row.ftempo = 0;
+                    row.fnilai_order = 0;
+                    row.fsisa_hutang = 0;
+                    row.originalSisa = 0;
+                    row.fdiscpersen = 0;
+                    row.fdiscount = 0;
+                    row.fkasdtvalue = 0;
+                    this.recalcTotals();
+                },
+
+                async resolveManualPbl(row, silent = false) {
+                    const refNo = String(row?.frefno || '').trim();
+                    if (!refNo) {
+                        this.clearPblRow(row, false);
+                        return;
+                    }
+
+                    if (silent && refNo.length < 5) return;
+
+                    const duplicate = this.rows.find(item => item !== row && String(item.frefno || '').trim().toUpperCase() === refNo.toUpperCase());
+                    if (duplicate) {
+                        if (!silent) this.showValidationError(`No. penerimaan ${refNo} tidak boleh sama.`);
+                        this.clearPblRow(row, false);
+                        return;
+                    }
+
+                    try {
+                        const params = new URLSearchParams({
+                            supplier_code: this.supplierCode || '',
+                            search: refNo,
+                            start: '0',
+                            length: '10',
+                            draw: '1',
+                            order_column: 'fstockmtdate',
+                            order_dir: 'desc'
+                        });
+                        const response = await fetch(`{{ route('bayarsupplier.pickable-pbl') }}?${params.toString()}`, { headers: { 'X-Requested-With': 'XMLHttpRequest', 'Accept': 'application/json' } });
+                        if (!response.ok) throw new Error('Gagal memuat data faktur.');
+
+                        const payload = await response.json();
+                        const record = (Array.isArray(payload.data) ? payload.data : [])
+                            .find(item => String(item.fstockmtno || '').trim().toUpperCase() === refNo.toUpperCase());
+
+                        if (!record) {
+                            this.clearPblRow(row);
+                            if (!silent) this.showValidationError(`No. penerimaan ${refNo} tidak ditemukan.`);
+                            return;
+                        }
+
+                        if (!this.isPblSupplierValid(record)) {
+                            this.clearPblRow(row);
+                            if (!silent) this.showValidationError('Nota harus sesuai supplier yang dipilih.');
+                            return;
+                        }
+
+                        this.applyPblToRow(row, record);
+                    } catch (error) {
+                        this.clearPblRow(row);
+                        if (!silent) this.showValidationError(error?.message || 'Gagal memuat data faktur.');
+                    }
+                },
+
+                applyPblToRow(targetRow, record) {
+                    const remain = this.toNumber(record.famountremain);
+                    targetRow.frefno = String(record.fstockmtno || '').trim();
+                    targetRow.ftrcode = String(record.ftrcode || record.fstockmtcode || 'BUY').trim() || 'BUY';
+                    targetRow.fsupplier = String(record.fsupplier || '').trim();
+                    targetRow.fsuppliername = String(record.fsuppliername || '').trim();
+                    targetRow.ftempo = Number(record.ftempo || 0);
+                    if (!String(this.supplierCode || '').trim() && targetRow.fsupplier) {
+                        this.syncSupplierFromPbl(record);
+                    }
+                    targetRow.fnilai_order = this.toNumber(record.famountmt);
+                    targetRow.fsisa_hutang = remain;
+                    targetRow.originalSisa = remain;
+                    targetRow.fdiscpersen = 0;
+                    targetRow.fdiscount = 0;
+                    targetRow.fkasdtvalue = remain;
+                    this.recalcTotals();
+                    this.ensureTrailingRow();
+                },
+
                 openPblModal() {
                     this.tempSelectedPbls = this.rows.filter(row => row.frefno).map(row => ({
                         fstockmtno: row.frefno,
@@ -777,6 +877,7 @@
                             option.text = label;
                             option.selected = true;
                         }
+                        select.value = code;
                     }
                 },
                 togglePblSelection(record) {
@@ -873,19 +974,7 @@
                     this.tempSelectedPbls.forEach(record => {
                         const refNo = String(record.fstockmtno || '').trim();
                         if (!refNo || this.rows.some(row => String(row.frefno || '').trim() === refNo)) return;
-                        const targetRow = this.findTargetRowForPbl();
-                        const remain = this.toNumber(record.famountremain);
-                        targetRow.frefno = refNo;
-                        targetRow.ftrcode = String(record.ftrcode || record.fstockmtcode || 'BUY').trim() || 'BUY';
-                        targetRow.fsupplier = String(record.fsupplier || '').trim();
-                        targetRow.fsuppliername = String(record.fsuppliername || '').trim();
-                        targetRow.ftempo = Number(record.ftempo || 0);
-                        targetRow.fnilai_order = this.toNumber(record.famountmt);
-                        targetRow.fsisa_hutang = remain;
-                        targetRow.originalSisa = remain;
-                        targetRow.fdiscpersen = 0;
-                        targetRow.fdiscount = 0;
-                        targetRow.fkasdtvalue = remain;
+                        this.applyPblToRow(this.findTargetRowForPbl(), record);
                     });
                     this.ensureMinimumRows();
                     this.recalcTotals();
