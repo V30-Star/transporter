@@ -36,7 +36,7 @@ class ListingJurnalController extends Controller
         $dateTo = $request->input('date_to', now()->toDateString());
         $journalTypes = $request->input('journal_types', []);
         $journalTypes = array_values(array_filter(array_map('trim', (array) $journalTypes)));
-        $sortBy = $request->input('sort_by', 'date_no_line');
+        $sortBy = $request->input('sort_by', 'terlama');
 
         $results = $this->buildQuery($dateFrom, $dateTo, $journalTypes, $sortBy)->get();
         $groupedData = $results->groupBy('fjurnalno');
@@ -57,16 +57,16 @@ class ListingJurnalController extends Controller
         $jurnalUmum = DB::table('jurnalmt as m')
             ->leftJoin('jurnaldt as d', 'm.fjurnalno', '=', 'd.fjurnalno')
             ->leftJoin('account as acc', 'd.faccount', '=', 'acc.faccount')
-            ->selectRaw("m.fjurnalno, m.fjurnaldate, m.fjurnaltype, m.fjurnalnote, m.fbalance, m.fbalance_rp, m.fdatetime, m.fuserid, d.flineno, d.faccount, acc.faccname, d.frefno, d.fsubaccount, d.fdk, d.frate, d.famount, d.famount_rp, d.faccountnote");
+            ->selectRaw("m.fjurnalno, m.fjurnaldate, m.fjurnaltype, m.fjurnalnote, m.fbalance, m.fbalance_rp, m.fdatetime, m.fuserid, d.flineno, d.faccount, acc.faccname, d.frefno, d.fsubaccount, d.fdk, d.frate, d.famount, d.famount_rp, d.faccountnote, NULL::integer AS fkasdtid");
 
         $kasHeader = DB::table('trkasmt as m')
             ->leftJoin('account as acc', 'm.faccountheader', '=', 'acc.faccount')
-            ->selectRaw("m.fkasmtno AS fjurnalno, m.fkasmtdate AS fjurnaldate, m.ftrancode AS fjurnaltype, m.fket AS fjurnalnote, m.famountpay AS fbalance, m.famountpay_rp AS fbalance_rp, m.fdatetime, m.fuserid, 1 AS flineno, m.faccountheader AS faccount, acc.faccname, '' AS frefno, '' AS fsubaccount, m.fdkheader AS fdk, m.frate, ABS(m.famountpay) AS famount, ABS(m.famountpay_rp) AS famount_rp, m.fket AS faccountnote");
+            ->selectRaw("m.fkasmtno AS fjurnalno, m.fkasmtdate AS fjurnaldate, m.ftrancode AS fjurnaltype, m.fket AS fjurnalnote, m.famountpay AS fbalance, m.famountpay_rp AS fbalance_rp, m.fdatetime, m.fuserid, 1 AS flineno, m.faccountheader AS faccount, acc.faccname, '' AS frefno, '' AS fsubaccount, m.fdkheader AS fdk, m.frate, ABS(m.famountpay) AS famount, ABS(m.famountpay_rp) AS famount_rp, m.fket AS faccountnote, NULL::integer AS fkasdtid");
 
         $kasDetail = DB::table('trkasmt as m')
             ->leftJoin('trkasdt as d', 'm.fkasmtno', '=', 'd.fkasmtno')
             ->leftJoin('account as acc', 'd.faccount', '=', 'acc.faccount')
-            ->selectRaw("m.fkasmtno AS fjurnalno, m.fkasmtdate AS fjurnaldate, m.ftrancode AS fjurnaltype, d.fnote AS fjurnalnote, d.fjurnal AS fbalance, d.fjurnal_rp AS fbalance_rp, m.fdatetime, m.fuserid, COALESCE(d.fnou, 1) + 1 AS flineno, d.faccount, acc.faccname, d.frefno, d.fsubaccount, d.fdk, m.frate, d.fjurnal AS famount, d.fjurnal_rp AS famount_rp, d.fnote AS faccountnote");
+            ->selectRaw("m.fkasmtno AS fjurnalno, m.fkasmtdate AS fjurnaldate, m.ftrancode AS fjurnaltype, d.fnote AS fjurnalnote, d.fjurnal AS fbalance, d.fjurnal_rp AS fbalance_rp, m.fdatetime, m.fuserid, COALESCE(d.fnou, 1) + 1 AS flineno, d.faccount, acc.faccname, d.frefno, d.fsubaccount, d.fdk, m.frate, d.fjurnal AS famount, d.fjurnal_rp AS famount_rp, d.fnote AS faccountnote, d.fkasdtid");
 
         $union = $jurnalUmum->unionAll($kasHeader)->unionAll($kasDetail);
 
@@ -80,8 +80,9 @@ class ListingJurnalController extends Controller
             $query->whereIn('a.fjurnaltype', $journalTypes);
         }
 
-        foreach ($this->sortColumns($sortBy) as $column) {
-            $query->orderBy($column);
+        foreach ($this->sortColumns($sortBy) as $sort) {
+            [$column, $direction] = $sort;
+            $query->orderBy($column, $direction);
         }
 
         return $query;
@@ -90,20 +91,22 @@ class ListingJurnalController extends Controller
     private function sortOptions(): array
     {
         return [
-            'date_no_line' => 'Tanggal, No.Jurnal, Line',
-            'no_line' => 'No.Jurnal, Line',
-            'type_date_no' => 'Type, Tanggal, No.Jurnal',
-            'account_date_no' => 'Account, Tanggal, No.Jurnal',
+            'terlama' => 'Terlama ke Terbaru',
+            'terbaru' => 'Terbaru ke Terlama',
         ];
     }
 
     private function sortColumns(string $sortBy): array
     {
         return match ($sortBy) {
-            'no_line' => ['a.fjurnalno', 'a.flineno'],
-            'type_date_no' => ['a.fjurnaltype', 'a.fjurnaldate', 'a.fjurnalno', 'a.flineno'],
-            'account_date_no' => ['a.faccount', 'a.fjurnaldate', 'a.fjurnalno', 'a.flineno'],
-            default => ['a.fjurnaldate', 'a.fjurnalno', 'a.flineno'],
+            'terbaru' => [
+                ['a.fjurnalno', 'desc'],
+                ['a.fkasdtid', 'desc'],
+            ],
+            default => [
+                ['a.fjurnalno', 'asc'],
+                ['a.fkasdtid', 'asc'],
+            ],
         };
     }
 }
