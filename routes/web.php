@@ -38,6 +38,7 @@ use App\Http\Controllers\ReportingController;
 use App\Http\Controllers\ReportingCustomerController;
 use App\Http\Controllers\ReportingFakturPembelianController;
 use App\Http\Controllers\ReportingKasController;
+use App\Http\Controllers\ReportingPelunasanCustomerController;
 use App\Http\Controllers\ReportingPemakaianBarangController;
 use App\Http\Controllers\ReportingPenerimaanBarangController;
 use App\Http\Controllers\ReportingPrController;
@@ -572,6 +573,10 @@ Route::middleware('auth')->group(function () {
 
         Route::get('/listingjurnal', [ListingJurnalController::class, 'index'])->name('listingjurnal.index');
         Route::get('/listingjurnal/print', [ListingJurnalController::class, 'print'])->name('listingjurnal.print');
+
+        Route::get('/reportingpelunasancustomer', [ReportingPelunasanCustomerController::class, 'index'])->name('reportingpelunasancustomer.index');
+        Route::get('/reportingpelunasancustomer/print', [ReportingPelunasanCustomerController::class, 'print'])->name('reportingpelunasancustomer.print');
+        Route::get('/reportingpelunasancustomer/exportExcel', [ReportingPelunasanCustomerController::class, 'exportExcel'])->name('reportingpelunasancustomer.exportExcel');
 
         Route::get('/gudang/browse', [WhController::class, 'browse'])
             ->name('gudang.browse');
