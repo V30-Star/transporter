@@ -55,7 +55,7 @@
         .voucher-header-labels,
         .voucher-header {
             display: grid;
-            grid-template-columns: 24mm 16mm 24mm 42mm 16mm 16mm 22mm 10mm;
+            grid-template-columns: 24mm 16mm 42mm 24mm 16mm 16mm 22mm 10mm;
             gap: 3px;
             font-size: 9px;
             padding: 8px 5px;
@@ -77,11 +77,11 @@
             padding: 6px 5px;
         }
 
-        /* --- VOUCHER DETAIL STYLES (10 Kolom) --- */
+        /* --- VOUCHER DETAIL STYLES (9 Kolom) --- */
         .voucher-detail-labels,
         .voucher-detail {
             display: grid;
-            grid-template-columns: 4mm 24mm 8mm 16mm 22mm 14mm 18mm 16mm 20mm 24mm;
+            grid-template-columns: 4mm 26mm 18mm 24mm 16mm 26mm 14mm 20mm 22mm;
             gap: 3px;
             font-size: 8px;
             padding: 4px 5px;
@@ -120,22 +120,24 @@
         }
 
         /* Text alignment untuk detail child */
+        .voucher-detail-labels>div:nth-child(4),
+        .voucher-detail-labels>div:nth-child(5),
         .voucher-detail-labels>div:nth-child(6),
         .voucher-detail-labels>div:nth-child(7),
         .voucher-detail-labels>div:nth-child(8),
         .voucher-detail-labels>div:nth-child(9),
-        .voucher-detail-labels>div:nth-child(10),
+        .voucher-detail>div:nth-child(4),
+        .voucher-detail>div:nth-child(5),
         .voucher-detail>div:nth-child(6),
         .voucher-detail>div:nth-child(7),
         .voucher-detail>div:nth-child(8),
-        .voucher-detail>div:nth-child(9),
-        .voucher-detail>div:nth-child(10) {
+        .voucher-detail>div:nth-child(9) {
             text-align: right;
         }
 
         /* Wrap text untuk kolom yang panjang */
-        .voucher-header>div:nth-child(4),
-        .voucher-detail>div:nth-child(5) {
+        .voucher-header>div:nth-child(3),
+        .voucher-detail>div:nth-child(2) {
             word-wrap: break-word;
             overflow-wrap: break-word;
         }
@@ -151,28 +153,33 @@
             margin-top: 20px;
             border-top: 2px solid #000;
             padding-top: 10px;
+            overflow: hidden;
+            clear: both;
         }
 
-        .grand-total-header {
-            display: grid;
-            grid-template-columns: 24mm 16mm 24mm 42mm 16mm 16mm 22mm 10mm;
-            gap: 3px;
-            font-size: 10px;
-            font-weight: bold;
-            padding: 8px 5px;
-            background-color: #333;
-            color: white;
-        }
-
-        .grand-total-detail {
-            display: grid;
-            grid-template-columns: 4mm 24mm 8mm 16mm 22mm 14mm 18mm 16mm 20mm 24mm;
-            gap: 3px;
+        .grand-total-summary-box {
+            float: right;
+            width: 250px;
             font-size: 9px;
+            border: 1px solid #000;
+            background-color: #fff;
+        }
+
+        .grand-total-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 5px 8px;
+            border-bottom: 1px solid #ccc;
+        }
+
+        .grand-total-row:last-child {
+            border-bottom: none;
+        }
+
+        .grand-total-row.highlight {
             font-weight: bold;
-            padding: 8px 5px;
-            background-color: #f0f0f0;
-            border: 1px solid #333;
+            color: #c00;
+            background-color: #ffe6e6;
         }
 
         /* Account Summary styling matching theme */
@@ -180,6 +187,7 @@
             margin-top: 25px;
             border-top: 2px solid #c00;
             padding-top: 15px;
+            clear: both;
         }
 
         .summary-account-section h3 {
@@ -492,26 +500,25 @@
                     <div class="voucher-header-labels">
                         <div>No. Voucher</div>
                         <div>Tanggal</div>
-                        <div>Account Header</div>
-                        <div>Customer</div>
-                        <div class="text-right">Admin Bank</div>
-                        <div class="text-right">Adjustment</div>
+                        <div>Nama Customer</div>
+                        <div>Account</div>
+                        <div class="text-right">By.Bank(-/+)</div>
+                        <div class="text-right">Adjust(-/+)</div>
                         <div class="text-right">Total Bayar</div>
-                        <div>User</div>
+                        <div>Salesman</div>
                     </div>
 
                     {{-- Child Detail Labels --}}
                     <div class="voucher-detail-labels">
                         <div></div> {{-- Spacer --}}
-                        <div>No. Ref / Faktur</div>
-                        <div>Type</div>
-                        <div>Tanggal Ref</div>
-                        <div>Salesman</div>
-                        <div class="text-right">Quantity</div>
-                        <div class="text-right">Net Nota</div>
-                        <div class="text-right">Discount</div>
-                        <div class="text-right">Bayar</div>
+                        <div>No. Faktur</div>
+                        <div>Tgl. Faktur</div>
+                        <div class="text-right">Nilai Faktur</div>
+                        <div class="text-right">Total Qty</div>
                         <div class="text-right">Sisa Piutang</div>
+                        <div class="text-right">Disc%</div>
+                        <div class="text-right">Discount</div>
+                        <div class="text-right">Nilai Bayar</div>
                     </div>
 
                     @foreach ($pageData as $voucherNo => $voucherRecords)
@@ -526,12 +533,12 @@
                         <div class="voucher-header">
                             <div>{{ $voucherNo }}</div>
                             <div>{{ $first->fkasmtdate ? \Carbon\Carbon::parse($first->fkasmtdate)->format('d/m/Y') : '' }}</div>
-                            <div>{{ $first->account }}</div>
                             <div>{{ ($first->fcustomer ? $first->fcustomer . ' - ' : '') . $first->fcustname }}</div>
+                            <div>{{ $first->account }}</div>
                             <div class="text-right">{{ number_format($adminFee, 2, ',', '.') }}</div>
                             <div class="text-right">{{ number_format($adjustment, 2, ',', '.') }}</div>
                             <div class="text-right">{{ number_format($totalVoucherPayment, 2, ',', '.') }}</div>
-                            <div>{{ $first->fuserid }}</div>
+                            <div>{{ $first->fsalesman ?: '-' }}</div>
                         </div>
 
                         {{-- Child details list --}}
@@ -539,14 +546,19 @@
                             <div class="voucher-detail">
                                 <div></div> {{-- Spacer --}}
                                 <div>{{ $record->frefno }}</div>
-                                <div>{{ $record->freftype }}</div>
                                 <div>{{ $record->fdate_ref ? \Carbon\Carbon::parse($record->fdate_ref)->format('d/m/Y') : '' }}</div>
-                                <div>{{ $record->fsalesman ?: '-' }}</div>
-                                <div class="text-right">{{ number_format((float) $record->fqty, 2, ',', '.') }}</div>
                                 <div class="text-right">{{ number_format((float) $record->fnetnota, 2, ',', '.') }}</div>
+                                <div class="text-right">{{ number_format((float) $record->fqty, 2, ',', '.') }}</div>
+                                <div class="text-right">{{ number_format((float) $record->famountremain, 2, ',', '.') }}</div>
+                                <div class="text-right">
+                                    @if (is_numeric($record->fdiscpersen))
+                                        {{ (float)$record->fdiscpersen == (int)$record->fdiscpersen ? (int)$record->fdiscpersen : number_format((float)$record->fdiscpersen, 2, ',', '.') }}%
+                                    @else
+                                        {{ $record->fdiscpersen ?? '0' }}%
+                                    @endif
+                                </div>
                                 <div class="text-right">{{ number_format((float) $record->fdiscount, 2, ',', '.') }}</div>
                                 <div class="text-right">{{ number_format((float) $record->fkasdtvalue, 2, ',', '.') }}</div>
-                                <div class="text-right">{{ number_format((float) $record->famountremain, 2, ',', '.') }}</div>
                             </div>
                         @endforeach
 
@@ -559,30 +571,19 @@
                     {{-- Grand Total & Account summary on the very last page --}}
                     @if ($loop->last)
                         <div class="grand-total-section">
-                            {{-- Total Parent Headers --}}
-                            <div class="grand-total-header">
-                                <div>GRAND TOTAL</div>
-                                <div></div>
-                                <div></div>
-                                <div></div>
-                                <div class="text-right">{{ number_format($grandTotal['admin'], 2, ',', '.') }}</div>
-                                <div class="text-right">{{ number_format($grandTotal['adjustment'], 2, ',', '.') }}</div>
-                                <div class="text-right">{{ number_format($grandTotal['bayar'], 2, ',', '.') }}</div>
-                                <div></div>
-                            </div>
-
-                            {{-- Total Details --}}
-                            <div class="grand-total-detail">
-                                <div>TOTAL DETAIL</div>
-                                <div></div>
-                                <div></div>
-                                <div></div>
-                                <div></div>
-                                <div class="text-right">{{ number_format($grandTotal['qty'], 2, ',', '.') }}</div>
-                                <div class="text-right">{{ number_format($grandTotal['net_nota'], 2, ',', '.') }}</div>
-                                <div class="text-right">{{ number_format($grandTotal['discount'], 2, ',', '.') }}</div>
-                                <div class="text-right">{{ number_format($grandTotal['bayar'], 2, ',', '.') }}</div>
-                                <div class="text-right">{{ number_format($grandTotal['sisa'], 2, ',', '.') }}</div>
+                            <div class="grand-total-summary-box">
+                                <div class="grand-total-row">
+                                    <span>Total By.Bank :</span>
+                                    <span>{{ number_format($grandTotal['admin'], 2, ',', '.') }}</span>
+                                </div>
+                                <div class="grand-total-row">
+                                    <span>Total Adjust :</span>
+                                    <span>{{ number_format($grandTotal['adjustment'], 2, ',', '.') }}</span>
+                                </div>
+                                <div class="grand-total-row highlight">
+                                    <span>Total Pelunasan :</span>
+                                    <span>{{ number_format($grandTotal['bayar'], 2, ',', '.') }}</span>
+                                </div>
                             </div>
                         </div>
 
