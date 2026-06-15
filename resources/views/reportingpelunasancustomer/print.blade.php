@@ -452,11 +452,6 @@
             @foreach ($chunkedData as $pageIndex => $pageData)
                 <div class="a4-container">
                     <div class="header-section">
-                        <div class="meta-info-kiri">
-                            Account: {{ $filters['account_no'] !== '' ? $filters['account_no'] : 'Semua' }}<br>
-                            Customer: {{ $filters['customer_from'] ?: 'Awal' }} s/d {{ $filters['customer_to'] ?: 'Akhir' }}<br>
-                            Cabang: {{ request()->has('branch_codes') ? implode(', ', (array) request()->input('branch_codes')) : 'Semua' }}
-                        </div>
                         <h2>Laporan Pelunasan Customer</h2>
                         @if ($filters['date_from'] || $filters['date_to'])
                             <div class="filter-info">

@@ -79,28 +79,26 @@
                             </div>
                         </div>
 
-                        <hr class="border-t border-gray-200">
+                        <hr class="border-t border-gray-200 my-4">
 
                         <div id="alpineBrowseWrapper" x-data="pelunasanCustomerReport()">
-                            <div class="grid grid-cols-2 gap-4 items-end">
-                                <div>
-                                    <label class="block text-sm font-medium text-gray-700 mb-1">No. Account</label>
-                                    <div class="flex">
-                                        <input type="text" name="account_no" x-model="accountCode" 
-                                            class="w-full border border-gray-300 rounded-l px-3 py-2 text-sm focus:ring-blue-500 focus:border-blue-500" readonly>
-                                        <button type="button" @click="openAccountBrowse()" 
-                                            class="border border-l-0 border-gray-300 px-3 py-2 bg-white hover:bg-gray-50 rounded-r text-gray-500 flex items-center justify-center cursor-pointer" 
-                                            title="Browse Account">
-                                            <x-heroicon-o-plus class="w-5 h-5" />
-                                        </button>
-                                    </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">No. Account</label>
+                                <div class="flex">
+                                    <input type="text" name="account_no" x-model="accountCode" 
+                                        class="w-full border border-gray-300 rounded-l px-3 py-2 text-sm focus:ring-blue-500 focus:border-blue-500" readonly>
+                                    <button type="button" @click="openAccountBrowse()" 
+                                        class="border border-l-0 border-gray-300 px-3 py-2 bg-white hover:bg-gray-50 rounded-r text-gray-500 flex items-center justify-center cursor-pointer" 
+                                        title="Browse Account">
+                                        <x-heroicon-o-plus class="w-5 h-5" />
+                                    </button>
                                 </div>
-                                <div class="flex items-center mt-6">
-                                    <label class="flex items-center text-sm cursor-pointer select-none">
-                                        <input type="checkbox" name="only_giro_mundur" value="1" class="mr-2 w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500">
-                                        <span class="font-semibold text-gray-700">Hanya Giro Mundur</span>
-                                    </label>
-                                </div>
+                            </div>
+                            <div class="flex items-center mt-3">
+                                <label class="flex items-center text-sm cursor-pointer select-none">
+                                    <input type="checkbox" name="only_giro_mundur" value="1" class="mr-2 w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500">
+                                    <span class="font-semibold text-gray-700">Hanya Giro Mundur</span>
+                                </label>
                             </div>
 
                             <hr class="border-t border-gray-200 my-4">
