@@ -39,6 +39,7 @@ use App\Http\Controllers\ReportingCustomerController;
 use App\Http\Controllers\ReportingFakturPembelianController;
 use App\Http\Controllers\ReportingKasController;
 use App\Http\Controllers\ReportingPelunasanCustomerController;
+use App\Http\Controllers\ReportingPelunasanSupplierController;
 use App\Http\Controllers\ReportingPemakaianBarangController;
 use App\Http\Controllers\ReportingPenerimaanBarangController;
 use App\Http\Controllers\ReportingPrController;
@@ -577,6 +578,10 @@ Route::middleware('auth')->group(function () {
         Route::get('/reportingpelunasancustomer', [ReportingPelunasanCustomerController::class, 'index'])->name('reportingpelunasancustomer.index');
         Route::get('/reportingpelunasancustomer/print', [ReportingPelunasanCustomerController::class, 'print'])->name('reportingpelunasancustomer.print');
         Route::get('/reportingpelunasancustomer/exportExcel', [ReportingPelunasanCustomerController::class, 'exportExcel'])->name('reportingpelunasancustomer.exportExcel');
+
+        Route::get('/reportingpelunasansupplier', [ReportingPelunasanSupplierController::class, 'index'])->name('reportingpelunasansupplier.index');
+        Route::get('/reportingpelunasansupplier/print', [ReportingPelunasanSupplierController::class, 'print'])->name('reportingpelunasansupplier.print');
+        Route::get('/reportingpelunasansupplier/exportExcel', [ReportingPelunasanSupplierController::class, 'exportExcel'])->name('reportingpelunasansupplier.exportExcel');
 
         Route::get('/gudang/browse', [WhController::class, 'browse'])
             ->name('gudang.browse');

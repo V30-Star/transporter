@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'Pengeluaran Kas - Edit')
+@section('title', 'Pengeluaran Kas/Bank - Edit')
 
 @section('content')
     @include('pengeluarankas._form')

@@ -127,7 +127,7 @@ class ReportingKasTest extends TestCase
             'fbranchcode' => 'JKT',
         ]);
 
-        // Print Pengeluaran Kas BKK
+        // Print Pengeluaran Kas/Bank BKK
         $response = $this->actingAs($user, 'sysuser')
             ->get(route('reportingkas.pengeluaran.print', [
                 'branch_codes' => ['JKT'],

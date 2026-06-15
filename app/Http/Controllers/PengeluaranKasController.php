@@ -65,7 +65,7 @@ class PengeluaranKasController extends Controller
         return view('pengeluarankas.create', $this->formViewData(new Trkasmt([
             'fkasmtdate' => now()->toDateString(),
         ]), collect(array_map(fn() => new Trkasdt, range(1, 5))), [
-            'pageTitle' => 'Pengeluaran Kas',
+            'pageTitle' => 'Pengeluaran Kas/Bank',
             'formAction' => route('pengeluarankas.store'),
             'formMethod' => 'POST',
             'isReadOnly' => false,
@@ -81,7 +81,7 @@ class PengeluaranKasController extends Controller
         $header = DB::transaction(function () use ($payload, &$savedHeaderId) {
             $now = now();
             $details = $this->normalizeDetails($payload['details']);
-            $totalAmount = $details->sum(fn (array $detail) => (float) $detail['fkasdtvalue']);
+            $totalAmount = $details->sum(fn(array $detail) => (float) $detail['fkasdtvalue']);
             $voucherNoInput = trim((string) ($payload['fkasmtno'] ?? ''));
             $isGiroMundur = ($payload['fgiromundur'] ?? '0') === '1';
 
@@ -145,7 +145,7 @@ class PengeluaranKasController extends Controller
 
         return redirect()
             ->route('pengeluarankas.create')
-            ->with('success', 'Pengeluaran kas '.$header->fkasmtno.' berhasil disimpan.');
+            ->with('success', 'Pengeluaran kas ' . $header->fkasmtno . ' berhasil disimpan.');
     }
 
     public function view($fkasmtno)
@@ -153,7 +153,7 @@ class PengeluaranKasController extends Controller
         $header = $this->findHeader($fkasmtno);
 
         return view('pengeluarankas.view', $this->formViewData($header, $header->details, [
-            'pageTitle' => 'View Pengeluaran Kas',
+            'pageTitle' => 'View Pengeluaran Kas/Bank',
             'isReadOnly' => true,
             'printRoute' => route('pengeluarankas.print', $header->fkasmtno),
         ]));
@@ -172,7 +172,7 @@ class PengeluaranKasController extends Controller
         }
 
         return view('pengeluarankas.edit', $this->formViewData($header, $header->details, [
-            'pageTitle' => 'Edit Pengeluaran Kas',
+            'pageTitle' => 'Edit Pengeluaran Kas/Bank',
             'formAction' => route('pengeluarankas.update', $header->fkasmtno),
             'formMethod' => 'PATCH',
             'isReadOnly' => false,
@@ -192,7 +192,7 @@ class PengeluaranKasController extends Controller
         }
 
         return view('pengeluarankas.delete', $this->formViewData($header, $header->details, [
-            'pageTitle' => 'Hapus Pengeluaran Kas',
+            'pageTitle' => 'Hapus Pengeluaran Kas/Bank',
             'formAction' => route('pengeluarankas.destroy', $header->fkasmtno),
             'formMethod' => 'DELETE',
             'isReadOnly' => true,
@@ -216,7 +216,7 @@ class PengeluaranKasController extends Controller
         DB::transaction(function () use ($payload, $header) {
             $now = now();
             $details = $this->normalizeDetails($payload['details']);
-            $totalAmount = $details->sum(fn (array $detail) => (float) $detail['fkasdtvalue']);
+            $totalAmount = $details->sum(fn(array $detail) => (float) $detail['fkasdtvalue']);
             $isGiroMundur = ($payload['fgiromundur'] ?? '0') === '1';
             $headerAccount = $this->resolveHeaderAccount(
                 $isGiroMundur ? $this->resolveSetAccountCode(self::GIRO_MUNDUR_ACCOUNT_NAME) : ($payload['faccountheader'] ?? null)
@@ -270,7 +270,7 @@ class PengeluaranKasController extends Controller
 
         return redirect()
             ->route('pengeluarankas.edit', ['fkasmtno' => $header->fkasmtno])
-            ->with('success', 'Pengeluaran kas '.$header->fkasmtno.' berhasil diupdate.');
+            ->with('success', 'Pengeluaran kas ' . $header->fkasmtno . ' berhasil diupdate.');
     }
 
     public function destroy($fkasmtno)
@@ -293,12 +293,12 @@ class PengeluaranKasController extends Controller
         if (! request()->expectsJson()) {
             return redirect()
                 ->route('pengeluarankas.index')
-                ->with('success', 'Pengeluaran kas '.$deletedNo.' berhasil dihapus.');
+                ->with('success', 'Pengeluaran kas ' . $deletedNo . ' berhasil dihapus.');
         }
 
         return response()->json([
             'success' => true,
-            'message' => 'Pengeluaran kas '.$deletedNo.' berhasil dihapus.',
+            'message' => 'Pengeluaran kas ' . $deletedNo . ' berhasil dihapus.',
         ]);
     }
 
@@ -327,8 +327,8 @@ class PengeluaranKasController extends Controller
                 'sub.fsubaccountname as subaccount_name',
             ]);
 
-        $totalAmount = (float) $details->sum(fn ($detail) => (float) ($detail->fkasdtvalue ?? 0));
-        $fmt = fn ($date) => $date ? Carbon::parse($date)->translatedFormat('d F Y') : '-';
+        $totalAmount = (float) $details->sum(fn($detail) => (float) ($detail->fkasdtvalue ?? 0));
+        $fmt = fn($date) => $date ? Carbon::parse($date)->translatedFormat('d F Y') : '-';
 
         return view('pengeluarankas.print', [
             'hdr' => $header,
@@ -373,7 +373,7 @@ class PengeluaranKasController extends Controller
         $allowedHeaderAccounts = $this->resolveHeaderAccounts()
             ->pluck('faccount')
             ->filter()
-            ->map(fn ($value) => trim((string) $value))
+            ->map(fn($value) => trim((string) $value))
             ->values()
             ->all();
         $giroAccount = trim((string) $this->resolveSetAccountCode(self::GIRO_MUNDUR_ACCOUNT_NAME));
@@ -440,7 +440,7 @@ class PengeluaranKasController extends Controller
         $validationConfig = $this->resolveJournalAccountValidationConfig();
         $normalizedCodes = collect($details)
             ->pluck('faccount')
-            ->map(fn ($value) => strtoupper(trim((string) $value)))
+            ->map(fn($value) => strtoupper(trim((string) $value)))
             ->filter()
             ->values()
             ->all();
@@ -451,7 +451,7 @@ class PengeluaranKasController extends Controller
             ->where('fnonactive', '0')
             ->whereIn(DB::raw('UPPER(faccount)'), $normalizedCodes)
             ->get()
-            ->keyBy(fn ($account) => strtoupper(trim((string) $account->faccount)));
+            ->keyBy(fn($account) => strtoupper(trim((string) $account->faccount)));
 
         foreach ($details as $index => $detail) {
             $accountCode = strtoupper(trim((string) ($detail['faccount'] ?? '')));
@@ -464,13 +464,13 @@ class PengeluaranKasController extends Controller
 
             if (isset($validationConfig['system'][$accountCode])) {
                 throw ValidationException::withMessages([
-                    "details.$index.faccount" => 'Account '.$validationConfig['system'][$accountCode]['display_name'].' tidak bisa dipakai di transaksi ini.',
+                    "details.$index.faccount" => 'Account ' . $validationConfig['system'][$accountCode]['display_name'] . ' tidak bisa dipakai di transaksi ini.',
                 ]);
             }
 
             if (isset($validationConfig['stock'][$accountCode])) {
                 throw ValidationException::withMessages([
-                    "details.$index.faccount" => 'Account '.$validationConfig['stock'][$accountCode]['display_name'].' sebaiknya diproses lewat Adjustment Stok.',
+                    "details.$index.faccount" => 'Account ' . $validationConfig['stock'][$accountCode]['display_name'] . ' sebaiknya diproses lewat Adjustment Stok.',
                 ]);
             }
 
@@ -571,7 +571,7 @@ class PengeluaranKasController extends Controller
                     'fkasdtvalue' => round((float) ($detail['fkasdtvalue'] ?? 0), 2),
                 ];
             })
-            ->filter(fn (array $detail) => $detail['faccount'] !== '');
+            ->filter(fn(array $detail) => $detail['faccount'] !== '');
     }
 
     private function resolveHeaderAccount(?string $accountCode): ?Account
@@ -604,8 +604,8 @@ class PengeluaranKasController extends Controller
             ->whereIn('faccount_name', $accountNames)
             ->pluck('faccount')
             ->filter()
-            ->map(fn ($value) => trim((string) $value))
-            ->filter(fn ($value) => $value !== '')
+            ->map(fn($value) => trim((string) $value))
+            ->filter(fn($value) => $value !== '')
             ->values()
             ->all();
     }
@@ -615,7 +615,7 @@ class PengeluaranKasController extends Controller
         return DB::table('set_account')
             ->whereIn('faccount_name', $accountNames)
             ->pluck('faccount', 'faccount_name')
-            ->map(fn ($value) => trim((string) $value))
+            ->map(fn($value) => trim((string) $value))
             ->toArray();
     }
 
@@ -631,7 +631,7 @@ class PengeluaranKasController extends Controller
         $accountMetadata = Account::query()
             ->whereIn('faccount', collect($codeMap)->filter()->all())
             ->get(['faccount', 'faccname'])
-            ->keyBy(fn ($account) => strtoupper(trim((string) $account->faccount)));
+            ->keyBy(fn($account) => strtoupper(trim((string) $account->faccount)));
 
         $buildGroup = function (array $names) use ($codeMap, $accountMetadata) {
             $group = [];
@@ -713,7 +713,7 @@ class PengeluaranKasController extends Controller
 
         $lastNumber = DB::table('trkasmt')
             ->where('ftrancode', self::TRAN_CODE)
-            ->where('fkasmtno', 'like', $prefix.'%')
+            ->where('fkasmtno', 'like', $prefix . '%')
             ->selectRaw("
                 MAX(
                     CASE
@@ -725,7 +725,7 @@ class PengeluaranKasController extends Controller
             ")
             ->value('last_no');
 
-        return $prefix.str_pad((string) (((int) $lastNumber) + 1), 4, '0', STR_PAD_LEFT);
+        return $prefix . str_pad((string) (((int) $lastNumber) + 1), 4, '0', STR_PAD_LEFT);
     }
 
     private function resolveBankType(?Account $headerAccount = null): string

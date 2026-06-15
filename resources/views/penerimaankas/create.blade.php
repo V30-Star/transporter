@@ -4,7 +4,7 @@
 
 @section('content')
     @include('pengeluarankas._form', [
-        'transactionLabel' => 'Penerimaan Kas',
+        'transactionLabel' => 'Penerimaan Kas/Bank',
         'backRoute' => route('penerimaankas.index'),
     ])
 @endsection

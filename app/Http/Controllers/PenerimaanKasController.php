@@ -68,7 +68,7 @@ class PenerimaanKasController extends Controller
         return view('penerimaankas.create', $this->formViewData(new Trkasmt([
             'fkasmtdate' => now()->toDateString(),
         ]), collect([new Trkasdt]), [
-            'pageTitle' => 'Penerimaan Kas',
+            'pageTitle' => 'Penerimaan Kas/Bank',
             'formAction' => route('penerimaankas.store'),
             'formMethod' => 'POST',
             'isReadOnly' => false,
@@ -156,7 +156,7 @@ class PenerimaanKasController extends Controller
         $header = $this->findHeader($fkasmtno);
 
         return view('penerimaankas.view', $this->formViewData($header, $header->details, [
-            'pageTitle' => 'View Penerimaan Kas',
+            'pageTitle' => 'View Penerimaan Kas/Bank',
             'isReadOnly' => true,
             'printRoute' => route('penerimaankas.print', $header->fkasmtno),
         ]));
@@ -175,7 +175,7 @@ class PenerimaanKasController extends Controller
         }
 
         return view('penerimaankas.edit', $this->formViewData($header, $header->details, [
-            'pageTitle' => 'Edit Penerimaan Kas',
+            'pageTitle' => 'Edit Penerimaan Kas/Bank',
             'formAction' => route('penerimaankas.update', $header->fkasmtno),
             'formMethod' => 'PATCH',
             'isReadOnly' => false,
@@ -195,7 +195,7 @@ class PenerimaanKasController extends Controller
         }
 
         return view('penerimaankas.delete', $this->formViewData($header, $header->details, [
-            'pageTitle' => 'Hapus Penerimaan Kas',
+            'pageTitle' => 'Hapus Penerimaan Kas/Bank',
             'formAction' => route('penerimaankas.destroy', $header->fkasmtno),
             'formMethod' => 'DELETE',
             'isReadOnly' => true,
@@ -474,13 +474,13 @@ class PenerimaanKasController extends Controller
 
             if (isset($validationConfig['system'][$accountCode])) {
                 throw ValidationException::withMessages([
-                    "details.$index.faccount" => 'Account '.$validationConfig['system'][$accountCode]['display_name'].' tidak bisa dipakai di transaksi ini.',
+                    "details.$index.faccount" => 'Account ' . $validationConfig['system'][$accountCode]['display_name'] . ' tidak bisa dipakai di transaksi ini.',
                 ]);
             }
 
             if (isset($validationConfig['stock'][$accountCode])) {
                 throw ValidationException::withMessages([
-                    "details.$index.faccount" => 'Account '.$validationConfig['stock'][$accountCode]['display_name'].' sebaiknya diproses lewat Adjustment Stok.',
+                    "details.$index.faccount" => 'Account ' . $validationConfig['stock'][$accountCode]['display_name'] . ' sebaiknya diproses lewat Adjustment Stok.',
                 ]);
             }
 

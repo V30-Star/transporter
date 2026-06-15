@@ -1,9 +1,9 @@
 @extends('layouts.app')
 
-@section('title', "Pengeluaran Kas")
+@section('title', 'Pengeluaran Kas/Bank')
 
 @section('content')
-        <div class="bg-white rounded shadow p-4">
+    <div class="bg-white rounded shadow p-4">
         @php
             $availableYears = collect($records ?? [])
                 ->map(function ($record) {
@@ -27,27 +27,26 @@
             <div></div>
             <a href="{{ route('pengeluarankas.create') }}"
                 class="inline-flex items-center bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
-                <x-heroicon-o-plus class="w-4 h-4 mr-1" /> {{ "Tambah Baru" }}
+                <x-heroicon-o-plus class="w-4 h-4 mr-1" /> {{ 'Tambah Baru' }}
             </a>
         </div>
 
         <table id="pengeluaranKasTable" class="min-w-full border text-sm">
             <thead class="bg-gray-100">
                 <tr>
-                    <th class="border px-2 py-2">{{ "Cab." }}</th>
-                    <th class="border px-2 py-2">{{ "Voucher No." }}</th>
-                    <th class="border px-2 py-2">{{ "Tanggal" }}</th>
-                    <th class="border px-2 py-2">{{ "Account" }}</th>
-                    <th class="border px-2 py-2">{{ "No.Giro/Cek" }}</th>
-                    <th class="border px-2 py-2" style="width: 24%; min-width: 16rem;">{{ "Keterangan" }}</th>
-                    <th class="border px-2 py-2 text-right">{{ "Nilai Bayar" }}</th>
-                    <th class="border px-2 py-2 no-sort">{{ "Aksi" }}</th>
+                    <th class="border px-2 py-2">{{ 'Cab.' }}</th>
+                    <th class="border px-2 py-2">{{ 'Voucher No.' }}</th>
+                    <th class="border px-2 py-2">{{ 'Tanggal' }}</th>
+                    <th class="border px-2 py-2">{{ 'Account' }}</th>
+                    <th class="border px-2 py-2">{{ 'No.Giro/Cek' }}</th>
+                    <th class="border px-2 py-2" style="width: 24%; min-width: 16rem;">{{ 'Keterangan' }}</th>
+                    <th class="border px-2 py-2 text-right">{{ 'Nilai Bayar' }}</th>
+                    <th class="border px-2 py-2 no-sort">{{ 'Aksi' }}</th>
                 </tr>
             </thead>
             <tbody>
                 @foreach ($records as $record)
-                    <tr
-                        data-filter-year="{{ \Carbon\Carbon::parse($record->fkasmtdate)->format('Y') }}"
+                    <tr data-filter-year="{{ \Carbon\Carbon::parse($record->fkasmtdate)->format('Y') }}"
                         data-filter-month="{{ (int) \Carbon\Carbon::parse($record->fkasmtdate)->format('n') }}">
                         <td class="border px-2 py-2">{{ $record->fbranchcode }}</td>
                         <td class="border px-2 py-2">{{ $record->fkasmtno }}</td>
@@ -59,24 +58,23 @@
                         <td class="border px-2 py-1" style="width: 24%; min-width: 16rem;">
                             <div class="kas-description-cell">{{ $record->description_summary }}</div>
                         </td>
-                        <td class="border px-2 py-2 text-right">
-                            <div class="inline-flex items-center justify-end gap-2 w-full">
-                                <span>{{ number_format((float) $record->payment_amount, 2, ',', '.') }}</span>
-                            </div>
+                        <td class="border px-2 py-2 text-right whitespace-nowrap"
+                            data-order="{{ (float) $record->payment_amount }}">
+                            {{ number_format((float) $record->payment_amount, 2, ',', '.') }}
                         </td>
                         <td class="border px-2 py-2 text-right whitespace-nowrap">
                             <div class="flex items-center justify-end gap-1.5 flex-nowrap">
                                 <a href="{{ route('pengeluarankas.view', $record->fkasmtno) }}"
                                     class="inline-flex items-center bg-slate-500 text-white px-3 py-1.5 text-xs rounded hover:bg-slate-600">
-                                    <x-heroicon-o-eye class="w-3.5 h-3.5 mr-1" /> {{ "View" }}
+                                    <x-heroicon-o-eye class="w-3.5 h-3.5 mr-1" /> {{ 'View' }}
                                 </a>
                                 <a href="{{ route('pengeluarankas.edit', $record->fkasmtno) }}"
                                     class="inline-flex items-center bg-yellow-500 text-white px-3 py-1.5 text-xs rounded hover:bg-yellow-600">
-                                    <x-heroicon-o-pencil-square class="w-3.5 h-3.5 mr-1" /> {{ "Edit" }}
+                                    <x-heroicon-o-pencil-square class="w-3.5 h-3.5 mr-1" /> {{ 'Edit' }}
                                 </a>
                                 <a href="{{ route('pengeluarankas.delete', $record->fkasmtno) }}"
                                     class="inline-flex items-center bg-red-600 text-white px-3 py-1.5 text-xs rounded hover:bg-red-700">
-                                    <x-heroicon-o-trash class="w-3.5 h-3.5 mr-1" /> {{ "Hapus" }}
+                                    <x-heroicon-o-trash class="w-3.5 h-3.5 mr-1" /> {{ 'Hapus' }}
                                 </a>
                             </div>
                         </td>

@@ -3,7 +3,7 @@
 
 <head>
     <meta charset="utf-8">
-    <title>{{ "Penerimaan Kas" }} - {{ $hdr->fkasmtno ?? '-' }}</title>
+    <title>{{ 'Penerimaan Kas/Bank' }} - {{ $hdr->fkasmtno ?? '-' }}</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <style>
         :root {
@@ -232,8 +232,8 @@
 
 <body>
     <div class="print-hide">
-        <button onclick="window.print()">{{ "Print" }}</button>
-        <button onclick="window.close()">{{ "Tutup" }}</button>
+        <button onclick="window.print()">{{ 'Print' }}</button>
+        <button onclick="window.close()">{{ 'Tutup' }}</button>
     </div>
 
     <div class="sheet">
@@ -243,32 +243,32 @@
                 <div>{{ $company_city ?? 'Tangerang' }}</div>
             </div>
             <div>
-                <div class="doc-title">{{ "Penerimaan Kas" }}</div>
-                <div class="doc-no">{{ "No" }}. {{ $hdr->fkasmtno ?? '-' }}</div>
+                <div class="doc-title">{{ 'Penerimaan Kas/Bank' }}</div>
+                <div class="doc-no">{{ 'No' }}. {{ $hdr->fkasmtno ?? '-' }}</div>
             </div>
         </div>
 
         <div class="info-wrap">
             <div class="party-box">
-                <span class="party-label">{{ "Informasi" }}</span>
-                <div><strong>{{ "Penerima" }}:</strong> {{ $hdr->fwhom ?: '-' }}</div>
-                <div style="margin-top: 4px;"><strong>{{ "Cash / Bank" }}:</strong>
+                <span class="party-label">{{ 'Informasi' }}</span>
+                <div><strong>{{ 'Penerima' }}:</strong> {{ $hdr->fwhom ?: '-' }}</div>
+                <div style="margin-top: 4px;"><strong>{{ 'Cash / Bank' }}:</strong>
                     {{ trim(($hdr->faccountheader ?? '') . ' - ' . ($hdr->header_account_name ?? ''), ' -') ?: '-' }}
                 </div>
-                <div style="margin-top: 4px;"><strong>{{ "Keterangan" }}:</strong> {{ $hdr->fket ?: '-' }}</div>
+                <div style="margin-top: 4px;"><strong>{{ 'Keterangan' }}:</strong> {{ $hdr->fket ?: '-' }}</div>
             </div>
 
             <table class="info-table">
                 <tr>
-                    <td style="width: 40%;"><strong>{{ "Tanggal" }}</strong></td>
+                    <td style="width: 40%;"><strong>{{ 'Tanggal' }}</strong></td>
                     <td>: {{ $fmt($hdr->fkasmtdate ?? null) }}</td>
                 </tr>
                 <tr>
-                    <td><strong>{{ "No.Giro/Cek" }}</strong></td>
+                    <td><strong>{{ 'No.Giro/Cek' }}</strong></td>
                     <td>: {{ $hdr->fnogiro ?: '-' }}</td>
                 </tr>
                 <tr>
-                    <td><strong>{{ "Kode Transaksi" }}</strong></td>
+                    <td><strong>{{ 'Kode Transaksi' }}</strong></td>
                     <td>: {{ $hdr->ftrancode ?: '-' }}</td>
                 </tr>
             </table>
@@ -312,7 +312,7 @@
         <div class="summary">
             <div class="summary-box">
                 <div class="summary-row grand-total">
-                    <span>{{ "Total" }}</span>
+                    <span>{{ 'Total' }}</span>
                     <span>{{ number_format($totalAmount, 2, ',', '.') }}</span>
                 </div>
             </div>
@@ -323,8 +323,8 @@
         <div class="sign-container">
             <table class="sign-table">
                 <tr>
-                    <td>{{ "Dibuat" }}</td>
-                    <td>{{ "Mengetahui" }}</td>
+                    <td>{{ 'Dibuat' }}</td>
+                    <td>{{ 'Mengetahui' }}</td>
                 </tr>
                 <tr>
                     <td class="box-content"></td>
@@ -333,8 +333,8 @@
             </table>
 
             <div class="meta-right">
-                <div>{{ "Dicetak" }}: {{ now()->format('d/m/Y H:i:s') }}</div>
-                <div>{{ "User" }}: {{ auth()->user()->fname ?? auth()->user()->name ?? '-' }}</div>
+                <div>{{ 'Dicetak' }}: {{ now()->format('d/m/Y H:i:s') }}</div>
+                <div>{{ 'User' }}: {{ auth()->user()->fname ?? (auth()->user()->name ?? '-') }}</div>
             </div>
         </div>
     </div>

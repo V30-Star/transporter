@@ -1,0 +1,635 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Laporan Pelunasan Supplier</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            font-size: 10px;
+            color: #000;
+            background-color: #f5f5f5;
+        }
+
+        /* A4 Container (Untuk Tampilan Layar) */
+        .a4-container {
+            width: 210mm;
+            min-height: 297mm;
+            margin: 20px auto;
+            background: white;
+            padding: 15mm;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .header-section {
+            position: relative;
+            margin-bottom: 15px;
+            text-align: center;
+            border-bottom: 2px solid #000;
+            padding-bottom: 10px;
+        }
+
+        .header-section h2 {
+            font-size: 18px;
+            margin-bottom: 8px;
+            font-weight: bold;
+            text-transform: uppercase;
+            color: #c00;
+        }
+
+        .filter-info {
+            font-size: 10px;
+            color: #333;
+            margin-bottom: 5px;
+        }
+
+        /* --- VOUCHER HEADER STYLES (8 Kolom) --- */
+        .voucher-header-labels,
+        .voucher-header {
+            display: grid;
+            grid-template-columns: 24mm 16mm 42mm 24mm 16mm 16mm 22mm 10mm;
+            gap: 3px;
+            font-size: 9px;
+            padding: 8px 5px;
+        }
+
+        .voucher-header-labels {
+            font-weight: bold;
+            background-color: #f0f0f0;
+            border: 1px solid #000;
+            border-bottom: 2px solid #000;
+            margin-bottom: 2px;
+        }
+
+        .voucher-header {
+            font-weight: bold;
+            border-left: 1px solid #ccc;
+            border-right: 1px solid #ccc;
+            background-color: #fff;
+            padding: 6px 5px;
+        }
+
+        /* --- VOUCHER DETAIL STYLES (9 Kolom) --- */
+        .voucher-detail-labels,
+        .voucher-detail {
+            display: grid;
+            grid-template-columns: 4mm 26mm 18mm 24mm 16mm 26mm 14mm 20mm 22mm;
+            gap: 3px;
+            font-size: 8px;
+            padding: 4px 5px;
+        }
+
+        .voucher-detail-labels {
+            font-weight: bold;
+            color: #c00;
+            background-color: #ffe6e6;
+            border: 1px solid #ccc;
+            border-bottom: 1px solid #ccc;
+            margin-top: 2px;
+            padding: 6px 5px;
+        }
+
+        /* Indent untuk kolom pertama pada data detail */
+        .voucher-detail>div:first-child {
+            padding-left: 5mm;
+        }
+
+        .voucher-detail {
+            color: #c00;
+            border-left: 1px solid #ccc;
+            border-right: 1px solid #ccc;
+            background-color: #fff;
+        }
+
+        /* Text alignment untuk header parent */
+        .voucher-header-labels>div:nth-child(5),
+        .voucher-header-labels>div:nth-child(6),
+        .voucher-header-labels>div:nth-child(7),
+        .voucher-header>div:nth-child(5),
+        .voucher-header>div:nth-child(6),
+        .voucher-header>div:nth-child(7) {
+            text-align: right;
+        }
+
+        /* Text alignment untuk detail child */
+        .voucher-detail-labels>div:nth-child(4),
+        .voucher-detail-labels>div:nth-child(5),
+        .voucher-detail-labels>div:nth-child(6),
+        .voucher-detail-labels>div:nth-child(7),
+        .voucher-detail-labels>div:nth-child(8),
+        .voucher-detail-labels>div:nth-child(9),
+        .voucher-detail>div:nth-child(4),
+        .voucher-detail>div:nth-child(5),
+        .voucher-detail>div:nth-child(6),
+        .voucher-detail>div:nth-child(7),
+        .voucher-detail>div:nth-child(8),
+        .voucher-detail>div:nth-child(9) {
+            text-align: right;
+        }
+
+        /* Wrap text untuk kolom yang panjang */
+        .voucher-header>div:nth-child(3),
+        .voucher-detail>div:nth-child(2) {
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+        }
+
+        .separator {
+            border-bottom: 1px solid #ccc;
+            margin: 8px 0;
+            clear: both;
+        }
+
+        /* --- GRAND TOTALS & SUMMARY --- */
+        .grand-total-section {
+            margin-top: 15px;
+            display: flex;
+            justify-content: flex-end;
+            clear: both;
+        }
+
+        .grand-total-summary-box {
+            width: 70mm;
+            border: 1px solid #000;
+            padding: 8px;
+            background-color: #fff;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .grand-total-row {
+            display: flex;
+            justify-content: space-between;
+            font-size: 10px;
+            font-weight: bold;
+        }
+
+        .grand-total-row.highlight {
+            color: #c00;
+            font-size: 11px;
+            border-top: 1px dashed #ccc;
+            padding-top: 4px;
+        }
+
+        .summary-account-section {
+            margin-top: 20px;
+            clear: both;
+        }
+
+        .summary-account-section h3 {
+            font-size: 11px;
+            margin-bottom: 8px;
+            font-weight: bold;
+            color: #000;
+            text-transform: uppercase;
+        }
+
+        .summary-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 9px;
+        }
+
+        .summary-table th,
+        .summary-table td {
+            border: 1px solid #000;
+            padding: 5px;
+            text-align: left;
+        }
+
+        .summary-table th {
+            background-color: #f0f0f0;
+            font-weight: bold;
+        }
+
+        .summary-table td.right,
+        .summary-table th.right {
+            text-align: right;
+        }
+
+        .summary-table td.center,
+        .summary-table th.center {
+            text-align: center;
+        }
+
+        .meta-info-kiri {
+            position: absolute;
+            left: 0;
+            top: 0;
+            text-align: left;
+            font-size: 9px;
+            color: #555;
+            line-height: 1.4;
+        }
+
+        .info-tambahan {
+            position: absolute;
+            right: 0;
+            top: 0;
+            text-align: left;
+            font-size: 9px;
+            color: #555;
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+
+        .row-info {
+            display: flex;
+        }
+
+        .info-label {
+            width: 45px;
+        }
+
+        .info-separator {
+            width: 10px;
+            text-align: center;
+        }
+
+        .no-data {
+            text-align: center;
+            font-size: 14px;
+            font-weight: bold;
+            color: #999;
+            margin-top: 50px;
+        }
+
+        /* --- ZOOM & CONTROLS --- */
+        .no-print {
+            background: #fff;
+            padding: 10px;
+            border-bottom: 1px solid #ddd;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        .print-button {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            font-size: 12px;
+            font-weight: bold;
+            cursor: pointer;
+            border-radius: 4px;
+            transition: background 0.3s;
+        }
+
+        .print-button:hover {
+            background-color: #45a049;
+        }
+
+        .excel-button {
+            background-color: #217346;
+            color: white;
+            text-decoration: none;
+            padding: 8px 16px;
+            font-size: 12px;
+            font-weight: bold;
+            cursor: pointer;
+            border-radius: 4px;
+            transition: background 0.3s;
+        }
+
+        .excel-button:hover {
+            background-color: #1e663e;
+        }
+
+        .zoom-controls {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .zoom-btn {
+            background: #e0e0e0;
+            border: 1px solid #ccc;
+            padding: 4px 8px;
+            cursor: pointer;
+            border-radius: 4px;
+            font-size: 12px;
+        }
+
+        .zoom-btn:hover {
+            background: #d0d0d0;
+        }
+
+        .zoom-level {
+            font-size: 12px;
+            font-weight: bold;
+            min-width: 40px;
+            text-align: center;
+        }
+
+        .report-wrapper {
+            margin-top: 60px;
+            transform-origin: top center;
+            transition: transform 0.2s ease-in-out;
+        }
+
+        @media print {
+            .no-print {
+                display: none !important;
+            }
+
+            .report-wrapper {
+                transform: none !important;
+                margin-top: 0 !important;
+            }
+
+            body {
+                background: #fff;
+            }
+
+            .a4-container {
+                margin: 0;
+                box-shadow: none;
+                padding: 10mm;
+                page-break-after: always;
+                width: 100%;
+                min-height: auto;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="no-print">
+        <button class="print-button" onclick="window.print()">🖨️ Cetak Laporan</button>
+        <a href="{{ route('reportingpelunasansupplier.exportExcel', request()->query()) }}" class="excel-button">
+            📊 Download Excel
+        </a>
+        <div class="zoom-controls">
+            <button class="zoom-btn" onclick="zoomOut()">➖</button>
+            <span class="zoom-level" id="zoomLevel">100%</span>
+            <button class="zoom-btn" onclick="zoomIn()">➕</button>
+            <button class="zoom-btn" onclick="resetZoom()">↺</button>
+        </div>
+    </div>
+
+    <div class="report-wrapper" id="reportWrapper">
+        @if ($chunkedData->isEmpty())
+            {{-- Jika tidak ada data --}}
+            <div class="a4-container">
+                <div class="header-section">
+                    <div class="meta-info-kiri">
+                        Account: {{ $filters['account_no'] !== '' ? $filters['account_no'] : 'Semua' }}<br>
+                        Supplier: {{ $filters['customer_from'] ?: 'Awal' }} s/d {{ $filters['customer_to'] ?: 'Akhir' }}
+                    </div>
+                    <h2>Laporan Pelunasan Supplier</h2>
+                    <div class="info-tambahan">
+                        <div>
+                            <span class="info-label">Tanggal:</span>
+                            {{ \Carbon\Carbon::now()->setTimezone('Asia/Jakarta')->format('d/m/Y') }}
+                        </div>
+                        <div>
+                            <span class="info-label">Jam:</span>
+                            {{ \Carbon\Carbon::now()->setTimezone('Asia/Jakarta')->format('H:i') }}
+                        </div>
+                        <div>
+                            <span class="info-label">Hal:</span> 1 / 1
+                        </div>
+                        <div>
+                            <span class="info-label">Opr:</span>
+                            {{ $user_session->fname ?? 'Guest' }}
+                        </div>
+                    </div>
+                </div>
+                <div class="no-data">
+                    Tidak ada data pelunasan supplier yang ditemukan.
+                </div>
+            </div>
+        @else
+            {{-- Loop setiap chunk = 1 halaman kertas --}}
+            @foreach ($chunkedData as $pageIndex => $pageData)
+                <div class="a4-container">
+                    <div class="header-section">
+                        <h2>Laporan Pelunasan Supplier</h2>
+                        @if ($filters['date_from'] || $filters['date_to'])
+                            <div class="filter-info">
+                                Periode:
+                                @if ($filters['date_from'])
+                                    Dari {{ \Carbon\Carbon::parse($filters['date_from'])->format('d/m/Y') }}
+                                @endif
+                                @if ($filters['date_to'])
+                                    s/d {{ \Carbon\Carbon::parse($filters['date_to'])->format('d/m/Y') }}
+                                @endif
+                            </div>
+                        @endif
+                        <div class="info-tambahan">
+                            <div class="row-info">
+                                <span class="info-label">Tanggal</span>
+                                <span class="info-separator">:</span>
+                                <span>{{ \Carbon\Carbon::now()->setTimezone('Asia/Jakarta')->format('d/m/Y') }}</span>
+                            </div>
+                            <div class="row-info">
+                                <span class="info-label">Jam</span>
+                                <span class="info-separator">:</span>
+                                <span>{{ \Carbon\Carbon::now()->setTimezone('Asia/Jakarta')->format('H:i') }}</span>
+                            </div>
+                            <div class="row-info">
+                                <span class="info-label">Hal</span>
+                                <span class="info-separator">:</span>
+                                <span>{{ $pageIndex + 1 }} / {{ $totalPages }}</span>
+                            </div>
+                            <div class="row-info">
+                                <span class="info-label">Opr</span>
+                                <span class="info-separator">:</span>
+                                <span>{{ $user_session->fname ?? 'Guest' }}</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    {{-- Parent Header Labels --}}
+                    <div class="voucher-header-labels">
+                        <div>No. Voucher</div>
+                        <div>Tanggal</div>
+                        <div>Nama Supplier</div>
+                        <div>Account</div>
+                        <div class="text-right">By.Bank(-/+)</div>
+                        <div class="text-right">Adjust(-/+)</div>
+                        <div class="text-right">Total Bayar</div>
+                        <div>Salesman</div>
+                    </div>
+
+                    {{-- Child Detail Labels --}}
+                    <div class="voucher-detail-labels">
+                        <div></div> {{-- Spacer --}}
+                        <div>No. Ref / Faktur</div>
+                        <div>Tgl. Ref</div>
+                        <div class="text-right">Nilai Faktur</div>
+                        <div class="text-right">Total Qty</div>
+                        <div class="text-right">Sisa Hutang</div>
+                        <div class="text-right">Disc%</div>
+                        <div class="text-right">Discount</div>
+                        <div class="text-right">Nilai Bayar</div>
+                    </div>
+
+                    @foreach ($pageData as $voucherNo => $voucherRecords)
+                        @php
+                            $first = $voucherRecords->first();
+                            $adminFee = (float) ($first->fadminbank ?? 0);
+                            $adjustment = (float) ($first->fadjustment ?? 0);
+                            $totalVoucherPayment = (float) $voucherRecords->sum('fkasdtvalue');
+                        @endphp
+
+                        {{-- Parent row --}}
+                        <div class="voucher-header">
+                            <div>{{ $voucherNo }}</div>
+                            <div>{{ $first->fkasmtdate ? \Carbon\Carbon::parse($first->fkasmtdate)->format('d/m/Y') : '' }}</div>
+                            <div>{{ ($first->fcustomer ? $first->fcustomer . ' - ' : '') . $first->fcustname }}</div>
+                            <div>{{ $first->account }}</div>
+                            <div class="text-right">{{ number_format($adminFee, 2, ',', '.') }}</div>
+                            <div class="text-right">{{ number_format($adjustment, 2, ',', '.') }}</div>
+                            <div class="text-right">{{ number_format($totalVoucherPayment, 2, ',', '.') }}</div>
+                            <div>{{ $first->fsalesman ?: '-' }}</div>
+                        </div>
+
+                        {{-- Child details list --}}
+                        @foreach ($voucherRecords as $record)
+                            <div class="voucher-detail">
+                                <div></div> {{-- Spacer --}}
+                                <div>{{ $record->frefno }}</div>
+                                <div>{{ $record->fdate_ref ? \Carbon\Carbon::parse($record->fdate_ref)->format('d/m/Y') : '' }}</div>
+                                <div class="text-right">{{ number_format((float) $record->fnetnota, 2, ',', '.') }}</div>
+                                <div class="text-right">{{ number_format((float) $record->fqty, 2, ',', '.') }}</div>
+                                <div class="text-right">{{ number_format((float) $record->famountremain, 2, ',', '.') }}</div>
+                                <div class="text-right">
+                                    @if (is_numeric($record->fdiscpersen))
+                                        {{ (float)$record->fdiscpersen == (int)$record->fdiscpersen ? (int)$record->fdiscpersen : number_format((float)$record->fdiscpersen, 2, ',', '.') }}%
+                                    @else
+                                        {{ $record->fdiscpersen ?? '0' }}%
+                                    @endif
+                                </div>
+                                <div class="text-right">{{ number_format((float) $record->fdiscount, 2, ',', '.') }}</div>
+                                <div class="text-right">{{ number_format((float) $record->fkasdtvalue, 2, ',', '.') }}</div>
+                            </div>
+                        @endforeach
+
+                        {{-- Separator jika bukan data terakhir di halaman --}}
+                        @if (!$loop->last)
+                            <div class="separator"></div>
+                        @endif
+                    @endforeach
+
+                    {{-- Grand Total & Account summary on the very last page --}}
+                    @if ($loop->last)
+                        <div class="grand-total-section">
+                            <div class="grand-total-summary-box">
+                                <div class="grand-total-row">
+                                    <span>Total By.Bank :</span>
+                                    <span>{{ number_format($grandTotal['admin'], 2, ',', '.') }}</span>
+                                </div>
+                                <div class="grand-total-row">
+                                    <span>Total Adjust :</span>
+                                    <span>{{ number_format($grandTotal['adjustment'], 2, ',', '.') }}</span>
+                                </div>
+                                <div class="grand-total-row highlight">
+                                    <span>Total Pelunasan :</span>
+                                    <span>{{ number_format($grandTotal['bayar'], 2, ',', '.') }}</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        {{-- Account Summary Table --}}
+                        <div class="summary-account-section">
+                            <h3>Summary Account</h3>
+                            <table class="summary-table">
+                                <thead>
+                                    <tr>
+                                        <th>No Account</th>
+                                        <th>Account</th>
+                                        <th class="center">Giro Mundur</th>
+                                        <th class="right">Total Bayar</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @forelse ($summaryRows as $row)
+                                        <tr>
+                                            <td>{{ $row->faccountno }}</td>
+                                            <td>{{ $row->faccname }}</td>
+                                            <td class="center">{{ $row->fgiromundur === '1' ? 'Ya' : 'Tidak' }}</td>
+                                            <td class="right">{{ number_format((float) $row->famountpay, 2, ',', '.') }}</td>
+                                        </tr>
+                                    @empty
+                                        <tr>
+                                            <td colspan="4" class="center">Tidak ada data.</td>
+                                        </tr>
+                                    @endforelse
+                                </tbody>
+                            </table>
+                        </div>
+                    @endif
+                </div>
+            @endforeach
+        @endif
+    </div>
+
+    <script>
+        // Zoom functionality
+        let currentZoom = 100;
+        const minZoom = 50;
+        const maxZoom = 150;
+        const zoomStep = 10;
+
+        function updateZoom() {
+            const wrapper = document.getElementById('reportWrapper');
+            const zoomLabel = document.getElementById('zoomLevel');
+            wrapper.style.transform = `scale(${currentZoom / 100})`;
+            zoomLabel.textContent = currentZoom + '%';
+        }
+
+        function zoomIn() {
+            if (currentZoom < maxZoom) {
+                currentZoom += zoomStep;
+                updateZoom();
+            }
+        }
+
+        function zoomOut() {
+            if (currentZoom > minZoom) {
+                currentZoom -= zoomStep;
+                updateZoom();
+            }
+        }
+
+        function resetZoom() {
+            currentZoom = 100;
+            updateZoom();
+        }
+
+        // Keyboard shortcuts: Ctrl + Plus/Minus/Zero
+        document.addEventListener('keydown', function(e) {
+            if (e.ctrlKey && (e.key === '=' || e.key === '+')) {
+                e.preventDefault();
+                zoomIn();
+            } else if (e.ctrlKey && e.key === '-') {
+                e.preventDefault();
+                zoomOut();
+            } else if (e.ctrlKey && e.key === '0') {
+                e.preventDefault();
+                resetZoom();
+            }
+        });
+    </script>
+</body>
+
+</html>

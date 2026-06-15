@@ -46,7 +46,7 @@ class ReportingKasController extends Controller
         $userBranchCode = $this->getCurrentBranchCode();
 
         return view('reportingkas.index', [
-            'pageTitle' => $tranCode === 'BKK' ? 'Laporan Pengeluaran Kas' : 'Laporan Penerimaan Kas',
+            'pageTitle' => $tranCode === 'BKK' ? 'Laporan Pengeluaran Kas/Bank' : 'Laporan Penerimaan Kas/Bank',
             'printRoute' => $tranCode === 'BKK'
                 ? route('reportingkas.pengeluaran.print')
                 : route('reportingkas.penerimaan.print'),
@@ -128,10 +128,10 @@ class ReportingKasController extends Controller
                 ->value('faccname');
         }
 
-        $grandTotal = (float) $records->sum(fn ($row) => (float) ($row->famountpay ?? 0));
+        $grandTotal = (float) $records->sum(fn($row) => (float) ($row->famountpay ?? 0));
 
         return view('reportingkas.print', [
-            'pageTitle' => $tranCode === 'BKK' ? 'Laporan Pengeluaran Kas' : 'Laporan Penerimaan Kas',
+            'pageTitle' => $tranCode === 'BKK' ? 'Laporan Pengeluaran Kas/Bank' : 'Laporan Penerimaan Kas/Bank',
             'records' => $records,
             'detailsByHeader' => $detailsByHeader,
             'filterDateFrom' => $filterDateFrom,

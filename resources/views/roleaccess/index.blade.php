@@ -10,9 +10,10 @@
             <form action="{{ route('roleaccess.store') }}" method="POST">
                 @csrf <!-- CSRF Token for security -->
                 @php
-                    $selectedPermissions = isset($roleAccess) && filled($roleAccess->fpermission)
-                        ? array_filter(array_map('trim', explode(',', $roleAccess->fpermission)))
-                        : [];
+                    $selectedPermissions =
+                        isset($roleAccess) && filled($roleAccess->fpermission)
+                            ? array_filter(array_map('trim', explode(',', $roleAccess->fpermission)))
+                            : [];
                 @endphp
 
                 <!-- Display fsysuserid (readonly) -->
@@ -595,7 +596,7 @@
                             </tr>
 
                             <tr class="bg-gray-50">
-                                <td class="px-3 py-2 font-semibold">Pengeluaran Kas</td>
+                                <td class="px-3 py-2 font-semibold">Pengeluaran Kas/Bank</td>
                                 <td class="text-center text-gray-400">-</td>
                                 <td class="text-center">
                                     <input type="checkbox" name="permission[]" value="createPengeluaranKas"
@@ -612,7 +613,7 @@
                             </tr>
 
                             <tr>
-                                <td class="px-3 py-2 font-semibold">Penerimaan Kas</td>
+                                <td class="px-3 py-2 font-semibold">Penerimaan Kas/Bank</td>
                                 <td class="text-center text-gray-400">-</td>
                                 <td class="text-center">
                                     <input type="checkbox" name="permission[]" value="createPenerimaanKas"
@@ -633,6 +634,22 @@
                                 <td class="text-center" colspan="4">
                                     <input type="checkbox" name="permission[]" value="roleaccess"
                                         {{ isset($roleAccess) && in_array('roleaccess', explode(',', $roleAccess->fpermission)) ? 'checked' : '' }}>
+                                </td>
+                            </tr>
+
+                            <tr>
+                                <td class="px-3 py-2 font-semibold">ViewReportingPelunasanCustomer</td>
+                                <td class="text-center" colspan="4">
+                                    <input type="checkbox" name="permission[]" value="viewreportingpelunasancustomer"
+                                        {{ isset($roleAccess) && in_array('viewreportingpelunasancustomer', explode(',', $roleAccess->fpermission)) ? 'checked' : '' }}>
+                                </td>
+                            </tr>
+
+                            <tr>
+                                <td class="px-3 py-2 font-semibold">ViewReportingPelunasanSupplier</td>
+                                <td class="text-center" colspan="4">
+                                    <input type="checkbox" name="permission[]" value="viewreportingpelunasansupplier"
+                                        {{ isset($roleAccess) && in_array('viewreportingpelunasansupplier', explode(',', $roleAccess->fpermission)) ? 'checked' : '' }}>
                                 </td>
                             </tr>
 

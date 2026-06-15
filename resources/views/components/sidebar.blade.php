@@ -573,7 +573,7 @@
                             <a href="{{ route('pengeluarankas.index') }}"
                                 class="flex items-center p-2 rounded hover:bg-gray-700">
                                 <x-heroicon-o-banknotes class="w-5 h-5" />
-                                <span class="ml-3">{{ 'Pengeluaran Kas' }}</span>
+                                <span class="ml-3">{{ 'Pengeluaran Kas/Bank/Bank' }}</span>
                             </a>
                         </li>
                     @endif
@@ -582,7 +582,7 @@
                             <a href="{{ route('penerimaankas.index') }}"
                                 class="flex items-center p-2 rounded hover:bg-gray-700">
                                 <x-heroicon-o-banknotes class="w-5 h-5" />
-                                <span class="ml-3">{{ 'Penerimaan Kas' }}</span>
+                                <span class="ml-3">{{ 'Penerimaan Kas/Bank/Bank' }}</span>
                             </a>
                         </li>
                         <li>
@@ -900,7 +900,7 @@
                             <a href="{{ route('reportingkas.pengeluaran.index') }}"
                                 class="flex items-center p-2 rounded hover:bg-gray-700">
                                 <x-heroicon-o-banknotes class="w-5 h-5" />
-                                <span class="ml-3">{{ 'Laporan Pengeluaran Kas' }}</span>
+                                <span class="ml-3">{{ 'Laporan Pengeluaran Kas/Bank/Bank' }}</span>
                             </a>
                         </li>
                     @endif
@@ -910,7 +910,7 @@
                             <a href="{{ route('reportingkas.penerimaan.index') }}"
                                 class="flex items-center p-2 rounded hover:bg-gray-700">
                                 <x-heroicon-o-banknotes class="w-5 h-5" />
-                                <span class="ml-3">{{ 'Laporan Penerimaan Kas' }}</span>
+                                <span class="ml-3">{{ 'Laporan Penerimaan Kas/Bank/Bank' }}</span>
                             </a>
                         </li>
                     @endif
@@ -936,12 +936,21 @@
                 <ul x-show="open && openSidebar" x-transition
                     class="ml-9 mt-1 space-y-1 border-l border-white/10 pl-3" x-cloak>
 
-                    @if ($hasSidebarPermission('createPenerimaanKas', 'updatePenerimaanKas', 'deletePenerimaanKas'))
+                    @if ($hasSidebarPermission('viewreportingpelunasancustomer'))
                         <li>
                             <a href="{{ route('reportingpelunasancustomer.index') }}"
                                 class="flex items-center p-2 rounded hover:bg-gray-700">
                                 <x-heroicon-o-banknotes class="w-5 h-5" />
                                 <span class="ml-3">{{ 'Laporan Pelunasan Customer' }}</span>
+                            </a>
+                        </li>
+                    @endif
+                    @if ($hasSidebarPermission('viewreportingpelunasansupplier'))
+                        <li>
+                            <a href="{{ route('reportingpelunasansupplier.index') }}"
+                                class="flex items-center p-2 rounded hover:bg-gray-700">
+                                <x-heroicon-o-banknotes class="w-5 h-5" />
+                                <span class="ml-3">{{ 'Laporan Pelunasan Supplier' }}</span>
                             </a>
                         </li>
                     @endif

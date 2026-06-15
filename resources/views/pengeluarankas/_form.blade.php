@@ -5,7 +5,7 @@
     $isEditMode = strtoupper($formMethod) === 'PATCH';
     $isDeleteMode = strtoupper($formMethod) === 'DELETE';
     $submitLabel = $isEditMode ? 'Update' : 'Simpan';
-    $transactionLabel = $transactionLabel ?? 'Pengeluaran Kas';
+    $transactionLabel = $transactionLabel ?? 'Pengeluaran Kas/Bank';
     $backRoute = $backRoute ?? route('pengeluarankas.index');
     $detailsOld = old('details');
     $detailRows = is_array($detailsOld) ? collect($detailsOld)->map(fn($row) => (object) $row) : $details;
@@ -22,8 +22,7 @@
     $supplierOptions = collect($suppliers ?? []);
     $branchOptions = collect($branches ?? []);
     $resolvedBranchCode = (string) old('fbranchcode', $pengeluaranKas->fbranchcode ?? ($currentBranchCode ?? ''));
-    $resolvedBranchLabel = $branchOptions
-        ->firstWhere('fcabangkode', $resolvedBranchCode);
+    $resolvedBranchLabel = $branchOptions->firstWhere('fcabangkode', $resolvedBranchCode);
     $resolvedBranchLabel = $resolvedBranchLabel
         ? trim($resolvedBranchLabel->fcabangkode . ' - ' . $resolvedBranchLabel->fcabangname)
         : $resolvedBranchCode;
@@ -61,7 +60,7 @@
     $selectedHeaderLabel = $selectedHeaderLabel
         ? trim($selectedHeaderLabel->faccount . ' - ' . $selectedHeaderLabel->faccname)
         : (string) $selectedHeader;
-    $isPenerimaanKasForm = ($transactionLabel ?? 'Pengeluaran Kas') === 'Penerimaan Kas';
+    $isPenerimaanKasForm = ($transactionLabel ?? 'Pengeluaran Kas/Bank') === 'Penerimaan Kas/Bank';
     $resolveDetailDkLabel = function ($amount) use ($isPenerimaanKasForm) {
         $numericAmount = (float) ($amount ?? 0);
 
@@ -110,8 +109,7 @@
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
                 <label class="block text-sm font-medium mb-1">{{ 'Cabang' }}</label>
-                <input type="text"
-                    value="{{ $resolvedBranchLabel }}"
+                <input type="text" value="{{ $resolvedBranchLabel }}"
                     class="w-full border rounded px-3 py-2 bg-gray-100 cursor-not-allowed" readonly>
                 <input type="hidden" name="fbranchcode" value="{{ $resolvedBranchCode }}">
                 @error('fbranchcode')
@@ -289,14 +287,16 @@
                                         $detailAccountName = $detailAccount
                                             ? trim($detailAccount->faccname)
                                             : (string) ($detail->account_name ?? '');
-                                        $detailHasSubaccount = (string) ($detailAccount->fhavesubaccount ?? '0') === '1';
-                                        $detailSubaccountType = $normalizeSubaccountType($detailAccount->ftypesubaccount ?? 'S');
+                                        $detailHasSubaccount =
+                                            (string) ($detailAccount->fhavesubaccount ?? '0') === '1';
+                                        $detailSubaccountType = $normalizeSubaccountType(
+                                            $detailAccount->ftypesubaccount ?? 'S',
+                                        );
                                     @endphp
                                     @if ($isReadOnly)
                                         <input type="text" value="{{ $detailAccountCode }}"
                                             class="w-full border rounded px-1.5 py-1 bg-gray-100 cursor-text select-all"
-                                            @focus="$event.target.select()" @click="$event.target.select()"
-                                            readonly>
+                                            @focus="$event.target.select()" @click="$event.target.select()" readonly>
                                         <input type="hidden" name="details[{{ $index }}][faccount]"
                                             value="{{ $detailAccountCode }}">
                                     @else
@@ -305,8 +305,8 @@
                                                 <input type="text"
                                                     class="detail-account-code w-full border rounded px-1.5 py-1 bg-white cursor-text select-all"
                                                     name="details[{{ $index }}][faccount]"
-                                                    value="{{ $detailAccountCode }}"
-                                                    @focus="$event.target.select()" @click="$event.target.select()"
+                                                    value="{{ $detailAccountCode }}" @focus="$event.target.select()"
+                                                    @click="$event.target.select()"
                                                     @input="handleAccountCodeInput($event)"
                                                     @blur="handleAccountCodeBlur($event)"
                                                     data-role="account-code-display">
@@ -341,17 +341,35 @@
                                             'fsubaccountcode',
                                             $detailSubaccountCode,
                                         );
-                                        $detailCustomer = $customerOptions->firstWhere('fcustomercode', $detailSubaccountCode);
-                                        $detailSupplier = $supplierOptions->firstWhere('fsuppliercode', $detailSubaccountCode);
+                                        $detailCustomer = $customerOptions->firstWhere(
+                                            'fcustomercode',
+                                            $detailSubaccountCode,
+                                        );
+                                        $detailSupplier = $supplierOptions->firstWhere(
+                                            'fsuppliercode',
+                                            $detailSubaccountCode,
+                                        );
                                         $detailSubaccountLabel = match ($detailSubaccountType) {
                                             'C' => $detailCustomer
-                                                ? trim($detailCustomer->fcustomercode . ' - ' . $detailCustomer->fcustomername)
+                                                ? trim(
+                                                    $detailCustomer->fcustomercode .
+                                                        ' - ' .
+                                                        $detailCustomer->fcustomername,
+                                                )
                                                 : $detailSubaccountCode,
                                             'P' => $detailSupplier
-                                                ? trim($detailSupplier->fsuppliercode . ' - ' . $detailSupplier->fsuppliername)
+                                                ? trim(
+                                                    $detailSupplier->fsuppliercode .
+                                                        ' - ' .
+                                                        $detailSupplier->fsuppliername,
+                                                )
                                                 : $detailSubaccountCode,
                                             default => $detailSubaccount
-                                                ? trim($detailSubaccount->fsubaccountcode . ' - ' . $detailSubaccount->fsubaccountname)
+                                                ? trim(
+                                                    $detailSubaccount->fsubaccountcode .
+                                                        ' - ' .
+                                                        $detailSubaccount->fsubaccountname,
+                                                )
                                                 : $detailSubaccountCode,
                                         };
                                     @endphp
@@ -399,10 +417,13 @@
                                         <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                                     @enderror
                                 </td>
-                               
+
                                 <td class="border px-1.5 py-1 align-top">
                                     @php
-                                        $detailAmountValue = old("details.$index.fkasdtvalue", $detail->fkasdtvalue ?? '');
+                                        $detailAmountValue = old(
+                                            "details.$index.fkasdtvalue",
+                                            $detail->fkasdtvalue ?? '',
+                                        );
                                     @endphp
                                     @if ($isReadOnly)
                                         <input type="text"
@@ -518,7 +539,7 @@
                         if (rows.length === 0) return;
 
                         const lastRow = rows[rows.length - 1];
-                        
+
                         const accountVal = lastRow.querySelector('input[name$="[faccount]"]')?.value || '';
                         const noteVal = lastRow.querySelector('textarea[name$="[fnote]"]')?.value || '';
                         const amountVal = lastRow.querySelector('input[name$="[fkasdtvalue]"]')?.value || '';
@@ -544,7 +565,8 @@
                             const name = (event.detail?.faccname || '').toString().trim();
                             const hasSubaccount = String(event.detail?.fhavesubaccount ?? '0') === '1';
                             const subaccountType = this.normalizeSubaccountType(event.detail?.ftypesubaccount);
-                            this.applyAccountLookupValue(this.activeLookupRow, code, name, hasSubaccount, subaccountType);
+                            this.applyAccountLookupValue(this.activeLookupRow, code, name, hasSubaccount,
+                                subaccountType);
                         });
 
                         window.addEventListener('subaccount-picked', (event) => {
@@ -556,7 +578,7 @@
                             const code = (event.detail?.fsubaccountcode || '').toString().trim();
                             const name = (event.detail?.fsubaccountname || '').toString().trim();
                             this.applyLookupValue(activeRow, 'fsubaccount', 'subaccount-display', code,
-                                  code && name ? `${code} - ${name}` : code);
+                                code && name ? `${code} - ${name}` : code);
                             if (activeRow) {
                                 const result = this.validateJournalRow(activeRow);
                                 if (result.status === 'ERROR') {
@@ -713,10 +735,12 @@
                         }
 
                         const focusTarget = {
-                            faccount: row.querySelector('[data-role="account-code-display"]') || row.querySelector('button[title="Cari Account"]'),
-                            fsubaccount: row.querySelector('.detail-subaccount-btn') || row.querySelector('[data-role="subaccount-display"]'),
+                            faccount: row.querySelector('[data-role="account-code-display"]') || row.querySelector(
+                                'button[title="Cari Account"]'),
+                            fsubaccount: row.querySelector('.detail-subaccount-btn') || row.querySelector(
+                                '[data-role="subaccount-display"]'),
                             frefno: row.querySelector('[data-role="detail-reference-input"]'),
-                        }[focusField];
+                        } [focusField];
 
                         focusTarget?.focus?.();
                     },
@@ -739,7 +763,8 @@
                     validateJournalRow(row) {
                         const accountCode = this.normalizeAccountCode(row?.querySelector('input[name$="[faccount]"]')?.value);
                         const referenceNo = (row?.querySelector('input[name$="[frefno]"]')?.value || '').toString().trim();
-                        const subaccountCode = (row?.querySelector('input[name$="[fsubaccount]"]')?.value || '').toString().trim();
+                        const subaccountCode = (row?.querySelector('input[name$="[fsubaccount]"]')?.value || '').toString()
+                            .trim();
 
                         if (accountCode === '') {
                             return {
@@ -792,7 +817,8 @@
 
                         if (String(accountMeta.fhavesubaccount || '0') === '1' && subaccountCode === '') {
                             const subaccountType = this.getRowSubaccountType(row);
-                            const subaccountLabel = subaccountType === 'C' ? 'Customer' : (subaccountType === 'P' ? 'Supplier' : 'Sub-Account');
+                            const subaccountLabel = subaccountType === 'C' ? 'Customer' : (subaccountType === 'P' ? 'Supplier' :
+                                'Sub-Account');
 
                             return {
                                 status: 'ERROR',
@@ -950,13 +976,15 @@
 
                         if (browseButton) {
                             browseButton.disabled = !enabled;
-                            browseButton.title = type === 'C' ? 'Cari Customer' : (type === 'P' ? 'Cari Supplier' : 'Cari Sub Account');
+                            browseButton.title = type === 'C' ? 'Cari Customer' : (type === 'P' ? 'Cari Supplier' :
+                                'Cari Sub Account');
                             browseButton.classList.toggle('opacity-50', !enabled);
                             browseButton.classList.toggle('cursor-not-allowed', !enabled);
                         }
 
                         if (displayField && !displayField.value) {
-                            displayField.placeholder = type === 'C' ? 'Pilih Customer' : (type === 'P' ? 'Pilih Supplier' : 'Pilih Sub Account');
+                            displayField.placeholder = type === 'C' ? 'Pilih Customer' : (type === 'P' ? 'Pilih Supplier' :
+                                'Pilih Sub Account');
                         }
 
                         if (hint) {
@@ -1048,9 +1076,9 @@
                         dkBadge.textContent = dkValue;
                         dkBadge.classList.remove('border-blue-200', 'bg-blue-50', 'text-blue-700', 'border-amber-200',
                             'bg-amber-50', 'text-amber-700');
-                        dkBadge.classList.add(...(dkValue === 'D'
-                            ? ['border-blue-200', 'bg-blue-50', 'text-blue-700']
-                            : ['border-amber-200', 'bg-amber-50', 'text-amber-700']));
+                        dkBadge.classList.add(...(dkValue === 'D' ? ['border-blue-200', 'bg-blue-50', 'text-blue-700'] : [
+                            'border-amber-200', 'bg-amber-50', 'text-amber-700'
+                        ]));
                     },
 
 
@@ -1151,15 +1179,15 @@
                         if (amountField && dkBadge) {
                             const isPenerimaanKasForm = @json($isPenerimaanKasForm);
                             const numericAmount = parseFloat(amountField.value || 0) || 0;
-                            const dkValue = isPenerimaanKasForm
-                                ? (numericAmount >= 0 ? 'K' : 'D')
-                                : (numericAmount >= 0 ? 'D' : 'K');
+                            const dkValue = isPenerimaanKasForm ?
+                                (numericAmount >= 0 ? 'K' : 'D') :
+                                (numericAmount >= 0 ? 'D' : 'K');
                             dkBadge.textContent = dkValue;
                             dkBadge.classList.remove('border-blue-200', 'bg-blue-50', 'text-blue-700',
                                 'border-amber-200', 'bg-amber-50', 'text-amber-700');
-                            dkBadge.classList.add(...(dkValue === 'D'
-                                ? ['border-blue-200', 'bg-blue-50', 'text-blue-700']
-                                : ['border-amber-200', 'bg-amber-50', 'text-amber-700']));
+                            dkBadge.classList.add(...(dkValue === 'D' ? ['border-blue-200', 'bg-blue-50',
+                                'text-blue-700'
+                            ] : ['border-amber-200', 'bg-amber-50', 'text-amber-700']));
                         }
                     });
                 }
