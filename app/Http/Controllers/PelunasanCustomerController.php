@@ -424,7 +424,6 @@ class PelunasanCustomerController extends Controller
                     'fkasmtno' => $voucherNo,
                     'ftrancode' => self::TRAN_CODE,
                     'faccount' => $entry['faccount'] ?? $entry['account']->faccount,
-                    'faccountid' => $entry['faccountid'] ?? $entry['account']->faccid,
                     'fdk' => $entry['fdk'],
                     'frefno' => $entry['frefno'],
                     'fnote' => $entry['fnote'],
@@ -616,7 +615,6 @@ class PelunasanCustomerController extends Controller
                     'fkasmtno' => $voucherNo,
                     'ftrancode' => self::TRAN_CODE,
                     'faccount' => $entry['faccount'] ?? $entry['account']->faccount,
-                    'faccountid' => $entry['faccountid'] ?? $entry['account']->faccid,
                     'fdk' => $entry['fdk'],
                     'frefno' => $entry['frefno'],
                     'fnote' => $entry['fnote'],
@@ -750,12 +748,10 @@ class PelunasanCustomerController extends Controller
                 ? $paymentAmount
                 : round($paymentAmount + $discountAmount, 2);
             $faccountCode = $trCode === 'REJ' ? $returnReceivableCode : $receivableCode;
-            $faccountId = $trCode === 'REJ' ? ($returnReceivableAccount?->faccid ?? null) : ($receivableAccount?->faccid ?? null);
             $note = mb_substr($refNo . ' (' . $customer->fcustomername . ')', 0, 100);
 
             return [
                 'faccount' => $faccountCode,
-                'faccountid' => $faccountId,
                 'fdk' => $trCode === 'REJ' ? 'D' : 'K',
                 'frefno' => $refNo,
                 'fnote' => $note,

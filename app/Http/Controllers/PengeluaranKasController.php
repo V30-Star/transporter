@@ -119,20 +119,13 @@ class PengeluaranKasController extends Controller
             ]);
 
             $nextDetailId = $this->nextIntegerId('trkasdt', 'fkasdtid');
-            $accountMap = Account::query()
-                ->whereIn('faccount', $details->pluck('faccount')->all())
-                ->get(['faccid', 'faccount'])
-                ->keyBy('faccount');
 
             foreach ($details->values() as $index => $detail) {
-                $account = $accountMap->get($detail['faccount']);
-
                 Trkasdt::create([
                     'fkasdtid' => $nextDetailId + $index,
                     'fkasmtid' => $savedHeaderId,
                     'ftrancode' => self::TRAN_CODE,
                     'faccount' => $detail['faccount'],
-                    'faccountid' => $account?->faccid,
                     'frefno' => $detail['frefno'] ?? null,
                     'fsubaccount' => $detail['fsubaccount'] ?? null,
                     'fdk' => $this->resolveDetailDk($detail['fkasdtvalue']),
@@ -253,20 +246,13 @@ class PengeluaranKasController extends Controller
             Trkasdt::where('fkasmtid', $header->fkasmtid)->delete();
 
             $nextDetailId = $this->nextIntegerId('trkasdt', 'fkasdtid');
-            $accountMap = Account::query()
-                ->whereIn('faccount', $details->pluck('faccount')->all())
-                ->get(['faccid', 'faccount'])
-                ->keyBy('faccount');
 
             foreach ($details->values() as $index => $detail) {
-                $account = $accountMap->get($detail['faccount']);
-
                 Trkasdt::create([
                     'fkasdtid' => $nextDetailId + $index,
                     'fkasmtid' => $header->fkasmtid,
                     'ftrancode' => self::TRAN_CODE,
                     'faccount' => $detail['faccount'],
-                    'faccountid' => $account?->faccid,
                     'frefno' => $detail['frefno'] ?? null,
                     'fsubaccount' => $detail['fsubaccount'] ?? null,
                     'fdk' => $this->resolveDetailDk($detail['fkasdtvalue']),
