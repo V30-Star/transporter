@@ -42,7 +42,7 @@
             margin-bottom: 8px;
             font-weight: bold;
             text-transform: uppercase;
-            color: #1e3a8a;
+            color: #c00;
         }
 
         .filter-info {
@@ -55,7 +55,7 @@
         .voucher-header-labels,
         .voucher-header {
             display: grid;
-            grid-template-columns: 26mm 18mm 32mm 46mm 18mm 18mm 22mm 10mm;
+            grid-template-columns: 24mm 16mm 24mm 42mm 16mm 16mm 22mm 10mm;
             gap: 3px;
             font-size: 9px;
             padding: 8px 5px;
@@ -81,7 +81,7 @@
         .voucher-detail-labels,
         .voucher-detail {
             display: grid;
-            grid-template-columns: 5mm 28mm 12mm 18mm 25mm 18mm 22mm 22mm 22mm 18mm;
+            grid-template-columns: 4mm 24mm 8mm 16mm 22mm 14mm 18mm 16mm 20mm 24mm;
             gap: 3px;
             font-size: 8px;
             padding: 4px 5px;
@@ -89,8 +89,8 @@
 
         .voucher-detail-labels {
             font-weight: bold;
-            color: #1e3a8a;
-            background-color: #eff6ff;
+            color: #c00;
+            background-color: #ffe6e6;
             border: 1px solid #ccc;
             border-bottom: 1px solid #ccc;
             margin-top: 2px;
@@ -103,7 +103,7 @@
         }
 
         .voucher-detail {
-            color: #1e3a8a;
+            color: #c00;
             border-left: 1px solid #ccc;
             border-right: 1px solid #ccc;
             background-color: #fff;
@@ -155,7 +155,7 @@
 
         .grand-total-header {
             display: grid;
-            grid-template-columns: 26mm 18mm 32mm 46mm 18mm 18mm 22mm 10mm;
+            grid-template-columns: 24mm 16mm 24mm 42mm 16mm 16mm 22mm 10mm;
             gap: 3px;
             font-size: 10px;
             font-weight: bold;
@@ -166,7 +166,7 @@
 
         .grand-total-detail {
             display: grid;
-            grid-template-columns: 5mm 28mm 12mm 18mm 25mm 18mm 22mm 22mm 22mm 18mm;
+            grid-template-columns: 4mm 24mm 8mm 16mm 22mm 14mm 18mm 16mm 20mm 24mm;
             gap: 3px;
             font-size: 9px;
             font-weight: bold;
@@ -178,14 +178,14 @@
         /* Account Summary styling matching theme */
         .summary-account-section {
             margin-top: 25px;
-            border-top: 2px solid #1e3a8a;
+            border-top: 2px solid #c00;
             padding-top: 15px;
         }
 
         .summary-account-section h3 {
             font-size: 12px;
             font-weight: bold;
-            color: #1e3a8a;
+            color: #c00;
             margin-bottom: 8px;
             text-transform: uppercase;
         }
@@ -203,8 +203,8 @@
         }
 
         .summary-table th {
-            background-color: #eff6ff;
-            color: #1e3a8a;
+            background-color: #ffe6e6;
+            color: #c00;
             font-weight: bold;
             text-align: left;
         }

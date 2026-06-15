@@ -914,6 +914,27 @@
                             </a>
                         </li>
                     @endif
+                </ul>
+            </li>
+
+            <!-- Laporan Kas/Bank -->
+            <li x-data="{ open: false }" x-effect="if(!openSidebar) open = false">
+                <button @click="open = !open"
+                    class="flex items-center w-full p-2 rounded-lg hover:bg-gray-700 focus:outline-none">
+                    <x-heroicon-o-folder class="w-5 h-5 flex-shrink-0" />
+                    <span class="ml-3 flex-1 text-left" x-show="openSidebar"
+                        x-transition.opacity.duration.150>{{ 'Laporan Kas/Bank' }}</span>
+                    <!-- caret -->
+                    <svg x-show="openSidebar" :class="{ 'rotate-180': open }"
+                        class="w-4 h-4 transition-transform ml-auto" fill="none" stroke="currentColor"
+                        viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                    </svg>
+                </button>
+
+                <!-- Submenu -->
+                <ul x-show="open && openSidebar" x-transition
+                    class="ml-9 mt-1 space-y-1 border-l border-white/10 pl-3" x-cloak>
 
                     @if ($hasSidebarPermission('createPenerimaanKas', 'updatePenerimaanKas', 'deletePenerimaanKas'))
                         <li>
@@ -926,7 +947,6 @@
                     @endif
                 </ul>
             </li>
-
             <!-- Utility -->
             <li x-data="{ open: false }" x-effect="if(!openSidebar) open = false">
                 <button @click="open = !open"
@@ -976,7 +996,13 @@
                 <!-- Submenu -->
                 <ul x-show="open && openSidebar" x-transition
                     class="ml-9 mt-1 space-y-1 border-l border-white/10 pl-3" x-cloak>
-                    @if ($hasSidebarPermission('viewEditperiode', 'createEditperiode', 'updateEditperiode', 'deleteEditperiode', 'roleaccess'))
+                    @if (
+                        $hasSidebarPermission(
+                            'viewEditperiode',
+                            'createEditperiode',
+                            'updateEditperiode',
+                            'deleteEditperiode',
+                            'roleaccess'))
                         <li>
                             <a href="{{ route('editperiode.edit') }}"
                                 class="flex items-center p-2 rounded-lg hover:bg-gray-700">
@@ -986,7 +1012,13 @@
                             </a>
                         </li>
                     @endif
-                    @if ($hasSidebarPermission('viewEditperiode', 'createEditperiode', 'updateEditperiode', 'deleteEditperiode', 'roleaccess'))
+                    @if (
+                        $hasSidebarPermission(
+                            'viewEditperiode',
+                            'createEditperiode',
+                            'updateEditperiode',
+                            'deleteEditperiode',
+                            'roleaccess'))
                         <li>
                             <a href="{{ route('editperiode.edit') }}"
                                 class="flex items-center p-2 rounded-lg hover:bg-gray-700">

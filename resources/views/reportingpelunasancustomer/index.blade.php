@@ -85,10 +85,14 @@
                             <div class="grid grid-cols-2 gap-4 items-end">
                                 <div>
                                     <label class="block text-sm font-medium text-gray-700 mb-1">No. Account</label>
-                                    <div class="flex gap-2">
-                                        <input type="text" name="account_no" x-model="accountCode" class="w-28 border rounded px-3 py-2 text-sm" readonly>
-                                        <input type="text" x-model="accountLabel" class="flex-1 border rounded px-3 py-2 text-sm bg-gray-100" readonly>
-                                        <button type="button" @click="openAccountBrowse()" class="px-3 py-2 rounded bg-blue-600 text-white text-sm font-bold hover:bg-blue-700">Browse</button>
+                                    <div class="flex">
+                                        <input type="text" name="account_no" x-model="accountCode" 
+                                            class="w-full border border-gray-300 rounded-l px-3 py-2 text-sm focus:ring-blue-500 focus:border-blue-500" readonly>
+                                        <button type="button" @click="openAccountBrowse()" 
+                                            class="border border-l-0 border-gray-300 px-3 py-2 bg-white hover:bg-gray-50 rounded-r text-gray-500 flex items-center justify-center cursor-pointer" 
+                                            title="Browse Account">
+                                            <x-heroicon-o-plus class="w-5 h-5" />
+                                        </button>
                                     </div>
                                 </div>
                                 <div class="flex items-center mt-6">
@@ -101,7 +105,7 @@
 
                             <hr class="border-t border-gray-200 my-4">
 
-                            <div>
+                             <div>
                                 <div class="flex items-center justify-between mb-1">
                                     <label class="block text-sm font-medium text-gray-700">Salesman</label>
                                     <label class="flex items-center text-xs cursor-pointer select-none">
@@ -110,10 +114,16 @@
                                         <span class="font-semibold text-gray-600">Semua</span>
                                     </label>
                                 </div>
-                                <div class="flex gap-2">
-                                    <input type="text" name="salesman" x-model="salesmanCode" class="w-28 border rounded px-3 py-2 text-sm" :readonly="allSalesman">
-                                    <input type="text" x-model="salesmanLabel" class="flex-1 border rounded px-3 py-2 text-sm bg-gray-100" readonly>
-                                    <button type="button" @click="openSalesmanBrowse()" :disabled="allSalesman" class="px-3 py-2 rounded bg-blue-600 text-white text-sm font-bold hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed">Browse</button>
+                                <div class="flex">
+                                    <input type="text" name="salesman" x-model="salesmanCode" 
+                                        :class="allSalesman ? 'bg-gray-100 text-gray-400 cursor-not-allowed border-gray-300' : 'focus:ring-blue-500 focus:border-blue-500 border-gray-300'"
+                                        class="w-full border rounded-l px-3 py-2 text-sm" :readonly="allSalesman">
+                                    <button type="button" @click="openSalesmanBrowse()" :disabled="allSalesman" 
+                                        :class="allSalesman ? 'bg-gray-100 text-gray-400 cursor-not-allowed border-gray-300' : 'bg-white hover:bg-gray-50 border-gray-300 text-gray-500 cursor-pointer'"
+                                        class="border border-l-0 px-3 py-2 rounded-r flex items-center justify-center" 
+                                        title="Browse Salesman">
+                                        <x-heroicon-o-plus class="w-5 h-5" />
+                                    </button>
                                 </div>
                             </div>
 
@@ -122,18 +132,26 @@
                             <div class="grid grid-cols-2 gap-4">
                                 <div>
                                     <label class="block text-sm font-medium text-gray-700 mb-1">Dari Customer</label>
-                                    <div class="flex gap-2">
-                                        <input type="text" name="customer_from" x-model="customerFromCode" class="w-28 border rounded px-3 py-2 text-sm" readonly>
-                                        <input type="text" x-model="customerFromLabel" class="flex-1 border rounded px-3 py-2 text-sm bg-gray-100" readonly>
-                                        <button type="button" @click="openCustomerBrowse('from')" class="px-3 py-2 rounded bg-blue-600 text-white text-sm font-bold hover:bg-blue-700">Browse</button>
+                                    <div class="flex">
+                                        <input type="text" name="customer_from" x-model="customerFromCode" 
+                                            class="w-full border border-gray-300 rounded-l px-3 py-2 text-sm focus:ring-blue-500 focus:border-blue-500" readonly>
+                                        <button type="button" @click="openCustomerBrowse('from')" 
+                                            class="border border-l-0 border-gray-300 px-3 py-2 bg-white hover:bg-gray-50 rounded-r text-gray-500 flex items-center justify-center cursor-pointer" 
+                                            title="Browse Customer">
+                                            <x-heroicon-o-plus class="w-5 h-5" />
+                                        </button>
                                     </div>
                                 </div>
                                 <div>
                                     <label class="block text-sm font-medium text-gray-700 mb-1">Sd Customer</label>
-                                    <div class="flex gap-2">
-                                        <input type="text" name="customer_to" x-model="customerToCode" class="w-28 border rounded px-3 py-2 text-sm" readonly>
-                                        <input type="text" x-model="customerToLabel" class="flex-1 border rounded px-3 py-2 text-sm bg-gray-100" readonly>
-                                        <button type="button" @click="openCustomerBrowse('to')" class="px-3 py-2 rounded bg-blue-600 text-white text-sm font-bold hover:bg-blue-700">Browse</button>
+                                    <div class="flex">
+                                        <input type="text" name="customer_to" x-model="customerToCode" 
+                                            class="w-full border border-gray-300 rounded-l px-3 py-2 text-sm focus:ring-blue-500 focus:border-blue-500" readonly>
+                                        <button type="button" @click="openCustomerBrowse('to')" 
+                                            class="border border-l-0 border-gray-300 px-3 py-2 bg-white hover:bg-gray-50 rounded-r text-gray-500 flex items-center justify-center cursor-pointer" 
+                                            title="Browse Customer">
+                                            <x-heroicon-o-plus class="w-5 h-5" />
+                                        </button>
                                     </div>
                                 </div>
                             </div>
