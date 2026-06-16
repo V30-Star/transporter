@@ -433,8 +433,8 @@
                                         <input type="hidden" name="details[{{ $index }}][fkasdtvalue]"
                                             value="{{ $detailAmountValue }}">
                                     @else
-                                        <input type="number" name="details[{{ $index }}][fkasdtvalue]"
-                                            step="0.01" value="{{ $detailAmountValue }}"
+                                        <input type="text" name="details[{{ $index }}][fkasdtvalue]"
+                                            value="{{ number_format((float) ($detailAmountValue ?: 0), 2, '.', ',') }}"
                                             class="detail-amount w-full border rounded px-1.5 py-1 text-right"
                                             data-role="detail-amount-input">
                                     @endif
@@ -1072,7 +1072,7 @@
                             return;
                         }
 
-                        const dkValue = this.resolveDetailDk(amountField.value);
+                        const dkValue = this.resolveDetailDk(parseFormattedNumber(amountField.value));
                         dkBadge.textContent = dkValue;
                         dkBadge.classList.remove('border-blue-200', 'bg-blue-50', 'text-blue-700', 'border-amber-200',
                             'bg-amber-50', 'text-amber-700');
@@ -1088,6 +1088,13 @@
                         }
 
                         const rows = Array.from(document.querySelectorAll('#detailRows tr.detail-row'));
+                        rows.forEach((row) => {
+                            const amountField = row.querySelector('.detail-amount');
+                            if (amountField) {
+                                amountField.value = parseFormattedNumber(amountField.value).toFixed(2);
+                            }
+                        });
+
                         for (const row of rows) {
                             const result = this.validateJournalRow(row);
                             if (result.status === 'ERROR') {
@@ -1111,7 +1118,7 @@
 
             function refreshPengeluaranKasTotal() {
                 const total = Array.from(document.querySelectorAll('.detail-amount'))
-                    .reduce((sum, field) => sum + (parseFloat(field.value || 0) || 0), 0);
+                    .reduce((sum, field) => sum + parseFormattedNumber(field.value), 0);
 
                 const totalField = document.getElementById('detailTotal');
                 if (totalField) {
@@ -1120,6 +1127,22 @@
                         maximumFractionDigits: 2
                     });
                 }
+            }
+
+            function parseFormattedNumber(value) {
+                const normalized = String(value || '')
+                    .replace(/,/g, '')
+                    .replace(/[^0-9.-]/g, '');
+
+                return parseFloat(normalized) || 0;
+            }
+
+            function formatRupiahInput(field) {
+                const value = parseFormattedNumber(field.value);
+                field.value = value.toLocaleString('en-US', {
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2,
+                });
             }
 
             document.addEventListener('input', (event) => {
@@ -1138,6 +1161,21 @@
                     if (alpineComponent?.checkAndAutoAppendRow) {
                         alpineComponent.checkAndAutoAppendRow();
                     }
+                }
+            });
+
+            document.addEventListener('focusin', (event) => {
+                if (event.target.classList.contains('detail-amount')) {
+                    const value = parseFormattedNumber(event.target.value);
+                    event.target.value = value === 0 ? '' : value.toString();
+                    event.target.select();
+                }
+            });
+
+            document.addEventListener('focusout', (event) => {
+                if (event.target.classList.contains('detail-amount')) {
+                    formatRupiahInput(event.target);
+                    refreshPengeluaranKasTotal();
                 }
             });
 
