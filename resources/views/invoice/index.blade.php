@@ -554,7 +554,7 @@
                 columns: columns,
                 columnDefs: columnDefs,
                 order: [
-                    [0, 'desc']
+                    [3, 'desc']
                 ],
                 layout: {
                     topStart: 'search',

@@ -216,24 +216,35 @@ class ReturPenjualanController extends Controller
 
             $filteredRecords = (clone $query)->count();
 
-            $orderColIdx = $request->input('order.0.column', 0);
-            $orderDir = $request->input('order.0.dir', 'asc');
+            $orderColIdx = $request->input('order.0.column');
+            $orderDir = $request->input('order.0.dir', 'desc');
 
-            $sortableColumns = [
-                0 => 'tranmt.fbranchcode',
-                1 => 'tranmt.fsono',
-                2 => 'tranmt.fsodate',
-                3 => 'tranmt.frefno',
-                4 => 'tranmt.ffrom',
-                5 => 'c.fcustomername',
-                6 => 'tranmt.famountso',
-                7 => 'tranmt.fket',
-                8 => 'tranmt.fuserid',
-                9 => 'tranmt.fneedacc',
-            ];
+            $orderColumn = null;
+            if ($orderColIdx !== null) {
+                $colName = $request->input("columns.{$orderColIdx}.name") ?: $request->input("columns.{$orderColIdx}.data");
+                if ($colName === 'fbranchcode') {
+                    $orderColumn = 'tranmt.fbranchcode';
+                } elseif ($colName === 'fsono' || $colName === 'fsono_display') {
+                    $orderColumn = 'tranmt.fsono';
+                } elseif ($colName === 'fsodate') {
+                    $orderColumn = 'tranmt.fsodate';
+                } elseif ($colName === 'ffrom') {
+                    $orderColumn = 'tranmt.ffrom';
+                } elseif ($colName === 'fcustomername') {
+                    $orderColumn = 'c.fcustomername';
+                } elseif ($colName === 'famountso') {
+                    $orderColumn = 'tranmt.famountso';
+                } elseif ($colName === 'fket') {
+                    $orderColumn = 'tranmt.fket';
+                } elseif ($colName === 'fusercreate') {
+                    $orderColumn = 'tranmt.fuserid';
+                } elseif ($colName === 'fclose') {
+                    $orderColumn = 'tranmt.fclose';
+                }
+            }
 
-            if (isset($sortableColumns[$orderColIdx]) && $sortableColumns[$orderColIdx]) {
-                $query->orderBy($sortableColumns[$orderColIdx], $orderDir);
+            if ($orderColumn) {
+                $query->orderBy($orderColumn, $orderDir);
             } else {
                 $query->orderBy('tranmt.fsodate', 'desc')->orderBy('tranmt.fsono', 'desc');
             }

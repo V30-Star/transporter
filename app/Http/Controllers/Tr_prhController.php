@@ -152,24 +152,24 @@ class Tr_prhController extends Controller
 
             $filteredRecords = (clone $query)->count();
 
-            $orderColumnIndex = $request->input('order.0.column', 0);
-            $orderDir = $request->input('order.0.dir', 'asc');
+            $orderColumnIndex = $request->input('order.0.column', 7);
+            $orderDir = $request->input('order.0.dir', 'desc');
 
             $columns = [
-                0 => 'tr_prh.fprno',
-                1 => 'tr_prh.fbranchcode',
+                0 => 'tr_prh.fbranchcode',
+                1 => 'tr_prh.fprno',
                 2 => 'tr_prh.fprdate',
                 3 => 'mssupplier.fsuppliername',
                 4 => 'tr_prh.fusercreate',
                 5 => 'tr_prh.fclose',
                 6 => 'tr_prh.fapproval',
-                7 => '',
+                7 => 'tr_prh.fcreatedat',
             ];
 
             if (isset($columns[$orderColumnIndex]) && $columns[$orderColumnIndex] !== null && $columns[$orderColumnIndex] !== '') {
                 $query->orderBy($columns[$orderColumnIndex], $orderDir);
             } else {
-                $query->orderBy('tr_prh.fprhid', 'desc');
+                $query->orderBy('tr_prh.fcreatedat', 'desc');
             }
 
             $start = $request->input('start', 0);
@@ -190,7 +190,8 @@ class Tr_prhController extends Controller
                 'tr_prh.fprdin',
                 'tr_prh.fapproval',
                 'tr_prh.fapproval2',
-                'mssupplier.fsuppliername'
+                'mssupplier.fsuppliername',
+                'tr_prh.fcreatedat'
             ]);
 
             $data = $records->map(function ($record) {
@@ -208,6 +209,7 @@ class Tr_prhController extends Controller
                     'fapproval' => $record->fapproval,
                     'fapproval2' => $record->fapproval2,
                     'fprhid' => $record->fprhid,
+                    'fcreatedat' => $record->fcreatedat,
                     'DT_RowId' => 'row_'.$record->fprhid,
                 ];
             });

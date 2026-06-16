@@ -87,23 +87,27 @@ class PenerimaanBarangController extends Controller
 
             $filteredRecords = (clone $query)->count();
 
-            $orderColIdx = $request->input('order.0.column', 0);
+            $orderColIdx = $request->input('order.0.column');
             $orderDir = $request->input('order.0.dir', 'desc');
 
-            $sortableColumns = [
-                'trstockmt.fstockmtno',
-                'trstockmt.fstockmtdate',
-                'trstockmt.fstockmtdate',
-                'trstockmt.fstockmtdate',
-                'trstockmt.fket',
-                'trstockmt.fstockmtdate',
-                'trstockmt.famountmt',
-            ];
+            $orderColumn = null;
+            if ($orderColIdx !== null) {
+                $colName = $request->input("columns.{$orderColIdx}.name") ?: $request->input("columns.{$orderColIdx}.data");
+                if ($colName === 'fbranchcode') {
+                    $orderColumn = 'trstockmt.fbranchcode';
+                } elseif ($colName === 'fstockmtno') {
+                    $orderColumn = 'trstockmt.fstockmtno';
+                } elseif ($colName === 'fstockmtdate') {
+                    $orderColumn = 'trstockmt.fstockmtdate';
+                } elseif ($colName === 'fusercreate') {
+                    $orderColumn = 'trstockmt.fusercreate';
+                }
+            }
 
-            if (isset($sortableColumns[$orderColIdx])) {
-                $query->orderBy($sortableColumns[$orderColIdx], $orderDir);
+            if ($orderColumn) {
+                $query->orderBy($orderColumn, $orderDir);
             } else {
-                $query->orderBy('trstockmt.fstockmtid', 'desc');
+                $query->orderBy('trstockmt.fstockmtdate', 'desc');
             }
 
             $start = $request->input('start', 0);

@@ -446,7 +446,7 @@
                 columns: columns,
                 columnDefs: columnDefs,
                 order: [
-                    [0, 'desc']
+                    [2, 'desc'] // Default order by 'fstockmtdate' DESC
                 ],
                 layout: {
                     topStart: 'search',

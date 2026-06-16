@@ -448,6 +448,12 @@
                         return renderOtorisasi(row);
                     }
                 },
+                {
+                    data: 'fcreatedat',
+                    name: 'fcreatedat',
+                    visible: false,
+                    searchable: false
+                },
             ];
 
             // --- 3. Tambahkan Kolom Aksi (Gaya Product) ---
@@ -546,7 +552,7 @@
                 pageLength: 10,
                 lengthMenu: [10, 25, 50, 100],
                 order: [
-                    [0, 'asc'] // Default order by 'fprno'
+                    [7, 'desc'] // Default order by 'fcreatedat' DESC
                 ],
                 layout: {
                     topStart: 'search',

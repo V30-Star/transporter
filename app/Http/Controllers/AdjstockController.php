@@ -116,22 +116,31 @@ class AdjstockController extends Controller
             $filteredRecords = (clone $query)->count();
 
             // Handle Sorting
-            $orderColIdx = $request->input('order.0.column', 0);
+            $orderColIdx = $request->input('order.0.column');
             $orderDir = $request->input('order.0.dir', 'desc');
 
-            $sortableColumns = [
-                'c.fcabangname',
-                'trstockmt.fstockmtno',
-                'trstockmt.fstockmtdate',
-                'trstockmt.ftrancode',
-                'w.fwhname',
-                'trstockmt.fket',
-            ];
+            $orderColumn = null;
+            if ($orderColIdx !== null) {
+                $colName = $request->input("columns.{$orderColIdx}.name") ?: $request->input("columns.{$orderColIdx}.data");
+                if ($colName === 'fcabang') {
+                    $orderColumn = 'c.fcabangname';
+                } elseif ($colName === 'fstockmtno') {
+                    $orderColumn = 'trstockmt.fstockmtno';
+                } elseif ($colName === 'fstockmtdate') {
+                    $orderColumn = 'trstockmt.fstockmtdate';
+                } elseif ($colName === 'fadjtype') {
+                    $orderColumn = 'trstockmt.ftrancode';
+                } elseif ($colName === 'fgudang') {
+                    $orderColumn = 'w.fwhname';
+                } elseif ($colName === 'fket') {
+                    $orderColumn = 'trstockmt.fket';
+                }
+            }
 
-            if (isset($sortableColumns[$orderColIdx])) {
-                $query->orderBy($sortableColumns[$orderColIdx], $orderDir);
+            if ($orderColumn) {
+                $query->orderBy($orderColumn, $orderDir);
             } else {
-                $query->orderBy('fstockmtid', 'desc'); // Default sort
+                $query->orderBy('trstockmt.fstockmtdate', 'desc');
             }
 
             // Handle Paginasi

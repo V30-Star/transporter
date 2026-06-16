@@ -717,25 +717,43 @@ class InvoiceController extends Controller
 
             $filteredRecords = (clone $query)->count();
 
-            $orderColIdx = (int) $request->input('order.0.column', 3);
+            $orderColIdx = $request->input('order.0.column');
             $orderDir = $request->input('order.0.dir', 'desc');
-            $sortableColumns = [
-                0 => 'tranmt.fbranchcode',
-                1 => 'tranmt.fsono',
-                2 => 'tranmt.ftaxno',
-                3 => 'tranmt.fsodate',
-                4 => 'ref_summary.srj_refs',
-                5 => 'ref_summary.so_refs',
-                6 => 'cust.fcustomername',
-                7 => 'tranmt.famountso',
-                8 => 'tranmt.famountremain',
-                9 => 'tranmt.frefno',
-                10 => 'tranmt.fuserid',
-                11 => 'tranmt.fsudahtagih',
-            ];
 
-            if (isset($sortableColumns[$orderColIdx])) {
-                $query->orderBy($sortableColumns[$orderColIdx], $orderDir);
+            $orderColumn = null;
+            if ($orderColIdx !== null) {
+                $colName = $request->input("columns.{$orderColIdx}.name") ?: $request->input("columns.{$orderColIdx}.data");
+                if ($colName === 'fbranchcode') {
+                    $orderColumn = 'tranmt.fbranchcode';
+                } elseif ($colName === 'fsono') {
+                    $orderColumn = 'tranmt.fsono';
+                } elseif ($colName === 'ftaxno') {
+                    $orderColumn = 'tranmt.ftaxno';
+                } elseif ($colName === 'fsodate') {
+                    $orderColumn = 'tranmt.fsodate';
+                } elseif ($colName === 'fcustomername') {
+                    $orderColumn = 'cust.fcustomername';
+                } elseif ($colName === 'frefno') {
+                    $orderColumn = DB::raw("COALESCE(ref_summary.srj_refs, ref_summary.so_refs, '')");
+                } elseif ($colName === 'fso_refs') {
+                    $orderColumn = 'ref_summary.so_refs';
+                } elseif ($colName === 'frefpo') {
+                    $orderColumn = 'tranmt.frefno';
+                } elseif ($colName === 'famountso') {
+                    $orderColumn = 'tranmt.famountso';
+                } elseif ($colName === 'famountremain') {
+                    $orderColumn = 'tranmt.famountremain';
+                } elseif ($colName === 'fsudahtagih') {
+                    $orderColumn = 'tranmt.fsudahtagih';
+                } elseif ($colName === 'fclose') {
+                    $orderColumn = 'tranmt.fclose';
+                } elseif ($colName === 'fuserid') {
+                    $orderColumn = 'tranmt.fuserid';
+                }
+            }
+
+            if ($orderColumn) {
+                $query->orderBy($orderColumn, $orderDir);
             } else {
                 $query->orderBy('tranmt.fsodate', 'desc')->orderBy('tranmt.fsono', 'desc');
             }

@@ -172,12 +172,25 @@ class Tr_pohController extends Controller
                 ->count();
 
             // Sorting
-            $orderColIdx = $request->input('order.0.column', 0);
-            $orderDir = $request->input('order.0.dir', 'asc');
-            $sortableColumns = ['fpono', 'fsupplier', 'fpodate', 'fclose', 'fusercreate', 'fprdin', 'fapproval', 'fsuppliername'];
+            $orderColIdx = $request->input('order.0.column', 2);
+            $orderDir = $request->input('order.0.dir', 'desc');
+            $sortableColumns = [
+                0 => 'tr_poh.fbranchcode',
+                1 => 'tr_poh.fpono',
+                2 => 'tr_poh.fpodate',
+                3 => 'mssupplier.fsuppliername',
+                4 => 'tr_prh.fprno',
+                5 => 'tr_poh.fcurrency',
+                6 => 'tr_poh.famountpo',
+                7 => 'tr_poh.fapproval',
+                8 => 'tr_poh.fclose',
+                9 => 'tr_poh.fusercreate',
+            ];
 
-            if (isset($sortableColumns[$orderColIdx])) {
+            if (isset($sortableColumns[$orderColIdx]) && $sortableColumns[$orderColIdx] !== '') {
                 $query->orderBy($sortableColumns[$orderColIdx], $orderDir);
+            } else {
+                $query->orderBy('tr_poh.fpodate', 'desc');
             }
 
             // Paginasi

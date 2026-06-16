@@ -142,14 +142,31 @@ class JurnalTransaksiController extends Controller
 
             $filteredRecords = (clone $query)->count();
 
-            $orderColIdx = $request->input('order.0.column', 0);
-            $orderDir = $request->input('order.0.dir', 'asc');
-            $sortableColumns = ['fjurnalno', 'fjurnaldate', 'fbranchcode', 'fbalance_rp', 'fjurnalnote'];
+            $orderColIdx = $request->input('order.0.column');
+            $orderDir = $request->input('order.0.dir', 'desc');
 
-            if (isset($sortableColumns[$orderColIdx])) {
-                $query->orderBy($sortableColumns[$orderColIdx], $orderDir);
+            $orderColumn = null;
+            if ($orderColIdx !== null) {
+                $colName = $request->input("columns.{$orderColIdx}.name") ?: $request->input("columns.{$orderColIdx}.data");
+                if ($colName === 'fbranchcode') {
+                    $orderColumn = 'fbranchcode';
+                } elseif ($colName === 'fjurnalno') {
+                    $orderColumn = 'fjurnalno';
+                } elseif ($colName === 'fjurnaldate') {
+                    $orderColumn = 'fjurnaldate';
+                } elseif ($colName === 'fjurnalnote') {
+                    $orderColumn = 'fjurnalnote';
+                } elseif ($colName === 'fbalance_rp') {
+                    $orderColumn = 'fbalance_rp';
+                } elseif ($colName === 'fuserid') {
+                    $orderColumn = 'fuserid';
+                }
+            }
+
+            if ($orderColumn) {
+                $query->orderBy($orderColumn, $orderDir);
             } else {
-                $query->orderBy('fjurnalmtid', 'desc');
+                $query->orderBy('fjurnaldate', 'desc');
             }
 
             $start = $request->input('start', 0);

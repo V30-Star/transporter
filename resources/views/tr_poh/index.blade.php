@@ -494,7 +494,7 @@
                 columns: columns,
                 columnDefs: columnDefs,
                 order: [
-                    [0, 'desc']
+                    [2, 'desc'] // Default order by 'fpodate' DESC
                 ],
                 layout: {
                     topStart: 'search',

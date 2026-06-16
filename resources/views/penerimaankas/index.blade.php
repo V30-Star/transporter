@@ -182,7 +182,7 @@
                 pageLength: 10,
                 lengthMenu: [10, 25, 50, 100],
                 order: [
-                    [0, 'desc']
+                    [2, 'desc']
                 ],
                 layout: {
                     topStart: 'search',

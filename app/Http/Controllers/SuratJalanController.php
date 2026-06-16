@@ -226,24 +226,35 @@ class SuratJalanController extends Controller
             // Total records setelah filter
             $filteredRecords = (clone $query)->count();
 
-            // Handle Sorting
-            $orderColIdx = $request->input('order.0.column', 0);
+            $orderColIdx = $request->input('order.0.column');
             $orderDir = $request->input('order.0.dir', 'desc');
 
-            $sortableColumns = [
-                'trstockmt.fbranchcode',
-                'trstockmt.fstockmtno',
-                'trstockmt.fstockmtdate',
-                'trstockmt.frefpo',
-                'so_refs.so_refs',
-                'trstockmt.ffrom',
-                'customer.fcustomername',
-            ];
+            $orderColumn = null;
+            if ($orderColIdx !== null) {
+                $colName = $request->input("columns.{$orderColIdx}.name") ?: $request->input("columns.{$orderColIdx}.data");
+                if ($colName === 'fbranchcode') {
+                    $orderColumn = 'trstockmt.fbranchcode';
+                } elseif ($colName === 'fstockmtno' || $colName === 'fstockmtno_display') {
+                    $orderColumn = 'trstockmt.fstockmtno';
+                } elseif ($colName === 'fstockmtdate') {
+                    $orderColumn = 'trstockmt.fstockmtdate';
+                } elseif ($colName === 'fcustomername') {
+                    $orderColumn = 'customer.fcustomername';
+                } elseif ($colName === 'fgudang') {
+                    $orderColumn = 'trstockmt.ffrom';
+                } elseif ($colName === 'frefdtno') {
+                    $orderColumn = 'trstockmt.frefpo';
+                } elseif ($colName === 'fsono') {
+                    $orderColumn = 'so_refs.so_refs';
+                } elseif ($colName === 'fusercreate') {
+                    $orderColumn = 'trstockmt.fusercreate';
+                }
+            }
 
-            if (isset($sortableColumns[$orderColIdx])) {
-                $query->orderBy($sortableColumns[$orderColIdx], $orderDir);
+            if ($orderColumn) {
+                $query->orderBy($orderColumn, $orderDir);
             } else {
-                $query->orderBy('fstockmtid', 'desc'); // Default sort
+                $query->orderBy('trstockmt.fstockmtdate', 'desc');
             }
 
             // Handle Paginasi

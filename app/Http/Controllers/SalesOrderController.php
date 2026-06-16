@@ -488,13 +488,37 @@ class SalesOrderController extends Controller
 
             $filteredRecords = (clone $query)->count();
 
-            $orderColIdx = $request->input('order.0.column', 2);
+            $orderColIdx = $request->input('order.0.column');
             $orderDir = $request->input('order.0.dir', 'desc');
 
-            $sortableColumns = ['fbranchcode', 'fsono', 'fsodate', 'fcustomername', 'famountso', 'fusercreate'];
+            $orderColumn = null;
+            if ($orderColIdx !== null) {
+                $colName = $request->input("columns.{$orderColIdx}.name") ?: $request->input("columns.{$orderColIdx}.data");
+                if ($colName === 'fbranchcode') {
+                    $orderColumn = 'trsomt.fbranchcode';
+                } elseif ($colName === 'fsono' || $colName === 'fsono_display') {
+                    $orderColumn = 'trsomt.fsono';
+                } elseif ($colName === 'fsodate') {
+                    $orderColumn = 'trsomt.fsodate';
+                } elseif ($colName === 'fcustomername') {
+                    $orderColumn = 'c.fcustomername';
+                } elseif ($colName === 'frefpo') {
+                    $orderColumn = 'trsomt.frefpo';
+                } elseif ($colName === 'famountso') {
+                    $orderColumn = 'trsomt.famountso';
+                } elseif ($colName === 'fapproval') {
+                    $orderColumn = 'trsomt.fapproval';
+                } elseif ($colName === 'fneedacc') {
+                    $orderColumn = 'trsomt.fneedacc';
+                } elseif ($colName === 'fusercreate') {
+                    $orderColumn = 'trsomt.fusercreate';
+                }
+            }
 
-            if (isset($sortableColumns[$orderColIdx])) {
-                $query->orderBy($sortableColumns[$orderColIdx], $orderDir);
+            if ($orderColumn) {
+                $query->orderBy($orderColumn, $orderDir);
+            } else {
+                $query->orderBy('trsomt.fsodate', 'desc');
             }
 
             $start = $request->input('start', 0);

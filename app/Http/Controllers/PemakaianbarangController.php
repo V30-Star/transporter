@@ -77,15 +77,31 @@ class PemakaianbarangController extends Controller
             $filteredRecords = (clone $query)->count();
 
             // Handle Sorting
-            $orderColIdx = $request->input('order.0.column', 0);
-            $orderDir = $request->input('order.0.dir', 'asc');
-            // Kolom di tabel: 0 = fstockmtno, 1 = fstockmtdate
-            $sortableColumns = ['fstockmtno', 'fstockmtdate'];
+            $orderColIdx = $request->input('order.0.column');
+            $orderDir = $request->input('order.0.dir', 'desc');
 
-            if (isset($sortableColumns[$orderColIdx])) {
-                $query->orderBy($sortableColumns[$orderColIdx], $orderDir);
+            $orderColumn = null;
+            if ($orderColIdx !== null) {
+                $colName = $request->input("columns.{$orderColIdx}.name") ?: $request->input("columns.{$orderColIdx}.data");
+                if ($colName === 'fbranchcode') {
+                    $orderColumn = 'fbranchcode';
+                } elseif ($colName === 'fstockmtno') {
+                    $orderColumn = 'fstockmtno';
+                } elseif ($colName === 'fstockmtdate') {
+                    $orderColumn = 'fstockmtdate';
+                } elseif ($colName === 'ffrom') {
+                    $orderColumn = 'ffrom';
+                } elseif ($colName === 'fket') {
+                    $orderColumn = 'fket';
+                } elseif ($colName === 'fusercreate') {
+                    $orderColumn = 'fusercreate';
+                }
+            }
+
+            if ($orderColumn) {
+                $query->orderBy($orderColumn, $orderDir);
             } else {
-                $query->orderBy('fstockmtid', 'desc'); // Default sort
+                $query->orderBy('fstockmtdate', 'desc');
             }
 
             // Handle Paginasi
@@ -93,7 +109,7 @@ class PemakaianbarangController extends Controller
             $length = $request->input('length', 10);
             $records = $query->skip($start)
                 ->take($length)
-                ->get(['fstockmtid', 'fstockmtno', 'fstockmtdate']); // fstockmtcode tidak perlu, krn sudah pasti RCV
+                ->get(['fstockmtid', 'fstockmtno', 'fstockmtdate', 'fbranchcode', 'ffrom', 'fket', 'fusercreate']);
 
             // Format Data (Tombol dibuat di sini)
             $data = $records->map(function ($row) {

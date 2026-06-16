@@ -469,7 +469,7 @@
                 columns: columns,
                 columnDefs: columnDefs,
                 order: [
-                    [1, 'desc']
+                    [2, 'desc'] // Default order by 'fstockmtdate' DESC
                 ],
                 layout: {
                     topStart: 'search',

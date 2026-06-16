@@ -339,7 +339,7 @@
 
                 // Urutkan berdasarkan kolom pertama (No. Penerimaan)
                 order: [
-                    [0, 'desc']
+                    [2, 'desc']
                 ],
 
                 // Tampilkan elemen standar

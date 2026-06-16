@@ -180,26 +180,39 @@ class FakturpembelianController extends Controller
                 $query->whereRaw('EXTRACT(MONTH FROM trstockmt.fdatetime) = ?', [$month]);
             }
             $filteredRecords = (clone $query)->count();
-            $orderColIdx = $request->input('order.0.column', 0);
+            $orderColIdx = $request->input('order.0.column');
             $orderDir = $request->input('order.0.dir', 'desc');
 
-            $sortableColumns = [
-                'trstockmt.fbranchcode',
-                'trstockmt.fstockmtno',
-                'trstockmt.fstockmtdate',
-                'trstockmt.ftypebuy',
-                'trstockmt.frefno',
-                'trstockmt.ffrom',
-                'mssupplier.fsuppliername',
-                'refdt.frefdtno_summary',
-                'trstockmt.fusercreate',
-                'trstockmt.famountmt',
-            ];
+            $orderColumn = null;
+            if ($orderColIdx !== null) {
+                $colName = $request->input("columns.{$orderColIdx}.name") ?: $request->input("columns.{$orderColIdx}.data");
+                if ($colName === 'fbranchcode') {
+                    $orderColumn = 'trstockmt.fbranchcode';
+                } elseif ($colName === 'fstockmtno') {
+                    $orderColumn = 'trstockmt.fstockmtno';
+                } elseif ($colName === 'fstockmtdate') {
+                    $orderColumn = 'trstockmt.fstockmtdate';
+                } elseif ($colName === 'ftypebuy') {
+                    $orderColumn = 'trstockmt.ftypebuy';
+                } elseif ($colName === 'ffakturno') {
+                    $orderColumn = 'trstockmt.frefno';
+                } elseif ($colName === 'fgudang') {
+                    $orderColumn = 'trstockmt.ffrom';
+                } elseif ($colName === 'fsuppliername') {
+                    $orderColumn = 'mssupplier.fsuppliername';
+                } elseif ($colName === 'freferensi') {
+                    $orderColumn = 'refdt.frefdtno_summary';
+                } elseif ($colName === 'famountmt') {
+                    $orderColumn = 'trstockmt.famountmt';
+                } elseif ($colName === 'fusercreate') {
+                    $orderColumn = 'trstockmt.fusercreate';
+                }
+            }
 
-            if (isset($sortableColumns[$orderColIdx])) {
-                $query->orderBy($sortableColumns[$orderColIdx], $orderDir);
+            if ($orderColumn) {
+                $query->orderBy($orderColumn, $orderDir);
             } else {
-                $query->orderBy('fstockmtid', 'desc');
+                $query->orderBy('trstockmt.fstockmtdate', 'desc');
             }
             $start = $request->input('start', 0);
             $length = $request->input('length', 10);

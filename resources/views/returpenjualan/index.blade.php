@@ -459,7 +459,7 @@
                 columns: columns,
                 columnDefs: columnDefs,
                 order: [
-                    [0, 'desc']
+                    [2, 'desc']
                 ],
                 layout: {
                     topStart: 'search',
