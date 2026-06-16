@@ -390,10 +390,6 @@
             {{-- Jika tidak ada data --}}
             <div class="a4-container">
                 <div class="header-section">
-                    <div class="meta-info-kiri">
-                        Account: {{ $filters['account_no'] !== '' ? $filters['account_no'] : 'Semua' }}<br>
-                        Supplier: {{ $filters['customer_from'] ?: 'Awal' }} s/d {{ $filters['customer_to'] ?: 'Akhir' }}
-                    </div>
                     <h2>Laporan Bayar Supplier</h2>
                     <div class="info-tambahan">
                         <div>
