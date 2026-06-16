@@ -799,6 +799,12 @@
                             return;
                         }
 
+                        const invalidRetur = this.rows.find(row => this.isRejRow(row) && this.toNumber(row.fkasdtvalue) >= 0);
+                        if (invalidRetur) {
+                            this.showValidationError('Harus Mengurangi Hutang.,Penyimpanan dibatalkan.');
+                            return;
+                        }
+
                         const result = await Swal.fire({
                             icon: 'question',
                             title: 'Konfirmasi',
@@ -1468,6 +1474,10 @@
                 syncTotalBayarInput(row, inputValue) {
                     const original = this.toNumber(row.originalSisa);
                     if (this.isRejRow(row)) {
+                        if (this.toNumber(inputValue) >= 0) {
+                            this.showValidationError('Harus Mengurangi Hutang.,Penyimpanan dibatalkan.');
+                        }
+
                         const pay = Math.abs(this.toNumber(inputValue));
                         if (pay > original) {
                             this.showValidationError('Total Bayar tidak boleh melebihi sisa retur');

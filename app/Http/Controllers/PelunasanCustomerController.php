@@ -684,6 +684,13 @@ class PelunasanCustomerController extends Controller
         return collect($details)
             ->map(function (array $detail) {
                 $trCode = strtoupper(trim((string) ($detail['ftrcode'] ?? 'INV')));
+                $rawKasdtValue = round((float) ($detail['fkasdtvalue'] ?? 0), 2);
+
+                if ($trCode === 'REJ' && $rawKasdtValue >= 0) {
+                    throw ValidationException::withMessages([
+                        'details' => 'Harus Mengurangi Hutang.,Penyimpanan dibatalkan.',
+                    ]);
+                }
 
                 $sisa = round(abs((float) ($detail['fsisa_piutang'] ?? 0)), 2);
                 $originalSisa = round(abs((float) ($detail['original_sisa'] ?? 0)), 2);
@@ -697,7 +704,7 @@ class PelunasanCustomerController extends Controller
                     $discount = round(abs((float) ($detail['fdiscount'] ?? 0)), 2);
                 }
 
-                $fkasdtvalue = round(abs((float) ($detail['fkasdtvalue'] ?? 0)), 2);
+                $fkasdtvalue = round(abs($rawKasdtValue), 2);
                 if ($trCode === 'REJ') {
                     $fkasdtvalue = -$fkasdtvalue;
                 }
@@ -1204,12 +1211,15 @@ class PelunasanCustomerController extends Controller
                         }
 
                         $baseAmount = $currentNotaAmount;
-                        $paymentAmount = max($currentRemainAmount - $discountAmount, 0);
+                        if (strtoupper(trim((string) ($reference->ftrcode ?? $trCode))) === 'REJ') {
+                            $paymentAmount = -abs(round((float) ($reference->famountremain ?? 0) - (float) ($reference->famountso ?? 0) + $discountAmount, 2));
+                        } else {
+                            $paymentAmount = max($currentRemainAmount - $discountAmount, 0);
+                        }
                     }
 
                     if (strtoupper($trCode) === 'REJ') {
                         $baseAmount = $baseAmount < 0 ? $baseAmount * -1 : $baseAmount;
-                        $paymentAmount = $paymentAmount < 0 ? $paymentAmount * -1 : $paymentAmount;
                     }
 
                     $adjustedRemain = $reference

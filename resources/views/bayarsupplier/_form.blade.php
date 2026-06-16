@@ -60,7 +60,7 @@
 
 <div class="bg-white rounded shadow p-6 md:p-8 max-w-[96rem] mx-auto"
     x-data="bayarSupplierForm(@js($initialDetailRows), @js($selectedSupplierTempo))" x-init="init()">
-    <form action="{{ $formAction }}" method="POST" class="space-y-6"
+    <form action="{{ $formAction }}" method="POST" class="space-y-6" @submit="handleFormSubmit($event)"
         @if (!$isReadOnly && !empty($draftKey)) data-form-draft="true" data-draft-key="{{ $draftKey }}" @endif>
         @csrf
         @if ($formMethod !== 'POST')
@@ -781,6 +781,13 @@
 
                 applyPblToRow(targetRow, record) {
                     const remain = this.toNumber(record.famountremain);
+                    const invoiceAmount = this.toNumber(record.famountmt);
+                    if (Math.abs(remain) > Math.abs(invoiceAmount)) {
+                        this.clearPblRow(targetRow);
+                        this.showValidationError('Sisa hutang tidak boleh melebihi nilai nota.');
+                        return;
+                    }
+
                     targetRow.frefno = String(record.fstockmtno || '').trim();
                     targetRow.ftrcode = String(record.ftrcode || record.fstockmtcode || 'BUY').trim() || 'BUY';
                     targetRow.fsupplier = String(record.fsupplier || '').trim();
@@ -789,7 +796,7 @@
                     if (!String(this.supplierCode || '').trim() && targetRow.fsupplier) {
                         this.syncSupplierFromPbl(record);
                     }
-                    targetRow.fnilai_order = this.toNumber(record.famountmt);
+                    targetRow.fnilai_order = invoiceAmount;
                     
                     const isReb = this.isRebRow(targetRow);
                     targetRow.fsisa_hutang = isReb ? 0 : remain;
@@ -957,6 +964,42 @@
                     this.rows.push(row);
                     return row;
                 },
+                handleFormSubmit(event) {
+                    const refs = new Set();
+                    const duplicate = this.rows.find(row => {
+                        const refNo = String(row.frefno || '').trim().toUpperCase();
+                        if (!refNo) return false;
+                        if (refs.has(refNo)) return true;
+                        refs.add(refNo);
+                        return false;
+                    });
+
+                    if (duplicate) {
+                        event.preventDefault();
+                        this.showValidationError(`No. penerimaan ${duplicate.frefno} tidak boleh sama.`);
+                        return;
+                    }
+
+                    const invalidRemaining = this.rows.find(row => {
+                        const refNo = String(row.frefno || '').trim();
+                        if (!refNo) return false;
+                        const invoiceAmount = Math.abs(this.toNumber(row.fnilai_order));
+                        const remainingAmount = Math.abs(this.toNumber(row.fsisa_hutang));
+                        return invoiceAmount > 0 && remainingAmount > invoiceAmount;
+                    });
+
+                    if (invalidRemaining) {
+                        event.preventDefault();
+                        this.showValidationError('Sisa hutang tidak boleh melebihi nilai nota.');
+                        return;
+                    }
+
+                    const invalidRetur = this.rows.find(row => this.isRebRow(row) && this.toNumber(row.fkasdtvalue) >= 0);
+                    if (invalidRetur) {
+                        event.preventDefault();
+                        this.showValidationError('Harus Mengurangi Hutang.,Penyimpanan dibatalkan.');
+                    }
+                },
                 submitSelectedPbls() {
                     const selectedSupplier = String(this.supplierCode || '').trim();
                     const inferredSupplier = selectedSupplier !== ''
@@ -1068,6 +1111,10 @@
                     const original = this.toNumber(row.originalSisa);
 
                     if (this.isRebRow(row)) {
+                        if (this.toNumber(inputValue) >= 0) {
+                            this.showValidationError('Harus Mengurangi Hutang.,Penyimpanan dibatalkan.');
+                        }
+
                         const pay = Math.abs(this.toNumber(inputValue));
                         if (pay > original) {
                             this.showValidationError('Total Bayar tidak boleh melebihi sisa retur');
