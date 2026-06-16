@@ -287,7 +287,6 @@
                     <th style="width: 5%;">{{ 'No' }}.</th>
                     <th style="width: 22%;">{{ 'Account' }}</th>
                     <th style="width: 18%;">{{ 'Sub Account' }}</th>
-                    <th style="width: 15%;">{{ 'No. Referensi' }}</th>
                     <th style="width: 20%;">{{ 'Keterangan' }}</th>
                     <th style="width: 8%;" class="text-center">D/K</th>
                     <th style="width: 12%;" class="text-right">{{ 'Nilai Bayar' }}</th>
@@ -305,9 +304,6 @@
                             <div>
                                 {{ trim(($row->fsubaccount ?? '') . ' - ' . ($row->subaccount_name ?? ''), ' -') ?: '-' }}
                             </div>
-                        </td>
-                        <td>
-                            <div>{{ $row->frefno ?: '-' }}</div>
                         </td>
                         <td>
                             <div>{{ $row->fnote ?: '-' }}</div>
