@@ -1,10 +1,10 @@
 @extends('layouts.app')
 
-@section('title', 'Laporan Pelunasan Supplier')
+@section('title', 'Laporan Bayar Supplier')
 
 @section('content')
     <div class="p-6 bg-white shadow-md rounded-lg">
-        <h2 class="text-xl font-bold mb-4">Laporan Pelunasan Supplier</h2>
+        <h2 class="text-xl font-bold mb-4">Laporan Bayar Supplier</h2>
 
         <div class="flex flex-wrap items-center gap-4 mb-6">
             {{-- Tombol Pemicu Modal --}}
@@ -18,7 +18,7 @@
         <div id="filterModal" class="fixed inset-0 z-50 bg-black bg-opacity-50 hidden flex items-center justify-center">
             <div class="bg-white rounded-lg shadow-2xl max-w-2xl w-full p-6" onclick="event.stopPropagation()">
                 <div class="flex justify-between items-center border-b pb-3 mb-4">
-                    <h3 class="text-lg font-semibold">Laporan Pelunasan Supplier</h3>
+                    <h3 class="text-lg font-semibold">Laporan Bayar Supplier</h3>
                     <button onclick="toggleModal(false)"
                         class="text-gray-500 hover:text-gray-800 text-xl font-bold">&times;</button>
                 </div>
@@ -42,11 +42,12 @@
                                     </div>
                                 @endif
                             </div>
-                            <div id="branchCheckboxesArea" class="border rounded-lg p-3 bg-gray-50 max-h-40 overflow-y-auto">
+                            <div id="branchCheckboxesArea"
+                                class="border rounded-lg p-3 bg-gray-50 max-h-40 overflow-y-auto">
                                 <div class="grid grid-cols-2 gap-2">
                                     @foreach ($branches as $b)
                                         @php
-                                            $isChecked = $isAuthorized || ($userBranchCode === $b->fcabangkode);
+                                            $isChecked = $isAuthorized || $userBranchCode === $b->fcabangkode;
                                         @endphp
                                         <label class="flex items-center text-sm cursor-pointer select-none">
                                             @if (!$isAuthorized && $userBranchCode === $b->fcabangkode)
@@ -54,9 +55,9 @@
                                             @endif
                                             <input type="checkbox" name="branch_codes[]" value="{{ $b->fcabangkode }}"
                                                 class="branch-checkbox mr-2 rounded border-gray-300 text-blue-600 focus:ring-blue-500 w-4 h-4"
-                                                {{ $isChecked ? 'checked' : '' }}
-                                                {{ !$isAuthorized ? 'disabled' : '' }}>
-                                            <span class="text-gray-700 font-medium">{{ $b->fcabangkode }} - {{ $b->fcabangname }}</span>
+                                                {{ $isChecked ? 'checked' : '' }} {{ !$isAuthorized ? 'disabled' : '' }}>
+                                            <span class="text-gray-700 font-medium">{{ $b->fcabangkode }} -
+                                                {{ $b->fcabangname }}</span>
                                         </label>
                                     @endforeach
                                 </div>
@@ -85,10 +86,11 @@
                             <div>
                                 <label class="block text-sm font-medium text-gray-700 mb-1">No. Account</label>
                                 <div class="flex">
-                                    <input type="text" name="account_no" x-model="accountCode" 
-                                        class="w-full border border-gray-300 rounded-l px-3 py-2 text-sm focus:ring-blue-500 focus:border-blue-500" readonly>
-                                    <button type="button" @click="openAccountBrowse()" 
-                                        class="border border-l-0 border-gray-300 px-3 py-2 bg-white hover:bg-gray-50 rounded-r text-gray-500 flex items-center justify-center cursor-pointer" 
+                                    <input type="text" name="account_no" x-model="accountCode"
+                                        class="w-full border border-gray-300 rounded-l px-3 py-2 text-sm focus:ring-blue-500 focus:border-blue-500"
+                                        readonly>
+                                    <button type="button" @click="openAccountBrowse()"
+                                        class="border border-l-0 border-gray-300 px-3 py-2 bg-white hover:bg-gray-50 rounded-r text-gray-500 flex items-center justify-center cursor-pointer"
                                         title="Browse Account">
                                         <x-heroicon-o-plus class="w-5 h-5" />
                                     </button>
@@ -96,29 +98,33 @@
                             </div>
                             <div class="flex items-center mt-3">
                                 <label class="flex items-center text-sm cursor-pointer select-none">
-                                    <input type="checkbox" name="only_giro_mundur" value="1" class="mr-2 w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500">
+                                    <input type="checkbox" name="only_giro_mundur" value="1"
+                                        class="mr-2 w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500">
                                     <span class="font-semibold text-gray-700">Hanya Giro Mundur</span>
                                 </label>
                             </div>
 
                             <hr class="border-t border-gray-200 my-4">
 
-                             <div>
+                            <div>
                                 <div class="flex items-center justify-between mb-1">
                                     <label class="block text-sm font-medium text-gray-700">Salesman</label>
                                     <label class="flex items-center text-xs cursor-pointer select-none">
                                         <input type="hidden" name="all_salesman" value="0">
-                                        <input type="checkbox" name="all_salesman" value="1" x-model="allSalesman" class="mr-1 w-3.5 h-3.5 rounded border-gray-300 text-blue-600 focus:ring-blue-500">
+                                        <input type="checkbox" name="all_salesman" value="1" x-model="allSalesman"
+                                            class="mr-1 w-3.5 h-3.5 rounded border-gray-300 text-blue-600 focus:ring-blue-500">
                                         <span class="font-semibold text-gray-600">Semua</span>
                                     </label>
                                 </div>
                                 <div class="flex">
-                                    <input type="text" name="salesman" x-model="salesmanCode" 
-                                        :class="allSalesman ? 'bg-gray-100 text-gray-400 cursor-not-allowed border-gray-300' : 'focus:ring-blue-500 focus:border-blue-500 border-gray-300'"
+                                    <input type="text" name="salesman" x-model="salesmanCode"
+                                        :class="allSalesman ? 'bg-gray-100 text-gray-400 cursor-not-allowed border-gray-300' :
+                                            'focus:ring-blue-500 focus:border-blue-500 border-gray-300'"
                                         class="w-full border rounded-l px-3 py-2 text-sm" :readonly="allSalesman">
-                                    <button type="button" @click="openSalesmanBrowse()" :disabled="allSalesman" 
-                                        :class="allSalesman ? 'bg-gray-100 text-gray-400 cursor-not-allowed border-gray-300' : 'bg-white hover:bg-gray-50 border-gray-300 text-gray-500 cursor-pointer'"
-                                        class="border border-l-0 px-3 py-2 rounded-r flex items-center justify-center" 
+                                    <button type="button" @click="openSalesmanBrowse()" :disabled="allSalesman"
+                                        :class="allSalesman ? 'bg-gray-100 text-gray-400 cursor-not-allowed border-gray-300' :
+                                            'bg-white hover:bg-gray-50 border-gray-300 text-gray-500 cursor-pointer'"
+                                        class="border border-l-0 px-3 py-2 rounded-r flex items-center justify-center"
                                         title="Browse Salesman">
                                         <x-heroicon-o-plus class="w-5 h-5" />
                                     </button>
@@ -131,10 +137,11 @@
                                 <div>
                                     <label class="block text-sm font-medium text-gray-700 mb-1">Dari Supplier</label>
                                     <div class="flex">
-                                        <input type="text" name="customer_from" x-model="supplierFromCode" 
-                                            class="w-full border border-gray-300 rounded-l px-3 py-2 text-sm focus:ring-blue-500 focus:border-blue-500" readonly>
-                                        <button type="button" @click="openSupplierBrowse('from')" 
-                                            class="border border-l-0 border-gray-300 px-3 py-2 bg-white hover:bg-gray-50 rounded-r text-gray-500 flex items-center justify-center cursor-pointer" 
+                                        <input type="text" name="customer_from" x-model="supplierFromCode"
+                                            class="w-full border border-gray-300 rounded-l px-3 py-2 text-sm focus:ring-blue-500 focus:border-blue-500"
+                                            readonly>
+                                        <button type="button" @click="openSupplierBrowse('from')"
+                                            class="border border-l-0 border-gray-300 px-3 py-2 bg-white hover:bg-gray-50 rounded-r text-gray-500 flex items-center justify-center cursor-pointer"
                                             title="Browse Supplier">
                                             <x-heroicon-o-plus class="w-5 h-5" />
                                         </button>
@@ -143,10 +150,11 @@
                                 <div>
                                     <label class="block text-sm font-medium text-gray-700 mb-1">Sd Supplier</label>
                                     <div class="flex">
-                                        <input type="text" name="customer_to" x-model="supplierToCode" 
-                                            class="w-full border border-gray-300 rounded-l px-3 py-2 text-sm focus:ring-blue-500 focus:border-blue-500" readonly>
-                                        <button type="button" @click="openSupplierBrowse('to')" 
-                                            class="border border-l-0 border-gray-300 px-3 py-2 bg-white hover:bg-gray-50 rounded-r text-gray-500 flex items-center justify-center cursor-pointer" 
+                                        <input type="text" name="customer_to" x-model="supplierToCode"
+                                            class="w-full border border-gray-300 rounded-l px-3 py-2 text-sm focus:ring-blue-500 focus:border-blue-500"
+                                            readonly>
+                                        <button type="button" @click="openSupplierBrowse('to')"
+                                            class="border border-l-0 border-gray-300 px-3 py-2 bg-white hover:bg-gray-50 rounded-r text-gray-500 flex items-center justify-center cursor-pointer"
                                             title="Browse Supplier">
                                             <x-heroicon-o-plus class="w-5 h-5" />
                                         </button>
@@ -163,7 +171,8 @@
                             Reset
                         </a>
                         {{-- Tombol Preview & Cetak --}}
-                        <button type="submit" class="px-6 py-2 bg-blue-600 text-white font-bold rounded hover:bg-blue-700 transition-colors">
+                        <button type="submit"
+                            class="px-6 py-2 bg-blue-600 text-white font-bold rounded hover:bg-blue-700 transition-colors">
                             🖨️ Preview & Print
                         </button>
                     </div>
@@ -224,12 +233,14 @@
                     window.addEventListener('account-picked', (event) => {
                         const detail = event.detail || {};
                         this.accountCode = String(detail.faccount || '').trim();
-                        this.accountLabel = this.accountCode && detail.faccname ? `${this.accountCode} - ${detail.faccname}` : this.accountCode;
+                        this.accountLabel = this.accountCode && detail.faccname ?
+                            `${this.accountCode} - ${detail.faccname}` : this.accountCode;
                     });
                     window.addEventListener('salesman-picked', (event) => {
                         const detail = event.detail || {};
                         this.salesmanCode = String(detail.fsalesmancode || detail.fsalesman || '').trim();
-                        this.salesmanLabel = this.salesmanCode && detail.fsalesmanname ? `${this.salesmanCode} - ${detail.fsalesmanname}` : this.salesmanCode;
+                        this.salesmanLabel = this.salesmanCode && detail.fsalesmanname ?
+                            `${this.salesmanCode} - ${detail.fsalesmanname}` : this.salesmanCode;
                         this.allSalesman = false;
                     });
                     window.addEventListener('supplier-picked', (event) => {

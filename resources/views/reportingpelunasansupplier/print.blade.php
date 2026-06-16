@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Laporan Pelunasan Supplier</title>
+    <title>Laporan Bayar Supplier</title>
     <style>
         * {
             margin: 0;
@@ -394,7 +394,7 @@
                         Account: {{ $filters['account_no'] !== '' ? $filters['account_no'] : 'Semua' }}<br>
                         Supplier: {{ $filters['customer_from'] ?: 'Awal' }} s/d {{ $filters['customer_to'] ?: 'Akhir' }}
                     </div>
-                    <h2>Laporan Pelunasan Supplier</h2>
+                    <h2>Laporan Bayar Supplier</h2>
                     <div class="info-tambahan">
                         <div>
                             <span class="info-label">Tanggal:</span>
@@ -422,7 +422,7 @@
             @foreach ($chunkedData as $pageIndex => $pageData)
                 <div class="a4-container">
                     <div class="header-section">
-                        <h2>Laporan Pelunasan Supplier</h2>
+                        <h2>Laporan Bayar Supplier</h2>
                         @if ($filters['date_from'] || $filters['date_to'])
                             <div class="filter-info">
                                 Periode:
@@ -543,7 +543,7 @@
                                     <span>{{ number_format($grandTotal['adjustment'], 2, ',', '.') }}</span>
                                 </div>
                                 <div class="grand-total-row highlight">
-                                    <span>Total Pelunasan :</span>
+                                    <span>Total Bayar :</span>
                                     <span>{{ number_format($grandTotal['bayar'], 2, ',', '.') }}</span>
                                 </div>
                             </div>

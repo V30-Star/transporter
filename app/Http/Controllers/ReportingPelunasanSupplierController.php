@@ -112,7 +112,7 @@ class ReportingPelunasanSupplierController extends Controller
 
         $spreadsheet = new Spreadsheet();
         $sheet = $spreadsheet->getActiveSheet();
-        $sheet->setTitle('Laporan Pelunasan Supplier');
+        $sheet->setTitle('Laporan Bayar Supplier');
 
         $headers = [
             'No. Voucher',

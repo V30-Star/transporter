@@ -950,7 +950,7 @@
                             <a href="{{ route('reportingpelunasansupplier.index') }}"
                                 class="flex items-center p-2 rounded hover:bg-gray-700">
                                 <x-heroicon-o-banknotes class="w-5 h-5" />
-                                <span class="ml-3">{{ 'Laporan Pelunasan Supplier' }}</span>
+                                <span class="ml-3">{{ 'Laporan Bayar Supplier' }}</span>
                             </a>
                         </li>
                     @endif
