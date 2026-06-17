@@ -12,14 +12,14 @@
         .header-section { position: relative; margin-bottom: 15px; text-align: center; border-bottom: 2px solid #000; padding-bottom: 10px; }
         .header-section h2 { font-size: 18px; margin-bottom: 8px; font-weight: bold; text-transform: uppercase; color: #c00; }
         .filter-info { font-size: 10px; color: #333; margin-bottom: 5px; }
-        .po-header-labels, .po-header { display: grid; grid-template-columns: 23mm 15mm 14mm 28mm 22mm 17mm 12mm 17mm 14mm; gap: 2px; font-size: 8px; padding: 8px 5px; }
+        .po-header-labels, .po-header { display: grid; grid-template-columns: 25mm 16mm 38mm 25mm 18mm 13mm 19mm 14mm; gap: 2px; font-size: 8px; padding: 8px 5px; }
         .po-header-labels { font-weight: bold; background-color: #f0f0f0; border: 1px solid #000; border-bottom: 2px solid #000; margin-bottom: 2px; }
         .po-header { font-weight: bold; border-left: 1px solid #ccc; border-right: 1px solid #ccc; background-color: #fff; padding: 6px 5px; }
-        .po-detail-labels, .po-detail { display: grid; grid-template-columns: 30mm 70mm 20mm 22mm 25mm; gap: 3px; font-size: 8px; padding: 4px 5px; }
+        .po-detail-labels, .po-detail { display: grid; grid-template-columns: 24mm 55mm 25mm 17mm 19mm 20mm; gap: 3px; font-size: 8px; padding: 4px 5px; }
         .po-detail-labels { font-weight: bold; color: #c00; background-color: #ffe6e6; border: 1px solid #ccc; border-bottom: 1px solid #ccc; margin-top: 2px; padding: 6px 5px; }
         .po-detail { color: #c00; border-left: 1px solid #ccc; border-right: 1px solid #ccc; background-color: #fff; }
         .po-detail>div:first-child { padding-left: 5mm; }
-        .po-header-labels>div:nth-child(6), .po-header-labels>div:nth-child(7), .po-header-labels>div:nth-child(8), .po-header>div:nth-child(6), .po-header>div:nth-child(7), .po-header>div:nth-child(8), .po-detail-labels>div:nth-child(3), .po-detail-labels>div:nth-child(4), .po-detail-labels>div:nth-child(5), .po-detail>div:nth-child(3), .po-detail>div:nth-child(4), .po-detail>div:nth-child(5) { text-align: right; }
+        .po-header-labels>div:nth-child(5), .po-header-labels>div:nth-child(6), .po-header-labels>div:nth-child(7), .po-header>div:nth-child(5), .po-header>div:nth-child(6), .po-header>div:nth-child(7), .po-detail-labels>div:nth-child(4), .po-detail-labels>div:nth-child(5), .po-detail-labels>div:nth-child(6), .po-detail>div:nth-child(4), .po-detail>div:nth-child(5), .po-detail>div:nth-child(6) { text-align: right; }
         .separator { border-bottom: 1px solid #ccc; margin: 8px 0; clear: both; }
         .grand-total-section { margin-top: 20px; border-top: 2px solid #000; padding-top: 10px; display: flex; justify-content: flex-end; }
         .grand-total-panel { width: 70mm; border: 1px solid #000; font-size: 10px; font-weight: bold; }
@@ -84,7 +84,6 @@
                 <div class="po-header-labels">
                     <div>No.Transaksi</div>
                     <div>Tanggal</div>
-                    <div>Cust#</div>
                     <div>Nama Customer</div>
                     <div>Keterangan</div>
                     <div>Total Harga</div>
@@ -96,6 +95,7 @@
                 <div class="po-detail-labels">
                     <div>Kode Barang</div>
                     <div>Nama Barang</div>
+                    <div>Ref.Faktur#</div>
                     <div>Quantity</div>
                     <div>@ Harga</div>
                     <div>Total Harga</div>
@@ -114,7 +114,6 @@
                     <div class="po-header">
                         <div class="truncate">{{ $h->fstockmtno }}</div>
                         <div>{{ \Carbon\Carbon::parse($h->fstockmtdate)->format('d/m/Y') }}</div>
-                        <div class="truncate">{{ $h->fsupplier }}</div>
                         <div class="truncate">{{ $h->fcustname }}</div>
                         <div class="truncate">{{ $h->fket }}</div>
                         <div>{{ number_format($totalHarga, 2, ',', '.') }}</div>
@@ -128,6 +127,7 @@
                             <div class="po-detail">
                                 <div class="truncate">{{ $d->fprdcode }}</div>
                                 <div class="truncate">{{ $d->fprdname }}</div>
+                                <div class="truncate">{{ $d->frefdtno }}</div>
                                 <div>{{ number_format($d->fqty, 2, ',', '.') }}</div>
                                 <div>{{ number_format($d->fprice, 2, ',', '.') }}</div>
                                 <div>{{ number_format($d->ftotprice, 2, ',', '.') }}</div>
