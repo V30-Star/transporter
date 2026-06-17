@@ -727,6 +727,16 @@
                             </a>
                         </li>
                     @endif
+
+                    @if ($hasSidebarPermission('viewlistingreturpenjualan'))
+                        <li>
+                            <a href="{{ route('listingreturpenjualan.index') }}"
+                                class="flex items-center p-2 rounded hover:bg-gray-700">
+                                <x-heroicon-o-user-circle class="w-5 h-5" />
+                                <span class="ml-3">{{ 'Listing Retur Penjualan' }}</span>
+                            </a>
+                        </li>
+                    @endif
                 </ul>
 
                 <!-- <ul x-show="open && openSidebar" x-transition

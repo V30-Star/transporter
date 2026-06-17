@@ -20,6 +20,7 @@ use App\Http\Controllers\ListingPenjualanController;
 use App\Http\Controllers\ListingPOController;
 use App\Http\Controllers\ListingPRController;
 use App\Http\Controllers\ListingReturPembelianController;
+use App\Http\Controllers\ListingReturPenjualanController;
 use App\Http\Controllers\ListingSOBelumController;
 use App\Http\Controllers\ListingSOController;
 use App\Http\Controllers\MerekController;
@@ -575,6 +576,9 @@ Route::middleware('auth')->group(function () {
         Route::get('/listingpenjualan', [ListingPenjualanController::class, 'index'])->name('listingpenjualan.index');
         Route::get('/listingpenjualan/print', [ListingPenjualanController::class, 'print'])->name('listingpenjualan.print');
         Route::get('/listingpenjualan/excel', [ListingPenjualanController::class, 'exportExcel'])->name('listingpenjualan.excel');
+
+        Route::get('/listingreturpenjualan', [ListingReturPenjualanController::class, 'index'])->name('listingreturpenjualan.index');
+        Route::get('/listingreturpenjualan/print', [ListingReturPenjualanController::class, 'print'])->name('listingreturpenjualan.print');
 
         Route::get('/listingjurnal', [ListingJurnalController::class, 'index'])->name('listingjurnal.index');
         Route::get('/listingjurnal/print', [ListingJurnalController::class, 'print'])->name('listingjurnal.print');
