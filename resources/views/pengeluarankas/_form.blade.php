@@ -21,6 +21,7 @@
     $customerOptions = collect($customers ?? []);
     $supplierOptions = collect($suppliers ?? []);
     $branchOptions = collect($branches ?? []);
+    $parseAmount = fn($value) => (float) str_replace(',', '', (string) ($value ?? 0));
     $resolvedBranchCode = (string) old('fbranchcode', $pengeluaranKas->fbranchcode ?? ($currentBranchCode ?? ''));
     $resolvedBranchLabel = $branchOptions->firstWhere('fcabangkode', $resolvedBranchCode);
     $resolvedBranchLabel = $resolvedBranchLabel
@@ -75,7 +76,7 @@
             ? 'border-blue-200 bg-blue-50 text-blue-700'
             : 'border-amber-200 bg-amber-50 text-amber-700';
     };
-    $totalAmount = $detailRows->sum(fn($row) => (float) ($row->fkasdtvalue ?? 0));
+    $totalAmount = $detailRows->sum(fn($row) => $parseAmount($row->fkasdtvalue ?? 0));
 @endphp
 
 <style>
@@ -427,14 +428,14 @@
                                     @endphp
                                     @if ($isReadOnly)
                                         <input type="text"
-                                            value="{{ number_format((float) ($detailAmountValue ?: 0), 2, '.', ',') }}"
+                                            value="{{ number_format($parseAmount($detailAmountValue ?: 0), 2, '.', ',') }}"
                                             class="detail-amount w-full border rounded px-1.5 py-1 text-right bg-gray-100"
                                             readonly>
                                         <input type="hidden" name="details[{{ $index }}][fkasdtvalue]"
                                             value="{{ $detailAmountValue }}">
                                     @else
                                         <input type="text" name="details[{{ $index }}][fkasdtvalue]"
-                                            value="{{ number_format((float) ($detailAmountValue ?: 0), 2, '.', ',') }}"
+                                            value="{{ number_format($parseAmount($detailAmountValue ?: 0), 2, '.', ',') }}"
                                             class="detail-amount w-full border rounded px-1.5 py-1 text-right"
                                             data-role="detail-amount-input">
                                     @endif
@@ -542,9 +543,9 @@
 
                         const accountVal = lastRow.querySelector('input[name$="[faccount]"]')?.value || '';
                         const noteVal = lastRow.querySelector('textarea[name$="[fnote]"]')?.value || '';
-                        const amountVal = lastRow.querySelector('input[name$="[fkasdtvalue]"]')?.value || '';
+                        const amountVal = parseFormattedNumber(lastRow.querySelector('input[name$="[fkasdtvalue]"]')?.value || '');
 
-                        const isLastRowFilled = accountVal.trim() !== '' || noteVal.trim() !== '' || amountVal.trim() !== '';
+                        const isLastRowFilled = accountVal.trim() !== '' || noteVal.trim() !== '' || amountVal !== 0;
 
                         if (isLastRowFilled) {
                             this.addRow();
@@ -1216,7 +1217,7 @@
                         const dkBadge = row.querySelector('[data-role="detail-dk-badge"]');
                         if (amountField && dkBadge) {
                             const isPenerimaanKasForm = @json($isPenerimaanKasForm);
-                            const numericAmount = parseFloat(amountField.value || 0) || 0;
+                            const numericAmount = parseFormattedNumber(amountField.value);
                             const dkValue = isPenerimaanKasForm ?
                                 (numericAmount >= 0 ? 'K' : 'D') :
                                 (numericAmount >= 0 ? 'D' : 'K');
