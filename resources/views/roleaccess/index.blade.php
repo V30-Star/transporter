@@ -670,6 +670,22 @@
                             </tr>
 
                             <tr>
+                                <td class="px-3 py-2 font-semibold">ViewListingPenerimaanKasBank</td>
+                                <td class="text-center" colspan="4">
+                                    <input type="checkbox" name="permission[]" value="viewlistingpenerimaankasbank"
+                                        {{ isset($roleAccess) && in_array('viewlistingpenerimaankasbank', explode(',', $roleAccess->fpermission)) ? 'checked' : '' }}>
+                                </td>
+                            </tr>
+
+                            <tr>
+                                <td class="px-3 py-2 font-semibold">ViewListingPengeluaranKasBank</td>
+                                <td class="text-center" colspan="4">
+                                    <input type="checkbox" name="permission[]" value="viewlistingpengeluarankasbank"
+                                        {{ isset($roleAccess) && in_array('viewlistingpengeluarankasbank', explode(',', $roleAccess->fpermission)) ? 'checked' : '' }}>
+                                </td>
+                            </tr>
+
+                            <tr>
                                 <td class="px-3 py-2 font-semibold">BolehAccessSemuaCabang</td>
                                 <td class="text-center" colspan="4">
                                     <input type="checkbox" name="permission[]" value="semuacabang"

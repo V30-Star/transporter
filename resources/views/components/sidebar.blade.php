@@ -968,7 +968,7 @@
                         </li>
                     @endif
 
-                    @if ($hasSidebarPermission('createPenerimaanKas', 'updatePenerimaanKas', 'deletePenerimaanKas'))
+                    @if ($hasSidebarPermission('viewlistingpenerimaankasbank'))
                         <li>
                             <a href="{{ route('listingpenerimaankasbank.index') }}"
                                 class="flex items-center p-2 rounded hover:bg-gray-700">
@@ -978,7 +978,7 @@
                         </li>
                     @endif
 
-                    @if ($hasSidebarPermission('createPengeluaranKas', 'updatePengeluaranKas', 'deletePengeluaranKas'))
+                    @if ($hasSidebarPermission('viewlistingpengeluarankasbank'))
                         <li>
                             <a href="{{ route('listingpengeluarankasbank.index') }}"
                                 class="flex items-center p-2 rounded hover:bg-gray-700">
