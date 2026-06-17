@@ -840,12 +840,24 @@
                             <a href="{{ route('listingfakturpembelian.index') }}"
                                 class="flex items-center p-2 rounded hover:bg-gray-700">
                                 <x-heroicon-o-user-circle class="w-5 h-5" />
-                                <span class="ml-3">{{ 'Listing Faktur Pembelian' }}</span>
-                            </a>
-                        </li>
-                    @endif
-                </ul>
-            </li>
+                                    <span class="ml-3">{{ 'Listing Faktur Pembelian' }}</span>
+                                </a>
+                            </li>
+                        @endif
+
+                        @if (
+                            $hasSidebarPermission(
+                                'viewlistingreturpembelian'))
+                            <li>
+                                <a href="{{ route('listingreturpembelian.index') }}"
+                                    class="flex items-center p-2 rounded hover:bg-gray-700">
+                                    <x-heroicon-o-user-circle class="w-5 h-5" />
+                                    <span class="ml-3">{{ 'Listing Retur Pembelian' }}</span>
+                                </a>
+                            </li>
+                        @endif
+                    </ul>
+                </li>
 
             {{-- Reporting Stock --}}
             <li x-data="{ open: false }" x-effect="if(!openSidebar) open = false">

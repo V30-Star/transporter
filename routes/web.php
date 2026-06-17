@@ -19,6 +19,7 @@ use App\Http\Controllers\ListingPenerimaanBarangController;
 use App\Http\Controllers\ListingPenjualanController;
 use App\Http\Controllers\ListingPOController;
 use App\Http\Controllers\ListingPRController;
+use App\Http\Controllers\ListingReturPembelianController;
 use App\Http\Controllers\ListingSOBelumController;
 use App\Http\Controllers\ListingSOController;
 use App\Http\Controllers\MerekController;
@@ -559,6 +560,9 @@ Route::middleware('auth')->group(function () {
         Route::get('/listingpo', [ListingPOController::class, 'index'])->name('listingpo.index');
         Route::get('/listingpo/print', [ListingPOController::class, 'print'])->name('listingpo.print');
         Route::get('/listingpo/excel', [ListingPOController::class, 'exportExcel'])->name('listingpo.excel');
+
+        Route::get('/listingreturpembelian', [ListingReturPembelianController::class, 'index'])->name('listingreturpembelian.index');
+        Route::get('/listingreturpembelian/print', [ListingReturPembelianController::class, 'print'])->name('listingreturpembelian.print');
 
         Route::get('/listingpenerimaanbarang', [ListingPenerimaanBarangController::class, 'index'])->name('listingpenerimaanbarang.index');
         Route::get('/listingpenerimaanbarang/print', [ListingPenerimaanBarangController::class, 'print'])->name('listingpenerimaanbarang.print');

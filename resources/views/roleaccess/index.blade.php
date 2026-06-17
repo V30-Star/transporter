@@ -654,6 +654,14 @@
                             </tr>
 
                             <tr>
+                                <td class="px-3 py-2 font-semibold">ViewListingReturPembelian</td>
+                                <td class="text-center" colspan="4">
+                                    <input type="checkbox" name="permission[]" value="viewlistingreturpembelian"
+                                        {{ isset($roleAccess) && in_array('viewlistingreturpembelian', explode(',', $roleAccess->fpermission)) ? 'checked' : '' }}>
+                                </td>
+                            </tr>
+
+                            <tr>
                                 <td class="px-3 py-2 font-semibold">BolehAccessSemuaCabang</td>
                                 <td class="text-center" colspan="4">
                                     <input type="checkbox" name="permission[]" value="semuacabang"
