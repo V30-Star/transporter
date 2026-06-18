@@ -12,20 +12,34 @@
             box-sizing: border-box;
         }
 
+        /* Monitor Screen Layout */
         body {
             font-family: Arial, sans-serif;
             font-size: 10px;
             color: #000;
-            background-color: #f5f5f5;
+            background-color: #eee; /* Grayscale background on monitor */
+            counter-reset: page;
         }
 
-        .a4-container {
+        /* Screen Simulation Styles for A4 Pages */
+        .page-a4 {
             width: 210mm;
-            min-height: 297mm;
             margin: 20px auto;
             background: white;
             padding: 15mm;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.15);
+            position: relative;
+            box-sizing: border-box;
+            /* Height is auto during dynamic layout measurements */
+            height: auto;
+            min-height: 0;
+        }
+
+        /* Strict height applied after pagination */
+        .page-a4-strict {
+            height: 297mm !important;
+            min-height: 297mm !important;
+            overflow: hidden !important;
         }
 
         .header-section {
@@ -207,17 +221,33 @@
             break-inside: avoid;
         }
 
+        /* Page Counter CSS */
+        .page-a4 {
+            counter-increment: page;
+        }
+
+        .page-number-current::after {
+            content: counter(page);
+        }
+
+        /* Print Media CSS Overrides */
         @media print {
             body {
                 background-color: white !important;
+                margin: 0;
+                padding: 0;
             }
 
-            .a4-container {
-                width: 100%;
-                margin: 0;
-                padding: 10mm;
-                box-shadow: none;
-                page-break-after: auto;
+            .page-a4 {
+                width: 210mm;
+                height: 297mm !important;
+                margin: 0 auto !important;
+                padding: 15mm !important;
+                box-shadow: none !important;
+                page-break-after: always;
+                break-after: always;
+                box-sizing: border-box;
+                overflow: hidden !important;
             }
 
             .no-print {
@@ -226,26 +256,8 @@
 
             @page {
                 size: A4 portrait;
-                margin: 20mm 15mm 20mm 15mm;
-                @top-right {
-                    content: "Page " counter(page) " of " counter(pages);
-                    font-family: Arial, sans-serif;
-                    font-size: 8px;
-                    font-weight: bold;
-                    color: #333;
-                }
+                margin: 0;
             }
-        }
-
-        .print-table {
-            width: 100%;
-            border-collapse: collapse;
-            border: none;
-        }
-
-        .print-table td {
-            padding: 0;
-            border: none;
         }
     </style>
 </head>
@@ -278,118 +290,107 @@
         $grandTotalKredit = 0;
     @endphp
 
+    {{-- Hidden Raw Data Container --}}
+    <div id="raw-source" style="display: none;">
+        <div class="header-section">
+            <div class="supplier-info-kiri">
+                Type Jurnal: {{ !empty($selectedTypes) ? implode(', ', $selectedTypes) : 'Semua' }}
+                <br>Cabang: {{ !empty($selectedBranches) ? implode(', ', $selectedBranches) : 'Semua' }}
+            </div>
+            <h2>Listing Jurnal Transaksi</h2>
+            <div class="filter-info">
+                Periode:
+                {{ $dateFrom ? \Carbon\Carbon::parse($dateFrom)->format('d/m/Y') : '...' }}
+                s/d
+                {{ $dateTo ? \Carbon\Carbon::parse($dateTo)->format('d/m/Y') : '...' }}
+            </div>
+            <div class="info-tambahan">
+                <div><span class="info-label">Tanggal</span>: {{ date('d/m/Y') }}</div>
+                <div><span class="info-label">Jam</span>: {{ date('H:i') }}</div>
+                <div><span class="info-label">Opr</span>: {{ $user_session->fname ?? 'User' }}</div>
+            </div>
+        </div>
+
+        {{-- Header Labels --}}
+        <div class="po-header-labels">
+            <div>No. Jurnal</div>
+            <div>Tanggal</div>
+            <div>Type</div>
+            <div>Note / Keterangan</div>
+            <div>User-id</div>
+            <div>Balance</div>
+            <div>Balance Rp</div>
+        </div>
+
+        {{-- Detail Labels --}}
+        <div class="po-detail-labels">
+            <div>Line</div>
+            <div>Account</div>
+            <div>Account Name</div>
+            <div>Ref No</div>
+            <div>Sub Account</div>
+            <div>D/K</div>
+            <div>Rate</div>
+            <div>Debet</div>
+            <div>Kredit</div>
+        </div>
+
+        @foreach ($groupedData as $jurnalNo => $lines)
+            @php
+                $firstLine = $lines->first();
+                $jurnalDateFormatted = !empty($firstLine->fjurnaldate) ? \Carbon\Carbon::parse($firstLine->fjurnaldate)->format('d/m/Y') : '';
+            @endphp
+            <div class="journal-block">
+                <div class="po-header" style="border-top: 1px solid #000; margin-top: 5px;">
+                    <div class="truncate">{{ $jurnalNo }}</div>
+                    <div>{{ $jurnalDateFormatted }}</div>
+                    <div>{{ $firstLine->fjurnaltype }}</div>
+                    <div class="truncate" title="{{ $firstLine->fjurnalnote }}">{{ $firstLine->fjurnalnote }}</div>
+                    <div>{{ $firstLine->fuserid }}</div>
+                    <div>{{ number_format((float) $firstLine->fbalance, 2, ',', '.') }}</div>
+                    <div>{{ number_format((float) $firstLine->fbalance_rp, 2, ',', '.') }}</div>
+                </div>
+
+                @foreach ($lines as $dt)
+                    @php
+                        $grandTotalDebet += (float) $dt->debet;
+                        $grandTotalKredit += (float) $dt->kredit;
+                    @endphp
+                    <div class="po-detail">
+                        <div>{{ $dt->flineno }}</div>
+                        <div>{{ $dt->faccount }}</div>
+                        <div class="truncate" title="{{ $dt->faccname }}">{{ $dt->faccname }}</div>
+                        <div class="truncate" title="{{ $dt->frefno }}">{{ $dt->frefno }}</div>
+                        <div class="truncate" title="{{ $dt->fsubaccount }}">{{ $dt->fsubaccount }}</div>
+                        <div>{{ $dt->fdk }}</div>
+                        <div>{{ number_format((float) $dt->frate, 2, ',', '.') }}</div>
+                        <div>{{ $dt->debet !== null ? number_format((float) $dt->debet, 2, ',', '.') : '' }}</div>
+                        <div>{{ $dt->kredit !== null ? number_format((float) $dt->kredit, 2, ',', '.') : '' }}</div>
+                    </div>
+                @endforeach
+
+                @if (!$loop->last)
+                    <div class="separator"></div>
+                @endif
+            </div>
+        @endforeach
+
+        <div class="grand-total-section">
+            <div class="grand-total-header">
+                <span>GRAND TOTAL LISTING JURNAL TRANSACTION</span>
+                <span>Rp {{ number_format($grandTotalDebet, 2, ',', '.') }} &nbsp;|&nbsp; Rp {{ number_format($grandTotalKredit, 2, ',', '.') }}</span>
+            </div>
+        </div>
+    </div>
+
+    {{-- Screen Render Target --}}
     <div class="report-wrapper" id="reportWrapper">
         @if ($groupedData->isEmpty())
-            <div class="a4-container">
+            <div class="page-a4 page-a4-strict">
                 <div class="header-section">
                     <h2>Listing Jurnal Transaksi</h2>
                     <div style="margin-top: 30px; text-align: center; font-size: 12px; color: #666;">Tidak ada data ditemukan.</div>
                 </div>
-            </div>
-        @else
-            <div class="a4-container">
-                <table class="print-table">
-                    <thead>
-                        <tr>
-                            <td>
-                                <div class="header-section">
-                                    <div class="supplier-info-kiri">
-                                        Type Jurnal: {{ !empty($selectedTypes) ? implode(', ', $selectedTypes) : 'Semua' }}
-                                        <br>Cabang: {{ !empty($selectedBranches) ? implode(', ', $selectedBranches) : 'Semua' }}
-                                    </div>
-                                    <h2>Listing Jurnal Transaksi</h2>
-                                    <div class="filter-info">
-                                        Periode:
-                                        {{ $dateFrom ? \Carbon\Carbon::parse($dateFrom)->format('d/m/Y') : '...' }}
-                                        s/d
-                                        {{ $dateTo ? \Carbon\Carbon::parse($dateTo)->format('d/m/Y') : '...' }}
-                                    </div>
-                                    <div class="info-tambahan">
-                                        <div><span class="info-label">Tanggal</span>: {{ date('d/m/Y') }}</div>
-                                        <div><span class="info-label">Jam</span>: {{ date('H:i') }}</div>
-                                        <div><span class="info-label">Opr</span>: {{ $user_session->fname ?? 'User' }}</div>
-                                    </div>
-                                </div>
-
-                                {{-- Header Labels --}}
-                                <div class="po-header-labels">
-                                    <div>No. Jurnal</div>
-                                    <div>Tanggal</div>
-                                    <div>Type</div>
-                                    <div>Note / Keterangan</div>
-                                    <div>User-id</div>
-                                    <div>Balance</div>
-                                    <div>Balance Rp</div>
-                                </div>
-
-                                {{-- Detail Labels --}}
-                                <div class="po-detail-labels" style="margin-bottom: 5px;">
-                                    <div>Line</div>
-                                    <div>Account</div>
-                                    <div>Account Name</div>
-                                    <div>Ref No</div>
-                                    <div>Sub Account</div>
-                                    <div>D/K</div>
-                                    <div>Rate</div>
-                                    <div>Debet</div>
-                                    <div>Kredit</div>
-                                </div>
-                            </td>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr>
-                            <td>
-                                @foreach ($groupedData as $jurnalNo => $lines)
-                                    @php
-                                        $firstLine = $lines->first();
-                                        $jurnalDateFormatted = !empty($firstLine->fjurnaldate) ? \Carbon\Carbon::parse($firstLine->fjurnaldate)->format('d/m/Y') : '';
-                                    @endphp
-                                    <div class="journal-block">
-                                        <div class="po-header" style="border-top: 1px solid #000; margin-top: 5px;">
-                                            <div class="truncate">{{ $jurnalNo }}</div>
-                                            <div>{{ $jurnalDateFormatted }}</div>
-                                            <div>{{ $firstLine->fjurnaltype }}</div>
-                                            <div class="truncate" title="{{ $firstLine->fjurnalnote }}">{{ $firstLine->fjurnalnote }}</div>
-                                            <div>{{ $firstLine->fuserid }}</div>
-                                            <div>{{ number_format((float) $firstLine->fbalance, 2, ',', '.') }}</div>
-                                            <div>{{ number_format((float) $firstLine->fbalance_rp, 2, ',', '.') }}</div>
-                                        </div>
-
-                                        @foreach ($lines as $dt)
-                                            @php
-                                                $grandTotalDebet += (float) $dt->debet;
-                                                $grandTotalKredit += (float) $dt->kredit;
-                                            @endphp
-                                            <div class="po-detail">
-                                                <div>{{ $dt->flineno }}</div>
-                                                <div>{{ $dt->faccount }}</div>
-                                                <div class="truncate" title="{{ $dt->faccname }}">{{ $dt->faccname }}</div>
-                                                <div class="truncate" title="{{ $dt->frefno }}">{{ $dt->frefno }}</div>
-                                                <div class="truncate" title="{{ $dt->fsubaccount }}">{{ $dt->fsubaccount }}</div>
-                                                <div>{{ $dt->fdk }}</div>
-                                                <div>{{ number_format((float) $dt->frate, 2, ',', '.') }}</div>
-                                                <div>{{ $dt->debet !== null ? number_format((float) $dt->debet, 2, ',', '.') : '' }}</div>
-                                                <div>{{ $dt->kredit !== null ? number_format((float) $dt->kredit, 2, ',', '.') : '' }}</div>
-                                            </div>
-                                        @endforeach
-
-                                        @if (!$loop->last)
-                                            <div class="separator"></div>
-                                        @endif
-                                    </div>
-                                @endforeach
-
-                                <div class="grand-total-section">
-                                    <div class="grand-total-header">
-                                        <span>GRAND TOTAL LISTING JURNAL TRANSACTION</span>
-                                        <span>Rp {{ number_format($grandTotalDebet, 2, ',', '.') }} &nbsp;|&nbsp; Rp {{ number_format($grandTotalKredit, 2, ',', '.') }}</span>
-                                    </div>
-                                </div>
-                            </td>
-                        </tr>
-                    </tbody>
-                </table>
             </div>
         @endif
     </div>
@@ -398,6 +399,157 @@
 </html>
 
 <script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const rawSource = document.getElementById("raw-source");
+        const reportWrapper = document.getElementById("reportWrapper");
+        if (!rawSource || !reportWrapper) return;
+
+        const journals = Array.from(rawSource.querySelectorAll(".journal-block"));
+        if (journals.length === 0) return;
+
+        // Measure actual 297mm page height on the screen dynamically in pixels
+        const tempDiv = document.createElement("div");
+        tempDiv.style.height = "297mm";
+        tempDiv.style.position = "absolute";
+        tempDiv.style.visibility = "hidden";
+        document.body.appendChild(tempDiv);
+        const pageHeightPx = tempDiv.offsetHeight;
+        document.body.removeChild(tempDiv);
+
+        // Leave a safety margin (e.g. 20px) to prevent overlapping footers and sub-pixel rounding errors
+        const maxPageHeight = pageHeightPx - 20;
+
+        const headerSectionHtml = rawSource.querySelector(".header-section").outerHTML;
+        const poHeaderLabelsHtml = rawSource.querySelector(".po-header-labels").outerHTML;
+        const poDetailLabelsHtml = rawSource.querySelector(".po-detail-labels").outerHTML;
+        const grandTotalSectionHtml = rawSource.querySelector(".grand-total-section")?.outerHTML;
+
+        function createNewPage() {
+            const page = document.createElement("div");
+            page.className = "page-a4";
+            page.innerHTML = `
+                <div class="page-header-container">
+                    ${headerSectionHtml}
+                    ${poHeaderLabelsHtml}
+                    ${poDetailLabelsHtml}
+                </div>
+                <div class="page-content" style="margin-top: 5px;"></div>
+                <div class="page-footer" style="position: absolute; bottom: 15mm; right: 15mm; font-size: 8px; font-weight: bold; color: #333;">
+                    Page: <span class="page-number-current"></span> of <span class="page-number-total"></span>
+                </div>
+            `;
+            reportWrapper.appendChild(page);
+            return page;
+        }
+
+        let currentPage = createNewPage();
+        let currentContent = currentPage.querySelector(".page-content");
+
+        journals.forEach((journal) => {
+            const poHeader = journal.querySelector(".po-header");
+            const poDetails = Array.from(journal.querySelectorAll(".po-detail"));
+            const separator = journal.querySelector(".separator");
+
+            // Create a new journal-block container on the current page
+            let currentJournalBlock = document.createElement("div");
+            currentJournalBlock.className = "journal-block";
+            currentContent.appendChild(currentJournalBlock);
+
+            // Append header
+            currentJournalBlock.appendChild(poHeader.cloneNode(true));
+
+            // Check if page overflowed after adding header
+            if (currentPage.offsetHeight > maxPageHeight) {
+                const blockCount = currentContent.querySelectorAll(".journal-block").length;
+                // Only move to a new page if this is not the only journal on the page
+                if (blockCount > 1) {
+                    currentContent.removeChild(currentJournalBlock);
+                    currentPage = createNewPage();
+                    currentContent = currentPage.querySelector(".page-content");
+
+                    currentJournalBlock = document.createElement("div");
+                    currentJournalBlock.className = "journal-block";
+                    currentContent.appendChild(currentJournalBlock);
+                    currentJournalBlock.appendChild(poHeader.cloneNode(true));
+                }
+            }
+
+            // Append details one by one
+            poDetails.forEach((detail) => {
+                const detailClone = detail.cloneNode(true);
+                currentJournalBlock.appendChild(detailClone);
+
+                // Check overflow
+                if (currentPage.offsetHeight > maxPageHeight) {
+                    const detailCount = currentJournalBlock.querySelectorAll(".po-detail").length;
+                    const blockCount = currentContent.querySelectorAll(".journal-block").length;
+
+                    // Only split and move to next page if there's more than 1 detail in this block OR more than 1 block on this page.
+                    // This prevents infinite loops on exceptionally tall single rows.
+                    if (blockCount > 1 || detailCount > 1) {
+                        currentJournalBlock.removeChild(detailClone);
+
+                        // Create new page
+                        currentPage = createNewPage();
+                        currentContent = currentPage.querySelector(".page-content");
+
+                        // Create a new journal block on the new page
+                        currentJournalBlock = document.createElement("div");
+                        currentJournalBlock.className = "journal-block";
+                        currentContent.appendChild(currentJournalBlock);
+
+                        // Append header clone with "(Lanjutan)" suffix
+                        const headerClone = poHeader.cloneNode(true);
+                        const journalNoDiv = headerClone.querySelector(".truncate");
+                        if (journalNoDiv) {
+                            journalNoDiv.textContent = journalNoDiv.textContent + " (Lanjutan)";
+                        }
+                        currentJournalBlock.appendChild(headerClone);
+
+                        // Append the detail row
+                        currentJournalBlock.appendChild(detailClone);
+                    }
+                }
+            });
+
+            // Append separator if present
+            if (separator) {
+                const separatorClone = separator.cloneNode(true);
+                currentJournalBlock.appendChild(separatorClone);
+
+                // If separator overflows, remove it since a page break is happening anyway
+                if (currentPage.offsetHeight > maxPageHeight) {
+                    currentJournalBlock.removeChild(separatorClone);
+                }
+            }
+        });
+
+        // Add grand total section
+        if (grandTotalSectionHtml) {
+            const tempDiv = document.createElement("div");
+            tempDiv.innerHTML = grandTotalSectionHtml;
+            const grandTotalEl = tempDiv.firstElementChild;
+
+            currentPage.appendChild(grandTotalEl);
+
+            if (currentPage.offsetHeight > maxPageHeight) {
+                // If there are other elements on this page, move the grand total to a new page
+                if (currentPage.children.length > 2) {
+                    currentPage.removeChild(grandTotalEl);
+                    currentPage = createNewPage();
+                    currentPage.appendChild(grandTotalEl);
+                }
+            }
+        }
+
+        // Apply strict height class to lock A4 size and hide overflows
+        const allPages = reportWrapper.querySelectorAll(".page-a4");
+        allPages.forEach((page) => {
+            page.classList.add("page-a4-strict");
+            page.querySelector(".page-number-total").textContent = allPages.length;
+        });
+    });
+
     let currentZoom = 1.0;
 
     function adjustZoom(delta) {
