@@ -162,7 +162,7 @@
                         [10, 25, 50, 100],
                         [10, 25, 50, 100]
                     ],
-                    dom: '<"flex justify-between items-center mb-4"f<"ml-auto"l>>rtip',
+                    dom: '<"supplier-browser-top"fl>rt<"supplier-browser-bottom"ip>',
                     language: dataTableLanguage,
                     order: [
                         [1, 'asc']
@@ -201,8 +201,21 @@
                         const controls = document.getElementById(@js($controlsId));
                         if (controls) {
                             controls.innerHTML = '';
-                            if ($filter.length) $filter.appendTo(controls);
-                            if ($length.length) $length.appendTo(controls);
+                            controls.className = 'grid grid-cols-[minmax(0,1fr)_auto] items-center gap-4 w-full';
+                            controls.setAttribute('style', 'display:grid !important; grid-template-columns:minmax(0,1fr) auto !important; align-items:center !important; column-gap:16px !important; width:100% !important;');
+                            if ($filter.length) $filter.addClass('order-1 shrink-0 whitespace-nowrap').appendTo(controls);
+                            if ($length.length) $length.addClass('order-2 shrink-0 whitespace-nowrap').appendTo(controls);
+                        }
+
+                        const $info = $container.find('.dataTables_info, .dt-info');
+                        const $paginate = $container.find('.dataTables_paginate, .dt-paging');
+                        const pagination = document.getElementById(@js($paginationId));
+                        if (pagination) {
+                            pagination.innerHTML = '';
+                            pagination.className = 'flex items-center justify-between gap-4 flex-nowrap';
+                            pagination.setAttribute('style', 'display:flex !important; align-items:center !important; justify-content:space-between !important; gap:16px !important; flex-wrap:nowrap !important; width:100% !important;');
+                            if ($info.length) $info.addClass('order-1 shrink-0 whitespace-nowrap').appendTo(pagination);
+                            if ($paginate.length) $paginate.addClass('order-2 ml-auto shrink-0 whitespace-nowrap').appendTo(pagination);
                         }
                     }
                 });

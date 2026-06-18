@@ -8,6 +8,97 @@
     'destroyOnClose' => false,
 ])
 
+<style>
+    #{{ $tableId }}_wrapper .dt-layout-row,
+    #{{ $tableId }}_wrapper .dataTables_wrapper .row {
+        display: flex !important;
+        align-items: center !important;
+        justify-content: space-between !important;
+        gap: 16px !important;
+        flex-wrap: nowrap !important;
+        width: 100% !important;
+    }
+
+    #{{ $tableId }}_wrapper .dt-layout-cell,
+    #{{ $tableId }}_wrapper .dataTables_filter,
+    #{{ $tableId }}_wrapper .dataTables_length,
+    #{{ $tableId }}_wrapper .dataTables_info,
+    #{{ $tableId }}_wrapper .dataTables_paginate,
+    #{{ $tableId }}_wrapper .dt-search,
+    #{{ $tableId }}_wrapper .dt-length,
+    #{{ $tableId }}_wrapper .dt-info,
+    #{{ $tableId }}_wrapper .dt-paging {
+        display: inline-flex !important;
+        align-items: center !important;
+        gap: 8px !important;
+        white-space: nowrap !important;
+        flex-wrap: nowrap !important;
+        width: auto !important;
+        margin: 0 !important;
+    }
+
+    #{{ $tableId }}_wrapper .dataTables_filter,
+    #{{ $tableId }}_wrapper .dt-search {
+        flex: 1 1 auto !important;
+        justify-content: flex-start !important;
+    }
+
+    #{{ $tableId }}_wrapper .dataTables_length,
+    #{{ $tableId }}_wrapper .dt-length {
+        margin-left: auto !important;
+        flex: 0 0 auto !important;
+        justify-content: flex-end !important;
+    }
+
+    #{{ $tableId }}_wrapper .dataTables_paginate,
+    #{{ $tableId }}_wrapper .dt-paging,
+    #{{ $paginationId }} .dataTables_paginate,
+    #{{ $paginationId }} .dt-paging {
+        gap: 6px !important;
+    }
+
+    #{{ $tableId }}_wrapper .dataTables_paginate .paginate_button,
+    #{{ $tableId }}_wrapper .dt-paging .dt-paging-button,
+    #{{ $paginationId }} .dataTables_paginate .paginate_button,
+    #{{ $paginationId }} .dt-paging .dt-paging-button {
+        display: inline-flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        min-width: 38px !important;
+        height: 38px !important;
+        padding: 0 14px !important;
+        border: 1px solid #d1d5db !important;
+        border-radius: 10px !important;
+        background: #ffffff !important;
+        color: #374151 !important;
+        font-size: 14px !important;
+        font-weight: 500 !important;
+        line-height: 1 !important;
+        margin: 0 !important;
+        box-shadow: none !important;
+    }
+
+    #{{ $tableId }}_wrapper .dataTables_paginate .paginate_button.current,
+    #{{ $tableId }}_wrapper .dataTables_paginate .paginate_button.current:hover,
+    #{{ $tableId }}_wrapper .dt-paging .dt-paging-button.current,
+    #{{ $paginationId }} .dataTables_paginate .paginate_button.current,
+    #{{ $paginationId }} .dataTables_paginate .paginate_button.current:hover,
+    #{{ $paginationId }} .dt-paging .dt-paging-button.current {
+        background: #2563eb !important;
+        border-color: #2563eb !important;
+        color: #ffffff !important;
+    }
+
+    #{{ $tableId }}_wrapper .dataTables_paginate .paginate_button:hover,
+    #{{ $tableId }}_wrapper .dt-paging .dt-paging-button:hover,
+    #{{ $paginationId }} .dataTables_paginate .paginate_button:hover,
+    #{{ $paginationId }} .dt-paging .dt-paging-button:hover {
+        background: #eff6ff !important;
+        border-color: #93c5fd !important;
+        color: #1d4ed8 !important;
+    }
+</style>
+
 <script>
     function supplierBrowser() {
         const dataTableLanguage = {
@@ -103,7 +194,7 @@
                         [10, 25, 50, 100],
                         [10, 25, 50, 100]
                     ],
-                    dom: '<"supplier-table-toolbar mb-4"f<"supplier-table-length ml-auto"l>>rtip',
+                    dom: '<"supplier-browser-top"fl>rt<"supplier-browser-bottom"ip>',
                     language: dataTableLanguage,
                     order: [
                         [1, 'asc']
@@ -144,9 +235,10 @@
                         const controls = document.getElementById(@js($controlsId));
                         if (controls) {
                             controls.innerHTML = '';
-                            if ($filter.length) $filter.appendTo(controls);
-                            if ($length.length) $length.appendTo(controls);
-                            controls.className = 'flex items-center justify-between gap-4 w-full';
+                            controls.className = 'grid grid-cols-[minmax(0,1fr)_auto] items-center gap-4 w-full';
+                            controls.setAttribute('style', 'display:grid !important; grid-template-columns:minmax(0,1fr) auto !important; align-items:center !important; column-gap:16px !important; width:100% !important;');
+                            if ($filter.length) $filter.addClass('order-1 shrink-0 whitespace-nowrap').appendTo(controls);
+                            if ($length.length) $length.addClass('order-2 shrink-0 whitespace-nowrap').appendTo(controls);
                             $filter.css({ margin: 0, flex: '1 1 auto' });
                             $length.css({ margin: 0, flex: '0 0 auto' });
                             $container.find('.dataTables_filter label, .dt-search label').css({
@@ -163,6 +255,17 @@
                                 margin: 0,
                                 whiteSpace: 'nowrap'
                             });
+                        }
+
+                        const $info = $container.find('.dataTables_info, .dt-info');
+                        const $paginate = $container.find('.dataTables_paginate, .dt-paging');
+                        const pagination = document.getElementById(@js($paginationId));
+                        if (pagination) {
+                            pagination.innerHTML = '';
+                            pagination.className = 'flex items-center justify-between gap-4 flex-nowrap';
+                            pagination.setAttribute('style', 'display:flex !important; align-items:center !important; justify-content:space-between !important; gap:16px !important; flex-wrap:nowrap !important; width:100% !important;');
+                            if ($info.length) $info.addClass('order-1 shrink-0 whitespace-nowrap').appendTo(pagination);
+                            if ($paginate.length) $paginate.addClass('order-2 ml-auto shrink-0 whitespace-nowrap').appendTo(pagination);
                         }
                     }
                 });
@@ -291,12 +394,12 @@
         </div>
 
         <div class="px-6 pt-4 pb-2 flex-shrink-0 border-b border-gray-100">
-            <div id="supplierTableControls" class="flex items-center justify-between gap-4 w-full"></div>
+            <div id="{{ $controlsId }}" class="flex items-center justify-between gap-4 w-full"></div>
         </div>
 
-        <div class="flex-1 overflow-auto px-6" style="min-height: 0;">
+        <div class="flex-1 overflow-auto p-6" style="min-height: 0;">
             <div class="bg-white min-w-max">
-                <table id="supplierBrowseTable" class="min-w-full text-sm display stripe hover"
+                <table id="{{ $tableId }}" class="min-w-full text-sm display stripe hover"
                     style="width:100%">
                     <thead class="sticky top-0 z-10">
                         <tr class="bg-gradient-to-r from-gray-50 to-gray-100">
@@ -313,7 +416,7 @@
         </div>
 
         <div class="px-6 py-3 border-t border-gray-200 flex-shrink-0 bg-gray-50">
-            <div id="supplierTablePagination"></div>
+            <div id="{{ $paginationId }}"></div>
         </div>
     </div>
 </div>

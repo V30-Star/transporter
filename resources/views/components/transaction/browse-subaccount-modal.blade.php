@@ -1,8 +1,8 @@
 @props([
     'tableId' => 'subaccountTable',
-    'showControls' => false,
+    'showControls' => true,
     'controlsId' => 'subaccountTableControls',
-    'showPagination' => false,
+    'showPagination' => true,
     'paginationId' => 'subaccountTablePagination',
     'routeName' => 'subaccounts.browse',
     'eventName' => 'subaccount-browse-open',

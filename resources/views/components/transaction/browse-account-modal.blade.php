@@ -1,8 +1,8 @@
 @props([
     'tableId' => 'accountTable',
-    'showControls' => false,
+    'showControls' => true,
     'controlsId' => 'accountTableControls',
-    'showPagination' => false,
+    'showPagination' => true,
     'paginationId' => 'accountTablePagination',
     'routeName' => 'accounts.browse',
     'eventName' => 'account-browse-open',

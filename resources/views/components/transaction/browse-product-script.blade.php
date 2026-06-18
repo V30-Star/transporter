@@ -1,8 +1,8 @@
 @php
     $tableId = $tableId ?? 'productTable';
-    $showControls = $showControls ?? false;
+    $showControls = $showControls ?? true;
     $controlsId = $controlsId ?? 'productTableControls';
-    $showPagination = $showPagination ?? false;
+    $showPagination = $showPagination ?? true;
     $paginationId = $paginationId ?? 'productTablePagination';
     $supportsForEdit = $supportsForEdit ?? false;
     $destroyOnClose = $destroyOnClose ?? false;
@@ -108,7 +108,7 @@
                         [10, 25, 50, 100],
                         [10, 25, 50, 100]
                     ],
-                    dom: @json($showControls || $showPagination ? '<"product-browser-top d-flex justify-content-between align-items-center flex-wrap gap-3"f<"product-browser-length ms-auto"l>>rt<"product-browser-bottom"ip>' : '<"d-flex justify-content-between align-items-center flex-wrap gap-3 mb-4"f<"ms-auto"l>>rtip'),
+                    dom: @json($showControls || $showPagination ? '<"product-browser-top"fl>rt<"product-browser-bottom"ip>' : '<"flex justify-between items-center mb-4"f<"ml-auto"l>>rtip'),
                     language: dataTableLanguage,
                     order: [
                         [1, 'asc']
@@ -161,11 +161,12 @@
 
                             if (controls) {
                                 controls.innerHTML = '';
-                                controls.className = 'flex items-center justify-between gap-4 flex-wrap';
+                                controls.className = 'grid grid-cols-[minmax(0,1fr)_auto] items-center gap-4 w-full';
+                                controls.setAttribute('style', 'display:grid !important; grid-template-columns:minmax(0,1fr) auto !important; align-items:center !important; column-gap:16px !important; width:100% !important;');
                                 const filterEl = $searchWrap.first();
                                 const lengthEl = $lengthWrap.first();
-                                if (filterEl.length) filterEl.addClass('order-1').appendTo(controls);
-                                if (lengthEl.length) lengthEl.addClass('order-2 ms-auto').appendTo(controls);
+                                if (filterEl.length) filterEl.addClass('order-1 shrink-0 whitespace-nowrap').appendTo(controls);
+                                if (lengthEl.length) lengthEl.addClass('order-2 shrink-0 whitespace-nowrap').appendTo(controls);
                             }
                         @endif
 
@@ -176,12 +177,13 @@
 
                             if (pagination) {
                                 pagination.innerHTML = '';
-                                pagination.className = 'flex items-center justify-between gap-4 flex-wrap';
+                                pagination.className = 'flex items-center justify-between gap-4 flex-nowrap';
+                                pagination.setAttribute('style', 'display:flex !important; align-items:center !important; justify-content:space-between !important; gap:16px !important; flex-wrap:nowrap !important; width:100% !important;');
                                 if ($info.length) {
-                                    $info.addClass('order-1').appendTo(pagination);
+                                    $info.addClass('order-1 shrink-0 whitespace-nowrap').appendTo(pagination);
                                 }
                                 if ($paginate.length) {
-                                    $paginate.addClass('order-2 ml-auto').appendTo(pagination);
+                                    $paginate.addClass('order-2 ml-auto shrink-0 whitespace-nowrap').appendTo(pagination);
                                 }
                             }
                         @endif

@@ -1,6 +1,7 @@
 @php
     $tableId = $tableId ?? 'customerBrowseTable';
     $controlsId = $controlsId ?? 'customerTableControls';
+    $paginationId = $paginationId ?? 'customerTablePagination';
     $routeName = $routeName ?? 'customer.browse';
     $openDelay = $openDelay ?? 0;
     $destroyOnClose = $destroyOnClose ?? true;
@@ -167,7 +168,7 @@
                         [10, 25, 50, 100],
                         [10, 25, 50, 100]
                     ],
-                    dom: '<"flex justify-between items-center mb-4"f<"ml-auto"l>>rtip',
+                    dom: '<"customer-browser-top"fl>rt<"customer-browser-bottom"ip>',
                     language: dataTableLanguage,
                     order: [
                         [1, 'asc']
@@ -191,6 +192,40 @@
                             borderRadius: '8px',
                             fontSize: '14px'
                         });
+
+                        const controls = document.getElementById(@js($controlsId));
+                        if (controls) {
+                            controls.innerHTML = '';
+                            controls.className = 'grid grid-cols-[minmax(0,1fr)_auto] items-center gap-4 w-full';
+                            controls.setAttribute('style', 'display:grid !important; grid-template-columns:minmax(0,1fr) auto !important; align-items:center !important; column-gap:16px !important; width:100% !important;');
+
+                            const $filter = $container.find('.dataTables_filter, .dt-search');
+                            const $length = $container.find('.dataTables_length, .dt-length');
+
+                            if ($filter.length) {
+                                $filter.addClass('order-1 shrink-0 whitespace-nowrap').appendTo(controls);
+                            }
+                            if ($length.length) {
+                                $length.addClass('order-2 shrink-0 whitespace-nowrap').appendTo(controls);
+                            }
+                        }
+
+                        const pagination = document.getElementById(@js($paginationId));
+                        if (pagination) {
+                            pagination.innerHTML = '';
+                            pagination.className = 'flex items-center justify-between gap-4 flex-nowrap';
+                            pagination.setAttribute('style', 'display:flex !important; align-items:center !important; justify-content:space-between !important; gap:16px !important; flex-wrap:nowrap !important; width:100% !important;');
+
+                            const $info = $container.find('.dataTables_info, .dt-info');
+                            const $paginate = $container.find('.dataTables_paginate, .dt-paging');
+
+                            if ($info.length) {
+                                $info.addClass('order-1 shrink-0 whitespace-nowrap').appendTo(pagination);
+                            }
+                            if ($paginate.length) {
+                                $paginate.addClass('order-2 ml-auto shrink-0 whitespace-nowrap').appendTo(pagination);
+                            }
+                        }
                     }
                 });
 
