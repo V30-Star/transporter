@@ -202,6 +202,11 @@
             font-weight: bold;
         }
 
+        .journal-block {
+            page-break-inside: avoid;
+            break-inside: avoid;
+        }
+
         @media print {
             body {
                 background-color: white !important;
@@ -212,7 +217,7 @@
                 margin: 0;
                 padding: 10mm;
                 box-shadow: none;
-                page-break-after: always;
+                page-break-after: auto;
             }
 
             .no-print {
@@ -221,8 +226,26 @@
 
             @page {
                 size: A4 portrait;
-                margin: 10mm;
+                margin: 20mm 15mm 20mm 15mm;
+                @top-right {
+                    content: "Page " counter(page) " of " counter(pages);
+                    font-family: Arial, sans-serif;
+                    font-size: 8px;
+                    font-weight: bold;
+                    color: #333;
+                }
             }
+        }
+
+        .print-table {
+            width: 100%;
+            border-collapse: collapse;
+            border: none;
+        }
+
+        .print-table td {
+            padding: 0;
+            border: none;
         }
     </style>
 </head>
@@ -256,7 +279,7 @@
     @endphp
 
     <div class="report-wrapper" id="reportWrapper">
-        @if ($chunkedData->isEmpty())
+        @if ($groupedData->isEmpty())
             <div class="a4-container">
                 <div class="header-section">
                     <h2>Listing Jurnal Transaksi</h2>
@@ -264,100 +287,110 @@
                 </div>
             </div>
         @else
-            @foreach ($chunkedData as $pageIndex => $pageData)
-                <div class="a4-container">
-                    <div class="header-section">
-                        <div class="supplier-info-kiri">
-                            Type Jurnal: {{ !empty($selectedTypes) ? implode(', ', $selectedTypes) : 'Semua' }}
-                            <br>Cabang: {{ !empty($selectedBranches) ? implode(', ', $selectedBranches) : 'Semua' }}
-                        </div>
-                        <h2>Listing Jurnal Transaksi</h2>
-                        <div class="filter-info">
-                            Periode:
-                            {{ $dateFrom ? \Carbon\Carbon::parse($dateFrom)->format('d/m/Y') : '...' }}
-                            s/d
-                            {{ $dateTo ? \Carbon\Carbon::parse($dateTo)->format('d/m/Y') : '...' }}
-                        </div>
-                        <div class="info-tambahan">
-                            <div><span class="info-label">Tanggal</span>: {{ date('d/m/Y') }}</div>
-                            <div><span class="info-label">Jam</span>: {{ date('H:i') }}</div>
-                            <div><span class="info-label">Hal</span>: {{ $pageIndex + 1 }} / {{ $totalPages }}</div>
-                            <div><span class="info-label">Opr</span>: {{ $user_session->fname ?? 'User' }}</div>
-                        </div>
-                    </div>
+            <div class="a4-container">
+                <table class="print-table">
+                    <thead>
+                        <tr>
+                            <td>
+                                <div class="header-section">
+                                    <div class="supplier-info-kiri">
+                                        Type Jurnal: {{ !empty($selectedTypes) ? implode(', ', $selectedTypes) : 'Semua' }}
+                                        <br>Cabang: {{ !empty($selectedBranches) ? implode(', ', $selectedBranches) : 'Semua' }}
+                                    </div>
+                                    <h2>Listing Jurnal Transaksi</h2>
+                                    <div class="filter-info">
+                                        Periode:
+                                        {{ $dateFrom ? \Carbon\Carbon::parse($dateFrom)->format('d/m/Y') : '...' }}
+                                        s/d
+                                        {{ $dateTo ? \Carbon\Carbon::parse($dateTo)->format('d/m/Y') : '...' }}
+                                    </div>
+                                    <div class="info-tambahan">
+                                        <div><span class="info-label">Tanggal</span>: {{ date('d/m/Y') }}</div>
+                                        <div><span class="info-label">Jam</span>: {{ date('H:i') }}</div>
+                                        <div><span class="info-label">Opr</span>: {{ $user_session->fname ?? 'User' }}</div>
+                                    </div>
+                                </div>
 
-                    {{-- Header Labels --}}
-                    <div class="po-header-labels">
-                        <div>No. Jurnal</div>
-                        <div>Tanggal</div>
-                        <div>Type</div>
-                        <div>Note / Keterangan</div>
-                        <div>User-id</div>
-                        <div>Balance</div>
-                        <div>Balance Rp</div>
-                    </div>
+                                {{-- Header Labels --}}
+                                <div class="po-header-labels">
+                                    <div>No. Jurnal</div>
+                                    <div>Tanggal</div>
+                                    <div>Type</div>
+                                    <div>Note / Keterangan</div>
+                                    <div>User-id</div>
+                                    <div>Balance</div>
+                                    <div>Balance Rp</div>
+                                </div>
 
-                    {{-- Detail Labels --}}
-                    <div class="po-detail-labels">
-                        <div>Line</div>
-                        <div>Account</div>
-                        <div>Account Name</div>
-                        <div>Ref No</div>
-                        <div>Sub Account</div>
-                        <div>D/K</div>
-                        <div>Rate</div>
-                        <div>Debet</div>
-                        <div>Kredit</div>
-                    </div>
+                                {{-- Detail Labels --}}
+                                <div class="po-detail-labels" style="margin-bottom: 5px;">
+                                    <div>Line</div>
+                                    <div>Account</div>
+                                    <div>Account Name</div>
+                                    <div>Ref No</div>
+                                    <div>Sub Account</div>
+                                    <div>D/K</div>
+                                    <div>Rate</div>
+                                    <div>Debet</div>
+                                    <div>Kredit</div>
+                                </div>
+                            </td>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>
+                                @foreach ($groupedData as $jurnalNo => $lines)
+                                    @php
+                                        $firstLine = $lines->first();
+                                        $jurnalDateFormatted = !empty($firstLine->fjurnaldate) ? \Carbon\Carbon::parse($firstLine->fjurnaldate)->format('d/m/Y') : '';
+                                    @endphp
+                                    <div class="journal-block">
+                                        <div class="po-header" style="border-top: 1px solid #000; margin-top: 5px;">
+                                            <div class="truncate">{{ $jurnalNo }}</div>
+                                            <div>{{ $jurnalDateFormatted }}</div>
+                                            <div>{{ $firstLine->fjurnaltype }}</div>
+                                            <div class="truncate" title="{{ $firstLine->fjurnalnote }}">{{ $firstLine->fjurnalnote }}</div>
+                                            <div>{{ $firstLine->fuserid }}</div>
+                                            <div>{{ number_format((float) $firstLine->fbalance, 2, ',', '.') }}</div>
+                                            <div>{{ number_format((float) $firstLine->fbalance_rp, 2, ',', '.') }}</div>
+                                        </div>
 
-                    @foreach ($pageData as $jurnalNo => $lines)
-                        @php
-                            $firstLine = $lines->first();
-                            $jurnalDateFormatted = !empty($firstLine->fjurnaldate) ? \Carbon\Carbon::parse($firstLine->fjurnaldate)->format('d/m/Y') : '';
-                        @endphp
-                        <div class="po-header" style="border-top: 1px solid #000; margin-top: 5px;">
-                            <div class="truncate">{{ $jurnalNo }}</div>
-                            <div>{{ $jurnalDateFormatted }}</div>
-                            <div>{{ $firstLine->fjurnaltype }}</div>
-                            <div class="truncate" title="{{ $firstLine->fjurnalnote }}">{{ $firstLine->fjurnalnote }}</div>
-                            <div>{{ $firstLine->fuserid }}</div>
-                            <div>{{ number_format((float) $firstLine->fbalance, 2, ',', '.') }}</div>
-                            <div>{{ number_format((float) $firstLine->fbalance_rp, 2, ',', '.') }}</div>
-                        </div>
+                                        @foreach ($lines as $dt)
+                                            @php
+                                                $grandTotalDebet += (float) $dt->debet;
+                                                $grandTotalKredit += (float) $dt->kredit;
+                                            @endphp
+                                            <div class="po-detail">
+                                                <div>{{ $dt->flineno }}</div>
+                                                <div>{{ $dt->faccount }}</div>
+                                                <div class="truncate" title="{{ $dt->faccname }}">{{ $dt->faccname }}</div>
+                                                <div class="truncate" title="{{ $dt->frefno }}">{{ $dt->frefno }}</div>
+                                                <div class="truncate" title="{{ $dt->fsubaccount }}">{{ $dt->fsubaccount }}</div>
+                                                <div>{{ $dt->fdk }}</div>
+                                                <div>{{ number_format((float) $dt->frate, 2, ',', '.') }}</div>
+                                                <div>{{ $dt->debet !== null ? number_format((float) $dt->debet, 2, ',', '.') : '' }}</div>
+                                                <div>{{ $dt->kredit !== null ? number_format((float) $dt->kredit, 2, ',', '.') : '' }}</div>
+                                            </div>
+                                        @endforeach
 
-                        @foreach ($lines as $dt)
-                            @php
-                                $grandTotalDebet += (float) $dt->debet;
-                                $grandTotalKredit += (float) $dt->kredit;
-                            @endphp
-                            <div class="po-detail">
-                                <div>{{ $dt->flineno }}</div>
-                                <div>{{ $dt->faccount }}</div>
-                                <div class="truncate" title="{{ $dt->faccname }}">{{ $dt->faccname }}</div>
-                                <div class="truncate" title="{{ $dt->frefno }}">{{ $dt->frefno }}</div>
-                                <div class="truncate" title="{{ $dt->fsubaccount }}">{{ $dt->fsubaccount }}</div>
-                                <div>{{ $dt->fdk }}</div>
-                                <div>{{ number_format((float) $dt->frate, 2, ',', '.') }}</div>
-                                <div>{{ $dt->debet !== null ? number_format((float) $dt->debet, 2, ',', '.') : '' }}</div>
-                                <div>{{ $dt->kredit !== null ? number_format((float) $dt->kredit, 2, ',', '.') : '' }}</div>
-                            </div>
-                        @endforeach
+                                        @if (!$loop->last)
+                                            <div class="separator"></div>
+                                        @endif
+                                    </div>
+                                @endforeach
 
-                        @if (!$loop->last)
-                            <div class="separator"></div>
-                        @endif
-                    @endforeach
-
-                    @if ($loop->last)
-                        <div class="grand-total-section">
-                            <div class="grand-total-header">
-                                <span>GRAND TOTAL LISTING JURNAL TRANSACTION</span>
-                                <span>Rp {{ number_format($grandTotalDebet, 2, ',', '.') }} &nbsp;|&nbsp; Rp {{ number_format($grandTotalKredit, 2, ',', '.') }}</span>
-                            </div>
-                        </div>
-                    @endif
-                </div>
-            @endforeach
+                                <div class="grand-total-section">
+                                    <div class="grand-total-header">
+                                        <span>GRAND TOTAL LISTING JURNAL TRANSACTION</span>
+                                        <span>Rp {{ number_format($grandTotalDebet, 2, ',', '.') }} &nbsp;|&nbsp; Rp {{ number_format($grandTotalKredit, 2, ',', '.') }}</span>
+                                    </div>
+                                </div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
         @endif
     </div>
 </body>

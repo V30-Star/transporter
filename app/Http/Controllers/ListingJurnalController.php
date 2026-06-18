@@ -55,11 +55,9 @@ class ListingJurnalController extends Controller
 
         $results = $this->buildQuery($dateFrom, $dateTo, $journalTypes, $branchCodes, $sortBy)->get();
         $groupedData = $results->groupBy('fjurnalno');
-        $chunkedData = $groupedData->chunk(5);
 
         return view('listingjurnal.print', [
-            'chunkedData' => $chunkedData,
-            'totalPages' => $chunkedData->count(),
+            'groupedData' => $groupedData,
             'dateFrom' => $dateFrom,
             'dateTo' => $dateTo,
             'selectedTypes' => $journalTypes,
