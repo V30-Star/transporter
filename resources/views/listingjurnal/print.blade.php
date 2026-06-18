@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Listing Jurnal</title>
+    <title>Listing Jurnal Transaksi</title>
     <style>
         * {
             margin: 0;
@@ -259,7 +259,7 @@
         @if ($chunkedData->isEmpty())
             <div class="a4-container">
                 <div class="header-section">
-                    <h2>Listing Jurnal</h2>
+                    <h2>Listing Jurnal Transaksi</h2>
                     <div style="margin-top: 30px; text-align: center; font-size: 12px; color: #666;">Tidak ada data ditemukan.</div>
                 </div>
             </div>
@@ -270,7 +270,7 @@
                         <div class="supplier-info-kiri">
                             Type Jurnal: {{ !empty($selectedTypes) ? implode(', ', $selectedTypes) : 'Semua' }}
                         </div>
-                        <h2>Listing Jurnal</h2>
+                        <h2>Listing Jurnal Transaksi</h2>
                         <div class="filter-info">
                             Periode:
                             {{ $dateFrom ? \Carbon\Carbon::parse($dateFrom)->format('d/m/Y') : '...' }}
@@ -350,8 +350,8 @@
                     @if ($loop->last)
                         <div class="grand-total-section">
                             <div class="grand-total-header">
-                                <span>GRAND TOTAL LISTING JURNAL</span>
-                                <span>Debet: Rp {{ number_format($grandTotalDebet, 2, ',', '.') }} &nbsp;|&nbsp; Kredit: Rp {{ number_format($grandTotalKredit, 2, ',', '.') }}</span>
+                                <span>GRAND TOTAL LISTING JURNAL TRANSACTION</span>
+                                <span>Rp {{ number_format($grandTotalDebet, 2, ',', '.') }} &nbsp;|&nbsp; Rp {{ number_format($grandTotalKredit, 2, ',', '.') }}</span>
                             </div>
                         </div>
                     @endif
