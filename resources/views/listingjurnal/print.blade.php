@@ -269,6 +269,7 @@
                     <div class="header-section">
                         <div class="supplier-info-kiri">
                             Type Jurnal: {{ !empty($selectedTypes) ? implode(', ', $selectedTypes) : 'Semua' }}
+                            <br>Cabang: {{ !empty($selectedBranches) ? implode(', ', $selectedBranches) : 'Semua' }}
                         </div>
                         <h2>Listing Jurnal Transaksi</h2>
                         <div class="filter-info">
