@@ -68,7 +68,7 @@
                                     class="text-xs bg-gray-100 text-gray-700 px-3 py-1 rounded hover:bg-gray-200">Unselect All</button>
                             </div>
                         </div>
-                        <div id="journalTypeCheckboxesArea" class="border rounded-lg p-3 bg-gray-50 max-h-40 overflow-y-auto">
+                        <div id="journalTypeCheckboxesArea" class="border rounded-lg p-3 bg-gray-50">
                             <div class="grid grid-cols-2 gap-2">
                                 @foreach($typeOptions as $type)
                                     <label class="flex items-center text-sm cursor-pointer select-none">
