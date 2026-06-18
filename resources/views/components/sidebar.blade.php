@@ -938,6 +938,27 @@
                             </a>
                         </li>
                     @endif
+
+                    @if ($hasSidebarPermission('viewlistingpenerimaankasbank'))
+                        <li>
+                            <a href="{{ route('listingpenerimaankasbank.index') }}"
+                                class="flex items-center p-2 rounded hover:bg-gray-700">
+                                <x-heroicon-o-banknotes class="w-5 h-5" />
+                                <span class="ml-3">{{ 'Listing Penerimaan Kas/Bank' }}</span>
+                            </a>
+                        </li>
+                    @endif
+
+                    @if ($hasSidebarPermission('viewlistingpengeluarankasbank'))
+                        <li>
+                            <a href="{{ route('listingpengeluarankasbank.index') }}"
+                                class="flex items-center p-2 rounded hover:bg-gray-700">
+                                <x-heroicon-o-banknotes class="w-5 h-5" />
+                                <span class="ml-3">{{ 'Listing Pengeluaran Kas/Bank' }}</span>
+                            </a>
+                        </li>
+                    @endif
+
                     @if ($hasSidebarPermission('viewreportingpelunasansupplier'))
                         <li>
                             <a href="{{ route('reportingpelunasansupplier.index') }}"
