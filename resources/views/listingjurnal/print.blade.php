@@ -524,9 +524,11 @@
         const endOfReportEl = document.createElement("div");
         endOfReportEl.className = "end-of-report";
         endOfReportEl.style.textAlign = "center";
-        endOfReportEl.style.marginTop = "25px";
+        endOfReportEl.style.marginTop = "10px";
+        endOfReportEl.style.borderTop = "1px solid #000";
+        endOfReportEl.style.paddingTop = "20px";
         endOfReportEl.style.fontWeight = "bold";
-        endOfReportEl.style.fontSize = "10px";
+        endOfReportEl.style.fontSize = "8px";
         endOfReportEl.style.color = "#555";
         endOfReportEl.style.textTransform = "uppercase";
         endOfReportEl.style.letterSpacing = "1px";
