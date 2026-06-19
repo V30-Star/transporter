@@ -35,6 +35,7 @@
             text-align: center;
             border-bottom: 2px solid #000;
             padding-bottom: 10px;
+            min-height: 80px;
         }
 
         .header-section h2 {
@@ -90,7 +91,7 @@
         .voucher-detail-labels {
             font-weight: bold;
             color: #c00;
-            background-color: #ffe6e6;
+            background-color: #fff;
             border: 1px solid #ccc;
             border-bottom: 1px solid #ccc;
             margin-top: 2px;
@@ -179,13 +180,13 @@
         .grand-total-row.highlight {
             font-weight: bold;
             color: #c00;
-            background-color: #ffe6e6;
+            background-color: #fff;
         }
 
         /* Account Summary styling matching theme */
         .summary-account-section {
             margin-top: 25px;
-            border-top: 2px solid #c00;
+            border-top: 2px solid rgb(0, 0, 0);
             padding-top: 15px;
             clear: both;
         }
@@ -211,7 +212,7 @@
         }
 
         .summary-table th {
-            background-color: #ffe6e6;
+            background-color: #fff;
             color: #c00;
             font-weight: bold;
             text-align: left;
@@ -258,7 +259,7 @@
 
         .meta-info-kiri {
             position: absolute;
-            top: 10mm;
+            top: 0;
             left: 0mm;
             font-size: 10px;
             color: #333;
@@ -429,8 +430,11 @@
             <div class="a4-container">
                 <div class="header-section">
                     <div class="meta-info-kiri">
-                        Account: {{ $filters['account_no'] !== '' ? $filters['account_no'] : 'Semua' }}<br>
-                        Customer: {{ $filters['customer_from'] ?: 'Awal' }} s/d {{ $filters['customer_to'] ?: 'Akhir' }}
+                        Cabang: {{ !empty($filters['branch_codes']) ? implode(', ', (array) $filters['branch_codes']) : 'Semua' }}<br>
+                        No. Account: {{ $filters['account_no'] !== '' ? $filters['account_no'] : 'Semua' }}<br>
+                        Salesman: {{ !$filters['all_salesman'] && $filters['salesman'] !== '' ? $filters['salesman'] : 'Semua' }}<br>
+                        Dari Customer: {{ $filters['customer_from'] !== '' ? $filters['customer_from'] : 'Awal' }}<br>
+                        Sd Customer: {{ $filters['customer_to'] !== '' ? $filters['customer_to'] : 'Akhir' }}
                     </div>
                     <h2>Laporan Pelunasan Customer</h2>
                     <div class="info-tambahan">
@@ -460,6 +464,13 @@
             @foreach ($chunkedData as $pageIndex => $pageData)
                 <div class="a4-container">
                     <div class="header-section">
+                        <div class="meta-info-kiri">
+                            Cabang: {{ !empty($filters['branch_codes']) ? implode(', ', (array) $filters['branch_codes']) : 'Semua' }}<br>
+                            No. Account: {{ $filters['account_no'] !== '' ? $filters['account_no'] : 'Semua' }}<br>
+                            Salesman: {{ !$filters['all_salesman'] && $filters['salesman'] !== '' ? $filters['salesman'] : 'Semua' }}<br>
+                            Dari Customer: {{ $filters['customer_from'] !== '' ? $filters['customer_from'] : 'Awal' }}<br>
+                            Sd Customer: {{ $filters['customer_to'] !== '' ? $filters['customer_to'] : 'Akhir' }}
+                        </div>
                         <h2>Laporan Pelunasan Customer</h2>
                         @if ($filters['date_from'] || $filters['date_to'])
                             <div class="filter-info">

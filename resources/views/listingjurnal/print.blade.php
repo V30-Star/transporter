@@ -30,7 +30,6 @@
             box-shadow: 0 0 10px rgba(0, 0, 0, 0.15);
             position: relative;
             box-sizing: border-box;
-            /* Height is auto during dynamic layout measurements */
             height: auto;
             min-height: 0;
         }
@@ -75,7 +74,6 @@
         }
 
         .po-header-labels {
-            font-weight: bold;
             background-color: #f0f0f0;
             border: 1px solid #000;
             border-bottom: 2px solid #000;
@@ -83,9 +81,6 @@
         }
 
         .po-header {
-            font-weight: bold;
-            border-left: 1px solid #ccc;
-            border-right: 1px solid #ccc;
             background-color: #fff;
             padding: 6px 5px;
         }
@@ -94,7 +89,7 @@
         .po-detail-labels,
         .po-detail {
             display: grid;
-            grid-template-columns: 18mm 40mm 20mm 30mm 30mm 30mm;
+            grid-template-columns: 18mm 40mm 40mm 25mm 25mm 25mm;
             gap: 3px;
             font-size: 8px;
             padding: 4px 5px;
@@ -104,16 +99,14 @@
             font-weight: bold;
             color: #c00;
             background-color: #fff;
-            border: 1px solid #ccc;
-            border-bottom: 1px solid #ccc;
+            border: 1px solid #000000;
+            border-bottom: 1px solid #000000;
             margin-top: 2px;
             padding: 6px 5px;
         }
 
         .po-detail {
             color: #c00;
-            border-left: 1px solid #ccc;
-            border-right: 1px solid #ccc;
             background-color: #fff;
         }
 
@@ -144,7 +137,7 @@
         }
 
         .separator {
-            border-bottom: 1px solid #ccc;
+            border-bottom: 1px solid #000000;
             margin: 8px 0;
             clear: both;
         }
@@ -183,7 +176,7 @@
 
         .supplier-info-kiri {
             position: absolute;
-            top: 10mm;
+            top: 12mm;
             left: 0mm;
             font-size: 10px;
             color: #333;
@@ -335,7 +328,7 @@
                 $jurnalDateFormatted = !empty($firstLine->fjurnaldate) ? \Carbon\Carbon::parse($firstLine->fjurnaldate)->format('d/m/Y') : '';
             @endphp
             <div class="journal-block">
-                <div class="po-header" style="border-top: 1px solid #000; margin-top: 5px;">
+                <div class="po-header" style="margin-top: 5px;">
                     <div class="truncate">{{ $jurnalNo }}</div>
                     <div>{{ $jurnalDateFormatted }}</div>
                     <div class="truncate" title="{{ $firstLine->fjurnalnote }}">{{ $firstLine->fjurnalnote }}</div>
