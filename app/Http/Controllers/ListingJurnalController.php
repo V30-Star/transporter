@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use PhpOffice\PhpSpreadsheet\Spreadsheet;
 
 class ListingJurnalController extends Controller
 {
@@ -64,6 +65,142 @@ class ListingJurnalController extends Controller
             'selectedBranches' => $branchCodes,
             'user_session' => auth()->user(),
         ]);
+    }
+
+    public function exportExcel(Request $request)
+    {
+        $dateFrom = $request->input('date_from', now()->startOfMonth()->toDateString());
+        $dateTo = $request->input('date_to', now()->toDateString());
+        $journalTypes = $request->input('journal_types', []);
+        $journalTypes = array_values(array_filter(array_map('trim', (array) $journalTypes)));
+        $branchCodes = $request->input('branch_codes', []);
+        $branchCodes = array_values(array_filter(array_map('trim', (array) $branchCodes)));
+        $sortBy = $request->input('sort_by', 'terlama');
+
+        $results = $this->buildQuery($dateFrom, $dateTo, $journalTypes, $branchCodes, $sortBy)->get();
+
+        $spreadsheet = new Spreadsheet();
+        $sheet = $spreadsheet->getActiveSheet();
+        $sheet->setTitle('Listing Jurnal Transaksi');
+
+        $headers = [
+            'No. Jurnal',
+            'Tanggal',
+            'Type',
+            'Note / Keterangan',
+            'User-id',
+            'Balance',
+            'Balance Rp',
+            'Line',
+            'Account',
+            'Account Name',
+            'Ref No',
+            'Sub Account',
+            'D/K',
+            'Rate',
+            'Debet',
+            'Kredit',
+        ];
+
+        $col = 'A';
+        foreach ($headers as $header) {
+            $sheet->setCellValue($col . '1', $header);
+            $col++;
+        }
+
+        $sheet->getStyle('A1:P1')->applyFromArray([
+            'font' => ['bold' => true, 'color' => ['rgb' => 'FFFFFF']],
+            'fill' => [
+                'fillType' => \PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID,
+                'startColor' => ['rgb' => 'C00000'],
+            ],
+            'alignment' => [
+                'horizontal' => \PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER,
+                'vertical' => \PhpOffice\PhpSpreadsheet\Style\Alignment::VERTICAL_CENTER,
+            ],
+            'borders' => [
+                'allBorders' => ['borderStyle' => \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN],
+            ],
+        ]);
+
+        $row = 2;
+        $grandTotalDebet = 0;
+        $grandTotalKredit = 0;
+
+        $groupedData = $results->groupBy('fjurnalno');
+        foreach ($groupedData as $jurnalNo => $lines) {
+            $firstLine = $lines->first();
+            $jurnalDateFormatted = !empty($firstLine->fjurnaldate) ? \Carbon\Carbon::parse($firstLine->fjurnaldate)->format('d/m/Y') : '';
+            $balance = (float) $firstLine->fbalance;
+            $balanceRp = (float) $firstLine->fbalance_rp;
+
+            foreach ($lines as $dt) {
+                $debet = $dt->debet !== null ? (float) $dt->debet : 0;
+                $kredit = $dt->kredit !== null ? (float) $dt->kredit : 0;
+
+                $grandTotalDebet += $debet;
+                $grandTotalKredit += $kredit;
+
+                $sheet->setCellValue('A' . $row, $jurnalNo);
+                $sheet->setCellValue('B' . $row, $jurnalDateFormatted);
+                $sheet->setCellValue('C' . $row, $firstLine->fjurnaltype);
+                $sheet->setCellValue('D' . $row, $firstLine->fjurnalnote);
+                $sheet->setCellValue('E' . $row, $firstLine->fuserid);
+                $sheet->setCellValue('F' . $row, $balance);
+                $sheet->setCellValue('G' . $row, $balanceRp);
+                $sheet->setCellValue('H' . $row, $dt->flineno);
+                $sheet->setCellValue('I' . $row, $dt->faccount);
+                $sheet->setCellValue('J' . $row, $dt->faccname);
+                $sheet->setCellValue('K' . $row, $dt->frefno);
+                $sheet->setCellValue('L' . $row, $dt->fsubaccount);
+                $sheet->setCellValue('M' . $row, $dt->fdk);
+                $sheet->setCellValue('N' . $row, (float) $dt->frate);
+                $sheet->setCellValue('O' . $row, $debet > 0 ? $debet : '');
+                $sheet->setCellValue('P' . $row, $kredit > 0 ? $kredit : '');
+
+                $row++;
+            }
+        }
+
+        // Grand Total Row
+        $sheet->setCellValue('A' . $row, 'GRAND TOTAL');
+        $sheet->mergeCells("A{$row}:N{$row}");
+        $sheet->setCellValue('O' . $row, $grandTotalDebet);
+        $sheet->setCellValue('P' . $row, $grandTotalKredit);
+
+        $sheet->getStyle("A{$row}:P{$row}")->applyFromArray([
+            'font' => ['bold' => true, 'color' => ['rgb' => 'FFFFFF']],
+            'fill' => [
+                'fillType' => \PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID,
+                'startColor' => ['rgb' => '333333'],
+            ],
+            'borders' => [
+                'allBorders' => ['borderStyle' => \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN],
+            ],
+        ]);
+
+        foreach (range('A', 'P') as $column) {
+            $sheet->getColumnDimension($column)->setAutoSize(true);
+        }
+
+        $numFormat = '#,##0.00';
+        $sheet->getStyle('F2:G' . $row)->getNumberFormat()->setFormatCode($numFormat);
+        $sheet->getStyle('N2:P' . $row)->getNumberFormat()->setFormatCode($numFormat);
+
+        $sheet->getStyle('A2:P' . ($row - 1))->applyFromArray([
+            'borders' => [
+                'allBorders' => ['borderStyle' => \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN],
+            ],
+        ]);
+
+        $filename = 'Listing_Jurnal_Transaksi_' . now()->format('Ymd_His') . '.xlsx';
+        header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+        header('Content-Disposition: attachment; filename="' . $filename . '"');
+        header('Cache-Control: max-age=0');
+
+        $writer = new \PhpOffice\PhpSpreadsheet\Writer\Xlsx($spreadsheet);
+        $writer->save('php://output');
+        exit;
     }
 
     private function buildQuery(string $dateFrom, string $dateTo, array $journalTypes, array $branchCodes, string $sortBy)

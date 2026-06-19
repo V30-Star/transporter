@@ -590,6 +590,7 @@ Route::middleware('auth')->group(function () {
 
         Route::get('/listingjurnal', [ListingJurnalController::class, 'index'])->name('listingjurnal.index');
         Route::get('/listingjurnal/print', [ListingJurnalController::class, 'print'])->name('listingjurnal.print');
+        Route::get('/listingjurnal/exportExcel', [ListingJurnalController::class, 'exportExcel'])->name('listingjurnal.exportExcel');
 
         Route::get('/reportingpelunasancustomer', [ReportingPelunasanCustomerController::class, 'index'])->name('reportingpelunasancustomer.index');
         Route::get('/reportingpelunasancustomer/print', [ReportingPelunasanCustomerController::class, 'print'])->name('reportingpelunasancustomer.print');
