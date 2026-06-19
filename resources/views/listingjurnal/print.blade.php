@@ -209,13 +209,9 @@
             break-inside: avoid;
         }
 
-        /* Page Counter CSS */
-        .page-a4 {
-            counter-increment: page;
-        }
-
-        .page-number-current::after {
-            content: counter(page);
+        /* Zoom Out Button Style */
+        .no-print button {
+            transition: background-color 0.2s;
         }
 
         /* Print Media CSS Overrides */
@@ -357,7 +353,17 @@
         @if ($groupedData->isEmpty())
             <div class="page-a4 page-a4-strict">
                 <div class="header-section">
+                    <div class="supplier-info-kiri" style="top: 12mm;">
+                        Type Jurnal: {{ !empty($selectedTypes) ? implode(', ', $selectedTypes) : 'Semua' }}
+                        <br>Cabang: {{ !empty($selectedBranches) ? implode(', ', $selectedBranches) : 'Semua' }}
+                    </div>
                     <h2>Listing Jurnal Transaksi</h2>
+                    <div class="info-tambahan">
+                        <div><span class="info-label">Hal</span>: 1 / 1</div>
+                        <div><span class="info-label">Tanggal</span>: {{ date('d/m/Y') }}</div>
+                        <div><span class="info-label">Jam</span>: {{ date('H:i') }}</div>
+                        <div><span class="info-label">Opr</span>: {{ $user_session->fname ?? 'User' }}</div>
+                    </div>
                     <div style="margin-top: 30px; text-align: center; font-size: 12px; color: #666;">Tidak ada data ditemukan.</div>
                 </div>
             </div>
@@ -403,10 +409,13 @@
                     ${poDetailLabelsHtml}
                 </div>
                 <div class="page-content" style="margin-top: 5px;"></div>
-                <div class="page-footer" style="position: absolute; bottom: 15mm; right: 15mm; font-size: 8px; font-weight: bold; color: #333;">
-                    Page: <span class="page-number-current"></span> of <span class="page-number-total"></span>
-                </div>
             `;
+            const infoTambahan = page.querySelector(".info-tambahan");
+            if (infoTambahan) {
+                const halDiv = document.createElement("div");
+                halDiv.innerHTML = `<span class="info-label">Hal</span>: <span class="page-number-current"></span> / <span class="page-number-total"></span>`;
+                infoTambahan.prepend(halDiv);
+            }
             reportWrapper.appendChild(page);
             return page;
         }
@@ -511,11 +520,34 @@
             }
         }
 
+        // Add End of Report text
+        const endOfReportEl = document.createElement("div");
+        endOfReportEl.className = "end-of-report";
+        endOfReportEl.style.textAlign = "center";
+        endOfReportEl.style.marginTop = "25px";
+        endOfReportEl.style.fontWeight = "bold";
+        endOfReportEl.style.fontSize = "10px";
+        endOfReportEl.style.color = "#555";
+        endOfReportEl.style.textTransform = "uppercase";
+        endOfReportEl.style.letterSpacing = "1px";
+        endOfReportEl.textContent = "** End of Report **";
+
+        currentPage.appendChild(endOfReportEl);
+
+        if (currentPage.offsetHeight > maxPageHeight) {
+            currentPage.removeChild(endOfReportEl);
+            currentPage = createNewPage();
+            currentPage.appendChild(endOfReportEl);
+        }
+
         // Apply strict height class to lock A4 size and hide overflows
         const allPages = reportWrapper.querySelectorAll(".page-a4");
-        allPages.forEach((page) => {
+        allPages.forEach((page, index) => {
             page.classList.add("page-a4-strict");
-            page.querySelector(".page-number-total").textContent = allPages.length;
+            const currentEl = page.querySelector(".page-number-current");
+            const totalEl = page.querySelector(".page-number-total");
+            if (currentEl) currentEl.textContent = index + 1;
+            if (totalEl) totalEl.textContent = allPages.length;
         });
     });
 
