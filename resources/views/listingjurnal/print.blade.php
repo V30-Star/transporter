@@ -47,7 +47,7 @@
             margin-bottom: 15px;
             text-align: center;
             border-bottom: 2px solid #000;
-            padding-bottom: 10px;
+            padding-bottom: 25px;
         }
 
         .header-section h2 {
@@ -68,7 +68,7 @@
         .po-header-labels,
         .po-header {
             display: grid;
-            grid-template-columns: 32mm 18mm 15mm 55mm 15mm 15mm 20mm;
+            grid-template-columns: 60mm 40mm 55mm 15mm;
             gap: 2px;
             font-size: 9px;
             padding: 8px 5px;
@@ -94,7 +94,7 @@
         .po-detail-labels,
         .po-detail {
             display: grid;
-            grid-template-columns: 8mm 18mm 40mm 20mm 18mm 8mm 15mm 20mm 20mm;
+            grid-template-columns: 18mm 40mm 20mm 30mm 30mm 30mm;
             gap: 3px;
             font-size: 8px;
             padding: 4px 5px;
@@ -103,7 +103,7 @@
         .po-detail-labels {
             font-weight: bold;
             color: #c00;
-            background-color: #ffe6e6;
+            background-color: #fff;
             border: 1px solid #ccc;
             border-bottom: 1px solid #ccc;
             margin-top: 2px;
@@ -315,22 +315,16 @@
         <div class="po-header-labels">
             <div>No. Jurnal</div>
             <div>Tanggal</div>
-            <div>Type</div>
-            <div>Note / Keterangan</div>
+            <div>Keterangan</div>
             <div>User-id</div>
-            <div>Balance</div>
-            <div>Balance Rp</div>
         </div>
 
         {{-- Detail Labels --}}
         <div class="po-detail-labels">
-            <div>Line</div>
             <div>Account</div>
             <div>Account Name</div>
-            <div>Ref No</div>
+            <div>Uraian</div>
             <div>Sub Account</div>
-            <div>D/K</div>
-            <div>Rate</div>
             <div>Debet</div>
             <div>Kredit</div>
         </div>
@@ -344,11 +338,8 @@
                 <div class="po-header" style="border-top: 1px solid #000; margin-top: 5px;">
                     <div class="truncate">{{ $jurnalNo }}</div>
                     <div>{{ $jurnalDateFormatted }}</div>
-                    <div>{{ $firstLine->fjurnaltype }}</div>
                     <div class="truncate" title="{{ $firstLine->fjurnalnote }}">{{ $firstLine->fjurnalnote }}</div>
                     <div>{{ $firstLine->fuserid }}</div>
-                    <div>{{ number_format((float) $firstLine->fbalance, 2, ',', '.') }}</div>
-                    <div>{{ number_format((float) $firstLine->fbalance_rp, 2, ',', '.') }}</div>
                 </div>
 
                 @foreach ($lines as $dt)
@@ -357,13 +348,10 @@
                         $grandTotalKredit += (float) $dt->kredit;
                     @endphp
                     <div class="po-detail">
-                        <div>{{ $dt->flineno }}</div>
                         <div>{{ $dt->faccount }}</div>
                         <div class="truncate" title="{{ $dt->faccname }}">{{ $dt->faccname }}</div>
-                        <div class="truncate" title="{{ $dt->frefno }}">{{ $dt->frefno }}</div>
+                        <div class="truncate" title="{{ $dt->fnote }}">{{ $dt->fnote }}</div>
                         <div class="truncate" title="{{ $dt->fsubaccount }}">{{ $dt->fsubaccount }}</div>
-                        <div>{{ $dt->fdk }}</div>
-                        <div>{{ number_format((float) $dt->frate, 2, ',', '.') }}</div>
                         <div>{{ $dt->debet !== null ? number_format((float) $dt->debet, 2, ',', '.') : '' }}</div>
                         <div>{{ $dt->kredit !== null ? number_format((float) $dt->kredit, 2, ',', '.') : '' }}</div>
                     </div>
