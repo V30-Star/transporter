@@ -106,7 +106,7 @@ class ReportingPemakaianBarangController extends Controller
 
         $query = DB::table('trstockmt')
             ->select('trstockmt.*', 'account.faccname', 'mswh.fwhname')
-            ->leftJoin('account', 'trstockmt.fto', '=', 'account.faccid')
+            ->leftJoin('account', 'trstockmt.fto', '=', 'account.faccount')
             ->leftJoin('mswh', 'trstockmt.ffrom', '=', 'mswh.fwhcode')
             ->where('fstockmtcode', 'PBR');
         $this->applyBranchVisibilityScope($query, 'trstockmt.fbranchcode');

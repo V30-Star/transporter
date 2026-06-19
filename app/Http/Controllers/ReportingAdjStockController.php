@@ -105,7 +105,7 @@ class ReportingAdjStockController extends Controller
 
         $query = DB::table('trstockmt')
             ->select('trstockmt.*', 'account.faccname')
-            ->leftJoin('account', 'trstockmt.fto', '=', 'account.faccid')
+            ->leftJoin('account', 'trstockmt.fto', '=', 'account.faccount')
             ->where('fstockmtcode', 'ADJ');
         $this->applyBranchVisibilityScope($query, 'trstockmt.fbranchcode');
 

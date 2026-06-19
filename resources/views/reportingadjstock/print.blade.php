@@ -12,29 +12,40 @@
             box-sizing: border-box;
         }
 
+        /* Monitor Screen Layout */
         body {
             font-family: Arial, sans-serif;
             font-size: 10px;
             color: #000;
-            background-color: #f5f5f5;
+            background-color: #eee; /* Grayscale background on monitor */
+            counter-reset: page;
         }
 
-        /* A4 Container (Untuk Tampilan Layar) */
-        .a4-container {
+        /* Screen Simulation Styles for A4 Pages */
+        .page-a4 {
             width: 210mm;
-            min-height: 297mm;
             margin: 20px auto;
             background: white;
             padding: 15mm;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.15);
+            position: relative;
+            box-sizing: border-box;
+            height: auto;
+            min-height: 0;
+        }
+
+        /* Strict height applied after pagination */
+        .page-a4-strict {
+            height: 297mm !important;
+            min-height: 297mm !important;
+            overflow: hidden !important;
         }
 
         .header-section {
             position: relative;
             margin-bottom: 15px;
             text-align: center;
-            border-bottom: 2px solid #000;
-            padding-bottom: 10px;
+            padding-bottom: 25px;
         }
 
         .header-section h2 {
@@ -42,7 +53,7 @@
             margin-bottom: 8px;
             font-weight: bold;
             text-transform: uppercase;
-            color: #c00;
+            color: #c00; /* Red style matching sales order */
         }
 
         .filter-info {
@@ -51,71 +62,58 @@
             margin-bottom: 5px;
         }
 
-        /* --- PO HEADER STYLES (8 Kolom) --- */
+        /* --- JOURNAL HEADER STYLES (8 Kolom) --- */
         .po-header-labels,
         .po-header {
             display: grid;
             grid-template-columns: 25mm 17mm 18mm 22mm 7mm 20mm 35mm 30mm;
-            gap: 3px;
+            gap: 1px;
             font-size: 9px;
-            padding: 8px 5px;
+            padding: 4px 3px;
         }
 
         .po-header-labels {
-            font-weight: bold;
             background-color: #f0f0f0;
             border: 1px solid #000;
-            border-bottom: 2px solid #000;
-            margin-bottom: 2px;
+            margin-bottom: 1px;
         }
 
         .po-header {
-            font-weight: bold;
-            border-left: 1px solid #ccc;
-            border-right: 1px solid #ccc;
             background-color: #fff;
-            padding: 6px 5px;
+            padding: 3px 3px;
         }
 
-        /* --- PO DETAIL STYLES (5 Kolom) --- */
+        /* --- JOURNAL DETAIL STYLES (5 Kolom) --- */
         .po-detail-labels,
         .po-detail {
             display: grid;
             grid-template-columns: 25mm 1fr 22mm 25mm 30mm;
-            gap: 3px;
+            gap: 1px;
             font-size: 8px;
-            padding: 4px 5px;
+            padding: 2px 3px;
         }
 
         .po-detail-labels {
             font-weight: bold;
             color: #c00;
-            background-color: #ffe6e6;
-            border: 1px solid #ccc;
-            border-bottom: 1px solid #ccc;
-            margin-top: 2px;
-            padding: 6px 5px;
-        }
-
-        /* Indent untuk kolom pertama (Kode Barang) pada data */
-        .po-detail>div:first-child {
-            padding-left: 5mm;
+            background-color: #fff;
+            border: 1px solid #000000;
+            margin-top: 1px;
+            padding: 3px 3px;
         }
 
         .po-detail {
             color: #c00;
-            border-left: 1px solid #ccc;
-            border-right: 1px solid #ccc;
             background-color: #fff;
         }
 
-        /* Text alignment untuk header */
-        .po-header-labels>div:nth-child(6),
-        .po-header>div:nth-child(6) {
-            text-align: right;
+        .po-detail>div:first-child {
+            padding-left: 2mm;
         }
 
-        /* Text alignment untuk detail */
+        /* Alignment */
+        .po-header-labels>div:nth-child(6),
+        .po-header>div:nth-child(6),
         .po-detail-labels>div:nth-child(3),
         .po-detail-labels>div:nth-child(4),
         .po-detail-labels>div:nth-child(5),
@@ -125,21 +123,12 @@
             text-align: right;
         }
 
-        /* Wrap text untuk kolom yang panjang */
-        .po-header>div:nth-child(5),
-        .po-header>div:nth-child(7),
-        .po-detail>div:nth-child(2) {
-            word-wrap: break-word;
-            overflow-wrap: break-word;
-        }
-
         .separator {
-            border-bottom: 1px solid #ccc;
-            margin: 8px 0;
+            border-bottom: 1px solid #000000;
+            margin: 4px 0;
             clear: both;
         }
 
-        /* Grand Total Styles */
         .grand-total-section {
             margin-top: 20px;
             border-top: 2px solid #000;
@@ -153,8 +142,7 @@
             font-size: 10px;
             font-weight: bold;
             padding: 8px 5px;
-            background-color: #333;
-            color: white;
+            color: black;
         }
 
         .grand-total-detail {
@@ -164,23 +152,6 @@
             font-size: 9px;
             font-weight: bold;
             padding: 8px 5px;
-            background-color: #f0f0f0;
-            border: 1px solid #333;
-        }
-
-        .text-right {
-            text-align: right;
-        }
-
-        .text-center {
-            text-align: center;
-        }
-
-        .no-data {
-            text-align: center;
-            padding: 40px;
-            color: #999;
-            font-style: italic;
         }
 
         .info-tambahan {
@@ -189,78 +160,29 @@
             right: 0;
             font-size: 10px;
             color: #333;
-            margin-top: 0;
             text-align: left;
-            display: block;
             line-height: 1.4;
         }
 
-        .info-tambahan span {
-            display: inline-block;
-        }
-
-        .info-tambahan .info-label {
+        .info-label {
             font-weight: bold;
             display: inline-block;
-            width: 40px;
-            text-align: left;
+            width: 45px;
         }
 
         .supplier-info-kiri {
             position: absolute;
-            top: 10mm;
+            top: 1mm;
             left: 0mm;
             font-size: 10px;
             color: #333;
-            font-weight: bold;
+            text-align: left;
         }
 
-        /* --- PRINT STYLES --- */
-        @media print {
-            body {
-                background-color: white !important;
-                margin: 0;
-                padding: 0;
-            }
-
-            .a4-container {
-                width: 100%;
-                margin: 0;
-                padding: 10mm;
-                box-shadow: none;
-                min-height: auto;
-                position: relative;
-                page-break-after: always;
-            }
-
-            .a4-container:last-child {
-                page-break-after: avoid;
-            }
-
-            .po-header-labels,
-            .po-detail-labels {
-                background-color: transparent !important;
-                -webkit-print-color-adjust: exact;
-                print-color-adjust: exact;
-            }
-
-            .no-print {
-                display: none !important;
-            }
-
-            @page {
-                size: A4 portrait;
-                margin: 10mm;
-            }
-
-            .po-header,
-            .po-detail {
-                page-break-inside: avoid;
-            }
-
-            .separator {
-                border-bottom: 1px dashed #666;
-            }
+        .truncate {
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
 
         .no-print {
@@ -272,86 +194,53 @@
             z-index: 1000;
         }
 
-        .print-button,
-        .excel-button {
-            padding: 10px 20px;
-            font-size: 14px;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            text-decoration: none;
-            display: inline-block;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-        }
-
         .print-button {
             background-color: #3b82f6;
             color: white;
-        }
-
-        .print-button:hover {
-            background-color: #2563eb;
-        }
-
-        .excel-button {
-            background-color: #22c55e;
-            color: white;
-        }
-
-        .excel-button:hover {
-            background-color: #16a34a;
-        }
-
-        /* Zoom Controls */
-        .zoom-controls {
-            display: flex;
-            align-items: center;
-            gap: 5px;
-            background: #fff;
-            padding: 5px 10px;
+            padding: 10px 20px;
             border-radius: 5px;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-        }
-
-        .zoom-btn {
-            width: 32px;
-            height: 32px;
-            border: none;
-            border-radius: 4px;
-            background: #6b7280;
-            color: white;
-            font-size: 16px;
             cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .zoom-btn:hover {
-            background: #4b5563;
-        }
-
-        .zoom-level {
-            min-width: 50px;
-            text-align: center;
+            border: none;
             font-weight: bold;
-            font-size: 14px;
-            color: #333;
         }
 
-        /* Report Container untuk Zoom */
-        .report-wrapper {
-            transform-origin: top center;
-            transition: transform 0.2s ease;
+        .journal-block {
+            page-break-inside: avoid;
+            break-inside: avoid;
         }
 
+        /* Zoom Out Button Style */
+        .no-print button {
+            transition: background-color 0.2s;
+        }
+
+        /* Print Media CSS Overrides */
         @media print {
+            body {
+                background-color: white !important;
+                margin: 0;
+                padding: 0;
+            }
+
+            .page-a4 {
+                width: 210mm;
+                height: 297mm !important;
+                margin: 0 auto !important;
+                padding: 15mm !important;
+                box-shadow: none !important;
+                page-break-after: always;
+                break-after: always;
+                box-sizing: border-box;
+                overflow: hidden !important;
+            }
+
             .no-print {
                 display: none !important;
             }
 
-            .report-wrapper {
-                transform: none !important;
+            @page {
+                size: A4 portrait;
+                margin: 0;
             }
         }
     </style>
@@ -360,241 +249,353 @@
 <body>
     <div class="no-print">
         <button class="print-button" onclick="window.print()">🖨️ Cetak Laporan</button>
-        <a href="{{ route('reportingadjstock.exportExcel', request()->query()) }}" class="excel-button">
-            📊 Download Excel
+
+        {{-- Zoom Out --}}
+        <button onclick="adjustZoom(-0.1)"
+            style="padding: 6px 12px; background: #6c757d; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 16px; font-weight: bold;">
+            −
+        </button>
+
+        {{-- Zoom Level --}}
+        <span id="zoomLabel"
+            style="min-width: 48px; text-align: center; font-size: 13px; font-weight: bold; color: #333; align-self: center;">
+            100%
+        </span>
+
+        {{-- Zoom In --}}
+        <button onclick="adjustZoom(0.1)"
+            style="padding: 6px 12px; background: #6c757d; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 16px; font-weight: bold;">
+            +
+        </button>
+
+        {{-- Excel Download --}}
+        <a href="{{ route('reportingadjstock.exportExcel', request()->query()) }}"
+            style="padding: 7px 12px; background-color: #22c55e; color: white; border-radius: 4px; text-decoration: none; font-weight: bold; font-size: 12px; display: inline-flex; align-items: center; justify-content: center; transition: background-color 0.2s;"
+            onmouseover="this.style.backgroundColor='#16a34a'"
+            onmouseout="this.style.backgroundColor='#22c55e'">
+            📊 Excel
         </a>
-        <div class="zoom-controls">
-            <button class="zoom-btn" onclick="zoomOut()">➖</button>
-            <span class="zoom-level" id="zoomLevel">100%</span>
-            <button class="zoom-btn" onclick="zoomIn()">➕</button>
-            <button class="zoom-btn" onclick="resetZoom()">↺</button>
-        </div>
     </div>
 
+    @php
+        // No total init needed
+    @endphp
+
+    {{-- Hidden Raw Data Container --}}
+    <div id="raw-source" style="display: none;">
+        <div class="header-section">
+            <div class="supplier-info-kiri">
+                Supplier: {{ $activeSupplierName ?? 'Semua' }}
+                <br>Cabang: {{ request()->has('branch_codes') ? implode(', ', (array) request()->input('branch_codes')) : 'Semua' }}
+            </div>
+            <h2>Listing Adjustment Stock</h2>
+            <div class="filter-info">
+                Periode:
+                {{ request('filter_date_from') ? \Carbon\Carbon::parse(request('filter_date_from'))->format('d/m/Y') : '...' }}
+                s/d
+                {{ request('filter_date_to') ? \Carbon\Carbon::parse(request('filter_date_to'))->format('d/m/Y') : '...' }}
+            </div>
+            <div class="info-tambahan">
+                <div><span class="info-label">Tanggal</span>: {{ date('d/m/Y') }}</div>
+                <div><span class="info-label">Jam</span>: {{ date('H:i') }}</div>
+                <div><span class="info-label">Opr</span>: {{ $user_session->fname ?? 'User' }}</div>
+            </div>
+        </div>
+
+        {{-- Header Labels --}}
+        <div class="po-header-labels">
+            <div>No. Transaksi</div>
+            <div>Tanggal</div>
+            <div>Adj.Type</div>
+            <div>Account</div>
+            <div>Nama Account</div>
+            <div>Total ADJ</div>
+            <div>Keterangan</div>
+            <div>User-id</div>
+        </div>
+
+        {{-- Detail Labels --}}
+        <div class="po-detail-labels">
+            <div>Kode Barang</div>
+            <div>Nama Barang</div>
+            <div>Quantity</div>
+            <div>@ Harga</div>
+            <div>Total Harga</div>
+        </div>
+
+        @foreach ($fakturpembelianData as $fakturpembelian)
+            <div class="journal-block">
+                <div class="po-header" style="margin-top: 5px;">
+                    <div>{{ $fakturpembelian->fstockmtno }}</div>
+                    <div>{{ \Carbon\Carbon::parse($fakturpembelian->fstockmtdate)->format('d/m/Y') }}</div>
+                    <div>
+                        @if (($fakturpembelian->ftrancode ?? '') == 'm')
+                            Masuk
+                        @elseif(($fakturpembelian->ftrancode ?? '') == 'k')
+                            Keluar
+                        @else
+                            -
+                        @endif
+                    </div>
+                    <div>{{ $fakturpembelian->frefno }}</div>
+                    <div class="truncate" title="{{ $fakturpembelian->faccname }}">{{ $fakturpembelian->faccname }}</div>
+                    <div>{{ number_format((float) ($fakturpembelian->famount ?? 0), 2, ',', '.') }}</div>
+                    <div class="truncate" title="{{ $fakturpembelian->fket }}">{{ $fakturpembelian->fket }}</div>
+                    <div>{{ $fakturpembelian->fusercreate }}</div>
+                </div>
+
+                @if ($fakturpembelian->details && $fakturpembelian->details->count() > 0)
+                    @foreach ($fakturpembelian->details as $detail)
+                        <div class="po-detail">
+                            <div>{{ $detail->fprdcode }}</div>
+                            <div class="truncate" title="{{ $detail->product_name ?? $detail->fprdcode }}">{{ $detail->product_name ?? $detail->fprdcode }}</div>
+                            <div>{{ number_format($detail->fqty ?? 0, 2, ',', '.') }}</div>
+                            <div>{{ number_format($detail->fprice ?? 0, 2, ',', '.') }}</div>
+                            <div>{{ number_format($detail->ftotprice ?? 0, 2, ',', '.') }}</div>
+                        </div>
+                    @endforeach
+                @endif
+
+                @if (!$loop->last)
+                    <div class="separator"></div>
+                @endif
+            </div>
+        @endforeach
+
+        <div class="grand-total-section">
+            <div class="grand-total-header">
+                <div>GRAND TOTAL</div>
+                <div></div>
+                <div></div>
+                <div></div>
+                <div class="text-right">{{ number_format($grandTotal['harga'], 2, ',', '.') }}</div>
+                <div class="text-right">{{ number_format($grandTotal['ppn'], 2, ',', '.') }}</div>
+                <div class="text-right">{{ number_format($grandTotal['total_po'], 2, ',', '.') }}</div>
+            </div>
+            <div class="grand-total-detail">
+                <div>TOTAL DETAIL</div>
+                <div></div>
+                <div></div>
+                <div class="text-right">{{ number_format($grandTotal['qty'], 2, ',', '.') }}</div>
+                <div class="text-right">{{ number_format($grandTotal['qty_receive'], 2, ',', '.') }}</div>
+                <div class="text-right">{{ number_format($grandTotal['price'], 2, ',', '.') }}</div>
+                <div class="text-right">{{ number_format($grandTotal['harga'], 2, ',', '.') }}</div>
+            </div>
+        </div>
+    </div>
+    </div>
+
+    {{-- Screen Render Target --}}
     <div class="report-wrapper" id="reportWrapper">
-        @if ($chunkedData->isEmpty())
-            {{-- Jika tidak ada data --}}
-            <div class="a4-container">
+        @if ($fakturpembelianData->isEmpty())
+            <div class="page-a4 page-a4-strict">
                 <div class="header-section">
-                    <div class="supplier-info-kiri">
+                    <div class="supplier-info-kiri" style="top: 12mm;">
                         Supplier: {{ $activeSupplierName ?? 'Semua' }}
+                        <br>Cabang: {{ request()->has('branch_codes') ? implode(', ', (array) request()->input('branch_codes')) : 'Semua' }}
                     </div>
                     <h2>Listing Adjustment Stock</h2>
                     <div class="info-tambahan">
-                        <div>
-                            <span class="info-label">Tanggal:</span>
-                            {{ \Carbon\Carbon::now()->setTimezone('Asia/Jakarta')->format('d/m/Y') }}
-                        </div>
-                        <div>
-                            <span class="info-label">Jam:</span>
-                            {{ \Carbon\Carbon::now()->setTimezone('Asia/Jakarta')->format('H:i') }}
-                        </div>
-                        <div>
-                            <span class="info-label">Hal:</span> 1 / 1
-                        </div>
-                        <div>
-                            <span class="info-label">Opr:</span>
-                            {{ $user_session->fname ?? 'Guest' }}
-                        </div>
+                        <div><span class="info-label">Hal</span>: 1 / 1</div>
+                        <div><span class="info-label">Tanggal</span>: {{ date('d/m/Y') }}</div>
+                        <div><span class="info-label">Jam</span>: {{ date('H:i') }}</div>
+                        <div><span class="info-label">Opr</span>: {{ $user_session->fname ?? 'User' }}</div>
                     </div>
-                </div>
-                <div class="no-data">
-                    Tidak ada data Purchase Order yang ditemukan.
+                    <div style="margin-top: 30px; text-align: center; font-size: 12px; color: #666;">Tidak ada data ditemukan.</div>
                 </div>
             </div>
-        @else
-            {{-- Loop setiap chunk = 1 halaman kertas --}}
-            @foreach ($chunkedData as $pageIndex => $pageData)
-                <div class="a4-container">
-                    <div class="header-section">
-                        <div class="supplier-info-kiri">
-                            @if ($activeSupplierName)
-                                Supplier: {{ $activeSupplierName }}
-                            @else
-                                Supplier: Semua
-                            @endif
-                            <br>
-                            Cabang: {{ request()->has('branch_codes') ? implode(', ', (array) request()->input('branch_codes')) : 'Semua' }}
-                        </div>
-                        <h2>Listing Adjustment Stock</h2>
-                        @if (request('filter_date_from') || request('filter_date_to'))
-                            <div class="filter-info">
-                                Periode:
-                                @if (request('filter_date_from'))
-                                    Dari {{ \Carbon\Carbon::parse(request('filter_date_from'))->format('d/m/Y') }}
-                                @endif
-                                @if (request('filter_date_to'))
-                                    s/d {{ \Carbon\Carbon::parse(request('filter_date_to'))->format('d/m/Y') }}
-                                @endif
-                            </div>
-                        @endif
-                        <div class="info-tambahan">
-                            <div class="row-info">
-                                <span class="info-label">Tanggal</span>
-                                <span class="info-separator">:</span>
-                                <span>{{ \Carbon\Carbon::now()->setTimezone('Asia/Jakarta')->format('d/m/Y') }}</span>
-                            </div>
-                            <div class="row-info">
-                                <span class="info-label">Jam</span>
-                                <span class="info-separator">:</span>
-                                <span>{{ \Carbon\Carbon::now()->setTimezone('Asia/Jakarta')->format('H:i') }}</span>
-                            </div>
-                            <div class="row-info">
-                                <span class="info-label">Hal</span>
-                                <span class="info-separator">:</span>
-                                <span>{{ $pageIndex + 1 }} / {{ $totalPages }}</span>
-                            </div>
-                            <div class="row-info">
-                                <span class="info-label">Opr</span>
-                                <span class="info-separator">:</span>
-                                <span>{{ $user_session->fname ?? 'Guest' }}</span>
-                            </div>
-                        </div>
-                    </div>
-
-                    {{-- Header Labels --}}
-                    <div class="po-header-labels">
-                        <div>No. Transaksi</div>
-                        <div>Tanggal</div>
-                        <div>Adj.Type</div>
-                        <div>Account</div>
-                        <div>Nama Account</div>
-                        <div>Total ADJ</div>
-                        <div>Keterangan</div>
-                        <div>User-id</div>
-                    </div>
-
-                    <div class="po-detail-labels">
-                        <div>Kode Barang</div>
-                        <div>Nama Barang</div>
-                        <div>Quantity</div>
-                        <div>@ Harga</div>
-                        <div>Total Harga</div>
-                    </div>
-
-                    @foreach ($pageData as $index => $fakturpembelian)
-                        {{-- PO Header (Parent) - Hitam --}}
-                        <div class="po-header">
-                            <div>{{ $fakturpembelian->fstockmtno }}</div>
-                            <div>{{ \Carbon\Carbon::parse($fakturpembelian->fstockmtdate)->format('d/m/Y') }}</div>
-                            <div>
-                                @if (($fakturpembelian->ftrancode ?? '') == 'm')
-                                    Masuk
-                                @elseif(($fakturpembelian->ftrancode ?? '') == 'k')
-                                    Keluar
-                                @else
-                                    -
-                                @endif
-                            </div>
-                            <div>{{ $fakturpembelian->frefno }}</div>
-                            <div>{{ $fakturpembelian->faccname }}</div>
-                            <div>{{ $fakturpembelian->famount }}</div>
-                            <div>{{ $fakturpembelian->fket }}</div>
-                            <div>{{ $fakturpembelian->fusercreate }}</div>
-                        </div>
-
-                        {{-- PO Detail Rows (Child) - Merah --}}
-                        @if ($fakturpembelian->details && $fakturpembelian->details->count() > 0)
-                            @foreach ($fakturpembelian->details as $detail)
-                                <div class="po-detail">
-                                    <div>{{ $detail->fprdcode }}</div>
-                                    <div>{{ $detail->product_name ?? $detail->fprdcode }}</div>
-                                    <div class="text-right">{{ number_format($detail->fqty ?? 0, 2, ',', '.') }}</div>
-                                    <div class="text-right">{{ number_format($detail->fprice ?? 0, 2, ',', '.') }}
-                                    </div>
-                                    <div class="text-right">{{ number_format($detail->ftotprice ?? 0, 2, ',', '.') }}
-                                    </div>
-                                </div>
-                            @endforeach
-                        @endif
-
-                        {{-- Separator jika bukan data terakhir di halaman ini --}}
-                        @if (!$loop->last)
-                            <div class="separator"></div>
-                        @endif
-                    @endforeach
-                    {{-- Grand Total hanya di halaman terakhir --}}
-                    @if ($loop->last)
-                        <div class="grand-total-section">
-                            {{-- Total Header PO --}}
-                            <div class="grand-total-header">
-                                <div>GRAND TOTAL</div>
-                                <div></div>
-                                <div></div>
-                                <div></div>
-                                <div class="text-right">{{ number_format($grandTotal['harga'], 2, ',', '.') }}</div>
-                                <div class="text-right">{{ number_format($grandTotal['ppn'], 2, ',', '.') }}</div>
-                                <div class="text-right">{{ number_format($grandTotal['total_po'], 2, ',', '.') }}</div>
-                            </div>
-                            {{-- Total Detail --}}
-                            <div class="grand-total-detail">
-                                <div>TOTAL DETAIL</div>
-                                <div></div>
-                                <div></div>
-                                <div class="text-right">{{ number_format($grandTotal['qty'], 2, ',', '.') }}</div>
-                                <div class="text-right">{{ number_format($grandTotal['qty_receive'], 2, ',', '.') }}
-                                </div>
-                                <div class="text-right">{{ number_format($grandTotal['price'], 2, ',', '.') }}</div>
-                                <div class="text-right">{{ number_format($grandTotal['harga'], 2, ',', '.') }}</div>
-                            </div>
-                        </div>
-                    @endif
-                </div>
-            @endforeach
         @endif
     </div>
-
-    <script>
-        // Zoom functionality
-        let currentZoom = 100;
-        const minZoom = 50;
-        const maxZoom = 150;
-        const zoomStep = 10;
-
-        function updateZoom() {
-            const wrapper = document.getElementById('reportWrapper');
-            const zoomLabel = document.getElementById('zoomLevel');
-            wrapper.style.transform = `scale(${currentZoom / 100})`;
-            zoomLabel.textContent = currentZoom + '%';
-        }
-
-        function zoomIn() {
-            if (currentZoom < maxZoom) {
-                currentZoom += zoomStep;
-                updateZoom();
-            }
-        }
-
-        function zoomOut() {
-            if (currentZoom > minZoom) {
-                currentZoom -= zoomStep;
-                updateZoom();
-            }
-        }
-
-        function resetZoom() {
-            currentZoom = 100;
-            updateZoom();
-        }
-
-        // Keyboard shortcuts: Ctrl + Plus/Minus
-        document.addEventListener('keydown', function(e) {
-            if (e.ctrlKey && (e.key === '=' || e.key === '+')) {
-                e.preventDefault();
-                zoomIn();
-            } else if (e.ctrlKey && e.key === '-') {
-                e.preventDefault();
-                zoomOut();
-            } else if (e.ctrlKey && e.key === '0') {
-                e.preventDefault();
-                resetZoom();
-            }
-        });
-
-        // Auto print saat halaman dibuka (opsional)
-        // window.onload = function() { window.print(); }
-    </script>
 </body>
 
 </html>
 
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const rawSource = document.getElementById("raw-source");
+        const reportWrapper = document.getElementById("reportWrapper");
+        if (!rawSource || !reportWrapper) return;
+
+        const journals = Array.from(rawSource.querySelectorAll(".journal-block"));
+        if (journals.length === 0) return;
+
+        // Measure actual 297mm page height on the screen dynamically in pixels
+        const tempDiv = document.createElement("div");
+        tempDiv.style.height = "297mm";
+        tempDiv.style.position = "absolute";
+        tempDiv.style.visibility = "hidden";
+        document.body.appendChild(tempDiv);
+        const pageHeightPx = tempDiv.offsetHeight;
+        document.body.removeChild(tempDiv);
+
+        // Leave a safety margin (e.g. 20px) to prevent overlapping footers and sub-pixel rounding errors
+        const maxPageHeight = pageHeightPx - 20;
+
+        const headerSectionHtml = rawSource.querySelector(".header-section").outerHTML;
+        const poHeaderLabelsHtml = rawSource.querySelector(".po-header-labels").outerHTML;
+        const poDetailLabelsHtml = rawSource.querySelector(".po-detail-labels").outerHTML;
+        const grandTotalSectionHtml = rawSource.querySelector(".grand-total-section")?.outerHTML;
+
+        function createNewPage() {
+            const page = document.createElement("div");
+            page.className = "page-a4";
+            page.innerHTML = `
+                <div class="page-header-container">
+                    ${headerSectionHtml}
+                    ${poHeaderLabelsHtml}
+                    ${poDetailLabelsHtml}
+                </div>
+                <div class="page-content" style="margin-top: 5px;"></div>
+            `;
+            const infoTambahan = page.querySelector(".info-tambahan");
+            if (infoTambahan) {
+                const halDiv = document.createElement("div");
+                halDiv.innerHTML = `<span class="info-label">Hal</span>: <span class="page-number-current"></span> / <span class="page-number-total"></span>`;
+                infoTambahan.prepend(halDiv);
+            }
+            reportWrapper.appendChild(page);
+            return page;
+        }
+
+        let currentPage = createNewPage();
+        let currentContent = currentPage.querySelector(".page-content");
+
+        journals.forEach((journal) => {
+            const poHeader = journal.querySelector(".po-header");
+            const poDetails = Array.from(journal.querySelectorAll(".po-detail"));
+            const separator = journal.querySelector(".separator");
+
+            // Create a new journal-block container on the current page
+            let currentJournalBlock = document.createElement("div");
+            currentJournalBlock.className = "journal-block";
+            currentContent.appendChild(currentJournalBlock);
+
+            // Append header
+            currentJournalBlock.appendChild(poHeader.cloneNode(true));
+
+            // Check if page overflowed after adding header
+            if (currentPage.offsetHeight > maxPageHeight) {
+                const blockCount = currentContent.querySelectorAll(".journal-block").length;
+                // Only move to a new page if this is not the only journal on the page
+                if (blockCount > 1) {
+                    currentContent.removeChild(currentJournalBlock);
+                    currentPage = createNewPage();
+                    currentContent = currentPage.querySelector(".page-content");
+
+                    currentJournalBlock = document.createElement("div");
+                    currentJournalBlock.className = "journal-block";
+                    currentContent.appendChild(currentJournalBlock);
+                    currentJournalBlock.appendChild(poHeader.cloneNode(true));
+                }
+            }
+
+            // Append details one by one
+            poDetails.forEach((detail) => {
+                const detailClone = detail.cloneNode(true);
+                currentJournalBlock.appendChild(detailClone);
+
+                // Check overflow
+                if (currentPage.offsetHeight > maxPageHeight) {
+                    const detailCount = currentJournalBlock.querySelectorAll(".po-detail").length;
+                    const blockCount = currentContent.querySelectorAll(".journal-block").length;
+
+                    // Only split and move to next page if there's more than 1 detail in this block OR more than 1 block on this page.
+                    // This prevents infinite loops on exceptionally tall single rows.
+                    if (blockCount > 1 || detailCount > 1) {
+                        currentJournalBlock.removeChild(detailClone);
+
+                        // Create new page
+                        currentPage = createNewPage();
+                        currentContent = currentPage.querySelector(".page-content");
+
+                        // Create a new journal block on the new page
+                        currentJournalBlock = document.createElement("div");
+                        currentJournalBlock.className = "journal-block";
+                        currentContent.appendChild(currentJournalBlock);
+
+                        // Append header clone with "(Lanjutan)" suffix
+                        const headerClone = poHeader.cloneNode(true);
+                        const firstChildDiv = headerClone.firstElementChild;
+                        if (firstChildDiv) {
+                            firstChildDiv.textContent = firstChildDiv.textContent + " (Lanjutan)";
+                        }
+                        currentJournalBlock.appendChild(headerClone);
+
+                        // Append the detail row
+                        currentJournalBlock.appendChild(detailClone);
+                    }
+                }
+            });
+
+            // Append separator if present
+            if (separator) {
+                const separatorClone = separator.cloneNode(true);
+                currentJournalBlock.appendChild(separatorClone);
+
+                // If separator overflows, remove it since a page break is happening anyway
+                if (currentPage.offsetHeight > maxPageHeight) {
+                    currentJournalBlock.removeChild(separatorClone);
+                }
+            }
+        });
+
+        // Add grand total section
+        if (grandTotalSectionHtml) {
+            const tempDiv = document.createElement("div");
+            tempDiv.innerHTML = grandTotalSectionHtml;
+            const grandTotalEl = tempDiv.firstElementChild;
+
+            currentPage.appendChild(grandTotalEl);
+
+            if (currentPage.offsetHeight > maxPageHeight) {
+                // If there are other elements on this page, move the grand total to a new page
+                if (currentPage.children.length > 2) {
+                    currentPage.removeChild(grandTotalEl);
+                    currentPage = createNewPage();
+                    currentPage.appendChild(grandTotalEl);
+                }
+            }
+        }
+
+        // Add End of Report text
+        const endOfReportEl = document.createElement("div");
+        endOfReportEl.className = "end-of-report";
+        endOfReportEl.style.textAlign = "center";
+        endOfReportEl.style.marginTop = "10px";
+        endOfReportEl.style.borderTop = "1px solid #000";
+        endOfReportEl.style.paddingTop = "20px";
+        endOfReportEl.style.fontWeight = "bold";
+        endOfReportEl.style.fontSize = "8px";
+        endOfReportEl.style.color = "#555";
+        endOfReportEl.style.textTransform = "uppercase";
+        endOfReportEl.style.letterSpacing = "1px";
+        endOfReportEl.textContent = "** End of Report **";
+
+        currentPage.appendChild(endOfReportEl);
+
+        if (currentPage.offsetHeight > maxPageHeight) {
+            currentPage.removeChild(endOfReportEl);
+            currentPage = createNewPage();
+            currentPage.appendChild(endOfReportEl);
+        }
+
+        // Apply strict height class to lock A4 size and hide overflows
+        const allPages = reportWrapper.querySelectorAll(".page-a4");
+        allPages.forEach((page, index) => {
+            page.classList.add("page-a4-strict");
+            const currentEl = page.querySelector(".page-number-current");
+            const totalEl = page.querySelector(".page-number-total");
+            if (currentEl) currentEl.textContent = index + 1;
+            if (totalEl) totalEl.textContent = allPages.length;
+        });
+    });
+
+    let currentZoom = 1.0;
+
+    function adjustZoom(delta) {
+        currentZoom = Math.min(2.0, Math.max(0.3, currentZoom + delta));
+        document.getElementById('reportWrapper').style.transform = `scale(${currentZoom})`;
+        document.getElementById('reportWrapper').style.transformOrigin = 'top center';
+        document.getElementById('zoomLabel').textContent = Math.round(currentZoom * 100) + '%';
+    }
+</script>
