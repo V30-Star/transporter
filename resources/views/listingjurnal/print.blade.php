@@ -45,7 +45,6 @@
             position: relative;
             margin-bottom: 15px;
             text-align: center;
-            border-bottom: 2px solid #000;
             padding-bottom: 25px;
         }
 
@@ -68,31 +67,30 @@
         .po-header {
             display: grid;
             grid-template-columns: 60mm 40mm 55mm 15mm;
-            gap: 2px;
+            gap: 1px;
             font-size: 9px;
-            padding: 8px 5px;
+            padding: 4px 3px;
         }
 
         .po-header-labels {
             background-color: #f0f0f0;
             border: 1px solid #000;
-            border-bottom: 2px solid #000;
-            margin-bottom: 2px;
+            margin-bottom: 1px;
         }
 
         .po-header {
             background-color: #fff;
-            padding: 6px 5px;
+            padding: 3px 3px;
         }
 
         /* --- JOURNAL DETAIL STYLES (9 Kolom) --- */
         .po-detail-labels,
         .po-detail {
             display: grid;
-            grid-template-columns: 18mm 40mm 40mm 25mm 25mm 25mm;
-            gap: 3px;
+            grid-template-columns: 18mm 30mm 50mm 25mm 25mm 25mm;
+            gap: 1px;
             font-size: 8px;
-            padding: 4px 5px;
+            padding: 2px 3px;
         }
 
         .po-detail-labels {
@@ -100,9 +98,8 @@
             color: #c00;
             background-color: #fff;
             border: 1px solid #000000;
-            border-bottom: 1px solid #000000;
-            margin-top: 2px;
-            padding: 6px 5px;
+            margin-top: 1px;
+            padding: 3px 3px;
         }
 
         .po-detail {
@@ -138,13 +135,12 @@
 
         .separator {
             border-bottom: 1px solid #000000;
-            margin: 8px 0;
+            margin: 4px 0;
             clear: both;
         }
 
         .grand-total-section {
             margin-top: 20px;
-            border-top: 2px solid #000;
             padding-top: 10px;
         }
 
@@ -153,7 +149,7 @@
             justify-content: space-between;
             font-size: 10px;
             font-weight: bold;
-            padding: 8px 15px;
+            padding: 5px 10px;
             background-color: #333;
             color: white;
         }
@@ -180,7 +176,6 @@
             left: 0mm;
             font-size: 10px;
             color: #333;
-            font-weight: bold;
             text-align: left;
         }
 
@@ -355,13 +350,6 @@
                 @endif
             </div>
         @endforeach
-
-        <div class="grand-total-section">
-            <div class="grand-total-header">
-                <span>GRAND TOTAL LISTING JURNAL TRANSACTION</span>
-                <span>Rp {{ number_format($grandTotalDebet, 2, ',', '.') }} &nbsp;|&nbsp; Rp {{ number_format($grandTotalKredit, 2, ',', '.') }}</span>
-            </div>
-        </div>
     </div>
 
     {{-- Screen Render Target --}}
