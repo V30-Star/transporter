@@ -367,7 +367,7 @@
                     </div>
                     <h2>Listing Jurnal Transaksi</h2>
                     <div class="info-tambahan">
-                        <div><span class="info-label">Hal</span>: 1 / 1</div>
+                        <div>Hal: 1/1</div>
                         <div><span class="info-label">Tanggal</span>: {{ date('d/m/Y') }}</div>
                         <div><span class="info-label">Jam</span>: {{ date('H:i') }}</div>
                         <div><span class="info-label">Opr</span>: {{ $user_session->fname ?? 'User' }}</div>
@@ -421,7 +421,7 @@
             const infoTambahan = page.querySelector(".info-tambahan");
             if (infoTambahan) {
                 const halDiv = document.createElement("div");
-                halDiv.innerHTML = `<span class="info-label">Hal</span>: <span class="page-number-current"></span> / <span class="page-number-total"></span>`;
+                halDiv.innerHTML = `Hal: <span class="page-number-current"></span>/<span class="page-number-total"></span>`;
                 infoTambahan.prepend(halDiv);
             }
             reportWrapper.appendChild(page);
@@ -532,15 +532,13 @@
         const endOfReportEl = document.createElement("div");
         endOfReportEl.className = "end-of-report";
         endOfReportEl.style.textAlign = "center";
-        endOfReportEl.style.marginTop = "10px";
-        endOfReportEl.style.borderTop = "1px solid #000";
-        endOfReportEl.style.paddingTop = "20px";
+        endOfReportEl.style.marginTop = "12px";
+        endOfReportEl.style.paddingTop = "8px";
         endOfReportEl.style.fontWeight = "bold";
-        endOfReportEl.style.fontSize = "8px";
-        endOfReportEl.style.color = "#555";
-        endOfReportEl.style.textTransform = "uppercase";
+        endOfReportEl.style.fontSize = "10px";
+        endOfReportEl.style.color = "#000";
         endOfReportEl.style.letterSpacing = "1px";
-        endOfReportEl.textContent = "** End of Report **";
+        endOfReportEl.textContent = "**End Of Report**";
 
         currentPage.appendChild(endOfReportEl);
 
