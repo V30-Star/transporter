@@ -1115,6 +1115,17 @@ class ReturPenjualanController extends Controller
 
                 DB::table('trstockdt')->insert($stockDetailRows);
 
+                $this->syncReturPenjualanJournalEntries(
+                    (string) $fsono,
+                    $fsodate,
+                    (string) ($request->input('fbranchcode') ?: 'BG'),
+                    (string) $request->fcustno,
+                    (float) $amountNet,
+                    (float) $ppnAmount,
+                    (float) $grandTotal,
+                    (string) $userid
+                );
+
                 // Validasi sisa SO/SRJ berdasarkan fqtykecil dinonaktifkan.
             });
 
@@ -2206,6 +2217,17 @@ class ReturPenjualanController extends Controller
                     DB::table('trstockdt')->insert($stockDetailRows);
                 }
 
+                $this->syncReturPenjualanJournalEntries(
+                    (string) $header->fsono,
+                    $fsodate,
+                    (string) ($request->input('fbranchcode') ?: $header->fbranchcode ?: 'BG'),
+                    (string) $request->fcustno,
+                    (float) $amountNet,
+                    (float) $ppnAmount,
+                    (float) $grandTotal,
+                    (string) $userid
+                );
+
                 // Validasi sisa SO/SRJ berdasarkan fqtykecil dinonaktifkan.
             });
 
@@ -2382,6 +2404,8 @@ class ReturPenjualanController extends Controller
                     DB::table('trstockmt')->where('fstockmtid', $stockHeader->fstockmtid)->delete();
                 }
 
+                $this->deleteReturPenjualanJournalEntries($fsono);
+
                 // 3. Delete header (tranmt)
                 $returpenjualan->delete();
             });
@@ -2410,5 +2434,131 @@ class ReturPenjualanController extends Controller
         $value = preg_replace('/\s+/', '', $value) ?? '0';
 
         return $value === '' ? '0' : mb_substr($value, 0, 50);
+    }
+
+    private function syncReturPenjualanJournalEntries(
+        string $fsono,
+        Carbon $fsodate,
+        string $kodeCabang,
+        string $fcustno,
+        float $subtotal,
+        float $ppnAmount,
+        float $grandTotal,
+        string $userid
+    ): void {
+        $this->deleteReturPenjualanJournalEntries($fsono);
+
+        $fjurnaltype = 'REJ';
+        $jurnalPrefix = sprintf('JV.REJ.%s.%s.', $kodeCabang, $fsodate->format('ym'));
+
+        if (DB::getDriverName() === 'pgsql') {
+            $lockKey = crc32('JURNAL|' . $fjurnaltype . '|' . $kodeCabang . '|' . $fsodate->format('Y-m'));
+            DB::statement('SELECT pg_advisory_xact_lock(?)', [$lockKey]);
+            $lastJ = DB::table('jurnalmt')->where('fjurnalno', 'like', $jurnalPrefix . '%')
+                ->selectRaw("MAX(CAST(split_part(fjurnalno, '.', 5) AS int)) AS lastno")->value('lastno');
+            $nextJ = (int) $lastJ + 1;
+        } else {
+            $lastJurnalNo = DB::table('jurnalmt')
+                ->where('fjurnalno', 'like', $jurnalPrefix . '%')
+                ->orderByDesc('fjurnalno')
+                ->value('fjurnalno');
+
+            $nextJ = 1;
+            if ($lastJurnalNo && ($pos = strrpos($lastJurnalNo, '.')) !== false) {
+                $nextJ = ((int) substr($lastJurnalNo, $pos + 1)) + 1;
+            }
+        }
+
+        $fjurnalno = $jurnalPrefix . str_pad((string) $nextJ, 4, '0', STR_PAD_LEFT);
+        $now = now();
+
+        $jurnalId = DB::table('jurnalmt')->insertGetId([
+            'fbranchcode' => $kodeCabang,
+            'fjurnalno' => $fjurnalno,
+            'fjurnaltype' => $fjurnaltype,
+            'fjurnaldate' => $fsodate,
+            'fjurnalnote' => "Retur Penjualan $fsono kepada $fcustno",
+            'fbalance' => round($grandTotal, 2),
+            'fbalance_rp' => round($grandTotal, 2),
+            'fdatetime' => $now,
+            'fuserid' => $userid,
+        ], 'fjurnalmtid');
+
+        $jurnalDt = [
+            [
+                'fjurnalmtid' => $jurnalId,
+                'fbranchcode' => $kodeCabang,
+                'fjurnaltype' => $fjurnaltype,
+                'fjurnalno' => $fjurnalno,
+                'flineno' => 1,
+                'faccount' => '41100',
+                'fdk' => 'D',
+                'fsubaccount' => $fcustno,
+                'frefno' => $fsono,
+                'frate' => 1.0,
+                'famount' => round($subtotal, 2),
+                'famount_rp' => round($subtotal, 2),
+                'faccountnote' => 'Retur Penjualan',
+                'fusercreate' => $userid,
+                'fdatetime' => $now
+            ],
+            [
+                'fjurnalmtid' => $jurnalId,
+                'fbranchcode' => $kodeCabang,
+                'fjurnaltype' => $fjurnaltype,
+                'fjurnalno' => $fjurnalno,
+                'flineno' => ($ppnAmount > 0 ? 3 : 2),
+                'faccount' => '11300',
+                'fdk' => 'K',
+                'fsubaccount' => $fcustno,
+                'frefno' => $fsono,
+                'frate' => 1.0,
+                'famount' => round($grandTotal, 2),
+                'famount_rp' => round($grandTotal, 2),
+                'faccountnote' => 'Piutang Usaha',
+                'fusercreate' => $userid,
+                'fdatetime' => $now
+            ],
+        ];
+
+        if ($ppnAmount > 0) {
+            $jurnalDt[] = [
+                'fjurnalmtid' => $jurnalId,
+                'fbranchcode' => $kodeCabang,
+                'fjurnaltype' => $fjurnaltype,
+                'fjurnalno' => $fjurnalno,
+                'flineno' => 2,
+                'faccount' => '21160',
+                'fdk' => 'D',
+                'fsubaccount' => $fcustno,
+                'frefno' => $fsono,
+                'frate' => 1.0,
+                'famount' => round($ppnAmount, 2),
+                'famount_rp' => round($ppnAmount, 2),
+                'faccountnote' => 'PPN',
+                'fusercreate' => $userid,
+                'fdatetime' => $now
+            ];
+        }
+
+        DB::table('jurnaldt')->insert($jurnalDt);
+    }
+
+    private function deleteReturPenjualanJournalEntries(string $fsono): void
+    {
+        $jurnalIds = DB::table('jurnaldt')
+            ->where('frefno', $fsono)
+            ->where('fjurnaltype', 'REJ')
+            ->pluck('fjurnalmtid')
+            ->filter(fn($id) => ! is_null($id))
+            ->unique()
+            ->values();
+
+        if ($jurnalIds->isEmpty()) {
+            return;
+        }
+
+        DB::table('jurnaldt')->whereIn('fjurnalmtid', $jurnalIds->all())->delete();
+        DB::table('jurnalmt')->whereIn('fjurnalmtid', $jurnalIds->all())->delete();
     }
 }
