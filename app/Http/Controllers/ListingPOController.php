@@ -27,12 +27,11 @@ class ListingPOController extends Controller
     {
         $results = $this->getRawData($request);
         $groupedData = $results->groupBy('fpono');
-        $chunkedData = $groupedData->chunk(4);
 
         return view('listingpo.print', [
-            'chunkedData' => $chunkedData,
-            'totalPages' => $chunkedData->count(),
+            'groupedData' => $groupedData,
             'user_session' => auth()->user(),
+            'request' => $request,
         ]);
     }
 

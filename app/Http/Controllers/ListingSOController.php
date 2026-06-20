@@ -109,15 +109,16 @@ class ListingSOController extends Controller
 
         $totalFaktur = 0;
         foreach ($results as $row) {
-            $row->details = DB::table('public.trsodt as dt')->where('dt.fsono', $row->fsono)->get();
+            $row->details = DB::table('public.trsodt as dt')
+                ->leftJoin('public.msprd as p', 'dt.fprdcode', '=', 'p.fprdcode')
+                ->select('dt.*', 'p.fprdname as product_name')
+                ->where('dt.fsono', $row->fsono)
+                ->get();
             $totalFaktur += (float) $row->famountso;
         }
 
-        $chunkedData = $results->chunk(5);
-
         return view('listingso.print', [
-            'chunkedData' => $chunkedData,
-            'totalPages' => $chunkedData->count(),
+            'soData' => $results,
             'totalFaktur' => $totalFaktur,
             'user_session' => auth()->user(),
         ]);

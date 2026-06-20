@@ -114,13 +114,13 @@ class ListingPenerimaanBarangController extends Controller
     {
         $results = $this->getRawData($request);
         $totalLaporan = $results->unique('fstockmtno')->sum('famountmt');
-        $chunkedData = $results->groupBy('fstockmtno')->chunk(5);
+        $groupedData = $results->groupBy('fstockmtno');
 
         return view('listingpenerimaanbarang.print', [
-            'chunkedData' => $chunkedData,
-            'totalPages' => $chunkedData->count(),
+            'groupedData' => $groupedData,
             'totalLaporan' => $totalLaporan,
             'user_session' => auth()->user(),
+            'request' => $request,
         ]);
     }
 

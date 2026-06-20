@@ -26,15 +26,13 @@ class ListingFakturPembelianController extends Controller
     {
         $results = $this->getRawData($request);
         $groupedData = $results->groupBy('fstockmtno');
-        $chunkedData = $groupedData->chunk(4);
-
         $totalLaporan = $results->unique('fstockmtno')->sum('famountmt');
 
         return view('listingfakturpembelian.print', [
-            'chunkedData' => $chunkedData,
-            'totalPages' => $chunkedData->count(),
+            'groupedData' => $groupedData,
             'totalLaporan' => $totalLaporan,
             'user_session' => auth()->user(),
+            'request' => $request,
         ]);
     }
 

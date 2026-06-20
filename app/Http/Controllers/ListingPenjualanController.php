@@ -116,12 +116,9 @@ class ListingPenjualanController extends Controller
         $type = $request->display_type;
 
         $groupedData = $results->groupBy('fsono');
-        $perPage = ($type == 'detail') ? 4 : 15;
-        $chunkedData = $groupedData->chunk($perPage);
 
         return view('listingpenjualan.print', [
-            'chunkedData' => $chunkedData,
-            'totalPages' => $chunkedData->count(),
+            'groupedData' => $groupedData,
             'type' => $type,
             'user_session' => auth()->user(),
             'request' => $request,

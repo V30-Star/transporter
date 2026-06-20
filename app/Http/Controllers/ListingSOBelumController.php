@@ -97,19 +97,8 @@ class ListingSOBelumController extends Controller
             $view = 'listingsobelum.printCustomer';
         }
 
-        $rows = $query->get();
-
-        $chunkedData = $rows->chunk(30)->map(function ($chunk) use ($grouping) {
-            return $grouping == 'produk'
-                ? $chunk->groupBy('fprdcode')
-                : $chunk->groupBy('fcustomercode');
-        });
-
-        $totalPages = $chunkedData->count();
-
         return view($view, [
-            'chunkedData' => $chunkedData,
-            'totalPages' => $totalPages,
+            'soData' => $results,
             'user_session' => auth()->user(),
             'request' => $request,
         ]);

@@ -28,11 +28,9 @@ class ListingPRController extends Controller
         $results = $this->getRawData($request);
 
         $groupedData = $results->groupBy('fprno');
-        $chunkedData = $groupedData->chunk(4);
 
         return view('listingpr.print', [
-            'chunkedData' => $chunkedData,
-            'totalPages' => $chunkedData->count(),
+            'groupedData' => $groupedData,
             'user_session' => auth()->user(),
             'request' => $request,
         ]);
