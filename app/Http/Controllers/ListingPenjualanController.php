@@ -53,7 +53,7 @@ class ListingPenjualanController extends Controller
                 'm.fdiscount',
                 'd.fprdcode',
                 'd.fqty',
-                'd.fqtydeliver',
+                'd.fqtyremain',
                 'd.fsalesnet as fprice',
                 'd.fdisc',
                 'd.fsatuan',

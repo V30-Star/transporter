@@ -64,7 +64,7 @@
 
         .customer-info-kiri {
             position: absolute;
-            top: 12mm;
+            top: 1mm;
             left: 0mm;
             font-size: 10px;
             color: #333;
@@ -344,7 +344,7 @@
                             <div class="truncate">{{ $d->fprdcode }}</div>
                             <div class="truncate" title="{{ $d->fprdname }}">{{ $d->fprdname }}</div>
                             <div class="truncate">{{ $d->frefso ?? '-' }}</div>
-                            <div>{{ $fmtQty($d->fqtydeliver) }}</div>
+                            <div>{{ $fmtQty($d->fqtyremain) }}</div>
                             <div>{{ $fmtQty($d->fqty) }}</div>
                             <div>{{ number_format($d->fprice, 2, ',', '.') }}</div>
                             <div>{{ $d->fdisc }}</div>

@@ -64,7 +64,7 @@
 
         .supplier-info-kiri {
             position: absolute;
-            top: 12mm;
+            top: 1mm;
             left: 0mm;
             font-size: 10px;
             color: #333;
@@ -222,8 +222,7 @@
 
         .grand-total-row:last-child {
             border-bottom: none;
-            background-color: #333;
-            color: white;
+            color: black;
         }
 
         .grand-total-row div {
@@ -395,7 +394,7 @@
         @if ($groupedData->isEmpty())
             <div class="page-a4 page-a4-strict">
                 <div class="header-section">
-                    <div class="supplier-info-kiri" style="top: 12mm;">
+                    <div class="supplier-info-kiri" style="top: 1mm;">
                         Supplier: {{ request('sup_from') ? '[' . request('sup_from') . '] s/d [' . request('sup_to') . ']' : 'Semua' }}
                         <br>Cabang: {{ request()->has('branch_codes') ? implode(', ', (array) request()->input('branch_codes')) : 'Semua' }}
                     </div>

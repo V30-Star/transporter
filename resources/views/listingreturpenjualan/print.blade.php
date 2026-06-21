@@ -64,7 +64,7 @@
 
         .customer-info-kiri {
             position: absolute;
-            top: 12mm;
+            top: 1mm;
             left: 0mm;
             font-size: 10px;
             color: #333;
@@ -213,8 +213,7 @@
 
         .grand-total-row:last-child {
             border-bottom: none;
-            background-color: #333;
-            color: white;
+            color: black;
         }
 
         .grand-total-row div {

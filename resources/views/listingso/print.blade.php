@@ -153,8 +153,7 @@
             font-size: 10px;
             font-weight: bold;
             padding: 5px 10px;
-            background-color: #333;
-            color: white;
+            color: black;
         }
 
         .info-tambahan {
@@ -175,7 +174,7 @@
 
         .supplier-info-kiri {
             position: absolute;
-            top: 12mm;
+            top: 1mm;
             left: 0mm;
             font-size: 10px;
             color: #333;

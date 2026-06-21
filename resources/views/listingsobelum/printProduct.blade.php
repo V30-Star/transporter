@@ -107,7 +107,6 @@
 
         /* Group Product */
         .prd-group {
-            background: #ffe6e6;
             padding: 4px 5px;
             font-weight: bold;
             font-size: 9px;
@@ -134,7 +133,6 @@
             padding: 4px 5px;
             font-size: 9px;
             font-weight: bold;
-            background: #fff0f0;
             border: 1px solid #000;
             margin-bottom: 2px;
         }
@@ -152,8 +150,7 @@
             font-size: 10px;
             font-weight: bold;
             padding: 5px 10px;
-            background-color: #333;
-            color: white;
+            color: black;
         }
 
         /* Alignment */
@@ -363,7 +360,7 @@
         @if ($soData->isEmpty())
             <div class="page-a4 page-a4-strict">
                 <div class="header-section">
-                    <div class="header-left" style="align-self: flex-start; margin-top: 12mm;">
+                    <div class="header-left" style="align-self: flex-start; margin-top: 1mm;">
                         Customer: {{ request('cust_from') ?? 'Semua' }}
                         @if (request('cust_to'))
                             s/d {{ request('cust_to') }}

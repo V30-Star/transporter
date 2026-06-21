@@ -142,8 +142,7 @@
             font-size: 10px;
             font-weight: bold;
             padding: 8px 5px;
-            background-color: #333;
-            color: white;
+            color: black;
         }
 
         .grand-total-detail {
@@ -175,7 +174,7 @@
 
         .supplier-info-kiri {
             position: absolute;
-            top: 12mm;
+            top: 1mm;
             left: 0mm;
             font-size: 10px;
             color: #333;
@@ -386,7 +385,7 @@
         @if ($fakturpembelianData->isEmpty())
             <div class="page-a4 page-a4-strict">
                 <div class="header-section">
-                    <div class="supplier-info-kiri" style="top: 12mm;">
+                    <div class="supplier-info-kiri" style="top: 1mm;">
                         Supplier: {{ $activeSupplierName ?? 'Semua' }}
                         <br>Cabang: {{ request()->has('branch_codes') ? implode(', ', (array) request()->input('branch_codes')) : 'Semua' }}
                     </div>
