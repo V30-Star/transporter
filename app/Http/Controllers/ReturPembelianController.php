@@ -1517,7 +1517,16 @@ class ReturPembelianController extends Controller
     ): void {
         $this->deleteReturPembelianJournalEntries($fstockmtno);
 
-        $fjurnaltype = 'JRB';
+        // --- Lookup accounts from set_account table ---
+        $setAccounts = DB::table('set_account')
+            ->whereIn('faccount_name', ['ReturPembelianBlmPotHutang', 'PPNBeli', 'Purchase Returns'])
+            ->pluck('faccount', 'faccount_name');
+
+        $accountHutang      = $setAccounts->get('ReturPembelianBlmPotHutang', '11437');
+        $accountPPNBeli     = $setAccounts->get('PPNBeli', '11500');
+        $accountPersediaan  = $setAccounts->get('Purchase Returns', '11501');
+
+        $fjurnaltype  = 'REB';
         $jurnalPrefix = sprintf('JV.REB.%s.%s.', $kodeCabang, $fstockmtdate->format('ym'));
 
         if (DB::getDriverName() === 'pgsql') {
@@ -1539,74 +1548,77 @@ class ReturPembelianController extends Controller
         }
 
         $fjurnalno = $jurnalPrefix . str_pad((string) $nextJ, 4, '0', STR_PAD_LEFT);
-        $now = now();
+        $now       = now();
 
         $jurnalId = DB::table('jurnalmt')->insertGetId([
             'fbranchcode' => $kodeCabang,
-            'fjurnalno' => $fjurnalno,
+            'fjurnalno'   => $fjurnalno,
             'fjurnaltype' => $fjurnaltype,
             'fjurnaldate' => $fstockmtdate,
-            'fjurnalnote' => "Retur Pembelian $fstockmtno kepada $fsupplier",
-            'fbalance' => round($grandTotal, 2),
+            'fjurnalnote' => "Retur Pembelian $fstockmtno dari $fsupplier",
+            'fbalance'    => round($grandTotal, 2),
             'fbalance_rp' => round($grandTotal, 2),
-            'fdatetime' => $now,
-            'fuserid' => $userid,
+            'fdatetime'   => $now,
+            'fuserid'     => $userid,
         ], 'fjurnalmtid');
 
+        // Line 1: Debit – Kurangi Hutang Supplier / Piutang Sementara (from set_account: ReturPembelianBlmPotHutang)
         $jurnalDt = [
             [
-                'fjurnalmtid' => $jurnalId,
-                'fbranchcode' => $kodeCabang,
-                'fjurnaltype' => $fjurnaltype,
-                'fjurnalno' => $fjurnalno,
-                'flineno' => 1,
-                'faccount' => '21100',
-                'fdk' => 'D',
-                'fsubaccount' => $fsupplier,
-                'frefno' => $fstockmtno,
-                'frate' => 1.0,
-                'famount' => round($grandTotal, 2),
-                'famount_rp' => round($grandTotal, 2),
-                'faccountnote' => 'Hutang Dagang',
-                'fusercreate' => $userid,
-                'fdatetime' => $now
+                'fjurnalmtid'  => $jurnalId,
+                'fbranchcode'  => $kodeCabang,
+                'fjurnaltype'  => $fjurnaltype,
+                'fjurnalno'    => $fjurnalno,
+                'flineno'      => 1,
+                'faccount'     => (string) $accountHutang,
+                'fdk'          => 'D',
+                'fsubaccount'  => $fsupplier,
+                'frefno'       => $fstockmtno,
+                'frate'        => 1.0,
+                'famount'      => round($grandTotal, 2),
+                'famount_rp'   => round($grandTotal, 2),
+                'faccountnote' => 'Retur Pembelian Blm Pot Hutang',
+                'fusercreate'  => $userid,
+                'fdatetime'    => $now,
             ],
+            // Line 2 or 3: Kredit – Kurangi Persediaan Barang (from set_account: Purchase Returns)
             [
-                'fjurnalmtid' => $jurnalId,
-                'fbranchcode' => $kodeCabang,
-                'fjurnaltype' => $fjurnaltype,
-                'fjurnalno' => $fjurnalno,
-                'flineno' => ($ppnAmount > 0 ? 3 : 2),
-                'faccount' => '11400',
-                'fdk' => 'K',
-                'fsubaccount' => $fsupplier,
-                'frefno' => $fstockmtno,
-                'frate' => 1.0,
-                'famount' => round($subtotal, 2),
-                'famount_rp' => round($subtotal, 2),
-                'faccountnote' => 'Persediaan',
-                'fusercreate' => $userid,
-                'fdatetime' => $now
+                'fjurnalmtid'  => $jurnalId,
+                'fbranchcode'  => $kodeCabang,
+                'fjurnaltype'  => $fjurnaltype,
+                'fjurnalno'    => $fjurnalno,
+                'flineno'      => ($ppnAmount > 0 ? 3 : 2),
+                'faccount'     => (string) $accountPersediaan,
+                'fdk'          => 'K',
+                'fsubaccount'  => $fsupplier,
+                'frefno'       => $fstockmtno,
+                'frate'        => 1.0,
+                'famount'      => round($subtotal, 2),
+                'famount_rp'   => round($subtotal, 2),
+                'faccountnote' => 'Kurangi Persediaan Barang',
+                'fusercreate'  => $userid,
+                'fdatetime'    => $now,
             ],
         ];
 
+        // Line 2: Kredit – Reverse PPN Masukan (only if tax > 0, from set_account: PPNBeli)
         if ($ppnAmount > 0) {
             $jurnalDt[] = [
-                'fjurnalmtid' => $jurnalId,
-                'fbranchcode' => $kodeCabang,
-                'fjurnaltype' => $fjurnaltype,
-                'fjurnalno' => $fjurnalno,
-                'flineno' => 2,
-                'faccount' => '11500',
-                'fdk' => 'K',
-                'fsubaccount' => null,
-                'frefno' => $fstockmtno,
-                'frate' => 1.0,
-                'famount' => round($ppnAmount, 2),
-                'famount_rp' => round($ppnAmount, 2),
-                'faccountnote' => 'PPN Masukan',
-                'fusercreate' => $userid,
-                'fdatetime' => $now
+                'fjurnalmtid'  => $jurnalId,
+                'fbranchcode'  => $kodeCabang,
+                'fjurnaltype'  => $fjurnaltype,
+                'fjurnalno'    => $fjurnalno,
+                'flineno'      => 2,
+                'faccount'     => (string) $accountPPNBeli,
+                'fdk'          => 'K',
+                'fsubaccount'  => null,
+                'frefno'       => $fstockmtno,
+                'frate'        => 1.0,
+                'famount'      => round($ppnAmount, 2),
+                'famount_rp'   => round($ppnAmount, 2),
+                'faccountnote' => 'Reverse PPN Masukan',
+                'fusercreate'  => $userid,
+                'fdatetime'    => $now,
             ];
         }
 

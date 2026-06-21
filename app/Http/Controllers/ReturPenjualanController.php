@@ -2448,7 +2448,16 @@ class ReturPenjualanController extends Controller
     ): void {
         $this->deleteReturPenjualanJournalEntries($fsono);
 
-        $fjurnaltype = 'JRJ';
+        // --- Lookup accounts from set_account table ---
+        $setAccounts = DB::table('set_account')
+            ->whereIn('faccount_name', ['ReturnSales', 'PPNSales', 'ReturnSalesBillowPotPiutang'])
+            ->pluck('faccount', 'faccount_name');
+
+        $accountReturnSales           = $setAccounts->get('ReturnSales', '41300');
+        $accountPPNSales              = $setAccounts->get('PPNSales', '21160');
+        $accountReturnSalesPiutang    = $setAccounts->get('ReturnSalesBillowPotPiutang', '21181');
+
+        $fjurnaltype = 'REJ';
         $jurnalPrefix = sprintf('JV.REJ.%s.%s.', $kodeCabang, $fsodate->format('ym'));
 
         if (DB::getDriverName() === 'pgsql') {
@@ -2474,70 +2483,73 @@ class ReturPenjualanController extends Controller
 
         $jurnalId = DB::table('jurnalmt')->insertGetId([
             'fbranchcode' => $kodeCabang,
-            'fjurnalno' => $fjurnalno,
+            'fjurnalno'   => $fjurnalno,
             'fjurnaltype' => $fjurnaltype,
             'fjurnaldate' => $fsodate,
             'fjurnalnote' => "Retur Penjualan $fsono kepada $fcustno",
-            'fbalance' => round($grandTotal, 2),
+            'fbalance'    => round($grandTotal, 2),
             'fbalance_rp' => round($grandTotal, 2),
-            'fdatetime' => $now,
-            'fuserid' => $userid,
+            'fdatetime'   => $now,
+            'fuserid'     => $userid,
         ], 'fjurnalmtid');
 
+        // Line 1: Debit – Retur Penjualan (net price before tax, from set_account: ReturnSales)
         $jurnalDt = [
             [
-                'fjurnalmtid' => $jurnalId,
-                'fbranchcode' => $kodeCabang,
-                'fjurnaltype' => $fjurnaltype,
-                'fjurnalno' => $fjurnalno,
-                'flineno' => 1,
-                'faccount' => '41100',
-                'fdk' => 'D',
-                'fsubaccount' => $fcustno,
-                'frefno' => $fsono,
-                'frate' => 1.0,
-                'famount' => round($subtotal, 2),
-                'famount_rp' => round($subtotal, 2),
+                'fjurnalmtid'  => $jurnalId,
+                'fbranchcode'  => $kodeCabang,
+                'fjurnaltype'  => $fjurnaltype,
+                'fjurnalno'    => $fjurnalno,
+                'flineno'      => 1,
+                'faccount'     => (string) $accountReturnSales,
+                'fdk'          => 'D',
+                'fsubaccount'  => $fcustno,
+                'frefno'       => $fsono,
+                'frate'        => 1.0,
+                'famount'      => round($subtotal, 2),
+                'famount_rp'   => round($subtotal, 2),
                 'faccountnote' => 'Retur Penjualan',
-                'fusercreate' => $userid,
-                'fdatetime' => $now
+                'fusercreate'  => $userid,
+                'fdatetime'    => $now,
             ],
+            // Line 2 or 3: Kredit – Kurangi Piutang Usaha (grand total, from set_account: ReturnSalesBillowPotPiutang)
             [
-                'fjurnalmtid' => $jurnalId,
-                'fbranchcode' => $kodeCabang,
-                'fjurnaltype' => $fjurnaltype,
-                'fjurnalno' => $fjurnalno,
-                'flineno' => ($ppnAmount > 0 ? 3 : 2),
-                'faccount' => '11300',
-                'fdk' => 'K',
-                'fsubaccount' => $fcustno,
-                'frefno' => $fsono,
-                'frate' => 1.0,
-                'famount' => round($grandTotal, 2),
-                'famount_rp' => round($grandTotal, 2),
-                'faccountnote' => 'Piutang Usaha',
-                'fusercreate' => $userid,
-                'fdatetime' => $now
+                'fjurnalmtid'  => $jurnalId,
+                'fbranchcode'  => $kodeCabang,
+                'fjurnaltype'  => $fjurnaltype,
+                'fjurnalno'    => $fjurnalno,
+                'flineno'      => ($ppnAmount > 0 ? 3 : 2),
+                'faccount'     => (string) $accountReturnSalesPiutang,
+                'fdk'          => 'K',
+                'fsubaccount'  => $fcustno,
+                'frefno'       => $fsono,
+                'frate'        => 1.0,
+                'famount'      => round($grandTotal, 2),
+                'famount_rp'   => round($grandTotal, 2),
+                'faccountnote' => 'Kurangi Piutang Usaha',
+                'fusercreate'  => $userid,
+                'fdatetime'    => $now,
             ],
         ];
 
+        // Line 2: Debit – PPN Sales (only if tax > 0, from set_account: PPNSales)
         if ($ppnAmount > 0) {
             $jurnalDt[] = [
-                'fjurnalmtid' => $jurnalId,
-                'fbranchcode' => $kodeCabang,
-                'fjurnaltype' => $fjurnaltype,
-                'fjurnalno' => $fjurnalno,
-                'flineno' => 2,
-                'faccount' => '21160',
-                'fdk' => 'D',
-                'fsubaccount' => $fcustno,
-                'frefno' => $fsono,
-                'frate' => 1.0,
-                'famount' => round($ppnAmount, 2),
-                'famount_rp' => round($ppnAmount, 2),
-                'faccountnote' => 'PPN',
-                'fusercreate' => $userid,
-                'fdatetime' => $now
+                'fjurnalmtid'  => $jurnalId,
+                'fbranchcode'  => $kodeCabang,
+                'fjurnaltype'  => $fjurnaltype,
+                'fjurnalno'    => $fjurnalno,
+                'flineno'      => 2,
+                'faccount'     => (string) $accountPPNSales,
+                'fdk'          => 'D',
+                'fsubaccount'  => $fcustno,
+                'frefno'       => $fsono,
+                'frate'        => 1.0,
+                'famount'      => round($ppnAmount, 2),
+                'famount_rp'   => round($ppnAmount, 2),
+                'faccountnote' => 'PPN Penjualan',
+                'fusercreate'  => $userid,
+                'fdatetime'    => $now,
             ];
         }
 
