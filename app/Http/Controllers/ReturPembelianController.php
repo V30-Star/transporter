@@ -1517,7 +1517,7 @@ class ReturPembelianController extends Controller
     ): void {
         $this->deleteReturPembelianJournalEntries($fstockmtno);
 
-        $fjurnaltype = 'REB';
+        $fjurnaltype = 'JRB';
         $jurnalPrefix = sprintf('JV.REB.%s.%s.', $kodeCabang, $fstockmtdate->format('ym'));
 
         if (DB::getDriverName() === 'pgsql') {

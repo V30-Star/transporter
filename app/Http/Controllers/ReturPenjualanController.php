@@ -2448,7 +2448,7 @@ class ReturPenjualanController extends Controller
     ): void {
         $this->deleteReturPenjualanJournalEntries($fsono);
 
-        $fjurnaltype = 'REJ';
+        $fjurnaltype = 'JRJ';
         $jurnalPrefix = sprintf('JV.REJ.%s.%s.', $kodeCabang, $fsodate->format('ym'));
 
         if (DB::getDriverName() === 'pgsql') {
