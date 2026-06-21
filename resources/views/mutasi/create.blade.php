@@ -139,6 +139,32 @@
             width: 2.5rem;
             justify-content: center;
         }
+        .mutasi-detail-table th,
+        .mutasi-detail-table td {
+            padding: .25rem .375rem !important;
+        }
+
+        .mutasi-detail-table input:not([type="hidden"]),
+        .mutasi-detail-table select,
+        .mutasi-detail-table button {
+            min-height: 1.875rem;
+            padding-top: .25rem !important;
+            padding-bottom: .25rem !important;
+            line-height: 1.25rem;
+        }
+
+        .mutasi-detail-table .rounded-l.border,
+        .mutasi-detail-table .rounded-r.border {
+            min-height: 1.875rem;
+            padding-top: .25rem !important;
+            padding-bottom: .25rem !important;
+            line-height: 1.25rem;
+        }
+
+        .mutasi-detail-table button {
+            display: inline-flex;
+            align-items: center;
+        }
     </style>
 
     <div x-data="{ open: true }">
@@ -302,7 +328,7 @@
                         <h3 class="text-base font-semibold text-gray-800">Detail Item</h3>
 
                         <div class="overflow-auto border rounded">
-                            <table class="min-w-full text-sm">
+                            <table class="mutasi-detail-table min-w-full text-sm">
                                 <thead class="bg-gray-100">
                                     <tr>
                                         <th class="p-2 text-left w-10">#</th>

@@ -118,6 +118,32 @@
         .readonly-mode .allow-action * {
             pointer-events: auto;
         }
+        .pemakaianbarang-detail-table th,
+        .pemakaianbarang-detail-table td {
+            padding: .25rem .375rem !important;
+        }
+
+        .pemakaianbarang-detail-table input:not([type="hidden"]),
+        .pemakaianbarang-detail-table select,
+        .pemakaianbarang-detail-table button {
+            min-height: 1.875rem;
+            padding-top: .25rem !important;
+            padding-bottom: .25rem !important;
+            line-height: 1.25rem;
+        }
+
+        .pemakaianbarang-detail-table .rounded-l.border,
+        .pemakaianbarang-detail-table .rounded-r.border {
+            min-height: 1.875rem;
+            padding-top: .25rem !important;
+            padding-bottom: .25rem !important;
+            line-height: 1.25rem;
+        }
+
+        .pemakaianbarang-detail-table button {
+            display: inline-flex;
+            align-items: center;
+        }
     </style>
 
     @php
@@ -311,7 +337,7 @@
                             <h3 class="text-base font-semibold text-gray-800">Detail Item</h3>
 
                             <div class="overflow-auto border rounded">
-                                <table class="min-w-full text-sm">
+                                <table class="pemakaianbarang-detail-table min-w-full text-sm">
                                     <thead class="bg-gray-100">
                                         <tr>
                                             <th class="p-2 text-left w-10">#</th>
@@ -557,7 +583,7 @@
                             <h3 class="text-base font-semibold text-gray-800">Detail Item</h3>
 
                             <div class="overflow-auto border rounded">
-                                <table class="min-w-full text-sm">
+                                <table class="pemakaianbarang-detail-table min-w-full text-sm">
                                     <thead class="bg-gray-100">
                                         <tr>
                                             <th class="p-2 text-left w-10">#</th>

@@ -119,6 +119,30 @@
             width: 2.5rem;
             justify-content: center;
         }
+
+        .suratjalan-detail-table th,
+        .suratjalan-detail-table td {
+            padding: .25rem .375rem !important;
+        }
+
+        .suratjalan-detail-table input:not([type="hidden"]),
+        .suratjalan-detail-table select,
+        .suratjalan-detail-table button,
+        .suratjalan-detail-table .desc-inline-field__text {
+            min-height: 1.875rem;
+            padding-top: .25rem !important;
+            padding-bottom: .25rem !important;
+            line-height: 1.25rem;
+        }
+
+        .suratjalan-detail-table button {
+            display: inline-flex;
+            align-items: center;
+        }
+
+        .suratjalan-detail-table .desc-inline-field__button {
+            width: 2rem;
+        }
     </style>
     @if ($errors->any())
         <div class="alert alert-danger alert-dismissible fade show border-0 shadow p-0 overflow-hidden" role="alert">
@@ -368,7 +392,7 @@
                             <h3 class="text-base font-semibold text-gray-800">Detail Item</h3>
 
                             <div class="overflow-auto border rounded">
-                                <table class="min-w-full text-sm">
+                                <table class="suratjalan-detail-table min-w-full text-sm">
                                     <thead class="bg-gray-100">
                                         <tr>
                                             <th class="p-2 text-left w-10">#</th>
@@ -661,7 +685,7 @@
                                 <h3 class="text-base font-semibold text-gray-800">Detail Item</h3>
 
                                 <div class="overflow-auto border rounded">
-                                    <table class="min-w-full text-sm">
+                                    <table class="suratjalan-detail-table min-w-full text-sm">
                                         <thead class="bg-gray-100">
                                             <tr>
                                                 <th class="p-2 text-left w-10">#</th>

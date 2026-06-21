@@ -74,6 +74,33 @@
         input[type=number] {
             -moz-appearance: textfield;
         }
+
+        .invoice-detail-table th,
+        .invoice-detail-table td {
+            padding: .25rem .375rem !important;
+        }
+
+        .invoice-detail-table input:not([type="hidden"]),
+        .invoice-detail-table select,
+        .invoice-detail-table button {
+            min-height: 1.875rem;
+            padding-top: .25rem !important;
+            padding-bottom: .25rem !important;
+            line-height: 1.25rem;
+        }
+
+        .invoice-detail-table .rounded-l.border,
+        .invoice-detail-table .rounded-r.border {
+            min-height: 1.875rem;
+            padding-top: .25rem !important;
+            padding-bottom: .25rem !important;
+            line-height: 1.25rem;
+        }
+
+        .invoice-detail-table button {
+            display: inline-flex;
+            align-items: center;
+        }
     </style>
     @if ($errors->any())
         <div class="alert alert-danger alert-dismissible fade show border-0 shadow p-0 overflow-hidden" role="alert">
@@ -436,7 +463,7 @@
                         <h3 class="text-base font-semibold text-gray-800">Detail Item</h3>
 
                         <div class="overflow-auto border rounded">
-                            <table class="min-w-full text-sm">
+                            <table class="invoice-detail-table min-w-full text-sm">
                                 <thead class="bg-gray-100">
                                     <tr>
                                         <th class="p-2 text-left w-10">#</th>
@@ -1176,7 +1203,7 @@
                                 <h3 class="text-base font-semibold text-gray-800">Detail Item</h3>
 
                                 <div class="overflow-auto border rounded">
-                                    <table class="min-w-full text-sm balanced-detail-table"
+                                    <table class="invoice-detail-table min-w-full text-sm balanced-detail-table"
                                         data-skip-auto-detail-style="true">
                                         <colgroup>
                                             <col style="width:2%;">
@@ -2117,8 +2144,10 @@
         const salesmanCode = normalize(payload?.fsalesman) || normalize(selectedOption?.dataset?.fsalesman);
         if (!salesmanCode) return;
         const salesmanSelect = document.getElementById('modal_filter_salesman_id');
-        const salesmanOption = [...(salesmanSelect?.options || [])].find(option => normalize(option.value) === salesmanCode);
-        const salesmanName = normalize(payload?.fsalesmanname) || normalize(salesmanOption?.textContent).replace(new RegExp(`\\s*\\(${salesmanCode.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\)\\s*$`), '');
+        const salesmanOption = [...(salesmanSelect?.options || [])].find(option => normalize(option.value) ===
+            salesmanCode);
+        const salesmanName = normalize(payload?.fsalesmanname) || normalize(salesmanOption?.textContent).replace(
+            new RegExp(`\\s*\\(${salesmanCode.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\)\\s*$`), '');
 
         window.applyTransactionSalesmanSelection?.({
             fsalesmancode: salesmanCode,

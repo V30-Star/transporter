@@ -87,6 +87,33 @@
         input[type=number] {
             -moz-appearance: textfield;
         }
+
+        .sales-detail-table th,
+        .sales-detail-table td {
+            padding: .25rem .375rem !important;
+        }
+
+        .sales-detail-table input:not([type="hidden"]),
+        .sales-detail-table select,
+        .sales-detail-table button {
+            min-height: 1.875rem;
+            padding-top: .25rem !important;
+            padding-bottom: .25rem !important;
+            line-height: 1.25rem;
+        }
+
+        .sales-detail-table .rounded-l.border,
+        .sales-detail-table .rounded-r.border {
+            min-height: 1.875rem;
+            padding-top: .25rem !important;
+            padding-bottom: .25rem !important;
+            line-height: 1.25rem;
+        }
+
+        .sales-detail-table button {
+            display: inline-flex;
+            align-items: center;
+        }
     </style>
     @if ($errors->any())
         <div class="alert alert-danger alert-dismissible fade show border-0 shadow p-0 overflow-hidden" role="alert">
@@ -455,7 +482,7 @@
                             <h3 class="text-base font-semibold text-gray-800">Detail Item</h3>
 
                             <div class="overflow-x-auto border rounded">
-                                <table class="min-w-full text-sm balanced-detail-table"
+                                <table class="sales-detail-table min-w-full text-sm balanced-detail-table"
                                     data-skip-auto-detail-style="true">
                                     <thead class="bg-gray-100">
                                         <tr>
@@ -1018,7 +1045,7 @@
                                 <h3 class="text-base font-semibold text-gray-800">Detail Item</h3>
 
                                 <div class="overflow-auto border rounded">
-                                    <table class="min-w-full text-sm balanced-detail-table"
+                                    <table class="sales-detail-table min-w-full text-sm balanced-detail-table"
                                         data-skip-auto-detail-style="true">
                                         <thead class="bg-gray-100">
                                             <tr>

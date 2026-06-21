@@ -132,6 +132,33 @@
         input[type=number] {
             -moz-appearance: textfield;
         }
+
+                .returpenjualan-detail-table th,
+        .returpenjualan-detail-table td {
+            padding: .25rem .375rem !important;
+        }
+
+        .returpenjualan-detail-table input:not([type="hidden"]),
+        .returpenjualan-detail-table select,
+        .returpenjualan-detail-table button {
+            min-height: 1.875rem;
+            padding-top: .25rem !important;
+            padding-bottom: .25rem !important;
+            line-height: 1.25rem;
+        }
+
+        .returpenjualan-detail-table .rounded-l.border,
+        .returpenjualan-detail-table .rounded-r.border {
+            min-height: 1.875rem;
+            padding-top: .25rem !important;
+            padding-bottom: .25rem !important;
+            line-height: 1.25rem;
+        }
+
+        .returpenjualan-detail-table button {
+            display: inline-flex;
+            align-items: center;
+        }
     </style>
     @if ($errors->any())
         <div class="alert alert-danger alert-dismissible fade show border-0 shadow p-0 overflow-hidden" role="alert">
@@ -345,7 +372,7 @@
                         <h3 class="text-base font-semibold text-gray-800">Detail Item</h3>
 
                         <div class="overflow-auto border rounded">
-                            <table class="min-w-full text-sm balanced-detail-table" data-skip-auto-detail-style="true">
+                            <table class="returpenjualan-detail-table min-w-full text-sm balanced-detail-table" data-skip-auto-detail-style="true">
                                 <colgroup>
                                     <col style="width:2%;">
                                     <col style="width:16%;">
