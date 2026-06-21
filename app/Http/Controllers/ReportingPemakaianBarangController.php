@@ -105,8 +105,7 @@ class ReportingPemakaianBarangController extends Controller
         $filterSupplierId = $request->query('fsupplier');
 
         $query = DB::table('trstockmt')
-            ->select('trstockmt.*', 'account.faccname', 'mswh.fwhname')
-            ->leftJoin('account', 'trstockmt.fto', '=', 'account.faccount')
+            ->select('trstockmt.*', 'mswh.fwhname')
             ->leftJoin('mswh', 'trstockmt.ffrom', '=', 'mswh.fwhcode')
             ->where('fstockmtcode', 'PBR');
         $this->applyBranchVisibilityScope($query, 'trstockmt.fbranchcode');
@@ -144,8 +143,8 @@ class ReportingPemakaianBarangController extends Controller
             // 1. Ambil detail dengan Join ke tabel Account
             $fakturpembelian->details = DB::table('trstockdt')
                 ->select('trstockdt.*', 'account.faccname', 'mssubaccount.fsubaccountname')
-                ->leftJoin('account', 'trstockdt.fnouref', '=', 'account.faccid')
-                ->leftJoin('mssubaccount', 'trstockdt.fnouref', '=', 'mssubaccount.fsubaccountid')
+                ->leftJoin('account', 'trstockdt.frefdtno', '=', 'account.faccount')
+                ->leftJoin('mssubaccount', 'trstockdt.frefso', '=', 'mssubaccount.fsubaccountcode')
                 ->where('fstockmtno', $fakturpembelian->fstockmtno)
                 ->get();
 

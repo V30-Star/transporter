@@ -152,8 +152,6 @@
             font-size: 9px;
             font-weight: bold;
             padding: 8px 5px;
-            background-color: #f0f0f0;
-            border: 1px solid #333;
         }
 
         .info-tambahan {
