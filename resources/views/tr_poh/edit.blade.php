@@ -68,6 +68,34 @@
         input[type=number] {
             -moz-appearance: textfield;
         }
+
+        .po-detail-table th,
+        .po-detail-table td {
+            padding: .25rem .375rem !important;
+        }
+
+        .po-detail-table input:not([type="hidden"]),
+        .po-detail-table select,
+        .po-detail-table button {
+            height: 1.875rem !important;
+            min-height: 1.875rem;
+            padding-top: .25rem !important;
+            padding-bottom: .25rem !important;
+            line-height: 1.25rem;
+        }
+
+        .po-detail-table .rounded-l.border,
+        .po-detail-table .rounded-r.border {
+            min-height: 1.875rem;
+            padding-top: .25rem !important;
+            padding-bottom: .25rem !important;
+            line-height: 1.25rem;
+        }
+
+        .po-detail-table button {
+            display: inline-flex;
+            align-items: center;
+        }
     </style>
     @php
         $permissions = explode(',', session('user_restricted_permissions', ''));

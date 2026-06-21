@@ -106,6 +106,31 @@
             width: 2.5rem;
             justify-content: center;
         }
+
+        .pr-detail-table th,
+        .pr-detail-table td {
+            padding: .25rem .375rem !important;
+        }
+
+        .pr-detail-table input:not([type="hidden"]),
+        .pr-detail-table select,
+        .pr-detail-table button,
+        .pr-detail-table .desc-inline-field__text {
+            min-height: 1.875rem;
+            padding-top: .25rem !important;
+            padding-bottom: .25rem !important;
+            line-height: 1.25rem;
+        }
+
+        .pr-detail-table button {
+            display: inline-flex;
+            align-items: center;
+        }
+
+        .pr-detail-table .desc-inline-field__button {
+            width: 2rem !important;
+            flex-basis: 2rem !important;
+        }
     </style>
     @if ($errors->any())
         <div class="alert alert-danger alert-dismissible fade show border-0 shadow p-0 overflow-hidden" role="alert">
@@ -240,7 +265,7 @@
                     <h3 class="text-base font-semibold text-gray-800">Detail Item</h3>
 
                     <div class="overflow-auto border rounded">
-                        <table class="min-w-full text-sm">
+                        <table class="pr-detail-table min-w-full text-sm">
                             <thead class="bg-gray-100">
                                 <tr>
                                     <th class="p-2 text-left w-10">#</th>
@@ -277,7 +302,7 @@
                                                     x-text="row.fitemname || '-'"></div>
                                                 <button type="button" @click="openDesc(i)"
                                                     class="desc-inline-field__button inline-flex w-10 shrink-0 items-center justify-center border border-l-0 rounded-r px-2 py-1 transition-colors"
-                                                    style="display:inline-flex !important; flex:0 0 2.5rem !important; width:2.5rem !important; justify-content:center !important; align-items:center !important;"
+                                                    style="display:inline-flex !important; flex:0 0 2rem !important; width:2rem !important; justify-content:center !important; align-items:center !important;"
                                                     :class="descButtonClass(row.fdesc)" title="Deskripsi item">
                                                     <x-heroicon-o-document-text class="w-4 h-4" />
                                                 </button>

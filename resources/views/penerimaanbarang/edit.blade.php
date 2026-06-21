@@ -21,18 +21,29 @@
 
         .penerimaan-detail-table th,
         .penerimaan-detail-table td {
-            padding: .25rem .35rem !important;
+            padding: .25rem .375rem !important;
         }
 
-        .penerimaan-detail-table input,
+        .penerimaan-detail-table input:not([type="hidden"]),
         .penerimaan-detail-table select,
         .penerimaan-detail-table button {
-            min-height: 1.9rem;
+            min-height: 1.875rem;
+            padding-top: .25rem !important;
+            padding-bottom: .25rem !important;
+            line-height: 1.25rem;
         }
 
-        .penerimaan-detail-table input,
-        .penerimaan-detail-table select {
-            padding: .2rem .4rem !important;
+        .penerimaan-detail-table .rounded-l.border,
+        .penerimaan-detail-table .rounded-r.border {
+            min-height: 1.875rem;
+            padding-top: .25rem !important;
+            padding-bottom: .25rem !important;
+            line-height: 1.25rem;
+        }
+
+        .penerimaan-detail-table button {
+            display: inline-flex;
+            align-items: center;
         }
 
         .switch {
