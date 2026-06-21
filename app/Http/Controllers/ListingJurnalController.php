@@ -52,7 +52,7 @@ class ListingJurnalController extends Controller
         $journalTypes = array_values(array_filter(array_map('trim', (array) $journalTypes)));
         $branchCodes = $request->input('branch_codes', []);
         $branchCodes = array_values(array_filter(array_map('trim', (array) $branchCodes)));
-        $sortBy = $request->input('sort_by', 'terlama');
+        $sortBy = $request->input('sort_by', 'no_jurnal');
 
         $results = $this->buildQuery($dateFrom, $dateTo, $journalTypes, $branchCodes, $sortBy)->get();
         $groupedData = $results->groupBy('fjurnalno');
@@ -75,7 +75,7 @@ class ListingJurnalController extends Controller
         $journalTypes = array_values(array_filter(array_map('trim', (array) $journalTypes)));
         $branchCodes = $request->input('branch_codes', []);
         $branchCodes = array_values(array_filter(array_map('trim', (array) $branchCodes)));
-        $sortBy = $request->input('sort_by', 'terlama');
+        $sortBy = $request->input('sort_by', 'no_jurnal');
 
         $results = $this->buildQuery($dateFrom, $dateTo, $journalTypes, $branchCodes, $sortBy)->get();
 
@@ -252,19 +252,22 @@ class ListingJurnalController extends Controller
     private function sortOptions(): array
     {
         return [
-            'terlama' => 'Terlama ke Terbaru',
-            'terbaru' => 'Terbaru ke Terlama',
+            'no_jurnal' => 'No. Jurnal',
+            'tanggal_jurnal' => 'Tanggal Jurnal',
         ];
     }
 
     private function sortColumns(string $sortBy): array
     {
         return match ($sortBy) {
-            'terbaru' => [
-                ['a.fjurnalno', 'desc'],
-                ['a.fkasdtid', 'desc'],
+            'tanggal_jurnal' => [
+                ['a.fjurnaltype', 'asc'],
+                ['a.fjurnaldate', 'asc'],
+                ['a.fjurnalno', 'asc'],
+                ['a.fkasdtid', 'asc'],
             ],
             default => [
+                ['a.fjurnaltype', 'asc'],
                 ['a.fjurnalno', 'asc'],
                 ['a.fkasdtid', 'asc'],
             ],
