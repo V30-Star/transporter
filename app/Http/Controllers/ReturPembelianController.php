@@ -1519,14 +1519,14 @@ class ReturPembelianController extends Controller
 
         // --- Lookup accounts from set_account table ---
         $setAccounts = DB::table('set_account')
-            ->whereIn('faccount_name', ['ReturPembelianBlmPotHutang', 'PPNBeli', 'Purchase Returns'])
+            ->whereIn('faccount_name', ['RETBELIBLMPOTHUTANG', 'PPNBELI', 'RETURPEMBELIAN'])
             ->pluck('faccount', 'faccount_name');
 
-        $accountHutang      = $setAccounts->get('ReturPembelianBlmPotHutang', '11437');
-        $accountPPNBeli     = $setAccounts->get('PPNBeli', '11500');
-        $accountPersediaan  = $setAccounts->get('Purchase Returns', '11501');
+        $accountHutang      = $setAccounts->get('RETBELIBLMPOTHUTANG', '11437');
+        $accountPPNBeli     = $setAccounts->get('PPNBELI', '');
+        $accountPersediaan  = $setAccounts->get('RETURPEMBELIAN', '51200');
 
-        $fjurnaltype  = 'REB';
+        $fjurnaltype  = 'JRB';
         $jurnalPrefix = sprintf('JV.REB.%s.%s.', $kodeCabang, $fstockmtdate->format('ym'));
 
         if (DB::getDriverName() === 'pgsql') {

@@ -2450,14 +2450,14 @@ class ReturPenjualanController extends Controller
 
         // --- Lookup accounts from set_account table ---
         $setAccounts = DB::table('set_account')
-            ->whereIn('faccount_name', ['ReturnSales', 'PPNSales', 'ReturnSalesBillowPotPiutang'])
+            ->whereIn('faccount_name', ['RETURPENJUALAN', 'PPNJUAL', 'RETJUALBLMPOTPIUTANG'])
             ->pluck('faccount', 'faccount_name');
 
-        $accountReturnSales           = $setAccounts->get('ReturnSales', '41300');
-        $accountPPNSales              = $setAccounts->get('PPNSales', '21160');
-        $accountReturnSalesPiutang    = $setAccounts->get('ReturnSalesBillowPotPiutang', '21181');
+        $accountReturnSales           = $setAccounts->get('RETURPENJUALAN', '41300');
+        $accountPPNSales              = $setAccounts->get('PPNJUAL', '21160');
+        $accountReturnSalesPiutang    = $setAccounts->get('RETJUALBLMPOTPIUTANG', '21181');
 
-        $fjurnaltype = 'REJ';
+        $fjurnaltype = 'JRJ';
         $jurnalPrefix = sprintf('JV.REJ.%s.%s.', $kodeCabang, $fsodate->format('ym'));
 
         if (DB::getDriverName() === 'pgsql') {
