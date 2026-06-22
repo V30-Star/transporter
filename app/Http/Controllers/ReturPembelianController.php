@@ -538,6 +538,9 @@ class ReturPembelianController extends Controller
             $ppnAmount = (float) $request->input('famountpajak', 0);
             $grandTotal = (float) $request->input('famountmt', 0);
 
+            $fincludeppn = (int) $request->input('fincludeppn', 0);
+            $fppnpersen = (float) $request->input('famountpopajak', 0);
+
             // LOAD PRODUCT METADATA
             $uniqueCodes = array_values(array_unique(array_filter(array_map(fn($c) => trim((string) $c), $codes))));
 
@@ -659,7 +662,9 @@ class ReturPembelianController extends Controller
                 $subtotal,
                 $ppnAmount,
                 $grandTotal,
-                $userid
+                $userid,
+                $fincludeppn,
+                $fppnpersen
             ) {
                 // BRANCH CODE RESOLUTION
                 $kodeCabang = null;
@@ -724,6 +729,10 @@ class ReturPembelianController extends Controller
                     'fsudahtagih' => '0',
                     'fbranchcode' => $kodeCabang,
                     'fdiscount' => 0,
+                    'fincludeppn' => $fincludeppn,
+                    'fppnpersen' => $fppnpersen,
+                    'famountpajak' => round($ppnAmount, 2),
+                    'famountpajak_rp' => round($ppnAmount, 2),
                 ];
 
                 $newStockMasterId = DB::table('trstockmt')->insertGetId($masterData, 'fstockmtid');
@@ -875,7 +884,7 @@ class ReturPembelianController extends Controller
             'returpembelian' => $returpembelian,
             'displayFstockmtno' => $this->formatDisplayTransactionNumber($returpembelian->fstockmtno ?? null, (string) ($returpembelian->fincludeppn ?? '0') === '1'),
             'savedItems' => $savedItems,
-            'ppnAmount' => (float) ($returpembelian->famountpopajak ?? 0),
+            'ppnAmount' => (float) ($returpembelian->fppnpersen ?? 0),
             'famountponet' => (float) ($returpembelian->famountponet ?? 0),
             'famountpo' => (float) ($returpembelian->famountpo ?? 0),
             'filterSupplierId' => $request->query('filter_supplier_id'),
@@ -988,7 +997,7 @@ class ReturPembelianController extends Controller
             'returpembelian' => $returpembelian,
             'displayFstockmtno' => $this->formatDisplayTransactionNumber($returpembelian->fstockmtno ?? null, (string) ($returpembelian->fincludeppn ?? '0') === '1'),
             'savedItems' => $savedItems,
-            'ppnAmount' => (float) ($returpembelian->famountpopajak ?? 0),
+            'ppnAmount' => (float) ($returpembelian->fppnpersen ?? 0),
             'famountponet' => (float) ($returpembelian->famountponet ?? 0),
             'famountpo' => (float) ($returpembelian->famountpo ?? 0),
             'filterSupplierId' => $request->query('filter_supplier_id'),
@@ -1063,6 +1072,9 @@ class ReturPembelianController extends Controller
             $subtotal = (float) $request->input('famount', 0);
             $ppnAmount = (float) $request->input('famountpajak', 0);
             $grandTotal = (float) $request->input('famountmt', 0);
+
+            $fincludeppn = (int) $request->input('fincludeppn', 0);
+            $fppnpersen = (float) $request->input('famountpopajak', 0);
 
             // LOAD PRODUCT METADATA
             $uniqueCodes = array_values(array_unique(array_filter(array_map(fn($c) => trim((string) $c), $codes))));
@@ -1186,7 +1198,9 @@ class ReturPembelianController extends Controller
                 $subtotal,
                 $ppnAmount,
                 $grandTotal,
-                $userid
+                $userid,
+                $fincludeppn,
+                $fppnpersen
             ) {
 
                 $kodeCabang = null;
@@ -1236,6 +1250,10 @@ class ReturPembelianController extends Controller
                     'fsudahtagih' => '0',
                     'fbranchcode' => $kodeCabang,
                     'fdiscount' => 0,
+                    'fincludeppn' => $fincludeppn,
+                    'fppnpersen' => $fppnpersen,
+                    'famountpajak' => round($ppnAmount, 2),
+                    'famountpajak_rp' => round($ppnAmount, 2),
                 ];
 
                 $header->update($masterData);
@@ -1391,7 +1409,7 @@ class ReturPembelianController extends Controller
             'returpembelian' => $returpembelian,
             'displayFstockmtno' => $this->formatDisplayTransactionNumber($returpembelian->fstockmtno ?? null, (string) ($returpembelian->fincludeppn ?? '0') === '1'),
             'savedItems' => $savedItems,
-            'ppnAmount' => (float) ($returpembelian->famountpopajak ?? 0),
+            'ppnAmount' => (float) ($returpembelian->fppnpersen ?? 0),
             'famountponet' => (float) ($returpembelian->famountponet ?? 0),
             'famountpo' => (float) ($returpembelian->famountpo ?? 0),
             'filterSupplierId' => $request->query('filter_supplier_id'),
@@ -1523,7 +1541,7 @@ class ReturPembelianController extends Controller
             ->pluck('faccount', 'faccount_name');
 
         $accountHutang      = $setAccounts->get('RETBELIBLMPOTHUTANG', '11437');
-        $accountPPNBeli     = $setAccounts->get('PPNBELI', '');
+        $accountPPNBeli     = $setAccounts->get('PPNBELI', '11400');
         $accountPersediaan  = $setAccounts->get('RETURPEMBELIAN', '51200');
 
         $fjurnaltype  = 'JRB';

@@ -141,14 +141,6 @@
 
     <div x-data="{
         open: true,
-    
-        {{-- Inisialisasi PPN & Total (PERBAIKAN!) --}}
-        includePPN: {{ $currentPpnAmount > 0 ? 'true' : 'false' }},
-        ppnRate: {{ $currentPpnAmount > 0 ? 11 : 0 }},
-        {{-- Asumsi 11% --}}
-        ppnAmount: {{ $currentPpnAmount }},
-        totalHarga: {{ $currentSubtotal }},
-    
         {{-- State untuk form --}}
         showNoItems: false
     }" class="lg:col-span-5">
@@ -943,13 +935,13 @@
             editRow: newRow(),
 
             totalHarga: 0,
-            ppnRate: 11,
+            ppnRate: @json((float) ($returpembelian->fppnpersen ?? 11)),
 
             initialGrandTotal: @json($famountmt ?? 0),
             initialPpnAmount: @json($famountpajak ?? 0),
 
-            includePPN: false,
-            fapplyppn: false,
+            includePPN: @json(($returpembelian->fincludeppn ?? 0) == 1),
+            fapplyppn: @json(($returpembelian->fapplyppn ?? 0) == 1),
 
             get ppnIncluded() {
                 const total = +this.totalHarga || 0;

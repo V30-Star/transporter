@@ -224,14 +224,6 @@
 
     <div x-data="{
         open: true,
-    
-        {{-- Inisialisasi PPN & Total (PERBAIKAN!) --}}
-        includePPN: {{ $currentPpnAmount > 0 ? 'true' : 'false' }},
-        ppnRate: {{ $currentPpnAmount > 0 ? 11 : 0 }},
-        {{-- Asumsi 11% --}}
-        ppnAmount: {{ $currentPpnAmount }},
-        totalHarga: {{ $currentSubtotal }},
-    
         {{-- State untuk form --}}
         showNoItems: false
     }" class="lg:col-span-5 {{ $action === 'delete' || $usageLocked ? 'readonly-mode' : '' }}">
@@ -503,7 +495,9 @@
 
                                     <!-- Hidden inputs for submit -->
                                     <input type="hidden" name="famountponet" :value="totalHarga">
-                                    <input type="hidden" name="" :value="ppnAmount">
+                                    <input type="hidden" name="famountpajak" :value="ppnAmount">
+                                    <input type="hidden" name="famountpajak_rp" :value="ppnAmount">
+                                    <input type="hidden" name="fincludeppn" :value="includePPN ? 1 : 0">
                                     <input type="hidden" name="famountpo" :value="grandTotal">
                                     <input type="hidden" name="famountpopajak" :value="ppnRate">
                                 </div>
@@ -872,7 +866,7 @@
                 <form action="{{ route('returpembelian.update', $returpembelian->fstockmtid) }}" method="POST"
                     class="mt-6" data-form-draft="true"
                     data-draft-key="returpembelian:edit:{{ $returpembelian->fstockmtid }}"
-                    x-data="{ showNoItems: false }"
+                    x-data="itemsTable()" x-init="init()"
                     @submit.prevent="
         const duplicateCode = window.getReturPembelianDuplicateCode?.($el);
         if (duplicateCode) {
@@ -887,8 +881,8 @@
             });
             return;
         }
-        const n = Number(document.getElementById('itemsCount')?.value || 0);
-        if (n < 1) { showNoItems = true } else { $el.submit() }
+        onSubmit($event);
+        if (savedItems.length > 0) { $el.submit(); }
       ">
                     @csrf
                     @method('PATCH')
@@ -1015,7 +1009,7 @@
                         </div>
                     </div>
 
-                    <div x-data="itemsTable()" x-init="init()" class="mt-6 space-y-2">
+                    <div class="mt-6 space-y-2">
                         {{-- DETAIL ITEM (tabel input) --}}
                         <h3 class="text-base font-semibold text-gray-800">Detail Item</h3>
                         <div class="overflow-auto border rounded">
@@ -1342,7 +1336,9 @@
 
                                     <!-- Hidden inputs for submit -->
                                     <input type="hidden" name="famountponet" :value="totalHarga">
-                                    <input type="hidden" name="" :value="ppnAmount">
+                                    <input type="hidden" name="famountpajak" :value="ppnAmount">
+                                    <input type="hidden" name="famountpajak_rp" :value="ppnAmount">
+                                    <input type="hidden" name="fincludeppn" :value="includePPN ? 1 : 0">
                                     <input type="hidden" name="famountpo" :value="grandTotal">
                                     <input type="hidden" name="famountpopajak" :value="ppnRate">
                                 </div>
@@ -1983,13 +1979,13 @@
             editRow: newRow(),
 
             totalHarga: 0,
-            ppnRate: 11,
+            ppnRate: @json((float) ($returpembelian->fppnpersen ?? 11)),
 
             initialGrandTotal: @json($famountmt ?? 0),
             initialPpnAmount: @json($famountpajak ?? 0),
 
-            includePPN: false,
-            fapplyppn: false,
+            includePPN: @json(($returpembelian->fincludeppn ?? 0) == 1),
+            fapplyppn: @json(($returpembelian->fapplyppn ?? 0) == 1),
 
             get ppnIncluded() {
                 const total = +this.totalHarga || 0;
@@ -2391,10 +2387,6 @@
                     const apply = (row) => {
                         row.fitemcode = (product.fprdcode || '').toString();
                         this.hydrateRowFromMeta(row, this.productMeta(row.fitemcode));
-                         this.rows.splice(this.browseTarget, 1, {
-                        ...this.rows[this.browseTarget]
-                    });
-
                         if (!row.fqty) row.fqty = 1;
                         this.recalc(row);
                     };
