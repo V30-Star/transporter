@@ -1487,8 +1487,6 @@ class PenerimaanBarangController extends Controller
         return $kodeCabang ?: 'NA';
     }
 
-
-
     private function validateUniqueReferenceUsage(array $rowsDt, ?string $exceptStockMtNo = null): ?string
     {
         $referenceDetailIds = collect($rowsDt)
