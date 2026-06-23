@@ -1030,6 +1030,18 @@ class PenerimaanBarangController extends Controller
                 }
                 DB::table('trstockdt')->insert($rowsDt);
                 $this->adjustPoReferenceQtyKecil($podAgg, -1);
+
+                $this->syncGoodsReceiptJournalEntries(
+                    $fstockmtno,
+                    $fstockmtdate,
+                    $kodeCabang,
+                    $fsupplier,
+                    $subtotal,
+                    $ppnAmount,
+                    $grandTotal,
+                    $frate,
+                    $userid
+                );
             });
         } catch (\RuntimeException $e) {
             return back()->withInput()->withErrors(['detail' => $e->getMessage()]);
@@ -1324,7 +1336,6 @@ class PenerimaanBarangController extends Controller
                 'frefdtid' => $rid,
                 'fnoacak' => $this->normalizeRandomNumber($fnoacaks[$i] ?? null, $usedNoAcaks),
                 'frefnoacak' => $rid ? $this->normalizeReferenceRandomNumber($frefnoacaks[$i] ?? null) : null,
-                'frefsoid' => null,
                 'fqty' => $qty,
                 'fqtykecil' => $qtyKecil,
                 'fqtyremain' => $qtyKecil,
@@ -1421,6 +1432,18 @@ class PenerimaanBarangController extends Controller
 
                 DB::table('trstockdt')->insert($rowsDt);
                 $this->adjustPoReferenceQtyKecil($podAgg, -1);
+
+                $this->syncGoodsReceiptJournalEntries(
+                    $header->fstockmtno,
+                    $fstockmtdate,
+                    $kodeCabang,
+                    $fsupplier,
+                    $subtotal,
+                    $ppnAmount,
+                    $grandTotal,
+                    $frate,
+                    Auth::user()->fname ?? 'system'
+                );
             });
         } catch (\RuntimeException $e) {
             return back()->withInput()->withErrors(['detail' => $e->getMessage()]);
@@ -1456,6 +1479,7 @@ class PenerimaanBarangController extends Controller
                     ->where('fstockmtno', $penerimaanbarang->fstockmtno)
                     ->delete();
 
+                $this->deleteGoodsReceiptJournalEntries($penerimaanbarang->fstockmtno);
                 $penerimaanbarang->delete();
             });
 
@@ -1558,5 +1582,137 @@ class PenerimaanBarangController extends Controller
         }
 
         return "Information\nPenerimaan ini tidak dapat di-Edit/Delete.\nMasih ada Referensi di Transaksi:\n" . $usedBy->implode(', ');
+    }
+
+    private function syncGoodsReceiptJournalEntries(
+        string $fstockmtno,
+        Carbon $fstockmtdate,
+        string $kodeCabang,
+        string $fsupplier,
+        float $subtotal,
+        float $ppnAmount,
+        float $grandTotal,
+        float $frate,
+        string $userid
+    ): void {
+        $this->deleteGoodsReceiptJournalEntries($fstockmtno);
+
+        // --- Lookup accounts from set_account table ---
+        $accountPersediaan = DB::table('set_account')->where('faccount_name', 'SALDOAWAL')->value('faccount') ?? '31020';
+        $accountClearing = DB::table('set_account')->where('faccount_name', 'PENERIMAANYGBLMDITAGIH')->value('faccount') ?? '72000';
+        $accountPPNBeli = DB::table('set_account')->where('faccount_name', 'PPNBELI')->value('faccount') ?? '11400';
+
+        $fjurnaltype  = 'JTB';
+        $jurnalPrefix = sprintf('JV.JTB.%s.%s.', $kodeCabang, $fstockmtdate->format('ym'));
+
+        if (DB::getDriverName() === 'pgsql') {
+            $lockKey = crc32('JURNAL|' . $fjurnaltype . '|' . $kodeCabang . '|' . $fstockmtdate->format('Y-m'));
+            DB::statement('SELECT pg_advisory_xact_lock(?)', [$lockKey]);
+            $lastJ = DB::table('jurnalmt')->where('fjurnalno', 'like', $jurnalPrefix . '%')
+                ->selectRaw("MAX(CAST(split_part(fjurnalno, '.', 5) AS int)) AS lastno")->value('lastno');
+            $nextJ = (int) $lastJ + 1;
+        } else {
+            $lastJurnalNo = DB::table('jurnalmt')
+                ->where('fjurnalno', 'like', $jurnalPrefix . '%')
+                ->orderByDesc('fjurnalno')
+                ->value('fjurnalno');
+
+            $nextJ = 1;
+            if ($lastJurnalNo && ($pos = strrpos($lastJurnalNo, '.')) !== false) {
+                $nextJ = ((int) substr($lastJurnalNo, $pos + 1)) + 1;
+            }
+        }
+
+        $fjurnalno = $jurnalPrefix . str_pad((string) $nextJ, 4, '0', STR_PAD_LEFT);
+        $now       = now();
+
+        $jurnalId = DB::table('jurnalmt')->insertGetId([
+            'fbranchcode' => $kodeCabang,
+            'fjurnalno'   => $fjurnalno,
+            'fjurnaltype' => $fjurnaltype,
+            'fjurnaldate' => $fstockmtdate,
+            'fjurnalnote' => "Penerimaan Barang $fstockmtno dari $fsupplier",
+            'fbalance'    => round($grandTotal, 2),
+            'fbalance_rp' => round($grandTotal, 2),
+            'fdatetime'   => $now,
+            'fuserid'     => $userid,
+        ], 'fjurnalmtid');
+
+        $jurnalDt = [
+            [
+                'fjurnalmtid'  => $jurnalId,
+                'fbranchcode'  => $kodeCabang,
+                'fjurnaltype'  => $fjurnaltype,
+                'fjurnalno'    => $fjurnalno,
+                'flineno'      => 1,
+                'faccount'     => (string) $accountPersediaan,
+                'fdk'          => 'D',
+                'fsubaccount'  => $fsupplier,
+                'frefno'       => $fstockmtno,
+                'frate'        => 1,
+                'famount'      => round($subtotal, 2),
+                'famount_rp'   => round($subtotal, 2),
+                'faccountnote' => 'Persediaan / Saldo Awal',
+                'fusercreate'  => $userid,
+                'fdatetime'    => $now,
+            ],
+            [
+                'fjurnalmtid'  => $jurnalId,
+                'fbranchcode'  => $kodeCabang,
+                'fjurnaltype'  => $fjurnaltype,
+                'fjurnalno'    => $fjurnalno,
+                'flineno'      => ($ppnAmount > 0 ? 3 : 2),
+                'faccount'     => (string) $accountClearing,
+                'fdk'          => 'K',
+                'fsubaccount'  => $fsupplier,
+                'frefno'       => $fstockmtno,
+                'frate'        => 1,
+                'famount'      => round($grandTotal, 2),
+                'famount_rp'   => round($grandTotal, 2),
+                'faccountnote' => 'Faktur Beli Belum Ditagih',
+                'fusercreate'  => $userid,
+                'fdatetime'    => $now,
+            ],
+        ];
+
+        if ($ppnAmount > 0) {
+            $jurnalDt[] = [
+                'fjurnalmtid'  => $jurnalId,
+                'fbranchcode'  => $kodeCabang,
+                'fjurnaltype'  => $fjurnaltype,
+                'fjurnalno'    => $fjurnalno,
+                'flineno'      => 2,
+                'faccount'     => (string) $accountPPNBeli,
+                'fdk'          => 'D',
+                'fsubaccount'  => null,
+                'frefno'       => $fstockmtno,
+                'frate'        => 1,
+                'famount'      => round($ppnAmount, 2),
+                'famount_rp'   => round($ppnAmount, 2),
+                'faccountnote' => 'PPN Masukan',
+                'fusercreate'  => $userid,
+                'fdatetime'    => $now,
+            ];
+        }
+
+        DB::table('jurnaldt')->insert($jurnalDt);
+    }
+
+    private function deleteGoodsReceiptJournalEntries(string $fstockmtno): void
+    {
+        $jurnalIds = DB::table('jurnaldt')
+            ->where('frefno', $fstockmtno)
+            ->where('fjurnaltype', 'JTB')
+            ->pluck('fjurnalmtid')
+            ->filter(fn($id) => ! is_null($id))
+            ->unique()
+            ->values();
+
+        if ($jurnalIds->isEmpty()) {
+            return;
+        }
+
+        DB::table('jurnaldt')->whereIn('fjurnalmtid', $jurnalIds->all())->delete();
+        DB::table('jurnalmt')->whereIn('fjurnalmtid', $jurnalIds->all())->delete();
     }
 }
