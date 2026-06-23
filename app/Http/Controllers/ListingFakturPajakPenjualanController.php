@@ -33,7 +33,14 @@ class ListingFakturPajakPenjualanController extends Controller
     {
         $query = DB::table('tranmt as m')
             ->join('mscustomer as c', 'm.fcustno', '=', 'c.fcustomercode')
-            ->selectRaw("\n                m.fkodefp,\n                m.ftaxno,\n                m.fsono,\n                m.fsodate,\n                m.fnpwp,\n                m.fcustno,\n                c.fcustomername as fcustname,\n                m.ftotalsalesnet AS famountgross,\n                CASE\n                    WHEN m.fincludeppn = '1' THEN (100 / (100 + m.fppnpersen)) * m.fdiscount\n                    ELSE m.fdiscount\n                END AS fdiscount,\n                m.ftotalsalesnet - (\n                    CASE\n                        WHEN m.fincludeppn = '1' THEN (100 / (100 + m.fppnpersen)) * m.fdiscount\n                        ELSE m.fdiscount\n                    END\n                ) AS famountsonet,\n                m.famountpajak\n            ")
+            ->selectRaw("\n                m.fkodefp,\n                
+            m.ftaxno,\n                m.fsono,\n                
+            m.fsodate,\n                m.fcustno,\n                
+            c.fcustomername as fcustname,\n                m.ftotalsalesnet AS famountgross,\n                
+            CASE\n                    WHEN m.fincludeppn = '1' THEN (100 / (100 + m.fppnpersen)) * m.fdiscount\n                    
+            ELSE m.fdiscount\n                END AS fdiscount,\n                m.ftotalsalesnet - (\n                    
+            CASE\n                        WHEN m.fincludeppn = '1' THEN (100 / (100 + m.fppnpersen)) * m.fdiscount\n                        
+            ELSE m.fdiscount\n                    END\n                ) AS famountsonet,\n                m.famountpajak\n            ")
             ->where('m.famountpajak', '>', 0);
 
         $this->applyBranchVisibilityScope($query, 'm.fbranchcode');
