@@ -530,9 +530,11 @@ class ReturPembelianController extends Controller
             $codes = $request->input('fitemcode', []);
             $satuans = $request->input('fsatuan', []);
             $refdtno = $request->input('frefdtno', []);
+            $nourefs = $request->input('frefdtno', []);
             $qtys = $request->input('fqty', []);
             $prices = $request->input('fprice', []);
             $descs = $request->input('fdesc', []);
+            $itemeId = null;
 
             $subtotal = (float) $request->input('famount', 0);
             $ppnAmount = (float) $request->input('famountpajak', 0);
@@ -592,7 +594,7 @@ class ReturPembelianController extends Controller
                     ->select('fprdid', 'fsatuanbesar', 'fqtykecil as rasio_konversi')
                     ->first();
 
-                $itemeId = $produk ? $produk->fprdid : $itemeId;
+                $itemeId = $produk ? $produk->fprdid : null;
 
                 $qtyKecil = $qty;
                 if ($produk && $sat === $produk->fsatuanbesar) {

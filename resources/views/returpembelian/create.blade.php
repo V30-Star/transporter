@@ -185,7 +185,8 @@
             return;
         }
         onSubmit($event);
-        if (savedItems.length > 0) { $el.submit(); }
+        const _completeDrafts = draftRows.filter(dr => dr.fitemcode && dr.fitemname && dr.fsatuan && Number(dr.fqty) > 0);
+        if (savedItems.length > 0 || _completeDrafts.length > 0) { $el.submit(); }
       ">
                     @csrf
 
@@ -560,6 +561,23 @@
                                                         title="Hapus baris">-</button>
                                                 </div>
                                             </td>
+
+                                            <!-- hidden inputs for complete draft rows -->
+                                            <template x-if="isComplete(dr)">
+                                                <td class="hidden">
+                                                    <input type="hidden" name="fitemcode[]" :value="dr.fitemcode">
+                                                    <input type="hidden" name="fitemname[]" :value="dr.fitemname">
+                                                    <input type="hidden" name="fsatuan[]" :value="dr.fsatuan">
+                                                    <input type="hidden" name="fqty[]" :value="dr.fqty">
+                                                    <input type="hidden" name="fprice[]" :value="dr.fprice">
+                                                    <input type="hidden" name="fbiaya[]" :value="dr.fbiaya || 0">
+                                                    <input type="hidden" name="fdiscpersen[]" :value="dr.fdiscpersen || 0">
+                                                    <input type="hidden" name="ftotprice[]" :value="dr.ftotprice">
+                                                    <input type="hidden" name="fdesc[]" :value="dr.fdesc || ''">
+                                                    <input type="hidden" name="fketdt[]" :value="dr.fketdt || ''">
+                                                    <input type="hidden" name="frefdtno[]" :value="dr.frefdtno || ''">
+                                                </td>
+                                            </template>
                                         </tr>
                                     </template>
 
@@ -1187,9 +1205,10 @@
     });
 
     function itemsTable() {
+        const _restoredItems = @json($initialReturPembelianItems);
         return {
             showNoItems: false,
-            savedItems: @json($initialReturPembelianItems),
+            savedItems: [],
             draftRows: [],
             minimumDraftRows: 5,
             editingIndex: null,
@@ -1504,22 +1523,12 @@
 
 
             onSubmit($event) {
-                // Auto-commit any filled draft rows before submission
-                this.draftRows.forEach((dr, di) => {
-                    if (this.isComplete(dr)) {
-                        const dupe = this.savedItems.find(it =>
-                            it.fitemcode === dr.fitemcode && it.fsatuan === dr.fsatuan &&
-                            (it.frefpr || '') === (dr.frefpr || '')
-                        );
-                        if (!dupe) {
-                            this.recalc(dr);
-                            this.savedItems.push({ ...dr, uid: cryptoRandom() });
-                        }
-                    }
-                });
+                // Recalculate totals using both savedItems and complete draftRows
                 this.recalcTotals();
 
-                if (this.savedItems.length === 0) {
+                // Count total submittable items: savedItems + complete draftRows
+                const completeDrafts = this.draftRows.filter(dr => this.isComplete(dr));
+                if (this.savedItems.length === 0 && completeDrafts.length === 0) {
                     $event.preventDefault();
                     this.showNoItems = true;
                     return;
@@ -1630,9 +1639,21 @@
             },
 
             init() {
-                // Initialize 5 default draft rows on first load
+                // If there are restored items from a failed POST, put them in draftRows
                 this.draftRows = [];
+                if (Array.isArray(_restoredItems) && _restoredItems.length > 0) {
+                    _restoredItems.forEach(item => {
+                        const dr = { ...newDraftRow(), ...item, _uid: cryptoRandom() };
+                        if (typeof dr.fqty === 'string') dr.fqty = parseFloat(dr.fqty) || 0;
+                        if (typeof dr.fprice === 'string') dr.fprice = parseFloat(dr.fprice) || 0;
+                        dr.fpriceInput = this.fmt(dr.fprice);
+                        this.hydrateRowFromMeta(dr, this.productMeta(dr.fitemcode));
+                        this.recalc(dr);
+                        this.draftRows.push(dr);
+                    });
+                }
                 this.ensureMinimumDraftRows();
+
 
                 this.$watch('includePPN', () => this.recalcTotals());
                 this.$watch('fapplyppn', () => this.recalcTotals());
