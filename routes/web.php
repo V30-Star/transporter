@@ -14,6 +14,7 @@ use App\Http\Controllers\GroupproductController;
 use App\Http\Controllers\InvoiceController;
 use App\Http\Controllers\JurnalTransaksiController;
 use App\Http\Controllers\ListingFakturPembelianController;
+use App\Http\Controllers\ListingFakturPajakPenjualanController;
 use App\Http\Controllers\ListingJurnalController;
 use App\Http\Controllers\ListingPenerimaanBarangController;
 use App\Http\Controllers\ListingPenerimaanKasBankController;
@@ -580,6 +581,9 @@ Route::middleware('auth')->group(function () {
         Route::get('/listingfakturpembelian', [ListingFakturPembelianController::class, 'index'])->name('listingfakturpembelian.index');
         Route::get('/listingfakturpembelian/print', [ListingFakturPembelianController::class, 'print'])->name('listingfakturpembelian.print');
         Route::get('/listingfakturpembelian/excel', [ListingFakturPembelianController::class, 'exportExcel'])->name('listingfakturpembelian.excel');
+
+        Route::get('/listingfakturpajakpenjualan', [ListingFakturPajakPenjualanController::class, 'index'])->name('listingfakturpajakpenjualan.index');
+        Route::get('/listingfakturpajakpenjualan/print', [ListingFakturPajakPenjualanController::class, 'print'])->name('listingfakturpajakpenjualan.print');
 
         Route::get('/listingpenjualan', [ListingPenjualanController::class, 'index'])->name('listingpenjualan.index');
         Route::get('/listingpenjualan/print', [ListingPenjualanController::class, 'print'])->name('listingpenjualan.print');
