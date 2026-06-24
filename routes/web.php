@@ -13,6 +13,7 @@ use App\Http\Controllers\GroupcustomerController;
 use App\Http\Controllers\GroupproductController;
 use App\Http\Controllers\InvoiceController;
 use App\Http\Controllers\JurnalTransaksiController;
+use App\Http\Controllers\LembarPenagihanController;
 use App\Http\Controllers\ListingFakturPembelianController;
 use App\Http\Controllers\ListingFakturPajakPenjualanController;
 use App\Http\Controllers\ListingJurnalController;
@@ -473,6 +474,15 @@ Route::middleware('auth')->group(function () {
             ->name('invoice.items');
         Route::get('/invoice/pickable', [InvoiceController::class, 'pickable'])
             ->name('invoice.pickable');
+
+        Route::get('/lembarpenagihan', [LembarPenagihanController::class, 'index'])->name('lembarpenagihan.index');
+        Route::post('/lembarpenagihan', [LembarPenagihanController::class, 'store'])->name('lembarpenagihan.store');
+        Route::get('/lembarpenagihan/create', [LembarPenagihanController::class, 'create'])->name('lembarpenagihan.create');
+        Route::get('/lembarpenagihan/{id}/view', [LembarPenagihanController::class, 'view'])->name('lembarpenagihan.view');
+        Route::get('/lembarpenagihan/{id}/edit', [LembarPenagihanController::class, 'edit'])->name('lembarpenagihan.edit');
+        Route::get('/lembarpenagihan/{id}/delete', [LembarPenagihanController::class, 'delete'])->name('lembarpenagihan.delete');
+        Route::patch('/lembarpenagihan/{id}', [LembarPenagihanController::class, 'update'])->name('lembarpenagihan.update');
+        Route::delete('/lembarpenagihan/{id}', [LembarPenagihanController::class, 'destroy'])->name('lembarpenagihan.destroy');
 
         Route::get('/returpenjualan', [ReturPenjualanController::class, 'index'])->name('returpenjualan.index');
         Route::post('/returpenjualan', [ReturPenjualanController::class, 'store'])->name('returpenjualan.store');
