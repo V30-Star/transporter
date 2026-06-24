@@ -87,7 +87,8 @@
         .po-header-labels,
         .po-header {
             display: grid;
-            grid-template-columns: 24mm 24mm 16mm 34mm 19mm 18mm 19mm 18mm;
+            grid-template-columns: 18mm 18mm 16mm 25mm 19mm 18mm 19mm 18mm 20mm;
+            border-bottom: 1px solid #000
             gap: 1px;
             font-size: 8px;
             padding: 4px 3px;
@@ -110,10 +111,12 @@
         .po-header-labels>div:nth-child(6),
         .po-header-labels>div:nth-child(7),
         .po-header-labels>div:nth-child(8),
+        .po-header-labels>div:nth-child(9),
         .po-header>div:nth-child(5),
         .po-header>div:nth-child(6),
         .po-header>div:nth-child(7),
-        .po-header>div:nth-child(8) {
+        .po-header>div:nth-child(8), 
+        .po-header>div:nth-child(9) {
             text-align: right;
         }
 
@@ -266,6 +269,7 @@
             <div>No.Faktur</div>
             <div>Tanggal</div>
             <div>Nama Customer</div>
+            <div>NPWP</div>
             <div>Harga Jual</div>
             <div>Discount</div>
             <div>DPP</div>
@@ -289,6 +293,7 @@
                     <div class="truncate">{{ $row->fsono }}</div>
                     <div>{{ $row->fsodate ? \Carbon\Carbon::parse($row->fsodate)->format('d/m/Y') : '' }}</div>
                     <div class="truncate" title="{{ $row->fcustname }}">{{ $row->fcustname }}</div>
+                    <div class="truncate" title="{{ $row->fnpwp }}">{{ $row->fnpwp }}</div>
                     <div>{{ number_format($hargaJual, 2, ',', '.') }}</div>
                     <div>{{ number_format($discount, 2, ',', '.') }}</div>
                     <div>{{ number_format($dpp, 2, ',', '.') }}</div>

@@ -35,7 +35,7 @@ class ListingFakturPajakPenjualanController extends Controller
             ->join('mscustomer as c', 'm.fcustno', '=', 'c.fcustomercode')
             ->selectRaw("\n                m.fkodefp,\n                
             m.ftaxno,\n                m.fsono,\n                
-            m.fsodate,\n                m.fcustno,\n                
+            m.fsodate,\n         c.fnpwp,\n                m.fcustno,\n                
             c.fcustomername as fcustname,\n                m.ftotalsalesnet AS famountgross,\n                
             CASE\n                    WHEN m.fincludeppn = '1' THEN (100 / (100 + m.fppnpersen)) * m.fdiscount\n                    
             ELSE m.fdiscount\n                END AS fdiscount,\n                m.ftotalsalesnet - (\n                    
