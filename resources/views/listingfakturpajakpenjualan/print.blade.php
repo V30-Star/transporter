@@ -87,7 +87,7 @@
         .po-header-labels,
         .po-header {
             display: grid;
-            grid-template-columns: 18mm 18mm 16mm 25mm 19mm 18mm 19mm 18mm 20mm;
+            grid-template-columns: 25mm 25mm 15mm 22mm 25mm 15mm 15mm 18mm 15mm;
             border-bottom: 1px solid #000
             gap: 1px;
             font-size: 8px;
@@ -107,12 +107,10 @@
             font-weight: bold;
         }
 
-        .po-header-labels>div:nth-child(5),
         .po-header-labels>div:nth-child(6),
         .po-header-labels>div:nth-child(7),
         .po-header-labels>div:nth-child(8),
         .po-header-labels>div:nth-child(9),
-        .po-header>div:nth-child(5),
         .po-header>div:nth-child(6),
         .po-header>div:nth-child(7),
         .po-header>div:nth-child(8), 
