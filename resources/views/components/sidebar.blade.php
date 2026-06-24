@@ -902,6 +902,14 @@
                                 <span class="ml-3">{{ 'Listing Adjustment Stock' }}</span>
                             </a>
                         </li>
+
+                        <li>
+                            <a href="{{ route('listingmutasistok.index') }}"
+                                class="flex items-center p-2 rounded hover:bg-gray-700">
+                                <x-heroicon-o-user-circle class="w-5 h-5" />
+                                <span class="ml-3">{{ 'Listing Mutasi Stok' }}</span>
+                            </a>
+                        </li>
                     @endif
 
                     @if ($hasSidebarPermission('createPemakaianbarang', 'updatePemakaianBarang', 'deletePemakaianBarang'))
