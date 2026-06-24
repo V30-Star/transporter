@@ -79,7 +79,6 @@
         }
 
         .info-label {
-            font-weight: bold;
             display: inline-block;
             width: 45px;
         }
@@ -87,7 +86,7 @@
         .po-header-labels,
         .po-header {
             display: grid;
-            grid-template-columns: 25mm 25mm 15mm 22mm 25mm 15mm 15mm 18mm 15mm;
+            grid-template-columns: 25mm 25mm 15mm 25mm 25mm 15mm 15mm 18mm 15mm;
             border-bottom: 1px solid #000
             gap: 1px;
             font-size: 8px;
@@ -98,13 +97,11 @@
             background-color: #f0f0f0;
             border: 1px solid #000;
             margin-bottom: 1px;
-            font-weight: bold;
         }
 
         .po-header {
             background-color: #fff;
             padding: 3px 3px;
-            font-weight: bold;
         }
 
         .po-header-labels>div:nth-child(6),
@@ -119,7 +116,7 @@
         }
 
         .separator {
-            border-bottom: 1px solid #000000;
+            border-bottom: 1px solid #878787;
             margin: 4px 0;
             clear: both;
         }
@@ -146,7 +143,6 @@
             border-radius: 5px;
             cursor: pointer;
             border: none;
-            font-weight: bold;
         }
 
         .no-print button {
@@ -160,7 +156,7 @@
 
         .grand-total-section {
             margin-top: 20px;
-            border-top: 2px solid #000;
+            border-top: 1px solid #919191;
             padding-top: 10px;
             display: flex;
             justify-content: flex-end;
@@ -168,9 +164,8 @@
 
         .grand-total-panel {
             width: 80mm;
-            border: 1px solid #000;
+            border: 1px solid #919191;
             font-size: 10px;
-            font-weight: bold;
         }
 
         .grand-total-row {
@@ -426,7 +421,7 @@
         endOfReportEl.className = "end-of-report";
         endOfReportEl.style.textAlign = "center";
         endOfReportEl.style.marginTop = "10px";
-        endOfReportEl.style.borderTop = "1px solid #000";
+        endOfReportEl.style.borderTop = "1px solid #919191";
         endOfReportEl.style.paddingTop = "20px";
         endOfReportEl.style.fontWeight = "bold";
         endOfReportEl.style.fontSize = "8px";
