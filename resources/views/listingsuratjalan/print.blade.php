@@ -61,7 +61,7 @@
 
         .supplier-info-kiri {
             position: absolute;
-            top: 1mm;
+            top: 15mm;
             left: 0mm;
             font-size: 10px;
             color: #333;
@@ -79,7 +79,6 @@
         }
 
         .info-label {
-            font-weight: bold;
             display: inline-block;
             width: 45px;
         }
@@ -97,13 +96,11 @@
             background-color: #f0f0f0;
             border: 1px solid #000;
             margin-bottom: 1px;
-            font-weight: bold;
         }
 
         .sj-header {
             background-color: #fff;
             padding: 3px 3px;
-            font-weight: bold;
         }
 
         .sj-detail-labels,
@@ -116,7 +113,6 @@
         }
 
         .sj-detail-labels {
-            font-weight: bold;
             color: #c00;
             background-color: #fff;
             border: 1px solid #000;
@@ -162,7 +158,6 @@
             border-radius: 5px;
             cursor: pointer;
             border: none;
-            font-weight: bold;
         }
 
         .no-print button {
@@ -300,7 +295,7 @@
         @if ($groupedData->isEmpty())
             <div class="page-a4 page-a4-strict">
                 <div class="header-section">
-                    <div class="supplier-info-kiri" style="top: 1mm;">
+                    <div class="supplier-info-kiri" style="top: 15mm;">
                         Customer: {{ request('customer') ?: 'Semua' }}
                         <br>Cabang: {{ $branchText }}
                     </div>

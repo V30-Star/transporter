@@ -63,8 +63,8 @@
                             </select>
                         </div>
 
-                        <div class="bg-gray-50 p-3 rounded border space-y-3">
-                            <div class="flex gap-6">
+                        <div class="bg-gray-50 p-3 rounded border space-y-3 text-center">
+                            <div class="flex justify-center gap-6">
                                 <label class="flex items-center text-sm font-semibold">
                                     <input type="checkbox" name="semua_surat_jalan" checked class="mr-2"> Semua Surat Jalan
                                 </label>
@@ -73,7 +73,7 @@
                                 </label>
                             </div>
                             <hr>
-                            <div class="flex gap-6">
+                            <div class="flex justify-center gap-6">
                                 <label class="flex items-center text-sm font-semibold text-blue-700">
                                     <input type="radio" name="display_type" value="detail" checked class="mr-2"> Detail
                                 </label>
