@@ -61,7 +61,7 @@
 
         .supplier-info-kiri {
             position: absolute;
-            top: 1mm;
+            top: 15mm;
             left: 0mm;
             font-size: 10px;
             color: #333;
@@ -324,7 +324,7 @@
         @if ($results->isEmpty())
             <div class="page-a4 page-a4-strict">
                 <div class="header-section">
-                    <div class="supplier-info-kiri" style="top: 1mm;">
+                    <div class="supplier-info-kiri" style="top: 15mm;">
                         Customer: {{ request('customer') ?: 'Semua' }}
                         <br>Cabang: {{ $branchText }}
                     </div>
@@ -421,7 +421,7 @@
         endOfReportEl.className = "end-of-report";
         endOfReportEl.style.textAlign = "center";
         endOfReportEl.style.marginTop = "10px";
-        endOfReportEl.style.borderTop = "1px solid #919191";
+        // endOfReportEl.style.borderTop = "1px solid #919191";
         endOfReportEl.style.paddingTop = "20px";
         endOfReportEl.style.fontWeight = "bold";
         endOfReportEl.style.fontSize = "8px";
