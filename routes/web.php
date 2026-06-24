@@ -26,6 +26,7 @@ use App\Http\Controllers\ListingReturPembelianController;
 use App\Http\Controllers\ListingReturPenjualanController;
 use App\Http\Controllers\ListingSOBelumController;
 use App\Http\Controllers\ListingSOController;
+use App\Http\Controllers\ListingSuratJalanController;
 use App\Http\Controllers\MerekController;
 use App\Http\Controllers\MutasiController;
 use App\Http\Controllers\PemakaianbarangController;
@@ -588,6 +589,10 @@ Route::middleware('auth')->group(function () {
         Route::get('/listingpenjualan', [ListingPenjualanController::class, 'index'])->name('listingpenjualan.index');
         Route::get('/listingpenjualan/print', [ListingPenjualanController::class, 'print'])->name('listingpenjualan.print');
         Route::get('/listingpenjualan/excel', [ListingPenjualanController::class, 'exportExcel'])->name('listingpenjualan.excel');
+
+        Route::get('/listingsuratjalan', [ListingSuratJalanController::class, 'index'])->name('listingsuratjalan.index');
+        Route::get('/listingsuratjalan/print', [ListingSuratJalanController::class, 'print'])->name('listingsuratjalan.print');
+        Route::get('/listingsuratjalan/excel', [ListingSuratJalanController::class, 'exportExcel'])->name('listingsuratjalan.excel');
 
         Route::get('/listingreturpenjualan', [ListingReturPenjualanController::class, 'index'])->name('listingreturpenjualan.index');
         Route::get('/listingreturpenjualan/print', [ListingReturPenjualanController::class, 'print'])->name('listingreturpenjualan.print');
