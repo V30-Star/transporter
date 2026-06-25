@@ -26,7 +26,19 @@
         <div class="grid grid-cols-3 gap-4 mb-4">
             <div>
                 <label class="block text-sm font-medium mb-1">No. Tagihan</label>
-                <input type="text" name="ftagihanno" value="{{ old('ftagihanno', $header->ftagihanno ?? $nextNo) }}" readonly class="w-full border rounded px-3 py-2 bg-gray-100">
+                @if ($action === 'create')
+                    <div class="flex items-center gap-3" x-data="{ autoCode: true }">
+                        <input type="text" name="ftagihanno" value="{{ old('ftagihanno') }}"
+                            :disabled="autoCode" :class="autoCode ? 'bg-gray-100 cursor-not-allowed' : 'bg-white'"
+                            class="w-full border rounded px-3 py-2">
+                        <label class="inline-flex items-center select-none font-bold">
+                            <input type="checkbox" x-model="autoCode" checked>
+                            <span class="ml-2 text-sm text-gray-700">Auto</span>
+                        </label>
+                    </div>
+                @else
+                    <input type="text" name="ftagihanno" value="{{ old('ftagihanno', $header->ftagihanno ?? $nextNo) }}" readonly class="w-full border rounded px-3 py-2 bg-gray-100">
+                @endif
             </div>
             <div>
                 <label class="block text-sm font-medium mb-1">Customer</label>

@@ -177,7 +177,7 @@ class LembarPenagihanController extends Controller
 
     public function update(Request $request, int $id)
     {
-        $data = $this->validatedData($request);
+        $data = $this->validatedData($request, $id);
         $header = $this->headerQuery()->where('h.ftagihanid', $id)->firstOrFail();
         $tagihanNo = trim((string) $header->ftagihanno);
         $total = array_sum(array_map('floatval', $data['famount']));
@@ -250,10 +250,17 @@ class LembarPenagihanController extends Controller
             ]);
     }
 
-    private function validatedData(Request $request): array
+    private function validatedData(Request $request, ?int $ignoreId = null): array
     {
         return $request->validate([
-            'ftagihanno' => ['nullable', 'string', 'max:15'],
+            'ftagihanno' => [
+                'nullable',
+                'string',
+                'max:15',
+                $ignoreId
+                    ? 'unique:trtagihanmt,ftagihanno,' . $ignoreId . ',ftagihanid'
+                    : 'unique:trtagihanmt,ftagihanno'
+            ],
             'fcustno' => ['required', 'string', 'max:10'],
             'ftagihandate' => ['required', 'date'],
             'fnote' => ['nullable', 'string'],
