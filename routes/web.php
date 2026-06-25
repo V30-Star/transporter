@@ -478,6 +478,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/lembarpenagihan', [LembarPenagihanController::class, 'index'])->name('lembarpenagihan.index');
         Route::post('/lembarpenagihan', [LembarPenagihanController::class, 'store'])->name('lembarpenagihan.store');
         Route::get('/lembarpenagihan/create', [LembarPenagihanController::class, 'create'])->name('lembarpenagihan.create');
+        Route::get('/lembarpenagihan/pickable-invoices', [LembarPenagihanController::class, 'pickableInvoices'])->name('lembarpenagihan.pickable-invoices');
         Route::get('/lembarpenagihan/{id}/view', [LembarPenagihanController::class, 'view'])->name('lembarpenagihan.view');
         Route::get('/lembarpenagihan/{id}/edit', [LembarPenagihanController::class, 'edit'])->name('lembarpenagihan.edit');
         Route::get('/lembarpenagihan/{id}/delete', [LembarPenagihanController::class, 'delete'])->name('lembarpenagihan.delete');

@@ -44,7 +44,7 @@
                 ajax: '{{ route('lembarpenagihan.index') }}',
                 columns: [
                     { data: 'ftagihanno' },
-                    { data: 'fstockmtdate' },
+                    { data: 'ftagihandate' },
                     { data: 'invoice_refs' },
                     { data: 'fcustomername' },
                     { data: 'famounttagihan', className: 'text-right', render: data => Number(data || 0).toLocaleString('id-ID', { minimumFractionDigits: 2 }) },

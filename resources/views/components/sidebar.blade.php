@@ -735,14 +735,6 @@
                                 <span class="ml-3">{{ 'Listing Faktur Pajak Penjualan' }}</span>
                             </a>
                         </li>
-
-                        <li>
-                            <a href="{{ route('listingsuratjalan.index') }}"
-                                class="flex items-center p-2 rounded hover:bg-gray-700">
-                                <x-heroicon-o-user-circle class="w-5 h-5" />
-                                <span class="ml-3">{{ 'Listing Surat Jalan' }}</span>
-                            </a>
-                        </li>
                     @endif
 
                     @if ($hasSidebarPermission('viewlistingreturpenjualan'))
@@ -939,6 +931,14 @@
                             </a>
                         </li>
                     @endif
+
+                    <li>
+                        <a href="{{ route('listingsuratjalan.index') }}"
+                            class="flex items-center p-2 rounded hover:bg-gray-700">
+                            <x-heroicon-o-user-circle class="w-5 h-5" />
+                            <span class="ml-3">{{ 'Listing Surat Jalan' }}</span>
+                        </a>
+                    </li>
                 </ul>
             </li>
 
