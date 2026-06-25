@@ -114,6 +114,26 @@
         $(document).ready(function() {
             $('.select2').select2({ width: '100%' });
             toggleModal(true);
+
+            // Mutual exclusion for 'Semua Surat Jalan' and 'belum_faktur' checkboxes
+            const $semua = $('input[name="semua_surat_jalan"]');
+            const $belum = $('input[name="belum_faktur"]');
+
+            $semua.on('change', function() {
+                if (this.checked) {
+                    $belum.prop('checked', false);
+                } else {
+                    $belum.prop('checked', true);
+                }
+            });
+
+            $belum.on('change', function() {
+                if (this.checked) {
+                    $semua.prop('checked', false);
+                } else {
+                    $semua.prop('checked', true);
+                }
+            });
         });
     </script>
 @endsection

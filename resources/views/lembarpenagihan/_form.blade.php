@@ -152,33 +152,35 @@
 
         @if (!$isReadOnly)
             <div class="mb-4 flex gap-2">
-                <button type="button" @click="openInvoiceModal()" class="px-4 py-2 bg-blue-600 text-white rounded">Add Faktur</button>
+                <button type="button" @click="openNotaModal()" class="px-4 py-2 bg-blue-600 text-white rounded">Add Nota</button>
             </div>
 
-            <div x-show="invoiceModalOpen" x-cloak x-transition.opacity class="fixed inset-0 z-50 flex items-center justify-center overflow-hidden p-3 md:p-6">
-                <div class="absolute inset-0 bg-black/50 backdrop-blur-sm"></div>
+            <div x-show="notaModalOpen" x-cloak x-transition.opacity class="fixed inset-0 z-50 flex items-center justify-center overflow-hidden p-3 md:p-6">
+                <div class="absolute inset-0 bg-black/50 backdrop-blur-sm" @click="closeNotaModal()"></div>
                 <div class="relative bg-white rounded-2xl shadow-2xl w-full max-w-7xl flex flex-col overflow-hidden" style="height: min(760px, calc(100vh - 1.5rem));">
                     <div class="px-6 py-4 border-b border-gray-200 flex items-center justify-between flex-shrink-0 bg-gradient-to-r from-blue-50 to-white">
                         <div>
-                            <h3 class="text-xl font-bold text-gray-800">Browse Faktur</h3>
-                            <p class="text-sm text-gray-500 mt-0.5">Pilih faktur yang diinginkan</p>
+                            <h3 class="text-xl font-bold text-gray-800">Browse Nota</h3>
+                            <p class="text-sm text-gray-500 mt-0.5">Pilih nota yang ingin ditambahkan</p>
                         </div>
-                        <button type="button" @click="closeInvoiceModal()" class="px-4 py-2 rounded-lg border-2 border-gray-300 bg-white hover:bg-gray-50 hover:border-gray-400 transition-all duration-150 font-medium text-gray-700 text-sm">Tutup</button>
+                        <button type="button" @click="closeNotaModal()" class="px-4 py-2 rounded-lg border-2 border-gray-300 bg-white hover:bg-gray-50 hover:border-gray-400 transition-all duration-150 font-medium text-gray-700 text-sm">Tutup</button>
                     </div>
                     <div class="px-6 pt-4 pb-2 flex-shrink-0 border-b border-gray-100">
-                        <div id="invoiceTableControls"></div>
+                        <div id="notaTableControls"></div>
                     </div>
                     <div class="flex-1 overflow-auto p-6" style="min-height: 0;">
                         <div class="bg-white min-w-max">
-                            <table id="invoiceBrowseTable" class="min-w-full text-sm display nowrap stripe hover" style="width:100%">
+                            <table id="notaBrowseTable" class="min-w-full text-sm display nowrap stripe hover" style="width:100%">
                                 <thead class="sticky top-0 z-10">
                                     <tr class="bg-gradient-to-r from-gray-50 to-gray-100">
-                                        <th class="text-left p-3 font-semibold text-gray-700 border-b-2 border-gray-200">No.Faktur</th>
-                                        <th class="text-left p-3 font-semibold text-gray-700 border-b-2 border-gray-200">Tanggal</th>
-                                        <th class="text-left p-3 font-semibold text-gray-700 border-b-2 border-gray-200">Customer</th>
-                                        <th class="text-right p-3 font-semibold text-gray-700 border-b-2 border-gray-200">Nilai Nota</th>
-                                        <th class="text-right p-3 font-semibold text-gray-700 border-b-2 border-gray-200">Ongkos Kirim</th>
-                                        <th class="text-right p-3 font-semibold text-gray-700 border-b-2 border-gray-200">Sisa Piutang</th>
+                                        <th class="text-left p-3 font-semibold text-gray-700 border-b-2 border-r border-gray-200">No.Nota</th>
+                                        <th class="text-left p-3 font-semibold text-gray-700 border-b-2 border-r border-gray-200">Tanggal</th>
+                                        <th class="text-left p-3 font-semibold text-gray-700 border-b-2 border-r border-gray-200">Customer</th>
+                                        <th class="text-left p-3 font-semibold text-gray-700 border-b-2 border-r border-gray-200">Tipe</th>
+                                        <th class="text-right p-3 font-semibold text-gray-700 border-b-2 border-r border-gray-200">Nilai Nota</th>
+                                        <th class="text-right p-3 font-semibold text-gray-700 border-b-2 border-r border-gray-200">Sisa Piutang</th>
+                                        <th class="text-center p-3 font-semibold text-gray-700 border-b-2 border-r border-gray-200 font-medium">Item</th>
+                                        <th class="text-left p-3 font-semibold text-gray-700 border-b-2 border-r border-gray-200">Jatuh Tempo</th>
                                         <th class="text-center p-3 font-semibold text-gray-700 border-b-2 border-gray-200">Aksi</th>
                                     </tr>
                                 </thead>
@@ -187,7 +189,7 @@
                         </div>
                     </div>
                     <div class="px-6 py-3 border-t border-gray-200 flex-shrink-0 bg-gray-50">
-                        <div id="invoiceTablePagination"></div>
+                        <div id="notaTablePagination"></div>
                     </div>
                 </div>
             </div>
@@ -216,8 +218,8 @@
 @push('styles')
     <link rel="stylesheet" href="https://cdn.datatables.net/1.13.7/css/jquery.dataTables.min.css">
     <style>
-        #invoiceBrowseTable_wrapper .dt-layout-row,
-        #invoiceBrowseTable_wrapper .dataTables_wrapper .row {
+        #notaBrowseTable_wrapper .dt-layout-row,
+        #notaBrowseTable_wrapper .dataTables_wrapper .row {
             display: flex !important;
             align-items: center !important;
             justify-content: space-between !important;
@@ -226,15 +228,15 @@
             width: 100% !important;
         }
 
-        #invoiceBrowseTable_wrapper .dt-layout-cell,
-        #invoiceBrowseTable_wrapper .dataTables_filter,
-        #invoiceBrowseTable_wrapper .dataTables_length,
-        #invoiceBrowseTable_wrapper .dataTables_info,
-        #invoiceBrowseTable_wrapper .dataTables_paginate,
-        #invoiceBrowseTable_wrapper .dt-search,
-        #invoiceBrowseTable_wrapper .dt-length,
-        #invoiceBrowseTable_wrapper .dt-info,
-        #invoiceBrowseTable_wrapper .dt-paging {
+        #notaBrowseTable_wrapper .dt-layout-cell,
+        #notaBrowseTable_wrapper .dataTables_filter,
+        #notaBrowseTable_wrapper .dataTables_length,
+        #notaBrowseTable_wrapper .dataTables_info,
+        #notaBrowseTable_wrapper .dataTables_paginate,
+        #notaBrowseTable_wrapper .dt-search,
+        #notaBrowseTable_wrapper .dt-length,
+        #notaBrowseTable_wrapper .dt-info,
+        #notaBrowseTable_wrapper .dt-paging {
             display: inline-flex !important;
             align-items: center !important;
             gap: 8px !important;
@@ -244,30 +246,30 @@
             margin: 0 !important;
         }
 
-        #invoiceBrowseTable_wrapper .dataTables_filter,
-        #invoiceBrowseTable_wrapper .dt-search {
+        #notaBrowseTable_wrapper .dataTables_filter,
+        #notaBrowseTable_wrapper .dt-search {
             flex: 1 1 auto !important;
             justify-content: flex-start !important;
         }
 
-        #invoiceBrowseTable_wrapper .dataTables_length,
-        #invoiceBrowseTable_wrapper .dt-length {
+        #notaBrowseTable_wrapper .dataTables_length,
+        #notaBrowseTable_wrapper .dt-length {
             margin-left: auto !important;
             flex: 0 0 auto !important;
             justify-content: flex-end !important;
         }
 
-        #invoiceBrowseTable_wrapper .dataTables_paginate,
-        #invoiceBrowseTable_wrapper .dt-paging,
-        #invoiceTablePagination .dataTables_paginate,
-        #invoiceTablePagination .dt-paging {
+        #notaBrowseTable_wrapper .dataTables_paginate,
+        #notaBrowseTable_wrapper .dt-paging,
+        #notaTablePagination .dataTables_paginate,
+        #notaTablePagination .dt-paging {
             gap: 6px !important;
         }
 
-        #invoiceBrowseTable_wrapper .dataTables_paginate .paginate_button,
-        #invoiceBrowseTable_wrapper .dt-paging .dt-paging-button,
-        #invoiceTablePagination .dataTables_paginate .paginate_button,
-        #invoiceTablePagination .dt-paging .dt-paging-button {
+        #notaBrowseTable_wrapper .dataTables_paginate .paginate_button,
+        #notaBrowseTable_wrapper .dt-paging .dt-paging-button,
+        #notaTablePagination .dataTables_paginate .paginate_button,
+        #notaTablePagination .dt-paging .dt-paging-button {
             display: inline-flex !important;
             align-items: center !important;
             justify-content: center !important;
@@ -285,21 +287,21 @@
             box-shadow: none !important;
         }
 
-        #invoiceBrowseTable_wrapper .dataTables_paginate .paginate_button.current,
-        #invoiceBrowseTable_wrapper .dataTables_paginate .paginate_button.current:hover,
-        #invoiceBrowseTable_wrapper .dt-paging .dt-paging-button.current,
-        #invoiceTablePagination .dataTables_paginate .paginate_button.current,
-        #invoiceTablePagination .dataTables_paginate .paginate_button.current:hover,
-        #invoiceTablePagination .dt-paging .dt-paging-button.current {
+        #notaBrowseTable_wrapper .dataTables_paginate .paginate_button.current,
+        #notaBrowseTable_wrapper .dataTables_paginate .paginate_button.current:hover,
+        #notaBrowseTable_wrapper .dt-paging .dt-paging-button.current,
+        #notaTablePagination .dataTables_paginate .paginate_button.current,
+        #notaTablePagination .dataTables_paginate .paginate_button.current:hover,
+        #notaTablePagination .dt-paging .dt-paging-button.current {
             background: #2563eb !important;
             border-color: #2563eb !important;
             color: #ffffff !important;
         }
 
-        #invoiceBrowseTable_wrapper .dataTables_paginate .paginate_button:hover,
-        #invoiceBrowseTable_wrapper .dt-paging .dt-paging-button:hover,
-        #invoiceTablePagination .dataTables_paginate .paginate_button:hover,
-        #invoiceTablePagination .dt-paging .dt-paging-button:hover {
+        #notaBrowseTable_wrapper .dataTables_paginate .paginate_button:hover,
+        #notaBrowseTable_wrapper .dt-paging .dt-paging-button:hover,
+        #notaTablePagination .dataTables_paginate .paginate_button:hover,
+        #notaTablePagination .dt-paging .dt-paging-button:hover {
             background: #eff6ff !important;
             border-color: #93c5fd !important;
             color: #1d4ed8 !important;
@@ -334,52 +336,57 @@
     <script>
         function tagihanForm() {
             return {
-                invoiceModalOpen: false,
-                invoiceTable: null,
-                openInvoiceModal() {
-                    this.invoiceModalOpen = true;
-                    this.$nextTick(() => this.initInvoiceTable());
+                notaModalOpen: false,
+                notaTable: null,
+                openNotaModal() {
+                    this.notaModalOpen = true;
+                    this.$nextTick(() => this.initNotaTable());
                 },
-                closeInvoiceModal() {
-                    this.invoiceModalOpen = false;
-                    if (this.invoiceTable) {
-                        $('#invoiceBrowseTable').off('.invoicepick');
-                        this.invoiceTable.destroy();
-                        this.invoiceTable = null;
+                closeNotaModal() {
+                    this.notaModalOpen = false;
+                    if (this.notaTable) {
+                        $('#notaBrowseTable').off('.notapick');
+                        this.notaTable.destroy();
+                        this.notaTable = null;
                     }
                 },
-                initInvoiceTable() {
-                    if (this.invoiceTable) {
-                        this.invoiceTable.ajax.reload(null, false);
-                        this.invoiceTable.columns.adjust().draw(false);
+                initNotaTable() {
+                    if (this.notaTable) {
+                        this.notaTable.ajax.reload(null, false);
+                        this.notaTable.columns.adjust().draw(false);
                         return;
                     }
 
-                    $('#invoiceBrowseTable').off('.invoicepick');
+                    $('#notaBrowseTable').off('.notapick');
 
-                    this.invoiceTable = $('#invoiceBrowseTable').DataTable({
+                    this.notaTable = $('#notaBrowseTable').DataTable({
                         processing: true,
                         serverSide: true,
                         ajax: {
-                            url: "{{ route('lembarpenagihan.pickable-invoices') }}",
+                            url: "{{ route('pelunasancustomer.pickable-nota') }}",
                             type: 'GET',
-                            data: (d) => ({
-                                draw: d.draw,
-                                start: d.start,
-                                length: d.length,
-                                search: d.search.value,
-                                order_column: d.columns[d.order[0].column].data,
-                                order_dir: d.order[0].dir,
-                                fcustno: document.querySelector('[name="fcustno"]')?.value || '',
-                            }),
+                            data: (d) => {
+                                const orderColumn = d.columns[d.order[0].column].data;
+                                return {
+                                    draw: d.draw,
+                                    start: d.start,
+                                    length: d.length,
+                                    search: d.search.value,
+                                    order_column: orderColumn === 'famountremain' ? 'famountremain' : (orderColumn || 'fsodate'),
+                                    order_dir: d.order[0].dir,
+                                    customer_code: document.querySelector('[name="fcustno"]')?.value || '',
+                                };
+                            },
                         },
                         columns: [
                             { data: 'fsono', className: 'font-mono text-sm' },
                             { data: 'fsodate', render: data => this.formatDate(data) },
                             { data: null, render: data => `${data.fcustno || ''} - ${data.fcustomername || ''}` },
-                            { data: 'famountbil', className: 'text-right', render: data => this.money(data) },
-                            { data: 'fongkos', className: 'text-right', render: data => this.money(data) },
-                            { data: 'famount', className: 'text-right', render: data => this.money(data) },
+                            { data: 'ftrcode' },
+                            { data: null, className: 'text-right', render: data => this.money(data.famountso ?? data.famount) },
+                            { data: 'famountremain', className: 'text-right', render: data => this.money(data) },
+                            { data: 'detail_count', className: 'text-center' },
+                            { data: 'fjatuhtempo', render: data => this.formatDate(data) },
                             {
                                 data: null,
                                 orderable: false,
@@ -390,7 +397,7 @@
                         ],
                         pageLength: 10,
                         lengthMenu: [[10, 25, 50, 100], [10, 25, 50, 100]],
-                        dom: '<"invoice-browser-top"fl>rt<"invoice-browser-bottom"ip>',
+                        dom: '<"nota-browser-top"fl>rt<"nota-browser-bottom"ip>',
                         language: {
                             processing: 'Memuat data...',
                             search: 'Search:',
@@ -423,7 +430,7 @@
                                 fontSize: '14px',
                             });
 
-                            const controls = document.getElementById('invoiceTableControls');
+                            const controls = document.getElementById('notaTableControls');
                             if (controls) {
                                 controls.innerHTML = '';
                                 controls.className = 'grid grid-cols-[minmax(0,1fr)_auto] items-center gap-4 w-full';
@@ -432,7 +439,7 @@
                                 $container.find('.dataTables_length, .dt-length').addClass('order-2 shrink-0 whitespace-nowrap').appendTo(controls);
                             }
 
-                            const pagination = document.getElementById('invoiceTablePagination');
+                            const pagination = document.getElementById('notaTablePagination');
                             if (pagination) {
                                 pagination.innerHTML = '';
                                 pagination.className = 'flex items-center justify-between gap-4 flex-nowrap';
@@ -443,34 +450,34 @@
                         },
                     });
 
-                    $('#invoiceBrowseTable').on('click.invoicepick', '.btn-choose', (event) => {
+                    $('#notaBrowseTable').on('click.notapick', '.btn-choose', (event) => {
                         event.preventDefault();
                         event.stopPropagation();
-                        const data = this.invoiceTable?.row($(event.currentTarget).closest('tr')).data();
-                        this.pickInvoice(data);
+                        const data = this.notaTable?.row($(event.currentTarget).closest('tr')).data();
+                        this.pickNota(data);
                     });
 
-                    $('#invoiceBrowseTable').on('click.invoicepick', 'tbody tr', (event) => {
+                    $('#notaBrowseTable').on('click.notapick', 'tbody tr', (event) => {
                         if ($(event.target).closest('button, a, input, select, textarea').length) return;
-                        const data = this.invoiceTable?.row(event.currentTarget).data();
-                        this.pickInvoice(data);
+                        const data = this.notaTable?.row(event.currentTarget).data();
+                        this.pickNota(data);
                     });
                 },
-                pickInvoice(invoice) {
+                pickNota(invoice) {
                     if (!invoice || !invoice.fsono) return;
                     window.dispatchEvent(new CustomEvent('invoice-picked', {
                         detail: {
                             items: [{
-                                frefcode: 'INV',
+                                frefcode: invoice.ftrcode || 'INV',
                                 fsono: invoice.fsono,
                                 fsodate: invoice.fsodate,
-                                famountbil: Number(invoice.famountbil || 0),
-                                fongkos: Number(invoice.fongkos || 0),
-                                famount: Number(invoice.famount || 0),
+                                famountbil: Number(invoice.famountso ?? invoice.famount ?? 0),
+                                fongkos: Number(invoice.fongkosangkut ?? 0),
+                                famount: Number(invoice.famountremain ?? invoice.famountso ?? invoice.famount ?? 0),
                             }]
                         }
                     }));
-                    this.closeInvoiceModal();
+                    this.closeNotaModal();
                 },
                 money(value) { return Number(value || 0).toLocaleString('id-ID', { minimumFractionDigits: 2, maximumFractionDigits: 2 }); },
                 formatDate(value) {

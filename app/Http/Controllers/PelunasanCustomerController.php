@@ -167,6 +167,7 @@ class PelunasanCustomerController extends Controller
                 'mt.ftrcode',
                 'mt.famountso',
                 'mt.famountremain',
+                'mt.fongkosangkut',
                 'mt.fjatuhtempo',
                 'c.fcustomername',
                 'c.ftempo',
@@ -180,6 +181,7 @@ class PelunasanCustomerController extends Controller
                 'mt.fcustno',
                 'mt.ftrcode',
                 'mt.famountremain',
+                'mt.fongkosangkut',
                 'mt.fjatuhtempo',
                 'c.fcustomername',
                 'c.ftempo'
