@@ -8,7 +8,7 @@ use Illuminate\Support\Facades\DB;
 
 class LembarPenagihanController extends Controller
 {
-    private const CODE = 'TAG';
+    private const CODE = 'LPT';
 
     public function index(Request $request)
     {
@@ -291,7 +291,7 @@ class LembarPenagihanController extends Controller
 
     private function generateTagihanNo(Carbon $date): string
     {
-        $prefix = 'TAG.' . $date->format('ym') . '.';
+        $prefix = 'LPT.' . $date->format('ym') . '.';
         $last = DB::table('trtagihanmt')
             ->where('ftagihanno', 'like', $prefix . '%')
             ->orderBy('ftagihanno', 'desc')

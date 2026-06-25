@@ -17,8 +17,8 @@
 @section('title', $title)
 
 @section('content')
-    <form method="POST" action="{{ $isDelete ? route('lembarpenagihan.destroy', $header->ftagihanid) : $formAction }}" class="bg-white rounded shadow p-4"
-        x-data="tagihanForm({{ Js::from($detailRows) }})">
+    <form method="POST" action="{{ $isDelete ? route('lembarpenagihan.destroy', $header->ftagihanid) : $formAction }}" class="bg-white rounded shadow p-6 md:p-8 max-w-[1800px] w-full mx-auto"
+        x-data="tagihanForm()">
         @csrf
         @if ($action === 'edit') @method('PATCH') @endif
         @if ($isDelete) @method('DELETE') @endif
@@ -42,15 +42,35 @@
             </div>
             <div>
                 <label class="block text-sm font-medium mb-1">Customer</label>
-                <select name="fcustno" class="w-full border rounded px-3 py-2" {{ $isReadOnly ? 'disabled' : '' }}>
-                    <option value="">Pilih Customer</option>
-                    @foreach ($customers as $customer)
-                        <option value="{{ $customer->fcustomercode }}" {{ old('fcustno', $header->fcustno ?? '') === $customer->fcustomercode ? 'selected' : '' }}>
-                            {{ $customer->fcustomercode }} - {{ $customer->fcustomername }}
-                        </option>
-                    @endforeach
-                </select>
-                @if ($isReadOnly)<input type="hidden" name="fcustno" value="{{ $header->fcustno }}">@endif
+                @if ($isReadOnly)
+                    <input type="text" class="w-full border rounded px-3 py-2 bg-gray-100 text-gray-700" value="{{ $header->fcustno }} - {{ $header->fcustomername ?? '' }}" readonly>
+                    <input type="hidden" name="fcustno" value="{{ $header->fcustno }}">
+                @else
+                    <div class="flex">
+                        <div class="relative flex-1" for="modal_filter_customer_id">
+                            <select id="modal_filter_customer_id" name="filter_customer_id"
+                                class="w-full border rounded-l px-3 py-2 bg-gray-100 text-gray-700 cursor-not-allowed"
+                                disabled>
+                                <option value=""></option>
+                                @foreach ($customers as $customer)
+                                    <option value="{{ $customer->fcustomercode }}"
+                                        {{ old('fcustno', $header->fcustno ?? '') === $customer->fcustomercode ? 'selected' : '' }}>
+                                        {{ $customer->fcustomername }} ({{ $customer->fcustomercode }})
+                                    </option>
+                                @endforeach
+                            </select>
+                            <div class="absolute inset-0" role="button" aria-label="Browse Customer"
+                                @click="window.dispatchEvent(new CustomEvent('customer-browse-open'))"></div>
+                        </div>
+                        <input type="hidden" name="fcustno" id="customerCodeHidden" value="{{ old('fcustno', $header->fcustno ?? '') }}">
+                        <button type="button"
+                            @click="window.dispatchEvent(new CustomEvent('customer-browse-open'))"
+                            class="border -ml-px px-3 py-2 bg-white hover:bg-gray-50 rounded-r"
+                            title="Browse Customer">
+                            <x-heroicon-o-magnifying-glass class="w-5 h-5" />
+                        </button>
+                    </div>
+                @endif
             </div>
             <div>
                 <label class="block text-sm font-medium mb-1">Tanggal</label>
@@ -64,47 +84,68 @@
         </div>
 
         <div class="overflow-auto border rounded mb-4">
-            <table class="min-w-full text-sm">
+            <table class="pr-detail-table min-w-full text-sm" id="tagihan-detail-table">
                 <thead class="bg-gray-100">
-                    <tr>
-                        <th class="border px-2 py-1">No.</th>
-                        <th class="border px-2 py-1">No.Nota</th>
-                        <th class="border px-2 py-1">Tanggal Nota</th>
-                        <th class="border px-2 py-1 text-right">Nilai Nota</th>
-                        <th class="border px-2 py-1 text-right">Ongkos Kirim</th>
-                        <th class="border px-2 py-1 text-right">Sisa Piutang</th>
-                        @if (!$isReadOnly)<th class="border px-2 py-1">Aksi</th>@endif
+                    <tr class="border-b">
+                        <th class="p-2 text-left w-10">#</th>
+                        <th class="p-2 text-left w-52">No.Nota</th>
+                        <th class="p-2 text-left w-40">Tanggal Nota</th>
+                        <th class="p-2 text-right w-36">Nilai Nota</th>
+                        <th class="p-2 text-right w-36">Ongkos Kirim</th>
+                        <th class="p-2 text-right w-36">Sisa Piutang</th>
+                        @if (!$isReadOnly)
+                            <th class="p-2 text-center w-24">Aksi</th>
+                        @endif
                     </tr>
                 </thead>
-                <tbody>
-                    <template x-for="(row, index) in visibleRows()" :key="row.empty ? `empty-${index}` : row.frefsono + index">
-                        <tr>
-                            <td class="border px-2 py-1" x-text="index + 1"></td>
-                            <td class="border px-2 py-1">
-                                <span x-text="row.empty ? '' : row.frefsono"></span>
-                                <template x-if="!row.empty">
-                                    <span>
-                                        <input type="hidden" :name="`frefsono[${index}]`" :value="row.frefsono">
-                                        <input type="hidden" :name="`frefcode[${index}]`" :value="row.frefcode">
-                                    </span>
-                                </template>
+                <tbody id="tagihan-detail-body">
+                    @php
+                        $actualCount = count($detailRows);
+                        $placeholderCount = max(0, 5 - $actualCount);
+                    @endphp
+                    @foreach ($detailRows as $index => $row)
+                        <tr class="border-b align-middle bg-white" data-ref="{{ $row['frefsono'] }}">
+                            <td class="p-2 text-gray-500 row-number">{{ $index + 1 }}</td>
+                            <td class="p-2">
+                                <input type="text" class="w-full border rounded px-2 py-1 font-mono text-sm bg-gray-100 text-gray-600" value="{{ $row['frefsono'] }}" readonly>
+                                <input type="hidden" name="frefsono[{{ $index }}]" value="{{ $row['frefsono'] }}">
+                                <input type="hidden" name="frefcode[{{ $index }}]" value="{{ $row['frefcode'] }}">
                             </td>
-                            <td class="border px-2 py-1" x-text="row.empty ? '' : row.fsodate"></td>
-                            <td class="border px-2 py-1 text-right" x-text="row.empty ? '' : money(row.famountbil)"></td>
-                            <td class="border px-2 py-1 text-right" x-text="row.empty ? '' : money(row.fongkos)"></td>
-                            <td class="border px-2 py-1 text-right">
-                                <span x-text="row.empty ? '' : money(row.famount)"></span>
-                                <template x-if="!row.empty">
-                                    <input type="hidden" :name="`famount[${index}]`" :value="row.famount">
-                                </template>
+                            <td class="p-2">
+                                <input type="text" class="w-full border rounded px-2 py-1 text-sm bg-gray-100 text-gray-600" value="{{ $row['fsodate'] }}" readonly>
+                            </td>
+                            <td class="p-2">
+                                <input type="text" class="w-full border rounded px-2 py-1 text-right text-sm bg-gray-100 text-gray-600" value="{{ number_format($row['famountbil'], 2, ',', '.') }}" readonly>
+                            </td>
+                            <td class="p-2">
+                                <input type="text" class="w-full border rounded px-2 py-1 text-right text-sm bg-gray-100 text-gray-600" value="{{ number_format($row['fongkos'], 2, ',', '.') }}" readonly>
+                            </td>
+                            <td class="p-2">
+                                <input type="text" class="w-full border rounded px-2 py-1 text-right text-sm bg-gray-100 text-gray-600" value="{{ number_format($row['famount'], 2, ',', '.') }}" readonly>
+                                <input type="hidden" name="famount[{{ $index }}]" value="{{ $row['famount'] }}" class="row-amount">
                             </td>
                             @if (!$isReadOnly)
-                                <td class="border px-2 py-1 text-center">
-                                    <button type="button" @click="!row.empty && rows.splice(index, 1)" :disabled="row.empty" class="px-2 py-1 bg-red-600 text-white rounded disabled:opacity-40">-</button>
+                                <td class="p-2 text-center">
+                                    <button type="button" class="btn-remove-row inline-flex h-8 w-8 items-center justify-center rounded bg-red-100 text-red-600 hover:bg-red-200" title="Hapus baris">-</button>
                                 </td>
                             @endif
                         </tr>
-                    </template>
+                    @endforeach
+                    @for ($i = 0; $i < $placeholderCount; $i++)
+                        <tr class="border-b align-middle bg-white empty-row">
+                            <td class="p-2 text-gray-500 row-number">{{ $actualCount + $i + 1 }}</td>
+                            <td class="p-2"><input type="text" class="w-full border rounded px-2 py-1 font-mono text-sm bg-gray-100 text-gray-600" readonly></td>
+                            <td class="p-2"><input type="text" class="w-full border rounded px-2 py-1 text-sm bg-gray-100 text-gray-600" readonly></td>
+                            <td class="p-2"><input type="text" class="w-full border rounded px-2 py-1 text-right text-sm bg-gray-100 text-gray-600" readonly></td>
+                            <td class="p-2"><input type="text" class="w-full border rounded px-2 py-1 text-right text-sm bg-gray-100 text-gray-600" readonly></td>
+                            <td class="p-2"><input type="text" class="w-full border rounded px-2 py-1 text-right text-sm bg-gray-100 text-gray-600" readonly></td>
+                            @if (!$isReadOnly)
+                                <td class="p-2 text-center">
+                                    <button type="button" class="btn-remove-row inline-flex h-8 w-8 items-center justify-center rounded bg-red-100 text-red-600 hover:bg-red-200" title="Hapus baris">-</button>
+                                </td>
+                            @endif
+                        </tr>
+                    @endfor
                 </tbody>
             </table>
         </div>
@@ -156,16 +197,19 @@
             <div class="border rounded p-3 w-72 bg-gray-50">
                 <div class="flex justify-between font-semibold">
                     <span>Total Tagihan:</span>
-                    <span x-text="money(total())"></span>
+                    <span id="total-tagihan-value">{{ number_format($header->famounttagihan ?? 0, 2, ',', '.') }}</span>
                 </div>
             </div>
         </div>
 
-        <div class="flex justify-end gap-2">
+        <div class="flex justify-center gap-4">
             <a href="{{ route('lembarpenagihan.index') }}" class="px-4 py-2 bg-gray-100 rounded">Kembali</a>
             @if (!$isReadOnly)<button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded">Simpan</button>@endif
             @if ($isDelete)<button type="submit" class="px-4 py-2 bg-red-600 text-white rounded">Hapus</button>@endif
         </div>
+        @if (!$isReadOnly)
+            <x-transaction.browse-customer-modal />
+        @endif
     </form>
 @endsection
 
@@ -260,21 +304,36 @@
             border-color: #93c5fd !important;
             color: #1d4ed8 !important;
         }
+
+        .pr-detail-table th,
+        .pr-detail-table td {
+            padding: .25rem .375rem !important;
+        }
+
+        .pr-detail-table input:not([type="hidden"]),
+        .pr-detail-table select,
+        .pr-detail-table button,
+        .pr-detail-table .desc-inline-field__text {
+            min-height: 1.875rem;
+            padding-top: .25rem !important;
+            padding-bottom: .25rem !important;
+            line-height: 1.25rem;
+        }
+
+        .pr-detail-table button {
+            display: inline-flex;
+            align-items: center;
+        }
     </style>
 @endpush
 
 @push('scripts')
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
     <script src="https://cdn.datatables.net/1.13.7/js/jquery.dataTables.min.js"></script>
+    @include('components.transaction.browse-customer-script')
     <script>
-        function tagihanForm(initialRows) {
+        function tagihanForm() {
             return {
-                rows: initialRows || [],
-                visibleRows() {
-                    const display = [...this.rows];
-                    while (display.length < 5) display.push({ empty: true });
-                    return display;
-                },
                 invoiceModalOpen: false,
                 invoiceTable: null,
                 openInvoiceModal() {
@@ -398,18 +457,21 @@
                     });
                 },
                 pickInvoice(invoice) {
-                    if (!invoice || !invoice.fsono || this.rows.some(row => row.frefsono === invoice.fsono)) return;
-                    this.rows.push({
-                        frefcode: 'INV',
-                        frefsono: invoice.fsono,
-                        fsodate: this.formatDate(invoice.fsodate),
-                        famountbil: Number(invoice.famountbil || 0),
-                        fongkos: Number(invoice.fongkos || 0),
-                        famount: Number(invoice.famount || 0),
-                    });
+                    if (!invoice || !invoice.fsono) return;
+                    window.dispatchEvent(new CustomEvent('invoice-picked', {
+                        detail: {
+                            items: [{
+                                frefcode: 'INV',
+                                fsono: invoice.fsono,
+                                fsodate: invoice.fsodate,
+                                famountbil: Number(invoice.famountbil || 0),
+                                fongkos: Number(invoice.fongkos || 0),
+                                famount: Number(invoice.famount || 0),
+                            }]
+                        }
+                    }));
                     this.closeInvoiceModal();
                 },
-                total() { return this.rows.reduce((sum, row) => sum + Number(row.famount || 0), 0); },
                 money(value) { return Number(value || 0).toLocaleString('id-ID', { minimumFractionDigits: 2, maximumFractionDigits: 2 }); },
                 formatDate(value) {
                     if (!value) return '';
@@ -420,5 +482,234 @@
                 },
             };
         }
+
+        // Vanilla JavaScript Table Handler
+        document.addEventListener('DOMContentLoaded', () => {
+            const isReadOnly = @json($isReadOnly);
+
+            function formatMoney(value) {
+                return Number(value || 0).toLocaleString('id-ID', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+            }
+
+            function formatDate(value) {
+                if (!value) return '';
+                const date = new Date(value);
+                if (isNaN(date.getTime())) return value;
+                const pad = n => n.toString().padStart(2, '0');
+                return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`;
+            }
+
+            function normalizeItem(item) {
+                const frefsono = item.frefsono || item.fsono || '';
+                const frefcode = item.frefcode || item.ftrcode || 'INV';
+                const fsodate = item.fsodate || item.fdate || '';
+                const famountbil = Number(item.famountbil ?? item.famountso ?? 0);
+                const fongkos = Number(item.fongkos ?? item.fongkosangkut ?? 0);
+                const famount = Number(item.famount ?? item.famountremain ?? item.famountso ?? 0);
+                return { frefsono, frefcode, fsodate, famountbil, fongkos, famount };
+            }
+
+            function renderRow(item, index) {
+                const normalized = normalizeItem(item);
+                
+                let aksiCol = '';
+                if (!isReadOnly) {
+                    aksiCol = `
+                        <td class="p-2 text-center">
+                            <button type="button" class="btn-remove-row inline-flex h-8 w-8 items-center justify-center rounded bg-red-100 text-red-600 hover:bg-red-200" title="Hapus baris">-</button>
+                        </td>
+                    `;
+                }
+                
+                const tr = document.createElement('tr');
+                tr.className = 'border-b align-middle bg-white';
+                tr.setAttribute('data-ref', normalized.frefsono);
+                tr.innerHTML = `
+                    <td class="p-2 text-gray-500 row-number">${index + 1}</td>
+                    <td class="p-2">
+                        <input type="text" class="w-full border rounded px-2 py-1 font-mono text-sm bg-gray-100 text-gray-600" value="${normalized.frefsono}" readonly>
+                        <input type="hidden" name="frefsono[${index}]" value="${normalized.frefsono}">
+                        <input type="hidden" name="frefcode[${index}]" value="${normalized.frefcode}">
+                    </td>
+                    <td class="p-2">
+                        <input type="text" class="w-full border rounded px-2 py-1 text-sm bg-gray-100 text-gray-600" value="${formatDate(normalized.fsodate)}" readonly>
+                    </td>
+                    <td class="p-2 text-right">
+                        <input type="text" class="w-full border rounded px-2 py-1 text-right text-sm bg-gray-100 text-gray-600" value="${formatMoney(normalized.famountbil)}" readonly>
+                    </td>
+                    <td class="p-2 text-right">
+                        <input type="text" class="w-full border rounded px-2 py-1 text-right text-sm bg-gray-100 text-gray-600" value="${formatMoney(normalized.fongkos)}" readonly>
+                    </td>
+                    <td class="p-2 text-right">
+                        <input type="text" class="w-full border rounded px-2 py-1 text-right text-sm bg-gray-100 text-gray-600" value="${formatMoney(normalized.famount)}" readonly>
+                        <input type="hidden" name="famount[${index}]" value="${normalized.famount}" class="row-amount">
+                    </td>
+                    ${aksiCol}
+                `;
+                return tr;
+            }
+
+            function updateTableDOM() {
+                const tbody = document.getElementById('tagihan-detail-body');
+                if (!tbody) return;
+
+                const rows = Array.from(tbody.querySelectorAll('tr'));
+                const dataRows = rows.filter(tr => !tr.classList.contains('empty-row'));
+                
+                // Remove empty placeholder rows
+                rows.forEach(tr => {
+                    if (tr.classList.contains('empty-row')) {
+                        tr.remove();
+                    }
+                });
+
+                // Re-index data rows
+                dataRows.forEach((tr, index) => {
+                    tr.setAttribute('data-index', index);
+                    
+                    const numCell = tr.querySelector('.row-number');
+                    if (numCell) numCell.textContent = index + 1;
+                    
+                    const frefsonoInput = tr.querySelector('input[name^="frefsono"]');
+                    if (frefsonoInput) frefsonoInput.setAttribute('name', `frefsono[${index}]`);
+                    
+                    const frefcodeInput = tr.querySelector('input[name^="frefcode"]');
+                    if (frefcodeInput) frefcodeInput.setAttribute('name', `frefcode[${index}]`);
+                    
+                    const famountInput = tr.querySelector('input[name^="famount"]');
+                    if (famountInput) famountInput.setAttribute('name', `famount[${index}]`);
+                });
+
+                // Add empty placeholder rows back if total rows are less than 5
+                const actualCount = dataRows.length;
+                if (actualCount < 5) {
+                    const needed = 5 - actualCount;
+                    for (let i = 0; i < needed; i++) {
+                        const emptyTr = document.createElement('tr');
+                        emptyTr.className = 'border-b align-middle bg-white empty-row';
+                        
+                        let aksiCol = '';
+                        if (!isReadOnly) {
+                            aksiCol = `
+                                <td class="p-2 text-center">
+                                    <button type="button" class="btn-remove-row inline-flex h-8 w-8 items-center justify-center rounded bg-red-100 text-red-600 hover:bg-red-200" title="Hapus baris">-</button>
+                                </td>
+                            `;
+                        }
+                        
+                        emptyTr.innerHTML = `
+                            <td class="p-2 text-gray-500 row-number">${actualCount + i + 1}</td>
+                            <td class="p-2"><input type="text" class="w-full border rounded px-2 py-1 font-mono text-sm bg-gray-100 text-gray-600" readonly></td>
+                            <td class="p-2"><input type="text" class="w-full border rounded px-2 py-1 text-sm bg-gray-100 text-gray-600" readonly></td>
+                            <td class="p-2"><input type="text" class="w-full border rounded px-2 py-1 text-right text-sm bg-gray-100 text-gray-600" readonly></td>
+                            <td class="p-2"><input type="text" class="w-full border rounded px-2 py-1 text-right text-sm bg-gray-100 text-gray-600" readonly></td>
+                            <td class="p-2"><input type="text" class="w-full border rounded px-2 py-1 text-right text-sm bg-gray-100 text-gray-600" readonly></td>
+                            ${aksiCol}
+                        `;
+                        tbody.appendChild(emptyTr);
+                    }
+                }
+
+                // Update Total Tagihan
+                updateTotalTagihan();
+            }
+
+            function updateTotalTagihan() {
+                const tbody = document.getElementById('tagihan-detail-body');
+                if (!tbody) return;
+                
+                let total = 0;
+                const amountInputs = tbody.querySelectorAll('input[name^="famount"]');
+                amountInputs.forEach(input => {
+                    total += Number(input.value || 0);
+                });
+                
+                const totalSpan = document.getElementById('total-tagihan-value');
+                if (totalSpan) {
+                    totalSpan.textContent = formatMoney(total);
+                }
+            }
+
+            function addLinkedItems(itemsArray) {
+                const tbody = document.getElementById('tagihan-detail-body');
+                if (!tbody) return;
+                
+                const emptyRows = tbody.querySelectorAll('.empty-row');
+                emptyRows.forEach(tr => tr.remove());
+                
+                let currentIndex = tbody.querySelectorAll('tr:not(.empty-row)').length;
+                const existingRefs = Array.from(tbody.querySelectorAll('input[name^="frefsono"]')).map(input => input.value.trim().toLowerCase());
+                
+                itemsArray.forEach(item => {
+                    const normalized = normalizeItem(item);
+                    if (!normalized.frefsono) return;
+                    
+                    if (existingRefs.includes(normalized.frefsono.trim().toLowerCase())) {
+                        return;
+                    }
+                    
+                    const newRow = renderRow(normalized, currentIndex);
+                    tbody.appendChild(newRow);
+                    currentIndex++;
+                });
+                
+                updateTableDOM();
+            }
+
+            // Register event listeners
+            const eventNames = ['pr-picked', 'pr-linked', 'invoice-picked', 'invoice-selected'];
+            eventNames.forEach(evtName => {
+                window.addEventListener(evtName, (e) => {
+                    const detail = e.detail;
+                    if (!detail) return;
+                    
+                    let items = [];
+                    if (detail.items && Array.isArray(detail.items)) {
+                        items = detail.items;
+                    } else if (detail.products && Array.isArray(detail.products)) {
+                        items = detail.products;
+                    } else if (Array.isArray(detail)) {
+                        items = detail;
+                    } else {
+                        items = [detail];
+                    }
+                    
+                    if (items.length > 0) {
+                        addLinkedItems(items);
+                    }
+                });
+            });
+
+            // Delegated click listener for removing rows
+            const tbody = document.getElementById('tagihan-detail-body');
+            if (tbody) {
+                tbody.addEventListener('click', (e) => {
+                    if (e.target && e.target.classList.contains('btn-remove-row')) {
+                        e.preventDefault();
+                        const tr = e.target.closest('tr');
+                        if (tr) {
+                            tr.remove();
+                            updateTableDOM();
+                        }
+                    }
+                });
+            }
+            
+            // Listen to customer selection changes to clear invoice rows
+            const customerHidden = document.getElementById('customerCodeHidden');
+            if (customerHidden) {
+                customerHidden.addEventListener('change', () => {
+                    const tbody = document.getElementById('tagihan-detail-body');
+                    if (tbody) {
+                        const dataRows = tbody.querySelectorAll('tr:not(.empty-row)');
+                        dataRows.forEach(tr => tr.remove());
+                        updateTableDOM();
+                    }
+                });
+            }
+            
+            // Set initial state
+            updateTableDOM();
+        });
     </script>
 @endpush
