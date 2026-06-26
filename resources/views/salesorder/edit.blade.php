@@ -505,7 +505,7 @@
                                                 <td class="p-2" x-text="i + 1"></td>
                                                 <td class="p-2 font-mono">
                                                     <input type="text"
-                                                        class="w-full border rounded px-2 py-1 bg-gray-100 text-gray-600 font-mono"
+                                                        class="w-full border rounded px-2 py-1 bg-gray-100 text-gray-600 font-mono :disabled="!hasCustomer()" :class="!hasCustomer() ? 'opacity-60 pointer-events-none' : ''""
                                                         :value="row.fprdcode" disabled>
                                                 </td>
                                                 <td class="p-2">
@@ -1043,11 +1043,8 @@
 
                                 {{-- DETAIL ITEM (tabel input) --}}
                                 <h3 class="text-base font-semibold text-gray-800">Detail Item</h3>
-                                <p x-show="!hasCustomer()" x-cloak class="text-xs font-medium text-amber-600">
-                                    Isi Customer terlebih dahulu sebelum mengisi detail item.
-                                </p>
 
-                                <fieldset :disabled="!hasCustomer()" :class="!hasCustomer() ? 'opacity-60 pointer-events-none' : ''">
+                                <fieldset>
                                     <div class="overflow-auto border rounded">
                                         <table class="sales-detail-table min-w-full text-sm balanced-detail-table"
                                             data-skip-auto-detail-style="true">
@@ -1072,7 +1069,7 @@
                                                     <td class="p-2">
                                                         <div class="flex">
                                                             <input type="text"
-                                                                class="flex-1 border rounded-l px-2 py-1 font-mono"
+                                                                class="flex-1 border rounded-l px-2 py-1 font-mono :disabled="!hasCustomer()" :class="!hasCustomer() ? 'opacity-60 pointer-events-none' : ''""
                                                                 x-model.trim="row.fprdcode"
                                                                 @input="onCodeTypedRow(row, i)"
                                                                 @keydown.enter.prevent="focusRowUnit(row, i)">

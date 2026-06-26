@@ -468,6 +468,7 @@
                 {
                     data: 'famountso',
                     name: 'famountso',
+                    className: 'text-right',
                     render: function(data) {
                         // Format currency jika perlu
                         return new Intl.NumberFormat('id-ID', {
