@@ -240,7 +240,7 @@
     @endif
     <div>
         <div x-data="{ fclose: {{ old('fclose', $salesorder->fclose) == '1' ? 'true' : 'false' }}, includePPN: false, ppnRate: 0, ppnAmount: 0, selected: 'alamatsurat', totalHarga: 100000 }" class="lg:col-span-5">
-            <div class="bg-white rounded shadow p-6 md:p-8 max-w-[96rem] mx-auto">
+            <div class="bg-white rounded shadow p-6 md:p-8 max-w-[1800px] w-full mx-auto">
                 @if ($isReadOnly)
                     <div class="space-y-4">
 
@@ -467,7 +467,7 @@
 
                             <div class="lg:col-span-12">
                                 <label class="block text-sm font-medium">Catatan Internal</label>
-                                <textarea readonly name="fketinternal" rows="3"
+                                <textarea readonly name="fketinternal" rows="2"
                                     class="w-full border rounded px-3 py-2 bg-gray-200 @error('fketinternal') border-red-500 @enderror"
                                     placeholder="Tulis Catatan Internal tambahan di sini...">{{ old('fketinternal', $salesorder->fketinternal) }}</textarea>
                                 @error('fketinternal')
@@ -489,10 +489,10 @@
                                             <th class="p-2 text-left w-10">#</th>
                                             <th class="p-2 text-left w-52">Kode Produk</th>
                                             <th class="p-2 text-left w-[28rem]">Nama Produk</th>
-                                            <th class="p-2 text-left w-32">Satuan</th>
+                                            <th class="p-2 text-left w-28">Satuan</th>
                                             <th class="p-2 text-right w-28 whitespace-nowrap">Qty</th>
                                             <th class="p-2 text-right w-28 whitespace-nowrap">Qty.SRJ</th>
-                                            <th class="p-2 text-right w-28 whitespace-nowrap">@ Harga</th>
+                                            <th class="p-2 text-right w-32 whitespace-nowrap">@ Harga</th>
                                             <th class="p-2 text-right w-28 whitespace-nowrap">Disc. %</th>
                                             <th class="p-2 text-right w-32 whitespace-nowrap">Total Harga</th>
                                             <th class="p-2 text-center w-24">Aksi</th>
@@ -1030,7 +1030,7 @@
 
                                 <div class="lg:col-span-12">
                                     <label class="block text-sm font-medium">Catatan Internal</label>
-                                    <textarea name="fketinternal" rows="3"
+                                    <textarea name="fketinternal" rows="2"
                                         class="w-full border rounded px-3 py-2 @error('fketinternal') border-red-500 @enderror"
                                         placeholder="Tulis Catatan Internal tambahan di sini...">{{ old('fketinternal', $salesorder->fketinternal) }}</textarea>
                                     @error('fketinternal')
@@ -1052,10 +1052,10 @@
                                                 <th class="p-2 text-left w-10">#</th>
                                                 <th class="p-2 text-left w-52">Kode Produk</th>
                                                 <th class="p-2 text-left w-[28rem]">Nama Produk</th>
-                                                <th class="p-2 text-left w-32">Satuan</th>
+                                                <th class="p-2 text-left w-26">Satuan</th>
                                                 <th class="p-2 text-right w-28 whitespace-nowrap">Qty</th>
                                                 <th class="p-2 text-right w-28 whitespace-nowrap">Qty.SRJ</th>
-                                                <th class="p-2 text-right w-28 whitespace-nowrap">@ Harga</th>
+                                                <th class="p-2 text-right w-32 whitespace-nowrap">@ Harga</th>
                                                 <th class="p-2 text-right w-28 whitespace-nowrap">Disc. %</th>
                                                 <th class="p-2 text-right w-32 whitespace-nowrap">Total Harga</th>
                                                 <th class="p-2 text-center w-24">Aksi</th>

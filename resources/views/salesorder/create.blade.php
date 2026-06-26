@@ -176,7 +176,7 @@
     @endif
     <div>
         <div x-data="{ includePPN: false, ppnRate: 11, ppnAmount: 0, selected: 'alamatsurat', totalHarga: 0 }" class="lg:col-span-5">
-            <div class="bg-white rounded shadow p-6 md:p-8 max-w-[96rem] mx-auto">
+            <div class="bg-white rounded shadow p-6 md:p-8 max-w-[1800px] w-full mx-auto">
                 {{-- Taruh di atas form --}}
                 <script>
                     window._soLabels = {
@@ -207,7 +207,8 @@
                         <div class="lg:col-span-4">
                             <label class="block text-sm font-bold">{{ 'Cabang' }}</label>
                             <input type="text" class="w-full border rounded px-3 py-2 bg-gray-200 cursor-not-allowed"
-                                value="{{ trim(($fbranchcode ?? '') . ($fcabang ?? '' ? ' - ' . $fcabang : '')) }}" disabled>
+                                value="{{ trim(($fbranchcode ?? '') . ($fcabang ?? '' ? ' - ' . $fcabang : '')) }}"
+                                disabled>
                             <input type="hidden" name="fbranchcode" value="{{ $fbranchcode }}">
                         </div>
 
@@ -399,9 +400,6 @@
                                             class="w-full p-2 text-sm border border-gray-300 rounded focus:ring-blue-500 focus:border-blue-500 min-h-[80px]"
                                             placeholder="{{ 'Alamat 3' }}..."></textarea>
                                     </div>
-
-                                    <p class="text-[10px] text-gray-500 italic">*Klik tombol Alamat 1/2/3 untuk memilih
-                                        alamat yang akan digunakan.</p>
                                 </div>
 
                                 <div class="flex flex-col">
@@ -421,7 +419,7 @@
 
                         <div class="lg:col-span-12">
                             <label class="block text-sm font-bold">{{ 'Catatan Internal' }}</label>
-                            <textarea name="fketinternal" rows="3"
+                            <textarea name="fketinternal" rows="2"
                                 class="w-full border rounded px-3 py-2 @error('fketinternal') border-red-500 @enderror"
                                 placeholder="Tulis Catatan Internal tambahan di sini...">{{ old('fketinternal') }}</textarea>
                             @error('fketinternal')
@@ -436,15 +434,16 @@
                         <h3 class="text-base font-semibold text-gray-800">Detail Item</h3>
 
                         <div class="overflow-x-auto border rounded">
-                            <table class="sales-detail-table min-w-full text-sm balanced-detail-table" data-skip-auto-detail-style="true">
+                            <table class="sales-detail-table min-w-full text-sm balanced-detail-table"
+                                data-skip-auto-detail-style="true">
                                 <thead class="bg-gray-100">
                                     <tr>
                                         <th class="p-2 text-left w-10">#</th>
                                         <th class="p-2 text-left w-52">Kode Produk</th>
                                         <th class="p-2 text-left w-[28rem]">Nama Produk</th>
-                                        <th class="p-2 text-left w-30">Satuan</th>
-                                        <th class="p-2 text-right w-28 whitespace-nowrap">Jumlah</th>
-                                        <th class="p-2 text-right w-28 whitespace-nowrap">@ Harga</th>
+                                        <th class="p-2 text-left w-26">Satuan</th>
+                                        <th class="p-2 text-right w-28 whitespace-nowrap">Qty</th>
+                                        <th class="p-2 text-right w-32 whitespace-nowrap">@ Harga</th>
                                         <th class="p-2 text-right w-28 whitespace-nowrap">Disc. %</th>
                                         <th class="p-2 text-right w-34 whitespace-nowrap">Total Harga</th>
                                         <th class="p-2 text-center w-24">Aksi</th>
@@ -493,7 +492,7 @@
                                                 </template>
                                                 <template x-if="!row.units || row.units.length <= 1">
                                                     <input type="text"
-                                                        class="w-full border rounded px-2 py-1 bg-gray-100 text-gray-600 text-xs"
+                                                        class="w-full border rounded px-2 py-1 bg-gray-100 text-gray-600"
                                                         :value="row.fsatuan || '-'" disabled>
                                                 </template>
                                             </td>
@@ -526,7 +525,7 @@
                                             <td class="p-2 text-center">
                                                 <div class="flex items-center justify-center gap-2 flex-wrap">
                                                     <button type="button" @click="removeRow(i)"
-                                                        class="inline-flex h-8 w-8 items-center justify-center rounded bg-red-100 text-red-600 hover:bg-red-200"
+                                                        class="text-bold inline-flex h-8 w-8 items-center justify-center rounded bg-red-100 text-red-600 hover:bg-red-200"
                                                         title="Hapus baris">-</button>
                                                 </div>
                                             </td>
@@ -574,14 +573,12 @@
                                                 [&::-webkit-inner-spin-button]:appearance-none">
                                         <span class="text-gray-500">%</span>
                                         <span class="flex-1"></span>
-                                        <span class="font-medium text-right"
-                                            x-text="rupiah(headerDiscAmount)"></span>
+                                        <span class="font-medium text-right" x-text="rupiah(headerDiscAmount)"></span>
                                     </div>
 
                                     <div class="flex items-center justify-between">
                                         <span class="font-bold text-gray-800">Total Setelah Disc</span>
-                                        <span class="font-medium text-gray-900"
-                                            x-text="rupiah(totalSetelahDisc)"></span>
+                                        <span class="font-medium text-gray-900" x-text="rupiah(totalSetelahDisc)"></span>
                                     </div>
 
                                     <div class="flex items-center gap-2">
@@ -612,8 +609,7 @@
                                                     disabled:bg-gray-100 disabled:opacity-60 disabled:cursor-not-allowed">
                                         <span class="text-gray-500">%</span>
                                         <span class="flex-1"></span>
-                                        <span class="font-medium"
-                                            x-text="rupiah(ppnAmount)"></span>
+                                        <span class="font-medium" x-text="rupiah(ppnAmount)"></span>
                                     </div>
 
                                     <div class="border-t my-1"></div>
@@ -1161,11 +1157,16 @@
                         fnouref: src.fnouref ?? '',
                         frefpr: src.frefpr ?? (header?.fpono ?? header?.fsono ?? ''),
                         fprhid: src.fprhid ?? header?.fprhid ?? header?.fpohid ?? '',
-                        fqty: (src.fqtyremain_dokumen !== null && src.fqtyremain_dokumen !== undefined && Number(src.fqtyremain_dokumen) > 0) ?
-                            Number(src.fqtyremain_dokumen) : ((src.fqtysisa !== null && src.fqtysisa !== undefined && Number(src.fqtysisa) > 0) ?
-                                Number(src.fqtysisa) : ((src.fqtyremain !== null && src.fqtyremain !== undefined &&
-                                    Number(src.fqtyremain) > 0) ? Number(src.fqtyremain) : ((src.fqty !== null &&
-                                        src.fqty !== undefined && Number(src.fqty) > 0) ? Number(src.fqty) : 1))),
+                        fqty: (src.fqtyremain_dokumen !== null && src.fqtyremain_dokumen !== undefined &&
+                                Number(src.fqtyremain_dokumen) > 0) ?
+                            Number(src.fqtyremain_dokumen) : ((src.fqtysisa !== null && src.fqtysisa !==
+                                    undefined && Number(src.fqtysisa) > 0) ?
+                                Number(src.fqtysisa) : ((src.fqtyremain !== null && src.fqtyremain !==
+                                    undefined &&
+                                    Number(src.fqtyremain) > 0) ? Number(src.fqtyremain) : ((src
+                                    .fqty !== null &&
+                                    src.fqty !== undefined && Number(src.fqty) > 0) ? Number(src
+                                    .fqty) : 1))),
                         fterima: Number(src.fterima ?? 0),
                         fprice: Number(src.fprice ?? 0),
                         fdisc: src.fdisc ?? 0,
