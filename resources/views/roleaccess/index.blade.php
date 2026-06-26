@@ -494,6 +494,23 @@
                                 </td>
                             </tr>
 
+                            <tr class="bg-gray-50">
+                                <td class="px-3 py-2 font-semibold">Retur Penjualan</td>
+                                <td class="text-center text-gray-400">-</td>
+                                <td class="text-center">
+                                    <input type="checkbox" name="permission[]" value="createLembarPenagihan"
+                                        {{ in_array('createLembarPenagihan', $selectedPermissions) ? 'checked' : '' }}>
+                                </td>
+                                <td class="text-center">
+                                    <input type="checkbox" name="permission[]" value="updateLembarPenagihan"
+                                        {{ in_array('updateLembarPenagihan', $selectedPermissions) ? 'checked' : '' }}>
+                                </td>
+                                <td class="text-center">
+                                    <input type="checkbox" name="permission[]" value="deleteLembarPenagihan"
+                                        {{ in_array('deleteLembarPenagihan', $selectedPermissions) ? 'checked' : '' }}>
+                                </td>
+                            </tr>
+
                             <tr>
                                 <td class="px-3 py-2 font-semibold">Faktur Pembelian</td>
                                 <td class="text-center text-gray-400">-</td>

@@ -59,7 +59,7 @@
     $selectedAdminAccount2 = $selectedAdminAccount2 ?? null;
 @endphp
 
-<div class="bg-white rounded shadow p-6 md:p-8 max-w-[96rem] mx-auto"
+<div class="bg-white rounded shadow p-6 md:p-8 max-w-[1800px] w-full mx-auto"
     x-data="pelunasanCustomerForm(@js($initialDetailRows), @js($selectedCustomerTempo), @js(old('fkasmtno', $voucherNo)))" x-init="init()">
     <form action="{{ $formAction }}" method="POST" class="space-y-6" @submit="handleFormSubmit($event)"
         @if (!$isReadOnly && !empty($draftKey)) data-form-draft="true" data-draft-key="{{ $draftKey }}" @endif>

@@ -86,7 +86,7 @@
             <li x-data="{ open: false }" x-effect="if(!openSidebar) open = false">
                 <button @click="open = !open"
                     class="flex items-center w-full p-2 rounded-lg hover:bg-gray-700 focus:outline-none">
-                    <x-heroicon-o-folder class="w-5 h-5 flex-shrink-0" />
+                    <i class="fa-solid fa-calculator w-5 text-center flex-shrink-0 text-lg"></i>
                     <span class="ml-3 flex-1 text-left" x-show="openSidebar" x-transition.opacity.duration.150>
                         {{ 'Master Accounting' }}
                     </span>
@@ -104,7 +104,7 @@
                         <li>
                             <a href="{{ route('account.index') }}"
                                 class="flex items-center p-2 rounded hover:bg-gray-700">
-                                <x-heroicon-o-banknotes class="w-5 h-5" />
+                                <i class="fa-solid fa-sitemap w-5 text-center flex-shrink-0 text-lg"></i>
                                 <span class="ml-3">{{ 'Account' }}</span>
                             </a>
                         </li>
@@ -114,7 +114,7 @@
                         <li>
                             <a href="{{ route('subaccount.index') }}"
                                 class="flex items-center p-2 rounded hover:bg-gray-700">
-                                <x-heroicon-o-document-duplicate class="w-5 h-5" />
+                                <i class="fa-solid fa-level-down-alt w-5 text-center flex-shrink-0 text-lg"></i>
                                 <span class="ml-3">{{ 'Sub Account' }}</span>
                             </a>
                         </li>
@@ -124,7 +124,7 @@
                         <li>
                             <a href="{{ route('rekening.index') }}"
                                 class="flex items-center p-2 rounded hover:bg-gray-700">
-                                <x-heroicon-o-credit-card class="w-5 h-5" />
+                                <i class="fa-solid fa-credit-card w-5 text-center flex-shrink-0 text-lg"></i>
                                 <span class="ml-3">{{ 'Rekening' }}</span>
                             </a>
                         </li>
@@ -134,7 +134,7 @@
                         <li>
                             <a href="{{ route('currency.index') }}"
                                 class="flex items-center p-2 rounded hover:bg-gray-700">
-                                <x-heroicon-o-credit-card class="w-5 h-5" />
+                                <i class="fa-solid fa-money-bill-wave w-5 text-center flex-shrink-0 text-lg"></i>
                                 <span class="ml-3">{{ 'Currency' }}</span>
                             </a>
                         </li>
@@ -146,7 +146,7 @@
             <li x-data="{ open: false }" x-effect="if(!openSidebar) open = false">
                 <button @click="open = !open"
                     class="flex items-center w-full p-2 rounded-lg hover:bg-gray-700 focus:outline-none">
-                    <x-heroicon-o-folder class="w-5 h-5 flex-shrink-0" />
+                    <i class="fa-solid fa-boxes w-5 text-center flex-shrink-0 text-lg"></i>
                     <span class="ml-3 flex-1 text-left" x-show="openSidebar" x-transition.opacity.duration.150>
                         {{ 'Master Barang' }}
                     </span>
@@ -164,7 +164,7 @@
                         <li>
                             <a href="{{ route('product.index') }}"
                                 class="flex items-center p-2 rounded hover:bg-gray-700">
-                                <x-heroicon-o-cube class="w-5 h-5" />
+                                <i class="fa-solid fa-box w-5 text-center flex-shrink-0 text-lg"></i>
                                 <span class="ml-3">{{ 'Produk' }}</span>
                             </a>
                         </li>
@@ -174,7 +174,7 @@
                         <li>
                             <a href="{{ route('groupproduct.index') }}"
                                 class="flex items-center p-2 rounded hover:bg-gray-700">
-                                <x-heroicon-o-squares-2x2 class="w-5 h-5" />
+                                <i class="fa-solid fa-layer-group w-5 text-center flex-shrink-0 text-lg"></i>
                                 <span class="ml-3">{{ 'Group Produk' }}</span>
                             </a>
                         </li>
@@ -194,7 +194,7 @@
                         <li>
                             <a href="{{ route('satuan.index') }}"
                                 class="flex items-center p-2 rounded hover:bg-gray-700">
-                                <x-heroicon-o-scale class="w-5 h-5" />
+                                <i class="fa-solid fa-scale-balanced w-5 text-center flex-shrink-0 text-lg"></i>
                                 <span class="ml-3">{{ 'Satuan' }}</span>
                             </a>
                         </li>
@@ -207,7 +207,7 @@
             <li x-data="{ open: false }" x-effect="if(!openSidebar) open = false">
                 <button @click="open = !open"
                     class="flex items-center w-full p-2 rounded-lg hover:bg-gray-700 focus:outline-none">
-                    <x-heroicon-o-folder class="w-5 h-5 flex-shrink-0" />
+                    <i class="fa-solid fa-user-tag w-5 text-center flex-shrink-0 text-lg"></i>
                     <span class="ml-3 flex-1 text-left" x-show="openSidebar" x-transition.opacity.duration.150>
                         {{ 'Master Penjualan' }}
                     </span>
@@ -225,7 +225,7 @@
                         <li>
                             <a href="{{ route('groupcustomer.index') }}"
                                 class="flex items-center p-2 rounded hover:bg-gray-700">
-                                <x-heroicon-o-squares-2x2 class="w-5 h-5" />
+                                <i class="fa-solid fa-users-gear w-5 text-center flex-shrink-0 text-lg"></i>
                                 <span class="ml-3">{{ 'Group Customer' }}</span>
                             </a>
                         </li>
@@ -235,7 +235,7 @@
                         <li>
                             <a href="{{ route('customer.index') }}"
                                 class="flex items-center p-2 rounded hover:bg-gray-700">
-                                <x-heroicon-o-user-group class="w-5 h-5" />
+                                <i class="fa-solid fa-user-tie w-5 text-center flex-shrink-0 text-lg"></i>
                                 <span class="ml-3">{{ 'Customer' }}</span>
                             </a>
                         </li>
@@ -245,7 +245,7 @@
                         <li>
                             <a href="{{ route('wilayah.index') }}"
                                 class="flex items-center p-2 rounded hover:bg-gray-700">
-                                <x-heroicon-o-globe-alt class="w-5 h-5" />
+                                <i class="fa-solid fa-map-location-dot w-5 text-center flex-shrink-0 text-lg"></i>
                                 <span class="ml-3">{{ 'Wilayah' }}</span>
                             </a>
                         </li>
@@ -255,7 +255,7 @@
                         <li>
                             <a href="{{ route('salesman.index') }}"
                                 class="flex items-center p-2 rounded hover:bg-gray-700">
-                                <x-heroicon-o-briefcase class="w-5 h-5" />
+                                <i class="fa-solid fa-id-card-clip w-5 text-center flex-shrink-0 text-lg"></i>
                                 <span class="ml-3">{{ 'Salesman' }}</span>
                             </a>
                         </li>
@@ -268,7 +268,7 @@
             <li x-data="{ open: false }" x-effect="if(!openSidebar) open = false">
                 <button @click="open = !open"
                     class="flex items-center w-full p-2 rounded-lg hover:bg-gray-700 focus:outline-none">
-                    <x-heroicon-o-folder class="w-5 h-5 flex-shrink-0" />
+                    <i class="fa-solid fa-shopping-cart w-5 text-center flex-shrink-0 text-lg"></i>
                     <span class="ml-3 flex-1 text-left" x-show="openSidebar" x-transition.opacity.duration.150>
                         {{ 'Master Pembelian' }}
                     </span>
@@ -286,7 +286,7 @@
                         <li>
                             <a href="{{ route('gudang.index') }}"
                                 class="flex items-center p-2 rounded hover:bg-gray-700">
-                                <x-heroicon-o-archive-box class="w-5 h-5" />
+                                <i class="fa-solid fa-boxes-stacked w-5 text-center flex-shrink-0 text-lg"></i>
                                 <span class="ml-3">{{ 'Gudang' }}</span>
                             </a>
                         </li>
@@ -296,7 +296,7 @@
                         <li>
                             <a href="{{ route('supplier.index') }}"
                                 class="flex items-center p-2 rounded hover:bg-gray-700">
-                                <x-heroicon-o-truck class="w-5 h-5" />
+                                <i class="fa-solid fa-handshake w-5 text-center flex-shrink-0 text-lg"></i>
                                 <span class="ml-3">{{ 'Supplier' }}</span>
                             </a>
                         </li>
@@ -309,7 +309,7 @@
             <li x-data="{ open: false }" x-effect="if(!openSidebar) open = false">
                 <button @click="open = !open"
                     class="flex items-center w-full p-2 rounded-lg hover:bg-gray-700 focus:outline-none">
-                    <x-heroicon-o-folder class="w-5 h-5 flex-shrink-0" />
+                    <i class="fa-solid fa-book w-5 text-center flex-shrink-0 text-lg"></i>
                     <span class="ml-3 flex-1 text-left" x-show="openSidebar"
                         x-transition.opacity.duration.150>{{ 'Transaksi Accounting' }}</span>
                     <!-- caret -->
@@ -328,7 +328,7 @@
                         <li>
                             <a href="{{ route('jurnaltransaksi.index') }}"
                                 class="flex items-center p-2 rounded hover:bg-gray-700">
-                                <x-heroicon-o-credit-card class="w-5 h-5" />
+                                <i class="fa-solid fa-file-invoice-dollar w-5 text-center flex-shrink-0 text-lg"></i>
                                 <span class="ml-3">{{ 'Jurnal Transaksi' }}</span>
                             </a>
                         </li>
@@ -340,7 +340,7 @@
             <li x-data="{ open: false }" x-effect="if(!openSidebar) open = false">
                 <button @click="open = !open"
                     class="flex items-center w-full p-2 rounded-lg hover:bg-gray-700 focus:outline-none">
-                    <x-heroicon-o-folder class="w-5 h-5 flex-shrink-0" />
+                    <i class="fa-solid fa-cash-register w-5 text-center flex-shrink-0 text-lg"></i>
                     <span class="ml-3 flex-1 text-left" x-show="openSidebar"
                         x-transition.opacity.duration.150>{{ 'Transaksi Penjualan' }}</span>
                     <!-- caret -->
@@ -359,7 +359,7 @@
                         <li>
                             <a href="{{ route('salesorder.index') }}"
                                 class="flex items-center p-2 rounded hover:bg-gray-700">
-                                <x-heroicon-o-user-circle class="w-5 h-5" />
+                                <i class="fa-solid fa-file-invoice w-5 text-center flex-shrink-0 text-lg"></i>
                                 <span class="ml-3">{{ 'Sales Order' }}</span>
                             </a>
                         </li>
@@ -374,7 +374,7 @@
                         <li>
                             <a href="{{ route('suratjalan.index') }}"
                                 class="flex items-center p-2 rounded hover:bg-gray-700">
-                                <x-heroicon-o-user-circle class="w-5 h-5" />
+                                <i class="fa-solid fa-truck-ramp-box w-5 text-center flex-shrink-0 text-lg"></i>
                                 <span class="ml-3">{{ 'Surat Jalan' }}</span>
                             </a>
                         </li>
@@ -389,7 +389,7 @@
                         <li>
                             <a href="{{ route('invoice.index') }}"
                                 class="flex items-center p-2 rounded hover:bg-gray-700">
-                                <x-heroicon-o-user-circle class="w-5 h-5" />
+                                <i class="fa-solid fa-receipt w-5 text-center flex-shrink-0 text-lg"></i>
                                 <span class="ml-3">{{ 'Faktur Penjualan' }}</span>
                             </a>
                         </li>
@@ -404,8 +404,23 @@
                         <li>
                             <a href="{{ route('returpenjualan.index') }}"
                                 class="flex items-center p-2 rounded hover:bg-gray-700">
-                                <x-heroicon-o-user-circle class="w-5 h-5" />
+                                <i class="fa-solid fa-arrow-rotate-left w-5 text-center flex-shrink-0 text-lg"></i>
                                 <span class="ml-3">{{ 'Retur Penjualan' }}</span>
+                            </a>
+                        </li>
+                    @endif
+                </ul>
+
+                {{-- Lembar Penagihan --}}
+                <ul x-show="open && openSidebar" x-transition
+                    class="ml-9 mt-1 space-y-1 border-l border-white/10 pl-3" x-cloak>
+
+                    @if ($hasSidebarPermission('createLembarPenagihan', 'updateLembarPenagihan', 'deleteLembarPenagihan'))
+                        <li>
+                            <a href="{{ route('lembarpenagihan.index') }}"
+                                class="flex items-center p-2 rounded hover:bg-gray-700">
+                                <i class="fa-solid fa-book w-5 text-center flex-shrink-0 text-lg"></i>
+                                <span class="ml-3">{{ 'Lembar Penagihan' }}</span>
                             </a>
                         </li>
                     @endif
@@ -416,7 +431,7 @@
             <li x-data="{ open: false }" x-effect="if(!openSidebar) open = false">
                 <button @click="open = !open"
                     class="flex items-center w-full p-2 rounded-lg hover:bg-gray-700 focus:outline-none">
-                    <x-heroicon-o-folder class="w-5 h-5 flex-shrink-0" />
+                    <i class="fa-solid fa-file-contract w-5 text-center flex-shrink-0 text-lg"></i>
                     <span class="ml-3 flex-1 text-left" x-show="openSidebar" x-transition.opacity.duration.150>
                         {{ 'Transaksi Pembelian' }}
                     </span>
@@ -433,7 +448,7 @@
                         <li>
                             <a href="{{ route('tr_prh.index') }}"
                                 class="flex items-center p-2 rounded-lg hover:bg-gray-700">
-                                <x-heroicon-o-banknotes class="w-5 h-5" />
+                                <i class="fa-solid fa-file-signature w-5 text-center flex-shrink-0 text-lg"></i>
                                 <span class="ml-3">{{ 'Permintaan Pembelian' }}</span>
                             </a>
                         </li>
@@ -442,7 +457,7 @@
                         <li>
                             <a href="{{ route('tr_poh.index') }}"
                                 class="flex items-center p-2 rounded-lg hover:bg-gray-700">
-                                <x-heroicon-o-banknotes class="w-5 h-5" />
+                                <i class="fa-solid fa-file-contract w-5 text-center flex-shrink-0 text-lg"></i>
                                 <span class="ml-3">{{ 'Order Pembelian' }}</span>
                             </a>
                         </li>
@@ -451,7 +466,7 @@
                         <li>
                             <a href="{{ route('penerimaanbarang.index') }}"
                                 class="flex items-center p-2 rounded-lg hover:bg-gray-700">
-                                <x-heroicon-o-banknotes class="w-5 h-5" />
+                                <i class="fa-solid fa-truck-ramp-box w-5 text-center flex-shrink-0 text-lg"></i>
                                 <span class="ml-3">{{ 'Penerimaan Barang' }}</span>
                             </a>
                         </li>
@@ -465,7 +480,7 @@
                         <li>
                             <a href="{{ route('fakturpembelian.index') }}"
                                 class="flex items-center p-2 rounded-lg hover:bg-gray-700">
-                                <x-heroicon-o-banknotes class="w-5 h-5" />
+                                <i class="fa-solid fa-file-invoice-dollar w-5 text-center flex-shrink-0 text-lg"></i>
                                 <span class="ml-3">{{ 'Faktur Pembelian' }}</span>
                             </a>
                         </li>
@@ -479,7 +494,7 @@
                         <li>
                             <a href="{{ route('returpembelian.index') }}"
                                 class="flex items-center p-2 rounded hover:bg-gray-700">
-                                <x-heroicon-o-user-circle class="w-5 h-5" />
+                                <i class="fa-solid fa-reply-all w-5 text-center flex-shrink-0 text-lg"></i>
                                 <span class="ml-3">{{ 'Retur Pembelian' }}</span>
                             </a>
                         </li>
@@ -491,9 +506,9 @@
             <li x-data="{ open: false }" x-effect="if(!openSidebar) open = false">
                 <button @click="open = !open"
                     class="flex items-center w-full p-2 rounded-lg hover:bg-gray-700 focus:outline-none">
-                    <x-heroicon-o-folder class="w-5 h-5 flex-shrink-0" />
+                    <i class="fa-solid fa-warehouse w-5 text-center flex-shrink-0 text-lg"></i>
                     <span class="ml-3 flex-1 text-left" x-show="openSidebar"
-                        x-transition.opacity.duration.150">{{ 'Transaksi Stock' }}</span>
+                        x-transition.opacity.duration.150">{{ 'Transaksi Stok' }}</span>
                     <!-- caret -->
                     <svg x-show="openSidebar" :class="{ 'rotate-180': open }"
                         class="w-4 h-4 transition-transform ml-auto" fill="none" stroke="currentColor"
@@ -511,7 +526,7 @@
                             <a href="{{ route('adjstock.index') }}"
                                 class="flex items-center p-2 rounded-lg hover:bg-gray-700">
                                 <x-heroicon-o-banknotes class="w-5 h-5" />
-                                <span class="ml-3">{{ 'Adjustment Stock' }}</span>
+                                <span class="ml-3">{{ 'Adjustment Stok' }}</span>
                             </a>
                         </li>
                     @endif
@@ -545,11 +560,11 @@
                 </ul>
             </li>
 
-            {{-- Laporan Pengeluaran --}}
+            {{-- Transaksi Kas/Bamk --}}
             <li x-data="{ open: false }" x-effect="if(!openSidebar) open = false">
                 <button @click="open = !open"
                     class="flex items-center w-full p-2 rounded-lg hover:bg-gray-700 focus:outline-none">
-                    <x-heroicon-o-folder class="w-5 h-5 flex-shrink-0" />
+                    <i class="fa-solid fa-wallet w-5 text-center flex-shrink-0 text-lg"></i>
                     <span class="ml-3 flex-1 text-left" x-show="openSidebar"
                         x-transition.opacity.duration.150">{{ 'Transaksi Kas/Bank' }}</span>
                     <svg x-show="openSidebar" :class="{ 'rotate-180': open }"
@@ -600,7 +615,7 @@
             <li x-data="{ open: false }" x-effect="if(!openSidebar) open = false">
                 <button @click="open = !open"
                     class="flex items-center w-full p-2 rounded-lg hover:bg-gray-700 focus:outline-none">
-                    <x-heroicon-o-folder class="w-5 h-5 flex-shrink-0" />
+                    <i class="fa-solid fa-clipboard-list w-5 text-center flex-shrink-0 text-lg"></i>
                     <span class="ml-3 flex-1 text-left" x-show="openSidebar"
                         x-transition.opacity.duration.150">{{ 'Laporan Master' }}</span>
                     <!-- caret -->
@@ -672,7 +687,7 @@
             <li x-data="{ open: false }" x-effect="if(!openSidebar) open = false">
                 <button @click="open = !open"
                     class="flex items-center w-full p-2 rounded-lg hover:bg-gray-700 focus:outline-none">
-                    <x-heroicon-o-folder class="w-5 h-5 flex-shrink-0" />
+                    <i class="fa-solid fa-chart-line w-5 text-center flex-shrink-0 text-lg"></i>
                     <span class="ml-3 flex-1 text-left" x-show="openSidebar"
                         x-transition.opacity.duration.150">{{ 'Laporan Penjualan' }}</span>
                     <!-- caret -->
@@ -717,14 +732,6 @@
                                 class="flex items-center p-2 rounded hover:bg-gray-700">
                                 <x-heroicon-o-user-circle class="w-5 h-5" />
                                 <span class="ml-3">{{ 'Listing Penjualan' }}</span>
-                            </a>
-                        </li>
-
-                        <li>
-                            <a href="{{ route('lembarpenagihan.index') }}"
-                                class="flex items-center p-2 rounded hover:bg-gray-700">
-                                <x-heroicon-o-user-circle class="w-5 h-5" />
-                                <span class="ml-3">{{ 'Lembar Penagihan' }}</span>
                             </a>
                         </li>
 
@@ -805,7 +812,7 @@
             <li x-data="{ open: false }" x-effect="if(!openSidebar) open = false">
                 <button @click="open = !open"
                     class="flex items-center w-full p-2 rounded-lg hover:bg-gray-700 focus:outline-none">
-                    <x-heroicon-o-folder class="w-5 h-5 flex-shrink-0" />
+                    <i class="fa-solid fa-receipt w-5 text-center flex-shrink-0 text-lg"></i>
                     <span class="ml-3 flex-1 text-left" x-show="openSidebar"
                         x-transition.opacity.duration.150">{{ 'Laporan Pembelian' }}</span>
                     <!-- caret -->
@@ -880,9 +887,9 @@
             <li x-data="{ open: false }" x-effect="if(!openSidebar) open = false">
                 <button @click="open = !open"
                     class="flex items-center w-full p-2 rounded-lg hover:bg-gray-700 focus:outline-none">
-                    <x-heroicon-o-folder class="w-5 h-5 flex-shrink-0" />
+                    <i class="fa-solid fa-warehouse w-5 text-center flex-shrink-0 text-lg"></i>
                     <span class="ml-3 flex-1 text-left" x-show="openSidebar"
-                        x-transition.opacity.duration.150">{{ 'Laporan Stock' }}</span>
+                        x-transition.opacity.duration.150">{{ 'Laporan Stok' }}</span>
                     <!-- caret -->
                     <svg x-show="openSidebar" :class="{ 'rotate-180': open }"
                         class="w-4 h-4 transition-transform ml-auto" fill="none" stroke="currentColor"
@@ -899,7 +906,7 @@
                             <a href="{{ route('reportingadjstock.index') }}"
                                 class="flex items-center p-2 rounded hover:bg-gray-700">
                                 <x-heroicon-o-user-circle class="w-5 h-5" />
-                                <span class="ml-3">{{ 'Listing Adjustment Stock' }}</span>
+                                <span class="ml-3">{{ 'Listing Adjustment Stok' }}</span>
                             </a>
                         </li>
 
@@ -946,7 +953,7 @@
             <li x-data="{ open: false }" x-effect="if(!openSidebar) open = false">
                 <button @click="open = !open"
                     class="flex items-center w-full p-2 rounded-lg hover:bg-gray-700 focus:outline-none">
-                    <x-heroicon-o-folder class="w-5 h-5 flex-shrink-0" />
+                    <i class="fa-solid fa-wallet w-5 text-center flex-shrink-0 text-lg"></i>
                     <span class="ml-3 flex-1 text-left" x-show="openSidebar"
                         x-transition.opacity.duration.150>{{ 'Laporan Kas/Bank' }}</span>
                     <!-- caret -->
@@ -1026,7 +1033,7 @@
             <li x-data="{ open: false }" x-effect="if(!openSidebar) open = false">
                 <button @click="open = !open"
                     class="flex items-center w-full p-2 rounded-lg hover:bg-gray-700 focus:outline-none">
-                    <x-heroicon-o-folder class="w-5 h-5 flex-shrink-0" />
+                    <i class="fa-solid fa-file-invoice-dollar w-5 text-center flex-shrink-0 text-lg"></i>
                     <span class="ml-3 flex-1 text-left" x-show="openSidebar"
                         x-transition.opacity.duration.150>{{ 'Laporan Accounting' }}</span>
                     <!-- caret -->
@@ -1057,7 +1064,7 @@
             <li x-data="{ open: false }" x-effect="if(!openSidebar) open = false">
                 <button @click="open = !open"
                     class="flex items-center w-full p-2 rounded-lg hover:bg-gray-700 focus:outline-none">
-                    <x-heroicon-o-folder class="w-5 h-5 flex-shrink-0" />
+                    <i class="fa-solid fa-tools w-5 text-center flex-shrink-0 text-lg"></i>
                     <span class="ml-3 flex-1 text-left" x-show="openSidebar"
                         x-transition.opacity.duration.150>{{ 'Utility' }}</span>
                     <!-- caret -->
@@ -1088,7 +1095,7 @@
             <li x-data="{ open: false }" x-effect="if(!openSidebar) open = false">
                 <button @click="open = !open"
                     class="flex items-center w-full p-2 rounded-lg hover:bg-gray-700 focus:outline-none">
-                    <x-heroicon-o-folder class="w-5 h-5 flex-shrink-0" />
+                    <i class="fa-solid fa-cloud-upload-alt w-5 text-center flex-shrink-0 text-lg"></i>
                     <span class="ml-3 flex-1 text-left" x-show="openSidebar"
                         x-transition.opacity.duration.150>{{ 'Posting' }}</span>
                     <!-- caret -->

@@ -140,7 +140,7 @@
             ];
         }
     @endphp
-    <div class="bg-white rounded shadow p-6 md:p-8 max-w-[1600px] w-full mx-auto">
+    <div class="bg-white rounded shadow p-6 md:p-8 max-w-[1800px] w-full mx-auto">
         <form action="{{ route('penerimaanbarang.store') }}" method="POST" class="mt-6" data-form-draft="true"
             data-draft-key="penerimaanbarang:create" x-data="mainForm()" x-init="syncSupplierDisplay(@js(old('fsupplier', '')));
             restoreSavedItems(@js($initialPenerimaanItems));

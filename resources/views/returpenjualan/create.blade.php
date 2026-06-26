@@ -65,7 +65,9 @@
             ];
         }
 
-        $nextReturPenjualanItemIndex = empty($oldReturJualIndexes) ? 0 : max(array_map('intval', $oldReturJualIndexes)) + 1;
+        $nextReturPenjualanItemIndex = empty($oldReturJualIndexes)
+            ? 0
+            : max(array_map('intval', $oldReturJualIndexes)) + 1;
     @endphp
     <style>
         input:focus,
@@ -133,7 +135,7 @@
             -moz-appearance: textfield;
         }
 
-                .returpenjualan-detail-table th,
+        .returpenjualan-detail-table th,
         .returpenjualan-detail-table td {
             padding: .25rem .375rem !important;
         }
@@ -189,7 +191,7 @@
     @endif
     <div>
         <div class="lg:col-span-5">
-            <div class="bg-white rounded shadow p-6 md:p-8 max-w-[96rem] mx-auto">
+            <div class="bg-white rounded shadow p-6 md:p-8 max-w-[1800px] w-full mx-auto">
                 <form action="{{ route('returpenjualan.store') }}" method="POST" class="mt-6" data-form-draft="true"
                     data-draft-key="returpenjualan:create"
                     @submit.prevent="
@@ -340,7 +342,8 @@
                                     <div class="absolute inset-0" role="button" aria-label="Browse Gudang"
                                         @click="window.dispatchEvent(new CustomEvent('warehouse-browse-open'))"></div>
                                 </div>
-                                <input type="hidden" name="ffrom" id="warehouseCodeHidden" value="{{ old('ffrom') }}">
+                                <input type="hidden" name="ffrom" id="warehouseCodeHidden"
+                                    value="{{ old('ffrom') }}">
                                 <button type="button"
                                     @click="window.dispatchEvent(new CustomEvent('warehouse-browse-open'))"
                                     class="border -ml-px px-3 py-2 bg-white hover:bg-gray-50 rounded-r"
@@ -372,7 +375,8 @@
                         <h3 class="text-base font-semibold text-gray-800">Detail Item</h3>
 
                         <div class="overflow-auto border rounded">
-                            <table class="returpenjualan-detail-table min-w-full text-sm balanced-detail-table" data-skip-auto-detail-style="true">
+                            <table class="returpenjualan-detail-table min-w-full text-sm balanced-detail-table"
+                                data-skip-auto-detail-style="true">
                                 <colgroup>
                                     <col style="width:2%;">
                                     <col style="width:16%;">
@@ -408,8 +412,7 @@
                                                 <div class="flex">
                                                     <input type="text"
                                                         class="flex-1 border rounded-l px-2 py-1 font-mono text-sm"
-                                                        :id="'code_row_' + i"
-                                                        x-model.trim="it.fitemcode"
+                                                        :id="'code_row_' + i" x-model.trim="it.fitemcode"
                                                         @input="onCodeTypedRow(it, i)"
                                                         @keydown.enter.prevent="focusRowUnit(it, i)">
                                                     <button type="button" @click="openBrowseFor(i)"
@@ -436,10 +439,8 @@
                                             <td class="p-2">
                                                 <template x-if="it.units && it.units.length > 1">
                                                     <select class="w-full border rounded px-2 py-1 text-xs"
-                                                        :id="'unit_row_' + i"
-                                                        x-model="it.fsatuan"
-                                                        @change="onRowUpdated(i)"
-                                                        @keydown.enter.prevent="focusRowQty(i)">
+                                                        :id="'unit_row_' + i" x-model="it.fsatuan"
+                                                        @change="onRowUpdated(i)" @keydown.enter.prevent="focusRowQty(i)">
                                                         <template x-for="u in it.units" :key="u">
                                                             <option :value="u" x-text="u"></option>
                                                         </template>
@@ -454,8 +455,7 @@
                                                 <div class="flex w-full max-w-full">
                                                     <input type="text"
                                                         class="min-w-0 flex-1 border rounded-l px-2 py-1 bg-gray-100 text-gray-600 text-sm"
-                                                        :value="it.frefpr || it.fnouref || it.frefcode || '-'"
-                                                        disabled>
+                                                        :value="it.frefpr || it.fnouref || it.frefcode || '-'" disabled>
                                                     <button type="button" @click="openProductHistory(it)"
                                                         class="shrink-0 border border-l-0 px-2 py-1 bg-white hover:bg-gray-50 rounded-r"
                                                         :disabled="!canOpenHistory(it)"
@@ -468,10 +468,8 @@
                                             <td class="p-2 text-right">
                                                 <input type="number"
                                                     class="w-full border rounded px-2 py-1 text-right text-sm"
-                                                    min="0" step="0.01"
-                                                    :id="'qty_row_' + i"
-                                                    x-model.number="it.fqty"
-                                                    @input="enforceQtyRow(it); onRowUpdated(i)"
+                                                    min="0" step="0.01" :id="'qty_row_' + i"
+                                                    x-model.number="it.fqty" @input="enforceQtyRow(it); onRowUpdated(i)"
                                                     @change="enforceQtyRow(it); onRowUpdated(i)"
                                                     @keydown.enter.prevent="focusRowPrice(i)">
                                                 <div class="text-xs text-gray-400 mt-0.5 flex justify-end items-center"
@@ -483,10 +481,8 @@
                                                 <input type="text"
                                                     class="w-full border rounded px-2 py-1 text-right text-sm"
                                                     :class="isSRJRow(it) ? 'bg-gray-100 text-gray-500 cursor-not-allowed' : ''"
-                                                    :id="'price_row_' + i"
-                                                    x-model="it.fpriceInput"
-                                                    :disabled="isSRJRow(it)"
-                                                    @focus="focusPriceInput(it)"
+                                                    :id="'price_row_' + i" x-model="it.fpriceInput"
+                                                    :disabled="isSRJRow(it)" @focus="focusPriceInput(it)"
                                                     @input="onPriceInput(it); onRowUpdated(i)"
                                                     @blur="blurPriceInput(it); onRowUpdated(i)"
                                                     @keydown.enter.prevent="focusRowDisc(i)">
@@ -495,8 +491,7 @@
                                                 <input type="text"
                                                     class="w-full border rounded px-2 py-1 text-right text-sm"
                                                     :class="isSRJRow(it) ? 'bg-gray-100 text-gray-500 cursor-not-allowed' : ''"
-                                                    :id="'disc_row_' + i"
-                                                    :value="normalizeDiscountValue(it.fdisc)"
+                                                    :id="'disc_row_' + i" :value="normalizeDiscountValue(it.fdisc)"
                                                     :disabled="isSRJRow(it)"
                                                     @blur="normalizeDiscountInput($event, it); onRowUpdated(i)"
                                                     @input="it.fdisc = $event.target.value; onRowUpdated(i)"
@@ -544,7 +539,8 @@
                         </div>
 
                         <input type="hidden" id="itemsCount" :value="submitItems.length">
-                        <input type="hidden" name="frefcode_global" id="frefcode" value="{{ old('frefcode_global') }}">
+                        <input type="hidden" name="frefcode_global" id="frefcode"
+                            value="{{ old('frefcode_global') }}">
                         <input type="hidden" name="frefso_header" id="frefso" value="{{ old('frefso_header') }}">
                         <input type="hidden" name="frefsrj_header" id="frefsrj" value="{{ old('frefsrj_header') }}">
 
@@ -659,13 +655,17 @@
                                         }
                                     } else {
                                         try {
-                                            const url = `{{ route('customer.browse') }}?search=${encodeURIComponent(customerCode)}`;
+                                            const url =
+                                                `{{ route('customer.browse') }}?search=${encodeURIComponent(customerCode)}`;
                                             const res = await fetch(url, {
-                                                headers: { 'X-Requested-With': 'XMLHttpRequest' }
+                                                headers: {
+                                                    'X-Requested-With': 'XMLHttpRequest'
+                                                }
                                             });
                                             if (res.ok) {
                                                 const json = await res.json();
-                                                const customer = (json.data || []).find(c => String(c.fcustomercode).trim() === customerCode);
+                                                const customer = (json.data || []).find(c => String(c.fcustomercode)
+                                                .trim() === customerCode);
                                                 if (customer && customer.fsalesman) {
                                                     if (typeof window.applyTransactionSalesmanSelection === 'function') {
                                                         window.applyTransactionSalesmanSelection({
@@ -723,7 +723,8 @@
                                                 <div id="srjTableControls"></div>
                                             </div>
 
-                                            <div class="flex-1 overflow-x-auto overflow-y-hidden px-6" style="min-height: 0;">
+                                            <div class="flex-1 overflow-x-auto overflow-y-hidden px-6"
+                                                style="min-height: 0;">
                                                 <div class="bg-white">
                                                     <table id="srjTable"
                                                         class="min-w-full text-sm display nowrap stripe hover"
@@ -1122,7 +1123,8 @@
                                                 Copy
                                             </button>
                                         </div>
-                                        <div class="rounded-lg border bg-gray-50 px-3 py-2 text-sm text-gray-800" x-text="descItemName || '-'"></div>
+                                        <div class="rounded-lg border bg-gray-50 px-3 py-2 text-sm text-gray-800"
+                                            x-text="descItemName || '-'"></div>
                                     </div>
                                     <label class="block text-sm text-gray-700">Deskripsi</label>
                                     <textarea x-model="descValue" rows="5" class="w-full border rounded px-3 py-2"
@@ -1558,7 +1560,8 @@
                 else console.log('Success:', msg);
             },
             error: (msg) => {
-                if (typeof window.showAppErrorAlert === 'function') window.showAppErrorAlert('Terjadi Kesalahan', msg);
+                if (typeof window.showAppErrorAlert === 'function') window.showAppErrorAlert(
+                    'Terjadi Kesalahan', msg);
                 else console.error('Error:', msg);
             },
             info: (msg) => {
@@ -2378,7 +2381,8 @@
                     const limit = this.getRowQtyLimit(row);
                     if (n > limit) {
                         row.fqty = limit;
-                        window.toast?.error(`Qty melebihi sisa referensi. Maksimal ${limit} ${row.fsatuan || ''}`.trim());
+                        window.toast?.error(`Qty melebihi sisa referensi. Maksimal ${limit} ${row.fsatuan || ''}`
+                        .trim());
                     }
                 }
             },
@@ -2393,16 +2397,17 @@
                     return;
                 }
                 row.fitemname = meta.name || '';
-                if (row.frefcode !== 'SRJ' && row.frefcode !== 'SO' && row.frefcode !== 'INV' && row.frefcode !== 'UM' && row.frefcode !== 'REJ') {
+                if (row.frefcode !== 'SRJ' && row.frefcode !== 'SO' && row.frefcode !== 'INV' && row.frefcode !==
+                    'UM' && row.frefcode !== 'REJ') {
                     row.frefcode = meta.id || meta.fprdid || '';
                 }
                 const currentUnit = (row.fsatuan ?? '').toString().trim();
                 const units = [...new Set((meta.units || []).map(u => (u ?? '').toString().trim()).filter(Boolean))];
                 const defaultUnit = (meta.default_unit || '').toString().trim();
                 const resolvedDefaultUnit = defaultUnit && units.includes(defaultUnit) ? defaultUnit : (units[0] || '');
-                row.units = currentUnit
-                    ? [currentUnit, ...units.filter(u => u !== currentUnit)]
-                    : units;
+                row.units = currentUnit ?
+                    [currentUnit, ...units.filter(u => u !== currentUnit)] :
+                    units;
                 if (!row.units.includes(currentUnit)) {
                     row.fsatuan = resolvedDefaultUnit;
                 } else {
@@ -2416,14 +2421,14 @@
             rowHasContent(row) {
                 if (!row) return false;
                 return [
-                    row.fitemcode,
-                    row.fitemname,
-                    row.frefpr,
-                    row.frefso,
-                    row.frefsrj,
-                    row.fdesc,
-                    row.fketdt,
-                ].some(value => String(value ?? '').trim() !== '') ||
+                        row.fitemcode,
+                        row.fitemname,
+                        row.frefpr,
+                        row.frefso,
+                        row.frefsrj,
+                        row.fdesc,
+                        row.fketdt,
+                    ].some(value => String(value ?? '').trim() !== '') ||
                     Number(row.fqty ?? 0) > 0 ||
                     Number(row.fprice ?? 0) > 0 ||
                     Number(row.fdisc ?? 0) > 0;
@@ -2517,7 +2522,8 @@
                     const documentNo = (source === 'SRJ' ? (header?.fstockmtno ?? '') : (header?.fsono ?? ''))
                         .toString()
                         .trim();
-                    const referenceNo = (src.frefpr ?? header?.fdisplayref ?? header?.frefno ?? documentNo ?? '')
+                    const referenceNo = (src.frefpr ?? header?.fdisplayref ?? header?.frefno ?? documentNo ??
+                            '')
                         .toString()
                         .trim();
                     const row = {
@@ -2531,8 +2537,10 @@
                         frefpr: referenceNo,
                         frefcode: source,
 
-                        frefso: source === 'SRJ' ? '' : ((source === 'SO' || source === 'INV') ? (header?.fsono ?? '') : ((src.frefso ?? '').toString().trim())),
-                        frefsrj: source === 'SRJ' ? (header?.fstockmtno ?? '') : ((src.frefsrj ?? '').toString().trim()),
+                        frefso: source === 'SRJ' ? '' : ((source === 'SO' || source === 'INV') ? (header
+                            ?.fsono ?? '') : ((src.frefso ?? '').toString().trim())),
+                        frefsrj: source === 'SRJ' ? (header?.fstockmtno ?? '') : ((src.frefsrj ?? '')
+                            .toString().trim()),
                         fnoacak: this.generateUniqueNoAcak(),
                         frefnoacak: this.normalizeRefNoAcak(src.frefnoacak ?? src.fnoacak ?? ''),
 
@@ -2544,16 +2552,17 @@
                         ftotal: Number(src.ftotal ?? 0),
                         fdesc: src.fdesc ?? '',
                         fketdt: src.fketdt ?? '',
-                        units: sourceUnit
-                            ? [
+                        units: sourceUnit ?
+                            [
                                 sourceUnit,
-                                ...(Array.isArray(src.units)
-                                    ? src.units.map(u => (u ?? '').toString().trim()).filter(Boolean).filter(u => u !== sourceUnit)
-                                    : []),
-                            ]
-                            : (Array.isArray(src.units)
-                                ? src.units.map(u => (u ?? '').toString().trim()).filter(Boolean)
-                                : []),
+                                ...(Array.isArray(src.units) ?
+                                    src.units.map(u => (u ?? '').toString().trim()).filter(Boolean).filter(
+                                        u => u !== sourceUnit) :
+                                    []),
+                            ] :
+                            (Array.isArray(src.units) ?
+                                src.units.map(u => (u ?? '').toString().trim()).filter(Boolean) :
+                                []),
                         maxqty: Math.max(0, Number(src.fqtyremain ?? 0)),
                         maxqty_unit: 'kecil',
                     };
@@ -2873,7 +2882,8 @@
                         if (!row.fqty) row.fqty = 0;
                         this.recalc(row);
                     };
-                    const index = typeof this.browseTarget === 'number' ? this.browseTarget : this.savedItems.length - 1;
+                    const index = typeof this.browseTarget === 'number' ? this.browseTarget : this.savedItems
+                        .length - 1;
                     if (index < 0 || !this.savedItems[index]) return;
                     const row = this.savedItems[index];
                     apply(row);
@@ -2937,8 +2947,7 @@
     }
 </script>
 <script>
-    document.addEventListener('DOMContentLoaded', function() {
-    });
+    document.addEventListener('DOMContentLoaded', function() {});
 </script>
 <script>
     window.prhFormModal = function() {
@@ -3137,7 +3146,8 @@
                                 only_remaining: true
                             };
                             // Filter by selected customer
-                            var custCode = (document.getElementById('customerCodeHidden')?.value || '').trim();
+                            var custCode = (document.getElementById('customerCodeHidden')?.value || '')
+                                .trim();
                             if (custCode) params.fcustno = custCode;
                             return params;
                         }
@@ -3356,7 +3366,6 @@
         const pad = n => n.toString().padStart(2, '0');
         return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
     }
-
 </script>
 
 @include('components.transaction.invoice-srj-modal-script')

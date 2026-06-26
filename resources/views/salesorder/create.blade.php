@@ -432,10 +432,14 @@
 
                         {{-- DETAIL ITEM (tabel input) --}}
                         <h3 class="text-base font-semibold text-gray-800">Detail Item</h3>
+                        <p x-show="!hasCustomer()" x-cloak class="text-xs font-medium text-amber-600">
+                            Isi Customer terlebih dahulu sebelum mengisi detail item.
+                        </p>
 
-                        <div class="overflow-x-auto border rounded">
-                            <table class="sales-detail-table min-w-full text-sm balanced-detail-table"
-                                data-skip-auto-detail-style="true">
+                        <fieldset :disabled="!hasCustomer()" :class="!hasCustomer() ? 'opacity-60 pointer-events-none' : ''">
+                            <div class="overflow-x-auto border rounded">
+                                <table class="sales-detail-table min-w-full text-sm balanced-detail-table"
+                                    data-skip-auto-detail-style="true">
                                 <thead class="bg-gray-100">
                                     <tr>
                                         <th class="p-2 text-left w-10">#</th>
@@ -443,9 +447,9 @@
                                         <th class="p-2 text-left w-[28rem]">Nama Produk</th>
                                         <th class="p-2 text-left w-26">Satuan</th>
                                         <th class="p-2 text-right w-28 whitespace-nowrap">Qty</th>
-                                        <th class="p-2 text-right w-32 whitespace-nowrap">@ Harga</th>
+                                        <th class="p-2 text-right w-33 whitespace-nowrap">@ Harga</th>
                                         <th class="p-2 text-right w-28 whitespace-nowrap">Disc. %</th>
-                                        <th class="p-2 text-right w-34 whitespace-nowrap">Total Harga</th>
+                                        <th class="p-2 text-right w-33 whitespace-nowrap">Total Harga</th>
                                         <th class="p-2 text-center w-24">Aksi</th>
                                     </tr>
                                 </thead>
@@ -534,8 +538,9 @@
                                     </template>
 
                                 </tbody>
-                            </table>
-                        </div>
+                                </table>
+                            </div>
+                        </fieldset>
 
                         <div class="hidden">
                             <template x-for="row in rowsToSubmit" :key="'submit-' + row.uid">
@@ -806,6 +811,7 @@
             rows: [],
             rowsToSubmit: [],
             minimumVisibleRows: 5,
+            customerCode: '',
 
             totalHarga: 0,
             headerDiscPercent: @json((float) old('fdiscpersen', 0)),
@@ -895,6 +901,29 @@
 
             fmtMoney(value) {
                 return this.fmt(value);
+            },
+
+            currentCustomerCode() {
+                return (document.getElementById('customerCodeHidden')?.value || document.getElementById('modal_filter_customer_id')?.value || document.getElementById('customerCodeHiddenReadonly')?.value || document.getElementById('modal_filter_customer_id_readonly')?.value || '').toString().trim();
+            },
+
+            hasCustomer() {
+                return this.customerCode !== '' || this.currentCustomerCode() !== '';
+            },
+
+            requireCustomer() {
+                this.customerCode = this.currentCustomerCode();
+                if (this.customerCode !== '') return true;
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Customer wajib diisi',
+                    text: 'Isi Customer terlebih dahulu sebelum mengisi detail item.',
+                    confirmButtonText: 'OK',
+                    customClass: {
+                        confirmButton: 'bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700'
+                    }
+                }).then(() => document.getElementById('modal_filter_customer_id')?.focus());
+                return false;
             },
 
             // ✅ FUNGSI BARU: Parse diskon dengan format "10+2"
@@ -1115,6 +1144,7 @@
             },
 
             onPrPicked(e) {
+                if (!this.requireCustomer()) return;
                 const {
                     header,
                     items
@@ -1380,6 +1410,7 @@
 
             init() {
                 window.salesOrderItemsTable = this;
+                this.customerCode = this.currentCustomerCode();
                 this.$watch('includePPN', () => this.recalcTotals());
                 this.$watch('ppnMode', () => this.recalcTotals());
                 this.$watch('ppnRate', () => this.recalcTotals());
@@ -1397,7 +1428,16 @@
                     passive: true
                 });
 
+                window.addEventListener('customer-selected', () => {
+                    this.customerCode = this.currentCustomerCode();
+                }, { passive: true });
+
+                document.getElementById('modal_filter_customer_id')?.addEventListener('change', () => {
+                    this.customerCode = this.currentCustomerCode();
+                });
+
                 window.addEventListener('product-chosen', (e) => {
+                    if (!this.requireCustomer()) return;
                     const {
                         product
                     } = e.detail || {};
@@ -1430,6 +1470,7 @@
 
             browseTarget: null,
             openBrowseFor(index) {
+                if (!this.requireCustomer()) return;
                 this.browseTarget = index;
                 window.dispatchEvent(new CustomEvent('browse-open', {
                     detail: {
@@ -1441,6 +1482,7 @@
                 return `Data Produk ${row.fitemname || row.fprdcode || '(tanpa nama)'} qty masih 0, tidak akan tersimpan.`;
             },
             submitForm(form) {
+                if (!this.requireCustomer()) return;
                 const validRows = this.rows.filter((row) => this.isRowSavable(row));
                 const warningRows = this.rows.filter((row) => this.isRowFilled(row) && !this.isRowSavable(row));
                 const seenCodes = new Set();

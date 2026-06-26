@@ -99,7 +99,7 @@
     }
 </style>
 
-<div x-data="pengeluaranKasForm(@js($isReadOnly), @js(old('fkasmtno', $pengeluaranKas->fkasmtno ?? '')), @js($isGiroMundur), @js($isPenerimaanKasForm), @js($journalAccountValidation), @js($accountCatalog))" x-init="init()" class="bg-white rounded shadow p-6 md:p-8 max-w-[96rem] mx-auto">
+<div x-data="pengeluaranKasForm(@js($isReadOnly), @js(old('fkasmtno', $pengeluaranKas->fkasmtno ?? '')), @js($isGiroMundur), @js($isPenerimaanKasForm), @js($journalAccountValidation), @js($accountCatalog))" x-init="init()" class="bg-white rounded shadow p-6 md:p-8 max-w-[1800px] w-full mx-auto">
 
     <form action="{{ $formAction }}" method="POST" @submit="handleSubmit($event)">
         @csrf

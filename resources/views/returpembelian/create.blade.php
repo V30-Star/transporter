@@ -167,7 +167,7 @@
 
     <div x-data="{ open: true }">
         <div class="lg:col-span-5">
-            <div class="bg-white rounded shadow p-6 md:p-8 max-w-[96rem] mx-auto">
+            <div class="bg-white rounded shadow p-6 md:p-8 max-w-[1800px] w-full mx-auto">
                 <form action="{{ route('returpembelian.store') }}" method="POST" class="mt-6" data-form-draft="true"
                     data-draft-key="returpembelian:create" x-data="itemsTable()" x-init="init()"
                     @submit.prevent="

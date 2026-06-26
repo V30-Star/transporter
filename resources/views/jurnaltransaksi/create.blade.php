@@ -34,7 +34,7 @@
     </script>
 
     <div x-data="{ open: true }">
-        <div class="bg-white rounded shadow p-6 md:p-8 max-w-[96rem] mx-auto">
+        <div class="bg-white rounded shadow p-6 md:p-8 max-w-[1800px] w-full mx-auto">
 
             <form action="{{ route('jurnaltransaksi.store') }}" method="POST" data-form-draft="true"
                 data-draft-key="jurnaltransaksi:create" x-data="itemsTable()" x-init="init()"

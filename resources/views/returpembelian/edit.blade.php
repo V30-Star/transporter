@@ -227,7 +227,7 @@
         {{-- State untuk form --}}
         showNoItems: false
     }" class="lg:col-span-5 {{ $action === 'delete' || $usageLocked ? 'readonly-mode' : '' }}">
-        <div class="bg-white rounded shadow p-6 md:p-8 max-w-[96rem] mx-auto">
+        <div class="bg-white rounded shadow p-6 md:p-8 max-w-[1800px] w-full mx-auto">
             {{-- ============================================ --}}
             {{-- MODE DELETE: VIEW ONLY + BUTTON HAPUS       --}}
             {{-- ============================================ --}}
@@ -245,7 +245,8 @@
                         <div class="lg:col-span-4" x-data="{ autoCode: true }">
                             <label class="block text-sm font-bold mb-1">Transaksi#</label>
                             <div class="flex items-center gap-3">
-                                <input type="text" name="fpono" class="w-full border rounded px-3 py-2" value="{{ old('fpono') ?? ($displayFstockmtno ?? $returpembelian->fstockmtno) }}"
+                                <input type="text" name="fpono" class="w-full border rounded px-3 py-2"
+                                    value="{{ old('fpono') ?? ($displayFstockmtno ?? $returpembelian->fstockmtno) }}"
                                     :disabled="autoCode"
                                     :class="autoCode ? 'bg-gray-200 cursor-not-allowed' : 'bg-white'">
                                 <label class="inline-flex items-center select-none font-bold">
@@ -386,7 +387,9 @@
                                                         x-text="it.fitemname"></div>
                                                     <button type="button" @click="openDesc('saved', i)"
                                                         class="desc-inline-field__button inline-flex items-center border border-l-0 rounded-r px-2 py-1 transition-colors"
-                                                        :class="it.fdesc ? 'border-emerald-300 bg-emerald-50 text-emerald-600 hover:bg-emerald-100' : 'border-gray-300 bg-white text-gray-500 hover:bg-gray-50'"
+                                                        :class="it.fdesc ?
+                                                            'border-emerald-300 bg-emerald-50 text-emerald-600 hover:bg-emerald-100' :
+                                                            'border-gray-300 bg-white text-gray-500 hover:bg-gray-50'"
                                                         title="Deskripsi item">
                                                         <x-heroicon-o-document-text class="h-4 w-4" />
                                                     </button>
@@ -490,7 +493,7 @@
                                             <span class="min-w-[140px] text-right text-lg font-semibold"
                                                 x-text="rupiah(grandTotal)"></span>
                                         </div>
-{{--  --}}
+                                        {{--  --}}
                                     </div>
 
                                     <!-- Hidden inputs for submit -->
@@ -602,7 +605,8 @@
                                                 Copy
                                             </button>
                                         </div>
-                                        <div class="rounded-lg border bg-gray-50 px-3 py-2 text-sm text-gray-800" x-text="descItemName || '-'"></div>
+                                        <div class="rounded-lg border bg-gray-50 px-3 py-2 text-sm text-gray-800"
+                                            x-text="descItemName || '-'"></div>
                                     </div>
                                     <label class="block text-sm text-gray-700 font-bold">Deskripsi</label>
                                     <textarea x-model="descValue" rows="5" class="w-full border rounded px-3 py-2"
@@ -846,8 +850,7 @@
                 </div>
 
                 <div class="mt-6 flex justify-center space-x-4 allow-action">
-                    <button type="button" onclick="showDeleteModal()"
-                        @if ($usageLocked) disabled @endif
+                    <button type="button" onclick="showDeleteModal()" @if ($usageLocked) disabled @endif
                         class="bg-red-600 text-white px-6 py-2 rounded hover:bg-red-700 flex items-center disabled:opacity-60 disabled:cursor-not-allowed">
                         <x-heroicon-o-trash class="w-5 h-5 mr-2" />
                         Hapus
@@ -865,8 +868,8 @@
             @else
                 <form action="{{ route('returpembelian.update', $returpembelian->fstockmtid) }}" method="POST"
                     class="mt-6" data-form-draft="true"
-                    data-draft-key="returpembelian:edit:{{ $returpembelian->fstockmtid }}"
-                    x-data="itemsTable()" x-init="init()"
+                    data-draft-key="returpembelian:edit:{{ $returpembelian->fstockmtid }}" x-data="itemsTable()"
+                    x-init="init()"
                     @submit.prevent="
         const duplicateCode = window.getReturPembelianDuplicateCode?.($el);
         if (duplicateCode) {
@@ -899,7 +902,8 @@
                         <div class="lg:col-span-4" x-data="{ autoCode: true }">
                             <label class="block text-sm font-bold mb-1">Transaksi#</label>
                             <div class="flex items-center gap-3">
-                                <input type="text" name="fpono" class="w-full border rounded px-3 py-2" value="{{ old('fpono') ?? ($displayFstockmtno ?? $returpembelian->fstockmtno) }}"
+                                <input type="text" name="fpono" class="w-full border rounded px-3 py-2"
+                                    value="{{ old('fpono') ?? ($displayFstockmtno ?? $returpembelian->fstockmtno) }}"
                                     :disabled="autoCode"
                                     :class="autoCode ? 'bg-gray-200 cursor-not-allowed' : 'bg-white'">
                                 <label class="inline-flex items-center select-none font-bold">
@@ -1041,7 +1045,9 @@
                                                         x-text="it.fitemname"></div>
                                                     <button type="button" @click="openDesc('saved', i)"
                                                         class="desc-inline-field__button inline-flex items-center border border-l-0 rounded-r px-2 py-1 transition-colors"
-                                                        :class="it.fdesc ? 'border-emerald-300 bg-emerald-50 text-emerald-600 hover:bg-emerald-100' : 'border-gray-300 bg-white text-gray-500 hover:bg-gray-50'"
+                                                        :class="it.fdesc ?
+                                                            'border-emerald-300 bg-emerald-50 text-emerald-600 hover:bg-emerald-100' :
+                                                            'border-gray-300 bg-white text-gray-500 hover:bg-gray-50'"
                                                         title="Deskripsi item">
                                                         <x-heroicon-o-document-text class="h-4 w-4" />
                                                     </button>
@@ -1105,7 +1111,9 @@
                                                     x-text="editRow.fitemname"></div>
                                                 <button type="button" @click="openDesc('edit')"
                                                     class="desc-inline-field__button inline-flex items-center border border-l-0 rounded-r px-2 py-1 transition-colors"
-                                                    :class="editRow.fdesc ? 'border-emerald-300 bg-emerald-50 text-emerald-600 hover:bg-emerald-100' : 'border-gray-300 bg-white text-gray-500 hover:bg-gray-50'"
+                                                    :class="editRow.fdesc ?
+                                                        'border-emerald-300 bg-emerald-50 text-emerald-600 hover:bg-emerald-100' :
+                                                        'border-gray-300 bg-white text-gray-500 hover:bg-gray-50'"
                                                     title="Deskripsi item">
                                                     <x-heroicon-o-document-text class="h-4 w-4" />
                                                 </button>
@@ -1147,10 +1155,10 @@
 
                                         <!-- @ Harga -->
                                         <td class="p-2 text-right">
-                                            <input type="text" inputmode="decimal" class="border rounded px-2 py-1 w-28 text-right"
-                                                x-ref="editPrice" x-model="editRow.fpriceInput"
-                                                @input="onPriceInput(editRow)" @blur="blurPriceInput(editRow)"
-                                                @keydown.enter.prevent="applyEdit()">
+                                            <input type="text" inputmode="decimal"
+                                                class="border rounded px-2 py-1 w-28 text-right" x-ref="editPrice"
+                                                x-model="editRow.fpriceInput" @input="onPriceInput(editRow)"
+                                                @blur="blurPriceInput(editRow)" @keydown.enter.prevent="applyEdit()">
                                         </td>
 
                                         <!-- Total Harga (readonly) -->
@@ -1176,9 +1184,9 @@
                                             <!-- Kode Produk -->
                                             <td class="p-2">
                                                 <div class="flex">
-                                                    <input type="text" class="flex-1 border rounded-l px-2 py-1 font-mono"
-                                                        x-model.trim="dr.fitemcode"
-                                                        @input="onCodeTypedRow(dr)"
+                                                    <input type="text"
+                                                        class="flex-1 border rounded-l px-2 py-1 font-mono"
+                                                        x-model.trim="dr.fitemcode" @input="onCodeTypedRow(dr)"
                                                         @keydown.enter.prevent="focusDraftField(di, 'qty')">
                                                     <button type="button" @click="openBrowseFor(di)"
                                                         class="border border-l-0 px-2 py-1 bg-white hover:bg-gray-50"
@@ -1195,7 +1203,9 @@
                                                         x-text="dr.fitemname"></div>
                                                     <button type="button" @click="openDesc('draft', di)"
                                                         class="desc-inline-field__button inline-flex items-center border border-l-0 rounded-r px-2 py-1 transition-colors"
-                                                        :class="dr.fdesc ? 'border-emerald-300 bg-emerald-50 text-emerald-600 hover:bg-emerald-100' : 'border-gray-300 bg-white text-gray-500 hover:bg-gray-50'"
+                                                        :class="dr.fdesc ?
+                                                            'border-emerald-300 bg-emerald-50 text-emerald-600 hover:bg-emerald-100' :
+                                                            'border-gray-300 bg-white text-gray-500 hover:bg-gray-50'"
                                                         title="Deskripsi item">
                                                         <x-heroicon-o-document-text class="h-4 w-4" />
                                                     </button>
@@ -1212,8 +1222,7 @@
                                             <!-- Satuan -->
                                             <td class="p-2">
                                                 <template x-if="dr.units.length > 1">
-                                                    <select class="w-full border rounded px-2 py-1"
-                                                        x-model="dr.fsatuan">
+                                                    <select class="w-full border rounded px-2 py-1" x-model="dr.fsatuan">
                                                         <template x-for="u in dr.units" :key="u">
                                                             <option :value="u" x-text="u"></option>
                                                         </template>
@@ -1229,16 +1238,16 @@
                                             <!-- Qty -->
                                             <td class="p-2 text-right">
                                                 <input type="number" class="border rounded px-2 py-1 w-24 text-right"
-                                                    :id="'draft-qty-edit-' + di"
-                                                    min="0" step="0.01"
+                                                    :id="'draft-qty-edit-' + di" min="0" step="0.01"
                                                     x-model.number="dr.fqty" @input="recalc(dr)">
                                             </td>
 
                                             <!-- @ Harga -->
                                             <td class="p-2 text-right">
-                                                <input type="text" inputmode="decimal" class="border rounded px-2 py-1 w-28 text-right"
-                                                    x-model="dr.fpriceInput"
-                                                    @input="onPriceInput(dr)" @blur="blurPriceInput(dr)">
+                                                <input type="text" inputmode="decimal"
+                                                    class="border rounded px-2 py-1 w-28 text-right"
+                                                    x-model="dr.fpriceInput" @input="onPriceInput(dr)"
+                                                    @blur="blurPriceInput(dr)">
                                             </td>
 
                                             <!-- Total Harga (readonly) -->
@@ -1262,7 +1271,8 @@
                                                     <input type="hidden" name="fqty[]" :value="dr.fqty">
                                                     <input type="hidden" name="fprice[]" :value="dr.fprice">
                                                     <input type="hidden" name="fbiaya[]" :value="dr.fbiaya || 0">
-                                                    <input type="hidden" name="fdiscpersen[]" :value="dr.fdiscpersen || 0">
+                                                    <input type="hidden" name="fdiscpersen[]"
+                                                        :value="dr.fdiscpersen || 0">
                                                     <input type="hidden" name="ftotprice[]" :value="dr.ftotprice">
                                                     <input type="hidden" name="fdesc[]" :value="dr.fdesc || ''">
                                                     <input type="hidden" name="fketdt[]" :value="dr.fketdt || ''">
@@ -1455,7 +1465,8 @@
                                                 Copy
                                             </button>
                                         </div>
-                                        <div class="rounded-lg border bg-gray-50 px-3 py-2 text-sm text-gray-800" x-text="descItemName || '-'"></div>
+                                        <div class="rounded-lg border bg-gray-50 px-3 py-2 text-sm text-gray-800"
+                                            x-text="descItemName || '-'"></div>
                                     </div>
                                     <label class="block text-sm text-gray-700 font-bold">Deskripsi</label>
                                     <textarea x-model="descValue" rows="5" class="w-full border rounded px-3 py-2"
@@ -1478,8 +1489,8 @@
                         <input type="hidden" id="itemsCount" :value="savedItems.length">
 
                         {{-- MODAL ERROR: belum ada item --}}
-                        <div x-show="showNoItems && savedItems.length === 0 && draftRows.filter(dr => isComplete(dr)).length === 0" x-cloak
-                            class="fixed inset-0 z-[90] flex items-center justify-center" x-transition.opacity>
+                        <div x-show="showNoItems && savedItems.length === 0 && draftRows.filter(dr => isComplete(dr)).length === 0"
+                            x-cloak class="fixed inset-0 z-[90] flex items-center justify-center" x-transition.opacity>
                             <div class="absolute inset-0 bg-black/50" @click="showNoItems=false"></div>
 
                             <div class="relative bg-white w-[92vw] max-w-md rounded-2xl shadow-2xl overflow-hidden"
@@ -1698,8 +1709,7 @@
 
                     <div class="mt-8 flex justify-center gap-4 allow-action">
                         @if ($canEditPermission)
-                            <button type="submit"
-                                @if ($usageLocked) disabled @endif
+                            <button type="submit" @if ($usageLocked) disabled @endif
                                 class="bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700 flex items-center disabled:opacity-60 disabled:cursor-not-allowed">
                                 <x-heroicon-o-check class="w-5 h-5 mr-2" /> Simpan
                             </button>
@@ -1731,7 +1741,8 @@
                             id="btnTidak">
                             Tidak
                         </button>
-                        <button type="submit" @if ($usageLocked) disabled @endif class="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 disabled:opacity-60 disabled:cursor-not-allowed">
+                        <button type="submit" @if ($usageLocked) disabled @endif
+                            class="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 disabled:opacity-60 disabled:cursor-not-allowed">
                             Ya, Hapus
                         </button>
                     </div>
@@ -1982,7 +1993,7 @@
 
     function itemsTable() {
         const _savedItemsData = @json(count($initialEditReturPembelianItems) ? [] : $savedItems);
-        const _restoredItems  = @json(count($initialEditReturPembelianItems) ? $initialEditReturPembelianItems : []);
+        const _restoredItems = @json(count($initialEditReturPembelianItems) ? $initialEditReturPembelianItems : []);
         return {
             showNoItems: false,
             savedItems: _savedItemsData,
@@ -2180,7 +2191,8 @@
                         fnouref: src.fnouref ?? '',
                         frefpr: src.frefpr ?? (header?.fpono ?? ''),
                         fprhid: src.fprhid ?? header?.fprhid ?? '',
-                        fqty: (src.fqty !== null && src.fqty !== undefined && Number(src.fqty) > 0) ? Number(src.fqty) : 1,
+                        fqty: (src.fqty !== null && src.fqty !== undefined && Number(src.fqty) > 0) ?
+                            Number(src.fqty) : 1,
                         fterima: Number(src.fterima ?? 0),
                         fprice: Number(src.fprice ?? 0),
                         fpriceInput: this.fmt(Number(src.fprice ?? 0)),
@@ -2232,7 +2244,9 @@
                     return;
                 }
                 this.recalc(r);
-                this.savedItems.splice(this.editingIndex, 1, { ...r });
+                this.savedItems.splice(this.editingIndex, 1, {
+                    ...r
+                });
                 this.cancelEdit();
                 this.syncDescList?.();
                 this.recalcTotals();
@@ -2326,7 +2340,8 @@
             },
 
             getCurrentItemKeys() {
-                return this.savedItems.filter(it => !it?.__placeholder && this.isComplete(it)).map(it => this.itemKey(it));
+                return this.savedItems.filter(it => !it?.__placeholder && this.isComplete(it)).map(it => this.itemKey(
+                    it));
             },
 
             init() {
@@ -2350,7 +2365,11 @@
                 this.draftRows = [];
                 if (Array.isArray(_restoredItems) && _restoredItems.length > 0) {
                     _restoredItems.forEach(item => {
-                        const dr = { ...newDraftRow(), ...item, _uid: cryptoRandom() };
+                        const dr = {
+                            ...newDraftRow(),
+                            ...item,
+                            _uid: cryptoRandom()
+                        };
                         if (typeof dr.fqty === 'string') dr.fqty = parseFloat(dr.fqty) || 0;
                         if (typeof dr.fprice === 'string') dr.fprice = parseFloat(dr.fprice) || 0;
                         dr.fpriceInput = this.fmt(dr.fprice);
@@ -2384,8 +2403,11 @@
                         const dr = this.draftRows[this.browseTarget];
                         if (dr) {
                             apply(dr);
-                            this.draftRows.splice(this.browseTarget, 1, { ...dr });
-                            this.$nextTick(() => document.getElementById('draft-qty-edit-' + this.browseTarget)?.focus());
+                            this.draftRows.splice(this.browseTarget, 1, {
+                                ...dr
+                            });
+                            this.$nextTick(() => document.getElementById('draft-qty-edit-' + this.browseTarget)
+                                ?.focus());
                         }
                     }
                 }, {
