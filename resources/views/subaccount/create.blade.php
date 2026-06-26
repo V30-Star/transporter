@@ -69,7 +69,7 @@
     </style>
 
     <div x-data="{ open: true, selected: 'subaccount' }">
-        <div class="bg-white rounded shadow p-6 md:p-8 max-w-[96rem] mx-auto">
+        <div class="bg-white rounded shadow p-6 md:p-8 max-w-[1800px] w-full mx-auto">
             <form action="{{ route('subaccount.store') }}" method="POST" data-form-draft="true"
                 data-draft-key="subaccount:create">
                 @csrf
@@ -127,4 +127,3 @@
         </div>
     </div>
 @endsection
-

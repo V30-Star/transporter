@@ -3,7 +3,7 @@
 @section('title', $action === 'delete' ? 'Hapus Group Product' : 'Edit Group Product')
 
 @section('content')
-    <div class="bg-white rounded shadow p-6 md:p-8 max-w-[96rem] mx-auto">
+    <div class="bg-white rounded shadow p-6 md:p-8 max-w-[1800px] w-full mx-auto">
 
         {{-- ============================================ --}}
         {{-- MODE DELETE: VIEW ONLY + BUTTON HAPUS       --}}
@@ -43,8 +43,8 @@
             {{-- MODE EDIT: FORM EDITABLE                    --}}
             {{-- ============================================ --}}
         @else
-            <form action="{{ route('groupproduct.update', $groupproduct->fgroupid) }}" method="POST"
-                data-form-draft="true" data-draft-key="groupproduct:edit">
+            <form action="{{ route('groupproduct.update', $groupproduct->fgroupid) }}" method="POST" data-form-draft="true"
+                data-draft-key="groupproduct:edit">
                 @csrf
                 @method('PATCH')
 
@@ -55,7 +55,8 @@
                             class="w-full border rounded px-3 py-2 uppercase @error('fgroupcode') border-red-500 @enderror {{ $isUsedInTransactions ? 'bg-gray-100 cursor-not-allowed' : '' }}"
                             {{ $isUsedInTransactions ? 'readonly' : 'autofocus' }}>
                         @if ($isUsedInTransactions)
-                            <p class="text-xs text-red-500 mt-1">Kode group tidak bisa diubah karena produk dalam group ini sudah digunakan dalam transaksi.</p>
+                            <p class="text-xs text-red-500 mt-1">Kode group tidak bisa diubah karena produk dalam group ini
+                                sudah digunakan dalam transaksi.</p>
                         @endif
                         @error('fgroupcode')
                             <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
@@ -118,8 +119,7 @@
         <div id="deleteModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
             <div class="bg-white rounded-lg shadow-lg max-w-sm w-full p-6">
                 <h3 class="text-lg font-semibold mb-4">Konfirmasi hapus group product ini?</h3>
-                <form id="deleteForm" action="{{ route('groupproduct.destroy', $groupproduct->fgroupid) }}"
-                    method="POST">
+                <form id="deleteForm" action="{{ route('groupproduct.destroy', $groupproduct->fgroupid) }}" method="POST">
                     @csrf
                     @method('DELETE')
                     <div class="flex justify-end space-x-2">

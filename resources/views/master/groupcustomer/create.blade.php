@@ -5,7 +5,7 @@
 @section('content')
 
     <div x-data="{ open: true }">
-        <div class="bg-white rounded shadow p-6 md:p-8 max-w-[96rem] mx-auto">
+        <div class="bg-white rounded shadow p-6 md:p-8 max-w-[1800px] w-full mx-auto">
             <form action="{{ route('groupcustomer.store') }}" method="POST">
                 @csrf
 
@@ -13,7 +13,8 @@
                     <div>
                         <label class="block text-sm font-medium">Kode Group</label>
                         <input type="text" name="fgroupcode" value="{{ old('fgroupcode') }}"
-                            class="w-full border rounded px-3 py-2 uppercase @error('fgroupcode') border-red-500 @enderror" autofocus>
+                            class="w-full border rounded px-3 py-2 uppercase @error('fgroupcode') border-red-500 @enderror"
+                            autofocus>
                         @error('fgroupcode')
                             <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                         @enderror

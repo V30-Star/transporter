@@ -14,16 +14,16 @@
     </style>
 
     <div x-data="{ open: true, selected: 'surat' }">
-        <div class="bg-white rounded shadow p-6 md:p-8 max-w-[96rem] mx-auto">
-            <form action="{{ route('merek.store') }}" method="POST" data-form-draft="true"
-                data-draft-key="merek:create">
+        <div class="bg-white rounded shadow p-6 md:p-8 max-w-[1800px] w-full mx-auto">
+            <form action="{{ route('merek.store') }}" method="POST" data-form-draft="true" data-draft-key="merek:create">
                 @csrf
 
                 <div class="space-y-4 mt-4">
                     <div>
                         <label class="block text-sm font-bold">Kode Merek</label>
                         <input type="text" name="fmerekcode" value="{{ old('fmerekcode') }}"
-                            class="w-full border rounded px-3 py-2 uppercase @error('fmerekcode') border-red-500 @enderror" autofocus>
+                            class="w-full border rounded px-3 py-2 uppercase @error('fmerekcode') border-red-500 @enderror"
+                            autofocus>
                         @error('fmerekcode')
                             <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                         @enderror

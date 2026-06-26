@@ -14,17 +14,16 @@
     </style>
 
     <div x-data="{ open: true, selected: 'surat' }">
-        <div class="bg-white rounded shadow p-6 md:p-8 max-w-[96rem] mx-auto">
-            <form action="{{ route('satuan.store') }}" method="POST" data-form-draft="true"
-                data-draft-key="satuan:create">
+        <div class="bg-white rounded shadow p-6 md:p-8 max-w-[1800px] w-full mx-auto">
+            <form action="{{ route('satuan.store') }}" method="POST" data-form-draft="true" data-draft-key="satuan:create">
                 @csrf
 
                 <div class="space-y-4 mt-4">
                     <div>
                         <label class="block text-sm font-bold">Kode Satuan</label>
                         <input type="text" name="fsatuancode" value="{{ old('fsatuancode') }}"
-                            class="w-full border rounded px-3 py-2 uppercase @error('fsatuancode') border-red-500 @enderror" autofocus
-                            maxlength="10">
+                            class="w-full border rounded px-3 py-2 uppercase @error('fsatuancode') border-red-500 @enderror"
+                            autofocus maxlength="10">
                         @error('fsatuancode')
                             <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                         @enderror
@@ -69,4 +68,3 @@
         </div>
     </div>
 @endsection
-

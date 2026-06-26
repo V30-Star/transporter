@@ -3,7 +3,7 @@
 @section('title', $action === 'delete' ? 'Hapus Sub Account' : 'Edit Sub Account')
 
 @section('content')
-    <div class="bg-white rounded shadow p-6 md:p-8 max-w-[96rem] mx-auto">
+    <div class="bg-white rounded shadow p-6 md:p-8 max-w-[1800px] w-full mx-auto">
 
         {{-- ============================================ --}}
         {{-- MODE DELETE: VIEW ONLY + BUTTON HAPUS       --}}
@@ -125,7 +125,8 @@
         <div id="deleteModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
             <div class="bg-white rounded-lg shadow-lg max-w-sm w-full p-6">
                 <h3 class="text-lg font-semibold mb-4">Konfirmasi hapus subaccount ini?</h3>
-                <form id="deleteForm" action="{{ route('subaccount.destroy', $subaccount->fsubaccountid) }}" method="POST">
+                <form id="deleteForm" action="{{ route('subaccount.destroy', $subaccount->fsubaccountid) }}"
+                    method="POST">
                     @csrf
                     @method('DELETE')
                     <div class="flex justify-end space-x-2">

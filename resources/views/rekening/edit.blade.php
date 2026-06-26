@@ -4,7 +4,7 @@
 
 @section('content')
 
-    <div class="bg-white rounded shadow p-6 md:p-8 max-w-[96rem] mx-auto">
+    <div class="bg-white rounded shadow p-6 md:p-8 max-w-[1800px] w-full mx-auto">
 
         {{-- ============================================ --}}
         {{-- MODE DELETE: VIEW ONLY + BUTTON HAPUS       --}}
@@ -19,7 +19,7 @@
                         <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                     @enderror
                 </div>
-            
+
                 <div class="flex justify-center mt-4">
                     <label class="flex items-center justify-between w-40 p-3 border rounded-lg bg-gray-100 font-bold">
                         <span class="text-sm font-medium">Non Active</span>
@@ -41,8 +41,8 @@
             {{-- MODE EDIT: FORM EDITABLE                    --}}
             {{-- ============================================ --}}
         @else
-            <form action="{{ route('rekening.update', $rekening->frekeningid) }}" method="POST"
-                data-form-draft="true" data-draft-key="rekening:edit">
+            <form action="{{ route('rekening.update', $rekening->frekeningid) }}" method="POST" data-form-draft="true"
+                data-draft-key="rekening:edit">
                 @csrf
                 @method('PATCH')
                 <div class="space-y-4 mt-4">

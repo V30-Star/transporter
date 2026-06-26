@@ -4,7 +4,7 @@
 
 @section('content')
 
-    <div class="bg-white rounded shadow p-6 md:p-8 max-w-[96rem] mx-auto">
+    <div class="bg-white rounded shadow p-6 md:p-8 max-w-[1800px] w-full mx-auto">
 
         {{-- ============================================ --}}
         {{-- MODE DELETE: VIEW ONLY + BUTTON HAPUS       --}}
@@ -60,8 +60,8 @@
             {{-- MODE EDIT: FORM EDITABLE                    --}}
             {{-- ============================================ --}}
         @else
-            <form action="{{ route('currency.update', $currency->fcurrid) }}" method="POST"
-                data-form-draft="true" data-draft-key="currency:edit">
+            <form action="{{ route('currency.update', $currency->fcurrid) }}" method="POST" data-form-draft="true"
+                data-draft-key="currency:edit">
                 @csrf
                 @method('PATCH')
                 <div class="space-y-4 mt-4">

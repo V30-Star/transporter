@@ -3,7 +3,7 @@
 @section('title', $action === 'delete' ? 'Hapus Gudang' : 'Edit Gudang')
 
 @section('content')
-    <div class="bg-white rounded shadow p-6 md:p-8 max-w-[96rem] mx-auto">
+    <div class="bg-white rounded shadow p-6 md:p-8 max-w-[1800px] w-full mx-auto">
 
         {{-- ============================================ --}}
         {{-- MODE DELETE: VIEW ONLY + BUTTON HAPUS       --}}
@@ -80,8 +80,8 @@
             {{-- MODE EDIT: FORM EDITABLE                    --}}
             {{-- ============================================ --}}
         @else
-            <form action="{{ route('gudang.update', $gudang->fwhid) }}" method="POST"
-                data-form-draft="true" data-draft-key="gudang:edit">
+            <form action="{{ route('gudang.update', $gudang->fwhid) }}" method="POST" data-form-draft="true"
+                data-draft-key="gudang:edit">
                 @csrf
                 @method('PATCH')
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
@@ -108,10 +108,10 @@
                         <label class="block text-sm font-bold">Kode Gudang</label>
                         <input type="text" name="fwhcode" value="{{ old('fwhcode', $gudang->fwhcode) }}"
                             class="w-full border rounded px-3 py-2 uppercase @error('fwhcode') border-red-500 @enderror {{ !empty($isTransactionLocked) ? 'bg-gray-100 text-gray-500 cursor-not-allowed' : '' }}"
-                            {{ !empty($isTransactionLocked) ? 'readonly' : '' }}
-                            autofocus>
+                            {{ !empty($isTransactionLocked) ? 'readonly' : '' }} autofocus>
                         @if (!empty($isTransactionLocked))
-                            <p class="text-amber-600 text-sm mt-1">Kode gudang dikunci karena sudah direferensi di transaksi.</p>
+                            <p class="text-amber-600 text-sm mt-1">Kode gudang dikunci karena sudah direferensi di
+                                transaksi.</p>
                         @endif
                         @error('fwhcode')
                             <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
@@ -186,8 +186,7 @@
         <div id="deleteModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
             <div class="bg-white rounded-lg shadow-lg max-w-sm w-full p-6">
                 <h3 class="text-lg font-semibold mb-4">Konfirmasi hapus gudang ini?</h3>
-                <form id="deleteForm" action="{{ route('gudang.destroy', $gudang->fwhid) }}"
-                    method="POST">
+                <form id="deleteForm" action="{{ route('gudang.destroy', $gudang->fwhid) }}" method="POST">
                     @csrf
                     @method('DELETE')
                     <div class="flex justify-end space-x-2">

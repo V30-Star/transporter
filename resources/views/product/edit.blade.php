@@ -170,7 +170,7 @@
 
 
     <div x-data="{ open: false, keyword: '', rows: [], page: 1, lastPage: 1, total: 0 }">
-        <div class="bg-white rounded shadow p-6 md:p-8 max-w-[96rem] mx-auto">
+        <div class="bg-white rounded shadow p-6 md:p-8 max-w-[1800px] w-full mx-auto">
 
             {{-- ============================================ --}}
             {{-- MODE DELETE: VIEW ONLY + BUTTON HAPUS       --}}
@@ -630,8 +630,7 @@
                                 <!-- HJ <PCS> Level 1 -->
                                 <div>
                                     <label class="block text-sm font-bold">
-                                        Harga Jual 3 <span
-                                            class="uppercase">{{ $product->fsatuankecil ?? '-' }}</span>
+                                        Harga Jual 3 <span class="uppercase">{{ $product->fsatuankecil ?? '-' }}</span>
                                         Level 1
                                     </label>
                                     <div class="d-flex">
@@ -644,8 +643,7 @@
                                 <!-- HJ <CTN> Level 1 -->
                                 <div>
                                     <label class="block text-sm font-bold">
-                                        Harga Jual 3 <span
-                                            class="uppercase">{{ $product->fsatuanbesar ?? '-' }}</span>
+                                        Harga Jual 3 <span class="uppercase">{{ $product->fsatuanbesar ?? '-' }}</span>
                                         Level 1
                                     </label>
                                     <div class="d-flex">
@@ -658,8 +656,8 @@
                                 <!-- HJ <DUS> Level 1 -->
                                 <div>
                                     <label class="block text-sm font-bold">
-                                        Harga Jual 3 <span
-                                            class="uppercase">{{ $product->fsatuanbesar2 ?? '-' }}</span> Level 1
+                                        Harga Jual 3 <span class="uppercase">{{ $product->fsatuanbesar2 ?? '-' }}</span>
+                                        Level 1
                                     </label>
                                     <div class="d-flex">
                                         <input type="text" disabled
@@ -713,7 +711,10 @@
                         </div>
 
                         @php
-                            $canApproval = in_array('approveProduct', explode(',', session('user_restricted_permissions', '')));
+                            $canApproval = in_array(
+                                'approveProduct',
+                                explode(',', session('user_restricted_permissions', '')),
+                            );
                         @endphp
                         @if ($canApproval)
                             <div class="md:col-span-2 flex justify-center items-center space-x-2">
@@ -771,7 +772,8 @@
                     @endphp
                     <div>
                         @if ($isUsedProduct)
-                            <div class="mb-4 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
+                            <div
+                                class="mb-4 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
                                 PRODUK INI SUDAH DIREFERENSI DI TRANSAKSI {{ implode(', ', $usedByLabels) }}. KODE PRODUK,
                                 QTY KONVERSI, DAN SATUAN YANG SUDAH TERPAKAI DIKUNCI. ANDA MASIH BISA UBAH FIELD LAIN.
                                 Satuan 2 dan Satuan 3 masih boleh diisi atau diupdate jika slotnya masih kosong.
@@ -817,7 +819,8 @@
                         <div class="mt-2 w-1/2" x-data="{ isMerekEditable: false }">
                             <label class="block text-sm font-bold">Merek</label>
                             <div class="flex items-center gap-2">
-                                <select name="fmerek" {{-- Nama langsung fmerek, tidak perlu input hidden lagi --}} class="w-full border rounded px-3 py-2 @error('fmerek') border-red-500 bg-red-50 @enderror"
+                                <select name="fmerek" {{-- Nama langsung fmerek, tidak perlu input hidden lagi --}}
+                                    class="w-full border rounded px-3 py-2 @error('fmerek') border-red-500 bg-red-50 @enderror"
                                     id="merkSelect">
                                     <option value=""></option>
                                     @foreach ($merks as $merk)
@@ -837,8 +840,7 @@
                                     <i class="fa fa-plus"></i>
                                 </button>
                                 <!-- Button Browse Merek -->
-                                <button type="button"
-                                    @click="window.dispatchEvent(new CustomEvent('merek-browse-open'))"
+                                <button type="button" @click="window.dispatchEvent(new CustomEvent('merek-browse-open'))"
                                     class="whitespace-nowrap bg-blue-600 text-white px-3 py-2 rounded hover:bg-blue-700">
                                     <i class="fa fa-search"></i>
                                 </button>
@@ -973,8 +975,8 @@
                                                     data-name="{{ $satu->fsatuanname }}"
                                                     {{ old('fsatuanbesar', $product->fsatuanbesar) == $satu->fsatuancode ? 'selected' : '' }}>
                                                     {{ $satu->fsatuancode }}
-                                            </option>
-                                        @endforeach
+                                                </option>
+                                            @endforeach
                                         </select>
                                         @if ($lockSatuan2)
                                             <input type="hidden" name="fsatuanbesar"
@@ -1039,8 +1041,8 @@
                                                     data-name="{{ $satu->fsatuanname }}"
                                                     {{ old('fsatuanbesar2', $product->fsatuanbesar2) == $satu->fsatuancode ? 'selected' : '' }}>
                                                     {{ $satu->fsatuancode }}
-                                            </option>
-                                        @endforeach
+                                                </option>
+                                            @endforeach
                                         </select>
                                         @if ($lockSatuan3)
                                             <input type="hidden" name="fsatuanbesar2"
@@ -1223,7 +1225,8 @@
                                 <!-- Harga Jual Satuan 2 -->
                                 <div>
                                     <label for="fhargajual2level1" class="block text-sm font-bold">Harga Jual 2
-                                        (<span id="hj-satuan-besar-level1-label" class="uppercase">-</span>) Level 1</label>
+                                        (<span id="hj-satuan-besar-level1-label" class="uppercase">-</span>) Level
+                                        1</label>
                                     <div class="d-flex">
                                         <input type="text"
                                             class="w-1/10 border rounded px-3 py-2 bg-yellow-50 @error('fhargajual2level1') is-invalid @enderror"
@@ -1240,7 +1243,8 @@
                                 <!-- HJ. Besar Level 2 -->
                                 <div>
                                     <label for="fhargajual2level2" class="block text-sm font-bold">Harga Jual 2
-                                        (<span id="hj-satuan-besar-level2-label" class="uppercase">-</span>) Level 2</label>
+                                        (<span id="hj-satuan-besar-level2-label" class="uppercase">-</span>) Level
+                                        2</label>
                                     <div class="d-flex">
                                         <input type="text"
                                             class="w-1/10 border rounded px-3 py-2 bg-yellow-50 @error('fhargajual2level2') is-invalid @enderror"
@@ -1257,7 +1261,8 @@
                                 <!-- HJ. Besar Level 3 -->
                                 <div>
                                     <label for="fhargajual2level3" class="block text-sm font-bold">Harga Jual 2
-                                        (<span id="hj-satuan-besar-level3-label" class="uppercase">-</span>) Level 3</label>
+                                        (<span id="hj-satuan-besar-level3-label" class="uppercase">-</span>) Level
+                                        3</label>
                                     <div class="d-flex">
                                         <input type="text"
                                             class="w-1/10 border rounded px-3 py-2 bg-yellow-50 @error('fhargajual2level3') is-invalid @enderror"
@@ -1344,9 +1349,9 @@
                                 class="flex items-center border border-gray-300 rounded bg-gray-50 focus-within:bg-white focus-within:ring-1 focus-within:ring-blue-400 transition-all @error('fminstock') border-red-500 @enderror">
 
                                 {{-- Input tanpa border agar menyatu dengan container --}}
-                            <input type="text" name="fminstock" id="fminstock"
-                                value="{{ number_format((float) old('fminstock', $product->fminstock ?? 0), 2, ',', '.') }}"
-                                class="flex-1 bg-transparent border-none focus:ring-0 px-3 py-2 text-right">
+                                <input type="text" name="fminstock" id="fminstock"
+                                    value="{{ number_format((float) old('fminstock', $product->fminstock ?? 0), 2, ',', '.') }}"
+                                    class="flex-1 bg-transparent border-none focus:ring-0 px-3 py-2 text-right">
 
                                 {{-- Garis vertikal (border-l) dan teks satuan --}}
                                 <span id="satuanKecilTarget"
@@ -1382,78 +1387,98 @@
                             <div class="mt-4 w-1/2">
                                 <div class="space-y-4">
                                     @foreach ($enabledImageNumbers as $imgNo)
-                                    @php
-                                        $field = 'fimage' . $imgNo;
-                                        $imageRaw = (string) ($product->{$field} ?? '');
-                                        $driveFileId = null;
-                                        if ($imageRaw !== '') {
-                                            if (str_contains($imageRaw, 'http')) {
-                                                if (preg_match('~/d/([a-zA-Z0-9_-]+)~', $imageRaw, $m)) {
-                                                    $driveFileId = $m[1];
-                                                } elseif (preg_match('/[?&]id=([a-zA-Z0-9_-]+)/', $imageRaw, $m)) {
-                                                    $driveFileId = $m[1];
+                                        @php
+                                            $field = 'fimage' . $imgNo;
+                                            $imageRaw = (string) ($product->{$field} ?? '');
+                                            $driveFileId = null;
+                                            if ($imageRaw !== '') {
+                                                if (str_contains($imageRaw, 'http')) {
+                                                    if (preg_match('~/d/([a-zA-Z0-9_-]+)~', $imageRaw, $m)) {
+                                                        $driveFileId = $m[1];
+                                                    } elseif (preg_match('/[?&]id=([a-zA-Z0-9_-]+)/', $imageRaw, $m)) {
+                                                        $driveFileId = $m[1];
+                                                    }
+                                                } else {
+                                                    $driveFileId = $imageRaw;
                                                 }
-                                            } else {
-                                                $driveFileId = $imageRaw;
                                             }
-                                        }
-                                        $photoVersion = !empty($product->fupdatedat) ? strtotime((string) $product->fupdatedat) : null;
-                                        $drivePreviewUrl = $driveFileId
-                                            ? route('product.photo', [
-                                                'fprdid' => $product->fprdid,
-                                                'field' => $field,
-                                                'v' => $photoVersion ?: time(),
-                                            ])
-                                            : null;
-                                    @endphp
-                                    <div>
-                                        <label class="block text-xs font-bold text-gray-600 mb-1">Foto {{ $imgNo }}</label>
-                                        <div class="flex items-center gap-4">
-                                            <input type="file" name="{{ $field }}" id="{{ $field }}" accept="image/*"
-                                                class="hidden" onchange="previewImage(this, {{ $imgNo }})">
-                                            <button type="button" onclick="document.getElementById('{{ $field }}').click()"
-                                                class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 flex items-center gap-2">
-                                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                                                </svg>
-                                                Pilih Foto {{ $imgNo }}
-                                            </button>
-                                            <button type="button" id="btnRemoveImage{{ $imgNo }}"
-                                                class="hidden bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600 flex items-center gap-2"
-                                                onclick="removeImage({{ $imgNo }})">
-                                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                                                </svg>
-                                                Hapus
-                                            </button>
+                                            $photoVersion = !empty($product->fupdatedat)
+                                                ? strtotime((string) $product->fupdatedat)
+                                                : null;
+                                            $drivePreviewUrl = $driveFileId
+                                                ? route('product.photo', [
+                                                    'fprdid' => $product->fprdid,
+                                                    'field' => $field,
+                                                    'v' => $photoVersion ?: time(),
+                                                ])
+                                                : null;
+                                        @endphp
+                                        <div>
+                                            <label class="block text-xs font-bold text-gray-600 mb-1">Foto
+                                                {{ $imgNo }}</label>
+                                            <div class="flex items-center gap-4">
+                                                <input type="file" name="{{ $field }}"
+                                                    id="{{ $field }}" accept="image/*" class="hidden"
+                                                    onchange="previewImage(this, {{ $imgNo }})">
+                                                <button type="button"
+                                                    onclick="document.getElementById('{{ $field }}').click()"
+                                                    class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 flex items-center gap-2">
+                                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5"
+                                                        fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                        <path stroke-linecap="round" stroke-linejoin="round"
+                                                            stroke-width="2"
+                                                            d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                                    </svg>
+                                                    Pilih Foto {{ $imgNo }}
+                                                </button>
+                                                <button type="button" id="btnRemoveImage{{ $imgNo }}"
+                                                    class="hidden bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600 flex items-center gap-2"
+                                                    onclick="removeImage({{ $imgNo }})">
+                                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5"
+                                                        fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                        <path stroke-linecap="round" stroke-linejoin="round"
+                                                            stroke-width="2"
+                                                            d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                                    </svg>
+                                                    Hapus
+                                                </button>
+                                            </div>
+                                            @if ($driveFileId)
+                                                <div id="imagePreviewContainer{{ $imgNo }}" class="mt-3">
+                                                    <img id="imagePreview{{ $imgNo }}"
+                                                        src="{{ $drivePreviewUrl }}"
+                                                        alt="Produk Image {{ $imgNo }}"
+                                                        class="max-w-xs max-h-48 border rounded shadow cursor-zoom-in hover:opacity-90 transition"
+                                                        onclick="openModal({{ $imgNo }})"
+                                                        onerror="this.onerror=null; this.src='https://drive.google.com/thumbnail?id={{ $driveFileId }}&sz=w1000';">
+                                                </div>
+                                            @else
+                                                <div id="imagePreviewContainer{{ $imgNo }}" class="mt-3 hidden">
+                                                    <img id="imagePreview{{ $imgNo }}" src=""
+                                                        alt="Preview {{ $imgNo }}"
+                                                        class="max-w-xs max-h-48 border rounded shadow cursor-zoom-in hover:opacity-90 transition"
+                                                        onclick="openModal({{ $imgNo }})">
+                                                </div>
+                                            @endif
                                         </div>
-                                        @if($driveFileId)
-                                            <div id="imagePreviewContainer{{ $imgNo }}" class="mt-3">
-                                                <img id="imagePreview{{ $imgNo }}" src="{{ $drivePreviewUrl }}" alt="Produk Image {{ $imgNo }}"
-                                                    class="max-w-xs max-h-48 border rounded shadow cursor-zoom-in hover:opacity-90 transition"
-                                                    onclick="openModal({{ $imgNo }})"
-                                                    onerror="this.onerror=null; this.src='https://drive.google.com/thumbnail?id={{ $driveFileId }}&sz=w1000';">
-                                            </div>
-                                        @else
-                                            <div id="imagePreviewContainer{{ $imgNo }}" class="mt-3 hidden">
-                                                <img id="imagePreview{{ $imgNo }}" src="" alt="Preview {{ $imgNo }}"
-                                                    class="max-w-xs max-h-48 border rounded shadow cursor-zoom-in hover:opacity-90 transition"
-                                                    onclick="openModal({{ $imgNo }})">
-                                            </div>
-                                        @endif
-                                    </div>
                                     @endforeach
                                 </div>
                                 <p class="text-xs text-gray-500 mt-1">Format: JPG, PNG, GIF, WEBP. Maks 2MB</p>
-                                <div id="imageModal" class="fixed inset-0 z-50 hidden bg-black bg-opacity-90 flex items-center justify-center p-4" onclick="closeModal()">
-                                    <span class="absolute top-5 right-10 text-white text-40px font-bold cursor-pointer">&times;</span>
+                                <div id="imageModal"
+                                    class="fixed inset-0 z-50 hidden bg-black bg-opacity-90 flex items-center justify-center p-4"
+                                    onclick="closeModal()">
+                                    <span
+                                        class="absolute top-5 right-10 text-white text-40px font-bold cursor-pointer">&times;</span>
                                     <img id="modalContent" class="max-w-full max-h-full rounded shadow-2xl">
                                 </div>
                             </div>
                         @endif
 
                         @php
-                            $canApproval = in_array('approveProduct', explode(',', session('user_restricted_permissions', '')));
+                            $canApproval = in_array(
+                                'approveProduct',
+                                explode(',', session('user_restricted_permissions', '')),
+                            );
                         @endphp
                         @if ($canApproval)
                             <div class="md:col-span-2 flex justify-center items-center space-x-2">
@@ -2001,7 +2026,7 @@
             allowClear: true
         });
 
-        
+
         // let fhargasatuankecillevel1 = new AutoNumeric('#fhargasatuankecillevel1',
         //     'commaDecimalCharDotSeparator');
         // let hargasatuankecillevel2 = new AutoNumeric('#fhargasatuankecillevel2',
@@ -2767,13 +2792,13 @@
     function previewImage(input, imageNo = 1) {
         if (input.files && input.files[0]) {
             var reader = new FileReader();
-            
+
             reader.onload = function(e) {
                 document.getElementById(`imagePreview${imageNo}`).src = e.target.result;
                 document.getElementById(`imagePreviewContainer${imageNo}`).classList.remove('hidden');
                 document.getElementById(`btnRemoveImage${imageNo}`).classList.remove('hidden');
             }
-            
+
             reader.readAsDataURL(input.files[0]);
         }
     }

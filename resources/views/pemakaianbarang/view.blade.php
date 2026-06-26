@@ -5,7 +5,10 @@
 @section('content')
     @php
         $permissions = explode(',', session('user_restricted_permissions', ''));
-        $canPrint = in_array('updatePemakaianBarang', $permissions, true) || in_array('deletePemakaianBarang', $permissions, true) || in_array('createPemakaianbarang', $permissions, true);
+        $canPrint =
+            in_array('updatePemakaianBarang', $permissions, true) ||
+            in_array('deletePemakaianBarang', $permissions, true) ||
+            in_array('createPemakaianbarang', $permissions, true);
     @endphp
     <style>
         input:focus,
@@ -114,22 +117,23 @@
             subaccounts: @js($subaccounts),
             savedItems: []
         }" class="lg:col-span-5">
-            <div class="bg-white rounded shadow p-6 md:p-8 max-w-[96rem] mx-auto">
+            <div class="bg-white rounded shadow p-6 md:p-8 max-w-[1800px] w-full mx-auto">
                 <div class="space-y-4">
                     {{-- HEADER FORM --}}
                     <div class="grid grid-cols-1 lg:grid-cols-12 gap-4">
                         <div class="lg:col-span-4">
                             <label class="block text-sm font-medium">Cabang</label>
                             <input type="text" class="w-full border rounded px-3 py-2 bg-gray-200 cursor-not-allowed"
-                                value="{{ trim(($fbranchcode ?? '') . ($fcabang ?? '' ? ' - ' . $fcabang : '')) }}" disabled>
+                                value="{{ trim(($fbranchcode ?? '') . ($fcabang ?? '' ? ' - ' . $fcabang : '')) }}"
+                                disabled>
                             <input type="hidden" name="fbranchcode" value="{{ $fbranchcode }}">
                         </div>
                         <div class="lg:col-span-4" x-data="{ autoCode: true }">
                             <label class="block text-sm font-medium mb-1">Transaksi#</label>
                             <div class="flex items-center gap-3">
-                                <input type="text" name="fstockmtno" value="{{ old('fstockmtno', $pemakaianbarang->fstockmtno) }}"
-                                 class="w-full border rounded px-3 py-2"
-                                    :disabled="autoCode"
+                                <input type="text" name="fstockmtno"
+                                    value="{{ old('fstockmtno', $pemakaianbarang->fstockmtno) }}"
+                                    class="w-full border rounded px-3 py-2" :disabled="autoCode"
                                     :class="autoCode ? 'bg-gray-200 cursor-not-allowed' : 'bg-white'">
                                 <label class="inline-flex items-center select-none">
                                     <input type="checkbox" x-model="autoCode" checked>
@@ -232,7 +236,9 @@
                                                         x-text="it.fitemname"></div>
                                                     <button type="button" @click="openDesc(it)"
                                                         class="desc-inline-field__button inline-flex items-center border border-l-0 rounded-r px-2 py-1 transition-colors"
-                                                        :class="it.fdesc ? 'border-emerald-300 bg-emerald-50 text-emerald-600 hover:bg-emerald-100' : 'border-gray-300 bg-white text-gray-500 hover:bg-gray-50'"
+                                                        :class="it.fdesc ?
+                                                            'border-emerald-300 bg-emerald-50 text-emerald-600 hover:bg-emerald-100' :
+                                                            'border-gray-300 bg-white text-gray-500 hover:bg-gray-50'"
                                                         title="Deskripsi item">
                                                         <x-heroicon-o-document-text class="h-4 w-4" />
                                                     </button>
@@ -298,8 +304,8 @@
                         </div>
                     </div>
                 </div>
-                    @php $isPrinted = (int) ($pemakaianbarang->fprint ?? 0) === 1; @endphp
-                    <div class="mt-6 flex justify-center space-x-4">
+                @php $isPrinted = (int) ($pemakaianbarang->fprint ?? 0) === 1; @endphp
+                <div class="mt-6 flex justify-center space-x-4">
                     @if ($canPrint)
                         <a href="{{ route('pemakaianbarang.print', $pemakaianbarang->fstockmtno) }}" target="_blank"
                             class="{{ $isPrinted ? 'bg-gray-400 pointer-events-none cursor-not-allowed' : 'bg-blue-600 hover:bg-blue-700' }} text-white px-6 py-2 rounded flex items-center">
@@ -315,42 +321,42 @@
                         class="bg-gray-500 text-white px-6 py-2 rounded hover:bg-gray-600 flex items-center">
                         <x-heroicon-o-arrow-left class="w-5 h-5 mr-2" />
                         Kembali
-                        </button>
-                    </div>
+                    </button>
+                </div>
 
-                    <div x-show="$store.pemakaianDesc.show" x-cloak class="fixed inset-0 z-[95] flex items-center justify-center"
-                        x-transition.opacity>
-                        <div class="absolute inset-0 bg-black/50" @click="$store.pemakaianDesc.close()"></div>
-                        <div class="relative bg-white w-[92vw] max-w-lg rounded-2xl shadow-2xl overflow-hidden"
-                            x-transition.scale>
-                            <div class="px-5 py-4 border-b flex items-center">
-                                <x-heroicon-o-document-text class="w-6 h-6 text-blue-600 mr-2" />
-                                <h3 class="text-lg font-semibold text-gray-800">Deskripsi Item</h3>
-                            </div>
-                            <div class="px-5 py-4 space-y-4">
-                                <div>
-                                    <div class="mb-1 flex items-center justify-between gap-3">
-                                        <div class="text-sm text-gray-700">Nama Produk</div>
-                                        <button type="button" @click="$store.pemakaianDesc.copyName()"
-                                            class="h-8 px-3 rounded-lg bg-blue-50 text-blue-700 text-sm font-medium hover:bg-blue-100">
-                                            Copy
-                                        </button>
-                                    </div>
-                                    <div class="rounded-lg border bg-gray-50 px-3 py-2 text-sm text-gray-800" x-text="$store.pemakaianDesc.itemName || '-'"></div>
+                <div x-show="$store.pemakaianDesc.show" x-cloak
+                    class="fixed inset-0 z-[95] flex items-center justify-center" x-transition.opacity>
+                    <div class="absolute inset-0 bg-black/50" @click="$store.pemakaianDesc.close()"></div>
+                    <div class="relative bg-white w-[92vw] max-w-lg rounded-2xl shadow-2xl overflow-hidden"
+                        x-transition.scale>
+                        <div class="px-5 py-4 border-b flex items-center">
+                            <x-heroicon-o-document-text class="w-6 h-6 text-blue-600 mr-2" />
+                            <h3 class="text-lg font-semibold text-gray-800">Deskripsi Item</h3>
+                        </div>
+                        <div class="px-5 py-4 space-y-4">
+                            <div>
+                                <div class="mb-1 flex items-center justify-between gap-3">
+                                    <div class="text-sm text-gray-700">Nama Produk</div>
+                                    <button type="button" @click="$store.pemakaianDesc.copyName()"
+                                        class="h-8 px-3 rounded-lg bg-blue-50 text-blue-700 text-sm font-medium hover:bg-blue-100">
+                                        Copy
+                                    </button>
                                 </div>
-                                <label class="block text-sm text-gray-700">Deskripsi</label>
-                                <textarea x-model="$store.pemakaianDesc.value" rows="5"
-                                    class="w-full border rounded px-3 py-2 bg-gray-100 cursor-not-allowed text-gray-600"
-                                    readonly></textarea>
+                                <div class="rounded-lg border bg-gray-50 px-3 py-2 text-sm text-gray-800"
+                                    x-text="$store.pemakaianDesc.itemName || '-'"></div>
                             </div>
-                            <div class="px-5 py-3 border-t flex items-center justify-end gap-2">
-                                <button type="button" @click="$store.pemakaianDesc.close()"
-                                    class="h-9 px-4 rounded-lg bg-gray-100 text-gray-700 text-sm font-medium hover:bg-gray-200">
-                                    Tutup
-                                </button>
-                            </div>
+                            <label class="block text-sm text-gray-700">Deskripsi</label>
+                            <textarea x-model="$store.pemakaianDesc.value" rows="5"
+                                class="w-full border rounded px-3 py-2 bg-gray-100 cursor-not-allowed text-gray-600" readonly></textarea>
+                        </div>
+                        <div class="px-5 py-3 border-t flex items-center justify-end gap-2">
+                            <button type="button" @click="$store.pemakaianDesc.close()"
+                                class="h-9 px-4 rounded-lg bg-gray-100 text-gray-700 text-sm font-medium hover:bg-gray-200">
+                                Tutup
+                            </button>
                         </div>
                     </div>
+                </div>
             </div>
         </div>
     </div>
@@ -528,9 +534,9 @@
 
                     // Jika angka adalah bulat, hilangkan desimal
                     return v.toLocaleString('id-ID', {
-                    minimumFractionDigits: 2,
-                    maximumFractionDigits: 2
-                });
+                        minimumFractionDigits: 2,
+                        maximumFractionDigits: 2
+                    });
                 },
 
                 rupiah(n) {

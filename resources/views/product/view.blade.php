@@ -118,7 +118,7 @@
     </style>
 
     <div x-data="{ showModal: false, open: true, selected: 'alamatsurat', frekening: '' }">
-        <div class="bg-white rounded shadow p-6 md:p-8 max-w-[96rem] mx-auto">
+        <div class="bg-white rounded shadow p-6 md:p-8 max-w-[1800px] w-full mx-auto">
             @php
                 $isApproved = \App\Support\ApprovalState::isApprovedRecord($product);
             @endphp
@@ -638,7 +638,10 @@
                     </div>
 
                     @php
-                        $canApproval = in_array('approveProduct', explode(',', session('user_restricted_permissions', '')));
+                        $canApproval = in_array(
+                            'approveProduct',
+                            explode(',', session('user_restricted_permissions', '')),
+                        );
                     @endphp
                     @if ($canApproval)
                         <div class="md:col-span-2 flex justify-center items-center space-x-2">
@@ -794,4 +797,3 @@
             });
     }
 </script>
-

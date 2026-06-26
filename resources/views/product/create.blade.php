@@ -149,9 +149,9 @@
     </style>
 
     <div x-data="{ open: false, keyword: '', rows: [], page: 1, lastPage: 1, total: 0 }">
-        <div class="bg-white rounded shadow p-6 md:p-8 max-w-[96rem] mx-auto">
-            <form action="{{ route('product.store') }}" method="POST" enctype="multipart/form-data"
-                data-form-draft="true" data-draft-key="product:create">
+        <div class="bg-white rounded shadow p-6 md:p-8 max-w-[1800px] w-full mx-auto">
+            <form action="{{ route('product.store') }}" method="POST" enctype="multipart/form-data" data-form-draft="true"
+                data-draft-key="product:create">
                 @csrf
 
                 <div>
@@ -697,40 +697,51 @@
                     <div class="mt-4 w-1/2">
                         <div class="space-y-4">
                             @foreach ($enabledImageNumbers as $imgNo)
-                            <div>
-                                <label class="block text-xs font-bold text-gray-600 mb-1">Foto {{ $imgNo }}</label>
-                                <div class="flex items-center gap-4">
-                                    <input type="file" name="fimage{{ $imgNo }}" id="fimage{{ $imgNo }}" accept="image/*"
-                                        class="hidden" onchange="previewImage(this, {{ $imgNo }})">
-                                    <button type="button" onclick="document.getElementById('fimage{{ $imgNo }}').click()"
-                                        class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 flex items-center gap-2">
-                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                                        </svg>
-                                        Pilih Foto {{ $imgNo }}
-                                    </button>
-                                    <button type="button" id="btnRemoveImage{{ $imgNo }}"
-                                        class="hidden bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600 flex items-center gap-2"
-                                        onclick="removeImage({{ $imgNo }})">
-                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                                        </svg>
-                                        Hapus
-                                    </button>
-                                </div>
+                                <div>
+                                    <label class="block text-xs font-bold text-gray-600 mb-1">Foto
+                                        {{ $imgNo }}</label>
+                                    <div class="flex items-center gap-4">
+                                        <input type="file" name="fimage{{ $imgNo }}"
+                                            id="fimage{{ $imgNo }}" accept="image/*" class="hidden"
+                                            onchange="previewImage(this, {{ $imgNo }})">
+                                        <button type="button"
+                                            onclick="document.getElementById('fimage{{ $imgNo }}').click()"
+                                            class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 flex items-center gap-2">
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none"
+                                                viewBox="0 0 24 24" stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                    d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                            </svg>
+                                            Pilih Foto {{ $imgNo }}
+                                        </button>
+                                        <button type="button" id="btnRemoveImage{{ $imgNo }}"
+                                            class="hidden bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600 flex items-center gap-2"
+                                            onclick="removeImage({{ $imgNo }})">
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none"
+                                                viewBox="0 0 24 24" stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                    d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                            </svg>
+                                            Hapus
+                                        </button>
+                                    </div>
 
-                                <div id="imagePreviewContainer{{ $imgNo }}" class="mt-3 hidden">
-                                    <img id="imagePreview{{ $imgNo }}" src="" alt="Preview Foto {{ $imgNo }}"
-                                        class="max-w-xs max-h-48 border rounded shadow cursor-zoom-in hover:opacity-90 transition"
-                                        onclick="openModal({{ $imgNo }})">
+                                    <div id="imagePreviewContainer{{ $imgNo }}" class="mt-3 hidden">
+                                        <img id="imagePreview{{ $imgNo }}" src=""
+                                            alt="Preview Foto {{ $imgNo }}"
+                                            class="max-w-xs max-h-48 border rounded shadow cursor-zoom-in hover:opacity-90 transition"
+                                            onclick="openModal({{ $imgNo }})">
+                                    </div>
                                 </div>
-                            </div>
                             @endforeach
                         </div>
                         <p class="text-xs text-gray-500 mt-1">Format: JPG, PNG. Maks 2MB</p>
 
-                        <div id="imageModal" class="fixed inset-0 z-50 hidden bg-black bg-opacity-90 flex items-center justify-center p-4" onclick="closeModal()">
-                            <span class="absolute top-5 right-10 text-white text-40px font-bold cursor-pointer">&times;</span>
+                        <div id="imageModal"
+                            class="fixed inset-0 z-50 hidden bg-black bg-opacity-90 flex items-center justify-center p-4"
+                            onclick="closeModal()">
+                            <span
+                                class="absolute top-5 right-10 text-white text-40px font-bold cursor-pointer">&times;</span>
                             <img id="modalContent" class="max-w-full max-h-full rounded shadow-2xl">
                         </div>
                     </div>
@@ -1880,57 +1891,56 @@
 
     // --- Image Preview Functions ---
     function previewImage(input, imageNo = 1) {
-    const container = document.getElementById(`imagePreviewContainer${imageNo}`);
-    const preview = document.getElementById(`imagePreview${imageNo}`);
-    const btnRemove = document.getElementById(`btnRemoveImage${imageNo}`);
+        const container = document.getElementById(`imagePreviewContainer${imageNo}`);
+        const preview = document.getElementById(`imagePreview${imageNo}`);
+        const btnRemove = document.getElementById(`btnRemoveImage${imageNo}`);
 
-    if (input.files && input.files[0]) {
-        const reader = new FileReader();
+        if (input.files && input.files[0]) {
+            const reader = new FileReader();
 
-        reader.onload = function(e) {
-            preview.src = e.target.result;
-            container.classList.remove('hidden');
-            btnRemove.classList.remove('hidden');
+            reader.onload = function(e) {
+                preview.src = e.target.result;
+                container.classList.remove('hidden');
+                btnRemove.classList.remove('hidden');
+            }
+
+            reader.readAsDataURL(input.files[0]);
         }
-
-        reader.readAsDataURL(input.files[0]);
     }
-}
 
-function removeImage(imageNo = 1) {
-    const input = document.getElementById(`fimage${imageNo}`);
-    const container = document.getElementById(`imagePreviewContainer${imageNo}`);
-    const preview = document.getElementById(`imagePreview${imageNo}`);
-    const btnRemove = document.getElementById(`btnRemoveImage${imageNo}`);
+    function removeImage(imageNo = 1) {
+        const input = document.getElementById(`fimage${imageNo}`);
+        const container = document.getElementById(`imagePreviewContainer${imageNo}`);
+        const preview = document.getElementById(`imagePreview${imageNo}`);
+        const btnRemove = document.getElementById(`btnRemoveImage${imageNo}`);
 
-    input.value = ""; // Reset input file
-    preview.src = "";
-    container.classList.add('hidden');
-    btnRemove.classList.add('hidden');
-}
-
-// Fungsi Zoom Modal
-function openModal(imageNo = 1) {
-    const modal = document.getElementById('imageModal');
-    const previewImg = document.getElementById(`imagePreview${imageNo}`);
-    const modalImg = document.getElementById('modalContent');
-    
-    if (previewImg.src) {
-        modal.classList.remove('hidden');
-        modalImg.src = previewImg.src;
-        document.body.style.overflow = 'hidden'; // Kunci scroll layar belakang
+        input.value = ""; // Reset input file
+        preview.src = "";
+        container.classList.add('hidden');
+        btnRemove.classList.add('hidden');
     }
-}
 
-function closeModal() {
-    const modal = document.getElementById('imageModal');
-    modal.classList.add('hidden');
-    document.body.style.overflow = 'auto'; // Aktifkan kembali scroll
-}
+    // Fungsi Zoom Modal
+    function openModal(imageNo = 1) {
+        const modal = document.getElementById('imageModal');
+        const previewImg = document.getElementById(`imagePreview${imageNo}`);
+        const modalImg = document.getElementById('modalContent');
 
-// Tutup modal dengan tombol Escape
-document.addEventListener('keydown', function(e) {
-    if (e.key === "Escape") closeModal();
-});
+        if (previewImg.src) {
+            modal.classList.remove('hidden');
+            modalImg.src = previewImg.src;
+            document.body.style.overflow = 'hidden'; // Kunci scroll layar belakang
+        }
+    }
+
+    function closeModal() {
+        const modal = document.getElementById('imageModal');
+        modal.classList.add('hidden');
+        document.body.style.overflow = 'auto'; // Aktifkan kembali scroll
+    }
+
+    // Tutup modal dengan tombol Escape
+    document.addEventListener('keydown', function(e) {
+        if (e.key === "Escape") closeModal();
+    });
 </script>
-

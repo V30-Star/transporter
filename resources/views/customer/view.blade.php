@@ -42,11 +42,11 @@
             transition: 0.4s;
         }
 
-        input:checked + .slider {
+        input:checked+.slider {
             background-color: #4CAF50;
         }
 
-        input:checked + .slider:before {
+        input:checked+.slider:before {
             transform: translateX(26px);
         }
 
@@ -110,7 +110,7 @@
     </style>
 
     <div x-data="{ showModal: false, open: true, selected: 'alamatsurat', frekening: '' }">
-        <div class="bg-white rounded shadow p-6 md:p-8 max-w-[96rem] mx-auto">
+        <div class="bg-white rounded shadow p-6 md:p-8 max-w-[1800px] w-full mx-auto">
             <div class="space-y-4">
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
                     <div x-data="{ autoCode: true }" class="flex items-center gap-4">
@@ -119,7 +119,8 @@
                             <input type="text" name="fcustomercode" readonly
                                 class="w-full border rounded px-3 py-2 uppercase" placeholder="Masukkan Kode Customer"
                                 :disabled="autoCode"
-                                :value="autoCode ? '{{ $customer->fcustomercode }}' : '{{ old('fcustomercode', $customer->fcustomercode) }}'"
+                                :value="autoCode ? '{{ $customer->fcustomercode }}' :
+                                    '{{ old('fcustomercode', $customer->fcustomercode) }}'"
                                 :class="autoCode ? 'bg-gray-200 cursor-not-allowed' : 'bg-white'">
                         </div>
                         <label class="inline-flex items-center mt-6 font-bold">
@@ -220,9 +221,15 @@
                         <label class="block text-sm font-bold">Jadwal Tukar Faktur</label>
                         <select name="fjadwaltukarfakturmingguan" disabled
                             class="w-full border rounded px-3 py-2 bg-gray-100 @error('fjadwaltukarfakturmingguan') border-red-500 @enderror">
-                            <option value="1" {{ old('fjadwaltukarfakturmingguan', $customer->fjadwaltukarfakturmingguan) == '1' ? 'selected' : '' }}>Setiap Minggu</option>
-                            <option value="2" {{ old('fjadwaltukarfakturmingguan', $customer->fjadwaltukarfakturmingguan) == '2' ? 'selected' : '' }}>Minggu Ganjil</option>
-                            <option value="3" {{ old('fjadwaltukarfakturmingguan', $customer->fjadwaltukarfakturmingguan) == '3' ? 'selected' : '' }}>Minggu Genap</option>
+                            <option value="1"
+                                {{ old('fjadwaltukarfakturmingguan', $customer->fjadwaltukarfakturmingguan) == '1' ? 'selected' : '' }}>
+                                Setiap Minggu</option>
+                            <option value="2"
+                                {{ old('fjadwaltukarfakturmingguan', $customer->fjadwaltukarfakturmingguan) == '2' ? 'selected' : '' }}>
+                                Minggu Ganjil</option>
+                            <option value="3"
+                                {{ old('fjadwaltukarfakturmingguan', $customer->fjadwaltukarfakturmingguan) == '3' ? 'selected' : '' }}>
+                                Minggu Genap</option>
                         </select>
                         @error('fjadwaltukarfakturmingguan')
                             <div class="invalid-feedback">
@@ -237,13 +244,27 @@
                             <select name="fjadwaltukarfakturhari" disabled
                                 class="w-full border rounded px-3 py-2 bg-gray-100 @error('fjadwaltukarfakturhari') border-red-500 @enderror">
                                 <option value="">-- Pilih Hari --</option>
-                                <option value="1" {{ old('fjadwaltukarfakturhari', $customer->fjadwaltukarfakturhari) == '1' ? 'selected' : '' }}>Senin</option>
-                                <option value="2" {{ old('fjadwaltukarfakturhari', $customer->fjadwaltukarfakturhari) == '2' ? 'selected' : '' }}>Selasa</option>
-                                <option value="3" {{ old('fjadwaltukarfakturhari', $customer->fjadwaltukarfakturhari) == '3' ? 'selected' : '' }}>Rabu</option>
-                                <option value="4" {{ old('fjadwaltukarfakturhari', $customer->fjadwaltukarfakturhari) == '4' ? 'selected' : '' }}>Kamis</option>
-                                <option value="5" {{ old('fjadwaltukarfakturhari', $customer->fjadwaltukarfakturhari) == '5' ? 'selected' : '' }}>Jumat</option>
-                                <option value="6" {{ old('fjadwaltukarfakturhari', $customer->fjadwaltukarfakturhari) == '6' ? 'selected' : '' }}>Sabtu</option>
-                                <option value="7" {{ old('fjadwaltukarfakturhari', $customer->fjadwaltukarfakturhari) == '7' ? 'selected' : '' }}>Minggu</option>
+                                <option value="1"
+                                    {{ old('fjadwaltukarfakturhari', $customer->fjadwaltukarfakturhari) == '1' ? 'selected' : '' }}>
+                                    Senin</option>
+                                <option value="2"
+                                    {{ old('fjadwaltukarfakturhari', $customer->fjadwaltukarfakturhari) == '2' ? 'selected' : '' }}>
+                                    Selasa</option>
+                                <option value="3"
+                                    {{ old('fjadwaltukarfakturhari', $customer->fjadwaltukarfakturhari) == '3' ? 'selected' : '' }}>
+                                    Rabu</option>
+                                <option value="4"
+                                    {{ old('fjadwaltukarfakturhari', $customer->fjadwaltukarfakturhari) == '4' ? 'selected' : '' }}>
+                                    Kamis</option>
+                                <option value="5"
+                                    {{ old('fjadwaltukarfakturhari', $customer->fjadwaltukarfakturhari) == '5' ? 'selected' : '' }}>
+                                    Jumat</option>
+                                <option value="6"
+                                    {{ old('fjadwaltukarfakturhari', $customer->fjadwaltukarfakturhari) == '6' ? 'selected' : '' }}>
+                                    Sabtu</option>
+                                <option value="7"
+                                    {{ old('fjadwaltukarfakturhari', $customer->fjadwaltukarfakturhari) == '7' ? 'selected' : '' }}>
+                                    Minggu</option>
                             </select>
                             @error('fjadwaltukarfakturhari')
                                 <div class="invalid-feedback">
@@ -287,17 +308,20 @@
                             @enderror
                         </div>
                         <div x-show="selected === 'alamat1'">
-                            <textarea readonly class="w-full border rounded px-3 py-2 bg-gray-100 mb-4 @error('fkirimaddress1') is-invalid @enderror"
+                            <textarea readonly
+                                class="w-full border rounded px-3 py-2 bg-gray-100 mb-4 @error('fkirimaddress1') is-invalid @enderror"
                                 name="fkirimaddress1" id="fkirimaddress1" placeholder="Masukkan Alamat Kirim 1" cols="10" rows="6">{{ old('fkirimaddress1', $customer->fkirimaddress1) }}</textarea>
                             @error('fkirimaddress1')
                                 <div class="invalid-feedback">{{ $message }}</div>
                             @enderror
-                            <textarea readonly class="w-full border rounded px-3 py-2 bg-gray-100 mb-4 @error('fkirimaddress2') is-invalid @enderror"
+                            <textarea readonly
+                                class="w-full border rounded px-3 py-2 bg-gray-100 mb-4 @error('fkirimaddress2') is-invalid @enderror"
                                 name="fkirimaddress2" id="fkirimaddress2" placeholder="Masukkan Alamat Kirim 2" cols="10" rows="6">{{ old('fkirimaddress2', $customer->fkirimaddress2) }}</textarea>
                             @error('fkirimaddress2')
                                 <div class="invalid-feedback">{{ $message }}</div>
                             @enderror
-                            <textarea readonly class="w-full border rounded px-3 py-2 bg-gray-100 mb-4 @error('fkirimaddress3') is-invalid @enderror"
+                            <textarea readonly
+                                class="w-full border rounded px-3 py-2 bg-gray-100 mb-4 @error('fkirimaddress3') is-invalid @enderror"
                                 name="fkirimaddress3" id="fkirimaddress3" placeholder="Masukkan Alamat Kirim 3" cols="10" rows="6">{{ old('fkirimaddress3', $customer->fkirimaddress3) }}</textarea>
                             @error('fkirimaddress3')
                                 <div class="invalid-feedback">{{ $message }}</div>
@@ -381,9 +405,15 @@
                         <select disabled
                             class="w-full border rounded px-3 py-2 bg-gray-100 @error('fhargalevel') is-invalid @enderror"
                             name="fhargalevel" id="fhargalevel">
-                            <option value="0" {{ old('fhargalevel', $customer->fhargalevel) == 0 ? 'selected' : '' }}>Harga Level 1</option>
-                            <option value="1" {{ old('fhargalevel', $customer->fhargalevel) == 1 ? 'selected' : '' }}>Harga Level 2</option>
-                            <option value="2" {{ old('fhargalevel', $customer->fhargalevel) == 2 ? 'selected' : '' }}>Harga Level 3</option>
+                            <option value="0"
+                                {{ old('fhargalevel', $customer->fhargalevel) == 0 ? 'selected' : '' }}>Harga Level 1
+                            </option>
+                            <option value="1"
+                                {{ old('fhargalevel', $customer->fhargalevel) == 1 ? 'selected' : '' }}>Harga Level 2
+                            </option>
+                            <option value="2"
+                                {{ old('fhargalevel', $customer->fhargalevel) == 2 ? 'selected' : '' }}>Harga Level 3
+                            </option>
                         </select>
                         @error('fhargalevel')
                             <div class="invalid-feedback">{{ $message }}</div>
@@ -491,4 +521,3 @@
         });
     });
 </script>
-

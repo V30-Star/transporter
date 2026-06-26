@@ -4,11 +4,11 @@
 
 @section('content')
     @php
-        $totalDebit = collect($savedItems)->where('fdk', 'D')->sum(fn ($item) => (float) ($item['famount'] ?? 0));
-        $totalKredit = collect($savedItems)->where('fdk', 'K')->sum(fn ($item) => (float) ($item['famount'] ?? 0));
+        $totalDebit = collect($savedItems)->where('fdk', 'D')->sum(fn($item) => (float) ($item['famount'] ?? 0));
+        $totalKredit = collect($savedItems)->where('fdk', 'K')->sum(fn($item) => (float) ($item['famount'] ?? 0));
     @endphp
 
-    <div class="bg-white rounded shadow p-6 md:p-8 max-w-[96rem] mx-auto space-y-6">
+    <div class="bg-white rounded shadow p-6 md:p-8 max-w-[1800px] w-full mx-auto space-y-6">
         <div class="grid grid-cols-1 lg:grid-cols-12 gap-4">
             <div class="lg:col-span-4">
                 <label class="block text-sm font-medium mb-1">Cabang</label>
@@ -89,7 +89,8 @@
                                     </span>
                                 </td>
                                 <td class="p-2 text-gray-700">{{ $item['faccountnote'] ?: '-' }}</td>
-                                <td class="p-2 text-right font-medium">{{ number_format((float) ($item['famount'] ?? 0), 2, ',', '.') }}</td>
+                                <td class="p-2 text-right font-medium">
+                                    {{ number_format((float) ($item['famount'] ?? 0), 2, ',', '.') }}</td>
                             </tr>
                         @empty
                             <tr>
@@ -115,4 +116,3 @@
         </div>
     </div>
 @endsection
-

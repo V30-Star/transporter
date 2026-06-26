@@ -14,9 +14,8 @@
     </style>
 
     <div x-data="{ open: true, selected: 'currency' }">
-        <div class="bg-white rounded shadow p-6 md:p-8 max-w-[96rem] mx-auto">
-            <form action="{{ route('currency.store') }}" method="POST" data-form-draft="true"
-                data-draft-key="currency:create">
+        <div class="bg-white rounded shadow p-6 md:p-8 max-w-[1800px] w-full mx-auto">
+            <form action="{{ route('currency.store') }}" method="POST" data-form-draft="true" data-draft-key="currency:create">
                 @csrf
 
                 <div class="space-y-4 mt-4">

@@ -44,11 +44,11 @@
             transition: 0.4s;
         }
 
-        input:checked + .slider {
+        input:checked+.slider {
             background-color: #4CAF50;
         }
 
-        input:checked + .slider:before {
+        input:checked+.slider:before {
             transform: translateX(26px);
         }
 
@@ -110,7 +110,7 @@
     </style>
 
     <div x-data="{ showModal: false, open: true, selected: 'alamatsurat', frekening: '' }">
-        <div class="bg-white rounded shadow p-6 md:p-8 max-w-[96rem] mx-auto">
+        <div class="bg-white rounded shadow p-6 md:p-8 max-w-[1800px] w-full mx-auto">
             <form id="customerForm"
                 @submit.prevent="
                     frekening = $el.querySelector('#frekening').value;
@@ -152,7 +152,8 @@
                         </div>
 
                         <label class="inline-flex items-center mt-6 font-bold">
-                            <input type="checkbox" x-model="autoCode" class="form-checkbox text-indigo-600" checked name="fblokir">
+                            <input type="checkbox" x-model="autoCode" class="form-checkbox text-indigo-600" checked
+                                name="fblokir">
                             <span class="ml-2 text-sm text-red-600 font-bold">Blokir</span>
                         </label>
                     </div>
@@ -598,4 +599,3 @@
         });
     });
 </script>
-

@@ -14,7 +14,7 @@
     </style>
 
     <div x-data="{ open: true, selected: 'surat' }">
-        <div class="bg-white rounded shadow p-6 md:p-8 max-w-[96rem] mx-auto">
+        <div class="bg-white rounded shadow p-6 md:p-8 max-w-[1800px] w-full mx-auto">
             <form action="{{ route('supplier.update', $supplier->fsupplierid) }}" method="POST" data-form-draft="true"
                 data-draft-key="supplier:edit">
                 @csrf
@@ -26,10 +26,10 @@
                         <input type="text" name="fsuppliercode"
                             value="{{ old('fsuppliercode', $supplier->fsuppliercode) }}"
                             class="w-full border rounded px-3 py-2 uppercase @error('fsuppliercode') border-red-500 @enderror {{ !empty($isTransactionLocked) ? 'bg-gray-100 text-gray-500 cursor-not-allowed' : '' }}"
-                            {{ !empty($isTransactionLocked) ? 'readonly' : '' }}
-                            autofocus>
+                            {{ !empty($isTransactionLocked) ? 'readonly' : '' }} autofocus>
                         @if (!empty($isTransactionLocked))
-                            <p class="text-amber-600 text-sm mt-1">Kode supplier dikunci karena sudah direferensi di transaksi.</p>
+                            <p class="text-amber-600 text-sm mt-1">Kode supplier dikunci karena sudah direferensi di
+                                transaksi.</p>
                         @endif
                         @error('fsuppliercode')
                             <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
@@ -50,9 +50,12 @@
                         <label class="block text-sm font-bold">Mata Uang</label>
                         <select name="fcurr"
                             class="w-full border rounded px-3 py-2 @error('fcurr') border-red-500 @enderror">
-                            <option value="IDR" {{ old('fcurr', $supplier->fcurr) == 'IDR' ? 'selected' : '' }}>IDR (Rupiah)</option>
-                            <option value="USD" {{ old('fcurr', $supplier->fcurr) == 'USD' ? 'selected' : '' }}>USD (Dollar)</option>
-                            <option value="EUR" {{ old('fcurr', $supplier->fcurr) == 'EUR' ? 'selected' : '' }}>EUR (Euro)</option>
+                            <option value="IDR" {{ old('fcurr', $supplier->fcurr) == 'IDR' ? 'selected' : '' }}>IDR
+                                (Rupiah)</option>
+                            <option value="USD" {{ old('fcurr', $supplier->fcurr) == 'USD' ? 'selected' : '' }}>USD
+                                (Dollar)</option>
+                            <option value="EUR" {{ old('fcurr', $supplier->fcurr) == 'EUR' ? 'selected' : '' }}>EUR
+                                (Euro)</option>
                         </select>
                         @error('fcurr')
                             <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
@@ -127,8 +130,7 @@
 
                     <div>
                         <label class="block text-sm font-bold">No. Rekening</label>
-                        <input type="text" name="fnorekening"
-                            value="{{ old('fnorekening', $supplier->fnorekening) }}"
+                        <input type="text" name="fnorekening" value="{{ old('fnorekening', $supplier->fnorekening) }}"
                             class="w-full border rounded px-3 py-2 @error('fnorekening') border-red-500 @enderror">
                         @error('fnorekening')
                             <p class="text-red-600 text-sm mt-1">{{ $message }}</p>

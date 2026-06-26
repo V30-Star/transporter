@@ -14,7 +14,7 @@
     </style>
 
     <div x-data="{ open: true, selected: 'surat' }">
-        <div class="bg-white rounded shadow p-6 md:p-8 max-w-[96rem] mx-auto">
+        <div class="bg-white rounded shadow p-6 md:p-8 max-w-[1800px] w-full mx-auto">
             <form action="{{ route('wilayah.update', $wilayah->fwilayahid) }}" method="POST">
                 @csrf
                 @method('PATCH')
@@ -24,10 +24,10 @@
                         <label class="block text-sm font-bold">Kode Wilayah</label>
                         <input type="text" name="fwilayahcode" value="{{ old('fwilayahcode', $wilayah->fwilayahcode) }}"
                             class="w-full border rounded px-3 py-2 uppercase @error('fwilayahcode') border-red-500 @enderror {{ !empty($isTransactionLocked) ? 'bg-gray-100 text-gray-500 cursor-not-allowed' : '' }}"
-                            {{ !empty($isTransactionLocked) ? 'readonly' : '' }}
-                            autofocus>
+                            {{ !empty($isTransactionLocked) ? 'readonly' : '' }} autofocus>
                         @if (!empty($isTransactionLocked))
-                            <p class="text-amber-600 text-sm mt-1">Kode wilayah dikunci karena sudah direferensi di transaksi.</p>
+                            <p class="text-amber-600 text-sm mt-1">Kode wilayah dikunci karena sudah direferensi di
+                                transaksi.</p>
                         @endif
                         @error('fwilayahcode')
                             <p class="text-red-600 text-sm mt-1">{{ $message }}</p>

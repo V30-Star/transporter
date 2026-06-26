@@ -14,7 +14,7 @@
     </style>
 
     <div x-data="{ open: true, selected: 'surat' }">
-        <div class="bg-white rounded shadow p-6 md:p-8 max-w-[96rem] mx-auto">
+        <div class="bg-white rounded shadow p-6 md:p-8 max-w-[1800px] w-full mx-auto">
             <form action="{{ route('salesman.update', $salesman->fsalesmanid) }}" method="POST" data-form-draft="true"
                 data-draft-key="salesman:edit">
                 @csrf
@@ -26,10 +26,10 @@
                         <input type="text" name="fsalesmancode"
                             value="{{ old('fsalesmancode', $salesman->fsalesmancode) }}"
                             class="w-full border rounded px-3 py-2 uppercase @error('fsalesmancode') border-red-500 @enderror {{ !empty($isTransactionLocked) ? 'bg-gray-100 text-gray-500 cursor-not-allowed' : '' }}"
-                            {{ !empty($isTransactionLocked) ? 'readonly' : '' }}
-                            autofocus>
+                            {{ !empty($isTransactionLocked) ? 'readonly' : '' }} autofocus>
                         @if (!empty($isTransactionLocked))
-                            <p class="text-amber-600 text-sm mt-1">Kode salesman dikunci karena sudah direferensi di transaksi.</p>
+                            <p class="text-amber-600 text-sm mt-1">Kode salesman dikunci karena sudah direferensi di
+                                transaksi.</p>
                         @endif
                         @error('fsalesmancode')
                             <p class="text-red-600 text-sm mt-1">{{ $message }}</p>

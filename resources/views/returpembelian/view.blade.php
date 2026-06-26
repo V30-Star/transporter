@@ -5,7 +5,11 @@
 @section('content')
     @php
         $permissions = explode(',', session('user_restricted_permissions', ''));
-        $canPrint = in_array('printReturPembelian', $permissions, true) || in_array('updateReturPembelian', $permissions, true) || in_array('deleteReturPembelian', $permissions, true) || in_array('createReturPembelian', $permissions, true);
+        $canPrint =
+            in_array('printReturPembelian', $permissions, true) ||
+            in_array('updateReturPembelian', $permissions, true) ||
+            in_array('deleteReturPembelian', $permissions, true) ||
+            in_array('createReturPembelian', $permissions, true);
     @endphp
     <style>
         input:focus,
@@ -144,7 +148,7 @@
         {{-- State untuk form --}}
         showNoItems: false
     }" class="lg:col-span-5">
-        <div class="bg-white rounded shadow p-6 md:p-8 max-w-[96rem] mx-auto">
+        <div class="bg-white rounded shadow p-6 md:p-8 max-w-[1800px] w-full mx-auto">
             <div class="space-y-4">
                 <div class="grid grid-cols-1 lg:grid-cols-12 gap-4">
                     <div class="lg:col-span-4">
@@ -157,8 +161,9 @@
                     <div class="lg:col-span-4" x-data="{ autoCode: true }">
                         <label class="block text-sm font-bold mb-1">Transaksi#</label>
                         <div class="flex items-center gap-3">
-                            <input type="text" name="fpono" class="w-full border rounded px-3 py-2" value="{{ old('fpono') ?? $returpembelian->fstockmtno }}"
-                                :disabled="autoCode" :class="autoCode ? 'bg-gray-200 cursor-not-allowed' : 'bg-white'">
+                            <input type="text" name="fpono" class="w-full border rounded px-3 py-2"
+                                value="{{ old('fpono') ?? $returpembelian->fstockmtno }}" :disabled="autoCode"
+                                :class="autoCode ? 'bg-gray-200 cursor-not-allowed' : 'bg-white'">
                             <label class="inline-flex items-center select-none font-bold">
                                 <input type="checkbox" x-model="autoCode" checked>
                                 <span class="ml-2 text-sm text-gray-700">Auto</span>
@@ -185,7 +190,7 @@
                                     disabled>
                                     <option value=""></option>
                                     @foreach ($suppliers as $supplier)
-                                            <option value="{{ $supplier->fsuppliercode }}"
+                                        <option value="{{ $supplier->fsuppliercode }}"
                                             {{ old('fsupplier', $returpembelian->fsupplier) == $supplier->fsuppliercode ? 'selected' : '' }}>
                                             {{ $supplier->fsuppliername }}
                                             ({{ $supplier->fsuppliercode }})
@@ -223,9 +228,9 @@
                                     disabled>
                                     <option value=""></option>
                                     @foreach ($warehouses as $wh)
-                                            <option value="{{ $wh->fwhcode }}" data-id="{{ $wh->fwhid }}"
-                                                data-branch="{{ $wh->fbranchcode }}"
-                                                {{ old('ffrom', $returpembelian->ffrom) == $wh->fwhcode ? 'selected' : '' }}>
+                                        <option value="{{ $wh->fwhcode }}" data-id="{{ $wh->fwhid }}"
+                                            data-branch="{{ $wh->fbranchcode }}"
+                                            {{ old('ffrom', $returpembelian->ffrom) == $wh->fwhcode ? 'selected' : '' }}>
                                             {{ $wh->fwhcode }} - {{ $wh->fwhname }}
                                         </option>
                                     @endforeach
@@ -236,7 +241,7 @@
                                     @click="window.dispatchEvent(new CustomEvent('warehouse-browse-open'))"></div>
                             </div>
                             <input type="hidden" name="ffrom" id="warehouseCodeHidden"
-                                    value="{{ old('ffrom', $returpembelian->ffrom) }}">
+                                value="{{ old('ffrom', $returpembelian->ffrom) }}">
 
                             {{-- Tombol-tombol Anda --}}
                             <button type="button" disabled
@@ -287,15 +292,17 @@
                                     <tr class="border-t align-top">
                                         <td class="p-2" x-text="i + 1"></td>
                                         <td class="p-2 font-mono" x-text="it.fitemcode"></td>
-                                            <td class="p-2 text-gray-800" style="width: 20rem; min-width: 20rem;">
-                                                <div class="desc-inline-field">
-                                                    <div class="desc-inline-field__text rounded-l border bg-gray-100 px-2 py-1 text-sm leading-5 text-gray-600 whitespace-normal break-words"
-                                                        x-text="it.fitemname"></div>
-                                                    <button type="button" @click="openDesc(it)"
-                                                        class="desc-inline-field__button inline-flex items-center border border-l-0 rounded-r px-2 py-1 transition-colors"
-                                                        :class="it.fdesc ? 'border-emerald-300 bg-emerald-50 text-emerald-600 hover:bg-emerald-100' : 'border-gray-300 bg-white text-gray-500 hover:bg-gray-50'"
-                                                        title="Deskripsi item">
-                                                        <x-heroicon-o-document-text class="h-4 w-4" />
+                                        <td class="p-2 text-gray-800" style="width: 20rem; min-width: 20rem;">
+                                            <div class="desc-inline-field">
+                                                <div class="desc-inline-field__text rounded-l border bg-gray-100 px-2 py-1 text-sm leading-5 text-gray-600 whitespace-normal break-words"
+                                                    x-text="it.fitemname"></div>
+                                                <button type="button" @click="openDesc(it)"
+                                                    class="desc-inline-field__button inline-flex items-center border border-l-0 rounded-r px-2 py-1 transition-colors"
+                                                    :class="it.fdesc ?
+                                                        'border-emerald-300 bg-emerald-50 text-emerald-600 hover:bg-emerald-100' :
+                                                        'border-gray-300 bg-white text-gray-500 hover:bg-gray-50'"
+                                                    title="Deskripsi item">
+                                                    <x-heroicon-o-document-text class="h-4 w-4" />
                                                 </button>
                                             </div>
                                         </td>
@@ -303,11 +310,11 @@
                                         <td class="p-2 text-right" x-text="it.fsatuan"></td>
                                         <td class="p-2 text-right" x-text="fmt(it.fqty)"></td>
                                         <td class="p-2 text-right" x-text="fmt(it.fprice)"></td>
-                                            <td class="p-2">
-                                                <input type="text"
-                                                    class="w-full border rounded px-2 py-1 bg-gray-100 text-gray-600 text-sm text-right"
-                                                    :value="fmt(it.ftotprice)" disabled>
-                                            </td>
+                                        <td class="p-2">
+                                            <input type="text"
+                                                class="w-full border rounded px-2 py-1 bg-gray-100 text-gray-600 text-sm text-right"
+                                                :value="fmt(it.ftotprice)" disabled>
+                                        </td>
 
                                         <!-- hidden inputs -->
                                         <td class="hidden">
@@ -507,12 +514,12 @@
                                             Copy
                                         </button>
                                     </div>
-                                    <div class="rounded-lg border bg-gray-50 px-3 py-2 text-sm text-gray-800" x-text="descItemName || '-'"></div>
+                                    <div class="rounded-lg border bg-gray-50 px-3 py-2 text-sm text-gray-800"
+                                        x-text="descItemName || '-'"></div>
                                 </div>
                                 <label class="block text-sm text-gray-700 font-bold">Deskripsi</label>
                                 <textarea x-model="descValue" rows="5"
-                                    class="w-full border rounded px-3 py-2 bg-gray-100 cursor-not-allowed text-gray-600"
-                                    readonly
+                                    class="w-full border rounded px-3 py-2 bg-gray-100 cursor-not-allowed text-gray-600" readonly
                                     placeholder="Tulis deskripsi item di sini..."></textarea>
                             </div>
 

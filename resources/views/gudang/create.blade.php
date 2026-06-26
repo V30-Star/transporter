@@ -14,9 +14,8 @@
     </style>
 
     <div x-data="{ open: true, selected: 'surat' }">
-        <div class="bg-white rounded shadow p-6 md:p-8 max-w-[96rem] mx-auto">
-            <form action="{{ route('gudang.store') }}" method="POST" data-form-draft="true"
-                data-draft-key="gudang:create">
+        <div class="bg-white rounded shadow p-6 md:p-8 max-w-[1800px] w-full mx-auto">
+            <form action="{{ route('gudang.store') }}" method="POST" data-form-draft="true" data-draft-key="gudang:create">
                 @csrf
 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
@@ -42,7 +41,8 @@
                     <div>
                         <label class="block text-sm font-bold">Kode Gudang</label>
                         <input type="text" name="fwhcode" value="{{ old('fwhcode') }}"
-                            class="w-full border rounded px-3 py-2 uppercase @error('fwhcode') border-red-500 @enderror" autofocus>
+                            class="w-full border rounded px-3 py-2 uppercase @error('fwhcode') border-red-500 @enderror"
+                            autofocus>
                         @error('fwhcode')
                             <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                         @enderror

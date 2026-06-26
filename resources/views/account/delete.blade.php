@@ -3,7 +3,7 @@
 @section('title', 'Hapus Account')
 
 @section('content')
-    <div class="bg-white rounded shadow p-6 md:p-8 max-w-[96rem] mx-auto">
+    <div class="bg-white rounded shadow p-6 md:p-8 max-w-[1800px] w-full mx-auto">
         <div class="text-center mb-6">
             <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-red-100 mb-4">
                 <x-heroicon-o-trash class="w-8 h-8 text-red-600" />

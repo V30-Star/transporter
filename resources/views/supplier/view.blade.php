@@ -27,7 +27,7 @@
     @endif
 
     <div x-data="{ open: true, selected: 'surat' }">
-        <div class="bg-white rounded shadow p-6 md:p-8 max-w-[96rem] mx-auto">
+        <div class="bg-white rounded shadow p-6 md:p-8 max-w-[1800px] w-full mx-auto">
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
                 <div>
                     <label class="block text-sm font-bold">Kode Supplier</label>
@@ -54,9 +54,12 @@
                     <label class="block text-sm font-bold">Mata Uang</label>
                     <select name="fcurr" disabled
                         class="w-full border rounded px-3 py-2 bg-gray-100 @error('fcurr') border-red-500 @enderror">
-                        <option value="IDR" {{ old('fcurr', $supplier->fcurr) == 'IDR' ? 'selected' : '' }}>IDR (Rupiah)</option>
-                        <option value="USD" {{ old('fcurr', $supplier->fcurr) == 'USD' ? 'selected' : '' }}>USD (Dollar)</option>
-                        <option value="EUR" {{ old('fcurr', $supplier->fcurr) == 'EUR' ? 'selected' : '' }}>EUR (Euro)</option>
+                        <option value="IDR" {{ old('fcurr', $supplier->fcurr) == 'IDR' ? 'selected' : '' }}>IDR (Rupiah)
+                        </option>
+                        <option value="USD" {{ old('fcurr', $supplier->fcurr) == 'USD' ? 'selected' : '' }}>USD (Dollar)
+                        </option>
+                        <option value="EUR" {{ old('fcurr', $supplier->fcurr) == 'EUR' ? 'selected' : '' }}>EUR (Euro)
+                        </option>
                     </select>
                     @error('fcurr')
                         <p class="text-red-600 text-sm mt-1">{{ $message }}</p>

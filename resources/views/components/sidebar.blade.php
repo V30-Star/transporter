@@ -525,7 +525,7 @@
                         <li>
                             <a href="{{ route('adjstock.index') }}"
                                 class="flex items-center p-2 rounded-lg hover:bg-gray-700">
-                                <x-heroicon-o-banknotes class="w-5 h-5" />
+                                <i class="fa-solid fa-sliders w-5 text-center flex-shrink-0 text-lg"></i>
                                 <span class="ml-3">{{ 'Adjustment Stok' }}</span>
                             </a>
                         </li>
@@ -534,7 +534,7 @@
                         <li>
                             <a href="{{ route('mutasi.index') }}"
                                 class="flex items-center p-2 rounded hover:bg-gray-700">
-                                <x-heroicon-o-user-circle class="w-5 h-5" />
+                                <i class="fa-solid fa-exchange-alt w-5 text-center flex-shrink-0 text-lg"></i>
                                 <span class="ml-3">{{ 'Mutasi' }}</span>
                             </a>
                         </li>
@@ -543,7 +543,7 @@
                         <li>
                             <a href="{{ route('pemakaianbarang.index') }}"
                                 class="flex items-center p-2 rounded hover:bg-gray-700">
-                                <x-heroicon-o-user-circle class="w-5 h-5" />
+                                <i class="fa-solid fa-box-open w-5 text-center flex-shrink-0 text-lg"></i>
                                 <span class="ml-3">{{ 'Pemakaian Barang' }}</span>
                             </a>
                         </li>
@@ -552,7 +552,7 @@
                         <li>
                             <a href="{{ route('assembling.index') }}"
                                 class="flex items-center p-2 rounded hover:bg-gray-700">
-                                <x-heroicon-o-user-circle class="w-5 h-5" />
+                                <i class="fa-solid fa-puzzle-piece w-5 text-center flex-shrink-0 text-lg"></i>
                                 <span class="ml-3">{{ 'Assembling' }}</span>
                             </a>
                         </li>
@@ -580,7 +580,7 @@
                         <li>
                             <a href="{{ route('pengeluarankas.index') }}"
                                 class="flex items-center p-2 rounded hover:bg-gray-700">
-                                <x-heroicon-o-banknotes class="w-5 h-5" />
+                                <i class="fa-solid fa-money-check-dollar w-5 text-center flex-shrink-0 text-lg"></i>
                                 <span class="ml-3">{{ 'Pengeluaran Kas/Bank' }}</span>
                             </a>
                         </li>
@@ -589,21 +589,21 @@
                         <li>
                             <a href="{{ route('penerimaankas.index') }}"
                                 class="flex items-center p-2 rounded hover:bg-gray-700">
-                                <x-heroicon-o-banknotes class="w-5 h-5" />
+                                <i class="fa-solid fa-hand-holding-dollar w-5 text-center flex-shrink-0 text-lg"></i>
                                 <span class="ml-3">{{ 'Penerimaan Kas/Bank' }}</span>
                             </a>
                         </li>
                         <li>
                             <a href="{{ route('pelunasancustomer.index') }}"
                                 class="flex items-center p-2 rounded hover:bg-gray-700">
-                                <x-heroicon-o-receipt-percent class="w-5 h-5" />
+                                <i class="fa-solid fa-exchange-alt w-5 text-center flex-shrink-0 text-lg"></i>
                                 <span class="ml-3">{{ 'Pelunasan Customer' }}</span>
                             </a>
                         </li>
                         <li>
                             <a href="{{ route('bayarsupplier.index') }}"
                                 class="flex items-center p-2 rounded hover:bg-gray-700">
-                                <x-heroicon-o-receipt-percent class="w-5 h-5" />
+                                <i class="fa-solid fa-credit-card w-5 text-center flex-shrink-0 text-lg"></i>
                                 <span class="ml-3">{{ 'Bayar Supplier' }}</span>
                             </a>
                         </li>

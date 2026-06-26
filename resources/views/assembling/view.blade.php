@@ -5,7 +5,10 @@
 @section('content')
     @php
         $permissions = explode(',', session('user_restricted_permissions', ''));
-        $canPrint = in_array('updateAssembling', $permissions, true) || in_array('deleteAssembling', $permissions, true) || in_array('createAssembling', $permissions, true);
+        $canPrint =
+            in_array('updateAssembling', $permissions, true) ||
+            in_array('deleteAssembling', $permissions, true) ||
+            in_array('createAssembling', $permissions, true);
         $assemblingDate = old(
             'fstockmtdate',
             !empty($assembling->fstockmtdate) ? \Carbon\Carbon::parse($assembling->fstockmtdate)->format('Y-m-d') : '',
@@ -116,14 +119,15 @@
             open: true,
             savedItems: []
         }" class="lg:col-span-5">
-            <div class="bg-white rounded shadow p-6 md:p-8 max-w-[96rem] mx-auto">
+            <div class="bg-white rounded shadow p-6 md:p-8 max-w-[1800px] w-full mx-auto">
                 <div class="space-y-4">
                     {{-- HEADER FORM --}}
                     <div class="grid grid-cols-1 lg:grid-cols-12 gap-4">
                         <div class="lg:col-span-4">
                             <label class="block text-sm font-medium">Cabang</label>
                             <input type="text" class="w-full border rounded px-3 py-2 bg-gray-200 cursor-not-allowed"
-                                value="{{ trim(($fbranchcode ?? '') . ($fcabang ?? '' ? ' - ' . $fcabang : '')) }}" disabled>
+                                value="{{ trim(($fbranchcode ?? '') . ($fcabang ?? '' ? ' - ' . $fcabang : '')) }}"
+                                disabled>
                             <input type="hidden" name="fbranchcode" value="{{ $fbranchcode }}">
                         </div>
                         <div class="lg:col-span-4" x-data="{ autoCode: true }">
@@ -143,8 +147,7 @@
 
                         <div class="lg:col-span-4">
                             <label class="block text-sm font-medium">Tanggal</label>
-                            <input disabled type="date" name="fstockmtdate"
-                                value="{{ $assemblingDate }}"
+                            <input disabled type="date" name="fstockmtdate" value="{{ $assemblingDate }}"
                                 class="w-full border rounded px-3 py-2 bg-gray-100 @error('fstockmtdate') border-red-500 @enderror">
                             @error('fstockmtdate')
                                 <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
@@ -253,18 +256,20 @@
                                         <tr class="border-t align-top">
                                             <td class="p-2" x-text="i + 1"></td>
                                             <td class="p-2 font-mono" x-text="it.fitemcode"></td>
-                                                <td class="p-2 text-gray-800" style="width: 20rem; min-width: 20rem;">
-                                                    <div class="desc-inline-field">
-                                                        <div class="desc-inline-field__text rounded-l border bg-gray-100 px-2 py-1 text-sm leading-5 text-gray-600 whitespace-normal break-words"
-                                                            x-text="it.fitemname"></div>
-                                                        <button type="button" @click="openDesc(it)"
-                                                            class="desc-inline-field__button inline-flex items-center border border-l-0 rounded-r px-2 py-1 transition-colors"
-                                                            :class="it.fdesc ? 'border-emerald-300 bg-emerald-50 text-emerald-600 hover:bg-emerald-100' : 'border-gray-300 bg-white text-gray-500 hover:bg-gray-50'"
-                                                            title="Deskripsi item">
-                                                            <x-heroicon-o-document-text class="h-4 w-4" />
-                                                        </button>
-                                                    </div>
-                                                </td>
+                                            <td class="p-2 text-gray-800" style="width: 20rem; min-width: 20rem;">
+                                                <div class="desc-inline-field">
+                                                    <div class="desc-inline-field__text rounded-l border bg-gray-100 px-2 py-1 text-sm leading-5 text-gray-600 whitespace-normal break-words"
+                                                        x-text="it.fitemname"></div>
+                                                    <button type="button" @click="openDesc(it)"
+                                                        class="desc-inline-field__button inline-flex items-center border border-l-0 rounded-r px-2 py-1 transition-colors"
+                                                        :class="it.fdesc ?
+                                                            'border-emerald-300 bg-emerald-50 text-emerald-600 hover:bg-emerald-100' :
+                                                            'border-gray-300 bg-white text-gray-500 hover:bg-gray-50'"
+                                                        title="Deskripsi item">
+                                                        <x-heroicon-o-document-text class="h-4 w-4" />
+                                                    </button>
+                                                </div>
+                                            </td>
                                             <td class="p-2 text-left" x-text="it.fsatuan"></td>
                                             <td class="p-2 text-right" x-text="fmt(it.fqty)"></td>
 
@@ -307,12 +312,12 @@
                                             Copy
                                         </button>
                                     </div>
-                                    <div class="rounded-lg border bg-gray-50 px-3 py-2 text-sm text-gray-800" x-text="descItemName || '-'"></div>
+                                    <div class="rounded-lg border bg-gray-50 px-3 py-2 text-sm text-gray-800"
+                                        x-text="descItemName || '-'"></div>
                                 </div>
                                 <label class="block text-sm text-gray-700">Deskripsi</label>
                                 <textarea x-model="descValue" rows="5"
-                                    class="w-full border rounded px-3 py-2 bg-gray-100 cursor-not-allowed text-gray-600"
-                                    readonly></textarea>
+                                    class="w-full border rounded px-3 py-2 bg-gray-100 cursor-not-allowed text-gray-600" readonly></textarea>
                             </div>
                             <div class="px-5 py-3 border-t flex items-center justify-end gap-2">
                                 <button type="button" @click="closeDesc()"
@@ -323,7 +328,7 @@
                         </div>
                     </div>
 
-                        <script>
+                    <script>
                         // PASTE INI DI FILE JS ANDA, GANTI FUNCTION itemsTable() YANG LAMA
                         function itemsTable() {
                             return {
@@ -360,9 +365,9 @@
                                     const v = Number(n);
                                     if (!isFinite(v)) return '-';
                                     return v.toLocaleString('id-ID', {
-                    minimumFractionDigits: 2,
-                    maximumFractionDigits: 2
-                });
+                                        minimumFractionDigits: 2,
+                                        maximumFractionDigits: 2
+                                    });
                                 },
 
                                 rupiah(n) {
@@ -759,18 +764,18 @@
                                         style="width:100%">
                                         <thead class="sticky top-0 z-10">
                                             <tr class="bg-gradient-to-r from-gray-50 to-gray-100">
-                                            <th
-                                                class="text-left p-3 font-semibold text-gray-700 border-b-2 border-gray-200">
-                                                Branch</th>
-                                            <th
-                                                class="text-left p-3 font-semibold text-gray-700 border-b-2 border-gray-200">
-                                                Kode Gudang</th>
-                                            <th
-                                                class="text-left p-3 font-semibold text-gray-700 border-b-2 border-gray-200">
-                                                Nama Gudang</th>
-                                            <th
-                                                class="text-center p-3 font-semibold text-gray-700 border-b-2 border-gray-200">
-                                                Aksi</th>
+                                                <th
+                                                    class="text-left p-3 font-semibold text-gray-700 border-b-2 border-gray-200">
+                                                    Branch</th>
+                                                <th
+                                                    class="text-left p-3 font-semibold text-gray-700 border-b-2 border-gray-200">
+                                                    Kode Gudang</th>
+                                                <th
+                                                    class="text-left p-3 font-semibold text-gray-700 border-b-2 border-gray-200">
+                                                    Nama Gudang</th>
+                                                <th
+                                                    class="text-center p-3 font-semibold text-gray-700 border-b-2 border-gray-200">
+                                                    Aksi</th>
                                             </tr>
                                         </thead>
                                         <tbody>
