@@ -22,7 +22,7 @@
         $oldInvoiceTotals = old('ftotal', []);
         $oldInvoiceDescs = old('fdesc', []);
         $oldInvoiceKetdts = old('fketdt', []);
-        $oldInvoiceMaxQtys = old('fmaxqty', []); 
+        $oldInvoiceMaxQtys = old('fmaxqty', []);
         $initialInvoiceItems = [];
 
         $oldInvoiceIndexes = array_keys(is_array($oldInvoiceItemCodes) ? $oldInvoiceItemCodes : []);
@@ -64,7 +64,7 @@
                 'ftotal' => (float) ($oldInvoiceTotals[$index] ?? 0),
                 'fdesc' => (string) ($oldInvoiceDescs[$index] ?? ''),
                 'fketdt' => (string) ($oldInvoiceKetdts[$index] ?? ''),
-                'maxqty' => max(0, (float) ($oldInvoiceMaxQtys[$index] ?? $oldInvoiceQtys[$index] ?? 0)),
+                'maxqty' => max(0, (float) ($oldInvoiceMaxQtys[$index] ?? ($oldInvoiceQtys[$index] ?? 0))),
             ];
         }
 
@@ -236,18 +236,16 @@
                         </div>
                     </div>
 
-                    <div class="lg:col-span-4" x-data="{ autoTax: {{ (old('_token') !== null) ? (old('ftax_auto') == '1' ? 'true' : 'false') : 'true' }} }">
+                    <div class="lg:col-span-4" x-data="{ autoTax: {{ old('_token') !== null ? (old('ftax_auto') == '1' ? 'true' : 'false') : 'true' }} }">
                         <label class="block text-sm font-medium mb-1">Faktur Pajak#</label>
                         <div class="flex items-center gap-3">
-                            <input type="text" id="ftaxno" name="ftaxno"
-                                value="{{ old('ftaxno') }}"
+                            <input type="text" id="ftaxno" name="ftaxno" value="{{ old('ftaxno') }}"
                                 :disabled="autoTax"
                                 :class="autoTax ? 'bg-gray-200 cursor-not-allowed text-gray-700' : 'bg-white'"
                                 class="w-full border rounded px-3 py-2 @error('ftaxno') border-red-500 @enderror">
                             <label class="inline-flex items-center select-none">
                                 <input type="checkbox" id="taxAutoCheckbox" name="ftax_auto" value="1"
-                                    x-model="autoTax"
-                                    @change="if (autoTax) window.syncInvoiceTaxNoFromInvoiceNo()">
+                                    x-model="autoTax" @change="if (autoTax) window.syncInvoiceTaxNoFromInvoiceNo()">
                                 <span class="ml-2 text-sm text-gray-700">Auto</span>
                             </label>
                         </div>
@@ -296,7 +294,8 @@
                                         </option>
                                     @endforeach
                                 </select>
-                                <div class="absolute inset-0 cursor-pointer z-10" role="button" aria-label="Browse Customer"
+                                <div class="absolute inset-0 cursor-pointer z-10" role="button"
+                                    aria-label="Browse Customer"
                                     @click="window.dispatchEvent(new CustomEvent('customer-browse-open'))"></div>
                             </div>
                             <input type="hidden" name="fcustno" id="customerCodeHidden" value="{{ old('fcustno') }}">
@@ -353,7 +352,8 @@
                                         </option>
                                     @endforeach
                                 </select>
-                                <div class="absolute inset-0 cursor-pointer z-10" role="button" aria-label="Browse Salesman"
+                                <div class="absolute inset-0 cursor-pointer z-10" role="button"
+                                    aria-label="Browse Salesman"
                                     @click="window.dispatchEvent(new CustomEvent('salesman-browse-open'))"></div>
                             </div>
                             <input type="hidden" name="fsalesman" id="salesmanCodeHidden"
@@ -427,24 +427,29 @@
                         });
                     </script>
 
-                    <div class="lg:col-span-12">
-                        <label class="block text-sm font-medium">Keterangan</label>
-                        <textarea name="fket" rows="3"
-                            class="w-full border rounded px-3 py-2 @error('fket') border-red-500 @enderror"
-                            placeholder="Keterangan isi di sini..."></textarea>
-                        @error('fket')
-                            <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
-                        @enderror
-                    </div>
+                    <div class="col-span-12 mt-4">
+                        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 items-stretch">
 
-                    <div class="lg:col-span-12">
-                        <label class="block text-sm font-medium">Catatan Internal</label>
-                        <textarea name="fketinternal" id="fketinternal" rows="3"
-                            class="w-full border rounded px-3 py-2 @error('fketinternal') border-red-500 @enderror"
-                            placeholder="Catatan internal isi di sini...">{{ old('fketinternal') }}</textarea>
-                        @error('fketinternal')
-                            <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
-                        @enderror
+                            <div class="flex flex-col"> <label class="block text-sm font-medium mb-1">Keterangan</label>
+                                <textarea name="fket" rows="2"
+                                    class="w-full border rounded px-3 py-2 @error('fket') border-red-500 @enderror"
+                                    placeholder="Keterangan isi di sini..."></textarea>
+                                @error('fket')
+                                    <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+                                @enderror
+                            </div>
+
+                            <div class="flex flex-col">
+                                <label class="block text-sm font-medium mb-1">Catatan Internal</label>
+                                <textarea name="fketinternal" id="fketinternal" rows="2"
+                                    class="w-full border rounded px-3 py-2 @error('fketinternal') border-red-500 @enderror"
+                                    placeholder="Catatan internal isi di sini...">{{ old('fketinternal') }}</textarea>
+                                @error('fketinternal')
+                                    <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+                                @enderror
+                            </div>
+
+                        </div>
                     </div>
                 </div>
 
@@ -454,17 +459,18 @@
                     <h3 class="text-base font-semibold text-gray-800">Detail Item</h3>
 
                     <div class="overflow-auto border rounded">
-                        <table class="invoice-detail-table min-w-full text-sm balanced-detail-table" data-skip-auto-detail-style="true">
+                        <table class="invoice-detail-table min-w-full text-sm balanced-detail-table"
+                            data-skip-auto-detail-style="true">
                             <colgroup>
                                 <col style="width:2%;">
                                 <col style="width:16%;">
                                 <col style="width:25%;">
+                                <col style="width:8%;">
+                                <col style="width:13%;">
+                                <col style="width:8%;">
                                 <col style="width:9%;">
-                                <col style="width:16%;">
-                                <col style="width:8%;">
-                                <col style="width:8%;">
                                 <col style="width:6%;">
-                                <col style="width:7%;">
+                                <col style="width:10%;">
                                 <col style="width:3%;">
                             </colgroup>
                             <thead class="bg-gray-100">
@@ -1332,15 +1338,19 @@
         const normalize = (value) => String(value ?? '').trim();
         const select = document.getElementById('modal_filter_customer_id');
         const hidden = document.getElementById('customerCodeHidden');
-        const customerCode = normalize(payload?.fcustomercode) || normalize(hidden?.value) || normalize(select?.value);
-        const selectedOption = customerCode ? [...(select?.options || [])].find(option => normalize(option.value) === customerCode) : select?.selectedOptions?.[0];
-        
+        const customerCode = normalize(payload?.fcustomercode) || normalize(hidden?.value) || normalize(select
+            ?.value);
+        const selectedOption = customerCode ? [...(select?.options || [])].find(option => normalize(option
+            .value) === customerCode) : select?.selectedOptions?.[0];
+
         const salesmanCode = normalize(payload?.fsalesman) || normalize(selectedOption?.dataset?.fsalesman);
         if (!salesmanCode) return;
         const salesmanSelect = document.getElementById('modal_filter_salesman_id');
-        const salesmanOption = [...(salesmanSelect?.options || [])].find(option => normalize(option.value) === salesmanCode);
-        const salesmanName = normalize(payload?.fsalesmanname) || normalize(salesmanOption?.textContent).replace(new RegExp(`\\s*\\(${salesmanCode.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\)\\s*$`), '');
-        
+        const salesmanOption = [...(salesmanSelect?.options || [])].find(option => normalize(option.value) ===
+            salesmanCode);
+        const salesmanName = normalize(payload?.fsalesmanname) || normalize(salesmanOption?.textContent).replace(
+            new RegExp(`\\s*\\(${salesmanCode.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\)\\s*$`), '');
+
         window.applyTransactionSalesmanSelection?.({
             fsalesmancode: salesmanCode,
             fsalesmanname: salesmanName,
@@ -2018,8 +2028,8 @@
                     .toLowerCase()) || '');
                 const preservedUnit = matchedUnit || preferredUnit;
 
-                row.units = preservedUnit !== '' ?
-                    [preservedUnit, ...units.filter(u => u.toLowerCase() !== preservedUnit.toLowerCase())] :
+                row.units = preservedUnit !== '' ? [preservedUnit, ...units.filter(u => u.toLowerCase() !==
+                        preservedUnit.toLowerCase())] :
                     units;
 
                 const defaultUnit = (meta.default_unit || '').toString().trim();
@@ -2137,7 +2147,8 @@
                         frefso: source === 'SO' ? (header?.fsono ?? '') : '',
                         frefsrj: source === 'SRJ' ? (header?.fstockmtno ?? '') : '',
                         fnoacak: this.generateUniqueNoAcak(),
-                        frefnoacak: this.normalizeRefNoAcak(source === 'SRJ' ? (src.fnoacak ?? '') : (src.frefnoacak ?? src.fnoacak ?? '')),
+                        frefnoacak: this.normalizeRefNoAcak(source === 'SRJ' ? (src.fnoacak ?? '') : (src
+                            .frefnoacak ?? src.fnoacak ?? '')),
                         frefpr: (src.frefpr ?? header?.fsono ?? header?.fpono ?? header?.fstockmtno ?? '')
                             .toString().trim(),
                         fprhid: src.fprhid ?? header?.fprhid ?? '',
@@ -2386,8 +2397,7 @@
 
                 window.getCurrentItemKeys = () => this.getCurrentItemKeys();
                 this.savedItems = Array.isArray(this.savedItems) ?
-                    this.savedItems.map((item, index) => this.normalizeRestoredRow(item, index)) :
-                    [];
+                    this.savedItems.map((item, index) => this.normalizeRestoredRow(item, index)) : [];
                 this.pruneEmptyRows();
                 this.ensureMinimumRows();
                 this.ensureTrailingRow();

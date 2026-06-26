@@ -514,26 +514,56 @@
                             });
                         </script>
 
-                        <!-- Satuan Default Dropdown -->
-                        <div class="mt-2 w-1/4 bg-gray-100">
-                            <label class="block text-sm font-bold">Satuan Default</label>
-                            <select name="fsatuandefault" disabled
-                                class="w-full border rounded px-3 py-2 @error('fsatuandefault') border-red-500 @enderror">
-                                <option value="1"
-                                    {{ old('fsatuandefault', $product->fsatuandefault) == '1' ? 'selected' : '' }}>Satuan 1
-                                </option>
-                                <option value="2"
-                                    {{ old('fsatuandefault', $product->fsatuandefault) == '2' ? 'selected' : '' }}>Satuan 2
-                                </option>
-                                <option value="3"
-                                    {{ old('fsatuandefault', $product->fsatuandefault) == '3' ? 'selected' : '' }}>Satuan 3
-                                </option>
-                            </select>
-                            @error('fsatuandefault')
-                                <div class="text-red-600 text-sm mt-1">
-                                    {{ $message }}
-                                </div>
-                            @enderror
+                        <div class="flex flex-col md:flex-row gap-4 mt-2 max-w-2xl">
+
+                            <div class="flex-1">
+                                <label class="block text-sm font-bold mb-1">Satuan Default Transaksi</label>
+                                <select name="fsatuandefault"
+                                    class="w-full border rounded px-3 py-2 @error('fsatuandefault') border-red-500 @enderror">
+                                    <option value="1"
+                                        {{ old('fsatuandefault', $product->fsatuandefault) == '1' ? 'selected' : '' }}>
+                                        Satuan 1
+                                    </option>
+                                    <option value="2"
+                                        {{ old('fsatuandefault', $product->fsatuandefault) == '2' ? 'selected' : '' }}>
+                                        Satuan 2
+                                    </option>
+                                    <option value="3"
+                                        {{ old('fsatuandefault', $product->fsatuandefault) == '3' ? 'selected' : '' }}>
+                                        Satuan 3
+                                    </option>
+                                </select>
+                                @error('fsatuandefault')
+                                    <div class="text-red-600 text-sm mt-1">
+                                        {{ $message }}
+                                    </div>
+                                @enderror
+                            </div>
+
+                            <div class="flex-1">
+                                <label class="block text-sm font-bold mb-1">Satuan Default Laporan</label>
+                                <select name="fsatuandefaultlaporan" disabled
+                                    class="w-full border rounded px-3 py-2 bg-gray-100 text-gray-500 cursor-not-allowed @error('fsatuandefaultlaporan') border-red-500 @enderror">
+                                    <option value="1"
+                                        {{ old('fsatuandefaultlaporan', $product->fsatuandefaultlaporan) == '1' ? 'selected' : '' }}>
+                                        Satuan 1
+                                    </option>
+                                    <option value="2"
+                                        {{ old('fsatuandefaultlaporan', $product->fsatuandefaultlaporan) == '2' ? 'selected' : '' }}>
+                                        Satuan 2
+                                    </option>
+                                    <option value="3"
+                                        {{ old('fsatuandefaultlaporan', $product->fsatuandefaultlaporan) == '3' ? 'selected' : '' }}>
+                                        Satuan 3
+                                    </option>
+                                </select>
+                                @error('fsatuandefaultlaporan')
+                                    <div class="text-red-600 text-sm mt-1">
+                                        {{ $message }}
+                                    </div>
+                                @enderror
+                            </div>
+
                         </div>
 
                         <div class="mt-2 grid grid-cols-1 sm:grid-cols-3 gap-4">
@@ -731,15 +761,7 @@
                             </div>
                             <br>
                         @endif
-                        <div class="flex justify-center mt-4">
-                            <label for="statusToggle"
-                                class="flex items-center justify-between w-40 p-3 border rounded-lg cursor-pointer hover:bg-gray-50 transition bg-gray-100">
-                                <span class="text-sm font-medium">Non Aktif</span>
-                                <input type="checkbox" name="fnonactive" id="statusToggle"
-                                    class="h-5 w-5 text-green-600 rounded focus:ring-green-500"
-                                    {{ old('fnonactive', $product->fnonactive) == '1' ? 'checked' : '' }} disabled>
-                            </label>
-                        </div>
+
                     </div>
                 </div>
 
@@ -851,12 +873,26 @@
                         </div>
 
                         <!-- Kode Produk -->
-                        <div class="mt-2 w-1/3">
-                            <label class="block text-sm font-bold">Kode Produk</label>
-                            <input type="text" name="fprdcode" id="fprdcode"
-                                value="{{ old('fprdcode', $product->fprdcode) }}"
-                                class="w-full border rounded px-3 py-2 uppercase bg-gray-100 cursor-not-allowed @error('fprdcode') border-red-500 @enderror"
-                                readonly>
+                        <div class="mt-2 w-1/2 flex items-center gap-4">
+                            <div class="mt-2 w-1/3">
+                                <label class="block text-sm font-bold">Kode Produk</label>
+                                <input type="text" name="fprdcode" id="fprdcode"
+                                    value="{{ old('fprdcode', $product->fprdcode) }}"
+                                    class="w-full border rounded px-3 py-2 uppercase bg-gray-100 cursor-not-allowed @error('fprdcode') border-red-500 @enderror"
+                                    readonly>
+                            </div>
+                            <!-- Checkbox Auto Generate -->
+                            <label class="inline-flex items-center mt-6 font-bold">
+                                <input type="checkbox" x-model="autoCode" class="form-checkbox text-indigo-600" checked>
+                                <span class="ml-2 text-sm text-gray-700">Auto</span>
+                            </label>
+                            <label for="statusToggle"
+                                class="inline-flex items-center mt-6 font-bold justify-between w-40 p-3 border rounded-lg cursor-pointer hover:bg-gray-50 transition bg-gray-100">
+                                <span class="text-sm font-medium">Non Aktif</span>
+                                <input type="checkbox" name="fnonactive" id="statusToggle"
+                                    class="h-5 w-5 text-green-600 rounded focus:ring-green-500"
+                                    {{ old('fnonactive', $product->fnonactive) == '1' ? 'checked' : '' }} disabled>
+                            </label>
                             @error('fprdcode')
                                 <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                             @enderror
@@ -1137,31 +1173,56 @@
                             });
                         </script>
 
-                        <!-- Satuan Default Dropdown -->
-                        <div class="mt-2 w-1/4">
-                            <label class="block text-sm font-bold">Satuan Default</label>
-                            <select name="fsatuandefault"
-                                class="w-full border rounded px-3 py-2 @error('fsatuandefault') border-red-500 @enderror">
-                                <option value="1"
-                                    {{ old('fsatuandefault', $product->fsatuandefault) == '1' ? 'selected' : '' }}>
-                                    Satuan 1
-                                </option>
-                                <option value="2"
-                                    {{ old('fsatuandefault', $product->fsatuandefault) == '2' ? 'selected' : '' }}>
-                                    Satuan
-                                    2
-                                </option>
-                                <option value="3"
-                                    {{ old('fsatuandefault', $product->fsatuandefault) == '3' ? 'selected' : '' }}>
-                                    Satuan
-                                    3
-                                </option>
-                            </select>
-                            @error('fsatuandefault')
-                                <div class="text-red-600 text-sm mt-1">
-                                    {{ $message }}
-                                </div>
-                            @enderror
+                        <div class="flex flex-col md:flex-row gap-4 mt-2 max-w-2xl">
+
+                            <div class="flex-1">
+                                <label class="block text-sm font-bold mb-1">Satuan Default Transaksi</label>
+                                <select name="fsatuandefault"
+                                    class="w-full border rounded px-3 py-2 @error('fsatuandefault') border-red-500 @enderror">
+                                    <option value="1"
+                                        {{ old('fsatuandefault', $product->fsatuandefault) == '1' ? 'selected' : '' }}>
+                                        Satuan 1
+                                    </option>
+                                    <option value="2"
+                                        {{ old('fsatuandefault', $product->fsatuandefault) == '2' ? 'selected' : '' }}>
+                                        Satuan 2
+                                    </option>
+                                    <option value="3"
+                                        {{ old('fsatuandefault', $product->fsatuandefault) == '3' ? 'selected' : '' }}>
+                                        Satuan 3
+                                    </option>
+                                </select>
+                                @error('fsatuandefault')
+                                    <div class="text-red-600 text-sm mt-1">
+                                        {{ $message }}
+                                    </div>
+                                @enderror
+                            </div>
+
+                            <div class="flex-1">
+                                <label class="block text-sm font-bold mb-1">Satuan Default Laporan</label>
+                                <select name="fsatuandefaultlaporan" disabled
+                                    class="w-full border rounded px-3 py-2 bg-gray-100 text-gray-500 cursor-not-allowed @error('fsatuandefaultlaporan') border-red-500 @enderror">
+                                    <option value="1"
+                                        {{ old('fsatuandefaultlaporan', $product->fsatuandefaultlaporan) == '1' ? 'selected' : '' }}>
+                                        Satuan 1
+                                    </option>
+                                    <option value="2"
+                                        {{ old('fsatuandefaultlaporan', $product->fsatuandefaultlaporan) == '2' ? 'selected' : '' }}>
+                                        Satuan 2
+                                    </option>
+                                    <option value="3"
+                                        {{ old('fsatuandefaultlaporan', $product->fsatuandefaultlaporan) == '3' ? 'selected' : '' }}>
+                                        Satuan 3
+                                    </option>
+                                </select>
+                                @error('fsatuandefaultlaporan')
+                                    <div class="text-red-600 text-sm mt-1">
+                                        {{ $message }}
+                                    </div>
+                                @enderror
+                            </div>
+
                         </div>
 
                         <div class="mt-2 grid grid-cols-1 sm:grid-cols-3 gap-4">

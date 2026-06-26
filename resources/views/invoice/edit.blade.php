@@ -436,24 +436,29 @@
                             });
                         </script>
 
-                        <div class="lg:col-span-12">
-                            <label class="block text-sm font-medium">Keterangan</label>
-                            <textarea name="fket" rows="3" disabled
-                                class="w-full border rounded px-3 py-2 @error('fket') border-red-500 @enderror"
-                                placeholder="Keterangan isi di sini...">{{ old('fket', $invoice->fket) }}</textarea>
-                            @error('fket')
-                                <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
-                            @enderror
-                        </div>
+                        <div class="col-span-12 mt-4">
+                            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 items-stretch">
 
-                        <div class="lg:col-span-12">
-                            <label class="block text-sm font-medium">Catatan Internal</label>
-                            <textarea name="fketinternal" rows="3" readonly
-                                class="w-full border rounded px-3 py-2 bg-gray-100 text-gray-600 @error('fketinternal') border-red-500 @enderror"
-                                placeholder="Catatan internal isi di sini...">{{ old('fketinternal', $invoice->fketinternal) }}</textarea>
-                            @error('fketinternal')
-                                <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
-                            @enderror
+                                <div class="flex flex-col">
+                                    <label class="block text-sm font-medium">Keterangan</label>
+                                    <textarea name="fket" rows="3"
+                                        class="w-full border rounded px-3 py-2 disabled:bg-gray-100 disabled:text-gray-700 disabled:cursor-not-allowed @error('fket') border-red-500 @enderror"
+                                        placeholder="Keterangan isi di sini...">{{ old('fket', $invoice->fket) }}</textarea>
+                                    @error('fket')
+                                        <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+                                    @enderror
+                                </div>
+
+                                <div class="flex flex-col">
+                                    <label class="block text-sm font-medium">Catatan Internal</label>
+                                    <textarea name="fketinternal" id="fketinternal" rows="3"
+                                        class="w-full border rounded px-3 py-2 disabled:bg-gray-100 disabled:text-gray-700 disabled:cursor-not-allowed @error('fketinternal') border-red-500 @enderror"
+                                        placeholder="Catatan internal isi di sini...">{{ old('fketinternal', $invoice->fketinternal) }}</textarea>
+                                    @error('fketinternal')
+                                        <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+                                    @enderror
+                                </div>
+                            </div>
                         </div>
                     </div>
 
@@ -1176,24 +1181,29 @@
                                     });
                                 </script>
 
-                                <div class="lg:col-span-12">
-                                    <label class="block text-sm font-medium">Keterangan</label>
-                                    <textarea name="fket" rows="3"
-                                        class="w-full border rounded px-3 py-2 disabled:bg-gray-100 disabled:text-gray-700 disabled:cursor-not-allowed @error('fket') border-red-500 @enderror"
-                                        placeholder="Keterangan isi di sini...">{{ old('fket', $invoice->fket) }}</textarea>
-                                    @error('fket')
-                                        <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
-                                    @enderror
-                                </div>
+                                <div class="col-span-12 mt-4">
+                                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 items-stretch">
 
-                                <div class="lg:col-span-12">
-                                    <label class="block text-sm font-medium">Catatan Internal</label>
-                                    <textarea name="fketinternal" id="fketinternal" rows="3"
-                                        class="w-full border rounded px-3 py-2 disabled:bg-gray-100 disabled:text-gray-700 disabled:cursor-not-allowed @error('fketinternal') border-red-500 @enderror"
-                                        placeholder="Catatan internal isi di sini...">{{ old('fketinternal', $invoice->fketinternal) }}</textarea>
-                                    @error('fketinternal')
-                                        <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
-                                    @enderror
+                                        <div class="flex flex-col">
+                                            <label class="block text-sm font-medium">Keterangan</label>
+                                            <textarea name="fket" rows="3"
+                                                class="w-full border rounded px-3 py-2 disabled:bg-gray-100 disabled:text-gray-700 disabled:cursor-not-allowed @error('fket') border-red-500 @enderror"
+                                                placeholder="Keterangan isi di sini...">{{ old('fket', $invoice->fket) }}</textarea>
+                                            @error('fket')
+                                                <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+                                            @enderror
+                                        </div>
+
+                                        <div class="flex flex-col">
+                                            <label class="block text-sm font-medium">Catatan Internal</label>
+                                            <textarea name="fketinternal" id="fketinternal" rows="3"
+                                                class="w-full border rounded px-3 py-2 disabled:bg-gray-100 disabled:text-gray-700 disabled:cursor-not-allowed @error('fketinternal') border-red-500 @enderror"
+                                                placeholder="Catatan internal isi di sini...">{{ old('fketinternal', $invoice->fketinternal) }}</textarea>
+                                            @error('fketinternal')
+                                                <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+                                            @enderror
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
 
@@ -1209,12 +1219,12 @@
                                             <col style="width:2%;">
                                             <col style="width:16%;">
                                             <col style="width:25%;">
+                                            <col style="width:8%;">
+                                            <col style="width:13%;">
+                                            <col style="width:8%;">
                                             <col style="width:9%;">
-                                            <col style="width:16%;">
-                                            <col style="width:8%;">
-                                            <col style="width:8%;">
                                             <col style="width:6%;">
-                                            <col style="width:7%;">
+                                            <col style="width:10%;">
                                             <col style="width:3%;">
                                         </colgroup>
                                         <thead class="bg-gray-100">

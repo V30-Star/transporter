@@ -235,6 +235,7 @@ class ProductController extends Controller
                 'msprd.fsatuanbesar',
                 'msprd.fsatuanbesar2',
                 'msprd.fsatuandefault',
+                'msprd.fsatuandefaultlaporan',
                 'msprd.fminstock',
                 'msprd.fimage1',
                 'msprd.fprdid',
@@ -386,6 +387,7 @@ class ProductController extends Controller
                 'fsatuanbesar' => ['nullable', 'string', 'different:fsatuankecil'],
                 'fsatuanbesar2' => ['nullable', 'string', 'different:fsatuankecil', 'different:fsatuanbesar'],
                 'fsatuandefault' => 'in:1,2,3',
+                'fsatuandefaultlaporan' => 'in:1,2,3',
                 'fqtykecil' => [
                     'nullable',
                     'numeric',
@@ -580,6 +582,7 @@ class ProductController extends Controller
                 'different:fsatuanbesar',
             ],
             'fsatuandefault' => 'in:1,2,3',
+            'fsatuandefaultlaporan' => 'in:1,2,3',
             'fqtykecil' => [
                 'nullable',
                 'numeric',

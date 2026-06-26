@@ -243,6 +243,14 @@
                             <input type="checkbox" x-model="autoCode" class="form-checkbox text-indigo-600" checked>
                             <span class="ml-2 text-sm text-gray-700">Auto</span>
                         </label>
+
+                        <label for="statusToggle"
+                            class="inline-flex items-center mt-6 font-bold justify-between w-40 p-3 border rounded-lg cursor-pointer hover:bg-gray-50 transition">
+                            <span class="text-sm font-medium">Non Aktif</span>
+                            <input type="checkbox" name="fnonactive" id="statusToggle"
+                                class="h-5 w-5 text-green-600 rounded focus:ring-green-500"
+                                {{ old('fnonactive') == '1' ? 'checked' : '' }}>
+                        </label>
                     </div>
 
                     <div x-show="open" x-transition.opacity x-cloak
@@ -470,20 +478,34 @@
                     });
                 </script>
 
-                <!-- Satuan Default Dropdown -->
-                <div class="mt-2 w-1/4">
-                    <label class="block text-sm font-bold">Satuan Default</label>
-                    <select name="fsatuandefault"
-                        class="w-full border rounded px-3 py-2 @error('fsatuandefault') border-red-500 @enderror">
-                        <option value="1"> Satuan 1 </option>
-                        <option value="2"> Satuan 2 </option>
-                        <option value="3"> Satuan 3 </option>
-                    </select>
-                    @error('fsatuandefault')
-                        <div class="invalid-feedback">
-                            {{ $message }}
-                        </div>
-                    @enderror
+                <div class="flex flex-col md:flex-row gap-4 mt-2 max-w-2xl">
+
+                    <div class="flex-1">
+                        <label class="block text-sm font-bold mb-1">Satuan Default Transaksi</label>
+                        <select name="fsatuandefault"
+                            class="w-full border rounded px-3 py-2 @error('fsatuandefault') border-red-500 @enderror">
+                            <option value="1"> Satuan 1 </option>
+                            <option value="2"> Satuan 2 </option>
+                            <option value="3"> Satuan 3 </option>
+                        </select>
+                        @error('fsatuandefault')
+                            <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+                        @enderror
+                    </div>
+
+                    <div class="flex-1">
+                        <label class="block text-sm font-bold mb-1">Satuan Default Laporan</label>
+                        <select name="fsatuandefaultlaporan"
+                            class="w-full border rounded px-3 py-2 @error('fsatuandefaultlaporan') border-red-500 @enderror">
+                            <option value="1"> Satuan 1 </option>
+                            <option value="2"> Satuan 2 </option>
+                            <option value="3"> Satuan 3 </option>
+                        </select>
+                        @error('fsatuandefaultlaporan')
+                            <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+                        @enderror
+                    </div>
+
                 </div>
 
                 <div class="mt-2 grid grid-cols-1 sm:grid-cols-3 gap-4">
@@ -761,15 +783,7 @@
                     </div>
                     <br>
                 @endif
-                <div class="md:col-span-2 flex justify-center items-center space-x-2">
-                    <label for="statusToggle"
-                        class="flex items-center justify-between w-40 p-3 border rounded-lg cursor-pointer hover:bg-gray-50 transition">
-                        <span class="text-sm font-medium">Non Aktif</span>
-                        <input type="checkbox" name="fnonactive" id="statusToggle"
-                            class="h-5 w-5 text-green-600 rounded focus:ring-green-500"
-                            {{ old('fnonactive') == '1' ? 'checked' : '' }}>
-                    </label>
-                </div>
+
                 <!-- Tombol Aksi -->
                 <div class="mt-6 flex justify-center space-x-4">
                     <!-- Simpan -->
