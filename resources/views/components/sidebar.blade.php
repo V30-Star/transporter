@@ -634,7 +634,7 @@
                         <li>
                             <a href="{{ route('reportingaccount.index') }}"
                                 class="flex items-center p-2 rounded hover:bg-gray-700">
-                                <x-heroicon-o-credit-card class="w-5 h-5" />
+                                <i class="fa-solid fa-folder-tree w-5 text-center flex-shrink-0 text-lg"></i>
                                 <span class="ml-3">{{ 'Chart of Account' }}</span>
                             </a>
                         </li>
@@ -644,7 +644,7 @@
                         <li>
                             <a href="{{ route('reportingsubaccount.index') }}"
                                 class="flex items-center p-2 rounded hover:bg-gray-700">
-                                <x-heroicon-o-credit-card class="w-5 h-5" />
+                                <i class="fa-solid fa-diagram-predecessor w-5 text-center flex-shrink-0 text-lg"></i>
                                 <span class="ml-3">{{ 'Sub Account' }}</span>
                             </a>
                         </li>
@@ -654,7 +654,7 @@
                         <li>
                             <a href="{{ route('reportingcustomer.index') }}"
                                 class="flex items-center p-2 rounded hover:bg-gray-700">
-                                <x-heroicon-o-credit-card class="w-5 h-5" />
+                                <i class="fa-solid fa-users w-5 text-center flex-shrink-0 text-lg"></i>
                                 <span class="ml-3">{{ 'Customer' }}</span>
                             </a>
                         </li>
@@ -664,7 +664,7 @@
                         <li>
                             <a href="{{ route('reportingsupplier.index') }}"
                                 class="flex items-center p-2 rounded hover:bg-gray-700">
-                                <x-heroicon-o-credit-card class="w-5 h-5" />
+                                <i class="fa-solid fa-truck w-5 text-center flex-shrink-0 text-lg"></i>
                                 <span class="ml-3">{{ 'Supplier' }}</span>
                             </a>
                         </li>
@@ -674,7 +674,7 @@
                         <li>
                             <a href="{{ route('reportingproduct.index') }}"
                                 class="flex items-center p-2 rounded hover:bg-gray-700">
-                                <x-heroicon-o-credit-card class="w-5 h-5" />
+                                <i class="fa-solid fa-boxes-stacked w-5 text-center flex-shrink-0 text-lg"></i>
                                 <span class="ml-3">{{ 'Produk' }}</span>
                             </a>
                         </li>
@@ -704,7 +704,7 @@
                         <li>
                             <a href="{{ route('listingso.index') }}"
                                 class="flex items-center p-2 rounded hover:bg-gray-700">
-                                <x-heroicon-o-user-circle class="w-5 h-5" />
+                                <i class="fa-solid fa-rectangle-list w-5 text-center flex-shrink-0 text-lg"></i>
                                 <span class="ml-3">{{ 'Listing Sales Order (SO)' }}</span>
                             </a>
                         </li>
@@ -717,7 +717,7 @@
                         <li>
                             <a href="{{ route('listingsobelum.index') }}"
                                 class="flex items-center p-2 rounded hover:bg-gray-700">
-                                <x-heroicon-o-user-circle class="w-5 h-5" />
+                                <i class="fa-solid fa-list-check w-5 text-center flex-shrink-0 text-lg"></i>
                                 <span class="ml-3">{{ 'SO Yang Belum Terkirim' }}</span>
                             </a>
                         </li>
@@ -730,7 +730,7 @@
                         <li>
                             <a href="{{ route('listingpenjualan.index') }}"
                                 class="flex items-center p-2 rounded hover:bg-gray-700">
-                                <x-heroicon-o-user-circle class="w-5 h-5" />
+                                <i class="fa-solid fa-chart-line w-5 text-center flex-shrink-0 text-lg"></i>
                                 <span class="ml-3">{{ 'Listing Penjualan' }}</span>
                             </a>
                         </li>
@@ -738,7 +738,7 @@
                         <li>
                             <a href="{{ route('listingfakturpajakpenjualan.index') }}"
                                 class="flex items-center p-2 rounded hover:bg-gray-700">
-                                <x-heroicon-o-user-circle class="w-5 h-5" />
+                                <i class="fa-solid fa-receipt w-5 text-center flex-shrink-0 text-lg"></i>
                                 <span class="ml-3">{{ 'Listing Faktur Pajak Penjualan' }}</span>
                             </a>
                         </li>
@@ -748,7 +748,7 @@
                         <li>
                             <a href="{{ route('listingreturpenjualan.index') }}"
                                 class="flex items-center p-2 rounded hover:bg-gray-700">
-                                <x-heroicon-o-user-circle class="w-5 h-5" />
+                                <i class="fa-solid fa-arrow-rotate-left w-5 text-center flex-shrink-0 text-lg"></i>
                                 <span class="ml-3">{{ 'Listing Retur Penjualan' }}</span>
                             </a>
                         </li>
@@ -830,7 +830,7 @@
                         <li>
                             <a href="{{ route('listingpr.index') }}"
                                 class="flex items-center p-2 rounded hover:bg-gray-700">
-                                <x-heroicon-o-user-circle class="w-5 h-5" />
+                                <i class="fa-solid fa-file-contract w-5 text-center flex-shrink-0 text-lg"></i>
                                 <span class="ml-3">{{ 'Listing Permintaan Pembelian (PR)' }}</span>
                             </a>
                         </li>
@@ -840,7 +840,7 @@
                         <li>
                             <a href="{{ route('listingpo.index') }}"
                                 class="flex items-center p-2 rounded hover:bg-gray-700">
-                                <x-heroicon-o-user-circle class="w-5 h-5" />
+                                <i class="fa-solid fa-signature w-5 text-center flex-shrink-0 text-lg"></i>
                                 <span class="ml-3">{{ 'Listing Order Pembelian (PO)' }}</span>
                             </a>
                         </li>
@@ -850,7 +850,7 @@
                         <li>
                             <a href="{{ route('listingpenerimaanbarang.index') }}"
                                 class="flex items-center p-2 rounded hover:bg-gray-700">
-                                <x-heroicon-o-user-circle class="w-5 h-5" />
+                                <i class="fa-solid fa-truck-ramp-box w-5 text-center flex-shrink-0 text-lg"></i>
                                 <span class="ml-3">{{ 'Listing Penerimaan Barang' }}</span>
                             </a>
                         </li>
@@ -865,7 +865,7 @@
                         <li>
                             <a href="{{ route('listingfakturpembelian.index') }}"
                                 class="flex items-center p-2 rounded hover:bg-gray-700">
-                                <x-heroicon-o-user-circle class="w-5 h-5" />
+                                <i class="fa-solid fa-file-invoice-dollar w-5 text-center flex-shrink-0 text-lg"></i>
                                 <span class="ml-3">{{ 'Listing Faktur Pembelian' }}</span>
                             </a>
                         </li>
@@ -875,7 +875,7 @@
                         <li>
                             <a href="{{ route('listingreturpembelian.index') }}"
                                 class="flex items-center p-2 rounded hover:bg-gray-700">
-                                <x-heroicon-o-user-circle class="w-5 h-5" />
+                                <i class="fa-solid fa-reply-all w-5 text-center flex-shrink-0 text-lg"></i>
                                 <span class="ml-3">{{ 'Listing Retur Pembelian' }}</span>
                             </a>
                         </li>
@@ -905,7 +905,7 @@
                         <li>
                             <a href="{{ route('reportingadjstock.index') }}"
                                 class="flex items-center p-2 rounded hover:bg-gray-700">
-                                <x-heroicon-o-user-circle class="w-5 h-5" />
+                                <i class="fa-solid fa-sliders w-5 text-center flex-shrink-0 text-lg"></i>
                                 <span class="ml-3">{{ 'Listing Adjustment Stok' }}</span>
                             </a>
                         </li>
@@ -913,7 +913,7 @@
                         <li>
                             <a href="{{ route('listingmutasistok.index') }}"
                                 class="flex items-center p-2 rounded hover:bg-gray-700">
-                                <x-heroicon-o-user-circle class="w-5 h-5" />
+                                <i class="fa-solid fa-route w-5 text-center flex-shrink-0 text-lg"></i>
                                 <span class="ml-3">{{ 'Listing Mutasi Stok' }}</span>
                             </a>
                         </li>
@@ -923,7 +923,7 @@
                         <li>
                             <a href="{{ route('reportingpemakaianbarang.index') }}"
                                 class="flex items-center p-2 rounded hover:bg-gray-700">
-                                <x-heroicon-o-user-circle class="w-5 h-5" />
+                                <i class="fa-solid fa-box-open w-5 text-center flex-shrink-0 text-lg"></i>
                                 <span class="ml-3">{{ 'Listing Pemakaian Barang' }}</span>
                             </a>
                         </li>
@@ -933,7 +933,7 @@
                         <li>
                             <a href="{{ route('reportingassembling.index') }}"
                                 class="flex items-center p-2 rounded hover:bg-gray-700">
-                                <x-heroicon-o-user-circle class="w-5 h-5" />
+                                <i class="fa-solid fa-puzzle-piece w-5 text-center flex-shrink-0 text-lg"></i>
                                 <span class="ml-3">{{ 'Listing Assembling' }}</span>
                             </a>
                         </li>
@@ -942,7 +942,7 @@
                     <li>
                         <a href="{{ route('listingsuratjalan.index') }}"
                             class="flex items-center p-2 rounded hover:bg-gray-700">
-                            <x-heroicon-o-user-circle class="w-5 h-5" />
+                            <i class="fa-solid fa-truck-fast w-5 text-center flex-shrink-0 text-lg"></i>
                             <span class="ml-3">{{ 'Listing Surat Jalan' }}</span>
                         </a>
                     </li>
@@ -972,7 +972,7 @@
                         <li>
                             <a href="{{ route('reportingpelunasancustomer.index') }}"
                                 class="flex items-center p-2 rounded hover:bg-gray-700">
-                                <x-heroicon-o-banknotes class="w-5 h-5" />
+                                <i class="fa-solid fa-hand-holding-dollar w-5 text-center flex-shrink-0 text-lg"></i>
                                 <span class="ml-3">{{ 'Laporan Pelunasan Customer' }}</span>
                             </a>
                         </li>
@@ -982,7 +982,7 @@
                         <li>
                             <a href="{{ route('listingpenerimaankasbank.index') }}"
                                 class="flex items-center p-2 rounded hover:bg-gray-700">
-                                <x-heroicon-o-banknotes class="w-5 h-5" />
+                                <i class="fa-solid fa-arrow-up-from-bracket w-5 text-center flex-shrink-0 text-lg"></i>
                                 <span class="ml-3">{{ 'Listing Penerimaan Kas/Bank' }}</span>
                             </a>
                         </li>
@@ -992,7 +992,7 @@
                         <li>
                             <a href="{{ route('listingpengeluarankasbank.index') }}"
                                 class="flex items-center p-2 rounded hover:bg-gray-700">
-                                <x-heroicon-o-banknotes class="w-5 h-5" />
+                                <i class="fa-solid fa-money-bill-wave w-5 text-center flex-shrink-0 text-lg"></i>
                                 <span class="ml-3">{{ 'Listing Pengeluaran Kas/Bank' }}</span>
                             </a>
                         </li>
@@ -1002,7 +1002,7 @@
                         <li>
                             <a href="{{ route('reportingpelunasansupplier.index') }}"
                                 class="flex items-center p-2 rounded hover:bg-gray-700">
-                                <x-heroicon-o-banknotes class="w-5 h-5" />
+                                <i class="fa-solid fa-credit-card w-5 text-center flex-shrink-0 text-lg"></i>
                                 <span class="ml-3">{{ 'Laporan Bayar Supplier' }}</span>
                             </a>
                         </li>
@@ -1011,7 +1011,7 @@
                         <li>
                             <a href="{{ route('reportingkas.pengeluaran.index') }}"
                                 class="flex items-center p-2 rounded hover:bg-gray-700">
-                                <x-heroicon-o-banknotes class="w-5 h-5" />
+                                <i class="fa-solid fa-chart-pie w-5 text-center flex-shrink-0 text-lg"></i>
                                 <span class="ml-3">{{ 'Laporan Pengeluaran Kas/Bank' }}</span>
                             </a>
                         </li>
@@ -1021,7 +1021,7 @@
                         <li>
                             <a href="{{ route('reportingkas.penerimaan.index') }}"
                                 class="flex items-center p-2 rounded hover:bg-gray-700">
-                                <x-heroicon-o-banknotes class="w-5 h-5" />
+                                <i class="fa-solid fa-chart-column w-5 text-center flex-shrink-0 text-lg"></i>
                                 <span class="ml-3">{{ 'Laporan Penerimaan Kas/Bank' }}</span>
                             </a>
                         </li>
@@ -1052,7 +1052,7 @@
                         <li>
                             <a href="{{ route('listingjurnal.index') }}"
                                 class="flex items-center p-2 rounded hover:bg-gray-700">
-                                <x-heroicon-o-clipboard-document-list class="w-5 h-5" />
+                                <i class="fa-solid fa-book-open-reader w-5 text-center flex-shrink-0 text-lg"></i>
                                 <span class="ml-3">{{ 'Listing Jurnal Transaksi' }}</span>
                             </a>
                         </li>
@@ -1119,7 +1119,7 @@
                         <li>
                             <a href="{{ route('editperiode.edit') }}"
                                 class="flex items-center p-2 rounded-lg hover:bg-gray-700">
-                                <x-heroicon-o-calendar-days class="w-5 h-5 flex-shrink-0" />
+                                <i class="fa-solid fa-circle-check w-5 text-center flex-shrink-0 text-lg"></i>
                                 <span class="ml-3" x-show="openSidebar"
                                     x-transition.opacity.duration.150>{{ 'Proses Posting' }}</span>
                             </a>
@@ -1135,7 +1135,7 @@
                         <li>
                             <a href="{{ route('editperiode.edit') }}"
                                 class="flex items-center p-2 rounded-lg hover:bg-gray-700">
-                                <x-heroicon-o-calendar-days class="w-5 h-5 flex-shrink-0" />
+                                <i class="fa-solid fa-spinner w-5 text-center flex-shrink-0 text-lg"></i>
                                 <span class="ml-3" x-show="openSidebar"
                                     x-transition.opacity.duration.150>{{ 'Edit Periode' }}</span>
                             </a>
