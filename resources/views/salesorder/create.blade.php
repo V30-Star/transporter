@@ -484,7 +484,7 @@
                                                 <template x-if="row.units && row.units.length > 1">
                                                     <select class="w-full border rounded px-2 py-1"
                                                         :id="'unit_row_' + i" x-model="row.fsatuan"
-                                                        @change="onRowUpdated(i)" @keydown.enter.prevent="focusRowQty(i)">
+                                                        @change="applySalesPrice(row); onRowUpdated(i)" @keydown.enter.prevent="focusRowQty(i)">
                                                         <template x-for="u in row.units" :key="u">
                                                             <option :value="u" x-text="u"
                                                                 :selected="u === row.fsatuan"></option>
@@ -923,6 +923,35 @@
                 return false;
             },
 
+            async applySalesPrice(row) {
+                const customerCode = this.currentCustomerCode();
+                const productCode = (row?.fprdcode || '').toString().trim();
+                const unit = (row?.fsatuan || '').toString().trim();
+                if (!customerCode || !productCode || !unit) return;
+
+                const params = new URLSearchParams({
+                    fcustno: customerCode,
+                    fprdcode: productCode,
+                    fsatuan: unit,
+                });
+
+                try {
+                    const response = await fetch(`${window.SALES_ORDER_PRICE_INFO_URL}?${params.toString()}`, {
+                        headers: { Accept: 'application/json' }
+                    });
+                    if (!response.ok) return;
+
+                    const payload = await response.json();
+                    row.fsatuan = payload.unit || row.fsatuan;
+                    row.fprice = Math.max(0, Number(payload.price || 0));
+                    row.fpriceInput = this.fmt(row.fprice);
+                    row.fdisc = payload.discount ?? '0';
+                    this.recalc(row);
+                } catch (error) {
+                    console.warn('Gagal mengambil harga sales order:', error);
+                }
+            },
+
             // ✅ FUNGSI BARU: Parse diskon dengan format "10+2"
             parseDiscount(discStr) {
                 if (!discStr && discStr !== 0) return 0;
@@ -1120,6 +1149,7 @@
             onCodeTypedRow(row, index = null) {
                 this.hydrateRowFromMeta(row, this.productMeta(row.fprdcode), true);
                 row.fnoacak = this.normalizeNoAcak(row.fnoacak) || this.generateUniqueNoAcak(row.uid);
+                this.applySalesPrice(row);
                 this.onRowUpdated(index);
             },
 
@@ -1456,6 +1486,7 @@
 
                     row.fnoacak = this.normalizeNoAcak(row.fnoacak) || this.generateUniqueNoAcak(row.uid);
                     if (!row.fqty) row.fqty = 1;
+                    this.applySalesPrice(row);
                     this.onRowUpdated(i);
                     this.$nextTick(() => document.getElementById('qty_row_' + i)?.focus());
                 }, {
@@ -1816,6 +1847,8 @@
 
     <script>
         window.PRODUCT_MAP = @json($productMap ?? []);
+        window.SALES_ORDER_PRICE_INFO_URL = @json(route('salesorder.price-info'));
+        window.SALES_ORDER_PRICE_FLAGS = @json($priceFlags ?? []);
     </script>
     <script>
         (() => {

@@ -56,6 +56,132 @@ class SalesOrderController extends Controller
                 : ($smallUnit ?: $largeUnit ?: $largeUnit2),
         };
     }
+
+    private function isEnabledEnv(string $key): bool
+    {
+        return in_array(strtolower(trim((string) env($key, '0'))), ['1', 'true', 'yes', 'on'], true);
+    }
+
+    private function productSelectColumns(): array
+    {
+        return [
+            'fprdid',
+            'fprdcode',
+            'fprdname',
+            'fsatuandefault',
+            'fsatuankecil',
+            'fsatuanbesar',
+            'fsatuanbesar2',
+            'fqtykecil',
+            'fqtykecil2',
+            'fminstock',
+            'fhargajuallevel1',
+            'fhargajuallevel2',
+            'fhargajuallevel3',
+            'fhargajual2level1',
+            'fhargajual2level2',
+            'fhargajual2level3',
+            'fhargajual3level1',
+            'fhargajual3level2',
+            'fhargajual3level3',
+            'fhargasatuankecillevel1',
+            'fhargasatuankecillevel2',
+            'fhargasatuankecillevel3',
+        ];
+    }
+
+    private function buildProductMap($products): array
+    {
+        return $products->mapWithKeys(function ($p) {
+            $defaultUnit = $this->resolveProductDefaultUnit($p);
+            $orderedUnits = array_values(array_unique(array_filter(array_map('trim', [
+                $defaultUnit,
+                $p->fsatuankecil,
+                $p->fsatuanbesar,
+                $p->fsatuanbesar2,
+            ]))));
+
+            return [
+                (string) $p->fprdcode => [
+                    'name' => $p->fprdname,
+                    'default_unit' => $defaultUnit,
+                    'units' => $orderedUnits,
+                    'stock' => (float) ($p->fminstock ?? 0),
+                    'unit_ratios' => [
+                        'satuankecil' => 1,
+                        'satuanbesar' => (float) ($p->fqtykecil ?? 1),
+                        'satuanbesar2' => (float) ($p->fqtykecil2 ?? 1),
+                    ],
+                ],
+            ];
+        })->toArray();
+    }
+
+    private function salesOrderPriceFlags(): array
+    {
+        return [
+            'history_price' => $this->isEnabledEnv('HISTORYHARGAJUAL'),
+            'history_discount' => $this->isEnabledEnv('HISTORYDISKONJUAL'),
+        ];
+    }
+
+    private function salesPriceColumnForUnit($product, string $unit, string $level): string
+    {
+        $level = in_array($level, ['1', '2', '3'], true) ? $level : '1';
+        $normalizedUnit = strtoupper(trim($unit));
+        $smallUnit = strtoupper(trim((string) ($product->fsatuankecil ?? '')));
+        $largeUnit = strtoupper(trim((string) ($product->fsatuanbesar ?? '')));
+        $largeUnit2 = strtoupper(trim((string) ($product->fsatuanbesar2 ?? '')));
+
+        if ($normalizedUnit !== '' && $normalizedUnit === $smallUnit) {
+            return "fhargasatuankecillevel{$level}";
+        }
+
+        if ($normalizedUnit !== '' && $normalizedUnit === $largeUnit2) {
+            return "fhargajual2level{$level}";
+        }
+
+        if ($normalizedUnit !== '' && $normalizedUnit === $largeUnit) {
+            return "fhargajuallevel{$level}";
+        }
+
+        return match (trim((string) ($product->fsatuandefault ?? ''))) {
+            '1' => "fhargasatuankecillevel{$level}",
+            '2' => "fhargajuallevel{$level}",
+            '3' => "fhargajual2level{$level}",
+            default => "fhargajuallevel{$level}",
+        };
+    }
+
+    private function normalSalesPrice($product, $customer, string $unit): float
+    {
+        $level = trim((string) ($customer->fhargalevel ?? '1'));
+        $column = $this->salesPriceColumnForUnit($product, $unit, $level);
+        $value = $product->{$column} ?? 0;
+
+        if (is_numeric($value)) {
+            return (float) $value;
+        }
+
+        $normalized = preg_replace('/[^0-9,.-]/', '', (string) $value) ?? '0';
+        $normalized = str_contains($normalized, ',')
+            ? str_replace(',', '.', str_replace('.', '', $normalized))
+            : $normalized;
+
+        return is_numeric($normalized) ? (float) $normalized : 0.0;
+    }
+
+    private function latestSalesHistory(string $customerCode, string $productCode, string $unit): ?object
+    {
+        return DB::table('tranmt as m')
+            ->join('trandt as d', 'm.fsono', '=', 'd.fsono')
+            ->whereRaw('TRIM(d.fprdcode) = ?', [$productCode])
+            ->whereRaw('TRIM(m.fcustno) = ?', [$customerCode])
+            ->whereRaw('TRIM(d.fsatuan) = ?', [$unit])
+            ->orderByDesc('m.fsodate')
+            ->select('d.fprice', 'd.fsatuan', 'd.fdisc')
+            ->first();
+    }
     private function ensureNoDuplicateDetailCodes(array $codes): void
     {
         $seen = [];
@@ -878,7 +1004,7 @@ class SalesOrderController extends Controller
     public function create(Request $request)
     {
         $customers = Customer::orderBy('fcustomername', 'asc')
-            ->get(['fcustomercode', 'fcustomername', 'ftempo', 'fsalesman']);
+            ->get(['fcustomercode', 'fcustomername', 'ftempo', 'fsalesman', 'fhargalevel']);
 
         $salesmans = Salesman::orderBy('fsalesmanname', 'asc')
             ->get(['fsalesmancode', 'fsalesmanname']);
@@ -900,42 +1026,8 @@ class SalesOrderController extends Controller
 
         $newtr_prh_code = $this->generatetr_poh_Code(now(), $fbranchcode);
 
-        $products = Product::select(
-            'fprdid',
-            'fprdcode',
-            'fprdname',
-            'fsatuandefault',
-            'fsatuankecil',
-            'fsatuanbesar',
-            'fsatuanbesar2',
-            'fqtykecil',
-            'fqtykecil2',
-            'fminstock'
-        )->orderBy('fprdname')->get();
-
-        $productMap = $products->mapWithKeys(function ($p) {
-            $defaultUnit = $this->resolveProductDefaultUnit($p);
-            $orderedUnits = array_values(array_unique(array_filter(array_map('trim', [
-                $defaultUnit,
-                $p->fsatuankecil,
-                $p->fsatuanbesar,
-                $p->fsatuanbesar2,
-            ]))));
-
-            return [
-                $p->fprdcode => [
-                    'name'         => $p->fprdname,
-                    'default_unit' => $defaultUnit,
-                    'units'        => $orderedUnits,
-                    'stock'        => $p->fminstock ?? 0,
-                    'unit_ratios'  => [
-                        'satuankecil'  => 1,
-                        'satuanbesar'  => (float) ($p->fqtykecil ?? 1),
-                        'satuanbesar2' => (float) ($p->fqtykecil2 ?? 1),
-                    ],
-                ],
-            ];
-        })->toArray();
+        $products = Product::select($this->productSelectColumns())->orderBy('fprdname')->get();
+        $productMap = $this->buildProductMap($products);
 
         return view('salesorder.create', [
             'newtr_prh_code' => $newtr_prh_code,
@@ -946,8 +1038,49 @@ class SalesOrderController extends Controller
             'fbranchcode' => $fbranchcode,
             'products' => $products,
             'productMap' => $productMap,
+            'priceFlags' => $this->salesOrderPriceFlags(),
             'filterSupplierId' => $request->query('filter_supplier_id'),
             'filterSalesmanId' => $request->query('filter_salesman_id'),
+        ]);
+    }
+
+    public function priceInfo(Request $request)
+    {
+        $data = $request->validate([
+            'fcustno' => ['required', 'string', 'max:20'],
+            'fprdcode' => ['required', 'string', 'max:20'],
+            'fsatuan' => ['required', 'string', 'max:20'],
+        ]);
+
+        $customerCode = trim($data['fcustno']);
+        $productCode = trim($data['fprdcode']);
+        $unit = trim($data['fsatuan']);
+
+        $customer = DB::table('mscustomer')
+            ->whereRaw('TRIM(fcustomercode) = ?', [$customerCode])
+            ->first(['fcustomercode', 'fhargalevel']);
+        $product = DB::table('msprd')
+            ->whereRaw('TRIM(fprdcode) = ?', [$productCode])
+            ->first($this->productSelectColumns());
+
+        abort_if(! $customer || ! $product, 404, 'Customer atau produk tidak ditemukan.');
+
+        $flags = $this->salesOrderPriceFlags();
+        $normalPrice = $this->normalSalesPrice($product, $customer, $unit);
+        $history = ($flags['history_price'] || $flags['history_discount'])
+            ? $this->latestSalesHistory($customerCode, $productCode, $unit)
+            : null;
+
+        return response()->json([
+            'price' => $flags['history_price'] && $history ? (float) ($history->fprice ?? 0) : $normalPrice,
+            'unit' => $flags['history_price'] && $history && trim((string) ($history->fsatuan ?? '')) !== ''
+                ? trim((string) $history->fsatuan)
+                : $unit,
+            'discount' => $flags['history_discount'] && $history ? $this->normalizeDiscountInput($history->fdisc ?? 0) : '0',
+            'source' => [
+                'price' => $flags['history_price'] && $history ? 'history' : 'price_list',
+                'discount' => $flags['history_discount'] && $history ? 'history' : 'default',
+            ],
         ]);
     }
 
@@ -1311,7 +1444,7 @@ class SalesOrderController extends Controller
     public function edit(Request $request, $ftrsomtid)
     {
         $customers = Customer::orderBy('fcustomername', 'asc')
-            ->get(['fcustomercode', 'fcustomername', 'ftempo', 'fsalesman']);
+            ->get(['fcustomercode', 'fcustomername', 'ftempo', 'fsalesman', 'fhargalevel']);
 
         $salesmans = Salesman::orderBy('fsalesmanname', 'asc')
             ->get(['fsalesmancode', 'fsalesmanname']);
@@ -1382,44 +1515,8 @@ class SalesOrderController extends Controller
 
         $selectedSupplierCode = $salesorder->fsupplier;
 
-        // Fetch all products for product mapping
-        $products = Product::select(
-            'fprdid',
-            'fprdcode',
-            'fprdname',
-            'fsatuandefault',
-            'fsatuankecil',
-            'fsatuanbesar',
-            'fsatuanbesar2',
-            'fqtykecil',
-            'fqtykecil2',
-            'fminstock'
-        )->orderBy('fprdname')->get();
-
-        // Prepare the product map for frontend
-        $productMap = $products->mapWithKeys(function ($p) {
-            $defaultUnit = $this->resolveProductDefaultUnit($p);
-            $orderedUnits = array_values(array_unique(array_filter(array_map('trim', [
-                $defaultUnit,
-                $p->fsatuankecil,
-                $p->fsatuanbesar,
-                $p->fsatuanbesar2,
-            ]))));
-
-            return [
-                $p->fprdcode => [
-                    'name' => $p->fprdname,
-                    'default_unit' => $defaultUnit,
-                    'units' => $orderedUnits,
-                    'stock' => $p->fminstock ?? 0,
-                    'unit_ratios' => [
-                        'satuankecil' => 1,
-                        'satuanbesar' => (float) ($p->fqtykecil ?? 1),
-                        'satuanbesar2' => (float) ($p->fqtykecil2 ?? 1),
-                    ],
-                ],
-            ];
-        })->toArray();
+        $products = Product::select($this->productSelectColumns())->orderBy('fprdname')->get();
+        $productMap = $this->buildProductMap($products);
 
         // Pass the data to the view
         return view('salesorder.edit', [
@@ -1431,6 +1528,7 @@ class SalesOrderController extends Controller
             'fppnpersen' => (float) ($salesorder->fppnpersen ?? 11),
             'products' => $products,
             'productMap' => $productMap,
+            'priceFlags' => $this->salesOrderPriceFlags(),
             'salesorder' => $salesorder,
             'displayFsono' => $this->formatDisplayTransactionNumber($salesorder->fsono ?? null, (int) ($salesorder->fapplyppn ?? 0) === 1),
             'savedItems' => $savedItems,
@@ -1448,7 +1546,7 @@ class SalesOrderController extends Controller
     public function view(Request $request, $ftrsomtid)
     {
         $customers = Customer::orderBy('fcustomername', 'asc')
-            ->get(['fcustomercode', 'fcustomername', 'ftempo', 'fsalesman']);
+            ->get(['fcustomercode', 'fcustomername', 'ftempo', 'fsalesman', 'fhargalevel']);
 
         $salesmans = Salesman::orderBy('fsalesmanname', 'asc')
             ->get(['fsalesmancode', 'fsalesmanname']);
@@ -1504,35 +1602,8 @@ class SalesOrderController extends Controller
 
         $selectedSupplierCode = $salesorder->fsupplier;
 
-        $products = Product::select(
-            'fprdid',
-            'fprdcode',
-            'fprdname',
-            'fsatuandefault',
-            'fsatuankecil',
-            'fsatuanbesar',
-            'fsatuanbesar2',
-            'fminstock'
-        )->orderBy('fprdname')->get();
-
-        $productMap = $products->mapWithKeys(function ($p) {
-            $defaultUnit = $this->resolveProductDefaultUnit($p);
-            $orderedUnits = array_values(array_unique(array_filter(array_map('trim', [
-                $defaultUnit,
-                $p->fsatuankecil,
-                $p->fsatuanbesar,
-                $p->fsatuanbesar2,
-            ]))));
-
-            return [
-                (string) $p->fprdcode => [
-                    'name' => $p->fprdname,
-                    'default_unit' => $defaultUnit,
-                    'units' => $orderedUnits,
-                    'stock' => (float) ($p->fminstock ?? 0),
-                ],
-            ];
-        })->toArray();
+        $products = Product::select($this->productSelectColumns())->orderBy('fprdname')->get();
+        $productMap = $this->buildProductMap($products);
 
         return view('salesorder.edit', [
             'customers' => $customers,
@@ -1542,6 +1613,7 @@ class SalesOrderController extends Controller
             'fbranchcode' => $fbranchcode,
             'products' => $products,
             'productMap' => $productMap,
+            'priceFlags' => $this->salesOrderPriceFlags(),
             'fppnpersen' => (float) ($salesorder->fppnpersen ?? 11),
             'salesorder' => $salesorder,
             'displayFsono' => $this->formatDisplayTransactionNumber($salesorder->fsono ?? null, (int) ($salesorder->fapplyppn ?? 0) === 1),

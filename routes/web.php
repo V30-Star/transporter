@@ -430,6 +430,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/salesorder', [SalesOrderController::class, 'index'])->name('salesorder.index');
         Route::post('/salesorder', [SalesOrderController::class, 'store'])->name('salesorder.store');
         Route::get('/salesorder/create', [SalesOrderController::class, 'create'])->name('salesorder.create');
+        Route::get('/salesorder/price-info', [SalesOrderController::class, 'priceInfo'])->name('salesorder.price-info');
         Route::post('/salesorder/credit-check', [SalesOrderController::class, 'creditCheck'])->name('salesorder.credit-check');
         Route::post('/salesorder/duplicate-refpo-check', [SalesOrderController::class, 'duplicateRefPoCheck'])->name('salesorder.duplicate-refpo-check');
         Route::get('/salesorder/{ftrsomtid}/view', [SalesOrderController::class, 'view'])->name('salesorder.view');

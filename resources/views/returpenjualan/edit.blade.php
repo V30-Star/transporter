@@ -234,7 +234,7 @@
 
     <div>
         <div class="lg:col-span-12">
-            <div class="bg-white rounded shadow p-6 md:p-8 max-w-[96rem] mx-auto">
+            <div class="bg-white rounded shadow p-6 md:p-8 max-w-[1800px] w-full mx-auto">
                 @if ($action === 'delete')
                     <fieldset disabled class="delete-readonly space-y-4">
 
