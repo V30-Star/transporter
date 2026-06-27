@@ -170,7 +170,7 @@
             width: 45px;
         }
 
-        .supplier-info-kiri {
+        .warehouse-info-kiri {
             position: absolute;
             top: 1mm;
             left: 0mm;
@@ -284,8 +284,8 @@
     {{-- Hidden Raw Data Container --}}
     <div id="raw-source" style="display: none;">
         <div class="header-section">
-            <div class="supplier-info-kiri">
-                Supplier: {{ $activeSupplierName ?? 'Semua' }}
+            <div class="warehouse-info-kiri">
+                Gudang: {{ $activeWarehouseName ?? 'Semua' }}
                 <br>Cabang: {{ request()->has('branch_codes') ? implode(', ', (array) request()->input('branch_codes')) : 'Semua' }}
             </div>
             <h2>Listing Adjustment Stock</h2>
@@ -390,8 +390,8 @@
         @if ($fakturpembelianData->isEmpty())
             <div class="page-a4 page-a4-strict">
                 <div class="header-section">
-                    <div class="supplier-info-kiri" style="top: 12mm;">
-                        Supplier: {{ $activeSupplierName ?? 'Semua' }}
+                    <div class="warehouse-info-kiri" style="top: 12mm;">
+                        Gudang: {{ $activeWarehouseName ?? 'Semua' }}
                         <br>Cabang: {{ request()->has('branch_codes') ? implode(', ', (array) request()->input('branch_codes')) : 'Semua' }}
                     </div>
                     <h2>Listing Adjustment Stock</h2>

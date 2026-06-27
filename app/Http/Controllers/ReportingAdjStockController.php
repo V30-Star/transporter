@@ -3,7 +3,6 @@
 namespace App\Http\Controllers;
 
 use App\Models\PenerimaanPembelianHeader;
-use App\Models\Supplier;
 // Sesuaikan dengan path Model Purchase Request Anda
 // Sesuaikan dengan path Model Purchase Request Anda
 use Carbon\Carbon;
@@ -20,7 +19,7 @@ class ReportingAdjStockController extends Controller
         // Mengambil parameter filter
         $filterDateFrom = $request->query('filter_date_from');
         $filterDateTo = $request->query('filter_date_to');
-        $filterSupplierId = $request->query('filter_supplier_id'); // berisi supplier code
+        $filterWarehouseId = $request->query('filter_warehouse_id'); // berisi kode gudang
 
         $query = PenerimaanPembelianHeader::query();
         $this->applyBranchVisibilityScope($query, 'trstockmt.fbranchcode');
@@ -41,9 +40,8 @@ class ReportingAdjStockController extends Controller
             $query->where('fstockmtdate', '<=', Carbon::parse($filterDateTo)->endOfDay());
         }
 
-        // --- FILTER SUPPLIER BARU ---
-        if (! empty($filterSupplierId)) {
-            $query->where('fsupplier', $filterSupplierId);
+        if (! empty($filterWarehouseId)) {
+            $query->where('trstockmt.ffrom', $filterWarehouseId);
         }
 
         return $query->orderBy('fstockmtdate', 'desc');
@@ -69,25 +67,30 @@ class ReportingAdjStockController extends Controller
         // Cek apakah ada filter yang dijalankan
         $hasFilter = $request->has('filter_date_from') ||
           $request->has('filter_date_to') ||
-          $request->has('filter_supplier_id');
+          $request->has('filter_warehouse_id');
 
         $pohData = collect();
 
-        // Ambil SEMUA Supplier untuk dropdown filter
-        $suppliers = Supplier::orderBy('fsuppliername', 'asc')
-            ->get(['fsuppliercode', 'fsuppliername']);
-
-        $branches = DB::table('mscabang')->orderBy('fcabangkode')->get();
         $isAuthorized = $this->canAccessAllBranches();
         $userBranchCode = $this->getCurrentBranchCode();
 
+        $warehouses = DB::table('mswh')
+            ->where('fnonactive', '0')
+            ->when(! $isAuthorized && $userBranchCode, function ($query) use ($userBranchCode) {
+                $query->where('fbranchcode', $userBranchCode);
+            })
+            ->orderBy('fwhcode')
+            ->get(['fwhcode', 'fwhname']);
+
+        $branches = DB::table('mscabang')->orderBy('fcabangkode')->get();
+
         return view('reportingadjstock.index', [
             'pohData' => $pohData,
-            'suppliers' => $suppliers,
+            'warehouses' => $warehouses,
             'hasFilter' => $hasFilter,
             'filterDateFrom' => $filterDateFrom,
             'filterDateTo' => $filterDateTo,
-            'filterSupplierId' => $request->query('filter_supplier_id'),
+            'filterWarehouseId' => $request->query('filter_warehouse_id'),
             'branches' => $branches,
             'isAuthorized' => $isAuthorized,
             'userBranchCode' => $userBranchCode,
@@ -101,7 +104,7 @@ class ReportingAdjStockController extends Controller
     {
         $user_session = auth('sysuser')->user();
 
-        $filterSupplierId = $request->query('fsupplier');
+        $filterWarehouseId = $request->query('filter_warehouse_id');
 
         $query = DB::table('trstockmt')
             ->select('trstockmt.*', 'account.faccname')
@@ -123,8 +126,8 @@ class ReportingAdjStockController extends Controller
             $query->whereDate('fstockmtdate', '<=', $request->filter_date_to);
         }
 
-        if (! empty($filterSupplierId)) {
-            $query->where('fsupplier', $filterSupplierId);
+        if (! empty($filterWarehouseId)) {
+            $query->where('trstockmt.ffrom', $filterWarehouseId);
         }
 
         // Ambil SEMUA data PR Header (tetap pakai get)
@@ -148,10 +151,10 @@ class ReportingAdjStockController extends Controller
 
             $fakturpembelian->famountremain = $fakturpembelian->details->sum('famountmt');
 
-            $supplier = DB::table('mssupplier')
-                ->where('fsuppliercode', $fakturpembelian->fsupplier)
+            $warehouse = DB::table('mswh')
+                ->where('fwhcode', $fakturpembelian->ffrom)
                 ->first();
-            $fakturpembelian->supplier_name = $supplier->fsuppliername ?? $fakturpembelian->fsupplier;
+            $fakturpembelian->warehouse_name = $warehouse->fwhname ?? $fakturpembelian->ffrom;
 
             foreach ($fakturpembelian->details as $detail) {
                 $product = DB::table('msprd')
@@ -175,12 +178,13 @@ class ReportingAdjStockController extends Controller
             'total_po' => $grandTotalPO,
         ];
 
-        $activeSupplierName = null;
-        if (! empty($filterSupplierId)) {
-            $supplier = Supplier::where('fsuppliercode', $filterSupplierId)
-                ->select('fsuppliername')
+        $activeWarehouseName = null;
+        if (! empty($filterWarehouseId)) {
+            $warehouse = DB::table('mswh')
+                ->where('fwhcode', $filterWarehouseId)
+                ->select('fwhname')
                 ->first();
-            $activeSupplierName = $supplier ? $supplier->fsuppliername : 'N/A';
+            $activeWarehouseName = $warehouse ? $warehouse->fwhname : 'N/A';
         }
 
         // Hitung pagination manual
@@ -191,7 +195,7 @@ class ReportingAdjStockController extends Controller
 
         return view('reportingadjstock.print', compact(
             'fakturpembelianData',
-            'activeSupplierName',
+            'activeWarehouseName',
             'chunkedData',
             'totalPages',
             'perPage',

@@ -520,7 +520,7 @@
                                             <template x-if="it.units && it.units.length > 1">
                                                 <select
                                                     class="w-full border rounded px-2 py-1 text-sm focus:ring-1 focus:ring-blue-500"
-                                                    :id="'unit_row_' + i" x-model="it.fsatuan" @change="onRowUpdated(i)"
+                                                    :id="'unit_row_' + i" x-model="it.fsatuan" @change="applyInvoicePrice(it); onRowUpdated(i)"
                                                     @keydown.enter.prevent="focusRowQty(i)">
                                                     <template x-for="u in it.units" :key="u">
                                                         <option :value="u" :selected="u === it.fsatuan"
@@ -1601,6 +1601,8 @@
             },
         @endforeach
     };
+    window.INVOICE_PRICE_INFO_URL = @json(route('invoice.price-info'));
+    window.INVOICE_PRICE_FLAGS = @json($priceFlags ?? []);
 
     // id unik
     window.cryptoRandom = function() {
@@ -1787,6 +1789,40 @@
                 }
                 if (event?.target) {
                     event.target.value = normalized;
+                }
+            },
+
+            isReferenceRow(row) {
+                return String(row?.frefso ?? '').trim() !== '' || String(row?.frefsrj ?? '').trim() !== '';
+            },
+
+            async applyInvoicePrice(row) {
+                if (this.isReferenceRow(row)) return;
+                const customerCode = this.getSelectedCustomerCode();
+                const productCode = (row?.fitemcode || '').toString().trim();
+                const unit = (row?.fsatuan || '').toString().trim();
+                if (!customerCode || !productCode || !unit) return;
+
+                const params = new URLSearchParams({
+                    fcustno: customerCode,
+                    fprdcode: productCode,
+                    fsatuan: unit,
+                });
+
+                try {
+                    const response = await fetch(`${window.INVOICE_PRICE_INFO_URL}?${params.toString()}`, {
+                        headers: { Accept: 'application/json' }
+                    });
+                    if (!response.ok) return;
+
+                    const payload = await response.json();
+                    row.fsatuan = payload.unit || row.fsatuan;
+                    row.fprice = Math.max(0, Number(payload.price || 0));
+                    row.fpriceInput = this.fmt(row.fprice);
+                    row.fdisc = payload.discount ?? '0';
+                    this.recalc(row);
+                } catch (error) {
+                    console.warn('Gagal mengambil harga faktur penjualan:', error);
                 }
             },
 
@@ -2054,6 +2090,7 @@
                 }
                 this.hydrateRowFromMeta(row, this.productMeta(row.fitemcode), true);
                 row.fnoacak = this.normalizeNoAcak(row.fnoacak) || this.generateUniqueNoAcak(row.uid);
+                this.applyInvoicePrice(row);
                 this.onRowUpdated(index);
             },
 
@@ -2421,6 +2458,7 @@
                     row.frefcode = product.fprdcode || product.id || '';
                     this.hydrateRowFromMeta(row, this.productMeta(row.fitemcode), true);
                     row.fnoacak = this.normalizeNoAcak(row.fnoacak) || this.generateUniqueNoAcak(row.uid);
+                    this.applyInvoicePrice(row);
                     this.onRowUpdated(index);
                     this.focusRowQty(index);
                 }, {

@@ -155,7 +155,13 @@ class SalesOrderController extends Controller
 
     private function normalSalesPrice($product, $customer, string $unit): float
     {
-        $level = trim((string) ($customer->fhargalevel ?? '1'));
+        $rawLevel = trim((string) ($customer->fhargalevel ?? '0'));
+        $level = match ($rawLevel) {
+            '1' => '2',
+            '2' => '3',
+            '3' => '3',
+            default => '1',
+        };
         $column = $this->salesPriceColumnForUnit($product, $unit, $level);
         $value = $product->{$column} ?? 0;
 

@@ -81,35 +81,35 @@
                                 class="mt-1 block w-full border rounded px-3 py-2 text-sm focus:ring-blue-500 focus:border-blue-500">
                         </div>
 
-                        {{-- Filter Supplier --}}
+                        {{-- Filter Gudang --}}
                         <div class="col-span-2">
-                            <label class="block text-sm font-medium mb-1">Supplier</label>
+                            <label class="block text-sm font-medium mb-1">Gudang</label>
                             <div class="flex">
-                                <div class="relative flex-1" for="modal_filter_supplier_id">
-                                    <select id="modal_filter_supplier_id" name="filter_supplier_id"
+                                <div class="relative flex-1" for="modal_filter_warehouse_id">
+                                    <select id="modal_filter_warehouse_id" name="filter_warehouse_id"
                                         class="w-full border rounded-l px-3 py-2 bg-gray-100 text-gray-700 cursor-not-allowed"
                                         disabled>
                                         <option value=""></option>
-                                        @foreach ($suppliers as $supplier)
-                                            <option value="{{ $supplier->fsuppliercode }}"
-                                                {{ $filterSupplierId == $supplier->fsuppliercode ? 'selected' : '' }}>
-                                                {{ $supplier->fsuppliername }} ({{ $supplier->fsuppliercode }})
+                                        @foreach ($warehouses as $warehouse)
+                                            <option value="{{ $warehouse->fwhcode }}"
+                                                {{ $filterWarehouseId == $warehouse->fwhcode ? 'selected' : '' }}>
+                                                {{ $warehouse->fwhcode }} - {{ $warehouse->fwhname }}
                                             </option>
                                         @endforeach
                                     </select>
-                                    <div class="absolute inset-0" role="button" aria-label="Browse supplier"
-                                        @click="window.dispatchEvent(new CustomEvent('supplier-browse-open'))"></div>
+                                    <div class="absolute inset-0" role="button" aria-label="Browse gudang"
+                                        @click="window.dispatchEvent(new CustomEvent('warehouse-browse-open'))"></div>
                                 </div>
-                                <input type="hidden" name="fsupplier" id="supplierCodeHidden"
-                                    value="{{ old('fsupplier') }}">
+                                <input type="hidden" name="filter_warehouse_id" id="warehouseCodeHidden"
+                                    value="{{ $filterWarehouseId }}">
                                 <button type="button"
-                                    @click="window.dispatchEvent(new CustomEvent('supplier-browse-open'))"
+                                    @click="window.dispatchEvent(new CustomEvent('warehouse-browse-open'))"
                                     class="border -ml-px px-3 py-2 bg-white hover:bg-gray-50 rounded-r-none"
-                                    title="Browse Supplier">
+                                    title="Browse Gudang">
                                     <x-heroicon-o-magnifying-glass class="w-5 h-5" />
                                 </button>
                             </div>
-                            @error('fsupplier')
+                            @error('filter_warehouse_id')
                                 <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                             @enderror
                         </div>
@@ -134,112 +134,22 @@
         {{-- --- END MODAL FILTER POP-UP --- --}}
     </div>
 
-    {{-- MODAL SUPPLIER --}}
-    <div x-data="supplierBrowser()" x-show="open" x-cloak x-transition.opacity
-        class="fixed inset-0 z-50 flex items-center justify-center">
-        <div class="absolute inset-0 bg-black/40" @click="close()"></div>
-        <div class="relative bg-white rounded-2xl shadow-xl w-[90vw] **max-w-7xl** max-h-[90vh] flex flex-col">
-            <div class="p-4 border-b flex items-center gap-3">
-                <h3 class="text-lg font-semibold">Browse Supplier</h3>
-                <button type="button" @click="close()"
-                    class="ml-auto px-3 py-1 rounded border bg-gray-100 hover:bg-gray-200">Close</button>
-            </div>
-            <div class="p-4 overflow-auto flex-1">
-                <table id="supplierBrowseTable" class="min-w-full text-sm display">
-                    <thead class="bg-gray-100">
-                        <tr>
-                            <th class="text-left p-2">Kode</th>
-                            <th class="text-left p-2">Nama Supplier</th>
-                            <th class="text-left p-2">Alamat</th>
-                            <th class="text-left p-2">Telepon</th>
-                            <th class="text-center p-2">Aksi</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <!-- DataTables akan mengisi ini -->
-                    </tbody>
-                </table>
-            </div>
-        </div>
-    </div>
+    <x-transaction.browse-warehouse-modal />
 
 @endsection
 
 @push('styles')
-    <style>
-        /* DataTables Custom Styling */
-        #supplierBrowseTable_wrapper .dataTables_length select {
-            @apply border rounded px-2 py-1 text-sm;
-        }
-
-        #supplierBrowseTable_wrapper .dataTables_filter input {
-            @apply border rounded px-3 py-2 text-sm w-64;
-        }
-
-        #supplierBrowseTable_wrapper .dataTables_info {
-            @apply text-sm text-gray-600;
-        }
-
-        #supplierBrowseTable_wrapper .dataTables_paginate {
-            @apply flex items-center gap-1;
-        }
-
-        #supplierBrowseTable_wrapper .dataTables_paginate .paginate_button {
-            @apply px-3 py-2 border rounded text-sm cursor-pointer transition-colors inline-flex items-center justify-center min-w-[36px];
-        }
-
-        #supplierBrowseTable_wrapper .dataTables_paginate .paginate_button:hover:not(.disabled) {
-            @apply bg-gray-100;
-        }
-
-        #supplierBrowseTable_wrapper .dataTables_paginate .paginate_button.current {
-            @apply bg-blue-600 text-white border-blue-600 font-semibold;
-        }
-
-        #supplierBrowseTable_wrapper .dataTables_paginate .paginate_button.current:hover {
-            @apply bg-blue-700;
-        }
-
-        #supplierBrowseTable_wrapper .dataTables_paginate .paginate_button.disabled {
-            @apply opacity-30 cursor-not-allowed;
-        }
-
-        #supplierBrowseTable_wrapper .dataTables_paginate .paginate_button.disabled:hover {
-            @apply bg-transparent;
-        }
-
-        /* Icon buttons styling */
-        #supplierBrowseTable_wrapper .dataTables_paginate .paginate_button svg {
-            @apply w-4 h-4;
-        }
-
-        #supplierBrowseTable_wrapper .dataTables_processing {
-            @apply bg-white/90 flex items-center justify-center;
-        }
-
-        /* Table styling */
-        #supplierBrowseTable thead th {
-            @apply bg-gray-100 font-semibold text-left p-3 border-b-2;
-        }
-
-        #supplierBrowseTable tbody td {
-            @apply p-3 border-b;
-        }
-
-        #supplierBrowseTable tbody tr:hover {
-            @apply bg-gray-50;
-        }
-
-        /* Ellipsis styling */
-        #supplierBrowseTable_wrapper .dataTables_paginate .ellipsis {
-            @apply px-2 py-2 text-gray-400;
-        }
-    </style>
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.7/css/jquery.dataTables.min.css">
 @endpush
+<x-transaction.datatables-length-styles :tables="['warehouseTable']" />
 @push('scripts')
     {{-- jQuery + DataTables JS (CDN) --}}
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
-    <script src="https://cdn.datatables.net/2.1.6/js/dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.7/js/jquery.dataTables.min.js"></script>
+    @include('components.transaction.browse-warehouse-script', [
+        'routeName' => 'wh.browse',
+        'branchScope' => $isAuthorized ? 'all' : null,
+    ])
     <script>
         // Fungsi untuk mengontrol modal
         function toggleModal(show) {
@@ -282,165 +192,5 @@
             @endif
         });
 
-        function supplierBrowser() {
-            return {
-                open: false,
-                dataTable: null,
-
-                initDataTable() {
-                    if (this.dataTable) {
-                        this.dataTable.destroy();
-                    }
-
-                    this.dataTable = $('#supplierBrowseTable').DataTable({
-                        processing: true,
-                        serverSide: true,
-                        ajax: {
-                            url: "{{ route('suppliers.browse') }}",
-                            type: 'GET',
-                            data: function(d) {
-                                return {
-                                    q: d.search.value,
-                                    page: (d.start / d.length) + 1,
-                                    per_page: d.length,
-                                    draw: d.draw // ✅ Tambahkan draw
-                                };
-                            },
-                            dataSrc: function(json) {
-                                // ✅ PERBAIKAN: Return json langsung, bukan hanya data
-                                return json.data || [];
-                            }
-                        },
-                        columns: [{
-                                data: 'fsuppliercode',
-                                name: 'fsuppliercode',
-                                width: '15%'
-                            },
-                            {
-                                data: 'fsuppliername',
-                                name: 'fsuppliername',
-                                width: '20%'
-                            },
-                            {
-                                data: 'faddress',
-                                name: 'faddress',
-                                defaultContent: '-',
-                                orderable: false,
-                                width: '30%'
-                            },
-                            {
-                                data: 'ftelp',
-                                name: 'ftelp',
-                                defaultContent: '-',
-                                orderable: false,
-                                width: '20%'
-                            },
-                            {
-                                data: null,
-                                orderable: false,
-                                searchable: false,
-                                className: 'text-center',
-                                width: '20%',
-                                render: function(data, type, row) {
-                                    // ✅ PERBAIKAN: Escape quotes untuk mencegah error
-                                    const code = (row.fsuppliercode || '').replace(/'/g, "\\'");
-                                    const name = (row.fsuppliername || '').replace(/'/g, "\\'");
-                                    const address = (row.faddress || '').replace(/'/g, "\\'");
-                                    const telp = (row.ftelp || '').replace(/'/g, "\\'");
-
-                                    return `<button type="button" 
-                                onclick="window.chooseSupplier('${code}', '${code}', '${name}', '${address}', '${telp}')" 
-                                class="px-3 py-1 rounded text-xs bg-emerald-600 hover:bg-emerald-700 text-white">
-                                Pilih
-                            </button>`;
-                                }
-                            }
-                        ],
-                        pageLength: 10,
-                        lengthMenu: [10, 25, 50, 100],
-                        order: [
-                            [1, 'asc']
-                        ],
-                        dom: '<"flex items-center justify-between mb-4"<"flex items-center gap-2"l><"flex-1"><"flex items-center"f>>' +
-                            '<"overflow-x-auto"t>' +
-                            '<"flex items-center justify-between mt-4"<"text-sm text-gray-600"i><"flex items-center gap-2"p>>',
-                        language: {
-                            search: "_INPUT_",
-                            searchPlaceholder: "Cari kode atau nama supplier...",
-                            lengthMenu: "Tampilkan _MENU_",
-                            info: "Menampilkan _START_ - _END_ dari _TOTAL_ data",
-                            infoEmpty: "Tidak ada data",
-                            infoFiltered: "(difilter dari _MAX_ total data)",
-                            paginate: {
-                                first: '<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 19l-7-7 7-7m8 14l-7-7 7-7"/></svg>',
-                                last: '<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 5l7 7-7 7M5 5l7 7-7 7"/></svg>',
-                                next: '<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>',
-                                previous: '<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>'
-                            },
-                            processing: '<div class="flex items-center justify-center"><div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div></div>',
-                            zeroRecords: "Tidak ada data yang ditemukan"
-                        },
-                        drawCallback: function() {
-                            $('.dataTables_paginate .paginate_button').addClass(
-                                'px-3 py-2 border rounded mx-0.5 hover:bg-gray-100 transition-colors inline-flex items-center justify-center'
-                            );
-                            $('.dataTables_paginate .paginate_button.current').addClass(
-                                'bg-blue-600 text-white border-blue-600 hover:bg-blue-700');
-                            $('.dataTables_paginate .paginate_button.disabled').addClass(
-                                'opacity-50 cursor-not-allowed hover:bg-transparent');
-
-                            $('.dataTables_paginate .paginate_button.first, .dataTables_paginate .paginate_button.last, .dataTables_paginate .paginate_button.previous, .dataTables_paginate .paginate_button.next')
-                                .css('min-width', '36px');
-                        }
-                    });
-                },
-
-                openBrowse() {
-                    this.open = true;
-                    this.$nextTick(() => {
-                        this.initDataTable();
-                    });
-                },
-
-                close() {
-                    this.open = false;
-                    if (this.dataTable) {
-                        this.dataTable.destroy();
-                        this.dataTable = null;
-                    }
-                },
-
-                init() {
-                    window.chooseSupplier = (id, code, name, address, telp) => {
-                        const sel = document.getElementById('modal_filter_supplier_id');
-                        const hid = document.getElementById('supplierCodeHidden');
-
-                        if (!sel) {
-                            this.close();
-                            return;
-                        }
-
-                        let opt = [...sel.options].find(o => o.value == String(code));
-                        const label = `${name} (${code})`;
-
-                        if (!opt) {
-                            opt = new Option(label, code, true, true);
-                            sel.add(opt);
-                        } else {
-                            opt.text = label;
-                            opt.selected = true;
-                        }
-
-                        sel.dispatchEvent(new Event('change'));
-                        if (hid) hid.value = code;
-                        this.close();
-                    };
-
-                    window.addEventListener('supplier-browse-open', () => this.openBrowse(), {
-                        passive: true
-                    });
-                }
-            }
-        }
     </script>
 @endpush

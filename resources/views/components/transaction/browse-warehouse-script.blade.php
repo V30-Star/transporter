@@ -5,6 +5,7 @@
     $routeName = $routeName ?? 'gudang.browse';
     $eventName = $eventName ?? 'warehouse-browse-open';
     $openDelay = $openDelay ?? 0;
+    $branchScope = $branchScope ?? null;
 @endphp
 
 <script>
@@ -20,7 +21,7 @@
         const name = normalize(warehouse.fwhname ?? warehouse.warehouse_name);
         const label = name ? `${name} (${code})` : code;
         const selects = Array.from(document.querySelectorAll(
-            '#warehouseSelect, #warehouseSelectFrom, #warehouseSelectTo'
+            '#warehouseSelect, #warehouseSelectFrom, #warehouseSelectTo, #modal_filter_warehouse_id'
         ));
         const codeInputs = Array.from(document.querySelectorAll(
             '#warehouseCodeHidden, #warehouseCodeHiddenFrom, #warehouseCodeHiddenTo'
@@ -115,7 +116,7 @@
                         url: "{{ route($routeName) }}",
                         type: 'GET',
                         data: function(d) {
-                            return {
+                            const payload = {
                                 draw: d.draw,
                                 start: d.start,
                                 length: d.length,
@@ -123,6 +124,13 @@
                                 order_column: d.columns[d.order[0].column].data,
                                 order_dir: d.order[0].dir
                             };
+
+                            const branchScope = @json($branchScope);
+                            if (branchScope) {
+                                payload.branch_scope = branchScope;
+                            }
+
+                            return payload;
                         }
                     },
                     columns: [{

@@ -463,6 +463,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/invoice', [InvoiceController::class, 'index'])->name('invoice.index');
         Route::post('/invoice', [InvoiceController::class, 'store'])->name('invoice.store');
         Route::get('/invoice/create', [InvoiceController::class, 'create'])->name('invoice.create');
+        Route::get('/invoice/price-info', [InvoiceController::class, 'priceInfo'])->name('invoice.price-info');
         Route::post('/invoice/credit-check', [InvoiceController::class, 'creditCheck'])->name('invoice.credit-check');
         Route::get('/invoice/{ftranmtid}/view', [InvoiceController::class, 'view'])->name('invoice.view');
         Route::get('/invoice/{ftranmtid}/edit', [InvoiceController::class, 'edit'])->name('invoice.edit');
