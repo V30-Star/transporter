@@ -205,7 +205,7 @@
                 </div>
 
                 <div class="px-6 py-4 border-b bg-white" x-show="!$store.laporanStore.isLoading">
-                    <div class="grid grid-cols-1 md:grid-cols-4 gap-3">
+                    <div class="grid grid-cols-1 md:grid-cols-6 gap-3">
                         <div class="rounded-xl border border-blue-100 bg-blue-50 p-4">
                             <div class="text-xs font-semibold text-blue-700 uppercase">Total Stok</div>
                             <div class="mt-1 text-2xl font-bold text-blue-900" x-text="$store.laporanStore.formatNumber($store.laporanStore.totalStock())"></div>
@@ -223,6 +223,14 @@
                         <div class="rounded-xl border border-slate-200 bg-slate-50 p-4">
                             <div class="text-xs font-semibold text-slate-600 uppercase">Gudang Aktif</div>
                             <div class="mt-1 text-2xl font-bold text-slate-900" x-text="$store.laporanStore.stokData.length"></div>
+                        </div>
+                        <div class="rounded-xl border border-indigo-100 bg-indigo-50 p-4">
+                            <div class="text-xs font-semibold text-indigo-700 uppercase">Outstanding PO</div>
+                            <div class="mt-1 text-2xl font-bold text-indigo-900" x-text="$store.laporanStore.outstandingPoData.length"></div>
+                        </div>
+                        <div class="rounded-xl border border-purple-100 bg-purple-50 p-4">
+                            <div class="text-xs font-semibold text-purple-700 uppercase">Outstanding SO/KNY</div>
+                            <div class="mt-1 text-2xl font-bold text-purple-900" x-text="$store.laporanStore.outstandingSoData.length"></div>
                         </div>
                     </div>
                 </div>
@@ -263,6 +271,30 @@
                             class="whitespace-nowrap pb-2 px-1 border-b-2 font-medium text-sm">
                             Pembelian
                             <span class="ml-1 rounded-full bg-gray-200 px-2 py-0.5 text-xs text-gray-700" x-text="$store.laporanStore.supplierData.length"></span>
+                        </button>
+
+                        <button @click="$store.laporanStore.activeTab = 'outstanding_po'"
+                            :class="{
+                                'border-blue-500 text-blue-600': $store.laporanStore
+                                    .activeTab === 'outstanding_po',
+                                'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300': $store
+                                    .laporanStore.activeTab !== 'outstanding_po'
+                            }"
+                            class="whitespace-nowrap pb-2 px-1 border-b-2 font-medium text-sm">
+                            OutStanding PO
+                            <span class="ml-1 rounded-full bg-gray-200 px-2 py-0.5 text-xs text-gray-700" x-text="$store.laporanStore.outstandingPoData.length"></span>
+                        </button>
+
+                        <button @click="$store.laporanStore.activeTab = 'outstanding_so'"
+                            :class="{
+                                'border-blue-500 text-blue-600': $store.laporanStore
+                                    .activeTab === 'outstanding_so',
+                                'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300': $store
+                                    .laporanStore.activeTab !== 'outstanding_so'
+                            }"
+                            class="whitespace-nowrap pb-2 px-1 border-b-2 font-medium text-sm">
+                            OutStanding SO/KNY
+                            <span class="ml-1 rounded-full bg-gray-200 px-2 py-0.5 text-xs text-gray-700" x-text="$store.laporanStore.outstandingSoData.length"></span>
                         </button>
                     </nav>
                 </div>
@@ -417,6 +449,60 @@
                                 </tbody>
                             </table>
                         </div>
+
+                        <div x-show="$store.laporanStore.activeTab === 'outstanding_po'" class="overflow-x-auto rounded-lg border">
+                            <table class="min-w-full divide-y divide-gray-200">
+                                <thead class="bg-gray-100">
+                                    <tr>
+                                        <th class="px-3 py-2 text-left text-xs font-bold text-gray-800 uppercase">No. PO</th>
+                                        <th class="px-3 py-2 text-left text-xs font-bold text-gray-800 uppercase">Tgl. Beli</th>
+                                        <th class="px-3 py-2 text-left text-xs font-bold text-gray-800 uppercase">Nama Customer</th>
+                                        <th class="px-3 py-2 text-right text-xs font-bold text-gray-800 uppercase">Qty</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="bg-white divide-y divide-gray-200">
+                                    <template x-for="(item, i) in $store.laporanStore.outstandingPoData" :key="i">
+                                        <tr>
+                                            <td class="px-3 py-2 whitespace-nowrap text-sm text-gray-900" x-text="item.fpono"></td>
+                                            <td class="px-3 py-2 whitespace-nowrap text-sm text-gray-900" x-text="item.fpodate"></td>
+                                            <td class="px-3 py-2 whitespace-nowrap text-sm text-gray-900" x-text="item.fsuppliername"></td>
+                                            <td class="px-3 py-2 whitespace-nowrap text-sm text-gray-900 text-right" x-text="Number(item.fqty).toLocaleString('id-ID', { minimumFractionDigits: 0, maximumFractionDigits: 2 })"></td>
+                                        </tr>
+                                    </template>
+                                    <tr x-show="$store.laporanStore.outstandingPoData.length === 0">
+                                        <td colspan="4" class="px-3 py-4 text-center text-sm text-gray-500">Tidak ada data Outstanding PO.</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <div x-show="$store.laporanStore.activeTab === 'outstanding_so'" class="overflow-x-auto rounded-lg border">
+                            <table class="min-w-full divide-y divide-gray-200">
+                                <thead class="bg-gray-100">
+                                    <tr>
+                                        <th class="px-3 py-2 text-left text-xs font-bold text-gray-800 uppercase">No. SO</th>
+                                        <th class="px-3 py-2 text-left text-xs font-bold text-gray-800 uppercase">Tanggal</th>
+                                        <th class="px-3 py-2 text-left text-xs font-bold text-gray-800 uppercase">Nama Customer</th>
+                                        <th class="px-3 py-2 text-right text-xs font-bold text-gray-800 uppercase">Qty</th>
+                                        <th class="px-3 py-2 text-left text-xs font-bold text-gray-800 uppercase">Salesman</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="bg-white divide-y divide-gray-200">
+                                    <template x-for="(item, i) in $store.laporanStore.outstandingSoData" :key="i">
+                                        <tr>
+                                            <td class="px-3 py-2 whitespace-nowrap text-sm text-gray-900" x-text="item.fsono"></td>
+                                            <td class="px-3 py-2 whitespace-nowrap text-sm text-gray-900" x-text="item.fsodate"></td>
+                                            <td class="px-3 py-2 whitespace-nowrap text-sm text-gray-900" x-text="item.fcustname"></td>
+                                            <td class="px-3 py-2 whitespace-nowrap text-sm text-gray-900 text-right" x-text="Number(item.fqty).toLocaleString('id-ID', { minimumFractionDigits: 0, maximumFractionDigits: 2 })"></td>
+                                            <td class="px-3 py-2 whitespace-nowrap text-sm text-gray-900" x-text="item.fsalesman || '-'"></td>
+                                        </tr>
+                                    </template>
+                                    <tr x-show="$store.laporanStore.outstandingSoData.length === 0">
+                                        <td colspan="5" class="px-3 py-4 text-center text-sm text-gray-500">Tidak ada data Outstanding SO/KNY.</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -505,6 +591,8 @@
                 stokData: [],
                 customerData: [],
                 supplierData: [],
+                outstandingPoData: [],
+                outstandingSoData: [],
                 productCode: '', // tambah ini
                 productName: '', // tambah ini
 
@@ -543,6 +631,8 @@
                     this.stokData = [];
                     this.customerData = [];
                     this.supplierData = [];
+                    this.outstandingPoData = [];
+                    this.outstandingSoData = [];
                     this.productCode = ''; // reset
                     this.productName = ''; // reset
                 },
@@ -562,6 +652,8 @@
                             this.stokData = data.stok || [];
                             this.customerData = data.customer || [];
                             this.supplierData = data.supplier || [];
+                            this.outstandingPoData = data.outstanding_po || [];
+                            this.outstandingSoData = data.outstanding_so || [];
                             this.isLoading = false;
                         })
                         .catch(err => {

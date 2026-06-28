@@ -962,6 +962,76 @@ class ProductController extends Controller
             ORDER BY m.fstockmtdate DESC 
         ", ['fprdcode' => $product->fprdcode]);
 
+        $outstandingPo = DB::select("
+            SELECT 
+                h.fpono, 
+                h.fpodate, 
+                s.fsuppliername, 
+                (d.fqty - COALESCE(t.fqtyterima, 0)) AS fqty 
+            FROM tr_poh h  
+            LEFT JOIN tr_pod d ON h.fpono = d.fpono  
+            LEFT JOIN mssupplier s ON h.fsupplier = s.fsuppliercode  
+            LEFT JOIN ( 
+                SELECT 
+                    CASE 
+                        WHEN fstockmtcode = 'TER' THEN frefso 
+                        ELSE frefdtno 
+                    END AS frefdtno, 
+                    trstockdt.fprdcode, 
+                    trstockdt.fnouref, 
+                    SUM(trstockdt.fqty) AS fqtyterima  
+                FROM trstockdt 
+                WHERE trstockdt.fstockmtcode = 'TER' 
+                   OR (trstockdt.fcode = 'P' AND trstockdt.fstockmtcode = 'BUY')
+                GROUP BY 
+                    CASE 
+                        WHEN fstockmtcode = 'TER' THEN frefso 
+                        ELSE frefdtno 
+                    END, 
+                    trstockdt.fprdcode, 
+                    trstockdt.fnouref
+            ) t ON h.fpono = t.frefdtno AND t.fprdcode = d.fprdcode AND d.fnou = t.fnouref  
+            WHERE (d.fqty - COALESCE(t.fqtyterima, 0)) > 0 
+              AND h.fclose = '0' 
+              AND d.fprdcode = :fprdcode
+              AND h.fbranchcode = :fbranchcode
+            ORDER BY 
+                h.fpono ASC
+        ", [
+            'fprdcode' => $product->fprdcode,
+            'fbranchcode' => $this->getCurrentBranchCode() ?: 'BG'
+        ]);
+
+        $outstandingSo = DB::select("
+            SELECT 
+                m.fsono,
+                m.fcustno,
+                c.fcustomername AS fcustname,
+                m.fexpedisi,
+                m.fresi,
+                m.fwil,
+                d.fprdcode,
+                m.fsodate,
+                m.fcurrency,
+                d.fpricenet AS fpricefaktur,
+                d.fqty,
+                d.fkomisi,
+                s.fsalesmanname AS fsalesman
+            FROM tranmt m
+            INNER JOIN trandt d     ON m.fsono = d.fsono
+            INNER JOIN mscustomer c ON m.fcustno = c.fcustomercode
+            LEFT JOIN mssalesman s  ON m.fsalesman = s.fsalesmancode
+            WHERE m.ftrancode = 'INV'
+              AND d.fprdcode = :fprdcode
+              AND m.fbranchcode = :fbranchcode
+            ORDER BY 
+                m.fsodate DESC 
+            LIMIT 100
+        ", [
+            'fprdcode' => $product->fprdcode,
+            'fbranchcode' => $this->getCurrentBranchCode() ?: 'BG'
+        ]);
+
         return response()->json([
             'product' => [
                 'fprdcode' => $product->fprdcode,
@@ -970,6 +1040,8 @@ class ProductController extends Controller
             'stok' => $stokData,
             'customer' => $customerData,
             'supplier' => $supplierData,
+            'outstanding_po' => $outstandingPo,
+            'outstanding_so' => $outstandingSo,
         ]);
     }
 
