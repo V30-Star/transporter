@@ -918,816 +918,588 @@
                     @php
                         $isApproved = \App\Support\ApprovalState::isApprovedRecord($product);
                         $isUsedProduct = $usageInfo['is_used'] ?? false;
-                        $usedByLabels = $usageInfo['used_by'] ?? [];
-                        $allowedNewUnitField = $usageInfo['allowed_new_unit_field'] ?? null;
-                        $lockSatuan1 = $isUsedProduct;
-                        $lockSatuan2 = $isUsedProduct && !empty($product->fsatuanbesar);
-                        $lockSatuan3 = $isUsedProduct && !empty($product->fsatuanbesar2);
-                        $lockQty2 = $lockSatuan2;
-                        $lockQty3 = $lockSatuan3;
+                        $usedByLabels  = $usageInfo['used_by'] ?? [];
+                        $lockSatuan1   = $isUsedProduct;
+                        $lockSatuan2   = $isUsedProduct && !empty($product->fsatuanbesar);
+                        $lockSatuan3   = $isUsedProduct && !empty($product->fsatuanbesar2);
+                        $lockQty2      = $lockSatuan2;
+                        $lockQty3      = $lockSatuan3;
                     @endphp
-                    <div>
-                        @if ($isUsedProduct)
-                            <div
-                                class="mb-4 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
-                                PRODUK INI SUDAH DIREFERENSI DI TRANSAKSI {{ implode(', ', $usedByLabels) }}. KODE PRODUK,
-                                QTY KONVERSI, DAN SATUAN YANG SUDAH TERPAKAI DIKUNCI. ANDA MASIH BISA UBAH FIELD LAIN.
-                                Satuan 2 dan Satuan 3 masih boleh diisi atau diupdate jika slotnya masih kosong.
-                            </div>
-                        @endif
 
-                        <!-- Group Produk Dropdown -->
-                        <div class="mt-2 w-1/2" x-data="{ isEditable: false }">
-                            <label class="block text-sm font-bold text-gray-700">Group Produk</label>
-                            <div class="flex">
-                                <div class="relative flex-1">
-                                    <select disabled class="w-full border rounded-l px-3 py-2 bg-gray-100 text-gray-700 cursor-not-allowed @error('fgroupcode') border-red-500 bg-red-50 @enderror" id="groupSelect">
-                                        <option value=""></option>
-                                        @foreach ($groups as $group)
-                                            <option value="{{ $group->fgroupid }}"
-                                                {{ old('fgroupcode', $product->fgroupcode) == $group->fgroupid ? 'selected' : '' }}>
-                                                {{ $group->fgroupname }} ({{ $group->fgroupcode }})
-                                            </option>
-                                        @endforeach
-                                    </select>
-                                    <div class="absolute inset-0" role="button" aria-label="Browse Group"
-                                        @click="window.dispatchEvent(new CustomEvent('group-browse-open'))"></div>
-                                </div>
-
-                                <input type="hidden" name="fgroupcode" id="groupCodeHidden"
-                                    value="{{ old('fgroupcode', $product->fgroupcode) }}">
-
-                                <button type="button" @click="window.dispatchEvent(new CustomEvent('group-browse-open'))"
-                                    class="border -ml-px px-3 py-2 bg-white hover:bg-gray-50 rounded-r-none"
-                                    title="Browse Group Produk">
-                                    <x-heroicon-o-magnifying-glass class="w-5 h-5" />
-                                </button>
-                                <button type="button" @click="isEditable = true; $dispatch('open-group-modal')"
-                                    class="border -ml-px rounded-r px-3 py-2 bg-white hover:bg-gray-50"
-                                    title="Tambah Group Produk">
-                                    <x-heroicon-o-plus class="w-5 h-5" />
-                                </button>
-                            </div>
-
-                            @error('fgroupcode')
-                                <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
-                            @enderror
+                    @if ($isUsedProduct)
+                        <div class="mb-4 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
+                            PRODUK INI SUDAH DIREFERENSI DI TRANSAKSI {{ implode(', ', $usedByLabels) }}.
+                            KODE PRODUK, QTY KONVERSI, DAN SATUAN YANG SUDAH TERPAKAI DIKUNCI.
+                            ANDA MASIH BISA UBAH FIELD LAIN.
+                            Satuan 2 dan Satuan 3 masih boleh diisi atau diupdate jika slotnya masih kosong.
                         </div>
+                    @endif
 
-                        <!-- Merek Dropdown -->
-                        <div class="mt-2 w-1/2" x-data="{ isMerekEditable: false }">
-                            <label class="block text-sm font-bold">Merek</label>
-                            <div class="flex">
-                                <div class="relative flex-1">
-                                    <select disabled id="merkSelect"
-                                        class="w-full border rounded-l px-3 py-2 bg-gray-100 text-gray-700 cursor-not-allowed @error('fmerek') border-red-500 bg-red-50 @enderror">
-                                        <option value=""></option>
-                                        @foreach ($merks as $merk)
-                                            <option value="{{ $merk->fmerekcode }}"
-                                                {{ old('fmerek', $product->fmerek) == $merk->fmerekcode ? 'selected' : '' }}>
-                                                {{ $merk->fmerekcode }} - {{ $merk->fmerekname }}
-                                            </option>
-                                        @endforeach
-                                    </select>
-                                    <div class="absolute inset-0" role="button" aria-label="Browse Merek"
-                                        @click="window.dispatchEvent(new CustomEvent('merek-browse-open'))"></div>
-                                </div>
+                    {{-- ═══ MAIN GRID: sidebar image + form ═══ --}}
+                    <div class="flex gap-5 items-start">
 
-                                <input type="hidden" name="fmerek" id="fmerek"
-                                    value="{{ old('fmerek', $product->fmerek) }}">
-
-                                <button type="button" @click="window.dispatchEvent(new CustomEvent('merek-browse-open'))"
-                                    class="border -ml-px px-3 py-2 bg-white hover:bg-gray-50 rounded-r-none"
-                                    title="Browse Merek">
-                                    <x-heroicon-o-magnifying-glass class="w-5 h-5" />
-                                </button>
-                                <button type="button" @click="isMerekEditable = true; $dispatch('open-merk-modal')"
-                                    class="border -ml-px rounded-r px-3 py-2 bg-white hover:bg-gray-50"
-                                    title="Tambah Merek">
-                                    <x-heroicon-o-plus class="w-5 h-5" />
-                                </button>
-                            </div>
-                            @error('fmerek')
-                                <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
-                            @enderror
-                        </div>
-
-                        <!-- Kode Produk -->
-                        <div class="mt-2 w-1/2 flex items-center gap-4">
-                            <div class="mt-2 w-1/3">
-                                <label class="block text-sm font-bold">Kode Produk</label>
-                                <input type="text" name="fprdcode" id="fprdcode"
-                                    value="{{ old('fprdcode', $product->fprdcode) }}"
-                                    class="w-full border rounded px-3 py-2 uppercase bg-gray-100 cursor-not-allowed @error('fprdcode') border-red-500 @enderror"
-                                    readonly>
-                            </div>
-                            <!-- Checkbox Auto Generate -->
-                            <label class="inline-flex items-center mt-6 font-bold">
-                                <input type="checkbox" x-model="autoCode" class="form-checkbox text-indigo-600" checked>
-                                <span class="ml-2 text-sm text-gray-700">Auto</span>
-                            </label>
-                            <label for="statusToggle"
-                                class="inline-flex items-center mt-6 font-bold justify-between w-40 p-3 border rounded-lg cursor-pointer hover:bg-gray-50 transition bg-gray-100">
-                                <span class="text-sm font-medium">Non Aktif</span>
-                                <input type="checkbox" name="fnonactive" id="statusToggle"
-                                    class="h-5 w-5 text-green-600 rounded focus:ring-green-500"
-                                    {{ old('fnonactive', $product->fnonactive) == '1' ? 'checked' : '' }} disabled>
-                            </label>
-                            @error('fprdcode')
-                                <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
-                            @enderror
-                        </div>
-
-                        <div x-show="open" x-transition.opacity x-cloak
-                            class="fixed inset-0 z-50 flex items-center justify-center">
-                            <div class="absolute inset-0 bg-black/40" @click="open = false"></div>
-                            <div
-                                class="relative bg-white rounded-2xl shadow-xl w-[92vw] max-w-4xl max-h-[85vh] flex flex-col">
-                                <div class="p-4 border-b flex items-center gap-3">
-                                    <h3 class="text-lg font-semibold">Browse Merek</h3>
-                                    <div class="ml-auto flex items-center gap-2">
-                                        <input type="text" x-model="keyword" @keydown.enter.prevent="search()"
-                                            placeholder="Cari kode / nama…" class="border rounded px-3 py-2 w-64">
-                                        <button type="button" @click="search()"
-                                            class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">Search</button>
-                                    </div>
-                                </div>
-
-                                <div class="p-3 border-t flex items-center gap-2">
-                                    <div class="text-sm text-gray-600"><span
-                                            x-text="`Page ${page} / ${lastPage} • Total ${total}`"></span></div>
-                                    <div class="ml-auto flex items-center gap-2">
-                                        <button type="button" @click="prev()" :disabled="page <= 1"
-                                            class="px-3 py-1 rounded border"
-                                            :class="page <= 1 ? 'bg-gray-200 text-gray-400 cursor-not-allowed' :
-                                                'bg-gray-100 hover:bg-gray-200'">Prev</button>
-                                        <button type="button" @click="next()" :disabled="page >= lastPage"
-                                            class="px-3 py-1 rounded border"
-                                            :class="page >= lastPage ? 'bg-gray-200 text-gray-400 cursor-not-allowed' :
-                                                'bg-gray-100 hover:bg-gray-200'">Next</button>
-                                        <button type="button" @click="open = false"
-                                            class="px-3 py-1 rounded border bg-gray-100 hover:bg-gray-200">Close</button>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Nama Produk -->
-                        <div class="mt-2 w-1/2">
-                            <label class="block text-sm font-bold">Nama Produk</label>
-                            <input type="text" name="fprdname" id="fprdname"
-                                value="{{ old('fprdname', $product->fprdname) }}"
-                                class="w-full border rounded px-3 py-2 uppercase @error('fprdname') border-red-500 bg-red-50 @enderror"
-                                autofocus>
-                            @error('fprdname')
-                                <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
-                            @enderror
-                        </div>
-
-                        <!-- Barcode -->
-                        <div class="mt-2 w-1/3">
-                            <label class="block text-sm font-bold">Barcode</label>
-                            <input type="text" name="fbarcode" value="{{ old('fbarcode', $product->fbarcode) }}"
-                                class="w-full border rounded px-3 py-2 @error('fbarcode') border-red-500 @enderror">
-                            @error('fbarcode')
-                                <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
-                            @enderror
-                        </div>
-
-                        <div id="satuan-container">
-
-                            {{-- Satuan Kecil --}}
-                            <div class="mt-2 flex items-end gap-4">
-                                <div class="w-1/3">
-
-                                    <label class="block text-sm font-bold">Satuan 1</label>
-                                    <select
-                                        class="w-full border rounded px-3 py-2 bg-blue-50 border-blue-300 focus:ring-blue-500 @error('fsatuankecil') border-red-500 @enderror"
-                                        name="fsatuankecil" id="fsatuankecil" onchange="updateSatuanLogic();"
-                                        data-usage-locked="{{ $lockSatuan1 ? '1' : '0' }}"
-                                        {{ $lockSatuan1 ? 'disabled' : '' }}>
-                                        <option value="" selected> Pilih Satuan 1</option>
-                                        @foreach ($satuan as $satu)
-                                            <option value="{{ $satu->fsatuancode }}"
-                                                {{ old('fsatuankecil', $product->fsatuankecil) == $satu->fsatuancode ? 'selected' : '' }}>
-                                                {{ $satu->fsatuancode }}
-                                            </option>
-                                        @endforeach
-                                    </select>
-                                    @if ($lockSatuan1)
-                                        <input type="hidden" name="fsatuankecil"
-                                            value="{{ old('fsatuankecil', $product->fsatuankecil) }}">
-                                    @endif
-                                </div>
-
-                                <div class="w-1/4 invisible"></div>
-
-                                <div class="w-1/6">
-                                    <label class="block text-sm font-bold">HPP Satuan Kecil</label>
-                                    <input type="text" name="fhpp" id="fhpp"
-                                        class="autonumeric w-full border border-blue-300 rounded px-3 py-2 bg-blue-50 focus:bg-white transition-colors"
-                                        {{-- Gunakan format murni angka tanpa ribuan agar AutoNumeric yang memformatnya --}} value="{{ old('fhpp', $product->fhpp ?? 0) }}">
-                                </div>
-                                @error('fsatuankecil')
-                                    <div class="text-red-600 text-sm mt-1">
-                                        {{ $message }}
-                                    </div>
-                                @enderror
-                            </div>
-
-                            {{-- Satuan 2 --}}
-                            <div id="satuan2-block" style="display: none;" class="mt-2">
-                                <div class="flex items-end gap-4">
-                                    <div class="w-1/3">
-                                        <label class="block text-sm font-bold">Satuan 2</label>
-                                        <select
-                                            class="w-full border rounded px-3 py-2 bg-yellow-50 @error('fsatuanbesar') border-red-500 @enderror"
-                                            name="fsatuanbesar" id="fsatuanbesar" {{ $lockSatuan2 ? 'disabled' : '' }}
-                                            data-usage-locked="{{ $lockSatuan2 ? '1' : '0' }}"
-                                            onchange="updateSatuanLogic();">
-                                            <option value="" selected>Pilih Satuan 2</option>
-                                            @foreach ($satuan as $satu)
-                                                <option value="{{ $satu->fsatuancode }}"
-                                                    data-name="{{ $satu->fsatuanname }}"
-                                                    {{ old('fsatuanbesar', $product->fsatuanbesar) == $satu->fsatuancode ? 'selected' : '' }}>
-                                                    {{ $satu->fsatuancode }}
-                                                </option>
-                                            @endforeach
-                                        </select>
-                                        @if ($lockSatuan2)
-                                            <input type="hidden" name="fsatuanbesar"
-                                                value="{{ old('fsatuanbesar', $product->fsatuanbesar) }}">
-                                        @endif
-                                        @error('fsatuanbesar')
-                                            <div class="text-red-600 text-sm mt-1">
-                                                {{ $message }}
-                                            </div>
-                                        @enderror
-                                    </div>
-
-                                    <div class="w-1/4"> {{-- Kita lebarkan sedikit dari 1/6 ke 1/4 agar ruang teks lebih lega --}}
-                                        <label class="block text-sm font-bold">Isi</label>
-                                        <div
-                                            class="flex items-center border border-yellow-300 rounded bg-yellow-50 focus-within:bg-white focus-within:ring-1 focus-within:ring-yellow-400 transition-all">
-                                            {{-- Input tanpa border agar menyatu dengan container --}}
-                                            <input type="text" name="fqtykecil" id="fqtykecil"
-                                                value={{ old('fqtykecil', $product->fqtykecil) }}
-                                                class="satuan-qty-input autonumeric flex-1 bg-transparent border-none focus:ring-0 px-3 py-2 text-right"
-                                                data-usage-locked="{{ $lockQty2 ? '1' : '0' }}"
-                                                {{ $lockQty2 ? 'disabled' : '' }}>
-                                            @if ($lockQty2)
-                                                <input type="hidden" name="fqtykecil"
-                                                    value="{{ old('fqtykecil', $product->fqtykecil) }}">
-                                            @endif
-
-                                            {{-- Span sebagai prefix/suffix di dalam kotak --}}
-                                            <span
-                                                class="satuan-kecil-display text-gray-500 font-bold text-[10px] pr-3 flex-shrink-0 border-l border-yellow-200 ml-2 pl-2">
-                                            </span>
-                                        </div>
-                                        @error('fqtykecil')
-                                            <div class="text-red-600 text-sm mt-1">{{ $message }}</div>
-                                        @enderror
-                                    </div>
-                                    <div class="w-1/6">
-                                        <label class="block text-sm font-bold">HPP Satuan 2</label>
-                                        <input type="text" name="fhpp2" id="fhpp2"
-                                            value="{{ old('fhpp2', $product->fhpp2) }}"
-                                            class="autonumeric w-full border border-yellow-300 rounded px-3 py-2 bg-yellow-50"
-                                            readonly>
-                                    </div>
-                                </div>
-                            </div>
-
-                            {{-- Satuan 3 --}}
-                            <div id="satuan3-block" style="display: none;" class="mt-2">
-                                <div class="flex items-end gap-4">
-                                    <div class="w-1/3">
-                                        <label class="block text-sm font-bold">Satuan 3</label>
-                                        <select
-                                            class="w-full border rounded px-3 py-2 bg-purple-50 @error('fsatuanbesar2') border-red-500 @enderror"
-                                            name="fsatuanbesar2" id="fsatuanbesar2"
-                                            data-usage-locked="{{ $lockSatuan3 ? '1' : '0' }}"
-                                            data-select2-id="select2-data-fsatuanbesar2" tabindex="-1"
-                                            aria-hidden="true" onchange="updateSatuanLogic();"
-                                            {{ $lockSatuan3 ? 'disabled' : '' }}>
-                                            <option value="" selected>Pilih Satuan 3</option>
-                                            @foreach ($satuan as $satu)
-                                                <option value="{{ $satu->fsatuancode }}"
-                                                    data-name="{{ $satu->fsatuanname }}"
-                                                    {{ old('fsatuanbesar2', $product->fsatuanbesar2) == $satu->fsatuancode ? 'selected' : '' }}>
-                                                    {{ $satu->fsatuancode }}
-                                                </option>
-                                            @endforeach
-                                        </select>
-                                        @if ($lockSatuan3)
-                                            <input type="hidden" name="fsatuanbesar2"
-                                                value="{{ old('fsatuanbesar2', $product->fsatuanbesar2) }}">
-                                        @endif
-                                        @error('fsatuanbesar2')
-                                            <div class="text-red-600 text-sm mt-1">
-                                                {{ $message }}
-                                            </div>
-                                        @enderror
-                                    </div>
-
-                                    <div class="w-1/4"> {{-- Lebar dinaikkan ke 1/4 agar ruang teks lebih lega --}}
-                                        <label class="block text-sm font-bold">Isi</label>
-                                        <div
-                                            class="flex items-center border border-purple-300 rounded bg-purple-50 focus-within:bg-white focus-within:ring-1 focus-within:ring-purple-400 transition-all">
-                                            {{-- Input tanpa border agar menyatu dengan container --}}
-                                            <input type="text" name="fqtykecil2" id="fqtykecil2"
-                                                value={{ old('fqtykecil2', $product->fqtykecil2) }}
-                                                class="satuan-qty-input autonumeric flex-1 bg-transparent border-none focus:ring-0 px-3 py-2 text-right"
-                                                data-usage-locked="{{ $lockQty3 ? '1' : '0' }}"
-                                                {{ $lockQty3 ? 'disabled' : '' }}>
-                                            @if ($lockQty3)
-                                                <input type="hidden" name="fqtykecil2"
-                                                    value="{{ old('fqtykecil2', $product->fqtykecil2) }}">
-                                            @endif
-
-                                            {{-- Span sebagai teks di dalam kotak --}}
-                                            <span
-                                                class="satuan-kecil-display text-gray-500 font-bold text-[10px] pr-3 flex-shrink-0 border-l border-purple-200 ml-2 pl-2">
-                                            </span>
-                                        </div>
-                                        @error('fqtykecil2')
-                                            <div class="text-red-600 text-sm mt-1">{{ $message }}</div>
-                                        @enderror
-                                    </div>
-                                    <div class="w-1/6">
-                                        <label class="block text-sm font-bold">HPP Satuan 3</label>
-                                        <input type="text" name="fhpp3" id="fhpp3"
-                                            value="{{ old('fhpp3', $product->fhpp3) }}"
-                                            class="autonumeric w-full border border-purple-300 rounded px-3 py-2 bg-purple-50"
-                                            readonly>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <script>
-                            $(document).ready(function() {
-                                // 1. Inisialisasi AutoNumeric secara individual agar lebih stabil
-                                const autoNumericOptions = {
-                                    digitGroupSeparator: '.',
-                                    decimalCharacter: ',',
-                                    decimalPlaces: 2,
-                                    unformatOnSubmit: true,
-                                    allowDecimalPadding: true,
-                                    outputFormat: "number"
-                                };
-
-                                // Inisialisasi dan simpan instance ke dalam variabel
-                                const anHpp = new AutoNumeric('#fhpp', autoNumericOptions);
-                                const anHpp2 = new AutoNumeric('#fhpp2', autoNumericOptions);
-                                const anHpp3 = new AutoNumeric('#fhpp3', autoNumericOptions);
-                                const anQty2 = new AutoNumeric('#fqtykecil', autoNumericOptions);
-                                const anQty3 = new AutoNumeric('#fqtykecil2', autoNumericOptions);
-
-                                function calculateHPPRows() {
-                                    const valHppKecil = anHpp.getNumber();
-                                    const valQty2 = anQty2.getNumber();
-                                    const valQty3 = anQty3.getNumber();
-
-                                    // Update HPP 2 & 3
-                                    if (valQty2 > 0) {
-                                        anHpp2.set(valHppKecil * valQty2);
-                                    }
-                                    if (valQty3 > 0) {
-                                        anHpp3.set(valHppKecil * valQty3);
-                                    }
-                                }
-
-                                // 2. Event Listener khusus AutoNumeric
-                                // Gunakan event 'autoNumeric:newValue' agar kalkulasi akurat setelah format selesai
-                                $('#fhpp, #fqtykecil, #fqtykecil2').on('autoNumeric:newValue', function() {
-                                    calculateHPPRows();
-                                });
-
-                                // 3. Jalankan kalkulasi pertama kali saat halaman terbuka
-                                // Gunakan sedikit delay agar AutoNumeric selesai memformat nilai awal dari DB
-                                setTimeout(() => {
-                                    calculateHPPRows();
-                                }, 300);
-                            });
-                        </script>
-
-                        <div class="flex flex-col md:flex-row gap-4 mt-2 max-w-2xl">
-
-                            <div class="flex-1">
-                                <label class="block text-sm font-bold mb-1">Satuan Default Transaksi</label>
-                                <select name="fsatuandefault"
-                                    class="w-full border rounded px-3 py-2 @error('fsatuandefault') border-red-500 @enderror">
-                                    <option value="1"
-                                        {{ old('fsatuandefault', $product->fsatuandefault) == '1' ? 'selected' : '' }}>
-                                        Satuan 1
-                                    </option>
-                                    <option value="2"
-                                        {{ old('fsatuandefault', $product->fsatuandefault) == '2' ? 'selected' : '' }}>
-                                        Satuan 2
-                                    </option>
-                                    <option value="3"
-                                        {{ old('fsatuandefault', $product->fsatuandefault) == '3' ? 'selected' : '' }}>
-                                        Satuan 3
-                                    </option>
-                                </select>
-                                @error('fsatuandefault')
-                                    <div class="text-red-600 text-sm mt-1">
-                                        {{ $message }}
-                                    </div>
-                                @enderror
-                            </div>
-
-                            <div class="flex-1">
-                                <label class="block text-sm font-bold mb-1">Satuan Default Laporan</label>
-                                <select name="fsatuandefaultlaporan" disabled
-                                    class="w-full border rounded px-3 py-2 bg-gray-100 text-gray-500 cursor-not-allowed @error('fsatuandefaultlaporan') border-red-500 @enderror">
-                                    <option value="1"
-                                        {{ old('fsatuandefaultlaporan', $product->fsatuandefaultlaporan) == '1' ? 'selected' : '' }}>
-                                        Satuan 1
-                                    </option>
-                                    <option value="2"
-                                        {{ old('fsatuandefaultlaporan', $product->fsatuandefaultlaporan) == '2' ? 'selected' : '' }}>
-                                        Satuan 2
-                                    </option>
-                                    <option value="3"
-                                        {{ old('fsatuandefaultlaporan', $product->fsatuandefaultlaporan) == '3' ? 'selected' : '' }}>
-                                        Satuan 3
-                                    </option>
-                                </select>
-                                @error('fsatuandefaultlaporan')
-                                    <div class="text-red-600 text-sm mt-1">
-                                        {{ $message }}
-                                    </div>
-                                @enderror
-                            </div>
-
-                        </div>
-
-                        <div class="mt-2 grid grid-cols-1 sm:grid-cols-3 gap-4">
-                            <!-- Harga Satuan 3 Level 1 -->
-                            <div>
-                                <label for="fhargajuallevel1" class="block text-sm font-bold">Harga Jual 1
-                                    (<span id="hj-satuan-kecil-level1-label" class="uppercase">-</span>) Level
-                                    1</label>
-                                <div class="d-flex">
-                                    <input type="text"
-                                        class="w-1/10 border rounded px-3 py-2 bg-blue-50 border-blue-300 focus:ring-blue-500 @error('fhargajuallevel1') is-invalid @enderror"
-                                        name="fhargajuallevel1" id="fhargajuallevel1"
-                                        value="{{ old('fhargajuallevel1', $product->fhargajuallevel1) }}">
-                                    @error('fhargajuallevel1')
-                                        <div class="text-red-600 text-sm mt-1">
-                                            {{ $message }}
-                                        </div>
-                                    @enderror
-                                </div>
-                            </div>
-
-                            <!-- Harga Satuan 3 Level 2 -->
-                            <div>
-                                <label for="fhargajuallevel2" class="block text-sm font-bold">Harga Jual
-                                    1 (<span id="hj-satuan-kecil-level2-label" class="uppercase">-</span>) Level
-                                    2</label>
-                                <div class="d-flex">
-                                    <input type="text"
-                                        class="w-1/10 border rounded px-3 py-2 bg-blue-50 border-blue-300 focus:ring-blue-500 @error('fhargajuallevel2') is-invalid @enderror"
-                                        name="fhargajuallevel2" id="fhargajuallevel2"
-                                        value="{{ old('fhargajuallevel2', $product->fhargajuallevel2) }}">
-                                    @error('fhargajuallevel2')
-                                        <div class="text-red-600 text-sm mt-1">
-                                            {{ $message }}
-                                        </div>
-                                    @enderror
-                                </div>
-                            </div>
-
-                            <!-- Harga Satuan 3 Level 3 -->
-                            <div>
-                                <label for="fhargajuallevel3" class="block text-sm font-bold">Harga Jual 1
-                                    (<span id="hj-satuan-kecil-level3-label" class="uppercase">-</span>) Level
-                                    3</label>
-                                <div class="d-flex">
-                                    <input type="text"
-                                        class="w-1/10 border rounded px-3 py-2 bg-blue-50 border-blue-300 focus:ring-blue-500 @error('fhargajuallevel3') is-invalid @enderror"
-                                        name="fhargajuallevel3" id="fhargajuallevel3"
-                                        value="{{ old('fhargajuallevel3', $product->fhargajuallevel3) }}">
-                                    @error('fhargajuallevel3')
-                                        <div class="text-red-600 text-sm mt-1">
-                                            {{ $message }}
-                                        </div>
-                                    @enderror
-                                </div>
-                            </div>
-                        </div>
-
-                        <div id="hj-level1-block" style="display: none;">
-                            <div class="mt-2 grid grid-cols-1 sm:grid-cols-3 gap-4">
-                                <!-- Harga Jual Satuan 2 -->
-                                <div>
-                                    <label for="fhargajual2level1" class="block text-sm font-bold">Harga Jual 2
-                                        (<span id="hj-satuan-besar-level1-label" class="uppercase">-</span>) Level
-                                        1</label>
-                                    <div class="d-flex">
-                                        <input type="text"
-                                            class="w-1/10 border rounded px-3 py-2 bg-yellow-50 @error('fhargajual2level1') is-invalid @enderror"
-                                            name="fhargajual2level1" id="fhargajual2level1"
-                                            value="{{ old('fhargajual2level1', $product->fhargajual2level1 ?? 0) }}">
-                                        @error('fhargajual2level1')
-                                            <div class="text-red-600 text-sm mt-1">
-                                                {{ $message }}
-                                            </div>
-                                        @enderror
-                                    </div>
-                                </div>
-
-                                <!-- HJ. Besar Level 2 -->
-                                <div>
-                                    <label for="fhargajual2level2" class="block text-sm font-bold">Harga Jual 2
-                                        (<span id="hj-satuan-besar-level2-label" class="uppercase">-</span>) Level
-                                        2</label>
-                                    <div class="d-flex">
-                                        <input type="text"
-                                            class="w-1/10 border rounded px-3 py-2 bg-yellow-50 @error('fhargajual2level2') is-invalid @enderror"
-                                            name="fhargajual2level2" id="fhargajual2level2"
-                                            value="{{ old('fhargajual2level2', $product->fhargajual2level2 ?? 0) }}">
-                                        @error('fhargajual2level2')
-                                            <div class="text-red-600 text-sm mt-1">
-                                                {{ $message }}
-                                            </div>
-                                        @enderror
-                                    </div>
-                                </div>
-
-                                <!-- HJ. Besar Level 3 -->
-                                <div>
-                                    <label for="fhargajual2level3" class="block text-sm font-bold">Harga Jual 2
-                                        (<span id="hj-satuan-besar-level3-label" class="uppercase">-</span>) Level
-                                        3</label>
-                                    <div class="d-flex">
-                                        <input type="text"
-                                            class="w-1/10 border rounded px-3 py-2 bg-yellow-50 @error('fhargajual2level3') is-invalid @enderror"
-                                            name="fhargajual2level3" id="fhargajual2level3"
-                                            value="{{ old('fhargajual2level3', $product->fhargajual2level3 ?? 0) }}">
-                                        @error('fhargajual2level3')
-                                            <div class="text-red-600 text-sm mt-1">
-                                                {{ $message }}
-                                            </div>
-                                        @enderror
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        {{-- HJ Dynamic Columns (Edit Mode) --}}
-                        <div id="hj-level2-block" style="display: none;">
-                            <div class="mt-2 grid grid-cols-1 sm:grid-cols-3 gap-4">
-                                <!-- HJ <PCS> Level 1 -->
-                                <div>
-                                    <label for="fhargajual3level1" class="block text-sm font-bold">
-                                        Harga Jual 3 (<span id="hj-satuan-kecil-label"
-                                            class="uppercase">{{ $product->fsatuankecil ?? '-' }}</span>) Level 1
-                                    </label>
-                                    <div class="d-flex">
-                                        <input type="text" autocomplete="off"
-                                            class="autonumeric w-1/10 border rounded px-3 py-2 bg-purple-50 @error('fhargajual3level1') is-invalid @enderror"
-                                            name="fhargajual3level1" id="fhargajual3level1"
-                                            value="{{ old('fhargajual3level1', $product->fhargajual3level1 ?? 0) }}">
-                                        @error('fhargajual3level1')
-                                            <div class="text-red-600 text-sm mt-1">
-                                                {{ $message }}
-                                            </div>
-                                        @enderror
-                                    </div>
-                                </div>
-
-                                <!-- HJ <CTN> Level 1 -->
-                                <div>
-                                    <label for="fhargajual3level2" class="block text-sm font-bold">
-                                        Harga Jual 3 (<span id="hj-satuan-besar-label"
-                                            class="uppercase">{{ $product->fsatuanbesar ?? '-' }}</span>) Level 2
-                                    </label>
-                                    <div class="d-flex">
-                                        <input type="text" autocomplete="off"
-                                            class="autonumeric w-1/10 border rounded px-3 py-2 bg-purple-50 @error('fhargajual3level2') is-invalid @enderror"
-                                            name="fhargajual3level2" id="fhargajual3level2"
-                                            value="{{ old('fhargajual3level2', $product->fhargajual3level2 ?? 0) }}">
-                                        @error('fhargajual3level2')
-                                            <div class="text-red-600 text-sm mt-1">
-                                                {{ $message }}
-                                            </div>
-                                        @enderror
-                                    </div>
-                                </div>
-
-                                <!-- HJ <DUS> Level 1 -->
-                                <div>
-                                    <label for="fhargajual3level3" class="block text-sm font-bold">
-                                        Harga Jual 3 (<span id="hj-satuan-besar2-label"
-                                            class="uppercase">{{ $product->fsatuanbesar2 ?? '-' }}</span>) Level 3
-                                    </label>
-                                    <div class="d-flex">
-                                        <input type="text" autocomplete="off"
-                                            class="autonumeric w-1/10 border rounded px-3 py-2 bg-purple-50 @error('fhargajual3level3') is-invalid @enderror"
-                                            name="fhargajual3level3" id="fhargajual3level3"
-                                            value="{{ old('fhargajual3level3', $product->fhargajual3level3 ?? 0) }}">
-                                        @error('fhargajual3level3')
-                                            <div class="text-red-600 text-sm mt-1">
-                                                {{ $message }}
-                                            </div>
-                                        @enderror
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Min.Stok -->
-                        <div class="mt-2 w-1/4">
-                            <label class="block text-sm font-bold mb-1">Min.Stok</label>
-
-                            {{-- Container yang membungkus input dan satuan --}}
-                            <div
-                                class="flex items-center border border-gray-300 rounded bg-gray-50 focus-within:bg-white focus-within:ring-1 focus-within:ring-blue-400 transition-all @error('fminstock') border-red-500 @enderror">
-
-                                {{-- Input tanpa border agar menyatu dengan container --}}
-                                <input type="text" name="fminstock" id="fminstock"
-                                    value="{{ number_format((float) old('fminstock', $product->fminstock ?? 0), 2, ',', '.') }}"
-                                    class="flex-1 bg-transparent border-none focus:ring-0 px-3 py-2 text-right">
-
-                                {{-- Garis vertikal (border-l) dan teks satuan --}}
-                                <span id="satuanKecilTarget"
-                                    class="satuan-kecil-display text-gray-700 font-bold text-[10px] pr-3 flex-shrink-0 border-l border-gray-200 ml-2 pl-2 uppercase">
-                                    {{-- Isi satuan muncul via JavaScript --}}
-                                </span>
-                            </div>
-
-                            @error('fminstock')
-                                <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
-                            @enderror
-                        </div>
-
-                        {{-- Jenis --}}
-                        <div class="mt-2 w-1/4">
-                            <label class="block text-sm font-bold">Jenis</label>
-                            <select name="ftype"
-                                class="w-full border rounded px-3 py-2 @error('ftype') border-red-500 @enderror">
-                                <option value="Produk" {{ old('ftype', $product->ftype) == 'Produk' ? 'selected' : '' }}>
-                                    Produk</option>
-                                <option value="Jasa" {{ old('ftype', $product->ftype) == 'Jasa' ? 'selected' : '' }}>
-                                    Jasa</option>
-                            </select>
-                            @error('ftype')
-                                <div class="text-red-600 text-sm mt-1">
-                                    {{ $message }}
-                                </div>
-                            @enderror
-                        </div>
-
+                        {{-- ── LEFT: Gambar Produk ── --}}
                         @if (!empty($enabledImageNumbers))
-                            {{-- Upload Foto --}}
-                            <div class="mt-4 w-1/2">
-                                <div class="space-y-4">
-                                    @foreach ($enabledImageNumbers as $imgNo)
-                                        @php
-                                            $field = 'fimage' . $imgNo;
-                                            $imageRaw = (string) ($product->{$field} ?? '');
-                                            $driveFileId = null;
-                                            if ($imageRaw !== '') {
-                                                if (str_contains($imageRaw, 'http')) {
-                                                    if (preg_match('~/d/([a-zA-Z0-9_-]+)~', $imageRaw, $m)) {
-                                                        $driveFileId = $m[1];
-                                                    } elseif (preg_match('/[?&]id=([a-zA-Z0-9_-]+)/', $imageRaw, $m)) {
-                                                        $driveFileId = $m[1];
+                            <div class="flex-shrink-0 w-48">
+                                <div class="section-card" style="padding:1rem;">
+                                    <div class="section-title" style="margin-bottom:0.75rem;">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                        </svg>
+                                        Foto Produk
+                                    </div>
+                                    <div class="space-y-3">
+                                        @foreach ($enabledImageNumbers as $imgNo)
+                                            @php
+                                                $field       = 'fimage' . $imgNo;
+                                                $imageRaw    = (string) ($product->{$field} ?? '');
+                                                $driveFileId = null;
+                                                if ($imageRaw !== '') {
+                                                    if (str_contains($imageRaw, 'http')) {
+                                                        if (preg_match('~/d/([a-zA-Z0-9_-]+)~', $imageRaw, $m)) {
+                                                            $driveFileId = $m[1];
+                                                        } elseif (preg_match('/[?&]id=([a-zA-Z0-9_-]+)/', $imageRaw, $m)) {
+                                                            $driveFileId = $m[1];
+                                                        }
+                                                    } else {
+                                                        $driveFileId = $imageRaw;
                                                     }
-                                                } else {
-                                                    $driveFileId = $imageRaw;
                                                 }
-                                            }
-                                            $photoVersion = !empty($product->fupdatedat)
-                                                ? strtotime((string) $product->fupdatedat)
-                                                : null;
-                                            $drivePreviewUrl = $driveFileId
-                                                ? route('product.photo', [
-                                                    'fprdid' => $product->fprdid,
-                                                    'field' => $field,
-                                                    'v' => $photoVersion ?: time(),
-                                                ])
-                                                : null;
-                                        @endphp
-                                        <div>
-                                            <label class="block text-xs font-bold text-gray-600 mb-1">Foto
-                                                {{ $imgNo }}</label>
-                                            <div class="flex items-center gap-4">
-                                                <input type="file" name="{{ $field }}"
-                                                    id="{{ $field }}" accept="image/*" class="hidden"
+                                                $photoVersion   = !empty($product->fupdatedat) ? strtotime((string)$product->fupdatedat) : null;
+                                                $drivePreviewUrl = $driveFileId
+                                                    ? route('product.photo', ['fprdid' => $product->fprdid, 'field' => $field, 'v' => $photoVersion ?: time()])
+                                                    : null;
+                                            @endphp
+                                            <div>
+                                                <span class="field-label">Foto {{ $imgNo }}</span>
+                                                <input type="file" name="fimage{{ $imgNo }}"
+                                                    id="fimage{{ $imgNo }}" accept="image/*" class="hidden"
                                                     onchange="previewImage(this, {{ $imgNo }})">
-                                                <button type="button"
-                                                    onclick="document.getElementById('{{ $field }}').click()"
-                                                    class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 flex items-center gap-2">
-                                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5"
-                                                        fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                        <path stroke-linecap="round" stroke-linejoin="round"
-                                                            stroke-width="2"
+
+                                                {{-- Preview box --}}
+                                                <div id="imagePreviewContainer{{ $imgNo }}"
+                                                    class="{{ $drivePreviewUrl ? '' : 'hidden' }} mb-2">
+                                                    <img id="imagePreview{{ $imgNo }}"
+                                                        src="{{ $drivePreviewUrl ?? '' }}"
+                                                        alt="Preview {{ $imgNo }}"
+                                                        class="w-full rounded border cursor-zoom-in hover:opacity-90 transition"
+                                                        style="object-fit:cover;height:130px;"
+                                                        onclick="openModal({{ $imgNo }})"
+                                                        @if($driveFileId) onerror="this.onerror=null;this.src='https://drive.google.com/thumbnail?id={{ $driveFileId }}&sz=w1000';" @endif>
+                                                </div>
+
+                                                {{-- Upload box (shown when no preview) --}}
+                                                <div id="uploadBox{{ $imgNo }}" class="img-upload-box"
+                                                    style="{{ $drivePreviewUrl ? 'display:none;' : '' }}"
+                                                    onclick="document.getElementById('fimage{{ $imgNo }}').click()">
+                                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                                             d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
                                                     </svg>
-                                                    Pilih Foto {{ $imgNo }}
-                                                </button>
+                                                    <span>Klik untuk pilih</span>
+                                                </div>
+
                                                 <button type="button" id="btnRemoveImage{{ $imgNo }}"
-                                                    class="hidden bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600 flex items-center gap-2"
+                                                    class="{{ $drivePreviewUrl ? '' : 'hidden' }} mt-1 w-full text-xs text-red-500 border border-red-200 rounded py-1 hover:bg-red-50"
                                                     onclick="removeImage({{ $imgNo }})">
-                                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5"
-                                                        fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                        <path stroke-linecap="round" stroke-linejoin="round"
-                                                            stroke-width="2"
-                                                            d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                                                    </svg>
-                                                    Hapus
+                                                    Hapus foto
                                                 </button>
                                             </div>
-                                            @if ($driveFileId)
-                                                <div id="imagePreviewContainer{{ $imgNo }}" class="mt-3">
-                                                    <img id="imagePreview{{ $imgNo }}"
-                                                        src="{{ $drivePreviewUrl }}"
-                                                        alt="Produk Image {{ $imgNo }}"
-                                                        class="max-w-xs max-h-48 border rounded shadow cursor-zoom-in hover:opacity-90 transition"
-                                                        onclick="openModal({{ $imgNo }})"
-                                                        onerror="this.onerror=null; this.src='https://drive.google.com/thumbnail?id={{ $driveFileId }}&sz=w1000';">
-                                                </div>
-                                            @else
-                                                <div id="imagePreviewContainer{{ $imgNo }}" class="mt-3 hidden">
-                                                    <img id="imagePreview{{ $imgNo }}" src=""
-                                                        alt="Preview {{ $imgNo }}"
-                                                        class="max-w-xs max-h-48 border rounded shadow cursor-zoom-in hover:opacity-90 transition"
-                                                        onclick="openModal({{ $imgNo }})">
-                                                </div>
-                                            @endif
-                                        </div>
-                                    @endforeach
-                                </div>
-                                <p class="text-xs text-gray-500 mt-1">Format: JPG, PNG, GIF, WEBP. Maks 2MB</p>
-                                <div id="imageModal"
-                                    class="fixed inset-0 z-50 hidden bg-black bg-opacity-90 flex items-center justify-center p-4"
-                                    onclick="closeModal()">
-                                    <span
-                                        class="absolute top-5 right-10 text-white text-40px font-bold cursor-pointer">&times;</span>
-                                    <img id="modalContent" class="max-w-full max-h-full rounded shadow-2xl">
+                                        @endforeach
+                                    </div>
+                                    <p class="text-xs text-gray-400 mt-2">JPG, PNG · maks 2MB</p>
                                 </div>
                             </div>
                         @endif
 
-                        @php
-                            $canApproval = in_array(
-                                'approveProduct',
-                                explode(',', session('user_restricted_permissions', '')),
-                            );
-                        @endphp
-                        @if ($canApproval)
-                            <div class="md:col-span-2 flex justify-center items-center space-x-2">
-                                <fieldset {{ $isApproved ? 'disabled' : '' }}>
-                                    <div class="flex items-center space-x-2">
-                                        <label class="text-sm font-bold">Approve</label>
-                                        <label class="switch">
-                                            <input type="checkbox" name="approve_now" id="approvalToggle"
-                                                {{ $isApproved ? 'checked' : '' }}>
-                                            <span class="slider round"></span>
+                        {{-- ── RIGHT: Form fields ── --}}
+                        <div class="flex-1 min-w-0">
+
+                            {{-- ═══ SECTION 1: Identitas Produk ═══ --}}
+                            <div class="section-card">
+                                <div class="section-title">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+                                    </svg>
+                                    Identitas Produk
+                                </div>
+
+                                <div class="grid grid-cols-2 gap-4 mb-4">
+                                    {{-- Group Produk --}}
+                                    <div x-data="{ isEditable: false }">
+                                        <label class="field-label">Group Produk</label>
+                                        <div class="flex">
+                                            <div class="relative flex-1">
+                                                <select disabled class="w-full border rounded-l px-3 py-2 bg-gray-100 text-gray-700 cursor-not-allowed" id="groupSelect">
+                                                    <option value="">-- Pilih Group Produk --</option>
+                                                    @foreach ($groups as $group)
+                                                        <option value="{{ $group->fgroupid }}"
+                                                            {{ old('fgroupcode', $product->fgroupcode) == $group->fgroupid ? 'selected' : '' }}>
+                                                            {{ $group->fgroupcode }} - {{ $group->fgroupname }}
+                                                        </option>
+                                                    @endforeach
+                                                </select>
+                                                <div class="absolute inset-0" role="button" aria-label="Browse Group"
+                                                    @click="window.dispatchEvent(new CustomEvent('group-browse-open'))"></div>
+                                            </div>
+                                            <input type="hidden" name="fgroupcode" id="groupCodeHidden"
+                                                value="{{ old('fgroupcode', $product->fgroupcode) }}">
+                                            <button type="button"
+                                                @click="window.dispatchEvent(new CustomEvent('group-browse-open'))"
+                                                class="border -ml-px px-3 py-2 bg-white hover:bg-gray-50 rounded-r-none"
+                                                title="Browse Group Produk">
+                                                <x-heroicon-o-magnifying-glass class="w-5 h-5" />
+                                            </button>
+                                            <button type="button" @click="isEditable = true; $dispatch('open-group-modal')"
+                                                class="border -ml-px rounded-r px-3 py-2 bg-white hover:bg-gray-50"
+                                                title="Tambah Group Produk">
+                                                <x-heroicon-o-plus class="w-5 h-5" />
+                                            </button>
+                                        </div>
+                                        @error('fgroupcode')
+                                            <p class="text-red-600 text-xs mt-1">{{ $message }}</p>
+                                        @enderror
+                                    </div>
+
+                                    {{-- Merek --}}
+                                    <div x-data="{ isMerekEditable: false }">
+                                        <label class="field-label">Merek</label>
+                                        <div class="flex">
+                                            <div class="relative flex-1">
+                                                <select disabled id="merkSelect"
+                                                    class="w-full border rounded-l px-3 py-2 bg-gray-100 text-gray-700 cursor-not-allowed">
+                                                    <option value="">-- Pilih Merek --</option>
+                                                    @foreach ($merks as $merk)
+                                                        <option value="{{ $merk->fmerekcode }}"
+                                                            {{ old('fmerek', $product->fmerek) == $merk->fmerekcode ? 'selected' : '' }}>
+                                                            {{ $merk->fmerekcode }} - {{ $merk->fmerekname }}
+                                                        </option>
+                                                    @endforeach
+                                                </select>
+                                                <div class="absolute inset-0" role="button" aria-label="Browse Merek"
+                                                    @click="window.dispatchEvent(new CustomEvent('merek-browse-open'))"></div>
+                                            </div>
+                                            <input type="hidden" name="fmerek" id="fmerek"
+                                                value="{{ old('fmerek', $product->fmerek) }}">
+                                            <button type="button"
+                                                @click="window.dispatchEvent(new CustomEvent('merek-browse-open'))"
+                                                class="border -ml-px px-3 py-2 bg-white hover:bg-gray-50 rounded-r-none"
+                                                title="Browse Merek">
+                                                <x-heroicon-o-magnifying-glass class="w-5 h-5" />
+                                            </button>
+                                            <button type="button" @click="isMerekEditable = true; $dispatch('open-merk-modal')"
+                                                class="border -ml-px rounded-r px-3 py-2 bg-white hover:bg-gray-50"
+                                                title="Tambah Merek">
+                                                <x-heroicon-o-plus class="w-5 h-5" />
+                                            </button>
+                                        </div>
+                                        @error('fmerek')
+                                            <p class="text-red-600 text-xs mt-1">{{ $message }}</p>
+                                        @enderror
+                                    </div>
+                                </div>
+
+                                <div class="grid grid-cols-3 gap-4 mb-4">
+                                    {{-- Kode Produk --}}
+                                    <div>
+                                        <label class="field-label">Kode Produk</label>
+                                        <input type="text" name="fprdcode" id="fprdcode"
+                                            value="{{ old('fprdcode', $product->fprdcode) }}"
+                                            class="field-input bg-gray-100 cursor-not-allowed uppercase" readonly>
+                                    </div>
+
+                                    {{-- Nama Produk --}}
+                                    <div>
+                                        <label class="field-label">Nama Produk</label>
+                                        <input type="text" name="fprdname" id="fprdname"
+                                            value="{{ old('fprdname', $product->fprdname) }}"
+                                            class="field-input uppercase @error('fprdname') border-red-500 bg-red-50 @enderror"
+                                            autofocus>
+                                        @error('fprdname')
+                                            <p class="text-red-600 text-xs mt-1">{{ $message }}</p>
+                                        @enderror
+                                    </div>
+
+                                    {{-- Barcode --}}
+                                    <div>
+                                        <label class="field-label">Barcode</label>
+                                        <input type="text" name="fbarcode"
+                                            value="{{ old('fbarcode', $product->fbarcode) }}"
+                                            class="field-input @error('fbarcode') border-red-500 @enderror">
+                                        @error('fbarcode')
+                                            <p class="text-red-600 text-xs mt-1">{{ $message }}</p>
+                                        @enderror
+                                    </div>
+                                </div>
+
+                                <div class="grid grid-cols-3 gap-4">
+                                    {{-- Jenis --}}
+                                    <div>
+                                        <label class="field-label">Jenis</label>
+                                        <select name="ftype" class="field-input @error('ftype') border-red-500 @enderror">
+                                            <option value="Produk" {{ old('ftype', $product->ftype) == 'Produk' ? 'selected' : '' }}>Produk</option>
+                                            <option value="Jasa"   {{ old('ftype', $product->ftype) == 'Jasa'   ? 'selected' : '' }}>Jasa</option>
+                                        </select>
+                                    </div>
+
+                                    {{-- Non Aktif --}}
+                                    <div class="flex items-end pb-0.5">
+                                        <label class="inline-flex items-center gap-2 border-2 border-red-200 bg-red-50 text-red-700 rounded-lg px-3 py-2 cursor-pointer hover:bg-red-100 text-sm font-semibold transition-colors duration-200">
+                                            <input type="checkbox" name="fnonactive" id="statusToggle"
+                                                class="h-4 w-4 text-red-600 rounded focus:ring-red-500 border-red-300"
+                                                value="1"
+                                                {{ old('fnonactive', $product->fnonactive) == '1' ? 'checked' : '' }}>
+                                            Non Aktif
                                         </label>
                                     </div>
-                                </fieldset>
+                                </div>
                             </div>
-                            <br>
-                        @endif
-                        <div class="flex justify-center mt-4">
-                            <label for="statusToggle"
-                                class="flex items-center justify-between w-40 p-3 border rounded-lg cursor-pointer hover:bg-gray-50 transition">
-                                <span class="text-sm font-medium">Non Aktif</span>
-                                <input type="checkbox" name="fnonactive" id="statusToggle"
-                                    class="h-5 w-5 text-green-600 rounded focus:ring-green-500"
-                                    {{ old('fnonactive', $product->fnonactive) == '1' ? 'checked' : '' }}>
-                            </label>
-                        </div>
-                    </div>
-                    <br>
-                    <!-- Tombol Aksi -->
-                    <div class="mt-6 flex justify-center space-x-4">
-                        <!-- Simpan -->
-                        <button type="submit"
-                            class="bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700 flex items-center">
-                            <x-heroicon-o-check class="w-5 h-5 mr-2" />
-                            Simpan
-                        </button>
 
-                        <!-- Keluar -->
-                        <button type="button" @click="window.location.href='{{ route('product.index') }}'"
-                            class="bg-gray-500 text-white px-6 py-2 rounded hover:bg-gray-600 flex items-center">
-                            <x-heroicon-o-arrow-left class="w-5 h-5 mr-2" />
-                            Keluar
-                        </button>
-                    </div>
-                    @php
-                        $lastUpdate = $product->fupdatedat ?: $product->fcreatedat;
-                        $isUpdated = !empty($product->fupdatedat);
-                    @endphp
+                            {{-- ═══ SECTION 2: Satuan & HPP ═══ --}}
+                            <div class="section-card" id="satuan-container">
+                                <div class="section-title">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M3 6l3 1m0 0l-3 9a5.002 5.002 0 006.001 0M6 7l3 9M6 7l6-2m6 2l3-1m-3 1l-3 9a5.002 5.002 0 006.001 0M18 7l3 9m-3-9l-6-2m0-2v2m0 16V5m0 16H9m3 0h3" />
+                                    </svg>
+                                    Satuan &amp; HPP
+                                </div>
+
+                                {{-- Satuan 1 --}}
+                                <div class="mb-4">
+                                    <span class="satuan-badge blue">Satuan 1 — utama</span>
+                                    <div class="grid grid-cols-3 gap-3">
+                                        <div>
+                                            <label class="field-label">Jenis Satuan</label>
+                                            <select class="field-input blue" name="fsatuankecil" id="fsatuankecil"
+                                                {{ $lockSatuan1 ? 'disabled' : '' }}
+                                                onchange="updateSatuanLogic();">
+                                                <option value="">Pilih Satuan 1</option>
+                                                @foreach ($satuan as $satu)
+                                                    <option value="{{ $satu->fsatuancode }}"
+                                                        {{ old('fsatuankecil', $product->fsatuankecil) == $satu->fsatuancode ? 'selected' : '' }}>
+                                                        {{ $satu->fsatuancode }}
+                                                    </option>
+                                                @endforeach
+                                            </select>
+                                            @if ($lockSatuan1)
+                                                <input type="hidden" name="fsatuankecil" value="{{ $product->fsatuankecil }}">
+                                            @endif
+                                            @error('fsatuankecil')
+                                                <span class="text-red-500 text-xs mt-1">{{ $message }}</span>
+                                            @enderror
+                                        </div>
+                                        <div></div>
+                                        <div>
+                                            <label class="field-label">HPP Satuan Kecil</label>
+                                            <input type="text" name="fhpp" id="fhpp"
+                                                class="autonumeric field-input blue text-right"
+                                                value="{{ old('fhpp', $product->fhpp ?? 0) }}">
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <hr class="border-gray-100 my-3">
+
+                                {{-- Satuan 2 --}}
+                                <div id="satuan2-block" style="display:none;" class="mb-4">
+                                    <span class="satuan-badge yellow">Satuan 2</span>
+                                    <div class="grid grid-cols-3 gap-3">
+                                        <div>
+                                            <label class="field-label">Jenis Satuan</label>
+                                            <select class="field-input yellow" name="fsatuanbesar" id="fsatuanbesar"
+                                                {{ $lockSatuan2 ? 'disabled' : '' }}
+                                                onchange="updateSatuanLogic();">
+                                                <option value="">Pilih Satuan 2</option>
+                                                @foreach ($satuan as $satu)
+                                                    <option value="{{ $satu->fsatuancode }}"
+                                                        {{ old('fsatuanbesar', $product->fsatuanbesar) == $satu->fsatuancode ? 'selected' : '' }}>
+                                                        {{ $satu->fsatuancode }}
+                                                    </option>
+                                                @endforeach
+                                            </select>
+                                            @if ($lockSatuan2)
+                                                <input type="hidden" name="fsatuanbesar" value="{{ $product->fsatuanbesar }}">
+                                            @endif
+                                            @error('fsatuanbesar')
+                                                <span class="text-red-500 text-xs mt-1">{{ $message }}</span>
+                                            @enderror
+                                        </div>
+                                        <div>
+                                            <label class="field-label">Isi</label>
+                                            <div class="flex items-center border border-yellow-300 rounded bg-yellow-50 focus-within:ring-1 focus-within:ring-yellow-400">
+                                                <input type="text" name="fqtykecil" id="fqtykecil"
+                                                    value="{{ old('fqtykecil', $product->fqtykecil ?? 0) }}"
+                                                    class="autonumeric flex-1 bg-transparent border-none focus:ring-0 px-3 py-2 text-right text-sm"
+                                                    {{ $lockQty2 ? 'disabled' : '' }}>
+                                                @if ($lockQty2)
+                                                    <input type="hidden" name="fqtykecil" value="{{ $product->fqtykecil }}">
+                                                @endif
+                                                <span class="satuan-kecil-display text-gray-500 font-bold text-[10px] pr-3 flex-shrink-0 border-l border-yellow-200 ml-2 pl-2"></span>
+                                            </div>
+                                            @error('fqtykecil')
+                                                <div class="text-red-600 text-xs mt-1">{{ $message }}</div>
+                                            @enderror
+                                        </div>
+                                        <div>
+                                            <label class="field-label">HPP Satuan 2</label>
+                                            <input type="text" name="fhpp2" id="fhpp2"
+                                                value="{{ old('fhpp2', $product->fhpp2 ?? 0) }}"
+                                                class="autonumeric field-input yellow text-right" readonly>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <hr class="border-gray-100 my-3" id="br-satuan2" style="display:none;">
+
+                                {{-- Satuan 3 --}}
+                                <div id="satuan3-block" style="display:none;" class="mb-4">
+                                    <span class="satuan-badge purple">Satuan 3</span>
+                                    <div class="grid grid-cols-3 gap-3">
+                                        <div>
+                                            <label class="field-label">Jenis Satuan</label>
+                                            <select class="field-input purple" name="fsatuanbesar2" id="fsatuanbesar2"
+                                                {{ $lockSatuan3 ? 'disabled' : '' }}
+                                                onchange="updateSatuanLogic();">
+                                                <option value="">Pilih Satuan 3</option>
+                                                @foreach ($satuan as $satu)
+                                                    <option value="{{ $satu->fsatuancode }}"
+                                                        {{ old('fsatuanbesar2', $product->fsatuanbesar2) == $satu->fsatuancode ? 'selected' : '' }}>
+                                                        {{ $satu->fsatuancode }}
+                                                    </option>
+                                                @endforeach
+                                            </select>
+                                            @if ($lockSatuan3)
+                                                <input type="hidden" name="fsatuanbesar2" value="{{ $product->fsatuanbesar2 }}">
+                                            @endif
+                                            @error('fsatuanbesar2')
+                                                <span class="text-red-500 text-xs mt-1">{{ $message }}</span>
+                                            @enderror
+                                        </div>
+                                        <div>
+                                            <label class="field-label">Isi</label>
+                                            <div class="flex items-center border border-purple-300 rounded bg-purple-50 focus-within:ring-1 focus-within:ring-purple-400">
+                                                <input type="text" name="fqtykecil2" id="fqtykecil2"
+                                                    value="{{ old('fqtykecil2', $product->fqtykecil2 ?? 0) }}"
+                                                    class="autonumeric flex-1 bg-transparent border-none focus:ring-0 px-3 py-2 text-right text-sm"
+                                                    {{ $lockQty3 ? 'disabled' : '' }}>
+                                                @if ($lockQty3)
+                                                    <input type="hidden" name="fqtykecil2" value="{{ $product->fqtykecil2 }}">
+                                                @endif
+                                                <span class="satuan-kecil-display text-purple-700 font-bold text-[10px] pr-3 flex-shrink-0 border-l border-purple-200 ml-2 pl-2 uppercase"></span>
+                                            </div>
+                                            @error('fqtykecil2')
+                                                <div class="text-red-600 text-xs mt-1">{{ $message }}</div>
+                                            @enderror
+                                        </div>
+                                        <div>
+                                            <label class="field-label">HPP Satuan 3</label>
+                                            <input type="text" name="fhpp3" id="fhpp3"
+                                                value="{{ old('fhpp3', $product->fhpp3 ?? 0) }}"
+                                                class="autonumeric field-input purple text-right" readonly>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <hr class="border-gray-100 my-3">
+
+                                {{-- Satuan Default --}}
+                                <div class="grid grid-cols-2 gap-4">
+                                    <div>
+                                        <label class="field-label">Satuan Default Transaksi</label>
+                                        <select name="fsatuandefault" class="field-input @error('fsatuandefault') border-red-500 @enderror">
+                                            <option value="1" {{ old('fsatuandefault', $product->fsatuandefault) == '1' ? 'selected' : '' }}>Satuan 1</option>
+                                            <option value="2" {{ old('fsatuandefault', $product->fsatuandefault) == '2' ? 'selected' : '' }}>Satuan 2</option>
+                                            <option value="3" {{ old('fsatuandefault', $product->fsatuandefault) == '3' ? 'selected' : '' }}>Satuan 3</option>
+                                        </select>
+                                        @error('fsatuandefault')
+                                            <p class="text-red-600 text-xs mt-1">{{ $message }}</p>
+                                        @enderror
+                                    </div>
+                                    <div>
+                                        <label class="field-label">Satuan Default Laporan</label>
+                                        <select name="fsatuandefaultlaporan" class="field-input @error('fsatuandefaultlaporan') border-red-500 @enderror">
+                                            <option value="1" {{ old('fsatuandefaultlaporan', $product->fsatuandefaultlaporan) == '1' ? 'selected' : '' }}>Satuan 1</option>
+                                            <option value="2" {{ old('fsatuandefaultlaporan', $product->fsatuandefaultlaporan) == '2' ? 'selected' : '' }}>Satuan 2</option>
+                                            <option value="3" {{ old('fsatuandefaultlaporan', $product->fsatuandefaultlaporan) == '3' ? 'selected' : '' }}>Satuan 3</option>
+                                        </select>
+                                        @error('fsatuandefaultlaporan')
+                                            <p class="text-red-600 text-xs mt-1">{{ $message }}</p>
+                                        @enderror
+                                    </div>
+                                </div>
+                            </div>
+
+                            {{-- ═══ SECTION 3: Harga Jual (Matrix) ═══ --}}
+                            <div class="section-card">
+                                <div class="section-title">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-5 5a2 2 0 01-2.828 0l-7-7A2 2 0 013 8V4a1 1 0 011-1z" />
+                                    </svg>
+                                    Harga Jual per Level
+                                </div>
+
+                                <table class="hj-table">
+                                    <thead>
+                                        <tr>
+                                            <th style="width:30%">Satuan</th>
+                                            <th>Level 1</th>
+                                            <th>Level 2</th>
+                                            <th>Level 3</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {{-- Row Satuan 1 (Kecil) --}}
+                                        <tr>
+                                            <td class="row-label">
+                                                <span class="satuan-badge blue" style="margin:0;">S1</span>&nbsp;
+                                                <span id="hj-satuan-kecil-level1-label-row" class="uppercase text-xs text-blue-700">-</span>
+                                            </td>
+                                            <td>
+                                                <input type="text" class="autonumeric blue" name="fhargajuallevel1" id="fhargajuallevel1"
+                                                    value="{{ old('fhargajuallevel1', $product->fhargajuallevel1 ?? 0) }}">
+                                                @error('fhargajuallevel1')<div class="text-red-600 text-xs">{{ $message }}</div>@enderror
+                                            </td>
+                                            <td>
+                                                <input type="text" class="autonumeric blue" name="fhargajuallevel2" id="fhargajuallevel2"
+                                                    value="{{ old('fhargajuallevel2', $product->fhargajuallevel2 ?? 0) }}">
+                                                @error('fhargajuallevel2')<div class="text-red-600 text-xs">{{ $message }}</div>@enderror
+                                            </td>
+                                            <td>
+                                                <input type="text" class="autonumeric blue" name="fhargajuallevel3" id="fhargajuallevel3"
+                                                    value="{{ old('fhargajuallevel3', $product->fhargajuallevel3 ?? 0) }}">
+                                                @error('fhargajuallevel3')<div class="text-red-600 text-xs">{{ $message }}</div>@enderror
+                                            </td>
+                                        </tr>
+
+                                        {{-- Row Satuan 2 --}}
+                                        <tr id="hj-level1-block" style="display:none;">
+                                            <td class="row-label">
+                                                <span class="satuan-badge yellow" style="margin:0;">S2</span>&nbsp;
+                                                <span id="hj-satuan-besar-level1-label" class="uppercase text-xs text-yellow-700">-</span>
+                                            </td>
+                                            <td>
+                                                <input type="text" class="autonumeric yellow" name="fhargajual2level1" id="fhargajual2level1"
+                                                    value="{{ old('fhargajual2level1', $product->fhargajual2level1 ?? 0) }}">
+                                                @error('fhargajual2level1')<div class="text-red-600 text-xs">{{ $message }}</div>@enderror
+                                            </td>
+                                            <td>
+                                                <input type="text" class="autonumeric yellow" name="fhargajual2level2" id="fhargajual2level2"
+                                                    value="{{ old('fhargajual2level2', $product->fhargajual2level2 ?? 0) }}">
+                                                @error('fhargajual2level2')<div class="text-red-600 text-xs">{{ $message }}</div>@enderror
+                                            </td>
+                                            <td>
+                                                <input type="text" class="autonumeric yellow" name="fhargajual2level3" id="fhargajual2level3"
+                                                    value="{{ old('fhargajual2level3', $product->fhargajual2level3 ?? 0) }}">
+                                                @error('fhargajual2level3')<div class="text-red-600 text-xs">{{ $message }}</div>@enderror
+                                            </td>
+                                        </tr>
+
+                                        {{-- Row Satuan 3 --}}
+                                        <tr id="hj-level2-block" style="display:none;">
+                                            <td class="row-label">
+                                                <span class="satuan-badge purple" style="margin:0;">S3</span>&nbsp;
+                                                <span id="hj-satuan-kecil-label" class="uppercase text-xs text-purple-700">-</span>
+                                            </td>
+                                            <td>
+                                                <input type="text" class="autonumeric purple" name="fhargajual3level1" id="fhargajual3level1"
+                                                    value="{{ old('fhargajual3level1', $product->fhargajual3level1 ?? 0) }}">
+                                                @error('fhargajual3level1')<div class="text-red-600 text-xs">{{ $message }}</div>@enderror
+                                            </td>
+                                            <td>
+                                                <input type="text" class="autonumeric purple" name="fhargajual3level2" id="fhargajual3level2"
+                                                    value="{{ old('fhargajual3level2', $product->fhargajual3level2 ?? 0) }}">
+                                                @error('fhargajual3level2')<div class="text-red-600 text-xs">{{ $message }}</div>@enderror
+                                            </td>
+                                            <td>
+                                                <input type="text" class="autonumeric purple" name="fhargajual3level3" id="fhargajual3level3"
+                                                    value="{{ old('fhargajual3level3', $product->fhargajual3level3 ?? 0) }}">
+                                                @error('fhargajual3level3')<div class="text-red-600 text-xs">{{ $message }}</div>@enderror
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+
+                                {{-- Hidden label spans required by JS --}}
+                                <span id="hj-satuan-kecil-level1-label"  class="hidden"></span>
+                                <span id="hj-satuan-kecil-level2-label"  class="hidden"></span>
+                                <span id="hj-satuan-kecil-level3-label"  class="hidden"></span>
+                                <span id="hj-satuan-besar-level2-label"  class="hidden"></span>
+                                <span id="hj-satuan-besar-level3-label"  class="hidden"></span>
+                                <span id="hj-satuan-besar-label"         class="hidden"></span>
+                                <span id="hj-satuan-besar2-label"        class="hidden"></span>
+
+                                <p class="text-xs text-gray-400 mt-2">Level 1 = retail &middot; Level 2 = grosir &middot; Level 3 = distributor</p>
+                            </div>
+
+                            {{-- ═══ SECTION 4: Stok & Lainnya ═══ --}}
+                            <div class="section-card">
+                                <div class="section-title">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4" />
+                                    </svg>
+                                    Stok &amp; Lainnya
+                                </div>
+
+                                <div class="grid grid-cols-3 gap-4 mb-4">
+                                    <div>
+                                        <label class="field-label">Min. Stok</label>
+                                        <div class="flex items-center border border-gray-300 rounded bg-gray-50 focus-within:ring-1 focus-within:ring-blue-400 @error('fminstock') border-red-500 @enderror">
+                                            <input type="text" name="fminstock" id="fminstock"
+                                                value="{{ number_format((float) old('fminstock', $product->fminstock ?? 0), 2, ',', '.') }}"
+                                                class="flex-1 bg-transparent border-none focus:ring-0 px-3 py-2 text-right text-sm">
+                                            <span class="satuan-kecil-display text-gray-700 font-bold text-[10px] pr-3 flex-shrink-0 border-l border-gray-200 ml-2 pl-2 uppercase"></span>
+                                        </div>
+                                        @error('fminstock')
+                                            <p class="text-red-600 text-xs mt-1">{{ $message }}</p>
+                                        @enderror
+                                    </div>
+                                </div>
+
+                                {{-- Approve --}}
+                                @php $canApproval = in_array('approveProduct', explode(',', session('user_restricted_permissions', ''))); @endphp
+                                @if ($canApproval)
+                                    <div class="flex items-center justify-center gap-2 mb-4">
+                                        <label class="flex items-center gap-2 text-sm font-semibold cursor-pointer border rounded-lg px-3 py-2 hover:bg-gray-50">
+                                            <span>Approve</span>
+                                            <label class="switch" style="margin:0">
+                                                <input type="checkbox" name="approve_now" id="approvalToggle"
+                                                    {{ old('approve_now', $product->fapproval) == '1' || $product->fapproval == '1' ? 'checked' : '' }}>
+                                                <span class="slider round"></span>
+                                            </label>
+                                        </label>
+                                    </div>
+                                @endif
+
+                                {{-- Tombol Aksi --}}
+                                <div class="flex items-center justify-center gap-2">
+                                    <button type="button" onclick="window.location.href='{{ route('product.index') }}'"
+                                        class="bg-gray-100 text-gray-700 px-4 py-2 rounded-lg text-sm font-medium hover:bg-gray-200 flex items-center gap-1">
+                                        <x-heroicon-o-arrow-left class="w-4 h-4" /> Keluar
+                                    </button>
+                                    <button type="submit"
+                                        class="bg-blue-600 text-white px-5 py-2 rounded-lg text-sm font-medium hover:bg-blue-700 flex items-center gap-1">
+                                        <x-heroicon-o-check class="w-4 h-4" /> Simpan
+                                    </button>
+                                </div>
+                            </div>
+
+                        </div>{{-- end right column --}}
+
+                    </div>{{-- end main grid --}}
+
                 </form>
+
+                {{-- ═══ IMAGE MODAL ═══ --}}
+                <div id="imageModal" class="fixed inset-0 z-50 hidden bg-black bg-opacity-90 flex items-center justify-center p-4"
+                    onclick="closeModal()">
+                    <span class="absolute top-5 right-10 text-white text-4xl font-bold cursor-pointer">&times;</span>
+                    <img id="modalContent" class="max-w-full max-h-full rounded shadow-2xl">
+                </div>
             @endif
             <br>
             <hr><br>

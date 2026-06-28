@@ -136,6 +136,56 @@ class LembarPenagihanController extends Controller
         ]);
     }
 
+    public function pickableReturns(Request $request)
+    {
+        $customerCode = trim((string) $request->input('fcustno', $request->input('customer_code', '')));
+        $search = trim((string) $request->input('search', ''));
+
+        $query = DB::table('tranmt as r')
+            ->leftJoin('mscustomer as c', 'c.fcustomercode', '=', 'r.fcustno')
+            ->where('r.ftrcode', 'REJ')
+            ->when($customerCode !== '', fn ($q) => $q->where('r.fcustno', $customerCode))
+            ->select([
+                'r.fsono',
+                'r.frefno',
+                'r.fsodate',
+                'r.fcustno',
+                'c.fcustomername',
+                DB::raw('COALESCE(r.famountso, 0) as famountbil'),
+                DB::raw('COALESCE(r.fongkosangkut, 0) as fongkos'),
+                DB::raw('COALESCE(r.famountremain, r.famountso, 0) as famount'),
+            ]);
+
+        $recordsTotal = DB::table('tranmt as r')
+            ->where('r.ftrcode', 'REJ')
+            ->when($customerCode !== '', fn ($q) => $q->where('r.fcustno', $customerCode))
+            ->count();
+
+        if ($search !== '') {
+            $query->where(function ($q) use ($search) {
+                $q->where('r.fsono', 'ilike', "%{$search}%")
+                    ->orWhere('r.frefno', 'ilike', "%{$search}%")
+                    ->orWhere('r.fcustno', 'ilike', "%{$search}%")
+                    ->orWhere('c.fcustomername', 'ilike', "%{$search}%");
+            });
+        }
+
+        $recordsFiltered = (clone $query)->count();
+        $data = $query
+            ->orderBy('r.fsodate', 'desc')
+            ->orderBy('r.fsono', 'desc')
+            ->skip((int) $request->input('start', 0))
+            ->take((int) $request->input('length', 10))
+            ->get();
+
+        return response()->json([
+            'draw' => (int) $request->input('draw', 1),
+            'recordsTotal' => (int) $recordsTotal,
+            'recordsFiltered' => (int) $recordsFiltered,
+            'data' => $data,
+        ]);
+    }
+
     public function store(Request $request)
     {
         $data = $this->validatedData($request);

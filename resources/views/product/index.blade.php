@@ -8,7 +8,7 @@
         $canEdit = in_array('updateProduct', explode(',', session('user_restricted_permissions', '')));
         $canDelete = in_array('deleteProduct', explode(',', session('user_restricted_permissions', '')));
         $canViewHpp = $canViewHpp ?? in_array('viewProductHpp', explode(',', session('user_restricted_permissions', '')));
-        $showActionsColumn = $canEdit || $canDelete;
+        $showActionsColumn = true;
     @endphp
 
     <div x-data class="bg-white rounded shadow p-4">
@@ -180,9 +180,9 @@
             class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" x-transition>
             <div @click.away="$store.laporanStore.closeModal()"
                 class="bg-white rounded-lg shadow-lg w-full max-w-[95vw] max-h-[90vh] flex flex-col">
-                <div class="px-6 py-4 border-b flex justify-between items-center flex-shrink-0">
+                <div class="px-6 py-4 border-b flex justify-between items-center flex-shrink-0 bg-gradient-to-r from-blue-50 to-white">
                     <div class="flex items-center gap-3">
-                        <h3 class="text-lg font-semibold">Laporan Produk</h3>
+                        <h3 class="text-lg font-semibold text-gray-900">Detail Info Produk</h3>
                         <template x-if="!$store.laporanStore.isLoading && $store.laporanStore.productCode">
                             <div class="flex items-center gap-2 text-sm text-gray-600">
                                 <span class="bg-gray-100 text-gray-700 px-2 py-0.5 rounded font-mono font-medium"
@@ -204,8 +204,31 @@
                     </button>
                 </div>
 
+                <div class="px-6 py-4 border-b bg-white" x-show="!$store.laporanStore.isLoading">
+                    <div class="grid grid-cols-1 md:grid-cols-4 gap-3">
+                        <div class="rounded-xl border border-blue-100 bg-blue-50 p-4">
+                            <div class="text-xs font-semibold text-blue-700 uppercase">Total Stok</div>
+                            <div class="mt-1 text-2xl font-bold text-blue-900" x-text="$store.laporanStore.formatNumber($store.laporanStore.totalStock())"></div>
+                        </div>
+                        <div class="rounded-xl border border-emerald-100 bg-emerald-50 p-4">
+                            <div class="text-xs font-semibold text-emerald-700 uppercase">History Penjualan</div>
+                            <div class="mt-1 text-2xl font-bold text-emerald-900" x-text="$store.laporanStore.customerData.length"></div>
+                            <div class="mt-1 text-xs text-emerald-700" x-text="$store.laporanStore.latestSaleText()"></div>
+                        </div>
+                        <div class="rounded-xl border border-amber-100 bg-amber-50 p-4">
+                            <div class="text-xs font-semibold text-amber-700 uppercase">History Pembelian</div>
+                            <div class="mt-1 text-2xl font-bold text-amber-900" x-text="$store.laporanStore.supplierData.length"></div>
+                            <div class="mt-1 text-xs text-amber-700" x-text="$store.laporanStore.latestPurchaseText()"></div>
+                        </div>
+                        <div class="rounded-xl border border-slate-200 bg-slate-50 p-4">
+                            <div class="text-xs font-semibold text-slate-600 uppercase">Gudang Aktif</div>
+                            <div class="mt-1 text-2xl font-bold text-slate-900" x-text="$store.laporanStore.stokData.length"></div>
+                        </div>
+                    </div>
+                </div>
+
                 <div class="px-6 py-2 border-b bg-gray-50">
-                    <nav class="-mb-px flex space-x-8">
+                    <nav class="-mb-px flex flex-wrap gap-6">
                         <button @click="$store.laporanStore.activeTab = 'customer'"
                             :class="{
                                 'border-blue-500 text-blue-600': $store.laporanStore
@@ -213,7 +236,10 @@
                                 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300': $store
                                     .laporanStore.activeTab !== 'customer'
                             }"
-                            class="whitespace-nowrap pb-2 px-1 border-b-2 font-medium text-sm">Penjualan</button>
+                            class="whitespace-nowrap pb-2 px-1 border-b-2 font-medium text-sm">
+                            Penjualan
+                            <span class="ml-1 rounded-full bg-gray-200 px-2 py-0.5 text-xs text-gray-700" x-text="$store.laporanStore.customerData.length"></span>
+                        </button>
 
                         <button @click="$store.laporanStore.activeTab = 'stok'"
                             :class="{
@@ -222,7 +248,10 @@
                                 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300': $store
                                     .laporanStore.activeTab !== 'stok'
                             }"
-                            class="whitespace-nowrap pb-2 px-1 border-b-2 font-medium text-sm">Stok</button>
+                            class="whitespace-nowrap pb-2 px-1 border-b-2 font-medium text-sm">
+                            Stok
+                            <span class="ml-1 rounded-full bg-gray-200 px-2 py-0.5 text-xs text-gray-700" x-text="$store.laporanStore.stokData.length"></span>
+                        </button>
 
                         <button @click="$store.laporanStore.activeTab = 'supplier'"
                             :class="{
@@ -231,7 +260,10 @@
                                 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300': $store
                                     .laporanStore.activeTab !== 'supplier'
                             }"
-                            class="whitespace-nowrap pb-2 px-1 border-b-2 font-medium text-sm">Pembelian</button>
+                            class="whitespace-nowrap pb-2 px-1 border-b-2 font-medium text-sm">
+                            Pembelian
+                            <span class="ml-1 rounded-full bg-gray-200 px-2 py-0.5 text-xs text-gray-700" x-text="$store.laporanStore.supplierData.length"></span>
+                        </button>
                     </nav>
                 </div>
 
@@ -248,8 +280,8 @@
                     </div>
 
                     <div x-show="!$store.laporanStore.isLoading">
-                        <div x-show="$store.laporanStore.activeTab === 'customer'">
-                            <table class="min-w-full divide-y divide-gray-200 border" style="table-layout: fixed;">
+                        <div x-show="$store.laporanStore.activeTab === 'customer'" class="overflow-x-auto rounded-lg border">
+                            <table class="min-w-full divide-y divide-gray-200" style="table-layout: fixed;">
                                 <thead class="bg-gray-100">
                                     <tr>
                                         <th class="px-3 py-2 text-left text-xs font-bold text-gray-800 uppercase"
@@ -301,8 +333,8 @@
                             </table>
                         </div>
 
-                        <div x-show="$store.laporanStore.activeTab === 'stok'">
-                            <table class="min-w-full divide-y divide-gray-200 border">
+                        <div x-show="$store.laporanStore.activeTab === 'stok'" class="overflow-x-auto rounded-lg border">
+                            <table class="min-w-full divide-y divide-gray-200">
                                 <thead class="bg-gray-100">
                                     <tr>
                                         <th class="px-3 py-2 text-left text-xs font-bold text-gray-800 uppercase">Gudang#
@@ -337,8 +369,8 @@
                             </table>
                         </div>
 
-                        <div x-show="$store.laporanStore.activeTab === 'supplier'">
-                            <table class="min-w-full divide-y divide-gray-200 border">
+                        <div x-show="$store.laporanStore.activeTab === 'supplier'" class="overflow-x-auto rounded-lg border">
+                            <table class="min-w-full divide-y divide-gray-200">
                                 <thead class="bg-gray-100">
                                     <tr>
                                         <th class="px-3 py-2 text-left text-xs font-bold text-gray-800 uppercase">Faktur#
@@ -475,6 +507,30 @@
                 supplierData: [],
                 productCode: '', // tambah ini
                 productName: '', // tambah ini
+
+                formatNumber(value, digits = 2) {
+                    const number = Number(value ?? 0);
+                    if (!Number.isFinite(number)) return '0,00';
+
+                    return number.toLocaleString('id-ID', {
+                        minimumFractionDigits: digits,
+                        maximumFractionDigits: digits
+                    });
+                },
+
+                totalStock() {
+                    return this.stokData.reduce((sum, item) => sum + (Number(item.fsaldo) || 0), 0);
+                },
+
+                latestSaleText() {
+                    const item = this.customerData[0];
+                    return item ? `Terakhir: ${item.fsodate || '-'}` : 'Belum ada penjualan';
+                },
+
+                latestPurchaseText() {
+                    const item = this.supplierData[0];
+                    return item ? `Terakhir: ${item.fstockmtdate || '-'}` : 'Belum ada pembelian';
+                },
 
                 openModal(fprdid) {
                     this.showModal = true;
@@ -679,7 +735,7 @@
                                 <svg class="w-3.5 h-3.5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
                                 </svg>
-                                Detail Info
+                                 History
                             </button>
                         `;
 

@@ -152,7 +152,7 @@
 
         @if (!$isReadOnly)
             <div class="mb-4 flex gap-2">
-                <button type="button" @click="openNotaModal()" class="px-4 py-2 bg-blue-600 text-white rounded">Add Nota</button>
+                <button type="button" @click="openNotaModal()" class="px-4 py-2 bg-blue-600 text-white rounded">Add Retur</button>
             </div>
 
             <div x-show="notaModalOpen" x-cloak x-transition.opacity class="fixed inset-0 z-50 flex items-center justify-center overflow-hidden p-3 md:p-6">
@@ -160,8 +160,8 @@
                 <div class="relative bg-white rounded-2xl shadow-2xl w-full max-w-7xl flex flex-col overflow-hidden" style="height: min(760px, calc(100vh - 1.5rem));">
                     <div class="px-6 py-4 border-b border-gray-200 flex items-center justify-between flex-shrink-0 bg-gradient-to-r from-blue-50 to-white">
                         <div>
-                            <h3 class="text-xl font-bold text-gray-800">Browse Nota</h3>
-                            <p class="text-sm text-gray-500 mt-0.5">Pilih nota yang ingin ditambahkan</p>
+                            <h3 class="text-xl font-bold text-gray-800">Browse Retur Penjualan</h3>
+                            <p class="text-sm text-gray-500 mt-0.5">Pilih retur yang ingin ditambahkan</p>
                         </div>
                         <button type="button" @click="closeNotaModal()" class="px-4 py-2 rounded-lg border-2 border-gray-300 bg-white hover:bg-gray-50 hover:border-gray-400 transition-all duration-150 font-medium text-gray-700 text-sm">Tutup</button>
                     </div>
@@ -174,13 +174,11 @@
                                 <thead class="sticky top-0 z-10">
                                     <tr class="bg-gradient-to-r from-gray-50 to-gray-100">
                                         <th class="text-left p-3 font-semibold text-gray-700 border-b-2 border-r border-gray-200">No.Nota</th>
-                                        <th class="text-left p-3 font-semibold text-gray-700 border-b-2 border-r border-gray-200">Tanggal</th>
+                                        <th class="text-left p-3 font-semibold text-gray-700 border-b-2 border-r border-gray-200">Tanggal Nota</th>
                                         <th class="text-left p-3 font-semibold text-gray-700 border-b-2 border-r border-gray-200">Customer</th>
-                                        <th class="text-left p-3 font-semibold text-gray-700 border-b-2 border-r border-gray-200">Tipe</th>
                                         <th class="text-right p-3 font-semibold text-gray-700 border-b-2 border-r border-gray-200">Nilai Nota</th>
+                                        <th class="text-right p-3 font-semibold text-gray-700 border-b-2 border-r border-gray-200">Ongkos Kirim</th>
                                         <th class="text-right p-3 font-semibold text-gray-700 border-b-2 border-r border-gray-200">Sisa Piutang</th>
-                                        <th class="text-center p-3 font-semibold text-gray-700 border-b-2 border-r border-gray-200 font-medium">Item</th>
-                                        <th class="text-left p-3 font-semibold text-gray-700 border-b-2 border-r border-gray-200">Jatuh Tempo</th>
                                         <th class="text-center p-3 font-semibold text-gray-700 border-b-2 border-gray-200">Aksi</th>
                                     </tr>
                                 </thead>
@@ -363,7 +361,7 @@
                         processing: true,
                         serverSide: true,
                         ajax: {
-                            url: "{{ route('pelunasancustomer.pickable-nota') }}",
+                            url: "{{ route('lembarpenagihan.pickable-returns') }}",
                             type: 'GET',
                             data: (d) => {
                                 const orderColumn = d.columns[d.order[0].column].data;
@@ -372,7 +370,7 @@
                                     start: d.start,
                                     length: d.length,
                                     search: d.search.value,
-                                    order_column: orderColumn === 'famountremain' ? 'famountremain' : (orderColumn || 'fsodate'),
+                                    order_column: orderColumn || 'fsodate',
                                     order_dir: d.order[0].dir,
                                     customer_code: document.querySelector('[name="fcustno"]')?.value || '',
                                 };
@@ -382,11 +380,9 @@
                             { data: 'fsono', className: 'font-mono text-sm' },
                             { data: 'fsodate', render: data => this.formatDate(data) },
                             { data: null, render: data => `${data.fcustno || ''} - ${data.fcustomername || ''}` },
-                            { data: 'ftrcode' },
-                            { data: null, className: 'text-right', render: data => this.money(data.famountso ?? data.famount) },
-                            { data: 'famountremain', className: 'text-right', render: data => this.money(data) },
-                            { data: 'detail_count', className: 'text-center' },
-                            { data: 'fjatuhtempo', render: data => this.formatDate(data) },
+                            { data: 'famountbil', className: 'text-right', render: data => this.money(data) },
+                            { data: 'fongkos', className: 'text-right', render: data => this.money(data) },
+                            { data: 'famount', className: 'text-right', render: data => this.money(data) },
                             {
                                 data: null,
                                 orderable: false,
@@ -468,12 +464,12 @@
                     window.dispatchEvent(new CustomEvent('invoice-picked', {
                         detail: {
                             items: [{
-                                frefcode: invoice.ftrcode || 'INV',
+                                frefcode: 'REJ',
                                 fsono: invoice.fsono,
                                 fsodate: invoice.fsodate,
-                                famountbil: Number(invoice.famountso ?? invoice.famount ?? 0),
-                                fongkos: Number(invoice.fongkosangkut ?? 0),
-                                famount: Number(invoice.famountremain ?? invoice.famountso ?? invoice.famount ?? 0),
+                                famountbil: Number(invoice.famountbil ?? invoice.famount ?? 0),
+                                fongkos: Number(invoice.fongkos ?? 0),
+                                famount: Number(invoice.famount ?? 0),
                             }]
                         }
                     }));
