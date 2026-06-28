@@ -21,14 +21,12 @@
             height: 34px;
         }
 
-        /* Hide the default checkbox */
         .switch input {
             opacity: 0;
             width: 0;
             height: 0;
         }
 
-        /* The slider */
         .slider {
             position: absolute;
             cursor: pointer;
@@ -41,7 +39,6 @@
             border-radius: 34px;
         }
 
-        /* The slider circle */
         .slider:before {
             position: absolute;
             content: "";
@@ -54,17 +51,14 @@
             transition: 0.4s;
         }
 
-        /* When the checkbox is checked, change the background color */
         input:checked+.slider {
             background-color: #4CAF50;
         }
 
-        /* Move the slider circle when checked */
         input:checked+.slider:before {
             transform: translateX(26px);
         }
 
-        /* Add a border when checked */
         .slider.round {
             border-radius: 34px;
         }
@@ -72,52 +66,8 @@
         .slider.round:before {
             border-radius: 50%;
         }
-    </style>
 
-    <style>
-        input:focus,
-        select:focus,
-        textarea:focus,
-        .select2-container--default .select2-selection--single:focus {
-            outline: none;
-            border-color: #2563eb;
-            box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.2);
-        }
-
-        .select2-container--default .select2-selection--single {
-            border: 1px solid #000000 !important;
-            border-radius: 0.375rem;
-            height: 42px;
-            padding: 0.5rem 0.75rem;
-            width: 100% !important;
-            background-color: white;
-        }
-
-        .select2-container--default .select2-selection--single .select2-selection__arrow {
-            height: 40px;
-        }
-
-        .select2-dropdown {
-            border: 1px solid #000000 !important;
-            border-radius: 0.375rem;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-        }
-
-        .select2-results__option {
-            padding: 8px 12px;
-        }
-
-        .select2-results__option--highlighted {
-            background-color: #2563eb !important;
-            color: white !important;
-        }
-
-        .select2-container--default .select2-selection--single .select2-selection__rendered {
-            color: #000000 !important;
-        }
-    </style>
-
-    <style>
+        /* Select2 satuan warna */
         #fsatuankecil+.select2-container .select2-selection--single {
             background-color: #eff6ff !important;
             border-color: #93c5fd !important;
@@ -139,32 +89,216 @@
             vertical-align: middle;
         }
 
-        .satuan-qty-input,
-        .satuan-qty-input:disabled {
-            background-color: transparent !important;
-            border: none !important;
-            box-shadow: none !important;
-            opacity: 1 !important;
-            -webkit-text-fill-color: #111827;
-            appearance: none !important;
-            text-align: right !important;
-            padding-left: 0.75rem !important;
-            padding-right: 0.75rem !important;
+        input:focus,
+        select:focus,
+        textarea:focus {
+            outline: none;
+            border-color: #2563eb;
+            box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.2);
         }
 
-        #fqtykecil,
-        #fqtykecil2,
-        #fqtykecil:disabled,
-        #fqtykecil2:disabled {
-            background: transparent !important;
-            border: 0 !important;
-            outline: 0 !important;
-            box-shadow: none !important;
-            color: #111827 !important;
-            -webkit-text-fill-color: #111827 !important;
-            text-align: right !important;
-            padding-left: 0.75rem !important;
-            padding-right: 0.75rem !important;
+        .select2-container--default .select2-selection--single {
+            border: 1px solid #000000 !important;
+            border-radius: 0.375rem;
+            height: 42px;
+            padding: 0.5rem 0.75rem;
+            width: 100% !important;
+            background-color: white;
+        }
+
+        .select2-container--default .select2-selection--single .select2-selection__arrow {
+            height: 40px;
+        }
+
+        .select2-dropdown {
+            border: 1px solid #000000 !important;
+            border-radius: 0.375rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+
+        .select2-results__option {
+            padding: 8px 12px;
+        }
+
+        .select2-results__option--highlighted {
+            background-color: #2563eb !important;
+            color: white !important;
+        }
+
+        .select2-container--default .select2-selection--single .select2-selection__rendered {
+            color: #000000 !important;
+        }
+
+        /* ─── Layout sections ─── */
+        .section-card {
+            background: #fff;
+            border: 1px solid #e5e7eb;
+            border-radius: 12px;
+            padding: 1.25rem 1.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .section-title {
+            font-size: 11px;
+            font-weight: 600;
+            letter-spacing: 0.07em;
+            text-transform: uppercase;
+            color: #6b7280;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .field-label {
+            display: block;
+            font-size: 12px;
+            font-weight: 600;
+            color: #374151;
+            margin-bottom: 4px;
+        }
+
+        .field-input {
+            width: 100%;
+            border: 1px solid #d1d5db;
+            border-radius: 6px;
+            padding: 8px 10px;
+            font-size: 13px;
+            background: #fff;
+            color: #111827;
+        }
+
+        .field-input:disabled {
+            background: #f3f4f6;
+            color: #9ca3af;
+            cursor: not-allowed;
+        }
+
+        .field-input.blue {
+            background: #eff6ff;
+            border-color: #93c5fd;
+        }
+
+        .field-input.yellow {
+            background: #fefce8;
+            border-color: #fde047;
+        }
+
+        .field-input.purple {
+            background: #faf5ff;
+            border-color: #d8b4fe;
+        }
+
+        /* satuan badge */
+        .satuan-badge {
+            display: inline-block;
+            font-size: 10px;
+            font-weight: 600;
+            padding: 2px 8px;
+            border-radius: 99px;
+            margin-bottom: 6px;
+        }
+
+        .satuan-badge.blue {
+            background: #dbeafe;
+            color: #1d4ed8;
+        }
+
+        .satuan-badge.yellow {
+            background: #fef9c3;
+            color: #92400e;
+        }
+
+        .satuan-badge.purple {
+            background: #ede9fe;
+            color: #6d28d9;
+        }
+
+        /* Harga jual matrix table */
+        .hj-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+        }
+
+        .hj-table th {
+            background: #f9fafb;
+            border: 1px solid #e5e7eb;
+            padding: 7px 10px;
+            font-size: 11px;
+            font-weight: 600;
+            color: #6b7280;
+            text-align: center;
+        }
+
+        .hj-table th:first-child {
+            text-align: left;
+        }
+
+        .hj-table td {
+            border: 1px solid #e5e7eb;
+            padding: 6px 8px;
+        }
+
+        .hj-table td.row-label {
+            font-size: 12px;
+            font-weight: 600;
+            color: #374151;
+            white-space: nowrap;
+            background: #f9fafb;
+        }
+
+        .hj-table input {
+            width: 100%;
+            border: 1px solid #d1d5db;
+            border-radius: 4px;
+            padding: 5px 8px;
+            font-size: 13px;
+            text-align: right;
+        }
+
+        .hj-table input.blue {
+            background: #eff6ff;
+            border-color: #93c5fd;
+        }
+
+        .hj-table input.yellow {
+            background: #fefce8;
+        }
+
+        .hj-table input.purple {
+            background: #faf5ff;
+            border-color: #d8b4fe;
+        }
+
+        /* Image sidebar */
+        .img-upload-box {
+            border: 2px dashed #d1d5db;
+            border-radius: 8px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            color: #9ca3af;
+            transition: border-color 0.15s;
+            padding: 12px 8px;
+            text-align: center;
+            gap: 4px;
+        }
+
+        .img-upload-box:hover {
+            border-color: #2563eb;
+            color: #2563eb;
+        }
+
+        .img-upload-box svg {
+            width: 22px;
+            height: 22px;
+        }
+
+        .img-upload-box span {
+            font-size: 10px;
         }
     </style>
 
@@ -184,35 +318,34 @@
                         <!-- Group Produk Dropdown -->
                         <div class="mt-2 w-1/2" x-data="{ isEditable: false }">
                             <label class="block text-sm font-bold">Group Produk</label>
-                            <div class="flex items-center gap-2">
-                                <select disabled name="fgroupcodeSelect" :disabled="!isEditable"
-                                    class="w-full border rounded px-3 py-2 bg-gray-100 @error('fgroupcode') border-red-500 @enderror"
-                                    id="groupSelect">
-                                    <option value=""></option>
-                                    @foreach ($groups as $group)
-                                        <option value="{{ $group->fgroupid }}"
-                                            {{ old('fgroupcode', $product->fgroupcode) == $group->fgroupid ? 'selected' : '' }}>
-                                            {{ $group->fgroupname }} ({{ $group->fgroupcode }})
-                                        </option>
-                                    @endforeach
-                                </select>
+                            <div class="flex">
+                                <div class="relative flex-1">
+                                    <select disabled class="w-full border rounded-l px-3 py-2 bg-gray-100 text-gray-700 cursor-not-allowed" id="groupSelect">
+                                        <option value=""></option>
+                                        @foreach ($groups as $group)
+                                            <option value="{{ $group->fgroupid }}"
+                                                {{ old('fgroupcode', $product->fgroupcode) == $group->fgroupid ? 'selected' : '' }}>
+                                                {{ $group->fgroupname }} ({{ $group->fgroupcode }})
+                                            </option>
+                                        @endforeach
+                                    </select>
+                                    <div class="absolute inset-0" role="button" aria-label="Browse Group"
+                                        @click="if (isEditable) window.dispatchEvent(new CustomEvent('group-browse-open'))"></div>
+                                </div>
                                 <input type="hidden" name="fgroupcode"
                                     value="{{ old('fgroupcode', $product->fgroupcode) }}">
-
-                                <!-- Add Group Produk (Icon Button) -->
-                                <button disabled type="button" @click="isEditable = true; $dispatch('open-group-modal')"
-                                    class="whitespace-nowrap bg-green-600 text-white px-3 py-2 rounded hover:bg-green-700">
-                                    <i class="fa fa-plus"></i>
-                                </button>
-
-                                <!-- Browse Group (Icon Button) -->
                                 <button disabled type="button"
                                     @click="window.dispatchEvent(new CustomEvent('group-browse-open'))"
-                                    class="whitespace-nowrap bg-blue-600 text-white px-3 py-2 rounded hover:bg-blue-700">
-                                    <i class="fa fa-search"></i>
+                                    class="border -ml-px px-3 py-2 bg-white hover:bg-gray-50 rounded-r-none cursor-not-allowed"
+                                    title="Browse Group Produk">
+                                    <x-heroicon-o-magnifying-glass class="w-5 h-5 text-gray-400" />
+                                </button>
+                                <button disabled type="button" @click="isEditable = true; $dispatch('open-group-modal')"
+                                    class="border -ml-px rounded-r px-3 py-2 bg-white hover:bg-gray-50 cursor-not-allowed"
+                                    title="Tambah Group Produk">
+                                    <x-heroicon-o-plus class="w-5 h-5 text-gray-400" />
                                 </button>
                             </div>
-
                             @error('fgroupcode')
                                 <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                             @enderror
@@ -221,32 +354,33 @@
                         <!-- Merek Dropdown -->
                         <div class="mt-2 w-1/2" x-data="{ isMerekEditable: false }">
                             <label class="block text-sm font-bold">Merek</label>
-                            <div class="flex items-center gap-2">
-                                <select name="fmerekSelect" :disabled="!isMerekEditable"
-                                    class="w-full border rounded px-3 py-2 @error('fmerek') border-red-500 @enderror"
-                                    id="merkSelect">
-                                    <option value=""></option>
-                                    @foreach ($merks as $merk)
-                                        <option value="{{ $merk->fmerekcode }}"
-                                            {{ old('fmerek', $product->fmerek) == $merk->fmerekcode ? 'selected' : '' }}>
-                                            {{ $merk->fmerekname }} ({{ $merk->fmerekcode }})
-                                        </option>
-                                    @endforeach
-                                </select>
-
+                            <div class="flex">
+                                <div class="relative flex-1">
+                                    <select disabled id="merkSelect"
+                                        class="w-full border rounded-l px-3 py-2 bg-gray-100 text-gray-700 cursor-not-allowed">
+                                        <option value=""></option>
+                                        @foreach ($merks as $merk)
+                                            <option value="{{ $merk->fmerekcode }}"
+                                                {{ old('fmerek', $product->fmerek) == $merk->fmerekcode ? 'selected' : '' }}>
+                                                {{ $merk->fmerekname }} ({{ $merk->fmerekcode }})
+                                            </option>
+                                        @endforeach
+                                    </select>
+                                    <div class="absolute inset-0" role="button" aria-label="Browse Merek"
+                                        @click="if (isMerekEditable) window.dispatchEvent(new CustomEvent('merek-browse-open'))"></div>
+                                </div>
                                 <input type="hidden" name="fmerek" id="fmerek" value="{{ old('fmerek') }}">
-
-                                <!-- Button Tambah Merek -->
-                                <button type="button" disabled
-                                    @click="isMerekEditable = true; $dispatch('open-merk-modal')"
-                                    class="whitespace-nowrap bg-green-600 text-white px-3 py-2 rounded hover:bg-green-700">
-                                    <i class="fa fa-plus"></i>
-                                </button>
-                                <!-- Button Browse Merek -->
                                 <button type="button" disabled
                                     @click="window.dispatchEvent(new CustomEvent('merek-browse-open'))"
-                                    class="whitespace-nowrap bg-blue-600 text-white px-3 py-2 rounded hover:bg-blue-700">
-                                    <i class="fa fa-search"></i>
+                                    class="border -ml-px px-3 py-2 bg-white hover:bg-gray-50 rounded-r-none cursor-not-allowed"
+                                    title="Browse Merek">
+                                    <x-heroicon-o-magnifying-glass class="w-5 h-5 text-gray-400" />
+                                </button>
+                                <button type="button" disabled
+                                    @click="isMerekEditable = true; $dispatch('open-merk-modal')"
+                                    class="border -ml-px rounded-r px-3 py-2 bg-white hover:bg-gray-50 cursor-not-allowed"
+                                    title="Tambah Merek">
+                                    <x-heroicon-o-plus class="w-5 h-5 text-gray-400" />
                                 </button>
                             </div>
                             @error('fmerek')
@@ -805,30 +939,33 @@
                         <!-- Group Produk Dropdown -->
                         <div class="mt-2 w-1/2" x-data="{ isEditable: false }">
                             <label class="block text-sm font-bold text-gray-700">Group Produk</label>
-                            <div class="flex items-center gap-2">
-                                <select name="fgroupcodeSelect" :disabled="!isEditable"
-                                    class="w-full border rounded px-3 py-2 @error('fgroupcode') border-red-500 bg-red-50 @enderror"
-                                    id="groupSelect">
-                                    <option value=""></option>
-                                    @foreach ($groups as $group)
-                                        <option value="{{ $group->fgroupid }}"
-                                            {{ old('fgroupcode', $product->fgroupcode) == $group->fgroupid ? 'selected' : '' }}>
-                                            {{ $group->fgroupcode }} - {{ $group->fgroupname }}
-                                        </option>
-                                    @endforeach
-                                </select>
+                            <div class="flex">
+                                <div class="relative flex-1">
+                                    <select disabled class="w-full border rounded-l px-3 py-2 bg-gray-100 text-gray-700 cursor-not-allowed @error('fgroupcode') border-red-500 bg-red-50 @enderror" id="groupSelect">
+                                        <option value=""></option>
+                                        @foreach ($groups as $group)
+                                            <option value="{{ $group->fgroupid }}"
+                                                {{ old('fgroupcode', $product->fgroupcode) == $group->fgroupid ? 'selected' : '' }}>
+                                                {{ $group->fgroupname }} ({{ $group->fgroupcode }})
+                                            </option>
+                                        @endforeach
+                                    </select>
+                                    <div class="absolute inset-0" role="button" aria-label="Browse Group"
+                                        @click="window.dispatchEvent(new CustomEvent('group-browse-open'))"></div>
+                                </div>
 
                                 <input type="hidden" name="fgroupcode" id="groupCodeHidden"
                                     value="{{ old('fgroupcode', $product->fgroupcode) }}">
 
-                                <button type="button" @click="isEditable = true; $dispatch('open-group-modal')"
-                                    class="whitespace-nowrap bg-green-600 text-white px-3 py-2 rounded hover:bg-green-700">
-                                    <i class="fa fa-plus"></i>
-                                </button>
-
                                 <button type="button" @click="window.dispatchEvent(new CustomEvent('group-browse-open'))"
-                                    class="whitespace-nowrap bg-blue-600 text-white px-3 py-2 rounded hover:bg-blue-700">
-                                    <i class="fa fa-search"></i>
+                                    class="border -ml-px px-3 py-2 bg-white hover:bg-gray-50 rounded-r-none"
+                                    title="Browse Group Produk">
+                                    <x-heroicon-o-magnifying-glass class="w-5 h-5" />
+                                </button>
+                                <button type="button" @click="isEditable = true; $dispatch('open-group-modal')"
+                                    class="border -ml-px rounded-r px-3 py-2 bg-white hover:bg-gray-50"
+                                    title="Tambah Group Produk">
+                                    <x-heroicon-o-plus class="w-5 h-5" />
                                 </button>
                             </div>
 
@@ -840,31 +977,34 @@
                         <!-- Merek Dropdown -->
                         <div class="mt-2 w-1/2" x-data="{ isMerekEditable: false }">
                             <label class="block text-sm font-bold">Merek</label>
-                            <div class="flex items-center gap-2">
-                                <select name="fmerek" {{-- Nama langsung fmerek, tidak perlu input hidden lagi --}}
-                                    class="w-full border rounded px-3 py-2 @error('fmerek') border-red-500 bg-red-50 @enderror"
-                                    id="merkSelect">
-                                    <option value=""></option>
-                                    @foreach ($merks as $merk)
-                                        <option value="{{ $merk->fmerekcode }}"
-                                            {{ old('fmerek', $product->fmerek) == $merk->fmerekcode ? 'selected' : '' }}>
-                                            {{ $merk->fmerekcode }} - {{ $merk->fmerekname }}
-                                        </option>
-                                    @endforeach
-                                </select>
+                            <div class="flex">
+                                <div class="relative flex-1">
+                                    <select disabled id="merkSelect"
+                                        class="w-full border rounded-l px-3 py-2 bg-gray-100 text-gray-700 cursor-not-allowed @error('fmerek') border-red-500 bg-red-50 @enderror">
+                                        <option value=""></option>
+                                        @foreach ($merks as $merk)
+                                            <option value="{{ $merk->fmerekcode }}"
+                                                {{ old('fmerek', $product->fmerek) == $merk->fmerekcode ? 'selected' : '' }}>
+                                                {{ $merk->fmerekcode }} - {{ $merk->fmerekname }}
+                                            </option>
+                                        @endforeach
+                                    </select>
+                                    <div class="absolute inset-0" role="button" aria-label="Browse Merek"
+                                        @click="window.dispatchEvent(new CustomEvent('merek-browse-open'))"></div>
+                                </div>
 
                                 <input type="hidden" name="fmerek" id="fmerek"
                                     value="{{ old('fmerek', $product->fmerek) }}">
 
-                                <!-- Button Tambah Merek -->
-                                <button type="button" @click="isMerekEditable = true; $dispatch('open-merk-modal')"
-                                    class="whitespace-nowrap bg-green-600 text-white px-3 py-2 rounded hover:bg-green-700">
-                                    <i class="fa fa-plus"></i>
-                                </button>
-                                <!-- Button Browse Merek -->
                                 <button type="button" @click="window.dispatchEvent(new CustomEvent('merek-browse-open'))"
-                                    class="whitespace-nowrap bg-blue-600 text-white px-3 py-2 rounded hover:bg-blue-700">
-                                    <i class="fa fa-search"></i>
+                                    class="border -ml-px px-3 py-2 bg-white hover:bg-gray-50 rounded-r-none"
+                                    title="Browse Merek">
+                                    <x-heroicon-o-magnifying-glass class="w-5 h-5" />
+                                </button>
+                                <button type="button" @click="isMerekEditable = true; $dispatch('open-merk-modal')"
+                                    class="border -ml-px rounded-r px-3 py-2 bg-white hover:bg-gray-50"
+                                    title="Tambah Merek">
+                                    <x-heroicon-o-plus class="w-5 h-5" />
                                 </button>
                             </div>
                             @error('fmerek')
@@ -2070,21 +2210,11 @@
 
 <script>
     $(document).ready(function() {
-        $('#groupSelect, #merkSelect, #fsatuankecil, #fsatuanbesar, #fsatuanbesar2').select2({
+        $('#fsatuankecil, #fsatuanbesar, #fsatuanbesar2').select2({
             width: '100%',
             placeholder: function() {
                 return $(this).data('placeholder') || '-- Pilih --';
             },
-        });
-
-        $('#groupSelect').select2({
-            placeholder: '',
-            allowClear: true
-        });
-
-        $('#merkSelect').select2({
-            placeholder: '',
-            allowClear: true
         });
 
 
@@ -2858,6 +2988,8 @@
                 document.getElementById(`imagePreview${imageNo}`).src = e.target.result;
                 document.getElementById(`imagePreviewContainer${imageNo}`).classList.remove('hidden');
                 document.getElementById(`btnRemoveImage${imageNo}`).classList.remove('hidden');
+                const uploadBox = document.getElementById(`uploadBox${imageNo}`);
+                if (uploadBox) uploadBox.style.display = 'none';
             }
 
             reader.readAsDataURL(input.files[0]);
@@ -2869,6 +3001,8 @@
         document.getElementById(`imagePreview${imageNo}`).src = '';
         document.getElementById(`imagePreviewContainer${imageNo}`).classList.add('hidden');
         document.getElementById(`btnRemoveImage${imageNo}`).classList.add('hidden');
+        const uploadBox = document.getElementById(`uploadBox${imageNo}`);
+        if (uploadBox) uploadBox.style.display = '';
     }
 
     function openModal(imageNo = 1) {

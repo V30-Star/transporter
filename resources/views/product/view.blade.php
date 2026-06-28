@@ -748,7 +748,7 @@
 
 <script>
     $(document).ready(function() {
-        $('#groupSelect, #salesmanSelect, #wilayahSelect, #frekening').select2({
+        $('#salesmanSelect, #wilayahSelect, #frekening').select2({
             width: '100%',
             placeholder: function() {
                 return $(this).data('placeholder') || '-- Pilih --';

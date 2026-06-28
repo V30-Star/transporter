@@ -309,12 +309,12 @@
             @csrf
 
             {{-- ═══ PAGE HEADER ═══ --}}
-            <div class="flex items-center justify-between mb-5">
+            {{-- <div class="flex items-center justify-between mb-5">
                 <div>
                     <h1 class="text-lg font-bold text-gray-800">Master Produk</h1>
                     <p class="text-sm text-gray-400 mt-0.5">Buat produk baru</p>
                 </div>
-            </div>
+            </div> --}}
 
             {{-- ═══ MAIN GRID: sidebar image + form ═══ --}}
             <div class="flex gap-5 items-start">
@@ -391,28 +391,34 @@
                             {{-- Group Produk --}}
                             <div x-data="{ isEditable: false }">
                                 <label class="field-label">Group Produk</label>
-                                <div class="flex items-center gap-1.5">
-                                    <select :disabled="!isEditable" class="field-input flex-1" id="groupSelect">
-                                        <option value="">-- Pilih Group Produk --</option>
-                                        @foreach ($groups as $group)
-                                            <option value="{{ $group->fgroupid }}"
-                                                {{ old('fgroupid', old('fgroupcode')) == $group->fgroupid ? 'selected' : '' }}>
-                                                {{ $group->fgroupcode }} - {{ $group->fgroupname }}
-                                            </option>
-                                        @endforeach
-                                    </select>
+                                <div class="flex">
+                                    <div class="relative flex-1">
+                                        <select disabled class="w-full border rounded-l px-3 py-2 bg-gray-100 text-gray-700 cursor-not-allowed" id="groupSelect">
+                                            <option value="">-- Pilih Group Produk --</option>
+                                            @foreach ($groups as $group)
+                                                <option value="{{ $group->fgroupid }}"
+                                                    {{ old('fgroupid', old('fgroupcode')) == $group->fgroupid ? 'selected' : '' }}>
+                                                    {{ $group->fgroupcode }} - {{ $group->fgroupname }}
+                                                </option>
+                                            @endforeach
+                                        </select>
+                                        <div class="absolute inset-0" role="button" aria-label="Browse Group"
+                                            @click="window.dispatchEvent(new CustomEvent('group-browse-open'))"></div>
+                                    </div>
                                     <input type="hidden" name="fgroupid" id="groupIdHidden"
                                         value="{{ old('fgroupid', old('fgroupcode')) }}">
                                     <input type="hidden" name="fgroupcode" id="groupCodeHidden"
                                         value="{{ old('fgroupcode', '') }}">
-                                    <button type="button" @click="isEditable = true; $dispatch('open-group-modal')"
-                                        class="bg-green-600 text-white px-2.5 py-2 rounded hover:bg-green-700 text-xs">
-                                        <i class="fa fa-plus"></i>
-                                    </button>
                                     <button type="button"
                                         @click="window.dispatchEvent(new CustomEvent('group-browse-open'))"
-                                        class="bg-blue-600 text-white px-2.5 py-2 rounded hover:bg-blue-700 text-xs">
-                                        <i class="fa fa-search"></i>
+                                        class="border -ml-px px-3 py-2 bg-white hover:bg-gray-50 rounded-r-none"
+                                        title="Browse Group Produk">
+                                        <x-heroicon-o-magnifying-glass class="w-5 h-5" />
+                                    </button>
+                                    <button type="button" @click="isEditable = true; $dispatch('open-group-modal')"
+                                        class="border -ml-px rounded-r px-3 py-2 bg-white hover:bg-gray-50"
+                                        title="Tambah Group Produk">
+                                        <x-heroicon-o-plus class="w-5 h-5" />
                                     </button>
                                 </div>
                                 @error('fgroupcode')
@@ -423,26 +429,32 @@
                             {{-- Merek --}}
                             <div x-data="{ isMerekEditable: false }">
                                 <label class="field-label">Merek</label>
-                                <div class="flex items-center gap-1.5">
-                                    <select name="fmerek" id="merkSelect" :disabled="!isMerekEditable"
-                                        class="field-input flex-1">
-                                        <option value="">-- Pilih Merek --</option>
-                                        @foreach ($merks as $merk)
-                                            <option value="{{ $merk->fmerekcode }}"
-                                                {{ old('fmerek') == $merk->fmerekcode ? 'selected' : '' }}>
-                                                {{ $merk->fmerekcode }} - {{ $merk->fmerekname }}
-                                            </option>
-                                        @endforeach
-                                    </select>
+                                <div class="flex">
+                                    <div class="relative flex-1">
+                                        <select disabled id="merkSelect"
+                                            class="w-full border rounded-l px-3 py-2 bg-gray-100 text-gray-700 cursor-not-allowed">
+                                            <option value="">-- Pilih Merek --</option>
+                                            @foreach ($merks as $merk)
+                                                <option value="{{ $merk->fmerekcode }}"
+                                                    {{ old('fmerek') == $merk->fmerekcode ? 'selected' : '' }}>
+                                                    {{ $merk->fmerekcode }} - {{ $merk->fmerekname }}
+                                                </option>
+                                            @endforeach
+                                        </select>
+                                        <div class="absolute inset-0" role="button" aria-label="Browse Merek"
+                                            @click="window.dispatchEvent(new CustomEvent('merek-browse-open'))"></div>
+                                    </div>
                                     <input type="hidden" name="fmerek" id="fmerek" value="{{ old('fmerek') }}">
-                                    <button type="button" @click="isMerekEditable = true; $dispatch('open-merk-modal')"
-                                        class="bg-green-600 text-white px-2.5 py-2 rounded hover:bg-green-700 text-xs">
-                                        <i class="fa fa-plus"></i>
-                                    </button>
                                     <button type="button"
                                         @click="window.dispatchEvent(new CustomEvent('merek-browse-open'))"
-                                        class="bg-blue-600 text-white px-2.5 py-2 rounded hover:bg-blue-700 text-xs">
-                                        <i class="fa fa-search"></i>
+                                        class="border -ml-px px-3 py-2 bg-white hover:bg-gray-50 rounded-r-none"
+                                        title="Browse Merek">
+                                        <x-heroicon-o-magnifying-glass class="w-5 h-5" />
+                                    </button>
+                                    <button type="button" @click="isMerekEditable = true; $dispatch('open-merk-modal')"
+                                        class="border -ml-px rounded-r px-3 py-2 bg-white hover:bg-gray-50"
+                                        title="Tambah Merek">
+                                        <x-heroicon-o-plus class="w-5 h-5" />
                                     </button>
                                 </div>
                                 @error('fmerek')
@@ -501,16 +513,15 @@
                                 </select>
                             </div>
 
-                            {{-- Status Non Aktif --}}
-                            <div class="flex items-end pb-0.5">
-                                <label
-                                    class="inline-flex items-center gap-2 border rounded-lg px-3 py-2 cursor-pointer hover:bg-gray-50 text-sm font-medium">
-                                    <input type="checkbox" name="fnonactive" id="statusToggle"
-                                        class="h-4 w-4 text-green-600 rounded focus:ring-green-500"
-                                        {{ old('fnonactive') == '1' ? 'checked' : '' }}>
-                                    Non Aktif
-                                </label>
-                            </div>
+                           <div class="flex items-end pb-0.5">
+    <label
+        class="inline-flex items-center gap-2 border-2 border-red-200 bg-red-50 text-red-700 rounded-lg px-3 py-2 cursor-pointer hover:bg-red-100 text-sm font-semibold transition-colors duration-200">
+        <input type="checkbox" name="fnonactive" id="statusToggle"
+            class="h-4 w-4 text-red-600 rounded focus:ring-red-500 border-red-300"
+            {{ old('fnonactive') == '1' ? 'checked' : '' }}>
+        Non Aktif
+    </label>
+</div>
                         </div>
                     </div>
 
@@ -1152,14 +1163,8 @@
 
 <script>
     $(document).ready(function() {
-        $('#groupSelect, #merkSelect, #fsatuankecil, #fsatuanbesar, #fsatuanbesar2').select2({
+        $('#fsatuankecil, #fsatuanbesar, #fsatuanbesar2').select2({
             width: '100%'
-        });
-        $('#groupSelect').select2({
-            placeholder: '-- Pilih Group Produk --'
-        });
-        $('#merkSelect').select2({
-            placeholder: '-- Pilih Merek --'
         });
 
         if (typeof AutoNumeric !== 'undefined') {
