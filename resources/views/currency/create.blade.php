@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'Master Currency')
+@section('title', 'New - Master Currency')
 
 @section('content')
 <div>

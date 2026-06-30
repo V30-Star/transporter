@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'Edit Account')
+@section('title', 'Edit - Master Account')
 
 @section('content')
 @php

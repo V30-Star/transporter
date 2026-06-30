@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', $action === 'delete' ? 'Hapus Produk' : 'Edit Produk')
+@section('title', $action === 'delete' ? 'Hapus Produk' : 'Edit - Master Produk')
 
 @section('content')
     <link rel="stylesheet" href="https://code.jquery.com/ui/1.13.3/themes/base/jquery-ui.css">

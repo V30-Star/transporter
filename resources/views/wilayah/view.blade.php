@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'View Wilayah')
+@section('title', 'View - Master Wilayah')
 
 @section('content')
 <div>

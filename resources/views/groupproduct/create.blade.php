@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'Master Group Product')
+@section('title', 'New - Master Group Product')
 
 @section('content')
 <div>

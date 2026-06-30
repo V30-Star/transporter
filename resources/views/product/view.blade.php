@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'View Produk')
+@section('title', 'View - Master Produk')
 
 @section('content')
     <link rel="stylesheet" href="https://code.jquery.com/ui/1.13.3/themes/base/jquery-ui.css">

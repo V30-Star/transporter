@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'Edit Gudang')
+@section('title', 'Edit - Master Gudang')
 
 @section('content')
 <div>

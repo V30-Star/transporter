@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'Master Account')
+@section('title', 'New - Master Account')
 
 @section('content')
     <div x-data="{ subAccount: {{ old('fhavesubaccount', 0) ? 'true' : 'false' }} }">

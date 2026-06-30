@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'Master Satuan')
+@section('title', 'New - Master Satuan')
 
 @section('content')
 <div>
