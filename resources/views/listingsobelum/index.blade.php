@@ -13,7 +13,8 @@
                 {{-- Cabang / Branch checkboxes --}}
                 <div class="mb-4">
                     <div class="flex justify-between items-center mb-2">
-                        <label class="block text-xs font-bold text-gray-400 uppercase tracking-wider">Cabang / Branch</label>
+                        <label class="block text-xs font-bold text-gray-400 uppercase tracking-wider">Cabang /
+                            Branch</label>
                         @if ($isAuthorized)
                             <div class="flex space-x-2">
                                 <button type="button" onclick="selectAllBranches(true)"
@@ -31,7 +32,7 @@
                         <div class="grid grid-cols-2 gap-2">
                             @foreach ($branches as $b)
                                 @php
-                                    $isChecked = $isAuthorized || ($userBranchCode === $b->fcabangkode);
+                                    $isChecked = $isAuthorized || $userBranchCode === $b->fcabangkode;
                                 @endphp
                                 <label class="flex items-center text-sm cursor-pointer select-none">
                                     @if (!$isAuthorized && $userBranchCode === $b->fcabangkode)
@@ -39,9 +40,9 @@
                                     @endif
                                     <input type="checkbox" name="branch_codes[]" value="{{ $b->fcabangkode }}"
                                         class="branch-checkbox mr-2 rounded border-gray-300 text-blue-600 focus:ring-blue-500 w-4 h-4"
-                                        {{ $isChecked ? 'checked' : '' }}
-                                        {{ !$isAuthorized ? 'disabled' : '' }}>
-                                    <span class="text-gray-700 font-medium">{{ $b->fcabangkode }} - {{ $b->fcabangname }}</span>
+                                        {{ $isChecked ? 'checked' : '' }} {{ !$isAuthorized ? 'disabled' : '' }}>
+                                    <span class="text-gray-700 font-medium">{{ $b->fcabangkode }} -
+                                        {{ $b->fcabangname }}</span>
                                 </label>
                             @endforeach
                         </div>
@@ -74,7 +75,7 @@
                             <select name="cust_from" class="select2 w-full border border-gray-300 rounded-lg text-sm">
                                 <option value="">-- All --</option>
                                 @foreach ($customers as $c)
-                                    <option value="{{ $c->fcustomercode }}">{{ $c->fcustomercode }}</option>
+                                    <option value="{{ $c->fcustomercode }}">{{ $c->fcustomercode }} - {{ $c->fcustomername }}</option>
                                 @endforeach
                             </select>
                         </div>
@@ -83,7 +84,7 @@
                             <select name="cust_to" class="select2 w-full border border-gray-300 rounded-lg text-sm">
                                 <option value="">-- All --</option>
                                 @foreach ($customers as $c)
-                                    <option value="{{ $c->fcustomercode }}">{{ $c->fcustomercode }}</option>
+                                    <option value="{{ $c->fcustomercode }}">{{ $c->fcustomercode }} - {{ $c->fcustomername }}</option>
                                 @endforeach
                             </select>
                         </div>
@@ -98,7 +99,8 @@
                             <select id="prd_selector" class="select2 flex-1 border border-gray-300 rounded-lg text-sm">
                                 <option value="">-- Pilih Produk --</option>
                                 @foreach ($products as $p)
-                                    <option value="{{ $p->fprdcode }}">{{ $p->fprdcode }} - {{ $p->fprdname }}</option>
+                                    <option value="{{ $p->fprdcode }}">{{ $p->fprdcode }} - {{ $p->fprdname }}
+                                    </option>
                                 @endforeach
                             </select>
                             <button type="button" onclick="addProduct()"
@@ -138,19 +140,24 @@
                 </div>
 
                 {{-- Opsi Cetak --}}
-                <div class="mb-5 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+                <div class="mb-5 p-3 bg-yellow-50 border border-yellow-200 rounded-lg" x-data="{ printOption: 'is_detail' }">
                     <p class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Opsi Cetak</p>
                     <div class="flex gap-5">
                         <label class="flex items-center gap-2 text-sm font-semibold cursor-pointer">
-                            <input type="checkbox" name="is_detail" checked> Detail
+                            <input type="checkbox" :checked="printOption === 'is_detail'"
+                                @click="printOption = 'is_detail'"> Detail
                         </label>
                         <label class="flex items-center gap-2 text-sm font-semibold cursor-pointer">
-                            <input type="checkbox" name="is_rekap"> Rekap
+                            <input type="checkbox" :checked="printOption === 'is_rekap'"
+                                @click="printOption = 'is_rekap'"> Rekap
                         </label>
                         <label class="flex items-center gap-2 text-sm font-semibold cursor-pointer">
                             <input type="checkbox" name="only_stok"> Ada Stok Saja
                         </label>
                     </div>
+
+                    {{-- hidden input yang dikirim ke server --}}
+                    <input type="hidden" name="print_option" :value="printOption">
                 </div>
 
                 {{-- Actions --}}
