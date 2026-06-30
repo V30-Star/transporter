@@ -978,7 +978,6 @@ class ProductController extends Controller
                         ELSE frefdtno 
                     END AS frefdtno, 
                     trstockdt.fprdcode, 
-                    trstockdt.fnouref, 
                     SUM(trstockdt.fqty) AS fqtyterima  
                 FROM trstockdt 
                 WHERE trstockdt.fstockmtcode = 'TER' 
@@ -988,9 +987,8 @@ class ProductController extends Controller
                         WHEN fstockmtcode = 'TER' THEN frefso 
                         ELSE frefdtno 
                     END, 
-                    trstockdt.fprdcode, 
-                    trstockdt.fnouref
-            ) t ON h.fpono = t.frefdtno AND t.fprdcode = d.fprdcode AND d.fnou = t.fnouref  
+                    trstockdt.fprdcode
+            ) t ON h.fpono = t.frefdtno AND t.fprdcode = d.fprdcode 
             WHERE (d.fqty - COALESCE(t.fqtyterima, 0)) > 0 
               AND h.fclose = '0' 
               AND d.fprdcode = :fprdcode
@@ -1007,21 +1005,17 @@ class ProductController extends Controller
                 m.fsono,
                 m.fcustno,
                 c.fcustomername AS fcustname,
-                m.fexpedisi,
-                m.fresi,
-                m.fwil,
                 d.fprdcode,
                 m.fsodate,
                 m.fcurrency,
                 d.fpricenet AS fpricefaktur,
                 d.fqty,
-                d.fkomisi,
                 s.fsalesmanname AS fsalesman
             FROM tranmt m
             INNER JOIN trandt d     ON m.fsono = d.fsono
             INNER JOIN mscustomer c ON m.fcustno = c.fcustomercode
             LEFT JOIN mssalesman s  ON m.fsalesman = s.fsalesmancode
-            WHERE m.ftrancode = 'INV'
+            WHERE m.ftrcode = 'INV'
               AND d.fprdcode = :fprdcode
               AND m.fbranchcode = :fbranchcode
             ORDER BY 

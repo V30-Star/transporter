@@ -203,38 +203,7 @@
                         </svg>
                     </button>
                 </div>
-
-                <div class="px-6 py-4 border-b bg-white" x-show="!$store.laporanStore.isLoading">
-                    <div class="grid grid-cols-1 md:grid-cols-6 gap-3">
-                        <div class="rounded-xl border border-blue-100 bg-blue-50 p-4">
-                            <div class="text-xs font-semibold text-blue-700 uppercase">Total Stok</div>
-                            <div class="mt-1 text-2xl font-bold text-blue-900" x-text="$store.laporanStore.formatNumber($store.laporanStore.totalStock())"></div>
-                        </div>
-                        <div class="rounded-xl border border-emerald-100 bg-emerald-50 p-4">
-                            <div class="text-xs font-semibold text-emerald-700 uppercase">History Penjualan</div>
-                            <div class="mt-1 text-2xl font-bold text-emerald-900" x-text="$store.laporanStore.customerData.length"></div>
-                            <div class="mt-1 text-xs text-emerald-700" x-text="$store.laporanStore.latestSaleText()"></div>
-                        </div>
-                        <div class="rounded-xl border border-amber-100 bg-amber-50 p-4">
-                            <div class="text-xs font-semibold text-amber-700 uppercase">History Pembelian</div>
-                            <div class="mt-1 text-2xl font-bold text-amber-900" x-text="$store.laporanStore.supplierData.length"></div>
-                            <div class="mt-1 text-xs text-amber-700" x-text="$store.laporanStore.latestPurchaseText()"></div>
-                        </div>
-                        <div class="rounded-xl border border-slate-200 bg-slate-50 p-4">
-                            <div class="text-xs font-semibold text-slate-600 uppercase">Gudang Aktif</div>
-                            <div class="mt-1 text-2xl font-bold text-slate-900" x-text="$store.laporanStore.stokData.length"></div>
-                        </div>
-                        <div class="rounded-xl border border-indigo-100 bg-indigo-50 p-4">
-                            <div class="text-xs font-semibold text-indigo-700 uppercase">Outstanding PO</div>
-                            <div class="mt-1 text-2xl font-bold text-indigo-900" x-text="$store.laporanStore.outstandingPoData.length"></div>
-                        </div>
-                        <div class="rounded-xl border border-purple-100 bg-purple-50 p-4">
-                            <div class="text-xs font-semibold text-purple-700 uppercase">Outstanding SO/KNY</div>
-                            <div class="mt-1 text-2xl font-bold text-purple-900" x-text="$store.laporanStore.outstandingSoData.length"></div>
-                        </div>
-                    </div>
-                </div>
-
+                
                 <div class="px-6 py-2 border-b bg-gray-50">
                     <nav class="-mb-px flex flex-wrap gap-6">
                         <button @click="$store.laporanStore.activeTab = 'customer'"

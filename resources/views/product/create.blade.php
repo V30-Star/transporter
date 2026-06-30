@@ -513,15 +513,6 @@
                                 </select>
                             </div>
 
-                           {{-- <div class="flex items-end pb-0.5">
-    <label
-        class="inline-flex items-center gap-2 border-2 border-red-200 bg-red-50 text-red-700 rounded-lg px-3 py-2 cursor-pointer hover:bg-red-100 text-sm font-semibold transition-colors duration-200">
-        <input type="checkbox" name="fnonactive" id="statusToggle"
-            class="h-4 w-4 text-red-600 rounded focus:ring-red-500 border-red-300"
-            {{ old('fnonactive') == '1' ? 'checked' : '' }}>
-        Non Aktif
-    </label>
-</div> --}}
                         </div>
                     </div>
 

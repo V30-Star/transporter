@@ -136,529 +136,497 @@
             ];
         }
     @endphp
-    <div class="bg-white rounded shadow p-6 md:p-8 max-w-[1800px] w-full mx-auto">
-        <form action="{{ route('tr_poh.store') }}" method="POST" class="mt-6" data-form-draft="true"
+    <div class="max-w-[1600px] mx-auto py-8 px-6">
+        <form action="{{ route('tr_poh.store') }}" method="POST" data-form-draft="true"
             data-draft-key="tr_poh:create" x-data="mainForm()" x-init="init()" @submit.prevent="submitForm($el)">
             @csrf
 
-            {{-- HEADER FORM --}}
-            <div class="grid grid-cols-1 lg:grid-cols-12 gap-4">
-
-                {{-- Cabang --}}
-                <div class="lg:col-span-4">
-                    <label class="block text-sm font-bold">Cabang</label>
-                    <input type="text" class="w-full border rounded px-3 py-2 bg-gray-200 cursor-not-allowed"
-                        value="{{ trim(($fbranchcode ?? '') . ($fcabang ?? '' ? ' - ' . $fcabang : '')) }}" disabled>
-                    <input type="hidden" name="fbranchcode" value="{{ $fbranchcode }}">
+            {{-- ─── CARD 1: Identitas Order Pembelian ────────────────────── --}}
+            <div class="bg-white border border-gray-200 rounded-xl mb-3 overflow-hidden">
+                <div class="px-4 pt-3 pb-0">
+                    <p class="text-xs font-medium uppercase tracking-wide text-gray-400">Identitas Order Pembelian</p>
                 </div>
+                <div class="p-4 space-y-3">
 
-                {{-- PO# --}}
-                <div class="lg:col-span-4">
-                    <label class="block text-sm font-bold mb-1">PO#</label>
-                    <div class="flex items-center gap-3">
-                        <input type="text" name="fpohid" class="w-full border rounded px-3 py-2" :disabled="autoCode"
-                            :class="autoCode ? 'bg-gray-200 cursor-not-allowed' : 'bg-white'">
-                        <label class="inline-flex items-center select-none font-bold">
-                            <input type="checkbox" x-model="autoCode" checked>
-                            <span class="ml-2 text-sm text-gray-700">Auto</span>
-                        </label>
+                    <div class="grid grid-cols-3 gap-3">
+                        {{-- Cabang --}}
+                        <div>
+                            <label class="block text-xs font-medium text-gray-600 mb-1">Cabang</label>
+                            <input type="text" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm bg-gray-100 text-gray-500 cursor-not-allowed border-gray-200"
+                                value="{{ trim(($fbranchcode ?? '') . ($fcabang ?? '' ? ' - ' . $fcabang : '')) }}" disabled>
+                            <input type="hidden" name="fbranchcode" value="{{ $fbranchcode }}">
+                        </div>
+
+                        {{-- PO# --}}
+                        <div x-data="{ autoCode: true }">
+                            <label class="block text-xs font-medium text-gray-600 mb-1">PO#</label>
+                            <div class="flex items-center gap-2">
+                                <input type="text" name="fpohid" class="flex-1 border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                                    :disabled="autoCode" :class="autoCode ? 'bg-gray-100 text-gray-500 border-gray-200 cursor-not-allowed' : 'bg-white'"
+                                    placeholder="Auto Generated">
+                                <label class="inline-flex items-center select-none font-medium text-sm text-gray-600 cursor-pointer">
+                                    <input type="checkbox" x-model="autoCode" checked class="rounded text-blue-600 border-gray-300 focus:ring-blue-500">
+                                    <span class="ml-1.5">Auto</span>
+                                </label>
+                            </div>
+                        </div>
+
+                        {{-- Supplier --}}
+                        <div>
+                            <label class="block text-xs font-medium text-gray-600 mb-1">Supplier <span class="text-red-500">*</span></label>
+                            <div class="flex">
+                                <div class="relative flex-1">
+                                    <select id="modal_filter_supplier_id" name="filter_supplier_id"
+                                        class="w-full border border-gray-300 rounded-l-lg px-3 py-2 text-sm bg-gray-50 text-gray-700 cursor-pointer focus:outline-none focus:border-blue-500"
+                                        disabled>
+                                        <option value=""></option>
+                                        @foreach ($suppliers as $supplier)
+                                            <option value="{{ $supplier->fsuppliercode }}"
+                                                data-tempo="{{ (int) ($supplier->ftempo ?? 0) }}"
+                                                data-currency="{{ trim((string) ($supplier->fcurr ?? '')) }}"
+                                                {{ old('fsupplier', $filterSupplierId) == $supplier->fsuppliercode ? 'selected' : '' }}>
+                                                {{ $supplier->fsuppliername }} ({{ $supplier->fsuppliercode }})
+                                            </option>
+                                        @endforeach
+                                    </select>
+                                    <div class="absolute inset-0 cursor-pointer" role="button" aria-label="Browse supplier"
+                                        @click="window.dispatchEvent(new CustomEvent('tr-poh-supplier-browse-open'))"></div>
+                                </div>
+                                <input type="hidden" name="fsupplier" id="supplierCodeHidden" value="{{ old('fsupplier') }}">
+                                <button type="button" @click="window.dispatchEvent(new CustomEvent('tr-poh-supplier-browse-open'))"
+                                    class="border border-l-0 border-gray-300 px-3 py-2 bg-white hover:bg-gray-50 text-gray-500 transition-colors"
+                                    title="Browse Supplier">
+                                    <x-heroicon-o-magnifying-glass class="w-4 h-4" />
+                                </button>
+                                @if (in_array('createSupplier', explode(',', session('user_restricted_permissions', '')), true))
+                                    <a href="{{ route('supplier.create') }}" target="_blank" rel="noopener"
+                                        class="border border-l-0 border-gray-300 rounded-r-lg px-3 py-2 bg-white hover:bg-gray-50 text-gray-500 transition-colors"
+                                        title="Tambah Supplier">
+                                        <x-heroicon-o-plus class="w-4 h-4" />
+                                    </a>
+                                @endif
+                            </div>
+                            @error('fsupplier')
+                                <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                            @enderror
+                        </div>
                     </div>
-                </div>
 
-                {{-- Supplier --}}
-                <div class="lg:col-span-4">
-                    <label class="block text-sm font-bold mb-1">Supplier</label>
-                    <div class="flex">
-                        <div class="relative flex-1">
-                            <select id="modal_filter_supplier_id" name="filter_supplier_id"
-                                class="w-full border rounded-l px-3 py-2 bg-gray-100 text-gray-700 cursor-not-allowed"
-                                disabled>
-                                <option value=""></option>
-                                @foreach ($suppliers as $supplier)
-                                    <option value="{{ $supplier->fsuppliercode }}"
-                                        data-tempo="{{ (int) ($supplier->ftempo ?? 0) }}"
-                                        data-currency="{{ trim((string) ($supplier->fcurr ?? '')) }}"
-                                        {{ old('fsupplier', $filterSupplierId) == $supplier->fsuppliercode ? 'selected' : '' }}>
-                                        {{ $supplier->fsuppliername }} ({{ $supplier->fsuppliercode }})
+                    <div class="grid grid-cols-3 gap-3">
+                        {{-- Tanggal --}}
+                        <div>
+                            <label class="block text-xs font-medium text-gray-600 mb-1">Tanggal <span class="text-red-500">*</span></label>
+                            <input type="date" name="fpodate" value="{{ old('fpodate') ?? date('Y-m-d') }}"
+                                class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 @error('fpodate') border-red-400 @enderror">
+                            @error('fpodate')
+                                <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                            @enderror
+                        </div>
+
+                        {{-- Tgl. Kirim --}}
+                        <div>
+                            <label class="block text-xs font-medium text-gray-600 mb-1">Tgl. Kirim</label>
+                            <input type="date" name="fkirimdate" value="{{ old('fkirimdate', '') }}"
+                                class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 @error('fkirimdate') border-red-400 @enderror">
+                            @error('fkirimdate')
+                                <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                            @enderror
+                        </div>
+
+                        {{-- Tempo --}}
+                        <div>
+                            <label class="block text-xs font-medium text-gray-600 mb-1">Tempo</label>
+                            <div class="flex items-center gap-2">
+                                <input type="number" id="ftempohr" name="ftempohr" value="{{ old('ftempohr', 0) }}"
+                                    class="flex-1 border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100">
+                                <span class="text-sm text-gray-500">Hari</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-3 gap-3">
+                        {{-- Currency --}}
+                        <div>
+                            <label class="block text-xs font-medium text-gray-600 mb-1">Currency <span class="text-red-500">*</span></label>
+                            <select name="fcurrency" id="currencySelect" x-model="selectedCurrCode" @change="onCurrencyChange()"
+                                class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm bg-white focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 @error('fcurrency') border-red-400 @enderror">
+                                <option value="">-- Pilih Currency --</option>
+                                @foreach ($currencies as $cur)
+                                    <option value="{{ $cur->fcurrcode }}" data-id="{{ $cur->fcurrid }}"
+                                        data-rate="{{ $cur->frate }}"
+                                        {{ old('fcurrency', 'IDR') == $cur->fcurrcode ? 'selected' : '' }}>
+                                        {{ $cur->fcurrname }} ({{ $cur->fcurrcode }})
                                     </option>
                                 @endforeach
                             </select>
-                            <div class="absolute inset-0" role="button"
-                                @click="window.dispatchEvent(new CustomEvent('tr-poh-supplier-browse-open'))"></div>
+                            <input type="hidden" name="fcurrencyid" :value="selectedCurrId">
+                            <input type="hidden" name="fcurrcode" :value="selectedCurrCode">
+                            @error('fcurrency')
+                                <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                            @enderror
                         </div>
-                        <input type="hidden" name="fsupplier" id="supplierCodeHidden" value="{{ old('fsupplier') }}">
-                        <button type="button" @click="window.dispatchEvent(new CustomEvent('tr-poh-supplier-browse-open'))"
-                            class="border -ml-px px-3 py-2 bg-white hover:bg-gray-50 rounded-r-none"
-                            title="Browse Supplier">
-                            <x-heroicon-o-magnifying-glass class="w-5 h-5" />
-                        </button>
-                        @if (in_array('createSupplier', explode(',', session('user_restricted_permissions', '')), true))
-                            <a href="{{ route('supplier.create') }}" target="_blank" rel="noopener"
-                                class="border -ml-px rounded-r px-3 py-2 bg-white hover:bg-gray-50" title="Tambah Supplier">
-                                <x-heroicon-o-plus class="w-5 h-5" />
-                            </a>
-                        @endif
+
+                        {{-- Rate --}}
+                        <div>
+                            <label class="block text-xs font-medium text-gray-600 mb-1">Rate <span class="text-red-500">*</span></label>
+                            <input type="number" step="0.01" min="0" name="frate" x-model.number="rateValue"
+                                class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 @error('frate') border-red-400 @enderror"
+                                placeholder="Rate akan terisi otomatis">
+                            @error('frate')
+                                <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                            @enderror
+                        </div>
                     </div>
-                    @error('fsupplier')
-                        <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
-                    @enderror
-                </div>
 
-                {{-- Tanggal --}}
-                <div class="lg:col-span-4">
-                    <label class="block text-sm font-bold">Tanggal</label>
-                    <input type="date" name="fpodate" value="{{ old('fpodate') ?? date('Y-m-d') }}"
-                        class="w-full border rounded px-3 py-2 @error('fpodate') border-red-500 @enderror">
-                    @error('fpodate')
-                        <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
-                    @enderror
-                </div>
-
-                {{-- Tgl. Kirim --}}
-                <div class="lg:col-span-4">
-                    <label class="block text-sm font-bold">Tgl. Kirim</label>
-                    <input type="date" name="fkirimdate" value="{{ old('fkirimdate', '') }}"
-                        class="w-full border rounded px-3 py-2 @error('fkirimdate') border-red-500 @enderror">
-                    @error('fkirimdate')
-                        <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
-                    @enderror
-                </div>
-
-                {{-- Tempo --}}
-                <div class="lg:col-span-4">
-                    <label class="block text-sm font-bold mb-1">Tempo</label>
-                    <div class="flex items-center">
-                        <input type="number" id="ftempohr" name="ftempohr" value="{{ old('ftempohr', 0) }}"
-                            class="w-full border rounded px-3 py-2">
-                        <span class="ml-2">Hari</span>
+                    {{-- Keterangan --}}
+                    <div>
+                        <label class="block text-xs font-medium text-gray-600 mb-1">Keterangan</label>
+                        <textarea name="fket" rows="2" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 @error('fket') border-red-400 @enderror"
+                            placeholder="Tulis keterangan tambahan di sini...">{{ old('fket') }}</textarea>
+                        @error('fket')
+                            <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                        @enderror
                     </div>
-                </div>
 
-                {{-- Currency --}}
-                <div class="lg:col-span-4">
-                    <label class="block text-sm font-bold">Currency</label>
-                    <select name="fcurrency" id="currencySelect" x-model="selectedCurrCode" @change="onCurrencyChange()"
-                        class="w-full border rounded px-3 py-2 @error('fcurrency') border-red-500 @enderror">
-                        <option value="">-- Pilih Currency --</option>
-                        @foreach ($currencies as $cur)
-                            <option value="{{ $cur->fcurrcode }}" data-id="{{ $cur->fcurrid }}"
-                                data-rate="{{ $cur->frate }}"
-                                {{ old('fcurrency', 'IDR') == $cur->fcurrcode ? 'selected' : '' }}>
-                                {{ $cur->fcurrname }} ({{ $cur->fcurrcode }})
-                            </option>
-                        @endforeach
-                    </select>
-                    <input type="hidden" name="fcurrencyid" :value="selectedCurrId">
-                    <input type="hidden" name="fcurrcode" :value="selectedCurrCode">
-                    @error('fcurrency')
-                        <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
-                    @enderror
-                </div>
-
-                {{-- Rate --}}
-                <div class="lg:col-span-4">
-                    <label class="block text-sm font-bold">Rate</label>
-                    <input type="number" step="0.01" min="0" name="frate" x-model.number="rateValue"
-                        class="w-full border rounded px-3 py-2 @error('frate') border-red-500 @enderror"
-                        placeholder="Rate akan terisi otomatis">
-                    @error('frate')
-                        <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
-                    @enderror
-                </div>
-
-                {{-- Keterangan --}}
-                <div class="lg:col-span-12">
-                    <label class="block text-sm font-bold">Keterangan</label>
-                    <textarea name="fket" rows="3"
-                        class="w-full border rounded px-3 py-2 @error('fket') border-red-500 @enderror"
-                        placeholder="Tulis keterangan tambahan di sini...">{{ old('fket') }}</textarea>
-                    @error('fket')
-                        <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
-                    @enderror
                 </div>
             </div>
 
-            {{-- DETAIL ITEM --}}
-            <div class="mt-6 space-y-2">
-                <h3 class="text-base font-semibold text-gray-800">Detail Item</h3>
-
-                <div class="overflow-x-auto border rounded">
-                    <table class="min-w-full text-sm po-detail-table" data-skip-auto-detail-style="true">
-                        <colgroup>
-                            <col style="width:2%;">
-                            <col style="width:12%;">
-                            <col style="width:27%;">
-                            <col style="width:7%;">
-                            <col style="width:10%;">
-                            <col style="width:8%;">
-                            <col style="width:8%;">
-                            <col style="width:6%;">
-                            <col style="width:8%;">
-                            <col style="width:8%;">
-                            <col style="width:4%;">
-                        </colgroup>
-                        <thead class="bg-gray-100">
-                            <tr>
-                                <th class="p-2 text-left w-10">#</th>
-                                <th class="p-2 text-left w-20">Kode Produk</th>
-                                <th class="p-2 text-left w-[31rem]">Nama Produk</th>
-                                <th class="p-2 text-left w-24">Satuan</th>
-                                <th class="p-2 text-left w-24">Ref.PR#</th>
-                                <th class="p-2 text-right w-24 whitespace-nowrap">Qty</th>
-                                <th class="p-2 text-right w-24 whitespace-nowrap">@ Harga</th>
-                                <th class="p-2 text-right w-20 whitespace-nowrap">Disc. %</th>
-                                <th class="p-2 text-right w-24 whitespace-nowrap">Total Harga</th>
-                                <th class="p-2 text-right w-20 whitespace-nowrap">Total Harga (Rp.)</th>
-                                <th class="p-2 text-center w-16">Aksi</th>
-                            </tr>
-                        </thead>
-
-                        <tbody>
-                            <template x-for="(row, i) in rows" :key="row.uid">
-                                <tr class="border-t align-top transition-colors"
-                                    :class="activeRow === row.uid ? 'bg-amber-50' : 'hover:bg-gray-50'">
-                                    <td class="p-2 text-gray-500" x-text="i + 1"></td>
-
-                                    <td class="p-2">
-                                        <div class="flex w-40">
-                                            <input type="text"
-                                                class="w-32 border rounded-l px-2 py-1 font-mono text-sm min-w-0"
-                                                x-model.trim="row.fitemcode" @focus="activeRow = row.uid"
-                                                @blur="activeRow = null" @input="onCodeTypedRow(row, i)"
-                                                @keydown.enter.prevent="focusRowUnit(row, i)">
-                                            <button type="button" @click="openBrowseFor(i)"
-                                                class="border border-l-0 px-2 py-1 bg-white hover:bg-gray-50"
-                                                title="Cari Produk">
-                                                <x-heroicon-o-magnifying-glass class="w-4 h-4" />
-                                            </button>
-                                        </div>
-                                    </td>
-
-                                    <td class="p-2 align-top overflow-visible">
-                                        <div class="flex min-w-0 items-start overflow-visible">
-                                            <div
-                                                class="min-w-0 flex-1 rounded-l border bg-gray-100 px-2 py-1 text-sm leading-5 text-gray-600 whitespace-normal break-words">
-                                                <span x-text="row.fitemname || '-'"></span>
-                                            </div>
-                                            <button type="button" @click="openDesc(row)"
-                                                class="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-r border border-l-0 transition"
-                                                :class="row.fdesc ?
-                                                    'border-emerald-300 bg-emerald-50 text-emerald-600 hover:bg-emerald-100' :
-                                                    'border-gray-300 bg-white text-gray-500 hover:bg-gray-50'"
-                                                title="Deskripsi item">
-                                                <x-heroicon-o-document-text class="h-4 w-4" />
-                                            </button>
-                                        </div>
-                                    </td>
-
-                                    <td class="p-2">
-                                        <template x-if="row.units.length > 1 && !row.frefdtid">
-                                            <select class="w-full border rounded px-2 py-1 text-sm" :id="'unit_row_' + i"
-                                                x-model="row.fsatuan" @focus="activeRow = row.uid"
-                                                @blur="activeRow = null" @change="onRowUpdated(i)"
-                                                @keydown.enter.prevent="focusRowQty(i)">
-                                                <template x-for="unit in row.units" :key="unit">
-                                                    <option :value="unit" x-text="unit"></option>
-                                                </template>
-                                            </select>
-                                        </template>
-                                        <template x-if="row.units.length <= 1 || row.frefdtid">
-                                            <input type="text"
-                                                class="w-full border rounded px-2 py-1 bg-gray-100 text-gray-600 text-sm"
-                                                :value="row.fsatuan || '-'" disabled>
-                                        </template>
-                                    </td>
-
-                                    <td class="p-2">
-                                        <input type="text"
-                                            class="w-full border rounded px-2 py-1 bg-gray-100 text-gray-600 text-sm"
-                                            :value="row.fprno || row.frefdtno || '-'" disabled>
-                                    </td>
-
-                                    <td class="p-2 text-right">
-                                        <input type="number" class="border rounded px-2 py-1 w-20 text-right text-sm"
-                                            :id="'qty_row_' + i" x-model.number="row.fqty" min="0"
-                                            step="any" @focus="activeRow = row.uid; $event.target.select()"
-                                            @blur="activeRow = null; enforcePrQtyRow(row)" @input="onRowUpdated(i)"
-                                            @change="onRowUpdated(i)" @keydown.enter.prevent="focusRowPrice(i)">
-                                        <div class="text-[10px] text-amber-700 font-medium text-right mt-0.5"
-                                            x-show="row.frefdtid && formatPrRemainHint(row)"
-                                            x-html="formatPrRemainHint(row)">
-                                        </div>
-                                    </td>
-
-                                    <td class="p-2 text-right">
-                                        <input type="text" inputmode="decimal"
-                                            class="border rounded px-2 py-1 w-24 text-right text-sm"
-                                            x-model="row.fpriceInput" @input="onPriceInput(row)" :id="'price_row_' + i"
-                                            @focus="activeRow = row.uid; focusPriceInput(row); $event.target.select()"
-                                            @blur="activeRow = null; blurPriceInput(row)" @change="recalc(row)"
-                                            @keydown.enter.prevent="focusRowDisc(i)">
-                                    </td>
-
-                                    <td class="p-2 text-right">
-                                        <input type="text" class="border rounded px-2 py-1 w-20 text-right text-sm"
-                                            placeholder="0" :value="row.fdisc"
-                                            @input="row.fdisc = $event.target.value; recalc(row)" :id="'disc_row_' + i"
-                                            @focus="activeRow = row.uid; $event.target.select()"
-                                            @blur="activeRow = null; row.fdisc = normalizeDiscountValue(row.fdisc); recalc(row)"
-                                            @keydown.enter.prevent="onRowUpdated(i)">
-                                    </td>
-
-                                    <td class="p-2">
-                                        <input type="text"
-                                            class="w-full border rounded px-2 py-1 bg-gray-100 text-gray-600 text-sm text-right"
-                                            :value="fmtCurr(row.ftotal)" disabled>
-                                    </td>
-
-                                    <td class="p-2">
-                                        <input type="text"
-                                            class="w-full border rounded px-2 py-1 bg-gray-100 text-gray-600 text-sm text-right"
-                                            :value="rupiah(itemTotalRp(row.ftotal))" disabled>
-                                    </td>
-
-                                    <td class="p-2 text-center">
-                                        <div class="flex items-center justify-center">
-                                            <button type="button" @click="removeRow(i)"
-                                                class="inline-flex h-8 w-8 items-center justify-center rounded bg-red-100 text-red-600 hover:bg-red-200"
-                                                title="Hapus baris">
-                                                -
-                                            </button>
-                                        </div>
-                                    </td>
+            {{-- ─── CARD 2: Detail Item ────────────────────── --}}
+            <div class="bg-white border border-gray-200 rounded-xl mb-3 overflow-hidden">
+                <div class="px-4 pt-3 pb-0">
+                    <p class="text-xs font-medium uppercase tracking-wide text-gray-400">Detail Item</p>
+                </div>
+                <div class="p-4">
+                    <div class="overflow-auto border border-gray-200 rounded-lg">
+                        <table class="po-detail-table min-w-full text-sm">
+                            <thead class="bg-gray-50 border-b border-gray-200">
+                                <tr>
+                                    <th class="p-2 text-left w-10 text-xs font-semibold text-gray-500 uppercase">#</th>
+                                    <th class="p-2 text-left w-36 text-xs font-semibold text-gray-500 uppercase">Kode Produk</th>
+                                    <th class="p-2 text-left text-xs font-semibold text-gray-500 uppercase" style="width: 20rem; min-width: 20rem;">Nama Produk</th>
+                                    <th class="p-2 text-left w-24 text-xs font-semibold text-gray-500 uppercase">Satuan</th>
+                                    <th class="p-2 text-left w-24 text-xs font-semibold text-gray-500 uppercase">Ref.PR#</th>
+                                    <th class="p-2 text-right w-24 text-xs font-semibold text-gray-500 uppercase">Qty</th>
+                                    <th class="p-2 text-right w-28 text-xs font-semibold text-gray-500 uppercase">@ Harga</th>
+                                    <th class="p-2 text-right w-20 text-xs font-semibold text-gray-500 uppercase">Disc. %</th>
+                                    <th class="p-2 text-right w-28 text-xs font-semibold text-gray-500 uppercase">Total Harga</th>
+                                    <th class="p-2 text-right w-28 text-xs font-semibold text-gray-500 uppercase">Total Harga (Rp.)</th>
+                                    <th class="p-2 text-center w-16 text-xs font-semibold text-gray-500 uppercase">Aksi</th>
                                 </tr>
-                            </template>
-                        </tbody>
-                    </table>
-                </div>
+                            </thead>
+                            <tbody>
+                                <template x-for="(row, i) in rows" :key="row.uid">
+                                    <tr class="border-t border-gray-150 align-top hover:bg-gray-50">
+                                        <td class="p-2 text-gray-400" x-text="i + 1"></td>
 
-                <div class="hidden">
-                    <template x-for="row in rowsToSubmit" :key="'submit-' + row.uid">
-                        <div>
-                            <input type="hidden" name="fitemcode[]" :value="row.fitemcode">
-                            <input type="hidden" name="fitemname[]" :value="row.fitemname">
-                            <input type="hidden" name="fsatuan[]" :value="row.fsatuan">
-                            <input type="hidden" name="frefdtno[]" :value="row.frefdtno">
-                            <input type="hidden" name="frefdtid[]" :value="row.frefdtid">
-                            <input type="hidden" name="fnouref[]" :value="row.fnouref">
-                            <input type="hidden" name="fnoacak[]" :value="row.fnoacak">
-                            <input type="hidden" name="frefnoacak[]" :value="row.frefnoacak">
-                            <input type="hidden" name="frefpr[]" :value="row.frefpr">
-                            <input type="hidden" name="fprhid[]" :value="row.fprhid">
-                            <input type="hidden" name="fqty[]" :value="row.fqty">
-                            <input type="hidden" name="fprice[]" :value="row.fprice">
-                            <input type="hidden" name="fdisc[]" :value="row.fdisc">
-                            <input type="hidden" name="ftotal[]" :value="row.ftotal">
-                            <input type="hidden" name="fdesc[]" :value="row.fdesc">
-                            <input type="hidden" name="fketdt[]" :value="row.fketdt">
-                        </div>
-                    </template>
-                </div>
+                                        {{-- Kode Produk --}}
+                                        <td class="p-2">
+                                            <div class="flex">
+                                                <input type="text"
+                                                    class="flex-1 border border-gray-300 rounded-l-lg px-2 py-1 font-mono text-sm min-w-0 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-100"
+                                                    x-model.trim="row.fitemcode" @focus="activeRow = row.uid"
+                                                    @blur="activeRow = null" @input="onCodeTypedRow(row, i)"
+                                                    @keydown.enter.prevent="focusRowUnit(row, i)">
+                                                <button type="button" @click="openBrowseFor(i)"
+                                                    class="border border-l-0 border-gray-300 px-2 py-1 bg-white hover:bg-gray-50 text-gray-500 transition-colors"
+                                                    title="Cari Produk">
+                                                    <x-heroicon-o-magnifying-glass class="w-4 h-4" />
+                                                </button>
+                                            </div>
+                                        </td>
 
-                <div x-show="showDescModal" x-cloak class="fixed inset-0 z-[95] flex items-center justify-center"
-                    x-transition.opacity>
-                    <div class="absolute inset-0 bg-black/50" @click="closeDesc()"></div>
-                    <div class="relative bg-white w-[92vw] max-w-lg rounded-2xl shadow-2xl overflow-hidden"
-                        x-transition.scale>
-                        <div class="px-5 py-4 border-b flex items-center">
-                            <x-heroicon-o-document-text class="w-6 h-6 text-blue-600 mr-2" />
-                            <h3 class="text-lg font-semibold text-gray-800">Isi Deskripsi Item</h3>
-                        </div>
-                        <div class="px-5 py-4 space-y-4">
+                                        {{-- Nama Produk --}}
+                                        <td class="p-2" style="width: 20rem; min-width: 20rem;">
+                                            <div class="desc-inline-field flex w-full min-w-0 flex-nowrap items-stretch">
+                                                <div class="desc-inline-field__text min-w-0 flex-1 rounded-l-lg border border-gray-300 bg-gray-50 px-2 py-1 text-sm leading-5 text-gray-600 whitespace-normal break-words"
+                                                    style="flex:1 1 auto !important; min-width:0 !important;"
+                                                    x-text="row.fitemname || '-'"></div>
+                                                <button type="button" @click="openDesc(row)"
+                                                    class="desc-inline-field__button inline-flex w-10 shrink-0 items-center justify-center border border-l-0 border-gray-300 rounded-r-lg px-2 py-1 transition-colors"
+                                                    style="display:inline-flex !important; flex:0 0 2rem !important; width:2rem !important; justify-content:center !important; align-items:center !important;"
+                                                    :class="row.fdesc ?
+                                                        'border-emerald-300 bg-emerald-50 text-emerald-600 hover:bg-emerald-100' :
+                                                        'border-gray-300 bg-white text-gray-500 hover:bg-gray-50'"
+                                                    title="Deskripsi item">
+                                                    <x-heroicon-o-document-text class="w-4 h-4" />
+                                                </button>
+                                            </div>
+                                        </td>
+
+                                        {{-- Satuan --}}
+                                        <td class="p-2">
+                                            <template x-if="row.units.length > 1 && !row.frefdtid">
+                                                <select class="w-full border border-gray-300 rounded-lg px-2 py-1 text-sm focus:outline-none focus:border-blue-500"
+                                                    :id="'unit_row_' + i" x-model="row.fsatuan"
+                                                    @focus="activeRow = row.uid" @blur="activeRow = null"
+                                                    @change="onRowUpdated(i)" @keydown.enter.prevent="focusRowQty(i)">
+                                                    <template x-for="unit in row.units" :key="unit">
+                                                        <option :value="unit" x-text="unit"></option>
+                                                    </template>
+                                                </select>
+                                            </template>
+                                            <template x-if="row.units.length <= 1 || row.frefdtid">
+                                                <input type="text"
+                                                    class="w-full border border-gray-200 rounded-lg px-2 py-1 bg-gray-50 text-gray-500 text-sm cursor-not-allowed"
+                                                    :value="row.fsatuan || '-'" disabled>
+                                            </template>
+                                        </td>
+
+                                        {{-- Ref.PR# --}}
+                                        <td class="p-2">
+                                            <input type="text"
+                                                class="w-full border border-gray-200 rounded-lg px-2 py-1 bg-gray-50 text-gray-500 text-sm cursor-not-allowed"
+                                                :value="row.fprno || row.frefdtno || '-'" disabled>
+                                        </td>
+
+                                        {{-- Qty --}}
+                                        <td class="p-2 text-right">
+                                            <input type="number" class="w-full border border-gray-300 rounded-lg px-2 py-1 text-right text-sm focus:outline-none focus:border-blue-500"
+                                                :id="'qty_row_' + i" x-model.number="row.fqty" min="0" step="any"
+                                                @focus="activeRow = row.uid; $event.target.select()"
+                                                @blur="activeRow = null; enforcePrQtyRow(row)" @input="onRowUpdated(i)"
+                                                @change="onRowUpdated(i)" @keydown.enter.prevent="focusRowPrice(i)">
+                                            <div class="text-[10px] text-amber-700 font-medium text-right mt-0.5"
+                                                x-show="row.frefdtid && formatPrRemainHint(row)"
+                                                x-html="formatPrRemainHint(row)">
+                                            </div>
+                                        </td>
+
+                                        {{-- Harga --}}
+                                        <td class="p-2 text-right">
+                                            <input type="text" inputmode="decimal"
+                                                class="w-full border border-gray-300 rounded-lg px-2 py-1 text-right text-sm focus:outline-none focus:border-blue-500"
+                                                x-model="row.fpriceInput" @input="onPriceInput(row)" :id="'price_row_' + i"
+                                                @focus="activeRow = row.uid; focusPriceInput(row); $event.target.select()"
+                                                @blur="activeRow = null; blurPriceInput(row)" @change="recalc(row)"
+                                                @keydown.enter.prevent="focusRowDisc(i)">
+                                        </td>
+
+                                        {{-- Disc % --}}
+                                        <td class="p-2 text-right">
+                                            <input type="text" class="w-full border border-gray-300 rounded-lg px-2 py-1 text-right text-sm focus:outline-none focus:border-blue-500"
+                                                placeholder="0" :value="row.fdisc"
+                                                @input="row.fdisc = $event.target.value; recalc(row)" :id="'disc_row_' + i"
+                                                @focus="activeRow = row.uid; $event.target.select()"
+                                                @blur="activeRow = null; row.fdisc = normalizeDiscountValue(row.fdisc); recalc(row)"
+                                                @keydown.enter.prevent="onRowUpdated(i)">
+                                        </td>
+
+                                        {{-- Total --}}
+                                        <td class="p-2">
+                                            <input type="text"
+                                                class="w-full border border-gray-250 rounded-lg px-2 py-1 bg-gray-50 text-gray-500 text-sm text-right cursor-not-allowed"
+                                                :value="fmtCurr(row.ftotal)" disabled>
+                                        </td>
+
+                                        {{-- Total Rp --}}
+                                        <td class="p-2">
+                                            <input type="text"
+                                                class="w-full border border-gray-250 rounded-lg px-2 py-1 bg-gray-50 text-gray-500 text-sm text-right cursor-not-allowed"
+                                                :value="rupiah(itemTotalRp(row.ftotal))" disabled>
+                                        </td>
+
+                                        {{-- Aksi --}}
+                                        <td class="p-2 text-center">
+                                            <div class="flex items-center justify-center">
+                                                <button type="button" @click="removeRow(i)"
+                                                    class="inline-flex h-7 w-7 items-center justify-center rounded-lg bg-red-50 text-red-500 hover:bg-red-100 transition-colors border border-red-200"
+                                                    title="Hapus baris">
+                                                    <x-heroicon-o-minus class="w-4 h-4" />
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                </template>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    {{-- Hidden Submit inputs --}}
+                    <div class="hidden">
+                        <template x-for="row in rowsToSubmit" :key="'submit-' + row.uid">
                             <div>
-                                <div class="mb-1 flex items-center justify-between gap-3">
-                                    <div class="text-sm text-gray-700">Nama Produk</div>
-                                    <button type="button" @click="copyDescName()"
-                                        class="h-8 px-3 rounded-lg bg-blue-50 text-blue-700 text-sm font-medium hover:bg-blue-100">
-                                        Copy
-                                    </button>
-                                </div>
-                                <div class="rounded-lg border bg-gray-50 px-3 py-2 text-sm text-gray-800"
-                                    x-text="descItemName || '-'"></div>
+                                <input type="hidden" name="fitemcode[]" :value="row.fitemcode">
+                                <input type="hidden" name="fitemname[]" :value="row.fitemname">
+                                <input type="hidden" name="fsatuan[]" :value="row.fsatuan">
+                                <input type="hidden" name="frefdtno[]" :value="row.frefdtno">
+                                <input type="hidden" name="frefdtid[]" :value="row.frefdtid">
+                                <input type="hidden" name="fnouref[]" :value="row.fnouref">
+                                <input type="hidden" name="fnoacak[]" :value="row.fnoacak">
+                                <input type="hidden" name="frefnoacak[]" :value="row.frefnoacak">
+                                <input type="hidden" name="frefpr[]" :value="row.frefpr">
+                                <input type="hidden" name="fprhid[]" :value="row.fprhid">
+                                <input type="hidden" name="fqty[]" :value="row.fqty">
+                                <input type="hidden" name="fprice[]" :value="row.fprice">
+                                <input type="hidden" name="fdisc[]" :value="row.fdisc">
+                                <input type="hidden" name="ftotal[]" :value="row.ftotal">
+                                <input type="hidden" name="fdesc[]" :value="row.fdesc">
+                                <input type="hidden" name="fketdt[]" :value="row.fketdt">
                             </div>
-                            <label class="block text-sm text-gray-700 font-bold">Deskripsi</label>
-                            <textarea x-model="descValue" rows="5" class="w-full border rounded px-3 py-2"
-                                placeholder="Tulis deskripsi item di sini..."></textarea>
-                        </div>
-                        <div class="px-5 py-3 border-t flex items-center justify-end gap-2">
-                            <button type="button" @click="closeDesc()"
-                                class="h-9 px-4 rounded-lg bg-gray-100 text-gray-700 text-sm font-medium hover:bg-gray-200">
-                                Batal
-                            </button>
-                            <button type="button" @click="applyDesc()"
-                                class="h-9 px-4 rounded-lg bg-emerald-600 text-white text-sm font-medium hover:bg-emerald-700">
-                                Simpan
-                            </button>
-                        </div>
-                    </div>
-                </div>
-
-                {{-- Add PR + Panel Totals --}}
-                <div x-data="prhFormModal()">
-                    <div class="mt-3 flex justify-between items-start gap-4">
-                        <div class="flex justify-start">
-                            <button type="button" @click="openModal()"
-                                class="inline-flex items-center gap-2 rounded-lg bg-emerald-600 px-3 py-2 text-white hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-emerald-500">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none"
-                                    viewBox="0 0 24 24" stroke="currentColor">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
-                                        d="M12 4.5v15m7.5-7.5h-15" />
-                                </svg>
-                                Add PR
-                            </button>
-                        </div>
-
-                        {{-- Panel Totals --}}
-                        <div class="w-[480px] shrink-0">
-                            <div class="rounded-lg border bg-gray-50 p-3 space-y-2 text-sm">
-                                <div class="flex items-center justify-between">
-                                    <span class="font-bold text-gray-800">Total Harga</span>
-                                    <span class="font-bold text-gray-900" x-text="fmtCurr(totalHarga)"></span>
-                                </div>
-                                <div class="space-y-1">
-                                    <div class="flex items-center gap-2">
-                                        <label class="flex items-center gap-1.5 cursor-pointer select-none">
-                                            <input type="checkbox" name="fapplyppn" value="1" x-model="includePPN"
-                                                class="h-4 w-4 text-blue-600 border-gray-300 rounded">
-                                            <span class="font-bold">PPN</span>
-                                        </label>
-                                        <select name="fincludeppn" x-model.number="ppnMode" :disabled="!includePPN"
-                                            class="w-28 h-10 px-2 text-sm border rounded appearance-none disabled:bg-gray-100 disabled:opacity-60 disabled:cursor-not-allowed">
-                                            <option value="0">Exclude</option>
-                                            <option value="1">Include</option>
-                                        </select>
-                                        <input type="number" name="ppn_rate" min="0" max="100"
-                                            step="0.01" x-model.number="ppnRate" :disabled="!includePPN"
-                                            class="w-16 h-10 px-2 text-sm text-right border rounded [appearance:textfield] disabled:bg-gray-100 disabled:opacity-60 disabled:cursor-not-allowed">
-                                        <span class="text-gray-500">%</span>
-                                        <span class="flex-1"></span>
-                                        <span class="font-medium" x-text="fmtCurr(ppnNominal)"></span>
-                                    </div>
-                                </div>
-                                <div class="border-t"></div>
-                                <div class="flex items-center justify-between">
-                                    <span class="font-semibold text-gray-800">
-                                        Grand Total
-                                        <span class="text-xs font-normal text-gray-500"
-                                            x-text="selectedCurrCode ? '(' + selectedCurrCode + ')' : ''"></span>
-                                    </span>
-                                    <span class="font-bold text-blue-700" x-text="fmtCurr(grandTotal)"></span>
-                                </div>
-                                <div class="flex items-center justify-between">
-                                    <span class="font-semibold text-gray-800">Grand Total (RP)</span>
-                                    <span class="font-bold text-emerald-700" x-text="rupiah(grandTotalRp)"></span>
-                                </div>
-                            </div>
-                            <input type="hidden" name="famountponet" :value="totalHarga">
-                            <input type="hidden" name="famountpopajak" :value="ppnNominal">
-                            <input type="hidden" name="famountpo" :value="grandTotal">
-                            <input type="hidden" name="famountpo_rp" :value="grandTotalRp">
-                        </div>
+                        </template>
                     </div>
 
-                    {{-- Modal backdrop --}}
-                    <div x-show="show" x-transition.opacity class="fixed inset-0 z-40 bg-black/50"
-                        @keydown.escape.window="closeModal()"></div>
-
-                    {{-- MODAL PR --}}
-                    <div x-show="show" x-cloak x-transition.opacity
-                        class="fixed inset-0 z-50 flex items-center justify-center p-4 md:p-8" aria-modal="true"
-                        role="dialog">
-                        <div class="relative w-full max-w-5xl rounded-xl bg-white shadow-2xl flex flex-col"
-                            style="height: 600px;">
-                            <div
-                                class="px-6 py-4 border-b border-gray-200 flex items-center justify-between flex-shrink-0 bg-gradient-to-r from-blue-50 to-white">
-                                <h3 class="text-xl font-bold text-gray-800">Pilih Purchase Request (PR)</h3>
-                                <button type="button" @click="closeModal()"
-                                    class="px-4 py-2 rounded-lg border-2 border-gray-300 bg-white hover:bg-gray-50 font-medium text-gray-700 text-sm">
-                                    Tutup
+                    {{-- Add PR + Panel Totals --}}
+                    <div x-data="prhFormModal()">
+                        <div class="mt-3 flex justify-between items-start gap-4 flex-wrap">
+                            <div class="flex justify-start">
+                                <button type="button" @click="openModal()"
+                                    class="inline-flex items-center gap-2 rounded-lg bg-emerald-600 px-4 py-2 text-white hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-emerald-500 font-medium text-sm transition-colors">
+                                    <x-heroicon-o-plus class="h-4 w-4" />
+                                    Add PR
                                 </button>
                             </div>
-                            <div class="flex-1 overflow-y-auto p-6" style="min-height: 0;">
-                                <table id="prTable" class="min-w-full text-sm display nowrap stripe hover"
-                                    style="width:100%">
-                                    <thead class="sticky top-0 z-10">
-                                        <tr class="bg-gray-50 border-b-2 border-gray-200">
-                                            <th class="p-3 text-left font-semibold text-gray-700">PR No</th>
-                                            <th class="p-3 text-left font-semibold text-gray-700">Cabang</th>
-                                            <th class="p-3 text-left font-semibold text-gray-700">Supplier</th>
-                                            <th class="p-3 text-left font-semibold text-gray-700">Tanggal</th>
-                                            <th class="p-3 text-left font-semibold text-gray-700">Tgl Kirim</th>
-                                            <th class="p-3 text-center font-semibold text-gray-700">Aksi</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody></tbody>
-                                </table>
-                            </div>
-                            <div class="px-6 py-3 border-t border-gray-200 flex-shrink-0 bg-gray-50"></div>
-                        </div>
-                    </div>
 
-                    {{-- Modal Duplikasi --}}
-                    <div x-show="showDupModal" x-cloak x-transition.opacity
-                        class="fixed inset-0 z-[60] flex items-center justify-center p-4">
-                        <div class="absolute inset-0 bg-black/40" @click="closeDupModal()"></div>
-                        <div class="relative bg-white rounded-xl shadow-xl max-w-2xl w-full p-6">
-                            <h3 class="text-lg font-semibold mb-4">Peringatan Duplikasi</h3>
-                            <p class="mb-4">Ditemukan <strong x-text="dupCount"></strong> item yang sudah ada dalam
-                                daftar.</p>
-                            <div class="mb-4 max-h-48 overflow-auto border rounded p-2 bg-gray-50"
-                                x-show="dupSample.length > 0">
-                                <p class="text-sm font-medium mb-2">Contoh item duplikat:</p>
-                                <template x-for="(item, idx) in dupSample" :key="idx">
-                                    <div class="text-xs py-1">• <span x-text="item.fitemcode"></span></div>
-                                </template>
+                            {{-- Panel Totals --}}
+                            <div class="w-[480px] shrink-0 max-w-full">
+                                <div class="rounded-xl border border-gray-200 bg-gray-50 p-4 space-y-3 text-sm">
+                                    <div class="flex items-center justify-between">
+                                        <span class="font-bold text-gray-800">Total Harga</span>
+                                        <span class="font-bold text-gray-900" x-text="fmtCurr(totalHarga)"></span>
+                                    </div>
+                                    <div class="space-y-1">
+                                        <div class="flex items-center gap-2 flex-wrap">
+                                            <label class="flex items-center gap-1.5 cursor-pointer select-none">
+                                                <input type="checkbox" name="fapplyppn" value="1" x-model="includePPN"
+                                                    class="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500">
+                                                <span class="font-bold text-gray-800">PPN</span>
+                                            </label>
+                                            <select name="fincludeppn" x-model.number="ppnMode" :disabled="!includePPN"
+                                                class="w-24 h-9 px-2 text-sm border rounded-lg bg-white disabled:bg-gray-100 disabled:opacity-60 disabled:cursor-not-allowed focus:outline-none focus:border-blue-500">
+                                                <option value="0">Exclude</option>
+                                                <option value="1">Include</option>
+                                            </select>
+                                            <input type="number" name="ppn_rate" min="0" max="100"
+                                                step="0.01" x-model.number="ppnRate" :disabled="!includePPN"
+                                                class="w-16 h-9 px-2 text-sm text-right border rounded-lg bg-white [appearance:textfield] disabled:bg-gray-100 disabled:opacity-60 disabled:cursor-not-allowed focus:outline-none focus:border-blue-500">
+                                            <span class="text-gray-500">%</span>
+                                            <span class="flex-1"></span>
+                                            <span class="font-medium text-gray-900" x-text="fmtCurr(ppnNominal)"></span>
+                                        </div>
+                                    </div>
+                                    <div class="border-t border-gray-200"></div>
+                                    <div class="flex items-center justify-between">
+                                        <span class="font-semibold text-gray-800">
+                                            Grand Total
+                                            <span class="text-xs font-normal text-gray-500"
+                                                x-text="selectedCurrCode ? '(' + selectedCurrCode + ')' : ''"></span>
+                                        </span>
+                                        <span class="font-bold text-blue-700 text-lg" x-text="fmtCurr(grandTotal)"></span>
+                                    </div>
+                                    <div class="flex items-center justify-between">
+                                        <span class="font-semibold text-gray-800">Grand Total (RP)</span>
+                                        <span class="font-bold text-emerald-700 text-lg" x-text="rupiah(grandTotalRp)"></span>
+                                    </div>
+                                </div>
+                                <input type="hidden" name="famountponet" :value="totalHarga">
+                                <input type="hidden" name="famountpopajak" :value="ppnNominal">
+                                <input type="hidden" name="famountpo" :value="grandTotal">
+                                <input type="hidden" name="famountpo_rp" :value="grandTotalRp">
                             </div>
-                            <div class="flex justify-end gap-2">
-                                <button type="button" @click="closeDupModal()"
-                                    class="rounded bg-gray-200 px-4 py-2 text-sm font-medium hover:bg-gray-300">Batal</button>
+                        </div>
+
+                        {{-- Modal backdrop --}}
+                        <div x-show="show" x-transition.opacity class="fixed inset-0 z-40 bg-black/50 backdrop-blur-sm"
+                            @keydown.escape.window="closeModal()"></div>
+
+                        {{-- MODAL PR --}}
+                        <div x-show="show" x-cloak x-transition.opacity
+                            class="fixed inset-0 z-50 flex items-center justify-center p-4 md:p-8" aria-modal="true"
+                            role="dialog">
+                            <div class="relative w-full max-w-5xl rounded-2xl bg-white shadow-2xl flex flex-col overflow-hidden"
+                                style="height: 600px;">
+                                <div
+                                    class="px-6 py-4 border-b border-gray-200 flex items-center justify-between flex-shrink-0 bg-gradient-to-r from-blue-50 to-white">
+                                    <h3 class="text-lg font-bold text-gray-800">Pilih Purchase Request (PR)</h3>
+                                    <button type="button" @click="closeModal()"
+                                        class="h-9 px-4 rounded-lg border border-gray-300 bg-white hover:bg-gray-50 font-medium text-gray-700 text-sm transition-colors">
+                                        Tutup
+                                    </button>
+                                </div>
+                                <div class="flex-1 overflow-y-auto p-6" style="min-height: 0;">
+                                    <table id="prTable" class="min-w-full text-sm display nowrap stripe hover"
+                                        style="width:100%">
+                                        <thead class="sticky top-0 z-10">
+                                            <tr class="bg-gray-50 border-b-2 border-gray-200">
+                                                <th class="p-3 text-left font-semibold text-gray-700">PR No</th>
+                                                <th class="p-3 text-left font-semibold text-gray-700">Cabang</th>
+                                                <th class="p-3 text-left font-semibold text-gray-700">Supplier</th>
+                                                <th class="p-3 text-left font-semibold text-gray-700">Tanggal</th>
+                                                <th class="p-3 text-left font-semibold text-gray-700">Tgl Kirim</th>
+                                                <th class="p-3 text-center font-semibold text-gray-700">Aksi</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody></tbody>
+                                    </table>
+                                </div>
+                                <div class="px-6 py-3 border-t border-gray-200 flex-shrink-0 bg-gray-50"></div>
+                            </div>
+                        </div>
+
+                        {{-- Modal Duplikasi --}}
+                        <div x-show="showDupModal" x-cloak x-transition.opacity
+                            class="fixed inset-0 z-[60] flex items-center justify-center p-4">
+                            <div class="absolute inset-0 bg-black/40" @click="closeDupModal()"></div>
+                            <div class="relative bg-white rounded-2xl shadow-xl max-w-2xl w-full p-6">
+                                <h3 class="text-lg font-semibold mb-4 text-gray-800">Peringatan Duplikasi</h3>
+                                <p class="mb-4 text-gray-600">Ditemukan <strong x-text="dupCount"></strong> item yang sudah ada dalam
+                                    daftar.</p>
+                                <div class="mb-4 max-h-48 overflow-auto border rounded-lg p-2 bg-gray-50"
+                                    x-show="dupSample.length > 0">
+                                    <p class="text-sm font-medium mb-2 text-gray-700">Contoh item duplikat:</p>
+                                    <template x-for="(item, idx) in dupSample" :key="idx">
+                                        <div class="text-xs py-1 text-gray-600">• <span x-text="item.fitemcode"></span></div>
+                                    </template>
+                                </div>
+                                <div class="flex justify-end gap-2">
+                                    <button type="button" @click="closeDupModal()"
+                                        class="h-9 px-4 rounded-lg bg-gray-150 text-gray-700 text-sm font-medium hover:bg-gray-200 transition-colors">Batal</button>
+                                </div>
                             </div>
                         </div>
                     </div>
                 </div>
-
-                <input type="hidden" id="itemsCount" :value="rowsToSubmit.length">
             </div>
 
             {{-- MODAL: belum ada item --}}
-            <div x-show="showNoItems" x-cloak class="fixed inset-0 z-[90] flex items-center justify-center"
+            <div x-show="showNoItems" x-cloak class="fixed inset-0 z-[90] flex items-center justify-center bg-black/50"
                 x-transition.opacity>
-                <div class="absolute inset-0 bg-black/50" @click="showNoItems=false"></div>
-                <div class="relative bg-white w-[92vw] max-w-md rounded-2xl shadow-2xl overflow-hidden">
-                    <div class="px-5 py-4 border-b flex items-center">
-                        <x-heroicon-o-exclamation-triangle class="w-6 h-6 text-red-500 mr-2" />
-                        <h3 class="text-lg font-semibold text-gray-800">Tidak Ada Item</h3>
+                <div class="absolute inset-0" @click="showNoItems=false"></div>
+                <div class="relative bg-white w-[92vw] max-w-md rounded-2xl shadow-2xl overflow-hidden" x-transition.scale>
+                    <div class="px-5 py-4 border-b flex items-center bg-red-50 text-red-700">
+                        <x-heroicon-o-exclamation-triangle class="w-6 h-6 mr-2" />
+                        <h3 class="text-lg font-semibold">Tidak Ada Item</h3>
                     </div>
                     <div class="px-5 py-4">
                         <p class="text-sm text-gray-700">Anda belum menambahkan item. Silakan isi baris "Detail Item"
                             terlebih dahulu.</p>
                     </div>
-                    <div class="px-5 py-3 border-t flex justify-end">
+                    <div class="px-5 py-3 border-t flex items-center justify-end gap-2 bg-gray-50">
                         <button type="button" @click="showNoItems=false"
-                            class="h-9 px-4 rounded-lg bg-blue-600 text-white text-sm font-medium hover:bg-blue-700">OK</button>
+                            class="h-9 px-4 rounded-lg bg-blue-600 text-white text-sm font-medium hover:bg-blue-700 transition-colors">OK</button>
                     </div>
                 </div>
             </div>
 
             {{-- MODAL: supplier belum dipilih --}}
-            <div x-show="showNoSupplier" x-cloak class="fixed inset-0 z-[90] flex items-center justify-center"
+            <div x-show="showNoSupplier" x-cloak class="fixed inset-0 z-[90] flex items-center justify-center bg-black/50"
                 x-transition.opacity>
-                <div class="absolute inset-0 bg-black/50" @click="showNoSupplier=false"></div>
-                <div class="relative bg-white w-[92vw] max-w-md rounded-2xl shadow-2xl overflow-hidden">
-                    <div class="px-5 py-4 border-b flex items-center">
-                        <x-heroicon-o-exclamation-triangle class="w-6 h-6 text-amber-500 mr-2" />
-                        <h3 class="text-lg font-semibold text-gray-800">Supplier Belum Dipilih</h3>
+                <div class="absolute inset-0" @click="showNoSupplier=false"></div>
+                <div class="relative bg-white w-[92vw] max-w-md rounded-2xl shadow-2xl overflow-hidden" x-transition.scale>
+                    <div class="px-5 py-4 border-b flex items-center bg-amber-50 text-amber-700">
+                        <x-heroicon-o-exclamation-triangle class="w-6 h-6 mr-2" />
+                        <h3 class="text-lg font-semibold">Supplier Belum Dipilih</h3>
                     </div>
                     <div class="px-5 py-4">
                         <p class="text-sm text-gray-700">Silakan pilih <strong>Supplier</strong> terlebih dahulu sebelum
                             menambahkan item.</p>
                     </div>
-                    <div class="px-5 py-3 border-t flex items-center justify-end gap-2">
+                    <div class="px-5 py-3 border-t flex items-center justify-end gap-2 bg-gray-50">
                         <button type="button" @click="showNoSupplier=false"
-                            class="h-9 px-4 rounded-lg bg-gray-100 text-gray-700 text-sm font-medium hover:bg-gray-200">Tutup</button>
+                            class="h-9 px-4 rounded-lg bg-gray-100 text-gray-700 text-sm font-medium hover:bg-gray-200 transition-colors">Tutup</button>
                         <button type="button"
                             @click="showNoSupplier=false; window.dispatchEvent(new CustomEvent('tr-poh-supplier-browse-open'))"
-                            class="h-9 px-4 rounded-lg bg-amber-500 text-white text-sm font-medium hover:bg-amber-600">
+                            class="h-9 px-4 rounded-lg bg-amber-500 text-white text-sm font-medium hover:bg-amber-600 transition-colors">
                             Pilih Supplier
                         </button>
                     </div>
@@ -666,13 +634,13 @@
             </div>
 
             {{-- MODAL: Produk duplikat --}}
-            <div x-show="showDupItemModal" x-cloak class="fixed inset-0 z-[90] flex items-center justify-center"
+            <div x-show="showDupItemModal" x-cloak class="fixed inset-0 z-[90] flex items-center justify-center bg-black/50"
                 x-transition.opacity>
-                <div class="absolute inset-0 bg-black/50" @click="showDupItemModal=false"></div>
-                <div class="relative bg-white w-[92vw] max-w-md rounded-2xl shadow-2xl overflow-hidden">
-                    <div class="px-5 py-4 border-b flex items-center">
-                        <x-heroicon-o-exclamation-triangle class="w-6 h-6 text-red-500 mr-2" />
-                        <h3 class="text-lg font-semibold text-gray-800">Produk Sudah Ada</h3>
+                <div class="absolute inset-0" @click="showDupItemModal=false"></div>
+                <div class="relative bg-white w-[92vw] max-w-md rounded-2xl shadow-2xl overflow-hidden" x-transition.scale>
+                    <div class="px-5 py-4 border-b flex items-center bg-red-50 text-red-700">
+                        <x-heroicon-o-exclamation-triangle class="w-6 h-6 mr-2" />
+                        <h3 class="text-lg font-semibold">Produk Sudah Ada</h3>
                     </div>
                     <div class="px-5 py-4 space-y-1">
                         <p class="text-sm text-gray-700">
@@ -685,24 +653,25 @@
                         <p class="text-sm text-gray-500">Satu produk dengan satuan yang sama hanya boleh ditambahkan satu
                             kali.</p>
                     </div>
-                    <div class="px-5 py-3 border-t flex justify-end">
+                    <div class="px-5 py-3 border-t flex items-center justify-end gap-2 bg-gray-50">
                         <button type="button" @click="showDupItemModal=false"
-                            class="h-9 px-4 rounded-lg bg-red-600 text-white text-sm font-medium hover:bg-red-700">OK</button>
+                            class="h-9 px-4 rounded-lg bg-red-600 text-white text-sm font-medium hover:bg-red-700 transition-colors">OK</button>
                     </div>
                 </div>
             </div>
 
-            <div x-show="showWarningModal" x-cloak class="fixed inset-0 z-[96] flex items-center justify-center"
+            {{-- MODAL: supplier warning modal --}}
+            <div x-show="showWarningModal" x-cloak class="fixed inset-0 z-[96] flex items-center justify-center bg-black/50"
                 x-transition.opacity>
-                <div class="absolute inset-0 bg-black/50" @click="closeWarning()"></div>
+                <div class="absolute inset-0 @click="closeWarning()"></div>
                 <div class="relative bg-white w-[92vw] max-w-lg rounded-2xl shadow-2xl overflow-hidden" x-transition.scale>
-                    <div class="px-5 py-4 border-b flex items-center">
-                        <x-heroicon-o-exclamation-triangle class="w-6 h-6 text-amber-500 mr-2" />
-                        <h3 class="text-lg font-semibold text-gray-800" x-text="warningTitle"></h3>
+                    <div class="px-5 py-4 border-b flex items-center bg-amber-50 text-amber-700">
+                        <x-heroicon-o-exclamation-triangle class="w-6 h-6 mr-2" />
+                        <h3 class="text-lg font-semibold" x-text="warningTitle"></h3>
                     </div>
                     <div class="px-5 py-4 space-y-3">
                         <p class="text-sm text-gray-700" x-text="warningMessage"></p>
-                        <template x-if="warningItems.length > 0">
+                        <template x-show="warningItems.length > 0">
                             <ul class="list-disc pl-5 text-sm text-gray-700 space-y-1">
                                 <template x-for="item in warningItems" :key="item">
                                     <li x-text="item"></li>
@@ -710,14 +679,52 @@
                             </ul>
                         </template>
                     </div>
-                    <div class="px-5 py-3 border-t flex items-center justify-end gap-2">
+                    <div class="px-5 py-3 border-t flex items-center justify-end gap-2 bg-gray-50">
                         <button type="button" @click="closeWarning()"
-                            class="h-9 px-4 rounded-lg bg-gray-100 text-gray-700 text-sm font-medium hover:bg-gray-200">
+                            class="h-9 px-4 rounded-lg bg-white border border-gray-300 text-gray-700 text-sm font-medium hover:bg-gray-50 transition-colors">
                             Tutup
                         </button>
                         <button type="button" x-show="warningCanProceed" @click="confirmWarningAndSubmit()"
-                            class="h-9 px-4 rounded-lg bg-emerald-600 text-white text-sm font-medium hover:bg-emerald-700">
+                            class="h-9 px-4 rounded-lg bg-emerald-600 text-white text-sm font-medium hover:bg-emerald-700 transition-colors">
                             Lanjut Simpan
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            {{-- MODAL: deskripsi item --}}
+            <div x-show="showDescModal" x-cloak class="fixed inset-0 z-[95] flex items-center justify-center bg-black/50"
+                x-transition.opacity>
+                <div class="absolute inset-0 bg-black/50" @click="closeDesc()"></div>
+                <div class="relative bg-white w-[92vw] max-w-lg rounded-2xl shadow-2xl overflow-hidden" x-transition.scale>
+                    <div class="px-5 py-4 border-b flex items-center">
+                        <x-heroicon-o-document-text class="w-6 h-6 text-blue-600 mr-2" />
+                        <h3 class="text-lg font-semibold text-gray-800">Isi Deskripsi Item</h3>
+                    </div>
+                    <div class="px-5 py-4 space-y-4">
+                        <div>
+                            <div class="mb-1 flex items-center justify-between gap-3">
+                                <div class="text-sm text-gray-700">Nama Produk</div>
+                                <button type="button" @click="copyDescName()"
+                                    class="h-8 px-3 rounded-lg bg-blue-50 text-blue-700 text-sm font-medium hover:bg-blue-100 transition-colors">
+                                    Copy
+                                </button>
+                            </div>
+                            <div class="rounded-lg border bg-gray-50 px-3 py-2 text-sm text-gray-800"
+                                x-text="descItemName || '-'"></div>
+                        </div>
+                        <label class="block text-sm text-gray-700 font-bold">Deskripsi</label>
+                        <textarea x-model="descValue" rows="5" class="w-full border rounded px-3 py-2 focus:outline-none focus:border-blue-500"
+                            placeholder="Tulis deskripsi item di sini..."></textarea>
+                    </div>
+                    <div class="px-5 py-3 border-t flex items-center justify-end gap-2 bg-gray-50">
+                        <button type="button" @click="closeDesc()"
+                            class="h-9 px-4 rounded-lg bg-white border border-gray-300 text-gray-700 text-sm font-medium hover:bg-gray-50 transition-colors">
+                            Batal
+                        </button>
+                        <button type="button" @click="applyDesc()"
+                            class="h-9 px-4 rounded-lg bg-emerald-600 text-white text-sm font-medium hover:bg-emerald-700 transition-colors">
+                            Simpan
                         </button>
                     </div>
                 </div>
@@ -728,32 +735,52 @@
 
             <x-transaction.browse-product-modal />
 
+            {{-- ─── CARD 3: Approval & Aksi ────────────────────── --}}
             @php
                 $canApproval = in_array('approvePO', explode(',', session('user_restricted_permissions', '')));
             @endphp
+            <div class="bg-white border border-gray-200 rounded-xl mb-3 overflow-hidden">
+                <div class="px-4 pt-3 pb-0">
+                    <p class="text-xs font-medium uppercase tracking-wide text-gray-400">Approval & Aksi</p>
+                </div>
+                <div class="p-4 space-y-4">
+                    @if ($canApproval)
+                        <div class="flex items-center justify-between p-3 border border-gray-200 rounded-lg bg-gray-50 cursor-pointer hover:border-gray-300 transition-colors"
+                            x-data="{ active: {{ old('fapproval', 0) ? 'true' : 'false' }} }"
+                            @click="active = !active; $el.querySelector('input[name=fapproval]').value = active ? '1' : '0'">
+                            <div>
+                                <p class="text-sm text-gray-800 font-medium">Setujui Sekarang</p>
+                                <p class="text-xs text-gray-400 mt-0.5">Aktifkan untuk langsung menyetujui dokumen order pembelian ini</p>
+                            </div>
+                            <div class="relative w-9 h-5 rounded-full transition-colors duration-200 flex-shrink-0"
+                                :class="active ? 'bg-blue-500' : 'bg-gray-300'">
+                                <div class="absolute w-3.5 h-3.5 bg-white rounded-full top-0.5 transition-transform duration-200"
+                                    :class="active ? 'translate-x-4 left-0.5' : 'left-0.5'"></div>
+                            </div>
+                            <input type="hidden" name="fapproval" :value="active ? '1' : '0'">
+                        </div>
+                    @endif
+                </div>
 
-            <div class="flex justify-center items-center space-x-2 mt-6">
-                @if ($canApproval)
-                    <label class="block text-sm font-bold">Setujui Sekarang</label>
-                    <input type="hidden" name="fapproval" value="0">
-                    <label class="switch">
-                        <input type="checkbox" name="fapproval" id="approvalToggle" value="1"
-                            {{ old('fapproval', 0) ? 'checked' : '' }}>
-                        <span class="slider"></span>
-                    </label>
-                @endif
+                {{-- Footer Buttons --}}
+                <div class="flex items-center justify-between px-4 py-3 bg-gray-50 border-t border-gray-200">
+                    <button type="button"
+                        onclick="window.location.href='{{ route('tr_poh.index') }}'"
+                        class="inline-flex items-center gap-2 px-4 py-2 border border-gray-300 bg-white text-gray-600 text-sm font-medium rounded-lg hover:bg-gray-50 hover:border-gray-400 transition-colors">
+                        <x-heroicon-o-arrow-left class="w-4 h-4" />
+                        Keluar
+                    </button>
+                    <button type="submit"
+                        class="inline-flex items-center gap-2 px-5 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors">
+                        <x-heroicon-o-check class="w-4 h-4" />
+                        Simpan
+                    </button>
+                </div>
             </div>
 
-            <div class="mt-8 flex justify-center gap-4">
-                <button type="submit"
-                    class="bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700 flex items-center">
-                    <x-heroicon-o-check class="w-5 h-5 mr-2" /> Simpan
-                </button>
-                <button type="button" onclick="window.location.href='{{ route('tr_poh.index') }}'"
-                    class="bg-gray-500 text-white px-6 py-2 rounded hover:bg-gray-600 flex items-center">
-                    <x-heroicon-o-arrow-left class="w-5 h-5 mr-2" /> Keluar
-                </button>
-            </div>
+            <input type="hidden" id="itemsCount" :value="rowsToSubmit.length">
+        </form>
+    </div>
         </form>
     </div>
 
