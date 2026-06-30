@@ -3,527 +3,178 @@
 @section('title', 'View Account')
 
 @section('content')
-    <div class="bg-white rounded shadow p-6 md:p-8 max-w-[1800px] w-full mx-auto">
+<div>
 
-        {{-- ============================================ --}}
-        {{-- MODE DELETE: VIEW ONLY + BUTTON HAPUS       --}}
-        {{-- ============================================ --}}
-        <div class="space-y-4">
-            <div class="lg:col-span-4">
-                <label class="block text-sm font-bold mb-1">Account Header</label>
-                <div class="flex">
-                    <div class="relative flex-1">
-                        <select id="accountSelect" class="bg-gray-100 w-full border rounded-l px-3 py-2" disabled>
-                            <option value=""></option>
-                            @if ($selectedHeader && !$headers->contains('faccid', $selectedHeader->faccid))
-                                <option disabled value="{{ $selectedHeader->faccount }}" data-faccid="{{ $selectedHeader->faccid }}"
-                                    data-branch="{{ $selectedHeader->faccount }}" selected>
-                                    {{ $selectedHeader->faccount }} - {{ $selectedHeader->faccname }}
-                                </option>
-                            @endif
-                            @foreach ($headers as $header)
-                                <option disabled value="{{ $header->faccount }}" data-faccid="{{ $header->faccid }}"
-                                    data-branch="{{ $header->faccount }}"
-                                    {{ old('faccupline', $account->faccupline) == $header->faccount ? 'selected' : '' }}>
-                                    {{ $header->faccount }} - {{ $header->faccname }}
-                                </option>
-                            @endforeach
-                        </select>
+    <div class="max-w-4xl mx-auto py-8 px-6">
+
+        {{-- ─── CARD 1: Identitas Akun ─────────────────────────────── --}}
+        <div class="bg-white border border-gray-200 rounded-xl mb-3 overflow-hidden">
+            <div class="px-4 pt-3 pb-0">
+                <p class="text-xs font-medium uppercase tracking-wide text-gray-400">Identitas akun</p>
+            </div>
+            <div class="p-4 space-y-3">
+
+                {{-- Account Header --}}
+                <div>
+                    <label class="block text-xs font-medium text-gray-600 mb-1">Account Header</label>
+                    <input type="text" id="headerDisplay"
+                        class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm bg-gray-100 text-gray-500 cursor-not-allowed"
+                        readonly
+                        value="{{ $account->faccupline ? ($selectedHeader ? $selectedHeader->faccount . ' — ' . $selectedHeader->faccname : $account->faccupline) : '—' }}">
+                </div>
+
+                {{-- Kode & Nama Account (2 kolom) --}}
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-xs font-medium text-gray-600 mb-1">Kode Account</label>
+                        <input type="text" value="{{ $account->faccount }}"
+                            class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm uppercase bg-gray-100 text-gray-500 cursor-not-allowed"
+                            readonly>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-medium text-gray-600 mb-1">Nama Account</label>
+                        <input type="text" value="{{ $account->faccname }}"
+                            class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm uppercase bg-gray-100 text-gray-500 cursor-not-allowed"
+                            readonly>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        {{-- ─── CARD 2: Konfigurasi ────────────────────────────────── --}}
+        <div class="bg-white border border-gray-200 rounded-xl mb-3 overflow-hidden">
+            <div class="px-4 pt-3 pb-0">
+                <p class="text-xs font-medium uppercase tracking-wide text-gray-400">Konfigurasi</p>
+            </div>
+            <div class="p-4 space-y-4">
+
+                {{-- Saldo Normal --}}
+                <div>
+                    <label class="block text-xs font-medium text-gray-600 mb-2">Saldo Normal</label>
+                    <div class="flex gap-2">
+                        <button type="button" disabled
+                            class="px-4 py-1.5 rounded-full text-xs border cursor-not-allowed {{ $account->fnormal === 'D' ? 'bg-blue-50 border-blue-200 text-blue-600 font-medium' : 'bg-gray-50 border-gray-200 text-gray-400' }}">Debit</button>
+                        <button type="button" disabled
+                            class="px-4 py-1.5 rounded-full text-xs border cursor-not-allowed {{ $account->fnormal === 'K' ? 'bg-blue-50 border-blue-200 text-blue-600 font-medium' : 'bg-gray-50 border-gray-200 text-gray-400' }}">Kredit</button>
+                    </div>
+                </div>
+
+                {{-- Type Account --}}
+                <div>
+                    <label class="block text-xs font-medium text-gray-600 mb-2">Type Account</label>
+                    <div class="flex gap-2">
+                        <button type="button" disabled
+                            class="px-4 py-1.5 rounded-full text-xs border cursor-not-allowed {{ $account->fend == '1' ? 'bg-blue-50 border-blue-200 text-blue-600 font-medium' : 'bg-gray-50 border-gray-200 text-gray-400' }}">Detil</button>
+                        <button type="button" disabled
+                            class="px-4 py-1.5 rounded-full text-xs border cursor-not-allowed {{ $account->fend == '0' ? 'bg-blue-50 border-blue-200 text-blue-600 font-medium' : 'bg-gray-50 border-gray-200 text-gray-400' }}">Header</button>
+                    </div>
+                </div>
+
+                <hr class="border-gray-100">
+
+                {{-- Sub Account Toggle --}}
+                <div>
+                    <div class="flex items-center justify-between p-3 border border-gray-200 rounded-lg bg-gray-50 cursor-not-allowed">
+                        <div>
+                            <p class="text-sm text-gray-800">Ada Sub Account?</p>
+                            <p class="text-xs text-gray-400 mt-0.5">Aktifkan jika akun ini memiliki turunan</p>
+                        </div>
+                        <div class="relative w-9 h-5 rounded-full duration-200 flex-shrink-0 cursor-not-allowed {{ $account->fhavesubaccount ? 'bg-blue-500/60' : 'bg-gray-200' }}">
+                            <div class="absolute w-3.5 h-3.5 bg-white rounded-full top-0.5 transition-transform duration-200 {{ $account->fhavesubaccount ? 'translate-x-4 left-0.5' : 'left-0.5' }}"></div>
+                        </div>
                     </div>
 
-                    <input type="hidden" name="faccupline" id="accountCodeHidden"
-                        value="{{ old('faccupline', $account->faccupline) }}">
-                    <input type="hidden" name="faccid" id="accountIdHidden" value="{{ old('faccid', $account->faccid) }}">
+                    @if($account->fhavesubaccount)
+                    @php
+                        $subType = 'Sub Account';
+                        if (($account->ftypesubaccount ?? '') === 'C') {
+                            $subType = 'Customer';
+                        } elseif (($account->ftypesubaccount ?? '') === 'P') {
+                            $subType = 'Supplier';
+                        }
+                    @endphp
+                    <div class="mt-2 pl-1">
+                        <label class="block text-xs font-medium text-gray-600 mb-2">Type Sub Account</label>
+                        <div class="flex gap-2 flex-wrap">
+                            @foreach (['Sub Account', 'Customer', 'Supplier'] as $opt)
+                            <button type="button" disabled
+                                class="px-4 py-1.5 rounded-full text-xs border cursor-not-allowed {{ $subType === $opt ? 'bg-blue-50 border-blue-200 text-blue-600 font-medium' : 'bg-gray-50 border-gray-200 text-gray-400' }}">{{ $opt }}</button>
+                            @endforeach
+                        </div>
+                    </div>
+                    @endif
                 </div>
 
-                @error('faccupline')
-                    <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
-                @enderror
-            </div>
+                <hr class="border-gray-100">
 
-            <div>
-                <label class="block text-sm font-bold text-gray-700">Kode Account</label>
-                <input type="text" value="{{ $account->faccount }}"
-                    class="w-full border rounded px-3 py-2 bg-gray-100 uppercase" readonly>
-            </div>
-
-            <div>
-                <label class="block text-sm font-bold text-gray-700">Nama Account</label>
-                <input type="text" value="{{ $account->faccname }}"
-                    class="w-full border rounded px-3 py-2 bg-gray-100 uppercase" readonly>
-            </div>
-
-            <div>
-                <label class="block text-sm font-bold text-gray-700">Saldo Normal</label>
-                <input type="text" value="{{ $account->fnormal == 'D' ? 'Debit' : 'Kredit' }}"
-                    class="w-full border rounded px-3 py-2 bg-gray-100" readonly>
-            </div>
-
-            <div>
-                <label class="block text-sm font-bold text-gray-700">Type Account</label>
-                <input type="text" value="{{ $account->fend == '1' ? 'Detil' : 'Header' }}"
-                    class="w-full border rounded px-3 py-2 bg-gray-100" readonly>
-            </div>
-
-            <div class="mt-4" x-data="{ subAccount: {{ old('fhavesubaccount', $account->fhavesubaccount) ? 'true' : 'false' }} }">
-                <label for="fhavesubaccount" class="flex items-center space-x-2">
-                    <input type="checkbox" name="fhavesubaccount" id="fhavesubaccount" value="1" x-model="subAccount" disabled>
-                    <span class="text-sm font-bold">Ada Sub Account?</span>
-                </label>
-
-                <div class="mt-3" x-show="subAccount" x-transition>
-                    <label for="ftypesubaccount" class="block text-sm font-bold">Type Sub Account</label>
-                    <select name="ftypesubaccount" id="ftypesubaccount" class="w-full border rounded px-3 py-2" disabled
-                        :disabled="!subAccount" :class="!subAccount ? 'bg-gray-200' : ''">
-                        <option value="Sub Account"
-                            {{ old('ftypesubaccount', ($account->ftypesubaccount ?? '') === 'S' ? 'Sub Account' : '') == 'Sub Account' ? 'selected' : '' }}>
-                            Sub Account</option>
-                        <option value="Customer"
-                            {{ old('ftypesubaccount', ($account->ftypesubaccount ?? '') === 'C' ? 'Customer' : '') == 'Customer' ? 'selected' : '' }}>
-                            Customer</option>
-                        <option value="Supplier"
-                            {{ old('ftypesubaccount', ($account->ftypesubaccount ?? '') === 'P' ? 'Supplier' : '') == 'Supplier' ? 'selected' : '' }}>
-                            Supplier</option>
-                    </select>
+                {{-- Initial Jurnal --}}
+                <div>
+                    <label class="block text-xs font-medium text-gray-600 mb-1">Initial Jurnal</label>
+                    <input type="text" value="{{ $account->finitjurnal ?: '—' }}"
+                        class="w-24 border border-gray-300 rounded-lg px-3 py-2 text-sm uppercase text-center tracking-widest bg-gray-100 text-gray-500 cursor-not-allowed"
+                        readonly>
                 </div>
-            </div>
-
-            {{-- Initial Jurnal --}}
-            <div class="mt-4">
-                <label class="block text-sm font-bold">Initial Jurnal#</label>
-                <input disabled type="text" name="finitjurnal" value="{{ old('finitjurnal', $account->finitjurnal) }}"
-                    class="w-full border rounded px-3 py-2 @error('finitjurnal') border-red-500 @enderror" maxlength="2">
-                @error('finitjurnal')
-                    <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
-                @enderror
-                <p class="text-red-600 text-sm mt-1">** Khusus Jurnal Kas/Bank</p>
-            </div>
-
-            {{-- User Level --}}
-            <div class="mt-4">
-                <label for="fuserlevel" class="block text-sm font-bold">User Level</label>
-                <select disabled name="fuserlevel" id="fuserlevel" class="w-full border rounded px-3 py-2">
-                    <option value="1" {{ old('fuserlevel', $account->fuserlevel) == '1' ? 'selected' : '' }}>User
-                    </option>
-                    <option value="2" {{ old('fuserlevel', $account->fuserlevel) == '2' ? 'selected' : '' }}>
-                        Supervisor</option>
-                    <option value="3" {{ old('fuserlevel', $account->fuserlevel) == '3' ? 'selected' : '' }}>
-                        Admin</option>
-                </select>
-            </div>
-
-            <div class="flex justify-center mt-4">
-                <label class="flex items-center justify-between w-40 p-3 border rounded-lg bg-gray-100 font-bold">
-                    <span class="text-sm font-medium">Non Active</span>
-                    <input type="checkbox" class="h-5 w-5 text-green-600 rounded"
-                        {{ $account->fnonactive == '1' ? 'checked' : '' }} disabled>
-                </label>
             </div>
         </div>
 
-        <div class="mt-6 flex justify-center space-x-4">
-            <button type="button" onclick="window.location.href='{{ route('account.index') }}'"
-                class="bg-gray-500 text-white px-6 py-2 rounded hover:bg-gray-600 flex items-center">
-                <x-heroicon-o-arrow-left class="w-5 h-5 mr-2" />
-                Kembali
-            </button>
+        {{-- ─── CARD 3: Akses & Status ─────────────────────────────── --}}
+        <div class="bg-white border border-gray-200 rounded-xl mb-3 overflow-hidden">
+            <div class="px-4 pt-3 pb-0">
+                <p class="text-xs font-medium uppercase tracking-wide text-gray-400">Akses & status</p>
+            </div>
+            <div class="p-4 space-y-4">
+
+                {{-- User Level --}}
+                <div>
+                    <label class="block text-xs font-medium text-gray-600 mb-2">User Level</label>
+                    <div class="flex gap-2">
+                        @foreach (['1' => 'User', '2' => 'Supervisor', '3' => 'Admin'] as $k => $label)
+                        <button type="button" disabled
+                            class="px-4 py-1.5 rounded-full text-xs border cursor-not-allowed {{ $account->fuserlevel == $k ? 'bg-blue-50 border-blue-200 text-blue-600 font-medium' : 'bg-gray-50 border-gray-200 text-gray-400' }}">{{ $label }}</button>
+                        @endforeach
+                    </div>
+                </div>
+
+                <hr class="border-gray-100">
+
+                {{-- Status Aktif --}}
+                <div>
+                    <div class="flex items-center justify-between p-3 border border-gray-200 rounded-lg bg-gray-50 cursor-not-allowed">
+                        <div>
+                            <p class="text-sm text-gray-800">Akun aktif</p>
+                            <p class="text-xs text-gray-400 mt-0.5">Non-aktif menyembunyikan akun dari transaksi baru</p>
+                        </div>
+                        <div class="relative w-9 h-5 rounded-full duration-200 flex-shrink-0 cursor-not-allowed {{ $account->fnonactive == '0' ? 'bg-blue-500/60' : 'bg-gray-200' }}">
+                            <div class="absolute w-3.5 h-3.5 bg-white rounded-full top-0.5 transition-transform duration-200 {{ $account->fnonactive == '0' ? 'translate-x-4 left-0.5' : 'left-0.5' }}"></div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+            {{-- Footer Buttons --}}
+            <div class="flex items-center justify-between px-4 py-3 bg-gray-50 border-t border-gray-200">
+                <button type="button"
+                    onclick="window.location.href='{{ route('account.index') }}'"
+                    class="inline-flex items-center gap-2 px-4 py-2 border border-gray-300 bg-white text-gray-600 text-sm font-medium rounded-lg hover:bg-gray-50 hover:border-gray-400 transition-colors">
+                    <x-heroicon-o-arrow-left class="w-4 h-4" />
+                    Kembali
+                </button>
+            </div>
         </div>
+
         {{-- FOOTER INFO --}}
-        <br>
-        <hr><br>
         @php
             $lastUpdate = $account->fupdatedat ?: $account->fcreatedat;
+            $updatedBy = $account->fupdatedby ?: ($account->fcreatedby ?: '—');
         @endphp
-        <span class="text-sm text-gray-600 flex justify-between items-center">
-            <strong>{{ auth('sysuser')->user()->fname ?? '—' }}</strong>
-            <span>{{ \Carbon\Carbon::parse($lastUpdate)->timezone('Asia/Jakarta')->format('d M Y, H:i:s') }}</span>
-        </span>
+        <div class="mt-4 px-4 flex justify-between items-center text-xs text-gray-400">
+            <span>Terakhir diupdate oleh: <strong>{{ $updatedBy }}</strong></span>
+            <span>{{ $lastUpdate ? \Carbon\Carbon::parse($lastUpdate)->timezone('Asia/Jakarta')->format('d M Y, H:i:s') : '—' }}</span>
+        </div>
+
     </div>
+
+</div>
 @endsection
-@push('styles')
-    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.7/css/jquery.dataTables.min.css">
-@endpush
-<style>
-    .ui-autocomplete {
-        background-color: white !important;
-        z-index: 1050 !important;
-
-        /* === Perubahan Utama: Tambahkan Max-Width === */
-        /* Sesuaikan nilai '300px' ini sesuai kebutuhan Anda */
-        max-width: 700px !important;
-        /* ------------------------------------------- */
-
-        /* Styling tambahan (sama seperti sebelumnya) */
-        border: 1px solid #d1d5db !important;
-        border-radius: 0.25rem !important;
-        padding: 0 !important;
-        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1);
-    }
-
-    .ui-menu-item-wrapper {
-        padding: 0.5rem 0.75rem !important;
-    }
-
-    .ui-menu-item-wrapper.ui-state-active,
-    .ui-menu-item-wrapper:hover {
-        background-color: #f3f4f6 !important;
-        color: #1f2937 !important;
-    }
-
-    .hint-text {
-        font-size: 0.875rem;
-        color: #6b7280;
-        margin-top: 0.25rem;
-        font-style: italic;
-    }
-
-    /* Custom styling untuk autocomplete dropdown */
-    .ui-autocomplete {
-        max-height: 300px;
-        overflow-y: auto;
-        overflow-x: hidden;
-        z-index: 9999 !important;
-    }
-
-    .ui-menu-item {
-        padding: 8px 12px;
-        font-size: 0.875rem;
-    }
-
-    .ui-state-active {
-        background: #3b82f6 !important;
-        border-color: #3b82f6 !important;
-        color: white !important;
-    }
-
-    /* Lebarkan dropdown tampilkan data */
-    #accountTable_wrapper .dt-length select,
-    #accountTable_wrapper .dataTables_length select {
-        min-width: 80px !important;
-        width: auto !important;
-        padding-right: 30px !important;
-    }
-
-    /* Pastikan wrapper length cukup lebar */
-    #accountTable_wrapper .dt-length,
-    #accountTable_wrapper .dataTables_length {
-        min-width: 180px;
-        white-space: nowrap;
-    }
-
-    /* Styling untuk select agar lebih rapi */
-    #accountTable_wrapper .dt-length select,
-    #accountTable_wrapper .dataTables_length select {
-        padding: 6px 30px 6px 12px;
-        border: 1px solid #d1d5db;
-        border-radius: 0.375rem;
-        background-position: right 8px center;
-        background-size: 16px;
-    }
-</style>
-
-@push('scripts')
-    <!-- Load jQuery & jQuery UI -->
-    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
-
-    <script src="https://code.jquery.com/ui/1.13.2/jquery-ui.min.js"></script>
-
-    <script src="https://cdn.datatables.net/1.13.7/js/jquery.dataTables.min.js"></script>
-    <script>
-        window.accountBrowser = function() {
-            return {
-                open: false,
-                table: null,
-
-                initDataTable() {
-                    if (this.table) {
-                        this.table.destroy();
-                    }
-
-                    this.table = $('#accountTable').DataTable({
-                        processing: true,
-                        serverSide: true,
-                        ajax: {
-                            url: "{{ route('account.browse') }}",
-                            type: 'GET',
-                            data: function(d) {
-                                // Mengirim parameter standar DataTables untuk server-side processing
-                                return {
-                                    draw: d.draw,
-                                    start: d.start,
-                                    length: d.length,
-                                    search: d.search.value,
-                                    // Menambahkan parameter order untuk sorting (diperlukan serverSide)
-                                    order_column: d.columns[d.order[0].column].data,
-                                    order_dir: d.order[0].dir
-                                };
-                            },
-                            dataSrc: function(json) {
-                                // Asumsi backend mengembalikan data di properti 'data' (seperti Laravel DataTables)
-                                return json.data;
-                            }
-                        },
-                        columns: [{
-                                data: 'faccount',
-                                name: 'faccount',
-                                className: 'font-mono text-sm',
-                                width: '30%'
-                            },
-                            {
-                                data: 'faccname',
-                                name: 'faccname',
-                                className: 'text-sm',
-                                width: '55%'
-                            },
-                            {
-                                data: null,
-                                orderable: false,
-                                searchable: false,
-                                className: 'text-center',
-                                width: '15%',
-                                render: function(data, type, row) {
-                                    // Menggunakan styling yang mirip dengan button 'Pilih' di Supplier
-                                    return '<button type="button" class="btn-choose px-4 py-1.5 rounded-md text-sm font-medium bg-blue-600 hover:bg-blue-700 text-white transition-colors duration-150">Pilih</button>';
-                                }
-                            }
-                        ],
-                        pageLength: 10,
-                        lengthMenu: [
-                            [10, 25, 50, 100],
-                            [10, 25, 50, 100]
-                        ],
-                        // Menggunakan DOM custom untuk kontrol DataTables (sama seperti Supplier)
-                        dom: '<"flex justify-between items-center mb-4"f<"ml-auto"l>>rtip',
-                        language: {
-                            processing: "Memuat data...",
-                            search: "Cari:",
-                            lengthMenu: "Tampilkan _MENU_",
-                            info: "Menampilkan _START_ - _END_ dari _TOTAL_ data",
-                            infoEmpty: "Tidak ada data",
-                            infoFiltered: "(disaring dari _MAX_ total data)",
-                            zeroRecords: "Tidak ada data yang ditemukan",
-                            emptyTable: "Tidak ada data tersedia",
-                            paginate: {
-                                first: "Pertama",
-                                last: "Terakhir",
-                                next: "Selanjutnya",
-                                previous: "Sebelumnya"
-                            }
-                        },
-                        order: [
-                            [1, 'asc'] // Default order by Account Name
-                        ],
-                        autoWidth: false,
-                        initComplete: function() {
-                            const api = this.api();
-                            const $container = $(api.table().container());
-
-                            // Style search input (disamakan dengan Supplier)
-                            $container.find('.dt-search .dt-input, .dataTables_filter input').css({
-                                width: '500px',
-                                padding: '8px 12px',
-                                border: '2px solid #e5e7eb',
-                                borderRadius: '8px',
-                                fontSize: '14px'
-                            }).focus();
-
-                            // Style length select (disamakan dengan Supplier)
-                            $container.find('.dt-length select, .dataTables_length select').css({
-                                padding: '6px 32px 6px 10px',
-                                border: '2px solid #e5e7eb',
-                                borderRadius: '8px',
-                                fontSize: '14px'
-                            });
-                        }
-                    });
-
-                    // Handle button click
-                    $('#accountTable').on('click', '.btn-choose', (e) => {
-                        const data = this.table.row($(e.target).closest('tr')).data();
-                        this.choose(data);
-                    });
-                },
-
-                openModal() {
-                    this.open = true;
-                    this.$nextTick(() => {
-                        this.initDataTable();
-                    });
-                },
-
-                close() {
-                    this.open = false;
-                    if (this.table) {
-                        // Bersihkan pencarian saat ditutup (sama seperti Supplier)
-                        this.table.search('').draw();
-                    }
-                },
-
-                choose(w) {
-                    // Dispatches event (tetap)
-                    window.dispatchEvent(new CustomEvent('account-picked', {
-                        detail: {
-                            faccid: w.faccid,
-                            faccount: w.faccount,
-                            faccname: w.faccname,
-                        }
-                    }));
-                    this.close();
-                },
-
-                init() {
-                    window.addEventListener('account-browse-open', () => this.openModal(), {
-                        passive: true
-                    });
-                }
-            }
-        };
-
-        // Helper: update field saat account-picked
-        document.addEventListener('DOMContentLoaded', () => {
-            window.addEventListener('account-picked', (ev) => {
-                let {
-                    faccount,
-                    faccid
-                } = ev.detail || {};
-
-                // Fallback untuk mencari faccid dari option jika tidak ada
-                if (!faccid && faccount) {
-                    const sel = document.getElementById('accountSelect');
-                    if (sel) {
-                        const option = sel.querySelector(`option[value="${faccount}"]`);
-                        if (option) {
-                            faccid = option.getAttribute('data-faccid');
-                        }
-                    }
-                }
-
-                const sel = document.getElementById('accountSelect');
-                const hidId = document.getElementById('accountIdHidden');
-                const hidCode = document.getElementById('accountCodeHidden');
-
-                const inputInit = document.getElementsByName('finitjurnal')[0];
-                inputInit.placeholder = "Cek Initial jika ini Header khusus...";
-
-                if (sel) {
-                    sel.value = faccount || '';
-                    sel.dispatchEvent(new Event('change', {
-                        bubbles: true
-                    }));
-                }
-
-                if (hidId) {
-                    hidId.value = faccid || '';
-                }
-
-                if (hidCode) {
-                    hidCode.value = faccount || '';
-                }
-            });
-        });
-    </script>
-    <script>
-        $(document).ready(function() {
-
-            // ========================================
-            // Autocomplete untuk ACCOUNT # (Kode)
-            // ========================================
-            $('#faccount').autocomplete({
-                    source: function(request, response) {
-                        $.ajax({
-                            url: "{{ route('account.suggest') }}",
-                            dataType: "json",
-                            data: {
-                                term: request.term,
-                                field: 'faccount' // Cari berdasarkan kode
-                            },
-                            success: function(data) {
-                                response(data);
-                            }
-                        });
-                    },
-                    minLength: 1, // Minimal 1 karakter
-                    select: function(event, ui) {
-                        // Isi Account # dengan kode
-                        $('#faccount').val(ui.item.code);
-
-                        // Isi Account Name dengan nama
-                        $('#faccname').val(ui.item.name);
-
-                        // Tampilkan hint
-                        $('#faccount-hint').text('Account Name: ' + ui.item.name);
-                        $('#faccname-hint').text('Account #: ' + ui.item.code);
-
-                        return false;
-                    },
-                    focus: function(event, ui) {
-                        // Preview saat hover
-                        $('#faccount').val(ui.item.code);
-                        return false;
-                    }
-                })
-                .on('input', function() {
-                    // Clear hint saat user mengetik manual
-                    const currentVal = $(this).val();
-                    if (!currentVal) {
-                        $('#faccount-hint').text('');
-                        $('#faccname-hint').text('');
-                    }
-                });
-
-            // ========================================
-            // Autocomplete untuk ACCOUNT NAME (Nama)
-            // ========================================
-            $('#faccname').autocomplete({
-                    source: function(request, response) {
-                        $.ajax({
-                            url: "{{ route('account.suggest') }}",
-                            dataType: "json",
-                            data: {
-                                term: request.term,
-                                field: 'faccname' // Cari berdasarkan nama
-                            },
-                            success: function(data) {
-                                response(data);
-                            }
-                        });
-                    },
-                    minLength: 2, // Minimal 2 karakter untuk nama
-                    select: function(event, ui) {
-                        // Isi Account Name dengan nama
-                        $('#faccname').val(ui.item.name);
-
-                        // Isi Account # dengan kode
-                        $('#faccount').val(ui.item.code);
-
-                        // Tampilkan hint
-                        $('#faccname-hint').text('Account #: ' + ui.item.code);
-                        $('#faccount-hint').text('Account Name: ' + ui.item.name);
-
-                        return false;
-                    },
-                    focus: function(event, ui) {
-                        // Preview saat hover
-                        $('#faccname').val(ui.item.name);
-                        return false;
-                    }
-                })
-                .on('input', function() {
-                    // Clear hint saat user mengetik manual
-                    const currentVal = $(this).val();
-                    if (!currentVal) {
-                        $('#faccount-hint').text('');
-                        $('#faccname-hint').text('');
-                    }
-                });
-
-            // ========================================
-            // Clear hint saat form di-reset
-            // ========================================
-            $('form').on('reset', function() {
-                $('#faccount-hint').text('');
-                $('#faccname-hint').text('');
-            });
-        });
-    </script>
-@endpush

@@ -215,12 +215,12 @@ class AccountController extends Controller
         }
 
         // Checkbox & metadata
-        $validated['fnonactive'] = $request->has('fnonactive') ? '1' : '0';
+        $validated['fnonactive'] = $request->boolean('fnonactive') ? '1' : '0';
         $validated['fupdatedby'] = auth('sysuser')->user()->fname ?? null;
         $validated['fupdatedat'] = now();
 
         // Sub account
-        $validated['fhavesubaccount'] = $request->has('fhavesubaccount') ? 1 : 0;
+        $validated['fhavesubaccount'] = $request->boolean('fhavesubaccount') ? 1 : 0;
         $validated['ftypesubaccount'] = $validated['fhavesubaccount']
             ? ($request->input('ftypesubaccount') === 'Sub Account' ? 'S'
                 : ($request->input('ftypesubaccount') === 'Customer' ? 'C' : 'P'))
