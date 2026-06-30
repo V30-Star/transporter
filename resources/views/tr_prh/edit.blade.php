@@ -1,7 +1,6 @@
 @extends('layouts.app')
 
-@section('title', $action === 'delete' ? 'Permintaan Pembelian - Delete' : ($action === 'view' ? 'Permintaan Pembelian -
-    View' : 'Permintaan Pembelian - Edit'))
+@section('title', $action === 'delete' ? 'Permintaan Pembelian - Delete' : ($action === 'view' ? 'Permintaan Pembelian - View' : 'Permintaan Pembelian - Edit'))
 
 @section('content')
     @php
@@ -14,48 +13,6 @@
             outline: none;
             border-color: #2563eb;
             box-shadow: 0 0 0 2px rgba(37, 99, 235, .2);
-        }
-
-        .switch {
-            position: relative;
-            display: inline-block;
-            width: 60px;
-            height: 34px
-        }
-
-        .switch input {
-            opacity: 0;
-            width: 0;
-            height: 0
-        }
-
-        .slider {
-            position: absolute;
-            cursor: pointer;
-            inset: 0;
-            background: #ccc;
-            transition: .4s;
-            border-radius: 34px
-        }
-
-        .slider:before {
-            content: "";
-            position: absolute;
-            height: 26px;
-            width: 26px;
-            border-radius: 50%;
-            left: 4px;
-            bottom: 4px;
-            background: #fff;
-            transition: .4s
-        }
-
-        input:checked+.slider {
-            background: #4CAF50
-        }
-
-        input:checked+.slider:before {
-            transform: translateX(26px)
         }
 
         [x-cloak] {
@@ -130,7 +87,7 @@
         }
     </style>
     @if ($errors->any())
-        <div class="alert alert-danger alert-dismissible fade show border-0 shadow p-0 overflow-hidden" role="alert">
+        <div class="alert alert-danger alert-dismissible fade show border-0 shadow p-0 overflow-hidden mb-4 rounded-xl" role="alert">
             {{-- Header Strip --}}
             <div class="d-flex align-items-center px-4 py-3" style="background-color: #c0392b;">
                 <i class="bi bi-exclamation-triangle-fill text-white me-2 fs-5"></i>
@@ -174,16 +131,14 @@
         $isUsageLocked = !empty($blockedByPO) && $blockedByPO;
         $canClosePr = $isEdit && $tr_prh->fclose != '1' && $isUsageLocked && (string) ($tr_prh->fprdin ?? '') === '0';
     @endphp
+
     {{-- ═══════════════════════════════════════════════════════════════════
      MODAL BLOCKED BY PO
-════════════════════════════════════════════════════════════════════ --}}
+     ════════════════════════════════════════════════════════════════════ --}}
     @if ($isEdit && ((!empty($blockedByPO) && $blockedByPO) || session('blocked_by_po')))
-        <div x-data="{ open: true }" x-show="open" x-cloak class="fixed inset-0 z-[99] flex items-center justify-center"
+        <div x-data="{ open: true }" x-show="open" x-cloak class="fixed inset-0 z-[99] flex items-center justify-center bg-black/60 backdrop-blur-sm"
             x-transition.opacity>
-            <div class="absolute inset-0 bg-black/60 backdrop-blur-sm"></div>
-
-            <div class="relative bg-white w-[92vw] max-w-2xl rounded-2xl shadow-2xl overflow-hidden">
-
+            <div class="relative bg-white w-[92vw] max-w-2xl rounded-2xl shadow-2xl overflow-hidden" x-transition.scale>
                 {{-- Header --}}
                 <div class="px-6 py-4 border-b border-red-100 bg-red-50 flex items-center gap-3">
                     <div class="flex-shrink-0 w-10 h-10 rounded-full bg-red-100 flex items-center justify-center">
@@ -197,7 +152,6 @@
                             PR <strong>{{ $tr_prh->fprno }}</strong> sudah terikat dengan Purchase Order berikut:
                         </p>
                     </div>
-                    {{-- Tombol X tutup modal --}}
                     <button type="button" @click="open = false"
                         class="flex-shrink-0 w-8 h-8 rounded-full bg-red-100 hover:bg-red-200 flex items-center justify-center transition-colors"
                         title="Tutup">
@@ -242,8 +196,7 @@
                 {{-- Footer --}}
                 <div class="px-6 py-4 border-t bg-gray-50 flex justify-between items-center gap-3">
                     <p class="text-xs text-gray-500">
-                        Batalkan PO terkait terlebih dahulu sebelum {{ $isDelete ? 'menghapus' : 'mengedit' }} PR
-                        ini.
+                        Batalkan PO terkait terlebih dahulu sebelum {{ $isDelete ? 'menghapus' : 'mengedit' }} PR ini.
                     </p>
                     <button type="button" @click="open = false"
                         class="bg-gray-500 text-white px-6 py-2 rounded hover:bg-gray-600 flex items-center gap-2">
@@ -255,8 +208,8 @@
         </div>
     @endif
 
-    <div x-data="{ open: true }">
-        <div class="bg-white rounded shadow p-6 md:p-8 max-w-[1800px] w-full mx-auto">
+    <div>
+        <div class="max-w-[1600px] mx-auto py-8 px-6">
             @if ($isReadOnly)
                 <div class="space-y-4">
                     @php
@@ -264,161 +217,211 @@
                         $isApproved = !empty($tr_prh->fuserapproved) || (int) $tr_prh->fapproval === 1;
                     @endphp
 
-                    {{-- HEADER FORM READONLY --}}
-                    <div class="grid grid-cols-1 lg:grid-cols-12 gap-4">
-                        <div class="lg:col-span-4">
-                            <label class="block text-sm font-bold">Cabang</label>
-                            <input type="text" class="w-full border rounded px-3 py-2 bg-gray-200 cursor-not-allowed"
-                                value="{{ $fbranchlabel ?? $fcabang }}" disabled>
+                    {{-- ─── CARD 1: Identitas Permintaan ────────────────────── --}}
+                    <div class="bg-white border border-gray-200 rounded-xl mb-3 overflow-hidden">
+                        <div class="px-4 pt-3 pb-0">
+                            <p class="text-xs font-medium uppercase tracking-wide text-gray-400">Identitas Permintaan</p>
                         </div>
+                        <div class="p-4 space-y-3">
+                            <div class="grid grid-cols-3 gap-3">
+                                {{-- Cabang --}}
+                                <div>
+                                    <label class="block text-xs font-medium text-gray-600 mb-1">Cabang</label>
+                                    <input type="text" class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm bg-gray-100 text-gray-500 cursor-not-allowed"
+                                        value="{{ $fbranchlabel ?? $fcabang }}" disabled>
+                                </div>
 
-                        <div class="lg:col-span-4">
-                            <label class="block text-sm font-bold mb-1">PR#</label>
-                            <input type="text" class="w-full border rounded px-3 py-2 bg-gray-200 cursor-not-allowed"
-                                value="{{ $tr_prh->fprno }}" disabled>
-                        </div>
+                                {{-- PR# --}}
+                                <div>
+                                    <label class="block text-xs font-medium text-gray-600 mb-1">PR#</label>
+                                    <input type="text" class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm bg-gray-100 text-gray-500 cursor-not-allowed"
+                                        value="{{ $tr_prh->fprno }}" disabled>
+                                </div>
 
-                        <div class="lg:col-span-4">
-                            <label class="block text-sm font-bold mb-1">Supplier</label>
-                            <input type="text" class="w-full border rounded px-3 py-2 bg-gray-200 cursor-not-allowed"
-                                value="{{ $tr_prh->fsuppliercode }} - {{ $tr_prh->fsuppliername }}" disabled>
-                        </div>
+                                {{-- Supplier --}}
+                                <div>
+                                    <label class="block text-xs font-medium text-gray-600 mb-1">Supplier</label>
+                                    <input type="text" class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm bg-gray-100 text-gray-500 cursor-not-allowed"
+                                        value="{{ $tr_prh->fsuppliercode }} - {{ $tr_prh->fsuppliername }}" disabled>
+                                </div>
+                            </div>
 
-                        <div class="lg:col-span-4">
-                            <label class="block text-sm font-bold">Tanggal</label>
-                            <input disabled type="date" value="{{ $fmt($tr_prh->fprdate) }}"
-                                class="w-full border rounded px-3 py-2 text-gray-700">
-                        </div>
+                            <div class="grid grid-cols-3 gap-3">
+                                {{-- Tanggal --}}
+                                <div>
+                                    <label class="block text-xs font-medium text-gray-600 mb-1">Tanggal</label>
+                                    <input disabled type="date" value="{{ $fmt($tr_prh->fprdate) }}"
+                                        class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm bg-gray-100 text-gray-500 cursor-not-allowed">
+                                </div>
 
-                        <div class="lg:col-span-4">
-                            <label class="block text-sm font-bold">Tanggal Dibutuhkan</label>
-                            <input disabled type="date" value="{{ $fmt($tr_prh->fneeddate) }}"
-                                class="w-full border rounded px-3 py-2 text-gray-700">
-                        </div>
+                                {{-- Tanggal Dibutuhkan --}}
+                                <div>
+                                    <label class="block text-xs font-medium text-gray-600 mb-1">Tanggal Dibutuhkan</label>
+                                    <input disabled type="date" value="{{ $fmt($tr_prh->fneeddate) }}"
+                                        class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm bg-gray-100 text-gray-500 cursor-not-allowed">
+                                </div>
 
-                        <div class="lg:col-span-4">
-                            <label class="block text-sm font-bold">Tanggal Paling Lambat</label>
-                            <input disabled type="date" value="{{ $fmt($tr_prh->fduedate) }}"
-                                class="w-full border rounded px-3 py-2 text-gray-700">
-                        </div>
+                                {{-- Tanggal Paling Lambat --}}
+                                <div>
+                                    <label class="block text-xs font-medium text-gray-600 mb-1">Tanggal Paling Lambat</label>
+                                    <input disabled type="date" value="{{ $fmt($tr_prh->fduedate) }}"
+                                        class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm bg-gray-100 text-gray-500 cursor-not-allowed">
+                                </div>
+                            </div>
 
-                        <div class="lg:col-span-12">
-                            <label class="block text-sm font-bold">Keterangan</label>
-                            <textarea readonly rows="3" class="w-full border rounded px-3 py-2 text-gray-700">{{ $tr_prh->fket }}</textarea>
+                            {{-- Keterangan --}}
+                            <div>
+                                <label class="block text-xs font-medium text-gray-600 mb-1">Keterangan</label>
+                                <textarea readonly rows="2" class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm bg-gray-100 text-gray-500 cursor-not-allowed">{{ $tr_prh->fket }}</textarea>
+                            </div>
                         </div>
                     </div>
 
-                    {{-- DETAIL ITEM READONLY --}}
-                    <div x-data="readOnlyItemsTable(@js($savedItems ?? []))" x-init="init()" class="mt-6 space-y-2">
-                        <h3 class="text-base font-semibold text-gray-800">Detail Item</h3>
-                        <div class="overflow-auto border rounded">
-                            <table class="pr-detail-table min-w-full text-sm">
-                                <thead class="bg-gray-100">
-                                    <tr>
-                                        <th class="p-2 text-left w-10">#</th>
-                                        <th class="p-2 text-left w-44">Kode Produk</th>
-                                        <th class="p-2 text-left" style="width: 20rem; min-width: 20rem;">Nama Produk</th>
-                                        <th class="p-2 text-left w-40">Satuan</th>
-                                        <th class="p-2 text-right w-28">Qty</th>
-                                        <th class="p-2 text-right w-28">Qty PO</th>
-                                        <th class="p-2 text-left w-56">Ket Item</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <template x-for="(it, i) in savedItems" :key="it.uid">
-                                        <tr class="border-t align-top">
-                                            <td class="p-2" x-text="i + 1"></td>
-                                            <td class="p-2 font-mono" x-text="it.fitemcode"></td>
-                                            <td class="p-2 text-gray-800" style="width: 20rem; min-width: 20rem;">
-                                                <div class="desc-inline-field flex w-full min-w-0 flex-nowrap items-stretch"
-                                                    style="display:flex !important; width:100% !important; min-width:0 !important; flex-wrap:nowrap !important; align-items:stretch !important;">
-                                                    <div class="desc-inline-field__text min-w-0 flex-1 rounded-l border bg-gray-100 px-2 py-1 text-sm leading-5 text-gray-600 whitespace-normal break-words"
-                                                        style="flex:1 1 auto !important; min-width:0 !important;"
-                                                        x-text="it.fitemname"></div>
-                                                    <button type="button" @click="openDesc('saved', i)"
-                                                        class="desc-inline-field__button inline-flex w-10 shrink-0 items-center justify-center border border-l-0 rounded-r px-2 py-1 transition-colors"
-                                                        style="display:inline-flex !important; flex:0 0 2rem !important; width:2rem !important; justify-content:center !important; align-items:center !important;"
-                                                        :class="descButtonClass(it.fdesc)" title="Deskripsi item">
-                                                        <x-heroicon-o-document-text class="w-4 h-4" />
+                    {{-- ─── CARD 2: Detail Item (Read-Only) ────────────────────── --}}
+                    <div class="bg-white border border-gray-200 rounded-xl mb-3 overflow-hidden">
+                        <div class="px-4 pt-3 pb-0">
+                            <p class="text-xs font-medium uppercase tracking-wide text-gray-400">Detail Item</p>
+                        </div>
+                        <div class="p-4">
+                            <div x-data="readOnlyItemsTable(@js($savedItems ?? []))" x-init="init()" class="space-y-2">
+                                <div class="overflow-auto border border-gray-200 rounded-lg">
+                                    <table class="pr-detail-table min-w-full text-sm">
+                                        <thead class="bg-gray-50 border-b border-gray-200">
+                                            <tr>
+                                                <th class="p-2 text-left w-10 text-xs font-semibold text-gray-500 uppercase">#</th>
+                                                <th class="p-2 text-left w-44 text-xs font-semibold text-gray-500 uppercase">Kode Produk</th>
+                                                <th class="p-2 text-left text-xs font-semibold text-gray-500 uppercase" style="width: 20rem; min-width: 20rem;">Nama Produk</th>
+                                                <th class="p-2 text-left w-40 text-xs font-semibold text-gray-500 uppercase">Satuan</th>
+                                                <th class="p-2 text-right w-28 text-xs font-semibold text-gray-500 uppercase">Qty</th>
+                                                <th class="p-2 text-right w-28 text-xs font-semibold text-gray-500 uppercase">Qty PO</th>
+                                                <th class="p-2 text-left w-56 text-xs font-semibold text-gray-500 uppercase">Ket Item</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <template x-for="(it, i) in savedItems" :key="it.uid">
+                                                <tr class="border-t border-gray-150 align-top">
+                                                    <td class="p-2 text-gray-400" x-text="i + 1"></td>
+                                                    <td class="p-2 font-mono" x-text="it.fitemcode"></td>
+                                                    <td class="p-2 text-gray-800" style="width: 20rem; min-width: 20rem;">
+                                                        <div class="desc-inline-field flex w-full min-w-0 flex-nowrap items-stretch">
+                                                            <div class="desc-inline-field__text min-w-0 flex-1 rounded-l-lg border border-gray-300 bg-gray-50 px-2 py-1 text-sm leading-5 text-gray-600 whitespace-normal break-words"
+                                                                style="flex:1 1 auto !important; min-width:0 !important;"
+                                                                x-text="it.fitemname"></div>
+                                                            <button type="button" @click="openDesc('saved', i)"
+                                                                class="desc-inline-field__button inline-flex w-10 shrink-0 items-center justify-center border border-l-0 border-gray-300 rounded-r-lg px-2 py-1 transition-colors"
+                                                                style="display:inline-flex !important; flex:0 0 2rem !important; width:2rem !important; justify-content:center !important; align-items:center !important;"
+                                                                :class="descButtonClass(it.fdesc)" title="Deskripsi item">
+                                                                <x-heroicon-o-document-text class="w-4 h-4" />
+                                                            </button>
+                                                        </div>
+                                                    </td>
+                                                    <td class="p-2 text-gray-600" x-text="it.fsatuan"></td>
+                                                    <td class="p-2 text-right font-medium text-gray-700" x-text="formatQtyValue(it.fqty)"></td>
+                                                    <td class="p-2 text-right text-gray-500 animate-pulse" x-text="formatQtyValue(it.fqtypo)"></td>
+                                                    <td class="p-2 text-gray-600" x-text="it.fketdt || '-'"></td>
+                                                </tr>
+                                            </template>
+                                        </tbody>
+                                    </table>
+                                </div>
+
+                                <div x-show="showDescModal" x-cloak class="fixed inset-0 z-[95] flex items-center justify-center bg-black/50"
+                                    x-transition.opacity>
+                                    <div class="absolute inset-0" @click="closeDesc()"></div>
+                                    <div class="relative bg-white w-[92vw] max-w-lg rounded-2xl shadow-2xl overflow-hidden"
+                                        x-transition.scale>
+                                        <div class="px-5 py-4 border-b flex items-center">
+                                            <x-heroicon-o-document-text class="w-6 h-6 text-blue-600 mr-2" />
+                                            <div>
+                                                <h3 class="text-lg font-semibold text-gray-800">Deskripsi Item</h3>
+                                                <p class="text-xs text-gray-500" x-text="descItemLabel"></p>
+                                            </div>
+                                        </div>
+                                        <div class="px-5 py-4 space-y-4">
+                                            <div>
+                                                <div class="mb-1 flex items-center justify-between gap-3">
+                                                    <div class="text-sm text-gray-700 font-medium">Nama Produk</div>
+                                                    <button type="button" @click="descValue = descItemLabel || ''"
+                                                        class="h-8 px-3 rounded-lg bg-blue-50 text-blue-700 text-sm font-medium hover:bg-blue-100 transition-colors">
+                                                        Copy
                                                     </button>
                                                 </div>
-                                            </td>
-                                            <td class="p-2" x-text="it.fsatuan"></td>
-                                            <td class="p-2 text-right" x-text="formatQtyValue(it.fqty)"></td>
-                                            <td class="p-2 text-right" x-text="formatQtyValue(it.fqtypo)"></td>
-                                            <td class="p-2" x-text="it.fketdt || '-'"></td>
-                                        </tr>
-                                    </template>
-                                </tbody>
-                            </table>
-                        </div>
-
-                        <div x-show="showDescModal" x-cloak class="fixed inset-0 z-[95] flex items-center justify-center"
-                            x-transition.opacity>
-                            <div class="absolute inset-0 bg-black/50" @click="closeDesc()"></div>
-                            <div class="relative bg-white w-[92vw] max-w-lg rounded-2xl shadow-2xl overflow-hidden"
-                                x-transition.scale>
-                                <div class="px-5 py-4 border-b flex items-center">
-                                    <x-heroicon-o-document-text class="w-6 h-6 text-blue-600 mr-2" />
-                                    <div>
-                                        <h3 class="text-lg font-semibold text-gray-800">Deskripsi Item</h3>
-                                        <p class="text-xs text-gray-500" x-text="descItemLabel"></p>
-                                    </div>
-                                </div>
-                                <div class="px-5 py-4 space-y-4">
-                                    <div>
-                                        <div class="mb-1 flex items-center justify-between gap-3">
-                                            <div class="text-sm text-gray-700">Nama Produk</div>
-                                            <button type="button" @click="descValue = descItemLabel || ''"
-                                                class="h-8 px-3 rounded-lg bg-blue-50 text-blue-700 text-sm font-medium hover:bg-blue-100">
-                                                Copy
+                                                <div class="rounded-lg border bg-gray-50 px-3 py-2 text-sm text-gray-800"
+                                                    x-text="descItemLabel || '-'"></div>
+                                            </div>
+                                            <div>
+                                                <label class="block text-sm text-gray-700 font-bold mb-1">Deskripsi</label>
+                                                <textarea x-model="descValue" rows="5"
+                                                    class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm bg-gray-50 text-gray-500 cursor-not-allowed" readonly></textarea>
+                                            </div>
+                                        </div>
+                                        <div class="px-5 py-3 border-t flex items-center justify-end gap-2 bg-gray-50">
+                                            <button type="button" @click="closeDesc()"
+                                                class="h-9 px-4 rounded-lg bg-white border border-gray-300 text-gray-700 text-sm font-medium hover:bg-gray-50 transition-colors">
+                                                Tutup
                                             </button>
                                         </div>
-                                        <div class="rounded-lg border bg-gray-50 px-3 py-2 text-sm text-gray-800"
-                                            x-text="descItemLabel || '-'"></div>
                                     </div>
-                                    <label class="block text-sm text-gray-700 font-bold">Deskripsi</label>
-                                    <textarea x-model="descValue" rows="5"
-                                        class="w-full border rounded px-3 py-2 bg-gray-100 text-gray-600 cursor-not-allowed" readonly></textarea>
-                                </div>
-                                <div class="px-5 py-3 border-t flex items-center justify-end gap-2">
-                                    <button type="button" @click="closeDesc()"
-                                        class="h-9 px-4 rounded-lg bg-gray-100 text-gray-700 text-sm font-medium hover:bg-gray-200">Tutup</button>
                                 </div>
                             </div>
                         </div>
                     </div>
 
-                    <div class="mt-6 flex justify-center space-x-4">
-                        @if ($isDelete && $canDeletePermission)
-                            @if (!empty($blockedByPO) && $blockedByPO)
-                                <button type="button" disabled
-                                    class="bg-red-300 text-white px-6 py-2 rounded cursor-not-allowed flex items-center gap-2">
-                                    <x-heroicon-o-lock-closed class="w-5 h-5" />
-                                    Hapus (Terkunci)
-                                </button>
-                            @else
-                                <button type="button" onclick="showDeleteModal()"
-                                    class="bg-red-600 text-white px-6 py-2 rounded hover:bg-red-700 flex items-center">
-                                    <x-heroicon-o-trash class="w-5 h-5 mr-2" /> Hapus
-                                </button>
-                            @endif
-                        @endif
-                        @if ($isView && $canPrint)
-                            <a href="{{ route('tr_prh.print', $tr_prh->fprno) }}" target="_blank"
-                                class="bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700 flex items-center">
-                                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                        d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m10 0v-5a2 2 0 00-2-2H9a2 2 0 00-2 2v5m10 0v5H7v-5">
-                                    </path>
-                                </svg>
-                                Print
-                            </a>
-                        @endif
-                        <button type="button" onclick="window.location.href='{{ route('tr_prh.index') }}'"
-                            class="bg-gray-500 text-white px-6 py-2 rounded hover:bg-gray-600 flex items-center">
-                            <x-heroicon-o-arrow-left class="w-5 h-5 mr-2" /> Kembali
-                        </button>
+                    {{-- ─── CARD 3: Approval & Aksi (Read-Only) ────────────────────── --}}
+                    <div class="bg-white border border-gray-200 rounded-xl mb-3 overflow-hidden">
+                        <div class="px-4 pt-3 pb-0">
+                            <p class="text-xs font-medium uppercase tracking-wide text-gray-400">Approval & Aksi</p>
+                        </div>
+                        <div class="p-4 space-y-4">
+                            <div class="flex items-center justify-between p-3 border border-gray-200 rounded-lg bg-gray-50">
+                                <div>
+                                    <p class="text-sm text-gray-800 font-medium">Status Approval</p>
+                                    <p class="text-xs text-gray-400 mt-0.5">Dokumen ini telah disetujui oleh otoritas wewenang</p>
+                                </div>
+                                <div class="relative w-9 h-5 rounded-full transition-colors duration-200 flex-shrink-0"
+                                    class="{{ $isApproved ? 'bg-emerald-500' : 'bg-gray-300' }}">
+                                    <div class="absolute w-3.5 h-3.5 bg-white rounded-full top-0.5 transition-transform duration-200"
+                                        :class="{{ $isApproved ? 'translate-x-4 left-0.5' : 'left-0.5' }}"></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        {{-- Footer Buttons --}}
+                        <div class="flex items-center justify-between px-4 py-3 bg-gray-50 border-t border-gray-200">
+                            <button type="button" onclick="window.location.href='{{ route('tr_prh.index') }}'"
+                                class="inline-flex items-center gap-2 px-4 py-2 border border-gray-300 bg-white text-gray-600 text-sm font-medium rounded-lg hover:bg-gray-50 hover:border-gray-400 transition-colors">
+                                <x-heroicon-o-arrow-left class="w-4 h-4" />
+                                Kembali
+                            </button>
+                            <div class="flex items-center gap-2">
+                                @if ($isDelete && $canDeletePermission)
+                                    @if (!empty($blockedByPO) && $blockedByPO)
+                                        <button type="button" disabled
+                                            class="inline-flex items-center gap-2 px-5 py-2 bg-red-300 text-white text-sm font-medium rounded-lg cursor-not-allowed opacity-70">
+                                            <x-heroicon-o-lock-closed class="w-4 h-4" />
+                                            Hapus (Terkunci)
+                                        </button>
+                                    @else
+                                        <button type="button" onclick="showDeleteModal()"
+                                            class="inline-flex items-center gap-2 px-5 py-2 bg-red-600 text-white text-sm font-medium rounded-lg hover:bg-red-700 transition-colors">
+                                            <x-heroicon-o-trash class="w-4 h-4" />
+                                            Hapus
+                                        </button>
+                                    @endif
+                                @endif
+                                @if ($isView && $canPrint)
+                                    <a href="{{ route('tr_prh.print', $tr_prh->fprno) }}" target="_blank"
+                                        class="inline-flex items-center gap-2 px-5 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m10 0v-5a2 2 0 00-2-2H9a2 2 0 00-2 2v5m10 0v5H7v-5">
+                                            </path>
+                                        </svg>
+                                        Print
+                                    </a>
+                                @endif
+                            </div>
+                        </div>
                     </div>
                 </div>
 
@@ -426,16 +429,17 @@
                 @if ($canDeletePermission)
                     <div id="deleteModal"
                         class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-                        <div class="bg-white rounded-lg shadow-lg max-w-sm w-full p-6">
-                            <h3 class="text-lg font-semibold mb-4">Konfirmasi hapus Permintaan Pembelian ini?</h3>
+                        <div class="bg-white rounded-2xl shadow-xl max-w-sm w-full p-6">
+                            <h3 class="text-lg font-bold text-gray-800 mb-2">Konfirmasi Hapus</h3>
+                            <p class="text-sm text-gray-600 mb-4">Apakah anda yakin ingin menghapus Permintaan Pembelian ini?</p>
                             <form action="{{ route('tr_prh.destroy', $tr_prh->fprhid) }}" method="POST">
                                 @csrf
                                 @method('DELETE')
-                                <div class="flex justify-end space-x-2">
+                                <div class="flex justify-end gap-2">
                                     <button onclick="closeDeleteModal()" type="button"
-                                        class="px-4 py-2 bg-gray-300 rounded hover:bg-gray-400">Tidak</button>
+                                        class="px-4 py-2 bg-gray-100 hover:bg-gray-200 border border-gray-300 rounded-lg text-sm font-medium transition-colors">Tidak</button>
                                     <button type="submit"
-                                        class="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700">Ya, Hapus</button>
+                                        class="px-4 py-2 bg-red-600 text-white rounded-lg text-sm font-medium hover:bg-red-700 transition-colors">Ya, Hapus</button>
                                 </div>
                             </form>
                         </div>
@@ -463,8 +467,7 @@
                         <div class="mb-4 flex items-center gap-3 px-4 py-3 rounded-lg bg-amber-50 border border-amber-200">
                             <x-heroicon-o-lock-closed class="w-5 h-5 text-amber-500 flex-shrink-0" />
                             <p class="text-sm text-amber-700">
-                                <strong>Mode hanya baca.</strong> PR ini tidak bisa diedit karena sudah memiliki purchase
-                                Order terkait.
+                                <strong>Mode hanya baca.</strong> PR ini tidak bisa diedit karena sudah memiliki purchase Order terkait.
                             </p>
                         </div>
                     @endif
@@ -474,265 +477,313 @@
                         $isApproved = !empty($tr_prh->fuserapproved) || (int) $tr_prh->fapproval === 1;
                     @endphp
 
-                    {{-- HEADER FORM EDITABLE --}}
-                    <div class="grid grid-cols-1 lg:grid-cols-12 gap-4"
-                        :class="blockedByPO ? 'opacity-60 pointer-events-none' : ''">
-                        <div class="lg:col-span-4">
-                            <label class="block text-sm font-bold">Cabang</label>
-                            <input type="text" class="w-full border rounded px-3 py-2 bg-gray-200"
-                                value="{{ $fbranchlabel ?? $fcabang }}" disabled>
-                            <input type="hidden" name="fbranchcode" value="{{ $fbranchcode }}">
+                    {{-- ─── CARD 1: Identitas Permintaan ────────────────────── --}}
+                    <div class="bg-white border border-gray-200 rounded-xl mb-3 overflow-hidden"
+                        :class="blockedByPO ? 'opacity-65 pointer-events-none' : ''">
+                        <div class="px-4 pt-3 pb-0">
+                            <p class="text-xs font-medium uppercase tracking-wide text-gray-400">Identitas Permintaan</p>
                         </div>
+                        <div class="p-4 space-y-3">
+                            <div class="grid grid-cols-3 gap-3">
+                                {{-- Cabang --}}
+                                <div>
+                                    <label class="block text-xs font-medium text-gray-600 mb-1">Cabang</label>
+                                    <input type="text" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm bg-gray-100 text-gray-500 cursor-not-allowed border-gray-200"
+                                        value="{{ $fbranchlabel ?? $fcabang }}" disabled>
+                                    <input type="hidden" name="fbranchcode" value="{{ $fbranchcode }}">
+                                </div>
 
-                        <div class="lg:col-span-4">
-                            <label class="block text-sm font-bold mb-1">PR#</label>
-                            <input type="text" name="fprno" class="w-full border rounded px-3 py-2 bg-gray-200"
-                                value="{{ $tr_prh->fprno }}" disabled>
-                        </div>
+                                {{-- PR# --}}
+                                <div>
+                                    <label class="block text-xs font-medium text-gray-600 mb-1">PR#</label>
+                                    <input type="text" name="fprno" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm bg-gray-100 text-gray-500 cursor-not-allowed border-gray-200"
+                                        value="{{ $tr_prh->fprno }}" disabled>
+                                </div>
 
-                        <div class="lg:col-span-4" x-data="{
-                            supplierId: '{{ old('fsupplier', $tr_prh->fsupplier) }}',
-                            supplierDisplay: '{{ $tr_prh->fsuppliercode }} - {{ $tr_prh->fsuppliername }}'
-                        }"
-                            @supplier-chosen.window="supplierId = $event.detail.fsuppliercode; supplierDisplay = $event.detail.fsuppliername + ' (' + $event.detail.fsuppliercode + ')'">
-                            <label class="block text-sm font-bold mb-1">Supplier</label>
-                            <div class="flex">
-                                <input type="text" x-model="supplierDisplay"
-                                    class="flex-1 border rounded-l px-3 py-2 bg-gray-100" readonly>
-                                <input type="hidden" name="fsupplier" x-model="supplierId">
-                                <button type="button" @click="$dispatch('browse-supplier')"
-                                    class="border border-l-0 px-3 py-2 bg-white hover:bg-gray-50">
-                                    <x-heroicon-o-magnifying-glass class="w-5 h-5" />
-                                </button>
-                                @if ($canCreateSupplier)
-                                    <a href="{{ route('supplier.create') }}" target="_blank"
-                                        class="border border-l-0 rounded-r px-3 py-2 bg-white hover:bg-gray-50">
-                                        <x-heroicon-o-plus class="w-5 h-5" />
-                                    </a>
-                                @endif
+                                {{-- Supplier --}}
+                                <div x-data="{
+                                    supplierId: '{{ old('fsupplier', $tr_prh->fsupplier) }}',
+                                    supplierDisplay: '{{ $tr_prh->fsuppliercode }} - {{ $tr_prh->fsuppliername }}'
+                                }"
+                                    @supplier-chosen.window="supplierId = $event.detail.fsuppliercode; supplierDisplay = $event.detail.fsuppliername + ' (' + $event.detail.fsuppliercode + ')'">
+                                    <label class="block text-xs font-medium text-gray-600 mb-1">Supplier <span class="text-red-500">*</span></label>
+                                    <div class="flex">
+                                        <input type="text" x-model="supplierDisplay"
+                                            class="flex-1 border border-gray-300 rounded-l-lg px-3 py-2 text-sm bg-gray-50 text-gray-700 cursor-pointer focus:outline-none focus:border-blue-500" readonly>
+                                        <input type="hidden" name="fsupplier" x-model="supplierId">
+                                        <button type="button" @click="$dispatch('browse-supplier')"
+                                            class="border border-l-0 border-gray-300 px-3 py-2 bg-white hover:bg-gray-50 text-gray-500 transition-colors">
+                                            <x-heroicon-o-magnifying-glass class="w-4 h-4" />
+                                        </button>
+                                        @if ($canCreateSupplier)
+                                            <a href="{{ route('supplier.create') }}" target="_blank"
+                                                class="border border-l-0 border-gray-300 rounded-r-lg px-3 py-2 bg-white hover:bg-gray-50 text-gray-500 transition-colors">
+                                                <x-heroicon-o-plus class="w-4 h-4" />
+                                            </a>
+                                        @endif
+                                    </div>
+                                    @error('fsupplier')
+                                        <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                                    @enderror
+                                </div>
                             </div>
-                            @error('fsupplier')
-                                <p class="text-red-600 text-xs mt-1">{{ $message }}</p>
-                            @enderror
-                        </div>
 
-                        <div class="lg:col-span-4">
-                            <label class="block text-sm font-bold">Tanggal</label>
-                            <input type="date" name="fprdate" value="{{ old('fprdate', $fmt($tr_prh->fprdate)) }}"
-                                class="w-full border rounded px-3 py-2">
-                        </div>
+                            <div class="grid grid-cols-3 gap-3">
+                                {{-- Tanggal --}}
+                                <div>
+                                    <label class="block text-xs font-medium text-gray-600 mb-1">Tanggal <span class="text-red-500">*</span></label>
+                                    <input type="date" name="fprdate" value="{{ old('fprdate', $fmt($tr_prh->fprdate)) }}"
+                                        class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100">
+                                </div>
 
-                        <div class="lg:col-span-4">
-                            <label class="block text-sm font-bold">Tanggal Dibutuhkan</label>
-                            <input type="date" name="fneeddate"
-                                value="{{ old('fneeddate', $fmt($tr_prh->fneeddate)) }}"
-                                class="w-full border rounded px-3 py-2">
-                        </div>
+                                {{-- Tanggal Dibutuhkan --}}
+                                <div>
+                                    <label class="block text-xs font-medium text-gray-600 mb-1">Tanggal Dibutuhkan <span class="text-red-500">*</span></label>
+                                    <input type="date" name="fneeddate"
+                                        value="{{ old('fneeddate', $fmt($tr_prh->fneeddate)) }}"
+                                        class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100">
+                                </div>
 
-                        <div class="lg:col-span-4">
-                            <label class="block text-sm font-bold">Tanggal Paling Lambat</label>
-                            <input type="date" name="fduedate" value="{{ old('fduedate', $fmt($tr_prh->fduedate)) }}"
-                                class="w-full border rounded px-3 py-2">
-                        </div>
+                                {{-- Tanggal Paling Lambat --}}
+                                <div>
+                                    <label class="block text-xs font-medium text-gray-600 mb-1">Tanggal Paling Lambat <span class="text-red-500">*</span></label>
+                                    <input type="date" name="fduedate" value="{{ old('fduedate', $fmt($tr_prh->fduedate)) }}"
+                                        class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100">
+                                </div>
+                            </div>
 
-                        <div class="lg:col-span-12">
-                            <label class="block text-sm font-bold">Keterangan</label>
-                            <textarea name="fket" rows="2" class="w-full border rounded px-3 py-2">{{ old('fket', $tr_prh->fket) }}</textarea>
+                            {{-- Keterangan --}}
+                            <div>
+                                <label class="block text-xs font-medium text-gray-600 mb-1">Keterangan</label>
+                                <textarea name="fket" rows="2" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100">{{ old('fket', $tr_prh->fket) }}</textarea>
+                            </div>
                         </div>
                     </div>
 
-                    {{-- DETAIL ITEM INLINE EDITABLE --}}
-                    <div x-data="itemsTableRowsEdit()" x-init="init()" class="mt-6 space-y-2">
-                        <h3 class="text-base font-semibold text-gray-800">Detail Item</h3>
-                        <div class="overflow-auto border rounded">
-                            <table class="pr-detail-table min-w-full text-sm">
-                                <thead class="bg-gray-100">
-                                    <tr>
-                                        <th class="p-2 text-left w-10">#</th>
-                                        <th class="p-2 text-left w-48">Kode Produk</th>
-                                        <th class="p-2 text-left" style="width: 20rem; min-width: 20rem;">Nama Produk</th>
-                                        <th class="p-2 text-left w-36">Satuan</th>
-                                        <th class="p-2 text-right w-24">Qty</th>
-                                        <th class="p-2 text-right w-24">Qty PO</th>
-                                        <th class="p-2 text-left w-48">Ket Item</th>
-                                        <th class="p-2 text-center w-20">Aksi</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <template x-for="(row, i) in rows" :key="row.uid">
-                                        <tr class="border-t align-top" :class="i === 0 ? 'bg-green-50' : 'bg-white'">
-                                            <td class="p-2 text-gray-400" x-text="i + 1"></td>
-                                            <td class="p-2">
-                                                <div class="flex">
-                                                    <input type="text"
-                                                        class="flex-1 border rounded-l px-2 py-1 font-mono text-sm min-w-0"
-                                                        x-model.trim="row.fitemcode" @input="onCodeTyped(row, i)"
-                                                        :disabled="blockedByPO">
-                                                    <button type="button" @click="openBrowseFor(i)"
-                                                        class="border border-l-0 px-2 py-1 bg-white hover:bg-gray-50"
-                                                        :disabled="blockedByPO">
-                                                        <x-heroicon-o-magnifying-glass class="w-4 h-4" />
-                                                    </button>
-                                                </div>
-                                            </td>
-                                            <td class="p-2" style="width: 20rem; min-width: 20rem;">
-                                                <div class="desc-inline-field flex w-full min-w-0 flex-nowrap items-stretch"
-                                                    style="display:flex !important; width:100% !important; min-width:0 !important; flex-wrap:nowrap !important; align-items:stretch !important;">
-                                                    <div class="desc-inline-field__text min-w-0 flex-1 rounded-l border bg-gray-100 px-2 py-1 text-sm leading-5 text-gray-600 whitespace-normal break-words"
-                                                        style="flex:1 1 auto !important; min-width:0 !important;"
-                                                        x-text="row.fitemname || '-'"></div>
-                                                    <button type="button" @click="openDesc(i)"
-                                                        class="desc-inline-field__button inline-flex w-10 shrink-0 items-center justify-center border border-l-0 rounded-r px-2 py-1 transition-colors"
-                                                        style="display:inline-flex !important; flex:0 0 2rem !important; width:2rem !important; justify-content:center !important; align-items:center !important;"
-                                                        :class="descButtonClass(row.fdesc)" :disabled="blockedByPO"
-                                                        title="Deskripsi item">
-                                                        <x-heroicon-o-document-text class="w-4 h-4" />
-                                                    </button>
-                                                </div>
-                                            </td>
-                                            <td class="p-2">
-                                                <template x-if="row.units.length > 1">
-                                                    <select class="w-full border rounded px-2 py-1 text-sm"
-                                                        x-model="row.fsatuan" @change="onRowUpdated(i)"
-                                                        :disabled="blockedByPO">
-                                                        <template x-for="unit in row.units" :key="unit">
-                                                            <option :value="unit" x-text="unit"></option>
+                    {{-- ─── CARD 2: Detail Item (Editable) ────────────────────── --}}
+                    <div class="bg-white border border-gray-200 rounded-xl mb-3 overflow-hidden">
+                        <div class="px-4 pt-3 pb-0">
+                            <p class="text-xs font-medium uppercase tracking-wide text-gray-400">Detail Item</p>
+                        </div>
+                        <div class="p-4">
+                            <div x-data="itemsTableRowsEdit()" x-init="init()" class="space-y-2">
+                                <div class="overflow-auto border border-gray-200 rounded-lg">
+                                    <table class="pr-detail-table min-w-full text-sm">
+                                        <thead class="bg-gray-50 border-b border-gray-200">
+                                            <tr>
+                                                <th class="p-2 text-left w-10 text-xs font-semibold text-gray-500 uppercase">#</th>
+                                                <th class="p-2 text-left w-48 text-xs font-semibold text-gray-500 uppercase">Kode Produk</th>
+                                                <th class="p-2 text-left text-xs font-semibold text-gray-500 uppercase" style="width: 20rem; min-width: 20rem;">Nama Produk</th>
+                                                <th class="p-2 text-left w-36 text-xs font-semibold text-gray-500 uppercase">Satuan</th>
+                                                <th class="p-2 text-right w-24 text-xs font-semibold text-gray-500 uppercase">Qty</th>
+                                                <th class="p-2 text-right w-24 text-xs font-semibold text-gray-500 uppercase">Qty PO</th>
+                                                <th class="p-2 text-left w-48 text-xs font-semibold text-gray-500 uppercase">Ket Item</th>
+                                                <th class="p-2 text-center w-20 text-xs font-semibold text-gray-500 uppercase">Aksi</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <template x-for="(row, i) in rows" :key="row.uid">
+                                                <tr class="border-t border-gray-150 align-top" :class="i === 0 ? 'bg-green-50/40' : 'bg-white'">
+                                                    <td class="p-2 text-gray-400" x-text="i + 1"></td>
+                                                    <td class="p-2">
+                                                        <div class="flex">
+                                                            <input type="text"
+                                                                class="flex-1 border border-gray-300 rounded-l-lg px-2 py-1 font-mono text-sm min-w-0 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-100"
+                                                                x-model.trim="row.fitemcode" @input="onCodeTyped(row, i)"
+                                                                :disabled="blockedByPO">
+                                                            <button type="button" @click="openBrowseFor(i)"
+                                                                class="border border-l-0 border-gray-300 px-2 py-1 bg-white hover:bg-gray-50 text-gray-500 transition-colors"
+                                                                :disabled="blockedByPO">
+                                                                <x-heroicon-o-magnifying-glass class="w-4 h-4" />
+                                                            </button>
+                                                        </div>
+                                                    </td>
+                                                    <td class="p-2" style="width: 20rem; min-width: 20rem;">
+                                                        <div class="desc-inline-field flex w-full min-w-0 flex-nowrap items-stretch">
+                                                            <div class="desc-inline-field__text min-w-0 flex-1 rounded-l-lg border border-gray-300 bg-gray-50 px-2 py-1 text-sm leading-5 text-gray-600 whitespace-normal break-words"
+                                                                style="flex:1 1 auto !important; min-width:0 !important;"
+                                                                x-text="row.fitemname || '-'"></div>
+                                                            <button type="button" @click="openDesc(i)"
+                                                                class="desc-inline-field__button inline-flex w-10 shrink-0 items-center justify-center border border-l-0 border-gray-300 rounded-r-lg px-2 py-1 transition-colors"
+                                                                style="display:inline-flex !important; flex:0 0 2rem !important; width:2rem !important; justify-content:center !important; align-items:center !important;"
+                                                                :class="descButtonClass(row.fdesc)" :disabled="blockedByPO"
+                                                                title="Deskripsi item">
+                                                                <x-heroicon-o-document-text class="w-4 h-4" />
+                                                            </button>
+                                                        </div>
+                                                    </td>
+                                                    <td class="p-2">
+                                                        <template x-if="row.units.length > 1">
+                                                            <select class="w-full border border-gray-300 rounded-lg px-2 py-1 text-sm focus:outline-none focus:border-blue-500"
+                                                                x-model="row.fsatuan" @change="onRowUpdated(i)"
+                                                                :disabled="blockedByPO">
+                                                                <template x-for="unit in row.units" :key="unit">
+                                                                    <option :value="unit" x-text="unit"></option>
+                                                                </template>
+                                                            </select>
                                                         </template>
-                                                    </select>
-                                                </template>
-                                                <template x-if="row.units.length <= 1">
-                                                    <input type="text"
-                                                        class="w-full border rounded px-2 py-1 bg-gray-100 text-gray-600 text-sm"
-                                                        :value="row.fsatuan || '-'" disabled>
-                                                </template>
-                                            </td>
-                                            <td class="p-2 text-right">
-                                                <input type="text" inputmode="decimal"
-                                                    class="w-full border rounded px-2 py-1 text-right" x-model="row.fqty"
-                                                    :disabled="blockedByPO" @focus="unformatQtyInput(row)"
-                                                    @input="onQtyInput(row, i)" @blur="formatQtyInput(row, i)">
-                                            </td>
-                                            <td class="p-2 text-right">
-                                                <input type="text"
-                                                    class="w-full border rounded px-2 py-1 text-right bg-gray-100 text-gray-500"
-                                                    :value="formatQtyValue(row.fqtypo)" disabled>
-                                            </td>
-                                            <td class="p-2">
-                                                <input type="text" class="w-full border rounded px-2 py-1"
-                                                    x-model="row.fketdt" :disabled="blockedByPO"
-                                                    @input="onRowUpdated(i)">
-                                            </td>
-                                            <td class="p-2 text-center">
-                                                <div class="flex items-center justify-center">
-                                                    <button type="button" @click="removeRow(i)"
-                                                        class="inline-flex h-8 w-8 items-center justify-center rounded bg-red-100 text-red-600 hover:bg-red-200"
-                                                        :disabled="blockedByPO" title="Hapus baris">-</button>
-                                                </div>
-                                            </td>
-                                        </tr>
+                                                        <template x-if="row.units.length <= 1">
+                                                            <input type="text"
+                                                                class="w-full border border-gray-200 rounded-lg px-2 py-1 bg-gray-50 text-gray-500 text-sm cursor-not-allowed"
+                                                                :value="row.fsatuan || '-'" disabled>
+                                                        </template>
+                                                    </td>
+                                                    <td class="p-2 text-right">
+                                                        <input type="text" inputmode="decimal"
+                                                            class="w-full border border-gray-300 rounded-lg px-2 py-1 text-right focus:outline-none focus:border-blue-500" x-model="row.fqty"
+                                                            :disabled="blockedByPO" @focus="unformatQtyInput(row)"
+                                                            @input="onQtyInput(row, i)" @blur="formatQtyInput(row, i)">
+                                                    </td>
+                                                    <td class="p-2 text-right">
+                                                        <input type="text"
+                                                            class="w-full border border-gray-200 rounded-lg px-2 py-1 text-right bg-gray-50 text-gray-500 cursor-not-allowed"
+                                                            :value="formatQtyValue(row.fqtypo)" disabled>
+                                                    </td>
+                                                    <td class="p-2">
+                                                        <input type="text" class="w-full border border-gray-300 rounded-lg px-2 py-1 focus:outline-none focus:border-blue-500"
+                                                            x-model="row.fketdt" :disabled="blockedByPO"
+                                                            @input="onRowUpdated(i)">
+                                                    </td>
+                                                    <td class="p-2 text-center">
+                                                        <div class="flex items-center justify-center">
+                                                            <button type="button" @click="removeRow(i)"
+                                                                class="inline-flex h-7 w-7 items-center justify-center rounded-lg bg-red-50 text-red-500 hover:bg-red-100 transition-colors border border-red-200"
+                                                                :disabled="blockedByPO" title="Hapus baris">
+                                                                <x-heroicon-o-minus class="w-4 h-4" />
+                                                            </button>
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                            </template>
+                                        </tbody>
+                                    </table>
+                                </div>
+                                <div class="hidden">
+                                    <template x-for="row in rowsToSubmit" :key="'submit-' + row.uid">
+                                        <div>
+                                            <input type="hidden" name="fprdid[]" :value="row.fprdid || ''">
+                                            <input type="hidden" name="fitemcode[]" :value="row.fitemcode">
+                                            <input type="hidden" name="fitemname[]" :value="row.fitemname">
+                                            <input type="hidden" name="fnoacak[]" :value="row.fnoacak">
+                                            <input type="hidden" name="fsatuan[]" :value="row.fsatuan">
+                                            <input type="hidden" name="fqty[]" :value="row.fqty">
+                                            <input type="hidden" name="fdesc[]" :value="row.fdesc">
+                                            <input type="hidden" name="fketdt[]" :value="row.fketdt">
+                                        </div>
                                     </template>
-                                </tbody>
-                            </table>
-                        </div>
-                        <div class="hidden">
-                            <template x-for="row in rowsToSubmit" :key="'submit-' + row.uid">
-                                <div>
-                                    <input type="hidden" name="fprdid[]" :value="row.fprdid || ''">
-                                    <input type="hidden" name="fitemcode[]" :value="row.fitemcode">
-                                    <input type="hidden" name="fitemname[]" :value="row.fitemname">
-                                    <input type="hidden" name="fnoacak[]" :value="row.fnoacak">
-                                    <input type="hidden" name="fsatuan[]" :value="row.fsatuan">
-                                    <input type="hidden" name="fqty[]" :value="row.fqty">
-                                    <input type="hidden" name="fdesc[]" :value="row.fdesc">
-                                    <input type="hidden" name="fketdt[]" :value="row.fketdt">
                                 </div>
-                            </template>
-                        </div>
-                        <input type="hidden" id="itemsCount" :value="rowsToSubmit.length">
-                        <div x-show="showDescModal" x-cloak class="fixed inset-0 z-[95] flex items-center justify-center"
-                            x-transition.opacity>
-                            <div class="absolute inset-0 bg-black/50" @click="closeDesc()"></div>
-                            <div class="relative bg-white w-[92vw] max-w-lg rounded-2xl shadow-2xl overflow-hidden"
-                                x-transition.scale>
-                                <div class="px-5 py-4 border-b flex items-center">
-                                    <x-heroicon-o-document-text class="w-6 h-6 text-blue-600 mr-2" />
-                                    <div>
-                                        <h3 class="text-lg font-semibold text-gray-800">Deskripsi Item</h3>
-                                        <p class="text-xs text-gray-500" x-text="descItemLabel"></p>
-                                    </div>
-                                </div>
-                                <div class="px-5 py-4 space-y-4">
-                                    <div>
-                                        <div class="mb-1 flex items-center justify-between gap-3">
-                                            <div class="text-sm text-gray-700">Nama Produk</div>
-                                            <button type="button" @click="descValue = descItemLabel || ''"
-                                                x-show="!blockedByPO"
-                                                class="h-8 px-3 rounded-lg bg-blue-50 text-blue-700 text-sm font-medium hover:bg-blue-100">
-                                                Copy
+                                <input type="hidden" id="itemsCount" :value="rowsToSubmit.length">
+                                <div x-show="showDescModal" x-cloak class="fixed inset-0 z-[95] flex items-center justify-center bg-black/50"
+                                    x-transition.opacity>
+                                    <div class="absolute inset-0" @click="closeDesc()"></div>
+                                    <div class="relative bg-white w-[92vw] max-w-lg rounded-2xl shadow-2xl overflow-hidden"
+                                        x-transition.scale>
+                                        <div class="px-5 py-4 border-b flex items-center">
+                                            <x-heroicon-o-document-text class="w-6 h-6 text-blue-600 mr-2" />
+                                            <div>
+                                                <h3 class="text-lg font-semibold text-gray-800">Deskripsi Item</h3>
+                                                <p class="text-xs text-gray-500" x-text="descItemLabel"></p>
+                                            </div>
+                                        </div>
+                                        <div class="px-5 py-4 space-y-4">
+                                            <div>
+                                                <div class="mb-1 flex items-center justify-between gap-3">
+                                                    <div class="text-sm text-gray-700 font-medium">Nama Produk</div>
+                                                    <button type="button" @click="descValue = descItemLabel || ''"
+                                                        x-show="!blockedByPO"
+                                                        class="h-8 px-3 rounded-lg bg-blue-50 text-blue-700 text-sm font-medium hover:bg-blue-100 transition-colors">
+                                                        Copy
+                                                    </button>
+                                                </div>
+                                                <div class="rounded-lg border bg-gray-50 px-3 py-2 text-sm text-gray-800"
+                                                    x-text="descItemLabel || '-'"></div>
+                                            </div>
+                                            <div>
+                                                <label class="block text-sm text-gray-700 font-bold mb-1">Deskripsi</label>
+                                                <textarea x-model="descValue" rows="5" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500"
+                                                    placeholder="Tulis deskripsi item di sini..." :readonly="blockedByPO"></textarea>
+                                            </div>
+                                        </div>
+                                        <div class="px-5 py-3 border-t flex items-center justify-end gap-2 bg-gray-50">
+                                            <button type="button" @click="closeDesc()"
+                                                class="h-9 px-4 rounded-lg bg-white border border-gray-300 text-gray-700 text-sm font-medium hover:bg-gray-50 transition-colors">
+                                                Tutup
+                                            </button>
+                                            <button type="button" @click="applyDesc()" x-show="!blockedByPO"
+                                                class="h-9 px-4 rounded-lg bg-emerald-600 text-white text-sm font-medium hover:bg-emerald-700 transition-colors">
+                                                Simpan
                                             </button>
                                         </div>
-                                        <div class="rounded-lg border bg-gray-50 px-3 py-2 text-sm text-gray-800"
-                                            x-text="descItemLabel || '-'"></div>
                                     </div>
-                                    <label class="block text-sm text-gray-700 font-bold">Deskripsi</label>
-                                    <textarea x-model="descValue" rows="5" class="w-full border rounded px-3 py-2"
-                                        placeholder="Tulis deskripsi item di sini..." :readonly="blockedByPO"></textarea>
-                                </div>
-                                <div class="px-5 py-3 border-t flex items-center justify-end gap-2">
-                                    <button type="button" @click="closeDesc()"
-                                        class="h-9 px-4 rounded-lg bg-gray-100 text-gray-700 text-sm font-medium hover:bg-gray-200">
-                                        Tutup
-                                    </button>
-                                    <button type="button" @click="applyDesc()" x-show="!blockedByPO"
-                                        class="h-9 px-4 rounded-lg bg-emerald-600 text-white text-sm font-medium hover:bg-emerald-700">
-                                        Simpan
-                                    </button>
                                 </div>
                             </div>
                         </div>
                     </div>
 
-                    <div class="mt-8 flex justify-center gap-4">
-                        @if ($canEditPermission)
-                            @if ($isUsageLocked)
-                                <button type="button" disabled
-                                    class="bg-blue-300 text-white px-8 py-2.5 rounded shadow flex items-center transition cursor-not-allowed opacity-70"
-                                    title="{{ $usageLockMessage ?? 'Data ini sudah direferensi.' }}">
-                                    <x-heroicon-o-lock-closed class="w-5 h-5 mr-2" /> Simpan Perubahan
-                                </button>
-                            @else
-                                <button type="submit"
-                                    class="bg-blue-600 text-white px-8 py-2.5 rounded shadow hover:bg-blue-700 flex items-center transition">
-                                    <x-heroicon-o-check class="w-5 h-5 mr-2" /> Simpan Perubahan
-                                </button>
-                            @endif
-                            @if ($canClosePr)
-                                <button type="button" onclick="showClosePrModal()"
-                                    class="bg-amber-500 text-white px-8 py-2.5 rounded shadow hover:bg-amber-600 flex items-center transition">
-                                    <x-heroicon-o-lock-closed class="w-5 h-5 mr-2" /> Close
-                                </button>
-                            @endif
-                        @endif
-                        <button type="button" @click="window.location.href='{{ route('tr_prh.index') }}'"
-                            class="bg-gray-500 text-white px-8 py-2.5 rounded shadow hover:bg-gray-600 flex items-center transition">
-                            <x-heroicon-o-arrow-left class="w-5 h-5 mr-2" /> Kembali
-                        </button>
+                    {{-- ─── CARD 3: Approval & Aksi (Editable) ────────────────────── --}}
+                    <div class="bg-white border border-gray-200 rounded-xl mb-3 overflow-hidden">
+                        <div class="px-4 pt-3 pb-0">
+                            <p class="text-xs font-medium uppercase tracking-wide text-gray-400">Approval & Aksi</p>
+                        </div>
+                        <div class="p-4 space-y-4">
+                            <div class="flex items-center justify-between p-3 border border-gray-200 rounded-lg bg-gray-50">
+                                <div>
+                                    <p class="text-sm text-gray-800 font-medium">Status Approval</p>
+                                    <p class="text-xs text-gray-400 mt-0.5">Dokumen ini disetujui</p>
+                                </div>
+                                <div class="relative w-9 h-5 rounded-full transition-colors duration-200 flex-shrink-0"
+                                    class="{{ $isApproved ? 'bg-emerald-500' : 'bg-gray-300' }}">
+                                    <div class="absolute w-3.5 h-3.5 bg-white rounded-full top-0.5 transition-transform duration-200"
+                                        :class="{{ $isApproved ? 'translate-x-4 left-0.5' : 'left-0.5' }}"></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        {{-- Footer Buttons --}}
+                        <div class="flex items-center justify-between px-4 py-3 bg-gray-50 border-t border-gray-200">
+                            <button type="button" @click="window.location.href='{{ route('tr_prh.index') }}'"
+                                class="inline-flex items-center gap-2 px-4 py-2 border border-gray-300 bg-white text-gray-600 text-sm font-medium rounded-lg hover:bg-gray-50 hover:border-gray-400 transition-colors">
+                                <x-heroicon-o-arrow-left class="w-4 h-4" />
+                                Kembali
+                            </button>
+                            <div class="flex items-center gap-2">
+                                @if ($canEditPermission)
+                                    @if ($isUsageLocked)
+                                        <button type="button" disabled
+                                            class="inline-flex items-center gap-2 px-5 py-2 bg-blue-300 text-white text-sm font-medium rounded-lg cursor-not-allowed opacity-70"
+                                            title="{{ $usageLockMessage ?? 'Data ini sudah direferensi.' }}">
+                                            <x-heroicon-o-lock-closed class="w-4 h-4" /> Simpan Perubahan
+                                        </button>
+                                    @else
+                                        <button type="submit"
+                                            class="inline-flex items-center gap-2 px-5 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors">
+                                            <x-heroicon-o-check class="w-4 h-4" /> Simpan Perubahan
+                                        </button>
+                                    @endif
+                                    @if ($canClosePr)
+                                        <button type="button" onclick="showClosePrModal()"
+                                            class="inline-flex items-center gap-2 px-5 py-2 bg-amber-500 text-white text-sm font-medium rounded-lg hover:bg-amber-600 transition-colors">
+                                            <x-heroicon-o-lock-closed class="w-4 h-4" /> Close
+                                        </button>
+                                    @endif
+                                @endif
+                            </div>
+                        </div>
                     </div>
 
                     {{-- Local Modals --}}
                     <div x-show="showNoItems" x-cloak
                         class="fixed inset-0 z-[100] flex items-center justify-center bg-black/50" x-transition.opacity>
-                        <div class="bg-white p-6 rounded-xl shadow-2xl max-w-sm w-full text-center">
+                        <div class="bg-white p-6 rounded-2xl shadow-2xl max-w-sm w-full text-center">
                             <h4 class="text-lg font-bold text-red-600 mb-2">Item Kosong</h4>
-                            <p class="text-sm text-gray-600 mb-4">Belum ada item dengan Qty lebih dari 0 yang bisa
-                                disimpan.</p>
+                            <p class="text-sm text-gray-600 mb-4">Belum ada item dengan Qty lebih dari 0 yang bisa disimpan.</p>
                             <button @click="showNoItems = false" type="button"
-                                class="w-full py-2 bg-gray-100 hover:bg-gray-200 rounded font-medium">OK</button>
+                                class="w-full py-2 bg-gray-100 hover:bg-gray-200 border border-gray-300 rounded-lg font-medium text-sm transition-colors">OK</button>
                         </div>
                     </div>
                     <div x-show="showWarningModal" x-cloak
                         class="fixed inset-0 z-[101] flex items-center justify-center bg-black/50" x-transition.opacity>
-                        <div class="bg-white p-6 rounded-xl shadow-2xl max-w-lg w-full">
+                        <div class="bg-white p-6 rounded-2xl shadow-2xl max-w-lg w-full">
                             <h4 class="text-lg font-bold text-amber-600 mb-2" x-text="warningTitle"></h4>
                             <p class="text-sm text-gray-600 mb-3" x-text="warningMessage"></p>
                             <template x-if="warningItems.length > 0">
@@ -742,12 +793,11 @@
                                     </template>
                                 </ul>
                             </template>
-                            <div class="flex justify-end gap-2">
+                            <div class="flex justify-end gap-2 bg-gray-50 -mx-6 -mb-6 p-4 rounded-b-2xl border-t mt-4">
                                 <button @click="closeWarning()" type="button"
-                                    class="px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded font-medium">Tutup</button>
+                                    class="px-4 py-2 bg-white hover:bg-gray-50 border border-gray-300 rounded-lg font-medium text-sm transition-colors">Tutup</button>
                                 <button x-show="warningCanProceed" @click="confirmWarningAndSubmit()" type="button"
-                                    class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded font-medium">Lanjut
-                                    Simpan</button>
+                                    class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg font-medium text-sm transition-colors">Lanjut Simpan</button>
                             </div>
                         </div>
                     </div>
@@ -762,16 +812,14 @@
                     </form>
                     <div id="closePrModal"
                         class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-                        <div class="bg-white rounded-lg shadow-lg max-w-sm w-full p-6">
-                            <h3 class="text-lg font-semibold mb-2">Konfirmasi Close</h3>
-                            <p class="text-sm text-gray-600 mb-4">Apakah anda yakin mau close PR
-                                <strong>{{ $tr_prh->fprno }}</strong>?
-                            </p>
+                        <div class="bg-white rounded-2xl shadow-xl max-w-sm w-full p-6">
+                            <h3 class="text-lg font-bold text-gray-800 mb-2">Konfirmasi Close</h3>
+                            <p class="text-sm text-gray-600 mb-4">Apakah anda yakin mau close PR <strong>{{ $tr_prh->fprno }}</strong>?</p>
                             <div class="flex justify-end gap-2">
                                 <button type="button" onclick="closeClosePrModal()"
-                                    class="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300 text-sm font-medium">No</button>
+                                    class="px-4 py-2 bg-gray-100 hover:bg-gray-200 border border-gray-300 rounded-lg text-sm font-medium transition-colors">No</button>
                                 <button type="submit" form="closePrForm"
-                                    class="px-4 py-2 bg-amber-500 text-white rounded hover:bg-amber-600 text-sm font-medium">Yes</button>
+                                    class="px-4 py-2 bg-amber-500 text-white rounded-lg text-sm font-medium hover:bg-amber-600 transition-colors">Yes</button>
                             </div>
                         </div>
                     </div>
@@ -816,14 +864,10 @@
                         <thead class="sticky top-0 z-10">
                             <tr class="bg-gradient-to-r from-gray-50 to-gray-100">
                                 <th class="text-left p-3 font-semibold text-gray-700 border-b-2 border-gray-200">Kode</th>
-                                <th class="text-left p-3 font-semibold text-gray-700 border-b-2 border-gray-200">Nama
-                                    Supplier</th>
-                                <th class="text-left p-3 font-semibold text-gray-700 border-b-2 border-gray-200">Alamat
-                                </th>
-                                <th class="text-left p-3 font-semibold text-gray-700 border-b-2 border-gray-200">Telepon
-                                </th>
-                                <th class="text-center p-3 font-semibold text-gray-700 border-b-2 border-gray-200">Aksi
-                                </th>
+                                <th class="text-left p-3 font-semibold text-gray-700 border-b-2 border-gray-200">Nama Supplier</th>
+                                <th class="text-left p-3 font-semibold text-gray-700 border-b-2 border-gray-200">Alamat</th>
+                                <th class="text-left p-3 font-semibold text-gray-700 border-b-2 border-gray-200">Telepon</th>
+                                <th class="text-center p-3 font-semibold text-gray-700 border-b-2 border-gray-200">Aksi</th>
                             </tr>
                         </thead>
                         <tbody></tbody>
@@ -862,15 +906,11 @@
                         <thead class="sticky top-0 z-10">
                             <tr class="bg-gradient-to-r from-gray-50 to-gray-100">
                                 <th class="text-left p-3 font-semibold text-gray-700 border-b-2 border-gray-200">Kode</th>
-                                <th class="text-left p-3 font-semibold text-gray-700 border-b-2 border-gray-200">Nama
-                                    Produk</th>
-                                <th class="text-left p-3 font-semibold text-gray-700 border-b-2 border-gray-200">Satuan
-                                </th>
+                                <th class="text-left p-3 font-semibold text-gray-700 border-b-2 border-gray-200">Nama Produk</th>
+                                <th class="text-left p-3 font-semibold text-gray-700 border-b-2 border-gray-200">Satuan</th>
                                 <th class="text-left p-3 font-semibold text-gray-700 border-b-2 border-gray-200">Merek</th>
-                                <th class="text-center p-3 font-semibold text-gray-700 border-b-2 border-gray-200">Stock
-                                </th>
-                                <th class="text-center p-3 font-semibold text-gray-700 border-b-2 border-gray-200">Aksi
-                                </th>
+                                <th class="text-center p-3 font-semibold text-gray-700 border-b-2 border-gray-200">Stock</th>
+                                <th class="text-center p-3 font-semibold text-gray-700 border-b-2 border-gray-200">Aksi</th>
                             </tr>
                         </thead>
                         <tbody></tbody>
@@ -1242,7 +1282,7 @@
                 },
                 descButtonClass(value) {
                     return this.hasDesc(value) ?
-                        'border-emerald-300 bg-emerald-50 text-emerald-600 hover:bg-emerald-100' :
+                        'border-emerald-300 bg-emerald-50 text-emerald-600 hover:bg-emerald-100 font-medium' :
                         'border-gray-300 bg-white text-gray-500 hover:bg-gray-50';
                 },
                 openDesc(target = 'saved', index = null) {
@@ -1424,7 +1464,7 @@
 
                 descButtonClass(value) {
                     return this.hasDesc(value) ?
-                        'border-emerald-300 bg-emerald-50 text-emerald-600 hover:bg-emerald-100' :
+                        'border-emerald-300 bg-emerald-50 text-emerald-600 hover:bg-emerald-100 font-medium' :
                         'border-gray-300 bg-white text-gray-500 hover:bg-gray-50';
                 },
 
