@@ -23,7 +23,7 @@
             {{-- ─── CARD 1: Identitas Akun ─────────────────────────────── --}}
             <div class="bg-white border border-gray-200 rounded-xl mb-3 overflow-hidden">
                 <div class="px-4 pt-3 pb-0">
-                    <p class="text-xs font-medium uppercase tracking-wide text-gray-400">Identitas akun</p>
+                    <p class="text-xs font-bold uppercase tracking-wide text-gray-400">Identitas akun</p>
                 </div>
                 <div class="p-4 space-y-3">
 
@@ -52,7 +52,7 @@
                             </button>
                         </div>
 
-                        {{-- Badge akun terpilih --}}
+                        {{-- Badge akun terpilih
                         <div id="selectedHeaderBadge" class="{{ old('faccupline', $account->faccupline) ? 'inline-flex' : 'hidden' }} mt-2 items-center gap-2 px-3 py-1.5 bg-blue-50 border border-blue-200 rounded-lg text-xs text-blue-700 font-medium">
                             <x-heroicon-o-check class="w-3.5 h-3.5" />
                             <span id="selectedHeaderLabel">{{ $selectedHeader ? $selectedHeader->faccount . ' — ' . $selectedHeader->faccname : old('faccupline') }}</span>
@@ -61,7 +61,7 @@
                                 <x-heroicon-o-x-mark class="w-3 h-3" />
                             </button>
                             @endif
-                        </div>
+                        </div> --}}
 
                         <input type="hidden" name="faccupline" id="accountCodeHidden" value="{{ old('faccupline', $account->faccupline) }}">
                         <input type="hidden" name="faccid"     id="accountIdHidden"   value="{{ old('faccid', $account->faccid) }}">
@@ -114,7 +114,7 @@
             {{-- ─── CARD 2: Konfigurasi ────────────────────────────────── --}}
             <div class="bg-white border border-gray-200 rounded-xl mb-3 overflow-hidden">
                 <div class="px-4 pt-3 pb-0">
-                    <p class="text-xs font-medium uppercase tracking-wide text-gray-400">Konfigurasi</p>
+                    <p class="text-xs font-bold uppercase tracking-wide text-gray-400">Konfigurasi</p>
                 </div>
                 <div class="p-4 space-y-4">
 
@@ -208,7 +208,7 @@
             {{-- ─── CARD 3: Akses & Status ─────────────────────────────── --}}
             <div class="bg-white border border-gray-200 rounded-xl mb-3 overflow-hidden">
                 <div class="px-4 pt-3 pb-0">
-                    <p class="text-xs font-medium uppercase tracking-wide text-gray-400">Akses & status</p>
+                    <p class="text-xs font-bold uppercase tracking-wide text-gray-400">Akses & status</p>
                 </div>
                 <div class="p-4 space-y-4">
 
