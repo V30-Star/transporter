@@ -91,7 +91,7 @@ class SupplierController extends Controller
         $validated['fcreatedby'] = auth('sysuser')->user()->fname ?? null; // Use the authenticated user's name or 'system' as default
         $validated['fcreatedat'] = now(); // Use the current time
 
-        $validated['fnonactive'] = $request->has('fnonactive') ? '1' : '0';
+        $validated['fnonactive'] = $request->boolean('fnonactive') ? '1' : '0';
 
         // Create the new Supplier
         Supplier::create($validated);
@@ -171,7 +171,7 @@ class SupplierController extends Controller
         $validated['fsuppliercode'] = strtoupper($validated['fsuppliercode']);
         $validated['fsuppliername'] = strtoupper($validated['fsuppliername']);
 
-        $validated['fnonactive'] = $request->has('fnonactive') ? '1' : '0';
+        $validated['fnonactive'] = $request->boolean('fnonactive') ? '1' : '0';
         $validated['fupdatedby'] = auth('sysuser')->user()->fname ?? null; // Use the authenticated user's name or 'system' as default
         $validated['fupdatedat'] = now(); // Use the current time
 
