@@ -14,7 +14,7 @@
             {{-- ─── CARD 1: Identitas Gudang ────────────────────── --}}
             <div class="bg-white border border-gray-200 rounded-xl mb-3 overflow-hidden">
                 <div class="px-4 pt-3 pb-0">
-                    <p class="text-xs font-medium uppercase tracking-wide text-gray-400">Identitas Gudang</p>
+                    <p class="text-xs font-bold uppercase tracking-wide text-gray-400">Identitas Gudang</p>
                 </div>
                 <div class="p-4 space-y-3">
 
@@ -89,7 +89,7 @@
             <div class="bg-white border border-gray-200 rounded-xl mb-3 overflow-hidden"
                 x-data="{ active: {{ old('fnonactive', $gudang->fnonactive) == '1' ? 'false' : 'true' }} }">
                 <div class="px-4 pt-3 pb-0">
-                    <p class="text-xs font-medium uppercase tracking-wide text-gray-400">Status</p>
+                    <p class="text-xs font-bold uppercase tracking-wide text-gray-400">Status</p>
                 </div>
                 <div class="p-4 space-y-4">
 

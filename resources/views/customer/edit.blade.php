@@ -22,7 +22,7 @@
             {{-- ─── CARD 1: Identitas Customer ────────────────────────── --}}
             <div class="bg-white border border-gray-200 rounded-xl mb-3 overflow-hidden" x-data="{ autoCode: {{ old('fcustomercode', $customer->fcustomercode) ? 'true' : 'false' }} }">
                 <div class="px-4 pt-3 pb-0">
-                    <p class="text-xs font-medium uppercase tracking-wide text-gray-400">Identitas Customer</p>
+                    <p class="text-xs font-bold uppercase tracking-wide text-gray-400">Identitas Customer</p>
                 </div>
                 <div class="p-4 space-y-3">
 
@@ -123,7 +123,7 @@
             {{-- ─── CARD 2: Perpajakan & Identitas ────────────────────── --}}
             <div class="bg-white border border-gray-200 rounded-xl mb-3 overflow-hidden">
                 <div class="px-4 pt-3 pb-0">
-                    <p class="text-xs font-medium uppercase tracking-wide text-gray-400">Perpajakan & Identitas</p>
+                    <p class="text-xs font-bold uppercase tracking-wide text-gray-400">Perpajakan & Identitas</p>
                 </div>
                 <div class="p-4 space-y-3">
 
@@ -168,7 +168,7 @@
             {{-- ─── CARD 3: Kontak & Alamat ─────────────────────────── --}}
             <div class="bg-white border border-gray-200 rounded-xl mb-3 overflow-hidden">
                 <div class="px-4 pt-3 pb-0">
-                    <p class="text-xs font-medium uppercase tracking-wide text-gray-400">Kontak & Alamat</p>
+                    <p class="text-xs font-bold uppercase tracking-wide text-gray-400">Kontak & Alamat</p>
                 </div>
                 <div class="p-4 space-y-3">
 
@@ -283,7 +283,7 @@
             {{-- ─── CARD 4: Kredit & Pembayaran ──────────────────────── --}}
             <div class="bg-white border border-gray-200 rounded-xl mb-3 overflow-hidden">
                 <div class="px-4 pt-3 pb-0">
-                    <p class="text-xs font-medium uppercase tracking-wide text-gray-400">Kredit & Pembayaran</p>
+                    <p class="text-xs font-bold uppercase tracking-wide text-gray-400">Kredit & Pembayaran</p>
                 </div>
                 <div class="p-4 space-y-3">
 
@@ -369,7 +369,7 @@
             {{-- ─── CARD 5: Memo & Status ───────────────────────────── --}}
             <div class="bg-white border border-gray-200 rounded-xl mb-3 overflow-hidden">
                 <div class="px-4 pt-3 pb-0">
-                    <p class="text-xs font-medium uppercase tracking-wide text-gray-400">Memo & Status</p>
+                    <p class="text-xs font-bold uppercase tracking-wide text-gray-400">Memo & Status</p>
                 </div>
                 <div class="p-4 space-y-4">
 
