@@ -73,7 +73,7 @@ class MerekController extends Controller
         $validated['fcreatedby'] = auth('sysuser')->user()->fname ?? null;
         $validated['fcreatedat'] = now();
 
-        $validated['fnonactive'] = $request->input('fnonactive', 0) == 1 ? '1' : '0';
+        $validated['fnonactive'] = $request->boolean('fnonactive') ? '1' : '0';
 
         $merek = Merek::create($validated);
 
@@ -142,7 +142,7 @@ class MerekController extends Controller
         $validated['fmerekcode'] = strtoupper($validated['fmerekcode']);
         $validated['fmerekname'] = strtoupper($validated['fmerekname']);
 
-        $validated['fnonactive'] = $request->has('fnonactive') ? '1' : '0';
+        $validated['fnonactive'] = $request->boolean('fnonactive') ? '1' : '0';
         $validated['fupdatedby'] = auth('sysuser')->user()->fname ?? null;
         $validated['fupdatedat'] = now();
 

@@ -96,7 +96,7 @@ class WhController extends Controller
         $validated['fcreatedby'] = auth('sysuser')->user()->fname ?? null; // Use the authenticated user's name or 'system' as default
         $validated['fcreatedat'] = now();
 
-        $validated['fnonactive'] = $request->has('fnonactive') ? '1' : '0';
+        $validated['fnonactive'] = $request->boolean('fnonactive') ? '1' : '0';
 
         Wh::create($validated);
 
@@ -186,7 +186,7 @@ class WhController extends Controller
         $validated['fwhcode'] = strtoupper($validated['fwhcode']);
         $validated['fwhname'] = strtoupper($validated['fwhname']);
 
-        $validated['fnonactive'] = $request->has('fnonactive') ? '1' : '0';
+        $validated['fnonactive'] = $request->boolean('fnonactive') ? '1' : '0';
         $validated['fupdatedby'] = auth('sysuser')->user()->fname ?? null; // Use the authenticated user's name or 'system' as default
         $validated['fupdatedat'] = now(); // Use the current time
 

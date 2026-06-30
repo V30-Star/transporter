@@ -70,7 +70,7 @@ class WilayahController extends Controller
         $validated['fcreatedby'] = auth('sysuser')->user()->fname ?? null;
         $validated['fcreatedat'] = now();
 
-        $validated['fnonactive'] = $request->has('fnonactive') ? '1' : '0';
+        $validated['fnonactive'] = $request->boolean('fnonactive') ? '1' : '0';
 
         Wilayah::create($validated);
 
@@ -134,7 +134,7 @@ class WilayahController extends Controller
         $validated['fwilayahcode'] = strtoupper($validated['fwilayahcode']);
         $validated['fwilayahname'] = strtoupper($validated['fwilayahname']);
 
-        $validated['fnonactive'] = $request->has('fnonactive') ? '1' : '0';
+        $validated['fnonactive'] = $request->boolean('fnonactive') ? '1' : '0';
         $validated['fupdatedby'] = auth('sysuser')->user()->fname ?? null;
         $validated['fupdatedat'] = now();
 

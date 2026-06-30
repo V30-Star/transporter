@@ -3,41 +3,72 @@
 @section('title', 'View Rekening')
 
 @section('content')
+<div>
 
-    <div class="bg-white rounded shadow p-6 md:p-8 max-w-[1800px] w-full mx-auto">
-        <div class="space-y-4">
-            <div>
-                <label class="block text-sm font-bold">Nama Rekening</label>
-                <textarea name="frekeningname" rows="6" readonly
-                    class="w-full border rounded px-3 py-2 bg-gray-100 uppercase @error('frekeningname') border-red-500 @enderror">{{ old('frekeningname', $rekening->frekeningname) }}</textarea>
-                @error('frekeningname')
-                    <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
-                @enderror
+    <div class="max-w-4xl mx-auto py-8 px-6">
+
+        {{-- ─── CARD 1: Identitas Rekening ───────────────────────── --}}
+        <div class="bg-white border border-gray-200 rounded-xl mb-3 overflow-hidden">
+            <div class="px-4 pt-3 pb-0">
+                <p class="text-xs font-medium uppercase tracking-wide text-gray-400">Identitas Rekening</p>
             </div>
+            <div class="p-4 space-y-3">
 
-            <div class="flex justify-center mt-4">
-                <label class="flex items-center justify-between w-40 p-3 border rounded-lg bg-gray-100 font-bold">
-                    <span class="text-sm font-medium">Non Active</span>
-                    <input type="checkbox" class="h-5 w-5 text-green-600 rounded"
-                        {{ $rekening->fnonactive == '1' ? 'checked' : '' }} disabled>
-                </label>
+                {{-- Nama Rekening --}}
+                <div>
+                    <label class="block text-xs font-medium text-gray-600 mb-1">Nama Rekening</label>
+                    <textarea id="frekeningname" rows="3" readonly
+                        class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm uppercase bg-gray-100 text-gray-500 cursor-not-allowed"
+                        placeholder="Tidak ada nama rekening">{{ $rekening->frekeningname }}</textarea>
+                </div>
+
             </div>
         </div>
 
-        <div class="mt-6 flex justify-center space-x-4">
-            <button type="button" onclick="window.location.href='{{ route('rekening.index') }}'"
-                class="bg-gray-500 text-white px-6 py-2 rounded hover:bg-gray-600 flex items-center">
-                <x-heroicon-o-arrow-left class="w-5 h-5 mr-2" />
-                Kembali
-            </button>
-        </div>
-    @endsection
+        {{-- ─── CARD 2: Status ────────────────────────────────────── --}}
+        <div class="bg-white border border-gray-200 rounded-xl mb-3 overflow-hidden">
+            <div class="px-4 pt-3 pb-0">
+                <p class="text-xs font-medium uppercase tracking-wide text-gray-400">Status</p>
+            </div>
+            <div class="p-4 space-y-4">
 
-    <style>
-        hr {
-            border: 0;
-            border-top: 2px dashed #000000;
-            margin-top: 20px;
-            margin-bottom: 20px;
-        }
-    </style>
+                {{-- Status Aktif --}}
+                <div>
+                    <div class="flex items-center justify-between p-3 border border-gray-200 rounded-lg bg-gray-50 cursor-not-allowed">
+                        <div>
+                            <p class="text-sm text-gray-800">Rekening aktif</p>
+                            <p class="text-xs text-gray-400 mt-0.5">Non-aktif menyembunyikan rekening dari transaksi baru</p>
+                        </div>
+                        <div class="relative w-9 h-5 rounded-full duration-200 flex-shrink-0 cursor-not-allowed {{ $rekening->fnonactive == '0' ? 'bg-blue-500/60' : 'bg-gray-200' }}">
+                            <div class="absolute w-3.5 h-3.5 bg-white rounded-full top-0.5 transition-transform duration-200 {{ $rekening->fnonactive == '0' ? 'translate-x-4 left-0.5' : 'left-0.5' }}"></div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+            {{-- Footer Buttons --}}
+            <div class="flex items-center justify-between px-4 py-3 bg-gray-50 border-t border-gray-200">
+                <button type="button"
+                    onclick="window.location.href='{{ route('rekening.index') }}'"
+                    class="inline-flex items-center gap-2 px-4 py-2 border border-gray-300 bg-white text-gray-600 text-sm font-medium rounded-lg hover:bg-gray-50 hover:border-gray-400 transition-colors">
+                    <x-heroicon-o-arrow-left class="w-4 h-4" />
+                    Kembali
+                </button>
+            </div>
+        </div>
+
+        {{-- FOOTER INFO --}}
+        @php
+            $lastUpdate = $rekening->fupdatedat ?: $rekening->fcreatedat;
+            $updatedBy = $rekening->fupdatedby ?: ($rekening->fcreatedby ?: '—');
+        @endphp
+        <div class="mt-4 px-4 flex justify-between items-center text-xs text-gray-400">
+            <span>Terakhir diupdate oleh: <strong>{{ $updatedBy }}</strong></span>
+            <span>{{ $lastUpdate ? \Carbon\Carbon::parse($lastUpdate)->timezone('Asia/Jakarta')->format('d M Y, H:i:s') : '—' }}</span>
+        </div>
+
+    </div>
+
+</div>
+@endsection

@@ -64,7 +64,7 @@ class SubaccountController extends Controller
         $validated['fcreatedby'] = auth('sysuser')->user()->fname ?? null;
         $validated['fcreatedat'] = now();
 
-        $validated['fnonactive'] = $request->has('fnonactive') ? '1' : '0';
+        $validated['fnonactive'] = $request->boolean('fnonactive') ? '1' : '0';
 
         Subaccount::create($validated);
 
@@ -109,7 +109,7 @@ class SubaccountController extends Controller
         $validated['fsubaccountcode'] = strtoupper($validated['fsubaccountcode']);
         $validated['fsubaccountname'] = strtoupper($validated['fsubaccountname']);
 
-        $validated['fnonactive'] = $request->has('fnonactive') ? '1' : '0';
+        $validated['fnonactive'] = $request->boolean('fnonactive') ? '1' : '0';
         $validated['fupdatedby'] = auth('sysuser')->user()->fname ?? null;
         $validated['fupdatedat'] = now();
 

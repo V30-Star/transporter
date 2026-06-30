@@ -9,7 +9,8 @@
             $canEdit = in_array('updateSysuser', explode(',', session('user_restricted_permissions', '')));
             $canDelete = in_array('deleteSysuser', explode(',', session('user_restricted_permissions', '')));
             $canRoleAccess = in_array('roleaccess', explode(',', session('user_restricted_permissions', '')));
-            $showActionsColumn = $canEdit || $canDelete || $canRoleAccess;
+            $canView = in_array('viewSysuser', explode(',', session('user_restricted_permissions', '')));
+            $showActionsColumn = $canView || $canEdit || $canDelete || $canRoleAccess;
         @endphp
 
         <div class="flex justify-end items-center mb-4">
@@ -42,6 +43,16 @@
                         <td>{{ $sysuser->salesman_name }}</td>
                         @if ($showActionsColumn)
                             <td class="border px-2 py-1 text-right whitespace-nowrap">
+                                @if ($canView)
+                                    <a href="{{ route('sysuser.view', $sysuser->fuid) }}">
+                                        <button
+                                            class="inline-flex items-center bg-blue-600 text-white px-3 py-1.5 text-xs rounded hover:bg-blue-700">
+                                            <x-heroicon-o-eye class="w-4 h-4 mr-1" />
+                                            View
+                                        </button>
+                                    </a>
+                                @endif
+
                                 @if ($canEdit)
                                     <a href="{{ route('sysuser.edit', $sysuser->fuid) }}">
                                         <button

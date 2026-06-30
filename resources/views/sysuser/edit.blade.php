@@ -3,179 +3,185 @@
 @section('title', 'Master Wewenang User')
 
 @section('content')
-    <style>
-        input:focus,
-        select:focus,
-        textarea:focus {
-            outline: none;
-            border-color: #2563eb;
-            box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.2);
-        }
-    </style>
+<div>
 
-    <div x-data="{ open: true, selected: 'surat' }">
-        <div class="bg-white rounded shadow p-6 md:p-8 max-w-[1800px] w-full mx-auto">
-            <form action="{{ route('sysuser.update', $sysuser->fuid) }}" method="POST" data-form-draft="true"
-                data-draft-key="sysuser:edit">
-                @csrf
-                @method('PATCH')
+    <div class="max-w-4xl mx-auto py-8 px-6">
 
-                <div class="space-y-4 mt-4">
-                    <!-- Cabang -->
-                    <div>
-                        <label class="block text-sm font-medium">Cabang</label>
-                        <select name="fcabang"
-                            class="w-full border rounded px-3 py-2 @error('fcabang') border-red-500 @enderror" required>
-                            <option value="HQ">Cabang HQ</option>
-                            @foreach ($cabangs as $c)
-                                <option value="{{ $c->fcabangkode }}"
-                                    {{ old('fcabang', $sysuser->fcabang) == $c->fcabangkode ? 'selected' : '' }}>
-                                    {{ $c->fcabangkode }} - {{ $c->fcabangname }}
-                                </option>
-                            @endforeach
-                        </select>
-                        @error('fcabang')
-                            <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
-                        @enderror
-                    </div>
+        <form action="{{ route('sysuser.update', $sysuser->fuid) }}" method="POST" data-form-draft="true" data-draft-key="sysuser:edit">
+            @csrf
+            @method('PATCH')
 
-                    <!-- Nama Lengkap -->
-                    <div>
-                        <label class="block text-sm font-medium">Nama Lengkap</label>
-                        <input type="text" name="fname" value="{{ old('fname', $sysuser->fname) }}"
-                            class="w-full border rounded px-3 py-2 uppercase @error('fname') border-red-500 @enderror"
-                            autofocus>
-                        @error('fname')
-                            <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
-                        @enderror
-                    </div>
+            {{-- ─── CARD 1: Identitas User ────────────────────── --}}
+            <div class="bg-white border border-gray-200 rounded-xl mb-3 overflow-hidden">
+                <div class="px-4 pt-3 pb-0">
+                    <p class="text-xs font-medium uppercase tracking-wide text-gray-400">Identitas User</p>
+                </div>
+                <div class="p-4 space-y-3">
 
-                    <!-- User Name / Login -->
-                    <div>
-                        <label class="block text-sm font-medium">User Name / Login</label>
-                        <input type="text" name="fsysuserid" value="{{ old('fsysuserid', $sysuser->fsysuserid) }}"
-                            class="w-full border rounded px-3 py-2 uppercase @error('fsysuserid') border-red-500 @enderror">
-                        @error('fsysuserid')
-                            <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
-                        @enderror
-                    </div>
-
-                    <!-- Password Baru -->
-                    <div>
-                        <label class="block text-sm font-medium">Password Baru</label>
-                        <input type="password" name="password" value="{{ old('password') }}"
-                            class="w-full border rounded px-3 py-2 @error('password') border-red-500 @enderror">
-                        @error('password')
-                            <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
-                        @enderror
-                    </div>
-
-                    <!-- Confirm Password -->
-                    <div>
-                        <label class="block text-sm font-medium">Confirm Password</label>
-                        <input type="password" name="password_confirmation" value="{{ old('password_confirmation') }}"
-                            class="w-full border rounded px-3 py-2 @error('password_confirmation') border-red-500 @enderror">
-                        @error('password_confirmation')
-                            <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
-                        @enderror
-                    </div>
-
-                    <div x-data="{
-                        // Inisialisasi: Cek apakah fsalesman memiliki nilai truthy (ID > 0 atau tidak null)
-                        // Jika fsalesman null, 0, atau undefined, dianggap false (tidak dicentang)
-                        salesman: {{ ($sysuser->fsalesman && $sysuser->fsalesman != 0) || old('fsalesman', null) ? 'true' : 'false' }}
-                    }">
-
-                        {{-- Checkbox untuk mengaktifkan field --}}
-                        <label class="flex items-center space-x-2">
-                            <input type="checkbox" x-model="salesman" class="rounded text-blue-600">
-                            <span class="text-sm font-medium">Salesman</span>
-                        </label>
-
-                        {{-- 1. Blok Field Salesman (Muncul jika checkbox dicentang) --}}
-                        <div x-show="salesman" x-transition>
-                            <label class="block text-sm font-medium">Salesman Level</label>
-
-                            <select name="fsalesman"
-                                class="w-full border rounded px-3 py-2 @error('fsalesman') border-red-500 @enderror"
-                                id="salesmanSelect" x-bind:disabled="!salesman">
-                                <option value="">-- Pilih Salesman --</option>
-                                @foreach ($salesman as $salesmans)
-                                    <option value="{{ $salesmans->fsalesmanid }}"
-                                        {{ old('fsalesman', $sysuser->fsalesman) == $salesmans->fsalesmanid ? 'selected' : '' }}>
-                                        {{ $salesmans->fsalesmancode }}
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                        {{-- Cabang --}}
+                        <div>
+                            <label class="block text-xs font-medium text-gray-600 mb-1">
+                                Cabang <span class="text-red-500">*</span>
+                            </label>
+                            <select name="fcabang" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 @error('fcabang') border-red-400 @enderror" required>
+                                <option value="HQ">Cabang HQ</option>
+                                @foreach ($cabangs as $c)
+                                    <option value="{{ $c->fcabangkode }}" {{ old('fcabang', $sysuser->fcabang) == $c->fcabangkode ? 'selected' : '' }}>
+                                        {{ $c->fcabangkode }} - {{ $c->fcabangname }}
                                     </option>
                                 @endforeach
                             </select>
-
-                            @error('fsalesman')
-                                <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+                            @error('fcabang')
+                                <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
                             @enderror
                         </div>
 
-                        {{-- 2. Hidden Input untuk Nilai Default (TERKIRIM HANYA JIKA CHECKBOX TIDAK DICENTANG) --}}
-                        {{-- Jika checkbox TIDAK dicentang (salesman=false), input ini aktif dan mengirim 0 (atau null) --}}
-                        <input type="hidden" name="fsalesman" value="0" x-bind:disabled="salesman">
+                        {{-- Nama Lengkap --}}
+                        <div>
+                            <label class="block text-xs font-medium text-gray-600 mb-1">
+                                Nama Lengkap <span class="text-red-500">*</span>
+                            </label>
+                            <input type="text" name="fname" value="{{ old('fname', $sysuser->fname) }}"
+                                class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm uppercase focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 @error('fname') border-red-400 @enderror"
+                                placeholder="Masukkan Nama Lengkap" autofocus>
+                            @error('fname')
+                                <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                            @enderror
+                        </div>
                     </div>
 
-                    <!-- Account Level -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                        {{-- User Name / Login --}}
+                        <div>
+                            <label class="block text-xs font-medium text-gray-600 mb-1">
+                                User Name / Login <span class="text-red-500">*</span>
+                            </label>
+                            <input type="text" name="fsysuserid" value="{{ old('fsysuserid', $sysuser->fsysuserid) }}"
+                                class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm uppercase focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 @error('fsysuserid') border-red-400 @enderror"
+                                placeholder="Masukkan Username">
+                            @error('fsysuserid')
+                                <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                            @enderror
+                        </div>
+
+                        {{-- Account Level --}}
+                        <div>
+                            <label class="block text-xs font-medium text-gray-600 mb-1">
+                                Account Level <span class="text-red-500">*</span>
+                            </label>
+                            <select name="fuserlevel" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 @error('fuserlevel') border-red-400 @enderror">
+                                <option value="User" {{ old('fuserlevel', $sysuser->fuserlevel == '2' ? 'Admin' : 'User') == 'User' ? 'selected' : '' }}>User</option>
+                                <option value="Admin" {{ old('fuserlevel', $sysuser->fuserlevel == '2' ? 'Admin' : 'User') == 'Admin' ? 'selected' : '' }}>Admin</option>
+                            </select>
+                            @error('fuserlevel')
+                                <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                            @enderror
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                        {{-- Password Baru --}}
+                        <div>
+                            <label class="block text-xs font-medium text-gray-600 mb-1">Password Baru (Kosongkan jika tidak diubah)</label>
+                            <input type="password" name="password"
+                                class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 @error('password') border-red-400 @enderror"
+                                placeholder="Masukkan Password Baru">
+                            @error('password')
+                                <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                            @enderror
+                        </div>
+
+                        {{-- Confirm Password --}}
+                        <div>
+                            <label class="block text-xs font-medium text-gray-600 mb-1">Confirm Password</label>
+                            <input type="password" name="password_confirmation"
+                                class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 @error('password_confirmation') border-red-400 @enderror"
+                                placeholder="Konfirmasi Password Baru">
+                            @error('password_confirmation')
+                                <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                            @enderror
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+            {{-- ─── CARD 2: Salesman Linkage ────────────────────── --}}
+            <div class="bg-white border border-gray-200 rounded-xl mb-3 overflow-hidden"
+                x-data="{ hasSalesman: {{ ($sysuser->fsalesman && $sysuser->fsalesman != 0) || old('fsalesman', null) ? 'true' : 'false' }} }">
+                <div class="px-4 pt-3 pb-0">
+                    <p class="text-xs font-medium uppercase tracking-wide text-gray-400">Salesman Linkage</p>
+                </div>
+                <div class="p-4 space-y-4">
+
+                    {{-- Toggle Salesman --}}
                     <div>
-                        <label class="block text-sm font-medium">Account Level</label>
-                        <select name="fuserlevel"
-                            class="w-full border rounded px-3 py-2 @error('fuserlevel') border-red-500 @enderror">
-                            <option value="User" {{ old('fuserlevel') == 'User' ? 'selected' : '' }}>User</option>
-                            <option value="Supervisor" {{ old('fuserlevel') == 'Supervisor' ? 'selected' : '' }}>Supervisor
-                            <option value="Admin" {{ old('fuserlevel') == 'Admin' ? 'selected' : '' }}>Admin
-                            </option>
+                        <div class="flex items-center justify-between p-3 border border-gray-200 rounded-lg bg-gray-50 cursor-pointer hover:border-gray-300 transition-colors"
+                            @click="hasSalesman = !hasSalesman">
+                            <div>
+                                <p class="text-sm text-gray-800">Hubungkan ke Salesman</p>
+                                <p class="text-xs text-gray-400 mt-0.5">Aktifkan jika user ini terkait dengan data salesman tertentu</p>
+                            </div>
+                            <div class="relative w-9 h-5 rounded-full transition-colors duration-200 flex-shrink-0"
+                                :class="hasSalesman ? 'bg-blue-500' : 'bg-gray-300'">
+                                <div class="absolute w-3.5 h-3.5 bg-white rounded-full top-0.5 transition-transform duration-200"
+                                    :class="hasSalesman ? 'translate-x-4 left-0.5' : 'left-0.5'"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    {{-- Dropdown Nama Salesman --}}
+                    <div x-show="hasSalesman" x-transition>
+                        <label class="block text-xs font-medium text-gray-600 mb-1">
+                            Nama Salesman <span class="text-red-500">*</span>
+                        </label>
+                        <select name="fsalesman" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 @error('fsalesman') border-red-400 @enderror" :disabled="!hasSalesman">
+                            <option value="">-- Pilih Salesman --</option>
+                            @foreach ($salesman as $salesmans)
+                                <option value="{{ $salesmans->fsalesmanid }}" {{ old('fsalesman', $sysuser->fsalesman) == $salesmans->fsalesmanid ? 'selected' : '' }}>
+                                    {{ $salesmans->fsalesmancode }} - {{ $salesmans->fsalesmanname }}
+                                </option>
+                            @endforeach
                         </select>
-                        @error('fuserlevel')
-                            <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+                        @error('fsalesman')
+                            <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
                         @enderror
                     </div>
+
+                    <input type="hidden" name="fsalesman" value="0" :disabled="hasSalesman">
+
                 </div>
 
-                <!-- Action Buttons -->
-                <div class="mt-6 flex justify-center space-x-4">
-                    <!-- Save Button -->
-                    <button type="submit"
-                        class="bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700 flex items-center">
-                        <x-heroicon-o-check class="w-5 h-5 mr-2" />
-                        Simpan
-                    </button>
-
-                    <!-- Cancel Button -->
-                    <button type="button" onclick="window.location.href='{{ route('sysuser.index') }}'"
-                        class="bg-gray-500 text-white px-6 py-2 rounded hover:bg-gray-600 flex items-center">
-                        <x-heroicon-o-arrow-left class="w-5 h-5 mr-2" />
+                {{-- Footer Buttons --}}
+                <div class="flex items-center justify-between px-4 py-3 bg-gray-50 border-t border-gray-200">
+                    <button type="button"
+                        onclick="window.location.href='{{ route('sysuser.index') }}'"
+                        class="inline-flex items-center gap-2 px-4 py-2 border border-gray-300 bg-white text-gray-600 text-sm font-medium rounded-lg hover:bg-gray-50 hover:border-gray-400 transition-colors">
+                        <x-heroicon-o-arrow-left class="w-4 h-4" />
                         Kembali
                     </button>
+                    <button type="submit"
+                        class="inline-flex items-center gap-2 px-5 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors">
+                        <x-heroicon-o-check class="w-4 h-4" />
+                        Simpan
+                    </button>
                 </div>
-                <br>
-                <hr>
-                <br>
-                @php
-                    $lastUpdate = $sysuser->fupdatedat ?: $sysuser->fcreatedat;
-                    $isUpdated = !empty($sysuser->fupdatedat);
-                @endphp
+            </div>
 
-                <span class="text-sm text-gray-600 md:col-span-2 flex justify-between items-center">
-                    <strong>{{ auth('sysuser')->user()->fname ?? '—' }}</strong>
+        </form>
 
-                    <span class="ml-2 text-right">
-                        {{ \Carbon\Carbon::parse($lastUpdate)->timezone('Asia/Jakarta')->format('d M Y, H:i:s') }}
-                    </span>
-                </span>
-            </form>
+        {{-- FOOTER INFO --}}
+        @php
+            $lastUpdate = $sysuser->updated_at ?: $sysuser->created_at;
+            $updatedBy = $sysuser->fusercreate ?: '—';
+        @endphp
+        <div class="mt-4 px-4 flex justify-between items-center text-xs text-gray-400">
+            <span>Terakhir diupdate oleh: <strong>{{ $updatedBy }}</strong></span>
+            <span>{{ $lastUpdate ? \Carbon\Carbon::parse($lastUpdate)->timezone('Asia/Jakarta')->format('d M Y, H:i:s') : '—' }}</span>
         </div>
+
     </div>
+
+</div>
 @endsection
-
-
-<style>
-    hr {
-        border: 0;
-        border-top: 2px dashed #000000;
-        margin-top: 20px;
-        margin-bottom: 20px;
-    }
-</style>

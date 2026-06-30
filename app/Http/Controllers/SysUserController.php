@@ -41,8 +41,9 @@ class SysUserController extends Controller
         $canEdit = in_array('updateSysuser', $perms, true);
         $canDelete = in_array('deleteSysuser', $perms, true);
         $canRoleAccess = in_array('roleaccess', $perms, true);
+        $canView = in_array('viewSysuser', $perms, true);
 
-        return view('sysuser.index', compact('sysusers', 'canCreate', 'canEdit', 'canDelete', 'canRoleAccess'));
+        return view('sysuser.index', compact('sysusers', 'canCreate', 'canEdit', 'canDelete', 'canRoleAccess', 'canView'));
     }
 
     public function create()
@@ -221,5 +222,18 @@ class SysUserController extends Controller
         return redirect()
             ->route('sysuser.index')
             ->with('success', 'User berhasil dihapus.');
+    }
+
+    public function view($fuid)
+    {
+        $sysuser = Sysuser::findOrFail($fuid);
+        $salesman = Salesman::where('fnonactive', 0)->get();
+
+        $cabangs = DB::table('mscabang')
+            ->select('fcabangkode', 'fcabangname')
+            ->orderBy('fcabangkode')
+            ->get();
+
+        return view('sysuser.view', compact('sysuser', 'salesman', 'cabangs'));
     }
 }

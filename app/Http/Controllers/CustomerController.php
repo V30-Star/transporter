@@ -276,9 +276,9 @@ class CustomerController extends Controller
         $validated['fcreatedby'] = auth('sysuser')->user()->fname ?? null;
         $validated['fcreatedat'] = now();
 
-        $validated['fnonactive'] = $request->has('fnonactive') ? '1' : '0';
+        $validated['fnonactive'] = $request->boolean('fnonactive') ? '1' : '0';
 
-        $validated['fblokir'] = $request->has('fblokir') ? '1' : '0';
+        $validated['fblokir'] = $request->boolean('fblokir') ? '1' : '0';
 
         $validated['fcurrency'] = 'IDR';
 
@@ -430,7 +430,8 @@ class CustomerController extends Controller
         $validated['fupdatedby'] = auth('sysuser')->user()->fname ?? null;
         $validated['fupdatedat'] = now();
 
-        $validated['fnonactive'] = $request->has('fnonactive') ? '1' : '0';
+        $validated['fnonactive'] = $request->boolean('fnonactive') ? '1' : '0';
+        $validated['fblokir'] = $request->boolean('fblokir') ? '1' : '0';
 
         $validated['fcurrency'] = 'IDR';
         if ($isTransactionLocked) {

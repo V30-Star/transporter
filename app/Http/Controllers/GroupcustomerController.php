@@ -68,7 +68,7 @@ class GroupcustomerController extends Controller
         // Menambahkan nilai default untuk kolom yang tidak ada dalam form
         $validated['fcreatedby'] = auth('sysuser')->user()->fname ?? null; // bisa diganti dengan user yang sedang login
         $validated['fcreatedat'] = now(); // Menggunakan waktu sekarang
-        $validated['fnonactive'] = $request->has('fnonactive') ? '1' : '0';
+        $validated['fnonactive'] = $request->boolean('fnonactive') ? '1' : '0';
 
         // Menyimpan data grup customer
         Groupcustomer::create($validated);
@@ -129,7 +129,7 @@ class GroupcustomerController extends Controller
 
         $validated['fupdatedby'] = auth('sysuser')->user()->fname ?? null;
         $validated['fupdatedat'] = now(); // Menggunakan waktu sekarang
-        $validated['fnonactive'] = $request->has('fnonactive') ? '1' : '0';
+        $validated['fnonactive'] = $request->boolean('fnonactive') ? '1' : '0';
 
         $groupcustomer = Groupcustomer::findOrFail($fgroupid);
         $groupcustomer->update($validated);

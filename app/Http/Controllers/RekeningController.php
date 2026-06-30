@@ -69,7 +69,7 @@ class RekeningController extends Controller
         $validated['fcreatedby'] = auth('sysuser')->user()->fname ?? null;
         $validated['fcreatedat'] = now();
 
-        $validated['fnonactive'] = $request->has('fnonactive') ? '1' : '0';
+        $validated['fnonactive'] = $request->boolean('fnonactive') ? '1' : '0';
 
         Rekening::create($validated);
 
@@ -119,7 +119,7 @@ class RekeningController extends Controller
 
         $validated = $request->validate(
             [
-                'frekeningname' => 'required|string|string|unique:msrekening,frekeningname',
+                'frekeningname' => "required|string|unique:msrekening,frekeningname,{$frekeningid},frekeningid",
             ],
             [
                 'frekeningname.required' => 'Nama rekening wajib diisi.',
@@ -129,7 +129,7 @@ class RekeningController extends Controller
 
         $validated['frekeningname'] = strtoupper($validated['frekeningname']);
 
-        $validated['fnonactive'] = $request->has('fnonactive') ? '1' : '0';
+        $validated['fnonactive'] = $request->boolean('fnonactive') ? '1' : '0';
         $validated['frekeningcode'] = '0';
         $validated['fupdatedby'] = auth('sysuser')->user()->fname ?? null;
         $validated['fupdatedat'] = now();

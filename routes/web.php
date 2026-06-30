@@ -120,6 +120,7 @@ Route::middleware('auth')->group(function () {
         Route::post('/sysuser', [SysUserController::class, 'store'])->name('sysuser.store');
         Route::get('/sysuser/create', [SysUserController::class, 'create'])->name('sysuser.create');
         Route::get('/sysuser/{fuid}/edit', [SysUserController::class, 'edit'])->name('sysuser.edit');
+        Route::get('/sysuser/{fuid}', [SysUserController::class, 'view'])->name('sysuser.view');
         Route::get('/sysuser/{fuid}/delete', [SysUserController::class, 'delete'])->name('sysuser.delete');
         Route::patch('/sysuser/{fuid}', [SysUserController::class, 'update'])->name('sysuser.update');
         Route::delete('/sysuser/{fuid}', [SysUserController::class, 'destroy'])->name('sysuser.destroy');

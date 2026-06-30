@@ -1,236 +1,123 @@
 @extends('layouts.app')
 
-@section('title', $action === 'delete' ? 'Hapus Currency' : 'Edit Currency')
+@section('title', 'Edit Currency')
 
 @section('content')
+<div>
 
-    <div class="bg-white rounded shadow p-6 md:p-8 max-w-[1800px] w-full mx-auto">
+    <div class="max-w-4xl mx-auto py-8 px-6">
 
-        {{-- ============================================ --}}
-        {{-- MODE DELETE: VIEW ONLY + BUTTON HAPUS       --}}
-        {{-- ============================================ --}}
-        @if ($action === 'delete')
-            <div class="space-y-4">
-                <div>
-                    <label class="block text-sm font-bold">Kode Currency</label>
-                    <input disabled type="text" name="fcurrcode" value="{{ old('fcurrcode', $currency->fcurrcode) }}"
-                        class="w-full border rounded px-3 py-2 uppercase @error('fcurrcode') border-red-500 @enderror"
-                        {{ old('fcurrcode', $currency->fcurrcode) }} autofocus>
-                    @error('fcurrcode')
-                        <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
-                    @enderror
+        <form action="{{ route('currency.update', $currency->fcurrid) }}" method="POST" id="formCurrency">
+            @csrf
+            @method('PATCH')
+
+            {{-- ─── CARD 1: Identitas Currency ───────────────────────── --}}
+            <div class="bg-white border border-gray-200 rounded-xl mb-3 overflow-hidden">
+                <div class="px-4 pt-3 pb-0">
+                    <p class="text-xs font-medium uppercase tracking-wide text-gray-400">Identitas Currency</p>
                 </div>
-                <div>
-                    <label class="block text-sm font-bold">Nama Currency</label>
-                    <input type="text" name="fcurrname"
-                        class="w-full border rounded px-3 py-2 uppercase @error('fcurrname') border-red-500 @enderror"
-                        value="{{ old('fcurrname', $currency->fcurrname) }}">
-                    @error('fcurrname')
-                        <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
-                    @enderror
-                </div>
-                <div>
-                    <label class="block text-sm font-bold">Rate</label>
-                    <input disabled type="number" name="frate"
-                        class="w-full border rounded px-3 py-2 uppercase @error('frate') border-red-500 @enderror"
-                        value="{{ old('frate', $currency->frate) }}">
-                    @error('frate')
-                        <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
-                    @enderror
-                </div>
+                <div class="p-4 space-y-3">
 
-                <div class="flex justify-center mt-4">
-                    <label class="flex items-center justify-between w-40 p-3 border rounded-lg bg-gray-100 font-bold">
-                        <span class="text-sm font-medium">Non Active</span>
-                        <input type="checkbox" class="h-5 w-5 text-green-600 rounded"
-                            {{ $currency->fnonactive == '1' ? 'checked' : '' }} disabled>
-                    </label>
-                </div>
-            </div>
-
-            <div class="mt-6 flex justify-center space-x-4">
-                <button type="button" onclick="window.location.href='{{ route('currency.index') }}'"
-                    class="bg-gray-500 text-white px-6 py-2 rounded hover:bg-gray-600 flex items-center">
-                    <x-heroicon-o-arrow-left class="w-5 h-5 mr-2" />
-                    Kembali
-                </button>
-            </div>
-
-            {{-- ============================================ --}}
-            {{-- MODE EDIT: FORM EDITABLE                    --}}
-            {{-- ============================================ --}}
-        @else
-            <form action="{{ route('currency.update', $currency->fcurrid) }}" method="POST" data-form-draft="true"
-                data-draft-key="currency:edit">
-                @csrf
-                @method('PATCH')
-                <div class="space-y-4 mt-4">
-                    <!-- Currency Code -->
-                    <div>
-                        <label class="block text-sm font-bold">Kode Currency</label>
-                        <input type="text" name="fcurrcode" value="{{ old('fcurrcode', $currency->fcurrcode) }}"
-                            class="w-full border rounded px-3 py-2 uppercase @error('fcurrcode') border-red-500 @enderror"
-                            {{ old('fcurrcode', $currency->fcurrcode) }} autofocus>
-                        @error('fcurrcode')
-                            <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
-                        @enderror
+                    {{-- Kode & Nama Currency (2 kolom) --}}
+                    <div class="grid grid-cols-2 gap-3">
+                        <div>
+                            <label class="block text-xs font-medium text-gray-600 mb-1">
+                                Kode Currency <span class="text-red-500">*</span>
+                            </label>
+                            <input type="text" name="fcurrcode" id="fcurrcode"
+                                value="{{ old('fcurrcode', $currency->fcurrcode) }}"
+                                class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm uppercase focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 @error('fcurrcode') border-red-400 @enderror"
+                                maxlength="10" placeholder="cth. USD" autofocus>
+                            @error('fcurrcode')
+                                <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                            @enderror
+                        </div>
+                        <div>
+                            <label class="block text-xs font-medium text-gray-600 mb-1">
+                                Nama Currency <span class="text-red-500">*</span>
+                            </label>
+                            <input type="text" name="fcurrname" id="fcurrname"
+                                value="{{ old('fcurrname', $currency->fcurrname) }}"
+                                class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm uppercase focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 @error('fcurrname') border-red-400 @enderror"
+                                maxlength="50" placeholder="cth. US DOLLAR">
+                            @error('fcurrname')
+                                <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                            @enderror
+                        </div>
                     </div>
 
-                    <!-- Currency Name -->
+                    {{-- Rate --}}
                     <div>
-                        <label class="block text-sm font-bold">Nama Currency</label>
-                        <input type="text" name="fcurrname"
-                            class="w-full border rounded px-3 py-2 uppercase @error('fcurrname') border-red-500 @enderror"
-                            value="{{ old('fcurrname', $currency->fcurrname) }}">
-                        @error('fcurrname')
-                            <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
-                        @enderror
-                    </div>
-                    <div>
-                        <label class="block text-sm font-bold">Rate</label>
-                        <input type="number" name="frate"
-                            class="w-full border rounded px-3 py-2 uppercase @error('frate') border-red-500 @enderror"
-                            value="{{ old('frate', $currency->frate) }}">
-                        @error('frate')
-                            <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
-                        @enderror
-                    </div>
-                    <br>
-                    <div class="flex justify-center mt-4">
-                        <label for="statusToggle"
-                            class="flex items-center justify-between w-40 p-3 border rounded-lg cursor-pointer hover:bg-gray-50 transition">
-                            <span class="text-sm font-medium">Non Aktif</span>
-                            <input type="checkbox" name="fnonactive" id="statusToggle"
-                                class="h-5 w-5 text-green-600 rounded focus:ring-green-500"
-                                {{ old('fnonactive', $currency->fnonactive) == '1' ? 'checked' : '' }}>
+                        <label class="block text-xs font-medium text-gray-600 mb-1">
+                            Rate <span class="text-red-500">*</span>
                         </label>
+                        <input type="number" step="any" name="frate" id="frate"
+                            value="{{ old('frate', $currency->frate) }}"
+                            class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 @error('frate') border-red-400 @enderror"
+                            placeholder="cth. 15000">
+                        @error('frate')
+                            <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                        @enderror
                     </div>
-                </div>
-                <br>
-                <!-- Action Buttons -->
-                <div class="mt-6 flex justify-center space-x-4">
-                    <!-- Save Button -->
-                    <button type="submit"
-                        class="bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700 flex items-center">
-                        <x-heroicon-o-check class="w-5 h-5 mr-2" />
-                        Simpan
-                    </button>
 
-                    <!-- Back Button -->
-                    <button type="button" onclick="window.location.href='{{ route('currency.index') }}'"
-                        class="bg-gray-500 text-white px-6 py-2 rounded hover:bg-gray-600 flex items-center">
-                        <x-heroicon-o-arrow-left class="w-5 h-5 mr-2" />
+                </div>
+            </div>
+
+            {{-- ─── CARD 2: Status ────────────────────────────────────── --}}
+            <div class="bg-white border border-gray-200 rounded-xl mb-3 overflow-hidden">
+                <div class="px-4 pt-3 pb-0">
+                    <p class="text-xs font-medium uppercase tracking-wide text-gray-400">Status</p>
+                </div>
+                <div class="p-4 space-y-4">
+
+                    {{-- Status Aktif --}}
+                    <div x-data="{ active: {{ old('fnonactive', $currency->fnonactive) == '1' ? 'false' : 'true' }} }">
+                        <div class="flex items-center justify-between p-3 border border-gray-200 rounded-lg bg-gray-50 cursor-pointer hover:border-gray-300 transition-colors"
+                            @click="active = !active; $el.closest('[x-data]').querySelector('input[name=fnonactive]').value = active ? '0' : '1'">
+                            <div>
+                                <p class="text-sm text-gray-800">Currency aktif</p>
+                                <p class="text-xs text-gray-400 mt-0.5">Non-aktif menyembunyikan currency dari transaksi baru</p>
+                            </div>
+                            <div class="relative w-9 h-5 rounded-full transition-colors duration-200 flex-shrink-0"
+                                :class="active ? 'bg-blue-500' : 'bg-gray-300'">
+                                <div class="absolute w-3.5 h-3.5 bg-white rounded-full top-0.5 transition-transform duration-200"
+                                    :class="active ? 'translate-x-4 left-0.5' : 'left-0.5'"></div>
+                            </div>
+                        </div>
+                        <input type="hidden" name="fnonactive" :value="active ? '0' : '1'">
+                    </div>
+
+                </div>
+
+                {{-- Footer Buttons --}}
+                <div class="flex items-center justify-between px-4 py-3 bg-gray-50 border-t border-gray-200">
+                    <button type="button"
+                        onclick="window.location.href='{{ route('currency.index') }}'"
+                        class="inline-flex items-center gap-2 px-4 py-2 border border-gray-300 bg-white text-gray-600 text-sm font-medium rounded-lg hover:bg-gray-50 hover:border-gray-400 transition-colors">
+                        <x-heroicon-o-arrow-left class="w-4 h-4" />
                         Kembali
                     </button>
+                    <button type="submit"
+                        class="inline-flex items-center gap-2 px-5 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors">
+                        <x-heroicon-o-check class="w-4 h-4" />
+                        Simpan
+                    </button>
                 </div>
-                @php
-                    $lastUpdate = $currency->fupdatedat ?: $currency->fcreatedat;
-                    $isUpdated = !empty($currency->fupdatedat);
-                @endphp
-            </form>
-        @endif
-        <br>
-        <hr><br>
-        <span class="text-sm text-gray-600 flex justify-between items-center">
-            <strong>{{ auth('sysuser')->user()->fname ?? '—' }}</strong>
-            <span>{{ \Carbon\Carbon::parse($currency->fupdatedat ?: $currency->fcreatedat)->timezone('Asia/Jakarta')->format('d M Y, H:i:s') }}</span>
-        </span>
-    </div>
-
-    {{-- ============================================ --}}
-    {{-- MODAL & TOAST (HANYA UNTUK MODE DELETE)     --}}
-    {{-- ============================================ --}}
-    @if ($action === 'delete')
-        {{-- Modal Delete --}}
-        <div id="deleteModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-            <div class="bg-white rounded-lg shadow-lg max-w-sm w-full p-6">
-                <h3 class="text-lg font-semibold mb-4">Konfirmasi Hapus currency ini?</h3>
-                <form id="deleteForm" action="{{ route('currency.destroy', $currency->fcurrid) }}" method="POST">
-                    @csrf
-                    @method('DELETE')
-                    <div class="flex justify-end space-x-2">
-                        <button type="button" onclick="closeDeleteModal()"
-                            class="px-4 py-2 bg-gray-300 rounded hover:bg-gray-400">
-                            Tidak
-                        </button>
-                        <button type="submit" class="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700">
-                            Ya, Hapus
-                        </button>
-                    </div>
-                </form>
             </div>
+
+        </form>
+
+        {{-- FOOTER INFO --}}
+        @php
+            $lastUpdate = $currency->fupdatedat ?: $currency->fcreatedat;
+            $updatedBy = $currency->fupdatedby ?: ($currency->fcreatedby ?: '—');
+        @endphp
+        <div class="mt-4 px-4 flex justify-between items-center text-xs text-gray-400">
+            <span>Terakhir diupdate oleh: <strong>{{ $updatedBy }}</strong></span>
+            <span>{{ $lastUpdate ? \Carbon\Carbon::parse($lastUpdate)->timezone('Asia/Jakarta')->format('d M Y, H:i:s') : '—' }}</span>
         </div>
 
-        <script>
-            function showDeleteModal() {
-                document.getElementById('deleteModal').classList.remove('hidden');
-            }
+    </div>
 
-            function closeDeleteModal() {
-                document.getElementById('deleteModal').classList.add('hidden');
-            }
-
-            function closeToast() {
-                document.getElementById('toast').classList.add('hidden');
-            }
-
-            function showToast(message, isSuccess = true) {
-                const toast = document.getElementById('toast');
-                const toastContent = document.getElementById('toastContent');
-                const toastMessage = document.getElementById('toastMessage');
-
-                toastMessage.textContent = message;
-                toastContent.className = isSuccess ?
-                    'bg-green-500 text-white px-6 py-4 rounded-lg shadow-lg flex items-center' :
-                    'bg-red-500 text-white px-6 py-4 rounded-lg shadow-lg flex items-center';
-
-                toast.classList.remove('hidden');
-            }
-
-            function confirmDelete() {
-                const btnYa = document.getElementById('btnYa');
-                const btnTidak = document.getElementById('btnTidak');
-
-                btnYa.disabled = true;
-                btnTidak.disabled = true;
-                btnYa.textContent = 'Menghapus...';
-
-                fetch('{{ route('currency.destroy', $currency->fcurrid) }}', {
-                        method: 'POST',
-                        headers: {
-                            'X-CSRF-TOKEN': '{{ csrf_token() }}',
-                            'Content-Type': 'application/json',
-                            'Accept': 'application/json'
-                        },
-                        body: JSON.stringify({
-                            _method: 'DELETE'
-                        })
-                    })
-                    .then(response => response.json())
-                    .then(data => {
-                        closeDeleteModal();
-                        showToast(data.message || 'Data berhasil dihapus.', true);
-
-                        setTimeout(() => {
-                            window.location.href = '{{ route('currency.index') }}';
-                        }, 500);
-                    })
-                    .catch(error => {
-                        btnYa.disabled = false;
-                        btnTidak.disabled = false;
-                        btnYa.textContent = 'Ya, Hapus';
-                        showToast('Terjadi kesalahan saat hapus data.', false);
-                    });
-            }
-        </script>
-    @endif
+</div>
 @endsection
-
-<style>
-    hr {
-        border: 0;
-        border-top: 2px dashed #000000;
-        margin-top: 20px;
-        margin-bottom: 20px;
-    }
-</style>

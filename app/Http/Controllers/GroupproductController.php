@@ -71,7 +71,7 @@ class GroupproductController extends Controller
         $validated['fcreatedby'] = auth('sysuser')->user()->fname ?? null;
         $validated['fcreatedat'] = now();
 
-        $validated['fnonactive'] = $request->input('fnonactive', 0) == 1 ? '1' : '0';
+        $validated['fnonactive'] = $request->boolean('fnonactive') ? '1' : '0';
 
         $group = Groupproduct::create($validated);
 
@@ -156,7 +156,7 @@ class GroupproductController extends Controller
         $validated['fgroupcode'] = strtoupper($validated['fgroupcode']);
         $validated['fgroupname'] = strtoupper($validated['fgroupname']);
 
-        $validated['fnonactive'] = $request->has('fnonactive') ? '1' : '0';
+        $validated['fnonactive'] = $request->boolean('fnonactive') ? '1' : '0';
         $validated['fupdatedby'] = auth('sysuser')->user()->fname ?? null;
         $validated['fupdatedat'] = now();
 

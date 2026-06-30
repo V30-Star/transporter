@@ -3,510 +3,382 @@
 @section('title', 'View Customer')
 
 @section('content')
+<div>
 
-    <style>
-        .switch {
-            position: relative;
-            display: inline-block;
-            width: 60px;
-            height: 34px;
-        }
+    <div class="max-w-4xl mx-auto py-8 px-6" x-data="{ selectedAlamat: 'alamatsurat' }">
 
-        .switch input {
-            opacity: 0;
-            width: 0;
-            height: 0;
-        }
+        {{-- ─── CARD 1: Identitas Customer ────────────────────────── --}}
+        <div class="bg-white border border-gray-200 rounded-xl mb-3 overflow-hidden" x-data="{ autoCode: {{ $customer->fcustomercode ? 'true' : 'false' }} }">
+            <div class="px-4 pt-3 pb-0">
+                <p class="text-xs font-medium uppercase tracking-wide text-gray-400">Identitas Customer</p>
+            </div>
+            <div class="p-4 space-y-3">
 
-        .slider {
-            position: absolute;
-            cursor: pointer;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background-color: #ccc;
-            transition: 0.4s;
-            border-radius: 34px;
-        }
-
-        .slider:before {
-            position: absolute;
-            content: "";
-            height: 26px;
-            width: 26px;
-            border-radius: 50%;
-            left: 4px;
-            bottom: 4px;
-            background-color: white;
-            transition: 0.4s;
-        }
-
-        input:checked+.slider {
-            background-color: #4CAF50;
-        }
-
-        input:checked+.slider:before {
-            transform: translateX(26px);
-        }
-
-        .slider.round {
-            border-radius: 34px;
-        }
-
-        .slider.round:before {
-            border-radius: 50%;
-        }
-    </style>
-
-    <style>
-        .invalid-feedback {
-            color: #f87171;
-            font-size: 0.875rem;
-            margin-top: 4px;
-            padding-left: 10px;
-        }
-
-        input:focus,
-        select:focus,
-        textarea:focus,
-        .select2-container--default .select2-selection--single:focus {
-            outline: none;
-            border-color: #2563eb;
-            box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.2);
-        }
-
-        .select2-container--default .select2-selection--single {
-            border: 1px solid #000000 !important;
-            border-radius: 0.375rem;
-            height: 42px;
-            padding: 0.5rem 0.75rem;
-            width: 100% !important;
-            background-color: white;
-        }
-
-        .select2-container--default .select2-selection--single .select2-selection__arrow {
-            height: 40px;
-        }
-
-        .select2-dropdown {
-            border: 1px solid #000000 !important;
-            border-radius: 0.375rem;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-        }
-
-        .select2-results__option {
-            padding: 8px 12px;
-        }
-
-        .select2-results__option--highlighted {
-            background-color: #2563eb !important;
-            color: white !important;
-        }
-
-        .select2-container--default .select2-selection--single .select2-selection__rendered {
-            color: #000000 !important;
-        }
-    </style>
-
-    <div x-data="{ showModal: false, open: true, selected: 'alamatsurat', frekening: '' }">
-        <div class="bg-white rounded shadow p-6 md:p-8 max-w-[1800px] w-full mx-auto">
-            <div class="space-y-4">
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
-                    <div x-data="{ autoCode: true }" class="flex items-center gap-4">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    {{-- Kode Customer --}}
+                    <div class="flex items-center gap-3">
                         <div class="flex-1">
-                            <label class="block text-sm font-bold">Kode Customer</label>
-                            <input type="text" name="fcustomercode" readonly
-                                class="w-full border rounded px-3 py-2 uppercase" placeholder="Masukkan Kode Customer"
-                                :disabled="autoCode"
-                                :value="autoCode ? '{{ $customer->fcustomercode }}' :
-                                    '{{ old('fcustomercode', $customer->fcustomercode) }}'"
-                                :class="autoCode ? 'bg-gray-200 cursor-not-allowed' : 'bg-white'">
+                            <label class="block text-xs font-medium text-gray-600 mb-1">
+                                Kode Customer
+                            </label>
+                            <input type="text" value="{{ $customer->fcustomercode }}"
+                                class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm uppercase bg-gray-100 text-gray-500 cursor-not-allowed border-gray-200"
+                                readonly>
                         </div>
-                        <label class="inline-flex items-center mt-6 font-bold">
-                            <input disabled type="checkbox" x-model="autoCode"
-                                class="form-checkbox text-indigo-600 uppercase"
-                                {{ old('fcustomercode', $customer->fcustomercode) ? 'checked' : '' }}>
-                            <span class="ml-2 text-sm text-gray-700">Auto</span>
+                        <label class="inline-flex items-center mt-5 font-medium text-xs text-gray-400 cursor-not-allowed">
+                            <input type="checkbox" x-model="autoCode" class="form-checkbox h-4 w-4 rounded text-blue-500/60 border-gray-300 cursor-not-allowed" disabled>
+                            <span class="ml-1.5">Auto</span>
                         </label>
                     </div>
 
+                    {{-- Nama Customer --}}
                     <div>
-                        <label class="block text-sm font-bold">Nama Customer</label>
-                        <input type="text" readonly
-                            class="w-full border rounded px-3 py-2 bg-gray-100 @error('fcustomername') is-invalid @enderror"
-                            name="fcustomername" id="fcustomername" placeholder="Masukkan Nama Customer"
-                            value="{{ old('fcustomername', $customer->fcustomername) }}" autofocus>
-                        @error('fcustomername')
-                            <div class="invalid-feedback">
-                                {{ $message }}
-                            </div>
-                        @enderror
+                        <label class="block text-xs font-medium text-gray-600 mb-1">Nama Customer</label>
+                        <input type="text" value="{{ $customer->fcustomername }}"
+                            class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm uppercase bg-gray-100 text-gray-500 cursor-not-allowed border-gray-200"
+                            readonly>
                     </div>
+                </div>
 
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    {{-- Group Customer --}}
                     <div>
-                        <label class="block text-sm font-bold">Group Customer</label>
-                        <select name="fgroup" disabled
-                            class="w-full border rounded px-3 py-2 bg-gray-100 @error('fgroup') border-red-500 @enderror"
-                            id="groupSelect">
+                        <label class="block text-xs font-medium text-gray-600 mb-1">Group Customer</label>
+                        <select name="fgroup" id="groupSelect" class="w-full bg-gray-100 text-gray-500 cursor-not-allowed" disabled>
                             <option value="">-- Pilih Group Customer --</option>
                             @foreach ($groups as $group)
-                                <option value="{{ $group->fgroupid }}"
-                                    {{ old('fgroup', $customer->fgroup) == $group->fgroupid ? 'selected' : '' }}>
+                                <option value="{{ $group->fgroupid }}" {{ $customer->fgroup == $group->fgroupid ? 'selected' : '' }}>
                                     {{ $group->fgroupname }}
                                 </option>
                             @endforeach
                         </select>
                     </div>
 
-                    <div class="grid grid-cols-2 gap-4">
-                        <div>
-                            <label class="block text-sm font-bold">Salesman</label>
-                            <select name="fsalesman" disabled
-                                class="w-full border rounded px-3 py-2 bg-gray-100 @error('fsalesman') border-red-500 @enderror"
-                                id="salesmanSelect">
-                                <option value="">-- Pilih Salesman --</option>
-                                @foreach ($salesman as $sales)
-                                    <option value="{{ $sales->fsalesmancode }}"
-                                        {{ old('fsalesman', $customer->fsalesman) == $sales->fsalesmancode ? 'selected' : '' }}>
-                                        {{ $sales->fsalesmanname }}
-                                    </option>
-                                @endforeach
-                            </select>
-                        </div>
-
-                        <div>
-                            <label class="block text-sm font-bold">Wilayah</label>
-                            <select name="fwilayah" disabled
-                                class="w-full border rounded px-3 py-2 bg-gray-100 @error('fwilayah') border-red-500 @enderror"
-                                id="wilayahSelect">
-                                <option value="">-- Pilih Wilayah --</option>
-                                @foreach ($wilayah as $wil)
-                                    <option value="{{ $wil->fwilayahid }}"
-                                        {{ old('fwilayah', $customer->fwilayah) == $wil->fwilayahid ? 'selected' : '' }}>
-                                        {{ $wil->fwilayahname }}
-                                    </option>
-                                @endforeach
-                            </select>
-                        </div>
-                    </div>
-
+                    {{-- Set Harga --}}
                     <div>
-                        <label class="block text-sm font-bold">NPWP</label>
-                        <input type="text" readonly
-                            class="w-full border rounded px-3 py-2 bg-gray-100 @error('fnpwp') is-invalid @enderror"
-                            name="fnpwp" id="fnpwp" placeholder="Masukkan NPWP"
-                            value="{{ old('fnpwp', $customer->fnpwp) }}">
-                        @error('fnpwp')
-                            <div class="invalid-feedback">
-                                {{ $message }}
-                            </div>
-                        @enderror
-                    </div>
-
-                    <div>
-                        <label class="block text-sm font-bold">No. NIK</label>
-                        <input type="text" readonly
-                            class="w-full border rounded px-3 py-2 bg-gray-100 @error('fnik') is-invalid @enderror"
-                            name="fnik" id="fnik" placeholder="Masukkan NIK"
-                            value="{{ old('fnik', $customer->fnik) }}">
-                        @error('fnik')
-                            <div class="invalid-feedback">
-                                {{ $message }}
-                            </div>
-                        @enderror
-                    </div>
-
-                    <div>
-                        <label class="block text-sm font-bold">Jadwal Tukar Faktur</label>
-                        <select name="fjadwaltukarfakturmingguan" disabled
-                            class="w-full border rounded px-3 py-2 bg-gray-100 @error('fjadwaltukarfakturmingguan') border-red-500 @enderror">
-                            <option value="1"
-                                {{ old('fjadwaltukarfakturmingguan', $customer->fjadwaltukarfakturmingguan) == '1' ? 'selected' : '' }}>
-                                Setiap Minggu</option>
-                            <option value="2"
-                                {{ old('fjadwaltukarfakturmingguan', $customer->fjadwaltukarfakturmingguan) == '2' ? 'selected' : '' }}>
-                                Minggu Ganjil</option>
-                            <option value="3"
-                                {{ old('fjadwaltukarfakturmingguan', $customer->fjadwaltukarfakturmingguan) == '3' ? 'selected' : '' }}>
-                                Minggu Genap</option>
+                        <label class="block text-xs font-medium text-gray-600 mb-1">Set Harga</label>
+                        <select name="fhargalevel" id="fhargalevel" class="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm bg-gray-100 text-gray-500 cursor-not-allowed" disabled>
+                            <option value="0" {{ $customer->fhargalevel == 0 ? 'selected' : '' }}>Harga Level 1</option>
+                            <option value="1" {{ $customer->fhargalevel == 1 ? 'selected' : '' }}>Harga Level 2</option>
+                            <option value="2" {{ $customer->fhargalevel == 2 ? 'selected' : '' }}>Harga Level 3</option>
                         </select>
-                        @error('fjadwaltukarfakturmingguan')
-                            <div class="invalid-feedback">
-                                {{ $message }}
-                            </div>
-                        @enderror
                     </div>
+                </div>
 
-                    <div class="grid grid-cols-2 gap-4">
-                        <div>
-                            <label class="block text-sm font-bold">Hari Tukar Faktur</label>
-                            <select name="fjadwaltukarfakturhari" disabled
-                                class="w-full border rounded px-3 py-2 bg-gray-100 @error('fjadwaltukarfakturhari') border-red-500 @enderror">
-                                <option value="">-- Pilih Hari --</option>
-                                <option value="1"
-                                    {{ old('fjadwaltukarfakturhari', $customer->fjadwaltukarfakturhari) == '1' ? 'selected' : '' }}>
-                                    Senin</option>
-                                <option value="2"
-                                    {{ old('fjadwaltukarfakturhari', $customer->fjadwaltukarfakturhari) == '2' ? 'selected' : '' }}>
-                                    Selasa</option>
-                                <option value="3"
-                                    {{ old('fjadwaltukarfakturhari', $customer->fjadwaltukarfakturhari) == '3' ? 'selected' : '' }}>
-                                    Rabu</option>
-                                <option value="4"
-                                    {{ old('fjadwaltukarfakturhari', $customer->fjadwaltukarfakturhari) == '4' ? 'selected' : '' }}>
-                                    Kamis</option>
-                                <option value="5"
-                                    {{ old('fjadwaltukarfakturhari', $customer->fjadwaltukarfakturhari) == '5' ? 'selected' : '' }}>
-                                    Jumat</option>
-                                <option value="6"
-                                    {{ old('fjadwaltukarfakturhari', $customer->fjadwaltukarfakturhari) == '6' ? 'selected' : '' }}>
-                                    Sabtu</option>
-                                <option value="7"
-                                    {{ old('fjadwaltukarfakturhari', $customer->fjadwaltukarfakturhari) == '7' ? 'selected' : '' }}>
-                                    Minggu</option>
-                            </select>
-                            @error('fjadwaltukarfakturhari')
-                                <div class="invalid-feedback">
-                                    {{ $message }}
-                                </div>
-                            @enderror
-                        </div>
-
-                        <div>
-                            <label class="block text-sm font-bold">Kode Faktur Pajak</label>
-                            <input type="text" readonly
-                                class="w-full border rounded px-3 py-2 bg-gray-100 @error('fkodefp') is-invalid @enderror"
-                                name="fkodefp" id="fkodefp" placeholder="010" value="{{ old('fkodefp', '010') }}"
-                                maxlength="3">
-                            @error('fkodefp')
-                                <div class="invalid-feedback">
-                                    {{ $message }}
-                                </div>
-                            @enderror
-                        </div>
-                    </div>
-
-                    <div class="md:col-span-2">
-                        <label class="block text-sm font-bold mb-2">Alamat</label>
-                        <div class="flex space-x-2 mb-4">
-                            <button type="button" @click="selected = 'alamatsurat'"
-                                :class="selected === 'alamatsurat' ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-700'"
-                                class="px-4 py-2 rounded border">Alamat Surat</button>
-                            <button type="button" @click="selected = 'alamat1'"
-                                :class="selected === 'alamat1' ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-700'"
-                                class="px-4 py-2 rounded border">Alamat Kirim</button>
-                            <button type="button" @click="selected = 'alamatpajak'"
-                                :class="selected === 'alamatpajak' ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-700'"
-                                class="px-4 py-2 rounded border">Alamat Pajak</button>
-                        </div>
-                        <div x-show="selected === 'alamatsurat'">
-                            <textarea readonly class="w-full border rounded px-3 py-2 bg-gray-100 @error('faddress') is-invalid @enderror"
-                                name="faddress" id="faddress" placeholder="Masukkan Alamat Surat" cols="10" rows="6">{{ old('faddress', $customer->faddress) }}</textarea>
-                            @error('faddress')
-                                <div class="invalid-feedback">{{ $message }}</div>
-                            @enderror
-                        </div>
-                        <div x-show="selected === 'alamat1'">
-                            <textarea readonly
-                                class="w-full border rounded px-3 py-2 bg-gray-100 mb-4 @error('fkirimaddress1') is-invalid @enderror"
-                                name="fkirimaddress1" id="fkirimaddress1" placeholder="Masukkan Alamat Kirim 1" cols="10" rows="6">{{ old('fkirimaddress1', $customer->fkirimaddress1) }}</textarea>
-                            @error('fkirimaddress1')
-                                <div class="invalid-feedback">{{ $message }}</div>
-                            @enderror
-                            <textarea readonly
-                                class="w-full border rounded px-3 py-2 bg-gray-100 mb-4 @error('fkirimaddress2') is-invalid @enderror"
-                                name="fkirimaddress2" id="fkirimaddress2" placeholder="Masukkan Alamat Kirim 2" cols="10" rows="6">{{ old('fkirimaddress2', $customer->fkirimaddress2) }}</textarea>
-                            @error('fkirimaddress2')
-                                <div class="invalid-feedback">{{ $message }}</div>
-                            @enderror
-                            <textarea readonly
-                                class="w-full border rounded px-3 py-2 bg-gray-100 mb-4 @error('fkirimaddress3') is-invalid @enderror"
-                                name="fkirimaddress3" id="fkirimaddress3" placeholder="Masukkan Alamat Kirim 3" cols="10" rows="6">{{ old('fkirimaddress3', $customer->fkirimaddress3) }}</textarea>
-                            @error('fkirimaddress3')
-                                <div class="invalid-feedback">{{ $message }}</div>
-                            @enderror
-                        </div>
-                        <div x-show="selected === 'alamatpajak'">
-                            <textarea readonly class="w-full border rounded px-3 py-2 bg-gray-100 @error('ftaxaddress') is-invalid @enderror"
-                                name="ftaxaddress" id="ftaxaddress" placeholder="Masukkan Alamat Pajak" cols="10" rows="6">{{ old('ftaxaddress', $customer->ftaxaddress) }}</textarea>
-                            @error('ftaxaddress')
-                                <div class="invalid-feedback">{{ $message }}</div>
-                            @enderror
-                        </div>
-                    </div>
-
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    {{-- Salesman --}}
                     <div>
-                        <label class="block text-sm font-bold">Telp</label>
-                        <input type="text" readonly
-                            class="w-full border rounded px-3 py-2 bg-gray-100 @error('ftelp') is-invalid @enderror"
-                            name="ftelp" id="ftelp" placeholder="Masukkan Nomor Telepon"
-                            value="{{ old('ftelp', $customer->ftelp) }}">
-                        @error('ftelp')
-                            <div class="invalid-feedback">{{ $message }}</div>
-                        @enderror
-                    </div>
-
-                    <div>
-                        <label class="block text-sm font-bold">Fax</label>
-                        <input type="number" readonly
-                            class="w-full border rounded px-3 py-2 bg-gray-100 @error('ffax') is-invalid @enderror"
-                            name="ffax" id="ffax" placeholder="Masukkan Nomor Fax"
-                            value="{{ old('ffax', $customer->ffax) }}">
-                        @error('ffax')
-                            <div class="invalid-feedback">{{ $message }}</div>
-                        @enderror
-                    </div>
-
-                    <div class="md:col-span-2">
-                        <label class="block text-sm font-bold">Email</label>
-                        <input type="email" readonly
-                            class="w-full border rounded px-3 py-2 bg-gray-100 @error('femail') is-invalid @enderror"
-                            name="femail" id="femail" placeholder="Masukkan Email"
-                            value="{{ old('femail', $customer->femail) }}">
-                        @error('femail')
-                            <div class="invalid-feedback">{{ $message }}</div>
-                        @enderror
-                    </div>
-
-                    <div>
-                        <label class="block text-sm font-bold">Jatuh Tempo (Hari)</label>
-                        <input type="number" readonly
-                            class="w-full border rounded px-3 py-2 bg-gray-100 @error('ftempo') is-invalid @enderror"
-                            name="ftempo" id="ftempo" value="{{ old('ftempo', $customer->ftempo) }}"
-                            maxlength="3">
-                        @error('ftempo')
-                            <div class="invalid-feedback">{{ $message }}</div>
-                        @enderror
-                    </div>
-
-                    <div>
-                        <label class="block text-sm font-bold">Max JT Tempo</label>
-                        <input type="number" readonly
-                            class="w-full border rounded px-3 py-2 bg-gray-100 @error('fmaxtempo') is-invalid @enderror"
-                            name="fmaxtempo" id="fmaxtempo" value="{{ old('fmaxtempo', $customer->fmaxtempo) }}">
-                        @error('fmaxtempo')
-                            <div class="invalid-feedback">{{ $message }}</div>
-                        @enderror
-                    </div>
-
-                    <div>
-                        <label class="block text-sm font-bold">Limit Piutang</label>
-                        <input type="text" readonly
-                            class="w-full border rounded px-3 py-2 bg-gray-100 @error('flimit') is-invalid @enderror"
-                            name="flimit" id="flimit" placeholder="Masukkan Limit Piutang"
-                            value="{{ old('flimit', $customer->flimit) }}">
-                        @error('flimit')
-                            <div class="invalid-feedback">{{ $message }}</div>
-                        @enderror
-                    </div>
-                    <div>
-                        <label class="block text-sm font-bold">Set Harga</label>
-                        <select disabled
-                            class="w-full border rounded px-3 py-2 bg-gray-100 @error('fhargalevel') is-invalid @enderror"
-                            name="fhargalevel" id="fhargalevel">
-                            <option value="0"
-                                {{ old('fhargalevel', $customer->fhargalevel) == 0 ? 'selected' : '' }}>Harga Level 1
-                            </option>
-                            <option value="1"
-                                {{ old('fhargalevel', $customer->fhargalevel) == 1 ? 'selected' : '' }}>Harga Level 2
-                            </option>
-                            <option value="2"
-                                {{ old('fhargalevel', $customer->fhargalevel) == 2 ? 'selected' : '' }}>Harga Level 3
-                            </option>
-                        </select>
-                        @error('fhargalevel')
-                            <div class="invalid-feedback">{{ $message }}</div>
-                        @enderror
-                    </div>
-
-                    <div>
-                        <label class="block text-sm font-bold">Kontak Person</label>
-                        <input type="number" readonly
-                            class="w-full border rounded px-3 py-2 bg-gray-100 @error('fkontakperson') is-invalid @enderror"
-                            name="fkontakperson" id="fkontakperson" placeholder="Masukkan Nama Kontak Person"
-                            value="{{ old('fkontakperson', $customer->fkontakperson) }}">
-                        @error('fkontakperson')
-                            <div class="invalid-feedback">{{ $message }}</div>
-                        @enderror
-                    </div>
-                    <div>
-                        <label class="block text-sm font-bold">Jabatan</label>
-                        <input type="text" readonly
-                            class="w-full border rounded px-3 py-2 bg-gray-100 @error('fjabatan') is-invalid @enderror"
-                            name="fjabatan" id="fjabatan" placeholder="Masukkan Jabatan"
-                            value="{{ old('fjabatan', $customer->fjabatan) }}">
-                        @error('fjabatan')
-                            <div class="invalid-feedback">{{ $message }}</div>
-                        @enderror
-                    </div>
-
-                    <div class="md:col-span-2">
-                        <label class="block text-sm font-bold">Kode Rekening</label>
-                        <select disabled
-                            class="w-full border rounded px-3 py-2 bg-gray-100 @error('frekening') is-invalid @enderror"
-                            name="frekening" id="frekening">
-                            <option value="" selected> Pilih Kode Rekening </option>
-                            @foreach ($rekening as $rek)
-                                <option value="{{ $rek->frekeningid }}"
-                                    {{ old('frekening', $customer->frekening) == $rek->frekeningid ? 'selected' : '' }}>
-                                    {{ $rek->frekeningname }}
+                        <label class="block text-xs font-medium text-gray-600 mb-1">Salesman</label>
+                        <select name="fsalesman" id="salesmanSelect" class="w-full bg-gray-100 text-gray-500 cursor-not-allowed" disabled>
+                            <option value="">-- Pilih Salesman --</option>
+                            @foreach ($salesman as $sales)
+                                <option value="{{ $sales->fsalesmancode }}" {{ $customer->fsalesman == $sales->fsalesmancode ? 'selected' : '' }}>
+                                    {{ $sales->fsalesmanname }}
                                 </option>
                             @endforeach
                         </select>
-                        @error('frekening')
-                            <div class="invalid-feedback">{{ $message }}</div>
-                        @enderror
                     </div>
 
-                    <div class="md:col-span-2">
-                        <label class="block text-sm font-bold">Memo</label>
-                        <textarea readonly class="w-full border rounded px-3 py-2 bg-gray-100 @error('fmemo') is-invalid @enderror"
-                            name="fmemo" id="fmemo" placeholder="Masukkan Memo" cols="10" rows="6">{{ old('fmemo', $customer->fmemo) }}</textarea>
-                        @error('fmemo')
-                            <div class="invalid-feedback">{{ $message }}</div>
-                        @enderror
-                    </div>
-
-                    <div class="md:col-span-2 flex flex-col items-center space-y-4">
-                        <label for="statusToggle"
-                            class="flex items-center justify-between w-40 p-3 border rounded-lg cursor-pointer hover:bg-gray-50 transition bg-gray-100">
-                            <span class="text-sm font-medium">Non Aktif</span>
-                            <input type="checkbox" name="fnonactive" id="statusToggle"
-                                class="h-5 w-5 text-green-600 rounded focus:ring-green-500"
-                                {{ old('fnonactive', $customer->fnonactive) == '1' ? 'checked' : '' }} disabled>
-                        </label>
+                    {{-- Wilayah --}}
+                    <div>
+                        <label class="block text-xs font-medium text-gray-600 mb-1">Wilayah</label>
+                        <select name="fwilayah" id="wilayahSelect" class="w-full bg-gray-100 text-gray-500 cursor-not-allowed" disabled>
+                            <option value="">-- Pilih Wilayah --</option>
+                            @foreach ($wilayah as $wil)
+                                <option value="{{ $wil->fwilayahid }}" {{ $customer->fwilayah == $wil->fwilayahid ? 'selected' : '' }}>
+                                    {{ $wil->fwilayahname }}
+                                </option>
+                            @endforeach
+                        </select>
                     </div>
                 </div>
+
+            </div>
+        </div>
+
+        {{-- ─── CARD 2: Perpajakan & Identitas ────────────────────── --}}
+        <div class="bg-white border border-gray-200 rounded-xl mb-3 overflow-hidden">
+            <div class="px-4 pt-3 pb-0">
+                <p class="text-xs font-medium uppercase tracking-wide text-gray-400">Perpajakan & Identitas</p>
+            </div>
+            <div class="p-4 space-y-3">
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    {{-- NPWP --}}
+                    <div>
+                        <label class="block text-xs font-medium text-gray-600 mb-1">NPWP</label>
+                        <input type="text" value="{{ $customer->fnpwp }}"
+                            class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm bg-gray-100 text-gray-500 cursor-not-allowed border-gray-200"
+                            readonly>
+                    </div>
+
+                    {{-- NIK --}}
+                    <div>
+                        <label class="block text-xs font-medium text-gray-600 mb-1">No. NIK</label>
+                        <input type="text" value="{{ $customer->fnik }}"
+                            class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm bg-gray-100 text-gray-500 cursor-not-allowed border-gray-200"
+                            readonly>
+                    </div>
+                </div>
+
+                {{-- Kode Faktur Pajak --}}
+                <div>
+                    <label class="block text-xs font-medium text-gray-600 mb-1">Kode Faktur Pajak</label>
+                    <input type="text" value="{{ $customer->fkodefp }}"
+                        class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm bg-gray-100 text-gray-500 cursor-not-allowed border-gray-200"
+                        readonly>
+                </div>
+
+            </div>
+        </div>
+
+        {{-- ─── CARD 3: Kontak & Alamat ─────────────────────────── --}}
+        <div class="bg-white border border-gray-200 rounded-xl mb-3 overflow-hidden">
+            <div class="px-4 pt-3 pb-0">
+                <p class="text-xs font-medium uppercase tracking-wide text-gray-400">Kontak & Alamat</p>
+            </div>
+            <div class="p-4 space-y-3">
+
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+                    {{-- Telp --}}
+                    <div>
+                        <label class="block text-xs font-medium text-gray-600 mb-1">Telp</label>
+                        <input type="text" value="{{ $customer->ftelp }}"
+                            class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm bg-gray-100 text-gray-500 cursor-not-allowed border-gray-200"
+                            readonly>
+                    </div>
+
+                    {{-- Fax --}}
+                    <div>
+                        <label class="block text-xs font-medium text-gray-600 mb-1">Fax</label>
+                        <input type="text" value="{{ $customer->ffax }}"
+                            class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm bg-gray-100 text-gray-500 cursor-not-allowed border-gray-200"
+                            readonly>
+                    </div>
+
+                    {{-- Email --}}
+                    <div>
+                        <label class="block text-xs font-medium text-gray-600 mb-1">Email</label>
+                        <input type="email" value="{{ $customer->femail }}"
+                            class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm bg-gray-100 text-gray-500 cursor-not-allowed border-gray-200"
+                            readonly>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    {{-- Kontak Person --}}
+                    <div>
+                        <label class="block text-xs font-medium text-gray-600 mb-1">Kontak Person</label>
+                        <input type="text" value="{{ $customer->fkontakperson }}"
+                            class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm bg-gray-100 text-gray-500 cursor-not-allowed border-gray-200"
+                            readonly>
+                    </div>
+
+                    {{-- Jabatan --}}
+                    <div>
+                        <label class="block text-xs font-medium text-gray-600 mb-1">Jabatan</label>
+                        <input type="text" value="{{ $customer->fjabatan }}"
+                            class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm bg-gray-100 text-gray-500 cursor-not-allowed border-gray-200"
+                            readonly>
+                    </div>
+                </div>
+
+                {{-- Alamat Tabs --}}
+                <div class="mt-4 border border-gray-200 rounded-lg p-3 bg-gray-50/50">
+                    <label class="block text-xs font-semibold text-gray-500 uppercase mb-2">Alamat Lengkap</label>
+                    <div class="flex space-x-1.5 mb-3">
+                        <button type="button" @click="selectedAlamat = 'alamatsurat'"
+                            :class="selectedAlamat === 'alamatsurat' ? 'bg-blue-600 text-white border-blue-600 shadow-sm' : 'bg-white text-gray-600 hover:bg-gray-50 border-gray-200'"
+                            class="px-3 py-1.5 rounded-lg border text-xs font-medium transition-colors">
+                            Alamat Surat
+                        </button>
+                        <button type="button" @click="selectedAlamat = 'alamatkirim'"
+                            :class="selectedAlamat === 'alamatkirim' ? 'bg-blue-600 text-white border-blue-600 shadow-sm' : 'bg-white text-gray-600 hover:bg-gray-50 border-gray-200'"
+                            class="px-3 py-1.5 rounded-lg border text-xs font-medium transition-colors">
+                            Alamat Kirim
+                        </button>
+                        <button type="button" @click="selectedAlamat = 'alamatpajak'"
+                            :class="selectedAlamat === 'alamatpajak' ? 'bg-blue-600 text-white border-blue-600 shadow-sm' : 'bg-white text-gray-600 hover:bg-gray-50 border-gray-200'"
+                            class="px-3 py-1.5 rounded-lg border text-xs font-medium transition-colors">
+                            Alamat Pajak
+                        </button>
+                    </div>
+
+                    <div x-show="selectedAlamat === 'alamatsurat'" class="space-y-2">
+                        <textarea rows="3"
+                            class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm bg-gray-100 text-gray-500 cursor-not-allowed"
+                            readonly>{{ $customer->faddress }}</textarea>
+                    </div>
+
+                    <div x-show="selectedAlamat === 'alamatkirim'" class="space-y-2">
+                        <textarea rows="2"
+                            class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm bg-gray-100 text-gray-500 cursor-not-allowed"
+                            readonly>{{ $customer->fkirimaddress1 }}</textarea>
+                        <textarea rows="2"
+                            class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm bg-gray-100 text-gray-500 cursor-not-allowed"
+                            readonly>{{ $customer->fkirimaddress2 }}</textarea>
+                        <textarea rows="2"
+                            class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm bg-gray-100 text-gray-500 cursor-not-allowed"
+                            readonly>{{ $customer->fkirimaddress3 }}</textarea>
+                    </div>
+
+                    <div x-show="selectedAlamat === 'alamatpajak'" class="space-y-2">
+                        <textarea rows="3"
+                            class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm bg-gray-100 text-gray-500 cursor-not-allowed"
+                            readonly>{{ $customer->ftaxaddress }}</textarea>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        {{-- ─── CARD 4: Kredit & Pembayaran ──────────────────────── --}}
+        <div class="bg-white border border-gray-200 rounded-xl mb-3 overflow-hidden">
+            <div class="px-4 pt-3 pb-0">
+                <p class="text-xs font-medium uppercase tracking-wide text-gray-400">Kredit & Pembayaran</p>
+            </div>
+            <div class="p-4 space-y-3">
+
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+                    {{-- Jatuh Tempo --}}
+                    <div>
+                        <label class="block text-xs font-medium text-gray-600 mb-1">Jatuh Tempo (Hari)</label>
+                        <input type="number" value="{{ $customer->ftempo }}"
+                            class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm bg-gray-100 text-gray-500 cursor-not-allowed border-gray-200"
+                            readonly>
+                    </div>
+
+                    {{-- Max JT Tempo --}}
+                    <div>
+                        <label class="block text-xs font-medium text-gray-600 mb-1">Max JT Tempo</label>
+                        <input type="number" value="{{ $customer->fmaxtempo }}"
+                            class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm bg-gray-100 text-gray-500 cursor-not-allowed border-gray-200"
+                            readonly>
+                    </div>
+
+                    {{-- Limit Piutang --}}
+                    <div>
+                        <label class="block text-xs font-medium text-gray-600 mb-1">Limit Piutang</label>
+                        <input type="text" value="{{ $customer->flimit }}"
+                            class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm bg-gray-100 text-gray-500 cursor-not-allowed border-gray-200"
+                            readonly>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    {{-- Jadwal Tukar Faktur --}}
+                    <div>
+                        <label class="block text-xs font-medium text-gray-600 mb-1">Jadwal Tukar Faktur</label>
+                        <select name="fjadwaltukarfakturmingguan" id="fjadwaltukarfakturmingguan" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm bg-gray-100 text-gray-500 cursor-not-allowed" disabled>
+                            <option value="1" {{ $customer->fjadwaltukarfakturmingguan == '1' ? 'selected' : '' }}>Setiap Minggu</option>
+                            <option value="2" {{ $customer->fjadwaltukarfakturmingguan == '2' ? 'selected' : '' }}>Minggu Ganjil</option>
+                            <option value="3" {{ $customer->fjadwaltukarfakturmingguan == '3' ? 'selected' : '' }}>Minggu Genap</option>
+                        </select>
+                    </div>
+
+                    {{-- Hari Tukar Faktur --}}
+                    <div>
+                        <label class="block text-xs font-medium text-gray-600 mb-1">Hari Tukar Faktur</label>
+                        <select name="fjadwaltukarfakturhari" id="fjadwaltukarfakturhari" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm bg-gray-100 text-gray-500 cursor-not-allowed" disabled>
+                            <option value="">-- Pilih Hari --</option>
+                            <option value="1" {{ $customer->fjadwaltukarfakturhari == '1' ? 'selected' : '' }}>Senin</option>
+                            <option value="2" {{ $customer->fjadwaltukarfakturhari == '2' ? 'selected' : '' }}>Selasa</option>
+                            <option value="3" {{ $customer->fjadwaltukarfakturhari == '3' ? 'selected' : '' }}>Rabu</option>
+                            <option value="4" {{ $customer->fjadwaltukarfakturhari == '4' ? 'selected' : '' }}>Kamis</option>
+                            <option value="5" {{ $customer->fjadwaltukarfakturhari == '5' ? 'selected' : '' }}>Jumat</option>
+                            <option value="6" {{ $customer->fjadwaltukarfakturhari == '6' ? 'selected' : '' }}>Sabtu</option>
+                            <option value="7" {{ $customer->fjadwaltukarfakturhari == '7' ? 'selected' : '' }}>Minggu</option>
+                        </select>
+                    </div>
+                </div>
+
+                {{-- Kode Rekening --}}
+                <div>
+                    <label class="block text-xs font-medium text-gray-600 mb-1">Kode Rekening</label>
+                    <select name="frekening" id="frekening" class="w-full bg-gray-100 text-gray-500 cursor-not-allowed" disabled>
+                        <option value="">Pilih Kode Rekening</option>
+                        @foreach ($rekening as $rek)
+                            <option value="{{ $rek->frekeningid }}" {{ $customer->frekening == $rek->frekeningid ? 'selected' : '' }}>
+                                {{ $rek->frekeningname }}
+                            </option>
+                        @endforeach
+                    </select>
+                </div>
+
+            </div>
+        </div>
+
+        {{-- ─── CARD 5: Memo & Status ───────────────────────────── --}}
+        <div class="bg-white border border-gray-200 rounded-xl mb-3 overflow-hidden">
+            <div class="px-4 pt-3 pb-0">
+                <p class="text-xs font-medium uppercase tracking-wide text-gray-400">Memo & Status</p>
+            </div>
+            <div class="p-4 space-y-4">
+
+                {{-- Memo --}}
+                <div>
+                    <label class="block text-xs font-medium text-gray-600 mb-1">Memo</label>
+                    <textarea rows="3"
+                        class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm bg-gray-100 text-gray-500 cursor-not-allowed"
+                        readonly>{{ $customer->fmemo }}</textarea>
+                </div>
+
+                {{-- Toggles --}}
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    {{-- Status Blokir --}}
+                    <div>
+                        <div class="flex items-center justify-between p-3 border border-gray-200 rounded-lg bg-gray-50 cursor-not-allowed">
+                            <div>
+                                <p class="text-sm text-gray-800">Blokir Customer</p>
+                                <p class="text-xs text-gray-400 mt-0.5">Mencegah customer dari membuat transaksi baru</p>
+                            </div>
+                            <div class="relative w-9 h-5 rounded-full duration-200 flex-shrink-0 cursor-not-allowed {{ $customer->fblokir == '1' ? 'bg-red-500/60' : 'bg-gray-200' }}">
+                                <div class="absolute w-3.5 h-3.5 bg-white rounded-full top-0.5 transition-transform duration-200 {{ $customer->fblokir == '1' ? 'translate-x-4 left-0.5' : 'left-0.5' }}"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    {{-- Status Aktif --}}
+                    <div>
+                        <div class="flex items-center justify-between p-3 border border-gray-200 rounded-lg bg-gray-50 cursor-not-allowed">
+                            <div>
+                                <p class="text-sm text-gray-800">Customer aktif</p>
+                                <p class="text-xs text-gray-400 mt-0.5">Non-aktif menyembunyikan customer dari daftar aktif</p>
+                            </div>
+                            <div class="relative w-9 h-5 rounded-full duration-200 flex-shrink-0 cursor-not-allowed {{ $customer->fnonactive == '0' ? 'bg-blue-500/60' : 'bg-gray-200' }}">
+                                <div class="absolute w-3.5 h-3.5 bg-white rounded-full top-0.5 transition-transform duration-200 {{ $customer->fnonactive == '0' ? 'translate-x-4 left-0.5' : 'left-0.5' }}"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
             </div>
 
-            <div class="mt-6 flex justify-center space-x-4">
-                <button type="button" onclick="window.location.href='{{ route('customer.index') }}'"
-                    class="bg-gray-500 text-white px-6 py-2 rounded hover:bg-gray-600 flex items-center">
-                    <x-heroicon-o-arrow-left class="w-5 h-5 mr-2" />
+            {{-- Footer Buttons --}}
+            <div class="flex items-center justify-between px-4 py-3 bg-gray-50 border-t border-gray-200">
+                <button type="button"
+                    onclick="window.location.href='{{ route('customer.index') }}'"
+                    class="inline-flex items-center gap-2 px-4 py-2 border border-gray-300 bg-white text-gray-600 text-sm font-medium rounded-lg hover:bg-gray-50 hover:border-gray-400 transition-colors">
+                    <x-heroicon-o-arrow-left class="w-4 h-4" />
                     Kembali
                 </button>
             </div>
-            <br>
-            <hr><br>
-            <span class="text-sm text-gray-600 flex justify-between items-center">
-                <strong>{{ auth('sysuser')->user()->fname ?? 'â€”' }}</strong>
-                <span>{{ \Carbon\Carbon::parse($customer->fupdatedat ?: $customer->fcreatedat)->timezone('Asia/Jakarta')->format('d M Y, H:i:s') }}</span>
-            </span>
         </div>
+
+        {{-- FOOTER INFO --}}
+        @php
+            $lastUpdate = $customer->fupdatedat ?: $customer->fcreatedat;
+            $updatedBy = $customer->fupdatedby ?: ($customer->fcreatedby ?: '—');
+        @endphp
+        <div class="mt-4 px-4 flex justify-between items-center text-xs text-gray-400">
+            <span>Terakhir diupdate oleh: <strong>{{ $updatedBy }}</strong></span>
+            <span>{{ $lastUpdate ? \Carbon\Carbon::parse($lastUpdate)->timezone('Asia/Jakarta')->format('d M Y, H:i:s') : '—' }}</span>
+        </div>
+
     </div>
-@endsection
 
-<style>
-    hr {
-        border: 0;
-        border-top: 2px dashed #000000;
-        margin-top: 20px;
-        margin-bottom: 20px;
-    }
-</style>
+</div>
 
-<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
 <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 
@@ -521,3 +393,4 @@
         });
     });
 </script>
+@endsection

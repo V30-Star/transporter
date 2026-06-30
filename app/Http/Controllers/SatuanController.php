@@ -74,7 +74,7 @@ class SatuanController extends Controller
         $validated['fcreatedby'] = auth('sysuser')->user()->fname ?? null;
         $validated['fcreatedat'] = now();
 
-        $validated['fnonactive'] = $request->has('fnonactive') ? '1' : '0';
+        $validated['fnonactive'] = $request->boolean('fnonactive') ? '1' : '0';
 
         // Create the new Satuan
         Satuan::create($validated);
@@ -131,7 +131,7 @@ class SatuanController extends Controller
         $validated['fsatuancode'] = strtoupper($validated['fsatuancode']);
         $validated['fsatuanname'] = strtoupper($validated['fsatuanname']);
 
-        $validated['fnonactive'] = $request->has('fnonactive') ? '1' : '0';
+        $validated['fnonactive'] = $request->boolean('fnonactive') ? '1' : '0';
 
         $validated['fupdatedby'] = auth('sysuser')->user()->fname ?? null;
         $validated['fupdatedat'] = now();

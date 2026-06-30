@@ -72,7 +72,7 @@ class CurrencyController extends Controller
         $validated['fcurrcode'] = strtoupper($request->fcurrcode);
         $validated['fcurrname'] = strtoupper($request->fcurrname);
         $validated['frate'] = $request->frate;
-        $validated['fnonactive'] = $request->has('fnonactive') ? '1' : '0';
+        $validated['fnonactive'] = $request->boolean('fnonactive') ? '1' : '0';
 
         Currency::create($validated);
 
@@ -138,7 +138,7 @@ class CurrencyController extends Controller
 
         $validated['fcurrname'] = strtoupper($validated['fcurrname']);
 
-        $validated['fnonactive'] = $request->has('fnonactive') ? '1' : '0';
+        $validated['fnonactive'] = $request->boolean('fnonactive') ? '1' : '0';
 
         $currency = Currency::findOrFail($fcurrid);
         $currency->update($validated);

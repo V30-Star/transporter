@@ -74,7 +74,7 @@ class SalesmanController extends Controller
         $validated['fcreatedby'] = auth('sysuser')->user()->fname ?? null;
         $validated['fcreatedat'] = now();
 
-        $validated['fnonactive'] = $request->has('fnonactive') ? '1' : '0';
+        $validated['fnonactive'] = $request->boolean('fnonactive') ? '1' : '0';
 
         Salesman::create($validated);
 
@@ -140,7 +140,7 @@ class SalesmanController extends Controller
         $validated['fsalesmancode'] = strtoupper($validated['fsalesmancode']);
         $validated['fsalesmanname'] = strtoupper($validated['fsalesmanname']);
 
-        $validated['fnonactive'] = $request->has('fnonactive') ? '1' : '0';
+        $validated['fnonactive'] = $request->boolean('fnonactive') ? '1' : '0';
         $validated['fupdatedby'] = auth('sysuser')->user()->fname ?? null;
         $validated['fupdatedat'] = now();
 
