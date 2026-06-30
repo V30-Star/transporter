@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'Master Supplier')
+@section('title', 'New - Master Supplier')
 
 @section('content')
     <style>
@@ -160,7 +160,6 @@
                             class="text-gray-400 hover:text-gray-600">
                             <x-heroicon-o-arrow-left class="w-5 h-5" />
                         </button>
-                        <h2 class="text-lg font-bold text-gray-800">Tambah Supplier Baru</h2>
                     </div>
 
                     <label class="flex items-center gap-2 cursor-pointer">
