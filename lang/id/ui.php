@@ -1,7 +1,7 @@
 <?php
 
 return [
-    'app_name' => 'Laravel',
+    'app_name' => 'M-Trade',
     'dashboard' => 'Dashboard',
     'settings' => 'Pengaturan',
     'logout' => 'Logout',

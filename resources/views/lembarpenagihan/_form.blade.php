@@ -4,6 +4,7 @@
     $formAction = $action === 'create' ? route('lembarpenagihan.store') : route('lembarpenagihan.update', $header->ftagihanid);
     $detailRows = $details->map(fn($d) => [
         'frefcode' => trim((string) $d->frefcode),
+        'ftrtagihanid' => trim((string) $d->ftrtagihanid),
         'frefsono' => trim((string) $d->frefsono),
         'fsodate' => $d->fsodate ? \Carbon\Carbon::parse($d->fsodate)->format('Y-m-d') : '',
         'famountbil' => (float) $d->famountbil,
@@ -87,7 +88,7 @@
             <table class="pr-detail-table min-w-full text-sm" id="tagihan-detail-table">
                 <thead class="bg-gray-100">
                     <tr class="border-b">
-                        <th class="p-2 text-left w-10">#</th>
+                        <th class="p-2 text-left w-32">No.</th>
                         <th class="p-2 text-left w-52">No.Nota</th>
                         <th class="p-2 text-left w-40">Tanggal Nota</th>
                         <th class="p-2 text-right w-36">Nilai Nota</th>
@@ -105,7 +106,7 @@
                     @endphp
                     @foreach ($detailRows as $index => $row)
                         <tr class="border-b align-middle bg-white" data-ref="{{ $row['frefsono'] }}">
-                            <td class="p-2 text-gray-500 row-number">{{ $index + 1 }}</td>
+                            <td class="p-2 text-gray-500 row-number">{{ $row['ftrtagihanid'] ?: $index + 1 }}</td>
                             <td class="p-2">
                                 <input type="text" class="w-full border rounded px-2 py-1 font-mono text-sm bg-gray-100 text-gray-600" value="{{ $row['frefsono'] }}" readonly>
                                 <input type="hidden" name="frefsono[{{ $index }}]" value="{{ $row['frefsono'] }}">
@@ -505,11 +506,12 @@
             function normalizeItem(item) {
                 const frefsono = item.frefsono || item.fsono || '';
                 const frefcode = item.frefcode || item.ftrcode || 'INV';
+                const ftrtagihanid = item.ftrtagihanid || '';
                 const fsodate = item.fsodate || item.fdate || '';
                 const famountbil = Number(item.famountbil ?? item.famountso ?? 0);
                 const fongkos = Number(item.fongkos ?? item.fongkosangkut ?? 0);
                 const famount = Number(item.famount ?? item.famountremain ?? item.famountso ?? 0);
-                return { frefsono, frefcode, fsodate, famountbil, fongkos, famount };
+                return { ftrtagihanid, frefsono, frefcode, fsodate, famountbil, fongkos, famount };
             }
 
             function renderRow(item, index) {
@@ -528,7 +530,7 @@
                 tr.className = 'border-b align-middle bg-white';
                 tr.setAttribute('data-ref', normalized.frefsono);
                 tr.innerHTML = `
-                    <td class="p-2 text-gray-500 row-number">${index + 1}</td>
+                    <td class="p-2 text-gray-500 row-number">${normalized.ftrtagihanid || (index + 1)}</td>
                     <td class="p-2">
                         <input type="text" class="w-full border rounded px-2 py-1 font-mono text-sm bg-gray-100 text-gray-600" value="${normalized.frefsono}" readonly>
                         <input type="hidden" name="frefsono[${index}]" value="${normalized.frefsono}">

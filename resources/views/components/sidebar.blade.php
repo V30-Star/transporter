@@ -27,7 +27,7 @@
     <div class="p-4 border-b border-white/10 flex items-center justify-between">
         <!-- Brand / Title -->
         <h2 class="text-xl font-semibold truncate" x-show="openSidebar" x-transition.opacity.duration.200>
-            {{ 'Laravel' }}</h2>
+            {{ 'M-Trade' }}</h2>
         <!-- Titik-tiga button -->
         <button @click="openSidebar = !openSidebar"
             class="ml-auto inline-flex items-center justify-center w-8 h-8 rounded-lg hover:bg-white/10 focus:outline-none group"
@@ -732,6 +732,14 @@
                                 class="flex items-center p-2 rounded hover:bg-gray-700">
                                 <i class="fa-solid fa-chart-line w-5 text-center flex-shrink-0 text-lg"></i>
                                 <span class="ml-3">{{ 'Listing Penjualan' }}</span>
+                            </a>
+                        </li>
+
+                        <li>
+                            <a href="{{ route('reportingrekappenjualan.index') }}"
+                                class="flex items-center p-2 rounded hover:bg-gray-700">
+                                <i class="fa-solid fa-chart-pie w-5 text-center flex-shrink-0 text-lg"></i>
+                                <span class="ml-3">{{ 'Laporan Rekap Penjualan' }}</span>
                             </a>
                         </li>
 

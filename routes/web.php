@@ -52,6 +52,7 @@ use App\Http\Controllers\ReportingPemakaianBarangController;
 use App\Http\Controllers\ReportingPenerimaanBarangController;
 use App\Http\Controllers\ReportingPrController;
 use App\Http\Controllers\ReportingProductController;
+use App\Http\Controllers\ReportingRekapPenjualanController;
 use App\Http\Controllers\ReportingSubaccountController;
 use App\Http\Controllers\ReportingSupplierController;
 use App\Http\Controllers\ReturPembelianController;
@@ -482,6 +483,7 @@ Route::middleware('auth')->group(function () {
         Route::post('/lembarpenagihan', [LembarPenagihanController::class, 'store'])->name('lembarpenagihan.store');
         Route::get('/lembarpenagihan/create', [LembarPenagihanController::class, 'create'])->name('lembarpenagihan.create');
         Route::get('/lembarpenagihan/pickable-invoices', [LembarPenagihanController::class, 'pickableInvoices'])->name('lembarpenagihan.pickable-invoices');
+        Route::get('/lembarpenagihan/pickable-returns', [LembarPenagihanController::class, 'pickableReturns'])->name('lembarpenagihan.pickable-returns');
         Route::get('/lembarpenagihan/{id}/view', [LembarPenagihanController::class, 'view'])->name('lembarpenagihan.view');
         Route::get('/lembarpenagihan/{id}/edit', [LembarPenagihanController::class, 'edit'])->name('lembarpenagihan.edit');
         Route::get('/lembarpenagihan/{id}/delete', [LembarPenagihanController::class, 'delete'])->name('lembarpenagihan.delete');
@@ -608,6 +610,9 @@ Route::middleware('auth')->group(function () {
         Route::get('/listingpenjualan', [ListingPenjualanController::class, 'index'])->name('listingpenjualan.index');
         Route::get('/listingpenjualan/print', [ListingPenjualanController::class, 'print'])->name('listingpenjualan.print');
         Route::get('/listingpenjualan/excel', [ListingPenjualanController::class, 'exportExcel'])->name('listingpenjualan.excel');
+
+        Route::get('/reportingrekappenjualan', [ReportingRekapPenjualanController::class, 'index'])->name('reportingrekappenjualan.index');
+        Route::get('/reportingrekappenjualan/print', [ReportingRekapPenjualanController::class, 'print'])->name('reportingrekappenjualan.print');
 
         Route::get('/listingsuratjalan', [ListingSuratJalanController::class, 'index'])->name('listingsuratjalan.index');
         Route::get('/listingsuratjalan/print', [ListingSuratJalanController::class, 'print'])->name('listingsuratjalan.print');
