@@ -9,7 +9,7 @@
 
         <div class="relative bg-white rounded-xl shadow-2xl max-w-lg w-full p-6 overflow-hidden">
             <div class="flex justify-between items-center border-b pb-4 mb-4">
-                <h3 class="text-xl font-bold text-gray-800">Customer Report Filter</h3>
+                <h3 class="text-xl font-bold text-gray-800">Customer Report</h3>
                 <button onclick="toggleModal(false)" class="text-gray-400 hover:text-gray-600 text-2xl font-bold">&times;</button>
             </div>
 

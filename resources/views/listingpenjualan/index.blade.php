@@ -6,7 +6,7 @@
             <div class="fixed inset-0 bg-black bg-opacity-50" onclick="toggleModal(false)"></div>
             <div class="relative bg-white rounded-xl shadow-2xl max-w-2xl w-full p-6">
                 <div class="flex justify-between items-center border-b pb-4 mb-4">
-                    <h3 class="text-xl font-bold text-gray-800">Filter Listing Penjualan</h3>
+                    <h3 class="text-xl font-bold text-gray-800">Listing Penjualan</h3>
                     <button onclick="toggleModal(false)" class="text-gray-400 hover:text-gray-600 text-2xl font-bold">&times;</button>
                 </div>
 

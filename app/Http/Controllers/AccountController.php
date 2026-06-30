@@ -330,7 +330,7 @@ class AccountController extends Controller
 
     public function browse(Request $request)
     {
-        $fend = $request->filled('fend') ? (int) $request->input('fend') : 1;
+        $fend = $request->filled('fend') ? (int) $request->input('fend') : 0;
 
         // Base query
         $query = Account::query()
