@@ -22,6 +22,7 @@ use App\Http\Controllers\ListingPenerimaanBarangController;
 use App\Http\Controllers\ListingPenerimaanKasBankController;
 use App\Http\Controllers\ListingPenjualanController;
 use App\Http\Controllers\ListingPengeluaranKasBankController;
+use App\Http\Controllers\ListingPiutangPenjualanController;
 use App\Http\Controllers\ListingPOController;
 use App\Http\Controllers\ListingPRController;
 use App\Http\Controllers\ListingReturPembelianController;
@@ -610,6 +611,9 @@ Route::middleware('auth')->group(function () {
         Route::get('/listingpenjualan', [ListingPenjualanController::class, 'index'])->name('listingpenjualan.index');
         Route::get('/listingpenjualan/print', [ListingPenjualanController::class, 'print'])->name('listingpenjualan.print');
         Route::get('/listingpenjualan/excel', [ListingPenjualanController::class, 'exportExcel'])->name('listingpenjualan.excel');
+
+        Route::get('/listingpiutangpenjualan', [ListingPiutangPenjualanController::class, 'index'])->name('listingpiutangpenjualan.index');
+        Route::get('/listingpiutangpenjualan/print', [ListingPiutangPenjualanController::class, 'print'])->name('listingpiutangpenjualan.print');
 
         Route::get('/reportingrekappenjualan', [ReportingRekapPenjualanController::class, 'index'])->name('reportingrekappenjualan.index');
         Route::get('/reportingrekappenjualan/print', [ReportingRekapPenjualanController::class, 'print'])->name('reportingrekappenjualan.print');

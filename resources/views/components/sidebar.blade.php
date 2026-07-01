@@ -736,6 +736,14 @@
                         </li>
 
                         <li>
+                            <a href="{{ route('listingpiutangpenjualan.index') }}"
+                                class="flex items-center p-2 rounded hover:bg-gray-700">
+                                <i class="fa-solid fa-file-invoice-dollar w-5 text-center flex-shrink-0 text-lg"></i>
+                                <span class="ml-3">{{ 'Listing Piutang Penjualan' }}</span>
+                            </a>
+                        </li>
+
+                        <li>
                             <a href="{{ route('reportingrekappenjualan.index') }}"
                                 class="flex items-center p-2 rounded hover:bg-gray-700">
                                 <i class="fa-solid fa-chart-pie w-5 text-center flex-shrink-0 text-lg"></i>
