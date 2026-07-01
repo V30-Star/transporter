@@ -12,7 +12,7 @@ class ReportingRekapPenjualanController extends Controller
         $branches = DB::table('mscabang')->orderBy('fcabangkode')->get();
         $salesmans = DB::table('mssalesman')->orderBy('fsalesmancode')->get();
         $groups = DB::table('ms_groupprd')->orderBy('fgroupcode')->get();
-        $mereks = DB::table('tbmaster')->where('ftblcode', 'MEREK')->orderBy('fmastercode')->get();
+        $mereks = DB::table('msmerek')->orderBy('fmerekcode')->get();
         $products = DB::table('msprd')->orderBy('fprdcode')->get(['fprdcode', 'fprdname']);
         $isAuthorized = $this->canAccessAllBranches();
         $userBranchCode = $this->getCurrentBranchCode();
@@ -36,7 +36,7 @@ class ReportingRekapPenjualanController extends Controller
     private function buildRows(Request $request, string $groupBy)
     {
         $groupCodeExpr = $groupBy === 'group' ? 'p.fgroupcode' : 'p.fmerek';
-        $groupNameExpr = $groupBy === 'group' ? 'CAST(MIN(g.fgroupname) AS VARCHAR(50))' : 'CAST(MIN(merek.fmastername) AS VARCHAR(50))';
+        $groupNameExpr = $groupBy === 'group' ? 'CAST(MIN(g.fgroupname) AS VARCHAR(50))' : 'CAST(MIN(merek.fmerekname) AS VARCHAR(50))';
         $qtyExpr = config('app.laporan_sales_satuan_besar', env('LaporanSalesSatuanBesar', '0')) === '1'
             ? 'SUM(CAST(d.fqtykecil AS NUMERIC) / NULLIF(CAST(p.fqtykecil AS NUMERIC), 0))'
             : 'SUM(d.fqtykecil)';
@@ -44,37 +44,22 @@ class ReportingRekapPenjualanController extends Controller
             ? 'CAST(MIN(p.fsatuanbesar) AS VARCHAR(10))'
             : 'CAST(MIN(p.fsatuankecil) AS VARCHAR(10))';
 
-        $invoice = DB::table('tranmt as m')
+        $query = DB::table('tranmt as m')
             ->leftJoin('trandt as d', 'm.fsono', '=', 'd.fsono')
             ->leftJoin('msprd as p', 'd.fprdcode', '=', 'p.fprdcode')
             ->leftJoin('ms_groupprd as g', 'g.fgroupcode', '=', 'p.fgroupcode')
-            ->leftJoin(DB::raw("(SELECT fmastercode, fmastername FROM tbmaster WHERE ftblcode = 'MEREK') merek"), 'p.fmerek', '=', 'merek.fmastercode')
-            ->selectRaw("'INV' AS ftype, {$groupCodeExpr} AS fmerek, {$groupNameExpr} AS fgroupname, {$qtyExpr} AS fqty, {$unitExpr} AS fsatuan, SUM((d.fsalesnet * d.fqty) - ((d.fsalesnet * d.fqty) * (COALESCE(d.fdiscpersen, 0) / 100))) AS famount, d.fprdcode, p.fprdname")
+            ->leftJoin('msmerek as merek', 'p.fmerek', '=', 'merek.fmerekcode')
+            ->selectRaw("{$groupCodeExpr} AS fmerek, {$groupNameExpr} AS fgroupname, {$qtyExpr} AS fqty, {$unitExpr} AS fsatuan, SUM(CASE WHEN m.ftrcode = 'INV' THEN (d.fsalesnet * d.fqty) - ((d.fsalesnet * d.fqty) * (COALESCE(CAST(NULLIF(d.fdisc, '') AS NUMERIC), 0) / 100)) WHEN m.ftrcode = 'REJ' THEN (d.fprice * d.fqty * -1) ELSE 0 END) AS famount, d.fprdcode, p.fprdname")
+            ->whereIn('m.ftrcode', ['INV', 'REJ'])
             ->where('m.fsodate', '>=', $request->input('date_from', now()->startOfMonth()->toDateString()))
             ->where('m.fsodate', '<=', $request->input('date_to', now()->toDateString()) . ' 23:59:59');
 
-        $this->applyCommonFilters($invoice, $request, 'm', 'd', 'p');
-        $invoice->groupByRaw("{$groupCodeExpr}, d.fprdcode, p.fprdname");
+        $this->applyCommonFilters($query, $request, 'm', 'd', 'p');
 
-        $retur = DB::table('trstockmt as m')
-            ->leftJoin('trstockdt as d', 'm.fstockmtno', '=', 'd.fstockmtno')
-            ->leftJoin('msprd as p', 'd.fprdcode', '=', 'p.fprdcode')
-            ->leftJoin('ms_groupprd as g', 'g.fgroupcode', '=', 'p.fgroupcode')
-            ->leftJoin(DB::raw("(SELECT fmastercode, fmastername FROM tbmaster WHERE ftblcode = 'MEREK') merek"), 'p.fmerek', '=', 'merek.fmastercode')
-            ->selectRaw("'REJ' AS ftype, {$groupCodeExpr} AS fmerek, {$groupNameExpr} AS fgroupname, {$qtyExpr} AS fqty, {$unitExpr} AS fsatuan, SUM((d.fprice * d.fqty * -1)) AS famount, d.fprdcode, p.fprdname")
-            ->where('m.fstockmtcode', 'REJ')
-            ->where('m.fstockmtdate', '>=', $request->input('date_from', now()->startOfMonth()->toDateString()))
-            ->where('m.fstockmtdate', '<=', $request->input('date_to', now()->toDateString()) . ' 23:59:59');
-
-        $this->applyCommonFilters($retur, $request, 'm', 'd', 'p', false);
-        $retur->groupByRaw("{$groupCodeExpr}, d.fprdcode, p.fprdname");
-
-        return DB::query()
-            ->fromSub($invoice->unionAll($retur), 'x')
-            ->selectRaw('fmerek, fgroupname, fprdcode, fprdname, SUM(fqty) as fqty, MIN(fsatuan) as fsatuan, SUM(famount) as famount')
-            ->groupBy('fmerek', 'fgroupname', 'fprdcode', 'fprdname')
+        return $query
+            ->groupByRaw("{$groupCodeExpr}, d.fprdcode, p.fprdname")
             ->orderBy('fmerek')
-            ->orderBy('fprdcode')
+            ->orderBy('d.fprdcode')
             ->get();
     }
 
