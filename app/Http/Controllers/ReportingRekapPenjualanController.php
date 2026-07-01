@@ -30,6 +30,7 @@ class ReportingRekapPenjualanController extends Controller
             'request' => $request,
             'groupBy' => $groupBy,
             'title' => 'Laporan Rekap Penjualan',
+            'user_session' => auth('sysuser')->user() ?? auth()->user(),
         ]);
     }
 
