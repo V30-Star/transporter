@@ -173,6 +173,7 @@ class InvoiceController extends Controller
     {
         return DB::table('tranmt as m')
             ->join('trandt as d', 'm.fsono', '=', 'd.fsono')
+            ->where('m.ftrcode', 'INV')
             ->whereRaw('TRIM(d.fprdcode) = ?', [$productCode])
             ->whereRaw('TRIM(m.fcustno) = ?', [$customerCode])
             ->whereRaw('TRIM(d.fsatuan) = ?', [$unit])
