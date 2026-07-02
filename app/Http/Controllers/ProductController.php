@@ -541,12 +541,14 @@ class ProductController extends Controller
         $groups = Groupproduct::where('fnonactive', 0)->get();
         $merks = Merek::where('fnonactive', 0)->get();
         $satuan = Satuan::where('fnonactive', 0)->get();
+        $enabledImageNumbers = $this->getEnabledProductImageNumbers();
 
         return view('product.view', [
             'product' => $product,
             'groups' => $groups,
             'merks' => $merks,
             'satuan' => $satuan,
+            'enabledImageNumbers' => $enabledImageNumbers,
             'approvalLockMessage' => $this->getApprovalLockMessage($product),
         ]);
     }
