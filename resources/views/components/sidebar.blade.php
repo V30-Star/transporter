@@ -752,6 +752,22 @@
                         </li>
 
                         <li>
+                            <a href="{{ route('analisaumurpiutang.index') }}"
+                                class="flex items-center p-2 rounded hover:bg-gray-700">
+                                <i class="fa-solid fa-hourglass-half w-5 text-center flex-shrink-0 text-lg"></i>
+                                <span class="ml-3">{{ 'Analisa Umur Piutang' }}</span>
+                            </a>
+                        </li>
+
+                        <li>
+                            <a href="{{ route('bukupiutang.index') }}"
+                                class="flex items-center p-2 rounded hover:bg-gray-700">
+                                <i class="fa-solid fa-book-open w-5 text-center flex-shrink-0 text-lg"></i>
+                                <span class="ml-3">{{ 'Buku Piutang' }}</span>
+                            </a>
+                        </li>
+
+                        <li>
                             <a href="{{ route('listingfakturpajakpenjualan.index') }}"
                                 class="flex items-center p-2 rounded hover:bg-gray-700">
                                 <i class="fa-solid fa-receipt w-5 text-center flex-shrink-0 text-lg"></i>
