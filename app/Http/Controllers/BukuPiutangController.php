@@ -7,7 +7,7 @@ use Illuminate\Support\Facades\DB;
 
 class BukuPiutangController extends Controller
 {
-    private const DEFAULT_PIUTANG_ACCOUNTS = ['11130', '21120'];
+    private const DEFAULT_PIUTANG_ACCOUNTS = ['11400', '11401', '21130', '21131', '11420', '11421'];
 
     public function index()
     {
@@ -72,7 +72,7 @@ class BukuPiutangController extends Controller
             ->where('m.fjurnaldate', '<=', $dateTo . ' 23:59:59')
             ->where('d.fsubaccount', '<>', '')
             ->whereIn('a.faccount', $accounts)
-            ->selectRaw("d.faccount, a.faccname, d.fsubaccount AS fsubaccoun, m.fjurnalno AS fjurnalno, m.fjurnaldate AS fjurnaltgl, TRIM(COALESCE(NULLIF(d.fjurnalref, ''), NULLIF(d.fproject, ''), NULLIF(d.frefno, ''))) AS fjurnalref, a.fnormal, d.fdk, CASE WHEN d.fdk = 'D' THEN d.famount ELSE 0 END AS famountdb, CASE WHEN d.fdk = 'K' THEN d.famount ELSE 0 END AS famountcr, CASE WHEN a.fnormal = d.fdk THEN d.famount ELSE d.famount * -1 END AS fsaldo_awal, CASE WHEN a.fnormal = d.fdk THEN '0' ELSE '1' END AS fpriority");
+            ->selectRaw("d.faccount, a.faccname, d.fsubaccount AS fsubaccoun, m.fjurnalno AS fjurnalno, m.fjurnaldate AS fjurnaltgl, TRIM(COALESCE(NULLIF(d.frefno, ''),  NULLIF(d.frefno, ''))) AS fjurnalref, a.fnormal, d.fdk, CASE WHEN d.fdk = 'D' THEN d.famount ELSE 0 END AS famountdb, CASE WHEN d.fdk = 'K' THEN d.famount ELSE 0 END AS famountcr, CASE WHEN a.fnormal = d.fdk THEN d.famount ELSE d.famount * -1 END AS fsaldo_awal, CASE WHEN a.fnormal = d.fdk THEN '0' ELSE '1' END AS fpriority");
 
         $this->applyFilters($mutasiJurnal, $request, 'm', 'd');
 
