@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\AccountController;
 use App\Http\Controllers\AdjstockController;
+use App\Http\Controllers\AnalisaUmurHutangController;
 use App\Http\Controllers\AnalisaUmurPiutangController;
 use App\Http\Controllers\BukuPiutangController;
 use App\Http\Controllers\ApprovalController;
@@ -622,6 +623,9 @@ Route::middleware('auth')->group(function () {
 
         Route::get('/analisaumurpiutang', [AnalisaUmurPiutangController::class, 'index'])->name('analisaumurpiutang.index');
         Route::get('/analisaumurpiutang/print', [AnalisaUmurPiutangController::class, 'print'])->name('analisaumurpiutang.print');
+
+        Route::get('/analisaumurhutang', [AnalisaUmurHutangController::class, 'index'])->name('analisaumurhutang.index');
+        Route::get('/analisaumurhutang/print', [AnalisaUmurHutangController::class, 'print'])->name('analisaumurhutang.print');
 
         Route::get('/bukupiutang', [BukuPiutangController::class, 'index'])->name('bukupiutang.index');
         Route::get('/bukupiutang/print', [BukuPiutangController::class, 'print'])->name('bukupiutang.print');
