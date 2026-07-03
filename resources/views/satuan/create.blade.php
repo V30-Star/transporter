@@ -12,7 +12,10 @@
 
             {{-- ─── CARD 1: Identitas Satuan ────────────────────────── --}}
             <div class="bg-white border border-gray-200 rounded-xl mb-3 overflow-hidden">
-                <div class="px-4 pt-3 pb-0">
+                <div class="flex items-center gap-2 px-4 pt-3 pb-0">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 ２h-２a２ ２ ０ ０１-２ -２z" />
+                    </svg>
                     <p class="text-xs font-bold uppercase tracking-wide text-gray-400">Identitas Satuan</p>
                 </div>
                 <div class="p-4 space-y-3">
@@ -20,7 +23,7 @@
                     {{-- Kode & Nama Satuan (2 kolom) --}}
                     <div class="grid grid-cols-2 gap-3">
                         <div>
-                            <label class="block text-xs font-medium text-gray-600 mb-1">
+                            <label class="block text-xs font-bold text-gray-600 mb-1">
                                 Kode Satuan <span class="text-red-500">*</span>
                             </label>
                             <input type="text" name="fsatuancode" id="fsatuancode"
@@ -32,7 +35,7 @@
                             @enderror
                         </div>
                         <div>
-                            <label class="block text-xs font-medium text-gray-600 mb-1">
+                            <label class="block text-xs font-bold text-gray-600 mb-1">
                                 Nama Satuan <span class="text-red-500">*</span>
                             </label>
                             <input type="text" name="fsatuanname" id="fsatuanname"
@@ -50,7 +53,10 @@
 
             {{-- ─── CARD 2: Status ────────────────────────────────────── --}}
             <div class="bg-white border border-gray-200 rounded-xl mb-3 overflow-hidden">
-                <div class="px-4 pt-3 pb-0">
+                 <div class="flex items-center gap-2 px-4 pt-3 pb-0">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                    </svg>
                     <p class="text-xs font-bold uppercase tracking-wide text-gray-400">Status</p>
                 </div>
                 <div class="p-4 space-y-4">

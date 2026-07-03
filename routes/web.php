@@ -19,6 +19,7 @@ use App\Http\Controllers\JurnalTransaksiController;
 use App\Http\Controllers\LembarPenagihanController;
 use App\Http\Controllers\ListingFakturPembelianController;
 use App\Http\Controllers\ListingFakturPajakPenjualanController;
+use App\Http\Controllers\ListingHutangDagangController;
 use App\Http\Controllers\ListingJurnalController;
 use App\Http\Controllers\ListingMutasiStokController;
 use App\Http\Controllers\ListingPenerimaanBarangController;
@@ -617,6 +618,9 @@ Route::middleware('auth')->group(function () {
 
         Route::get('/listingpiutangpenjualan', [ListingPiutangPenjualanController::class, 'index'])->name('listingpiutangpenjualan.index');
         Route::get('/listingpiutangpenjualan/print', [ListingPiutangPenjualanController::class, 'print'])->name('listingpiutangpenjualan.print');
+
+        Route::get('/listinghutangdagang', [ListingHutangDagangController::class, 'index'])->name('listinghutangdagang.index');
+        Route::get('/listinghutangdagang/print', [ListingHutangDagangController::class, 'print'])->name('listinghutangdagang.print');
 
         Route::get('/reportingrekappenjualan', [ReportingRekapPenjualanController::class, 'index'])->name('reportingrekappenjualan.index');
         Route::get('/reportingrekappenjualan/print', [ReportingRekapPenjualanController::class, 'print'])->name('reportingrekappenjualan.print');

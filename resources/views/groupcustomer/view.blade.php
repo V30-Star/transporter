@@ -9,7 +9,10 @@
 
         {{-- ─── CARD 1: Identitas Group Customer ────────────────── --}}
         <div class="bg-white border border-gray-200 rounded-xl mb-3 overflow-hidden">
-            <div class="px-4 pt-3 pb-0">
+           <div class="flex items-center gap-2 px-4 pt-3 pb-0">
+                     <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+                        </svg>
                 <p class="text-xs font-bold uppercase tracking-wide text-gray-400">Identitas Group Customer</p>
             </div>
             <div class="p-4 space-y-3">
@@ -17,13 +20,13 @@
                 {{-- Kode & Nama Group (2 kolom) --}}
                 <div class="grid grid-cols-2 gap-3">
                     <div>
-                        <label class="block text-xs font-medium text-gray-600 mb-1">Kode Group</label>
+                        <label class="block text-xs font-bold text-gray-600 mb-1">Kode Group</label>
                         <input type="text" value="{{ $groupcustomer->fgroupcode }}"
                             class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm uppercase bg-gray-100 text-gray-500 cursor-not-allowed"
                             readonly>
                     </div>
                     <div>
-                        <label class="block text-xs font-medium text-gray-600 mb-1">Nama Group</label>
+                        <label class="block text-xs font-bold text-gray-600 mb-1">Nama Group</label>
                         <input type="text" value="{{ $groupcustomer->fgroupname }}"
                             class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm uppercase bg-gray-100 text-gray-500 cursor-not-allowed"
                             readonly>
@@ -35,7 +38,10 @@
 
         {{-- ─── CARD 2: Status ────────────────────────────────────── --}}
         <div class="bg-white border border-gray-200 rounded-xl mb-3 overflow-hidden">
-            <div class="px-4 pt-3 pb-0">
+            <div class="flex items-center gap-2 px-4 pt-3 pb-0">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                    </svg>
                 <p class="text-xs font-bold uppercase tracking-wide text-gray-400">Status</p>
             </div>
             <div class="p-4 space-y-4">

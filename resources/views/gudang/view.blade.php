@@ -9,7 +9,10 @@
 
         {{-- ─── CARD 1: Identitas Gudang ────────────────────── --}}
         <div class="bg-white border border-gray-200 rounded-xl mb-3 overflow-hidden">
-            <div class="px-4 pt-3 pb-0">
+            <div class="flex items-center gap-2 px-4 pt-3 pb-0">
+                     <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+                        </svg>
                 <p class="text-xs font-bold uppercase tracking-wide text-gray-400">Identitas Gudang</p>
             </div>
             <div class="p-4 space-y-3">
@@ -17,7 +20,7 @@
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
                     {{-- Cabang --}}
                     <div>
-                        <label class="block text-xs font-medium text-gray-600 mb-1">Cabang</label>
+                        <label class="block text-xs font-bold text-gray-600 mb-1">Cabang</label>
                         <select name="fbranchcode" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm bg-gray-100 text-gray-500 cursor-not-allowed border-gray-200" disabled>
                             <option value="">Pilih Cabang</option>
                             @foreach ($cabangOptions as $cabang)
@@ -30,7 +33,7 @@
 
                     {{-- Kode Gudang --}}
                     <div>
-                        <label class="block text-xs font-medium text-gray-600 mb-1">Kode Gudang</label>
+                        <label class="block text-xs font-bold text-gray-600 mb-1">Kode Gudang</label>
                         <input type="text" value="{{ $gudang->fwhcode }}"
                             class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm uppercase bg-gray-100 text-gray-500 cursor-not-allowed border-gray-200"
                             readonly>
@@ -40,7 +43,7 @@
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
                     {{-- Nama Gudang --}}
                     <div>
-                        <label class="block text-xs font-medium text-gray-600 mb-1">Nama Gudang</label>
+                        <label class="block text-xs font-bold text-gray-600 mb-1">Nama Gudang</label>
                         <input type="text" value="{{ $gudang->fwhname }}"
                             class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm uppercase bg-gray-100 text-gray-500 cursor-not-allowed border-gray-200"
                             readonly>
@@ -48,7 +51,7 @@
 
                     {{-- Alamat --}}
                     <div>
-                        <label class="block text-xs font-medium text-gray-600 mb-1">Alamat</label>
+                        <label class="block text-xs font-bold text-gray-600 mb-1">Alamat</label>
                         <input type="text" value="{{ $gudang->faddress }}"
                             class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm bg-gray-100 text-gray-500 cursor-not-allowed border-gray-200"
                             readonly>
@@ -60,7 +63,10 @@
 
         {{-- ─── CARD 2: Status ────────────────────────────────────── --}}
         <div class="bg-white border border-gray-200 rounded-xl mb-3 overflow-hidden">
-            <div class="px-4 pt-3 pb-0">
+            <div class="flex items-center gap-2 px-4 pt-3 pb-0">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                    </svg>
                 <p class="text-xs font-bold uppercase tracking-wide text-gray-400">Status</p>
             </div>
             <div class="p-4 space-y-4">

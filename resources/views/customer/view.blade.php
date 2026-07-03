@@ -9,7 +9,10 @@
 
         {{-- ─── CARD 1: Identitas Customer ────────────────────────── --}}
         <div class="bg-white border border-gray-200 rounded-xl mb-3 overflow-hidden" x-data="{ autoCode: {{ $customer->fcustomercode ? 'true' : 'false' }} }">
-            <div class="px-4 pt-3 pb-0">
+           <div class="flex items-center gap-2 px-4 pt-3 pb-0">
+                     <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+                        </svg>
                 <p class="text-xs font-bold uppercase tracking-wide text-gray-400">Identitas Customer</p>
             </div>
             <div class="p-4 space-y-3">
@@ -18,7 +21,7 @@
                     {{-- Kode Customer --}}
                     <div class="flex items-center gap-3">
                         <div class="flex-1">
-                            <label class="block text-xs font-medium text-gray-600 mb-1">
+                            <label class="block text-xs font-bold text-gray-600 mb-1">
                                 Kode Customer
                             </label>
                             <input type="text" value="{{ $customer->fcustomercode }}"
@@ -33,7 +36,7 @@
 
                     {{-- Nama Customer --}}
                     <div>
-                        <label class="block text-xs font-medium text-gray-600 mb-1">Nama Customer</label>
+                        <label class="block text-xs font-bold text-gray-600 mb-1">Nama Customer</label>
                         <input type="text" value="{{ $customer->fcustomername }}"
                             class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm uppercase bg-gray-100 text-gray-500 cursor-not-allowed border-gray-200"
                             readonly>
@@ -43,7 +46,7 @@
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
                     {{-- Group Customer --}}
                     <div>
-                        <label class="block text-xs font-medium text-gray-600 mb-1">Group Customer</label>
+                        <label class="block text-xs font-bold text-gray-600 mb-1">Group Customer</label>
                         <select name="fgroup" id="groupSelect" class="w-full bg-gray-100 text-gray-500 cursor-not-allowed" disabled>
                             <option value="">-- Pilih Group Customer --</option>
                             @foreach ($groups as $group)
@@ -56,7 +59,7 @@
 
                     {{-- Set Harga --}}
                     <div>
-                        <label class="block text-xs font-medium text-gray-600 mb-1">Set Harga</label>
+                        <label class="block text-xs font-bold text-gray-600 mb-1">Set Harga</label>
                         <select name="fhargalevel" id="fhargalevel" class="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm bg-gray-100 text-gray-500 cursor-not-allowed" disabled>
                             <option value="0" {{ $customer->fhargalevel == 0 ? 'selected' : '' }}>Harga Level 1</option>
                             <option value="1" {{ $customer->fhargalevel == 1 ? 'selected' : '' }}>Harga Level 2</option>
@@ -68,7 +71,7 @@
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
                     {{-- Salesman --}}
                     <div>
-                        <label class="block text-xs font-medium text-gray-600 mb-1">Salesman</label>
+                        <label class="block text-xs font-bold text-gray-600 mb-1">Salesman</label>
                         <select name="fsalesman" id="salesmanSelect" class="w-full bg-gray-100 text-gray-500 cursor-not-allowed" disabled>
                             <option value="">-- Pilih Salesman --</option>
                             @foreach ($salesman as $sales)
@@ -81,7 +84,7 @@
 
                     {{-- Wilayah --}}
                     <div>
-                        <label class="block text-xs font-medium text-gray-600 mb-1">Wilayah</label>
+                        <label class="block text-xs font-bold text-gray-600 mb-1">Wilayah</label>
                         <select name="fwilayah" id="wilayahSelect" class="w-full bg-gray-100 text-gray-500 cursor-not-allowed" disabled>
                             <option value="">-- Pilih Wilayah --</option>
                             @foreach ($wilayah as $wil)
@@ -98,7 +101,10 @@
 
         {{-- ─── CARD 2: Perpajakan & Identitas ────────────────────── --}}
         <div class="bg-white border border-gray-200 rounded-xl mb-3 overflow-hidden">
-            <div class="px-4 pt-3 pb-0">
+            <div class="flex items-center gap-2 px-4 pt-3 pb-0">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V8a2 2 0 00-2-2h-5m-4 0V5a2 2 0 114 0v1m-4 0a2 2 0 014 0m-3 8a3 3 0 100-6 3 3 0 000 6zm6-3h2m-2 4h2" />
+                    </svg>
                 <p class="text-xs font-bold uppercase tracking-wide text-gray-400">Perpajakan & Identitas</p>
             </div>
             <div class="p-4 space-y-3">
@@ -106,7 +112,7 @@
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
                     {{-- NPWP --}}
                     <div>
-                        <label class="block text-xs font-medium text-gray-600 mb-1">NPWP</label>
+                        <label class="block text-xs font-bold text-gray-600 mb-1">NPWP</label>
                         <input type="text" value="{{ $customer->fnpwp }}"
                             class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm bg-gray-100 text-gray-500 cursor-not-allowed border-gray-200"
                             readonly>
@@ -114,7 +120,7 @@
 
                     {{-- NIK --}}
                     <div>
-                        <label class="block text-xs font-medium text-gray-600 mb-1">No. NIK</label>
+                        <label class="block text-xs font-bold text-gray-600 mb-1">No. NIK</label>
                         <input type="text" value="{{ $customer->fnik }}"
                             class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm bg-gray-100 text-gray-500 cursor-not-allowed border-gray-200"
                             readonly>
@@ -123,7 +129,7 @@
 
                 {{-- Kode Faktur Pajak --}}
                 <div>
-                    <label class="block text-xs font-medium text-gray-600 mb-1">Kode Faktur Pajak</label>
+                    <label class="block text-xs font-bold text-gray-600 mb-1">Kode Faktur Pajak</label>
                     <input type="text" value="{{ $customer->fkodefp }}"
                         class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm bg-gray-100 text-gray-500 cursor-not-allowed border-gray-200"
                         readonly>
@@ -134,7 +140,11 @@
 
         {{-- ─── CARD 3: Kontak & Alamat ─────────────────────────── --}}
         <div class="bg-white border border-gray-200 rounded-xl mb-3 overflow-hidden">
-            <div class="px-4 pt-3 pb-0">
+            <div class="flex items-center gap-2 px-4 pt-3 pb-0">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7v12m0 0l-4-4m4 4l4-4M3 4h18M4 4h16v12a1 1 0 01-1 1H5a1 1 0 01-1-1V4z" />
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 8h2m-2 4h2m-2 4h2" />
+                    </svg>
                 <p class="text-xs font-bold uppercase tracking-wide text-gray-400">Kontak & Alamat</p>
             </div>
             <div class="p-4 space-y-3">
@@ -142,7 +152,7 @@
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
                     {{-- Telp --}}
                     <div>
-                        <label class="block text-xs font-medium text-gray-600 mb-1">Telp</label>
+                        <label class="block text-xs font-bold text-gray-600 mb-1">Telp</label>
                         <input type="text" value="{{ $customer->ftelp }}"
                             class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm bg-gray-100 text-gray-500 cursor-not-allowed border-gray-200"
                             readonly>
@@ -150,7 +160,7 @@
 
                     {{-- Fax --}}
                     <div>
-                        <label class="block text-xs font-medium text-gray-600 mb-1">Fax</label>
+                        <label class="block text-xs font-bold text-gray-600 mb-1">Fax</label>
                         <input type="text" value="{{ $customer->ffax }}"
                             class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm bg-gray-100 text-gray-500 cursor-not-allowed border-gray-200"
                             readonly>
@@ -158,7 +168,7 @@
 
                     {{-- Email --}}
                     <div>
-                        <label class="block text-xs font-medium text-gray-600 mb-1">Email</label>
+                        <label class="block text-xs font-bold text-gray-600 mb-1">Email</label>
                         <input type="email" value="{{ $customer->femail }}"
                             class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm bg-gray-100 text-gray-500 cursor-not-allowed border-gray-200"
                             readonly>
@@ -168,7 +178,7 @@
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
                     {{-- Kontak Person --}}
                     <div>
-                        <label class="block text-xs font-medium text-gray-600 mb-1">Kontak Person</label>
+                        <label class="block text-xs font-bold text-gray-600 mb-1">Kontak Person</label>
                         <input type="text" value="{{ $customer->fkontakperson }}"
                             class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm bg-gray-100 text-gray-500 cursor-not-allowed border-gray-200"
                             readonly>
@@ -176,7 +186,7 @@
 
                     {{-- Jabatan --}}
                     <div>
-                        <label class="block text-xs font-medium text-gray-600 mb-1">Jabatan</label>
+                        <label class="block text-xs font-bold text-gray-600 mb-1">Jabatan</label>
                         <input type="text" value="{{ $customer->fjabatan }}"
                             class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm bg-gray-100 text-gray-500 cursor-not-allowed border-gray-200"
                             readonly>
@@ -234,7 +244,10 @@
 
         {{-- ─── CARD 4: Kredit & Pembayaran ──────────────────────── --}}
         <div class="bg-white border border-gray-200 rounded-xl mb-3 overflow-hidden">
-            <div class="px-4 pt-3 pb-0">
+            <div class="flex items-center gap-2 px-4 pt-3 pb-0">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+                    </svg>
                 <p class="text-xs font-bold uppercase tracking-wide text-gray-400">Kredit & Pembayaran</p>
             </div>
             <div class="p-4 space-y-3">
@@ -242,7 +255,7 @@
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
                     {{-- Jatuh Tempo --}}
                     <div>
-                        <label class="block text-xs font-medium text-gray-600 mb-1">Jatuh Tempo (Hari)</label>
+                        <label class="block text-xs font-bold text-gray-600 mb-1">Jatuh Tempo (Hari)</label>
                         <input type="number" value="{{ $customer->ftempo }}"
                             class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm bg-gray-100 text-gray-500 cursor-not-allowed border-gray-200"
                             readonly>
@@ -250,7 +263,7 @@
 
                     {{-- Max JT Tempo --}}
                     <div>
-                        <label class="block text-xs font-medium text-gray-600 mb-1">Max JT Tempo</label>
+                        <label class="block text-xs font-bold text-gray-600 mb-1">Max JT Tempo</label>
                         <input type="number" value="{{ $customer->fmaxtempo }}"
                             class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm bg-gray-100 text-gray-500 cursor-not-allowed border-gray-200"
                             readonly>
@@ -258,7 +271,7 @@
 
                     {{-- Limit Piutang --}}
                     <div>
-                        <label class="block text-xs font-medium text-gray-600 mb-1">Limit Piutang</label>
+                        <label class="block text-xs font-bold text-gray-600 mb-1">Limit Piutang</label>
                         <input type="text" value="{{ $customer->flimit }}"
                             class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm bg-gray-100 text-gray-500 cursor-not-allowed border-gray-200"
                             readonly>
@@ -268,7 +281,7 @@
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
                     {{-- Jadwal Tukar Faktur --}}
                     <div>
-                        <label class="block text-xs font-medium text-gray-600 mb-1">Jadwal Tukar Faktur</label>
+                        <label class="block text-xs font-bold text-gray-600 mb-1">Jadwal Tukar Faktur</label>
                         <select name="fjadwaltukarfakturmingguan" id="fjadwaltukarfakturmingguan" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm bg-gray-100 text-gray-500 cursor-not-allowed" disabled>
                             <option value="1" {{ $customer->fjadwaltukarfakturmingguan == '1' ? 'selected' : '' }}>Setiap Minggu</option>
                             <option value="2" {{ $customer->fjadwaltukarfakturmingguan == '2' ? 'selected' : '' }}>Minggu Ganjil</option>
@@ -278,7 +291,7 @@
 
                     {{-- Hari Tukar Faktur --}}
                     <div>
-                        <label class="block text-xs font-medium text-gray-600 mb-1">Hari Tukar Faktur</label>
+                        <label class="block text-xs font-bold text-gray-600 mb-1">Hari Tukar Faktur</label>
                         <select name="fjadwaltukarfakturhari" id="fjadwaltukarfakturhari" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm bg-gray-100 text-gray-500 cursor-not-allowed" disabled>
                             <option value="">-- Pilih Hari --</option>
                             <option value="1" {{ $customer->fjadwaltukarfakturhari == '1' ? 'selected' : '' }}>Senin</option>
@@ -294,7 +307,7 @@
 
                 {{-- Kode Rekening --}}
                 <div>
-                    <label class="block text-xs font-medium text-gray-600 mb-1">Kode Rekening</label>
+                    <label class="block text-xs font-bold text-gray-600 mb-1">Kode Rekening</label>
                     <select name="frekening" id="frekening" class="w-full bg-gray-100 text-gray-500 cursor-not-allowed" disabled>
                         <option value="">Pilih Kode Rekening</option>
                         @foreach ($rekening as $rek)
@@ -310,14 +323,17 @@
 
         {{-- ─── CARD 5: Memo & Status ───────────────────────────── --}}
         <div class="bg-white border border-gray-200 rounded-xl mb-3 overflow-hidden">
-            <div class="px-4 pt-3 pb-0">
+            <div class="flex items-center gap-2 px-4 pt-3 pb-0">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
+                    </svg>
                 <p class="text-xs font-bold uppercase tracking-wide text-gray-400">Memo & Status</p>
             </div>
             <div class="p-4 space-y-4">
 
                 {{-- Memo --}}
                 <div>
-                    <label class="block text-xs font-medium text-gray-600 mb-1">Memo</label>
+                    <label class="block text-xs font-bold text-gray-600 mb-1">Memo</label>
                     <textarea rows="3"
                         class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm bg-gray-100 text-gray-500 cursor-not-allowed"
                         readonly>{{ $customer->fmemo }}</textarea>
