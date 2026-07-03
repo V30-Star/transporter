@@ -934,6 +934,14 @@
                                 <span class="ml-3">{{ 'Analisa Umur Hutang' }}</span>
                             </a>
                         </li>
+
+                        <li>
+                            <a href="{{ route('bukuhutang.index') }}"
+                                class="flex items-center p-2 rounded hover:bg-gray-700">
+                                <i class="fa-solid fa-book-open w-5 text-center flex-shrink-0 text-lg"></i>
+                                <span class="ml-3">{{ 'Buku Hutang' }}</span>
+                            </a>
+                        </li>
                     @endif
                 </ul>
             </li>

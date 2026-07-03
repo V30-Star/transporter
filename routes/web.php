@@ -5,6 +5,7 @@ use App\Http\Controllers\AdjstockController;
 use App\Http\Controllers\AnalisaUmurHutangController;
 use App\Http\Controllers\AnalisaUmurPiutangController;
 use App\Http\Controllers\BukuPiutangController;
+use App\Http\Controllers\BukuHutangController;
 use App\Http\Controllers\ApprovalController;
 use App\Http\Controllers\AssemblingController;
 use App\Http\Controllers\BayarSupplierController;
@@ -633,6 +634,9 @@ Route::middleware('auth')->group(function () {
 
         Route::get('/bukupiutang', [BukuPiutangController::class, 'index'])->name('bukupiutang.index');
         Route::get('/bukupiutang/print', [BukuPiutangController::class, 'print'])->name('bukupiutang.print');
+
+        Route::get('/bukuhutang', [BukuHutangController::class, 'index'])->name('bukuhutang.index');
+        Route::get('/bukuhutang/print', [BukuHutangController::class, 'print'])->name('bukuhutang.print');
 
         Route::get('/listingsuratjalan', [ListingSuratJalanController::class, 'index'])->name('listingsuratjalan.index');
         Route::get('/listingsuratjalan/print', [ListingSuratJalanController::class, 'print'])->name('listingsuratjalan.print');
