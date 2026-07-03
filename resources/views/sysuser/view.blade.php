@@ -9,7 +9,10 @@
 
         {{-- ─── CARD 1: Identitas User ────────────────────── --}}
         <div class="bg-white border border-gray-200 rounded-xl mb-3 overflow-hidden">
-            <div class="px-4 pt-3 pb-0">
+             <div class="flex items-center gap-2 px-4 pt-3 pb-0">
+                     <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+                        </svg>
                 <p class="text-xs font-medium uppercase tracking-wide text-gray-400">Identitas User</p>
             </div>
             <div class="p-4 space-y-3">
@@ -17,7 +20,7 @@
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
                     {{-- Cabang --}}
                     <div>
-                        <label class="block text-xs font-medium text-gray-600 mb-1">Cabang</label>
+                        <label class="block text-xs font-bold text-gray-600 mb-1">Cabang</label>
                         <select class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm bg-gray-100 text-gray-500 cursor-not-allowed border-gray-200" disabled>
                             <option value="HQ">Cabang HQ</option>
                             @foreach ($cabangs as $c)
@@ -30,7 +33,7 @@
 
                     {{-- Nama Lengkap --}}
                     <div>
-                        <label class="block text-xs font-medium text-gray-600 mb-1">Nama Lengkap</label>
+                        <label class="block text-xs font-bold text-gray-600 mb-1">Nama Lengkap</label>
                         <input type="text" value="{{ $sysuser->fname }}"
                             class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm uppercase bg-gray-100 text-gray-500 cursor-not-allowed border-gray-200"
                             readonly>
@@ -40,7 +43,7 @@
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
                     {{-- User Name / Login --}}
                     <div>
-                        <label class="block text-xs font-medium text-gray-600 mb-1">User Name / Login</label>
+                        <label class="block text-xs font-bold text-gray-600 mb-1">User Name / Login</label>
                         <input type="text" value="{{ $sysuser->fsysuserid }}"
                             class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm uppercase bg-gray-100 text-gray-500 cursor-not-allowed border-gray-200"
                             readonly>
@@ -48,7 +51,7 @@
 
                     {{-- Account Level --}}
                     <div>
-                        <label class="block text-xs font-medium text-gray-600 mb-1">Account Level</label>
+                        <label class="block text-xs font-bold text-gray-600 mb-1">Account Level</label>
                         <select class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm bg-gray-100 text-gray-500 cursor-not-allowed border-gray-200" disabled>
                             <option value="User" {{ $sysuser->fuserlevel == '1' ? 'selected' : '' }}>User</option>
                             <option value="Admin" {{ $sysuser->fuserlevel == '2' ? 'selected' : '' }}>Admin</option>
@@ -61,7 +64,10 @@
 
         {{-- ─── CARD 2: Salesman Linkage ────────────────────── --}}
         <div class="bg-white border border-gray-200 rounded-xl mb-3 overflow-hidden">
-            <div class="px-4 pt-3 pb-0">
+            <div class="flex items-center gap-2 px-4 pt-3 pb-0">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+                    </svg>
                 <p class="text-xs font-medium uppercase tracking-wide text-gray-400">Salesman Linkage</p>
             </div>
             <div class="p-4 space-y-4">
@@ -85,7 +91,7 @@
                 {{-- Dropdown Nama Salesman --}}
                 @if ($hasSalesman)
                     <div>
-                        <label class="block text-xs font-medium text-gray-600 mb-1">Nama Salesman</label>
+                        <label class="block text-xs font-bold text-gray-600 mb-1">Nama Salesman</label>
                         <select class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm bg-gray-100 text-gray-500 cursor-not-allowed border-gray-200" disabled>
                             @foreach ($salesman as $salesmans)
                                 @if ($sysuser->fsalesman == $salesmans->fsalesmanid)

@@ -13,7 +13,10 @@
 
             {{-- ─── CARD 1: Identitas User ────────────────────── --}}
             <div class="bg-white border border-gray-200 rounded-xl mb-3 overflow-hidden">
-                <div class="px-4 pt-3 pb-0">
+                <div class="flex items-center gap-2 px-4 pt-3 pb-0">
+                     <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+                        </svg>
                     <p class="text-xs font-medium uppercase tracking-wide text-gray-400">Identitas User</p>
                 </div>
                 <div class="p-4 space-y-3">
@@ -21,7 +24,7 @@
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
                         {{-- Cabang --}}
                         <div>
-                            <label class="block text-xs font-medium text-gray-600 mb-1">
+                            <label class="block text-xs font-bold text-gray-600 mb-1">
                                 Cabang <span class="text-red-500">*</span>
                             </label>
                             <select name="fcabang" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 @error('fcabang') border-red-400 @enderror" required>
@@ -39,7 +42,7 @@
 
                         {{-- Nama Lengkap --}}
                         <div>
-                            <label class="block text-xs font-medium text-gray-600 mb-1">
+                            <label class="block text-xs font-bold text-gray-600 mb-1">
                                 Nama Lengkap <span class="text-red-500">*</span>
                             </label>
                             <input type="text" name="fname" value="{{ old('fname', $sysuser->fname) }}"
@@ -54,7 +57,7 @@
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
                         {{-- User Name / Login --}}
                         <div>
-                            <label class="block text-xs font-medium text-gray-600 mb-1">
+                            <label class="block text-xs font-bold text-gray-600 mb-1">
                                 User Name / Login <span class="text-red-500">*</span>
                             </label>
                             <input type="text" name="fsysuserid" value="{{ old('fsysuserid', $sysuser->fsysuserid) }}"
@@ -67,7 +70,7 @@
 
                         {{-- Account Level --}}
                         <div>
-                            <label class="block text-xs font-medium text-gray-600 mb-1">
+                            <label class="block text-xs font-bold text-gray-600 mb-1">
                                 Account Level <span class="text-red-500">*</span>
                             </label>
                             <select name="fuserlevel" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 @error('fuserlevel') border-red-400 @enderror">
@@ -83,7 +86,7 @@
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
                         {{-- Password Baru --}}
                         <div>
-                            <label class="block text-xs font-medium text-gray-600 mb-1">Password Baru (Kosongkan jika tidak diubah)</label>
+                            <label class="block text-xs font-bold text-gray-600 mb-1">Password Baru (Kosongkan jika tidak diubah)</label>
                             <input type="password" name="password"
                                 class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 @error('password') border-red-400 @enderror"
                                 placeholder="Masukkan Password Baru">
@@ -94,7 +97,7 @@
 
                         {{-- Confirm Password --}}
                         <div>
-                            <label class="block text-xs font-medium text-gray-600 mb-1">Confirm Password</label>
+                            <label class="block text-xs font-bold text-gray-600 mb-1">Confirm Password</label>
                             <input type="password" name="password_confirmation"
                                 class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 @error('password_confirmation') border-red-400 @enderror"
                                 placeholder="Konfirmasi Password Baru">
@@ -110,7 +113,10 @@
             {{-- ─── CARD 2: Salesman Linkage ────────────────────── --}}
             <div class="bg-white border border-gray-200 rounded-xl mb-3 overflow-hidden"
                 x-data="{ hasSalesman: {{ ($sysuser->fsalesman && $sysuser->fsalesman != 0) || old('fsalesman', null) ? 'true' : 'false' }} }">
-                <div class="px-4 pt-3 pb-0">
+                <div class="flex items-center gap-2 px-4 pt-3 pb-0">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+                    </svg>
                     <p class="text-xs font-medium uppercase tracking-wide text-gray-400">Salesman Linkage</p>
                 </div>
                 <div class="p-4 space-y-4">
@@ -133,7 +139,7 @@
 
                     {{-- Dropdown Nama Salesman --}}
                     <div x-show="hasSalesman" x-transition>
-                        <label class="block text-xs font-medium text-gray-600 mb-1">
+                        <label class="block text-xs font-bold text-gray-600 mb-1">
                             Nama Salesman <span class="text-red-500">*</span>
                         </label>
                         <select name="fsalesman" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 @error('fsalesman') border-red-400 @enderror" :disabled="!hasSalesman">
