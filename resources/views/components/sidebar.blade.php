@@ -1121,6 +1121,21 @@
                         </li>
                     @endif
                 </ul>
+
+                <!-- Buku Besar -->
+                <ul x-show="open && openSidebar" x-transition
+                    class="ml-9 mt-1 space-y-1 border-l border-white/10 pl-3" x-cloak>
+
+                    @if ($hasSidebarPermission('viewSysuser', 'createSysuser', 'updateSysuser', 'deleteSysuser', 'roleaccess'))
+                        <li>
+                            <a href="{{ route('bukubesar.index') }}"
+                                class="flex items-center p-2 rounded hover:bg-gray-700">
+                                <x-heroicon-o-user-circle class="w-5 h-5" />
+                                <span class="ml-3">{{ 'Buku Besar' }}</span>
+                            </a>
+                        </li>
+                    @endif
+                </ul>
             </li>
 
             <!-- Utility -->
