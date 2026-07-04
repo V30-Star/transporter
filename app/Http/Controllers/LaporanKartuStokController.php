@@ -51,7 +51,7 @@ class LaporanKartuStokController extends Controller
                 $row['qtysaldokecil'] = $row['qtyawalkecil'] + $row['qtymasukkecil'] - $row['qtykeluarkecil'];
                 return (object) $row;
             })
-            ->filter(fn($row) => $this->matchStatus($row))
+            ->filter(fn($row) => $this->matchStatus($row, $request))
             ->sortBy([
                 ['fwhcode', 'asc'],
                 ['fgroupname', 'asc'],
@@ -110,7 +110,7 @@ class LaporanKartuStokController extends Controller
                 $row->qtysaldokecil = $running[$key];
                 return $row;
             })
-            ->filter(fn($row) => $this->matchStatus($row))
+            ->filter(fn($row) => $this->matchStatus($row, $request))
             ->values();
     }
 
@@ -139,7 +139,7 @@ class LaporanKartuStokController extends Controller
             ->leftJoin('ms_groupprd as g', 'p.fgroupcode', '=', 'g.fgroupcode')
             ->leftJoin('msmerek as mr', 'p.fmerek', '=', 'mr.fmerekcode')
             ->where('p.ftype', 'Produk')
-            ->selectRaw("p.fprdcode, p.fprdname, p.fsatuankecil, p.fsatuanbesar, p.fsatuanbesar2, p.fqtykecil, p.fgroupcode, COALESCE(g.fgroupname, p.fgroupcode) AS fgroupname, p.fmerek, COALESCE(mr.fmerekname, p.fmerek) AS fmerekname, COALESCE(p.fminstock, 0) * COALESCE(p.fqtykecil, 1) AS fminstock, COALESCE(w.fawal, 0) AS fawal");
+            ->selectRaw("p.fprdcode, p.fprdname, p.fsatuankecil, p.fsatuanbesar, p.fsatuanbesar2, p.fqtykecil, p.fgroupcode, COALESCE(g.fgroupname, p.fgroupcode) AS fgroupname, p.fmerek, COALESCE(mr.fmerekname, p.fmerek) AS fmerekname, COALESCE(CAST(NULLIF(p.fminstock::text, '') AS NUMERIC), 0) * COALESCE(CAST(NULLIF(p.fqtykecil::text, '') AS NUMERIC), 1) AS fminstock, COALESCE(CAST(NULLIF(w.fawal::text, '') AS NUMERIC), 0) AS fawal");
 
         $this->applyProductFilters($query, $request, 'p');
 
@@ -287,9 +287,9 @@ class LaporanKartuStokController extends Controller
         }
     }
 
-    private function matchStatus($row): bool
+    private function matchStatus($row, Request $request): bool
     {
-        $status = (string) request('stock_status', 'all');
+        $status = (string) $request->input('stock_status', 'all');
         $saldo = (float) ($row->qtysaldokecil ?? 0);
         $min = (float) ($row->fminstock ?? 0);
 
