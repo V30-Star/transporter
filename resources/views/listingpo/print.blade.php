@@ -60,7 +60,7 @@
             margin-bottom: 6px;
             font-weight: 600;
             text-transform: uppercase;
-            color: #2F5233; /* Ledger Green replaces legacy Red */
+            color: #cc0000; /* Dark Red matching Listing PR */
             letter-spacing: 0.5px;
         }
 
@@ -102,7 +102,7 @@
         .po-header-labels,
         .po-header {
             display: grid;
-            grid-template-columns: 12mm 25mm 20mm 43mm 20mm 20mm 22mm 13mm;
+            grid-template-columns: 12mm 30mm 20mm 43mm 20mm 20mm 20mm 13mm;
             gap: 1px;
             font-size: 8px;
             padding: 6px 8px;
@@ -111,9 +111,9 @@
 
         .po-header-labels {
             background-color: transparent; /* Simplified background for dot matrix printer */
-            color: #2F5233; /* Ledger Green text */
-            border-top: 1px solid #2F5233; /* Reduced ink weight */
-            border-bottom: 1px solid #2F5233; /* Reduced ink weight */
+            color: #cc0000; /* Dark Red matching Listing PR */
+            border-top: 1px solid #cc0000; /* Reduced ink weight */
+            border-bottom: 1px solid #cc0000; /* Reduced ink weight */
             margin-bottom: 2px;
             font-weight: bold; /* Bold data header */
             text-transform: uppercase;
@@ -140,9 +140,9 @@
 
         .po-detail-labels {
             font-weight: bold; /* Bold data header */
-            color: #2F5233; /* Ledger Green theme */
+            color: #cc0000; /* Dark Red matching Listing PR */
             background-color: transparent; /* Simplified background for dot matrix printer */
-            border-bottom: 1px solid #2F5233; /* Reduced ink weight */
+            border-bottom: 1px solid #cc0000; /* Reduced ink weight */
             margin-top: 2px;
             text-transform: uppercase;
             letter-spacing: 0.5px;
@@ -242,7 +242,7 @@
         }
 
         .print-button {
-            background-color: #2F5233; /* Ledger Green replaces Blue */
+            background-color: #cc0000; /* Dark Red matching Listing PR */
             color: white;
             padding: 8px 16px;
             border-radius: 6px;
@@ -255,13 +255,13 @@
             display: inline-flex;
             align-items: center;
             gap: 6px;
-            box-shadow: 0 2px 4px rgba(47, 82, 51, 0.2);
+            box-shadow: 0 2px 4px rgba(204, 0, 0, 0.2);
         }
 
         .print-button:hover {
-            background-color: #1f3822;
+            background-color: #990000;
             transform: translateY(-1px);
-            box-shadow: 0 4px 6px rgba(47, 82, 51, 0.3);
+            box-shadow: 0 4px 6px rgba(204, 0, 0, 0.3);
         }
 
         .journal-block {
@@ -277,9 +277,9 @@
 
         /* End of Report style */
         .end-of-report {
-            border-top: 1px solid #2F5233 !important;
+            border-top: 1px solid #cc0000 !important;
             border-bottom: none !important; /* Removed bottom border to save printer ink */
-            color: #2F5233 !important;
+            color: #cc0000 !important;
         }
 
         /* Totals Panel style */
@@ -287,7 +287,7 @@
             margin-top: 15px;
             margin-left: auto; /* Push to the right side */
             width: 70mm;
-            border-top: 1px solid #2F5233;
+            border-top: 1px solid #cc0000;
             padding-top: 8px;
             font-family: 'IBM Plex Mono', Courier, monospace;
             font-size: 8.5px;
@@ -307,10 +307,10 @@
         }
 
         .grand-total-row {
-            border-top: 1px solid #2F5233;
-            border-bottom: 1px solid #2F5233; /* Clean straight border for dot matrix */
+            border-top: 1px solid #cc0000;
+            border-bottom: 1px solid #cc0000; /* Clean straight border for dot matrix */
             font-weight: bold;
-            color: #2F5233; /* Highlight in Ledger Green */
+            color: #cc0000; /* Highlight in Dark Red */
             padding: 5px 0;
             margin-top: 4px;
         }
