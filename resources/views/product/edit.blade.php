@@ -920,10 +920,10 @@
                         $isUsedProduct = $usageInfo['is_used'] ?? false;
                         $usedByLabels  = $usageInfo['used_by'] ?? [];
                         $lockSatuan1   = $isUsedProduct;
-                        $lockSatuan2   = $isUsedProduct && !empty($product->fsatuanbesar);
-                        $lockSatuan3   = $isUsedProduct && !empty($product->fsatuanbesar2);
-                        $lockQty2      = $lockSatuan2;
-                        $lockQty3      = $lockSatuan3;
+                        $lockSatuan2   = $isUsedProduct;
+                        $lockSatuan3   = $isUsedProduct;
+                        $lockQty2      = $isUsedProduct;
+                        $lockQty3      = $isUsedProduct;
                     @endphp
 
                     @if ($isUsedProduct)
@@ -1172,6 +1172,7 @@
                                             <label class="field-label">Jenis Satuan</label>
                                             <select class="field-input blue" name="fsatuankecil" id="fsatuankecil"
                                                 {{ $lockSatuan1 ? 'disabled' : '' }}
+                                                data-usage-locked="{{ $lockSatuan1 ? '1' : '0' }}"
                                                 onchange="updateSatuanLogic();">
                                                 <option value="">Pilih Satuan 1</option>
                                                 @foreach ($satuan as $satu)
@@ -1208,6 +1209,7 @@
                                             <label class="field-label">Jenis Satuan</label>
                                             <select class="field-input yellow" name="fsatuanbesar" id="fsatuanbesar"
                                                 {{ $lockSatuan2 ? 'disabled' : '' }}
+                                                data-usage-locked="{{ $lockSatuan2 ? '1' : '0' }}"
                                                 onchange="updateSatuanLogic();">
                                                 <option value="">Pilih Satuan 2</option>
                                                 @foreach ($satuan as $satu)
@@ -1230,6 +1232,7 @@
                                                 <input type="text" name="fqtykecil" id="fqtykecil"
                                                     value="{{ old('fqtykecil', $product->fqtykecil ?? 0) }}"
                                                     class="autonumeric flex-1 bg-transparent border-none focus:ring-0 px-3 py-2 text-right text-sm"
+                                                    data-usage-locked="{{ $lockQty2 ? '1' : '0' }}"
                                                     {{ $lockQty2 ? 'disabled' : '' }}>
                                                 @if ($lockQty2)
                                                     <input type="hidden" name="fqtykecil" value="{{ $product->fqtykecil }}">
@@ -1259,6 +1262,7 @@
                                             <label class="field-label">Jenis Satuan</label>
                                             <select class="field-input purple" name="fsatuanbesar2" id="fsatuanbesar2"
                                                 {{ $lockSatuan3 ? 'disabled' : '' }}
+                                                data-usage-locked="{{ $lockSatuan3 ? '1' : '0' }}"
                                                 onchange="updateSatuanLogic();">
                                                 <option value="">Pilih Satuan 3</option>
                                                 @foreach ($satuan as $satu)
@@ -1281,6 +1285,7 @@
                                                 <input type="text" name="fqtykecil2" id="fqtykecil2"
                                                     value="{{ old('fqtykecil2', $product->fqtykecil2 ?? 0) }}"
                                                     class="autonumeric flex-1 bg-transparent border-none focus:ring-0 px-3 py-2 text-right text-sm"
+                                                    data-usage-locked="{{ $lockQty3 ? '1' : '0' }}"
                                                     {{ $lockQty3 ? 'disabled' : '' }}>
                                                 @if ($lockQty3)
                                                     <input type="hidden" name="fqtykecil2" value="{{ $product->fqtykecil2 }}">

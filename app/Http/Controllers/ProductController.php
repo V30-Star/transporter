@@ -392,8 +392,8 @@ class ProductController extends Controller
                     'nullable',
                     'numeric',
                     function ($attribute, $value, $fail) use ($request) {
-                        if ($request->filled('fsatuanbesar') && (float) $value <= 0) {
-                            $fail('Isi Satuan 2 tidak boleh kosong dan harus > 0.');
+                        if ($request->filled('fsatuanbesar') && (float) $value <= 1) {
+                            $fail('Isi Satuan 2 harus lebih besar dari 1.');
                         }
                     },
                 ],
@@ -401,8 +401,13 @@ class ProductController extends Controller
                     'nullable',
                     'numeric',
                     function ($attribute, $value, $fail) use ($request) {
-                        if ($request->filled('fsatuanbesar2') && (float) $value <= 0) {
-                            $fail('Isi Satuan 3 tidak boleh kosong dan harus > 0.');
+                        if ($request->filled('fsatuanbesar2') && (float) $value <= 1) {
+                            $fail('Isi Satuan 3 harus lebih besar dari 1.');
+                        }
+                        if ($request->filled('fsatuanbesar') && $request->filled('fsatuanbesar2')
+                            && trim((string) $request->input('fsatuanbesar')) !== trim((string) $request->input('fsatuanbesar2'))
+                            && (float) $request->input('fqtykecil') === (float) $value) {
+                            $fail('Isi Satuan 3 tidak boleh sama dengan Isi Satuan 2 jika satuannya berbeda.');
                         }
                     },
                 ],
@@ -589,8 +594,8 @@ class ProductController extends Controller
                 'nullable',
                 'numeric',
                 function ($attribute, $value, $fail) use ($request) {
-                    if ($request->filled('fsatuanbesar') && (float) $value <= 0) {
-                        $fail('Isi Satuan 2 tidak boleh kosong dan harus > 0.');
+                    if ($request->filled('fsatuanbesar') && (float) $value <= 1) {
+                        $fail('Isi Satuan 2 harus lebih besar dari 1.');
                     }
                 },
             ],
@@ -598,8 +603,13 @@ class ProductController extends Controller
                 'nullable',
                 'numeric',
                 function ($attribute, $value, $fail) use ($request) {
-                    if ($request->filled('fsatuanbesar2') && (float) $value <= 0) {
-                        $fail('Isi Satuan 3 tidak boleh kosong dan harus > 0.');
+                    if ($request->filled('fsatuanbesar2') && (float) $value <= 1) {
+                        $fail('Isi Satuan 3 harus lebih besar dari 1.');
+                    }
+                    if ($request->filled('fsatuanbesar') && $request->filled('fsatuanbesar2')
+                        && trim((string) $request->input('fsatuanbesar')) !== trim((string) $request->input('fsatuanbesar2'))
+                        && (float) $request->input('fqtykecil') === (float) $value) {
+                        $fail('Isi Satuan 3 tidak boleh sama dengan Isi Satuan 2 jika satuannya berbeda.');
                     }
                 },
             ],
@@ -676,19 +686,10 @@ class ProductController extends Controller
                 'fsatuanbesar2' => 'fqtykecil2',
             ];
             $unitLabels = [
+                'fsatuankecil' => 'Satuan 1',
                 'fsatuanbesar' => 'Satuan 2',
                 'fsatuanbesar2' => 'Satuan 3',
             ];
-
-            $addedUnitFields = [];
-            foreach ($unitFields as $field) {
-                $oldValue = $normalizeText($product->{$field});
-                $newValue = $normalizeText($validated[$field] ?? null);
-
-                if ($oldValue === '' && $newValue !== '') {
-                    $addedUnitFields[] = $field;
-                }
-            }
 
             $errors = [];
 
@@ -696,26 +697,19 @@ class ProductController extends Controller
                 $errors['fprdcode'] = 'Kode produk tidak bisa diubah. Sudah dipakai transaksi.';
             }
 
-            if ($normalizeText($product->fsatuankecil) !== $normalizeText($validated['fsatuankecil'] ?? null)) {
-                $errors['fsatuankecil'] = 'Satuan 1 tidak bisa diubah. Sudah dipakai transaksi.';
+            foreach ($unitFields as $field) {
+                if ($normalizeText($product->{$field}) !== $normalizeText($validated[$field] ?? null)) {
+                    $errors[$field] = ($unitLabels[$field] ?? 'Satuan').' tidak bisa diubah. Sudah dipakai transaksi.';
+                }
             }
 
             foreach ($qtyFields as $unitField => $qtyField) {
                 $oldUnit = $normalizeText($product->{$unitField});
-                $newUnit = $normalizeText($validated[$unitField] ?? null);
                 $oldQty = $normalizeNumber($product->{$qtyField});
                 $newQty = $normalizeNumber($validated[$qtyField] ?? null);
 
-                if ($oldUnit !== '' && $oldUnit !== $newUnit) {
-                    $errors[$unitField] = ($unitLabels[$unitField] ?? 'Satuan').' tidak bisa diubah. Sudah dipakai transaksi.';
-                }
-
-                if ($oldUnit !== '' && abs($oldQty - $newQty) > 0.000001) {
+                if (abs($oldQty - $newQty) > 0.000001) {
                     $errors[$qtyField] = 'Qty konversi untuk '.$oldUnit.' tidak bisa diubah. Sudah dipakai transaksi.';
-                }
-
-                if ($oldUnit === '' && $newUnit === '' && abs($newQty) > 0.000001) {
-                    $errors[$qtyField] = 'Qty konversi hanya boleh diisi jika satuan baru benar-benar ditambahkan.';
                 }
             }
 
