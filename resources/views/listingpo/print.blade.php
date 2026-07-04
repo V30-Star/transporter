@@ -435,7 +435,7 @@
             $totalPPN = 0;
             foreach ($grouped as $fpono => $details) {
                 $h = $details->first();
-                $totalPO += (float) ($h->famountpo ?? 0);
+                $totalPO += (float) ($h->famountpo_rp ?? 0);
                 $totalPPN += (float) ($h->famountpajak ?? 0);
             }
             $grandTotal = $totalPO + $totalPPN;
@@ -449,7 +449,7 @@
                     <div class="truncate">{{ $h->fpono }}</div>
                     <div>{{ \Carbon\Carbon::parse($h->fsodate)->format('d/m/Y') }}</div>
                     <div class="truncate" title="{{ $h->fsuppliername }}">{{ $h->fsuppliername }}</div>
-                    <div>{{ number_format($h->famountpo, 2, ',', '.') }}</div>
+                    <div>{{ number_format($h->famountpo_rp, 2, ',', '.') }}</div>
                     <div>{{ number_format($h->famountpajak, 2, ',', '.') }}</div>
                     <div>{{ number_format($h->famountponet, 2, ',', '.') }}</div>
                     <div class="truncate">{{ trim($h->fusercreate) }}</div>

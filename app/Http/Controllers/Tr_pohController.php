@@ -1103,6 +1103,7 @@ class Tr_pohController extends Controller
                     'famountponet' => round($totalHarga, 2),
                     'famountpopajak' => $ppnAmount,
                     'famountpo' => $grandTotal,
+                    'famountpo_rp' => $grandTotal,
                     'fapproval' => $isApproval,
                     'fppnpersen' => $request->input('ppn_rate', 0),
                     'fclose' => '0',

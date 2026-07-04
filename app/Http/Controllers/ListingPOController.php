@@ -187,6 +187,7 @@ class ListingPOController extends Controller
                 'h.fclose',
                 's.fsuppliername',
                 'h.famountpo',
+                'h.famountpo_rp',
                 'h.famountpopajak',
                 'h.famountpopajak as famountpajak',
                 'h.famountponet',
