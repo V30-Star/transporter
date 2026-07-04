@@ -48,9 +48,9 @@
 
         .header-section {
             position: relative;
-            margin-bottom: 20px;
+            margin-bottom: 10px;
             text-align: center;
-            padding-bottom: 30px;
+            padding-bottom: 20px;
             /* border-bottom: 2px solid #edf2ee; */
         }
 
