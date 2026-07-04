@@ -6,6 +6,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Listing Order Pembelian (PO)</title>
     <style>
+        @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;700&family=IBM+Plex+Sans:wght@400;500;700&family=Source+Serif+4:opsz,wght@8..60,700&display=swap');
+
         * {
             margin: 0;
             padding: 0;
@@ -14,24 +16,27 @@
 
         /* Monitor Screen Layout */
         body {
-            font-family: Arial, sans-serif;
+            font-family: 'IBM Plex Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
             font-size: 10px;
-            color: #000;
-            background-color: #eee; /* Grayscale background on monitor */
+            color: #0f172a; /* Navy-Ink */
+            background-color: #f1f5f9; /* Modern light slate background on monitor */
             counter-reset: page;
+            -webkit-print-color-adjust: exact;
+            print-color-adjust: exact;
         }
 
         /* Screen Simulation Styles for A4 Pages */
         .page-a4 {
             width: 210mm;
-            margin: 20px auto;
+            margin: 30px auto;
             background: white;
-            padding: 15mm;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.15);
+            padding: 20mm 15mm 15mm 15mm; /* Enhanced page margin */
+            box-shadow: 0 10px 25px rgba(15, 23, 42, 0.08);
             position: relative;
             box-sizing: border-box;
             height: auto;
             min-height: 0;
+            border-radius: 4px;
         }
 
         /* Strict height applied after pagination */
@@ -43,32 +48,37 @@
 
         .header-section {
             position: relative;
-            margin-bottom: 15px;
+            margin-bottom: 20px;
             text-align: center;
-            padding-bottom: 25px;
+            padding-bottom: 30px;
+            /* border-bottom: 2px solid #edf2ee; */
         }
 
         .header-section h2 {
-            font-size: 18px;
-            margin-bottom: 8px;
-            font-weight: bold;
+            font-family: 'Source Serif 4', Georgia, "Times New Roman", serif;
+            font-size: 20px;
+            margin-bottom: 6px;
+            font-weight: 600;
             text-transform: uppercase;
-            color: #c00; /* Red style matching sales order */
+            color: #2F5233; /* Ledger Green replaces legacy Red */
+            letter-spacing: 0.5px;
         }
 
         .filter-info {
             font-size: 10px;
-            color: #333;
+            color: #475569; /* Slate 600 */
             margin-bottom: 5px;
+            font-weight: 500;
         }
 
         .supplier-info-kiri {
             position: absolute;
-            top: 12mm;
+            top: 30px;
             left: 0mm;
             font-size: 10px;
-            color: #333;
+            color: #334155; /* Slate 700 */
             text-align: left;
+            line-height: 1.5;
         }
 
         .info-tambahan {
@@ -76,62 +86,75 @@
             top: 0;
             right: 0;
             font-size: 10px;
-            color: #333;
+            color: #334155; /* Slate 700 */
             text-align: left;
-            line-height: 1.4;
+            line-height: 1.5;
         }
 
         .info-label {
-            font-weight: bold;
+            font-weight: 600;
             display: inline-block;
-            width: 45px;
+            width: 50px;
+            color: #475569; /* Slate 600 */
         }
 
         /* --- PO HEADER STYLES (6 Kolom) --- */
         .po-header-labels,
         .po-header {
             display: grid;
-            grid-template-columns: 25mm 18mm 45mm 25mm 27mm 30mm;
+            grid-template-columns: 28mm 20mm 45mm 25mm 27mm 30mm;
             gap: 1px;
             font-size: 8px;
-            padding: 4px 3px;
+            padding: 6px 8px;
+            align-items: center;
         }
 
         .po-header-labels {
-            background-color: #f0f0f0;
-            border: 1px solid #000;
-            margin-bottom: 1px;
-            font-weight: bold;
+            background-color: transparent; /* Simplified background for dot matrix printer */
+            color: #2F5233; /* Ledger Green text */
+            border-top: 1px solid #2F5233; /* Reduced ink weight */
+            border-bottom: 1px solid #2F5233; /* Reduced ink weight */
+            margin-bottom: 2px;
+            font-weight: bold; /* Bold data header */
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
         }
 
         .po-header {
-            background-color: #fff;
-            padding: 3px 3px;
-            font-weight: bold;
+            background-color: transparent; /* Simplified background for dot matrix printer */
+            margin-bottom: 1px;
+            font-weight: bold; /* Bold data header */
+            color: #0f172a; /* Navy-Ink text */
         }
 
         /* --- PO DETAIL STYLES (4 Kolom) --- */
         .po-detail-labels,
         .po-detail {
             display: grid;
-            grid-template-columns: 25mm 80mm 25mm 40mm;
+            grid-template-columns: 28mm 82mm 25mm 40mm;
             gap: 1px;
-            font-size: 8px;
-            padding: 2px 3px;
+            font-size: 8.5px;
+            padding: 4px 8px;
+            align-items: center;
         }
 
         .po-detail-labels {
-            font-weight: bold;
-            color: #c00;
-            background-color: #fff;
-            border: 1px solid #000000;
-            margin-top: 1px;
-            padding: 3px 3px;
+            font-weight: bold; /* Bold data header */
+            color: #2F5233; /* Ledger Green theme */
+            background-color: transparent; /* Simplified background for dot matrix printer */
+            border-bottom: 1px solid #2F5233; /* Reduced ink weight */
+            margin-top: 2px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
         }
 
         .po-detail {
-            color: #c00;
-            background-color: #fff;
+            color: #334155; /* Navy-Ink body text */
+            background-color: transparent; /* Simplified background for dot matrix printer */
+        }
+
+        .po-detail:nth-child(even) {
+            background-color: transparent; /* Simplified background for dot matrix printer */
         }
 
         .po-detail>div:first-child {
@@ -149,9 +172,26 @@
             text-align: right;
         }
 
+        /* Fonts for Numbers & System Codes */
+        .po-header > div:nth-child(1),
+        .po-header > div:nth-child(2),
+        .po-header > div:nth-child(4),
+        .po-header > div:nth-child(5),
+        .po-header > div:nth-child(6) {
+            font-family: 'IBM Plex Mono', Courier, monospace;
+            font-variant-numeric: tabular-nums;
+            font-weight: bold;
+        }
+
+        .po-detail > div:nth-child(1),
+        .po-detail > div:nth-child(4) {
+            font-family: 'IBM Plex Mono', Courier, monospace;
+            font-variant-numeric: tabular-nums;
+            font-weight: normal; /* Normal weight for detail product code and quantity */
+        }
+
         .separator {
-            border-bottom: 1px solid #000000;
-            margin: 4px 0;
+            margin: 12px 0; /* Space-based separator to save printer ink */
             clear: both;
         }
 
@@ -163,26 +203,47 @@
 
         .no-print {
             position: fixed;
-            top: 10px;
-            left: 10px;
+            top: 15px;
+            left: 15px;
             display: flex;
-            gap: 8px;
+            align-items: center;
+            gap: 10px;
             z-index: 1000;
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(8px);
+            padding: 8px 16px;
+            border-radius: 10px;
+            box-shadow: 0 4px 20px rgba(15, 23, 42, 0.15);
+            border: 1px solid rgba(226, 232, 240, 0.8);
         }
 
         .print-button {
-            background-color: #3b82f6;
+            background-color: #2F5233; /* Ledger Green replaces Blue */
             color: white;
-            padding: 10px 20px;
-            border-radius: 5px;
+            padding: 8px 16px;
+            border-radius: 6px;
             cursor: pointer;
             border: none;
-            font-weight: bold;
+            font-weight: 600;
+            font-family: 'IBM Plex Sans', sans-serif;
+            font-size: 12px;
+            transition: all 0.2s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            box-shadow: 0 2px 4px rgba(47, 82, 51, 0.2);
+        }
+
+        .print-button:hover {
+            background-color: #1f3822;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 6px rgba(47, 82, 51, 0.3);
         }
 
         .journal-block {
             page-break-inside: avoid;
             break-inside: avoid;
+            margin-bottom: 8px;
         }
 
         /* Zoom Out Button Style */
@@ -190,10 +251,23 @@
             transition: background-color 0.2s;
         }
 
+        /* End of Report style */
+        .end-of-report {
+            border-top: 1px solid #2F5233 !important;
+            border-bottom: none !important; /* Removed bottom border to save printer ink */
+            color: #2F5233 !important;
+        }
+
+        /* Semantic Red Style */
+        .text-danger, .negative-balance {
+            color: #dc2626 !important; /* Semantic Red */
+        }
+
         /* Print Media CSS Overrides */
         @media print {
             body {
                 background-color: white !important;
+                color: #0f172a !important;
                 margin: 0;
                 padding: 0;
             }
@@ -202,12 +276,15 @@
                 width: 210mm;
                 height: 297mm !important;
                 margin: 0 auto !important;
-                padding: 15mm !important;
+                padding: 20mm 15mm 15mm 15mm !important;
                 box-shadow: none !important;
                 page-break-after: always;
                 break-after: always;
+                page-break-inside: avoid;
+                break-inside: avoid;
                 box-sizing: border-box;
                 overflow: hidden !important;
+                border-radius: 0;
             }
 
             .no-print {
@@ -327,7 +404,7 @@
         @if ($groupedData->isEmpty())
             <div class="page-a4 page-a4-strict">
                 <div class="header-section">
-                    <div class="supplier-info-kiri" style="top: 12mm;">
+                    <div class="supplier-info-kiri" style="top: 30px;">
                         Supplier: {{ request('sup_from') ? '[' . request('sup_from') . '] s/d [' . request('sup_to') . ']' : 'Semua' }}
                         <br>Cabang: {{ request()->has('branch_codes') ? implode(', ', (array) request()->input('branch_codes')) : 'Semua' }}
                     </div>
