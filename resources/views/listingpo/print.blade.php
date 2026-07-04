@@ -98,11 +98,11 @@
             color: #475569; /* Slate 600 */
         }
 
-        /* --- PO HEADER STYLES (6 Kolom) --- */
+        /* --- PO HEADER STYLES (8 Kolom) --- */
         .po-header-labels,
         .po-header {
             display: grid;
-            grid-template-columns: 28mm 20mm 45mm 25mm 27mm 30mm;
+            grid-template-columns: 12mm 25mm 20mm 43mm 20mm 20mm 22mm 13mm;
             gap: 1px;
             font-size: 8px;
             padding: 6px 8px;
@@ -127,13 +127,13 @@
             color: #0f172a; /* Navy-Ink text */
         }
 
-        /* --- PO DETAIL STYLES (4 Kolom) --- */
+        /* --- PO DETAIL STYLES (7 Kolom) --- */
         .po-detail-labels,
         .po-detail {
             display: grid;
-            grid-template-columns: 28mm 82mm 25mm 40mm;
+            grid-template-columns: 25mm 60mm 18mm 18mm 18mm 18mm 18mm;
             gap: 1px;
-            font-size: 8.5px;
+            font-size: 8px;
             padding: 4px 8px;
             align-items: center;
         }
@@ -161,33 +161,57 @@
             padding-left: 2mm;
         }
 
-        /* Alignment */
+        /* Alignment for PO Header Columns */
+        .po-header-labels > div:nth-child(3),
+        .po-header > div:nth-child(3) {
+            text-align: center;
+        }
+        .po-header-labels > div:nth-child(5),
+        .po-header > div:nth-child(5),
+        .po-header-labels > div:nth-child(6),
+        .po-header > div:nth-child(6),
+        .po-header-labels > div:nth-child(7),
+        .po-header > div:nth-child(7) {
+            text-align: right;
+        }
+
+        /* Alignment for Detail Columns */
         .po-detail-labels>div:nth-child(3),
         .po-detail>div:nth-child(3) {
             text-align: center;
         }
 
         .po-detail-labels>div:nth-child(4),
-        .po-detail>div:nth-child(4) {
+        .po-detail>div:nth-child(4),
+        .po-detail-labels>div:nth-child(5),
+        .po-detail>div:nth-child(5),
+        .po-detail-labels>div:nth-child(6),
+        .po-detail>div:nth-child(6),
+        .po-detail-labels>div:nth-child(7),
+        .po-detail>div:nth-child(7) {
             text-align: right;
         }
 
         /* Fonts for Numbers & System Codes */
-        .po-header > div:nth-child(1),
         .po-header > div:nth-child(2),
-        .po-header > div:nth-child(4),
+        .po-header > div:nth-child(3),
         .po-header > div:nth-child(5),
-        .po-header > div:nth-child(6) {
+        .po-header > div:nth-child(6),
+        .po-header > div:nth-child(7),
+        .po-header > div:nth-child(8) {
             font-family: 'IBM Plex Mono', Courier, monospace;
             font-variant-numeric: tabular-nums;
             font-weight: bold;
         }
 
         .po-detail > div:nth-child(1),
-        .po-detail > div:nth-child(4) {
+        .po-detail > div:nth-child(4),
+        .po-detail > div:nth-child(5),
+        .po-detail > div:nth-child(6),
+        .po-detail > div:nth-child(7) {
             font-family: 'IBM Plex Mono', Courier, monospace;
             font-variant-numeric: tabular-nums;
-            font-weight: normal; /* Normal weight for detail product code and quantity */
+            font-weight: normal; /* Normal weight for detail product code, quantity, and price */
         }
 
         .separator {
@@ -256,6 +280,39 @@
             border-top: 1px solid #2F5233 !important;
             border-bottom: none !important; /* Removed bottom border to save printer ink */
             color: #2F5233 !important;
+        }
+
+        /* Totals Panel style */
+        .po-totals-container {
+            margin-top: 15px;
+            margin-left: auto; /* Push to the right side */
+            width: 70mm;
+            border-top: 1px solid #2F5233;
+            padding-top: 8px;
+            font-family: 'IBM Plex Mono', Courier, monospace;
+            font-size: 8.5px;
+            page-break-inside: avoid;
+            break-inside: avoid;
+        }
+
+        .po-total-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 3px 0;
+            color: #334155; /* Navy-Ink */
+        }
+
+        .po-total-row span:nth-child(2) {
+            font-weight: bold;
+        }
+
+        .grand-total-row {
+            border-top: 1px solid #2F5233;
+            border-bottom: 1px solid #2F5233; /* Clean straight border for dot matrix */
+            font-weight: bold;
+            color: #2F5233; /* Highlight in Ledger Green */
+            padding: 5px 0;
+            margin-top: 4px;
         }
 
         /* Semantic Red Style */
@@ -352,11 +409,13 @@
         </div>
 
         <div class="po-header-labels">
+            <div>Cab.</div>
             <div>No. PO</div>
             <div>Tanggal</div>
             <div>Nama Supplier</div>
-            <div>Tgl.Dibutuhkan</div>
-            <div>Tgl.Paling Lambat</div>
+            <div>Total Harga</div>
+            <div>PPN</div>
+            <div>Total PO</div>
             <div>User-id</div>
         </div>
 
@@ -364,22 +423,35 @@
             <div>Produk#</div>
             <div>Nama Produk</div>
             <div>Satuan</div>
-            <div>Qty. PO</div>
+            <div>Qty.Order</div>
+            <div>Qty.Terima</div>
+            <div>@ Harga</div>
+            <div>Total Harga</div>
         </div>
 
         @php
             $grouped = $groupedData;
+            $totalPO = 0;
+            $totalPPN = 0;
+            foreach ($grouped as $fpono => $details) {
+                $h = $details->first();
+                $totalPO += (float) ($h->famountpo ?? 0);
+                $totalPPN += (float) ($h->famountpajak ?? 0);
+            }
+            $grandTotal = $totalPO + $totalPPN;
         @endphp
 
         @foreach ($grouped as $fpono => $details)
             @php $h = $details->first(); @endphp
             <div class="journal-block">
                 <div class="po-header">
+                    <div class="truncate">{{ $h->fbranchcode }}</div>
                     <div class="truncate">{{ $h->fpono }}</div>
-                    <div>{{ \Carbon\Carbon::parse($h->fpodate)->format('d/m/Y') }}</div>
+                    <div>{{ \Carbon\Carbon::parse($h->fsodate)->format('d/m/Y') }}</div>
                     <div class="truncate" title="{{ $h->fsuppliername }}">{{ $h->fsuppliername }}</div>
-                    <div>-</div>
-                    <div>-</div>
+                    <div>{{ number_format($h->famountpo, 2, ',', '.') }}</div>
+                    <div>{{ number_format($h->famountpajak, 2, ',', '.') }}</div>
+                    <div>{{ number_format($h->famountponet, 2, ',', '.') }}</div>
                     <div class="truncate">{{ trim($h->fusercreate) }}</div>
                 </div>
 
@@ -389,6 +461,9 @@
                         <div class="truncate" title="{{ $d->fprdname }}">{{ $d->fprdname }}</div>
                         <div>{{ $d->fsatuan }}</div>
                         <div>{{ number_format($d->fqty, 2, ',', '.') }}</div>
+                        <div>{{ number_format($d->fqtyterima, 2, ',', '.') }}</div>
+                        <div>{{ number_format($d->fprice, 2, ',', '.') }}</div>
+                        <div>{{ number_format($d->famount, 2, ',', '.') }}</div>
                     </div>
                 @endforeach
 
@@ -397,6 +472,24 @@
                 @endif
             </div>
         @endforeach
+    </div>
+
+    {{-- Hidden Totals Panel Container --}}
+    <div id="po-totals-panel-raw" style="display: none;">
+        <div class="po-totals-container">
+            <div class="po-total-row">
+                <span>TOTAL PO</span>
+                <span>{{ number_format($totalPO, 2, ',', '.') }}</span>
+            </div>
+            <div class="po-total-row">
+                <span>TOTAL PPN</span>
+                <span>{{ number_format($totalPPN, 2, ',', '.') }}</span>
+            </div>
+            <div class="po-total-row grand-total-row">
+                <span>GRANDTOTAL</span>
+                <span>{{ number_format($grandTotal, 2, ',', '.') }}</span>
+            </div>
+        </div>
     </div>
 
     {{-- Screen Render Target --}}
@@ -525,9 +618,9 @@
 
                         // Append header clone with "(Lanjutan)" suffix
                         const headerClone = poHeader.cloneNode(true);
-                        const firstChildDiv = headerClone.firstElementChild;
-                        if (firstChildDiv) {
-                            firstChildDiv.textContent = firstChildDiv.textContent + " (Lanjutan)";
+                        const poNoDiv = headerClone.children[1]; // 2nd child is No. PO
+                        if (poNoDiv) {
+                            poNoDiv.textContent = poNoDiv.textContent + " (Lanjutan)";
                         }
                         currentJournalBlock.appendChild(headerClone);
 
@@ -548,6 +641,21 @@
                 }
             }
         });
+
+        // Add Totals Panel dynamically right before end of report
+        const totalsPanelRaw = document.getElementById("po-totals-panel-raw");
+        if (totalsPanelRaw) {
+            const totalsClone = totalsPanelRaw.cloneNode(true);
+            totalsClone.style.display = "block";
+            totalsClone.removeAttribute("id");
+            currentPage.appendChild(totalsClone);
+
+            if (currentPage.offsetHeight > maxPageHeight) {
+                currentPage.removeChild(totalsClone);
+                currentPage = createNewPage();
+                currentPage.appendChild(totalsClone);
+            }
+        }
 
         // Add End of Report text
         const endOfReportEl = document.createElement("div");
