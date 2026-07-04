@@ -111,9 +111,9 @@
 
         .po-header-labels {
             background-color: transparent; /* Simplified background for dot matrix printer */
-            color: #cc0000; /* Dark Red matching Listing PR */
-            border-top: 1px solid #cc0000; /* Reduced ink weight */
-            border-bottom: 1px solid #cc0000; /* Reduced ink weight */
+            color: #000000; /* Black for all except title */
+            border-top: 1px solid #000000; /* Reduced ink weight */
+            border-bottom: 1px solid #000000; /* Reduced ink weight */
             margin-bottom: 2px;
             font-weight: bold; /* Bold data header */
             text-transform: uppercase;
@@ -131,7 +131,7 @@
         .po-detail-labels,
         .po-detail {
             display: grid;
-            grid-template-columns: 25mm 60mm 18mm 18mm 18mm 18mm 18mm;
+            grid-template-columns: 25mm 55mm 18mm 18mm 18mm 18mm 18mm;
             gap: 1px;
             font-size: 8px;
             padding: 4px 8px;
@@ -140,9 +140,9 @@
 
         .po-detail-labels {
             font-weight: bold; /* Bold data header */
-            color: #cc0000; /* Dark Red matching Listing PR */
+            color: #000000; /* Black for all except title */
             background-color: transparent; /* Simplified background for dot matrix printer */
-            border-bottom: 1px solid #cc0000; /* Reduced ink weight */
+            border-bottom: 1px solid #000000; /* Reduced ink weight */
             margin-top: 2px;
             text-transform: uppercase;
             letter-spacing: 0.5px;
@@ -242,7 +242,7 @@
         }
 
         .print-button {
-            background-color: #cc0000; /* Dark Red matching Listing PR */
+            background-color: #0f172a; /* Navy-Ink background */
             color: white;
             padding: 8px 16px;
             border-radius: 6px;
@@ -255,13 +255,13 @@
             display: inline-flex;
             align-items: center;
             gap: 6px;
-            box-shadow: 0 2px 4px rgba(204, 0, 0, 0.2);
+            box-shadow: 0 2px 4px rgba(15, 23, 42, 0.2);
         }
 
         .print-button:hover {
-            background-color: #990000;
+            background-color: #000000; /* Black background on hover */
             transform: translateY(-1px);
-            box-shadow: 0 4px 6px rgba(204, 0, 0, 0.3);
+            box-shadow: 0 4px 6px rgba(15, 23, 42, 0.3);
         }
 
         .journal-block {
@@ -277,22 +277,40 @@
 
         /* End of Report style */
         .end-of-report {
-            border-top: 1px solid #cc0000 !important;
-            border-bottom: none !important; /* Removed bottom border to save printer ink */
-            color: #cc0000 !important;
+            border-top: none !important; /* Eliminated line above end of report */
+            border-bottom: none !important;
+            color: #000000 !important;
         }
 
         /* Totals Panel style */
-        .po-totals-container {
+        .po-totals-panel-wrapper {
             margin-top: 15px;
-            margin-left: auto; /* Push to the right side */
-            width: 70mm;
-            border-top: 1px solid #cc0000;
+            width: 175mm; /* Full printable width */
+            border-top: 1px solid #000000; /* Long line above totals */
             padding-top: 8px;
-            font-family: 'IBM Plex Mono', Courier, monospace;
-            font-size: 8.5px;
+            position: relative; /* Position context for centering */
             page-break-inside: avoid;
             break-inside: avoid;
+        }
+
+        .end-of-report-inline {
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
+            bottom: 5px; /* Vertically inline with GRANDTOTAL row */
+            font-family: 'IBM Plex Sans', sans-serif;
+            font-size: 8px;
+            font-weight: bold;
+            color: #000000;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .po-totals-container {
+            margin-left: auto; /* Push to the right side */
+            width: 70mm;
+            font-family: 'IBM Plex Mono', Courier, monospace;
+            font-size: 8.5px;
         }
 
         .po-total-row {
@@ -307,10 +325,10 @@
         }
 
         .grand-total-row {
-            border-top: 1px solid #cc0000;
-            border-bottom: 1px solid #cc0000; /* Clean straight border for dot matrix */
+            border-top: 1px solid #000000;
+            border-bottom: 1px solid #000000; /* Clean straight border for dot matrix */
             font-weight: bold;
-            color: #cc0000; /* Highlight in Dark Red */
+            color: #000000; /* Highlight in Black */
             padding: 5px 0;
             margin-top: 4px;
         }
@@ -476,18 +494,21 @@
 
     {{-- Hidden Totals Panel Container --}}
     <div id="po-totals-panel-raw" style="display: none;">
-        <div class="po-totals-container">
-            <div class="po-total-row">
-                <span>TOTAL PO</span>
-                <span>{{ number_format($totalPO, 2, ',', '.') }}</span>
-            </div>
-            <div class="po-total-row">
-                <span>TOTAL PPN</span>
-                <span>{{ number_format($totalPPN, 2, ',', '.') }}</span>
-            </div>
-            <div class="po-total-row grand-total-row">
-                <span>GRANDTOTAL</span>
-                <span>{{ number_format($grandTotal, 2, ',', '.') }}</span>
+        <div class="po-totals-panel-wrapper">
+            <div class="end-of-report-inline">** END OF REPORT **</div>
+            <div class="po-totals-container">
+                <div class="po-total-row">
+                    <span>TOTAL PO</span>
+                    <span>{{ number_format($totalPO, 2, ',', '.') }}</span>
+                </div>
+                <div class="po-total-row">
+                    <span>TOTAL PPN</span>
+                    <span>{{ number_format($totalPPN, 2, ',', '.') }}</span>
+                </div>
+                <div class="po-total-row grand-total-row">
+                    <span>GRANDTOTAL</span>
+                    <span>{{ number_format($grandTotal, 2, ',', '.') }}</span>
+                </div>
             </div>
         </div>
     </div>
@@ -655,28 +676,6 @@
                 currentPage = createNewPage();
                 currentPage.appendChild(totalsClone);
             }
-        }
-
-        // Add End of Report text
-        const endOfReportEl = document.createElement("div");
-        endOfReportEl.className = "end-of-report";
-        endOfReportEl.style.textAlign = "center";
-        endOfReportEl.style.marginTop = "10px";
-        endOfReportEl.style.borderTop = "1px solid #000";
-        endOfReportEl.style.paddingTop = "20px";
-        endOfReportEl.style.fontWeight = "bold";
-        endOfReportEl.style.fontSize = "8px";
-        endOfReportEl.style.color = "#555";
-        endOfReportEl.style.textTransform = "uppercase";
-        endOfReportEl.style.letterSpacing = "1px";
-        endOfReportEl.textContent = "** End of Report **";
-
-        currentPage.appendChild(endOfReportEl);
-
-        if (currentPage.offsetHeight > maxPageHeight) {
-            currentPage.removeChild(endOfReportEl);
-            currentPage = createNewPage();
-            currentPage.appendChild(endOfReportEl);
         }
 
         // Apply strict height class to lock A4 size and hide overflows
