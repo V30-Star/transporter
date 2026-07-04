@@ -23,6 +23,7 @@ use App\Http\Controllers\ListingFakturPembelianController;
 use App\Http\Controllers\ListingFakturPajakPenjualanController;
 use App\Http\Controllers\ListingHutangDagangController;
 use App\Http\Controllers\ListingJurnalController;
+use App\Http\Controllers\LaporanKartuStokController;
 use App\Http\Controllers\ListingMutasiStokController;
 use App\Http\Controllers\ListingPenerimaanBarangController;
 use App\Http\Controllers\ListingPenerimaanKasBankController;
@@ -600,6 +601,9 @@ Route::middleware('auth')->group(function () {
         Route::get('/listingmutasistok', [ListingMutasiStokController::class, 'index'])->name('listingmutasistok.index');
         Route::get('/listingmutasistok/print', [ListingMutasiStokController::class, 'print'])->name('listingmutasistok.print');
         Route::get('/listingmutasistok/excel', [ListingMutasiStokController::class, 'exportExcel'])->name('listingmutasistok.excel');
+
+        Route::get('/laporankartustok', [LaporanKartuStokController::class, 'index'])->name('laporankartustok.index');
+        Route::get('/laporankartustok/print', [LaporanKartuStokController::class, 'print'])->name('laporankartustok.print');
 
         Route::get('/listingpenerimaankasbank', [ListingPenerimaanKasBankController::class, 'index'])->name('listingpenerimaankasbank.index');
         Route::get('/listingpenerimaankasbank/print', [ListingPenerimaanKasBankController::class, 'print'])->name('listingpenerimaankasbank.print');

@@ -980,6 +980,14 @@
                                 <span class="ml-3">{{ 'Listing Mutasi Stok' }}</span>
                             </a>
                         </li>
+
+                        <li>
+                            <a href="{{ route('laporankartustok.index') }}"
+                                class="flex items-center p-2 rounded hover:bg-gray-700">
+                                <i class="fa-solid fa-clipboard-list w-5 text-center flex-shrink-0 text-lg"></i>
+                                <span class="ml-3">{{ 'Laporan Kartu Stok' }}</span>
+                            </a>
+                        </li>
                     @endif
 
                     @if ($hasSidebarPermission('createPemakaianbarang', 'updatePemakaianBarang', 'deletePemakaianBarang'))
