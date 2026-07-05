@@ -1,6 +1,12 @@
 @extends('layouts.app')
 
-@section('title', $action === 'delete' ? 'Permintaan Pembelian - Delete' : ($action === 'view' ? 'Permintaan Pembelian - View' : 'Permintaan Pembelian - Edit'))
+@section('title',
+    $action === 'delete'
+    ? 'Permintaan Pembelian - Delete'
+    : ($action === 'view'
+    ? 'Permintaan Pembelian -
+    View'
+    : 'Permintaan Pembelian - Edit'))
 
 @section('content')
     @php
@@ -87,7 +93,8 @@
         }
     </style>
     @if ($errors->any())
-        <div class="alert alert-danger alert-dismissible fade show border-0 shadow p-0 overflow-hidden mb-4 rounded-xl" role="alert">
+        <div class="alert alert-danger alert-dismissible fade show border-0 shadow p-0 overflow-hidden mb-4 rounded-xl"
+            role="alert">
             {{-- Header Strip --}}
             <div class="d-flex align-items-center px-4 py-3" style="background-color: #c0392b;">
                 <i class="bi bi-exclamation-triangle-fill text-white me-2 fs-5"></i>
@@ -136,8 +143,8 @@
      MODAL BLOCKED BY PO
      ════════════════════════════════════════════════════════════════════ --}}
     @if ($isEdit && ((!empty($blockedByPO) && $blockedByPO) || session('blocked_by_po')))
-        <div x-data="{ open: true }" x-show="open" x-cloak class="fixed inset-0 z-[99] flex items-center justify-center bg-black/60 backdrop-blur-sm"
-            x-transition.opacity>
+        <div x-data="{ open: true }" x-show="open" x-cloak
+            class="fixed inset-0 z-[99] flex items-center justify-center bg-black/60 backdrop-blur-sm" x-transition.opacity>
             <div class="relative bg-white w-[92vw] max-w-2xl rounded-2xl shadow-2xl overflow-hidden" x-transition.scale>
                 {{-- Header --}}
                 <div class="px-6 py-4 border-b border-red-100 bg-red-50 flex items-center gap-3">
@@ -219,29 +226,37 @@
 
                     {{-- ─── CARD 1: Identitas Permintaan ────────────────────── --}}
                     <div class="bg-white border border-gray-200 rounded-xl mb-3 overflow-hidden">
-                        <div class="px-4 pt-3 pb-0">
+                        <div class="flex items-center gap-2 px-4 pt-3 pb-0">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-gray-400" fill="none"
+                                viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+                            </svg>
                             <p class="text-xs font-medium uppercase tracking-wide text-gray-400">Identitas Permintaan</p>
                         </div>
                         <div class="p-4 space-y-3">
                             <div class="grid grid-cols-3 gap-3">
                                 {{-- Cabang --}}
                                 <div>
-                                    <label class="block text-xs font-medium text-gray-600 mb-1">Cabang</label>
-                                    <input type="text" class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm bg-gray-100 text-gray-500 cursor-not-allowed"
+                                    <label class="block text-xs font-bold text-gray-600 mb-1">Cabang</label>
+                                    <input type="text"
+                                        class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm bg-gray-100 text-gray-500 cursor-not-allowed"
                                         value="{{ $fbranchlabel ?? $fcabang }}" disabled>
                                 </div>
 
                                 {{-- PR# --}}
                                 <div>
-                                    <label class="block text-xs font-medium text-gray-600 mb-1">PR#</label>
-                                    <input type="text" class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm bg-gray-100 text-gray-500 cursor-not-allowed"
+                                    <label class="block text-xs font-bold text-gray-600 mb-1">PR#</label>
+                                    <input type="text"
+                                        class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm bg-gray-100 text-gray-500 cursor-not-allowed"
                                         value="{{ $tr_prh->fprno }}" disabled>
                                 </div>
 
                                 {{-- Supplier --}}
                                 <div>
-                                    <label class="block text-xs font-medium text-gray-600 mb-1">Supplier</label>
-                                    <input type="text" class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm bg-gray-100 text-gray-500 cursor-not-allowed"
+                                    <label class="block text-xs font-bold text-gray-600 mb-1">Supplier</label>
+                                    <input type="text"
+                                        class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm bg-gray-100 text-gray-500 cursor-not-allowed"
                                         value="{{ $tr_prh->fsuppliercode }} - {{ $tr_prh->fsuppliername }}" disabled>
                                 </div>
                             </div>
@@ -249,21 +264,21 @@
                             <div class="grid grid-cols-3 gap-3">
                                 {{-- Tanggal --}}
                                 <div>
-                                    <label class="block text-xs font-medium text-gray-600 mb-1">Tanggal</label>
+                                    <label class="block text-xs font-bold text-gray-600 mb-1">Tanggal</label>
                                     <input disabled type="date" value="{{ $fmt($tr_prh->fprdate) }}"
                                         class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm bg-gray-100 text-gray-500 cursor-not-allowed">
                                 </div>
 
                                 {{-- Tanggal Dibutuhkan --}}
                                 <div>
-                                    <label class="block text-xs font-medium text-gray-600 mb-1">Tanggal Dibutuhkan</label>
+                                    <label class="block text-xs font-bold text-gray-600 mb-1">Tanggal Dibutuhkan</label>
                                     <input disabled type="date" value="{{ $fmt($tr_prh->fneeddate) }}"
                                         class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm bg-gray-100 text-gray-500 cursor-not-allowed">
                                 </div>
 
                                 {{-- Tanggal Paling Lambat --}}
                                 <div>
-                                    <label class="block text-xs font-medium text-gray-600 mb-1">Tanggal Paling Lambat</label>
+                                    <label class="block text-xs font-bold text-gray-600 mb-1">Tanggal Paling Lambat</label>
                                     <input disabled type="date" value="{{ $fmt($tr_prh->fduedate) }}"
                                         class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm bg-gray-100 text-gray-500 cursor-not-allowed">
                                 </div>
@@ -271,15 +286,21 @@
 
                             {{-- Keterangan --}}
                             <div>
-                                <label class="block text-xs font-medium text-gray-600 mb-1">Keterangan</label>
-                                <textarea readonly rows="2" class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm bg-gray-100 text-gray-500 cursor-not-allowed">{{ $tr_prh->fket }}</textarea>
+                                <label class="block text-xs font-bold text-gray-600 mb-1">Keterangan</label>
+                                <textarea readonly rows="2"
+                                    class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm bg-gray-100 text-gray-500 cursor-not-allowed">{{ $tr_prh->fket }}</textarea>
                             </div>
                         </div>
                     </div>
 
                     {{-- ─── CARD 2: Detail Item (Read-Only) ────────────────────── --}}
                     <div class="bg-white border border-gray-200 rounded-xl mb-3 overflow-hidden">
-                        <div class="px-4 pt-3 pb-0">
+                        <div class="flex items-center gap-2 px-4 pt-3 pb-0">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-gray-400" fill="none"
+                                viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
+                            </svg>
                             <p class="text-xs font-medium uppercase tracking-wide text-gray-400">Detail Item</p>
                         </div>
                         <div class="p-4">
@@ -288,13 +309,26 @@
                                     <table class="pr-detail-table min-w-full text-sm">
                                         <thead class="bg-gray-50 border-b border-gray-200">
                                             <tr>
-                                                <th class="p-2 text-left w-10 text-xs font-semibold text-gray-500 uppercase">#</th>
-                                                <th class="p-2 text-left w-44 text-xs font-semibold text-gray-500 uppercase">Kode Produk</th>
-                                                <th class="p-2 text-left text-xs font-semibold text-gray-500 uppercase" style="width: 20rem; min-width: 20rem;">Nama Produk</th>
-                                                <th class="p-2 text-left w-40 text-xs font-semibold text-gray-500 uppercase">Satuan</th>
-                                                <th class="p-2 text-right w-28 text-xs font-semibold text-gray-500 uppercase">Qty</th>
-                                                <th class="p-2 text-right w-28 text-xs font-semibold text-gray-500 uppercase">Qty PO</th>
-                                                <th class="p-2 text-left w-56 text-xs font-semibold text-gray-500 uppercase">Ket Item</th>
+                                                <th
+                                                    class="p-2 text-left w-10 text-xs font-semibold text-gray-500 uppercase">
+                                                    #</th>
+                                                <th
+                                                    class="p-2 text-left w-44 text-xs font-semibold text-gray-500 uppercase">
+                                                    Kode Produk</th>
+                                                <th class="p-2 text-left text-xs font-semibold text-gray-500 uppercase"
+                                                    style="width: 20rem; min-width: 20rem;">Nama Produk</th>
+                                                <th
+                                                    class="p-2 text-left w-40 text-xs font-semibold text-gray-500 uppercase">
+                                                    Satuan</th>
+                                                <th
+                                                    class="p-2 text-right w-28 text-xs font-semibold text-gray-500 uppercase">
+                                                    Qty</th>
+                                                <th
+                                                    class="p-2 text-right w-28 text-xs font-semibold text-gray-500 uppercase">
+                                                    Qty PO</th>
+                                                <th
+                                                    class="p-2 text-left w-56 text-xs font-semibold text-gray-500 uppercase">
+                                                    Ket Item</th>
                                             </tr>
                                         </thead>
                                         <tbody>
@@ -303,7 +337,8 @@
                                                     <td class="p-2 text-gray-400" x-text="i + 1"></td>
                                                     <td class="p-2 font-mono" x-text="it.fitemcode"></td>
                                                     <td class="p-2 text-gray-800" style="width: 20rem; min-width: 20rem;">
-                                                        <div class="desc-inline-field flex w-full min-w-0 flex-nowrap items-stretch">
+                                                        <div
+                                                            class="desc-inline-field flex w-full min-w-0 flex-nowrap items-stretch">
                                                             <div class="desc-inline-field__text min-w-0 flex-1 rounded-l-lg border border-gray-300 bg-gray-50 px-2 py-1 text-sm leading-5 text-gray-600 whitespace-normal break-words"
                                                                 style="flex:1 1 auto !important; min-width:0 !important;"
                                                                 x-text="it.fitemname"></div>
@@ -316,8 +351,10 @@
                                                         </div>
                                                     </td>
                                                     <td class="p-2 text-gray-600" x-text="it.fsatuan"></td>
-                                                    <td class="p-2 text-right font-medium text-gray-700" x-text="formatQtyValue(it.fqty)"></td>
-                                                    <td class="p-2 text-right text-gray-500 animate-pulse" x-text="formatQtyValue(it.fqtypo)"></td>
+                                                    <td class="p-2 text-right font-medium text-gray-700"
+                                                        x-text="formatQtyValue(it.fqty)"></td>
+                                                    <td class="p-2 text-right text-gray-500 animate-pulse"
+                                                        x-text="formatQtyValue(it.fqtypo)"></td>
                                                     <td class="p-2 text-gray-600" x-text="it.fketdt || '-'"></td>
                                                 </tr>
                                             </template>
@@ -325,7 +362,8 @@
                                     </table>
                                 </div>
 
-                                <div x-show="showDescModal" x-cloak class="fixed inset-0 z-[95] flex items-center justify-center bg-black/50"
+                                <div x-show="showDescModal" x-cloak
+                                    class="fixed inset-0 z-[95] flex items-center justify-center bg-black/50"
                                     x-transition.opacity>
                                     <div class="absolute inset-0" @click="closeDesc()"></div>
                                     <div class="relative bg-white w-[92vw] max-w-lg rounded-2xl shadow-2xl overflow-hidden"
@@ -352,7 +390,8 @@
                                             <div>
                                                 <label class="block text-sm text-gray-700 font-bold mb-1">Deskripsi</label>
                                                 <textarea x-model="descValue" rows="5"
-                                                    class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm bg-gray-50 text-gray-500 cursor-not-allowed" readonly></textarea>
+                                                    class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm bg-gray-50 text-gray-500 cursor-not-allowed"
+                                                    readonly></textarea>
                                             </div>
                                         </div>
                                         <div class="px-5 py-3 border-t flex items-center justify-end gap-2 bg-gray-50">
@@ -369,14 +408,21 @@
 
                     {{-- ─── CARD 3: Approval & Aksi (Read-Only) ────────────────────── --}}
                     <div class="bg-white border border-gray-200 rounded-xl mb-3 overflow-hidden">
-                        <div class="px-4 pt-3 pb-0">
+                        <div class="flex items-center gap-2 px-4 pt-3 pb-0">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-gray-400" fill="none"
+                                viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                            </svg>
                             <p class="text-xs font-medium uppercase tracking-wide text-gray-400">Approval & Aksi</p>
                         </div>
                         <div class="p-4 space-y-4">
-                            <div class="flex items-center justify-between p-3 border border-gray-200 rounded-lg bg-gray-50">
+                            <div
+                                class="flex items-center justify-between p-3 border border-gray-200 rounded-lg bg-gray-50">
                                 <div>
                                     <p class="text-sm text-gray-800 font-medium">Status Approval</p>
-                                    <p class="text-xs text-gray-400 mt-0.5">Dokumen ini telah disetujui oleh otoritas wewenang</p>
+                                    <p class="text-xs text-gray-400 mt-0.5">Dokumen ini telah disetujui oleh otoritas
+                                        wewenang</p>
                                 </div>
                                 <div class="relative w-9 h-5 rounded-full transition-colors duration-200 flex-shrink-0"
                                     class="{{ $isApproved ? 'bg-emerald-500' : 'bg-gray-300' }}">
@@ -431,7 +477,8 @@
                         class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
                         <div class="bg-white rounded-2xl shadow-xl max-w-sm w-full p-6">
                             <h3 class="text-lg font-bold text-gray-800 mb-2">Konfirmasi Hapus</h3>
-                            <p class="text-sm text-gray-600 mb-4">Apakah anda yakin ingin menghapus Permintaan Pembelian ini?</p>
+                            <p class="text-sm text-gray-600 mb-4">Apakah anda yakin ingin menghapus Permintaan Pembelian
+                                ini?</p>
                             <form action="{{ route('tr_prh.destroy', $tr_prh->fprhid) }}" method="POST">
                                 @csrf
                                 @method('DELETE')
@@ -439,7 +486,8 @@
                                     <button onclick="closeDeleteModal()" type="button"
                                         class="px-4 py-2 bg-gray-100 hover:bg-gray-200 border border-gray-300 rounded-lg text-sm font-medium transition-colors">Tidak</button>
                                     <button type="submit"
-                                        class="px-4 py-2 bg-red-600 text-white rounded-lg text-sm font-medium hover:bg-red-700 transition-colors">Ya, Hapus</button>
+                                        class="px-4 py-2 bg-red-600 text-white rounded-lg text-sm font-medium hover:bg-red-700 transition-colors">Ya,
+                                        Hapus</button>
                                 </div>
                             </form>
                         </div>
@@ -467,7 +515,8 @@
                         <div class="mb-4 flex items-center gap-3 px-4 py-3 rounded-lg bg-amber-50 border border-amber-200">
                             <x-heroicon-o-lock-closed class="w-5 h-5 text-amber-500 flex-shrink-0" />
                             <p class="text-sm text-amber-700">
-                                <strong>Mode hanya baca.</strong> PR ini tidak bisa diedit karena sudah memiliki purchase Order terkait.
+                                <strong>Mode hanya baca.</strong> PR ini tidak bisa diedit karena sudah memiliki purchase
+                                Order terkait.
                             </p>
                         </div>
                     @endif
@@ -480,23 +529,30 @@
                     {{-- ─── CARD 1: Identitas Permintaan ────────────────────── --}}
                     <div class="bg-white border border-gray-200 rounded-xl mb-3 overflow-hidden"
                         :class="blockedByPO ? 'opacity-65 pointer-events-none' : ''">
-                        <div class="px-4 pt-3 pb-0">
+                        <div class="flex items-center gap-2 px-4 pt-3 pb-0">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-gray-400" fill="none"
+                                viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+                            </svg>
                             <p class="text-xs font-medium uppercase tracking-wide text-gray-400">Identitas Permintaan</p>
                         </div>
                         <div class="p-4 space-y-3">
                             <div class="grid grid-cols-3 gap-3">
                                 {{-- Cabang --}}
                                 <div>
-                                    <label class="block text-xs font-medium text-gray-600 mb-1">Cabang</label>
-                                    <input type="text" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm bg-gray-100 text-gray-500 cursor-not-allowed border-gray-200"
+                                    <label class="block text-xs font-bold text-gray-600 mb-1">Cabang</label>
+                                    <input type="text"
+                                        class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm bg-gray-100 text-gray-500 cursor-not-allowed border-gray-200"
                                         value="{{ $fbranchlabel ?? $fcabang }}" disabled>
                                     <input type="hidden" name="fbranchcode" value="{{ $fbranchcode }}">
                                 </div>
 
                                 {{-- PR# --}}
                                 <div>
-                                    <label class="block text-xs font-medium text-gray-600 mb-1">PR#</label>
-                                    <input type="text" name="fprno" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm bg-gray-100 text-gray-500 cursor-not-allowed border-gray-200"
+                                    <label class="block text-xs font-bold text-gray-600 mb-1">PR#</label>
+                                    <input type="text" name="fprno"
+                                        class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm bg-gray-100 text-gray-500 cursor-not-allowed border-gray-200"
                                         value="{{ $tr_prh->fprno }}" disabled>
                                 </div>
 
@@ -506,10 +562,12 @@
                                     supplierDisplay: '{{ $tr_prh->fsuppliercode }} - {{ $tr_prh->fsuppliername }}'
                                 }"
                                     @supplier-chosen.window="supplierId = $event.detail.fsuppliercode; supplierDisplay = $event.detail.fsuppliername + ' (' + $event.detail.fsuppliercode + ')'">
-                                    <label class="block text-xs font-medium text-gray-600 mb-1">Supplier <span class="text-red-500">*</span></label>
+                                    <label class="block text-xs font-bold text-gray-600 mb-1">Supplier <span
+                                            class="text-red-500">*</span></label>
                                     <div class="flex">
                                         <input type="text" x-model="supplierDisplay"
-                                            class="flex-1 border border-gray-300 rounded-l-lg px-3 py-2 text-sm bg-gray-50 text-gray-700 cursor-pointer focus:outline-none focus:border-blue-500" readonly>
+                                            class="flex-1 border border-gray-300 rounded-l-lg px-3 py-2 text-sm bg-gray-50 text-gray-700 cursor-pointer focus:outline-none focus:border-blue-500"
+                                            readonly>
                                         <input type="hidden" name="fsupplier" x-model="supplierId">
                                         <button type="button" @click="$dispatch('browse-supplier')"
                                             class="border border-l-0 border-gray-300 px-3 py-2 bg-white hover:bg-gray-50 text-gray-500 transition-colors">
@@ -531,14 +589,17 @@
                             <div class="grid grid-cols-3 gap-3">
                                 {{-- Tanggal --}}
                                 <div>
-                                    <label class="block text-xs font-medium text-gray-600 mb-1">Tanggal <span class="text-red-500">*</span></label>
-                                    <input type="date" name="fprdate" value="{{ old('fprdate', $fmt($tr_prh->fprdate)) }}"
+                                    <label class="block text-xs font-bold text-gray-600 mb-1">Tanggal <span
+                                            class="text-red-500">*</span></label>
+                                    <input type="date" name="fprdate"
+                                        value="{{ old('fprdate', $fmt($tr_prh->fprdate)) }}"
                                         class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100">
                                 </div>
 
                                 {{-- Tanggal Dibutuhkan --}}
                                 <div>
-                                    <label class="block text-xs font-medium text-gray-600 mb-1">Tanggal Dibutuhkan <span class="text-red-500">*</span></label>
+                                    <label class="block text-xs font-bold text-gray-600 mb-1">Tanggal Dibutuhkan <span
+                                            class="text-red-500">*</span></label>
                                     <input type="date" name="fneeddate"
                                         value="{{ old('fneeddate', $fmt($tr_prh->fneeddate)) }}"
                                         class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100">
@@ -546,23 +607,31 @@
 
                                 {{-- Tanggal Paling Lambat --}}
                                 <div>
-                                    <label class="block text-xs font-medium text-gray-600 mb-1">Tanggal Paling Lambat <span class="text-red-500">*</span></label>
-                                    <input type="date" name="fduedate" value="{{ old('fduedate', $fmt($tr_prh->fduedate)) }}"
+                                    <label class="block text-xs font-bold text-gray-600 mb-1">Tanggal Paling Lambat <span
+                                            class="text-red-500">*</span></label>
+                                    <input type="date" name="fduedate"
+                                        value="{{ old('fduedate', $fmt($tr_prh->fduedate)) }}"
                                         class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100">
                                 </div>
                             </div>
 
                             {{-- Keterangan --}}
                             <div>
-                                <label class="block text-xs font-medium text-gray-600 mb-1">Keterangan</label>
-                                <textarea name="fket" rows="2" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100">{{ old('fket', $tr_prh->fket) }}</textarea>
+                                <label class="block text-xs font-bold text-gray-600 mb-1">Keterangan</label>
+                                <textarea name="fket" rows="2"
+                                    class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100">{{ old('fket', $tr_prh->fket) }}</textarea>
                             </div>
                         </div>
                     </div>
 
                     {{-- ─── CARD 2: Detail Item (Editable) ────────────────────── --}}
                     <div class="bg-white border border-gray-200 rounded-xl mb-3 overflow-hidden">
-                        <div class="px-4 pt-3 pb-0">
+                        <div class="flex items-center gap-2 px-4 pt-3 pb-0">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-gray-400" fill="none"
+                                viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
+                            </svg>
                             <p class="text-xs font-medium uppercase tracking-wide text-gray-400">Detail Item</p>
                         </div>
                         <div class="p-4">
@@ -571,19 +640,35 @@
                                     <table class="pr-detail-table min-w-full text-sm">
                                         <thead class="bg-gray-50 border-b border-gray-200">
                                             <tr>
-                                                <th class="p-2 text-left w-10 text-xs font-semibold text-gray-500 uppercase">#</th>
-                                                <th class="p-2 text-left w-48 text-xs font-semibold text-gray-500 uppercase">Kode Produk</th>
-                                                <th class="p-2 text-left text-xs font-semibold text-gray-500 uppercase" style="width: 20rem; min-width: 20rem;">Nama Produk</th>
-                                                <th class="p-2 text-left w-36 text-xs font-semibold text-gray-500 uppercase">Satuan</th>
-                                                <th class="p-2 text-right w-24 text-xs font-semibold text-gray-500 uppercase">Qty</th>
-                                                <th class="p-2 text-right w-24 text-xs font-semibold text-gray-500 uppercase">Qty PO</th>
-                                                <th class="p-2 text-left w-48 text-xs font-semibold text-gray-500 uppercase">Ket Item</th>
-                                                <th class="p-2 text-center w-20 text-xs font-semibold text-gray-500 uppercase">Aksi</th>
+                                                <th
+                                                    class="p-2 text-left w-10 text-xs font-semibold text-gray-500 uppercase">
+                                                    #</th>
+                                                <th
+                                                    class="p-2 text-left w-48 text-xs font-semibold text-gray-500 uppercase">
+                                                    Kode Produk</th>
+                                                <th class="p-2 text-left text-xs font-semibold text-gray-500 uppercase"
+                                                    style="width: 20rem; min-width: 20rem;">Nama Produk</th>
+                                                <th
+                                                    class="p-2 text-left w-36 text-xs font-semibold text-gray-500 uppercase">
+                                                    Satuan</th>
+                                                <th
+                                                    class="p-2 text-right w-24 text-xs font-semibold text-gray-500 uppercase">
+                                                    Qty</th>
+                                                <th
+                                                    class="p-2 text-right w-24 text-xs font-semibold text-gray-500 uppercase">
+                                                    Qty PO</th>
+                                                <th
+                                                    class="p-2 text-left w-48 text-xs font-semibold text-gray-500 uppercase">
+                                                    Ket Item</th>
+                                                <th
+                                                    class="p-2 text-center w-20 text-xs font-semibold text-gray-500 uppercase">
+                                                    Aksi</th>
                                             </tr>
                                         </thead>
                                         <tbody>
                                             <template x-for="(row, i) in rows" :key="row.uid">
-                                                <tr class="border-t border-gray-150 align-top" :class="i === 0 ? 'bg-green-50/40' : 'bg-white'">
+                                                <tr class="border-t border-gray-150 align-top"
+                                                    :class="i === 0 ? 'bg-green-50/40' : 'bg-white'">
                                                     <td class="p-2 text-gray-400" x-text="i + 1"></td>
                                                     <td class="p-2">
                                                         <div class="flex">
@@ -599,7 +684,8 @@
                                                         </div>
                                                     </td>
                                                     <td class="p-2" style="width: 20rem; min-width: 20rem;">
-                                                        <div class="desc-inline-field flex w-full min-w-0 flex-nowrap items-stretch">
+                                                        <div
+                                                            class="desc-inline-field flex w-full min-w-0 flex-nowrap items-stretch">
                                                             <div class="desc-inline-field__text min-w-0 flex-1 rounded-l-lg border border-gray-300 bg-gray-50 px-2 py-1 text-sm leading-5 text-gray-600 whitespace-normal break-words"
                                                                 style="flex:1 1 auto !important; min-width:0 !important;"
                                                                 x-text="row.fitemname || '-'"></div>
@@ -614,11 +700,14 @@
                                                     </td>
                                                     <td class="p-2">
                                                         <template x-if="row.units.length > 1">
-                                                            <select class="w-full border border-gray-300 rounded-lg px-2 py-1 text-sm focus:outline-none focus:border-blue-500"
+                                                            <select
+                                                                class="w-full border border-gray-300 rounded-lg px-2 py-1 text-sm focus:outline-none focus:border-blue-500"
                                                                 x-model="row.fsatuan" @change="onRowUpdated(i)"
                                                                 :disabled="blockedByPO">
-                                                                <template x-for="unit in row.units" :key="unit">
-                                                                    <option :value="unit" x-text="unit"></option>
+                                                                <template x-for="unit in row.units"
+                                                                    :key="unit">
+                                                                    <option :value="unit" x-text="unit">
+                                                                    </option>
                                                                 </template>
                                                             </select>
                                                         </template>
@@ -630,9 +719,10 @@
                                                     </td>
                                                     <td class="p-2 text-right">
                                                         <input type="text" inputmode="decimal"
-                                                            class="w-full border border-gray-300 rounded-lg px-2 py-1 text-right focus:outline-none focus:border-blue-500" x-model="row.fqty"
-                                                            :disabled="blockedByPO" @focus="unformatQtyInput(row)"
-                                                            @input="onQtyInput(row, i)" @blur="formatQtyInput(row, i)">
+                                                            class="w-full border border-gray-300 rounded-lg px-2 py-1 text-right focus:outline-none focus:border-blue-500"
+                                                            x-model="row.fqty" :disabled="blockedByPO"
+                                                            @focus="unformatQtyInput(row)" @input="onQtyInput(row, i)"
+                                                            @blur="formatQtyInput(row, i)">
                                                     </td>
                                                     <td class="p-2 text-right">
                                                         <input type="text"
@@ -640,7 +730,8 @@
                                                             :value="formatQtyValue(row.fqtypo)" disabled>
                                                     </td>
                                                     <td class="p-2">
-                                                        <input type="text" class="w-full border border-gray-300 rounded-lg px-2 py-1 focus:outline-none focus:border-blue-500"
+                                                        <input type="text"
+                                                            class="w-full border border-gray-300 rounded-lg px-2 py-1 focus:outline-none focus:border-blue-500"
                                                             x-model="row.fketdt" :disabled="blockedByPO"
                                                             @input="onRowUpdated(i)">
                                                     </td>
@@ -673,7 +764,8 @@
                                     </template>
                                 </div>
                                 <input type="hidden" id="itemsCount" :value="rowsToSubmit.length">
-                                <div x-show="showDescModal" x-cloak class="fixed inset-0 z-[95] flex items-center justify-center bg-black/50"
+                                <div x-show="showDescModal" x-cloak
+                                    class="fixed inset-0 z-[95] flex items-center justify-center bg-black/50"
                                     x-transition.opacity>
                                     <div class="absolute inset-0" @click="closeDesc()"></div>
                                     <div class="relative bg-white w-[92vw] max-w-lg rounded-2xl shadow-2xl overflow-hidden"
@@ -700,7 +792,8 @@
                                             </div>
                                             <div>
                                                 <label class="block text-sm text-gray-700 font-bold mb-1">Deskripsi</label>
-                                                <textarea x-model="descValue" rows="5" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500"
+                                                <textarea x-model="descValue" rows="5"
+                                                    class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500"
                                                     placeholder="Tulis deskripsi item di sini..." :readonly="blockedByPO"></textarea>
                                             </div>
                                         </div>
@@ -722,11 +815,17 @@
 
                     {{-- ─── CARD 3: Approval & Aksi (Editable) ────────────────────── --}}
                     <div class="bg-white border border-gray-200 rounded-xl mb-3 overflow-hidden">
-                        <div class="px-4 pt-3 pb-0">
+                        <div class="flex items-center gap-2 px-4 pt-3 pb-0">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-gray-400" fill="none"
+                                viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                            </svg>
                             <p class="text-xs font-medium uppercase tracking-wide text-gray-400">Approval & Aksi</p>
                         </div>
                         <div class="p-4 space-y-4">
-                            <div class="flex items-center justify-between p-3 border border-gray-200 rounded-lg bg-gray-50">
+                            <div
+                                class="flex items-center justify-between p-3 border border-gray-200 rounded-lg bg-gray-50">
                                 <div>
                                     <p class="text-sm text-gray-800 font-medium">Status Approval</p>
                                     <p class="text-xs text-gray-400 mt-0.5">Dokumen ini disetujui</p>
@@ -776,7 +875,8 @@
                         class="fixed inset-0 z-[100] flex items-center justify-center bg-black/50" x-transition.opacity>
                         <div class="bg-white p-6 rounded-2xl shadow-2xl max-w-sm w-full text-center">
                             <h4 class="text-lg font-bold text-red-600 mb-2">Item Kosong</h4>
-                            <p class="text-sm text-gray-600 mb-4">Belum ada item dengan Qty lebih dari 0 yang bisa disimpan.</p>
+                            <p class="text-sm text-gray-600 mb-4">Belum ada item dengan Qty lebih dari 0 yang bisa
+                                disimpan.</p>
                             <button @click="showNoItems = false" type="button"
                                 class="w-full py-2 bg-gray-100 hover:bg-gray-200 border border-gray-300 rounded-lg font-medium text-sm transition-colors">OK</button>
                         </div>
@@ -797,7 +897,8 @@
                                 <button @click="closeWarning()" type="button"
                                     class="px-4 py-2 bg-white hover:bg-gray-50 border border-gray-300 rounded-lg font-medium text-sm transition-colors">Tutup</button>
                                 <button x-show="warningCanProceed" @click="confirmWarningAndSubmit()" type="button"
-                                    class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg font-medium text-sm transition-colors">Lanjut Simpan</button>
+                                    class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg font-medium text-sm transition-colors">Lanjut
+                                    Simpan</button>
                             </div>
                         </div>
                     </div>
@@ -814,7 +915,9 @@
                         class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
                         <div class="bg-white rounded-2xl shadow-xl max-w-sm w-full p-6">
                             <h3 class="text-lg font-bold text-gray-800 mb-2">Konfirmasi Close</h3>
-                            <p class="text-sm text-gray-600 mb-4">Apakah anda yakin mau close PR <strong>{{ $tr_prh->fprno }}</strong>?</p>
+                            <p class="text-sm text-gray-600 mb-4">Apakah anda yakin mau close PR
+                                <strong>{{ $tr_prh->fprno }}</strong>?
+                            </p>
                             <div class="flex justify-end gap-2">
                                 <button type="button" onclick="closeClosePrModal()"
                                     class="px-4 py-2 bg-gray-100 hover:bg-gray-200 border border-gray-300 rounded-lg text-sm font-medium transition-colors">No</button>
@@ -864,10 +967,14 @@
                         <thead class="sticky top-0 z-10">
                             <tr class="bg-gradient-to-r from-gray-50 to-gray-100">
                                 <th class="text-left p-3 font-semibold text-gray-700 border-b-2 border-gray-200">Kode</th>
-                                <th class="text-left p-3 font-semibold text-gray-700 border-b-2 border-gray-200">Nama Supplier</th>
-                                <th class="text-left p-3 font-semibold text-gray-700 border-b-2 border-gray-200">Alamat</th>
-                                <th class="text-left p-3 font-semibold text-gray-700 border-b-2 border-gray-200">Telepon</th>
-                                <th class="text-center p-3 font-semibold text-gray-700 border-b-2 border-gray-200">Aksi</th>
+                                <th class="text-left p-3 font-semibold text-gray-700 border-b-2 border-gray-200">Nama
+                                    Supplier</th>
+                                <th class="text-left p-3 font-semibold text-gray-700 border-b-2 border-gray-200">Alamat
+                                </th>
+                                <th class="text-left p-3 font-semibold text-gray-700 border-b-2 border-gray-200">Telepon
+                                </th>
+                                <th class="text-center p-3 font-semibold text-gray-700 border-b-2 border-gray-200">Aksi
+                                </th>
                             </tr>
                         </thead>
                         <tbody></tbody>
@@ -906,11 +1013,15 @@
                         <thead class="sticky top-0 z-10">
                             <tr class="bg-gradient-to-r from-gray-50 to-gray-100">
                                 <th class="text-left p-3 font-semibold text-gray-700 border-b-2 border-gray-200">Kode</th>
-                                <th class="text-left p-3 font-semibold text-gray-700 border-b-2 border-gray-200">Nama Produk</th>
-                                <th class="text-left p-3 font-semibold text-gray-700 border-b-2 border-gray-200">Satuan</th>
+                                <th class="text-left p-3 font-semibold text-gray-700 border-b-2 border-gray-200">Nama
+                                    Produk</th>
+                                <th class="text-left p-3 font-semibold text-gray-700 border-b-2 border-gray-200">Satuan
+                                </th>
                                 <th class="text-left p-3 font-semibold text-gray-700 border-b-2 border-gray-200">Merek</th>
-                                <th class="text-center p-3 font-semibold text-gray-700 border-b-2 border-gray-200">Stock</th>
-                                <th class="text-center p-3 font-semibold text-gray-700 border-b-2 border-gray-200">Aksi</th>
+                                <th class="text-center p-3 font-semibold text-gray-700 border-b-2 border-gray-200">Stock
+                                </th>
+                                <th class="text-center p-3 font-semibold text-gray-700 border-b-2 border-gray-200">Aksi
+                                </th>
                             </tr>
                         </thead>
                         <tbody></tbody>
@@ -1311,10 +1422,10 @@
             const hydratedItems = rawItems.map((it) => {
                 const code = (it.fitemcode || '').trim();
                 const meta = window.PRODUCT_MAP?.[code] || null;
-                const units = Array.isArray(it.units) && it.units.length > 0 ?
-                    [...new Set(it.units.map(unit => (unit ?? '').toString().trim()).filter(Boolean))] :
-                    (meta?.units?.length ?
-                        [...new Set(meta.units.map(unit => (unit ?? '').toString().trim()).filter(Boolean))] :
+                const units = Array.isArray(it.units) && it.units.length > 0 ? [...new Set(it.units.map(unit => (
+                        unit ?? '').toString().trim()).filter(Boolean))] :
+                    (meta?.units?.length ? [...new Set(meta.units.map(unit => (unit ?? '').toString().trim())
+                            .filter(Boolean))] :
                         (it.fsatuan ? [it.fsatuan] : []));
                 const existingUnit = (it.fsatuan || '').toString().trim();
                 const matchedUnit = units.find(unit => unit.toLowerCase() === existingUnit.toLowerCase()) ||

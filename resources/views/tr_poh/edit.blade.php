@@ -141,7 +141,8 @@
                             PO Tidak Dapat {{ $isDelete ? 'Dihapus' : 'Diedit' }}
                         </h3>
                         <p class="text-sm text-orange-500 mt-0.5">
-                            PO <strong>{{ $displayFpono ?? $tr_poh->fpono }}</strong> sudah memiliki transaksi Penerimaan Barang:
+                            PO <strong>{{ $displayFpono ?? $tr_poh->fpono }}</strong> sudah memiliki transaksi Penerimaan
+                            Barang:
                         </p>
                     </div>
                     <button type="button" @click="open = false"
@@ -198,7 +199,7 @@
         </div>
     @endif
 
-        <div class="max-w-[1600px] mx-auto py-8 px-6">
+    <div class="max-w-[1600px] mx-auto py-8 px-6">
         @if ($isReadOnly)
             {{-- ───────────────────────────────────────────────────────────────────
                  READ-ONLY MODE (VIEW / DELETE)
@@ -206,29 +207,38 @@
             <div class="space-y-4">
                 {{-- ─── CARD 1: Identitas Order Pembelian (Read-Only) ────────────────────── --}}
                 <div class="bg-white border border-gray-200 rounded-xl mb-3 overflow-hidden">
-                    <div class="px-4 pt-3 pb-0">
+                    <div class="flex items-center gap-2 px-4 pt-3 pb-0">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-gray-400" fill="none"
+                            viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+                        </svg>
                         <p class="text-xs font-medium uppercase tracking-wide text-gray-400">Identitas Order Pembelian</p>
                     </div>
                     <div class="p-4 space-y-3">
                         <div class="grid grid-cols-3 gap-3">
                             {{-- Cabang --}}
                             <div>
-                                <label class="block text-xs font-medium text-gray-600 mb-1">Cabang</label>
-                                <input type="text" class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm bg-gray-100 text-gray-500 cursor-not-allowed"
-                                    value="{{ trim(($fbranchcode ?? '') . ($fcabang ?? '' ? ' - ' . $fcabang : '')) }}" disabled>
+                                <label class="block text-xs font-bold text-gray-600 mb-1">Cabang</label>
+                                <input type="text"
+                                    class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm bg-gray-100 text-gray-500 cursor-not-allowed"
+                                    value="{{ trim(($fbranchcode ?? '') . ($fcabang ?? '' ? ' - ' . $fcabang : '')) }}"
+                                    disabled>
                             </div>
 
                             {{-- PO# --}}
                             <div>
-                                <label class="block text-xs font-medium text-gray-600 mb-1">PO#</label>
-                                <input type="text" class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm bg-gray-100 text-gray-500 cursor-not-allowed"
+                                <label class="block text-xs font-bold text-gray-600 mb-1">PO#</label>
+                                <input type="text"
+                                    class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm bg-gray-100 text-gray-500 cursor-not-allowed"
                                     value="{{ $displayFpono ?? $tr_poh->fpono }}" disabled>
                             </div>
 
                             {{-- Supplier --}}
                             <div>
-                                <label class="block text-xs font-medium text-gray-600 mb-1">Supplier</label>
-                                <input type="text" class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm bg-gray-100 text-gray-500 cursor-not-allowed"
+                                <label class="block text-xs font-bold text-gray-600 mb-1">Supplier</label>
+                                <input type="text"
+                                    class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm bg-gray-100 text-gray-500 cursor-not-allowed"
                                     value="{{ $tr_poh->fsupplier }} - {{ $tr_poh->fsuppliername }}" disabled>
                             </div>
                         </div>
@@ -236,22 +246,27 @@
                         <div class="grid grid-cols-3 gap-3">
                             {{-- Tanggal --}}
                             <div>
-                                <label class="block text-xs font-medium text-gray-600 mb-1">Tanggal</label>
-                                <input type="text" class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm bg-gray-100 text-gray-500 cursor-not-allowed"
-                                    value="{{ $tr_poh->fpodate ? \Carbon\Carbon::parse($tr_poh->fpodate)->format('d/m/Y') : '-' }}" disabled>
+                                <label class="block text-xs font-bold text-gray-600 mb-1">Tanggal</label>
+                                <input type="text"
+                                    class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm bg-gray-100 text-gray-500 cursor-not-allowed"
+                                    value="{{ $tr_poh->fpodate ? \Carbon\Carbon::parse($tr_poh->fpodate)->format('d/m/Y') : '-' }}"
+                                    disabled>
                             </div>
 
                             {{-- Tgl. Kirim --}}
                             <div>
-                                <label class="block text-xs font-medium text-gray-600 mb-1">Tgl. Kirim</label>
-                                <input type="text" class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm bg-gray-100 text-gray-500 cursor-not-allowed"
-                                    value="{{ $tr_poh->fkirimdate ? \Carbon\Carbon::parse($tr_poh->fkirimdate)->format('d/m/Y') : '-' }}" disabled>
+                                <label class="block text-xs font-bold text-gray-600 mb-1">Tgl. Kirim</label>
+                                <input type="text"
+                                    class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm bg-gray-100 text-gray-500 cursor-not-allowed"
+                                    value="{{ $tr_poh->fkirimdate ? \Carbon\Carbon::parse($tr_poh->fkirimdate)->format('d/m/Y') : '-' }}"
+                                    disabled>
                             </div>
 
                             {{-- Tempo --}}
                             <div>
-                                <label class="block text-xs font-medium text-gray-600 mb-1">Tempo</label>
-                                <input type="text" class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm bg-gray-100 text-gray-500 cursor-not-allowed"
+                                <label class="block text-xs font-bold text-gray-600 mb-1">Tempo</label>
+                                <input type="text"
+                                    class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm bg-gray-100 text-gray-500 cursor-not-allowed"
                                     value="{{ $tr_poh->ftempohr ?? 0 }} Hari" disabled>
                             </div>
                         </div>
@@ -259,30 +274,40 @@
                         <div class="grid grid-cols-3 gap-3">
                             {{-- Currency --}}
                             <div>
-                                <label class="block text-xs font-medium text-gray-600 mb-1">Currency</label>
-                                <input type="text" class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm bg-gray-100 text-gray-500 cursor-not-allowed"
-                                    value="{{ isset($currentCurrency) ? ($currentCurrency->fcurrname . ' (' . $currentCurrency->fcurrcode . ')') : ($tr_poh->fcurrency ?? 'IDR') }}" disabled>
+                                <label class="block text-xs font-bold text-gray-600 mb-1">Currency</label>
+                                <input type="text"
+                                    class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm bg-gray-100 text-gray-500 cursor-not-allowed"
+                                    value="{{ isset($currentCurrency) ? $currentCurrency->fcurrname . ' (' . $currentCurrency->fcurrcode . ')' : $tr_poh->fcurrency ?? 'IDR' }}"
+                                    disabled>
                             </div>
 
                             {{-- Rate --}}
                             <div>
-                                <label class="block text-xs font-medium text-gray-600 mb-1">Rate</label>
-                                <input type="text" class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm bg-gray-100 text-gray-500 cursor-not-allowed"
+                                <label class="block text-xs font-bold text-gray-600 mb-1">Rate</label>
+                                <input type="text"
+                                    class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm bg-gray-100 text-gray-500 cursor-not-allowed"
                                     value="{{ number_format($tr_poh->frate ?? 0, 2, ',', '.') }}" disabled>
                             </div>
                         </div>
 
                         {{-- Keterangan --}}
                         <div>
-                            <label class="block text-xs font-medium text-gray-600 mb-1">Keterangan</label>
-                            <textarea class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm bg-gray-100 text-gray-500 cursor-not-allowed" rows="2" disabled>{{ $tr_poh->fket }}</textarea>
+                            <label class="block text-xs font-bold text-gray-600 mb-1">Keterangan</label>
+                            <textarea
+                                class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm bg-gray-100 text-gray-500 cursor-not-allowed"
+                                rows="2" disabled>{{ $tr_poh->fket }}</textarea>
                         </div>
                     </div>
                 </div>
 
                 {{-- ─── CARD 2: Detail Item (Read-Only) ────────────────────── --}}
                 <div class="bg-white border border-gray-200 rounded-xl mb-3 overflow-hidden" x-data="{ showDescModal: false, descItemName: '', descValue: '' }">
-                    <div class="px-4 pt-3 pb-0">
+                    <div class="flex items-center gap-2 px-4 pt-3 pb-0">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-gray-400" fill="none"
+                            viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
+                        </svg>
                         <p class="text-xs font-medium uppercase tracking-wide text-gray-400">Detail Item</p>
                     </div>
                     <div class="p-4">
@@ -291,15 +316,24 @@
                                 <thead class="bg-gray-50 border-b border-gray-200">
                                     <tr>
                                         <th class="p-2 text-left w-10 text-xs font-semibold text-gray-500 uppercase">#</th>
-                                        <th class="p-2 text-left w-36 text-xs font-semibold text-gray-500 uppercase">Kode Produk</th>
-                                        <th class="p-2 text-left text-xs font-semibold text-gray-500 uppercase" style="width: 20rem; min-width: 20rem;">Nama Produk</th>
-                                        <th class="p-2 text-left w-24 text-xs font-semibold text-gray-500 uppercase">Satuan</th>
-                                        <th class="p-2 text-left w-24 text-xs font-semibold text-gray-500 uppercase">Ref.PR#</th>
-                                        <th class="p-2 text-right w-24 text-xs font-semibold text-gray-500 uppercase">Qty</th>
-                                        <th class="p-2 text-right w-28 text-xs font-semibold text-gray-500 uppercase">@ Harga</th>
-                                        <th class="p-2 text-right w-20 text-xs font-semibold text-gray-500 uppercase">Disc. %</th>
-                                        <th class="p-2 text-right w-28 text-xs font-semibold text-gray-500 uppercase">Total Harga</th>
-                                        <th class="p-2 text-right w-28 text-xs font-semibold text-gray-500 uppercase">Total Harga (Rp.)</th>
+                                        <th class="p-2 text-left w-36 text-xs font-semibold text-gray-500 uppercase">Kode
+                                            Produk</th>
+                                        <th class="p-2 text-left text-xs font-semibold text-gray-500 uppercase"
+                                            style="width: 20rem; min-width: 20rem;">Nama Produk</th>
+                                        <th class="p-2 text-left w-24 text-xs font-semibold text-gray-500 uppercase">Satuan
+                                        </th>
+                                        <th class="p-2 text-left w-24 text-xs font-semibold text-gray-500 uppercase">
+                                            Ref.PR#</th>
+                                        <th class="p-2 text-right w-24 text-xs font-semibold text-gray-500 uppercase">Qty
+                                        </th>
+                                        <th class="p-2 text-right w-28 text-xs font-semibold text-gray-500 uppercase">@
+                                            Harga</th>
+                                        <th class="p-2 text-right w-20 text-xs font-semibold text-gray-500 uppercase">Disc.
+                                            %</th>
+                                        <th class="p-2 text-right w-28 text-xs font-semibold text-gray-500 uppercase">Total
+                                            Harga</th>
+                                        <th class="p-2 text-right w-28 text-xs font-semibold text-gray-500 uppercase">Total
+                                            Harga (Rp.)</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -308,10 +342,13 @@
                                             <td class="p-2 text-gray-400">{{ $idx + 1 }}</td>
                                             <td class="p-2 font-mono text-gray-800">{{ $it['fitemcode'] }}</td>
                                             <td class="p-2" style="width: 20rem; min-width: 20rem;">
-                                                <div class="desc-inline-field flex w-full min-w-0 flex-nowrap items-stretch">
+                                                <div
+                                                    class="desc-inline-field flex w-full min-w-0 flex-nowrap items-stretch">
                                                     <div class="desc-inline-field__text min-w-0 flex-1 rounded-l-lg border border-gray-300 bg-gray-50 px-2 py-1 text-sm leading-5 text-gray-600 whitespace-normal break-words"
-                                                        style="flex:1 1 auto !important; min-width:0 !important;">{{ $it['fitemname'] }}</div>
-                                                    <button type="button" @click="descItemName = '{{ addslashes($it['fitemname']) }}'; descValue = '{{ addslashes($it['fdesc']) }}'; showDescModal = true"
+                                                        style="flex:1 1 auto !important; min-width:0 !important;">
+                                                        {{ $it['fitemname'] }}</div>
+                                                    <button type="button"
+                                                        @click="descItemName = '{{ addslashes($it['fitemname']) }}'; descValue = '{{ addslashes($it['fdesc']) }}'; showDescModal = true"
                                                         class="desc-inline-field__button inline-flex w-10 shrink-0 items-center justify-center border border-l-0 border-gray-300 rounded-r-lg px-2 py-1 transition-colors"
                                                         style="display:inline-flex !important; flex:0 0 2rem !important; width:2rem !important; justify-content:center !important; align-items:center !important;"
                                                         class="{{ $it['fdesc'] ? 'border-emerald-300 bg-emerald-50 text-emerald-600 hover:bg-emerald-100' : 'border-gray-300 bg-white text-gray-500 hover:bg-gray-50' }}"
@@ -322,11 +359,16 @@
                                             </td>
                                             <td class="p-2 text-gray-600">{{ $it['fsatuan'] }}</td>
                                             <td class="p-2 text-gray-600">{{ $it['frefdtno'] ?: '-' }}</td>
-                                            <td class="p-2 text-right text-gray-800">{{ number_format($it['fqty'], 2, ',', '.') }}</td>
-                                            <td class="p-2 text-right text-gray-800">{{ number_format($it['fprice'], 2, ',', '.') }}</td>
+                                            <td class="p-2 text-right text-gray-800">
+                                                {{ number_format($it['fqty'], 2, ',', '.') }}</td>
+                                            <td class="p-2 text-right text-gray-800">
+                                                {{ number_format($it['fprice'], 2, ',', '.') }}</td>
                                             <td class="p-2 text-right text-gray-800">{{ $it['fdisc'] }}</td>
-                                            <td class="p-2 text-right text-gray-800">{{ number_format($it['ftotal'], 2, ',', '.') }}</td>
-                                            <td class="p-2 text-right text-gray-800">{{ number_format($it['ftotal'] * ($tr_poh->frate ?? 1), 2, ',', '.') }}</td>
+                                            <td class="p-2 text-right text-gray-800">
+                                                {{ number_format($it['ftotal'], 2, ',', '.') }}</td>
+                                            <td class="p-2 text-right text-gray-800">
+                                                {{ number_format($it['ftotal'] * ($tr_poh->frate ?? 1), 2, ',', '.') }}
+                                            </td>
                                         </tr>
                                     @endforeach
                                 </tbody>
@@ -339,44 +381,61 @@
                                 <div class="rounded-xl border border-gray-200 bg-gray-50 p-4 space-y-3 text-sm">
                                     <div class="flex items-center justify-between">
                                         <span class="font-bold text-gray-800">Total Harga</span>
-                                        <span class="font-bold text-gray-900">{{ number_format($tr_poh->famountponet ?? 0, 2, ',', '.') }}</span>
+                                        <span
+                                            class="font-bold text-gray-900">{{ number_format($tr_poh->famountponet ?? 0, 2, ',', '.') }}</span>
                                     </div>
                                     <div class="space-y-1">
                                         <div class="flex items-center gap-2 flex-wrap">
                                             <label class="flex items-center gap-1.5 select-none">
-                                                <input type="checkbox" class="h-4 w-4 text-blue-600 border-gray-300 rounded cursor-not-allowed" disabled {{ (int)($tr_poh->fapplyppn ?? 0) === 1 ? 'checked' : '' }}>
+                                                <input type="checkbox"
+                                                    class="h-4 w-4 text-blue-600 border-gray-300 rounded cursor-not-allowed"
+                                                    disabled {{ (int) ($tr_poh->fapplyppn ?? 0) === 1 ? 'checked' : '' }}>
                                                 <span class="font-bold text-gray-800">PPN</span>
                                             </label>
-                                            <select class="w-24 h-9 px-2 text-sm border rounded-lg bg-gray-100 text-gray-500 cursor-not-allowed" disabled>
-                                                <option value="0" {{ (int)($tr_poh->fincludeppn ?? 0) === 0 ? 'selected' : '' }}>Exclude</option>
-                                                <option value="1" {{ (int)($tr_poh->fincludeppn ?? 0) === 1 ? 'selected' : '' }}>Include</option>
+                                            <select
+                                                class="w-24 h-9 px-2 text-sm border rounded-lg bg-gray-100 text-gray-500 cursor-not-allowed"
+                                                disabled>
+                                                <option value="0"
+                                                    {{ (int) ($tr_poh->fincludeppn ?? 0) === 0 ? 'selected' : '' }}>Exclude
+                                                </option>
+                                                <option value="1"
+                                                    {{ (int) ($tr_poh->fincludeppn ?? 0) === 1 ? 'selected' : '' }}>Include
+                                                </option>
                                             </select>
-                                            <input type="text" class="w-16 h-9 px-2 text-sm text-right border rounded-lg bg-gray-100 text-gray-500 cursor-not-allowed" disabled value="{{ $tr_poh->fppnrate ?? 11 }}">
+                                            <input type="text"
+                                                class="w-16 h-9 px-2 text-sm text-right border rounded-lg bg-gray-100 text-gray-500 cursor-not-allowed"
+                                                disabled value="{{ $tr_poh->fppnrate ?? 11 }}">
                                             <span class="text-gray-500">%</span>
                                             <span class="flex-1"></span>
-                                            <span class="font-medium text-gray-900">{{ number_format($tr_poh->famountpopajak ?? 0, 2, ',', '.') }}</span>
+                                            <span
+                                                class="font-medium text-gray-900">{{ number_format($tr_poh->famountpopajak ?? 0, 2, ',', '.') }}</span>
                                         </div>
                                     </div>
                                     <div class="border-t border-gray-200"></div>
                                     <div class="flex items-center justify-between">
                                         <span class="font-semibold text-gray-800">
                                             Grand Total
-                                            <span class="text-xs font-normal text-gray-500">({{ $tr_poh->fcurrency ?? 'IDR' }})</span>
+                                            <span
+                                                class="text-xs font-normal text-gray-500">({{ $tr_poh->fcurrency ?? 'IDR' }})</span>
                                         </span>
-                                        <span class="font-bold text-blue-700 text-lg">{{ number_format($tr_poh->famountpo ?? 0, 2, ',', '.') }}</span>
+                                        <span
+                                            class="font-bold text-blue-700 text-lg">{{ number_format($tr_poh->famountpo ?? 0, 2, ',', '.') }}</span>
                                     </div>
                                     <div class="flex items-center justify-between">
                                         <span class="font-semibold text-gray-800">Grand Total (RP)</span>
-                                        <span class="font-bold text-emerald-700 text-lg">{{ number_format($tr_poh->famountpo_rp ?? 0, 2, ',', '.') }}</span>
+                                        <span
+                                            class="font-bold text-emerald-700 text-lg">{{ number_format($tr_poh->famountpo_rp ?? 0, 2, ',', '.') }}</span>
                                     </div>
                                 </div>
                             </div>
                         </div>
 
                         {{-- Description Modal --}}
-                        <div x-show="showDescModal" x-cloak class="fixed inset-0 z-[95] flex items-center justify-center bg-black/50" x-transition.opacity>
+                        <div x-show="showDescModal" x-cloak
+                            class="fixed inset-0 z-[95] flex items-center justify-center bg-black/50" x-transition.opacity>
                             <div class="absolute inset-0" @click="showDescModal = false"></div>
-                            <div class="relative bg-white w-[92vw] max-w-lg rounded-2xl shadow-2xl overflow-hidden" x-transition.scale>
+                            <div class="relative bg-white w-[92vw] max-w-lg rounded-2xl shadow-2xl overflow-hidden"
+                                x-transition.scale>
                                 <div class="px-5 py-4 border-b flex items-center">
                                     <x-heroicon-o-document-text class="w-6 h-6 text-blue-600 mr-2" />
                                     <div>
@@ -386,15 +445,19 @@
                                 <div class="px-5 py-4 space-y-4">
                                     <div>
                                         <div class="text-sm text-gray-700 font-medium mb-1">Nama Produk</div>
-                                        <div class="rounded-lg border bg-gray-50 px-3 py-2 text-sm text-gray-800" x-text="descItemName"></div>
+                                        <div class="rounded-lg border bg-gray-50 px-3 py-2 text-sm text-gray-800"
+                                            x-text="descItemName"></div>
                                     </div>
                                     <div>
                                         <label class="block text-sm text-gray-700 font-bold mb-1">Deskripsi</label>
-                                        <textarea x-model="descValue" rows="5" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm bg-gray-50 text-gray-500 cursor-not-allowed" readonly></textarea>
+                                        <textarea x-model="descValue" rows="5"
+                                            class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm bg-gray-50 text-gray-500 cursor-not-allowed"
+                                            readonly></textarea>
                                     </div>
                                 </div>
                                 <div class="px-5 py-3 border-t flex items-center justify-end gap-2 bg-gray-50">
-                                    <button type="button" @click="showDescModal = false" class="h-9 px-4 rounded-lg bg-white border border-gray-300 text-gray-700 text-sm font-medium hover:bg-gray-50 transition-colors">Tutup</button>
+                                    <button type="button" @click="showDescModal = false"
+                                        class="h-9 px-4 rounded-lg bg-white border border-gray-300 text-gray-700 text-sm font-medium hover:bg-gray-50 transition-colors">Tutup</button>
                                 </div>
                             </div>
                         </div>
@@ -406,14 +469,20 @@
                     $isApproved = (int) ($tr_poh->fapproval ?? 0) === 1 || !empty($tr_poh->fuserapproved);
                 @endphp
                 <div class="bg-white border border-gray-200 rounded-xl mb-3 overflow-hidden">
-                    <div class="px-4 pt-3 pb-0">
+                    <div class="flex items-center gap-2 px-4 pt-3 pb-0">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-gray-400" fill="none"
+                            viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                        </svg>
                         <p class="text-xs font-medium uppercase tracking-wide text-gray-400">Approval & Aksi</p>
                     </div>
                     <div class="p-4 space-y-4">
                         <div class="flex items-center justify-between p-3 border border-gray-200 rounded-lg bg-gray-50">
                             <div>
                                 <p class="text-sm text-gray-800 font-medium">Status Approval</p>
-                                <p class="text-xs text-gray-400 mt-0.5">Dokumen ini telah disetujui oleh otoritas wewenang</p>
+                                <p class="text-xs text-gray-400 mt-0.5">Dokumen ini telah disetujui oleh otoritas wewenang
+                                </p>
                             </div>
                             <div class="relative w-9 h-5 rounded-full transition-colors duration-200 flex-shrink-0"
                                 :class="'{{ $isApproved ? 'bg-emerald-500' : 'bg-gray-300' }}'">
@@ -434,8 +503,11 @@
                             @if ($canPrint)
                                 <a href="{{ route('tr_poh.print', $tr_poh->fpono) }}" target="_blank" rel="noopener"
                                     class="inline-flex items-center gap-2 px-4 py-2 border border-gray-300 bg-white text-gray-600 text-sm font-medium rounded-lg hover:bg-gray-50 hover:border-gray-400 transition-colors">
-                                    <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m10 0v-5a2 2 0 00-2-2H9a2 2 0 00-2 2v5m10 0v5H7v-5"></path>
+                                    <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor"
+                                        viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m10 0v-5a2 2 0 00-2-2H9a2 2 0 00-2 2v5m10 0v5H7v-5">
+                                        </path>
                                     </svg>
                                     Print
                                 </a>
@@ -451,7 +523,6 @@
                     </div>
                 </div>
             </div>
-
         @else
             {{-- ───────────────────────────────────────────────────────────────────
                  EDIT MODE
@@ -464,7 +535,12 @@
 
                 {{-- ─── CARD 1: Identitas Order Pembelian ────────────────────── --}}
                 <div class="bg-white border border-gray-200 rounded-xl mb-3 overflow-hidden">
-                    <div class="px-4 pt-3 pb-0">
+                    <div class="flex items-center gap-2 px-4 pt-3 pb-0">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-gray-400" fill="none"
+                            viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+                        </svg>
                         <p class="text-xs font-medium uppercase tracking-wide text-gray-400">Identitas Order Pembelian</p>
                     </div>
                     <div class="p-4 space-y-3">
@@ -472,22 +548,27 @@
                         <div class="grid grid-cols-3 gap-3">
                             {{-- Cabang --}}
                             <div>
-                                <label class="block text-xs font-medium text-gray-600 mb-1">Cabang</label>
-                                <input type="text" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm bg-gray-100 text-gray-500 cursor-not-allowed border-gray-200"
-                                    value="{{ trim(($fbranchcode ?? '') . ($fcabang ?? '' ? ' - ' . $fcabang : '')) }}" disabled>
+                                <label class="block text-xs font-bold text-gray-600 mb-1">Cabang</label>
+                                <input type="text"
+                                    class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm bg-gray-100 text-gray-500 cursor-not-allowed border-gray-200"
+                                    value="{{ trim(($fbranchcode ?? '') . ($fcabang ?? '' ? ' - ' . $fcabang : '')) }}"
+                                    disabled>
                                 <input type="hidden" name="fbranchcode" value="{{ $fbranchcode }}">
                             </div>
 
                             {{-- PO# --}}
                             <div>
-                                <label class="block text-xs font-medium text-gray-600 mb-1">PO#</label>
-                                <input type="text" name="fpohid" value="{{ old('fpohid', $displayFpono ?? $tr_poh->fpono) }}"
-                                    class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm bg-gray-100 text-gray-500 cursor-not-allowed border-gray-200" disabled>
+                                <label class="block text-xs font-bold text-gray-600 mb-1">PO#</label>
+                                <input type="text" name="fpohid"
+                                    value="{{ old('fpohid', $displayFpono ?? $tr_poh->fpono) }}"
+                                    class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm bg-gray-100 text-gray-500 cursor-not-allowed border-gray-200"
+                                    disabled>
                             </div>
 
                             {{-- Supplier --}}
                             <div>
-                                <label class="block text-xs font-medium text-gray-600 mb-1">Supplier <span class="text-red-500">*</span></label>
+                                <label class="block text-xs font-bold text-gray-600 mb-1">Supplier <span
+                                        class="text-red-500">*</span></label>
                                 <div class="flex">
                                     <div class="relative flex-1">
                                         <select id="modal_filter_supplier_id" name="filter_supplier_id"
@@ -503,11 +584,15 @@
                                                 </option>
                                             @endforeach
                                         </select>
-                                        <div class="absolute inset-0 cursor-pointer" role="button" aria-label="Browse supplier"
-                                            @click="window.dispatchEvent(new CustomEvent('tr-poh-supplier-browse-open'))"></div>
+                                        <div class="absolute inset-0 cursor-pointer" role="button"
+                                            aria-label="Browse supplier"
+                                            @click="window.dispatchEvent(new CustomEvent('tr-poh-supplier-browse-open'))">
+                                        </div>
                                     </div>
-                                    <input type="hidden" name="fsupplier" id="supplierCodeHidden" value="{{ old('fsupplier', $tr_poh->fsupplier) }}">
-                                    <button type="button" @click="window.dispatchEvent(new CustomEvent('tr-poh-supplier-browse-open'))"
+                                    <input type="hidden" name="fsupplier" id="supplierCodeHidden"
+                                        value="{{ old('fsupplier', $tr_poh->fsupplier) }}">
+                                    <button type="button"
+                                        @click="window.dispatchEvent(new CustomEvent('tr-poh-supplier-browse-open'))"
                                         class="border border-l-0 border-gray-300 px-3 py-2 bg-white hover:bg-gray-50 text-gray-500 transition-colors"
                                         title="Browse Supplier">
                                         <x-heroicon-o-magnifying-glass class="w-4 h-4" />
@@ -529,8 +614,10 @@
                         <div class="grid grid-cols-3 gap-3">
                             {{-- Tanggal --}}
                             <div>
-                                <label class="block text-xs font-medium text-gray-600 mb-1">Tanggal <span class="text-red-500">*</span></label>
-                                <input type="date" name="fpodate" value="{{ old('fpodate', substr($tr_poh->fpodate ?? '', 0, 10)) }}"
+                                <label class="block text-xs font-bold text-gray-600 mb-1">Tanggal <span
+                                        class="text-red-500">*</span></label>
+                                <input type="date" name="fpodate"
+                                    value="{{ old('fpodate', substr($tr_poh->fpodate ?? '', 0, 10)) }}"
                                     class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 @error('fpodate') border-red-400 @enderror">
                                 @error('fpodate')
                                     <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
@@ -539,8 +626,9 @@
 
                             {{-- Tgl. Kirim --}}
                             <div>
-                                <label class="block text-xs font-medium text-gray-600 mb-1">Tgl. Kirim</label>
-                                <input type="date" name="fkirimdate" value="{{ old('fkirimdate', substr($tr_poh->fkirimdate ?? '', 0, 10)) }}"
+                                <label class="block text-xs font-bold text-gray-600 mb-1">Tgl. Kirim</label>
+                                <input type="date" name="fkirimdate"
+                                    value="{{ old('fkirimdate', substr($tr_poh->fkirimdate ?? '', 0, 10)) }}"
                                     class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 @error('fkirimdate') border-red-400 @enderror">
                                 @error('fkirimdate')
                                     <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
@@ -549,9 +637,10 @@
 
                             {{-- Tempo --}}
                             <div>
-                                <label class="block text-xs font-medium text-gray-600 mb-1">Tempo</label>
+                                <label class="block text-xs font-bold text-gray-600 mb-1">Tempo</label>
                                 <div class="flex items-center gap-2">
-                                    <input type="number" id="ftempohr" name="ftempohr" value="{{ old('ftempohr', $tr_poh->ftempohr ?? 0) }}"
+                                    <input type="number" id="ftempohr" name="ftempohr"
+                                        value="{{ old('ftempohr', $tr_poh->ftempohr ?? 0) }}"
                                         class="flex-1 border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100">
                                     <span class="text-sm text-gray-500">Hari</span>
                                 </div>
@@ -561,8 +650,10 @@
                         <div class="grid grid-cols-3 gap-3">
                             {{-- Currency --}}
                             <div>
-                                <label class="block text-xs font-medium text-gray-600 mb-1">Currency <span class="text-red-500">*</span></label>
-                                <select name="fcurrency" id="currencySelect" x-model="selectedCurrCode" @change="onCurrencyChange()"
+                                <label class="block text-xs font-bold text-gray-600 mb-1">Currency <span
+                                        class="text-red-500">*</span></label>
+                                <select name="fcurrency" id="currencySelect" x-model="selectedCurrCode"
+                                    @change="onCurrencyChange()"
                                     class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm bg-white focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 @error('fcurrency') border-red-400 @enderror">
                                     <option value="">-- Pilih Currency --</option>
                                     @foreach ($currencies as $cur)
@@ -582,8 +673,10 @@
 
                             {{-- Rate --}}
                             <div>
-                                <label class="block text-xs font-medium text-gray-600 mb-1">Rate <span class="text-red-500">*</span></label>
-                                <input type="number" step="0.01" min="0" name="frate" x-model.number="rateValue"
+                                <label class="block text-xs font-bold text-gray-600 mb-1">Rate <span
+                                        class="text-red-500">*</span></label>
+                                <input type="number" step="0.01" min="0" name="frate"
+                                    x-model.number="rateValue"
                                     class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 @error('frate') border-red-400 @enderror"
                                     placeholder="Rate akan terisi otomatis">
                                 @error('frate')
@@ -594,8 +687,9 @@
 
                         {{-- Keterangan --}}
                         <div>
-                            <label class="block text-xs font-medium text-gray-600 mb-1">Keterangan</label>
-                            <textarea name="fket" rows="2" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 @error('fket') border-red-400 @enderror"
+                            <label class="block text-xs font-bold text-gray-600 mb-1">Keterangan</label>
+                            <textarea name="fket" rows="2"
+                                class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 @error('fket') border-red-400 @enderror"
                                 placeholder="Tulis keterangan tambahan di sini...">{{ old('fket', $tr_poh->fket) }}</textarea>
                             @error('fket')
                                 <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
@@ -607,7 +701,12 @@
 
                 {{-- ─── CARD 2: Detail Item ────────────────────── --}}
                 <div class="bg-white border border-gray-200 rounded-xl mb-3 overflow-hidden">
-                    <div class="px-4 pt-3 pb-0">
+                    <div class="flex items-center gap-2 px-4 pt-3 pb-0">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-gray-400" fill="none"
+                            viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
+                        </svg>
                         <p class="text-xs font-medium uppercase tracking-wide text-gray-400">Detail Item</p>
                     </div>
                     <div class="p-4">
@@ -616,16 +715,26 @@
                                 <thead class="bg-gray-50 border-b border-gray-200">
                                     <tr>
                                         <th class="p-2 text-left w-10 text-xs font-semibold text-gray-500 uppercase">#</th>
-                                        <th class="p-2 text-left w-36 text-xs font-semibold text-gray-500 uppercase">Kode Produk</th>
-                                        <th class="p-2 text-left text-xs font-semibold text-gray-500 uppercase" style="width: 20rem; min-width: 20rem;">Nama Produk</th>
-                                        <th class="p-2 text-left w-24 text-xs font-semibold text-gray-500 uppercase">Satuan</th>
-                                        <th class="p-2 text-left w-24 text-xs font-semibold text-gray-500 uppercase">Ref.PR#</th>
-                                        <th class="p-2 text-right w-24 text-xs font-semibold text-gray-500 uppercase">Qty</th>
-                                        <th class="p-2 text-right w-28 text-xs font-semibold text-gray-500 uppercase">@ Harga</th>
-                                        <th class="p-2 text-right w-20 text-xs font-semibold text-gray-500 uppercase">Disc. %</th>
-                                        <th class="p-2 text-right w-28 text-xs font-semibold text-gray-500 uppercase">Total Harga</th>
-                                        <th class="p-2 text-right w-28 text-xs font-semibold text-gray-500 uppercase">Total Harga (Rp.)</th>
-                                        <th class="p-2 text-center w-16 text-xs font-semibold text-gray-500 uppercase">Aksi</th>
+                                        <th class="p-2 text-left w-36 text-xs font-semibold text-gray-500 uppercase">Kode
+                                            Produk</th>
+                                        <th class="p-2 text-left text-xs font-semibold text-gray-500 uppercase"
+                                            style="width: 20rem; min-width: 20rem;">Nama Produk</th>
+                                        <th class="p-2 text-left w-24 text-xs font-semibold text-gray-500 uppercase">Satuan
+                                        </th>
+                                        <th class="p-2 text-left w-24 text-xs font-semibold text-gray-500 uppercase">
+                                            Ref.PR#</th>
+                                        <th class="p-2 text-right w-24 text-xs font-semibold text-gray-500 uppercase">Qty
+                                        </th>
+                                        <th class="p-2 text-right w-28 text-xs font-semibold text-gray-500 uppercase">@
+                                            Harga</th>
+                                        <th class="p-2 text-right w-20 text-xs font-semibold text-gray-500 uppercase">Disc.
+                                            %</th>
+                                        <th class="p-2 text-right w-28 text-xs font-semibold text-gray-500 uppercase">Total
+                                            Harga</th>
+                                        <th class="p-2 text-right w-28 text-xs font-semibold text-gray-500 uppercase">Total
+                                            Harga (Rp.)</th>
+                                        <th class="p-2 text-center w-16 text-xs font-semibold text-gray-500 uppercase">Aksi
+                                        </th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -651,7 +760,8 @@
 
                                             {{-- Nama Produk --}}
                                             <td class="p-2" style="width: 20rem; min-width: 20rem;">
-                                                <div class="desc-inline-field flex w-full min-w-0 flex-nowrap items-stretch">
+                                                <div
+                                                    class="desc-inline-field flex w-full min-w-0 flex-nowrap items-stretch">
                                                     <div class="desc-inline-field__text min-w-0 flex-1 rounded-l-lg border border-gray-300 bg-gray-50 px-2 py-1 text-sm leading-5 text-gray-600 whitespace-normal break-words"
                                                         style="flex:1 1 auto !important; min-width:0 !important;"
                                                         x-text="row.fitemname || '-'"></div>
@@ -670,7 +780,8 @@
                                             {{-- Satuan --}}
                                             <td class="p-2">
                                                 <template x-if="row.units.length > 1 && !row.frefdtid">
-                                                    <select class="w-full border border-gray-300 rounded-lg px-2 py-1 text-sm focus:outline-none focus:border-blue-500"
+                                                    <select
+                                                        class="w-full border border-gray-300 rounded-lg px-2 py-1 text-sm focus:outline-none focus:border-blue-500"
                                                         :id="'unit_row_' + i" x-model="row.fsatuan"
                                                         @focus="activeRow = row.uid" @blur="activeRow = null"
                                                         @change="onRowUpdated(i)" @keydown.enter.prevent="focusRowQty(i)">
@@ -695,11 +806,13 @@
 
                                             {{-- Qty --}}
                                             <td class="p-2 text-right">
-                                                <input type="number" class="w-full border border-gray-300 rounded-lg px-2 py-1 text-right text-sm focus:outline-none focus:border-blue-500"
-                                                    :id="'qty_row_' + i" x-model.number="row.fqty" min="0" step="any"
-                                                    @focus="activeRow = row.uid; $event.target.select()"
-                                                    @blur="activeRow = null; enforcePrQtyRow(row)" @input="onRowUpdated(i)"
-                                                    @change="onRowUpdated(i)" @keydown.enter.prevent="focusRowPrice(i)">
+                                                <input type="number"
+                                                    class="w-full border border-gray-300 rounded-lg px-2 py-1 text-right text-sm focus:outline-none focus:border-blue-500"
+                                                    :id="'qty_row_' + i" x-model.number="row.fqty" min="0"
+                                                    step="any" @focus="activeRow = row.uid; $event.target.select()"
+                                                    @blur="activeRow = null; enforcePrQtyRow(row)"
+                                                    @input="onRowUpdated(i)" @change="onRowUpdated(i)"
+                                                    @keydown.enter.prevent="focusRowPrice(i)">
                                                 <div class="text-[10px] text-amber-700 font-medium text-right mt-0.5"
                                                     x-show="row.frefdtid && formatPrRemainHint(row)"
                                                     x-html="formatPrRemainHint(row)">
@@ -710,7 +823,8 @@
                                             <td class="p-2 text-right">
                                                 <input type="text" inputmode="decimal"
                                                     class="w-full border border-gray-300 rounded-lg px-2 py-1 text-right text-sm focus:outline-none focus:border-blue-500"
-                                                    x-model="row.fpriceInput" @input="onPriceInput(row)" :id="'price_row_' + i"
+                                                    x-model="row.fpriceInput" @input="onPriceInput(row)"
+                                                    :id="'price_row_' + i"
                                                     @focus="activeRow = row.uid; focusPriceInput(row); $event.target.select()"
                                                     @blur="activeRow = null; blurPriceInput(row)" @change="recalc(row)"
                                                     @keydown.enter.prevent="focusRowDisc(i)">
@@ -718,9 +832,11 @@
 
                                             {{-- Disc % --}}
                                             <td class="p-2 text-right">
-                                                <input type="text" class="w-full border border-gray-300 rounded-lg px-2 py-1 text-right text-sm focus:outline-none focus:border-blue-500"
+                                                <input type="text"
+                                                    class="w-full border border-gray-300 rounded-lg px-2 py-1 text-right text-sm focus:outline-none focus:border-blue-500"
                                                     placeholder="0" :value="row.fdisc"
-                                                    @input="row.fdisc = $event.target.value; recalc(row)" :id="'disc_row_' + i"
+                                                    @input="row.fdisc = $event.target.value; recalc(row)"
+                                                    :id="'disc_row_' + i"
                                                     @focus="activeRow = row.uid; $event.target.select()"
                                                     @blur="activeRow = null; row.fdisc = normalizeDiscountValue(row.fdisc); recalc(row)"
                                                     @keydown.enter.prevent="onRowUpdated(i)">
@@ -801,11 +917,13 @@
                                         <div class="space-y-1">
                                             <div class="flex items-center gap-2 flex-wrap">
                                                 <label class="flex items-center gap-1.5 cursor-pointer select-none">
-                                                    <input type="checkbox" name="fapplyppn" value="1" x-model="includePPN"
+                                                    <input type="checkbox" name="fapplyppn" value="1"
+                                                        x-model="includePPN"
                                                         class="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500">
                                                     <span class="font-bold text-gray-800">PPN</span>
                                                 </label>
-                                                <select name="fincludeppn" x-model.number="ppnMode" :disabled="!includePPN"
+                                                <select name="fincludeppn" x-model.number="ppnMode"
+                                                    :disabled="!includePPN"
                                                     class="w-24 h-9 px-2 text-sm border rounded-lg bg-white disabled:bg-gray-100 disabled:opacity-60 disabled:cursor-not-allowed focus:outline-none focus:border-blue-500">
                                                     <option value="0">Exclude</option>
                                                     <option value="1">Include</option>
@@ -815,7 +933,8 @@
                                                     class="w-16 h-9 px-2 text-sm text-right border rounded-lg bg-white [appearance:textfield] disabled:bg-gray-100 disabled:opacity-60 disabled:cursor-not-allowed focus:outline-none focus:border-blue-500">
                                                 <span class="text-gray-500">%</span>
                                                 <span class="flex-1"></span>
-                                                <span class="font-medium text-gray-900" x-text="fmtCurr(ppnNominal)"></span>
+                                                <span class="font-medium text-gray-900"
+                                                    x-text="fmtCurr(ppnNominal)"></span>
                                             </div>
                                         </div>
                                         <div class="border-t border-gray-200"></div>
@@ -825,11 +944,13 @@
                                                 <span class="text-xs font-normal text-gray-500"
                                                     x-text="selectedCurrCode ? '(' + selectedCurrCode + ')' : ''"></span>
                                             </span>
-                                            <span class="font-bold text-blue-700 text-lg" x-text="fmtCurr(grandTotal)"></span>
+                                            <span class="font-bold text-blue-700 text-lg"
+                                                x-text="fmtCurr(grandTotal)"></span>
                                         </div>
                                         <div class="flex items-center justify-between">
                                             <span class="font-semibold text-gray-800">Grand Total (RP)</span>
-                                            <span class="font-bold text-emerald-700 text-lg" x-text="rupiah(grandTotalRp)"></span>
+                                            <span class="font-bold text-emerald-700 text-lg"
+                                                x-text="rupiah(grandTotalRp)"></span>
                                         </div>
                                     </div>
                                     <input type="hidden" name="famountponet" :value="totalHarga">
@@ -841,7 +962,8 @@
                             </div>
 
                             {{-- Modal backdrop --}}
-                            <div x-show="show" x-transition.opacity class="fixed inset-0 z-40 bg-black/50 backdrop-blur-sm"
+                            <div x-show="show" x-transition.opacity
+                                class="fixed inset-0 z-40 bg-black/50 backdrop-blur-sm"
                                 @keydown.escape.window="closeModal()"></div>
 
                             {{-- MODAL PR --}}
@@ -884,13 +1006,15 @@
                                 <div class="absolute inset-0 bg-black/40" @click="closeDupModal()"></div>
                                 <div class="relative bg-white rounded-2xl shadow-xl max-w-2xl w-full p-6">
                                     <h3 class="text-lg font-semibold mb-4 text-gray-800">Peringatan Duplikasi</h3>
-                                    <p class="mb-4 text-gray-600">Ditemukan <strong x-text="dupCount"></strong> item yang sudah ada dalam
+                                    <p class="mb-4 text-gray-600">Ditemukan <strong x-text="dupCount"></strong> item yang
+                                        sudah ada dalam
                                         daftar.</p>
                                     <div class="mb-4 max-h-48 overflow-auto border rounded-lg p-2 bg-gray-50"
                                         x-show="dupSample.length > 0">
                                         <p class="text-sm font-medium mb-2 text-gray-700">Contoh item duplikat:</p>
                                         <template x-for="(item, idx) in dupSample" :key="idx">
-                                            <div class="text-xs py-1 text-gray-600">• <span x-text="item.fitemcode"></span></div>
+                                            <div class="text-xs py-1 text-gray-600">• <span
+                                                    x-text="item.fitemcode"></span></div>
                                         </template>
                                     </div>
                                     <div class="flex justify-end gap-2">
@@ -904,10 +1028,11 @@
                 </div>
 
                 {{-- MODAL: belum ada item --}}
-                <div x-show="showNoItems" x-cloak class="fixed inset-0 z-[90] flex items-center justify-center bg-black/50"
-                    x-transition.opacity>
+                <div x-show="showNoItems" x-cloak
+                    class="fixed inset-0 z-[90] flex items-center justify-center bg-black/50" x-transition.opacity>
                     <div class="absolute inset-0" @click="showNoItems=false"></div>
-                    <div class="relative bg-white w-[92vw] max-w-md rounded-2xl shadow-2xl overflow-hidden" x-transition.scale>
+                    <div class="relative bg-white w-[92vw] max-w-md rounded-2xl shadow-2xl overflow-hidden"
+                        x-transition.scale>
                         <div class="px-5 py-4 border-b flex items-center bg-red-50 text-red-700">
                             <x-heroicon-o-exclamation-triangle class="w-6 h-6 mr-2" />
                             <h3 class="text-lg font-semibold">Tidak Ada Item</h3>
@@ -924,16 +1049,18 @@
                 </div>
 
                 {{-- MODAL: supplier belum dipilih --}}
-                <div x-show="showNoSupplier" x-cloak class="fixed inset-0 z-[90] flex items-center justify-center bg-black/50"
-                    x-transition.opacity>
+                <div x-show="showNoSupplier" x-cloak
+                    class="fixed inset-0 z-[90] flex items-center justify-center bg-black/50" x-transition.opacity>
                     <div class="absolute inset-0" @click="showNoSupplier=false"></div>
-                    <div class="relative bg-white w-[92vw] max-w-md rounded-2xl shadow-2xl overflow-hidden" x-transition.scale>
+                    <div class="relative bg-white w-[92vw] max-w-md rounded-2xl shadow-2xl overflow-hidden"
+                        x-transition.scale>
                         <div class="px-5 py-4 border-b flex items-center bg-amber-50 text-amber-700">
                             <x-heroicon-o-exclamation-triangle class="w-6 h-6 mr-2" />
                             <h3 class="text-lg font-semibold">Supplier Belum Dipilih</h3>
                         </div>
                         <div class="px-5 py-4">
-                            <p class="text-sm text-gray-700">Silakan pilih <strong>Supplier</strong> terlebih dahulu sebelum
+                            <p class="text-sm text-gray-700">Silakan pilih <strong>Supplier</strong> terlebih dahulu
+                                sebelum
                                 menambahkan item.</p>
                         </div>
                         <div class="px-5 py-3 border-t flex items-center justify-end gap-2 bg-gray-50">
@@ -949,10 +1076,11 @@
                 </div>
 
                 {{-- MODAL: Produk duplikat --}}
-                <div x-show="showDupItemModal" x-cloak class="fixed inset-0 z-[90] flex items-center justify-center bg-black/50"
-                    x-transition.opacity>
+                <div x-show="showDupItemModal" x-cloak
+                    class="fixed inset-0 z-[90] flex items-center justify-center bg-black/50" x-transition.opacity>
                     <div class="absolute inset-0" @click="showDupItemModal=false"></div>
-                    <div class="relative bg-white w-[92vw] max-w-md rounded-2xl shadow-2xl overflow-hidden" x-transition.scale>
+                    <div class="relative bg-white w-[92vw] max-w-md rounded-2xl shadow-2xl overflow-hidden"
+                        x-transition.scale>
                         <div class="px-5 py-4 border-b flex items-center bg-red-50 text-red-700">
                             <x-heroicon-o-exclamation-triangle class="w-6 h-6 mr-2" />
                             <h3 class="text-lg font-semibold">Produk Sudah Ada</h3>
@@ -965,7 +1093,8 @@
                                 </template>
                                 sudah ada di daftar item.
                             </p>
-                            <p class="text-sm text-gray-500">Satu produk dengan satuan yang sama hanya boleh ditambahkan satu
+                            <p class="text-sm text-gray-500">Satu produk dengan satuan yang sama hanya boleh ditambahkan
+                                satu
                                 kali.</p>
                         </div>
                         <div class="px-5 py-3 border-t flex items-center justify-end gap-2 bg-gray-50">
@@ -976,10 +1105,11 @@
                 </div>
 
                 {{-- MODAL: supplier warning modal --}}
-                <div x-show="showWarningModal" x-cloak class="fixed inset-0 z-[96] flex items-center justify-center bg-black/50"
-                    x-transition.opacity>
+                <div x-show="showWarningModal" x-cloak
+                    class="fixed inset-0 z-[96] flex items-center justify-center bg-black/50" x-transition.opacity>
                     <div class="absolute inset-0" @click="closeWarning()"></div>
-                    <div class="relative bg-white w-[92vw] max-w-lg rounded-2xl shadow-2xl overflow-hidden" x-transition.scale>
+                    <div class="relative bg-white w-[92vw] max-w-lg rounded-2xl shadow-2xl overflow-hidden"
+                        x-transition.scale>
                         <div class="px-5 py-4 border-b flex items-center bg-amber-50 text-amber-700">
                             <x-heroicon-o-exclamation-triangle class="w-6 h-6 mr-2" />
                             <h3 class="text-lg font-semibold" x-text="warningTitle"></h3>
@@ -1008,10 +1138,11 @@
                 </div>
 
                 {{-- MODAL: deskripsi item --}}
-                <div x-show="showDescModal" x-cloak class="fixed inset-0 z-[95] flex items-center justify-center bg-black/50"
-                    x-transition.opacity>
+                <div x-show="showDescModal" x-cloak
+                    class="fixed inset-0 z-[95] flex items-center justify-center bg-black/50" x-transition.opacity>
                     <div class="absolute inset-0 bg-black/50" @click="closeDesc()"></div>
-                    <div class="relative bg-white w-[92vw] max-w-lg rounded-2xl shadow-2xl overflow-hidden" x-transition.scale>
+                    <div class="relative bg-white w-[92vw] max-w-lg rounded-2xl shadow-2xl overflow-hidden"
+                        x-transition.scale>
                         <div class="px-5 py-4 border-b flex items-center">
                             <x-heroicon-o-document-text class="w-6 h-6 text-blue-600 mr-2" />
                             <h3 class="text-lg font-semibold text-gray-800">Isi Deskripsi Item</h3>
@@ -1029,7 +1160,8 @@
                                     x-text="descItemName || '-'"></div>
                             </div>
                             <label class="block text-sm text-gray-700 font-bold">Deskripsi</label>
-                            <textarea x-model="descValue" rows="5" class="w-full border rounded px-3 py-2 focus:outline-none focus:border-blue-500"
+                            <textarea x-model="descValue" rows="5"
+                                class="w-full border rounded px-3 py-2 focus:outline-none focus:border-blue-500"
                                 placeholder="Tulis deskripsi item di sini..."></textarea>
                         </div>
                         <div class="px-5 py-3 border-t flex items-center justify-end gap-2 bg-gray-50">
@@ -1055,7 +1187,12 @@
                     $canApproval = in_array('approvePO', explode(',', session('user_restricted_permissions', '')));
                 @endphp
                 <div class="bg-white border border-gray-200 rounded-xl mb-3 overflow-hidden">
-                    <div class="px-4 pt-3 pb-0">
+                    <div class="flex items-center gap-2 px-4 pt-3 pb-0">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-gray-400" fill="none"
+                            viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                        </svg>
                         <p class="text-xs font-medium uppercase tracking-wide text-gray-400">Approval & Aksi</p>
                     </div>
                     <div class="p-4 space-y-4">
@@ -1065,7 +1202,8 @@
                                 @click="active = !active; $el.querySelector('input[name=fapproval]').value = active ? '1' : '0'">
                                 <div>
                                     <p class="text-sm text-gray-800 font-medium">Setujui Sekarang</p>
-                                    <p class="text-xs text-gray-400 mt-0.5">Aktifkan untuk langsung menyetujui dokumen order pembelian ini</p>
+                                    <p class="text-xs text-gray-400 mt-0.5">Aktifkan untuk langsung menyetujui dokumen
+                                        order pembelian ini</p>
                                 </div>
                                 <div class="relative w-9 h-5 rounded-full transition-colors duration-200 flex-shrink-0"
                                     :class="active ? 'bg-blue-500' : 'bg-gray-300'">
@@ -1088,8 +1226,11 @@
                             @if ($canPrint)
                                 <a href="{{ route('tr_poh.print', $tr_poh->fpono) }}" target="_blank" rel="noopener"
                                     class="inline-flex items-center gap-2 px-4 py-2 border border-gray-300 bg-white text-gray-600 text-sm font-medium rounded-lg hover:bg-gray-50 hover:border-gray-400 transition-colors">
-                                    <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m10 0v-5a2 2 0 00-2-2H9a2 2 0 00-2 2v5m10 0v5H7v-5"></path>
+                                    <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor"
+                                        viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m10 0v-5a2 2 0 00-2-2H9a2 2 0 00-2 2v5m10 0v5H7v-5">
+                                        </path>
                                     </svg>
                                     Print
                                 </a>
@@ -1237,20 +1378,9 @@
                     '1' => $smallUnit,
                     '2' => $largeUnit,
                     '3' => $largeUnit2,
-                    default => in_array(strtoupper($defaultKey), [
-                        strtoupper($smallUnit),
-                        strtoupper($largeUnit),
-                        strtoupper($largeUnit2),
-                    ], true)
-                        ? $defaultKey
-                        : ($smallUnit ?: $largeUnit ?: $largeUnit2),
+                    default => in_array(strtoupper($defaultKey), [strtoupper($smallUnit), strtoupper($largeUnit), strtoupper($largeUnit2)], true) ? $defaultKey : ($smallUnit ?: $largeUnit ?: $largeUnit2),
                 };
-                $orderedUnits = array_values(array_unique(array_filter([
-                    $defaultUnit,
-                    $smallUnit,
-                    $largeUnit,
-                    $largeUnit2,
-                ])));
+                $orderedUnits = array_values(array_unique(array_filter([$defaultUnit, $smallUnit, $largeUnit, $largeUnit2])));
             @endphp
                 "{{ $p->fprdcode }}": {
                     id: @json($p->fprdid),
@@ -1941,7 +2071,7 @@
                     if (rowCode === cCode) return true;
                     if (cId && rowId && cId === rowId && (!cSatuan || rowSatuan === cSatuan)) return true;
                     if (cName && rowName && cName === rowName && (!cSatuan || rowSatuan === cSatuan))
-                    return true;
+                        return true;
                     return false;
                 });
             },
@@ -2031,9 +2161,10 @@
                         normalizedRow.fqty = Number(normalizedRow.maxqty);
                     }
                     if (!normalizedRow.ftotal && normalizedRow.fqty && normalizedRow.fprice) {
-                         const parsedDisc = this.parseDiscount(normalizedRow.fdisc);
-                         normalizedRow.ftotal = +(normalizedRow.fqty * normalizedRow.fprice * (1 - parsedDisc / 100)).toFixed(2);
-                     }
+                        const parsedDisc = this.parseDiscount(normalizedRow.fdisc);
+                        normalizedRow.ftotal = +(normalizedRow.fqty * normalizedRow.fprice * (1 - parsedDisc /
+                            100)).toFixed(2);
+                    }
                     toAdd.push(normalizedRow);
                     existingSet.add(key);
                 });
@@ -2222,7 +2353,8 @@
                                 data: 'fbranchcode',
                                 name: 'fbranchcode',
                                 className: 'text-sm',
-                                render: (d, t, r) => r.fcabangname ? `${d} - ${r.fcabangname}` : (d || '-')
+                                render: (d, t, r) => r.fcabangname ? `${d} - ${r.fcabangname}` : (d ||
+                                    '-')
                             },
                             {
                                 data: 'fsuppliername',

@@ -171,6 +171,7 @@ class ListingPRController extends Controller
                 'h.fneeddate',
                 'h.fduedate',
                 'h.fusercreate',
+                'h.fbranchcode',
                 's.fsuppliername',
                 'd.fprdcode as prd_code_id',
                 'p.fprdcode',

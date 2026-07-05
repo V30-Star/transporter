@@ -143,7 +143,10 @@
 
             {{-- ─── CARD 1: Identitas Order Pembelian ────────────────────── --}}
             <div class="bg-white border border-gray-200 rounded-xl mb-3 overflow-hidden">
-                <div class="px-4 pt-3 pb-0">
+                <div class="flex items-center gap-2 px-4 pt-3 pb-0">
+                     <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+                        </svg>
                     <p class="text-xs font-medium uppercase tracking-wide text-gray-400">Identitas Order Pembelian</p>
                 </div>
                 <div class="p-4 space-y-3">
@@ -151,7 +154,7 @@
                     <div class="grid grid-cols-3 gap-3">
                         {{-- Cabang --}}
                         <div>
-                            <label class="block text-xs font-medium text-gray-600 mb-1">Cabang</label>
+                            <label class="block text-xs font-bold text-gray-600 mb-1">Cabang</label>
                             <input type="text" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm bg-gray-100 text-gray-500 cursor-not-allowed border-gray-200"
                                 value="{{ trim(($fbranchcode ?? '') . ($fcabang ?? '' ? ' - ' . $fcabang : '')) }}" disabled>
                             <input type="hidden" name="fbranchcode" value="{{ $fbranchcode }}">
@@ -159,7 +162,7 @@
 
                         {{-- PO# --}}
                         <div x-data="{ autoCode: true }">
-                            <label class="block text-xs font-medium text-gray-600 mb-1">PO#</label>
+                            <label class="block text-xs font-bold text-gray-600 mb-1">PO#</label>
                             <div class="flex items-center gap-2">
                                 <input type="text" name="fpohid" class="flex-1 border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
                                     :disabled="autoCode" :class="autoCode ? 'bg-gray-100 text-gray-500 border-gray-200 cursor-not-allowed' : 'bg-white'"
@@ -173,7 +176,7 @@
 
                         {{-- Supplier --}}
                         <div>
-                            <label class="block text-xs font-medium text-gray-600 mb-1">Supplier <span class="text-red-500">*</span></label>
+                            <label class="block text-xs font-bold text-gray-600 mb-1">Supplier <span class="text-red-500">*</span></label>
                             <div class="flex">
                                 <div class="relative flex-1">
                                     <select id="modal_filter_supplier_id" name="filter_supplier_id"
@@ -215,7 +218,7 @@
                     <div class="grid grid-cols-3 gap-3">
                         {{-- Tanggal --}}
                         <div>
-                            <label class="block text-xs font-medium text-gray-600 mb-1">Tanggal <span class="text-red-500">*</span></label>
+                            <label class="block text-xs font-bold text-gray-600 mb-1">Tanggal <span class="text-red-500">*</span></label>
                             <input type="date" name="fpodate" value="{{ old('fpodate') ?? date('Y-m-d') }}"
                                 class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 @error('fpodate') border-red-400 @enderror">
                             @error('fpodate')
@@ -225,7 +228,7 @@
 
                         {{-- Tgl. Kirim --}}
                         <div>
-                            <label class="block text-xs font-medium text-gray-600 mb-1">Tgl. Kirim</label>
+                            <label class="block text-xs font-bold text-gray-600 mb-1">Tgl. Kirim</label>
                             <input type="date" name="fkirimdate" value="{{ old('fkirimdate', '') }}"
                                 class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 @error('fkirimdate') border-red-400 @enderror">
                             @error('fkirimdate')
@@ -235,7 +238,7 @@
 
                         {{-- Tempo --}}
                         <div>
-                            <label class="block text-xs font-medium text-gray-600 mb-1">Tempo</label>
+                            <label class="block text-xs font-bold text-gray-600 mb-1">Tempo</label>
                             <div class="flex items-center gap-2">
                                 <input type="number" id="ftempohr" name="ftempohr" value="{{ old('ftempohr', 0) }}"
                                     class="flex-1 border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100">
@@ -247,7 +250,7 @@
                     <div class="grid grid-cols-3 gap-3">
                         {{-- Currency --}}
                         <div>
-                            <label class="block text-xs font-medium text-gray-600 mb-1">Currency <span class="text-red-500">*</span></label>
+                            <label class="block text-xs font-bold text-gray-600 mb-1">Currency <span class="text-red-500">*</span></label>
                             <select name="fcurrency" id="currencySelect" x-model="selectedCurrCode" @change="onCurrencyChange()"
                                 class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm bg-white focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 @error('fcurrency') border-red-400 @enderror">
                                 <option value="">-- Pilih Currency --</option>
@@ -268,7 +271,7 @@
 
                         {{-- Rate --}}
                         <div>
-                            <label class="block text-xs font-medium text-gray-600 mb-1">Rate <span class="text-red-500">*</span></label>
+                            <label class="block text-xs font-bold text-gray-600 mb-1">Rate <span class="text-red-500">*</span></label>
                             <input type="number" step="0.01" min="0" name="frate" x-model.number="rateValue"
                                 class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 @error('frate') border-red-400 @enderror"
                                 placeholder="Rate akan terisi otomatis">
@@ -280,7 +283,7 @@
 
                     {{-- Keterangan --}}
                     <div>
-                        <label class="block text-xs font-medium text-gray-600 mb-1">Keterangan</label>
+                        <label class="block text-xs font-bold text-gray-600 mb-1">Keterangan</label>
                         <textarea name="fket" rows="2" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 @error('fket') border-red-400 @enderror"
                             placeholder="Tulis keterangan tambahan di sini...">{{ old('fket') }}</textarea>
                         @error('fket')
@@ -293,7 +296,12 @@
 
             {{-- ─── CARD 2: Detail Item ────────────────────── --}}
             <div class="bg-white border border-gray-200 rounded-xl mb-3 overflow-hidden">
-                <div class="px-4 pt-3 pb-0">
+                <div class="flex items-center gap-2 px-4 pt-3 pb-0">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-gray-400" fill="none"
+                            viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
+                        </svg>
                     <p class="text-xs font-medium uppercase tracking-wide text-gray-400">Detail Item</p>
                 </div>
                 <div class="p-4">
@@ -740,7 +748,12 @@
                 $canApproval = in_array('approvePO', explode(',', session('user_restricted_permissions', '')));
             @endphp
             <div class="bg-white border border-gray-200 rounded-xl mb-3 overflow-hidden">
-                <div class="px-4 pt-3 pb-0">
+                <div class="flex items-center gap-2 px-4 pt-3 pb-0">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-gray-400" fill="none"
+                            viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                        </svg>
                     <p class="text-xs font-medium uppercase tracking-wide text-gray-400">Approval & Aksi</p>
                 </div>
                 <div class="p-4 space-y-4">
