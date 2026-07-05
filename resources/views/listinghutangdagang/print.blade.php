@@ -5,48 +5,338 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Listing Hutang Dagang</title>
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;1,100;1,200;1,300;1,400;1,500;1,600;1,700&family=IBM+Plex+Sans:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;1,100;1,200;1,300;1,400;1,500;1,600;1,700&family=Source+Serif+4:ital,opsz,wght@0,8..60,200..900;1,8..60,200..900&display=swap" rel="stylesheet">
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: Arial, sans-serif; font-size: 10px; color: #000; background-color: #eee; counter-reset: page; }
-        .page-a4 { width: 210mm; margin: 20px auto; background: white; padding: 15mm; box-shadow: 0 0 10px rgba(0, 0, 0, 0.15); position: relative; box-sizing: border-box; height: auto; min-height: 0; }
-        .page-a4-strict { height: 297mm !important; min-height: 297mm !important; overflow: hidden !important; }
-        .header-section { position: relative; margin-bottom: 15px; text-align: center; padding-bottom: 25px; }
-        .header-section h2 { font-size: 18px; margin-bottom: 8px; font-weight: bold; text-transform: uppercase; color: #c00; }
-        .filter-info { font-size: 10px; color: #333; margin-bottom: 5px; }
-        .supplier-info-kiri { position: absolute; top: 15mm; left: 0mm; font-size: 10px; color: #333; text-align: left; }
-        .info-tambahan { position: absolute; top: 0; right: 0; font-size: 10px; color: #333; text-align: left; line-height: 1.4; }
-        .info-label { display: inline-block; width: 45px; }
-        .po-header-labels, .item-row, .group-total-row { display: grid; grid-template-columns: 8mm 28mm 28mm 20mm 22mm 30mm 30mm; border-bottom: 1px solid #000; gap: 1px; font-size: 8px; padding: 4px 3px; }
-        .po-header-labels { background-color: #f0f0f0; border: 1px solid #000; margin-bottom: 1px; font-weight: bold; }
-        .item-row { background-color: #fff; padding: 3px 3px; border-bottom: 1px solid #eee; }
-        .item-row > div:nth-child(6), .item-row > div:nth-child(7), .po-header-labels > div:nth-child(6), .po-header-labels > div:nth-child(7), .group-total-row > div:nth-child(2), .group-total-row > div:nth-child(3) { text-align: right; }
-        .group-row { display: block; background-color: #ffe6e6; color: #c00; font-weight: bold; font-size: 8px; padding: 4px 6px; border: 1px solid #ccc; margin-bottom: 1px; }
-        .group-total-row { background-color: #f9fafb; font-weight: bold; border-top: 1px solid #ccc; border-bottom: 1px solid #000; }
-        .truncate { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        .no-print { position: fixed; top: 10px; left: 10px; display: flex; gap: 8px; z-index: 1000; }
-        .print-button { background-color: #3b82f6; color: white; padding: 10px 20px; border-radius: 5px; cursor: pointer; border: none; }
-        .journal-block { page-break-inside: avoid; break-inside: avoid; }
-        .grand-total-section { margin-top: 20px; border-top: 1px solid #919191; padding-top: 10px; display: flex; justify-content: flex-end; }
-        .grand-total-panel { width: 85mm; border: 1px solid #919191; font-size: 10px; }
-        .grand-total-row { display: grid; grid-template-columns: 25mm 30mm 30mm; border-bottom: 1px solid #ccc; font-weight: bold; }
-        .grand-total-row:last-child { border-bottom: none; color: black; }
-        .grand-total-row div { padding: 6px 8px; }
-        .grand-total-row div:not(:first-child) { text-align: right; }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        /* Monitor Screen Layout */
+        body {
+            font-family: 'IBM Plex Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            font-size: 10px;
+            color: #000000; /* Solid Black text */
+            background-color: #f1f5f9; /* Modern light slate background on monitor */
+            counter-reset: page;
+            -webkit-print-color-adjust: exact;
+            print-color-adjust: exact;
+        }
+
+        /* Screen Simulation Styles for A4 Pages */
+        .page-a4 {
+            width: 210mm;
+            margin: 20px auto;
+            background: white;
+            padding: 15mm;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.15);
+            position: relative;
+            box-sizing: border-box;
+            height: auto;
+            min-height: 0;
+        }
+
+        /* Strict height applied after pagination */
+        .page-a4-strict {
+            height: 297mm !important;
+            min-height: 297mm !important;
+            overflow: hidden !important;
+        }
+
+        .header-section {
+            position: relative;
+            margin-bottom: 10px;
+            text-align: center;
+            padding-bottom: 20px;
+        }
+
+        .header-section h2 {
+            font-family: 'Source Serif 4', Georgia, "Times New Roman", serif;
+            font-size: 20px;
+            margin-bottom: 6px;
+            font-weight: 600;
+            text-transform: uppercase;
+            color: #cc0000; /* Dark Red matching Listing PO */
+            letter-spacing: 0.5px;
+        }
+
+        .filter-info {
+            font-size: 10px;
+            color: #475569; /* Slate 600 */
+            margin-bottom: 5px;
+            font-weight: 500;
+        }
+
+        .supplier-info-kiri {
+            position: absolute;
+            top: 15px; /* Shifted one line up inline with right side metadata */
+            left: 0mm;
+            font-size: 10px;
+            color: #334155; /* Slate 700 */
+            text-align: left;
+            line-height: 1.5;
+        }
+
+        .info-tambahan {
+            position: absolute;
+            top: 0;
+            right: 0;
+            font-size: 10px;
+            color: #334155; /* Slate 700 */
+            text-align: left;
+            line-height: 1.5;
+        }
+
+        .info-label {
+            font-weight: 600;
+            display: inline-block;
+            width: 50px;
+            color: #475569; /* Slate 600 */
+        }
+
+        /* --- AP COLUMN STYLES (8 Kolom) --- */
+        .po-header-labels,
+        .item-row,
+        .group-total-row {
+            display: grid;
+            grid-template-columns: 8mm 12mm 25mm 25mm 18mm 18mm 34mm 35mm;
+            gap: 1px;
+            font-size: 8px;
+            padding: 3px 8px; /* Reduced vertical padding matching PO */
+            align-items: center;
+        }
+
+        .po-header-labels {
+            background-color: transparent;
+            color: #000000;
+            border-top: 1px solid #000000;
+            border-bottom: 1px solid #000000;
+            margin-bottom: 0px; /* Reduced spacing */
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .item-row {
+            background-color: transparent;
+            color: #cc0000;
+        }
+
+        .group-row {
+            display: block;
+            background-color: transparent;
+            color: #000000;
+            /* font-weight: bold; */
+            font-size: 8.5px;
+            padding: 6px 8px;
+            border-bottom: 1px solid #000000;
+            margin-top: 10px;
+            margin-bottom: 3px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .group-total-row {
+            background-color: transparent;
+            font-weight: bold;
+            border-top: 1px dashed #000000; /* Subtle dashed separator */
+            border-bottom: 1px solid #000000;
+        }
+
+        /* Alignment & Monospace Fonts */
+        .item-row > div:nth-child(1) {
+            text-align: center;
+        }
+
+        .po-header-labels > div:nth-child(7),
+        .po-header-labels > div:nth-child(8),
+        .item-row > div:nth-child(7),
+        .item-row > div:nth-child(8),
+        .group-total-row > div:nth-child(2),
+        .group-total-row > div:nth-child(3) {
+            text-align: right;
+        }
+
+        .item-row > div:nth-child(2),
+        .item-row > div:nth-child(3),
+        .item-row > div:nth-child(4),
+        .item-row > div:nth-child(5),
+        .item-row > div:nth-child(6),
+        .item-row > div:nth-child(7),
+        .item-row > div:nth-child(8),
+        .group-total-row > div:nth-child(2),
+        .group-total-row > div:nth-child(3) {
+            font-family: 'IBM Plex Mono', Courier, monospace;
+            font-variant-numeric: tabular-nums;
+        }
+
+        .item-row > div:nth-child(2),
+        .item-row > div:nth-child(3),
+        .item-row > div:nth-child(4),
+        .item-row > div:nth-child(5),
+        .item-row > div:nth-child(6),
+        .item-row > div:nth-child(7),
+        .item-row > div:nth-child(8) {
+            font-weight: normal; /* Normal weight for detail items */
+        }
+
+        .truncate {
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .no-print {
+            position: fixed;
+            top: 15px;
+            left: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            z-index: 1000;
+        }
+
+        .print-button {
+            background-color: #0f172a; /* Navy slate default */
+            color: white;
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            border: none;
+            font-weight: 600;
+            font-size: 11px;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            box-shadow: 0 2px 4px rgba(15, 23, 42, 0.15);
+            transition: background-color 0.2s, transform 0.2s;
+        }
+
+        .print-button:hover {
+            background-color: #000000;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 6px rgba(15, 23, 42, 0.3);
+        }
+
+        .journal-block {
+            page-break-inside: avoid;
+            break-inside: avoid;
+            margin-bottom: 3px;
+        }
+
+        /* Zoom Out Button Style */
+        .no-print button {
+            transition: background-color 0.2s;
+        }
+
+        /* Totals Panel style */
+        .po-totals-panel-wrapper {
+            margin-top: 15px;
+            width: 180mm; /* Full printable width */
+            border-top: 1px solid #000000; /* Long line above totals */
+            padding-top: 8px;
+            position: relative; /* Position context for centering */
+            page-break-inside: avoid;
+            break-inside: avoid;
+        }
+
+        .end-of-report-inline {
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
+            bottom: 5px; /* Vertically inline with bottom row */
+            font-family: 'IBM Plex Sans', sans-serif;
+            font-size: 8px;
+            font-weight: bold;
+            color: #000000;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .po-totals-container {
+            margin-left: auto; /* Push to the right side */
+            width: 55mm;
+            font-family: 'IBM Plex Mono', Courier, monospace;
+            font-size: 8.5px;
+        }
+
+        .po-total-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 3px 0;
+            color: #000000;
+        }
+
+        .po-total-row span:nth-child(2) {
+            font-weight: bold;
+        }
+
+        .grand-total-row {
+            color: #304ee7;
+            border-top: 1px solid #000000;
+            border-bottom: 3px double #000000;
+            padding: 5px 0;
+            margin-top: 4px;
+            font-weight: bold;
+        }
+
+        /* Print Media CSS Overrides */
         @media print {
-            body { background-color: white !important; margin: 0; padding: 0; }
-            .page-a4 { width: 210mm; height: 297mm !important; margin: 0 auto !important; padding: 15mm !important; box-shadow: none !important; page-break-after: always; break-after: always; box-sizing: border-box; overflow: hidden !important; }
-            .no-print { display: none !important; }
-            @page { size: A4 portrait; margin: 0; }
+            body {
+                background-color: white !important;
+                margin: 0;
+                padding: 0;
+            }
+
+            .page-a4 {
+                width: 210mm;
+                height: 297mm !important;
+                margin: 0 auto !important;
+                padding: 15mm !important;
+                box-shadow: none !important;
+                page-break-after: always;
+                break-after: always;
+                box-sizing: border-box;
+                overflow: hidden !important;
+            }
+
+            .no-print {
+                display: none !important;
+            }
+
+            @page {
+                size: A4 portrait;
+                margin: 0;
+            }
         }
     </style>
 </head>
 
 <body>
     <div class="no-print">
-        <button class="print-button" onclick="window.print()">Cetak Laporan</button>
-        <button onclick="adjustZoom(-0.1)" style="padding: 6px 12px; background: #6c757d; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 16px; font-weight: bold;">-</button>
-        <span id="zoomLabel" style="min-width: 48px; text-align: center; font-size: 13px; font-weight: bold; color: #333; align-self: center;">100%</span>
-        <button onclick="adjustZoom(0.1)" style="padding: 6px 12px; background: #6c757d; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 16px; font-weight: bold;">+</button>
+        <button class="print-button" onclick="window.print()">🖨️ Cetak Laporan</button>
+
+        {{-- Zoom Out --}}
+        <button onclick="adjustZoom(-0.1)"
+            style="padding: 6px 12px; background: #6c757d; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 16px; font-weight: bold;">
+            −
+        </button>
+
+        {{-- Zoom Level --}}
+        <span id="zoomLabel"
+            style="min-width: 48px; text-align: center; font-size: 13px; font-weight: bold; color: #333; align-self: center;">
+            100%
+        </span>
+
+        {{-- Zoom In --}}
+        <button onclick="adjustZoom(0.1)"
+            style="padding: 6px 12px; background: #6c757d; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 16px; font-weight: bold;">
+            +
+        </button>
     </div>
 
     @php
@@ -58,12 +348,13 @@
             : 'Semua';
     @endphp
 
+    {{-- Hidden Raw Data Container --}}
     <div id="raw-source" style="display: none;">
         <div class="header-section">
             <div class="supplier-info-kiri">
-                Cabang: {{ $branchText }}<br>
-                Supplier: {{ $supplierText }}<br>
-                Mode: {{ $mode === 'rekap' ? 'Rekap' : 'Detail' }}
+                Cabang: {{ $branchText }}
+                <br>Supplier: {{ $supplierText }}
+                <br>Mode: {{ $mode === 'rekap' ? 'Rekap' : 'Detail' }}
             </div>
             <h2>Listing Hutang Dagang</h2>
             <div class="filter-info">
@@ -88,12 +379,13 @@
 
         <div class="po-header-labels">
             <div>No.</div>
+            <div>Cab.</div>
             <div>No.Transaksi</div>
             <div>No.Faktur</div>
             <div>Tgl.Faktur</div>
             <div>Jatuh Tempo</div>
-            <div>Nilai Faktur</div>
-            <div>Sisa Hutang</div>
+            <div style="text-align: right;">Nilai Faktur</div>
+            <div style="text-align: right;">Sisa Hutang</div>
         </div>
 
         @forelse ($rows->groupBy('fsupplier') as $supplier => $items)
@@ -113,7 +405,8 @@
                 @foreach ($items as $index => $row)
                     <div class="journal-block">
                         <div class="item-row">
-                            <div class="text-center">{{ $index + 1 }}</div>
+                            <div>{{ $index + 1 }}</div>
+                            <div class="truncate">{{ $row->fbranchcode }}</div>
                             <div class="truncate" title="{{ $row->fstockmtno }}">{{ $row->fstockmtno }}</div>
                             <div class="truncate" title="{{ $row->fnofaktur }}">{{ $row->fnofaktur }}</div>
                             <div>{{ $row->fstockmtdate ? \Carbon\Carbon::parse($row->fstockmtdate)->format('d/m/Y') : '' }}</div>
@@ -127,7 +420,7 @@
 
             <div class="journal-block">
                 <div class="group-total-row">
-                    <div style="grid-column: span 5; text-align: right; padding-right: 8px;">Total({{ $first->fsuppliername }})</div>
+                    <div style="grid-column: span 6; text-align: right; padding-right: 8px;">Total ({{ $first->fsuppliername }})</div>
                     <div>{{ number_format((float) $supplierFaktur, 2, ',', '.') }}</div>
                     <div>{{ number_format((float) $supplierHutang, 2, ',', '.') }}</div>
                 </div>
@@ -135,26 +428,34 @@
         @empty
             <div class="journal-block" style="text-align: center; padding: 20px; font-size: 11px; color: #666;">Tidak ada data ditemukan.</div>
         @endforelse
+    </div>
 
-        <div class="grand-total-section">
-            <div class="grand-total-panel">
-                <div class="grand-total-row">
-                    <div>Grand Total:</div>
-                    <div>{{ number_format((float) $grandFaktur, 2, ',', '.') }}</div>
-                    <div>{{ number_format((float) $grandHutang, 2, ',', '.') }}</div>
+    {{-- Hidden Totals Panel Container --}}
+    <div id="po-totals-panel-raw" style="display: none;">
+        <div class="po-totals-panel-wrapper">
+            <div class="end-of-report-inline">** END OF REPORT **</div>
+            <div class="po-totals-container">
+                <div class="po-total-row">
+                    <span>TOTAL NILAI FAKTUR</span>
+                    <span>{{ number_format((float) $grandFaktur, 2, ',', '.') }}</span>
+                </div>
+                <div class="po-total-row grand-total-row">
+                    <span>TOTAL SISA HUTANG</span>
+                    <span>{{ number_format((float) $grandHutang, 2, ',', '.') }}</span>
                 </div>
             </div>
         </div>
     </div>
 
+    {{-- Screen Render Target --}}
     <div class="report-wrapper" id="reportWrapper">
         @if ($rows->isEmpty())
             <div class="page-a4 page-a4-strict">
                 <div class="header-section">
-                    <div class="supplier-info-kiri" style="top: 15mm;">
-                        Cabang: {{ $branchText }}<br>
-                        Supplier: {{ $supplierText }}<br>
-                        Mode: {{ $mode === 'rekap' ? 'Rekap' : 'Detail' }}
+                    <div class="supplier-info-kiri" style="top: 15px;">
+                        Cabang: {{ $branchText }}
+                        <br>Supplier: {{ $supplierText }}
+                        <br>Mode: {{ $mode === 'rekap' ? 'Rekap' : 'Detail' }}
                     </div>
                     <h2>Listing Hutang Dagang</h2>
                     <div class="info-tambahan">
@@ -181,6 +482,7 @@
         const journals = Array.from(rawSource.querySelectorAll(".journal-block"));
         if (journals.length === 0) return;
 
+        // Measure actual 297mm page height on the screen dynamically in pixels
         const tempDiv = document.createElement("div");
         tempDiv.style.height = "297mm";
         tempDiv.style.position = "absolute";
@@ -189,10 +491,11 @@
         const pageHeightPx = tempDiv.offsetHeight;
         document.body.removeChild(tempDiv);
 
+        // Leave a safety margin (e.g. 20px) to prevent overlapping footers and sub-pixel rounding errors
         const maxPageHeight = pageHeightPx - 20;
+
         const headerSectionHtml = rawSource.querySelector(".header-section").outerHTML;
         const poHeaderLabelsHtml = rawSource.querySelector(".po-header-labels").outerHTML;
-        const grandTotalSectionHtml = rawSource.querySelector(".grand-total-section")?.outerHTML;
 
         function createNewPage() {
             const page = document.createElement("div");
@@ -221,49 +524,38 @@
             const journalClone = journal.cloneNode(true);
             currentContent.appendChild(journalClone);
 
+            // Check overflow
             if (currentPage.offsetHeight > maxPageHeight) {
                 const blockCount = currentContent.querySelectorAll(".journal-block").length;
                 if (blockCount > 1) {
                     currentContent.removeChild(journalClone);
+
+                    // Create new page
                     currentPage = createNewPage();
                     currentContent = currentPage.querySelector(".page-content");
+
+                    // Append the block to the new page
                     currentContent.appendChild(journalClone);
                 }
             }
         });
 
-        if (grandTotalSectionHtml) {
-            const tempTotal = document.createElement("div");
-            tempTotal.innerHTML = grandTotalSectionHtml;
-            const grandTotalEl = tempTotal.firstElementChild;
-            currentPage.appendChild(grandTotalEl);
+        // Add Totals Panel dynamically right before end of report
+        const totalsPanelRaw = document.getElementById("po-totals-panel-raw");
+        if (totalsPanelRaw) {
+            const totalsClone = totalsPanelRaw.cloneNode(true);
+            totalsClone.style.display = "block";
+            totalsClone.removeAttribute("id");
+            currentPage.appendChild(totalsClone);
 
-            if (currentPage.offsetHeight > maxPageHeight && currentContent.children.length > 0) {
-                currentPage.removeChild(grandTotalEl);
+            if (currentPage.offsetHeight > maxPageHeight) {
+                currentPage.removeChild(totalsClone);
                 currentPage = createNewPage();
-                currentPage.appendChild(grandTotalEl);
+                currentPage.appendChild(totalsClone);
             }
         }
 
-        const endOfReportEl = document.createElement("div");
-        endOfReportEl.className = "end-of-report";
-        endOfReportEl.style.textAlign = "center";
-        endOfReportEl.style.marginTop = "10px";
-        endOfReportEl.style.paddingTop = "20px";
-        endOfReportEl.style.fontWeight = "bold";
-        endOfReportEl.style.fontSize = "8px";
-        endOfReportEl.style.color = "#555";
-        endOfReportEl.style.textTransform = "uppercase";
-        endOfReportEl.style.letterSpacing = "1px";
-        endOfReportEl.textContent = "** End of Report **";
-        currentPage.appendChild(endOfReportEl);
-
-        if (currentPage.offsetHeight > maxPageHeight) {
-            currentPage.removeChild(endOfReportEl);
-            currentPage = createNewPage();
-            currentPage.appendChild(endOfReportEl);
-        }
-
+        // Apply strict height class to lock A4 size and hide overflows
         const allPages = reportWrapper.querySelectorAll(".page-a4");
         allPages.forEach((page, index) => {
             page.classList.add("page-a4-strict");
@@ -275,6 +567,7 @@
     });
 
     let currentZoom = 1.0;
+
     function adjustZoom(delta) {
         currentZoom = Math.min(2.0, Math.max(0.3, currentZoom + delta));
         document.getElementById('reportWrapper').style.transform = `scale(${currentZoom})`;

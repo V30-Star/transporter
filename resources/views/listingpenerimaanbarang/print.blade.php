@@ -240,7 +240,7 @@
         /* Totals Panel style */
         .po-totals-panel-wrapper {
             margin-top: 15px;
-            width: 175mm; /* Full printable width */
+            width: 180mm; /* Full printable width */
             border-top: 1px solid #000000; /* Long line above totals */
             padding-top: 8px;
             position: relative; /* Position context for centering */
