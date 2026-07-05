@@ -122,8 +122,7 @@
 
         .po-header {
             background-color: transparent;
-            margin-bottom: 1px;
-            font-weight: bold;
+            margin-bottom: 0px;
             color: #000000;
         }
 

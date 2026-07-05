@@ -123,7 +123,6 @@
         .po-header {
             background-color: transparent; /* Simplified background for dot matrix printer */
             margin-bottom: 0px;
-            font-weight: bold; /* Bold data header */
             color: #0f172a; /* Navy-Ink text */
         }
 
@@ -201,7 +200,6 @@
         .po-header > div:nth-child(8) {
             font-family: 'IBM Plex Mono', Courier, monospace;
             font-variant-numeric: tabular-nums;
-            font-weight: bold;
         }
 
         .po-detail > div:nth-child(1),
