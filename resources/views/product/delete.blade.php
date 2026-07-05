@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'Hapus Produk')
+@section('title', 'Master Produk - Delete')
 
 @section('content')
     <div class="bg-white rounded shadow p-6 md:p-8 max-w-[1800px] w-full mx-auto">
