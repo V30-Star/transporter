@@ -704,6 +704,13 @@ class MutasiController extends Controller
                 return back()->withInput()->withErrors(['detail' => $validationMessage]);
             }
 
+            if ($stockResponse = $this->validateStockMinusLines(
+                $this->buildStockMinusLinesForOutChange($rowsDt, (string) $request->input('ffrom')),
+                $request->boolean('force_save')
+            )) {
+                return $stockResponse;
+            }
+
             // =========================
             // TAHAP 4: PERSIAPAN HEADER
             // =========================
@@ -1089,6 +1096,13 @@ class MutasiController extends Controller
             $ppnAmount = (float) $request->input('famountpopajak', 0);
             $grandTotal = $subtotal + $ppnAmount;
 
+            if ($stockResponse = $this->validateStockMinusLines(
+                $this->buildStockMinusLinesForOutChange($rowsDt, (string) $request->input('ffrom'), $this->fetchStockDetailRows((string) $header->fstockmtno), (string) $header->ffrom),
+                $request->boolean('force_save')
+            )) {
+                return $stockResponse;
+            }
+
             DB::transaction(function () use ($header, $fstockmtdate, $frate, $subtotal, $ppnAmount, $grandTotal, $rowsDt, $request) {
 
                 // 4.1 Update Header
@@ -1278,6 +1292,15 @@ class MutasiController extends Controller
             }
 
             $docNo = $mutasi->fstockmtno;
+
+            if ($stockResponse = $this->validateStockMinusLines(
+                $this->buildStockMinusLinesFromNetChange([], (string) $mutasi->fto, $this->fetchStockDetailRows((string) $docNo), (string) $mutasi->fto),
+                request()->boolean('force_save')
+            )) {
+                DB::rollBack();
+
+                return $stockResponse;
+            }
 
             // 2. Hapus detail (trstockdt)
             DB::table('trstockdt')

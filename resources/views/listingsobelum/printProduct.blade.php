@@ -5,6 +5,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SO Belum Dikirim By Produk</title>
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;1,100;1,200;1,300;1,400;1,500;1,600;1,700&family=IBM+Plex+Sans:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;1,100;1,200;1,300;1,400;1,500;1,600;1,700&family=Source+Serif+4:ital,opsz,wght@0,8..60,200..900;1,8..60,200..900&display=swap" rel="stylesheet">
     <style>
         * {
             margin: 0;
@@ -14,11 +18,13 @@
 
         /* Monitor Screen Layout */
         body {
-            font-family: Arial, sans-serif;
+            font-family: 'IBM Plex Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
             font-size: 10px;
-            color: #000;
-            background-color: #eee; /* Grayscale background on monitor */
+            color: #000000; /* Solid Black text */
+            background-color: #f1f5f9; /* Modern light slate background on monitor */
             counter-reset: page;
+            -webkit-print-color-adjust: exact;
+            print-color-adjust: exact;
         }
 
         /* Screen Simulation Styles for A4 Pages */
@@ -41,134 +47,134 @@
             overflow: hidden !important;
         }
 
-        /* Header */
         .header-section {
-            display: flex;
-            align-items: flex-start;
-            justify-content: space-between;
-            border-bottom: 2px solid #000;
-            padding-bottom: 10px;
-            margin-bottom: 15px;
-        }
-
-        .header-left {
-            font-size: 10px;
-            color: #333;
-            font-weight: bold;
-            min-width: 80px;
-            align-self: flex-end;
-            white-space: nowrap;
-        }
-
-        .header-center {
+            position: relative;
+            margin-bottom: 0px;
             text-align: center;
-            flex: 1;
+            padding-bottom: 20px;
         }
 
-        .header-center h2 {
-            font-size: 16px;
-            font-weight: bold;
+        .header-section h2 {
+            font-family: 'Source Serif 4', Georgia, "Times New Roman", serif;
+            font-size: 20px;
+            margin-bottom: 6px;
+            font-weight: 600;
             text-transform: uppercase;
-            color: #c00;
-            margin-bottom: 4px;
+            color: #cc0000; /* Dark Red matching Listing PO */
+            letter-spacing: 0.5px;
         }
 
-        .header-center p {
+        .filter-info {
             font-size: 10px;
-            color: #333;
+            color: #475569; /* Slate 600 */
+            margin-bottom: 5px;
+            font-weight: 500;
         }
 
-        .header-right {
+        .supplier-info-kiri {
+            position: absolute;
+            top: 15px; /* Shifted one line up inline with right side metadata */
+            left: 0mm;
             font-size: 10px;
-            color: #333;
+            color: #334155; /* Slate 700 */
             text-align: left;
-            line-height: 1.6;
-            min-width: 80px;
+            line-height: 1.5;
+        }
+
+        .info-tambahan {
+            position: absolute;
+            top: 0;
+            right: 0;
+            font-size: 10px;
+            color: #334155; /* Slate 700 */
+            text-align: left;
+            line-height: 1.5;
         }
 
         .info-label {
-            font-weight: bold;
+            font-weight: 600;
             display: inline-block;
-            width: 45px;
+            width: 50px;
+            color: #475569; /* Slate 600 */
         }
 
-        /* Grid Header Kolom */
-        .grid-header {
-            display: grid;
-            grid-template-columns: 35mm 20mm 25mm 20mm 25mm 20mm 25mm;
-            gap: 1px;
-            padding: 4px 3px;
-            font-weight: bold;
-            font-size: 9px;
-            background-color: #f0f0f0;
-            border: 1px solid #000;
-            margin-bottom: 1px;
-        }
-
-        /* Group Product */
-        .prd-group {
-            padding: 4px 5px;
-            font-weight: bold;
-            font-size: 9px;
-            border: 1px solid #000;
-            margin-top: 5px;
-        }
-
-        /* Row Data */
-        .grid-row {
-            display: grid;
-            grid-template-columns: 35mm 20mm 25mm 20mm 25mm 20mm 25mm;
-            gap: 1px;
-            padding: 3px 3px;
-            font-size: 8px;
-            background-color: #fff;
-            color: #c00;
-        }
-
-        /* Subtotal per product */
+        /* --- COLUMN STYLES (7 Kolom) --- */
+        .grid-header,
+        .grid-row,
         .prd-subtotal {
             display: grid;
-            grid-template-columns: 35mm 20mm 25mm 20mm 25mm 20mm 25mm;
+            grid-template-columns: 25mm 18mm 45mm 15mm 24mm 24mm 24mm;
             gap: 1px;
-            padding: 4px 5px;
-            font-size: 9px;
+            font-size: 8px;
+            padding: 2px 8px; /* Reduced vertical padding matching PO */
+            align-items: center;
+        }
+
+        .grid-header {
+            background-color: transparent;
+            color: #000000;
+            border-top: 1px solid #000000;
+            border-bottom: 1px solid #000000;
+            margin-bottom: 0px; /* Reduced spacing */
             font-weight: bold;
-            border: 1px solid #000;
-            margin-bottom: 2px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
         }
 
-        /* Grand Total */
-        .grand-total-section {
-            margin-top: 20px;
-            border-top: 2px solid #000;
-            padding-top: 10px;
+        .grid-row {
+            background-color: transparent;
+            color: #000000;
         }
 
-        .grand-total-header {
-            display: flex;
-            justify-content: space-between;
-            font-size: 10px;
+        .prd-group {
+            display: block;
+            background-color: transparent;
+            color: #000000;
             font-weight: bold;
-            padding: 5px 10px;
-            color: black;
+            font-size: 8.5px;
+            padding: 2px 8px;
+            margin-top: 2px;
+            margin-bottom: 3px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
         }
 
-        /* Alignment */
-        .text-right {
+        .prd-subtotal {
+            background-color: transparent;
+            font-weight: bold;
+        }
+
+        /* Alignment & Monospace Fonts */
+        .grid-header > div.text-right,
+        .grid-row > div.text-right,
+        .prd-subtotal > div.text-right {
             text-align: right;
         }
 
-        .text-center {
+        .grid-header > div.text-center,
+        .grid-row > div.text-center,
+        .prd-subtotal > div.text-center {
             text-align: center;
         }
 
-        .text-red {
-            color: red;
-            font-weight: bold;
+        .grid-row > div:nth-child(1),
+        .grid-row > div:nth-child(2),
+        .grid-row > div:nth-child(4),
+        .grid-row > div:nth-child(5),
+        .grid-row > div:nth-child(6),
+        .grid-row > div:nth-child(7),
+        .prd-subtotal > div.text-right {
+            font-family: 'IBM Plex Mono', Courier, monospace;
+            font-variant-numeric: tabular-nums;
         }
 
-        .text-blue {
-            color: blue;
+        .grid-row > div:nth-child(1),
+        .grid-row > div:nth-child(2),
+        .grid-row > div:nth-child(4),
+        .grid-row > div:nth-child(5),
+        .grid-row > div:nth-child(6),
+        .grid-row > div:nth-child(7) {
+            font-weight: normal; /* Normal weight for detail items */
         }
 
         .truncate {
@@ -177,41 +183,97 @@
             text-overflow: ellipsis;
         }
 
-        .separator {
-            border-bottom: 1px solid #000000;
-            margin: 4px 0;
-            clear: both;
-        }
-
-        /* No Print Toolbar */
         .no-print {
             position: fixed;
-            top: 10px;
-            left: 10px;
+            top: 15px;
+            left: 15px;
             display: flex;
-            gap: 8px;
-            z-index: 1000;
             align-items: center;
+            gap: 10px;
+            z-index: 1000;
         }
 
         .print-button {
-            background-color: #3b82f6;
+            background-color: #0f172a; /* Navy slate default */
             color: white;
-            padding: 10px 20px;
-            border-radius: 5px;
+            padding: 8px 16px;
+            border-radius: 6px;
             cursor: pointer;
             border: none;
-            font-weight: bold;
+            font-weight: 600;
+            font-size: 11px;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            box-shadow: 0 2px 4px rgba(15, 23, 42, 0.15);
+            transition: background-color 0.2s, transform 0.2s;
+        }
+
+        .print-button:hover {
+            background-color: #000000;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 6px rgba(15, 23, 42, 0.3);
         }
 
         .journal-block {
             page-break-inside: avoid;
             break-inside: avoid;
+            margin-bottom: 0px;
         }
 
         /* Zoom Out Button Style */
         .no-print button {
             transition: background-color 0.2s;
+        }
+
+        /* Totals Panel style */
+        .po-totals-panel-wrapper {
+            margin-top: 5px;
+            border-top: 1px solid #000000;
+            width: 180mm; /* Full printable width */
+            padding-top: 5px;
+            position: relative; /* Position context for centering */
+            page-break-inside: avoid;
+            break-inside: avoid;
+        }
+
+        .end-of-report-inline {
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
+            bottom: 5px; /* Vertically inline with bottom row */
+            font-family: 'IBM Plex Sans', sans-serif;
+            font-size: 8px;
+            font-weight: bold;
+            color: #000000;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .po-totals-container {
+            margin-left: auto; /* Push to the right side */
+            width: 70mm;
+            font-family: 'IBM Plex Mono', Courier, monospace;
+            font-size: 8.5px;
+        }
+
+        .po-total-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 3px 0;
+            color: #000000;
+        }
+
+        .po-total-row span:nth-child(2) {
+            font-weight: bold;
+        }
+
+        .grand-total-row {
+            color: #304ee7;
+            border-top: 1px solid #000000;
+            border-bottom: 1px solid #000000;
+            padding: 5px 0;
+            font-weight: bold;
         }
 
         /* Print Media CSS Overrides */
@@ -247,8 +309,6 @@
 </head>
 
 <body>
-
-    {{-- Toolbar --}}
     <div class="no-print">
         <button class="print-button" onclick="window.print()">🖨️ Cetak Laporan</button>
 
@@ -278,22 +338,24 @@
         </a>
     </div>
 
+    @php
+        $branchText = request()->has('branch_codes') ? implode(', ', (array) request()->input('branch_codes')) : 'Semua';
+        $customerText = request('cust_from') ? request('cust_from') . (request('cust_to') ? ' s/d ' . request('cust_to') : '') : 'Semua';
+    @endphp
+
     {{-- Hidden Raw Data Container --}}
     <div id="raw-source" style="display: none;">
         <div class="header-section">
-            <div class="header-left">
-                Customer: {{ request('cust_from') ?? 'Semua' }}
-                @if (request('cust_to'))
-                    s/d {{ request('cust_to') }}
-                @endif
-                <br>
-                Cabang: {{ request()->has('branch_codes') ? implode(', ', (array) request()->input('branch_codes')) : 'Semua' }}
+            <div class="supplier-info-kiri">
+                Customer: {{ $customerText }}
+                <br>Cabang: {{ $branchText }}
             </div>
-            <div class="header-center">
-                <h2>SO Yang Belum Dikirim (By Produk)</h2>
-                <p>Periode: {{ $request->date_from }} s/d {{ $request->date_to }}</p>
+            <h2>SO Yang Belum Dikirim</h2>
+            <div class="filter-info">
+                Periode: {{ $request->date_from ? \Carbon\Carbon::parse(request('date_from'))->format('d/m/Y') : '...' }} s/d {{ $request->date_to ? \Carbon\Carbon::parse(request('date_to'))->format('d/m/Y') : '...' }}
+                | Pengelompokan: Produk
             </div>
-            <div class="header-right">
+            <div class="info-tambahan">
                 <div><span class="info-label">Tanggal</span>: {{ date('d/m/Y') }}</div>
                 <div><span class="info-label">Jam</span>: {{ date('H:i') }}</div>
                 <div><span class="info-label">Opr</span>: {{ $user_session->fname ?? 'User' }}</div>
@@ -321,36 +383,42 @@
                     <div class="grid-row">
                         <div class="truncate">{{ $row->fsono }}</div>
                         <div>{{ date('d/m/Y', strtotime($row->fsodate)) }}</div>
-                        <div class="truncate" style="font-size:8.5px;" title="{{ $row->fcustomername }}">{{ $row->fcustomername }}</div>
+                        <div class="truncate" title="{{ $row->fcustomername }}">{{ $row->fcustomername }}</div>
                         <div class="text-center">{{ $row->fsatuan }}</div>
-                        <div class="text-right">{{ number_format($row->fpricenet, 2, ',', '.') }}</div>
-                        <div class="text-right text-red">{{ number_format($row->fqty, 2, ',', '.') }}</div>
-                        <div class="text-right text-blue">{{ number_format($row->fstock, 2, ',', '.') }}</div>
+                        <div class="text-right">{{ number_format((float) $row->fpricenet, 2, ',', '.') }}</div>
+                        <div class="text-right" style="font-weight: bold;">{{ number_format((float) $row->fqty, 2, ',', '.') }}</div>
+                        <div class="text-right">{{ number_format((float) $row->fstock, 2, ',', '.') }}</div>
                     </div>
                 @endforeach
 
                 {{-- Subtotal per Product --}}
                 <div class="prd-subtotal">
-                    <div style="grid-column: span 5; text-align:right; color:#c00;">
+                    <div style="grid-column: span 5; text-align:right;">
                         Total [{{ $prdCode }}] {{ $rows->first()->fprdname }}
                     </div>
-                    <div class="text-right text-red">{{ number_format($rows->sum('fqty'), 2, ',', '.') }}</div>
+                    <div class="text-right">{{ number_format((float) $rows->sum('fqty'), 2, ',', '.') }}</div>
                     <div></div>
                 </div>
             </div>
         @endforeach
+    </div>
 
-        @php
-            $grandTotalQty = 0;
-            foreach ($soData as $rows) {
-                $grandTotalQty += $rows->sum('fqty');
-            }
-        @endphp
+    @php
+        $grandTotalQty = 0;
+        foreach ($soData as $rows) {
+            $grandTotalQty += $rows->sum('fqty');
+        }
+    @endphp
 
-        <div class="grand-total-section">
-            <div class="grand-total-header">
-                <span>GRAND TOTAL QTY SO BELUM DIKIRIM</span>
-                <span>{{ number_format($grandTotalQty, 2, ',', '.') }}</span>
+    {{-- Hidden Totals Panel Container --}}
+    <div id="po-totals-panel-raw" style="display: none;">
+        <div class="po-totals-panel-wrapper">
+            <div class="end-of-report-inline">** END OF REPORT **</div>
+            <div class="po-totals-container">
+                <div class="po-total-row grand-total-row">
+                    <span>GRAND TOTAL QTY</span>
+                    <span>{{ number_format((float) $grandTotalQty, 2, ',', '.') }}</span>
+                </div>
             </div>
         </div>
     </div>
@@ -360,16 +428,11 @@
         @if ($soData->isEmpty())
             <div class="page-a4 page-a4-strict">
                 <div class="header-section">
-                    <div class="header-left" style="align-self: flex-start; margin-top: 1mm;">
-                        Customer: {{ request('cust_from') ?? 'Semua' }}
-                        @if (request('cust_to'))
-                            s/d {{ request('cust_to') }}
-                        @endif
-                        <br>Cabang: {{ request()->has('branch_codes') ? implode(', ', (array) request()->input('branch_codes')) : 'Semua' }}
+                    <div class="supplier-info-kiri" style="top: 15px;">
+                        Customer: {{ $customerText }}
+                        <br>Cabang: {{ $branchText }}
                     </div>
-                    <div class="header-center">
-                        <h2>SO Yang Belum Dikirim (By Produk)</h2>
-                    </div>
+                    <h2>SO Yang Belum Dikirim</h2>
                     <div class="info-tambahan">
                         <div><span class="info-label">Hal</span>: 1 / 1</div>
                         <div><span class="info-label">Tanggal</span>: {{ date('d/m/Y') }}</div>
@@ -381,7 +444,6 @@
             </div>
         @endif
     </div>
-
 </body>
 
 </html>
@@ -409,7 +471,6 @@
 
         const headerSectionHtml = rawSource.querySelector(".header-section").outerHTML;
         const gridHeaderHtml = rawSource.querySelector(".grid-header").outerHTML;
-        const grandTotalSectionHtml = rawSource.querySelector(".grand-total-section")?.outerHTML;
 
         function createNewPage() {
             const page = document.createElement("div");
@@ -521,43 +582,19 @@
             }
         });
 
-        // Add grand total section
-        if (grandTotalSectionHtml) {
-            const tempDiv = document.createElement("div");
-            tempDiv.innerHTML = grandTotalSectionHtml;
-            const grandTotalEl = tempDiv.firstElementChild;
-
-            currentPage.appendChild(grandTotalEl);
+        // Add Totals Panel dynamically right before end of report
+        const totalsPanelRaw = document.getElementById("po-totals-panel-raw");
+        if (totalsPanelRaw) {
+            const totalsClone = totalsPanelRaw.cloneNode(true);
+            totalsClone.style.display = "block";
+            totalsClone.removeAttribute("id");
+            currentPage.appendChild(totalsClone);
 
             if (currentPage.offsetHeight > maxPageHeight) {
-                if (currentPage.children.length > 2) {
-                    currentPage.removeChild(grandTotalEl);
-                    currentPage = createNewPage();
-                    currentPage.appendChild(grandTotalEl);
-                }
+                currentPage.removeChild(totalsClone);
+                currentPage = createNewPage();
+                currentPage.appendChild(totalsClone);
             }
-        }
-
-        // Add End of Report text
-        const endOfReportEl = document.createElement("div");
-        endOfReportEl.className = "end-of-report";
-        endOfReportEl.style.textAlign = "center";
-        endOfReportEl.style.marginTop = "10px";
-        endOfReportEl.style.borderTop = "1px solid #000";
-        endOfReportEl.style.paddingTop = "20px";
-        endOfReportEl.style.fontWeight = "bold";
-        endOfReportEl.style.fontSize = "8px";
-        endOfReportEl.style.color = "#555";
-        endOfReportEl.style.textTransform = "uppercase";
-        endOfReportEl.style.letterSpacing = "1px";
-        endOfReportEl.textContent = "** End of Report **";
-
-        currentPage.appendChild(endOfReportEl);
-
-        if (currentPage.offsetHeight > maxPageHeight) {
-            currentPage.removeChild(endOfReportEl);
-            currentPage = createNewPage();
-            currentPage.appendChild(endOfReportEl);
         }
 
         // Apply strict height class to lock A4 size and hide overflows

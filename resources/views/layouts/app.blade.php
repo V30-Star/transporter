@@ -832,6 +832,80 @@
                 });
             };
 
+            window.submitFormWithStockMinusConfirmation = async function(event) {
+                const form = event?.target;
+                if (!form || form.dataset.stockSubmitBusy === '1') {
+                    return;
+                }
+
+                event.preventDefault();
+                form.dataset.stockSubmitBusy = '1';
+
+                const send = async (forceSave = false) => {
+                    const formData = new FormData(form);
+                    if (forceSave) {
+                        formData.set('force_save', '1');
+                    }
+
+                    return fetch(form.action, {
+                        method: form.method || 'POST',
+                        body: formData,
+                        headers: {
+                            'X-Requested-With': 'XMLHttpRequest',
+                            'Accept': 'application/json',
+                        },
+                    });
+                };
+
+                try {
+                    let response = await send(false);
+                    if (response.status === 422) {
+                        const data = await response.clone().json().catch(() => null);
+                        if (data?.status === 'insufficient_stock') {
+                            if (!data.allow_force) {
+                                await Swal.fire({
+                                    title: 'Peringatan Stok',
+                                    text: data.message,
+                                    icon: 'warning',
+                                    confirmButtonText: 'Tidak, Batalkan',
+                                });
+                                return;
+                            }
+
+                            const result = await Swal.fire({
+                                title: 'Peringatan Stok',
+                                text: data.message,
+                                icon: 'warning',
+                                showCancelButton: true,
+                                confirmButtonText: 'Ya, Lanjutkan',
+                                cancelButtonText: 'Tidak, Batalkan',
+                            });
+
+                            if (!result.isConfirmed) {
+                                return;
+                            }
+
+                            response = await send(true);
+                        }
+                    }
+
+                    if (response.redirected) {
+                        window.location.href = response.url;
+                        return;
+                    }
+
+                    if (response.ok) {
+                        window.location.reload();
+                        return;
+                    }
+
+                    const data = await response.json().catch(() => null);
+                    window.showAppErrorAlert('Terjadi Kesalahan', data?.message || 'Transaksi belum bisa disimpan.');
+                } finally {
+                    form.dataset.stockSubmitBusy = '0';
+                }
+            };
+
             const canChangeTransactionDate = @json($layoutCanChangeTransactionDate);
             const serverTodayDateValue = @json(now()->format('Y-m-d'));
             const guardedTransactionDateFields = [

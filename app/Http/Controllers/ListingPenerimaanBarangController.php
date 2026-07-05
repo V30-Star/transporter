@@ -54,6 +54,7 @@ class ListingPenerimaanBarangController extends Controller
                 'm.fstockmtno',
                 'm.fstockmtdate',
                 'm.fusercreate',
+                'm.fbranchcode',
                 'm.famountmt',
                 's.fsuppliername',
                 's.fsuppliercode',

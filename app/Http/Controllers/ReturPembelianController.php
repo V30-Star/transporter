@@ -647,6 +647,13 @@ class ReturPembelianController extends Controller
                 ]);
             }
 
+            if ($stockResponse = $this->validateStockMinusLines(
+                $this->buildStockMinusLinesForOutChange($rowsDt, (string) $ffrom),
+                $request->boolean('force_save')
+            )) {
+                return $stockResponse;
+            }
+
             $grandTotal = $subtotal + $ppnAmount;
 
             // DATABASE TRANSACTION
@@ -1178,6 +1185,13 @@ class ReturPembelianController extends Controller
                 return back()->withInput()->withErrors([
                     'detail' => 'Minimal 1 item valid (Kode, Satuan, Qty > 0).',
                 ]);
+            }
+
+            if ($stockResponse = $this->validateStockMinusLines(
+                $this->buildStockMinusLinesForOutChange($rowsDt, (string) $ffrom, $this->fetchStockDetailRows((string) $header->fstockmtno), (string) $header->ffrom),
+                $request->boolean('force_save')
+            )) {
+                return $stockResponse;
             }
 
             // Hitung ulang grand total berdasarkan data yang valid

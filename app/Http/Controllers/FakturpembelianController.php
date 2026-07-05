@@ -2133,6 +2133,13 @@ class FakturpembelianController extends Controller
                 return back()->withInput()->withErrors(['detail' => 'Minimal satu item valid (Kode, Satuan, Qty > 0).']);
             }
 
+            if ($stockResponse = $this->validateStockMinusLines(
+                $this->buildStockMinusLinesFromNetChange($rowsDt, (string) $ffrom, $this->fetchStockDetailRows((string) $header->fstockmtno), (string) $header->ffrom),
+                $request->boolean('force_save')
+            )) {
+                return $stockResponse;
+            }
+
             $grandTotal = $subtotal + $ppnAmount;
 
             // DATABASE TRANSACTION
@@ -2390,6 +2397,13 @@ class FakturpembelianController extends Controller
 
             if ($message = $this->getUsageLockMessage($fakturpembelian)) {
                 return redirect()->route('fakturpembelian.index')->with('error', $message);
+            }
+
+            if ($stockResponse = $this->validateStockMinusLines(
+                $this->buildStockMinusLinesFromNetChange([], (string) $fakturpembelian->ffrom, $this->fetchStockDetailRows((string) $fakturpembelian->fstockmtno), (string) $fakturpembelian->ffrom),
+                request()->boolean('force_save')
+            )) {
+                return $stockResponse;
             }
 
             DB::transaction(function () use ($fakturpembelian) {

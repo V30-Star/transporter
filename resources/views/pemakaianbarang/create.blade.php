@@ -1081,6 +1081,7 @@
                         this.showNoItems = true;
                         return;
                     }
+                    return window.submitFormWithStockMinusConfirmation?.($event);
                 },
 
                 handleEnterOnCode(where) {

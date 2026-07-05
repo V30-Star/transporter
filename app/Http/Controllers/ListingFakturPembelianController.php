@@ -183,6 +183,7 @@ class ListingFakturPembelianController extends Controller
                 'm.fsupplier',
                 's.fsuppliername',
                 'm.fusercreate',
+                'm.fbranchcode',
                 'm.famount',
                 'm.famountpajak',
                 'm.famountmt',

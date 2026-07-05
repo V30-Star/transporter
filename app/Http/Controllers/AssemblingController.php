@@ -639,6 +639,15 @@ class AssemblingController extends Controller
             ]);
         }
 
+        if ($stockResponse = $this->validateStockMinusLines(
+            $this->buildStockMinusLinesFromEffects([
+                ['rows' => array_filter($rowsDt, fn ($row) => ($row['fcode'] ?? '') === 'B'), 'fwhcode' => (string) $ffrom, 'sign' => 1],
+            ]),
+            $request->boolean('force_save')
+        )) {
+            return $stockResponse;
+        }
+
         // =========================
         // 5) TRANSAKSI DB
         // =========================
@@ -1156,6 +1165,24 @@ class AssemblingController extends Controller
             ]);
         }
 
+        $oldRows = DB::table('trstockdt')
+            ->where('fstockmtno', $header->fstockmtno)
+            ->get(['fprdcode', 'fqtykecil', 'fcode'])
+            ->map(fn ($row) => (array) $row)
+            ->all();
+
+        if ($stockResponse = $this->validateStockMinusLines(
+            $this->buildStockMinusLinesFromEffects([
+                ['rows' => array_filter($rowsDt, fn ($row) => ($row['fcode'] ?? '') === 'B'), 'fwhcode' => (string) $ffrom, 'sign' => 1],
+                ['rows' => array_filter($oldRows, fn ($row) => ($row['fcode'] ?? '') === 'B'), 'fwhcode' => (string) $header->ffrom, 'sign' => -1],
+                ['rows' => array_filter($rowsDt, fn ($row) => ($row['fcode'] ?? '') === 'J'), 'fwhcode' => (string) $ffrom, 'sign' => -1],
+                ['rows' => array_filter($oldRows, fn ($row) => ($row['fcode'] ?? '') === 'J'), 'fwhcode' => (string) $header->ffrom, 'sign' => 1],
+            ]),
+            $request->boolean('force_save')
+        )) {
+            return $stockResponse;
+        }
+
         // =========================
         // 5) TRANSAKSI DB
         // =========================
@@ -1380,6 +1407,21 @@ class AssemblingController extends Controller
             if ($message = $this->getUsageLockMessage($assembling)) {
                 return redirect()->route('assembling.index')->with('error', $message);
             }
+            $oldRows = DB::table('trstockdt')
+                ->where('fstockmtno', $assembling->fstockmtno)
+                ->get(['fprdcode', 'fqtykecil', 'fcode'])
+                ->map(fn ($row) => (array) $row)
+                ->all();
+
+            if ($stockResponse = $this->validateStockMinusLines(
+                $this->buildStockMinusLinesFromEffects([
+                    ['rows' => array_filter($oldRows, fn ($row) => ($row['fcode'] ?? '') === 'J'), 'fwhcode' => (string) $assembling->ffrom, 'sign' => 1],
+                ]),
+                request()->boolean('force_save')
+            )) {
+                return $stockResponse;
+            }
+
             DB::transaction(function () use ($assembling) {
                 DB::table('trstockdt')
                     ->where('fstockmtno', $assembling->fstockmtno)

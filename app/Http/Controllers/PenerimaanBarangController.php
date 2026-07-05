@@ -1363,6 +1363,13 @@ class PenerimaanBarangController extends Controller
             return back()->withInput()->withErrors(['detail' => $validationMessage]);
         }
 
+        if ($stockResponse = $this->validateStockMinusLines(
+            $this->buildStockMinusLinesFromNetChange($rowsDt, (string) $ffrom, $this->fetchStockDetailRows((string) $header->fstockmtno), (string) $header->ffrom),
+            $request->boolean('force_save')
+        )) {
+            return $stockResponse;
+        }
+
         $podAgg = $this->aggregatePodReceiptByPod($rowsDt);
         $oldReceiptLines = DB::table('trstockdt')->where('fstockmtno', $header->fstockmtno)->get(['frefdtid', 'fqtykecil']);
 
@@ -1464,6 +1471,13 @@ class PenerimaanBarangController extends Controller
 
             if ($message = $this->getUsageLockMessage($penerimaanbarang)) {
                 return redirect()->route('penerimaanbarang.index')->with('error', $message);
+            }
+
+            if ($stockResponse = $this->validateStockMinusLines(
+                $this->buildStockMinusLinesFromNetChange([], (string) $penerimaanbarang->ffrom, $this->fetchStockDetailRows((string) $penerimaanbarang->fstockmtno), (string) $penerimaanbarang->ffrom),
+                request()->boolean('force_save')
+            )) {
+                return $stockResponse;
             }
 
             DB::transaction(function () use ($penerimaanbarang) {

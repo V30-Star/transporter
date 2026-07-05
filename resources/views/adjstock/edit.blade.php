@@ -1827,6 +1827,7 @@
                     this.showNoItems = true;
                     return;
                 }
+                return window.submitFormWithStockMinusConfirmation?.($event);
             },
 
             focusRowUnit(row, index) {
@@ -2228,6 +2229,7 @@
                     this.showNoItems = true;
                     return;
                 }
+                return window.submitFormWithStockMinusConfirmation?.($event);
             },
 
             focusRowUnit(row, index) {

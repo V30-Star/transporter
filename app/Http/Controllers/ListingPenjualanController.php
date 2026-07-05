@@ -35,6 +35,7 @@ class ListingPenjualanController extends Controller
             ->join('msprd as p', 'd.fprdcode', '=', 'p.fprdcode')
             ->join('mssalesman as s', 'm.fsalesman', '=', 's.fsalesmancode')
             ->select(
+                'm.fbranchcode',
                 'm.fsono',
                 'm.ftaxno',
                 'm.fsodate',

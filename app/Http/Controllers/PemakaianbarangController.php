@@ -587,6 +587,13 @@ class PemakaianbarangController extends Controller
             ]);
         }
 
+        if ($stockResponse = $this->validateStockMinusLines(
+            $this->buildStockMinusLinesForOutChange($rowsDt, (string) $ffrom),
+            $request->boolean('force_save')
+        )) {
+            return $stockResponse;
+        }
+
         // =========================
         // 5) TRANSAKSI DB
         // =========================
@@ -1123,6 +1130,13 @@ class PemakaianbarangController extends Controller
                     ? 'Minimal 1 item valid (kode, satuan, qty tidak boleh 0).'
                     : 'Minimal 1 item valid (kode, satuan, qty lebih dari 0).',
             ]);
+        }
+
+        if ($stockResponse = $this->validateStockMinusLines(
+            $this->buildStockMinusLinesForOutChange($rowsDt, (string) $ffrom, $this->fetchStockDetailRows((string) $header->fstockmtno), (string) $header->ffrom),
+            $request->boolean('force_save')
+        )) {
+            return $stockResponse;
         }
 
         // =========================

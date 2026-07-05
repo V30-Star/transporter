@@ -576,6 +576,13 @@ class AdjstockController extends Controller
                 return back()->withInput()->withErrors(['detail' => $validationMessage]);
             }
 
+            if ($stockResponse = $this->validateStockMinusLines(
+                $this->buildStockMinusLinesForSignedRows($rowsDt, (string) $request->input('ffrom')),
+                $request->boolean('force_save')
+            )) {
+                return $stockResponse;
+            }
+
             // =========================
             // TAHAP 4: PERSIAPAN DATA HEADER
             // =========================
@@ -1059,6 +1066,13 @@ class AdjstockController extends Controller
             return back()->withInput()->withErrors([
                 'detail' => $validationMessage,
             ]);
+        }
+
+        if ($stockResponse = $this->validateStockMinusLines(
+            $this->buildStockMinusLinesForSignedRows($rowsDt, (string) $ffrom, $this->fetchStockDetailRows((string) $header->fstockmtno), (string) $header->ffrom),
+            $request->boolean('force_save')
+        )) {
+            return $stockResponse;
         }
 
         $grandTotal = $subtotal + $ppnAmount;

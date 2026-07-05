@@ -1533,9 +1533,7 @@
 
                     $event.preventDefault();
                     this.isNormalizingSubmit = true;
-                    this.$nextTick(() => {
-                        $event.target.submit();
-                    });
+                    this.$nextTick(() => window.submitFormWithStockMinusConfirmation?.($event));
                 },
 
                 handleEnterOnCode(where) {
