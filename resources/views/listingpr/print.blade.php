@@ -140,7 +140,7 @@
 
         .po-detail-labels {
             font-weight: bold;
-            color: #000000;
+            color: #cc0000;
             background-color: transparent;
             border-bottom: 1px solid #000000;
             margin-top: 0px; /* Reduced spacing */
@@ -149,7 +149,7 @@
         }
 
         .po-detail {
-            color: #000000;
+            color: #cc0000;
             background-color: transparent;
         }
 
@@ -234,9 +234,10 @@
         /* Totals Panel style */
         .po-totals-panel-wrapper {
             margin-top: 15px;
-            width: 175mm; /* Full printable width */
+            margin-bottom: 25px; /* Added space for absolute centered footer below */
+            width: 180mm; /* Full printable width */
             border-top: 1px solid #000000; /* Long line above totals */
-            padding-top: 8px;
+            padding-top: 4px;
             position: relative; /* Position context for centering */
             page-break-inside: avoid;
             break-inside: avoid;
@@ -246,7 +247,7 @@
             position: absolute;
             left: 50%;
             transform: translateX(-50%);
-            bottom: 5px; /* Vertically inline with bottom row */
+            bottom: -15px; /* Below the double border */
             font-family: 'IBM Plex Sans', sans-serif;
             font-size: 8px;
             font-weight: bold;
@@ -255,30 +256,23 @@
             letter-spacing: 1px;
         }
 
-        .po-totals-container {
-            margin-left: auto; /* Push to the right side */
-            width: 70mm;
-            font-family: 'IBM Plex Mono', Courier, monospace;
-            font-size: 8.5px;
-        }
-
-        .po-total-row {
-            display: flex;
-            justify-content: space-between;
-            padding: 3px 0;
+        .po-total-row-grid {
+            display: grid;
+            grid-template-columns: 30mm 75mm 20mm 25mm 25mm;
+            gap: 1px;
+            font-size: 8px;
+            padding: 6px 8px;
+            align-items: center;
+            font-weight: bold;
             color: #000000;
+            border-bottom: 3px double #000000; /* Double accounting border */
         }
 
-        .po-total-row span:nth-child(2) {
-            font-weight: bold;
-        }
-
-        .grand-total-row {
-            border-top: 1px solid #000000;
-            border-bottom: 3px double #000000;
-            padding: 5px 0;
-            margin-top: 4px;
-            font-weight: bold;
+        .po-total-row-grid > div:nth-child(4),
+        .po-total-row-grid > div:nth-child(5) {
+            text-align: right;
+            font-family: 'IBM Plex Mono', Courier, monospace;
+            font-variant-numeric: tabular-nums;
         }
 
         /* Print Media CSS Overrides */
@@ -432,16 +426,6 @@
     <div id="po-totals-panel-raw" style="display: none;">
         <div class="po-totals-panel-wrapper">
             <div class="end-of-report-inline">** END OF REPORT **</div>
-            <div class="po-totals-container">
-                <div class="po-total-row">
-                    <span>TOTAL QTY PR</span>
-                    <span>{{ number_format($totalQtyPR, 2, ',', '.') }}</span>
-                </div>
-                <div class="po-total-row grand-total-row">
-                    <span>TOTAL QTY PO</span>
-                    <span>{{ number_format($totalQtyPO, 2, ',', '.') }}</span>
-                </div>
-            </div>
         </div>
     </div>
 
