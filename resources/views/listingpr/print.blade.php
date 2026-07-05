@@ -13,12 +13,14 @@
         }
 
         /* Monitor Screen Layout */
-        body {
-            font-family: Arial, sans-serif;
+       body {
+            font-family: 'IBM Plex Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
             font-size: 10px;
-            color: #000;
-            background-color: #eee; /* Grayscale background on monitor */
+            color: #0f172a; /* Navy-Ink */
+            background-color: #f1f5f9; /* Modern light slate background on monitor */
             counter-reset: page;
+            -webkit-print-color-adjust: exact;
+            print-color-adjust: exact;
         }
 
         /* Screen Simulation Styles for A4 Pages */

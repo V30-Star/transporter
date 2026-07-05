@@ -928,7 +928,7 @@
 
                     @if ($isUsedProduct)
                         <div class="mb-4 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
-                            PRODUK INI SUDAH DIREFERENSI DI TRANSAKSI {{ implode(', ', $usedByLabels) }}.
+                            PRODUK INI SUDAH DIREFERENSI DI TRANSAKSI.
                         </div>
                     @endif
 
@@ -2543,6 +2543,7 @@
         const hjSatuanKecilLevel1Label = document.getElementById('hj-satuan-kecil-level1-label');
         const hjSatuanKecilLevel2Label = document.getElementById('hj-satuan-kecil-level2-label');
         const hjSatuanKecilLevel3Label = document.getElementById('hj-satuan-kecil-level3-label');
+        const hjSatuanKecilLevel1LabelRow = document.getElementById('hj-satuan-kecil-level1-label-row');
 
         const hjSatuanBesarLevel1Label = document.getElementById('hj-satuan-besar-level1-label');
         const hjSatuanBesarLevel2Label = document.getElementById('hj-satuan-besar-level2-label');
@@ -2603,6 +2604,9 @@
 
         if (hjSatuanKecilLevel1Label) {
             hjSatuanKecilLevel1Label.textContent = smallSatuanValue || '-';
+        }
+        if (hjSatuanKecilLevel1LabelRow) {
+            hjSatuanKecilLevel1LabelRow.textContent = smallSatuanValue || '-';
         }
         if (hjSatuanKecilLevel2Label) {
             hjSatuanKecilLevel2Label.textContent = smallSatuanValue || '-';
@@ -2692,7 +2696,7 @@
             }
 
             $('.satuan-kecil-display').text(satuanKecil);
-            $('#hj-satuan-kecil-level1-label, #hj-satuan-kecil-level2-label, #hj-satuan-kecil-level3-label').text(
+            $('#hj-satuan-kecil-level1-label, #hj-satuan-kecil-level1-label-row, #hj-satuan-kecil-level2-label, #hj-satuan-kecil-level3-label').text(
                 satuanKecil);
         } else {
             $('#satuan2-block').hide();

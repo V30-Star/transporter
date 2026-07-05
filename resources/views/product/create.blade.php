@@ -1414,7 +1414,7 @@
             $('#hj-level1-block').show();
             $('#fsatuanbesar').prop('disabled', false);
             $('.satuan-kecil-display').text(satuanKecil);
-            $('#hj-satuan-kecil-level1-label, #hj-satuan-kecil-level2-label, #hj-satuan-kecil-level3-label').text(
+            $('#hj-satuan-kecil-level1-label, #hj-satuan-kecil-level1-label-row, #hj-satuan-kecil-level2-label, #hj-satuan-kecil-level3-label').text(
                 satuanKecil);
         } else {
             $('#hj-level1-block').hide();
