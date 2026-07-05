@@ -48,9 +48,9 @@
 
         .header-section {
             position: relative;
-            margin-bottom: 10px;
+            margin-bottom: 1px;
             text-align: center;
-            padding-bottom: 20px;
+            padding-bottom: 15px;
             /* border-bottom: 2px solid #edf2ee; */
         }
 
@@ -73,7 +73,7 @@
 
         .supplier-info-kiri {
             position: absolute;
-            top: 30px;
+            top: 15px;
             left: 0mm;
             font-size: 10px;
             color: #334155; /* Slate 700 */
@@ -105,7 +105,7 @@
             grid-template-columns: 12mm 30mm 20mm 43mm 20mm 20mm 20mm 13mm;
             gap: 1px;
             font-size: 8px;
-            padding: 6px 8px;
+            padding: 3px 8px;
             align-items: center;
         }
 
@@ -114,7 +114,7 @@
             color: #000000; /* Black for all except title */
             border-top: 1px solid #000000; /* Reduced ink weight */
             border-bottom: 1px solid #000000; /* Reduced ink weight */
-            margin-bottom: 2px;
+            margin-bottom: 0px;
             font-weight: bold; /* Bold data header */
             text-transform: uppercase;
             letter-spacing: 0.5px;
@@ -122,7 +122,7 @@
 
         .po-header {
             background-color: transparent; /* Simplified background for dot matrix printer */
-            margin-bottom: 1px;
+            margin-bottom: 0px;
             font-weight: bold; /* Bold data header */
             color: #0f172a; /* Navy-Ink text */
         }
@@ -134,22 +134,22 @@
             grid-template-columns: 25mm 55mm 18mm 18mm 18mm 18mm 18mm;
             gap: 1px;
             font-size: 8px;
-            padding: 4px 8px;
+            padding: 2px 8px;
             align-items: center;
         }
 
         .po-detail-labels {
             font-weight: bold; /* Bold data header */
-            color: #000000; /* Black for all except title */
+            color: #cc0000; /* Black for all except title */
             background-color: transparent; /* Simplified background for dot matrix printer */
             border-bottom: 1px solid #000000; /* Reduced ink weight */
-            margin-top: 2px;
+            margin-top: 0px;
             text-transform: uppercase;
             letter-spacing: 0.5px;
         }
 
         .po-detail {
-            color: #334155; /* Navy-Ink body text */
+            color: #cc0000; /* Navy-Ink body text */
             background-color: transparent; /* Simplified background for dot matrix printer */
         }
 
@@ -215,7 +215,7 @@
         }
 
         .separator {
-            margin: 12px 0; /* Space-based separator to save printer ink */
+            margin: 0px;
             clear: both;
         }
 
@@ -267,7 +267,7 @@
         .journal-block {
             page-break-inside: avoid;
             break-inside: avoid;
-            margin-bottom: 8px;
+            margin-bottom: 3px; /* Reduced spacing between PO blocks */
         }
 
         /* Zoom Out Button Style */
@@ -328,7 +328,7 @@
             border-top: 1px solid #000000;
             border-bottom: 1px solid #000000; /* Clean straight border for dot matrix */
             font-weight: bold;
-            color: #000000; /* Highlight in Black */
+            color: #304ee7; /* Highlight in Black */
             padding: 5px 0;
             margin-top: 4px;
         }
@@ -518,7 +518,7 @@
         @if ($groupedData->isEmpty())
             <div class="page-a4 page-a4-strict">
                 <div class="header-section">
-                    <div class="supplier-info-kiri" style="top: 30px;">
+                    <div class="supplier-info-kiri" style="top: 15px;">
                         Supplier: {{ request('sup_from') ? '[' . request('sup_from') . '] s/d [' . request('sup_to') . ']' : 'Semua' }}
                         <br>Cabang: {{ request()->has('branch_codes') ? implode(', ', (array) request()->input('branch_codes')) : 'Semua' }}
                     </div>
