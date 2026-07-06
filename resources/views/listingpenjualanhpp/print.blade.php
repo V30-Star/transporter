@@ -138,7 +138,7 @@
 
         .detail-labels {
             font-weight: bold;
-            color: #000000;
+            color: #cc0000;
             background-color: transparent;
             border-top: 1px dashed #000000;
             border-bottom: 1px dashed #000000;
@@ -148,7 +148,7 @@
         }
 
         .detail-row {
-            color: #000000;
+            color: #cc0000;
             background-color: transparent;
         }
 
@@ -300,6 +300,7 @@
         }
 
         .grand-total-row {
+            color: #304ee7;
             border-bottom: 3px double #000000;
             padding: 5px 0;
             font-weight: bold;

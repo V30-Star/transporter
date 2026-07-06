@@ -26,6 +26,7 @@ class AnalisaUmurPiutangController extends Controller
             'rows' => $rows,
             'request' => $request,
             'title' => 'Analisa Umur Piutang',
+            'user_session' => auth('sysuser')->user() ?? auth()->user(),
         ]);
     }
 
