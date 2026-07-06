@@ -25,7 +25,7 @@ class ListingFakturPajakPenjualanController extends Controller
         return view('listingfakturpajakpenjualan.print', [
             'results' => $results,
             'request' => $request,
-            'user_session' => auth()->user(),
+            'user_session' => auth('sysuser')->user() ?? auth()->user(),
         ]);
     }
 

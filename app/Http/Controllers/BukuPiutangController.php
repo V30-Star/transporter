@@ -25,6 +25,7 @@ class BukuPiutangController extends Controller
             'rows' => $this->rows($request),
             'request' => $request,
             'title' => 'Buku Piutang',
+            'user_session' => auth('sysuser')->user() ?? auth()->user(),
         ]);
     }
 

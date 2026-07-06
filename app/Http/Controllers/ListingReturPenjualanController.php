@@ -30,7 +30,7 @@ class ListingReturPenjualanController extends Controller
             'results' => $results,
             'detailMode' => $request->boolean('detail', true),
             'rekapMode' => $request->boolean('rekap', false),
-            'user_session' => auth()->user(),
+            'user_session' => auth('sysuser')->user() ?? auth()->user(),
         ]);
     }
 
