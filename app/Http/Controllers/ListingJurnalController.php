@@ -63,7 +63,7 @@ class ListingJurnalController extends Controller
             'dateTo' => $dateTo,
             'selectedTypes' => $journalTypes,
             'selectedBranches' => $branchCodes,
-            'user_session' => auth()->user(),
+            'user_session' => auth('sysuser')->user() ?? auth()->user(),
         ]);
     }
 

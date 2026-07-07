@@ -23,6 +23,7 @@ class BukuBesarController extends Controller
             'rows' => $this->rows($request),
             'request' => $request,
             'title' => 'Buku Besar',
+            'user_session' => auth('sysuser')->user() ?? auth()->user(),
         ]);
     }
 
