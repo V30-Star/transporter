@@ -50,7 +50,7 @@
             position: relative;
             margin-bottom: 1px;
             text-align: center;
-            padding-bottom: 15px;
+            padding-bottom: 35px;
         }
 
         .header-section h2 {
@@ -105,7 +105,7 @@
             grid-template-columns: 8mm 20mm 25mm 1fr 25mm 20mm 20mm 25mm;
             gap: 1px;
             font-size: 8px;
-            padding: 3px 8px;
+            padding: 2px 8px;
             align-items: start;
         }
 
@@ -126,7 +126,6 @@
             margin-bottom: 0px;
             color: #0f172a;
             font-weight: normal;
-            border-bottom: 1px dashed #e2e8f0;
         }
 
         /* Alignment for PO Header Columns */
@@ -202,15 +201,15 @@
         .journal-block {
             page-break-inside: avoid;
             break-inside: avoid;
-            margin-bottom: 3px;
+            margin-bottom: 0px;
         }
 
         /* Totals Panel style */
         .po-totals-panel-wrapper {
-            margin-top: 15px;
+            margin-top: 5px;
             width: 180mm; /* Full printable width */
             border-top: 1px solid #000000; /* Long line above totals */
-            padding-top: 8px;
+            padding-top: 5px;
             position: relative;
             page-break-inside: avoid;
             break-inside: avoid;
@@ -231,7 +230,7 @@
 
         .po-totals-container {
             margin-left: auto;
-            width: 80mm;
+            width: 70mm;
             font-family: 'IBM Plex Mono', Courier, monospace;
             font-size: 8.5px;
         }
@@ -239,7 +238,7 @@
         .po-total-row {
             display: flex;
             justify-content: space-between;
-            padding: 3px 0;
+            padding: 2px 0;
             color: #334155;
         }
 
@@ -251,7 +250,7 @@
             border-top: 1px solid #000000;
             border-bottom: 1px solid #000000;
             font-weight: bold;
-            color: #cc0000;
+            color: #304ee7;
             padding: 5px 0;
             margin-top: 4px;
         }
@@ -342,7 +341,7 @@
             <div class="journal-block">
                 <div class="po-header">
                     <div>{{ $i + 1 }}</div>
-                    <div style="font-weight: bold;">{{ $row->fcustomercode }}</div>
+                    <div>{{ $row->fcustomercode }}</div>
                     <div class="truncate" title="{{ $row->fcustomername }}">{{ $row->fcustomername }}</div>
                     <div class="truncate" title="{{ $row->faddress }}">{{ $row->faddress }}</div>
                     <div class="truncate" title="{{ $row->ftelp }}">{{ $row->ftelp }}</div>

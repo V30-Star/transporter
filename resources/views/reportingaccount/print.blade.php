@@ -50,7 +50,7 @@
             position: relative;
             margin-bottom: 1px;
             text-align: center;
-            padding-bottom: 15px;
+            padding-bottom: 35px;
         }
 
         .header-section h2 {
@@ -105,7 +105,7 @@
             grid-template-columns: 1fr 22mm 22mm;
             gap: 1px;
             font-size: 8px;
-            padding: 3px 8px;
+            padding: 2px 8px;
             align-items: center;
         }
 
@@ -125,12 +125,11 @@
             margin-bottom: 0px;
             color: #0f172a;
             font-weight: normal;
-            border-bottom: 1px dashed #e2e8f0;
         }
 
         /* Baris Header Akun (fend == 0) */
         .row-header-akun {
-            background-color: #fff1f2 !important; /* Soft rose red highlight */
+            /* background-color: #fff1f2 !important; Soft rose red highlight */
             font-weight: bold;
         }
 
@@ -223,15 +222,15 @@
         .journal-block {
             page-break-inside: avoid;
             break-inside: avoid;
-            margin-bottom: 3px;
+            margin-bottom: 0px;
         }
 
         /* Totals Panel style */
         .po-totals-panel-wrapper {
-            margin-top: 15px;
+            margin-top: 5px;
             width: 180mm; /* Full printable width */
             border-top: 1px solid #000000; /* Long line above totals */
-            padding-top: 8px;
+            padding-top: 5px;
             position: relative;
             page-break-inside: avoid;
             break-inside: avoid;
@@ -241,7 +240,7 @@
             position: absolute;
             left: 50%;
             transform: translateX(-50%);
-            bottom: 5px;
+            bottom: -15px;
             font-family: 'IBM Plex Sans', sans-serif;
             font-size: 8px;
             font-weight: bold;
