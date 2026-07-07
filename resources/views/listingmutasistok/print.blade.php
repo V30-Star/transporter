@@ -6,32 +6,40 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Listing Mutasi Stok</title>
     <style>
+        @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;700&family=IBM+Plex+Sans:wght@400;500;700&family=Source+Serif+4:opsz,wght@8..60,700&display=swap');
+
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
         }
 
+        /* Monitor Screen Layout */
         body {
-            font-family: Arial, sans-serif;
+            font-family: 'IBM Plex Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
             font-size: 10px;
-            color: #000;
-            background-color: #eee;
+            color: #0f172a; /* Navy-Ink */
+            background-color: #f1f5f9; /* Modern light slate background on monitor */
             counter-reset: page;
+            -webkit-print-color-adjust: exact;
+            print-color-adjust: exact;
         }
 
+        /* Screen Simulation Styles for A4 Pages */
         .page-a4 {
             width: 210mm;
-            margin: 20px auto;
+            margin: 30px auto;
             background: white;
-            padding: 15mm;
-            box-shadow: 0 0 10px rgba(0, 0, 0, .15);
+            padding: 20mm 15mm 15mm 15mm; /* Enhanced page margin */
+            box-shadow: 0 10px 25px rgba(15, 23, 42, 0.08);
             position: relative;
             box-sizing: border-box;
             height: auto;
             min-height: 0;
+            border-radius: 4px;
         }
 
+        /* Strict height applied after pagination */
         .page-a4-strict {
             height: 297mm !important;
             min-height: 297mm !important;
@@ -40,32 +48,37 @@
 
         .header-section {
             position: relative;
-            margin-bottom: 15px;
+            margin-bottom: 1px;
             text-align: center;
-            padding-bottom: 25px;
+            padding-bottom: 15px;
         }
 
         .header-section h2 {
-            font-size: 18px;
-            margin-bottom: 8px;
-            font-weight: bold;
+            font-family: 'Source Serif 4', Georgia, "Times New Roman", serif;
+            font-size: 20px;
+            margin-bottom: 6px;
+            font-weight: 600;
             text-transform: uppercase;
-            color: #c00;
+            color: #cc0000; /* Dark Red matching Listing PR */
+            letter-spacing: 0.5px;
         }
 
         .filter-info {
             font-size: 10px;
-            color: #333;
+            color: #475569; /* Slate 600 */
             margin-bottom: 5px;
+            font-weight: 500;
         }
 
         .supplier-info-kiri {
             position: absolute;
-            top: 15mm;
+            top: 15px;
             left: 0mm;
             font-size: 10px;
-            color: #333;
+            color: #334155; /* Slate 700 */
             text-align: left;
+            line-height: 1.5;
+            max-width: 60mm;
         }
 
         .info-tambahan {
@@ -73,70 +86,102 @@
             top: 0;
             right: 0;
             font-size: 10px;
-            color: #333;
+            color: #334155; /* Slate 700 */
             text-align: left;
-            line-height: 1.4;
+            line-height: 1.5;
         }
 
         .info-label {
-            font-weight: bold;
+            font-weight: 600;
             display: inline-block;
-            width: 45px;
+            width: 50px;
+            color: #475569; /* Slate 600 */
         }
 
+        /* --- TABLE HEADERS & ROWS --- */
         .mt-header-labels,
         .mt-header {
             display: grid;
-            grid-template-columns: 12mm 27mm 18mm 20mm 20mm 48mm 20mm;
+            grid-template-columns: 12mm 27mm 18mm 20mm 20mm 1fr 20mm;
             gap: 1px;
             font-size: 8px;
-            padding: 4px 3px;
+            padding: 2px 8px;
+            align-items: center;
         }
 
         .mt-header-labels {
-            background-color: #f0f0f0;
-            border: 1px solid #000;
-            margin-bottom: 1px;
+            background-color: transparent;
+            color: #000000;
+            border-top: 1px solid #000000;
+            border-bottom: 1px solid #000000;
+            margin-bottom: 0px;
             font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
         }
 
         .mt-header {
-            background-color: #fff;
-            padding: 3px 3px;
-            font-weight: bold;
+            background-color: transparent;
+            margin-bottom: 0px;
+            color: #0f172a;
         }
 
+        /* --- DETAIL STYLES --- */
         .mt-detail-labels,
         .mt-detail {
             display: grid;
-            grid-template-columns: 32mm 105mm 24mm;
+            grid-template-columns: 32mm 1fr 24mm;
             gap: 1px;
             font-size: 8px;
-            padding: 2px 3px;
+            padding: 2px 8px;
+            align-items: center;
         }
 
         .mt-detail-labels {
             font-weight: bold;
-            color: #c00;
-            background-color: #fff;
-            border: 1px solid #000;
-            margin-top: 1px;
-            padding: 3px 3px;
+            color: #cc0000;
+            background-color: transparent;
+            border-bottom: 1px solid #000000;
+            margin-top: 0px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
         }
 
         .mt-detail {
-            color: #c00;
-            background-color: #fff;
+            color: #cc0000;
+            background-color: transparent;
         }
 
+        .mt-detail>div:first-child {
+            padding-left: 2mm;
+        }
+
+        /* Alignment */
         .mt-detail-labels>div:nth-child(3),
         .mt-detail>div:nth-child(3) {
             text-align: right;
         }
 
+        /* Fonts for Numbers & System Codes */
+        .mt-header > div:nth-child(1),
+        .mt-header > div:nth-child(2),
+        .mt-header > div:nth-child(3),
+        .mt-header > div:nth-child(4),
+        .mt-header > div:nth-child(5),
+        .mt-header > div:nth-child(7) {
+            font-family: 'IBM Plex Mono', Courier, monospace;
+            font-variant-numeric: tabular-nums;
+        }
+
+        .mt-detail > div:nth-child(1),
+        .mt-detail > div:nth-child(3) {
+            font-family: 'IBM Plex Mono', Courier, monospace;
+            font-variant-numeric: tabular-nums;
+            font-weight: normal;
+        }
+
         .separator {
-            border-bottom: 1px solid #000;
-            margin: 4px 0;
+            margin: 0px;
             clear: both;
         }
 
@@ -146,37 +191,81 @@
             text-overflow: ellipsis;
         }
 
+        /* Floating zoom bar style from Listing PO */
         .no-print {
             position: fixed;
-            top: 10px;
-            left: 10px;
+            top: 15px;
+            left: 15px;
             display: flex;
-            gap: 8px;
+            align-items: center;
+            gap: 10px;
             z-index: 1000;
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(8px);
+            padding: 8px 16px;
+            border-radius: 10px;
+            box-shadow: 0 4px 20px rgba(15, 23, 42, 0.15);
+            border: 1px solid rgba(226, 232, 240, 0.8);
         }
 
         .print-button {
-            background-color: #3b82f6;
+            background-color: #0f172a; /* Navy-Ink background */
             color: white;
-            padding: 10px 20px;
-            border-radius: 5px;
+            padding: 8px 16px;
+            border-radius: 6px;
             cursor: pointer;
             border: none;
-            font-weight: bold;
+            font-weight: 600;
+            font-family: 'IBM Plex Sans', sans-serif;
+            font-size: 12px;
+            transition: all 0.2s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            box-shadow: 0 2px 4px rgba(15, 23, 42, 0.2);
         }
 
-        .no-print button {
-            transition: background-color .2s;
+        .print-button:hover {
+            background-color: #000000; /* Black background on hover */
+            transform: translateY(-1px);
+            box-shadow: 0 4px 6px rgba(15, 23, 42, 0.3);
         }
 
         .journal-block {
             page-break-inside: avoid;
             break-inside: avoid;
+            margin-bottom: 0px;
         }
 
+        /* Totals Panel style */
+        .po-totals-panel-wrapper {
+            margin-top: 10px;
+            width: 180mm; /* Full printable width */
+            border-top: 1px solid #000000; /* Long line above totals */
+            padding-top: 20px;
+            position: relative;
+            page-break-inside: avoid;
+            break-inside: avoid;
+        }
+
+        .end-of-report-inline {
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
+            bottom: 5px;
+            font-family: 'IBM Plex Sans', sans-serif;
+            font-size: 8px;
+            font-weight: bold;
+            color: #000000;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        /* Print Media CSS Overrides */
         @media print {
             body {
                 background-color: white !important;
+                color: #0f172a !important;
                 margin: 0;
                 padding: 0;
             }
@@ -185,12 +274,15 @@
                 width: 210mm;
                 height: 297mm !important;
                 margin: 0 auto !important;
-                padding: 15mm !important;
+                padding: 20mm 15mm 15mm 15mm !important;
                 box-shadow: none !important;
                 page-break-after: always;
                 break-after: always;
+                page-break-inside: avoid;
+                break-inside: avoid;
                 box-sizing: border-box;
                 overflow: hidden !important;
+                border-radius: 0;
             }
 
             .no-print {
@@ -213,7 +305,7 @@
     @endphp
 
     <div class="no-print">
-        <button class="print-button" onclick="window.print()">Cetak Laporan</button>
+        <button class="print-button" onclick="window.print()">🖨️ Cetak Laporan</button>
         <button onclick="adjustZoom(-0.1)"
             style="padding: 6px 12px; background: #6c757d; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 16px; font-weight: bold;">-</button>
         <span id="zoomLabel"
@@ -223,9 +315,10 @@
         <a href="{{ route('listingmutasistok.excel', request()->all()) }}"
             style="padding: 7px 12px; background-color: #22c55e; color: white; border-radius: 4px; text-decoration: none; font-weight: bold; font-size: 12px; display: inline-flex; align-items: center; justify-content: center; transition: background-color .2s;"
             onmouseover="this.style.backgroundColor='#16a34a'"
-            onmouseout="this.style.backgroundColor='#22c55e'">Excel</a>
+            onmouseout="this.style.backgroundColor='#22c55e'">📊 Excel</a>
     </div>
 
+    {{-- Hidden Raw Data Container --}}
     <div id="raw-source" style="display: none;">
         <div class="header-section">
             <div class="supplier-info-kiri">
@@ -295,11 +388,19 @@
         @endforeach
     </div>
 
+    {{-- Hidden Totals Panel Container --}}
+    <div id="po-totals-panel-raw" style="display: none;">
+        <div class="po-totals-panel-wrapper">
+            <div class="end-of-report-inline">** END OF REPORT **</div>
+        </div>
+    </div>
+
+    {{-- Screen Render Target --}}
     <div class="report-wrapper" id="reportWrapper">
         @if ($groupedData->isEmpty())
             <div class="page-a4 page-a4-strict">
                 <div class="header-section">
-                    <div class="supplier-info-kiri" style="top: 15mm;">
+                    <div class="supplier-info-kiri" style="top: 15px;">
                         Gudang Asal: {{ request('warehouse_from') ?: 'Semua' }}
                         <br>Gudang Tujuan: {{ request('warehouse_to') ?: 'Semua' }}
                         <br>Cabang: {{ $branchText }}
@@ -311,8 +412,7 @@
                         <div><span class="info-label">Jam</span>: {{ date('H:i') }}</div>
                         <div><span class="info-label">Opr</span>: {{ $user_session->fname ?? 'admin' }}</div>
                     </div>
-                    <div style="margin-top: 30px; text-align: center; font-size: 12px; color: #666;">Tidak ada data
-                        ditemukan.</div>
+                    <div style="margin-top: 30px; text-align: center; font-size: 12px; color: #666;">Tidak ada data ditemukan.</div>
                 </div>
             </div>
         @endif
@@ -322,7 +422,7 @@
 </html>
 
 <script>
-    document.addEventListener("DOMContentLoaded", function() {
+    document.addEventListener("DOMContentLoaded", function () {
         const rawSource = document.getElementById("raw-source");
         const reportWrapper = document.getElementById("reportWrapper");
         if (!rawSource || !reportWrapper) return;
@@ -330,6 +430,7 @@
         const journals = Array.from(rawSource.querySelectorAll(".journal-block"));
         if (journals.length === 0) return;
 
+        // Measure actual 297mm page height on the screen dynamically in pixels
         const tempDiv = document.createElement("div");
         tempDiv.style.height = "297mm";
         tempDiv.style.position = "absolute";
@@ -338,10 +439,12 @@
         const pageHeightPx = tempDiv.offsetHeight;
         document.body.removeChild(tempDiv);
 
+        // Leave a safety margin (e.g. 20px) to prevent overlapping footers and sub-pixel rounding errors
         const maxPageHeight = pageHeightPx - 20;
+
         const headerSectionHtml = rawSource.querySelector(".header-section").outerHTML;
-        const headerLabelsHtml = rawSource.querySelector(".mt-header-labels").outerHTML;
-        const detailLabelsHtml = rawSource.querySelector(".mt-detail-labels")?.outerHTML || '';
+        const poHeaderLabelsHtml = rawSource.querySelector(".mt-header-labels").outerHTML;
+        const poDetailLabelsHtml = rawSource.querySelector(".mt-detail-labels")?.outerHTML || '';
 
         function createNewPage() {
             const page = document.createElement("div");
@@ -349,16 +452,15 @@
             page.innerHTML = `
                 <div class="page-header-container">
                     ${headerSectionHtml}
-                    ${headerLabelsHtml}
-                    ${detailLabelsHtml}
+                    ${poHeaderLabelsHtml}
+                    ${poDetailLabelsHtml}
                 </div>
                 <div class="page-content" style="margin-top: 5px;"></div>
             `;
             const infoTambahan = page.querySelector(".info-tambahan");
             if (infoTambahan) {
                 const halDiv = document.createElement("div");
-                halDiv.innerHTML =
-                    `<span class="info-label">Hal</span>: <span class="page-number-current"></span> / <span class="page-number-total"></span>`;
+                halDiv.innerHTML = `<span class="info-label">Hal</span>: <span class="page-number-current"></span> / <span class="page-number-total"></span>`;
                 infoTambahan.prepend(halDiv);
             }
             reportWrapper.appendChild(page);
@@ -369,40 +471,97 @@
         let currentContent = currentPage.querySelector(".page-content");
 
         journals.forEach((journal) => {
-            const journalClone = journal.cloneNode(true);
-            currentContent.appendChild(journalClone);
+            const poHeader = journal.querySelector(".mt-header");
+            const poDetails = Array.from(journal.querySelectorAll(".mt-detail"));
+            const separator = journal.querySelector(".separator");
 
+            // Create a new journal-block container on the current page
+            let currentJournalBlock = document.createElement("div");
+            currentJournalBlock.className = "journal-block";
+            currentContent.appendChild(currentJournalBlock);
+
+            // Append header
+            currentJournalBlock.appendChild(poHeader.cloneNode(true));
+
+            // Check if page overflowed after adding header
             if (currentPage.offsetHeight > maxPageHeight) {
                 const blockCount = currentContent.querySelectorAll(".journal-block").length;
                 if (blockCount > 1) {
-                    currentContent.removeChild(journalClone);
+                    currentContent.removeChild(currentJournalBlock);
                     currentPage = createNewPage();
                     currentContent = currentPage.querySelector(".page-content");
-                    currentContent.appendChild(journalClone);
+
+                    currentJournalBlock = document.createElement("div");
+                    currentJournalBlock.className = "journal-block";
+                    currentContent.appendChild(currentJournalBlock);
+                    currentJournalBlock.appendChild(poHeader.cloneNode(true));
+                }
+            }
+
+            // Append details one by one
+            poDetails.forEach((detail) => {
+                const detailClone = detail.cloneNode(true);
+                currentJournalBlock.appendChild(detailClone);
+
+                // Check overflow
+                if (currentPage.offsetHeight > maxPageHeight) {
+                    const detailCount = currentJournalBlock.querySelectorAll(".mt-detail").length;
+                    const blockCount = currentContent.querySelectorAll(".journal-block").length;
+
+                    if (blockCount > 1 || detailCount > 1) {
+                        currentJournalBlock.removeChild(detailClone);
+
+                        // Create new page
+                        currentPage = createNewPage();
+                        currentContent = currentPage.querySelector(".page-content");
+
+                        // Create a new journal block on the new page
+                        currentJournalBlock = document.createElement("div");
+                        currentJournalBlock.className = "journal-block";
+                        currentContent.appendChild(currentJournalBlock);
+
+                        // Append header clone with "(Lanjutan)" suffix
+                        const headerClone = poHeader.cloneNode(true);
+                        const firstChildDiv = headerClone.firstElementChild;
+                        if (firstChildDiv) {
+                            firstChildDiv.textContent = firstChildDiv.textContent + " (Lanjutan)";
+                        }
+                        currentJournalBlock.appendChild(headerClone);
+
+                        // Append the detail row
+                        currentJournalBlock.appendChild(detailClone);
+                    }
+                }
+            });
+
+            // Append separator if present
+            if (separator) {
+                const separatorClone = separator.cloneNode(true);
+                currentJournalBlock.appendChild(separatorClone);
+
+                // If separator overflows, remove it since a page break is happening anyway
+                if (currentPage.offsetHeight > maxPageHeight) {
+                    currentJournalBlock.removeChild(separatorClone);
                 }
             }
         });
 
-        const endOfReportEl = document.createElement("div");
-        endOfReportEl.className = "end-of-report";
-        endOfReportEl.style.textAlign = "center";
-        endOfReportEl.style.marginTop = "10px";
-        endOfReportEl.style.borderTop = "1px solid #000";
-        endOfReportEl.style.paddingTop = "20px";
-        endOfReportEl.style.fontWeight = "bold";
-        endOfReportEl.style.fontSize = "8px";
-        endOfReportEl.style.color = "#555";
-        endOfReportEl.style.textTransform = "uppercase";
-        endOfReportEl.style.letterSpacing = "1px";
-        endOfReportEl.textContent = "** End of Report **";
-        currentPage.appendChild(endOfReportEl);
+        // Add Totals Panel dynamically right before end of report
+        const totalsPanelRaw = document.getElementById("po-totals-panel-raw");
+        if (totalsPanelRaw) {
+            const totalsClone = totalsPanelRaw.cloneNode(true);
+            totalsClone.style.display = "block";
+            totalsClone.removeAttribute("id");
+            currentPage.appendChild(totalsClone);
 
-        if (currentPage.offsetHeight > maxPageHeight) {
-            currentPage.removeChild(endOfReportEl);
-            currentPage = createNewPage();
-            currentPage.appendChild(endOfReportEl);
+            if (currentPage.offsetHeight > maxPageHeight) {
+                currentPage.removeChild(totalsClone);
+                currentPage = createNewPage();
+                currentPage.appendChild(totalsClone);
+            }
         }
 
+        // Apply strict height class to lock A4 size and hide overflows
         const allPages = reportWrapper.querySelectorAll(".page-a4");
         allPages.forEach((page, index) => {
             page.classList.add("page-a4-strict");

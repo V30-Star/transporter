@@ -32,7 +32,7 @@ class ListingSuratJalanController extends Controller
             'groupedData' => $groupedData,
             'type' => $type,
             'request' => $request,
-            'user_session' => auth()->user(),
+            'user_session' => auth('sysuser')->user() ?? auth()->user(),
         ]);
     }
 

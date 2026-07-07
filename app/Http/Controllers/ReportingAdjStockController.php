@@ -102,7 +102,7 @@ class ReportingAdjStockController extends Controller
      */
     public function printAdjStock(Request $request)
     {
-        $user_session = auth('sysuser')->user();
+        $user_session = auth('sysuser')->user() ?? auth()->user();
 
         $filterWarehouseId = $request->query('filter_warehouse_id');
 

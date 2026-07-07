@@ -32,7 +32,7 @@ class ListingMutasiStokController extends Controller
             'groupedData' => $results->groupBy('fstockmtno'),
             'type' => $type,
             'request' => $request,
-            'user_session' => auth()->user(),
+            'user_session' => auth('sysuser')->user() ?? auth()->user(),
         ]);
     }
 

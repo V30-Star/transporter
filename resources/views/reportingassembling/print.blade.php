@@ -6,6 +6,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Listing Assembling</title>
     <style>
+        @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;700&family=IBM+Plex+Sans:wght@400;500;700&family=Source+Serif+4:opsz,wght@8..60,700&display=swap');
+
         * {
             margin: 0;
             padding: 0;
@@ -14,25 +16,27 @@
 
         /* Monitor Screen Layout */
         body {
-            font-family: Arial, sans-serif;
+            font-family: 'IBM Plex Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
             font-size: 10px;
-            color: #000;
-            background-color: #eee;
-            /* Grayscale background on monitor */
+            color: #0f172a; /* Navy-Ink */
+            background-color: #f1f5f9; /* Modern light slate background on monitor */
             counter-reset: page;
+            -webkit-print-color-adjust: exact;
+            print-color-adjust: exact;
         }
 
         /* Screen Simulation Styles for A4 Pages */
         .page-a4 {
             width: 210mm;
-            margin: 20px auto;
+            margin: 30px auto;
             background: white;
-            padding: 15mm;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.15);
+            padding: 20mm 15mm 15mm 15mm; /* Enhanced page margin */
+            box-shadow: 0 10px 25px rgba(15, 23, 42, 0.08);
             position: relative;
             box-sizing: border-box;
             height: auto;
             min-height: 0;
+            border-radius: 4px;
         }
 
         /* Strict height applied after pagination */
@@ -44,69 +48,108 @@
 
         .header-section {
             position: relative;
-            margin-bottom: 15px;
+            margin-bottom: 1px;
             text-align: center;
-            padding-bottom: 25px;
+            padding-bottom: 15px;
         }
 
         .header-section h2 {
-            font-size: 18px;
-            margin-bottom: 8px;
-            font-weight: bold;
+            font-family: 'Source Serif 4', Georgia, "Times New Roman", serif;
+            font-size: 20px;
+            margin-bottom: 6px;
+            font-weight: 600;
             text-transform: uppercase;
-            color: #c00;
-            /* Red style matching sales order */
+            color: #cc0000; /* Dark Red matching Listing PR */
+            letter-spacing: 0.5px;
         }
 
         .filter-info {
             font-size: 10px;
-            color: #333;
+            color: #475569; /* Slate 600 */
             margin-bottom: 5px;
+            font-weight: 500;
         }
 
-        /* --- JOURNAL HEADER STYLES (5 Kolom) --- */
+        .supplier-info-kiri {
+            position: absolute;
+            top: 15px;
+            left: 0mm;
+            font-size: 10px;
+            color: #334155; /* Slate 700 */
+            text-align: left;
+            line-height: 1.5;
+            max-width: 60mm;
+        }
+
+        .info-tambahan {
+            position: absolute;
+            top: 0;
+            right: 0;
+            font-size: 10px;
+            color: #334155; /* Slate 700 */
+            text-align: left;
+            line-height: 1.5;
+        }
+
+        .info-label {
+            font-weight: 600;
+            display: inline-block;
+            width: 50px;
+            color: #475569; /* Slate 600 */
+        }
+
+        /* --- PO HEADER STYLES (5 Kolom) --- */
         .po-header-labels,
         .po-header {
             display: grid;
             grid-template-columns: 35mm 22mm 30mm 1fr 20mm;
             gap: 1px;
-            font-size: 9px;
-            padding: 4px 3px;
+            font-size: 8px;
+            padding: 2px 8px;
+            align-items: center;
         }
 
         .po-header-labels {
-            background-color: #f0f0f0;
-            border: 1px solid #000;
-            margin-bottom: 1px;
+            background-color: transparent;
+            color: #000000;
+            border-top: 1px solid #000000;
+            border-bottom: 1px solid #000000;
+            margin-bottom: 0px;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
         }
 
         .po-header {
-            background-color: #fff;
-            padding: 3px 3px;
+            background-color: transparent;
+            margin-bottom: 0px;
+            color: #0f172a;
         }
 
-        /* --- JOURNAL DETAIL STYLES (6 Kolom) --- */
+        /* --- PO DETAIL STYLES (6 Kolom) --- */
         .po-detail-labels,
         .po-detail {
             display: grid;
             grid-template-columns: 22mm 1fr 20mm 22mm 22mm 25mm;
             gap: 1px;
             font-size: 8px;
-            padding: 2px 3px;
+            padding: 2px 8px;
+            align-items: center;
         }
 
         .po-detail-labels {
             font-weight: bold;
-            color: #c00;
-            background-color: #fff;
-            border: 1px solid #000000;
-            margin-top: 1px;
-            padding: 3px 3px;
+            color: #cc0000;
+            background-color: transparent;
+            border-bottom: 1px solid #000000;
+            margin-top: 0px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
         }
 
         .po-detail {
-            color: #c00;
-            background-color: #fff;
+            color: #cc0000;
+            background-color: transparent;
         }
 
         .po-detail>div:first-child {
@@ -119,7 +162,7 @@
             grid-template-columns: 1fr;
             font-weight: bold;
             font-size: 9px;
-            padding: 4px 5mm;
+            padding: 2px 8px;
             margin-top: 2px;
         }
 
@@ -131,47 +174,39 @@
             color: #17a2b8;
         }
 
-        /* Alignment */
+        /* Alignment for Detail Columns */
         .po-detail-labels>div:nth-child(3),
-        .po-detail-labels>div:nth-child(4),
-        .po-detail-labels>div:nth-child(5),
-        .po-detail-labels>div:nth-child(6),
         .po-detail>div:nth-child(3),
+        .po-detail-labels>div:nth-child(4),
         .po-detail>div:nth-child(4),
+        .po-detail-labels>div:nth-child(5),
         .po-detail>div:nth-child(5),
+        .po-detail-labels>div:nth-child(6),
         .po-detail>div:nth-child(6) {
             text-align: right;
         }
 
+        /* Fonts for Numbers & System Codes */
+        .po-header > div:nth-child(1),
+        .po-header > div:nth-child(2),
+        .po-header > div:nth-child(5) {
+            font-family: 'IBM Plex Mono', Courier, monospace;
+            font-variant-numeric: tabular-nums;
+        }
+
+        .po-detail > div:nth-child(1),
+        .po-detail > div:nth-child(3),
+        .po-detail > div:nth-child(4),
+        .po-detail > div:nth-child(5),
+        .po-detail > div:nth-child(6) {
+            font-family: 'IBM Plex Mono', Courier, monospace;
+            font-variant-numeric: tabular-nums;
+            font-weight: normal;
+        }
+
         .separator {
-            border-bottom: 1px solid #000000;
-            margin: 4px 0;
+            margin: 0px;
             clear: both;
-        }
-
-        .info-tambahan {
-            position: absolute;
-            top: 0;
-            right: 0;
-            font-size: 10px;
-            color: #333;
-            text-align: left;
-            line-height: 1.4;
-        }
-
-        .info-label {
-            font-weight: bold;
-            display: inline-block;
-            width: 45px;
-        }
-
-        .supplier-info-kiri {
-            position: absolute;
-            top: 1mm;
-            left: 0mm;
-            font-size: 10px;
-            color: #333;
-            text-align: left;
         }
 
         .truncate {
@@ -180,39 +215,81 @@
             text-overflow: ellipsis;
         }
 
+        /* Floating zoom bar style from Listing PO */
         .no-print {
             position: fixed;
-            top: 10px;
-            left: 10px;
+            top: 15px;
+            left: 15px;
             display: flex;
-            gap: 8px;
+            align-items: center;
+            gap: 10px;
             z-index: 1000;
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(8px);
+            padding: 8px 16px;
+            border-radius: 10px;
+            box-shadow: 0 4px 20px rgba(15, 23, 42, 0.15);
+            border: 1px solid rgba(226, 232, 240, 0.8);
         }
 
         .print-button {
-            background-color: #3b82f6;
+            background-color: #0f172a; /* Navy-Ink background */
             color: white;
-            padding: 10px 20px;
-            border-radius: 5px;
+            padding: 8px 16px;
+            border-radius: 6px;
             cursor: pointer;
             border: none;
-            font-weight: bold;
+            font-weight: 600;
+            font-family: 'IBM Plex Sans', sans-serif;
+            font-size: 12px;
+            transition: all 0.2s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            box-shadow: 0 2px 4px rgba(15, 23, 42, 0.2);
+        }
+
+        .print-button:hover {
+            background-color: #000000; /* Black background on hover */
+            transform: translateY(-1px);
+            box-shadow: 0 4px 6px rgba(15, 23, 42, 0.3);
         }
 
         .journal-block {
             page-break-inside: avoid;
             break-inside: avoid;
+            margin-bottom: 0px;
         }
 
-        /* Zoom Out Button Style */
-        .no-print button {
-            transition: background-color 0.2s;
+        /* Totals Panel style */
+        .po-totals-panel-wrapper {
+            margin-top: 5px;
+            width: 180mm; /* Full printable width */
+            border-top: 1px solid #000000; /* Long line above totals */
+            padding-top: 8px;
+            position: relative;
+            page-break-inside: avoid;
+            break-inside: avoid;
+        }
+
+        .end-of-report-inline {
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
+            bottom: -10px;
+            font-family: 'IBM Plex Sans', sans-serif;
+            font-size: 8px;
+            font-weight: bold;
+            color: #000000;
+            text-transform: uppercase;
+            letter-spacing: 1px;
         }
 
         /* Print Media CSS Overrides */
         @media print {
             body {
                 background-color: white !important;
+                color: #0f172a !important;
                 margin: 0;
                 padding: 0;
             }
@@ -221,12 +298,15 @@
                 width: 210mm;
                 height: 297mm !important;
                 margin: 0 auto !important;
-                padding: 15mm !important;
+                padding: 20mm 15mm 15mm 15mm !important;
                 box-shadow: none !important;
                 page-break-after: always;
                 break-after: always;
+                page-break-inside: avoid;
+                break-inside: avoid;
                 box-sizing: border-box;
                 overflow: hidden !important;
+                border-radius: 0;
             }
 
             .no-print {
@@ -256,26 +336,18 @@
 <body>
     <div class="no-print">
         <button class="print-button" onclick="window.print()">🖨️ Cetak Laporan</button>
-
-        {{-- Zoom Out --}}
         <button onclick="adjustZoom(-0.1)"
             style="padding: 6px 12px; background: #6c757d; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 16px; font-weight: bold;">
             −
         </button>
-
-        {{-- Zoom Level --}}
         <span id="zoomLabel"
             style="min-width: 48px; text-align: center; font-size: 13px; font-weight: bold; color: #333; align-self: center;">
             100%
         </span>
-
-        {{-- Zoom In --}}
         <button onclick="adjustZoom(0.1)"
             style="padding: 6px 12px; background: #6c757d; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 16px; font-weight: bold;">
             +
         </button>
-
-        {{-- Excel Download --}}
         <a href="{{ route('reportingassembling.exportExcel', request()->query()) }}"
             style="padding: 7px 12px; background-color: #22c55e; color: white; border-radius: 4px; text-decoration: none; font-weight: bold; font-size: 12px; display: inline-flex; align-items: center; justify-content: center; transition: background-color 0.2s;"
             onmouseover="this.style.backgroundColor='#16a34a'" onmouseout="this.style.backgroundColor='#22c55e'">
@@ -301,7 +373,7 @@
             <div class="info-tambahan">
                 <div><span class="info-label">Tanggal</span>: {{ date('d/m/Y') }}</div>
                 <div><span class="info-label">Jam</span>: {{ date('H:i') }}</div>
-                <div><span class="info-label">Opr</span>: {{ $user_session->fname ?? 'User' }}</div>
+                <div><span class="info-label">Opr</span>: {{ $user_session->fname ?? 'admin' }}</div>
             </div>
         </div>
 
@@ -318,15 +390,15 @@
         <div class="po-detail-labels">
             <div>Kode Produk</div>
             <div>Nama Barang</div>
-            <div class="text-right">Quantity</div>
-            <div class="text-right">Qty.Rijeks</div>
-            <div class="text-right">@ HPP</div>
-            <div class="text-right">Total HPP</div>
+            <div>Quantity</div>
+            <div>Qty.Rijeks</div>
+            <div>@ HPP</div>
+            <div>Total HPP</div>
         </div>
 
         @foreach ($prhData as $penerimaanbarang)
             <div class="journal-block">
-                <div class="po-header" style="margin-top: 5px;">
+                <div class="po-header">
                     <div>{{ $penerimaanbarang->fstockmtno }}</div>
                     <div>{{ \Carbon\Carbon::parse($penerimaanbarang->fstockmtdate)->format('d/m/Y') }}</div>
                     <div>{{ $penerimaanbarang->fwhname }}</div>
@@ -352,7 +424,7 @@
                                 <div class="truncate" title="{{ $detail->product_name ?? $detail->fprdcode }}">
                                     {{ $detail->product_name ?? $detail->fprdcode }}</div>
                                 <div>{{ number_format($detail->fqty ?? 0, 2, ',', '.') }}</div>
-                                <div>{{ isset($detail->fqtyremain) ? format_number($detail->fqtyremain) : '-' }}</div>
+                                <div>{{ isset($detail->fqtyremain) ? number_format((float)$detail->fqtyremain, 2, ',', '.') : '-' }}</div>
                                 <div>{{ number_format((float) ($detail->fhpp ?? 0), 2, ',', '.') }}</div>
                                 <div>{{ number_format((float) ($detail->total_hpp ?? 0), 2, ',', '.') }}</div>
                             </div>
@@ -370,7 +442,7 @@
                                 <div class="truncate" title="{{ $detail->product_name ?? $detail->fprdcode }}">
                                     {{ $detail->product_name ?? $detail->fprdcode }}</div>
                                 <div>{{ number_format($detail->fqty ?? 0, 2, ',', '.') }}</div>
-                                <div>{{ isset($detail->fqtyremain) ? format_number($detail->fqtyremain) : '-' }}</div>
+                                <div>{{ isset($detail->fqtyremain) ? number_format((float)$detail->fqtyremain, 2, ',', '.') : '-' }}</div>
                                 <div>{{ number_format((float) ($detail->fhpp ?? 0), 2, ',', '.') }}</div>
                                 <div>{{ number_format((float) ($detail->total_hpp ?? 0), 2, ',', '.') }}</div>
                             </div>
@@ -385,12 +457,19 @@
         @endforeach
     </div>
 
+    {{-- Hidden Totals Panel Container --}}
+    <div id="po-totals-panel-raw" style="display: none;">
+        <div class="po-totals-panel-wrapper">
+            <div class="end-of-report-inline">** END OF REPORT **</div>
+        </div>
+    </div>
+
     {{-- Screen Render Target --}}
     <div class="report-wrapper" id="reportWrapper">
         @if ($prhData->isEmpty())
             <div class="page-a4 page-a4-strict">
                 <div class="header-section">
-                    <div class="supplier-info-kiri" style="top: 12mm;">
+                    <div class="supplier-info-kiri" style="top: 15px;">
                         Supplier: {{ $activeSupplierName ?? 'Semua' }}
                         <br>Cabang:
                         {{ request()->has('branch_codes') ? implode(', ', (array) request()->input('branch_codes')) : 'Semua' }}
@@ -400,10 +479,9 @@
                         <div><span class="info-label">Hal</span>: 1 / 1</div>
                         <div><span class="info-label">Tanggal</span>: {{ date('d/m/Y') }}</div>
                         <div><span class="info-label">Jam</span>: {{ date('H:i') }}</div>
-                        <div><span class="info-label">Opr</span>: {{ $user_session->fname ?? 'User' }}</div>
+                        <div><span class="info-label">Opr</span>: {{ $user_session->fname ?? 'admin' }}</div>
                     </div>
-                    <div style="margin-top: 30px; text-align: center; font-size: 12px; color: #666;">Tidak ada data
-                        ditemukan.</div>
+                    <div style="margin-top: 30px; text-align: center; font-size: 12px; color: #666;">Tidak ada data ditemukan.</div>
                 </div>
             </div>
         @endif
@@ -413,7 +491,7 @@
 </html>
 
 <script>
-    document.addEventListener("DOMContentLoaded", function() {
+    document.addEventListener("DOMContentLoaded", function () {
         const rawSource = document.getElementById("raw-source");
         const reportWrapper = document.getElementById("reportWrapper");
         if (!rawSource || !reportWrapper) return;
@@ -451,8 +529,7 @@
             const infoTambahan = page.querySelector(".info-tambahan");
             if (infoTambahan) {
                 const halDiv = document.createElement("div");
-                halDiv.innerHTML =
-                    `<span class="info-label">Hal</span>: <span class="page-number-current"></span> / <span class="page-number-total"></span>`;
+                halDiv.innerHTML = `<span class="info-label">Hal</span>: <span class="page-number-current"></span> / <span class="page-number-total"></span>`;
                 infoTambahan.prepend(halDiv);
             }
             reportWrapper.appendChild(page);
@@ -479,7 +556,6 @@
             // Check if page overflowed after adding header
             if (currentPage.offsetHeight > maxPageHeight) {
                 const blockCount = currentContent.querySelectorAll(".journal-block").length;
-                // Only move to a new page if this is not the only journal on the page
                 if (blockCount > 1) {
                     currentContent.removeChild(currentJournalBlock);
                     currentPage = createNewPage();
@@ -499,11 +575,9 @@
 
                 // Check overflow
                 if (currentPage.offsetHeight > maxPageHeight) {
-                    const itemsCount = currentJournalBlock.children
-                    .length; // header + sections + details
+                    const itemsCount = currentJournalBlock.children.length; // header + sections + details
                     const blockCount = currentContent.querySelectorAll(".journal-block").length;
 
-                    // Only split and move to next page if there's more than 1 item inside the block OR more than 1 block on this page.
                     if (blockCount > 1 || itemsCount > 2) {
                         currentJournalBlock.removeChild(itemClone);
 
@@ -520,8 +594,7 @@
                         const headerClone = poHeader.cloneNode(true);
                         const firstChildDiv = headerClone.firstElementChild;
                         if (firstChildDiv) {
-                            firstChildDiv.textContent = firstChildDiv.textContent +
-                                " (Lanjutan)";
+                            firstChildDiv.textContent = firstChildDiv.textContent + " (Lanjutan)";
                         }
                         currentJournalBlock.appendChild(headerClone);
 
@@ -543,26 +616,19 @@
             }
         });
 
-        // Add End of Report text
-        const endOfReportEl = document.createElement("div");
-        endOfReportEl.className = "end-of-report";
-        endOfReportEl.style.textAlign = "center";
-        endOfReportEl.style.marginTop = "10px";
-        endOfReportEl.style.borderTop = "1px solid #000";
-        endOfReportEl.style.paddingTop = "20px";
-        endOfReportEl.style.fontWeight = "bold";
-        endOfReportEl.style.fontSize = "8px";
-        endOfReportEl.style.color = "#555";
-        endOfReportEl.style.textTransform = "uppercase";
-        endOfReportEl.style.letterSpacing = "1px";
-        endOfReportEl.textContent = "** End of Report **";
+        // Add Totals Panel dynamically right before end of report
+        const totalsPanelRaw = document.getElementById("po-totals-panel-raw");
+        if (totalsPanelRaw) {
+            const totalsClone = totalsPanelRaw.cloneNode(true);
+            totalsClone.style.display = "block";
+            totalsClone.removeAttribute("id");
+            currentPage.appendChild(totalsClone);
 
-        currentPage.appendChild(endOfReportEl);
-
-        if (currentPage.offsetHeight > maxPageHeight) {
-            currentPage.removeChild(endOfReportEl);
-            currentPage = createNewPage();
-            currentPage.appendChild(endOfReportEl);
+            if (currentPage.offsetHeight > maxPageHeight) {
+                currentPage.removeChild(totalsClone);
+                currentPage = createNewPage();
+                currentPage.appendChild(totalsClone);
+            }
         }
 
         // Apply strict height class to lock A4 size and hide overflows

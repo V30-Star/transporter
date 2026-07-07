@@ -100,7 +100,7 @@ class ReportingPemakaianBarangController extends Controller
      */
     public function printPemakaianBarang(Request $request)
     {
-        $user_session = auth('sysuser')->user();
+        $user_session = auth('sysuser')->user() ?? auth()->user();
 
         $filterSupplierId = $request->query('fsupplier');
 

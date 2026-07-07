@@ -29,7 +29,7 @@ class LaporanKartuStokController extends Controller
             'mode' => $mode,
             'request' => $request,
             'title' => 'Laporan Kartu Stok',
-            'user_session' => auth()->user(),
+            'user_session' => auth('sysuser')->user() ?? auth()->user(),
         ]);
     }
 
