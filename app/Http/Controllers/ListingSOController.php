@@ -206,7 +206,10 @@ class ListingSOController extends Controller
         $results = $query->orderBy('mt.fsodate', 'asc')->orderBy('mt.fsono', 'asc')->get();
 
         foreach ($results as $row) {
-            $row->details = DB::table('public.trsodt as dt')->where('dt.fsono', $row->fsono)->get();
+            $row->details = DB::table('public.trsodt as dt')
+            ->leftJoin('public.msprd as p', 'dt.fprdcode', '=', 'p.fprdcode') // Ambil tabel msprd
+            ->select('dt.*', 'p.fprdname') // Pilih semua kolom detail
+            ->where('dt.fsono', $row->fsono)->get();
         }
 
         $filename = 'Listing_SO_'.date('YmdHis').'.xlsx';
@@ -289,8 +292,8 @@ class ListingSOController extends Controller
                     $isFirst ? (float) $mt->famountpajak : '',
                     $isFirst ? (float) $mt->famountso : '',
                     $isFirst ? ($mt->fclose == '1' ? 'Y' : 'N') : '',
-                    $dt->fitemno,
-                    $dt->fitemdesc,
+                    $dt->fprdcode,
+                    $dt->fprdname,
                     (float) $dt->fqty,
                     0.00,
                     (float) $dt->fprice,
