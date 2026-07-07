@@ -221,26 +221,33 @@
             align-items: center;
             gap: 10px;
             z-index: 1000;
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(8px);
+            padding: 8px 16px;
+            border-radius: 10px;
+            box-shadow: 0 4px 20px rgba(15, 23, 42, 0.15);
+            border: 1px solid rgba(226, 232, 240, 0.8);
         }
 
         .print-button {
-            background-color: #0f172a; /* Navy slate default */
+            background-color: #0f172a; /* Navy-Ink background */
             color: white;
             padding: 8px 16px;
             border-radius: 6px;
             cursor: pointer;
             border: none;
             font-weight: 600;
-            font-size: 11px;
+            font-family: 'IBM Plex Sans', sans-serif;
+            font-size: 12px;
+            transition: all 0.2s ease;
             display: inline-flex;
             align-items: center;
             gap: 6px;
-            box-shadow: 0 2px 4px rgba(15, 23, 42, 0.15);
-            transition: background-color 0.2s, transform 0.2s;
+            box-shadow: 0 2px 4px rgba(15, 23, 42, 0.2);
         }
 
         .print-button:hover {
-            background-color: #000000;
+            background-color: #000000; /* Black background on hover */
             transform: translateY(-1px);
             box-shadow: 0 4px 6px rgba(15, 23, 42, 0.3);
         }
@@ -364,6 +371,13 @@
             style="padding: 6px 12px; background: #6c757d; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 16px; font-weight: bold;">
             +
         </button>
+
+        <a href="{{ route('listingpenjualanhpp.excel', request()->query()) }}"
+            style="padding: 7px 12px; background-color: #22c55e; color: white; border-radius: 4px; text-decoration: none; font-weight: bold; font-size: 12px; display: inline-flex; align-items: center; justify-content: center; transition: background-color 0.2s;"
+            onmouseover="this.style.backgroundColor='#16a34a'"
+            onmouseout="this.style.backgroundColor='#22c55e'">
+            📊 Excel
+        </a>
     </div>
 
     @php

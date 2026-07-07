@@ -4,6 +4,10 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use OpenSpout\Common\Entity\Cell;
+use OpenSpout\Common\Entity\Row;
+use OpenSpout\Common\Entity\Style\Style;
+use OpenSpout\Writer\XLSX\Writer;
 
 class ListingPiutangPenjualanController extends Controller
 {
@@ -29,7 +33,7 @@ class ListingPiutangPenjualanController extends Controller
         return view('listingpiutangpenjualan.print', [
             'rows' => $rows,
             'mode' => $request->input('report_mode', 'detail') === 'rekap' ? 'rekap' : 'detail',
-            'user_session' => auth()->user(),
+            'user_session' => auth('sysuser')->user() ?? auth()->user(),
         ]);
     }
 
@@ -94,5 +98,108 @@ class ListingPiutangPenjualanController extends Controller
             ->orderBy('a.fcustomer')
             ->orderBy('a.fsono')
             ->get();
+    }
+
+    public function exportExcel(Request $request)
+    {
+        $rows = $this->getRawData($request);
+        $groupedData = $rows->groupBy('fcustomer');
+        $mode = $request->input('report_mode', 'detail') === 'rekap' ? 'rekap' : 'detail';
+
+        $filename = 'Listing_Piutang_Penjualan_'.date('YmdHis').'.xlsx';
+        $tempFile = tempnam(sys_get_temp_dir(), 'xlsx_');
+
+        $writer = new Writer;
+        $writer->openToFile($tempFile);
+
+        $styleTitle = new Style(fontBold: true, fontSize: 14);
+        $styleHeader = new Style(fontBold: true, backgroundColor: 'D3D3D3');
+        $styleGroup = new Style(fontBold: true, backgroundColor: 'FFE6E6');
+        $styleSubtotal = new Style(fontBold: true, backgroundColor: 'FFF0F0');
+        $styleGrandTotal = new Style(fontBold: true, backgroundColor: '333333', fontColor: 'FFFFFF');
+
+        $makeRow = function (array $values, ?Style $style = null): Row {
+            $cells = array_map(
+                fn ($value) => $style ? Cell::fromValue($value, $style) : Cell::fromValue($value),
+                $values
+            );
+            return new Row($cells);
+        };
+
+        // Header Informasi
+        $writer->addRow($makeRow(['LISTING PIUTANG PENJUALAN'], $styleTitle));
+        $writer->addRow($makeRow(['Tanggal:', date('d/m/Y').'  Jam: '.date('H:i')]));
+        $writer->addRow($makeRow(['Per Tanggal:', $request->input('per_tanggal', date('Y-m-d'))]));
+        $writer->addRow($makeRow(['Operator:', auth('sysuser')->user()->fname ?? auth()->user()->fname ?? 'User']));
+        $writer->addRow($makeRow([]));
+
+        // Header Kolom
+        $writer->addRow($makeRow([
+            'No.', 'Cab.', 'No. Faktur', 'Tanggal', 'Jatuh Tempo', 'Nilai Faktur', 'Nilai Piutang', 'Salesman'
+        ], $styleHeader));
+
+        $grandFaktur = 0;
+        $grandPiutang = 0;
+        $idx = 0;
+
+        foreach ($groupedData as $customer => $items) {
+            $first = $items->first();
+            $customerFaktur = $items->sum('famountso');
+            $customerPiutang = $items->sum('fsisapiu');
+            $grandFaktur += $customerFaktur;
+            $grandPiutang += $customerPiutang;
+
+            // Group Row
+            $writer->addRow($makeRow([
+                'Customer: '.$customer.' - '.$first->fcustname, '', '', '', '', '', '', ''
+            ], $styleGroup));
+
+            if ($mode === 'detail') {
+                foreach ($items as $row) {
+                    $idx++;
+                    $writer->addRow($makeRow([
+                        $idx,
+                        $row->fbranchcode,
+                        $row->fsono,
+                        $row->fsodate ? date('d/m/Y', strtotime($row->fsodate)) : '',
+                        $row->fjatuhtempo ? date('d/m/Y', strtotime($row->fjatuhtempo)) : '',
+                        (float) $row->famountso,
+                        (float) $row->fsisapiu,
+                        $row->fsalesman
+                    ]));
+                }
+
+                // Subtotal Row
+                $writer->addRow($makeRow([
+                    'Subtotal '.$first->fcustname, '', '', '', '',
+                    (float) $customerFaktur,
+                    (float) $customerPiutang,
+                    ''
+                ], $styleSubtotal));
+            } else {
+                // Rekap Mode shows only customer subtotal
+                $writer->addRow($makeRow([
+                    'Subtotal '.$first->fcustname, '', '', '', '',
+                    (float) $customerFaktur,
+                    (float) $customerPiutang,
+                    ''
+                ], $styleSubtotal));
+            }
+        }
+
+        // Grand Total Row
+        $writer->addRow($makeRow([]));
+        $writer->addRow($makeRow([
+            'GRAND TOTAL', '', '', '', '',
+            (float) $grandFaktur,
+            (float) $grandPiutang,
+            ''
+        ], $styleGrandTotal));
+
+        $writer->close();
+
+        return response()->download($tempFile, $filename, [
+            'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        ])->deleteFileAfterSend(true);
     }
 }

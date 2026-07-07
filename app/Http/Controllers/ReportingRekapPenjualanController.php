@@ -4,6 +4,10 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use OpenSpout\Common\Entity\Cell;
+use OpenSpout\Common\Entity\Row;
+use OpenSpout\Common\Entity\Style\Style;
+use OpenSpout\Writer\XLSX\Writer;
 
 class ReportingRekapPenjualanController extends Controller
 {
@@ -86,5 +90,88 @@ class ReportingRekapPenjualanController extends Controller
         if ($request->filled('prd_to')) {
             $query->where("{$d}.fprdcode", '<=', $request->input('prd_to'));
         }
+    }
+
+    public function exportExcel(Request $request)
+    {
+        $groupBy = $request->input('group_by') === 'group' ? 'group' : 'merek';
+        $rows = $this->buildRows($request, $groupBy);
+        $groupedData = $rows->groupBy('fmerek');
+
+        $filename = 'Laporan_Rekap_Penjualan_'.date('YmdHis').'.xlsx';
+        $tempFile = tempnam(sys_get_temp_dir(), 'xlsx_');
+
+        $writer = new Writer;
+        $writer->openToFile($tempFile);
+
+        $styleTitle = new Style(fontBold: true, fontSize: 14);
+        $styleHeader = new Style(fontBold: true, backgroundColor: 'D3D3D3');
+        $styleGroup = new Style(fontBold: true, backgroundColor: 'FFE6E6');
+        $styleSubtotal = new Style(fontBold: true, backgroundColor: 'FFF0F0');
+        $styleGrandTotal = new Style(fontBold: true, backgroundColor: '333333', fontColor: 'FFFFFF');
+
+        $makeRow = function (array $values, ?Style $style = null): Row {
+            $cells = array_map(
+                fn ($value) => $style ? Cell::fromValue($value, $style) : Cell::fromValue($value),
+                $values
+            );
+            return new Row($cells);
+        };
+
+        // Header Informasi
+        $writer->addRow($makeRow(['LAPORAN REKAP PENJUALAN'], $styleTitle));
+        $writer->addRow($makeRow(['Tanggal:', date('d/m/Y').'  Jam: '.date('H:i')]));
+        $writer->addRow($makeRow(['Periode:', $request->date_from.' s/d '.$request->date_to]));
+        $writer->addRow($makeRow(['Grouping:', $groupBy === 'group' ? 'By Group Produk' : 'By Merek']));
+        $writer->addRow($makeRow(['Operator:', auth('sysuser')->user()->fname ?? auth()->user()->fname ?? 'User']));
+        $writer->addRow($makeRow([]));
+
+        // Header Kolom
+        $writer->addRow($makeRow([
+            'No.', 'Kode Barang', 'Nama Barang', 'Quantity', 'Satuan', 'Total Penjualan'
+        ], $styleHeader));
+
+        $grandTotal = 0;
+
+        foreach ($groupedData as $groupCode => $items) {
+            $groupName = $items->first()->fgroupname ?: $groupCode;
+            $groupTotal = $items->sum('famount');
+            $grandTotal += $groupTotal;
+
+            // Group Row
+            $writer->addRow($makeRow([
+                'Group: '.$groupCode.' - '.$groupName, '', '', '', '', ''
+            ], $styleGroup));
+
+            foreach ($items as $index => $row) {
+                $writer->addRow($makeRow([
+                    $index + 1,
+                    $row->fprdcode,
+                    $row->fprdname,
+                    (float) $row->fqty,
+                    $row->fsatuan,
+                    (float) $row->famount
+                ]));
+            }
+
+            // Subtotal Row
+            $writer->addRow($makeRow([
+                'Subtotal '.$groupName, '', '', '', '',
+                (float) $groupTotal
+            ], $styleSubtotal));
+        }
+
+        // Grand Total Row
+        $writer->addRow($makeRow([]));
+        $writer->addRow($makeRow([
+            'GRAND TOTAL', '', '', '', '',
+            (float) $grandTotal
+        ], $styleGrandTotal));
+
+        $writer->close();
+
+        return response()->download($tempFile, $filename, [
+            'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        ])->deleteFileAfterSend(true);
     }
 }

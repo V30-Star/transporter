@@ -142,24 +142,41 @@
 
         .no-print {
             position: fixed;
-            top: 10px;
-            left: 10px;
+            top: 15px;
+            left: 15px;
             display: flex;
-            gap: 8px;
+            align-items: center;
+            gap: 10px;
             z-index: 1000;
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(8px);
+            padding: 8px 16px;
+            border-radius: 10px;
+            box-shadow: 0 4px 20px rgba(15, 23, 42, 0.15);
+            border: 1px solid rgba(226, 232, 240, 0.8);
         }
 
         .print-button {
-            background-color: #3b82f6;
+            background-color: #0f172a; /* Navy-Ink background */
             color: white;
-            padding: 10px 20px;
-            border-radius: 5px;
+            padding: 8px 16px;
+            border-radius: 6px;
             cursor: pointer;
             border: none;
+            font-weight: 600;
+            font-family: 'IBM Plex Sans', sans-serif;
+            font-size: 12px;
+            transition: all 0.2s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            box-shadow: 0 2px 4px rgba(15, 23, 42, 0.2);
         }
 
-        .no-print button {
-            transition: background-color 0.2s;
+        .print-button:hover {
+            background-color: #000000; /* Black background on hover */
+            transform: translateY(-1px);
+            box-shadow: 0 4px 6px rgba(15, 23, 42, 0.3);
         }
 
         .journal-block {
@@ -234,13 +251,32 @@
 
 <body>
     <div class="no-print">
-        <button class="print-button" onclick="window.print()">Cetak Laporan</button>
+        <button class="print-button" onclick="window.print()">🖨️ Cetak Laporan</button>
+
+        {{-- Zoom Out --}}
         <button onclick="adjustZoom(-0.1)"
-            style="padding: 6px 12px; background: #6c757d; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 16px; font-weight: bold;">-</button>
+            style="padding: 6px 12px; background: #6c757d; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 16px; font-weight: bold;">
+            −
+        </button>
+
+        {{-- Zoom Level --}}
         <span id="zoomLabel"
-            style="min-width: 48px; text-align: center; font-size: 13px; font-weight: bold; color: #333; align-self: center;">100%</span>
+            style="min-width: 48px; text-align: center; font-size: 13px; font-weight: bold; color: #333; align-self: center;">
+            100%
+        </span>
+
+        {{-- Zoom In --}}
         <button onclick="adjustZoom(0.1)"
-            style="padding: 6px 12px; background: #6c757d; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 16px; font-weight: bold;">+</button>
+            style="padding: 6px 12px; background: #6c757d; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 16px; font-weight: bold;">
+            +
+        </button>
+
+        <a href="{{ route('listingpiutangpenjualan.excel', request()->query()) }}"
+            style="padding: 7px 12px; background-color: #22c55e; color: white; border-radius: 4px; text-decoration: none; font-weight: bold; font-size: 12px; display: inline-flex; align-items: center; justify-content: center; transition: background-color 0.2s;"
+            onmouseover="this.style.backgroundColor='#16a34a'"
+            onmouseout="this.style.backgroundColor='#22c55e'">
+            📊 Excel
+        </a>
     </div>
 
     @php

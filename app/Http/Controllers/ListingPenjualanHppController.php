@@ -4,6 +4,10 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use OpenSpout\Common\Entity\Cell;
+use OpenSpout\Common\Entity\Row;
+use OpenSpout\Common\Entity\Style\Style;
+use OpenSpout\Writer\XLSX\Writer;
 
 class ListingPenjualanHppController extends Controller
 {
@@ -27,7 +31,7 @@ class ListingPenjualanHppController extends Controller
             'groupedData' => $rows->groupBy('fsono'),
             'rows' => $rows,
             'request' => $request,
-            'user_session' => auth()->user(),
+            'user_session' => auth('sysuser')->user() ?? auth()->user(),
         ]);
     }
 
@@ -118,5 +122,111 @@ class ListingPenjualanHppController extends Controller
         if ($request->filled('prd_to')) {
             $query->where("{$detailAlias}.fprdcode", '<=', $request->input('prd_to'));
         }
+    }
+
+    public function exportExcel(Request $request)
+    {
+        $rows = $this->buildRows($request);
+        $groupedData = $rows->groupBy('fsono');
+
+        $filename = 'Listing_Penjualan_HPP_'.date('YmdHis').'.xlsx';
+        $tempFile = tempnam(sys_get_temp_dir(), 'xlsx_');
+
+        $writer = new Writer;
+        $writer->openToFile($tempFile);
+
+        $styleTitle = new Style(fontBold: true, fontSize: 14);
+        $styleHeader = new Style(fontBold: true, backgroundColor: 'D3D3D3');
+        $styleInvoice = new Style(fontBold: true, backgroundColor: 'E2E8F0');
+        $styleDetail = new Style(fontBold: false);
+        $styleGrandTotal = new Style(fontBold: true, backgroundColor: '333333', fontColor: 'FFFFFF');
+
+        $makeRow = function (array $values, ?Style $style = null): Row {
+            $cells = array_map(
+                fn ($value) => $style ? Cell::fromValue($value, $style) : Cell::fromValue($value),
+                $values
+            );
+            return new Row($cells);
+        };
+
+        // Header Informasi
+        $writer->addRow($makeRow(['LISTING PENJUALAN DENGAN HPP'], $styleTitle));
+        $writer->addRow($makeRow(['Tanggal:', date('d/m/Y').'  Jam: '.date('H:i')]));
+        $writer->addRow($makeRow(['Periode:', $request->date_from.' s/d '.$request->date_to]));
+        $writer->addRow($makeRow(['Operator:', auth('sysuser')->user()->fname ?? auth()->user()->fname ?? 'User']));
+        $writer->addRow($makeRow([]));
+
+        // Invoice Header Row
+        $writer->addRow($makeRow([
+            'Cab.', 'No. Faktur', 'Tanggal', 'Nama Customer', 'Salesman', 
+            'Total Harga', '% Disc', 'Discount', 'Tot.Setelah Disc', 'PPN', 'Nilai Faktur'
+        ], $styleHeader));
+
+        // Invoice Detail Header Row (to demarcate columns)
+        $writer->addRow($makeRow([
+            '', 'Kode Barang', 'Nama Barang', 'Quantity', 'Satuan', 
+            '@ Harga Net', '@ HPP', 'Tot.Harga Jual', 'Total HPP', 'Laba/Rugi'
+        ], $styleHeader));
+
+        $grandTotalSales = $groupedData->sum(fn($items) => (float) ($items->first()->famountso ?? 0));
+        $grandTotalDiscount = $groupedData->sum(fn($items) => (float) ($items->first()->fdiscount ?? 0));
+        $grandTotalHpp = $rows->sum('famounthpp');
+        $grandTotalLaba = $rows->sum('flabarugi');
+
+        foreach ($groupedData as $fsono => $items) {
+            $h = $items->first();
+            // Write Invoice Header
+            $writer->addRow($makeRow([
+                $h->fbranchcode,
+                $h->fsono,
+                $h->fsodate ? date('d/m/Y', strtotime($h->fsodate)) : '',
+                $h->fcustname,
+                $h->fsalesman,
+                (float) $h->famountgross,
+                (float) $h->fdiscpersen,
+                (float) $h->fdiscount,
+                (float) $h->famountsonet,
+                (float) $h->famountpajak,
+                (float) $h->famountso
+            ], $styleInvoice));
+
+            // Write Details
+            foreach ($items as $row) {
+                $writer->addRow($makeRow([
+                    '',
+                    $row->fprdcode,
+                    $row->fprdname,
+                    (float) $row->fqty,
+                    $row->fsatuan,
+                    (float) $row->fpricenet,
+                    (float) $row->fhpp,
+                    (float) $row->famountsales,
+                    (float) $row->famounthpp,
+                    (float) $row->flabarugi
+                ], $styleDetail));
+            }
+        }
+
+        // Grand Total Row
+        $writer->addRow($makeRow([]));
+        $writer->addRow($makeRow([
+            'GRAND TOTAL',
+            '',
+            '',
+            '',
+            '',
+            '',
+            '',
+            $grandTotalDiscount,
+            $grandTotalSales,
+            $grandTotalHpp,
+            $grandTotalLaba
+        ], $styleGrandTotal));
+
+        $writer->close();
+
+        return response()->download($tempFile, $filename, [
+            'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        ])->deleteFileAfterSend(true);
     }
 }

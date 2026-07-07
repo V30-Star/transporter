@@ -99,7 +99,7 @@ class ListingSOBelumController extends Controller
 
         return view($view, [
             'soData' => $results,
-            'user_session' => auth()->user(),
+            'user_session' => auth('sysuser')->user() ?? auth()->user(),
             'request' => $request,
         ]);
     }

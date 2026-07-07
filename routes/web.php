@@ -537,8 +537,10 @@ Route::middleware('auth')->group(function () {
 
         Route::get('/reportingkas/pengeluaran', [ReportingKasController::class, 'pengeluaranKasIndex'])->name('reportingkas.pengeluaran.index');
         Route::get('/reportingkas/pengeluaran/print', [ReportingKasController::class, 'printPengeluaranKas'])->name('reportingkas.pengeluaran.print');
+        Route::get('/reportingkas/pengeluaran/excel', [ReportingKasController::class, 'exportPengeluaranExcel'])->name('reportingkas.pengeluaran.excel');
         Route::get('/reportingkas/penerimaan', [ReportingKasController::class, 'penerimaanKasIndex'])->name('reportingkas.penerimaan.index');
         Route::get('/reportingkas/penerimaan/print', [ReportingKasController::class, 'printPenerimaanKas'])->name('reportingkas.penerimaan.print');
+        Route::get('/reportingkas/penerimaan/excel', [ReportingKasController::class, 'exportPenerimaanExcel'])->name('reportingkas.penerimaan.excel');
 
         Route::get('/reportingadjstock', [ReportingAdjStockController::class, 'index'])->name('reportingadjstock.index');
         Route::get('/reportingadjstock/exportExcel', [ReportingAdjStockController::class, 'exportExcel'])->name('reportingadjstock.exportExcel');
@@ -594,6 +596,7 @@ Route::middleware('auth')->group(function () {
 
         Route::get('/listingreturpembelian', [ListingReturPembelianController::class, 'index'])->name('listingreturpembelian.index');
         Route::get('/listingreturpembelian/print', [ListingReturPembelianController::class, 'print'])->name('listingreturpembelian.print');
+        Route::get('/listingreturpembelian/excel', [ListingReturPembelianController::class, 'exportExcel'])->name('listingreturpembelian.excel');
 
         Route::get('/listingpenerimaanbarang', [ListingPenerimaanBarangController::class, 'index'])->name('listingpenerimaanbarang.index');
         Route::get('/listingpenerimaanbarang/print', [ListingPenerimaanBarangController::class, 'print'])->name('listingpenerimaanbarang.print');
@@ -605,12 +608,15 @@ Route::middleware('auth')->group(function () {
 
         Route::get('/laporankartustok', [LaporanKartuStokController::class, 'index'])->name('laporankartustok.index');
         Route::get('/laporankartustok/print', [LaporanKartuStokController::class, 'print'])->name('laporankartustok.print');
+        Route::get('/laporankartustok/excel', [LaporanKartuStokController::class, 'exportExcel'])->name('laporankartustok.excel');
 
         Route::get('/listingpenerimaankasbank', [ListingPenerimaanKasBankController::class, 'index'])->name('listingpenerimaankasbank.index');
         Route::get('/listingpenerimaankasbank/print', [ListingPenerimaanKasBankController::class, 'print'])->name('listingpenerimaankasbank.print');
+        Route::get('/listingpenerimaankasbank/excel', [ListingPenerimaanKasBankController::class, 'exportExcel'])->name('listingpenerimaankasbank.excel');
 
         Route::get('/listingpengeluarankasbank', [ListingPengeluaranKasBankController::class, 'index'])->name('listingpengeluarankasbank.index');
         Route::get('/listingpengeluarankasbank/print', [ListingPengeluaranKasBankController::class, 'print'])->name('listingpengeluarankasbank.print');
+        Route::get('/listingpengeluarankasbank/excel', [ListingPengeluaranKasBankController::class, 'exportExcel'])->name('listingpengeluarankasbank.excel');
 
         Route::get('/listingfakturpembelian', [ListingFakturPembelianController::class, 'index'])->name('listingfakturpembelian.index');
         Route::get('/listingfakturpembelian/print', [ListingFakturPembelianController::class, 'print'])->name('listingfakturpembelian.print');
@@ -618,6 +624,7 @@ Route::middleware('auth')->group(function () {
 
         Route::get('/listingfakturpajakpenjualan', [ListingFakturPajakPenjualanController::class, 'index'])->name('listingfakturpajakpenjualan.index');
         Route::get('/listingfakturpajakpenjualan/print', [ListingFakturPajakPenjualanController::class, 'print'])->name('listingfakturpajakpenjualan.print');
+        Route::get('/listingfakturpajakpenjualan/excel', [ListingFakturPajakPenjualanController::class, 'exportExcel'])->name('listingfakturpajakpenjualan.excel');
 
         Route::get('/listingpenjualan', [ListingPenjualanController::class, 'index'])->name('listingpenjualan.index');
         Route::get('/listingpenjualan/print', [ListingPenjualanController::class, 'print'])->name('listingpenjualan.print');
@@ -625,30 +632,39 @@ Route::middleware('auth')->group(function () {
 
         Route::get('/listingpenjualanhpp', [ListingPenjualanHppController::class, 'index'])->name('listingpenjualanhpp.index');
         Route::get('/listingpenjualanhpp/print', [ListingPenjualanHppController::class, 'print'])->name('listingpenjualanhpp.print');
+        Route::get('/listingpenjualanhpp/excel', [ListingPenjualanHppController::class, 'exportExcel'])->name('listingpenjualanhpp.excel');
 
         Route::get('/listingpiutangpenjualan', [ListingPiutangPenjualanController::class, 'index'])->name('listingpiutangpenjualan.index');
         Route::get('/listingpiutangpenjualan/print', [ListingPiutangPenjualanController::class, 'print'])->name('listingpiutangpenjualan.print');
+        Route::get('/listingpiutangpenjualan/excel', [ListingPiutangPenjualanController::class, 'exportExcel'])->name('listingpiutangpenjualan.excel');
 
         Route::get('/listinghutangdagang', [ListingHutangDagangController::class, 'index'])->name('listinghutangdagang.index');
         Route::get('/listinghutangdagang/print', [ListingHutangDagangController::class, 'print'])->name('listinghutangdagang.print');
+        Route::get('/listinghutangdagang/excel', [ListingHutangDagangController::class, 'exportExcel'])->name('listinghutangdagang.excel');
 
         Route::get('/reportingrekappenjualan', [ReportingRekapPenjualanController::class, 'index'])->name('reportingrekappenjualan.index');
         Route::get('/reportingrekappenjualan/print', [ReportingRekapPenjualanController::class, 'print'])->name('reportingrekappenjualan.print');
+        Route::get('/reportingrekappenjualan/excel', [ReportingRekapPenjualanController::class, 'exportExcel'])->name('reportingrekappenjualan.excel');
 
         Route::get('/analisaumurpiutang', [AnalisaUmurPiutangController::class, 'index'])->name('analisaumurpiutang.index');
         Route::get('/analisaumurpiutang/print', [AnalisaUmurPiutangController::class, 'print'])->name('analisaumurpiutang.print');
+        Route::get('/analisaumurpiutang/excel', [AnalisaUmurPiutangController::class, 'exportExcel'])->name('analisaumurpiutang.excel');
 
         Route::get('/analisaumurhutang', [AnalisaUmurHutangController::class, 'index'])->name('analisaumurhutang.index');
         Route::get('/analisaumurhutang/print', [AnalisaUmurHutangController::class, 'print'])->name('analisaumurhutang.print');
+        Route::get('/analisaumurhutang/excel', [AnalisaUmurHutangController::class, 'exportExcel'])->name('analisaumurhutang.excel');
 
         Route::get('/bukupiutang', [BukuPiutangController::class, 'index'])->name('bukupiutang.index');
         Route::get('/bukupiutang/print', [BukuPiutangController::class, 'print'])->name('bukupiutang.print');
+        Route::get('/bukupiutang/excel', [BukuPiutangController::class, 'exportExcel'])->name('bukupiutang.excel');
 
         Route::get('/bukuhutang', [BukuHutangController::class, 'index'])->name('bukuhutang.index');
         Route::get('/bukuhutang/print', [BukuHutangController::class, 'print'])->name('bukuhutang.print');
+        Route::get('/bukuhutang/excel', [BukuHutangController::class, 'exportExcel'])->name('bukuhutang.excel');
 
         Route::get('/bukubesar', [BukuBesarController::class, 'index'])->name('bukubesar.index');
         Route::get('/bukubesar/print', [BukuBesarController::class, 'print'])->name('bukubesar.print');
+        Route::get('/bukubesar/excel', [BukuBesarController::class, 'exportExcel'])->name('bukubesar.excel');
 
         Route::get('/listingsuratjalan', [ListingSuratJalanController::class, 'index'])->name('listingsuratjalan.index');
         Route::get('/listingsuratjalan/print', [ListingSuratJalanController::class, 'print'])->name('listingsuratjalan.print');
@@ -656,6 +672,7 @@ Route::middleware('auth')->group(function () {
 
         Route::get('/listingreturpenjualan', [ListingReturPenjualanController::class, 'index'])->name('listingreturpenjualan.index');
         Route::get('/listingreturpenjualan/print', [ListingReturPenjualanController::class, 'print'])->name('listingreturpenjualan.print');
+        Route::get('/listingreturpenjualan/excel', [ListingReturPenjualanController::class, 'exportExcel'])->name('listingreturpenjualan.excel');
 
         Route::get('/listingjurnal', [ListingJurnalController::class, 'index'])->name('listingjurnal.index');
         Route::get('/listingjurnal/print', [ListingJurnalController::class, 'print'])->name('listingjurnal.print');
