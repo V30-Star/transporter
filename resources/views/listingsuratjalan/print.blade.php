@@ -318,10 +318,12 @@
             style="padding: 6px 12px; background: #6c757d; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 16px; font-weight: bold;">
             +
         </button>
-        <a href="{{ route('listingsuratjalan.excel', request()->all()) }}"
+        <a href="{{ route('listingsuratjalan.excel', request()->query()) }}"
             style="padding: 7px 12px; background-color: #22c55e; color: white; border-radius: 4px; text-decoration: none; font-weight: bold; font-size: 12px; display: inline-flex; align-items: center; justify-content: center; transition: background-color .2s;"
             onmouseover="this.style.backgroundColor='#16a34a'"
-            onmouseout="this.style.backgroundColor='#22c55e'">Excel</a>
+            onmouseout="this.style.backgroundColor='#22c55e'">
+            📊 Excel
+        </a>
     </div>
 
     {{-- Hidden Raw Data Container --}}

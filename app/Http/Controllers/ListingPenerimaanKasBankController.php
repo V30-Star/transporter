@@ -4,6 +4,10 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use OpenSpout\Common\Entity\Cell;
+use OpenSpout\Common\Entity\Row;
+use OpenSpout\Common\Entity\Style\Style;
+use OpenSpout\Writer\XLSX\Writer;
 
 class ListingPenerimaanKasBankController extends Controller
 {
@@ -79,5 +83,85 @@ class ListingPenerimaanKasBankController extends Controller
             ->orderBy('m.fkasmtno', 'asc')
             ->orderBy('d.faccount', 'asc')
             ->get();
+    }
+
+    public function exportExcel(Request $request)
+    {
+        $results = $this->getRawData($request);
+        $grouped = $results->groupBy('fkasmtid');
+
+        $filename = 'Listing_Penerimaan_Kas_Bank_'.date('YmdHis').'.xlsx';
+        $tempFile = tempnam(sys_get_temp_dir(), 'xlsx_');
+
+        $writer = new Writer;
+        $writer->openToFile($tempFile);
+
+        $styleTitle = new Style(fontBold: true, fontSize: 14);
+        $styleHeader = new Style(fontBold: true, backgroundColor: 'D3D3D3');
+        $styleSubgroup = new Style(fontBold: true, backgroundColor: 'E2E8F0');
+        $styleGrandTotal = new Style(fontBold: true, backgroundColor: '333333', fontColor: 'FFFFFF');
+
+        $makeRow = function (array $values, ?Style $style = null): Row {
+            $cells = array_map(
+                fn ($value) => $style ? Cell::fromValue($value, $style) : Cell::fromValue($value),
+                $values
+            );
+            return new Row($cells);
+        };
+
+        // Header Informasi
+        $writer->addRow($makeRow(['LISTING PENERIMAAN KAS/BANK'], $styleTitle));
+        $writer->addRow($makeRow(['Tanggal:', date('d/m/Y').'  Jam: '.date('H:i')]));
+        $writer->addRow($makeRow(['Periode:', $request->date_from.' s/d '.$request->date_to]));
+        $writer->addRow($makeRow(['Operator:', auth('sysuser')->user()->fname ?? auth()->user()->fname ?? 'User']));
+        $writer->addRow($makeRow([]));
+
+        // Header Kolom
+        $writer->addRow($makeRow([
+            'No. Voucher', 'Tanggal', 'Nama Account (D)', 'Keterangan', 'Total Bayar', 'User-Id',
+            'Account# (K)', 'Nama Account (K)', 'Uraian', 'Nilai Bayar'
+        ], $styleHeader));
+
+        $grandTotal = 0;
+
+        foreach ($grouped as $items) {
+            $h = $items->first();
+
+            // Header data row
+            $writer->addRow($makeRow([
+                $h->fkasmtno,
+                $h->fkasmtdate ? date('d/m/Y', strtotime($h->fkasmtdate)) : '',
+                $h->accounth,
+                $h->fket,
+                (float) $h->famountpay,
+                trim($h->fuserid),
+                '', '', '', ''
+            ], $styleSubgroup));
+
+            foreach ($items as $d) {
+                $grandTotal += (float) $d->fkasdtvalue;
+                // Detail row
+                $writer->addRow($makeRow([
+                    '', '', '', '', '', '',
+                    $d->faccount,
+                    $d->accountd,
+                    $d->fnote,
+                    (float) $d->fkasdtvalue
+                ]));
+            }
+        }
+
+        // Grand Total Row
+        $writer->addRow($makeRow([]));
+        $writer->addRow($makeRow([
+            'TOTAL PENERIMAAN KAS/BANK', '', '', '', '', '', '', '', '',
+            (float) $grandTotal
+        ], $styleGrandTotal));
+
+        $writer->close();
+
+        return response()->download($tempFile, $filename, [
+            'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        ])->deleteFileAfterSend(true);
     }
 }

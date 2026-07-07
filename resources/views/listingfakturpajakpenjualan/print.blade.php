@@ -297,12 +297,31 @@
 <body>
     <div class="no-print">
         <button class="print-button" onclick="window.print()">🖨️ Cetak Laporan</button>
+
+        {{-- Zoom Out --}}
         <button onclick="adjustZoom(-0.1)"
-            style="padding: 6px 12px; background: #6c757d; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 16px; font-weight: bold;">-</button>
+            style="padding: 6px 12px; background: #6c757d; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 16px; font-weight: bold;">
+            −
+        </button>
+
+        {{-- Zoom Level --}}
         <span id="zoomLabel"
-            style="min-width: 48px; text-align: center; font-size: 13px; font-weight: bold; color: #333; align-self: center;">100%</span>
+            style="min-width: 48px; text-align: center; font-size: 13px; font-weight: bold; color: #333; align-self: center;">
+            100%
+        </span>
+
+        {{-- Zoom In --}}
         <button onclick="adjustZoom(0.1)"
-            style="padding: 6px 12px; background: #6c757d; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 16px; font-weight: bold;">+</button>
+            style="padding: 6px 12px; background: #6c757d; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 16px; font-weight: bold;">
+            +
+        </button>
+
+        <a href="{{ route('listingfakturpajakpenjualan.excel', request()->query()) }}"
+            style="padding: 7px 12px; background-color: #22c55e; color: white; border-radius: 4px; text-decoration: none; font-weight: bold; font-size: 12px; display: inline-flex; align-items: center; justify-content: center; transition: background-color 0.2s;"
+            onmouseover="this.style.backgroundColor='#16a34a'"
+            onmouseout="this.style.backgroundColor='#22c55e'">
+            📊 Excel
+        </a>
     </div>
 
     @php

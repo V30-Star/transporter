@@ -4,6 +4,10 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use OpenSpout\Common\Entity\Cell;
+use OpenSpout\Common\Entity\Row;
+use OpenSpout\Common\Entity\Style\Style;
+use OpenSpout\Writer\XLSX\Writer;
 
 class BukuBesarController extends Controller
 {
@@ -150,5 +154,80 @@ class BukuBesarController extends Controller
         if ($request->filled('account_to')) {
             $query->where($accountColumn, '<=', $request->input('account_to'));
         }
+    }
+
+    public function exportExcel(Request $request)
+    {
+        $rows = $this->rows($request);
+        $groupedData = $rows->groupBy('faccount');
+
+        $filename = 'Buku_Besar_'.date('YmdHis').'.xlsx';
+        $tempFile = tempnam(sys_get_temp_dir(), 'xlsx_');
+
+        $writer = new Writer;
+        $writer->openToFile($tempFile);
+
+        $styleTitle = new Style(fontBold: true, fontSize: 14);
+        $styleHeader = new Style(fontBold: true, backgroundColor: 'D3D3D3');
+        $styleGroup = new Style(fontBold: true, backgroundColor: 'E2E8F0');
+        $styleGrandTotal = new Style(fontBold: true, backgroundColor: '333333', fontColor: 'FFFFFF');
+
+        $makeRow = function (array $values, ?Style $style = null): Row {
+            $cells = array_map(
+                fn ($value) => $style ? Cell::fromValue($value, $style) : Cell::fromValue($value),
+                $values
+            );
+            return new Row($cells);
+        };
+
+        // Header Informasi
+        $writer->addRow($makeRow(['BUKU BESAR'], $styleTitle));
+        $writer->addRow($makeRow(['Tanggal:', date('d/m/Y').'  Jam: '.date('H:i')]));
+        $writer->addRow($makeRow(['Periode:', $request->date_from.' s/d '.$request->date_to]));
+        $writer->addRow($makeRow(['Operator:', auth('sysuser')->user()->fname ?? auth()->user()->fname ?? 'User']));
+        $writer->addRow($makeRow([]));
+
+        // Header Kolom
+        $writer->addRow($makeRow([
+            'Tanggal', 'Jurnal', 'No. Invoice / Ref', 'Debet', 'Kredit', 'Saldo'
+        ], $styleHeader));
+
+        foreach ($groupedData as $account => $accountRows) {
+            $accountName = $accountRows->first()->faccname ?: $account;
+            
+            $debit = $accountRows->sum('famountdb');
+            $credit = $accountRows->sum('famountcr');
+            $saldo = (float) ($accountRows->last()->plasaldosubacc ?? 0);
+
+            // Account Row
+            $writer->addRow($makeRow([
+                'Account: '.$account.' - '.$accountName, '', '', '', '', ''
+            ], $styleGroup));
+
+            foreach ($accountRows as $row) {
+                $writer->addRow($makeRow([
+                    $row->fjurnaltgl ? date('d/m/Y', strtotime($row->fjurnaltgl)) : '',
+                    $row->fjurnalno,
+                    $row->faccountno,
+                    (float) $row->famountdb,
+                    (float) $row->famountcr,
+                    (float) $row->plasaldosubacc
+                ]));
+            }
+
+            // Account Total Row
+            $writer->addRow($makeRow([
+                'Saldo Akhir '.$accountName, '', '',
+                (float) $debit,
+                (float) $credit,
+                (float) $saldo
+            ], $styleGrandTotal));
+        }
+
+        $writer->close();
+
+        return response()->download($tempFile, $filename, [
+            'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        ])->deleteFileAfterSend(true);
     }
 }

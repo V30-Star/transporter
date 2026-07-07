@@ -4,6 +4,10 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use OpenSpout\Common\Entity\Cell;
+use OpenSpout\Common\Entity\Row;
+use OpenSpout\Common\Entity\Style\Style;
+use OpenSpout\Writer\XLSX\Writer;
 
 class ListingReturPenjualanController extends Controller
 {
@@ -97,5 +101,107 @@ class ListingReturPenjualanController extends Controller
             ->orderBy('m.fsono', 'asc')
             ->orderBy('d.fprdcode', 'asc')
             ->get();
+    }
+
+    public function exportExcel(Request $request)
+    {
+        $results = $this->getRawData($request);
+        $grouped = $results->groupBy('fstockmtid');
+        $detailMode = $request->boolean('detail', true);
+
+        $filename = 'Listing_Retur_Penjualan_'.date('YmdHis').'.xlsx';
+        $tempFile = tempnam(sys_get_temp_dir(), 'xlsx_');
+
+        $writer = new Writer;
+        $writer->openToFile($tempFile);
+
+        $styleTitle = new Style(fontBold: true, fontSize: 14);
+        $styleHeader = new Style(fontBold: true, backgroundColor: 'D3D3D3');
+        $styleInvoice = new Style(fontBold: true, backgroundColor: 'E2E8F0');
+        $styleDetail = new Style(fontBold: false);
+        $styleGrandTotal = new Style(fontBold: true, backgroundColor: '333333', fontColor: 'FFFFFF');
+
+        $makeRow = function (array $values, ?Style $style = null): Row {
+            $cells = array_map(
+                fn ($value) => $style ? Cell::fromValue($value, $style) : Cell::fromValue($value),
+                $values
+            );
+            return new Row($cells);
+        };
+
+        // Header Informasi
+        $writer->addRow($makeRow(['LISTING RETUR PENJUALAN'], $styleTitle));
+        $writer->addRow($makeRow(['Tanggal:', date('d/m/Y').'  Jam: '.date('H:i')]));
+        $writer->addRow($makeRow(['Periode:', $request->date_from.' s/d '.$request->date_to]));
+        $writer->addRow($makeRow(['Operator:', auth('sysuser')->user()->fname ?? auth()->user()->fname ?? 'User']));
+        $writer->addRow($makeRow([]));
+
+        // Header Kolom
+        $writer->addRow($makeRow([
+            'No. Transaksi', 'Tanggal', 'Nama Customer', 'Keterangan', 'Total Harga', 'PPN', 'Total Retur', 'User-Id'
+        ], $styleHeader));
+
+        if ($detailMode) {
+            $writer->addRow($makeRow([
+                '', 'Kode Barang', 'Nama Barang', 'Ref. Faktur#', 'Quantity', 'Satuan', '@ Harga', 'Total Harga Detail'
+            ], $styleHeader));
+        }
+
+        $grandHarga = 0;
+        $grandPpn = 0;
+        $grandRetur = 0;
+
+        foreach ($grouped as $items) {
+            $h = $items->first();
+            $totalHarga = (float) $h->famount;
+            $ppn = (float) $h->famountpajak;
+            $totalRetur = (float) $h->famountmt;
+
+            $grandHarga += $totalHarga;
+            $grandPpn += $ppn;
+            $grandRetur += $totalRetur;
+
+            $writer->addRow($makeRow([
+                $h->fstockmtno,
+                $h->fstockmtdate ? date('d/m/Y', strtotime($h->fstockmtdate)) : '',
+                $h->fcustname,
+                $h->fket,
+                $totalHarga,
+                $ppn,
+                $totalRetur,
+                $h->fuserid
+            ], $styleInvoice));
+
+            if ($detailMode) {
+                foreach ($items as $d) {
+                    $writer->addRow($makeRow([
+                        '',
+                        $d->fprdcode,
+                        $d->fprdname,
+                        $d->frefdtno,
+                        (float) $d->fqty,
+                        $d->fsatuan,
+                        (float) $d->fprice,
+                        (float) $d->ftotprice
+                    ], $styleDetail));
+                }
+            }
+        }
+
+        // Grand Total Row
+        $writer->addRow($makeRow([]));
+        $writer->addRow($makeRow([
+            'GRAND TOTAL', '', '', '',
+            $grandHarga,
+            $grandPpn,
+            $grandRetur,
+            ''
+        ], $styleGrandTotal));
+
+        $writer->close();
+
+        return response()->download($tempFile, $filename, [
+            'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        ])->deleteFileAfterSend(true);
     }
 }

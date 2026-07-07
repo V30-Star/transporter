@@ -4,6 +4,10 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use OpenSpout\Common\Entity\Cell;
+use OpenSpout\Common\Entity\Row;
+use OpenSpout\Common\Entity\Style\Style;
+use OpenSpout\Writer\XLSX\Writer;
 
 class LaporanKartuStokController extends Controller
 {
@@ -301,5 +305,115 @@ class LaporanKartuStokController extends Controller
             'below_min' => $min > 0 && $saldo < $min,
             default => true,
         };
+    }
+
+    public function exportExcel(Request $request)
+    {
+        $mode = $request->input('report_mode', 'rekap') === 'detail' ? 'detail' : 'rekap';
+        $rows = $mode === 'detail' ? $this->detailRows($request) : $this->rekapRows($request);
+
+        $filename = 'Laporan_Kartu_Stok_'.date('YmdHis').'.xlsx';
+        $tempFile = tempnam(sys_get_temp_dir(), 'xlsx_');
+
+        $writer = new Writer;
+        $writer->openToFile($tempFile);
+
+        $styleTitle = new Style(fontBold: true, fontSize: 14);
+        $styleHeader = new Style(fontBold: true, backgroundColor: 'D3D3D3');
+        $styleGroup = new Style(fontBold: true, backgroundColor: 'E2E8F0');
+        $styleSubgroup = new Style(fontBold: true, backgroundColor: 'FFE6E6');
+
+        $makeRow = function (array $values, ?Style $style = null): Row {
+            $cells = array_map(
+                fn ($value) => $style ? Cell::fromValue($value, $style) : Cell::fromValue($value),
+                $values
+            );
+            return new Row($cells);
+        };
+
+        // Header Informasi
+        $writer->addRow($makeRow(['LAPORAN KARTU STOK'], $styleTitle));
+        $writer->addRow($makeRow(['Tanggal:', date('d/m/Y').'  Jam: '.date('H:i')]));
+        $writer->addRow($makeRow(['Periode:', $request->date_from.' s/d '.$request->date_to]));
+        $writer->addRow($makeRow(['Mode:', strtoupper($mode)]));
+        $writer->addRow($makeRow(['Operator:', auth('sysuser')->user()->fname ?? auth()->user()->fname ?? 'User']));
+        $writer->addRow($makeRow([]));
+
+        if ($mode === 'rekap') {
+            // Header Kolom Rekap
+            $writer->addRow($makeRow([
+                'No.', 'Kode Prd', 'Nama Produk', 'Isi', 'Satuan', 'Saldo Awal', 'Masuk', 'Keluar', 'Saldo Akhir', 'Gudang'
+            ], $styleHeader));
+
+            $groupedWh = $rows->groupBy('fwhcode');
+            foreach ($groupedWh as $whcode => $whRows) {
+                $writer->addRow($makeRow([
+                    'Gudang: '.$whcode, '', '', '', '', '', '', '', '', ''
+                ], $styleGroup));
+
+                $groupedGroup = $whRows->groupBy(request('grouping', 'group') === 'merek' ? 'fmerekname' : 'fgroupname');
+                foreach ($groupedGroup as $groupName => $items) {
+                    $writer->addRow($makeRow([
+                        '  Grouping: '.($groupName ?: '-'), '', '', '', '', '', '', '', '', ''
+                    ], $styleSubgroup));
+
+                    foreach ($items as $index => $row) {
+                        $writer->addRow($makeRow([
+                            $index + 1,
+                            $row->fprdcode,
+                            $row->fprdname,
+                            (float) $row->qtykecil,
+                            $row->fsatuan,
+                            (float) $row->qtyawalkecil,
+                            (float) $row->qtymasukkecil,
+                            (float) $row->qtykeluarkecil,
+                            (float) $row->qtysaldokecil,
+                            $row->fwhcode
+                        ]));
+                    }
+                }
+            }
+        } else {
+            // Header Kolom Detail
+            $writer->addRow($makeRow([
+                'Transaksi', 'Kode Trans', 'Tanggal', 'No. Ref', 'Supplier/Customer', 'Satuan', 'Saldo Awal', 'Masuk', 'Keluar', 'Saldo Akhir', 'Gudang'
+            ], $styleHeader));
+
+            $groupedWh = $rows->groupBy('fwhcode');
+            foreach ($groupedWh as $whcode => $whRows) {
+                $writer->addRow($makeRow([
+                    'Gudang: '.$whcode, '', '', '', '', '', '', '', '', '', ''
+                ], $styleGroup));
+
+                $groupedPrd = $whRows->groupBy('fprdcode');
+                foreach ($groupedPrd as $prdcode => $items) {
+                    $writer->addRow($makeRow([
+                        '  Produk: '.$prdcode.' - '.($items->first()->fprdname ?? ''), '', '', '', '', '', '', '', '', '', ''
+                    ], $styleSubgroup));
+
+                    foreach ($items as $row) {
+                        $writer->addRow($makeRow([
+                            $row->fstockmt,
+                            $row->fstockmtcode,
+                            $row->fstockdate ? date('d/m/Y', strtotime($row->fstockdate)) : '',
+                            $row->frefno,
+                            $row->fsuppliername,
+                            $row->fsatuan,
+                            (float) $row->qtyawalkecil,
+                            (float) $row->qtymasukkecil,
+                            (float) $row->qtykeluarkecil,
+                            (float) $row->qtysaldokecil,
+                            $row->fwhcode
+                        ]));
+                    }
+                }
+            }
+        }
+
+        $writer->close();
+
+        return response()->download($tempFile, $filename, [
+            'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        ])->deleteFileAfterSend(true);
     }
 }

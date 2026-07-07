@@ -4,6 +4,10 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use OpenSpout\Common\Entity\Cell;
+use OpenSpout\Common\Entity\Row;
+use OpenSpout\Common\Entity\Style\Style;
+use OpenSpout\Writer\XLSX\Writer;
 
 class BukuHutangController extends Controller
 {
@@ -25,6 +29,7 @@ class BukuHutangController extends Controller
             'rows' => $this->rows($request),
             'request' => $request,
             'title' => 'Buku Hutang',
+            'user_session' => auth('sysuser')->user() ?? auth()->user(),
         ]);
     }
 
@@ -150,5 +155,104 @@ class BukuHutangController extends Controller
         if ($request->filled('supplier_to')) {
             $query->where("{$detailAlias}.fsubaccount", '<=', $request->input('supplier_to'));
         }
+    }
+
+    public function exportExcel(Request $request)
+    {
+        $rows = $this->rows($request);
+        $groupedData = $rows->groupBy('faccount');
+
+        $filename = 'Buku_Hutang_'.date('YmdHis').'.xlsx';
+        $tempFile = tempnam(sys_get_temp_dir(), 'xlsx_');
+
+        $writer = new Writer;
+        $writer->openToFile($tempFile);
+
+        $styleTitle = new Style(fontBold: true, fontSize: 14);
+        $styleHeader = new Style(fontBold: true, backgroundColor: 'D3D3D3');
+        $styleGroup = new Style(fontBold: true, backgroundColor: 'E2E8F0');
+        $styleSubgroup = new Style(fontBold: true, backgroundColor: 'FFE6E6');
+        $styleSubtotal = new Style(fontBold: true, backgroundColor: 'FFF0F0');
+        $styleGrandTotal = new Style(fontBold: true, backgroundColor: '333333', fontColor: 'FFFFFF');
+
+        $makeRow = function (array $values, ?Style $style = null): Row {
+            $cells = array_map(
+                fn ($value) => $style ? Cell::fromValue($value, $style) : Cell::fromValue($value),
+                $values
+            );
+            return new Row($cells);
+        };
+
+        // Header Informasi
+        $writer->addRow($makeRow(['BUKU HUTANG'], $styleTitle));
+        $writer->addRow($makeRow(['Tanggal:', date('d/m/Y').'  Jam: '.date('H:i')]));
+        $writer->addRow($makeRow(['Periode:', $request->date_from.' s/d '.$request->date_to]));
+        $writer->addRow($makeRow(['Operator:', auth('sysuser')->user()->fname ?? auth()->user()->fname ?? 'User']));
+        $writer->addRow($makeRow([]));
+
+        // Header Kolom
+        $writer->addRow($makeRow([
+            'Tanggal', 'Jurnal', 'No. Invoice', 'Debet', 'Kredit', 'Saldo'
+        ], $styleHeader));
+
+        foreach ($groupedData as $account => $accountRows) {
+            $accountName = $accountRows->first()->faccname ?: $account;
+            $accountDebit = 0;
+            $accountCredit = 0;
+            $accountSaldo = 0;
+
+            // Account Row
+            $writer->addRow($makeRow([
+                'Account: '.$account.' - '.$accountName, '', '', '', '', ''
+            ], $styleGroup));
+
+            foreach ($accountRows->groupBy('fsupplier') as $supplier => $items) {
+                $supplierName = $items->first()->fsuppliername ?: $supplier;
+                $debit = $items->sum('famountdb');
+                $credit = $items->sum('famountcr');
+                $saldo = (float) ($items->last()->ppvarsaldo ?? 0);
+                $accountDebit += $debit;
+                $accountCredit += $credit;
+                $accountSaldo += $saldo;
+
+                // Supplier Row
+                $writer->addRow($makeRow([
+                    '  Supplier: '.$supplier.' - '.$supplierName, '', '', '', '', ''
+                ], $styleSubgroup));
+
+                foreach ($items as $row) {
+                    $writer->addRow($makeRow([
+                        $row->fjurnaltgl ? date('d/m/Y', strtotime($row->fjurnaltgl)) : '',
+                        $row->fjurnalno,
+                        $row->faccountno,
+                        (float) $row->famountdb,
+                        (float) $row->famountcr,
+                        (float) $row->ppvarsaldo
+                    ]));
+                }
+
+                // Supplier Total Row
+                $writer->addRow($makeRow([
+                    '  Saldo Akhir '.$supplierName, '', '',
+                    (float) $debit,
+                    (float) $credit,
+                    (float) $saldo
+                ], $styleSubtotal));
+            }
+
+            // Account Total Row
+            $writer->addRow($makeRow([
+                'Saldo Akhir '.$accountName, '', '',
+                (float) $accountDebit,
+                (float) $accountCredit,
+                (float) $accountSaldo
+            ], $styleGrandTotal));
+        }
+
+        $writer->close();
+
+        return response()->download($tempFile, $filename, [
+            'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        ])->deleteFileAfterSend(true);
     }
 }

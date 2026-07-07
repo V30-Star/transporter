@@ -6,6 +6,10 @@ use App\Models\Account;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use OpenSpout\Common\Entity\Cell;
+use OpenSpout\Common\Entity\Row;
+use OpenSpout\Common\Entity\Style\Style;
+use OpenSpout\Writer\XLSX\Writer;
 
 class ReportingKasController extends Controller
 {
@@ -66,6 +70,41 @@ class ReportingKasController extends Controller
 
     private function renderPrint(Request $request, string $tranCode)
     {
+        $data = $this->getReportData($request, $tranCode);
+        $records = $data['records'];
+        $detailsByHeader = $data['detailsByHeader'];
+
+        $filterDateFrom = $request->query('filter_date_from');
+        $filterDateTo = $request->query('filter_date_to');
+        $filterAccount = trim((string) $request->query('filter_account', ''));
+        $onlyGiroMundur = $request->boolean('only_giro_mundur');
+
+        $accountName = null;
+        if ($filterAccount !== '') {
+            $accountName = Account::query()
+                ->where('faccount', $filterAccount)
+                ->value('faccname');
+        }
+
+        $grandTotal = (float) $records->sum(fn($row) => (float) ($row->famountpay ?? 0));
+
+        return view('reportingkas.print', [
+            'pageTitle' => $tranCode === 'BKK' ? 'Laporan Pengeluaran Kas/Bank' : 'Laporan Penerimaan Kas/Bank',
+            'records' => $records,
+            'detailsByHeader' => $detailsByHeader,
+            'filterDateFrom' => $filterDateFrom,
+            'filterDateTo' => $filterDateTo,
+            'filterAccount' => $filterAccount,
+            'filterAccountName' => $accountName,
+            'onlyGiroMundur' => $onlyGiroMundur,
+            'grandTotal' => $grandTotal,
+            'printDate' => Carbon::now()->format('d/m/Y H:i:s'),
+            'user_session' => auth('sysuser')->user() ?? auth()->user(),
+        ]);
+    }
+
+    private function getReportData(Request $request, string $tranCode)
+    {
         $filterDateFrom = $request->query('filter_date_from');
         $filterDateTo = $request->query('filter_date_to');
         $filterAccount = trim((string) $request->query('filter_account', ''));
@@ -121,27 +160,101 @@ class ReportingKasController extends Controller
             ])
             ->groupBy('fkasmtid');
 
-        $accountName = null;
-        if ($filterAccount !== '') {
-            $accountName = Account::query()
-                ->where('faccount', $filterAccount)
-                ->value('faccname');
+        return compact('records', 'detailsByHeader');
+    }
+
+    public function exportPengeluaranExcel(Request $request)
+    {
+        return $this->exportExcel($request, 'BKK');
+    }
+
+    public function exportPenerimaanExcel(Request $request)
+    {
+        return $this->exportExcel($request, 'BKM');
+    }
+
+    private function exportExcel(Request $request, string $tranCode)
+    {
+        $data = $this->getReportData($request, $tranCode);
+        $records = $data['records'];
+        $detailsByHeader = $data['detailsByHeader'];
+
+        $title = $tranCode === 'BKK' ? 'LAPORAN PENGELUARAN KAS/BANK' : 'LAPORAN PENERIMAAN KAS/BANK';
+        $filename = ($tranCode === 'BKK' ? 'Laporan_Pengeluaran_Kas_Bank_' : 'Laporan_Penerimaan_Kas_Bank_') . date('YmdHis') . '.xlsx';
+        $tempFile = tempnam(sys_get_temp_dir(), 'xlsx_');
+
+        $writer = new Writer;
+        $writer->openToFile($tempFile);
+
+        $styleTitle = new Style(fontBold: true, fontSize: 14);
+        $styleHeader = new Style(fontBold: true, backgroundColor: 'D3D3D3');
+        $styleSubgroup = new Style(fontBold: true, backgroundColor: 'E2E8F0');
+        $styleGrandTotal = new Style(fontBold: true, backgroundColor: '333333', fontColor: 'FFFFFF');
+
+        $makeRow = function (array $values, ?Style $style = null): Row {
+            $cells = array_map(
+                fn ($value) => $style ? Cell::fromValue($value, $style) : Cell::fromValue($value),
+                $values
+            );
+            return new Row($cells);
+        };
+
+        // Header Informasi
+        $writer->addRow($makeRow([$title], $styleTitle));
+        $writer->addRow($makeRow(['Tanggal:', date('d/m/Y').'  Jam: '.date('H:i')]));
+        $writer->addRow($makeRow(['Periode:', $request->filter_date_from.' s/d '.$request->filter_date_to]));
+        $writer->addRow($makeRow(['Operator:', auth('sysuser')->user()->fname ?? auth()->user()->fname ?? 'User']));
+        $writer->addRow($makeRow([]));
+
+        // Header Kolom
+        $writer->addRow($makeRow([
+            'No. Voucher', 'Tanggal', 'Cabang', 'Account Header', 'Nama Account Header', 'Total Bayar', 'Keterangan',
+            'No.', 'Account Detail', 'Nama Account Detail', 'Sub Account', 'Nama Sub Account', 'Nilai Bayar', 'Uraian'
+        ], $styleHeader));
+
+        $grandTotal = 0;
+
+        foreach ($records as $row) {
+            $details = $detailsByHeader->get($row->fkasmtid) ?: collect();
+            $grandTotal += (float) ($row->famountpay ?? 0);
+
+            // Header data row
+            $writer->addRow($makeRow([
+                $row->fkasmtno,
+                $row->fkasmtdate ? date('d/m/Y', strtotime($row->fkasmtdate)) : '',
+                $row->fbranchcode,
+                $row->faccountheader,
+                $row->header_account_name,
+                (float) $row->famountpay,
+                $row->fket,
+                '', '', '', '', '', '', ''
+            ], $styleSubgroup));
+
+            foreach ($details as $index => $d) {
+                // Detail row
+                $writer->addRow($makeRow([
+                    '', '', '', '', '', '', '',
+                    $index + 1,
+                    $d->faccount,
+                    $d->account_name,
+                    $d->fsubaccount,
+                    $d->subaccount_name,
+                    (float) $d->fkasdtvalue,
+                    $d->fnote
+                ]));
+            }
         }
 
-        $grandTotal = (float) $records->sum(fn($row) => (float) ($row->famountpay ?? 0));
+        // Grand Total Row
+        $writer->addRow($makeRow([]));
+        $writer->addRow($makeRow([
+            'GRAND TOTAL', '', '', '', '', (float) $grandTotal, '', '', '', '', '', '', '', ''
+        ], $styleGrandTotal));
 
-        return view('reportingkas.print', [
-            'pageTitle' => $tranCode === 'BKK' ? 'Laporan Pengeluaran Kas/Bank' : 'Laporan Penerimaan Kas/Bank',
-            'records' => $records,
-            'detailsByHeader' => $detailsByHeader,
-            'filterDateFrom' => $filterDateFrom,
-            'filterDateTo' => $filterDateTo,
-            'filterAccount' => $filterAccount,
-            'filterAccountName' => $accountName,
-            'onlyGiroMundur' => $onlyGiroMundur,
-            'grandTotal' => $grandTotal,
-            'printDate' => Carbon::now()->format('d/m/Y H:i:s'),
-            'user_session' => auth('sysuser')->user() ?? auth()->user(),
-        ]);
+        $writer->close();
+
+        return response()->download($tempFile, $filename, [
+            'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        ])->deleteFileAfterSend(true);
     }
 }

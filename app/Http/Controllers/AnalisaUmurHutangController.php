@@ -4,6 +4,10 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use OpenSpout\Common\Entity\Cell;
+use OpenSpout\Common\Entity\Row;
+use OpenSpout\Common\Entity\Style\Style;
+use OpenSpout\Writer\XLSX\Writer;
 
 class AnalisaUmurHutangController extends Controller
 {
@@ -114,5 +118,118 @@ class AnalisaUmurHutangController extends Controller
         if ($request->filled('supplier')) {
             $query->where('h.fsupplier', $request->input('supplier'));
         }
+    }
+
+    public function exportExcel(Request $request)
+    {
+        $rows = $this->rows($request);
+        $groupedData = $rows->groupBy('fcustno');
+
+        $filename = 'Analisa_Umur_Hutang_'.date('YmdHis').'.xlsx';
+        $tempFile = tempnam(sys_get_temp_dir(), 'xlsx_');
+
+        $writer = new Writer;
+        $writer->openToFile($tempFile);
+
+        $styleTitle = new Style(fontBold: true, fontSize: 14);
+        $styleHeader = new Style(fontBold: true, backgroundColor: 'D3D3D3');
+        $styleGroup = new Style(fontBold: true, backgroundColor: 'FFE6E6');
+        $styleSubtotal = new Style(fontBold: true, backgroundColor: 'FFF0F0');
+        $styleGrandTotal = new Style(fontBold: true, backgroundColor: '333333', fontColor: 'FFFFFF');
+
+        $makeRow = function (array $values, ?Style $style = null): Row {
+            $cells = array_map(
+                fn ($value) => $style ? Cell::fromValue($value, $style) : Cell::fromValue($value),
+                $values
+            );
+            return new Row($cells);
+        };
+
+        // Header Informasi
+        $writer->addRow($makeRow(['ANALISA UMUR HUTANG'], $styleTitle));
+        $writer->addRow($makeRow(['Tanggal:', date('d/m/Y').'  Jam: '.date('H:i')]));
+        $writer->addRow($makeRow(['Periode:', $request->date_from.' s/d '.$request->date_to]));
+        $writer->addRow($makeRow(['Operator:', auth('sysuser')->user()->fname ?? auth()->user()->fname ?? 'User']));
+        $writer->addRow($makeRow([]));
+
+        // Header Kolom
+        $writer->addRow($makeRow([
+            'No.', 'Cab.', 'No. Faktur', 'Tanggal', 'Jatuh Tempo', 'Umur(Hr)', 'Nilai Faktur', 
+            'Un Due', '0-30 Hari', '31-60 Hari', '61-90 Hari', '91-1 Tahun', '>1 Tahun'
+        ], $styleHeader));
+
+        $grand = ['faktur' => 0, 'undue' => 0, 'd30' => 0, 'd60' => 0, 'd90' => 0, 'd91' => 0, 'd1y' => 0];
+
+        foreach ($groupedData as $supplierCode => $items) {
+            $name = $items->first()->fsuppliername ?: $supplierCode;
+            
+            $tot = [
+                'faktur' => $items->sum('famountso'),
+                'undue' => $items->sum('varundue'),
+                'd30' => $items->sum('var30hari'),
+                'd60' => $items->sum('var60hari'),
+                'd90' => $items->sum('ppvar90hari'),
+                'd91' => $items->sum('ppvar91hari'),
+                'd1y' => $items->sum('ppvar1tahun'),
+            ];
+
+            foreach ($tot as $key => $value) {
+                $grand[$key] += $value;
+            }
+
+            // Group Row
+            $writer->addRow($makeRow([
+                'Supplier: '.$supplierCode.' - '.$name, '', '', '', '', '', '', '', '', '', '', '', ''
+            ], $styleGroup));
+
+            foreach ($items as $index => $row) {
+                $writer->addRow($makeRow([
+                    $index + 1,
+                    $row->fbranchcode,
+                    $row->fsono,
+                    $row->fsodate ? date('d/m/Y', strtotime($row->fsodate)) : '',
+                    $row->fjatuhtempo ? date('d/m/Y', strtotime($row->fjatuhtempo)) : '',
+                    $row->mu,
+                    (float) $row->famountso,
+                    (float) $row->varundue,
+                    (float) $row->var30hari,
+                    (float) $row->var60hari,
+                    (float) $row->ppvar90hari,
+                    (float) $row->ppvar91hari,
+                    (float) $row->ppvar1tahun
+                ]));
+            }
+
+            // Subtotal Row
+            $writer->addRow($makeRow([
+                'Total '.$name, '', '', '', '', '',
+                (float) $tot['faktur'],
+                (float) $tot['undue'],
+                (float) $tot['d30'],
+                (float) $tot['d60'],
+                (float) $tot['d90'],
+                (float) $tot['d91'],
+                (float) $tot['d1y']
+            ], $styleSubtotal));
+        }
+
+        // Grand Total Row
+        $writer->addRow($makeRow([]));
+        $writer->addRow($makeRow([
+            'GRAND TOTAL', '', '', '', '', '',
+            (float) $grand['faktur'],
+            (float) $grand['undue'],
+            (float) $grand['d30'],
+            (float) $grand['d60'],
+            (float) $grand['d90'],
+            (float) $grand['d91'],
+            (float) $grand['d1y']
+        ], $styleGrandTotal));
+
+        $writer->close();
+
+        return response()->download($tempFile, $filename, [
+            'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        ])->deleteFileAfterSend(true);
     }
 }
