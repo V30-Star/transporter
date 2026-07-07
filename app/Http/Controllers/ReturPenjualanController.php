@@ -2120,6 +2120,15 @@ class ReturPenjualanController extends Controller
 
         $ftypesales = $request->input('ftypesales', 0);
 
+        $stockMtNo = str_replace('REJ.', 'REB.', (string) $header->fsono);
+        $oldStockHeader = DB::table('trstockmt')->where('fstockmtno', $stockMtNo)->first();
+        if ($stockResponse = $this->validateStockMinusLines(
+            $this->buildStockMinusLinesFromNetChange($stockDetailRows, (string) $request->input('ffrom'), $this->fetchStockDetailRows($stockMtNo), (string) ($oldStockHeader->ffrom ?? $request->input('ffrom'))),
+            $request->boolean('force_save')
+        )) {
+            return $stockResponse;
+        }
+
         // 6. TRANSACTION
         try {
             DB::transaction(function () use (
@@ -2371,6 +2380,22 @@ class ReturPenjualanController extends Controller
     {
         try {
             $deletedHeader = null;
+            $returHeader = Tranmt::findOrFail($ftranmtid);
+            if ($message = $this->getPostedPeriodLockMessage($returHeader->fsodate, 'Retur ini')) {
+                return redirect()->route('returpenjualan.index')->with('error', $message);
+            }
+            if ($message = $this->getUsageLockMessage($returHeader)) {
+                return redirect()->route('returpenjualan.index')->with('error', $message);
+            }
+            $stockMtNo = str_replace('REJ.', 'REB.', (string) $returHeader->fsono);
+            $stockHeader = DB::table('trstockmt')->where('fstockmtno', $stockMtNo)->first();
+            if ($stockHeader && ($stockResponse = $this->validateStockMinusLines(
+                $this->buildStockMinusLinesFromNetChange([], (string) $stockHeader->ffrom, $this->fetchStockDetailRows($stockMtNo), (string) $stockHeader->ffrom),
+                request()->boolean('force_save')
+            ))) {
+                return $stockResponse;
+            }
+
             DB::transaction(function () use ($ftranmtid, &$deletedHeader) {
                 $returpenjualan = Tranmt::findOrFail($ftranmtid);
                 $deletedHeader = $returpenjualan;

@@ -653,7 +653,7 @@
                 <div class="space-y-4">
                     <form action="{{ route('fakturpembelian.update', $fakturpembelian->fstockmtid) }}" method="POST"
                         data-form-draft="true" data-draft-key="fakturpembelian:edit:{{ $fakturpembelian->fstockmtid }}" x-data="{ showNoItems: false }"
-                        @submit.prevent="if (window.fakturPembelianItemsTable?.submitForm) { window.fakturPembelianItemsTable.submitForm($el); } else { const n = Number(document.getElementById('itemsCount')?.value || 0); if (n < 1) { showNoItems = true; return; } $el.submit() }">
+                        @submit.prevent="if (window.fakturPembelianItemsTable?.submitForm) { window.fakturPembelianItemsTable.submitForm($el); } else { const n = Number(document.getElementById('itemsCount')?.value || 0); if (n < 1) { showNoItems = true; return; } window.submitFormWithStockMinusConfirmation?.($el) }">
                         @csrf
                         @method('PATCH')
 
@@ -2544,7 +2544,7 @@
                     this.closeWarning();
                     this.$nextTick(() => {
                         this.syncDetailPayload(form, this.savedItems);
-                        form.submit();
+                        window.submitFormWithStockMinusConfirmation?.(form);
                     });
                 },
 
@@ -2899,7 +2899,7 @@
                     this.recalcTotals();
                     this.$nextTick(() => {
                         this.syncDetailPayload(form, this.savedItems);
-                        form.submit();
+                        window.submitFormWithStockMinusConfirmation?.(form);
                     });
                 },
 

@@ -224,7 +224,7 @@
                         <div class="max-w-[1600px] mx-auto py-8 px-6">
                 <form action="{{ route('fakturpembelian.store') }}" method="POST" data-form-draft="true"
                     data-draft-key="fakturpembelian:create" x-data="{ showNoItems: false }"
-                    @submit.prevent="if (window.fakturPembelianItemsTable?.submitForm) { window.fakturPembelianItemsTable.submitForm($el); } else { const n = Number(document.getElementById('itemsCount')?.value || 0); if (n < 1) { showNoItems = true } else { $el.submit() } }">
+                    @submit.prevent="if (window.fakturPembelianItemsTable?.submitForm) { window.fakturPembelianItemsTable.submitForm($el); } else { const n = Number(document.getElementById('itemsCount')?.value || 0); if (n < 1) { showNoItems = true } else { window.submitFormWithStockMinusConfirmation?.($el) } }">
                     @csrf
 
                     {{-- ─── CARD 1: Identitas Faktur Pembelian ────────────────────── --}}
@@ -2002,7 +2002,7 @@
                 this.closeWarning();
                 this.$nextTick(() => {
                     this.syncDetailPayload(form, this.savedItems);
-                    form.submit();
+                    window.submitFormWithStockMinusConfirmation?.(form);
                 });
             },
 
@@ -2298,7 +2298,7 @@
                 this.recalcTotals();
                 this.$nextTick(() => {
                     this.syncDetailPayload(form, this.savedItems);
-                    form.submit();
+                    window.submitFormWithStockMinusConfirmation?.(form);
                 });
             },
 

@@ -1525,7 +1525,7 @@
                     }));
                     const form = this.pendingSubmitForm;
                     this.closeWarning();
-                    this.$nextTick(() => form.submit());
+                    this.$nextTick(() => window.submitFormWithStockMinusConfirmation?.(form));
                 },
 
                 onPrPicked(e) {
@@ -1675,7 +1675,7 @@
                     this.savedItems = validRows.map((row) => ({
                         ...row
                     }));
-                    this.$nextTick(() => form.submit());
+                    this.$nextTick(() => window.submitFormWithStockMinusConfirmation?.(form));
                 },
                 createRow(source = {}) {
                     const row = {

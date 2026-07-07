@@ -1171,7 +1171,7 @@
                     }));
                     const form = this.pendingSubmitForm;
                     this.closeWarning();
-                    this.$nextTick(() => form.submit());
+                    this.$nextTick(() => window.submitFormWithStockMinusConfirmation?.(form));
                 },
                 removeSaved(i) {
                     if (this.savedItems.length === 1) {
@@ -1329,7 +1329,7 @@
                     this.savedItems = validRows.map((row) => ({
                         ...row
                     }));
-                    this.$nextTick(() => form.submit());
+                    this.$nextTick(() => window.submitFormWithStockMinusConfirmation?.(form));
                 },
                 init() {
                     this.syncSupplierDisplay(@js(old('fsupplier', '')));

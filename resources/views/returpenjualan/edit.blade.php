@@ -3526,6 +3526,7 @@
                         return;
                     }
                 }
+                return window.submitFormWithStockMinusConfirmation?.($event);
             },
 
             focusRowUnit(row, index) {

@@ -832,13 +832,13 @@
                 });
             };
 
-            window.submitFormWithStockMinusConfirmation = async function(event) {
-                const form = event?.target;
+            window.submitFormWithStockMinusConfirmation = async function(eventOrForm) {
+                const form = eventOrForm?.target || eventOrForm;
                 if (!form || form.dataset.stockSubmitBusy === '1') {
                     return;
                 }
 
-                event.preventDefault();
+                eventOrForm?.preventDefault?.();
                 form.dataset.stockSubmitBusy = '1';
 
                 const send = async (forceSave = false) => {
