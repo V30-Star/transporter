@@ -123,7 +123,7 @@
             background-color: transparent;
             margin-bottom: 0px;
             color: #0f172a;
-            border-bottom: 1px solid #edf2f7;
+            /* border-bottom: 1px solid #edf2f7; */
             padding: 3px 8px;
         }
 
@@ -253,7 +253,7 @@
             border-top: 1px solid #000000;
             border-bottom: 1px solid #000000;
             font-weight: bold;
-            color: #cc0000;
+            color: #304ee7;
             padding: 5px 0;
             margin-top: 4px;
         }

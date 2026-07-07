@@ -104,7 +104,7 @@
             grid-template-columns: 25mm 18mm 1fr 25mm 20mm 15mm 20mm 12mm;
             gap: 1px;
             font-size: 8px;
-            padding: 3px 8px;
+            padding: 2px 8px;
             align-items: center;
         }
 
@@ -123,7 +123,6 @@
             background-color: transparent;
             margin-bottom: 0px;
             color: #0f172a;
-            font-weight: bold;
         }
 
         /* --- PO DETAIL STYLES (6 Kolom) --- */
@@ -150,7 +149,7 @@
         .po-detail {
             color: #cc0000;
             background-color: transparent;
-            border-bottom: 1px solid #edf2f7;
+            /* border-bottom: 1px solid #edf2f7; */
         }
 
         .po-detail>div:first-child {
@@ -252,7 +251,7 @@
         .journal-block {
             page-break-inside: avoid;
             break-inside: avoid;
-            margin-bottom: 3px;
+            margin-bottom: 0px;
         }
 
         /* Totals Panel style */
@@ -301,7 +300,7 @@
             border-top: 1px solid #000000;
             border-bottom: 1px solid #000000;
             font-weight: bold;
-            color: #cc0000;
+            color: #304ee7;
             padding: 5px 0;
             margin-top: 4px;
         }
@@ -431,7 +430,7 @@
                     <div class="truncate" title="{{ $h->fket }}">{{ $h->fket }}</div>
                     <div>{{ number_format($totalHarga, 2, ',', '.') }}</div>
                     <div>{{ number_format($ppn, 2, ',', '.') }}</div>
-                    <div style="color: blue;">{{ number_format($totalRetur, 2, ',', '.') }}</div>
+                    <div>{{ number_format($totalRetur, 2, ',', '.') }}</div>
                     <div class="truncate">{{ trim($h->fuserid) }}</div>
                 </div>
 

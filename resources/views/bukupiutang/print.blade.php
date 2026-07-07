@@ -105,7 +105,7 @@
             grid-template-columns: 25mm 32mm 1fr 25mm 25mm 28mm;
             gap: 1px;
             font-size: 8px;
-            padding: 4px 8px;
+            padding: 2px 8px;
             align-items: center;
         }
 
@@ -124,8 +124,8 @@
             background-color: transparent;
             margin-bottom: 0px;
             color: #0f172a;
-            border-bottom: 1px solid #edf2f7;
-            padding: 3px 8px;
+            /* border-bottom: 1px solid #edf2f7; */
+            padding: 2px 8px;
         }
 
         .ledger-row > div:nth-child(4),
@@ -152,31 +152,26 @@
 
         .group-row {
             display: block;
-            background-color: #f1f5f9;
+            /* background-color: #f1f5f9; */
             color: #0f172a;
             font-weight: bold;
             font-size: 8px;
-            padding: 4px 8px;
-            border: 1px solid #ccc;
+            padding: 2px 8px;
+            /* border: 1px solid #ccc; */
             margin-bottom: 1px;
         }
 
         .customer-row {
             display: block;
-            background-color: #ffe6e6;
-            color: #cc0000;
             font-weight: bold;
             font-size: 8px;
-            padding: 4px 8px;
-            border: 1px solid #ccc;
+            padding: 2px 8px;
             margin-bottom: 1px;
         }
 
         .group-total-row {
             background-color: transparent;
             font-weight: bold;
-            border-top: 1px solid #000000;
-            border-bottom: 1px solid #000000;
             color: #0f172a;
         }
 
@@ -238,10 +233,10 @@
         }
 
         .po-totals-panel-wrapper {
-            margin-top: 15px;
+            margin-top: 10px;
             width: 180mm; /* Full printable width */
-            border-top: 1px solid #000000; /* Long line above totals */
-            padding-top: 8px;
+            border-top: 1px solid #000000; 
+            padding-top: 18px;
             position: relative;
             page-break-inside: avoid;
             break-inside: avoid;
@@ -399,7 +394,7 @@
 
             {{-- Account Total block --}}
             <div class="journal-block">
-                <div class="group-total-row" style="color: #cc0000;">
+                <div class="group-total-row">
                     <div style="grid-column: span 3; text-align: right; padding-right: 8px;">Saldo Akhir {{ $accountName }}</div>
                     <div>{{ number_format((float) $accountDebit, 2, ',', '.') }}</div>
                     <div>{{ number_format((float) $accountCredit, 2, ',', '.') }}</div>

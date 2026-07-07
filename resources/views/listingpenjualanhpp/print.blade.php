@@ -105,7 +105,7 @@
             grid-template-columns: 10mm 28mm 20mm 45mm 22mm 23mm 13mm 22mm 25mm 22mm 30mm;
             gap: 1px;
             font-size: 8px;
-            padding: 3px 8px; /* Reduced vertical padding matching PO */
+            padding: 2px 8px; /* Reduced vertical padding matching PO */
             align-items: center;
         }
 
@@ -140,8 +140,7 @@
             font-weight: bold;
             color: #cc0000;
             background-color: transparent;
-            border-top: 1px dashed #000000;
-            border-bottom: 1px dashed #000000;
+            border-bottom: 1px solid #000000;
             margin-top: 0px;
             text-transform: uppercase;
             letter-spacing: 0.5px;
@@ -209,8 +208,8 @@
         }
 
         .separator {
-            border-bottom: 1px solid #000000;
-            margin: 4px 0;
+            /* border-bottom: 1px solid #000000; */
+            margin: 0px 0;
             clear: both;
         }
 
@@ -249,7 +248,7 @@
         .journal-block {
             page-break-inside: avoid;
             break-inside: avoid;
-            margin-bottom: 3px;
+            margin-bottom: 0px;
         }
 
         /* Zoom Out Button Style */
@@ -260,7 +259,7 @@
         /* Totals Panel style */
         .po-totals-panel-wrapper {
             margin-top: 15px;
-            width: 260mm; /* Full printable width */
+            width: 268mm; /* Full printable width */
             border-top: 1px solid #000000; /* Long line above totals */
             padding-top: 8px;
             position: relative; /* Position context for centering */
@@ -301,7 +300,7 @@
 
         .grand-total-row {
             color: #304ee7;
-            border-bottom: 3px double #000000;
+            border-bottom: 1px double #000000;
             padding: 5px 0;
             font-weight: bold;
         }
@@ -451,7 +450,7 @@
                     </div>
                 @endforeach
 
-                <div class="detail-row" style="font-weight: bold; border-top: 1px dashed #000000;">
+                <div class="detail-row" style="font-weight: bold;">
                     <div style="grid-column: span 7;" class="right">Total Laba/Rugi {{ $h->fsono }}</div>
                     <div>{{ number_format((float) $items->sum('flabarugi'), 2, ',', '.') }}</div>
                 </div>
