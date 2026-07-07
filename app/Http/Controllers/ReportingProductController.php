@@ -36,7 +36,12 @@ class ReportingProductController extends Controller
           ? DB::table('mswh')->where('fwhcode', $request->warehouse)->value('fwhname')
           : 'Semua Gudang';
 
-        return view('reportingproduct.print', compact('data', 'showCols', 'warehouseName'));
+        return view('reportingproduct.print', [
+            'data' => $data,
+            'showCols' => $showCols,
+            'warehouseName' => $warehouseName,
+            'user_session' => auth('sysuser')->user() ?? auth()->user(),
+        ]);
     }
 
     public function exportExcel(Request $request)

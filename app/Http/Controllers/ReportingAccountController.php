@@ -127,7 +127,10 @@ class ReportingAccountController extends Controller
     {
         $data = $this->getReportData($request);
 
-        return view('reportingaccount.print', ['data' => $data, 'user_session' => auth()->user()]);
+        return view('reportingaccount.print', [
+            'data' => $data,
+            'user_session' => auth('sysuser')->user() ?? auth()->user(),
+        ]);
     }
 
     public function exportExcel(Request $request)

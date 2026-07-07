@@ -24,7 +24,11 @@ class ReportingSubaccountController extends Controller
         $data = $this->getData($request);
         $printDate = Carbon::now()->format('d/m/Y H:i');
 
-        return view('reportingsubaccount.print', compact('data', 'printDate'));
+        return view('reportingsubaccount.print', [
+            'data' => $data,
+            'printDate' => $printDate,
+            'user_session' => auth('sysuser')->user() ?? auth()->user(),
+        ]);
     }
 
     public function exportExcel(Request $request)

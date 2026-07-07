@@ -26,7 +26,7 @@ class ListingPenerimaanKasBankController extends Controller
 
         return view('listingpenerimaankasbank.print', [
             'results' => $results,
-            'user_session' => auth()->user(),
+            'user_session' => auth('sysuser')->user() ?? auth()->user(),
         ]);
     }
 

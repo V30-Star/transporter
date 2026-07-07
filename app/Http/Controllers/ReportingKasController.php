@@ -141,7 +141,7 @@ class ReportingKasController extends Controller
             'onlyGiroMundur' => $onlyGiroMundur,
             'grandTotal' => $grandTotal,
             'printDate' => Carbon::now()->format('d/m/Y H:i:s'),
-            'user_session' => auth('sysuser')->user(),
+            'user_session' => auth('sysuser')->user() ?? auth()->user(),
         ]);
     }
 }

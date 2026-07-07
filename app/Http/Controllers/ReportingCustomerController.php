@@ -25,7 +25,11 @@ class ReportingCustomerController extends Controller
         $data = $this->getData($request);
         $printDate = Carbon::now()->format('d/m/Y H:i');
 
-        return view('reportingcustomer.print', compact('data', 'printDate'));
+        return view('reportingcustomer.print', [
+            'data' => $data,
+            'printDate' => $printDate,
+            'user_session' => auth('sysuser')->user() ?? auth()->user(),
+        ]);
     }
 
     public function exportExcel(Request $request)
