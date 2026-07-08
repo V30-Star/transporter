@@ -98,11 +98,11 @@
             color: #475569; /* Slate 600 */
         }
 
-        /* --- PO HEADER STYLES (8 Kolom) --- */
+        /* --- PO HEADER STYLES (9 Kolom) --- */
         .po-header-labels,
         .po-header {
             display: grid;
-            grid-template-columns: 28mm 18mm 24mm 24mm 20mm 20mm 24mm 30mm;
+            grid-template-columns: 25mm 18mm 24mm 20mm 16mm 18mm 18mm 22mm 24mm;
             gap: 1px;
             font-size: 8px;
             padding: 2px 8px;
@@ -158,11 +158,16 @@
 
         /* Alignment for Header */
         .po-header-labels>div:nth-child(5),
+        .po-header>div:nth-child(5) {
+            text-align: center;
+        }
+
         .po-header-labels>div:nth-child(6),
         .po-header-labels>div:nth-child(7),
-        .po-header>div:nth-child(5),
+        .po-header-labels>div:nth-child(8),
         .po-header>div:nth-child(6),
-        .po-header>div:nth-child(7) {
+        .po-header>div:nth-child(7),
+        .po-header>div:nth-child(8) {
             text-align: right;
         }
 
@@ -191,7 +196,8 @@
         .po-header > div:nth-child(4),
         .po-header > div:nth-child(5),
         .po-header > div:nth-child(6),
-        .po-header > div:nth-child(7) {
+        .po-header > div:nth-child(7),
+        .po-header > div:nth-child(8) {
             font-family: 'IBM Plex Mono', Courier, monospace;
             font-variant-numeric: tabular-nums;
         }
@@ -404,6 +410,7 @@
             <div>Tanggal</div>
             <div>Nama Customer</div>
             <div>Account</div>
+            <div>Giro Mundur</div>
             <div>By.Bank(-/+)</div>
             <div>Adjust(-/+)</div>
             <div>Total Bayar</div>
@@ -438,6 +445,7 @@
                         {{ $first->fcustname }}
                     </div>
                     <div>{{ $first->account }}</div>
+                    <div>{{ $first->fgiromundur == '1' ? 'Yes' : 'No' }}</div>
                     <div>{{ number_format($adminFee, 2, ',', '.') }}</div>
                     <div>{{ number_format($adjustment, 2, ',', '.') }}</div>
                     <div>{{ number_format($totalVoucherPayment, 2, ',', '.') }}</div>

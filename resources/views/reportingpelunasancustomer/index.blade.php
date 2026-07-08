@@ -3,17 +3,7 @@
 @section('title', 'Laporan Pelunasan Customer')
 
 @section('content')
-    <div class="p-6 bg-white shadow-md rounded-lg">
-        <h2 class="text-xl font-bold mb-4">Laporan Pelunasan Customer</h2>
-
-        <div class="flex flex-wrap items-center gap-4 mb-6">
-            {{-- Tombol Pemicu Modal --}}
-            <button onclick="toggleModal(true)"
-                style="padding: 6px 16px; background-color: #3b82f6; color: white; font-size: 0.875rem; border-radius: 0.25rem; display: inline-flex; align-items: center;"
-                class="hover:bg-blue-600 transition-colors"> Search Data
-            </button>
-        </div>
-
+    <div>
         {{-- --- MODAL FILTER POP-UP --- --}}
         <div id="filterModal" class="fixed inset-0 z-50 bg-black bg-opacity-50 hidden flex items-center justify-center">
             <div class="bg-white rounded-lg shadow-2xl max-w-2xl w-full p-6" onclick="event.stopPropagation()">

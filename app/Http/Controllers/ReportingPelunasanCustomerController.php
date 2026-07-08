@@ -118,6 +118,7 @@ class ReportingPelunasanCustomerController extends Controller
             'No. Voucher',
             'Tanggal',
             'Account Header',
+            'Giro Mundur',
             'Customer',
             'Admin Bank',
             'Adjustment',
@@ -139,7 +140,7 @@ class ReportingPelunasanCustomerController extends Controller
             $col++;
         }
 
-        $sheet->getStyle('A1:P1')->applyFromArray([
+        $sheet->getStyle('A1:Q1')->applyFromArray([
             'font' => ['bold' => true, 'color' => ['rgb' => 'FFFFFF']],
             'fill' => [
                 'fillType' => Fill::FILL_SOLID,
@@ -188,35 +189,36 @@ class ReportingPelunasanCustomerController extends Controller
                 $sheet->setCellValue('A' . $row, $record->fkasmtno);
                 $sheet->setCellValue('B' . $row, $record->fkasmtdate ? Carbon::parse($record->fkasmtdate)->format('d/m/Y') : '');
                 $sheet->setCellValue('C' . $row, $record->account);
-                $sheet->setCellValue('D' . $row, ($record->fcustomer ? $record->fcustomer . ' - ' : '') . $record->fcustname);
-                $sheet->setCellValue('E' . $row, $adminFee);
-                $sheet->setCellValue('F' . $row, $adjustment);
-                $sheet->setCellValue('G' . $row, $record->fuserid);
-                $sheet->setCellValue('H' . $row, $record->freftype);
-                $sheet->setCellValue('I' . $row, $record->frefno);
-                $sheet->setCellValue('J' . $row, $record->fdate_ref ? Carbon::parse($record->fdate_ref)->format('d/m/Y') : '');
-                $sheet->setCellValue('K' . $row, $record->fsalesman ?: '-');
-                $sheet->setCellValue('L' . $row, $qty);
-                $sheet->setCellValue('M' . $row, $netNota);
-                $sheet->setCellValue('N' . $row, $discount);
-                $sheet->setCellValue('O' . $row, $bayar);
-                $sheet->setCellValue('P' . $row, $sisa);
+                $sheet->setCellValue('D' . $row, $record->fgiromundur == '1' ? 'Yes' : 'No');
+                $sheet->setCellValue('E' . $row, ($record->fcustomer ? $record->fcustomer . ' - ' : '') . $record->fcustname);
+                $sheet->setCellValue('F' . $row, $adminFee);
+                $sheet->setCellValue('G' . $row, $adjustment);
+                $sheet->setCellValue('H' . $row, $record->fuserid);
+                $sheet->setCellValue('I' . $row, $record->freftype);
+                $sheet->setCellValue('J' . $row, $record->frefno);
+                $sheet->setCellValue('K' . $row, $record->fdate_ref ? Carbon::parse($record->fdate_ref)->format('d/m/Y') : '');
+                $sheet->setCellValue('L' . $row, $record->fsalesman ?: '-');
+                $sheet->setCellValue('M' . $row, $qty);
+                $sheet->setCellValue('N' . $row, $netNota);
+                $sheet->setCellValue('O' . $row, $discount);
+                $sheet->setCellValue('P' . $row, $bayar);
+                $sheet->setCellValue('Q' . $row, $sisa);
                 $row++;
             }
         }
 
         // Grand Total row
         $sheet->setCellValue('A' . $row, 'GRAND TOTAL');
-        $sheet->mergeCells("A{$row}:D{$row}");
-        $sheet->setCellValue('E' . $row, $gtAdmin);
-        $sheet->setCellValue('F' . $row, $gtAdjustment);
-        $sheet->setCellValue('L' . $row, $gtQty);
-        $sheet->setCellValue('M' . $row, $gtNetNota);
-        $sheet->setCellValue('N' . $row, $gtDiscount);
-        $sheet->setCellValue('O' . $row, $gtBayar);
-        $sheet->setCellValue('P' . $row, $gtSisa);
+        $sheet->mergeCells("A{$row}:E{$row}");
+        $sheet->setCellValue('F' . $row, $gtAdmin);
+        $sheet->setCellValue('G' . $row, $gtAdjustment);
+        $sheet->setCellValue('M' . $row, $gtQty);
+        $sheet->setCellValue('N' . $row, $gtNetNota);
+        $sheet->setCellValue('O' . $row, $gtDiscount);
+        $sheet->setCellValue('P' . $row, $gtBayar);
+        $sheet->setCellValue('Q' . $row, $gtSisa);
 
-        $sheet->getStyle("A{$row}:P{$row}")->applyFromArray([
+        $sheet->getStyle("A{$row}:Q{$row}")->applyFromArray([
             'font' => ['bold' => true, 'color' => ['rgb' => 'FFFFFF']],
             'fill' => [
                 'fillType' => Fill::FILL_SOLID,
@@ -227,15 +229,15 @@ class ReportingPelunasanCustomerController extends Controller
             ],
         ]);
 
-        foreach (range('A', 'P') as $column) {
+        foreach (range('A', 'Q') as $column) {
             $sheet->getColumnDimension($column)->setAutoSize(true);
         }
 
         $numFormat = '#,##0.00';
-        $sheet->getStyle('E2:F' . $row)->getNumberFormat()->setFormatCode($numFormat);
-        $sheet->getStyle('L2:P' . $row)->getNumberFormat()->setFormatCode($numFormat);
+        $sheet->getStyle('F2:G' . $row)->getNumberFormat()->setFormatCode($numFormat);
+        $sheet->getStyle('M2:Q' . $row)->getNumberFormat()->setFormatCode($numFormat);
 
-        $sheet->getStyle('A2:P' . ($row - 1))->applyFromArray([
+        $sheet->getStyle('A2:Q' . ($row - 1))->applyFromArray([
             'borders' => [
                 'allBorders' => ['borderStyle' => Border::BORDER_THIN],
             ],
@@ -286,7 +288,7 @@ class ReportingPelunasanCustomerController extends Controller
             ->whereIn('m.ftrancode', ['RCP', 'BKM'])
             ->whereRaw("TRIM(COALESCE(d.frefno, '')) <> ''")
             ->whereRaw("TRIM(COALESCE(d.freftype, '')) = 'INV'")
-            ->selectRaw("m.fkasmtno, d.freftype, m.fkasmtdate, t.faccname AS account, COALESCE(c.fcustomercode, CAST(m.fcustomer AS text)) AS fcustomer, c.fcustomername AS fcustname, d.frefno, d.fdiscpersen, d.fdiscount, d.fkasdtvalue, m.famountpay, m.famountpay_rp, m.fuserid, COALESCE(n.famountremain, 0) AS famountremain, n.fsodate AS fdate_ref, n.famountso, n.fongkosangkut, (n.famountso - n.fongkosangkut) AS fnetnota, n.fsalesman, m.fadminbank, m.fadjustment, dt.fqty");
+            ->selectRaw("m.fkasmtno, d.freftype, m.fkasmtdate, t.faccname AS account, COALESCE(c.fcustomercode, CAST(m.fcustomer AS text)) AS fcustomer, c.fcustomername AS fcustname, d.frefno, d.fdiscpersen, d.fdiscount, d.fkasdtvalue, m.famountpay, m.famountpay_rp, m.fuserid, COALESCE(n.famountremain, 0) AS famountremain, n.fsodate AS fdate_ref, n.famountso, n.fongkosangkut, (n.famountso - n.fongkosangkut) AS fnetnota, n.fsalesman, m.fadminbank, m.fadjustment, dt.fqty, m.fgiromundur");
 
         $reject = DB::table('trkasmt as m')
             ->leftJoin('trkasdt as d', 'm.fkasmtno', '=', 'd.fkasmtno')
@@ -306,7 +308,7 @@ class ReportingPelunasanCustomerController extends Controller
             ->whereIn('m.ftrancode', ['RCP', 'BKM'])
             ->whereRaw("TRIM(COALESCE(d.frefno, '')) <> ''")
             ->whereRaw("TRIM(COALESCE(d.freftype, '')) = 'REJ'")
-            ->selectRaw("m.fkasmtno, d.freftype, m.fkasmtdate, t.faccname AS account, COALESCE(c.fcustomercode, CAST(m.fcustomer AS text)) AS fcustomer, c.fcustomername AS fcustname, d.frefno, d.fdiscpersen, d.fdiscount, d.fkasdtvalue, m.famountpay, m.famountpay_rp, m.fuserid, COALESCE(n.famountremain, 0) AS famountremain, n.fstockmtdate AS fdate_ref, n.famountmt AS famountso, CAST(0 AS numeric) AS fongkosangkut, n.famountmt AS fnetnota, CAST(n.fsalesman AS text) AS fsalesman, m.fadminbank, m.fadjustment, dt.fqty");
+            ->selectRaw("m.fkasmtno, d.freftype, m.fkasmtdate, t.faccname AS account, COALESCE(c.fcustomercode, CAST(m.fcustomer AS text)) AS fcustomer, c.fcustomername AS fcustname, d.frefno, d.fdiscpersen, d.fdiscount, d.fkasdtvalue, m.famountpay, m.famountpay_rp, m.fuserid, COALESCE(n.famountremain, 0) AS famountremain, n.fstockmtdate AS fdate_ref, n.famountmt AS famountso, CAST(0 AS numeric) AS fongkosangkut, n.famountmt AS fnetnota, CAST(n.fsalesman AS text) AS fsalesman, m.fadminbank, m.fadjustment, dt.fqty, m.fgiromundur");
 
         $this->applyFilters($invoice, $filters, 'n.fsalesman');
         $this->applyFilters($reject, $filters, 'n.fsalesman');
