@@ -50,7 +50,7 @@
             position: relative;
             margin-bottom: 1px;
             text-align: center;
-            padding-bottom: 15px;
+            padding-bottom: 2px;
         }
 
         .header-section h2 {
@@ -66,7 +66,7 @@
         .filter-info {
             font-size: 10px;
             color: #475569; /* Slate 600 */
-            margin-bottom: 35px;
+            margin-bottom: 25px;
             font-weight: 500;
         }
 
@@ -102,7 +102,7 @@
         .po-header-labels,
         .po-header {
             display: grid;
-            grid-template-columns: 24mm 16mm 1fr 24mm 18mm 18mm 24mm 20mm;
+            grid-template-columns: 28mm 18mm 24mm 24mm 20mm 20mm 24mm 30mm;
             gap: 1px;
             font-size: 8px;
             padding: 2px 8px;
@@ -383,8 +383,6 @@
                 Cabang: {{ !empty($filters['branch_codes']) ? implode(', ', (array) $filters['branch_codes']) : 'Semua' }}<br>
                 No. Account: {{ $filters['account_no'] !== '' ? $filters['account_no'] : 'Semua' }}<br>
                 Salesman: {{ !$filters['all_salesman'] && $filters['salesman'] !== '' ? $filters['salesman'] : 'Semua' }}<br>
-                Dari Customer: {{ $filters['customer_from'] !== '' ? $filters['customer_from'] : 'Awal' }}<br>
-                Sd Customer: {{ $filters['customer_to'] !== '' ? $filters['customer_to'] : 'Akhir' }}
             </div>
             <h2>Listing Pelunasan Customer</h2>
             <div class="filter-info">
@@ -436,8 +434,8 @@
                 <div class="po-header">
                     <div>{{ $voucherNo }}</div>
                     <div>{{ $first->fkasmtdate ? \Carbon\Carbon::parse($first->fkasmtdate)->format('d/m/Y') : '' }}</div>
-                    <div class="truncate" title="{{ ($first->fcustomer ? $first->fcustomer . ' - ' : '') . $first->fcustname }}">
-                        {{ ($first->fcustomer ? $first->fcustomer . ' - ' : '') . $first->fcustname }}
+                    <div class="truncate" title="{{ $first->fcustname }}">
+                        {{ $first->fcustname }}
                     </div>
                     <div>{{ $first->account }}</div>
                     <div>{{ number_format($adminFee, 2, ',', '.') }}</div>
@@ -531,8 +529,6 @@
                         Cabang: {{ !empty($filters['branch_codes']) ? implode(', ', (array) $filters['branch_codes']) : 'Semua' }}<br>
                         No. Account: {{ $filters['account_no'] !== '' ? $filters['account_no'] : 'Semua' }}<br>
                         Salesman: {{ !$filters['all_salesman'] && $filters['salesman'] !== '' ? $filters['salesman'] : 'Semua' }}<br>
-                        Dari Customer: {{ $filters['customer_from'] !== '' ? $filters['customer_from'] : 'Awal' }}<br>
-                        Sd Customer: {{ $filters['customer_to'] !== '' ? $filters['customer_to'] : 'Akhir' }}
                     </div>
                     <h2>Listing Pelunasan Customer</h2>
                     <div class="info-tambahan">
