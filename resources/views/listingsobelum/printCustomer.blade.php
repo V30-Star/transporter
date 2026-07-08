@@ -348,6 +348,7 @@
     @php
         $branchText = request()->has('branch_codes') ? implode(', ', (array) request()->input('branch_codes')) : 'Semua';
         $customerText = request('cust_from') ? request('cust_from') . (request('cust_to') ? ' s/d ' . request('cust_to') : '') : 'Semua';
+        $isRekap = ($reportType ?? request('report_type', 'detail')) === 'rekap';
     @endphp
 
     {{-- Hidden Raw Data Container --}}
@@ -360,7 +361,7 @@
             <h2>SO Yang Belum Dikirim</h2>
             <div class="filter-info">
                 Periode: {{ $request->date_from ? \Carbon\Carbon::parse($request->date_from)->format('d/m/Y') : '...' }} s/d {{ $request->date_to ? \Carbon\Carbon::parse($request->date_to)->format('d/m/Y') : '...' }}
-                | Pengelompokan: Customer
+                | Pengelompokan: Customer | Jenis: {{ $isRekap ? 'Rekap' : 'Detail' }}
             </div>
             <div class="info-tambahan">
                 <div><span class="info-label">Tanggal</span>: {{ date('d/m/Y') }}</div>
@@ -369,52 +370,67 @@
             </div>
         </div>
 
-        {{-- Grid Header --}}
-        <div class="grid-header">
-            <div>No. SO</div>
-            <div>Tanggal</div>
-            <div>Nama Barang</div>
-            <div class="text-center">Satuan</div>
-            <div class="text-right">@ Harga</div>
-            <div class="text-right">Qty. Sisa</div>
-            <div class="text-right">Qty. Stok</div>
-        </div>
+        @if ($isRekap)
+            <div class="grid-header">
+                <div style="grid-column: span 5;">Customer</div>
+                <div class="text-right">Qty. Sisa</div>
+                <div class="text-right">Qty. Stok</div>
+            </div>
 
-        @foreach ($soData as $custId => $rows)
-            <div class="journal-block">
-                <div class="cust-group">
-                    Customer: {{ $rows->first()->fcustomername }}
-                </div>
-
-                @foreach ($rows as $row)
+            @foreach ($soData as $row)
+                <div class="journal-block">
+                    <div class="cust-group">Customer: {{ $row->fcustomername }}</div>
                     <div class="grid-row">
-                        <div class="truncate">{{ $row->fsono }}</div>
-                        <div>{{ date('d/m/Y', strtotime($row->fsodate)) }}</div>
-                        <div class="truncate" title="{{ $row->fcustomername }}">{{ $row->fcustomername }}</div>
-                        <div class="text-center">{{ $row->fsatuan }}</div>
-                        <div class="text-right">{{ number_format((float) $row->fpricenet, 2, ',', '.') }}</div>
+                        <div style="grid-column: span 5;" class="truncate">{{ $row->fcustno }} - {{ $row->fcustomername }}</div>
                         <div class="text-right" style="font-weight: bold;">{{ number_format((float) $row->fqty, 2, ',', '.') }}</div>
                         <div class="text-right">{{ number_format((float) $row->fstock, 2, ',', '.') }}</div>
                     </div>
-                @endforeach
-
-                {{-- Subtotal per Customer --}}
-                <div class="cust-subtotal">
-                    <div style="grid-column: span 5; text-align:right;">
-                        Total {{ $rows->first()->fcustomername }}
-                    </div>
-                    <div class="text-right">{{ number_format((float) $rows->sum('fqty'), 2, ',', '.') }}</div>
-                    <div></div>
                 </div>
+            @endforeach
+        @else
+            <div class="grid-header">
+                <div>No. SO</div>
+                <div>Tanggal</div>
+                <div>Nama Barang</div>
+                <div class="text-center">Satuan</div>
+                <div class="text-right">@ Harga</div>
+                <div class="text-right">Qty. Sisa</div>
+                <div class="text-right">Qty. Stok</div>
             </div>
-        @endforeach
+
+            @foreach ($soData as $custId => $rows)
+                <div class="journal-block">
+                    <div class="cust-group">
+                        Customer: {{ $rows->first()->fcustomername }}
+                    </div>
+
+                    @foreach ($rows as $row)
+                        <div class="grid-row">
+                            <div class="truncate">{{ $row->fsono }}</div>
+                            <div>{{ date('d/m/Y', strtotime($row->fsodate)) }}</div>
+                            <div class="truncate" title="{{ $row->fprdname }}">{{ $row->fprdname }}</div>
+                            <div class="text-center">{{ $row->fsatuan }}</div>
+                            <div class="text-right">{{ number_format((float) $row->fpricenet, 2, ',', '.') }}</div>
+                            <div class="text-right" style="font-weight: bold;">{{ number_format((float) $row->fqty, 2, ',', '.') }}</div>
+                            <div class="text-right">{{ number_format((float) $row->fstock, 2, ',', '.') }}</div>
+                        </div>
+                    @endforeach
+
+                    <div class="cust-subtotal">
+                        <div style="grid-column: span 5; text-align:right;">
+                            Total {{ $rows->first()->fcustomername }}
+                        </div>
+                        <div class="text-right">{{ number_format((float) $rows->sum('fqty'), 2, ',', '.') }}</div>
+                        <div></div>
+                    </div>
+                </div>
+            @endforeach
+        @endif
     </div>
 
     @php
         $grandTotalQty = 0;
-        foreach ($soData as $rows) {
-            $grandTotalQty += $rows->sum('fqty');
-        }
+        $grandTotalQty = $isRekap ? $soData->sum('fqty') : $soData->sum(fn ($rows) => $rows->sum('fqty'));
     @endphp
 
     {{-- Hidden Totals Panel Container --}}

@@ -102,7 +102,7 @@
         .po-header-labels,
         .po-header {
             display: grid;
-            grid-template-columns: 5mm 22mm 18mm 25mm 10mm 30mm 18mm 18mm 21mm 12mm;
+            grid-template-columns: 8mm 22mm 18mm 25mm 10mm 27mm 18mm 18mm 21mm 12mm;
             gap: 1px;
             font-size: 8px;
             padding: 3px 8px; /* Reduced vertical padding matching PO */

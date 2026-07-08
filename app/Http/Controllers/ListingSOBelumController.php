@@ -36,64 +36,11 @@ class ListingSOBelumController extends Controller
 
     private function printReport(Request $request, $grouping)
     {
-        $query = DB::table('trsomt as m')
-            ->join('trsodt as d', 'm.fsono', '=', 'd.fsono')
-            ->join('msprd as p', 'd.fprdcode', '=', 'p.fprdcode')
-            ->join('mscustomer as c', 'm.fcustno', '=', 'c.fcustomercode')
-            ->select(
-                'm.fsono',
-                'm.fsodate',
-                'm.fcustno',
-                'c.fcustomername',
-                'p.fprdcode',
-                'p.fprdname',
-                'd.fsatuan',
-                'd.fpricenet',
-                'p.fstock',
-                'p.fqtykecil',
-                'p.fsatuanbesar',
-                DB::raw('CASE WHEN d.fsatuan = p.fsatuanbesar THEN d.fqty / p.fqtykecil ELSE d.fqty END as fqty')
-            )
-            ->where('d.fqty', '>', 0)
-            ->where('m.fclose', '0');
-        $this->applyBranchVisibilityScope($query, 'm.fbranchcode');
-
-        $selectedBranches = $request->input('branch_codes', []);
-        if (!empty($selectedBranches)) {
-            $query->whereIn('m.fbranchcode', (array) $selectedBranches);
-        }
-
-        if ($request->date_from) {
-            $query->where('m.fsodate', '>=', $request->date_from);
-        }
-        if ($request->date_to) {
-            $query->where('m.fsodate', '<=', $request->date_to.' 23:59:59');
-        }
-
-        if ($request->cust_from && $request->cust_to) {
-            $query->whereBetween('c.fcustomercode', [$request->cust_from, $request->cust_to]);
-        }
-
-        if ($request->group_prd) {
-            $query->where('p.fgroupcode', $request->group_prd);
-        }
-
-        if ($request->selected_products) {
-            $prdArray = explode(',', $request->selected_products);
-            $query->whereIn('p.fprdcode', $prdArray);
-        }
-
-        if ($request->has('only_stok')) {
-            $query->where('p.fstock', '>', 0);
-        }
+        $results = $this->getQueryResult($request, $grouping);
 
         if ($grouping == 'produk') {
-            $query->orderBy('p.fprdcode')->orderBy('m.fsodate');
-            $results = $query->get()->groupBy('fprdcode');
             $view = 'listingsobelum.printProduct';
         } else {
-            $query->orderBy('c.fcustomercode')->orderBy('m.fsono');
-            $results = $query->get()->groupBy('fcustomercode');
             $view = 'listingsobelum.printCustomer';
         }
 
@@ -101,6 +48,7 @@ class ListingSOBelumController extends Controller
             'soData' => $results,
             'user_session' => auth('sysuser')->user() ?? auth()->user(),
             'request' => $request,
+            'reportType' => $request->input('report_type', 'detail'),
         ]);
     }
 
@@ -142,8 +90,29 @@ class ListingSOBelumController extends Controller
                 : 'Semua',
         ]));
         $writer->addRow($makeRow(['Customer:', $request->cust_from ? $request->cust_from.' s/d '.$request->cust_to : 'Semua']));
-        $writer->addRow($makeRow(['Operator:', auth()->user()->fname ?? 'User']));
+        $writer->addRow($makeRow(['Operator:', (auth('sysuser')->user() ?? auth()->user())->fname ?? 'User']));
         $writer->addRow($makeRow([]));
+
+        if ($request->input('report_type', 'detail') === 'rekap') {
+            $writer->addRow($makeRow(['Customer', 'Qty. Sisa', 'Qty. Stok'], $styleHeader));
+
+            $grandTotalQty = 0;
+            foreach ($results as $row) {
+                $grandTotalQty += (float) $row->fqty;
+                $writer->addRow($makeRow([
+                    $row->fcustno.' - '.$row->fcustomername,
+                    (float) $row->fqty,
+                    (float) $row->fstock,
+                ]));
+            }
+
+            $writer->addRow($makeRow(['GRAND TOTAL QTY SO BELUM DIKIRIM', $grandTotalQty, ''], $styleGrandTotal));
+            $writer->close();
+
+            return response()->download($tempFile, $filename, [
+                'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+            ])->deleteFileAfterSend(true);
+        }
 
         // Header Kolom
         $writer->addRow($makeRow([
@@ -255,8 +224,31 @@ class ListingSOBelumController extends Controller
                 : 'Semua',
         ]));
         $writer->addRow($makeRow(['Customer:', $request->cust_from ? $request->cust_from.' s/d '.$request->cust_to : 'Semua']));
-        $writer->addRow($makeRow(['Operator:', auth()->user()->fname ?? 'User']));
+        $writer->addRow($makeRow(['Operator:', (auth('sysuser')->user() ?? auth()->user())->fname ?? 'User']));
         $writer->addRow($makeRow([]));
+
+        if ($request->input('report_type', 'detail') === 'rekap') {
+            $writer->addRow($makeRow(['Kode Barang', 'Nama Barang', 'Satuan', 'Qty. Sisa', 'Qty. Stok'], $styleHeader));
+
+            $grandTotalQty = 0;
+            foreach ($results as $row) {
+                $grandTotalQty += (float) $row->fqty;
+                $writer->addRow($makeRow([
+                    $row->fprdcode,
+                    $row->fprdname,
+                    $row->fsatuan,
+                    (float) $row->fqty,
+                    (float) $row->fstock,
+                ]));
+            }
+
+            $writer->addRow($makeRow(['GRAND TOTAL QTY SO BELUM DIKIRIM', '', '', $grandTotalQty, ''], $styleGrandTotal));
+            $writer->close();
+
+            return response()->download($tempFile, $filename, [
+                'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+            ])->deleteFileAfterSend(true);
+        }
 
         // Header Kolom
         $writer->addRow($makeRow([
@@ -333,25 +325,15 @@ class ListingSOBelumController extends Controller
 
     private function getQueryResult(Request $request, string $grouping)
     {
+        $reportType = $request->input('report_type', 'detail');
+        $remainQty = 'CASE WHEN d.fsatuan = p.fsatuanbesar AND COALESCE(p.fqtykecil, 0) > 0 THEN COALESCE(d.fqtyremain, 0) / p.fqtykecil ELSE COALESCE(d.fqtyremain, 0) END';
+        $stockQty = "COALESCE(CAST(NULLIF(p.fstock, '') AS NUMERIC), 0)";
+
         $query = DB::table('trsomt as m')
             ->join('trsodt as d', 'm.fsono', '=', 'd.fsono')
             ->join('msprd as p', 'd.fprdcode', '=', 'p.fprdcode')
             ->join('mscustomer as c', 'm.fcustno', '=', 'c.fcustomercode')
-            ->select(
-                'm.fsono',
-                'm.fsodate',
-                'm.fcustno',
-                'c.fcustomername',
-                'p.fprdcode',
-                'p.fprdname',
-                'd.fsatuan',
-                'd.fpricenet',
-                'p.fstock',
-                'p.fqtykecil',
-                'p.fsatuanbesar',
-                DB::raw('CASE WHEN d.fsatuan = p.fsatuanbesar THEN d.fqty / p.fqtykecil ELSE d.fqty END as fqty')
-            )
-            ->where('d.fqty', '>', 0)
+            ->where('d.fqtyremain', '>', 0)
             ->where('m.fclose', '0');
         $this->applyBranchVisibilityScope($query, 'm.fbranchcode');
 
@@ -376,13 +358,53 @@ class ListingSOBelumController extends Controller
             $query->whereIn('p.fprdcode', explode(',', $request->selected_products));
         }
         if ($request->has('only_stok')) {
-            $query->where('p.fstock', '>', 0);
+            $query->whereRaw($stockQty.' > 0');
         }
+
+        if ($reportType === 'rekap') {
+            if ($grouping == 'produk') {
+                return $query->select(
+                    'p.fprdcode',
+                    'p.fprdname',
+                    DB::raw('MAX(d.fsatuan) as fsatuan'),
+                    DB::raw("MAX($stockQty) as fstock"),
+                    DB::raw("SUM($remainQty) as fqty")
+                )
+                    ->groupBy('p.fprdcode', 'p.fprdname')
+                    ->orderBy('p.fprdcode')
+                    ->get();
+            }
+
+            return $query->select(
+                'm.fcustno',
+                'c.fcustomername',
+                DB::raw("SUM($remainQty) as fqty"),
+                DB::raw("SUM($stockQty) as fstock")
+            )
+                ->groupBy('m.fcustno', 'c.fcustomername')
+                ->orderBy('m.fcustno')
+                ->get();
+        }
+
+        $query->select(
+            'm.fsono',
+            'm.fsodate',
+            'm.fcustno',
+            'c.fcustomername',
+            'p.fprdcode',
+            'p.fprdname',
+            'd.fsatuan',
+            'd.fpricenet',
+            DB::raw($stockQty.' as fstock'),
+            'p.fqtykecil',
+            'p.fsatuanbesar',
+            DB::raw($remainQty.' as fqty')
+        );
 
         if ($grouping == 'produk') {
             return $query->orderBy('p.fprdcode')->orderBy('m.fsodate')->get()->groupBy('fprdcode');
-        } else {
-            return $query->orderBy('c.fcustomercode')->orderBy('m.fsono')->get()->groupBy('fcustomercode');
         }
+
+        return $query->orderBy('c.fcustomercode')->orderBy('m.fsono')->get()->groupBy('fcustomercode');
     }
 }

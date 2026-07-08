@@ -102,7 +102,12 @@ class ListingSOController extends Controller
         }
 
         if ($request->input('so_filter') === 'only_pending' || (! $request->has('all_so') && $request->has('only_pending'))) {
-            $query->where('mt.fclose', '0');
+            $query->whereExists(function ($q) {
+                $q->select(DB::raw(1))
+                    ->from('public.trsodt as dt')
+                    ->whereRaw('dt.fsono = mt.fsono')
+                    ->whereRaw('COALESCE(dt.fqtyremain, 0) > 0');
+            });
         }
 
         $results = $query->orderBy('mt.fsodate', 'asc')->orderBy('mt.fsono', 'asc')->get();
@@ -200,7 +205,12 @@ class ListingSOController extends Controller
         }
 
         if ($request->input('so_filter') === 'only_pending' || (! $request->has('all_so') && $request->has('only_pending'))) {
-            $query->where('mt.fclose', '0');
+            $query->whereExists(function ($q) {
+                $q->select(DB::raw(1))
+                    ->from('public.trsodt as dt')
+                    ->whereRaw('dt.fsono = mt.fsono')
+                    ->whereRaw('COALESCE(dt.fqtyremain, 0) > 0');
+            });
         }
 
         $results = $query->orderBy('mt.fsodate', 'asc')->orderBy('mt.fsono', 'asc')->get();

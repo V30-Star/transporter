@@ -102,7 +102,7 @@
         .sales-header-labels,
         .sales-header {
             display: grid;
-            grid-template-columns: 5mm 18mm 16mm 16mm 20mm 18mm 14mm 22mm 14mm 14mm 15mm;
+            grid-template-columns: 8mm 18mm 16mm 16mm 20mm 18mm 14mm 22mm 14mm 14mm 15mm;
             gap: 1px;
             font-size: 8px;
             padding: 2px 8px; /* Reduced vertical padding matching PO */

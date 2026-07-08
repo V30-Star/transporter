@@ -83,6 +83,7 @@ class ListingSoTest extends TestCase
                 $table->string('fprdcode');
                 $table->string('fitemdesc');
                 $table->decimal('fqty', 15, 2);
+                $table->decimal('fqtyremain', 15, 2)->default(0);
                 $table->decimal('fprice', 15, 2);
             });
 
@@ -169,6 +170,7 @@ class ListingSoTest extends TestCase
                 'fprdcode' => 'PRD01',
                 'fitemdesc' => 'Produk Satu',
                 'fqty' => 1,
+                'fqtyremain' => 1,
                 'fprice' => 100000,
             ],
             [
@@ -177,6 +179,7 @@ class ListingSoTest extends TestCase
                 'fprdcode' => 'PRD01',
                 'fitemdesc' => 'Produk Satu',
                 'fqty' => 2,
+                'fqtyremain' => 0,
                 'fprice' => 100000,
             ],
         ]);

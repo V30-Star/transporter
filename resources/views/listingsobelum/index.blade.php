@@ -140,24 +140,19 @@
                 </div>
 
                 {{-- Opsi Cetak --}}
-                <div class="mb-5 p-3 bg-yellow-50 border border-yellow-200 rounded-lg" x-data="{ printOption: 'is_detail' }">
+                <div class="mb-5 p-3 bg-yellow-50 border border-yellow-200 rounded-lg max-w-xl mx-auto text-center">
                     <p class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Opsi Cetak</p>
-                    <div class="flex gap-5">
+                    <div class="flex flex-wrap justify-center gap-5">
                         <label class="flex items-center gap-2 text-sm font-semibold cursor-pointer">
-                            <input type="checkbox" :checked="printOption === 'is_detail'"
-                                @click="printOption = 'is_detail'"> Detail
+                            <input type="radio" name="report_type" value="detail" checked> Detail
                         </label>
                         <label class="flex items-center gap-2 text-sm font-semibold cursor-pointer">
-                            <input type="checkbox" :checked="printOption === 'is_rekap'"
-                                @click="printOption = 'is_rekap'"> Rekap
+                            <input type="radio" name="report_type" value="rekap"> Rekap
                         </label>
                         <label class="flex items-center gap-2 text-sm font-semibold cursor-pointer">
                             <input type="checkbox" name="only_stok"> Ada Stok Saja
                         </label>
                     </div>
-
-                    {{-- hidden input yang dikirim ke server --}}
-                    <input type="hidden" name="print_option" :value="printOption">
                 </div>
 
                 {{-- Actions --}}
