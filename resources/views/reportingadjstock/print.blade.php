@@ -445,25 +445,9 @@
         <div class="po-totals-panel-wrapper">
             <div class="end-of-report-inline">** END OF REPORT **</div>
             <div class="po-totals-container">
-                <div class="po-total-row">
-                    <span>TOTAL HEADER ADJ</span>
-                    <span>{{ number_format($grandTotal['harga'], 2, ',', '.') }}</span>
-                </div>
-                <div class="po-total-row">
-                    <span>TOTAL HEADER PPN</span>
-                    <span>{{ number_format($grandTotal['ppn'], 2, ',', '.') }}</span>
-                </div>
-                <div class="po-total-row">
-                    <span>GRAND TOTAL HEADER</span>
-                    <span>{{ number_format($grandTotal['total_po'], 2, ',', '.') }}</span>
-                </div>
-                <div class="po-total-row">
-                    <span>TOTAL DETAIL QTY</span>
-                    <span>{{ number_format($grandTotal['qty'], 2, ',', '.') }}</span>
-                </div>
                 <div class="po-total-row grand-total-row">
-                    <span>TOTAL DETAIL VAL</span>
-                    <span>{{ number_format($grandTotal['harga'], 2, ',', '.') }}</span>
+                    <span>TOTAL ADJUSTMENT</span>
+                    <span>{{ number_format($grandTotal['total_po'], 2, ',', '.') }}</span>
                 </div>
             </div>
         </div>
