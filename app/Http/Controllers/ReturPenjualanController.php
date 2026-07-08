@@ -634,10 +634,13 @@ class ReturPenjualanController extends Controller
         $hdr = DB::table('tranmt')
             ->leftJoin('mscustomer as c', 'c.fcustomercode', '=', 'tranmt.fcustno')
             ->leftJoin('mssalesman as s', 's.fsalesmancode', '=', 'tranmt.fsalesman')
+            ->leftJoin('mscabang as b', 'b.fcabangkode', '=', 'tranmt.fbranchcode')
             ->where('tranmt.fsono', $fsono)
             ->first([
                 'tranmt.*',
                 'c.fcustomername as customer_name',
+                'c.faddress as customer_address',
+                'b.fcabangname as cabang_name',
                 's.fsalesmanname as salesman_name',
             ]);
 

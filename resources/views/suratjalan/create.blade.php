@@ -210,76 +210,112 @@
             </div>
         </div>
     @endif
-    <div x-data="{ open: true }">
-        <div x-data="{ includePPN: false, ppnRate: 0, ppnAmount: 0, totalHarga: 100000 }" class="lg:col-span-5">
-            <div class="bg-white rounded shadow p-6 md:p-8 max-w-[128rem] mx-auto">
-                <form action="{{ route('suratjalan.store') }}" method="POST" class="mt-6" data-form-draft="true"
-                    data-draft-key="suratjalan:create" x-data="{ showNoItems: false, showWarehouseRequired: false }"
-                    @submit.prevent="
-        const duplicateCode = window.getSuratJalanDuplicateCode?.($el);
-        if (duplicateCode) {
-            Swal.fire({
-                icon: 'warning',
-                title: 'Produk Duplikat',
-                text: `Kode produk ${duplicateCode} tidak boleh sama dalam satu Surat Jalan.`,
-                confirmButtonText: 'OK',
-                customClass: {
-                    confirmButton: 'bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700'
+    <div class="mx-auto max-w-[1600px] px-4 py-8">
+        {{-- ─── BREADCRUMB & HEADER ───────────────────────────────── --}}
+        <div class="mb-6 flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
+            <div>
+                <nav class="flex text-xs font-semibold uppercase tracking-wider text-gray-400">
+                    <a href="{{ route('suratjalan.index') }}" class="hover:text-gray-600">Surat Jalan</a>
+                    <span class="mx-2 text-gray-300">/</span>
+                    <span class="text-gray-600">Tambah Baru</span>
+                </nav>
+                <h1 class="mt-1 text-2xl font-bold tracking-tight text-gray-900">Tambah Surat Jalan</h1>
+            </div>
+            <div class="flex items-center gap-2">
+                <a href="{{ route('suratjalan.index') }}"
+                    class="inline-flex h-9 items-center justify-center rounded-lg border border-gray-300 bg-white px-4 text-xs font-semibold text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">
+                    Kembali
+                </a>
+            </div>
+        </div>
+        <form action="{{ route('suratjalan.store') }}" method="POST" data-form-draft="true"
+            data-draft-key="suratjalan:create" x-data="{ showNoItems: false, showWarehouseRequired: false }"
+            @submit.prevent="
+                const duplicateCode = window.getSuratJalanDuplicateCode?.($el);
+                if (duplicateCode) {
+                    Swal.fire({
+                        icon: 'warning',
+                        title: 'Produk Duplikat',
+                        text: `Kode produk ${duplicateCode} tidak boleh sama dalam satu Surat Jalan.`,
+                        confirmButtonText: 'OK',
+                        customClass: {
+                            confirmButton: 'bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700'
+                        }
+                    });
+                    return;
                 }
-            });
-            return;
-        }
-        const warehouseCode = (document.getElementById('warehouseCodeHidden')?.value || '').toString().trim();
-        showWarehouseRequired = false;
-        if (!warehouseCode) {
-            showWarehouseRequired = true;
-            window.toast?.error('Gudang wajib diisi sebelum simpan.');
-            return;
-        }
-        const n = Number(document.getElementById('itemsCount')?.value || 0);
-        if (n < 1) { showNoItems = true } else { $el.submit() }
-      ">
-                    @csrf
+                const warehouseCode = (document.getElementById('warehouseCodeHidden')?.value || '').toString().trim();
+                showWarehouseRequired = false;
+                if (!warehouseCode) {
+                    showWarehouseRequired = true;
+                    window.toast?.error('Gudang wajib diisi sebelum simpan.');
+                    return;
+                }
+                const n = Number(document.getElementById('itemsCount')?.value || 0);
+                if (n < 1) { showNoItems = true } else { $el.submit() }
+            ">
+            @csrf
 
-                    {{-- HEADER FORM --}}
-                    <div class="grid grid-cols-1 lg:grid-cols-12 gap-4">
-                        <div class="lg:col-span-4">
-                            <label class="block text-sm font-bold">Cabang</label>
-                            <input type="text" class="w-full border rounded px-3 py-2 bg-gray-200 cursor-not-allowed"
+            {{-- ─── CARD 1: Identitas Surat Jalan ────────────────────── --}}
+            <div class="bg-white border border-gray-200 rounded-xl mb-3 overflow-hidden">
+                <div class="flex items-center gap-2 px-4 pt-3 pb-0">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-gray-400" fill="none"
+                        viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+                    </svg>
+                    <p class="text-xs font-medium uppercase tracking-wide text-gray-400">Identitas Surat Jalan</p>
+                </div>
+                <div class="p-4 space-y-3">
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+                        {{-- Cabang --}}
+                        <div>
+                            <label class="block text-xs font-bold text-gray-600 mb-1">Cabang</label>
+                            <input type="text"
+                                class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm bg-gray-100 text-gray-500 cursor-not-allowed border-gray-200"
                                 value="{{ trim(($fbranchcode ?? '') . ($fcabang ?? '' ? ' - ' . $fcabang : '')) }}"
                                 disabled>
                             <input type="hidden" name="fbranchcode" value="{{ $fbranchcode }}">
                         </div>
-                        <div class="lg:col-span-4" x-data="{ autoCode: true }">
-                            <label class="block text-sm font-bold mb-1">Transaksi#</label>
-                            <div class="flex items-center gap-3">
-                                <input type="text" name="fstockmtno" class="w-full border rounded px-3 py-2"
+
+                        {{-- Transaksi# --}}
+                        <div x-data="{ autoCode: true }">
+                            <label class="block text-xs font-bold text-gray-600 mb-1">Transaksi#</label>
+                            <div class="flex items-center gap-2">
+                                <input type="text" name="fstockmtno"
+                                    class="flex-1 border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
                                     :disabled="autoCode"
-                                    :class="autoCode ? 'bg-gray-200 cursor-not-allowed' : 'bg-white'">
-                                <label class="inline-flex items-center select-none">
-                                    <input type="checkbox" x-model="autoCode" checked>
-                                    <span class="ml-2 text-sm text-gray-700">Auto</span>
+                                    :class="autoCode ? 'bg-gray-100 text-gray-500 border-gray-200 cursor-not-allowed' : 'bg-white'"
+                                    placeholder="Auto Generated">
+                                <label class="inline-flex items-center select-none font-medium text-sm text-gray-600 cursor-pointer">
+                                    <input type="checkbox" x-model="autoCode" checked
+                                        class="rounded text-blue-600 border-gray-300 focus:ring-blue-500">
+                                    <span class="ml-1.5">Auto</span>
                                 </label>
                             </div>
                         </div>
 
                         <input type="hidden" name="fstockmtid" value="fstockmtid">
 
-                        <div class="lg:col-span-4">
-                            <label class="block text-sm font-bold">Tanggal</label>
+                        {{-- Tanggal --}}
+                        <div>
+                            <label class="block text-xs font-bold text-gray-600 mb-1">Tanggal <span class="text-red-500">*</span></label>
                             <input type="date" name="fstockmtdate" value="{{ old('fstockmtdate') ?? date('Y-m-d') }}"
-                                class="w-full border rounded px-3 py-2 @error('fstockmtdate') border-red-500 @enderror">
+                                class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 @error('fstockmtdate') border-red-400 @enderror">
                             @error('fstockmtdate')
-                                <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+                                <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
                             @enderror
                         </div>
+                    </div>
 
-                        <div class="lg:col-span-4">
-                            <label class="block text-sm font-bold mb-1">Customer</label>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+                        {{-- Customer --}}
+                        <div>
+                            <label class="block text-xs font-bold text-gray-600 mb-1">Customer <span class="text-red-500">*</span></label>
                             <div class="flex">
                                 <div class="relative flex-1" for="modal_filter_customer_id">
                                     <select id="modal_filter_customer_id" name="filter_customer_id"
-                                        class="w-full border rounded-l px-3 py-2 bg-gray-100 text-gray-700 cursor-not-allowed"
+                                        class="w-full border border-gray-300 rounded-l-lg px-3 py-2 text-sm bg-gray-50 text-gray-700 cursor-pointer focus:outline-none focus:border-blue-500"
                                         disabled>
                                         <option value=""></option>
                                         @foreach ($customers as $customer)
@@ -289,36 +325,37 @@
                                             </option>
                                         @endforeach
                                     </select>
-                                    <div class="absolute inset-0" role="button" aria-label="{{ 'Browse Customer' }}"
+                                    <div class="absolute inset-0 cursor-pointer" role="button" aria-label="Browse Customer"
                                         @click="window.dispatchEvent(new CustomEvent('customer-browse-open'))"></div>
                                 </div>
                                 <input type="hidden" name="fsupplier" id="customerCodeHidden"
                                     value="{{ old('fsupplier') }}">
                                 <button type="button"
                                     @click="window.dispatchEvent(new CustomEvent('customer-browse-open'))"
-                                    class="border -ml-px px-3 py-2 bg-white hover:bg-gray-50 rounded-r-none"
-                                    title="{{ 'Browse Customer' }}">
-                                    <x-heroicon-o-magnifying-glass class="w-5 h-5" />
+                                    class="border border-l-0 border-gray-300 px-3 py-2 bg-white hover:bg-gray-50 text-gray-500 transition-colors"
+                                    title="Browse Customer">
+                                    <x-heroicon-o-magnifying-glass class="w-4 h-4" />
                                 </button>
                                 @if (in_array('createCustomer', explode(',', session('user_restricted_permissions', '')), true))
                                     <a href="{{ route('customer.create') }}" target="_blank" rel="noopener"
-                                        class="border -ml-px rounded-r px-3 py-2 bg-white hover:bg-gray-50"
+                                        class="border border-l-0 border-gray-300 rounded-r-lg px-3 py-2 bg-white hover:bg-gray-50 text-gray-500 transition-colors"
                                         title="Tambah Customer">
-                                        <x-heroicon-o-plus class="w-5 h-5" />
+                                        <x-heroicon-o-plus class="w-4 h-4" />
                                     </a>
                                 @endif
                             </div>
                             @error('fsupplier')
-                                <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+                                <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
                             @enderror
                         </div>
 
-                        <div class="lg:col-span-4">
-                            <label class="block text-sm font-bold mb-1">Gudang</label>
+                        {{-- Gudang --}}
+                        <div>
+                            <label class="block text-xs font-bold text-gray-600 mb-1">Gudang <span class="text-red-500">*</span></label>
                             <div class="flex">
                                 <div class="relative flex-1">
                                     <select id="warehouseSelect"
-                                        class="w-full border rounded-l px-3 py-2 bg-gray-100 text-gray-700 cursor-not-allowed"
+                                        class="w-full border border-gray-300 rounded-l-lg px-3 py-2 text-sm bg-gray-50 text-gray-700 cursor-pointer focus:outline-none focus:border-blue-500"
                                         disabled>
                                         <option value=""></option>
                                         @foreach ($warehouses as $wh)
@@ -329,76 +366,85 @@
                                             </option>
                                         @endforeach
                                     </select>
-
-                                    {{-- Overlay untuk buka browser gudang --}}
-                                    <div class="absolute inset-0" role="button" aria-label="{{ 'Browse Gudang' }}"
+                                    <div class="absolute inset-0 cursor-pointer" role="button" aria-label="Browse Gudang"
                                         @click="window.suratJalanWarehouseLockedFromSalesOrder && document.getElementById('warehouseCodeHidden')?.value ? window.toast?.info('Gudang tidak bisa dipilih untuk data dari Sales Order.') : window.dispatchEvent(new CustomEvent('warehouse-browse-open'))"></div>
                                 </div>
-
                                 <input type="hidden" name="ffrom" id="warehouseCodeHidden"
                                     value="{{ old('ffrom') }}">
                                 <input type="hidden" name="fwhid" id="warehouseIdHidden"
                                     value="{{ old('fwhid') }}">
-
                                 <button type="button"
                                     @click="window.suratJalanWarehouseLockedFromSalesOrder && document.getElementById('warehouseCodeHidden')?.value ? window.toast?.info('Gudang tidak bisa dipilih untuk data dari Sales Order.') : window.dispatchEvent(new CustomEvent('warehouse-browse-open'))"
-                                    class="border -ml-px px-3 py-2 bg-white hover:bg-gray-50 rounded-r-none"
-                                    title="{{ 'Browse Gudang' }}">
-                                    <x-heroicon-o-magnifying-glass class="w-5 h-5" />
+                                    class="border border-l-0 border-gray-300 px-3 py-2 bg-white hover:bg-gray-50 text-gray-500 transition-colors"
+                                    title="Browse Gudang">
+                                    <x-heroicon-o-magnifying-glass class="w-4 h-4" />
                                 </button>
-
-                                {{-- ganti route di bawah sesuai halaman tambah gudangmu --}}
                                 <a href="{{ route('gudang.create') }}" target="_blank" rel="noopener"
-                                    class="border -ml-px rounded-r px-3 py-2 bg-white hover:bg-gray-50"
+                                    class="border border-l-0 border-gray-300 rounded-r-lg px-3 py-2 bg-white hover:bg-gray-50 text-gray-500 transition-colors"
                                     title="Tambah Gudang">
-                                    <x-heroicon-o-plus class="w-5 h-5" />
+                                    <x-heroicon-o-plus class="w-4 h-4" />
                                 </a>
                             </div>
-
                             @error('ffrom')
-                                <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+                                <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
                             @enderror
-                            <p x-show="showWarehouseRequired" x-cloak class="text-red-600 text-sm mt-1">
+                            <p x-show="showWarehouseRequired" x-cloak class="text-red-500 text-xs mt-1">
                                 Gudang harus diisi dahulu sebelum Simpan.
                             </p>
                         </div>
 
-                        <div class="lg:col-span-4">
-                        </div>
+                        <div></div>
+                    </div>
 
-                        <div class="lg:col-span-4">
-                            <label class="block text-sm font-bold">Kirim ke</label>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+                        {{-- Kirim ke --}}
+                        <div>
+                            <label class="block text-xs font-bold text-gray-600 mb-1">Kirim ke</label>
                             <textarea name="fkirim" rows="3"
-                                class="w-full border rounded px-3 py-2 @error('fkirim') border-red-500 @enderror"
+                                class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 @error('fkirim') border-red-400 @enderror"
                                 placeholder="Tulis kirim tambahan di sini...">{{ old('fkirim') }}</textarea>
                             @error('fkirim')
-                                <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+                                <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
                             @enderror
                         </div>
-                        <div class="lg:col-span-4">
-                            <label class="block text-sm font-bold">Keterangan</label>
+
+                        {{-- Keterangan --}}
+                        <div>
+                            <label class="block text-xs font-bold text-gray-600 mb-1">Keterangan</label>
                             <textarea name="fket" rows="3"
-                                class="w-full border rounded px-3 py-2 @error('fket') border-red-500 @enderror"
+                                class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 @error('fket') border-red-400 @enderror"
                                 placeholder="Tulis keterangan tambahan di sini...">{{ old('fket') }}</textarea>
                             @error('fket')
-                                <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+                                <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
                             @enderror
                         </div>
-                        <div class="lg:col-span-4">
-                            <label class="block text-sm font-bold">Catatan Internal</label>
+
+                        {{-- Catatan Internal --}}
+                        <div>
+                            <label class="block text-xs font-bold text-gray-600 mb-1">Catatan Internal</label>
                             <textarea name="fketinternal" id="fketinternal" rows="3"
-                                class="w-full border rounded px-3 py-2 @error('fketinternal') border-red-500 @enderror"
+                                class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 @error('fketinternal') border-red-400 @enderror"
                                 placeholder="Tulis catatan internal di sini...">{{ old('fketinternal') }}</textarea>
                             @error('fketinternal')
-                                <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+                                <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
                             @enderror
                         </div>
                     </div>
+                </div>
+            </div>
 
-                    <div x-data="itemsTable()" x-init="init()" class="mt-6 space-y-2">
-
-                        {{-- DETAIL ITEM (tabel input) --}}
-                        <h3 class="text-base font-semibold text-gray-800">Detail Item</h3>
+            {{-- ─── CARD 2: Detail Item ────────────────────── --}}
+            <div class="bg-white border border-gray-200 rounded-xl mb-3 overflow-hidden">
+                <div class="flex items-center gap-2 px-4 pt-3 pb-0">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-gray-400" fill="none"
+                        viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
+                    </svg>
+                    <p class="text-xs font-medium uppercase tracking-wide text-gray-400">Detail Item</p>
+                </div>
+                <div class="p-4">
+                    <div x-data="itemsTable()" x-init="init()" class="space-y-2">
 
                         <div class="overflow-auto border rounded">
                             <table class="suratjalan-detail-table min-w-full text-sm">
@@ -872,16 +918,23 @@
 
                             <x-transaction.browse-product-modal show-controls="true" show-pagination="true" />
 
-                            <div class="mt-8 flex w-full items-center justify-center gap-4">
-                                <button type="submit"
-                                    class="bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700 flex items-center">
-                                    <x-heroicon-o-check class="w-5 h-5 mr-2" /> Simpan
-                                </button>
-                                <button type="button" @click="window.location.href='{{ route('suratjalan.index') }}'"
-                                    class="bg-gray-500 text-white px-6 py-2 rounded hover:bg-gray-600 flex items-center">
-                                    <x-heroicon-o-arrow-left class="w-5 h-5 mr-2" /> Keluar
-                                </button>
-                            </div>
+                    </div> {{-- End of itemsTable --}}
+                </div> {{-- End of CARD 2 body --}}
+            </div> {{-- End of CARD 2 container --}}
+
+            {{-- ─── CARD 3: Aksi ─────────────────────────── --}}
+            <div class="bg-white border border-gray-200 rounded-xl mb-3 overflow-hidden">
+                <div class="p-4 flex items-center justify-end gap-3">
+                    <button type="button" @click="window.location.href='{{ route('suratjalan.index') }}'"
+                        class="inline-flex h-9 items-center justify-center rounded-lg border border-gray-300 bg-white px-4 text-xs font-semibold text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">
+                        Keluar
+                    </button>
+                    <button type="submit"
+                        class="inline-flex h-9 items-center justify-center rounded-lg bg-blue-600 px-4 text-xs font-semibold text-white shadow-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">
+                        Simpan
+                    </button>
+                </div>
+            </div>
                 </form>
             </div>
         </div>

@@ -260,16 +260,37 @@
             </div>
         </div>
     @endif
-    <div x-data="{ open: true }">
-        <div x-data="{ includePPN: false, ppnRate: 0, ppnAmount: 0, totalHarga: 100000 }" class="lg:col-span-5">
-            <div class="bg-white rounded shadow p-6 md:p-8 max-w-[128rem] mx-auto">
-                {{-- ============================================ --}}
-                {{-- MODE DELETE: VIEW ONLY + BUTTON HAPUS       --}}
-                {{-- ============================================ --}}
-                @if ($isReadOnly)
-                    <div class="space-y-4">
+    <div class="mx-auto max-w-[1600px] px-4 py-8">
+        {{-- ─── BREADCRUMB & HEADER ───────────────────────────────── --}}
+        <div class="mb-6 flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
+            <div>
+                <nav class="flex text-xs font-semibold uppercase tracking-wider text-gray-400">
+                    <a href="{{ route('suratjalan.index') }}" class="hover:text-gray-600">Surat Jalan</a>
+                    <span class="mx-2 text-gray-300">/</span>
+                    <span class="text-gray-600">
+                        @if ($isDelete) Hapus @elseif($isView) Detail @else Edit @endif
+                    </span>
+                </nav>
+                <h1 class="mt-1 text-2xl font-bold tracking-tight text-gray-900">
+                    @if ($isDelete) Hapus @elseif($isView) Detail @else Edit @endif Surat Jalan
+                </h1>
+            </div>
+            <div class="flex items-center gap-2">
+                <a href="{{ route('suratjalan.index') }}"
+                    class="inline-flex h-9 items-center justify-center rounded-lg border border-gray-300 bg-white px-4 text-xs font-semibold text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">
+                    Kembali
+                </a>
+            </div>
+        </div>
 
-                        <div class="grid grid-cols-1 lg:grid-cols-12 gap-4">
+        @if ($isReadOnly)
+            {{-- ─── CARD 1: Identitas Surat Jalan (Readonly) ──────── --}}
+            <div class="bg-white border border-gray-200 rounded-xl mb-3 overflow-hidden">
+                <div class="border-b border-gray-200 bg-gray-50 px-4 py-3">
+                    <h2 class="text-sm font-bold text-gray-700">Identitas Surat Jalan</h2>
+                </div>
+                <div class="p-4">
+                    <div class="grid grid-cols-1 lg:grid-cols-12 gap-4">
                             <div class="lg:col-span-4">
                                 <label class="block text-sm font-bold">Cabang</label>
                                 <input type="text" class="w-full border rounded px-3 py-2 bg-gray-200 cursor-not-allowed"
@@ -384,12 +405,17 @@
                                     <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                                 @enderror
                             </div>
-                        </div>
+                    </div>
+                </div>
+            </div>
 
-                        <div x-data="itemsTable()" x-init="init()" class="mt-6 space-y-2">
-
-                            {{-- DETAIL ITEM (tabel input) --}}
-                            <h3 class="text-base font-semibold text-gray-800">Detail Item</h3>
+            {{-- ─── CARD 2: Detail Item (Readonly) ──────────────── --}}
+            <div class="bg-white border border-gray-200 rounded-xl mb-3 overflow-hidden">
+                <div class="border-b border-gray-200 bg-gray-50 px-4 py-3">
+                    <h2 class="text-sm font-bold text-gray-700">Detail Item</h2>
+                </div>
+                <div class="p-4">
+                    <div x-data="itemsTable()" x-init="init()" class="space-y-2">
 
                             <div class="overflow-auto border rounded">
                                 <table class="suratjalan-detail-table min-w-full text-sm">
@@ -460,39 +486,45 @@
                                 </table>
                             </div>
                         </div>
+                    </div>
+                </div>
+            </div>
 
-                        <div class="mt-6 flex justify-center space-x-4">
-                            @if ($isDelete)
-                                @if ($usageLocked)
-                                    <button type="button" disabled title="{{ $usageLockMessage }}"
-                                        class="bg-red-300 text-white px-6 py-2 rounded flex items-center cursor-not-allowed opacity-70">
-                                        <x-heroicon-o-lock-closed class="w-5 h-5 mr-2" />
-                                        Hapus
-                                    </button>
-                                @else
-                                    <button type="button" onclick="showDeleteModal()"
-                                        class="bg-red-600 text-white px-6 py-2 rounded hover:bg-red-700 flex items-center">
-                                        <x-heroicon-o-trash class="w-5 h-5 mr-2" />
-                                        Hapus
-                                    </button>
-                                @endif
-                            @elseif ($isView && $canPrintPermission)
-                                <a href="{{ route('suratjalan.print', $suratjalan->fstockmtno) }}" target="_blank"
-                                    class="bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700 flex items-center">
-                                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                            d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m10 0v-5a2 2 0 00-2-2H9a2 2 0 00-2 2v5m10 0v5H7v-5">
-                                        </path>
-                                    </svg>
-                                    Print
-                                </a>
-                            @endif
-                            <button type="button" onclick="window.location.href='{{ route('suratjalan.index') }}'"
-                                class="bg-gray-500 text-white px-6 py-2 rounded hover:bg-gray-600 flex items-center">
-                                <x-heroicon-o-arrow-left class="w-5 h-5 mr-2" />
-                                Kembali
+            {{-- ─── CARD 3: Aksi ────────────────── --}}
+            <div class="bg-white border border-gray-200 rounded-xl mb-3 overflow-hidden">
+                <div class="p-4 bg-gray-50 flex justify-end items-center space-x-2">
+                    @if ($isDelete)
+                        @if ($usageLocked)
+                            <button type="button" disabled title="{{ $usageLockMessage }}"
+                                class="bg-red-300 text-white px-4 py-2 rounded-lg flex items-center cursor-not-allowed opacity-70 text-sm font-semibold shadow-sm">
+                                <x-heroicon-o-lock-closed class="w-4 h-4 mr-1.5" />
+                                Hapus
                             </button>
-                        </div>
+                        @else
+                            <button type="button" onclick="showDeleteModal()"
+                                class="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 flex items-center text-sm font-semibold shadow-sm transition">
+                                <x-heroicon-o-trash class="w-4 h-4 mr-1.5" />
+                                Hapus
+                            </button>
+                        @endif
+                    @elseif ($isView && $canPrintPermission)
+                        <a href="{{ route('suratjalan.print', $suratjalan->fstockmtno) }}" target="_blank"
+                            class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 flex items-center text-sm font-semibold shadow-sm transition">
+                            <svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m10 0v-5a2 2 0 00-2-2H9a2 2 0 00-2 2v5m10 0v5H7v-5">
+                                </path>
+                            </svg>
+                            Print
+                        </a>
+                    @endif
+                    <button type="button" onclick="window.location.href='{{ route('suratjalan.index') }}'"
+                        class="bg-white border border-gray-300 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-50 flex items-center text-sm font-semibold shadow-sm transition">
+                        <x-heroicon-o-arrow-left class="w-4 h-4 mr-1.5" />
+                        Kembali
+                    </button>
+                </div>
+            </div>
 
                         {{-- ============================================ --}}
                         {{-- MODE EDIT: FORM EDITABLE                    --}}
@@ -528,177 +560,180 @@
                             @csrf
                             @method('PATCH')
 
-                            {{-- HEADER FORM --}}
-                            <div class="grid grid-cols-1 lg:grid-cols-12 gap-4">
-                                <div class="lg:col-span-4">
-                                    <label class="block text-sm font-bold">Cabang</label>
-                                    <input type="text"
-                                        class="w-full border rounded px-3 py-2 bg-gray-200 cursor-not-allowed"
-                                        value="{{ trim(($fbranchcode ?? '') . ($fcabang ?? '' ? ' - ' . $fcabang : '')) }}"
-                                        disabled>
-                                    <input type="hidden" name="fbranchcode" value="{{ $fbranchcode }}">
+                            {{-- ─── CARD 1: Identitas ────────────────── --}}
+                            <div class="bg-white border border-gray-200 rounded-xl mb-3 overflow-hidden">
+                                <div class="p-4 bg-gray-50 border-b border-gray-200 flex justify-between items-center">
+                                    <h3 class="text-base font-semibold text-gray-800">Identitas Surat Jalan</h3>
                                 </div>
-                                <div class="lg:col-span-4" x-data="{ autoCode: true }">
-                                    <label class="block text-sm font-bold mb-1">Transaksi#</label>
-                                    <div class="flex items-center gap-3">
-                                        <input type="text" name="fstockmtno" class="w-full border rounded px-3 py-2"
-                                            value="{{ old('fstockmtno', $displayFstockmtno ?? $suratjalan->fstockmtno) }}"
-                                            :disabled="autoCode"
-                                            :class="autoCode ? 'bg-gray-200 cursor-not-allowed' : 'bg-white'">
-                                        <label class="inline-flex items-center select-none">
-                                            <input type="checkbox" x-model="autoCode" checked>
-                                            <span class="ml-2 text-sm text-gray-700">Auto</span>
-                                        </label>
-                                    </div>
-                                    <p x-show="showWarehouseRequired" x-cloak class="text-red-600 text-sm mt-1">
-                                        Gudang harus diisi dahulu sebelum Simpan.
-                                    </p>
-                                </div>
-
-                                <div class="lg:col-span-4">
-                                    <label class="block text-sm font-bold">Tanggal</label>
-                                    <input type="date" name="fstockmtdate"
-                                        value="{{ old('fstockmtdate', !empty($suratjalan->fstockmtdate) ? \Illuminate\Support\Carbon::parse($suratjalan->fstockmtdate)->format('Y-m-d') : date('Y-m-d')) }}"
-                                        class="w-full border rounded px-3 py-2 @error('fstockmtdate') border-red-500 @enderror">
-                                    @error('fstockmtdate')
-                                        <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
-                                    @enderror
-                                </div>
-
-                                <div class="lg:col-span-4">
-                                    <label class="block text-sm font-bold mb-1">Customer</label>
-                                    <div class="flex">
-                                        <div class="relative flex-1" for="modal_filter_customer_id">
-                                            <select id="modal_filter_customer_id" name="filter_customer_id"
-                                                class="w-full border rounded-l px-3 py-2 bg-gray-100 text-gray-700 cursor-not-allowed"
+                                <div class="p-4">
+                                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                                        <div>
+                                            <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Cabang</label>
+                                            <input type="text"
+                                                class="w-full border border-gray-200 rounded-lg px-3 py-2 bg-gray-50 text-gray-500 text-sm cursor-not-allowed"
+                                                value="{{ trim(($fbranchcode ?? '') . ($fcabang ?? '' ? ' - ' . $fcabang : '')) }}"
                                                 disabled>
-                                                <option value=""></option>
-                                                @foreach ($customers as $customer)
-                                                    <option value="{{ $customer->fcustomercode }}" {{-- CEK DISINI: Bandingkan dengan data yang tersimpan di DB --}}
-                                                        {{ old('fsupplier', $suratjalan->fsupplier) == $customer->fcustomercode ? 'selected' : '' }}>
-                                                        {{ $customer->fcustomername }} ({{ $customer->fcustomercode }})
-                                                    </option>
-                                                @endforeach
-                                            </select>
-                                            <div class="absolute inset-0" role="button"
-                                                aria-label="{{ 'Browse Customer' }}"
-                                                @click="window.dispatchEvent(new CustomEvent('customer-browse-open'))">
+                                            <input type="hidden" name="fbranchcode" value="{{ $fbranchcode }}">
+                                        </div>
+                                        <div x-data="{ autoCode: true }">
+                                            <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Transaksi#</label>
+                                            <div class="flex items-center gap-2">
+                                                <input type="text" name="fstockmtno" 
+                                                    class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition"
+                                                    value="{{ old('fstockmtno', $displayFstockmtno ?? $suratjalan->fstockmtno) }}"
+                                                    :disabled="autoCode"
+                                                    :class="autoCode ? 'bg-gray-50 text-gray-500 cursor-not-allowed' : 'bg-white'">
+                                                <label class="inline-flex items-center select-none cursor-pointer">
+                                                    <input type="checkbox" x-model="autoCode" checked class="rounded border-gray-300 text-blue-600 focus:ring-blue-500">
+                                                    <span class="ml-1.5 text-sm text-gray-700">Auto</span>
+                                                </label>
+                                            </div>
+                                            <p x-show="showWarehouseRequired" x-cloak class="text-red-600 text-sm mt-1">
+                                                Gudang harus diisi dahulu sebelum Simpan.
+                                            </p>
+                                        </div>
+
+                                        <div>
+                                            <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Tanggal</label>
+                                            <input type="date" name="fstockmtdate"
+                                                value="{{ old('fstockmtdate', !empty($suratjalan->fstockmtdate) ? \Illuminate\Support\Carbon::parse($suratjalan->fstockmtdate)->format('Y-m-d') : date('Y-m-d')) }}"
+                                                class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition @error('fstockmtdate') border-red-500 @enderror">
+                                            @error('fstockmtdate')
+                                                <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+                                            @enderror
+                                        </div>
+
+                                        <div>
+                                            <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Customer</label>
+                                            <div class="flex rounded-lg shadow-sm">
+                                                <div class="relative flex-1" for="modal_filter_customer_id">
+                                                    <select id="modal_filter_customer_id" name="filter_customer_id"
+                                                        class="w-full border border-gray-300 rounded-l-lg px-3 py-2 bg-gray-50 text-gray-500 text-sm cursor-not-allowed appearance-none"
+                                                        disabled>
+                                                        <option value=""></option>
+                                                        @foreach ($customers as $customer)
+                                                            <option value="{{ $customer->fcustomercode }}"
+                                                                {{ old('fsupplier', $suratjalan->fsupplier) == $customer->fcustomercode ? 'selected' : '' }}>
+                                                                {{ $customer->fcustomername }} ({{ $customer->fcustomercode }})
+                                                            </option>
+                                                        @endforeach
+                                                    </select>
+                                                    <div class="absolute inset-0 cursor-pointer" role="button"
+                                                        aria-label="{{ 'Browse Customer' }}"
+                                                        @click="window.dispatchEvent(new CustomEvent('customer-browse-open'))">
+                                                    </div>
+                                                </div>
+                                                <input type="hidden" name="fsupplier" id="customerCodeHidden"
+                                                    value="{{ old('fsupplier', $suratjalan->fsupplier) }}">
+                                                <button type="button"
+                                                    @click="window.dispatchEvent(new CustomEvent('customer-browse-open'))"
+                                                    class="border border-l-0 border-gray-300 px-3 py-2 bg-white hover:bg-gray-50 rounded-r-lg text-gray-600 transition"
+                                                    title="{{ 'Browse Customer' }}">
+                                                    <x-heroicon-o-magnifying-glass class="w-4 h-4" />
+                                                </button>
+                                                @if (in_array('createCustomer', explode(',', session('user_restricted_permissions', '')), true))
+                                                    <a href="{{ route('customer.create') }}" target="_blank" rel="noopener"
+                                                        class="border border-l-0 border-gray-300 rounded-r px-3 py-2 bg-white hover:bg-gray-50 text-gray-600 transition"
+                                                        title="Tambah Customer">
+                                                        <x-heroicon-o-plus class="w-4 h-4" />
+                                                    </a>
+                                                @endif
+                                            </div>
+                                            @error('fsupplier')
+                                                <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+                                            @enderror
+                                        </div>
+
+                                        <div>
+                                            <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Gudang</label>
+                                            <div class="flex rounded-lg shadow-sm">
+                                                <div class="relative flex-1">
+                                                    <select id="warehouseSelect"
+                                                        class="w-full border border-gray-300 rounded-l-lg px-3 py-2 bg-gray-50 text-gray-500 text-sm cursor-not-allowed appearance-none"
+                                                        disabled>
+                                                        <option value=""></option>
+                                                        @foreach ($warehouses as $wh)
+                                                            <option value="{{ $wh->fwhcode }}" data-id="{{ $wh->fwhid }}"
+                                                                data-branch="{{ $wh->fbranchcode }}"
+                                                                {{ old('ffrom', $suratjalan->ffrom) == $wh->fwhcode ? 'selected' : '' }}>
+                                                                {{ $wh->fwhcode }} - {{ $wh->fwhname }}
+                                                            </option>
+                                                        @endforeach
+                                                    </select>
+                                                    <div class="absolute inset-0 cursor-pointer" role="button"
+                                                        aria-label="{{ 'Browse Gudang' }}"
+                                                        @click="window.dispatchEvent(new CustomEvent('warehouse-browse-open'))">
+                                                    </div>
+                                                </div>
+                                                <input type="hidden" name="ffrom" id="warehouseCodeHidden"
+                                                    value="{{ old('ffrom', $suratjalan->ffrom_code ?? '') }}">
+                                                <input type="hidden" name="fwhid" id="warehouseIdHidden"
+                                                    value="{{ old('fwhid', $suratjalan->ffrom) }}">
+                                                <button type="button"
+                                                    @click="window.dispatchEvent(new CustomEvent('warehouse-browse-open'))"
+                                                    class="border border-l-0 border-gray-300 px-3 py-2 bg-white hover:bg-gray-50 rounded-r-lg text-gray-600 transition"
+                                                    title="{{ 'Browse Gudang' }}">
+                                                    <x-heroicon-o-magnifying-glass class="w-4 h-4" />
+                                                </button>
                                             </div>
                                         </div>
-                                        <input type="hidden" name="fsupplier" id="customerCodeHidden"
-                                            value="{{ old('fsupplier', $suratjalan->fsupplier) }}">
-                                        <button type="button"
-                                            @click="window.dispatchEvent(new CustomEvent('customer-browse-open'))"
-                                            class="border -ml-px px-3 py-2 bg-white hover:bg-gray-50 rounded-r-none"
-                                            title="{{ 'Browse Customer' }}">
-                                            <x-heroicon-o-magnifying-glass class="w-5 h-5" />
-                                        </button>
-                                        @if (in_array('createCustomer', explode(',', session('user_restricted_permissions', '')), true))
-                                            <a href="{{ route('customer.create') }}" target="_blank" rel="noopener"
-                                                class="border -ml-px rounded-r px-3 py-2 bg-white hover:bg-gray-50"
-                                                title="Tambah Customer">
-                                                <x-heroicon-o-plus class="w-5 h-5" />
-                                            </a>
-                                        @endif
-                                    </div>
-                                    @error('fsupplier')
-                                        <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
-                                    @enderror
-                                </div>
 
+                                        <div></div>
 
-                                <div class="lg:col-span-4">
-                                    <label class="block text-sm font-bold mb-1">Gudang</label>
-                                    <div class="flex">
-                                        <div class="relative flex-1">
-
-                                            <select id="warehouseSelect"
-                                                class="w-full border rounded-l px-3 py-2 bg-gray-100 text-gray-700 cursor-not-allowed"
-                                                disabled>
-                                                <option value=""></option>
-                                                @foreach ($warehouses as $wh)
-                                                    <option value="{{ $wh->fwhcode }}" data-id="{{ $wh->fwhid }}"
-                                                        data-branch="{{ $wh->fbranchcode }}"
-                                                        {{ old('ffrom', $suratjalan->ffrom) == $wh->fwhcode ? 'selected' : '' }}>
-                                                        {{ $wh->fwhcode }} - {{ $wh->fwhname }}
-                                                    </option>
-                                                @endforeach
-                                            </select>
-
-                                            {{-- Overlay untuk buka browser gudang --}}
-                                            <div class="absolute inset-0" role="button"
-                                                aria-label="{{ 'Browse Gudang' }}"
-                                                @click="window.dispatchEvent(new CustomEvent('warehouse-browse-open'))">
-                                            </div>
+                                        <div>
+                                            <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Kirim Ke</label>
+                                            <textarea name="fkirim" rows="3"
+                                                class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition @error('fkirim') border-red-500 @enderror"
+                                                placeholder="Tulis Kirim Ke di sini...">{{ old('fkirim', $suratjalan->fkirim) }}</textarea>
+                                            @error('fkirim')
+                                                <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+                                            @enderror
                                         </div>
-                                        <input type="hidden" name="ffrom" id="warehouseCodeHidden"
-                                            value="{{ old('ffrom', $suratjalan->ffrom_code ?? '') }}">
-                                        <input type="hidden" name="fwhid" id="warehouseIdHidden"
-                                            value="{{ old('fwhid', $suratjalan->ffrom) }}">
 
-                                        {{-- Tombol-tombol Anda --}}
-                                        <button type="button"
-                                            @click="window.dispatchEvent(new CustomEvent('warehouse-browse-open'))"
-                                            class="border -ml-px px-3 py-2 bg-white hover:bg-gray-50 rounded-r-none"
-                                            title="{{ 'Browse Gudang' }}">
-                                            <x-heroicon-o-magnifying-glass class="w-5 h-5" />
-                                        </button>
+                                        <div>
+                                            <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Keterangan</label>
+                                            <textarea name="fket" rows="3"
+                                                class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition @error('fket') border-red-500 @enderror"
+                                                placeholder="Tulis keterangan tambahan di sini...">{{ old('fket', $suratjalan->fket) }}</textarea>
+                                            @error('fket')
+                                                <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+                                            @enderror
+                                        </div>
+
+                                        <div>
+                                            <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Catatan Internal</label>
+                                            <textarea name="fketinternal" id="fketinternal" rows="3"
+                                                class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition @error('fketinternal') border-red-500 @enderror"
+                                                placeholder="Tulis catatan internal di sini...">{{ old('fketinternal', $suratjalan->fketinternal) }}</textarea>
+                                            @error('fketinternal')
+                                                <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+                                            @enderror
+                                        </div>
                                     </div>
-                                </div>
-
-                                <div class="lg:col-span-4">
-                                </div>
-
-                                <div class="lg:col-span-4">
-                                    <label class="block text-sm font-bold">Kirim Ke</label>
-                                    <textarea name="fkirim" rows="3"
-                                        class="w-full border rounded px-3 py-2 @error('fkirim') border-red-500 @enderror"
-                                        placeholder="Tulis Kirim Ke di sini...">{{ old('fkirim', $suratjalan->fkirim) }}</textarea>
-                                    @error('fkirim')
-                                        <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
-                                    @enderror
-                                </div>
-
-                                <div class="lg:col-span-4">
-                                    <label class="block text-sm font-bold">Keterangan</label>
-                                    <textarea name="fket" rows="3"
-                                        class="w-full border rounded px-3 py-2 @error('fket') border-red-500 @enderror"
-                                        placeholder="Tulis keterangan tambahan di sini...">{{ old('fket', $suratjalan->fket) }}</textarea>
-                                    @error('fket')
-                                        <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
-                                    @enderror
-                                </div>
-                                <div class="lg:col-span-4">
-                                    <label class="block text-sm font-bold">Catatan Internal</label>
-                                    <textarea name="fketinternal" id="fketinternal" rows="3"
-                                        class="w-full border rounded px-3 py-2 @error('fketinternal') border-red-500 @enderror"
-                                        placeholder="Tulis catatan internal di sini...">{{ old('fketinternal', $suratjalan->fketinternal) }}</textarea>
-                                    @error('fketinternal')
-                                        <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
-                                    @enderror
                                 </div>
                             </div>
 
-                            <div x-data="itemsTable()" x-init="init()" class="mt-6 space-y-2">
-
-                                {{-- DETAIL ITEM (tabel input) --}}
-                                <h3 class="text-base font-semibold text-gray-800">Detail Item</h3>
-
-                                <div class="overflow-auto border rounded">
-                                    <table class="suratjalan-detail-table min-w-full text-sm">
-                                        <thead class="bg-gray-100">
-                                            <tr>
-                                                <th class="p-2 text-left w-10">#</th>
-                                                <th class="p-2 text-left w-40">Kode Produk</th>
-                                                <th class="p-2 text-left w-102">Nama Produk</th>
-                                                <th class="p-2 text-left" style="width: 18%;">No.Ref</th>
-                                                <th class="p-2 text-right w-24">Sat</th>
-                                                <th class="p-2 text-right w-24">Qty</th>
-                                                <th class="p-2 text-center w-36">Aksi</th>
-                                            </tr>
-                                        </thead>
-
-                                        <tbody>
+                            <div x-data="itemsTable()" x-init="init()" class="space-y-4">
+                                {{-- ─── CARD 2: Detail Item ────────────────── --}}
+                                <div class="bg-white border border-gray-200 rounded-xl mb-3 overflow-hidden">
+                                    <div class="p-4 bg-gray-50 border-b border-gray-200 flex justify-between items-center">
+                                        <h3 class="text-base font-semibold text-gray-800">Detail Item</h3>
+                                    </div>
+                                    <div class="p-4">
+                                        <div class="overflow-x-auto border border-gray-200 rounded-lg">
+                                            <table class="min-w-full divide-y divide-gray-200 text-sm">
+                                                <thead class="bg-gray-50">
+                                                    <tr>
+                                                        <th scope="col" class="px-3 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider w-10">#</th>
+                                                        <th scope="col" class="px-3 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider w-40">Kode Produk</th>
+                                                        <th scope="col" class="px-3 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider w-102">Nama Produk</th>
+                                                        <th scope="col" class="px-3 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider" style="width: 18%;">No.Ref</th>
+                                                        <th scope="col" class="px-3 py-3 text-right text-xs font-bold text-gray-500 uppercase tracking-wider w-24">Sat</th>
+                                                        <th scope="col" class="px-3 py-3 text-right text-xs font-bold text-gray-500 uppercase tracking-wider w-24">Qty</th>
+                                                        <th scope="col" class="px-3 py-3 text-center text-xs font-bold text-gray-500 uppercase tracking-wider w-36">Aksi</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
                                             <template x-for="(it, i) in savedItems" :key="it.uid">
                                                 <tr class="border-t align-top">
                                                     <td class="p-2" x-text="i + 1"></td>
@@ -1142,63 +1177,70 @@
 
                                     <input type="hidden" id="itemsCount" :value="submitItems.length">
                                 </div>
+                            </div>
+                        </div>
 
-                                {{-- MODAL ERROR: belum ada item --}}
-                                <div x-show="showNoItems && submitItems.length === 0" x-cloak
-                                    class="fixed inset-0 z-[90] flex items-center justify-center" x-transition.opacity>
-                                    <div class="absolute inset-0 bg-black/50" @click="showNoItems=false"></div>
+                        {{-- MODAL ERROR: belum ada item --}}
+                        <div x-show="showNoItems && submitItems.length === 0" x-cloak
+                            class="fixed inset-0 z-[90] flex items-center justify-center" x-transition.opacity>
+                            <div class="absolute inset-0 bg-black/50" @click="showNoItems=false"></div>
 
-                                    <div class="relative bg-white w-[92vw] max-w-md rounded-2xl shadow-2xl overflow-hidden"
-                                        x-transition.scale>
-                                        <div class="px-5 py-4 border-b flex items-center">
-                                            <x-heroicon-o-exclamation-triangle class="w-6 h-6 text-red-500 mr-2" />
-                                            <h3 class="text-lg font-semibold text-gray-800">{{ 'Tidak Ada Item' }}</h3>
-                                        </div>
-
-                                        <div class="px-5 py-4">
-                                            <p class="text-sm text-gray-700">
-                                                Anda belum menambahkan item apa pun pada tabel. Silakan isi baris “Detail
-                                                Item”
-                                                terlebih
-                                                dahulu.
-                                            </p>
-                                        </div>
-
-                                        <div class="px-5 py-3 border-t flex items-center justify-end gap-2">
-                                            <button type="button" @click="showNoItems=false"
-                                                class="h-9 px-4 rounded-lg bg-blue-600 text-white text-sm font-bold hover:bg-blue-700">
-                                                OK
-                                            </button>
-                                        </div>
-                                    </div>
+                            <div class="relative bg-white w-[92vw] max-w-md rounded-2xl shadow-2xl overflow-hidden"
+                                x-transition.scale>
+                                <div class="px-5 py-4 border-b flex items-center">
+                                    <x-heroicon-o-exclamation-triangle class="w-6 h-6 text-red-500 mr-2" />
+                                    <h3 class="text-lg font-semibold text-gray-800">{{ 'Tidak Ada Item' }}</h3>
                                 </div>
 
-                                <x-transaction.browse-customer-modal />
+                                <div class="px-5 py-4">
+                                    <p class="text-sm text-gray-700">
+                                        Anda belum menambahkan item apa pun pada tabel. Silakan isi baris “Detail
+                                        Item”
+                                        terlebih
+                                        dahulu.
+                                    </p>
+                                </div>
 
-                                <x-transaction.browse-warehouse-modal />
-
-                                <x-transaction.browse-product-modal show-controls="true" show-pagination="true" />
-
-                                <div class="mt-8 flex w-full items-center justify-center gap-4">
-                                    @if ($canEditPermission)
-                                        @if ($usageLocked)
-                                            <button type="button" disabled title="{{ $usageLockMessage }}"
-                                                class="bg-blue-300 text-white px-6 py-2 rounded flex items-center cursor-not-allowed opacity-70">
-                                                <x-heroicon-o-lock-closed class="w-5 h-5 mr-2" /> Simpan
-                                            </button>
-                                        @else
-                                            <button type="submit"
-                                                class="bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700 flex items-center">
-                                                <x-heroicon-o-check class="w-5 h-5 mr-2" /> Simpan
-                                            </button>
-                                        @endif
-                                    @endif
-                                    <button type="button"
-                                        @click="window.location.href='{{ route('suratjalan.index') }}'"
-                                        class="bg-gray-500 text-white px-6 py-2 rounded hover:bg-gray-600 flex items-center">
-                                        <x-heroicon-o-arrow-left class="w-5 h-5 mr-2" /> Keluar
+                                <div class="px-5 py-3 border-t flex items-center justify-end gap-2">
+                                    <button type="button" @click="showNoItems=false"
+                                        class="h-9 px-4 rounded-lg bg-blue-600 text-white text-sm font-bold hover:bg-blue-700">
+                                        OK
                                     </button>
                                 </div>
+                            </div>
+                        </div>
+
+                        <x-transaction.browse-customer-modal />
+
+                        <x-transaction.browse-warehouse-modal />
+
+                        <x-transaction.browse-product-modal show-controls="true" show-pagination="true" />
+                    </div>
+
+                    {{-- ─── CARD 3: Aksi ────────────────── --}}
+                    <div class="bg-white border border-gray-200 rounded-xl mb-3 overflow-hidden">
+                        <div class="p-4 bg-gray-50 flex justify-end items-center space-x-2">
+                            <button type="button"
+                                @click="window.location.href='{{ route('suratjalan.index') }}'"
+                                class="bg-white border border-gray-300 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-50 flex items-center text-sm font-semibold shadow-sm transition">
+                                <x-heroicon-o-arrow-left class="w-4 h-4 mr-1.5" />
+                                Keluar
+                            </button>
+                            @if ($canEditPermission)
+                                @if ($usageLocked)
+                                    <button type="button" disabled title="{{ $usageLockMessage }}"
+                                        class="bg-blue-300 text-white px-4 py-2 rounded-lg flex items-center cursor-not-allowed opacity-70 text-sm font-semibold shadow-sm">
+                                        <x-heroicon-o-lock-closed class="w-4 h-4 mr-1.5" /> Simpan
+                                    </button>
+                                @else
+                                    <button type="submit"
+                                        class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 flex items-center text-sm font-semibold shadow-sm transition">
+                                        <x-heroicon-o-check class="w-4 h-4 mr-1.5" /> Simpan
+                                    </button>
+                                @endif
+                            @endif
+                        </div>
+                    </div>
                         </form>
                 @endif
             </div>

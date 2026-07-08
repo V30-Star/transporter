@@ -577,7 +577,7 @@ class SuratJalanController extends Controller
     public function print(string $fstockmtno)
     {
         // 1. Ambil query sub untuk customer
-        $customerSub = Customer::select('fcustomerid', 'fcustomercode', 'fcustomername');
+        $customerSub = Customer::select('fcustomerid', 'fcustomercode', 'fcustomername', 'faddress');
 
         $hdr = PenerimaanPembelianHeader::query()
             // Gunakan alias 'cust' untuk customer
@@ -591,6 +591,7 @@ class SuratJalanController extends Controller
             ->first([
                 'trstockmt.*',
                 'cust.fcustomername as customer_name', // Ambil dari alias cust
+                'cust.faddress as customer_address',   // Ambil alamat customer
                 'cb.fcabangname as cabang_name',      // Ambil dari alias cb
                 'w.fwhname as fwhnamen',
             ]);

@@ -189,12 +189,27 @@
             </div>
         </div>
     @endif
-    <div>
-        <div class="lg:col-span-5">
-            <div class="bg-white rounded shadow p-6 md:p-8 max-w-[1800px] w-full mx-auto">
-                <form action="{{ route('returpenjualan.store') }}" method="POST" class="mt-6" data-form-draft="true"
-                    data-draft-key="returpenjualan:create"
-                    @submit.prevent="
+    <div class="mx-auto max-w-[1600px] px-4 py-8">
+        {{-- ─── BREADCRUMB & HEADER ───────────────────────────────── --}}
+        <div class="mb-6 flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
+            <div>
+                <nav class="flex text-xs font-semibold uppercase tracking-wider text-gray-400">
+                    <a href="{{ route('returpenjualan.index') }}" class="hover:text-gray-600">Retur Penjualan</a>
+                    <span class="mx-2 text-gray-300">/</span>
+                    <span class="text-gray-600">Tambah Baru</span>
+                </nav>
+                <h1 class="mt-1 text-2xl font-bold tracking-tight text-gray-900">Tambah Retur Penjualan</h1>
+            </div>
+            <div class="flex items-center gap-2">
+                <a href="{{ route('returpenjualan.index') }}"
+                    class="inline-flex h-9 items-center justify-center rounded-lg border border-gray-300 bg-white px-4 text-xs font-semibold text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">
+                    Kembali
+                </a>
+            </div>
+        </div>
+        <form action="{{ route('returpenjualan.store') }}" method="POST" data-form-draft="true"
+            data-draft-key="returpenjualan:create"
+            @submit.prevent="
         const duplicateCode = window.getReturPenjualanDuplicateCode?.($el);
         if (duplicateCode) {
             Swal.fire({
@@ -211,8 +226,19 @@
         const n = Number(document.getElementById('itemsCount')?.value || 0);
         if (n < 1) { window.dispatchEvent(new CustomEvent('returpenjualan-show-no-items')) } else { $el.submit() }
       ">
-                    @csrf
+            @csrf
 
+            {{-- ─── CARD 1: Identitas Retur Penjualan ─────────────── --}}
+            <div class="bg-white border border-gray-200 rounded-xl mb-3 overflow-hidden">
+                <div class="flex items-center gap-2 px-4 pt-3 pb-0">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-gray-400" fill="none"
+                        viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                    </svg>
+                    <p class="text-xs font-medium uppercase tracking-wide text-gray-400">Identitas Retur Penjualan</p>
+                </div>
+                <div class="p-4">
                     <div class="grid grid-cols-1 lg:grid-cols-12 gap-4">
                         <div class="lg:col-span-4">
                             <label class="block text-sm font-medium">Cabang</label>
@@ -368,8 +394,21 @@
                             @enderror
                         </div>
                     </div>
+                </div>
+            </div>
 
-                    <div x-data="itemsTable()" x-init="init()" class="mt-6 space-y-2">
+            {{-- ─── CARD 2: Detail Item ────────────────────── --}}
+            <div class="bg-white border border-gray-200 rounded-xl mb-3 overflow-hidden">
+                <div class="flex items-center gap-2 px-4 pt-3 pb-0">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-gray-400" fill="none"
+                        viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
+                    </svg>
+                    <p class="text-xs font-medium uppercase tracking-wide text-gray-400">Detail Item</p>
+                </div>
+                <div class="p-4">
+                    <div x-data="itemsTable()" x-init="init()" class="space-y-2">
 
                         {{-- DETAIL ITEM (tabel input) --}}
                         <h3 class="text-base font-semibold text-gray-800">Detail Item</h3>
@@ -539,6 +578,9 @@
                         </div>
 
                         <input type="hidden" id="itemsCount" :value="submitItems.length">
+                    </div> {{-- End itemsTable --}}
+                </div> {{-- End CARD 2 body --}}
+            </div> {{-- End CARD 2 --}}
                         <input type="hidden" name="frefcode_global" id="frefcode"
                             value="{{ old('frefcode_global') }}">
                         <input type="hidden" name="frefso_header" id="frefso" value="{{ old('frefso_header') }}">
@@ -1409,19 +1451,20 @@
                         </div>
                     </div>
 
-                    <div class="mt-8 flex justify-center gap-4">
-                        <button type="submit"
-                            class="bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700 flex items-center">
-                            <x-heroicon-o-check class="w-5 h-5 mr-2" /> Simpan
-                        </button>
-                        <button type="button" @click="window.location.href='{{ route('returpenjualan.index') }}'"
-                            class="bg-gray-500 text-white px-6 py-2 rounded hover:bg-gray-600 flex items-center">
-                            <x-heroicon-o-arrow-left class="w-5 h-5 mr-2" /> Keluar
-                        </button>
-                    </div>
-                </form>
+            {{-- ─── CARD 3: Aksi ─────────────────────────── --}}
+            <div class="bg-white border border-gray-200 rounded-xl mb-3 overflow-hidden">
+                <div class="p-4 flex items-center justify-end gap-3">
+                    <button type="button" @click="window.location.href='{{ route('returpenjualan.index') }}'"
+                        class="inline-flex h-9 items-center justify-center rounded-lg border border-gray-300 bg-white px-4 text-xs font-semibold text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">
+                        Keluar
+                    </button>
+                    <button type="submit"
+                        class="inline-flex h-9 items-center justify-center rounded-lg bg-blue-600 px-4 text-xs font-semibold text-white shadow-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">
+                        Simpan
+                    </button>
+                </div>
             </div>
-        </div>
+        </form>
     </div>
 
 @endsection
