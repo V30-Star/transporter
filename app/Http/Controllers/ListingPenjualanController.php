@@ -177,7 +177,7 @@ class ListingPenjualanController extends Controller
 
         // ── Header kolom utama ────────────────────────────────────
         // Kolom 1-10: info faktur | Kolom 11-18: detail barang (menyamping)
-        $headerRow = ['No.Faktur', 'No.Pajak', 'Tanggal', 'Customer', 'Salesman', 'Bruto', 'Netto', 'PPN', 'Ongkos', 'Total'];
+        $headerRow = ['No.Faktur', 'No.Pajak', 'Tanggal', 'Customer', 'Salesman', 'Disc', 'Netto', 'PPN', 'Ongkos', 'Total'];
 
         if ($type === 'detail') {
             $headerRow = array_merge($headerRow, [
@@ -204,7 +204,7 @@ class ListingPenjualanController extends Controller
                 date('d/m/y', strtotime($h->fsodate)),
                 $h->fcustomername,
                 $h->fsalesmanname ?? '-',
-                (float) $h->famountgross,
+                (float) $h->fdiscount,
                 (float) $h->famountsonet,
                 (float) $h->famountpajak,
                 (float) $h->fongkosangkut,

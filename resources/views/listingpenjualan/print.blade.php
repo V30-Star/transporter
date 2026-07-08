@@ -417,7 +417,7 @@
             <div>Tanggal</div>
             <div>Customer</div>
             <div>Salesman</div>
-            <div class="text-right">Bruto</div>
+            <div class="text-right">Disc</div>
             <div class="text-right">Netto</div>
             <div class="text-right">PPN</div>
             <div class="text-right">Ongkos</div>
@@ -449,7 +449,7 @@
                     <div>{{ date('d/m/y', strtotime($h->fsodate)) }}</div>
                     <div class="truncate" title="{{ $h->fcustomername }}">{{ $h->fcustomername }}</div>
                     <div class="truncate" title="{{ $h->fsalesmanname ?? '-' }}">{{ $h->fsalesmanname ?? '-' }}</div>
-                    <div>{{ number_format((float) $h->famountgross, 2, ',', '.') }}</div>
+                    <div>{{ number_format((float) $h->fdiscount, 2, ',', '.') }}</div>
                     <div>{{ number_format((float) $h->famountsonet, 2, ',', '.') }}</div>
                     <div>{{ number_format((float) $h->famountpajak, 2, ',', '.') }}</div>
                     <div>{{ number_format((float) $h->fongkosangkut, 2, ',', '.') }}</div>
@@ -480,7 +480,7 @@
     </div>
 
     @php
-        $grandBruto = 0;
+        $grandDiscount = 0;
         $grandNetto = 0;
         $grandPPN = 0;
         $grandOngkos = 0;
@@ -488,7 +488,7 @@
 
         foreach ($groupedData as $details) {
             $h = $details->first();
-            $grandBruto += (float) $h->famountgross;
+            $grandDiscount += (float) $h->fdiscount;
             $grandNetto += (float) $h->famountsonet;
             $grandPPN += (float) $h->famountpajak;
             $grandOngkos += (float) $h->fongkosangkut;
@@ -502,8 +502,8 @@
             <div class="end-of-report-inline">** END OF REPORT **</div>
             <div class="po-totals-container">
                 <div class="po-total-row">
-                    <span>TOTAL BRUTO</span>
-                    <span>{{ number_format((float) $grandBruto, 2, ',', '.') }}</span>
+                    <span>TOTAL DISCOUNT</span>
+                    <span>{{ number_format((float) $grandDiscount, 2, ',', '.') }}</span>
                 </div>
                 <div class="po-total-row">
                     <span>TOTAL NETTO</span>
