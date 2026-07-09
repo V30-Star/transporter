@@ -1,9 +1,9 @@
 <!doctype html>
-<html lang="{{ app()->getLocale() }}">
+<html lang="id">
 
 <head>
     <meta charset="utf-8">
-    <title>Surat Jalan - {{ $displayFstockmtno ?? ($hdr->fstockmtno ?? '-') }}</title>
+    <title>Lembar Penagihan - {{ $hdr->ftagihanno }}</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <style>
         :root {
@@ -140,6 +140,38 @@
             margin-top: 28px;
         }
 
+        .terbilang-box {
+            float: left;
+            width: 60%;
+            font-style: italic;
+            font-weight: bold;
+            text-decoration: underline;
+            font-size: 11px;
+            margin-top: 5px;
+        }
+
+        .summary-box {
+            float: right;
+            width: 35%;
+            margin-top: 5px;
+        }
+
+        .summary-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 1px 0;
+        }
+
+        .grand-total {
+            border-top: 1px solid #000;
+            border-bottom: 3px double #000;
+            margin-top: 5px;
+            padding: 4px 0;
+            font-weight: bold;
+            color: var(--blue);
+            font-size: 14px;
+        }
+
         .sign-container {
             margin-top: 18px;
             clear: both;
@@ -223,8 +255,8 @@
                 <div>{{ $company_city ?? 'Tangerang' }}</div>
             </div>
             <div>
-                <div class="title-so">Surat Jalan</div>
-                <div class="so-no">No. {{ $displayFstockmtno ?? ($hdr->fstockmtno ?? '-') }}</div>
+                <div class="title-so">Lembar Penagihan</div>
+                <div class="so-no">No. {{ $hdr->ftagihanno }}</div>
             </div>
         </div>
 
@@ -232,7 +264,7 @@
             <div class="customer-container">
                 <span class="customer-label">Customer</span>
                 <div style="font-weight: bold;">
-                    {{ trim(($hdr->fsupplier ?? '') . ' - ' . ($hdr->customer_name ?? ''), ' -') ?: '-' }}
+                    {{ trim(($hdr->fcustno ?? '') . ' - ' . ($hdr->customer_name ?? ''), ' -') ?: '-' }}
                 </div>
                 <div style="font-size: 11px;">
                     Alamat : {{ $hdr->customer_address ?? '-' }}
@@ -240,31 +272,13 @@
                 <div style="font-size: 11px;">
                     Cabang : {{ $hdr->cabang_name ?? ($hdr->fbranchcode ?? '-') }}
                 </div>
-                <div style="font-size: 11px;">
-                    Keterangan : {{ $hdr->fket ?: '-' }}
-                </div>
             </div>
 
             <table class="info-table">
                 <tr>
                     <td>Tanggal</td>
                     <td>:</td>
-                    <td>{{ $fmt($hdr->fstockmtdate) }}</td>
-                </tr>
-                <tr>
-                    <td>Tempo</td>
-                    <td>:</td>
-                    <td>{{ $hdr->ftempohr ?? '0' }} Hari</td>
-                </tr>
-                <tr>
-                    <td>No. Ref</td>
-                    <td>:</td>
-                    <td>{{ $hdr->frefno ?? '-' }}</td>
-                </tr>
-                <tr>
-                    <td>Sales</td>
-                    <td>:</td>
-                    <td>{{ $hdr->fsalesname ?? '-' }}</td>
+                    <td>{{ $fmt($hdr->ftagihandate) }}</td>
                 </tr>
                 <tr>
                     <td colspan="3" style="text-align: right; font-size: 10px; padding-top: 12px;">Hal : 1 / 1</td>
@@ -276,25 +290,22 @@
             <thead>
                 <tr>
                     <th style="width: 5%;">No.</th>
-                    <th style="width: 15%;">Kode Produk</th>
-                    <th style="width: 40%;">Nama Produk</th>
-                    <th style="width: 15%;" class="text-right">Qty</th>
-                    <th style="width: 25%;">No. Ref</th>
+                    <th style="width: 25%;">No. Nota</th>
+                    <th style="width: 18%;">Tanggal Nota</th>
+                    <th style="width: 18%;" class="text-right">Nilai Nota</th>
+                    <th style="width: 16%;" class="text-right">Ongkos Kirim</th>
+                    <th style="width: 18%;" class="text-right">Sisa Piutang</th>
                 </tr>
             </thead>
             <tbody>
                 @foreach ($dt as $i => $r)
                     <tr>
                         <td class="text-center">{{ $i + 1 }}</td>
-                        <td>{{ $r->product_code ?? '-' }}</td>
-                        <td>
-                            <div>{{ $r->product_name ?? '-' }}</div>
-                            @if (!empty($r->fdesc))
-                                <div class="muted">{{ $r->fdesc }}</div>
-                            @endif
-                        </td>
-                        <td class="text-right">{{ number_format((float) $r->fqty, 2, ',', '.') }} {{ $r->fsatuan ?? '' }}</td>
-                        <td>{{ $r->frefso ?? '-' }}</td>
+                        <td>{{ $r->frefsono ?? '-' }} ({{ $r->frefcode ?? '-' }})</td>
+                        <td>{{ $r->fsodate ? \Carbon\Carbon::parse($r->fsodate)->locale('id')->translatedFormat('d F Y') : '-' }}</td>
+                        <td class="text-right">{{ number_format($r->famountbil ?? 0, 2, ',', '.') }}</td>
+                        <td class="text-right">{{ number_format($r->fongkos ?? 0, 2, ',', '.') }}</td>
+                        <td class="text-right">{{ number_format($r->famount ?? 0, 2, ',', '.') }}</td>
                     </tr>
                 @endforeach
             </tbody>
@@ -302,10 +313,27 @@
 
         <div class="note-block">
             <div class="note-title">Catatan</div>
-            <div>{{ $hdr->fket ?: '-' }}</div>
+            <div>{{ $hdr->fnote ?: '-' }}</div>
         </div>
 
         <div class="footer-line"></div>
+
+        <div style="overflow: hidden;">
+            @php
+                $famounttagihan = (float) ($hdr->famounttagihan ?? 0);
+            @endphp
+            <div class="terbilang-box">
+                Terbilang : <br>
+                # {{ strtoupper(terbilang($famounttagihan)) }} RUPIAH #
+            </div>
+
+            <div class="summary-box">
+                <div class="summary-row grand-total">
+                    <span>Total Tagihan :</span>
+                    <span>{{ number_format($famounttagihan, 2, ',', '.') }}</span>
+                </div>
+            </div>
+        </div>
 
         <div class="sign-container">
             <table class="sign-table">
@@ -314,7 +342,7 @@
                     <td style="width: 50%;">Mengetahui</td>
                 </tr>
                 <tr>
-                    <td class="box-content">{{ strtoupper($hdr->fusercreate ?? '-') }}</td>
+                    <td class="box-content">{{ strtoupper($hdr->fuserid ?? 'SYSTEM') }}</td>
                     <td class="box-content">-</td>
                 </tr>
             </table>

@@ -239,289 +239,285 @@
         </div>
     @endif
     <div>
-        <div x-data="{ fclose: {{ old('fclose', $salesorder->fclose) == '1' ? 'true' : 'false' }}, includePPN: false, ppnRate: 0, ppnAmount: 0, selected: 'alamatsurat', totalHarga: 100000 }" class="lg:col-span-5">
-            <div class="bg-white rounded shadow p-6 md:p-8 max-w-[1800px] w-full mx-auto">
-                @if ($isReadOnly)
-                    <div class="space-y-4">
+        <div x-data="{ fclose: {{ old('fclose', $salesorder->fclose) == '1' ? 'true' : 'false' }}, includePPN: false, ppnRate: 0, ppnAmount: 0, selected: 'alamatsurat', totalHarga: 100000 }" class="max-w-[1600px] mx-auto py-8 px-6">
+            @if ($isReadOnly)
+                <div class="space-y-4">
 
-                        <div class="grid grid-cols-1 lg:grid-cols-12 gap-4">
-                            <div class="lg:col-span-4">
-                                <label class="block text-sm font-medium">Cabang</label>
-                                <input type="text" class="w-full border rounded px-3 py-2 bg-gray-200 cursor-not-allowed"
-                                    value="{{ trim(($fbranchcode ?? '') . ($fcabang ?? '' ? ' - ' . $fcabang : '')) }}" disabled>
-                                <input type="hidden" name="fbranchcode" value="{{ $fbranchcode }}">
-                            </div>
-
-                            {{-- SO# --}}
-                            <div class="lg:col-span-4" x-data="{ autoCode: false }">
-                                <label class="block text-sm font-medium mb-1">SO#</label>
-                                <div class="flex items-center gap-3">
-                                    <input type="text" name="fsono" value="{{ old('fsono', $displayFsono ?? $salesorder->fsono) }}"
-                                        class="w-full border rounded px-3 py-2" :disabled="autoCode" readonly
-                                        :class="autoCode ? 'bg-gray-200 cursor-not-allowed text-gray-500' : 'bg-white'">
-
-                                    <label class="inline-flex items-center select-none">
-                                        <input type="checkbox" x-model="autoCode" disabled>
-                                        <span class="ml-2 text-sm text-gray-700">Auto</span>
-                                    </label>
+                    {{-- ─── CARD 1: Identitas Sales Order ────────────────────── --}}
+                    <div class="bg-white border border-gray-200 rounded-xl mb-3 overflow-hidden">
+                        <div class="flex items-center gap-2 px-4 pt-3 pb-0">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-gray-400" fill="none"
+                                viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+                            </svg>
+                            <p class="text-xs font-medium uppercase tracking-wide text-gray-400">Identitas Sales Order</p>
+                        </div>
+                        <div class="p-4 space-y-3">
+                            <div class="grid grid-cols-1 md:grid-cols-12 gap-3">
+                                {{-- Cabang --}}
+                                <div class="md:col-span-4">
+                                    <label class="block text-xs font-bold text-gray-600 mb-1">Cabang</label>
+                                    <input type="text"
+                                        class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm bg-gray-100 text-gray-500 cursor-not-allowed border-gray-200"
+                                        value="{{ trim(($fbranchcode ?? '') . ($fcabang ?? '' ? ' - ' . $fcabang : '')) }}" disabled>
+                                    <input type="hidden" name="fbranchcode" value="{{ $fbranchcode }}">
                                 </div>
-                                <p x-show="autoCode" class="text-[10px] text-blue-600 mt-1">* Nomor akan digenerate
-                                    otomatis
-                                    saat simpan</p>
-                            </div>
 
-                            {{-- Tanggal --}}
-                            <div class="lg:col-span-2">
-                                <label class="block text-sm font-medium">Tanggal</label>
-                                <input disabled type="date" name="fsodate"
-                                    value="{{ old('fsodate') ?? date('Y-m-d', strtotime($salesorder->fsodate)) }}"
-                                    class="w-full border rounded px-3 py-2 bg-gray-200 @error('fsodate') border-red-500 @enderror">
-                                @error('fsodate')
-                                    <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
-                                @enderror
-                            </div>
+                                {{-- SO# --}}
+                                <div class="md:col-span-4" x-data="{ autoCode: false }">
+                                    <label class="block text-xs font-bold text-gray-600 mb-1">SO#</label>
+                                    <div class="flex items-center gap-3">
+                                        <input type="text" name="fsono"
+                                            value="{{ old('fsono', $displayFsono ?? $salesorder->fsono) }}"
+                                            class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm bg-gray-100 text-gray-500 cursor-not-allowed border-gray-200"
+                                            :disabled="autoCode" readonly
+                                            :class="autoCode ? 'bg-gray-200 cursor-not-allowed text-gray-500' : 'bg-white'">
 
-                            <div class="lg:col-span-2 flex items-end pb-2">
-                                <div class="inline-flex items-center">
-                                    <input id="fclose" type="checkbox" name="fclose" value="1" x-model="fclose"
-                                        disabled {{-- text-red-600 mengubah isi centang, border-red-400 mengubah bingkai --}}
-                                        class="w-6 h-6 text-red-600 border-red-400 bg-gray-200 rounded cursor-not-allowed focus:ring-red-500"
-                                        {{ old('fclose', $salesorder->fclose) ? 'checked' : '' }}>
-
-                                    <label for="fclose" {{-- text-red-600 mengubah warna tulisan menjadi merah --}}
-                                        class="ml-3 text-base font-bold text-red-600 whitespace-nowrap cursor-not-allowed">
-                                        Close
-                                    </label>
-                                </div>
-                            </div>
-
-                            {{-- Customer --}}
-                            <div class="lg:col-span-4">
-                                <label class="block text-sm font-medium mb-1">Customer</label>
-                                <div class="flex">
-                                    <div class="relative flex-1" for="modal_filter_customer_id_readonly">
-                                        <select id="modal_filter_customer_id_readonly" name="filter_customer_id_readonly"
-                                            class="w-full border rounded-l px-3 py-2 bg-gray-100 text-gray-700 bg-gray-200 cursor-not-allowed"
-                                            disabled>
-                                            <option value=""></option>
-                                            @if ($currentCustomerCode !== '' && !$hasCurrentCustomer)
-                                                <option value="{{ $currentCustomerCode }}" selected>
-                                                    {{ $currentCustomerName !== '' ? $currentCustomerName . ' (' . $currentCustomerCode . ')' : $currentCustomerCode }}
-                                                </option>
-                                            @endif
-                                            @foreach ($customers as $customer)
-                                                <option value="{{ $customer->fcustomercode }}" {{-- CEK DISINI: Bandingkan dengan data yang tersimpan di DB --}}
-                                                    data-ftempo="{{ trim((string) ($customer->ftempo ?? 0)) }}"
-                                                    data-fsalesman="{{ trim((string) ($customer->fsalesman ?? '')) }}"
-                                                    {{ old('fcustno', $salesorder->fcustno) == $customer->fcustomercode ? 'selected' : '' }}>
-                                                    {{ $customer->fcustomername }} ({{ $customer->fcustomercode }})
-                                                </option>
-                                            @endforeach
-                                        </select>
-                                        <div class="absolute inset-0 pointer-events-none" role="button"
-                                            aria-label="Browse Customer">
-                                        </div>
+                                        <label class="inline-flex items-center select-none text-xs font-bold text-gray-600">
+                                            <input type="checkbox" x-model="autoCode" disabled
+                                                class="rounded border-gray-300 text-blue-600 focus:ring-blue-500">
+                                            <span class="ml-1.5">Auto</span>
+                                        </label>
                                     </div>
+                                </div>
+
+                                {{-- Tanggal --}}
+                                <div class="md:col-span-2">
+                                    <label class="block text-xs font-bold text-gray-600 mb-1">Tanggal</label>
+                                    <input disabled type="date" name="fsodate"
+                                        value="{{ old('fsodate') ?? date('Y-m-d', strtotime($salesorder->fsodate)) }}"
+                                        class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm bg-gray-100 text-gray-500 cursor-not-allowed border-gray-200 @error('fsodate') border-red-500 @enderror">
+                                    @error('fsodate')
+                                        <p class="text-red-600 text-[10px] mt-1">{{ $message }}</p>
+                                    @enderror
+                                </div>
+
+                                <div class="md:col-span-2 flex items-end pb-2">
+                                    <div class="inline-flex items-center">
+                                        <input id="fclose" type="checkbox" name="fclose" value="1" x-model="fclose"
+                                            disabled
+                                            class="w-5 h-5 text-red-600 border-red-400 bg-gray-200 rounded cursor-not-allowed focus:ring-red-500"
+                                            {{ old('fclose', $salesorder->fclose) ? 'checked' : '' }}>
+
+                                        <label for="fclose"
+                                            class="ml-2 text-sm font-bold text-red-600 whitespace-nowrap cursor-not-allowed">
+                                            Close
+                                        </label>
+                                    </div>
+                                </div>
+
+                                {{-- Customer --}}
+                                <div class="md:col-span-4">
+                                    <label class="block text-xs font-bold text-gray-600 mb-1">Customer</label>
+                                    <select id="modal_filter_customer_id_readonly" name="filter_customer_id_readonly"
+                                        class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm bg-gray-100 text-gray-500 cursor-not-allowed border-gray-200"
+                                        disabled>
+                                        <option value=""></option>
+                                        @if ($currentCustomerCode !== '' && !$hasCurrentCustomer)
+                                            <option value="{{ $currentCustomerCode }}" selected>
+                                                {{ $currentCustomerName !== '' ? $currentCustomerName . ' (' . $currentCustomerCode . ')' : $currentCustomerCode }}
+                                            </option>
+                                        @endif
+                                        @foreach ($customers as $customer)
+                                            <option value="{{ $customer->fcustomercode }}"
+                                                data-ftempo="{{ trim((string) ($customer->ftempo ?? 0)) }}"
+                                                data-fsalesman="{{ trim((string) ($customer->fsalesman ?? '')) }}"
+                                                {{ old('fcustno', $salesorder->fcustno) == $customer->fcustomercode ? 'selected' : '' }}>
+                                                {{ $customer->fcustomername }} ({{ $customer->fcustomercode }})
+                                            </option>
+                                        @endforeach
+                                    </select>
                                     <input type="hidden" name="fcustno_readonly" id="customerCodeHiddenReadonly"
                                         value="{{ old('fcustno', $salesorder->fcustno) }}">
+                                    @error('fcustno')
+                                        <p class="text-red-600 text-[10px] mt-1">{{ $message }}</p>
+                                    @enderror
                                 </div>
-                                @error('fcustno')
-                                    <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
-                                @enderror
-                            </div>
 
-                            {{-- Salesman --}}
-                            <div class="lg:col-span-4">
-                                <label class="block text-sm font-medium mb-1">Salesman</label>
-                                <div class="flex">
-                                    <div class="relative flex-1" for="modal_filter_salesman_id_readonly">
-                                        <select id="modal_filter_salesman_id_readonly" name="filter_salesman_id_readonly"
-                                            class="w-full border rounded-l px-3 py-2 bg-gray-100 text-gray-700 bg-gray-200 cursor-not-allowed"
-                                            disabled>
-                                            <option value=""></option>
-                                            @foreach ($salesmans as $salesman)
-                                                <option value="{{ $salesman->fsalesmancode }}" {{-- CEK DISINI: Bandingkan old input atau data dari database --}}
-                                                    {{ old('fsalesman', $salesorder->fsalesman) == $salesman->fsalesmancode ? 'selected' : '' }}>
-                                                    {{ $salesman->fsalesmanname }} ({{ $salesman->fsalesmancode }})
-                                                </option>
-                                            @endforeach
-                                        </select>
-                                        <div class="absolute inset-0 pointer-events-none" role="button"
-                                            aria-label="Browse Salesman">
-                                        </div>
-                                    </div>
+                                {{-- Salesman --}}
+                                <div class="md:col-span-4">
+                                    <label class="block text-xs font-bold text-gray-600 mb-1">Salesman</label>
+                                    <select id="modal_filter_salesman_id_readonly" name="filter_salesman_id_readonly"
+                                        class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm bg-gray-100 text-gray-500 cursor-not-allowed border-gray-200"
+                                        disabled>
+                                        <option value=""></option>
+                                        @foreach ($salesmans as $salesman)
+                                            <option value="{{ $salesman->fsalesmancode }}"
+                                                {{ old('fsalesman', $salesorder->fsalesman) == $salesman->fsalesmancode ? 'selected' : '' }}>
+                                                {{ $salesman->fsalesmanname }} ({{ $salesman->fsalesmancode }})
+                                            </option>
+                                        @endforeach
+                                    </select>
                                     <input type="hidden" name="fsalesman_readonly" id="salesmanCodeHiddenReadonly"
                                         value="{{ old('fsalesman', $salesorder->fsalesman) }}">
+                                    @error('fsalesman')
+                                        <p class="text-red-600 text-[10px] mt-1">{{ $message }}</p>
+                                    @enderror
                                 </div>
-                                @error('fsalesman')
-                                    <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
-                                @enderror
-                            </div>
 
-                            <div class="lg:col-span-2">
-                                <label class="block text-sm font-medium mb-1">Tempo</label>
-                                <div class="flex items-center">
-                                    {{-- Gunakan trim() untuk membuang spasi di belakang angka --}}
-                                    <input type="number" id="ftempohr" name="ftempohr" disabled
-                                        value="{{ trim(old('ftempohr', $salesorder->ftempohr ?? 0)) }}"
-                                        class="w-full border rounded px-3 py-2 bg-gray-200">
-                                    <span class="ml-2">Hari</span>
+                                {{-- Tempo --}}
+                                <div class="md:col-span-2">
+                                    <label class="block text-xs font-bold text-gray-600 mb-1">Tempo</label>
+                                    <div class="flex items-center gap-1.5">
+                                        <input type="number" id="ftempohr" name="ftempohr" disabled
+                                            value="{{ trim(old('ftempohr', $salesorder->ftempohr ?? 0)) }}"
+                                            class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm bg-gray-100 text-gray-500 cursor-not-allowed border-gray-200">
+                                        <span class="text-xs text-gray-500">Hari</span>
+                                    </div>
                                 </div>
-                            </div>
-                            <div class="lg:col-span-2">
-                                <label class="block text-sm font-medium mb-1">Ref.PO</label>
-                                <input type="text" name="frefpo" disabled
-                                    value="{{ old('frefpo', $salesorder->frefpo) }}"
-                                    class="w-full border rounded px-3 py-2 bg-gray-200">
-                            </div>
-                            <div class="col-span-12 mt-4">
-                                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 items-stretch">
 
-                                    <div x-data="{
-                                        tab: 1,
-                                        addr1: {{ json_encode(old('fkirimaddress1', $salesorder->customer->fkirimaddress1 ?? '')) }},
-                                        addr2: {{ json_encode(old('fkirimaddress2', $salesorder->customer->fkirimaddress2 ?? '')) }},
-                                        addr3: {{ json_encode(old('fkirimaddress3', $salesorder->customer->fkirimaddress3 ?? '')) }},
-                                    
-                                        updateFinal() {
-                                            let val = '';
-                                            if (this.tab === 1) val = this.addr1;
-                                            else if (this.tab === 2) val = this.addr2;
-                                            else if (this.tab === 3) val = this.addr3;
-                                    
-                                            const el = document.getElementById('falamatkirim_final');
-                                            if (el) el.value = val;
-                                        }
-                                    }" x-init="const savedAddr = {{ json_encode(trim($salesorder->falamatkirim ?? '')) }};
-                                    if (savedAddr && savedAddr === addr2) { tab = 2; } else if (savedAddr && savedAddr === addr3) { tab = 3; } else { tab = 1; if (savedAddr) addr1 = savedAddr; }
-                                    updateFinal();
-                                    $watch('tab', v => updateFinal());
-                                    $watch('addr1', v => updateFinal());
-                                    $watch('addr2', v => updateFinal());
-                                    $watch('addr3', v => updateFinal());"
-                                        @customer-selected.window="
-                                addr1 = $event.detail.f1 || ''; 
-                                addr2 = $event.detail.f2 || ''; 
-                                addr3 = $event.detail.f3 || ''; 
-                                tab = 1; 
-                                updateFinal();
-                                "
-                                        class="flex flex-col gap-2">
+                                {{-- Ref.PO --}}
+                                <div class="md:col-span-2">
+                                    <label class="block text-xs font-bold text-gray-600 mb-1">Ref.PO</label>
+                                    <input type="text" name="frefpo" disabled
+                                        value="{{ old('frefpo', $salesorder->frefpo) }}"
+                                        class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm bg-gray-100 text-gray-500 cursor-not-allowed border-gray-200">
+                                </div>
 
-                                        <input type="hidden" name="falamatkirim" id="falamatkirim_final"
-                                            value="{{ old('falamatkirim') }}">
+                                {{-- Address and Notes section --}}
+                                <div class="md:col-span-12 mt-2">
+                                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 items-stretch">
+                                        <div x-data="{
+                                            tab: 1,
+                                            addr1: {{ json_encode(old('fkirimaddress1', $salesorder->customer->fkirimaddress1 ?? '')) }},
+                                            addr2: {{ json_encode(old('fkirimaddress2', $salesorder->customer->fkirimaddress2 ?? '')) }},
+                                            addr3: {{ json_encode(old('fkirimaddress3', $salesorder->customer->fkirimaddress3 ?? '')) }},
+                                        
+                                            updateFinal() {
+                                                let val = '';
+                                                if (this.tab === 1) val = this.addr1;
+                                                else if (this.tab === 2) val = this.addr2;
+                                                else if (this.tab === 3) val = this.addr3;
+                                        
+                                                const el = document.getElementById('falamatkirim_final');
+                                                if (el) el.value = val;
+                                            }
+                                        }" x-init="const savedAddr = {{ json_encode(trim($salesorder->falamatkirim ?? '')) }};
+                                        if (savedAddr && savedAddr === addr2) { tab = 2; } else if (savedAddr && savedAddr === addr3) { tab = 3; } else { tab = 1; if (savedAddr) addr1 = savedAddr; }
+                                        updateFinal();"
+                                            class="flex flex-col gap-2">
 
-                                        <div class="flex items-center gap-2">
-                                            <label class="text-sm font-bold text-gray-700 mr-2">Kirim ke :</label>
+                                            <input type="hidden" name="falamatkirim" id="falamatkirim_final"
+                                                value="{{ old('falamatkirim') }}">
 
-                                            <div class="inline-flex rounded-md shadow-sm" role="group">
-                                                <button type="button" @click="tab = 1" disabled
-                                                    :class="tab === 1 ? 'bg-blue-600 text-white z-10 ring-2 ring-blue-300' :
-                                                        'bg-white text-gray-700 hover:bg-gray-50'"
-                                                    class="px-4 py-1.5 text-xs font-semibold border border-gray-300 rounded-l-md transition-all">
-                                                    Alamat 1
-                                                </button>
-                                                <button type="button" @click="tab = 2" disabled
-                                                    :class="tab === 2 ? 'bg-blue-600 text-white z-10 ring-2 ring-blue-300' :
-                                                        'bg-white text-gray-700 hover:bg-gray-50'"
-                                                    class="px-4 py-1.5 text-xs font-semibold border-t border-b border-r border-gray-300 transition-all">
-                                                    Alamat 2
-                                                </button>
-                                                <button type="button" @click="tab = 3" disabled
-                                                    :class="tab === 3 ? 'bg-blue-600 text-white z-10 ring-2 ring-blue-300' :
-                                                        'bg-white text-gray-700 hover:bg-gray-50'"
-                                                    class="px-4 py-1.5 text-xs font-semibold border-t border-b border-r border-gray-300 rounded-r-md transition-all">
-                                                    Alamat 3
-                                                </button>
+                                            <div class="flex items-center gap-2">
+                                                <label class="text-xs font-bold text-gray-600 mr-2">Kirim ke :</label>
+
+                                                <div class="inline-flex rounded-md shadow-sm" role="group">
+                                                    <button type="button" @click="tab = 1" disabled
+                                                        :class="tab === 1 ? 'bg-blue-600 text-white z-10 ring-2 ring-blue-300' :
+                                                            'bg-white text-gray-700 hover:bg-gray-50'"
+                                                        class="px-3 py-1 text-xs font-semibold border border-gray-300 rounded-l-md transition-all">
+                                                        Alamat 1
+                                                    </button>
+                                                    <button type="button" @click="tab = 2" disabled
+                                                        :class="tab === 2 ? 'bg-blue-600 text-white z-10 ring-2 ring-blue-300' :
+                                                            'bg-white text-gray-700 hover:bg-gray-50'"
+                                                        class="px-3 py-1 text-xs font-semibold border-t border-b border-r border-gray-300 transition-all">
+                                                        Alamat 2
+                                                    </button>
+                                                    <button type="button" @click="tab = 3" disabled
+                                                        :class="tab === 3 ? 'bg-blue-600 text-white z-10 ring-2 ring-blue-300' :
+                                                            'bg-white text-gray-700 hover:bg-gray-50'"
+                                                        class="px-3 py-1 text-xs font-semibold border-t border-b border-r border-gray-300 rounded-r-md transition-all">
+                                                        Alamat 3
+                                                    </button>
+                                                </div>
+                                            </div>
+
+                                            <div class="w-full">
+                                                <textarea x-show="tab === 1" x-model="addr1" readonly
+                                                    class="w-full p-2 text-xs border border-gray-300 rounded bg-gray-100 text-gray-500 cursor-not-allowed min-h-[72px]"
+                                                    placeholder="Isi Alamat 1..."></textarea>
+
+                                                <textarea x-show="tab === 2" x-model="addr2" readonly
+                                                    class="w-full p-2 text-xs border border-gray-300 rounded bg-gray-100 text-gray-500 cursor-not-allowed min-h-[72px]"
+                                                    placeholder="Isi Alamat 2..."></textarea>
+
+                                                <textarea x-show="tab === 3" x-model="addr3" readonly
+                                                    class="w-full p-2 text-xs border border-gray-300 rounded bg-gray-100 text-gray-500 cursor-not-allowed min-h-[72px]"
+                                                    placeholder="Isi Alamat 3..."></textarea>
                                             </div>
                                         </div>
 
-                                        <div class="w-full">
-                                            <textarea x-show="tab === 1" x-model="addr1" readonly
-                                                class="w-full p-2 text-sm border border-gray-300 rounded focus:ring-blue-500 focus:border-blue-500 min-h-[80px]"
-                                                placeholder="Isi Alamat 1..."></textarea>
-
-                                            <textarea x-show="tab === 2" x-model="addr2" readonly
-                                                class="w-full p-2 text-sm border border-gray-300 rounded focus:ring-blue-500 focus:border-blue-500 min-h-[80px]"
-                                                placeholder="Isi Alamat 2..."></textarea>
-
-                                            <textarea x-show="tab === 3" x-model="addr3" readonly
-                                                class="w-full p-2 text-sm border border-gray-300 rounded focus:ring-blue-500 focus:border-blue-500 min-h-[80px]"
-                                                placeholder="Isi Alamat 3..."></textarea>
-                                        </div>
-                                    </div>
-
-                                    <div class="flex flex-col">
-                                        <label class="block text-sm font-bold text-gray-700 mb-2">Keterangan</label>
-                                        <div
-                                            class="flex-1 border-2 border-gray-200 rounded-xl p-3 bg-gray-200 focus-within:border-blue-400">
-                                            <textarea readonly name="fket" class="w-full h-full border-none focus:ring-0 p-0 text-sm resize-none bg-gray-200"
+                                        <div class="flex flex-col">
+                                            <label class="block text-xs font-bold text-gray-600 mb-2">Keterangan</label>
+                                            <textarea readonly name="fket"
+                                                class="w-full p-2 text-xs border border-gray-300 rounded bg-gray-100 text-gray-500 cursor-not-allowed min-h-[72px]"
                                                 placeholder="Keterangan isi di sini...">{{ old('fket', $salesorder->fket) }}</textarea>
+                                            @error('fket')
+                                                <span class="text-red-500 text-xs mt-1">{{ $message }}</span>
+                                            @enderror
                                         </div>
-                                        @error('fket')
-                                            <span class="text-red-500 text-xs mt-1">{{ $message }}</span>
-                                        @enderror
                                     </div>
                                 </div>
-                            </div>
 
-                            <div class="lg:col-span-12">
-                                <label class="block text-sm font-medium">Catatan Internal</label>
-                                <textarea readonly name="fketinternal" rows="2"
-                                    class="w-full border rounded px-3 py-2 bg-gray-200 @error('fketinternal') border-red-500 @enderror"
-                                    placeholder="Tulis Catatan Internal tambahan di sini...">{{ old('fketinternal', $salesorder->fketinternal) }}</textarea>
-                                @error('fketinternal')
-                                    <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
-                                @enderror
+                                <div class="md:col-span-12 mt-2">
+                                    <label class="block text-xs font-bold text-gray-600 mb-1">Catatan Internal</label>
+                                    <textarea readonly name="fketinternal" rows="2"
+                                        class="w-full border border-gray-300 rounded-lg px-3 py-2 text-xs bg-gray-100 text-gray-500 cursor-not-allowed border-gray-200 @error('fketinternal') border-red-500 @enderror"
+                                        placeholder="Tulis Catatan Internal tambahan di sini...">{{ old('fketinternal', $salesorder->fketinternal) }}</textarea>
+                                    @error('fketinternal')
+                                        <p class="text-red-600 text-[10px] mt-1">{{ $message }}</p>
+                                    @enderror
+                                </div>
                             </div>
                         </div>
+                    </div>
 
-                        <div x-data="salesOrderReadonlyItemsTable()" x-init="init()" class="mt-6 space-y-2">
-
-                            {{-- DETAIL ITEM (tabel input) --}}
-                            <h3 class="text-base font-semibold text-gray-800">Detail Item</h3>
-
-                            <div class="overflow-x-auto border rounded">
-                                <table class="sales-detail-table min-w-full text-sm balanced-detail-table"
+                    {{-- ─── CARD 2: Detail Item ────────────────────── --}}
+                    <div class="bg-white border border-gray-200 rounded-xl mb-3 overflow-hidden">
+                        <div class="flex items-center gap-2 px-4 pt-3 pb-0">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-gray-400" fill="none"
+                                viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                            </svg>
+                            <p class="text-xs font-medium uppercase tracking-wide text-gray-400">Detail Item</p>
+                        </div>
+                        <div class="p-4" x-data="salesOrderReadonlyItemsTable()" x-init="init()">
+                            <div class="overflow-x-auto border border-gray-200 rounded-lg">
+                                <table class="sales-detail-table min-w-full text-xs balanced-detail-table"
                                     data-skip-auto-detail-style="true">
-                                    <thead class="bg-gray-100">
+                                    <thead class="bg-gray-50 border-b border-gray-200">
                                         <tr>
-                                            <th class="p-2 text-left w-10">#</th>
-                                            <th class="p-2 text-left w-52">Kode Produk</th>
-                                            <th class="p-2 text-left w-[28rem]">Nama Produk</th>
-                                            <th class="p-2 text-left w-28">Satuan</th>
-                                            <th class="p-2 text-right w-28 whitespace-nowrap">Qty</th>
-                                            <th class="p-2 text-right w-28 whitespace-nowrap">Qty.SRJ</th>
-                                            <th class="p-2 text-right w-33 whitespace-nowrap">@ Harga</th>
-                                            <th class="p-2 text-right w-28 whitespace-nowrap">Disc. %</th>
-                                            <th class="p-2 text-right w-33 whitespace-nowrap">Total Harga</th>
-                                            <th class="p-2 text-center w-24">Aksi</th>
+                                            <th class="p-2 text-left font-bold text-gray-600 w-10">#</th>
+                                            <th class="p-2 text-left font-bold text-gray-600 w-52">Kode Produk</th>
+                                            <th class="p-2 text-left font-bold text-gray-600 w-[28rem]">Nama Produk</th>
+                                            <th class="p-2 text-left font-bold text-gray-600 w-28">Satuan</th>
+                                            <th class="p-2 text-right font-bold text-gray-600 w-28 whitespace-nowrap">Qty</th>
+                                            <th class="p-2 text-right font-bold text-gray-600 w-28 whitespace-nowrap">Qty.SRJ</th>
+                                            <th class="p-2 text-right font-bold text-gray-600 w-33 whitespace-nowrap">@ Harga</th>
+                                            <th class="p-2 text-right font-bold text-gray-600 w-28 whitespace-nowrap">Disc. %</th>
+                                            <th class="p-2 text-right font-bold text-gray-600 w-33 whitespace-nowrap">Total Harga</th>
+                                            <th class="p-2 text-center font-bold text-gray-600 w-24">Aksi</th>
                                         </tr>
                                     </thead>
 
                                     <template x-for="(row, i) in rows" :key="row.uid || `item-${i}`">
                                         <tbody>
-                                            <tr class="border-t align-top">
-                                                <td class="p-2" x-text="i + 1"></td>
+                                            <tr class="border-b border-gray-200 align-top hover:bg-gray-50">
+                                                <td class="p-2 text-gray-500" x-text="i + 1"></td>
                                                 <td class="p-2 font-mono">
                                                     <input type="text"
-                                                        class="w-full border rounded px-2 py-1 bg-gray-100 text-gray-600 font-mono :disabled="!hasCustomer()" :class="!hasCustomer() ? 'opacity-60 pointer-events-none' : ''""
+                                                        class="w-full border border-gray-200 rounded px-2 py-1 bg-gray-100 text-gray-500 font-mono text-xs cursor-not-allowed"
                                                         :value="row.fprdcode" disabled>
                                                 </td>
                                                 <td class="p-2">
                                                     <div class="flex w-full max-w-full">
-                                                        <div class="min-w-0 flex-1 rounded-l border bg-gray-100 px-2 py-1 text-sm leading-5 text-gray-600 whitespace-normal break-words"
+                                                        <div class="min-w-0 flex-1 rounded-l border border-gray-200 bg-gray-100 px-2 py-1 text-xs leading-5 text-gray-500 whitespace-normal break-words"
                                                             x-text="row.fitemname"></div>
                                                         <button type="button" @click="openDesc(row)"
-                                                            class="shrink-0 inline-flex items-center border border-l-0 rounded-r bg-slate-50 px-2 py-1 text-slate-700 hover:bg-slate-100"
+                                                            class="shrink-0 inline-flex items-center border border-gray-200 border-l-0 rounded-r bg-slate-50 px-2 py-1 text-slate-700 hover:bg-slate-100"
                                                             title="Deskripsi">
                                                             <x-heroicon-o-document-text class="w-4 h-4" />
                                                         </button>
                                                     </div>
                                                 </td>
-                                              <td class="p-2">
+                                                <td class="p-2">
                                                     <template x-if="row.units && row.units.length > 1">
-                                                        <select class="w-full border rounded px-2 py-1 text-xs bg-gray-100 text-gray-600"
+                                                        <select class="w-full border border-gray-200 rounded px-2 py-1 text-xs bg-gray-100 text-gray-500 cursor-not-allowed"
                                                             :id="'unit_row_' + i"
                                                             x-model="row.fsatuan"
                                                             x-effect="$el.value = row.fsatuan"
@@ -533,61 +529,60 @@
                                                     </template>
                                                     <input type="text"
                                                         x-show="!row.units || row.units.length <= 1"
-                                                        class="w-full border rounded px-2 py-1 bg-gray-100 text-gray-600 text-xs"
+                                                        class="w-full border border-gray-200 rounded px-2 py-1 bg-gray-100 text-gray-500 text-xs cursor-not-allowed"
                                                         :value="row.fsatuan || '-'" disabled>
                                                 </td>
                                                 <td class="p-2 text-right">
                                                     <input type="text"
-                                                        class="w-full border rounded px-2 py-1 text-right bg-gray-100 text-gray-600"
+                                                        class="w-full border border-gray-200 rounded px-2 py-1 text-right bg-gray-100 text-gray-500 text-xs cursor-not-allowed"
                                                         :value="formatQtyValue(row.fqty)" disabled>
                                                 </td>
                                                 <td class="p-2 text-right">
                                                     <input type="text"
-                                                        class="w-full border rounded px-2 py-1 text-right bg-gray-100 text-gray-600"
+                                                        class="w-full border border-gray-200 rounded px-2 py-1 text-right bg-gray-100 text-gray-500 text-xs cursor-not-allowed"
                                                         :value="formatQtyValue(row.fqtysrj)" disabled>
                                                 </td>
                                                 <td class="p-2 text-right">
                                                     <input type="text"
-                                                        class="w-full border rounded px-2 py-1 text-right bg-gray-100 text-gray-600 text-sm"
+                                                        class="w-full border border-gray-200 rounded px-2 py-1 text-right bg-gray-100 text-gray-500 text-xs cursor-not-allowed"
                                                         :value="fmt(row.fprice)" disabled>
                                                 </td>
                                                 <td class="p-2 text-right">
                                                     <input type="text"
-                                                        class="w-full border rounded px-2 py-1 text-right bg-gray-100 text-gray-600"
+                                                        class="w-full border border-gray-200 rounded px-2 py-1 text-right bg-gray-100 text-gray-500 text-xs cursor-not-allowed"
                                                         :value="row.fdisc && row.fdisc.toString().includes('+') ? row.fdisc :
                                                             Number(row.fdisc || 0).toFixed(2)"
                                                         disabled>
                                                 </td>
                                                 <td class="p-2">
                                                     <input type="text"
-                                                        class="w-full border rounded px-2 py-1 bg-gray-100 text-gray-600 text-sm text-right"
+                                                        class="w-full border border-gray-200 rounded px-2 py-1 bg-gray-100 text-gray-500 text-xs text-right cursor-not-allowed"
                                                         :value="fmt(row.ftotal)" disabled>
                                                 </td>
                                                 <td class="p-2 text-center">
                                                     <button type="button" disabled
-                                                        class="px-3 py-1 rounded text-xs bg-gray-100 text-gray-400 cursor-not-allowed">Hapus</button>
+                                                        class="px-3 py-1 rounded text-[11px] bg-gray-100 text-gray-400 cursor-not-allowed border border-gray-200">Hapus</button>
                                                 </td>
                                             </tr>
                                         </tbody>
                                     </template>
-                                    </tbody>
                                 </table>
                             </div>
 
                             <div class="mt-3 flex justify-end">
-                                <div class="w-[560px] shrink-0">
-                                    <div class="rounded-lg border bg-gray-50 p-4 space-y-3 text-sm">
+                                <div class="w-[480px] shrink-0">
+                                    <div class="rounded-xl border border-gray-200 bg-gray-50 p-4 space-y-3 text-xs">
                                         <div class="flex items-center justify-between">
-                                            <span class="font-bold text-gray-800">Total Harga</span>
+                                            <span class="font-bold text-gray-700">Total Harga</span>
                                             <span class="font-bold text-gray-900"
                                                 x-text="formatTransactionAmount(totalHarga)"></span>
                                         </div>
 
                                         <div class="flex items-center gap-2">
-                                            <span class="font-bold text-gray-800">Discount</span>
+                                            <span class="font-bold text-gray-700">Discount</span>
                                             <input type="number" min="0" max="100" step="0.01"
                                                 x-model.number="headerDiscPercent" disabled
-                                                class="w-16 h-9 px-2 text-sm leading-tight text-right border rounded transition-opacity [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none disabled:bg-gray-100 disabled:opacity-60 disabled:cursor-not-allowed">
+                                                class="w-16 h-8 px-2 text-xs text-right border border-gray-300 rounded-lg transition-opacity [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none disabled:bg-gray-100 disabled:opacity-60 disabled:cursor-not-allowed">
                                             <span class="text-gray-500">%</span>
                                             <span class="flex-1"></span>
                                             <span class="font-medium text-right"
@@ -595,7 +590,7 @@
                                         </div>
 
                                         <div class="flex items-center justify-between">
-                                            <span class="font-bold text-gray-800">Total Setelah Disc.</span>
+                                            <span class="font-bold text-gray-700">Total Setelah Disc.</span>
                                             <span class="font-medium text-gray-900"
                                                 x-text="rupiah(totalSetelahDisc)"></span>
                                         </div>
@@ -603,37 +598,37 @@
                                         <div class="flex items-center gap-2">
                                             <!-- Checkbox -->
                                             <label class="flex items-center gap-1.5 cursor-pointer select-none">
-                                                <input id="fapplyppn" type="checkbox" name="fapplyppn" value="1"
-                                                    x-model="includePPN" disabled x-init="includePPN = {{ $salesorder->fapplyppn == '1' ? 'true' : 'false' }}"
+                                                <input id="fapplyppn_ro" type="checkbox" value="1"
+                                                    x-model="includePPN" disabled
                                                     class="h-4 w-4 text-blue-600 border-gray-300 rounded">
-                                                <span class="font-bold">PPN</span>
+                                                <span class="font-bold text-gray-700">PPN</span>
                                             </label>
 
                                             <!-- Dropdown Include / Exclude -->
-                                            <select disabled id="ppnMode" name="fincludeppn"
-                                                x-model.number="ppnMode" x-init="ppnMode = {{ old('fincludeppn', $salesorder->fincludeppn ?? 0) }}"
+                                            <select disabled id="ppnMode_ro"
+                                                x-model.number="ppnMode"
                                                 :disabled="!includePPN"
-                                                class="w-28 h-9 px-2 text-sm leading-tight border rounded transition-opacity appearance-none disabled:bg-gray-100 disabled:opacity-60 disabled:cursor-not-allowed">
+                                                class="w-24 h-8 px-2 text-xs border border-gray-300 rounded-lg transition-opacity appearance-none disabled:bg-gray-100 disabled:opacity-60 disabled:cursor-not-allowed">
                                                 <option value="0">Exclude</option>
                                                 <option value="1">Include</option>
                                             </select>
 
                                             <!-- Input Rate + Nominal -->
                                             <input disabled type="number" min="0" max="100"
-                                                step="0.01" x-model.number="ppnRate" x-init="ppnRate = {{ old('fppnpersen', $salesorder->fppnpersen ?? 11) }}"
+                                                step="0.01" x-model.number="ppnRate"
                                                 :disabled="!includePPN"
-                                                class="w-16 h-9 px-2 text-sm leading-tight text-right border rounded transition-opacity [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none disabled:bg-gray-100 disabled:opacity-60 disabled:cursor-not-allowed">
+                                                class="w-16 h-8 px-2 text-xs text-right border border-gray-300 rounded-lg transition-opacity [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none disabled:bg-gray-100 disabled:opacity-60 disabled:cursor-not-allowed">
                                             <span class="text-gray-500">%</span>
                                             <span class="flex-1"></span>
                                             <span class="font-medium"
                                                 x-text="rupiah(ppnAmount)"></span>
                                         </div>
 
-                                        <div class="border-t my-1"></div>
+                                        <div class="border-t border-gray-200 my-1"></div>
 
-                                        <div class="flex items-center justify-between text-base">
+                                        <div class="flex items-center justify-between text-xs">
                                             <span class="font-extrabold text-gray-900">Grand Total</span>
-                                            <span class="font-extrabold text-blue-700 text-lg"
+                                            <span class="font-extrabold text-blue-700 text-sm"
                                                 x-text="rupiah(grandTotal)"></span>
                                         </div>
                                     </div>
@@ -647,98 +642,104 @@
 
                                 <div class="relative bg-white w-[92vw] max-w-lg rounded-2xl shadow-2xl overflow-hidden"
                                     x-transition.scale>
-                                    <div class="px-5 py-4 border-b flex items-center">
+                                    <div class="px-5 py-4 border-b border-gray-200 flex items-center">
                                         <x-heroicon-o-document-text class="w-6 h-6 text-blue-600 mr-2" />
-                                        <h3 class="text-lg font-semibold text-gray-800">Isi Deskripsi Item</h3>
+                                        <h3 class="text-base font-bold text-gray-800">Isi Deskripsi Item</h3>
                                     </div>
 
                                     <div class="px-5 py-4 space-y-4">
                                         <div>
                                             <div class="mb-1 flex items-center justify-between gap-3">
-                                                <div class="text-sm text-gray-700">Nama Produk</div>
+                                                <div class="text-xs text-gray-700">Nama Produk</div>
                                                 <button x-show="!descReadonly" type="button" @click="copyDescName()"
-                                                    class="h-8 px-3 rounded-lg bg-blue-50 text-blue-700 text-sm font-medium hover:bg-blue-100">
+                                                    class="h-8 px-3 rounded-lg bg-blue-50 text-blue-700 text-xs font-medium hover:bg-blue-100">
                                                     Copy
                                                 </button>
                                             </div>
-                                            <div class="rounded-lg border bg-gray-50 px-3 py-2 text-sm text-gray-800"
+                                            <div class="rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-xs text-gray-800"
                                                 x-text="descItemName || '-'"></div>
                                         </div>
-                                        <label class="block text-sm text-gray-700">Deskripsi</label>
-                                        <textarea x-model="descValue" rows="5" class="w-full border rounded px-3 py-2" :readonly="descReadonly"
+                                        <label class="block text-xs font-bold text-gray-700">Deskripsi</label>
+                                        <textarea x-model="descValue" rows="5" class="w-full border border-gray-300 rounded px-3 py-2 text-xs" :readonly="descReadonly"
                                             placeholder="Tulis deskripsi item di sini..."></textarea>
                                     </div>
 
-                                    <div class="px-5 py-3 border-t flex items-center justify-end gap-2">
+                                    <div class="px-5 py-3 border-t border-gray-200 flex items-center justify-end gap-2">
                                         <button type="button" @click="closeDesc()"
-                                            class="h-9 px-4 rounded-lg bg-gray-100 text-gray-700 text-sm font-medium hover:bg-gray-200">
+                                            class="h-9 px-4 rounded-lg bg-gray-100 text-gray-700 text-xs font-medium hover:bg-gray-200">
                                             Batal
                                         </button>
                                         <button x-show="!descReadonly" type="button" @click="applyDesc()"
-                                            class="h-9 px-4 rounded-lg bg-emerald-600 text-white text-sm font-medium hover:bg-emerald-700">
+                                            class="h-9 px-4 rounded-lg bg-emerald-600 text-white text-xs font-medium hover:bg-emerald-700">
                                             Simpan
                                         </button>
                                     </div>
                                 </div>
                             </div>
-
                         </div>
+                    </div>
 
-                        @php
-                            $canApproval = in_array(
-                                'approveSalesOrder',
-                                explode(',', session('user_restricted_permissions', '')),
-                            );
-                        @endphp
+                    {{-- ─── CARD 3: Approval & Aksi ────────────────────── --}}
+                    @php
+                        $canApproval = in_array(
+                            'approveSalesOrder',
+                            explode(',', session('user_restricted_permissions', '')),
+                        );
+                    @endphp
 
-                        @if ($canApproval)
-                            <div
-                                class="mt-6 mx-auto max-w-2xl rounded-lg border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-700">
-                                <div class="font-semibold">Status Persetujuan Kredit</div>
-                                <div class="mt-1">
+                    @if ($canApproval)
+                        <div class="bg-white border border-gray-200 rounded-xl mb-3 overflow-hidden">
+                            <div class="p-4 text-sm text-slate-700">
+                                <div class="font-bold text-xs uppercase text-gray-400 tracking-wider mb-2">Status Persetujuan Kredit</div>
+                                <div class="text-sm font-medium">
                                     {{ !empty($salesorder->fuseracc) ? 'Sudah disetujui oleh: ' . $salesorder->fuseracc : 'Belum ada persetujuan kredit pada transaksi ini.' }}
                                 </div>
                             </div>
-                        @endif
-
-                        <div class="mt-6 flex justify-center space-x-4">
-                            @if ($isDelete && $canDeletePermission)
-                                @if ($usageLocked)
-                                    <button type="button" disabled title="{{ $usageLockMessage }}"
-                                        class="bg-red-300 text-white px-6 py-2 rounded flex items-center cursor-not-allowed opacity-70">
-                                        <x-heroicon-o-lock-closed class="w-5 h-5 mr-2" />
-                                        Hapus
-                                    </button>
-                                @else
-                                    <button type="button" onclick="showDeleteModal()"
-                                        class="bg-red-600 text-white px-6 py-2 rounded hover:bg-red-700 flex items-center">
-                                        <x-heroicon-o-trash class="w-5 h-5 mr-2" />
-                                        Hapus
-                                    </button>
-                                @endif
-                            @endif
-                            @if ($isView && $canPrint)
-                                <a href="{{ route('salesorder.print', $salesorder->fsono) }}" target="_blank"
-                                    class="bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700 flex items-center">
-                                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                            d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m10 0v-5a2 2 0 00-2-2H9a2 2 0 00-2 2v5m10 0v5H7v-5">
-                                        </path>
-                                    </svg>
-                                    Print
-                                </a>
-                            @endif
-                            <button type="button" onclick="window.location.href='{{ route('salesorder.index') }}'"
-                                class="bg-gray-500 text-white px-6 py-2 rounded hover:bg-gray-600 flex items-center">
-                                <x-heroicon-o-arrow-left class="w-5 h-5 mr-2" />
-                                Kembali
-                            </button>
                         </div>
+                    @endif
 
-                        {{-- ============================================ --}}
-                        {{-- MODE EDIT: FORM EDITABLE                    --}}
-                        {{-- ============================================ --}}
-                    @else
+                    <div class="bg-white border border-gray-200 rounded-xl mb-3 overflow-hidden">
+                        <div class="flex items-center justify-between px-4 py-3 bg-gray-50 border-t border-gray-200">
+                            <div>
+                                <button type="button" onclick="window.location.href='{{ route('salesorder.index') }}'"
+                                    class="inline-flex items-center gap-2 px-4 py-2 border border-gray-300 bg-white text-gray-600 text-sm font-medium rounded-lg hover:bg-gray-50 hover:border-gray-400 transition-colors">
+                                    <x-heroicon-o-arrow-left class="w-4 h-4" />
+                                    Kembali
+                                </button>
+                            </div>
+                            <div class="flex items-center gap-3">
+                                @if ($isView && $canPrint)
+                                    <a href="{{ route('salesorder.print', $salesorder->fsono) }}" target="_blank"
+                                        class="inline-flex items-center gap-2 px-4 py-2 border border-blue-600 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m10 0v-5a2 2 0 00-2-2H9a2 2 0 00-2 2v5m10 0v5H7v-5">
+                                            </path>
+                                        </svg>
+                                        Print
+                                    </a>
+                                @endif
+
+                                @if ($isDelete && $canDeletePermission)
+                                    @if ($usageLocked)
+                                        <button type="button" disabled title="{{ $usageLockMessage }}"
+                                            class="inline-flex items-center gap-2 px-5 py-2 bg-red-300 text-white text-sm font-medium rounded-lg cursor-not-allowed opacity-75">
+                                            <x-heroicon-o-lock-closed class="w-4 h-4" />
+                                            Hapus
+                                        </button>
+                                    @else
+                                        <button type="button" onclick="showDeleteModal()"
+                                            class="inline-flex items-center gap-2 px-5 py-2 bg-red-600 text-white text-sm font-medium rounded-lg hover:bg-red-700 transition-colors">
+                                            <x-heroicon-o-trash class="w-4 h-4" />
+                                            Hapus
+                                        </button>
+                                    @endif
+                                @endif
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            @else
                         <script>
                             window._soLabels = {
                                 noItemsTitle: @json(__('Tidak Ada Item')),
@@ -762,181 +763,195 @@
                             @submit.prevent="handleSubmit()">
                             @csrf
                             @method('PATCH')
-                            <input type="hidden" name="fneedacc" id="salesOrderNeedAcc"
-                                value="{{ old('fneedacc', $salesorder->fneedacc ?? '0') }}">
                             <input type="hidden" name="fuseracc" id="salesOrderUserAcc"
                                 value="{{ old('fuseracc', $salesorder->fuseracc ?? '') }}">
 
-                            {{-- HEADER FORM --}}
-                            <div class="grid grid-cols-1 lg:grid-cols-12 gap-4">
-                                <div class="lg:col-span-4">
-                                    <label class="block text-sm font-medium">Cabang</label>
-                                    <input type="text"
-                                        class="w-full border rounded px-3 py-2 bg-gray-200 cursor-not-allowed"
-                                        value="{{ trim(($fbranchcode ?? '') . ($fcabang ?? '' ? ' - ' . $fcabang : '')) }}" disabled>
-                                    <input type="hidden" name="fbranchcode" value="{{ $fbranchcode }}">
+                            {{-- ─── CARD 1: Identitas Sales Order ────────────────────── --}}
+                            <div class="bg-white border border-gray-200 rounded-xl mb-3 overflow-hidden">
+                                <div class="flex items-center gap-2 px-4 pt-3 pb-0">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-gray-400" fill="none"
+                                        viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                    </svg>
+                                    <p class="text-xs font-medium uppercase tracking-wide text-gray-400">Identitas Sales Order</p>
                                 </div>
+                                <div class="p-4 space-y-4">
+                                    <div class="grid grid-cols-1 md:grid-cols-12 gap-3">
+                                        {{-- Cabang --}}
+                                        <div class="md:col-span-4">
+                                            <label class="block text-xs font-bold text-gray-600 mb-1">Cabang</label>
+                                            <input type="text"
+                                                class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm bg-gray-100 text-gray-500 cursor-not-allowed border-gray-200"
+                                                value="{{ trim(($fbranchcode ?? '') . ($fcabang ?? '' ? ' - ' . $fcabang : '')) }}" disabled>
+                                            <input type="hidden" name="fbranchcode" value="{{ $fbranchcode }}">
+                                        </div>
 
-                                {{-- SO# --}}
-                                <div class="lg:col-span-4" x-data="{ autoCode: false }">
-                                    <label class="block text-sm font-medium mb-1">SO#</label>
-                                    <div class="flex items-center gap-3">
-                                        <input type="text" name="fsono"
-                                            value="{{ old('fsono', $displayFsono ?? $salesorder->fsono) }}"
-                                            class="w-full border rounded px-3 py-2" :disabled="autoCode"
-                                            :class="autoCode ? 'bg-gray-200 cursor-not-allowed text-gray-500' : 'bg-white'">
+                                        {{-- SO# --}}
+                                        <div class="md:col-span-4" x-data="{ autoCode: false }">
+                                            <label class="block text-xs font-bold text-gray-600 mb-1">SO#</label>
+                                            <div class="flex items-center gap-2">
+                                                <input type="text" name="fsono"
+                                                    value="{{ old('fsono', $displayFsono ?? $salesorder->fsono) }}"
+                                                    class="flex-1 border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                                                    :disabled="autoCode"
+                                                    :class="autoCode ? 'bg-gray-100 text-gray-500 border-gray-200 cursor-not-allowed' : 'bg-white'">
 
-                                        <label class="inline-flex items-center select-none">
-                                            <input type="checkbox" x-model="autoCode">
-                                            <span class="ml-2 text-sm text-gray-700">Auto</span>
-                                        </label>
+                                                <label class="inline-flex items-center select-none font-medium text-xs text-gray-600 cursor-pointer">
+                                                    <input type="checkbox" x-model="autoCode"
+                                                        class="rounded text-blue-600 border-gray-300 focus:ring-blue-500">
+                                                    <span class="ml-1.5">Auto</span>
+                                                </label>
+                                            </div>
+                                            <p x-show="autoCode" class="text-[10px] text-blue-600 mt-1">* Nomor akan digenerate otomatis saat simpan</p>
+                                        </div>
+
+                                        {{-- Tanggal --}}
+                                        <div class="md:col-span-2">
+                                            <label class="block text-xs font-bold text-gray-600 mb-1">Tanggal <span class="text-red-500">*</span></label>
+                                            <input type="date" name="fsodate"
+                                                value="{{ old('fsodate') ?? date('Y-m-d', strtotime($salesorder->fsodate)) }}"
+                                                class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 @error('fsodate') border-red-500 @enderror">
+                                            @error('fsodate')
+                                                <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                                            @enderror
+                                        </div>
+
+                                        {{-- Close --}}
+                                        <div class="md:col-span-2 flex items-end pb-2">
+                                            <div class="inline-flex items-center">
+                                                <input id="fclose" type="checkbox" name="fclose" value="1"
+                                                    x-model="fclose"
+                                                    class="w-5 h-5 text-red-600 border-gray-300 rounded cursor-pointer focus:ring-red-500"
+                                                    {{ old('fclose', $salesorder->fclose) ? 'checked' : '' }}>
+
+                                                <label for="fclose"
+                                                    class="ml-2 text-sm font-bold text-red-600 whitespace-nowrap cursor-pointer">
+                                                    Close
+                                                </label>
+                                            </div>
+                                        </div>
                                     </div>
-                                    <p x-show="autoCode" class="text-[10px] text-blue-600 mt-1">* Nomor akan
-                                        digenerate
-                                        otomatis
-                                        saat simpan</p>
-                                </div>
 
-                                {{-- Tanggal --}}
-                                <div class="lg:col-span-2">
-                                    <label class="block text-sm font-medium">Tanggal</label>
-                                    <input type="date" name="fsodate"
-                                        value="{{ old('fsodate') ?? date('Y-m-d', strtotime($salesorder->fsodate)) }}"
-                                        class="w-full border rounded px-3 py-2 @error('fsodate') border-red-500 @enderror">
-                                    @error('fsodate')
-                                        <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
-                                    @enderror
-                                </div>
-
-                                <div class="lg:col-span-2 flex items-end pb-2">
-                                    <div class="inline-flex items-center">
-                                        <input id="fclose" type="checkbox" name="fclose" value="1"
-                                            x-model="fclose" {{-- text-red-600 mengubah isi centang, border-red-400 mengubah bingkai --}}
-                                            class="w-6 h-6 text-red-600 border-red-400 rounded cursor-pointer focus:ring-red-500"
-                                            {{ old('fclose', $salesorder->fclose) ? 'checked' : '' }}>
-
-                                        <label for="fclose" {{-- text-red-600 mengubah warna tulisan menjadi merah --}}
-                                            class="ml-3 text-base font-bold text-red-600 whitespace-nowrap cursor-pointer">
-                                            Close
-                                        </label>
-                                    </div>
-                                </div>
-
-                                {{-- Customer --}}
-                                <div class="lg:col-span-4">
-                                    <label class="block text-sm font-medium mb-1">Customer</label>
-                                    <div class="flex">
-                                        <div class="relative flex-1" for="modal_filter_customer_id">
-                                            <select id="modal_filter_customer_id" name="filter_customer_id"
-                                                class="w-full border rounded-l px-3 py-2 bg-gray-100 text-gray-700 cursor-not-allowed"
-                                                disabled>
-                                                <option value=""></option>
-                                                @if ($currentCustomerCode !== '' && !$hasCurrentCustomer)
-                                                    <option value="{{ $currentCustomerCode }}" selected>
-                                                        {{ $currentCustomerName !== '' ? $currentCustomerName . ' (' . $currentCustomerCode . ')' : $currentCustomerCode }}
-                                                    </option>
+                                    <div class="grid grid-cols-1 md:grid-cols-12 gap-3">
+                                        {{-- Customer --}}
+                                        <div class="md:col-span-4">
+                                            <label class="block text-xs font-bold text-gray-600 mb-1">Customer <span class="text-red-500">*</span></label>
+                                            <div class="flex">
+                                                <div class="relative flex-1" for="modal_filter_customer_id">
+                                                    <select id="modal_filter_customer_id" name="filter_customer_id"
+                                                        class="w-full border border-gray-300 rounded-l-lg px-3 py-2 text-sm bg-gray-50 text-gray-700 cursor-pointer focus:outline-none focus:border-blue-500"
+                                                        disabled>
+                                                        <option value=""></option>
+                                                        @if ($currentCustomerCode !== '' && !$hasCurrentCustomer)
+                                                            <option value="{{ $currentCustomerCode }}" selected>
+                                                                {{ $currentCustomerName !== '' ? $currentCustomerName . ' (' . $currentCustomerCode . ')' : $currentCustomerCode }}
+                                                            </option>
+                                                        @endif
+                                                        @foreach ($customers as $customer)
+                                                            <option value="{{ $customer->fcustomercode }}"
+                                                                data-ftempo="{{ trim((string) ($customer->ftempo ?? 0)) }}"
+                                                                data-fsalesman="{{ trim((string) ($customer->fsalesman ?? '')) }}"
+                                                                {{ old('fcustno', $salesorder->fcustno) == $customer->fcustomercode ? 'selected' : '' }}>
+                                                                {{ $customer->fcustomername }} ({{ $customer->fcustomercode }})
+                                                            </option>
+                                                        @endforeach
+                                                    </select>
+                                                    <div class="absolute inset-0 cursor-pointer" role="button" aria-label="Browse Customer"
+                                                        @click="window.dispatchEvent(new CustomEvent('customer-browse-open'))">
+                                                    </div>
+                                                </div>
+                                                <input type="hidden" name="fcustno" id="customerCodeHidden"
+                                                    value="{{ old('fcustno', $salesorder->fcustno) }}">
+                                                <button type="button"
+                                                    @click="window.dispatchEvent(new CustomEvent('customer-browse-open'))"
+                                                    class="border border-l-0 border-gray-300 px-3 py-2 bg-white hover:bg-gray-50 text-gray-500 transition-colors"
+                                                    title="Browse Customer">
+                                                    <x-heroicon-o-magnifying-glass class="w-4 h-4" />
+                                                </button>
+                                                @if (in_array('createCustomer', explode(',', session('user_restricted_permissions', '')), true))
+                                                    <a href="{{ route('customer.create') }}" target="_blank" rel="noopener"
+                                                        class="border border-l-0 border-gray-300 rounded-r-lg px-3 py-2 bg-white hover:bg-gray-50 text-gray-500 transition-colors"
+                                                        title="Tambah Customer">
+                                                        <x-heroicon-o-plus class="w-4 h-4" />
+                                                    </a>
                                                 @endif
-                                                @foreach ($customers as $customer)
-                                                    <option value="{{ $customer->fcustomercode }}"
-                                                        data-ftempo="{{ trim((string) ($customer->ftempo ?? 0)) }}"
-                                                        data-fsalesman="{{ trim((string) ($customer->fsalesman ?? '')) }}"
-                                                        {{-- CEK DISINI: Bandingkan dengan data yang tersimpan di DB --}}
-                                                        {{ old('fcustno', $salesorder->fcustno) == $customer->fcustomercode ? 'selected' : '' }}>
-                                                        {{ $customer->fcustomername }}
-                                                        ({{ $customer->fcustomercode }})
-                                                    </option>
-                                                @endforeach
-                                            </select>
-                                            <div class="absolute inset-0" role="button" aria-label="Browse Customer"
-                                                @click="window.dispatchEvent(new CustomEvent('customer-browse-open'))">
                                             </div>
+                                            @error('fcustno')
+                                                <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                                            @enderror
                                         </div>
-                                        <input type="hidden" name="fcustno" id="customerCodeHidden"
-                                            value="{{ old('fcustno', $salesorder->fcustno) }}">
-                                        <button type="button"
-                                            @click="window.dispatchEvent(new CustomEvent('customer-browse-open'))"
-                                            class="border -ml-px px-3 py-2 bg-white hover:bg-gray-50 rounded-r-none"
-                                            title="Browse Customer">
-                                            <x-heroicon-o-magnifying-glass class="w-5 h-5" />
-                                        </button>
-                                        @if (in_array('createCustomer', explode(',', session('user_restricted_permissions', '')), true))
-                                            <a href="{{ route('customer.create') }}" target="_blank" rel="noopener"
-                                                class="border -ml-px rounded-r px-3 py-2 bg-white hover:bg-gray-50"
-                                                title="Tambah Customer">
-                                                <x-heroicon-o-plus class="w-5 h-5" />
-                                            </a>
-                                        @endif
-                                    </div>
-                                    @error('fcustno')
-                                        <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
-                                    @enderror
-                                </div>
 
-                                {{-- Salesman --}}
-                                <div class="lg:col-span-4">
-                                    <label class="block text-sm font-medium mb-1">Salesman</label>
-                                    <div class="flex">
-                                        <div class="relative flex-1" for="modal_filter_salesman_id">
-                                            <select id="modal_filter_salesman_id" name="filter_salesman_id"
-                                                class="w-full border rounded-l px-3 py-2 bg-gray-100 text-gray-700 cursor-not-allowed"
-                                                disabled>
-                                                <option value=""></option>
-                                                @foreach ($salesmans as $salesman)
-                                                    <option value="{{ $salesman->fsalesmancode }}" {{-- CEK DISINI: Bandingkan old input atau data dari database --}}
-                                                        {{ old('fsalesman', $salesorder->fsalesman) == $salesman->fsalesmancode ? 'selected' : '' }}>
-                                                        {{ $salesman->fsalesmanname }}
-                                                        ({{ $salesman->fsalesmancode }})
-                                                    </option>
-                                                @endforeach
-                                            </select>
-                                            <div class="absolute inset-0" role="button" aria-label="Browse Salesman"
-                                                @click="window.dispatchEvent(new CustomEvent('salesman-browse-open'))">
+                                        {{-- Salesman --}}
+                                        <div class="md:col-span-4">
+                                            <label class="block text-xs font-bold text-gray-600 mb-1">Salesman</label>
+                                            <div class="flex">
+                                                <div class="relative flex-1" for="modal_filter_salesman_id">
+                                                    <select id="modal_filter_salesman_id" name="filter_salesman_id"
+                                                        class="w-full border border-gray-300 rounded-l-lg px-3 py-2 text-sm bg-gray-50 text-gray-700 cursor-pointer focus:outline-none focus:border-blue-500"
+                                                        disabled>
+                                                        <option value=""></option>
+                                                        @foreach ($salesmans as $salesman)
+                                                            <option value="{{ $salesman->fsalesmancode }}"
+                                                                {{ old('fsalesman', $salesorder->fsalesman) == $salesman->fsalesmancode ? 'selected' : '' }}>
+                                                                {{ $salesman->fsalesmanname }} ({{ $salesman->fsalesmancode }})
+                                                            </option>
+                                                        @endforeach
+                                                    </select>
+                                                    <div class="absolute inset-0 cursor-pointer" role="button" aria-label="Browse Salesman"
+                                                        @click="window.dispatchEvent(new CustomEvent('salesman-browse-open'))">
+                                                    </div>
+                                                </div>
+                                                <input type="hidden" name="fsalesman" id="salesmanCodeHidden"
+                                                    value="{{ old('fsalesman', $salesorder->fsalesman) }}">
+                                                <button type="button"
+                                                    @click="window.dispatchEvent(new CustomEvent('salesman-browse-open'))"
+                                                    class="border border-l-0 border-gray-300 px-3 py-2 bg-white hover:bg-gray-50 text-gray-500 transition-colors"
+                                                    title="Browse Salesman">
+                                                    <x-heroicon-o-magnifying-glass class="w-4 h-4" />
+                                                </button>
+                                                @if (in_array('createSalesman', explode(',', session('user_restricted_permissions', '')), true))
+                                                    <a href="{{ route('salesman.create') }}" target="_blank" rel="noopener"
+                                                        class="border border-l-0 border-gray-300 rounded-r-lg px-3 py-2 bg-white hover:bg-gray-50 text-gray-500 transition-colors"
+                                                        title="Tambah Salesman">
+                                                        <x-heroicon-o-plus class="w-4 h-4" />
+                                                    </a>
+                                                @endif
                                             </div>
+                                            @error('fsalesman')
+                                                <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                                            @enderror
                                         </div>
-                                        <input type="hidden" name="fsalesman" id="salesmanCodeHidden"
-                                            value="{{ old('fsalesman', $salesorder->fsalesman) }}">
-                                        <button type="button"
-                                            @click="window.dispatchEvent(new CustomEvent('salesman-browse-open'))"
-                                            class="border -ml-px px-3 py-2 bg-white hover:bg-gray-50 rounded-r-none"
-                                            title="Browse Salesman">
-                                            <x-heroicon-o-magnifying-glass class="w-5 h-5" />
-                                        </button>
-                                        @if (in_array('createSalesman', explode(',', session('user_restricted_permissions', '')), true))
-                                            <a href="{{ route('salesman.create') }}" target="_blank" rel="noopener"
-                                                class="border -ml-px rounded-r px-3 py-2 bg-white hover:bg-gray-50"
-                                                title="Tambah Salesman">
-                                                <x-heroicon-o-plus class="w-5 h-5" />
-                                            </a>
-                                        @endif
-                                    </div>
-                                    @error('fsalesman')
-                                        <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
-                                    @enderror
-                                </div>
 
-                                <div class="lg:col-span-2">
-                                    <label class="block text-sm font-medium mb-1">Tempo</label>
-                                    <div class="flex items-center">
-                                        {{-- Gunakan trim() untuk membuang spasi di belakang angka --}}
-                                        <input type="number" id="ftempohr" name="ftempohr"
-                                            value="{{ trim(old('ftempohr', $salesorder->ftempohr ?? 0)) }}"
-                                            class="w-full border rounded px-3 py-2">
-                                        <span class="ml-2">Hari</span>
-                                    </div>
-                                </div>
-                                <div class="lg:col-span-2">
-                                    <label class="block text-sm font-medium mb-1">Ref.PO</label>
-                                    <input type="text" name="frefpo"
-                                        value="{{ old('frefpo', $salesorder->frefpo) }}"
-                                        class="w-full border rounded px-3 py-2 @error('frefpo') border-red-500 @enderror"
-                                        placeholder="PO Customer">
-                                    @error('frefpo')
-                                        <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
-                                    @enderror
-                                </div>
-                                <div class="col-span-12 mt-4">
-                                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 items-stretch">
+                                        {{-- Tempo --}}
+                                        <div class="md:col-span-2">
+                                            <label class="block text-xs font-bold text-gray-600 mb-1">Tempo</label>
+                                            <div class="flex items-center">
+                                                <input type="number" id="ftempohr" name="ftempohr"
+                                                    value="{{ trim(old('ftempohr', $salesorder->ftempohr ?? 0)) }}"
+                                                    class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 @error('ftempohr') border-red-400 @enderror">
+                                                <span class="ml-2 text-xs text-gray-500">Hari</span>
+                                            </div>
+                                            @error('ftempohr')
+                                                <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                                            @enderror
+                                        </div>
 
+                                        {{-- Ref.PO --}}
+                                        <div class="md:col-span-2">
+                                            <label class="block text-xs font-bold text-gray-600 mb-1">Ref.PO</label>
+                                            <input type="text" name="frefpo"
+                                                value="{{ old('frefpo', $salesorder->frefpo) }}"
+                                                class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 @error('frefpo') border-red-400 @enderror"
+                                                placeholder="PO Customer">
+                                            @error('frefpo')
+                                                <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                                            @enderror
+                                        </div>
+                                    </div>
+
+                                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                        {{-- Kirim ke --}}
                                         <div x-data="{
                                             tab: 1,
                                             addr1: {{ json_encode(old('fkirimaddress1', $salesorder->customer->fkirimaddress1 ?? '')) }},
@@ -960,81 +975,78 @@
                                         $watch('addr2', v => updateFinal());
                                         $watch('addr3', v => updateFinal());"
                                             @customer-selected.window="
-                                addr1 = $event.detail.f1 || ''; 
-                                addr2 = $event.detail.f2 || ''; 
-                                addr3 = $event.detail.f3 || ''; 
-                                tab = 1; 
-                                updateFinal();
-                                "
+                                                addr1 = $event.detail.f1 || ''; 
+                                                addr2 = $event.detail.f2 || ''; 
+                                                addr3 = $event.detail.f3 || ''; 
+                                                tab = 1; 
+                                                updateFinal();
+                                            "
                                             class="flex flex-col gap-2">
 
                                             <input type="hidden" name="falamatkirim" id="falamatkirim_final"
                                                 value="{{ old('falamatkirim') }}">
 
                                             <div class="flex items-center gap-2">
-                                                <label class="text-sm font-bold text-gray-700 mr-2">Kirim ke :</label>
+                                                <label class="text-xs font-bold text-gray-600 mr-2">Kirim ke :</label>
 
                                                 <div class="inline-flex rounded-md shadow-sm" role="group">
-                                                    <button type="button" @click="tab = 1" disabled
-                                                        :class="tab === 1 ?
-                                                            'bg-blue-600 text-white z-10 ring-2 ring-blue-300' :
-                                                            'bg-white text-gray-700 hover:bg-gray-50'"
-                                                        class="px-4 py-1.5 text-xs font-semibold border border-gray-300 rounded-l-md transition-all">
+                                                    <button type="button" @click="tab = 1"
+                                                        :class="tab === 1 ? 'bg-blue-600 text-white z-10 ring-2 ring-blue-300' : 'bg-white text-gray-700 hover:bg-gray-50'"
+                                                        class="px-3 py-1 text-xs font-semibold border border-gray-300 rounded-l-md transition-all">
                                                         Alamat 1
                                                     </button>
-                                                    <button type="button" @click="tab = 2" disabled
-                                                        :class="tab === 2 ?
-                                                            'bg-blue-600 text-white z-10 ring-2 ring-blue-300' :
-                                                            'bg-white text-gray-700 hover:bg-gray-50'"
-                                                        class="px-4 py-1.5 text-xs font-semibold border-t border-b border-r border-gray-300 transition-all">
+                                                    <button type="button" @click="tab = 2"
+                                                        :class="tab === 2 ? 'bg-blue-600 text-white z-10 ring-2 ring-blue-300' : 'bg-white text-gray-700 hover:bg-gray-50'"
+                                                        class="px-3 py-1 text-xs font-semibold border-t border-b border-r border-gray-300 transition-all">
                                                         Alamat 2
                                                     </button>
-                                                    <button type="button" @click="tab = 3" disabled
-                                                        :class="tab === 3 ?
-                                                            'bg-blue-600 text-white z-10 ring-2 ring-blue-300' :
-                                                            'bg-white text-gray-700 hover:bg-gray-50'"
-                                                        class="px-4 py-1.5 text-xs font-semibold border-t border-b border-r border-gray-300 rounded-r-md transition-all">
+                                                    <button type="button" @click="tab = 3"
+                                                        :class="tab === 3 ? 'bg-blue-600 text-white z-10 ring-2 ring-blue-300' : 'bg-white text-gray-700 hover:bg-gray-50'"
+                                                        class="px-3 py-1 text-xs font-semibold border-t border-b border-r border-gray-300 rounded-r-md transition-all">
                                                         Alamat 3
                                                     </button>
                                                 </div>
                                             </div>
 
                                             <div class="w-full">
-                                                <textarea x-show="tab === 1" x-model="addr1" readonly
+                                                <textarea x-show="tab === 1" x-model="addr1"
                                                     class="w-full p-2 text-sm border border-gray-300 rounded focus:ring-blue-500 focus:border-blue-500 min-h-[80px]"
                                                     placeholder="Isi Alamat 1..."></textarea>
 
-                                                <textarea x-show="tab === 2" x-model="addr2" readonly
+                                                <textarea x-show="tab === 2" x-model="addr2"
                                                     class="w-full p-2 text-sm border border-gray-300 rounded focus:ring-blue-500 focus:border-blue-500 min-h-[80px]"
                                                     placeholder="Isi Alamat 2..."></textarea>
 
-                                                <textarea x-show="tab === 3" x-model="addr3" readonly
+                                                <textarea x-show="tab === 3" x-model="addr3"
                                                     class="w-full p-2 text-sm border border-gray-300 rounded focus:ring-blue-500 focus:border-blue-500 min-h-[80px]"
                                                     placeholder="Isi Alamat 3..."></textarea>
                                             </div>
                                         </div>
 
+                                        {{-- Keterangan --}}
                                         <div class="flex flex-col">
-                                            <label class="block text-sm font-bold text-gray-700 mb-2">Keterangan</label>
-                                            <div
-                                                class="flex-1 border-2 border-gray-200 rounded-xl p-3 bg-white min-h-[50px] focus-within:border-blue-400">
-                                                <textarea name="fket" class="w-full h-full border-none focus:ring-0 p-0 text-sm resize-none"
-                                                    placeholder="Keterangan isi di sini...">{{ old('fket', $salesorder->fket) }}</textarea>
-                                            </div>
+                                            <label class="block text-xs font-bold text-gray-600 mb-1">Keterangan</label>
+                                            <textarea name="fket"
+                                                class="w-full p-2 text-sm border border-gray-300 rounded focus:ring-blue-500 focus:border-blue-500 flex-1 min-h-[80px]"
+                                                placeholder="Keterangan isi di sini...">{{ old('fket', $salesorder->fket) }}</textarea>
                                             @error('fket')
                                                 <span class="text-red-500 text-xs mt-1">{{ $message }}</span>
                                             @enderror
                                         </div>
                                     </div>
-                                </div>
 
-                                <div class="lg:col-span-12">
-                                    <label class="block text-sm font-medium">Catatan Internal</label>
-                                    <textarea name="fketinternal" rows="2"
-                                        class="w-full border rounded px-3 py-2 @error('fketinternal') border-red-500 @enderror"
-                                        placeholder="Tulis Catatan Internal tambahan di sini...">{{ old('fketinternal', $salesorder->fketinternal) }}</textarea>
-                                    @error('fketinternal')
-                                        <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+                                    {{-- Catatan Internal --}}
+                                    <div>
+                                        <label class="block text-xs font-bold text-gray-600 mb-1">Catatan Internal</label>
+                                        <textarea name="fketinternal" rows="2"
+                                            class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 @error('fketinternal') border-red-400 @enderror"
+                                            placeholder="Tulis Catatan Internal tambahan di sini...">{{ old('fketinternal', $salesorder->fketinternal) }}</textarea>
+                                        @error('fketinternal')
+                                            <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                                        @enderror
+                                    </div>
+                                </div>
+                            </div>xt-sm mt-1">{{ $message }}</p>
                                     @enderror
                                 </div>
                             </div>

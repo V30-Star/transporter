@@ -498,6 +498,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/lembarpenagihan/{id}/delete', [LembarPenagihanController::class, 'delete'])->name('lembarpenagihan.delete');
         Route::patch('/lembarpenagihan/{id}', [LembarPenagihanController::class, 'update'])->name('lembarpenagihan.update');
         Route::delete('/lembarpenagihan/{id}', [LembarPenagihanController::class, 'destroy'])->name('lembarpenagihan.destroy');
+        Route::get('/lembarpenagihan/{ftagihanno}/print', [LembarPenagihanController::class, 'print'])->name('lembarpenagihan.print');
 
         Route::get('/returpenjualan', [ReturPenjualanController::class, 'index'])->name('returpenjualan.index');
         Route::post('/returpenjualan', [ReturPenjualanController::class, 'store'])->name('returpenjualan.store');

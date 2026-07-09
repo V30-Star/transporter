@@ -231,11 +231,46 @@
             </div>
         </div>
     @endif
-    <div x-data="{ open: true }">
-        <div class="bg-white rounded shadow p-6 md:p-8 max-w-[1800px] w-full mx-auto">
-            @if ($action === 'delete')
-                <div class="space-y-4">
-
+    <div class="mx-auto max-w-[1600px] px-4 py-8">
+        {{-- ─── BREADCRUMB & HEADER ───────────────────────────────── --}}
+        <div class="mb-6 flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
+            <div>
+                <nav class="flex text-xs font-semibold uppercase tracking-wider text-gray-400">
+                    <a href="{{ route('invoice.index') }}" class="hover:text-gray-600">Faktur Penjualan</a>
+                    <span class="mx-2 text-gray-300">/</span>
+                    <span class="text-gray-600">
+                        @if ($action === 'delete') Hapus
+                        @elseif ($action === 'view') Lihat
+                        @else Edit
+                        @endif
+                    </span>
+                </nav>
+                <h1 class="mt-1 text-2xl font-bold tracking-tight text-gray-900">
+                    @if ($action === 'delete') Hapus Faktur Penjualan
+                    @elseif ($action === 'view') Lihat Faktur Penjualan
+                    @else Edit Faktur Penjualan
+                    @endif
+                </h1>
+            </div>
+            <div class="flex items-center gap-2">
+                <a href="{{ route('invoice.index') }}"
+                    class="inline-flex h-9 items-center justify-center rounded-lg border border-gray-300 bg-white px-4 text-xs font-semibold text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">
+                    Kembali
+                </a>
+            </div>
+        </div>
+        @if ($action === 'delete')
+            {{-- ─── CARD 1: Identitas (Delete/View) ──────────── --}}
+            <div class="bg-white border border-gray-200 rounded-xl mb-3 overflow-hidden">
+                <div class="flex items-center gap-2 px-4 pt-3 pb-0">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-gray-400" fill="none"
+                        viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                    </svg>
+                    <p class="text-xs font-medium uppercase tracking-wide text-gray-400">Identitas Faktur Penjualan</p>
+                </div>
+                <div class="p-4">
                     <div class="grid grid-cols-1 lg:grid-cols-12 gap-4">
                         <div class="lg:col-span-4">
                             <label class="block text-sm font-medium">Cabang</label>
@@ -461,8 +496,21 @@
                             </div>
                         </div>
                     </div>
+                </div>
+            </div>
 
-                    <div x-data="itemsTable()" x-init="init()" class="mt-6 space-y-2">
+            {{-- ─── CARD 2: Detail Item (Delete/View) ──────── --}}
+            <div class="bg-white border border-gray-200 rounded-xl mb-3 overflow-hidden">
+                <div class="flex items-center gap-2 px-4 pt-3 pb-0">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-gray-400" fill="none"
+                        viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
+                    </svg>
+                    <p class="text-xs font-medium uppercase tracking-wide text-gray-400">Detail Item</p>
+                </div>
+                <div class="p-4">
+                    <div x-data="itemsTable()" x-init="init()" class="space-y-2">
 
                         {{-- DETAIL ITEM (tabel input) --}}
                         <h3 class="text-base font-semibold text-gray-800">Detail Item</h3>
@@ -816,7 +864,9 @@
                             </div>
 
                             <input type="hidden" id="itemsCount" :value="savedItems.length">
-                        </div>
+                    </div> {{-- End itemsTable --}}
+                </div> {{-- End CARD 2 body --}}
+            </div> {{-- End CARD 2 --}}
 
                         {{-- MODAL ERROR: belum ada item --}}
                         <div x-show="showNoItems && savedItems.length === 0" x-cloak
@@ -832,10 +882,8 @@
 
                                 <div class="px-5 py-4">
                                     <p class="text-sm text-gray-700">
-                                        Anda belum menambahkan item apa pun pada tabel. Silakan isi baris â€œDetail
-                                        Itemâ€
-                                        terlebih
-                                        dahulu.
+                                        Anda belum menambahkan item apa pun pada tabel. Silakan isi baris “Detail
+                                        Item” terlebih dahulu.
                                     </p>
                                 </div>
 
@@ -847,7 +895,6 @@
                                 </div>
                             </div>
                         </div>
-                    </div>
 
                     @php
                         $canApproval = in_array(
@@ -857,8 +904,7 @@
                     @endphp
 
                     @if ($canApproval)
-                        <div
-                            class="mt-6 mx-auto max-w-2xl rounded-lg border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-700">
+                        <div class="mb-3 rounded-lg border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-700">
                             <div class="font-semibold">Status Persetujuan Kredit</div>
                             <div class="mt-1">
                                 {{ !empty($invoice->fuseracc) ? 'Sudah disetujui oleh: ' . $invoice->fuseracc : 'Belum ada persetujuan kredit pada transaksi ini.' }}
@@ -866,38 +912,39 @@
                         </div>
                     @endif
 
-                    <div class="mt-6 flex justify-center space-x-4">
+            {{-- ─── CARD 3: Aksi (Delete/View) ──────────── --}}
+            <div class="bg-white border border-gray-200 rounded-xl mb-3 overflow-hidden">
+                <div class="p-4 flex items-center justify-end gap-3">
                         @if ($canDeletePermission)
                             @if ($usageLocked)
                                 <button type="button" disabled title="{{ $usageLockMessage }}"
-                                    class="bg-red-300 text-white px-6 py-2 rounded flex items-center cursor-not-allowed opacity-70">
-                                    <x-heroicon-o-lock-closed class="w-5 h-5 mr-2" />
+                                    class="inline-flex h-9 items-center justify-center rounded-lg bg-red-300 px-4 text-xs font-semibold text-white cursor-not-allowed opacity-70">
+                                    <x-heroicon-o-lock-closed class="w-4 h-4 mr-1" />
                                     Hapus
                                 </button>
                             @else
                                 <button type="button" onclick="showDeleteModal()"
-                                    class="bg-red-600 text-white px-6 py-2 rounded hover:bg-red-700 flex items-center">
-                                    <x-heroicon-o-trash class="w-5 h-5 mr-2" />
+                                    class="inline-flex h-9 items-center justify-center rounded-lg bg-red-600 px-4 text-xs font-semibold text-white shadow-sm hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2">
                                     Hapus
                                 </button>
                             @endif
                         @endif
                         <button type="button" onclick="window.location.href='{{ route('invoice.index') }}'"
-                            class="bg-gray-500 text-white px-6 py-2 rounded hover:bg-gray-600 flex items-center">
-                            <x-heroicon-o-arrow-left class="w-5 h-5 mr-2" />
+                            class="inline-flex h-9 items-center justify-center rounded-lg border border-gray-300 bg-white px-4 text-xs font-semibold text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">
                             Kembali
                         </button>
-                    </div>
+                </div>
+            </div>
 
-                    {{-- ============================================ --}}
-                    {{-- MODE EDIT: FORM EDITABLE                    --}}
-                    {{-- ============================================ --}}
-                @else
-                    <form id="invoiceForm" action="{{ route('invoice.update', parameters: $invoice->ftranmtid) }}"
-                        method="POST" class="mt-6" data-form-draft="true"
-                        data-draft-key="invoice:edit:{{ $invoice->ftranmtid }}"
-                        data-tranmtid="{{ $invoice->ftranmtid }}" x-data="{ showNoItems: false }"
-                        @submit.prevent="
+        {{-- ============================================ --}}
+        {{-- MODE EDIT / VIEW: FORM                      --}}
+        {{-- ============================================ --}}
+        @else
+            <form id="invoiceForm" action="{{ route('invoice.update', parameters: $invoice->ftranmtid) }}"
+                method="POST" data-form-draft="true"
+                data-draft-key="invoice:edit:{{ $invoice->ftranmtid }}"
+                data-tranmtid="{{ $invoice->ftranmtid }}" x-data="{ showNoItems: false }"
+                @submit.prevent="
         if ('{{ $action }}' === 'view') { return }
         const duplicateCode = window.getInvoiceDuplicateCode?.($el);
         if (duplicateCode) {
@@ -915,16 +962,26 @@
         const n = Number(document.getElementById('itemsCount')?.value || 0);
         if (n < 1) { showNoItems = true } else { window.invoiceCreditApprovalGuard($el).then(ok => { if (ok) $el.submit() }) }
       ">
-                        @csrf
-                        @method('PATCH')
-                        <input type="hidden" name="fneedacc" id="invoiceNeedAcc"
-                            value="{{ old('fneedacc', $invoice->fneedacc ?? '0') }}">
-                        <input type="hidden" name="fuseracc" id="invoiceUserAcc"
-                            value="{{ old('fuseracc', $invoice->fuseracc ?? '') }}">
-                        <fieldset {{ $action === 'view' ? 'disabled' : '' }}>
+                @csrf
+                @method('PATCH')
+                <input type="hidden" name="fneedacc" id="invoiceNeedAcc"
+                    value="{{ old('fneedacc', $invoice->fneedacc ?? '0') }}">
+                <input type="hidden" name="fuseracc" id="invoiceUserAcc"
+                    value="{{ old('fuseracc', $invoice->fuseracc ?? '') }}">
 
-                            {{-- HEADER FORM --}}
-                            <div class="grid grid-cols-1 lg:grid-cols-12 gap-4">
+                {{-- ─── CARD 1: Identitas Faktur Penjualan (Edit/View) ─ --}}
+                <div class="bg-white border border-gray-200 rounded-xl mb-3 overflow-hidden">
+                    <div class="flex items-center gap-2 px-4 pt-3 pb-0">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-gray-400" fill="none"
+                            viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                        </svg>
+                        <p class="text-xs font-medium uppercase tracking-wide text-gray-400">Identitas Faktur Penjualan</p>
+                    </div>
+                    <div class="p-4">
+                        <fieldset {{ $action === 'view' ? 'disabled' : '' }}>
+                        <div class="grid grid-cols-1 lg:grid-cols-12 gap-4">
                                 <div class="lg:col-span-4">
                                     <label class="block text-sm font-medium">Cabang</label>
                                     <input type="text"
@@ -1206,8 +1263,22 @@
                                     </div>
                                 </div>
                             </div>
+                        </fieldset>
+                    </div>
+                </div>
 
-                            <div x-data="itemsTable()" x-init="init()" class="mt-6 space-y-2">
+                {{-- ─── CARD 2: Detail Item (Edit/View) ────────── --}}
+                <div class="bg-white border border-gray-200 rounded-xl mb-3 overflow-hidden">
+                    <div class="flex items-center gap-2 px-4 pt-3 pb-0">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-gray-400" fill="none"
+                            viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
+                        </svg>
+                        <p class="text-xs font-medium uppercase tracking-wide text-gray-400">Detail Item</p>
+                    </div>
+                    <div class="p-4">
+                        <div x-data="itemsTable()" x-init="init()" class="space-y-2">
 
                                 {{-- DETAIL ITEM (tabel input) --}}
                                 <h3 class="text-base font-semibold text-gray-800">Detail Item</h3>
@@ -1874,29 +1945,34 @@
                             );
                         @endphp
 
-                        <div class="mt-8 flex justify-center gap-4">
+                        </div> {{-- End itemsTable --}}
+                    </div> {{-- End CARD 2 body --}}
+                </div> {{-- End CARD 2 --}}
+
+                {{-- ─── CARD 3: Aksi (Edit/View) ────────────── --}}
+                <div class="bg-white border border-gray-200 rounded-xl mb-3 overflow-hidden">
+                    <div class="p-4 flex items-center justify-end gap-3">
                             @if ($action !== 'view' && $canEditPermission)
                                 @if ($usageLocked)
                                     <button type="button" disabled title="{{ $usageLockMessage }}"
-                                        class="bg-blue-300 text-white px-6 py-2 rounded flex items-center cursor-not-allowed opacity-70">
-                                        <x-heroicon-o-lock-closed class="w-5 h-5 mr-2" /> Simpan
+                                        class="inline-flex h-9 items-center justify-center rounded-lg bg-blue-300 px-4 text-xs font-semibold text-white cursor-not-allowed opacity-70">
+                                        <x-heroicon-o-lock-closed class="w-4 h-4 mr-1" /> Simpan
                                     </button>
                                 @else
                                     <button type="submit"
-                                        class="bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700 flex items-center">
-                                        <x-heroicon-o-check class="w-5 h-5 mr-2" /> Simpan
+                                        class="inline-flex h-9 items-center justify-center rounded-lg bg-blue-600 px-4 text-xs font-semibold text-white shadow-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">
+                                        Simpan
                                     </button>
                                 @endif
                             @endif
                             <button type="button" @click="window.location.href='{{ route('invoice.index') }}'"
-                                class="bg-gray-500 text-white px-6 py-2 rounded hover:bg-gray-600 flex items-center">
-                                <x-heroicon-o-arrow-left class="w-5 h-5 mr-2" />
+                                class="inline-flex h-9 items-center justify-center rounded-lg border border-gray-300 bg-white px-4 text-xs font-semibold text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">
                                 {{ $action === 'view' ? 'Kembali' : 'Keluar' }}
                             </button>
-                        </div>
-                    </form>
-            @endif
-        </div>
+                    </div>
+                </div>
+            </form>
+        @endif
     </div>
     {{-- ============================================ --}}
     {{-- MODAL & TOAST (HANYA UNTUK MODE DELETE)     --}}

@@ -9,19 +9,19 @@
         :root {
             --fg: #000;
             --bd: #000;
-            --blue: #0000FF;
-            --red: #FF0000;
+            --blue: #0000ff;
+            --red: #ff0000;
         }
 
         * {
-            box-sizing: border-box
+            box-sizing: border-box;
         }
 
         body {
             margin: 0;
             background: #ececec;
             font: 12px Arial, Helvetica, sans-serif;
-            color: var(--fg)
+            color: var(--fg);
         }
 
         .sheet {
@@ -35,7 +35,6 @@
             position: relative;
         }
 
-        /* Header Styles */
         .header-row {
             display: flex;
             justify-content: space-between;
@@ -64,13 +63,12 @@
             text-align: right;
         }
 
-        /* Customer Box */
         .customer-container {
             border: 1px solid #000;
             border-radius: 10px;
             padding: 5px 12px;
             width: 450px;
-            min-height: 70px;
+            min-height: 78px;
             position: relative;
             margin-top: 10px;
         }
@@ -87,14 +85,14 @@
         .info-table {
             float: right;
             font-size: 12px;
-            margin-top: -60px;
+            margin-top: -68px;
         }
 
         .info-table td {
             padding: 1px 2px;
+            vertical-align: top;
         }
 
-        /* Table Item */
         .tb {
             width: 100%;
             border-collapse: collapse;
@@ -114,19 +112,32 @@
             vertical-align: top;
         }
 
-        .text-right {
-            text-align: right;
-        }
-
         .text-center {
             text-align: center;
         }
 
-        /* Footer Section */
+        .text-right {
+            text-align: right;
+        }
+
+        .muted {
+            color: #444;
+            font-size: 11px;
+        }
+
+        .note-block {
+            margin-top: 24px;
+            min-height: 48px;
+        }
+
+        .note-title {
+            font-weight: bold;
+            margin-bottom: 4px;
+        }
+
         .footer-line {
             border-top: 1.5px solid #000;
-            margin-top: 150px;
-            /* Adjust based on content */
+            margin-top: 28px;
         }
 
         .terbilang-box {
@@ -161,35 +172,51 @@
             font-size: 14px;
         }
 
-        /* Signature */
         .sign-container {
-            margin-top: 30px;
+            margin-top: 18px;
             clear: both;
             display: flex;
+            justify-content: space-between;
             align-items: flex-end;
+            gap: 16px;
         }
 
         .sign-table {
             border-collapse: collapse;
-            width: 350px;
+            width: 450px;
         }
 
         .sign-table td {
             border: 1px solid #000;
             width: 50%;
-            height: 25px;
+            height: 26px;
             text-align: center;
+            padding: 4px;
         }
 
         .sign-table .box-content {
-            height: 70px;
+            height: 78px;
             vertical-align: bottom;
-            padding-bottom: 5px;
+            padding-bottom: 6px;
         }
 
-        .timestamp {
+        .meta-right {
             font-size: 10px;
-            margin-left: 10px;
+            text-align: right;
+            white-space: nowrap;
+        }
+
+        .print-hide {
+            position: fixed;
+            top: 10px;
+            left: 10px;
+            z-index: 999;
+        }
+
+        .print-hide button {
+            padding: 10px 20px;
+            cursor: pointer;
+            margin-right: 6px;
         }
 
         @media print {
@@ -216,15 +243,16 @@
 </head>
 
 <body>
-    <div class="print-hide" style="position:fixed; top:10px; left:10px; z-index:999;">
-        <button onclick="window.print()" style="padding:10px 20px; cursor:pointer;">PRINT</button>
+    <div class="print-hide">
+        <button onclick="window.print()">PRINT</button>
+        <button onclick="window.close()">CLOSE</button>
     </div>
 
     <div class="sheet">
         <div class="header-row">
             <div>
-                <div class="comp-name">{{ strtoupper($company_name ?? 'PT.DEMO VERSION') }}</div>
-                <div>{{ $company_city ?? 'Lampung' }}</div>
+                <div class="comp-name">{{ strtoupper($company_name ?? 'PT. DEMO VERSION') }}</div>
+                <div>{{ $company_city ?? 'Tangerang' }}</div>
             </div>
             <div>
                 <div class="title-so">Faktur Penjualan</div>
@@ -235,9 +263,17 @@
         <div style="overflow: hidden; margin-top: 10px;">
             <div class="customer-container">
                 <span class="customer-label">Customer</span>
-                <div style="font-weight: bold;">{{ $hdr->customer_name ?? 'PT. DWIBROS MULTI ENERGI' }}</div>
-                <div style="font-size: 11px; width: 350px;">
-                    {{ $hdr->customer_address ?? 'MENARA CAKRAWALA LT 12, UNIT 1205A, JL. M. H. THAMRIN NO. 1 KOTA ADM. JAKARTA PUSAT' }}
+                <div style="font-weight: bold;">
+                    {{ trim(($hdr->fcustno ?? '') . ' - ' . ($hdr->customer_name ?? ''), ' -') ?: '-' }}
+                </div>
+                <div style="font-size: 11px;">
+                    Alamat : {{ $hdr->customer_address ?? '-' }}
+                </div>
+                <div style="font-size: 11px;">
+                    Cabang : {{ $hdr->cabang_name ?? ($hdr->fbranchcode ?? '-') }}
+                </div>
+                <div style="font-size: 11px;">
+                    Keterangan : {{ $hdr->fket ?: '-' }}
                 </div>
             </div>
 
@@ -245,7 +281,7 @@
                 <tr>
                     <td>Tanggal</td>
                     <td>:</td>
-                    <td>{{ $fmt($hdr->fsodate) ?? '21 Januari 2026' }}</td>
+                    <td>{{ $fmt($hdr->fsodate) }}</td>
                 </tr>
                 <tr>
                     <td>Tempo</td>
@@ -253,17 +289,17 @@
                     <td>{{ $hdr->ftempohr ?? '0' }} Hari</td>
                 </tr>
                 <tr>
-                    <td>Ref.PO</td>
+                    <td>No. Ref / PO</td>
                     <td>:</td>
-                    <td>{{ $hdr->frefno ?? '001/SRI/-DME-PKS/I/' }}</td>
+                    <td>{{ $hdr->frefno ?? '-' }}</td>
                 </tr>
                 <tr>
                     <td>Sales</td>
                     <td>:</td>
-                    <td>{{ $hdr->fsalesname ?? '' }}</td>
+                    <td>{{ $hdr->salesman_name ?? ($hdr->fsalesname ?? '-') }}</td>
                 </tr>
                 <tr>
-                    <td colspan="3" style="text-align: right; font-size: 10px;">Hal : 1 / 1</td>
+                    <td colspan="3" style="text-align: right; font-size: 10px; padding-top: 12px;">Hal : 1 / 1</td>
                 </tr>
             </table>
         </div>
@@ -272,11 +308,12 @@
             <thead>
                 <tr>
                     <th style="width: 5%;">No.</th>
-                    <th style="width: 45%;">Nama Produk</th>
-                    <th style="width: 15%; text-align: right;">Qty</th>
-                    <th style="width: 15%; text-align: right;">@ Harga</th>
-                    <th style="width: 5%; text-align: center;">Disc.%</th>
-                    <th style="width: 15%; text-align: right;">Total Harga</th>
+                    <th style="width: 15%;">Kode Produk</th>
+                    <th style="width: 30%;">Nama Produk</th>
+                    <th style="width: 13%;" class="text-right">Qty</th>
+                    <th style="width: 13%;" class="text-right">@ Harga</th>
+                    <th style="width: 8%;" class="text-center">Disc.%</th>
+                    <th style="width: 16%;" class="text-right">Total Harga</th>
                 </tr>
             </thead>
             <tbody>
@@ -291,73 +328,86 @@
                     @endphp
                     <tr>
                         <td class="text-center">{{ $i + 1 }}</td>
-                        <td>{{ $r->product_name ?? 'CANGKANG SAWIT' }}</td>
-                        <td class="text-right">{{ number_format($r->fqty ?? 100000, 2, ',', '.') }}
-                            {{ $r->funit ?? 'KG' }}</td>
-                        <td class="text-right">{{ number_format($r->fprice ?? 1115, 2, ',', '.') }}</td>
+                        <td>{{ $r->product_code ?? '-' }}</td>
+                        <td>
+                            <div>{{ $r->product_name ?? '-' }}</div>
+                            @if (!empty($r->fdesc))
+                                <div class="muted">{{ $r->fdesc }}</div>
+                            @endif
+                        </td>
+                        <td class="text-right">{{ number_format($r->fqty ?? 0, 2, ',', '.') }} {{ $r->funit ?? ($r->fsatuan ?? '') }}</td>
+                        <td class="text-right">{{ number_format($r->fprice ?? 0, 2, ',', '.') }}</td>
                         <td class="text-center">{{ $formattedDisc }}</td>
-                        <td class="text-right">{{ number_format($r->famount ?? 111500000, 2, ',', '.') }}</td>
+                        <td class="text-right">{{ number_format($r->famount ?? 0, 2, ',', '.') }}</td>
                     </tr>
                 @endforeach
             </tbody>
         </table>
 
-        <div class="footer-line"></div>
-
-        @php
-            $famountso = (float) ($hdr->famountso ?? 123765000);
-        @endphp
-
-        <div class="terbilang-box">
-            Terbilang : <br>
-            # {{ strtoupper(terbilang($famountso)) }} RUPIAH #
+        <div class="note-block">
+            <div class="note-title">Catatan</div>
+            <div>{{ $hdr->fket ?: '-' }}</div>
         </div>
 
-        <div class="summary-box">
+        <div class="footer-line"></div>
+
+        <div style="overflow: hidden;">
+            @php
+                $famountso = (float) ($hdr->famountso ?? 0);
+            @endphp
+            <div class="terbilang-box">
+                Terbilang : <br>
+                # {{ strtoupper(terbilang($famountso)) }} RUPIAH #
+            </div>
+
             @php
                 $famountgross = (float) ($hdr->famountgross ?? 0);
                 if ($famountgross <= 0) {
-                    $famountgross = (float) ($hdr->famountsonet ?? 111500000);
+                    $famountgross = (float) ($hdr->famountsonet ?? 0);
                 }
                 $fdiscount = (float) ($hdr->fdiscount ?? 0);
                 $totalSetelahDisc = $famountgross - $fdiscount;
-                $famountpajak = (float) ($hdr->famountpajak ?? 12265000);
+                $famountpajak = (float) ($hdr->famountpajak ?? 0);
             @endphp
-            <div class="summary-row">
-                <span>Total Harga :</span>
-                <span>{{ number_format($famountgross, 2, ',', '.') }}</span>
-            </div>
-            <div class="summary-row">
-                <span>Discount :</span>
-                <span>{{ number_format($fdiscount, 2, ',', '.') }}</span>
-            </div>
-            <div class="summary-row">
-                <span>Total Setelah Disc :</span>
-                <span>{{ number_format($totalSetelahDisc, 2, ',', '.') }}</span>
-            </div>
-            <div class="summary-row">
-                <span>PPN :</span>
-                <span>{{ number_format($famountpajak, 2, ',', '.') }}</span>
-            </div>
-            <div class="summary-row grand-total">
-                <span>Grand Total :</span>
-                <span>{{ number_format($famountso, 2, ',', '.') }}</span>
+            <div class="summary-box">
+                <div class="summary-row">
+                    <span>Total Harga :</span>
+                    <span>{{ number_format($famountgross, 2, ',', '.') }}</span>
+                </div>
+                <div class="summary-row">
+                    <span>Discount :</span>
+                    <span>{{ number_format($fdiscount, 2, ',', '.') }}</span>
+                </div>
+                <div class="summary-row">
+                    <span>Total Setelah Disc :</span>
+                    <span>{{ number_format($totalSetelahDisc, 2, ',', '.') }}</span>
+                </div>
+                <div class="summary-row">
+                    <span>PPN :</span>
+                    <span>{{ number_format($famountpajak, 2, ',', '.') }}</span>
+                </div>
+                <div class="summary-row grand-total">
+                    <span>Grand Total :</span>
+                    <span>{{ number_format($famountso, 2, ',', '.') }}</span>
+                </div>
             </div>
         </div>
 
         <div class="sign-container">
             <table class="sign-table">
                 <tr>
-                    <td>Dibuat</td>
-                    <td>Disetujui</td>
+                    <td style="width: 50%;">Dibuat Oleh</td>
+                    <td style="width: 50%;">Disetujui</td>
                 </tr>
                 <tr>
-                    <td class="box-content">{{ strtoupper($hdr->fusercreate ?? 'STEPHANUS') }}</td>
-                    <td class="box-content"></td>
+                    <td class="box-content">{{ strtoupper($hdr->fusercreate ?? ($hdr->fuserid ?? '-')) }}</td>
+                    <td class="box-content">{{ strtoupper($hdr->fuseracc ?? '-') }}</td>
                 </tr>
             </table>
-            <div class="timestamp">
-                {{ date('d/m/Y g:i:s A') }}
+
+            <div class="meta-right">
+                <div>Dicetak: {{ now()->format('d-m-Y H:i') }}</div>
+                <div>User: {{ strtoupper(auth('sysuser')->user()->fname ?? Auth::user()->fname ?? 'SYSTEM') }}</div>
             </div>
         </div>
     </div>

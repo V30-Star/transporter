@@ -261,6 +261,63 @@ class LembarPenagihanController extends Controller
         return redirect()->route('lembarpenagihan.index')->with('success', 'Lembar penagihan berhasil dihapus.');
     }
 
+    public function print(string $ftagihanno)
+    {
+        $hdr = DB::table('trtagihanmt as h')
+            ->leftJoin('mscustomer as c', 'c.fcustomercode', '=', 'h.fcustno')
+            ->leftJoin('mscabang as b', 'b.fcabangkode', '=', 'h.fbranchcode')
+            ->where('h.ftagihanno', $ftagihanno)
+            ->first([
+                'h.*',
+                'c.fcustomername as customer_name',
+                'c.faddress as customer_address',
+                'b.fcabangname as cabang_name',
+            ]);
+
+        if (!$hdr) {
+            return redirect()->back()->with('error', 'Lembar penagihan tidak ditemukan.');
+        }
+
+        DB::table('trtagihanmt')->where('ftagihanno', $hdr->ftagihanno)->update(['fprint' => 1]);
+
+        if (empty($hdr->cabang_name)) {
+            $firstRef = DB::table('trtagihandt as d')
+                ->leftJoin('tranmt as i', 'i.fsono', '=', 'd.frefsono')
+                ->leftJoin('mscabang as cb', 'cb.fcabangkode', '=', 'i.fbranchcode')
+                ->where('d.ftagihanno', $ftagihanno)
+                ->whereNotNull('i.fbranchcode')
+                ->first(['i.fbranchcode', 'cb.fcabangname as cabang_name']);
+
+            if ($firstRef) {
+                $hdr->fbranchcode = $firstRef->fbranchcode;
+                $hdr->cabang_name = $firstRef->cabang_name;
+            }
+        }
+
+        $dt = DB::table('trtagihandt as d')
+            ->leftJoin('tranmt as i', 'i.fsono', '=', 'd.frefsono')
+            ->where('d.ftagihanno', $ftagihanno)
+            ->orderBy('d.ftrtagihanid', 'asc')
+            ->get([
+                'd.*',
+                'i.fsodate',
+                DB::raw('COALESCE(i.famountso, ABS(d.famount)) as famountbil'),
+                DB::raw('COALESCE(i.fongkosangkut, 0) as fongkos'),
+            ]);
+
+        $fmt = fn($d) => $d
+            ? \Carbon\Carbon::parse($d)->locale('id')->translatedFormat('d F Y')
+            : '-';
+
+        return view('lembarpenagihan.print', [
+            'hdr' => $hdr,
+            'dt' => $dt,
+            'fmt' => $fmt,
+            'company_name' => config('app.company_name', 'PT. DEMO VERSION'),
+            'company_city' => config('app.company_city', 'Tangerang'),
+        ]);
+    }
+
     private function formData(?int $id = null, string $action = 'create'): array
     {
         $header = $id ? $this->headerQuery()->where('h.ftagihanid', $id)->firstOrFail() : null;

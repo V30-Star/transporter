@@ -174,73 +174,94 @@
             </div>
         </div>
     @endif
-    <div>
-        <div x-data="{ includePPN: false, ppnRate: 11, ppnAmount: 0, selected: 'alamatsurat', totalHarga: 0 }" class="lg:col-span-5">
-            <div class="bg-white rounded shadow p-6 md:p-8 max-w-[1800px] w-full mx-auto">
-                {{-- Taruh di atas form --}}
-                <script>
-                    window._soLabels = {
-                        noItemsTitle: @json(__('Tidak Ada Item')),
-                        noItemsText: @json(__('Silakan tambahkan minimal 1 item terlebih dahulu.')),
-                        noItemsBtn: @json(__('OK')),
-                    };
-                </script>
+    <div class="max-w-[1600px] mx-auto py-8 px-6">
+        {{-- Taruh di atas form --}}
+        <script>
+            window._soLabels = {
+                noItemsTitle: @json(__('Tidak Ada Item')),
+                noItemsText: @json(__('Silakan tambahkan minimal 1 item terlebih dahulu.')),
+                noItemsBtn: @json(__('OK')),
+            };
+        </script>
 
-                <form id="salesOrderForm" action="{{ route('salesorder.store') }}" method="POST" class="mt-6"
-                    data-form-draft="true" data-draft-key="salesorder:create" x-data="{
-                        showNoItems: false,
-                        handleSubmit() {
-                            if (window.salesOrderItemsTable?.submitForm) {
-                                window.salesOrderItemsTable.submitForm(this.$el);
-                                return;
-                            }
-                            this.$el.submit();
-                        }
-                    }"
-                    @submit.prevent="handleSubmit()">
-                    @csrf
-                    <input type="hidden" name="fneedacc" id="salesOrderNeedAcc" value="{{ old('fneedacc', '0') }}">
-                    <input type="hidden" name="fuseracc" id="salesOrderUserAcc" value="{{ old('fuseracc', '') }}">
+        <form id="salesOrderForm" action="{{ route('salesorder.store') }}" method="POST"
+            data-form-draft="true" data-draft-key="salesorder:create"
+            x-data="{
+                handleSubmit() {
+                    if (window.salesOrderItemsTable?.submitForm) {
+                        window.salesOrderItemsTable.submitForm(this.$el);
+                        return;
+                    }
+                    this.$el.submit();
+                }
+            }"
+            @submit.prevent="handleSubmit()">
+            @csrf
+            <input type="hidden" name="fneedacc" id="salesOrderNeedAcc" value="{{ old('fneedacc', '0') }}">
+            <input type="hidden" name="fuseracc" id="salesOrderUserAcc" value="{{ old('fuseracc', '') }}">
 
-                    {{-- HEADER FORM --}}
-                    <div class="grid grid-cols-1 lg:grid-cols-12 gap-4">
-                        <div class="lg:col-span-4">
-                            <label class="block text-sm font-bold">{{ 'Cabang' }}</label>
-                            <input type="text" class="w-full border rounded px-3 py-2 bg-gray-200 cursor-not-allowed"
+            {{-- ─── CARD 1: Identitas Sales Order ────────────────────── --}}
+            <div class="bg-white border border-gray-200 rounded-xl mb-3 overflow-hidden">
+                <div class="flex items-center gap-2 px-4 pt-3 pb-0">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-gray-400" fill="none"
+                        viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                    </svg>
+                    <p class="text-xs font-medium uppercase tracking-wide text-gray-400">Identitas Sales Order</p>
+                </div>
+                <div class="p-4 space-y-4">
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+                        {{-- Cabang --}}
+                        <div>
+                            <label class="block text-xs font-bold text-gray-600 mb-1">Cabang</label>
+                            <input type="text"
+                                class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm bg-gray-100 text-gray-500 cursor-not-allowed border-gray-200"
                                 value="{{ trim(($fbranchcode ?? '') . ($fcabang ?? '' ? ' - ' . $fcabang : '')) }}"
                                 disabled>
                             <input type="hidden" name="fbranchcode" value="{{ $fbranchcode }}">
                         </div>
 
-                        <div class="lg:col-span-4" x-data="{ autoCode: true }">
-                            <label class="block text-sm font-bold mb-1">SO#</label>
-                            <div class="flex items-center gap-3">
-                                <input type="text" name="fsono" class="w-full border rounded px-3 py-2"
+                        {{-- SO# --}}
+                        <div x-data="{ autoCode: true }">
+                            <label class="block text-xs font-bold text-gray-600 mb-1">SO#</label>
+                            <div class="flex items-center gap-2">
+                                <input type="text" name="fsono"
+                                    class="flex-1 border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
                                     :disabled="autoCode"
-                                    :class="autoCode ? 'bg-gray-200 cursor-not-allowed' : 'bg-white'">
-                                <label class="inline-flex items-center select-none">
-                                    <input type="checkbox" x-model="autoCode" checked>
-                                    <span class="ml-2 text-sm text-gray-700">{{ 'Auto' }}</span>
+                                    :class="autoCode ? 'bg-gray-100 text-gray-500 border-gray-200 cursor-not-allowed' :
+                                        'bg-white'"
+                                    placeholder="Auto Generated">
+                                <label
+                                    class="inline-flex items-center select-none font-medium text-sm text-gray-600 cursor-pointer">
+                                    <input type="checkbox" x-model="autoCode" checked
+                                        class="rounded text-blue-600 border-gray-300 focus:ring-blue-500">
+                                    <span class="ml-1.5">Auto</span>
                                 </label>
                             </div>
                         </div>
 
-                        <div class="lg:col-span-4">
-                            <label class="block text-sm font-bold">{{ 'Tanggal' }}</label>
+                        {{-- Tanggal --}}
+                        <div>
+                            <label class="block text-xs font-bold text-gray-600 mb-1">Tanggal <span
+                                    class="text-red-500">*</span></label>
                             <input type="date" name="fsodate" value="{{ old('fsodate') ?? date('Y-m-d') }}"
-                                class="w-full border rounded px-3 py-2 @error('fsodate') border-red-500 @enderror">
+                                class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 @error('fsodate') border-red-400 @enderror">
                             @error('fsodate')
-                                <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+                                <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
                             @enderror
                         </div>
+                    </div>
 
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
                         {{-- Customer --}}
-                        <div class="lg:col-span-4">
-                            <label class="block text-sm font-bold mb-1">{{ 'Customer' }}</label>
+                        <div>
+                            <label class="block text-xs font-bold text-gray-600 mb-1">Customer <span
+                                    class="text-red-500">*</span></label>
                             <div class="flex">
                                 <div class="relative flex-1" for="modal_filter_customer_id">
                                     <select id="modal_filter_customer_id" name="filter_customer_id"
-                                        class="w-full border rounded-l px-3 py-2 bg-gray-100 text-gray-700 cursor-not-allowed"
+                                        class="w-full border border-gray-300 rounded-l-lg px-3 py-2 text-sm bg-gray-50 text-gray-700 cursor-pointer focus:outline-none focus:border-blue-500"
                                         disabled>
                                         <option value=""></option>
                                         @foreach ($customers as $customer)
@@ -252,36 +273,38 @@
                                             </option>
                                         @endforeach
                                     </select>
-                                    <div class="absolute inset-0" role="button" aria-label="Browse Customer"
+                                    <div class="absolute inset-0 cursor-pointer" role="button"
+                                        aria-label="Browse Customer"
                                         @click="window.dispatchEvent(new CustomEvent('customer-browse-open'))"></div>
                                 </div>
-                                <input type="hidden" name="fcustno" id="customerCodeHidden" value="{{ old('fcustno') }}">
+                                <input type="hidden" name="fcustno" id="customerCodeHidden"
+                                    value="{{ old('fcustno') }}">
                                 <button type="button"
                                     @click="window.dispatchEvent(new CustomEvent('customer-browse-open'))"
-                                    class="border -ml-px px-3 py-2 bg-white hover:bg-gray-50 rounded-r-none"
+                                    class="border border-l-0 border-gray-300 px-3 py-2 bg-white hover:bg-gray-50 text-gray-500 transition-colors"
                                     title="Browse Customer">
-                                    <x-heroicon-o-magnifying-glass class="w-5 h-5" />
+                                    <x-heroicon-o-magnifying-glass class="w-4 h-4" />
                                 </button>
                                 @if (in_array('createCustomer', explode(',', session('user_restricted_permissions', '')), true))
                                     <a href="{{ route('customer.create') }}" target="_blank" rel="noopener"
-                                        class="border -ml-px rounded-r px-3 py-2 bg-white hover:bg-gray-50"
+                                        class="border border-l-0 border-gray-300 rounded-r-lg px-3 py-2 bg-white hover:bg-gray-50 text-gray-500 transition-colors"
                                         title="Tambah Customer">
-                                        <x-heroicon-o-plus class="w-5 h-5" />
+                                        <x-heroicon-o-plus class="w-4 h-4" />
                                     </a>
                                 @endif
                             </div>
                             @error('fcustno')
-                                <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+                                <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
                             @enderror
                         </div>
 
                         {{-- Salesman --}}
-                        <div class="lg:col-span-4">
-                            <label class="block text-sm font-bold mb-1">{{ 'Salesman' }}</label>
+                        <div>
+                            <label class="block text-xs font-bold text-gray-600 mb-1">Salesman</label>
                             <div class="flex">
                                 <div class="relative flex-1" for="modal_filter_salesman_id">
                                     <select id="modal_filter_salesman_id" name="filter_salesman_id"
-                                        class="w-full border rounded-l px-3 py-2 bg-gray-100 text-gray-700 cursor-not-allowed"
+                                        class="w-full border border-gray-300 rounded-l-lg px-3 py-2 text-sm bg-gray-50 text-gray-700 cursor-pointer focus:outline-none focus:border-blue-500"
                                         disabled>
                                         <option value=""></option>
                                         @foreach ($salesmans as $salesman)
@@ -291,451 +314,460 @@
                                             </option>
                                         @endforeach
                                     </select>
-                                    <div class="absolute inset-0" role="button" aria-label="Browse Salesman"
+                                    <div class="absolute inset-0 cursor-pointer" role="button"
+                                        aria-label="Browse Salesman"
                                         @click="window.dispatchEvent(new CustomEvent('salesman-browse-open'))"></div>
                                 </div>
                                 <input type="hidden" name="fsalesman" id="salesmanCodeHidden"
                                     value="{{ old('fsalesman') }}">
                                 <button type="button"
                                     @click="window.dispatchEvent(new CustomEvent('salesman-browse-open'))"
-                                    class="border -ml-px px-3 py-2 bg-white hover:bg-gray-50 rounded-r-none"
+                                    class="border border-l-0 border-gray-300 px-3 py-2 bg-white hover:bg-gray-50 text-gray-500 transition-colors"
                                     title="Browse Salesman">
-                                    <x-heroicon-o-magnifying-glass class="w-5 h-5" />
+                                    <x-heroicon-o-magnifying-glass class="w-4 h-4" />
                                 </button>
                                 @if (in_array('createSalesman', explode(',', session('user_restricted_permissions', '')), true))
                                     <a href="{{ route('salesman.create') }}" target="_blank" rel="noopener"
-                                        class="border -ml-px rounded-r px-3 py-2 bg-white hover:bg-gray-50"
+                                        class="border border-l-0 border-gray-300 rounded-r-lg px-3 py-2 bg-white hover:bg-gray-50 text-gray-500 transition-colors"
                                         title="Tambah Salesman">
-                                        <x-heroicon-o-plus class="w-5 h-5" />
+                                        <x-heroicon-o-plus class="w-4 h-4" />
                                     </a>
                                 @endif
                             </div>
                             @error('fsalesman')
-                                <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+                                <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
                             @enderror
                         </div>
 
-                        <div class="lg:col-span-2">
-                            <label class="block text-sm font-bold mb-1">{{ 'Tempo' }}</label>
-                            <div class="flex items-center">
-                                <input type="number" id="ftempohr" name="ftempohr" value="{{ old('ftempohr', 0) }}"
-                                    class="w-full border rounded px-3 py-2 @error('ftempohr') border-red-500 @enderror">
-                                <span class="ml-2">{{ 'Hari' }}</span>
+                        {{-- Tempo & Ref.PO --}}
+                        <div class="grid grid-cols-2 gap-3">
+                            <div>
+                                <label class="block text-xs font-bold text-gray-600 mb-1">Tempo</label>
+                                <div class="flex items-center">
+                                    <input type="number" id="ftempohr" name="ftempohr"
+                                        value="{{ old('ftempohr', 0) }}"
+                                        class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 @error('ftempohr') border-red-400 @enderror">
+                                    <span class="ml-2 text-xs text-gray-500">Hari</span>
+                                </div>
+                                @error('ftempohr')
+                                    <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                                @enderror
                             </div>
-                            @error('ftempohr')
-                                <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
-                            @enderror
+
+                            <div>
+                                <label class="block text-xs font-bold text-gray-600 mb-1">Ref.PO</label>
+                                <input type="text" name="frefpo" value="{{ old('frefpo') }}"
+                                    class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 @error('frefpo') border-red-400 @enderror"
+                                    placeholder="PO Customer">
+                                @error('frefpo')
+                                    <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                                @enderror
+                            </div>
                         </div>
+                    </div>
 
-                        <div class="lg:col-span-2">
-                            <label class="block text-sm font-bold mb-1">{{ 'Ref.PO' }}</label>
-                            <input type="text" name="frefpo" value="{{ old('frefpo') }}"
-                                class="w-full border rounded px-3 py-2 @error('frefpo') border-red-500 @enderror"
-                                placeholder="PO Customer">
-                            @error('frefpo')
-                                <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
-                            @enderror
-                        </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        {{-- Kirim ke --}}
+                        <div x-data="{
+                            tab: 1,
+                            addr1: '{{ old('fkirimaddress1') }}',
+                            addr2: '{{ old('fkirimaddress2') }}',
+                            addr3: '{{ old('fkirimaddress3') }}',
+                            updateFinal() {
+                                let val = '';
+                                if (this.tab === 1) val = this.addr1;
+                                else if (this.tab === 2) val = this.addr2;
+                                else if (this.tab === 3) val = this.addr3;
+                                document.getElementById('falamatkirim_final').value = val;
+                            }
+                        }" x-init="updateFinal();
+                        $watch('tab', v => updateFinal());
+                        $watch('addr1', v => updateFinal());"
+                            @customer-selected.window="addr1 = $event.detail.f1; addr2 = $event.detail.f2; addr3 = $event.detail.f3; tab = 1; updateFinal();"
+                            class="flex flex-col gap-2">
 
-                        <div class="col-span-12 mt-4">
-                            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 items-stretch">
+                            <input type="hidden" name="falamatkirim" id="falamatkirim_final"
+                                value="{{ old('falamatkirim') }}">
 
-                                <div x-data="{
-                                    tab: 1,
-                                    addr1: '{{ old('fkirimaddress1') }}',
-                                    addr2: '{{ old('fkirimaddress2') }}',
-                                    addr3: '{{ old('fkirimaddress3') }}',
-                                    updateFinal() {
-                                        let val = '';
-                                        if (this.tab === 1) val = this.addr1;
-                                        else if (this.tab === 2) val = this.addr2;
-                                        else if (this.tab === 3) val = this.addr3;
-                                        document.getElementById('falamatkirim_final').value = val;
-                                    }
-                                }" x-init="updateFinal();
-                                $watch('tab', v => updateFinal());
-                                $watch('addr1', v => updateFinal());"
-                                    @customer-selected.window="addr1 = $event.detail.f1; addr2 = $event.detail.f2; addr3 = $event.detail.f3; tab = 1; updateFinal();"
-                                    class="flex flex-col gap-2">
+                            <div class="flex items-center gap-2">
+                                <label class="text-xs font-bold text-gray-600 mr-2">Kirim ke :</label>
 
-                                    <input type="hidden" name="falamatkirim" id="falamatkirim_final"
-                                        value="{{ old('falamatkirim') }}">
-
-                                    <div class="flex items-center gap-2">
-                                        <label class="text-sm font-bold text-gray-700 mr-2">{{ 'Kirim ke' }}
-                                            :</label>
-
-                                        <div class="inline-flex rounded-md shadow-sm" role="group">
-                                            <button type="button" @click="tab = 1"
-                                                :class="tab === 1 ? 'bg-blue-600 text-white z-10 ring-2 ring-blue-300' :
-                                                    'bg-white text-gray-700 hover:bg-gray-50'"
-                                                class="px-4 py-1.5 text-xs font-semibold border border-gray-300 rounded-l-md transition-all">
-                                                {{ 'Alamat 1' }}
-                                            </button>
-                                            <button type="button" @click="tab = 2"
-                                                :class="tab === 2 ? 'bg-blue-600 text-white z-10 ring-2 ring-blue-300' :
-                                                    'bg-white text-gray-700 hover:bg-gray-50'"
-                                                class="px-4 py-1.5 text-xs font-semibold border-t border-b border-r border-gray-300 transition-all">
-                                                {{ 'Alamat 2' }}
-                                            </button>
-                                            <button type="button" @click="tab = 3"
-                                                :class="tab === 3 ? 'bg-blue-600 text-white z-10 ring-2 ring-blue-300' :
-                                                    'bg-white text-gray-700 hover:bg-gray-50'"
-                                                class="px-4 py-1.5 text-xs font-semibold border-t border-b border-r border-gray-300 rounded-r-md transition-all">
-                                                {{ 'Alamat 3' }}
-                                            </button>
-                                        </div>
-                                    </div>
-
-                                    <div class="w-full">
-                                        <textarea x-show="tab === 1" x-model="addr1"
-                                            class="w-full p-2 text-sm border border-gray-300 rounded focus:ring-blue-500 focus:border-blue-500 min-h-[80px]"
-                                            placeholder="{{ 'Alamat 1' }}..."></textarea>
-
-                                        <textarea x-show="tab === 2" x-model="addr2"
-                                            class="w-full p-2 text-sm border border-gray-300 rounded focus:ring-blue-500 focus:border-blue-500 min-h-[80px]"
-                                            placeholder="{{ 'Alamat 2' }}..."></textarea>
-
-                                        <textarea x-show="tab === 3" x-model="addr3"
-                                            class="w-full p-2 text-sm border border-gray-300 rounded focus:ring-blue-500 focus:border-blue-500 min-h-[80px]"
-                                            placeholder="{{ 'Alamat 3' }}..."></textarea>
-                                    </div>
+                                <div class="inline-flex rounded-md shadow-sm" role="group">
+                                    <button type="button" @click="tab = 1"
+                                        :class="tab === 1 ? 'bg-blue-600 text-white z-10 ring-2 ring-blue-300' :
+                                            'bg-white text-gray-700 hover:bg-gray-50'"
+                                        class="px-3 py-1 text-xs font-semibold border border-gray-300 rounded-l-md transition-all">
+                                        Alamat 1
+                                    </button>
+                                    <button type="button" @click="tab = 2"
+                                        :class="tab === 2 ? 'bg-blue-600 text-white z-10 ring-2 ring-blue-300' :
+                                            'bg-white text-gray-700 hover:bg-gray-50'"
+                                        class="px-3 py-1 text-xs font-semibold border-t border-b border-r border-gray-300 transition-all">
+                                        Alamat 2
+                                    </button>
+                                    <button type="button" @click="tab = 3"
+                                        :class="tab === 3 ? 'bg-blue-600 text-white z-10 ring-2 ring-blue-300' :
+                                            'bg-white text-gray-700 hover:bg-gray-50'"
+                                        class="px-3 py-1 text-xs font-semibold border-t border-b border-r border-gray-300 rounded-r-md transition-all">
+                                        Alamat 3
+                                    </button>
                                 </div>
+                            </div>
 
-                                <div class="flex flex-col">
-                                    <label class="block text-sm font-bold text-gray-700 mb-2">{{ 'Keterangan' }}</label>
-                                    <div
-                                        class="flex-1 border-2 border-gray-200 rounded-xl p-3 bg-white min-h-[50px] focus-within:border-blue-400">
-                                        <textarea name="fket" class="w-full h-full border-none focus:ring-0 p-0 text-sm resize-none"
-                                            placeholder="Keterangan isi di sini...">{{ old('fket') }}</textarea>
-                                    </div>
-                                    @error('fket')
-                                        <span class="text-red-500 text-xs mt-1">{{ $message }}</span>
-                                    @enderror
-                                </div>
+                            <div class="w-full">
+                                <textarea x-show="tab === 1" x-model="addr1"
+                                    class="w-full p-2 text-sm border border-gray-300 rounded focus:ring-blue-500 focus:border-blue-500 min-h-[80px]"
+                                    placeholder="Alamat 1..."></textarea>
 
+                                <textarea x-show="tab === 2" x-model="addr2"
+                                    class="w-full p-2 text-sm border border-gray-300 rounded focus:ring-blue-500 focus:border-blue-500 min-h-[80px]"
+                                    placeholder="Alamat 2..."></textarea>
+
+                                <textarea x-show="tab === 3" x-model="addr3"
+                                    class="w-full p-2 text-sm border border-gray-300 rounded focus:ring-blue-500 focus:border-blue-500 min-h-[80px]"
+                                    placeholder="Alamat 3..."></textarea>
                             </div>
                         </div>
 
-                        <div class="lg:col-span-12">
-                            <label class="block text-sm font-bold">{{ 'Catatan Internal' }}</label>
-                            <textarea name="fketinternal" rows="2"
-                                class="w-full border rounded px-3 py-2 @error('fketinternal') border-red-500 @enderror"
-                                placeholder="Tulis Catatan Internal tambahan di sini...">{{ old('fketinternal') }}</textarea>
-                            @error('fketinternal')
-                                <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+                        {{-- Keterangan --}}
+                        <div class="flex flex-col">
+                            <label class="block text-xs font-bold text-gray-600 mb-1">Keterangan</label>
+                            <textarea name="fket"
+                                class="w-full p-2 text-sm border border-gray-300 rounded focus:ring-blue-500 focus:border-blue-500 flex-1 min-h-[80px]"
+                                placeholder="Keterangan isi di sini...">{{ old('fket') }}</textarea>
+                            @error('fket')
+                                <span class="text-red-500 text-xs mt-1">{{ $message }}</span>
                             @enderror
                         </div>
                     </div>
 
-                    <div x-data="itemsTable()" x-init="init()" class="mt-6 space-y-2">
+                    {{-- Catatan Internal --}}
+                    <div>
+                        <label class="block text-xs font-bold text-gray-600 mb-1">Catatan Internal</label>
+                        <textarea name="fketinternal" rows="2"
+                            class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 @error('fketinternal') border-red-400 @enderror"
+                            placeholder="Tulis Catatan Internal tambahan di sini...">{{ old('fketinternal') }}</textarea>
+                        @error('fketinternal')
+                            <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                        @enderror
+                    </div>
+                </div>
+            </div>
 
-                        {{-- DETAIL ITEM (tabel input) --}}
-                        <h3 class="text-base font-semibold text-gray-800">Detail Item</h3>
-
-                        <fieldset>
-                            <div class="overflow-x-auto border rounded">
-                                <table class="sales-detail-table min-w-full text-sm balanced-detail-table"
-                                    data-skip-auto-detail-style="true">
-                                <thead class="bg-gray-100">
-                                    <tr>
-                                        <th class="p-2 text-left w-10">#</th>
-                                        <th class="p-2 text-left w-52">Kode Produk</th>
-                                        <th class="p-2 text-left w-[28rem]">Nama Produk</th>
-                                        <th class="p-2 text-left w-26">Satuan</th>
-                                        <th class="p-2 text-right w-28 whitespace-nowrap">Qty</th>
-                                        <th class="p-2 text-right w-33 whitespace-nowrap">@ Harga</th>
-                                        <th class="p-2 text-right w-28 whitespace-nowrap">Disc. %</th>
-                                        <th class="p-2 text-right w-33 whitespace-nowrap">Total Harga</th>
-                                        <th class="p-2 text-center w-24">Aksi</th>
-                                    </tr>
-                                </thead>
-
-                                <tbody>
-                                    <template x-for="(row, i) in rows" :key="row.uid">
-                                        <!-- ROW UTAMA -->
-                                        <tr class="border-t align-top">
-                                            <td class="p-2" x-text="i + 1"></td>
-                                            <td class="p-2">
-                                                <div class="flex">
-                                                    <input type="text"
-                                                        class="flex-1 border rounded-l px-2 py-1 font-mono  :disabled="!hasCustomer()" :class="!hasCustomer() ? 'opacity-60 pointer-events-none' : ''""
-                                                        x-model.trim="row.fprdcode" @input="onCodeTypedRow(row, i)"
-                                                        @keydown.enter.prevent="focusRowUnit(row, i)">
-                                                    <button type="button" @click="openBrowseFor(i)"
-                                                        class="border border-l-0 px-2 py-1 bg-white hover:bg-gray-50"
-                                                        title="Cari Produk">
-                                                        <x-heroicon-o-magnifying-glass class="w-4 h-4" />
-                                                    </button>
-                                                </div>
-                                            </td>
-                                            <td class="p-2">
-                                                <div class="flex w-full max-w-full">
-                                                    <div class="min-w-0 flex-1 rounded-l border bg-gray-100 px-2 py-1 text-sm leading-5 text-gray-600 whitespace-normal break-words"
-                                                        x-text="row.fitemname"></div>
-                                                    <button type="button" @click="openDesc(row)"
-                                                        class="shrink-0 inline-flex items-center border border-l-0 rounded-r bg-slate-50 px-2 py-1 text-slate-700 hover:bg-slate-100"
-                                                        title="Deskripsi">
-                                                        <x-heroicon-o-document-text class="w-4 h-4" />
-                                                    </button>
-                                                </div>
-                                            </td>
-                                            <td class="p-2">
-                                                <template x-if="row.units && row.units.length > 1">
-                                                    <select class="w-full border rounded px-2 py-1"
-                                                        :id="'unit_row_' + i" x-model="row.fsatuan"
-                                                        @change="applySalesPrice(row); onRowUpdated(i)" @keydown.enter.prevent="focusRowQty(i)">
-                                                        <template x-for="u in row.units" :key="u">
-                                                            <option :value="u" x-text="u"
-                                                                :selected="u === row.fsatuan"></option>
-                                                        </template>
-                                                    </select>
-                                                </template>
-                                                <template x-if="!row.units || row.units.length <= 1">
-                                                    <input type="text"
-                                                        class="w-full border rounded px-2 py-1 bg-gray-100 text-gray-600"
-                                                        :value="row.fsatuan || '-'" disabled>
-                                                </template>
-                                            </td>
-                                            <td class="p-2 text-right">
-                                                <input type="number" class="w-full border rounded px-2 py-1 text-right"
-                                                    :id="'qty_row_' + i" x-model.number="row.fqty" min="0"
-                                                    @input="onRowUpdated(i)" @keydown.enter.prevent="focusRowPrice(i)">
-                                            </td>
-                                            <td class="p-2 text-right">
-                                                <input type="text" inputmode="decimal"
-                                                    class="w-full border rounded px-2 py-1 text-right"
-                                                    :id="'price_row_' + i" x-model="row.fpriceInput"
-                                                    @focus="activeRow = row.uid; focusPriceInput(row); $event.target.select()"
-                                                    @blur="activeRow = null; blurPriceInput(row)"
-                                                    @input="onPriceInput(row)" @keydown.enter.prevent="focusRowDisc(i)">
-                                            </td>
-                                            <td class="p-2 text-right">
-                                                <input type="text" class="w-full border rounded px-2 py-1 text-right"
-                                                    :id="'disc_row_' + i" :value="normalizeDiscountValue(row.fdisc)"
-                                                    @focus="activeRow = row.uid; $event.target.select()"
-                                                    @blur="activeRow = null; normalizeDiscountInput($event, row)"
-                                                    @input="row.fdisc = $event.target.value; recalc(row)"
-                                                    @keydown.enter.prevent="$event.target.blur()">
-                                            </td>
-                                            <td class="p-2">
+            {{-- ─── CARD 2: Detail Item ────────────────────── --}}
+            <div class="bg-white border border-gray-200 rounded-xl mb-3 overflow-hidden"
+                x-data="itemsTable()" x-init="init()">
+                <div class="flex items-center gap-2 px-4 pt-3 pb-0">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-gray-400" fill="none"
+                        viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
+                    </svg>
+                    <p class="text-xs font-medium uppercase tracking-wide text-gray-400">Detail Item</p>
+                </div>
+                <div class="p-4 space-y-4">
+                    {{-- DETAIL ITEM (tabel input) --}}
+                    <div class="overflow-x-auto border border-gray-200 rounded-lg">
+                        <table class="pr-detail-table min-w-full text-sm">
+                            <thead class="bg-gray-50 border-b border-gray-200">
+                                <tr>
+                                    <th class="p-2 text-left w-10 text-xs font-semibold text-gray-500 uppercase">#</th>
+                                    <th class="p-2 text-left w-52 text-xs font-semibold text-gray-500 uppercase">Kode Produk</th>
+                                    <th class="p-2 text-left text-xs font-semibold text-gray-500 uppercase" style="width: 28rem; min-width: 28rem;">Nama Produk</th>
+                                    <th class="p-2 text-left w-26 text-xs font-semibold text-gray-500 uppercase">Satuan</th>
+                                    <th class="p-2 text-right w-28 text-xs font-semibold text-gray-500 uppercase">Qty</th>
+                                    <th class="p-2 text-right w-33 text-xs font-semibold text-gray-500 uppercase">@ Harga</th>
+                                    <th class="p-2 text-right w-28 text-xs font-semibold text-gray-500 uppercase">Disc. %</th>
+                                    <th class="p-2 text-right w-33 text-xs font-semibold text-gray-500 uppercase">Total Harga</th>
+                                    <th class="p-2 text-center w-24 text-xs font-semibold text-gray-500 uppercase">Aksi</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <template x-for="(row, i) in rows" :key="row.uid">
+                                    <!-- ROW UTAMA -->
+                                    <tr class="border-t align-top">
+                                        <td class="p-2" x-text="i + 1"></td>
+                                        <td class="p-2">
+                                            <div class="flex">
                                                 <input type="text"
-                                                    class="w-full border rounded px-2 py-1 bg-gray-100 text-gray-600 text-sm text-right"
-                                                    :value="fmt(row.ftotal)" disabled>
-                                            </td>
-                                            <td class="p-2 text-center">
-                                                <div class="flex items-center justify-center gap-2 flex-wrap">
-                                                    <button type="button" @click="removeRow(i)"
-                                                        class="text-bold inline-flex h-8 w-8 items-center justify-center rounded bg-red-100 text-red-600 hover:bg-red-200"
-                                                        title="Hapus baris">-</button>
-                                                </div>
-                                            </td>
-                                        </tr>
+                                                    class="flex-1 border border-gray-300 rounded-l-lg px-2 py-1 text-sm focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 font-mono"
+                                                    :disabled="!hasCustomer()" :class="!hasCustomer() ? 'opacity-60 pointer-events-none' : ''"
+                                                    x-model.trim="row.fprdcode" @input="onCodeTypedRow(row, i)"
+                                                    @keydown.enter.prevent="focusRowUnit(row, i)">
+                                                <button type="button" @click="openBrowseFor(i)"
+                                                    class="border border-l-0 border-gray-300 px-2 py-1 bg-white hover:bg-gray-50 text-gray-500 transition-colors"
+                                                    title="Cari Produk">
+                                                    <x-heroicon-o-magnifying-glass class="w-4 h-4" />
+                                                </button>
+                                            </div>
+                                        </td>
+                                        <td class="p-2">
+                                            <div class="flex w-full max-w-full">
+                                                <div class="min-w-0 flex-1 rounded-l-lg border border-gray-300 bg-gray-100 px-2 py-1 text-sm leading-5 text-gray-600 whitespace-normal break-words"
+                                                    x-text="row.fitemname"></div>
+                                                <button type="button" @click="openDesc(row)"
+                                                    class="shrink-0 inline-flex items-center border border-l-0 border-gray-300 rounded-r-lg bg-slate-50 px-2 py-1 text-slate-700 hover:bg-slate-100 transition-colors"
+                                                    title="Deskripsi">
+                                                    <x-heroicon-o-document-text class="w-4 h-4" />
+                                                </button>
+                                            </div>
+                                        </td>
+                                        <td class="p-2">
+                                            <template x-if="row.units && row.units.length > 1">
+                                                <select class="w-full border border-gray-300 rounded-lg px-2 py-1 text-sm focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                                                    :id="'unit_row_' + i" x-model="row.fsatuan"
+                                                    @change="applySalesPrice(row); onRowUpdated(i)" @keydown.enter.prevent="focusRowQty(i)">
+                                                    <template x-for="u in row.units" :key="u">
+                                                        <option :value="u" x-text="u"
+                                                            :selected="u === row.fsatuan"></option>
+                                                    </template>
+                                                </select>
+                                            </template>
+                                            <template x-if="!row.units || row.units.length <= 1">
+                                                <input type="text"
+                                                    class="w-full border border-gray-300 rounded-lg px-2 py-1 bg-gray-100 text-gray-600"
+                                                    :value="row.fsatuan || '-'" disabled>
+                                            </template>
+                                        </td>
+                                        <td class="p-2 text-right">
+                                            <input type="number" class="w-full border border-gray-300 rounded-lg px-2 py-1 text-right"
+                                                :id="'qty_row_' + i" x-model.number="row.fqty" min="0"
+                                                @input="onRowUpdated(i)" @keydown.enter.prevent="focusRowPrice(i)">
+                                        </td>
+                                        <td class="p-2 text-right">
+                                            <input type="text" inputmode="decimal"
+                                                class="w-full border border-gray-300 rounded-lg px-2 py-1 text-right"
+                                                :id="'price_row_' + i" x-model="row.fpriceInput"
+                                                @focus="activeRow = row.uid; focusPriceInput(row); $event.target.select()"
+                                                @blur="activeRow = null; blurPriceInput(row)"
+                                                @input="onPriceInput(row)" @keydown.enter.prevent="focusRowDisc(i)">
+                                        </td>
+                                        <td class="p-2 text-right">
+                                            <input type="text" class="w-full border border-gray-300 rounded-lg px-2 py-1 text-right"
+                                                :id="'disc_row_' + i" :value="normalizeDiscountValue(row.fdisc)"
+                                                @focus="activeRow = row.uid; $event.target.select()"
+                                                @blur="activeRow = null; normalizeDiscountInput($event, row)"
+                                                @input="row.fdisc = $event.target.value; recalc(row)"
+                                                @keydown.enter.prevent="$event.target.blur()">
+                                        </td>
+                                        <td class="p-2">
+                                            <input type="text"
+                                                class="w-full border border-gray-300 rounded-lg px-2 py-1 bg-gray-100 text-gray-600 text-sm text-right"
+                                                :value="fmt(row.ftotal)" disabled>
+                                        </td>
+                                        <td class="p-2 text-center">
+                                            <div class="flex items-center justify-center gap-2 flex-wrap">
+                                                <button type="button" @click="removeRow(i)"
+                                                    class="text-bold inline-flex h-8 w-8 items-center justify-center rounded bg-red-100 text-red-600 hover:bg-red-200"
+                                                    title="Hapus baris">-</button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                </template>
+                            </tbody>
+                        </table>
+                    </div>
 
-                                    </template>
-
-                                </tbody>
-                                </table>
+                    <div class="hidden">
+                        <template x-for="row in rowsToSubmit" :key="'submit-' + row.uid">
+                            <div>
+                                <input type="hidden" name="fprdcode[]" :value="row.fprdcode">
+                                <input type="hidden" name="fitemname[]" :value="row.fitemname">
+                                <input type="hidden" name="fsatuan[]" :value="row.fsatuan">
+                                <input type="hidden" name="fnoacak[]" :value="row.fnoacak">
+                                <input type="hidden" name="fqty[]" :value="row.fqty">
+                                <input type="hidden" name="fprice[]" :value="row.fprice">
+                                <input type="hidden" name="fdisc[]" :value="row.fdisc">
+                                <input type="hidden" name="ftotal[]" :value="row.ftotal">
+                                <input type="hidden" name="fdesc[]" :value="row.fdesc">
                             </div>
-                        </fieldset>
+                        </template>
+                    </div>
 
-                        <div class="hidden">
-                            <template x-for="row in rowsToSubmit" :key="'submit-' + row.uid">
-                                <div>
-                                    <input type="hidden" name="fprdcode[]" :value="row.fprdcode">
-                                    <input type="hidden" name="fitemname[]" :value="row.fitemname">
-                                    <input type="hidden" name="fsatuan[]" :value="row.fsatuan">
-                                    <input type="hidden" name="fnoacak[]" :value="row.fnoacak">
-                                    <input type="hidden" name="fqty[]" :value="row.fqty">
-                                    <input type="hidden" name="fprice[]" :value="row.fprice">
-                                    <input type="hidden" name="fdisc[]" :value="row.fdisc">
-                                    <input type="hidden" name="ftotal[]" :value="row.ftotal">
-                                    <input type="hidden" name="fdesc[]" :value="row.fdesc">
+                    <!-- Kanan: Panel Totals -->
+                    <div class="mt-3 flex justify-end">
+                        <div class="w-[560px] shrink-0">
+                            <div class="rounded-lg border bg-gray-50 p-4 space-y-3 text-sm">
+                                <div class="flex items-center justify-between">
+                                    <span class="font-bold text-gray-800">Total Harga</span>
+                                    <span class="font-bold text-gray-900"
+                                        x-text="formatTransactionAmount(totalHarga)"></span>
                                 </div>
-                            </template>
-                        </div>
 
-                        <!-- Kanan: Panel Totals -->
-                        <div class="mt-3 flex justify-end">
-                            <div class="w-[560px] shrink-0">
-                                <div class="rounded-lg border bg-gray-50 p-4 space-y-3 text-sm">
-                                    <div class="flex items-center justify-between">
-                                        <span class="font-bold text-gray-800">Total Harga</span>
-                                        <span class="font-bold text-gray-900"
-                                            x-text="formatTransactionAmount(totalHarga)"></span>
-                                    </div>
+                                <div class="flex items-center gap-2">
+                                    <span class="font-bold text-gray-800">Discount</span>
+                                    <input type="number" min="0" max="100" step="0.01"
+                                        name="fdiscpersen" x-model.number="headerDiscPercent"
+                                        class="w-16 h-9 px-2 text-sm leading-tight text-right border border-gray-300 rounded transition-opacity
+                                            [appearance:textfield]
+                                            [&::-webkit-outer-spin-button]:appearance-none
+                                            [&::-webkit-inner-spin-button]:appearance-none">
+                                    <span class="text-gray-500">%</span>
+                                    <span class="flex-1"></span>
+                                    <span class="font-medium text-right" x-text="rupiah(headerDiscAmount)"></span>
+                                </div>
 
-                                    <div class="flex items-center gap-2">
-                                        <span class="font-bold text-gray-800">Discount</span>
-                                        <input type="number" min="0" max="100" step="0.01"
-                                            name="fdiscpersen" x-model.number="headerDiscPercent"
-                                            class="w-16 h-9 px-2 text-sm leading-tight text-right border rounded transition-opacity
+                                <div class="flex items-center justify-between">
+                                    <span class="font-bold text-gray-800">Total Setelah Disc</span>
+                                    <span class="font-medium text-gray-900" x-text="rupiah(totalSetelahDisc)"></span>
+                                </div>
+
+                                <div class="flex items-center gap-2">
+                                    <!-- Checkbox -->
+                                    <label class="flex items-center gap-1.5 cursor-pointer select-none">
+                                        <input id="fapplyppn" name="fapplyppn" type="checkbox" value="1"
+                                            x-model="includePPN"
+                                            class="h-4 w-4 text-blue-600 border-gray-300 rounded">
+                                        <span class="font-bold">PPN</span>
+                                    </label>
+
+                                    <!-- Dropdown Include / Exclude -->
+                                    <select id="ppnMode" name="fincludeppn" x-model.number="ppnMode"
+                                        :disabled="!includePPN"
+                                        class="w-28 h-9 px-2 text-sm leading-tight border border-gray-300 rounded transition-opacity appearance-none
+                                               disabled:bg-gray-100 disabled:opacity-60 disabled:cursor-not-allowed">
+                                        <option value="0">Exclude</option>
+                                        <option value="1">Include</option>
+                                    </select>
+
+                                    <!-- Input Rate + Nominal -->
+                                    <input type="number" min="0" max="100" name="ppn_rate"
+                                        step="0.01" x-model.number="ppnRate" :disabled="!includePPN"
+                                        class="w-16 h-9 px-2 text-sm leading-tight text-right border border-gray-300 rounded transition-opacity
                                                 [appearance:textfield]
                                                 [&::-webkit-outer-spin-button]:appearance-none
-                                                [&::-webkit-inner-spin-button]:appearance-none">
-                                        <span class="text-gray-500">%</span>
-                                        <span class="flex-1"></span>
-                                        <span class="font-medium text-right" x-text="rupiah(headerDiscAmount)"></span>
-                                    </div>
-
-                                    <div class="flex items-center justify-between">
-                                        <span class="font-bold text-gray-800">Total Setelah Disc</span>
-                                        <span class="font-medium text-gray-900" x-text="rupiah(totalSetelahDisc)"></span>
-                                    </div>
-
-                                    <div class="flex items-center gap-2">
-                                        <!-- Checkbox -->
-                                        <label class="flex items-center gap-1.5 cursor-pointer select-none">
-                                            <input id="fapplyppn" name="fapplyppn" type="checkbox" value="1"
-                                                x-model="includePPN"
-                                                class="h-4 w-4 text-blue-600 border-gray-300 rounded">
-                                            <span class="font-bold">PPN</span>
-                                        </label>
-
-                                        <!-- Dropdown Include / Exclude -->
-                                        <select id="ppnMode" name="fincludeppn" x-model.number="ppnMode"
-                                            :disabled="!includePPN"
-                                            class="w-28 h-9 px-2 text-sm leading-tight border rounded transition-opacity appearance-none
-                                                   disabled:bg-gray-100 disabled:opacity-60 disabled:cursor-not-allowed">
-                                            <option value="0">Exclude</option>
-                                            <option value="1">Include</option>
-                                        </select>
-
-                                        <!-- Input Rate + Nominal -->
-                                        <input type="number" min="0" max="100" name="ppn_rate"
-                                            step="0.01" x-model.number="ppnRate" :disabled="!includePPN"
-                                            class="w-16 h-9 px-2 text-sm leading-tight text-right border rounded transition-opacity
-                                                    [appearance:textfield]
-                                                    [&::-webkit-outer-spin-button]:appearance-none
-                                                    [&::-webkit-inner-spin-button]:appearance-none
-                                                    disabled:bg-gray-100 disabled:opacity-60 disabled:cursor-not-allowed">
-                                        <span class="text-gray-500">%</span>
-                                        <span class="flex-1"></span>
-                                        <span class="font-medium" x-text="rupiah(ppnAmount)"></span>
-                                    </div>
-
-                                    <div class="border-t my-1"></div>
-
-                                    <div class="flex items-center justify-between text-base">
-                                        <span class="font-extrabold text-gray-900">Grand Total</span>
-                                        <span class="font-extrabold text-blue-700 text-lg"
-                                            x-text="rupiah(grandTotal)"></span>
-                                    </div>
+                                                [&::-webkit-inner-spin-button]:appearance-none
+                                                disabled:bg-gray-100 disabled:opacity-60 disabled:cursor-not-allowed">
+                                    <span class="text-gray-500">%</span>
+                                    <span class="flex-1"></span>
+                                    <span class="font-medium" x-text="rupiah(ppnAmount)"></span>
                                 </div>
 
-                                <!-- Hidden inputs for submit -->
-                                <input type="hidden" name="famountgross" :value="totalHarga">
-                                <input type="hidden" name="fdiscount" :value="headerDiscAmount">
-                                <input type="hidden" name="famountpajak" :value="ppnAmount">
-                                <input type="hidden" name="famountso" :value="grandTotal">
-                                <input type="hidden" name="famountsonet" :value="totalDPP">
-                            </div>
-                        </div>
+                                <div class="border-t my-1"></div>
 
-
-                        <!-- MODAL DESC (di dalam itemsTable) -->
-                        <div x-show="showDescModal" x-cloak class="fixed inset-0 z-[95] flex items-center justify-center"
-                            x-transition.opacity>
-                            <div class="absolute inset-0 bg-black/50" @click="closeDesc()"></div>
-
-                            <div class="relative bg-white w-[92vw] max-w-lg rounded-2xl shadow-2xl overflow-hidden"
-                                x-transition.scale>
-                                <div class="px-5 py-4 border-b flex items-center">
-                                    <x-heroicon-o-document-text class="w-6 h-6 text-blue-600 mr-2" />
-                                    <h3 class="text-lg font-semibold text-gray-800">Isi Deskripsi Item</h3>
-                                </div>
-
-                                <div class="px-5 py-4 space-y-4">
-                                    <div>
-                                        <div class="mb-1 flex items-center justify-between gap-3">
-                                            <div class="text-sm text-gray-700">Nama Produk</div>
-                                            <button x-show="!descReadonly" type="button" @click="copyDescName()"
-                                                class="h-8 px-3 rounded-lg bg-blue-50 text-blue-700 text-sm font-medium hover:bg-blue-100">
-                                                Copy
-                                            </button>
-                                        </div>
-                                        <div class="rounded-lg border bg-gray-50 px-3 py-2 text-sm text-gray-800"
-                                            x-text="descItemName || '-'"></div>
-                                    </div>
-                                    <label class="block text-sm text-gray-700">Deskripsi</label>
-                                    <textarea x-model="descValue" rows="5" class="w-full border rounded px-3 py-2" :readonly="descReadonly"
-                                        placeholder="Tulis deskripsi item di sini..."></textarea>
-                                </div>
-
-                                <div class="px-5 py-3 border-t flex items-center justify-end gap-2">
-                                    <button type="button" @click="closeDesc()"
-                                        class="h-9 px-4 rounded-lg bg-gray-100 text-gray-700 text-sm font-medium hover:bg-gray-200">
-                                        Batal
-                                    </button>
-                                    <button x-show="!descReadonly" type="button" @click="applyDesc()"
-                                        class="h-9 px-4 rounded-lg bg-emerald-600 text-white text-sm font-medium hover:bg-emerald-700">
-                                        Simpan
-                                    </button>
+                                <div class="flex items-center justify-between text-base">
+                                    <span class="font-extrabold text-gray-900">Grand Total</span>
+                                    <span class="font-extrabold text-blue-700 text-lg"
+                                        x-text="rupiah(grandTotal)"></span>
                                 </div>
                             </div>
-                        </div>
 
-                        <div x-show="showWarningModal" x-cloak
-                            class="fixed inset-0 z-[96] flex items-center justify-center" x-transition.opacity>
-                            <div class="absolute inset-0 bg-black/50" @click="closeWarning()"></div>
-                            <div class="relative bg-white w-[92vw] max-w-lg rounded-2xl shadow-2xl overflow-hidden"
-                                x-transition.scale>
-                                <div class="px-5 py-4 border-b flex items-center">
-                                    <x-heroicon-o-exclamation-triangle class="w-6 h-6 text-amber-500 mr-2" />
-                                    <h3 class="text-lg font-semibold text-gray-800" x-text="warningTitle"></h3>
-                                </div>
-                                <div class="px-5 py-4 space-y-3">
-                                    <p class="text-sm text-gray-700" x-text="warningMessage"></p>
-                                    <template x-if="warningItems.length > 0">
-                                        <ul class="list-disc pl-5 text-sm text-gray-700 space-y-1">
-                                            <template x-for="item in warningItems" :key="item">
-                                                <li x-text="item"></li>
-                                            </template>
-                                        </ul>
-                                    </template>
-                                </div>
-                                <div class="px-5 py-3 border-t flex items-center justify-end gap-2">
-                                    <button type="button" @click="closeWarning()"
-                                        class="h-9 px-4 rounded-lg bg-gray-100 text-gray-700 text-sm font-medium hover:bg-gray-200">
-                                        Tutup
-                                    </button>
-                                    <button type="button" x-show="warningCanProceed" @click="confirmWarningAndSubmit()"
-                                        class="h-9 px-4 rounded-lg bg-emerald-600 text-white text-sm font-medium hover:bg-emerald-700">
-                                        Lanjut Simpan
-                                    </button>
-                                </div>
-                            </div>
+                            <!-- Hidden inputs for submit -->
+                            <input type="hidden" name="famountgross" :value="totalHarga">
+                            <input type="hidden" name="fdiscount" :value="headerDiscAmount">
+                            <input type="hidden" name="famountpajak" :value="ppnAmount">
+                            <input type="hidden" name="famountso" :value="grandTotal">
+                            <input type="hidden" name="famountsonet" :value="totalDPP">
                         </div>
-
-                        <input type="hidden" name="itemsCount" :value="rowsToSubmit.length">
                     </div>
 
-                    <x-transaction.browse-customer-modal />
+                    <!-- MODAL DESC (di dalam itemsTable) -->
+                    <div x-show="showDescModal" x-cloak class="fixed inset-0 z-[95] flex items-center justify-center"
+                        x-transition.opacity>
+                        <div class="absolute inset-0 bg-black/50" @click="closeDesc()"></div>
 
-                    <x-transaction.browse-salesman-modal />
-
-                    <x-transaction.browse-product-modal show-controls="true" show-pagination="true" />
-
-                    @php
-                        $canApproval = in_array(
-                            'approveSalesOrder',
-                            explode(',', session('user_restricted_permissions', '')),
-                        );
-                    @endphp
-
-                    <div class="mt-8 flex justify-center gap-4">
-                        <button type="submit"
-                            class="bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700 flex items-center">
-                            <x-heroicon-o-check class="w-5 h-5 mr-2" /> Simpan
-                        </button>
-                        <button type="button" @click="window.location.href='{{ route('salesorder.index') }}'"
-                            class="bg-gray-500 text-white px-6 py-2 rounded hover:bg-gray-600 flex items-center">
-                            <x-heroicon-o-arrow-left class="w-5 h-5 mr-2" /> Keluar
-                        </button>
+                        <div class="relative bg-white w-[92vw] max-w-lg rounded-2xl shadow-2xl overflow-hidden"
+                            x-transition.scale>
+                            <div class="px-5 py-4 border-b flex items-center justify-between">
+                                <h3 class="text-lg font-semibold text-gray-800">Edit Deskripsi Item</h3>
+                                <button type="button" @click="closeDesc()" class="text-gray-400 hover:text-gray-600">
+                                    <x-heroicon-o-x-mark class="w-5 h-5" />
+                                </button>
+                            </div>
+                            <div class="px-5 py-4 space-y-3">
+                                <div>
+                                    <label class="block text-xs font-bold text-gray-500 mb-1">Nama Produk</label>
+                                    <div class="w-full bg-gray-100 px-3 py-2 rounded text-sm text-gray-600"
+                                        x-text="descPreview.label"></div>
+                                </div>
+                                <div>
+                                    <div class="flex justify-between items-center mb-1">
+                                        <label class="block text-xs font-bold text-gray-500">Keterangan Item</label>
+                                        <button x-show="!descReadonly" type="button" @click="copyDescName()"
+                                            class="text-xs text-blue-600 hover:underline">Copy Nama Produk</button>
+                                    </div>
+                                    <textarea x-model="descPreview.text" rows="4" :readonly="descReadonly"
+                                        class="w-full p-3 border border-gray-300 rounded focus:ring-blue-500 focus:border-blue-500 text-sm"
+                                        placeholder="Tambahkan keterangan spesifik item di sini..."></textarea>
+                                </div>
+                            </div>
+                            <div class="px-5 py-3 border-t bg-gray-50 flex items-center justify-end gap-2">
+                                <button type="button" @click="closeDesc()"
+                                    class="h-9 px-4 rounded-lg bg-white border border-gray-300 text-gray-700 text-sm font-medium hover:bg-gray-50">
+                                    Batal
+                                </button>
+                                <button x-show="!descReadonly" type="button" @click="applyDesc()"
+                                    class="h-9 px-4 rounded-lg bg-blue-600 text-white text-sm font-medium hover:bg-blue-700">
+                                    Simpan
+                                </button>
+                            </div>
+                        </div>
                     </div>
-                </form>
+
+                    <!-- WARNING MODAL (di dalam itemsTable) -->
+                    <div x-show="showWarningModal" x-cloak
+                        class="fixed inset-0 z-[96] flex items-center justify-center" x-transition.opacity>
+                        <div class="absolute inset-0 bg-black/50" @click="closeWarning()"></div>
+                        <div class="relative bg-white w-[92vw] max-w-lg rounded-2xl shadow-2xl overflow-hidden"
+                            x-transition.scale>
+                            <div class="px-5 py-4 border-b flex items-center">
+                                <x-heroicon-o-exclamation-triangle class="w-6 h-6 text-amber-500 mr-2" />
+                                <h3 class="text-lg font-semibold text-gray-800" x-text="warningTitle"></h3>
+                            </div>
+                            <div class="px-5 py-4 space-y-3">
+                                <p class="text-sm text-gray-700" x-text="warningMessage"></p>
+                                <template x-if="warningItems.length > 0">
+                                    <ul class="list-disc pl-5 text-sm text-gray-700 space-y-1">
+                                        <template x-for="item in warningItems" :key="item">
+                                            <li x-text="item"></li>
+                                        </template>
+                                    </ul>
+                                </template>
+                            </div>
+                            <div class="px-5 py-3 border-t flex items-center justify-end gap-2">
+                                <button type="button" @click="closeWarning()"
+                                    class="h-9 px-4 rounded-lg bg-gray-100 text-gray-700 text-sm font-medium hover:bg-gray-200">
+                                    Tutup
+                                </button>
+                                <button type="button" x-show="warningCanProceed" @click="confirmWarningAndSubmit()"
+                                    class="h-9 px-4 rounded-lg bg-emerald-600 text-white text-sm font-medium hover:bg-emerald-700">
+                                    Lanjut Simpan
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <input type="hidden" name="itemsCount" :value="rowsToSubmit.length">
+                </div>
             </div>
-        </div>
+
+            {{-- ─── CARD 3: Approval & Aksi ────────────────────── --}}
+            <div class="bg-white border border-gray-200 rounded-xl mb-3 overflow-hidden">
+                <div class="flex items-center justify-between px-4 py-3 bg-gray-50 border-t border-gray-200">
+                    <button type="button" @click="window.location.href='{{ route('salesorder.index') }}'"
+                        class="inline-flex items-center gap-2 px-4 py-2 border border-gray-300 bg-white text-gray-600 text-sm font-medium rounded-lg hover:bg-gray-50 hover:border-gray-400 transition-colors">
+                        <x-heroicon-o-arrow-left class="w-4 h-4" />
+                        Keluar
+                    </button>
+                    <button type="submit"
+                        class="inline-flex items-center gap-2 px-5 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors">
+                        <x-heroicon-o-check class="w-4 h-4" />
+                        Simpan
+                    </button>
+                </div>
+            </div>
+        </form>
+
+        <x-transaction.browse-customer-modal />
+        <x-transaction.browse-salesman-modal />
+        <x-transaction.browse-product-modal show-controls="true" show-pagination="true" />
+
+        @php
+            $canApproval = in_array(
+                'approveSalesOrder',
+                explode(',', session('user_restricted_permissions', '')),
+            );
+        @endphp
     </div>
 
 @endsection

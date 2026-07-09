@@ -207,6 +207,11 @@
             <a href="{{ route('lembarpenagihan.index') }}" class="px-4 py-2 bg-gray-100 rounded">Kembali</a>
             @if (!$isReadOnly)<button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded">Simpan</button>@endif
             @if ($isDelete)<button type="submit" class="px-4 py-2 bg-red-600 text-white rounded">Hapus</button>@endif
+            @if ($action === 'view')
+                <a href="{{ route('lembarpenagihan.print', $header->ftagihanno) }}" target="_blank" class="px-4 py-2 bg-blue-600 text-white rounded inline-flex items-center">
+                    Print
+                </a>
+            @endif
         </div>
         @if (!$isReadOnly)
             <x-transaction.browse-customer-modal />
