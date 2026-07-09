@@ -69,22 +69,22 @@
                     </div>
 
                     <div class="overflow-auto border border-gray-200 rounded-lg">
-                        <table class="min-w-full text-xs">
-                            <thead class="bg-gray-50">
+                        <table class="pr-detail-table min-w-full text-sm">
+                            <thead class="bg-gray-50 border-b border-gray-200">
                                 <tr>
-                                    <th class="px-4 py-3 text-xs font-semibold text-gray-500 uppercase border-b border-gray-200 text-left w-12">#</th>
-                                    <th class="px-4 py-3 text-xs font-semibold text-gray-500 uppercase border-b border-gray-200 text-left w-44">Kode Account</th>
-                                    <th class="px-4 py-3 text-xs font-semibold text-gray-500 uppercase border-b border-gray-200 text-left w-56">Nama Account</th>
-                                    <th class="px-4 py-3 text-xs font-semibold text-gray-500 uppercase border-b border-gray-200 text-left w-56">Sub Account</th>
-                                    <th class="px-4 py-3 text-xs font-semibold text-gray-500 uppercase border-b border-gray-200 text-left w-48">Ref No</th>
-                                    <th class="px-4 py-3 text-xs font-semibold text-gray-500 uppercase border-b border-gray-200 text-left w-20">D/K</th>
-                                    <th class="px-4 py-3 text-xs font-semibold text-gray-500 uppercase border-b border-gray-200 text-left w-[28rem]">Keterangan</th>
-                                    <th class="px-4 py-3 text-xs font-semibold text-gray-500 uppercase border-b border-gray-200 text-right w-44">Jumlah</th>
+                                    <th class="p-2 text-left text-xs font-semibold text-gray-500 uppercase w-12">#</th>
+                                    <th class="p-2 text-left text-xs font-semibold text-gray-500 uppercase w-44">Kode Account</th>
+                                    <th class="p-2 text-left text-xs font-semibold text-gray-500 uppercase w-56">Nama Account</th>
+                                    <th class="p-2 text-left text-xs font-semibold text-gray-500 uppercase w-56">Sub Account</th>
+                                    <th class="p-2 text-left text-xs font-semibold text-gray-500 uppercase w-48">Ref No</th>
+                                    <th class="p-2 text-left text-xs font-semibold text-gray-500 uppercase w-20">D/K</th>
+                                    <th class="p-2 text-left text-xs font-semibold text-gray-500 uppercase w-[28rem]">Keterangan</th>
+                                    <th class="p-2 text-right text-xs font-semibold text-gray-500 uppercase w-44">Jumlah</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 <template x-for="(item, index) in items" :key="item.uid ?? index">
-                                    <tr class="border-t align-top">
+                                    <tr class="border-t border-gray-150 align-top">
                                         <td class="p-2 text-gray-500" x-text="index + 1"></td>
                                         <td class="p-2 text-gray-700 font-mono" x-text="item.faccount || '-'"></td>
                                         <td class="p-2">
@@ -198,38 +198,38 @@
                     </div>
 
                     <div class="overflow-auto border border-gray-200 rounded-lg">
-                        <table class="min-w-full text-xs">
-                            <thead class="bg-gray-50">
+                        <table class="pr-detail-table min-w-full text-sm">
+                            <thead class="bg-gray-50 border-b border-gray-200">
                                 <tr>
-                                    <th class="px-4 py-3 text-xs font-semibold text-gray-500 uppercase border-b border-gray-200 text-left w-8">#</th>
-                                    <th class="px-4 py-3 text-xs font-semibold text-gray-500 uppercase border-b border-gray-200 text-left w-40">Kode Account <span class="text-red-500">*</span></th>
-                                    <th class="px-4 py-3 text-xs font-semibold text-gray-500 uppercase border-b border-gray-200 text-left w-56">Nama Account</th>
-                                    <th class="px-4 py-3 text-xs font-semibold text-gray-500 uppercase border-b border-gray-200 text-left w-52">Sub Account</th>
-                                    <th class="px-4 py-3 text-xs font-semibold text-gray-500 uppercase border-b border-gray-200 text-left w-28">Ref No</th>
-                                    <th class="px-4 py-3 text-xs font-semibold text-gray-500 uppercase border-b border-gray-200 text-left w-20">D/K <span class="text-red-500">*</span></th>
-                                    <th class="px-4 py-3 text-xs font-semibold text-gray-500 uppercase border-b border-gray-200 text-left w-72">Keterangan</th>
-                                    <th class="px-4 py-3 text-xs font-semibold text-gray-500 uppercase border-b border-gray-200 text-right w-40">Jumlah <span class="text-red-500">*</span></th>
-                                    <th class="px-4 py-3 text-xs font-semibold text-gray-500 uppercase border-b border-gray-200 text-center w-28">Aksi</th>
+                                    <th class="p-2 text-left text-xs font-semibold text-gray-500 uppercase w-8">#</th>
+                                    <th class="p-2 text-left text-xs font-semibold text-gray-500 uppercase w-40">Kode Account <span class="text-red-500">*</span></th>
+                                    <th class="p-2 text-left text-xs font-semibold text-gray-500 uppercase w-56">Nama Account</th>
+                                    <th class="p-2 text-left text-xs font-semibold text-gray-500 uppercase w-52">Sub Account</th>
+                                    <th class="p-2 text-left text-xs font-semibold text-gray-500 uppercase w-28">Ref No</th>
+                                    <th class="p-2 text-left text-xs font-semibold text-gray-500 uppercase w-20">D/K <span class="text-red-500">*</span></th>
+                                    <th class="p-2 text-left text-xs font-semibold text-gray-500 uppercase w-72">Keterangan</th>
+                                    <th class="p-2 text-right text-xs font-semibold text-gray-500 uppercase w-40">Jumlah <span class="text-red-500">*</span></th>
+                                    <th class="p-2 text-center text-xs font-semibold text-gray-500 uppercase w-28">Aksi</th>
                                 </tr>
                             </thead>
 
                             <tbody>
                                 <template x-for="(item, index) in items" :key="item.uid">
-                                    <tr class="border-t align-middle hover:bg-gray-50">
+                                    <tr class="border-t border-gray-150 align-top">
                                         <td class="p-2 text-gray-500" x-text="index + 1"></td>
 
                                         {{-- Kode Account --}}
                                         <td class="p-2">
                                             <div class="flex items-center gap-1">
                                                 <input type="text"
-                                                    class="w-full border-gray-300 rounded-lg px-2 py-1 font-mono uppercase text-xs focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                                    class="flex-1 border border-gray-300 rounded-l-lg px-2 py-1 font-mono text-sm min-w-0 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-100"
                                                     x-model.trim="item.faccount"
                                                     @input="syncAccountFromCode(item)"
                                                     @keydown.enter.prevent="">
                                                 <button type="button" @click="openBrowseFor(index)"
-                                                    class="border border-gray-300 rounded-lg px-1.5 py-1 bg-white hover:bg-gray-50 transition-colors"
+                                                    class="border border-l-0 border-gray-300 px-2 py-1 bg-white hover:bg-gray-50 text-gray-500 transition-colors"
                                                     title="Cari account">
-                                                    <x-heroicon-o-magnifying-glass class="w-3.5 h-3.5" />
+                                                    <x-heroicon-o-magnifying-glass class="w-4 h-4" />
                                                 </button>
                                             </div>
                                         </td>
@@ -237,13 +237,13 @@
                                         {{-- Nama Account --}}
                                         <td class="p-2">
                                             <input type="text"
-                                                class="w-full border-gray-300 rounded-lg px-2 py-1 bg-gray-100 text-gray-600 text-xs"
+                                                class="w-full border border-gray-200 rounded-lg px-2 py-1 bg-gray-50 text-gray-500 text-sm cursor-not-allowed"
                                                 :value="item.faccname || '-'" disabled>
                                         </td>
 
                                         {{-- Sub Account --}}
                                         <td class="p-2">
-                                            <select class="w-full border-gray-300 rounded-lg px-2 py-1 text-xs focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                                            <select class="w-full border border-gray-300 rounded-lg px-2 py-1 text-sm focus:outline-none focus:border-blue-500 transition-colors"
                                                 x-model="item.fsubaccountcode" :disabled="!item.fhavesubaccount"
                                                 :class="!item.fhavesubaccount ? 'bg-gray-100 text-gray-400 cursor-not-allowed opacity-60' : 'bg-white'">
                                                 <option value="">— Pilih Sub —</option>
@@ -257,7 +257,7 @@
                                         {{-- Ref No --}}
                                         <td class="p-2">
                                             <input type="text" x-model="item.frefno"
-                                                class="w-full border-gray-300 rounded-lg px-2 py-1 text-xs focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                                class="w-full border border-gray-300 rounded-lg px-2 py-1 text-sm focus:outline-none focus:border-blue-500"
                                                 :disabled="!isRefAllowed(item.faccount)"
                                                 :class="!isRefAllowed(item.faccount) ? 'bg-gray-100 text-gray-400 cursor-not-allowed' : 'bg-white'"
                                                 placeholder="No Ref">
@@ -265,7 +265,7 @@
 
                                         {{-- D/K --}}
                                         <td class="p-2">
-                                            <select class="w-full border-gray-300 rounded-lg px-2 py-1 text-xs focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                            <select class="w-full border border-gray-300 rounded-lg px-2 py-1 text-sm focus:outline-none focus:border-blue-500"
                                                 x-model="item.fdk"
                                                 @change="autofillBalancedAmount(item); recalcTotals()">
                                                 <option value="D">D</option>
@@ -275,13 +275,13 @@
 
                                         {{-- Keterangan --}}
                                         <td class="p-2">
-                                            <input type="text" class="w-full border-gray-300 rounded-lg px-2 py-1 text-xs focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                            <input type="text" class="w-full border border-gray-300 rounded-lg px-2 py-1 text-sm focus:outline-none focus:border-blue-500"
                                                 x-model="item.faccountnote" placeholder="Keterangan">
                                         </td>
 
                                         {{-- Jumlah --}}
                                         <td class="p-2 text-right">
-                                            <input type="text" class="border-gray-300 rounded-lg px-2 py-1 w-full text-right text-xs focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                            <input type="text" class="w-full border border-gray-300 rounded-lg px-2 py-1 text-sm text-right focus:outline-none focus:border-blue-500"
                                                 inputmode="decimal"
                                                 x-model="item.famountInput" @blur="normalizeAmount(item)"
                                                 @input="recalcTotals()">
@@ -291,9 +291,9 @@
                                         <td class="p-2 text-center">
                                             <div class="flex items-center justify-center">
                                                 <button type="button" @click="removeRow(index)"
-                                                    class="inline-flex h-8 w-8 items-center justify-center rounded bg-red-100 text-red-600 hover:bg-red-200 text-lg font-bold transition-colors duration-150"
+                                                    class="inline-flex h-7 w-7 items-center justify-center rounded-lg bg-red-50 text-red-500 hover:bg-red-100 transition-colors border border-red-200"
                                                     title="Hapus baris">
-                                                    -
+                                                    <x-heroicon-o-minus class="w-4 h-4" />
                                                 </button>
                                             </div>
                                         </td>
@@ -312,9 +312,9 @@
                                 </template>
 
                                 {{-- Total row --}}
-                                <tr class="border-t bg-gray-50 font-semibold text-xs">
-                                    <td colspan="7" class="px-4 py-3 text-right text-gray-600">Total:</td>
-                                    <td class="px-4 py-3 text-right" x-text="fmt(totalDebit)"></td>
+                                <tr class="border-t border-gray-150 bg-gray-50 font-semibold text-sm">
+                                    <td colspan="7" class="p-2 text-right text-gray-600">Total:</td>
+                                    <td class="p-2 text-right" x-text="fmt(totalDebit)"></td>
                                     <td></td>
                                 </tr>
                             </tbody>

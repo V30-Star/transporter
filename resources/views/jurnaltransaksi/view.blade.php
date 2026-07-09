@@ -62,22 +62,22 @@
             </div>
 
             <div class="overflow-auto border border-gray-200 rounded-lg">
-                <table class="min-w-full text-xs">
-                    <thead class="bg-gray-50">
+                <table class="pr-detail-table min-w-full text-sm">
+                    <thead class="bg-gray-50 border-b border-gray-200">
                         <tr>
-                            <th class="px-4 py-3 text-xs font-semibold text-gray-500 uppercase border-b border-gray-200 text-left w-12">#</th>
-                            <th class="px-4 py-3 text-xs font-semibold text-gray-500 uppercase border-b border-gray-200 text-left w-44">Kode Account</th>
-                            <th class="px-4 py-3 text-xs font-semibold text-gray-500 uppercase border-b border-gray-200 text-left w-56">Nama Account</th>
-                            <th class="px-4 py-3 text-xs font-semibold text-gray-500 uppercase border-b border-gray-200 text-left w-56">Sub Account</th>
-                            <th class="px-4 py-3 text-xs font-semibold text-gray-500 uppercase border-b border-gray-200 text-left w-48">Ref No</th>
-                            <th class="px-4 py-3 text-xs font-semibold text-gray-500 uppercase border-b border-gray-200 text-left w-20">D/K</th>
-                            <th class="px-4 py-3 text-xs font-semibold text-gray-500 uppercase border-b border-gray-200 text-left w-[28rem]">Keterangan</th>
-                            <th class="px-4 py-3 text-xs font-semibold text-gray-500 uppercase border-b border-gray-200 text-right w-44">Jumlah</th>
+                            <th class="p-2 text-left text-xs font-semibold text-gray-500 uppercase w-12">#</th>
+                            <th class="p-2 text-left text-xs font-semibold text-gray-500 uppercase w-44">Kode Account</th>
+                            <th class="p-2 text-left text-xs font-semibold text-gray-500 uppercase w-56">Nama Account</th>
+                            <th class="p-2 text-left text-xs font-semibold text-gray-500 uppercase w-56">Sub Account</th>
+                            <th class="p-2 text-left text-xs font-semibold text-gray-500 uppercase w-48">Ref No</th>
+                            <th class="p-2 text-left text-xs font-semibold text-gray-500 uppercase w-20">D/K</th>
+                            <th class="p-2 text-left text-xs font-semibold text-gray-500 uppercase w-[28rem]">Keterangan</th>
+                            <th class="p-2 text-right text-xs font-semibold text-gray-500 uppercase w-44">Jumlah</th>
                         </tr>
                     </thead>
                     <tbody>
                         @forelse ($savedItems as $index => $item)
-                            <tr class="border-t align-top">
+                            <tr class="border-t border-gray-150 align-top">
                                 <td class="p-2 text-gray-500">{{ $index + 1 }}</td>
                                 <td class="p-2 text-gray-700 font-mono">{{ $item['faccount'] ?: '-' }}</td>
                                 <td class="p-2">
