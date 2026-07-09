@@ -18,210 +18,315 @@
 @section('title', $title)
 
 @section('content')
-    <form method="POST" action="{{ $isDelete ? route('lembarpenagihan.destroy', $header->ftagihanid) : $formAction }}" class="bg-white rounded shadow p-6 md:p-8 max-w-[1800px] w-full mx-auto"
-        x-data="tagihanForm()">
-        @csrf
-        @if ($action === 'edit') @method('PATCH') @endif
-        @if ($isDelete) @method('DELETE') @endif
+    <div class="max-w-[1600px] mx-auto py-8 px-6">
+        <form method="POST" action="{{ $isDelete ? route('lembarpenagihan.destroy', $header->ftagihanid) : $formAction }}"
+            x-data="tagihanForm()">
+            @csrf
+            @if ($action === 'edit') @method('PATCH') @endif
+            @if ($isDelete) @method('DELETE') @endif
 
-        <div class="grid grid-cols-3 gap-4 mb-4">
-            <div>
-                <label class="block text-sm font-medium mb-1">No. Tagihan</label>
-                @if ($action === 'create')
-                    <div class="flex items-center gap-3" x-data="{ autoCode: true }">
-                        <input type="text" name="ftagihanno" value="{{ old('ftagihanno') }}"
-                            :disabled="autoCode" :class="autoCode ? 'bg-gray-100 cursor-not-allowed' : 'bg-white'"
-                            class="w-full border rounded px-3 py-2">
-                        <label class="inline-flex items-center select-none font-bold">
-                            <input type="checkbox" x-model="autoCode" checked>
-                            <span class="ml-2 text-sm text-gray-700">Auto</span>
-                        </label>
-                    </div>
-                @else
-                    <input type="text" name="ftagihanno" value="{{ old('ftagihanno', $header->ftagihanno ?? $nextNo) }}" readonly class="w-full border rounded px-3 py-2 bg-gray-100">
-                @endif
-            </div>
-            <div>
-                <label class="block text-sm font-medium mb-1">Customer</label>
-                @if ($isReadOnly)
-                    <input type="text" class="w-full border rounded px-3 py-2 bg-gray-100 text-gray-700" value="{{ $header->fcustno }} - {{ $header->fcustomername ?? '' }}" readonly>
-                    <input type="hidden" name="fcustno" value="{{ $header->fcustno }}">
-                @else
-                    <div class="flex">
-                        <div class="relative flex-1" for="modal_filter_customer_id">
-                            <select id="modal_filter_customer_id" name="filter_customer_id"
-                                class="w-full border rounded-l px-3 py-2 bg-gray-100 text-gray-700 cursor-not-allowed"
-                                disabled>
-                                <option value=""></option>
-                                @foreach ($customers as $customer)
-                                    <option value="{{ $customer->fcustomercode }}"
-                                        {{ old('fcustno', $header->fcustno ?? '') === $customer->fcustomercode ? 'selected' : '' }}>
-                                        {{ $customer->fcustomername }} ({{ $customer->fcustomercode }})
-                                    </option>
-                                @endforeach
-                            </select>
-                            <div class="absolute inset-0" role="button" aria-label="Browse Customer"
-                                @click="window.dispatchEvent(new CustomEvent('customer-browse-open'))"></div>
-                        </div>
-                        <input type="hidden" name="fcustno" id="customerCodeHidden" value="{{ old('fcustno', $header->fcustno ?? '') }}">
-                        <button type="button"
-                            @click="window.dispatchEvent(new CustomEvent('customer-browse-open'))"
-                            class="border -ml-px px-3 py-2 bg-white hover:bg-gray-50 rounded-r"
-                            title="Browse Customer">
-                            <x-heroicon-o-magnifying-glass class="w-5 h-5" />
-                        </button>
-                    </div>
-                @endif
-            </div>
-            <div>
-                <label class="block text-sm font-medium mb-1">Tanggal</label>
-                <input type="date" name="ftagihandate" value="{{ old('ftagihandate', isset($header) ? \Carbon\Carbon::parse($header->ftagihandate)->format('Y-m-d') : date('Y-m-d')) }}" class="w-full border rounded px-3 py-2" {{ $isReadOnly ? 'readonly' : '' }}>
-            </div>
-        </div>
-
-        <div class="mb-4">
-            <label class="block text-sm font-medium mb-1">Keterangan</label>
-            <textarea name="fnote" rows="2" class="w-full border rounded px-3 py-2" {{ $isReadOnly ? 'readonly' : '' }}>{{ old('fnote', $header->fnote ?? '') }}</textarea>
-        </div>
-
-        <div class="overflow-auto border rounded mb-4">
-            <table class="pr-detail-table min-w-full text-sm" id="tagihan-detail-table">
-                <thead class="bg-gray-100">
-                    <tr class="border-b">
-                        <th class="p-2 text-left w-32">No.</th>
-                        <th class="p-2 text-left w-52">No.Nota</th>
-                        <th class="p-2 text-left w-40">Tanggal Nota</th>
-                        <th class="p-2 text-right w-36">Nilai Nota</th>
-                        <th class="p-2 text-right w-36">Ongkos Kirim</th>
-                        <th class="p-2 text-right w-36">Sisa Piutang</th>
-                        @if (!$isReadOnly)
-                            <th class="p-2 text-center w-24">Aksi</th>
+            {{-- ─── CARD 1: Identitas Penagihan ────────────────────── --}}
+            <div class="bg-white border border-gray-200 rounded-xl mb-3 overflow-hidden">
+                <div class="flex items-center gap-2 px-4 pt-3 pb-0">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-gray-400" fill="none"
+                        viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+                    </svg>
+                    <p class="text-xs font-medium uppercase tracking-wide text-gray-400">Identitas Penagihan</p>
+                </div>
+                <div class="p-4 space-y-3">
+                    <div class="grid grid-cols-3 gap-3">
+                        {{-- No. Tagihan --}}
+                        @if ($action === 'create')
+                            <div x-data="{ autoCode: true }">
+                                <label class="block text-xs font-bold text-gray-600 mb-1">No. Tagihan</label>
+                                <div class="flex items-center gap-2">
+                                    <input type="text" name="ftagihanno" value="{{ old('ftagihanno') }}"
+                                        :disabled="autoCode"
+                                        :class="autoCode ? 'bg-gray-100 text-gray-500 border-gray-200 cursor-not-allowed' : 'bg-white'"
+                                        class="flex-1 border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                                        placeholder="Auto Generated">
+                                    <label class="inline-flex items-center select-none font-medium text-sm text-gray-600 cursor-pointer">
+                                        <input type="checkbox" x-model="autoCode" checked
+                                            class="rounded text-blue-600 border-gray-300 focus:ring-blue-500">
+                                        <span class="ml-1.5">Auto</span>
+                                    </label>
+                                </div>
+                            </div>
+                        @else
+                            <div>
+                                <label class="block text-xs font-bold text-gray-600 mb-1">No. Tagihan</label>
+                                <input type="text" name="ftagihanno" value="{{ old('ftagihanno', $header->ftagihanno ?? $nextNo) }}" readonly
+                                    class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm bg-gray-100 text-gray-500 cursor-not-allowed">
+                            </div>
                         @endif
-                    </tr>
-                </thead>
-                <tbody id="tagihan-detail-body">
-                    @php
-                        $actualCount = count($detailRows);
-                        $placeholderCount = max(0, 5 - $actualCount);
-                    @endphp
-                    @foreach ($detailRows as $index => $row)
-                        <tr class="border-b align-middle bg-white" data-ref="{{ $row['frefsono'] }}">
-                            <td class="p-2 text-gray-500 row-number">{{ $row['ftrtagihanid'] ?: $index + 1 }}</td>
-                            <td class="p-2">
-                                <input type="text" class="w-full border rounded px-2 py-1 font-mono text-sm bg-gray-100 text-gray-600" value="{{ $row['frefsono'] }}" readonly>
-                                <input type="hidden" name="frefsono[{{ $index }}]" value="{{ $row['frefsono'] }}">
-                                <input type="hidden" name="frefcode[{{ $index }}]" value="{{ $row['frefcode'] }}">
-                            </td>
-                            <td class="p-2">
-                                <input type="text" class="w-full border rounded px-2 py-1 text-sm bg-gray-100 text-gray-600" value="{{ $row['fsodate'] }}" readonly>
-                            </td>
-                            <td class="p-2">
-                                <input type="text" class="w-full border rounded px-2 py-1 text-right text-sm bg-gray-100 text-gray-600" value="{{ number_format($row['famountbil'], 2, ',', '.') }}" readonly>
-                            </td>
-                            <td class="p-2">
-                                <input type="text" class="w-full border rounded px-2 py-1 text-right text-sm bg-gray-100 text-gray-600" value="{{ number_format($row['fongkos'], 2, ',', '.') }}" readonly>
-                            </td>
-                            <td class="p-2">
-                                <input type="text" class="w-full border rounded px-2 py-1 text-right text-sm bg-gray-100 text-gray-600" value="{{ number_format($row['famount'], 2, ',', '.') }}" readonly>
-                                <input type="hidden" name="famount[{{ $index }}]" value="{{ $row['famount'] }}" class="row-amount">
-                            </td>
-                            @if (!$isReadOnly)
-                                <td class="p-2 text-center">
-                                    <button type="button" class="btn-remove-row inline-flex h-8 w-8 items-center justify-center rounded bg-red-100 text-red-600 hover:bg-red-200" title="Hapus baris">-</button>
-                                </td>
-                            @endif
-                        </tr>
-                    @endforeach
-                    @for ($i = 0; $i < $placeholderCount; $i++)
-                        <tr class="border-b align-middle bg-white empty-row">
-                            <td class="p-2 text-gray-500 row-number">{{ $actualCount + $i + 1 }}</td>
-                            <td class="p-2"><input type="text" class="w-full border rounded px-2 py-1 font-mono text-sm bg-gray-100 text-gray-600" readonly></td>
-                            <td class="p-2"><input type="text" class="w-full border rounded px-2 py-1 text-sm bg-gray-100 text-gray-600" readonly></td>
-                            <td class="p-2"><input type="text" class="w-full border rounded px-2 py-1 text-right text-sm bg-gray-100 text-gray-600" readonly></td>
-                            <td class="p-2"><input type="text" class="w-full border rounded px-2 py-1 text-right text-sm bg-gray-100 text-gray-600" readonly></td>
-                            <td class="p-2"><input type="text" class="w-full border rounded px-2 py-1 text-right text-sm bg-gray-100 text-gray-600" readonly></td>
-                            @if (!$isReadOnly)
-                                <td class="p-2 text-center">
-                                    <button type="button" class="btn-remove-row inline-flex h-8 w-8 items-center justify-center rounded bg-red-100 text-red-600 hover:bg-red-200" title="Hapus baris">-</button>
-                                </td>
-                            @endif
-                        </tr>
-                    @endfor
-                </tbody>
-            </table>
-        </div>
 
-        @if (!$isReadOnly)
-            <div class="mb-4 flex gap-2">
-                <button type="button" @click="openNotaModal()" class="px-4 py-2 bg-blue-600 text-white rounded">Add Retur</button>
-            </div>
-
-            <div x-show="notaModalOpen" x-cloak x-transition.opacity class="fixed inset-0 z-50 flex items-center justify-center overflow-hidden p-3 md:p-6">
-                <div class="absolute inset-0 bg-black/50 backdrop-blur-sm" @click="closeNotaModal()"></div>
-                <div class="relative bg-white rounded-2xl shadow-2xl w-full max-w-7xl flex flex-col overflow-hidden" style="height: min(760px, calc(100vh - 1.5rem));">
-                    <div class="px-6 py-4 border-b border-gray-200 flex items-center justify-between flex-shrink-0 bg-gradient-to-r from-blue-50 to-white">
+                        {{-- Customer --}}
                         <div>
-                            <h3 class="text-xl font-bold text-gray-800">Browse Retur Penjualan</h3>
-                            <p class="text-sm text-gray-500 mt-0.5">Pilih retur yang ingin ditambahkan</p>
+                            <label class="block text-xs font-bold text-gray-600 mb-1">Customer <span class="text-red-500">*</span></label>
+                            @if ($isReadOnly)
+                                <input type="text" class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm bg-gray-100 text-gray-500 cursor-not-allowed"
+                                    value="{{ $header->fcustno }} - {{ $header->fcustomername ?? '' }}" readonly>
+                                <input type="hidden" name="fcustno" value="{{ $header->fcustno }}">
+                            @else
+                                <div class="flex">
+                                    <div class="relative flex-1" for="modal_filter_customer_id">
+                                        <select id="modal_filter_customer_id" name="filter_customer_id"
+                                            class="w-full border border-gray-300 rounded-l-lg px-3 py-2 text-sm bg-gray-50 text-gray-700 cursor-pointer focus:outline-none focus:border-blue-500"
+                                            disabled>
+                                            <option value=""></option>
+                                            @foreach ($customers as $customer)
+                                                <option value="{{ $customer->fcustomercode }}"
+                                                    {{ old('fcustno', $header->fcustno ?? '') === $customer->fcustomercode ? 'selected' : '' }}>
+                                                    {{ $customer->fcustomername }} ({{ $customer->fcustomercode }})
+                                                </option>
+                                            @endforeach
+                                        </select>
+                                        <div class="absolute inset-0 cursor-pointer" role="button" aria-label="Browse Customer"
+                                            @click="window.dispatchEvent(new CustomEvent('customer-browse-open'))"></div>
+                                    </div>
+                                    <input type="hidden" name="fcustno" id="customerCodeHidden" value="{{ old('fcustno', $header->fcustno ?? '') }}">
+                                    <button type="button"
+                                        @click="window.dispatchEvent(new CustomEvent('customer-browse-open'))"
+                                        class="border border-l-0 border-gray-300 rounded-r-lg px-3 py-2 bg-white hover:bg-gray-50 text-gray-500 transition-colors"
+                                        title="Browse Customer">
+                                        <x-heroicon-o-magnifying-glass class="w-4 h-4" />
+                                    </button>
+                                </div>
+                            @endif
                         </div>
-                        <button type="button" @click="closeNotaModal()" class="px-4 py-2 rounded-lg border-2 border-gray-300 bg-white hover:bg-gray-50 hover:border-gray-400 transition-all duration-150 font-medium text-gray-700 text-sm">Tutup</button>
+
+                        {{-- Tanggal --}}
+                        <div>
+                            <label class="block text-xs font-bold text-gray-600 mb-1">Tanggal <span class="text-red-500">*</span></label>
+                            <input type="date" name="ftagihandate"
+                                value="{{ old('ftagihandate', isset($header) ? \Carbon\Carbon::parse($header->ftagihandate)->format('Y-m-d') : date('Y-m-d')) }}"
+                                class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 {{ $isReadOnly ? 'bg-gray-100 text-gray-500 border-gray-200 cursor-not-allowed' : '' }}"
+                                {{ $isReadOnly ? 'readonly' : '' }}>
+                        </div>
                     </div>
-                    <div class="px-6 pt-4 pb-2 flex-shrink-0 border-b border-gray-100">
-                        <div id="notaTableControls"></div>
+
+                    {{-- Keterangan --}}
+                    <div>
+                        <label class="block text-xs font-bold text-gray-600 mb-1">Keterangan</label>
+                        <textarea name="fnote" rows="2"
+                            class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 {{ $isReadOnly ? 'bg-gray-100 text-gray-500 border-gray-200 cursor-not-allowed' : '' }}"
+                            {{ $isReadOnly ? 'readonly' : '' }}
+                            placeholder="Tulis keterangan tambahan di sini...">{{ old('fnote', $header->fnote ?? '') }}</textarea>
                     </div>
-                    <div class="flex-1 overflow-auto p-6" style="min-height: 0;">
-                        <div class="bg-white min-w-max">
-                            <table id="notaBrowseTable" class="min-w-full text-sm display nowrap stripe hover" style="width:100%">
-                                <thead class="sticky top-0 z-10">
-                                    <tr class="bg-gradient-to-r from-gray-50 to-gray-100">
-                                        <th class="text-left p-3 font-semibold text-gray-700 border-b-2 border-r border-gray-200">No.Nota</th>
-                                        <th class="text-left p-3 font-semibold text-gray-700 border-b-2 border-r border-gray-200">Tanggal Nota</th>
-                                        <th class="text-left p-3 font-semibold text-gray-700 border-b-2 border-r border-gray-200">Customer</th>
-                                        <th class="text-right p-3 font-semibold text-gray-700 border-b-2 border-r border-gray-200">Nilai Nota</th>
-                                        <th class="text-right p-3 font-semibold text-gray-700 border-b-2 border-r border-gray-200">Ongkos Kirim</th>
-                                        <th class="text-right p-3 font-semibold text-gray-700 border-b-2 border-r border-gray-200">Sisa Piutang</th>
-                                        <th class="text-center p-3 font-semibold text-gray-700 border-b-2 border-gray-200">Aksi</th>
+                </div>
+            </div>
+
+            {{-- ─── CARD 2: Detail Penagihan ────────────────────── --}}
+            <div class="bg-white border border-gray-200 rounded-xl mb-3 overflow-hidden">
+                <div class="flex items-center gap-2 px-4 pt-3 pb-0">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-gray-400" fill="none"
+                        viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
+                    </svg>
+                    <p class="text-xs font-medium uppercase tracking-wide text-gray-400">Detail Penagihan</p>
+                </div>
+                <div class="p-4">
+                    <div class="overflow-auto border border-gray-200 rounded-lg">
+                        <table class="pr-detail-table min-w-full text-sm" id="tagihan-detail-table">
+                            <thead class="bg-gray-50 border-b border-gray-200">
+                                <tr>
+                                    <th class="p-2 text-left w-10 text-xs font-semibold text-gray-500 uppercase">#</th>
+                                    <th class="p-2 text-left w-52 text-xs font-semibold text-gray-500 uppercase">No.Nota</th>
+                                    <th class="p-2 text-left w-40 text-xs font-semibold text-gray-500 uppercase">Tanggal Nota</th>
+                                    <th class="p-2 text-right w-36 text-xs font-semibold text-gray-500 uppercase">Nilai Nota</th>
+                                    <th class="p-2 text-right w-36 text-xs font-semibold text-gray-500 uppercase">Ongkos Kirim</th>
+                                    <th class="p-2 text-right w-36 text-xs font-semibold text-gray-500 uppercase">Sisa Piutang</th>
+                                    @if (!$isReadOnly)
+                                        <th class="p-2 text-center w-24 text-xs font-semibold text-gray-500 uppercase">Aksi</th>
+                                    @endif
+                                </tr>
+                            </thead>
+                            <tbody id="tagihan-detail-body">
+                                @php
+                                    $actualCount = count($detailRows);
+                                    $placeholderCount = max(0, 5 - $actualCount);
+                                @endphp
+                                @foreach ($detailRows as $index => $row)
+                                    <tr class="border-t border-gray-150 align-middle bg-white" data-ref="{{ $row['frefsono'] }}">
+                                        <td class="p-2 text-gray-400 row-number">{{ $row['ftrtagihanid'] ?: $index + 1 }}</td>
+                                        <td class="p-2">
+                                            <input type="text" class="w-full border border-gray-200 rounded-lg px-2 py-1 font-mono text-sm bg-gray-100 text-gray-500 cursor-not-allowed" value="{{ $row['frefsono'] }}" readonly>
+                                            <input type="hidden" name="frefsono[{{ $index }}]" value="{{ $row['frefsono'] }}">
+                                            <input type="hidden" name="frefcode[{{ $index }}]" value="{{ $row['frefcode'] }}">
+                                        </td>
+                                        <td class="p-2">
+                                            <input type="text" class="w-full border border-gray-200 rounded-lg px-2 py-1 text-sm bg-gray-100 text-gray-500 cursor-not-allowed" value="{{ $row['fsodate'] }}" readonly>
+                                        </td>
+                                        <td class="p-2 text-right">
+                                            <input type="text" class="w-full border border-gray-200 rounded-lg px-2 py-1 text-right text-sm bg-gray-100 text-gray-500 cursor-not-allowed" value="{{ number_format($row['famountbil'], 2, ',', '.') }}" readonly>
+                                        </td>
+                                        <td class="p-2 text-right">
+                                            <input type="text" class="w-full border border-gray-200 rounded-lg px-2 py-1 text-right text-sm bg-gray-100 text-gray-500 cursor-not-allowed" value="{{ number_format($row['fongkos'], 2, ',', '.') }}" readonly>
+                                        </td>
+                                        <td class="p-2 text-right">
+                                            <input type="text" class="w-full border border-gray-200 rounded-lg px-2 py-1 text-right text-sm bg-gray-100 text-gray-500 cursor-not-allowed" value="{{ number_format($row['famount'], 2, ',', '.') }}" readonly>
+                                            <input type="hidden" name="famount[{{ $index }}]" value="{{ $row['famount'] }}" class="row-amount">
+                                        </td>
+                                        @if (!$isReadOnly)
+                                            <td class="p-2 text-center">
+                                                <div class="flex items-center justify-center">
+                                                    <button type="button" class="btn-remove-row inline-flex h-7 w-7 items-center justify-center rounded-lg bg-red-50 text-red-500 hover:bg-red-100 transition-colors border border-red-200" title="Hapus baris">
+                                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4">
+                                                            <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 12h-15" />
+                                                        </svg>
+                                                    </button>
+                                                </div>
+                                            </td>
+                                        @endif
                                     </tr>
-                                </thead>
-                                <tbody></tbody>
-                            </table>
+                                @endforeach
+                                @for ($i = 0; $i < $placeholderCount; $i++)
+                                    <tr class="border-t border-gray-150 align-middle bg-white empty-row">
+                                        <td class="p-2 text-gray-400 row-number">{{ $actualCount + $i + 1 }}</td>
+                                        <td class="p-2"><input type="text" class="w-full border border-gray-200 rounded-lg px-2 py-1 font-mono text-sm bg-gray-50 text-gray-400 cursor-not-allowed" readonly></td>
+                                        <td class="p-2"><input type="text" class="w-full border border-gray-200 rounded-lg px-2 py-1 text-sm bg-gray-50 text-gray-400 cursor-not-allowed" readonly></td>
+                                        <td class="p-2"><input type="text" class="w-full border border-gray-200 rounded-lg px-2 py-1 text-right text-sm bg-gray-50 text-gray-400 cursor-not-allowed" readonly></td>
+                                        <td class="p-2"><input type="text" class="w-full border border-gray-200 rounded-lg px-2 py-1 text-right text-sm bg-gray-50 text-gray-400 cursor-not-allowed" readonly></td>
+                                        <td class="p-2"><input type="text" class="w-full border border-gray-200 rounded-lg px-2 py-1 text-right text-sm bg-gray-50 text-gray-400 cursor-not-allowed" readonly></td>
+                                        @if (!$isReadOnly)
+                                            <td class="p-2 text-center">
+                                                <div class="flex items-center justify-center">
+                                                    <button type="button" class="btn-remove-row inline-flex h-7 w-7 items-center justify-center rounded-lg bg-red-50 text-red-500 hover:bg-red-100 transition-colors border border-red-200" title="Hapus baris" disabled style="opacity: 0.5; cursor: not-allowed;">
+                                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4">
+                                                            <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 12h-15" />
+                                                        </svg>
+                                                    </button>
+                                                </div>
+                                            </td>
+                                        @endif
+                                    </tr>
+                                @endfor
+                            </tbody>
+                        </table>
+                    </div>
+
+                    @if (!$isReadOnly)
+                        <div class="mt-3 flex gap-2">
+                            <button type="button" @click="openNotaModal()"
+                                class="inline-flex items-center gap-1.5 px-4 py-2 border border-blue-300 bg-blue-50 hover:bg-blue-100 text-blue-700 text-sm font-semibold rounded-lg transition-colors">
+                                <x-heroicon-o-plus class="w-4 h-4" />
+                                Add Retur
+                            </button>
+                        </div>
+
+                        <div x-show="notaModalOpen" x-cloak x-transition.opacity class="fixed inset-0 z-50 flex items-center justify-center overflow-hidden p-3 md:p-6">
+                            <div class="absolute inset-0 bg-black/50 backdrop-blur-sm" @click="closeNotaModal()"></div>
+                            <div class="relative bg-white rounded-2xl shadow-2xl w-full max-w-7xl flex flex-col overflow-hidden" style="height: min(760px, calc(100vh - 1.5rem));">
+                                <div class="px-6 py-4 border-b border-gray-200 flex items-center justify-between flex-shrink-0 bg-gradient-to-r from-blue-50 to-white">
+                                    <div>
+                                        <h3 class="text-xl font-bold text-gray-800">Browse Retur Penjualan</h3>
+                                        <p class="text-sm text-gray-500 mt-0.5">Pilih retur yang ingin ditambahkan</p>
+                                    </div>
+                                    <button type="button" @click="closeNotaModal()" class="px-4 py-2 rounded-lg border-2 border-gray-300 bg-white hover:bg-gray-50 hover:border-gray-400 transition-all duration-150 font-medium text-gray-700 text-sm">Tutup</button>
+                                </div>
+                                <div class="px-6 pt-4 pb-2 flex-shrink-0 border-b border-gray-100">
+                                    <div id="notaTableControls"></div>
+                                </div>
+                                <div class="flex-1 overflow-auto p-6" style="min-height: 0;">
+                                    <div class="bg-white min-w-max">
+                                        <table id="notaBrowseTable" class="min-w-full text-sm display nowrap stripe hover" style="width:100%">
+                                            <thead class="sticky top-0 z-10">
+                                                <tr class="bg-gradient-to-r from-gray-50 to-gray-100">
+                                                    <th class="text-left p-3 font-semibold text-gray-700 border-b-2 border-r border-gray-200">No.Nota</th>
+                                                    <th class="text-left p-3 font-semibold text-gray-700 border-b-2 border-r border-gray-200">Tanggal Nota</th>
+                                                    <th class="text-left p-3 font-semibold text-gray-700 border-b-2 border-r border-gray-200">Customer</th>
+                                                    <th class="text-right p-3 font-semibold text-gray-700 border-b-2 border-r border-gray-200">Nilai Nota</th>
+                                                    <th class="text-right p-3 font-semibold text-gray-700 border-b-2 border-r border-gray-200">Ongkos Kirim</th>
+                                                    <th class="text-right p-3 font-semibold text-gray-700 border-b-2 border-r border-gray-200">Sisa Piutang</th>
+                                                    <th class="text-center p-3 font-semibold text-gray-700 border-b-2 border-gray-200">Aksi</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody></tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                                <div class="px-6 py-3 border-t border-gray-200 flex-shrink-0 bg-gray-50">
+                                    <div id="notaTablePagination"></div>
+                                </div>
+                            </div>
+                        </div>
+                    @endif
+
+                    <div class="flex justify-end mt-4">
+                        <div class="border border-gray-200 rounded-xl p-4 w-80 bg-gray-50/50 shadow-sm">
+                            <div class="flex justify-between items-center font-bold text-gray-800">
+                                <span class="text-sm">Total Tagihan:</span>
+                                <span id="total-tagihan-value" class="text-lg font-mono text-blue-600">{{ number_format($header->famounttagihan ?? 0, 2, ',', '.') }}</span>
+                            </div>
                         </div>
                     </div>
-                    <div class="px-6 py-3 border-t border-gray-200 flex-shrink-0 bg-gray-50">
-                        <div id="notaTablePagination"></div>
+                </div>
+            </div>
+
+            {{-- ─── CARD 3: Aksi ────────────────────── --}}
+            <div class="bg-white border border-gray-200 rounded-xl mb-3 overflow-hidden">
+                <div class="flex items-center gap-2 px-4 pt-3 pb-0">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-gray-400" fill="none"
+                        viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                    </svg>
+                    <p class="text-xs font-medium uppercase tracking-wide text-gray-400">Aksi</p>
+                </div>
+                <div class="p-4 space-y-4">
+                    {{-- Empty placeholder for consistency with PR layout --}}
+                </div>
+                
+                {{-- Footer Buttons --}}
+                <div class="flex items-center justify-between px-4 py-3 bg-gray-50 border-t border-gray-200">
+                    <a href="{{ route('lembarpenagihan.index') }}"
+                        class="inline-flex items-center gap-2 px-4 py-2 border border-gray-300 bg-white text-gray-600 text-sm font-medium rounded-lg hover:bg-gray-50 hover:border-gray-400 transition-colors">
+                        <x-heroicon-o-arrow-left class="w-4 h-4" />
+                        Keluar
+                    </a>
+                    <div class="flex gap-2">
+                        @if ($isDelete)
+                            <button type="submit"
+                                class="inline-flex items-center gap-2 px-5 py-2 bg-red-600 text-white text-sm font-medium rounded-lg hover:bg-red-700 transition-colors">
+                                <x-heroicon-o-trash class="w-4 h-4" />
+                                Hapus
+                            </button>
+                        @endif
+                        @if (!$isReadOnly)
+                            <button type="submit"
+                                class="inline-flex items-center gap-2 px-5 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors">
+                                <x-heroicon-o-check class="w-4 h-4" />
+                                Simpan
+                            </button>
+                        @endif
+                        @if ($action === 'view')
+                            <a href="{{ route('lembarpenagihan.print', $header->ftagihanno) }}" target="_blank"
+                                class="inline-flex items-center gap-2 px-5 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors">
+                                <x-heroicon-o-printer class="w-4 h-4" />
+                                Print
+                            </a>
+                        @endif
                     </div>
                 </div>
             </div>
-        @endif
-
-        <div class="flex justify-end mb-4">
-            <div class="border rounded p-3 w-72 bg-gray-50">
-                <div class="flex justify-between font-semibold">
-                    <span>Total Tagihan:</span>
-                    <span id="total-tagihan-value">{{ number_format($header->famounttagihan ?? 0, 2, ',', '.') }}</span>
-                </div>
-            </div>
-        </div>
-
-        <div class="flex justify-center gap-4">
-            <a href="{{ route('lembarpenagihan.index') }}" class="px-4 py-2 bg-gray-100 rounded">Kembali</a>
-            @if (!$isReadOnly)<button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded">Simpan</button>@endif
-            @if ($isDelete)<button type="submit" class="px-4 py-2 bg-red-600 text-white rounded">Hapus</button>@endif
-            @if ($action === 'view')
-                <a href="{{ route('lembarpenagihan.print', $header->ftagihanno) }}" target="_blank" class="px-4 py-2 bg-blue-600 text-white rounded inline-flex items-center">
-                    Print
-                </a>
-            @endif
-        </div>
-        @if (!$isReadOnly)
-            <x-transaction.browse-customer-modal />
-        @endif
-    </form>
+        </form>
+    </div>
 @endsection
 
 @push('styles')
     <link rel="stylesheet" href="https://cdn.datatables.net/1.13.7/css/jquery.dataTables.min.css">
     <style>
+        input:focus,
+        select:focus,
+        textarea:focus {
+            outline: none;
+            border-color: #2563eb;
+            box-shadow: 0 0 0 2px rgba(37, 99, 235, .2);
+        }
+
         #notaBrowseTable_wrapper .dt-layout-row,
         #notaBrowseTable_wrapper .dataTables_wrapper .row {
             display: flex !important;
@@ -526,32 +631,38 @@
                 if (!isReadOnly) {
                     aksiCol = `
                         <td class="p-2 text-center">
-                            <button type="button" class="btn-remove-row inline-flex h-8 w-8 items-center justify-center rounded bg-red-100 text-red-600 hover:bg-red-200" title="Hapus baris">-</button>
+                            <div class="flex items-center justify-center">
+                                <button type="button" class="btn-remove-row inline-flex h-7 w-7 items-center justify-center rounded-lg bg-red-50 text-red-500 hover:bg-red-100 transition-colors border border-red-200" title="Hapus baris">
+                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 12h-15" />
+                                    </svg>
+                                </button>
+                            </div>
                         </td>
                     `;
                 }
                 
                 const tr = document.createElement('tr');
-                tr.className = 'border-b align-middle bg-white';
+                tr.className = 'border-t border-gray-150 align-middle bg-white';
                 tr.setAttribute('data-ref', normalized.frefsono);
                 tr.innerHTML = `
-                    <td class="p-2 text-gray-500 row-number">${normalized.ftrtagihanid || (index + 1)}</td>
+                    <td class="p-2 text-gray-400 row-number">${normalized.ftrtagihanid || (index + 1)}</td>
                     <td class="p-2">
-                        <input type="text" class="w-full border rounded px-2 py-1 font-mono text-sm bg-gray-100 text-gray-600" value="${normalized.frefsono}" readonly>
+                        <input type="text" class="w-full border border-gray-200 rounded-lg px-2 py-1 font-mono text-sm bg-gray-100 text-gray-500 cursor-not-allowed border-gray-150" value="${normalized.frefsono}" readonly>
                         <input type="hidden" name="frefsono[${index}]" value="${normalized.frefsono}">
                         <input type="hidden" name="frefcode[${index}]" value="${normalized.frefcode}">
                     </td>
                     <td class="p-2">
-                        <input type="text" class="w-full border rounded px-2 py-1 text-sm bg-gray-100 text-gray-600" value="${formatDate(normalized.fsodate)}" readonly>
+                        <input type="text" class="w-full border border-gray-200 rounded-lg px-2 py-1 text-sm bg-gray-100 text-gray-500 cursor-not-allowed border-gray-150" value="${formatDate(normalized.fsodate)}" readonly>
                     </td>
                     <td class="p-2 text-right">
-                        <input type="text" class="w-full border rounded px-2 py-1 text-right text-sm bg-gray-100 text-gray-600" value="${formatMoney(normalized.famountbil)}" readonly>
+                        <input type="text" class="w-full border border-gray-200 rounded-lg px-2 py-1 text-right text-sm bg-gray-100 text-gray-500 cursor-not-allowed border-gray-150" value="${formatMoney(normalized.famountbil)}" readonly>
                     </td>
                     <td class="p-2 text-right">
-                        <input type="text" class="w-full border rounded px-2 py-1 text-right text-sm bg-gray-100 text-gray-600" value="${formatMoney(normalized.fongkos)}" readonly>
+                        <input type="text" class="w-full border border-gray-200 rounded-lg px-2 py-1 text-right text-sm bg-gray-100 text-gray-500 cursor-not-allowed border-gray-150" value="${formatMoney(normalized.fongkos)}" readonly>
                     </td>
                     <td class="p-2 text-right">
-                        <input type="text" class="w-full border rounded px-2 py-1 text-right text-sm bg-gray-100 text-gray-600" value="${formatMoney(normalized.famount)}" readonly>
+                        <input type="text" class="w-full border border-gray-200 rounded-lg px-2 py-1 text-right text-sm bg-gray-100 text-gray-500 cursor-not-allowed border-gray-150" value="${formatMoney(normalized.famount)}" readonly>
                         <input type="hidden" name="famount[${index}]" value="${normalized.famount}" class="row-amount">
                     </td>
                     ${aksiCol}
@@ -596,24 +707,30 @@
                     const needed = 5 - actualCount;
                     for (let i = 0; i < needed; i++) {
                         const emptyTr = document.createElement('tr');
-                        emptyTr.className = 'border-b align-middle bg-white empty-row';
+                        emptyTr.className = 'border-t border-gray-150 align-middle bg-white empty-row';
                         
                         let aksiCol = '';
                         if (!isReadOnly) {
                             aksiCol = `
                                 <td class="p-2 text-center">
-                                    <button type="button" class="btn-remove-row inline-flex h-8 w-8 items-center justify-center rounded bg-red-100 text-red-600 hover:bg-red-200" title="Hapus baris">-</button>
+                                    <div class="flex items-center justify-center">
+                                        <button type="button" class="btn-remove-row inline-flex h-7 w-7 items-center justify-center rounded-lg bg-red-50 text-red-500 hover:bg-red-100 transition-colors border border-red-200" title="Hapus baris" disabled style="opacity: 0.5; cursor: not-allowed;">
+                                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4">
+                                                <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 12h-15" />
+                                            </svg>
+                                        </button>
+                                    </div>
                                 </td>
                             `;
                         }
                         
                         emptyTr.innerHTML = `
-                            <td class="p-2 text-gray-500 row-number">${actualCount + i + 1}</td>
-                            <td class="p-2"><input type="text" class="w-full border rounded px-2 py-1 font-mono text-sm bg-gray-100 text-gray-600" readonly></td>
-                            <td class="p-2"><input type="text" class="w-full border rounded px-2 py-1 text-sm bg-gray-100 text-gray-600" readonly></td>
-                            <td class="p-2"><input type="text" class="w-full border rounded px-2 py-1 text-right text-sm bg-gray-100 text-gray-600" readonly></td>
-                            <td class="p-2"><input type="text" class="w-full border rounded px-2 py-1 text-right text-sm bg-gray-100 text-gray-600" readonly></td>
-                            <td class="p-2"><input type="text" class="w-full border rounded px-2 py-1 text-right text-sm bg-gray-100 text-gray-600" readonly></td>
+                            <td class="p-2 text-gray-400 row-number">${actualCount + i + 1}</td>
+                            <td class="p-2"><input type="text" class="w-full border border-gray-205 rounded-lg px-2 py-1 font-mono text-sm bg-gray-50 text-gray-400 cursor-not-allowed" readonly></td>
+                            <td class="p-2"><input type="text" class="w-full border border-gray-205 rounded-lg px-2 py-1 text-sm bg-gray-50 text-gray-400 cursor-not-allowed" readonly></td>
+                            <td class="p-2"><input type="text" class="w-full border border-gray-205 rounded-lg px-2 py-1 text-right text-sm bg-gray-50 text-gray-400 cursor-not-allowed" readonly></td>
+                            <td class="p-2"><input type="text" class="w-full border border-gray-205 rounded-lg px-2 py-1 text-right text-sm bg-gray-50 text-gray-400 cursor-not-allowed" readonly></td>
+                            <td class="p-2"><input type="text" class="w-full border border-gray-205 rounded-lg px-2 py-1 text-right text-sm bg-gray-50 text-gray-400 cursor-not-allowed" readonly></td>
                             ${aksiCol}
                         `;
                         tbody.appendChild(emptyTr);
@@ -694,9 +811,10 @@
             const tbody = document.getElementById('tagihan-detail-body');
             if (tbody) {
                 tbody.addEventListener('click', (e) => {
-                    if (e.target && e.target.classList.contains('btn-remove-row')) {
+                    const btn = e.target.closest('.btn-remove-row');
+                    if (btn) {
                         e.preventDefault();
-                        const tr = e.target.closest('tr');
+                        const tr = btn.closest('tr');
                         if (tr) {
                             tr.remove();
                             updateTableDOM();

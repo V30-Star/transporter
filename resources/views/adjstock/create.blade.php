@@ -142,462 +142,483 @@
             showNoItems: false,
         
             savedItems: []
-        }" class="lg:col-span-5">
-            <div class="bg-white rounded shadow p-6 md:p-8 max-w-[1800px] w-full mx-auto">
-                <form action="{{ route('adjstock.store') }}" method="POST" class="mt-6" data-form-draft="true"
-                    data-draft-key="adjstock:create" @submit="onSubmit($event)">
-                    @csrf
+        }" class="max-w-[1600px] mx-auto py-8 px-6">
+            <form action="{{ route('adjstock.store') }}" method="POST" data-form-draft="true"
+                data-draft-key="adjstock:create" @submit="onSubmit($event)">
+                @csrf
 
-                    {{-- HEADER FORM --}}
-                    <div class="grid grid-cols-1 lg:grid-cols-12 gap-4">
-                        <div class="lg:col-span-4">
-                            <label class="block text-sm font-medium">Cabang</label>
-                            <input type="text" class="w-full border rounded px-3 py-2 bg-gray-200 cursor-not-allowed"
-                                value="{{ trim(($fbranchcode ?? '') . ($fcabang ?? '' ? ' - ' . $fcabang : '')) }}" disabled>
-                            <input type="hidden" name="fbranchcode" value="{{ $fbranchcode }}">
-                        </div>
-                        <div class="lg:col-span-4" x-data="{ autoCode: true }">
-                            <label class="block text-sm font-medium mb-1">Transaksi#</label>
-                            <div class="flex items-center gap-3">
-                                <input type="text" name="fstockmtno" class="w-full border rounded px-3 py-2"
-                                    :disabled="autoCode"
-                                    :class="autoCode ? 'bg-gray-200 cursor-not-allowed' : 'bg-white'">
-                                <label class="inline-flex items-center select-none">
-                                    <input type="checkbox" x-model="autoCode" checked>
-                                    <span class="ml-2 text-sm text-gray-700">Auto</span>
-                                </label>
+                {{-- ─── CARD 1: Identitas Adjustment ────────────────────── --}}
+                <div class="bg-white border border-gray-200 rounded-xl mb-3 overflow-hidden">
+                    <div class="flex items-center gap-2 px-4 pt-3 pb-0">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-gray-400" fill="none"
+                            viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+                        </svg>
+                        <p class="text-xs font-medium uppercase tracking-wide text-gray-400">Identitas Adjustment</p>
+                    </div>
+                    <div class="p-4 space-y-3">
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+                            {{-- Cabang --}}
+                            <div>
+                                <label class="block text-xs font-bold text-gray-600 mb-1">Cabang</label>
+                                <input type="text" class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm bg-gray-100 text-gray-500 cursor-not-allowed"
+                                    value="{{ trim(($fbranchcode ?? '') . ($fcabang ?? '' ? ' - ' . $fcabang : '')) }}" disabled>
+                                <input type="hidden" name="fbranchcode" value="{{ $fbranchcode }}">
+                            </div>
+
+                            {{-- Transaksi# --}}
+                            <div x-data="{ autoCode: true }">
+                                <label class="block text-xs font-bold text-gray-600 mb-1">Transaksi#</label>
+                                <div class="flex items-center gap-2">
+                                    <input type="text" name="fstockmtno"
+                                        class="flex-1 border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                                        :disabled="autoCode"
+                                        :class="autoCode ? 'bg-gray-100 text-gray-500 border-gray-200 cursor-not-allowed' : 'bg-white'"
+                                        placeholder="Auto Generated">
+                                    <label class="inline-flex items-center select-none font-medium text-sm text-gray-600 cursor-pointer">
+                                        <input type="checkbox" x-model="autoCode" checked
+                                            class="rounded text-blue-600 border-gray-300 focus:ring-blue-500">
+                                        <span class="ml-1.5">Auto</span>
+                                    </label>
+                                </div>
+                            </div>
+
+                            {{-- Adj. Type --}}
+                            <div>
+                                <label class="block text-xs font-bold text-gray-600 mb-1">Adj. Type</label>
+                                <select name="ftrancode" x-model="adjtype"
+                                    class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 @error('ftrancode') border-red-400 @enderror">
+                                    <option value="m">Masuk</option>
+                                    <option value="k">Keluar</option>
+                                </select>
+                                @error('ftrancode')
+                                    <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                                @enderror
                             </div>
                         </div>
 
                         <input type="hidden" name="fstockmtid" value="fstockmtid">
 
-                        <div class="lg:col-span-4">
-                            <label class="block text-sm font-medium">Adj. Type</label>
-
-                            <select name="ftrancode" x-model="adjtype"
-                                class="w-full border rounded px-3 py-2 @error('ftrancode') border-red-500 @enderror">
-
-                                <option value="m">Masuk</option>
-                                <option value="k">Keluar</option>
-                            </select>
-
-                            @error('ftrancode')
-                                <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
-                            @enderror
-                        </div>
-
-                        <div class="lg:col-span-4">
-                            <label class="block text-sm font-medium mb-1">Account</label>
-                            <div class="flex">
-                                <div class="relative flex-1">
-                                    <select id="accountSelect" class="w-full border rounded-l px-3 py-2" disabled>
-                                        <option value=""></option>
-                                        @foreach ($accounts as $account)
-                                            <option value="{{ $account->faccount }}" data-faccid="{{ $account->faccid }}"
-                                                data-branch="{{ $account->faccount }}"
-                                                {{ old('fprdjadi') == $account->faccount ? 'selected' : '' }}>
-                                                {{ $account->faccount }} - {{ $account->faccname }}
-                                            </option>
-                                        @endforeach
-                                    </select>
-
-                                    <div class="absolute inset-0" role="button" aria-label="Browse account"
-                                        @click="window.dispatchEvent(new CustomEvent('account-browse-open'))"></div>
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+                            {{-- Account --}}
+                            <div>
+                                <label class="block text-xs font-bold text-gray-600 mb-1">Account <span class="text-red-500">*</span></label>
+                                <div class="flex">
+                                    <div class="relative flex-1" for="accountSelect">
+                                        <select id="accountSelect"
+                                            class="w-full border border-gray-300 rounded-l-lg px-3 py-2 text-sm bg-gray-50 text-gray-700 cursor-pointer focus:outline-none focus:border-blue-500"
+                                            disabled>
+                                            <option value=""></option>
+                                            @foreach ($accounts as $account)
+                                                <option value="{{ $account->faccount }}" data-faccid="{{ $account->faccid }}"
+                                                    data-branch="{{ $account->faccount }}"
+                                                    {{ old('fprdjadi') == $account->faccount ? 'selected' : '' }}>
+                                                    {{ $account->faccount }} - {{ $account->faccname }}
+                                                </option>
+                                            @endforeach
+                                        </select>
+                                        <div class="absolute inset-0 cursor-pointer" role="button" aria-label="Browse account"
+                                            @click="window.dispatchEvent(new CustomEvent('account-browse-open'))"></div>
+                                    </div>
+                                    <input type="hidden" name="fprdjadi" id="accountCodeHidden" value="{{ old('fprdjadi') }}">
+                                    <button type="button" @click="window.dispatchEvent(new CustomEvent('account-browse-open'))"
+                                        class="border border-l-0 border-gray-300 px-3 py-2 bg-white hover:bg-gray-50 text-gray-500 transition-colors"
+                                        title="Browse Account">
+                                        <x-heroicon-o-magnifying-glass class="w-4 h-4" />
+                                    </button>
                                 </div>
-
-                                <input type="hidden" name="fprdjadi" id="accountCodeHidden" value="{{ old('fprdjadi') }}">
-
-                                <button type="button" @click="window.dispatchEvent(new CustomEvent('account-browse-open'))"
-                                    class="border -ml-px px-3 py-2 bg-white hover:bg-gray-50 rounded-r-none"
-                                    title="Browse Account">
-                                    <x-heroicon-o-magnifying-glass class="w-5 h-5" />
-                                </button>
+                                @error('fprdjadi')
+                                    <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                                @enderror
                             </div>
 
-                            @error('fprdjadi')
-                                <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
-                            @enderror
-                        </div>
-
-                        <div class="lg:col-span-4">
-                            <label class="block text-sm font-medium mb-1">Gudang</label>
-                            <div class="flex">
-                                <div class="relative flex-1">
-                                    <select id="warehouseSelect"
-                                        class="w-full border rounded-l px-3 py-2 bg-gray-100 text-gray-700 cursor-not-allowed"
-                                        disabled>
-                                        <option value=""></option>
-                                        @foreach ($warehouses as $wh)
-                                            <option value="{{ $wh->fwhcode }}" data-id="{{ $wh->fwhid }}"
-                                                data-branch="{{ $wh->fbranchcode }}"
-                                                {{ old('ffrom') == $wh->fwhcode ? 'selected' : '' }}>
-                                                {{ $wh->fwhcode }} - {{ $wh->fwhname }}
-                                            </option>
-                                        @endforeach
-                                    </select>
-
-                                    {{-- Overlay untuk buka browser gudang --}}
-                                    <div class="absolute inset-0" role="button" aria-label="Browse warehouse"
-                                        @click="window.dispatchEvent(new CustomEvent('warehouse-browse-open'))"></div>
+                            {{-- Gudang --}}
+                            <div>
+                                <label class="block text-xs font-bold text-gray-600 mb-1">Gudang <span class="text-red-500">*</span></label>
+                                <div class="flex">
+                                    <div class="relative flex-1" for="warehouseSelect">
+                                        <select id="warehouseSelect"
+                                            class="w-full border border-gray-300 rounded-l-lg px-3 py-2 text-sm bg-gray-50 text-gray-700 cursor-pointer focus:outline-none focus:border-blue-500"
+                                            disabled>
+                                            <option value=""></option>
+                                            @foreach ($warehouses as $wh)
+                                                <option value="{{ $wh->fwhcode }}" data-id="{{ $wh->fwhid }}"
+                                                    data-branch="{{ $wh->fbranchcode }}"
+                                                    {{ old('ffrom') == $wh->fwhcode ? 'selected' : '' }}>
+                                                    {{ $wh->fwhcode }} - {{ $wh->fwhname }}
+                                                </option>
+                                            @endforeach
+                                        </select>
+                                        <div class="absolute inset-0 cursor-pointer" role="button" aria-label="Browse warehouse"
+                                            @click="window.dispatchEvent(new CustomEvent('warehouse-browse-open'))"></div>
+                                    </div>
+                                    <input type="hidden" name="ffrom" id="warehouseCodeHidden" value="{{ old('ffrom') }}">
+                                    <button type="button" @click="window.dispatchEvent(new CustomEvent('warehouse-browse-open'))"
+                                        class="border border-l-0 border-gray-300 px-3 py-2 bg-white hover:bg-gray-50 text-gray-500 transition-colors"
+                                        title="Browse Gudang">
+                                        <x-heroicon-o-magnifying-glass class="w-4 h-4" />
+                                    </button>
+                                    <a href="{{ route('gudang.create') }}" target="_blank" rel="noopener"
+                                        class="border border-l-0 border-gray-300 rounded-r-lg px-3 py-2 bg-white hover:bg-gray-50 text-gray-500 transition-colors"
+                                        title="Tambah Gudang">
+                                        <x-heroicon-o-plus class="w-4 h-4" />
+                                    </a>
                                 </div>
-
-                                <input type="hidden" name="ffrom" id="warehouseCodeHidden" value="{{ old('ffrom') }}">
-
-                                <button type="button"
-                                    @click="window.dispatchEvent(new CustomEvent('warehouse-browse-open'))"
-                                    class="border -ml-px px-3 py-2 bg-white hover:bg-gray-50 rounded-r-none"
-                                    title="Browse Gudang">
-                                    <x-heroicon-o-magnifying-glass class="w-5 h-5" />
-                                </button>
-
-                                {{-- ganti route di bawah sesuai halaman tambah gudangmu --}}
-                                <a href="{{ route('gudang.create') }}" target="_blank" rel="noopener"
-                                    class="border -ml-px rounded-r px-3 py-2 bg-white hover:bg-gray-50"
-                                    title="Tambah Gudang">
-                                    <x-heroicon-o-plus class="w-5 h-5" />
-                                </a>
+                                @error('ffrom')
+                                    <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                                @enderror
                             </div>
 
-                            @error('ffrom')
-                                <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
-                            @enderror
+                            {{-- Tanggal --}}
+                            <div>
+                                <label class="block text-xs font-bold text-gray-600 mb-1">Tanggal <span class="text-red-500">*</span></label>
+                                <input type="date" name="fstockmtdate" value="{{ old('fstockmtdate') ?? date('Y-m-d') }}"
+                                    class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 @error('fstockmtdate') border-red-400 @enderror">
+                                @error('fstockmtdate')
+                                    <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                                @enderror
+                            </div>
                         </div>
 
-                        <div class="lg:col-span-4">
-                            <label class="block text-sm font-medium">Tanggal</label>
-                            <input type="date" name="fstockmtdate" value="{{ old('fstockmtdate') ?? date('Y-m-d') }}"
-                                class="w-full border rounded px-3 py-2 @error('fstockmtdate') border-red-500 @enderror">
-                            @error('fstockmtdate')
-                                <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
-                            @enderror
-                        </div>
-
-                        <div class="lg:col-span-12">
-                            <label class="block text-sm font-medium">Keterangan</label>
-                            <textarea name="fket" rows="3"
-                                class="w-full border rounded px-3 py-2 @error('fket') border-red-500 @enderror"
+                        {{-- Keterangan --}}
+                        <div>
+                            <label class="block text-xs font-bold text-gray-600 mb-1">Keterangan</label>
+                            <textarea name="fket" rows="2"
+                                class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 @error('fket') border-red-400 @enderror"
                                 placeholder="Tulis keterangan tambahan di sini...">{{ old('fket') }}</textarea>
                             @error('fket')
-                                <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+                                <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
                             @enderror
                         </div>
                     </div>
+                </div>
 
-                    <template x-if="adjtype === 'm'">
-                        <div x-data="itemsTable()" x-init="init()" class="mt-6 space-y-2">
-
-                            {{-- DETAIL ITEM (tabel input) --}}
-                            <h3 class="text-base font-semibold text-gray-800">Detail Item</h3>
-
-                            <div class="overflow-auto border rounded">
-                                <table class="adjstock-detail-table min-w-full text-sm">
-                                    <thead class="bg-gray-100">
-                                        <tr>
-                                            <th class="p-2 text-left w-10">#</th>
-                                            <th class="p-2 text-left w-40">Kode Produk</th>
-                                            <th class="p-2 text-left" style="width: 20rem; min-width: 20rem;">Nama Produk
-                                            </th>
-                                            <th class="p-2 text-left w-24">Sat</th>
-                                            <th class="p-2 text-right w-36">Qty Masuk</th>
-                                            <th class="p-2 text-right w-32">@ Harga</th>
-                                            <th class="p-2 text-right w-36">Total Harga</th>
-                                            <th class="p-2 text-center w-36">Aksi</th>
-                                        </tr>
-                                    </thead>
-
-                                    <tbody class="bg-blue-100 text-blue-900">
-                                        <template x-for="(it, i) in savedItems" :key="it.uid || `item-${i}`">
-                                            <tr class="border-t align-top">
-                                                <td class="p-2" x-text="i + 1"></td>
-                                                <td class="p-2">
-                                                    <div class="flex">
-                                                        <input type="text"
-                                                            class="flex-1 border rounded-l px-2 py-1 font-mono text-sm"
-                                                            :id="'masuk_code_row_' + i"
-                                                            x-model.trim="it.fitemcode"
-                                                            @input="onCodeTypedRow(it, i)"
-                                                            @keydown.enter.prevent="focusRowUnit(it, i)">
-                                                        <button type="button" @click="openBrowseFor(i)"
-                                                            class="border border-l-0 px-2 py-1 bg-white hover:bg-gray-50"
-                                                            title="Cari Produk">
-                                                            <x-heroicon-o-magnifying-glass class="w-4 h-4" />
-                                                        </button>
-                                                    </div>
-                                                </td>
-                                                <td class="p-2 text-gray-800" style="width: 20rem; min-width: 20rem;">
-                                                    <div class="desc-inline-field">
-                                                        <div class="desc-inline-field__text rounded-l border bg-gray-100 px-2 py-1 text-sm leading-5 text-gray-600 whitespace-normal break-words"
-                                                            x-text="it.fitemname"></div>
-                                                        <button type="button" @click="openDesc('saved', i)"
-                                                            class="desc-inline-field__button inline-flex items-center rounded-r border border-l-0 px-2 py-1 transition-colors"
-                                                            :class="descButtonClass(it.fdesc)" title="Deskripsi">
-                                                            <x-heroicon-o-document-text class="w-4 h-4" />
-                                                        </button>
-                                                    </div>
-                                                </td>
-                                                <td class="p-2 text-left">
-                                                    <template x-if="it.units && it.units.length > 1">
-                                                        <select class="w-full border rounded px-2 py-1 text-sm"
-                                                            :id="'masuk_unit_row_' + i"
-                                                            x-model="it.fsatuan"
-                                                            @change="onRowUpdated(i)"
-                                                            @keydown.enter.prevent="focusRowQty(i)">
-                                                            <template x-for="u in it.units" :key="u">
-                                                                <option :value="u" x-text="u"></option>
-                                                            </template>
-                                                        </select>
-                                                    </template>
-                                                    <template x-if="!it.units || it.units.length <= 1">
-                                                        <div class="rounded border bg-gray-100 px-2 py-1 text-sm text-gray-600"
-                                                            x-text="it.fsatuan || '-'"></div>
-                                                    </template>
-                                                </td>
-                                                <td class="p-2 text-right">
-                                                    <input type="number"
-                                                        class="w-full border rounded px-2 py-1 text-right text-sm"
-                                                        min="0" step="0.01"
-                                                        :id="'masuk_qty_row_' + i"
-                                                        x-model.number="it.fqty"
-                                                        @input="onRowUpdated(i)"
-                                                        @change="onRowUpdated(i)"
-                                                        @keydown.enter.prevent="focusRowPrice(i)">
-                                                </td>
-                                                <td class="p-2 text-right">
-                                                    <input type="number"
-                                                        class="w-full border rounded px-2 py-1 text-right text-sm"
-                                                        min="0" step="0.01"
-                                                        :id="'masuk_price_row_' + i"
-                                                        x-model.number="it.fprice"
-                                                        @input="onRowUpdated(i)"
-                                                        @change="onRowUpdated(i)"
-                                                        @keydown.enter.prevent="onRowUpdated(i)">
-                                                </td>
-                                                <td class="p-2 text-right font-semibold" x-text="rupiah(it.ftotal)"></td>
-                                                <td class="p-2 text-center">
-                                                    <button type="button" @click="removeSaved(i)"
-                                                        class="inline-flex h-8 w-8 items-center justify-center rounded bg-red-100 text-red-600 hover:bg-red-200"
-                                                        title="Hapus baris">-</button>
-                                                </td>
+                {{-- ─── CARD 2: Detail Item ────────────────────── --}}
+                <div class="bg-white border border-gray-200 rounded-xl mb-3 overflow-hidden">
+                    <div class="flex items-center gap-2 px-4 pt-3 pb-0">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-gray-400" fill="none"
+                            viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
+                        </svg>
+                        <p class="text-xs font-medium uppercase tracking-wide text-gray-400">Detail Item</p>
+                    </div>
+                    <div class="p-4">
+                        <template x-if="adjtype === 'm'">
+                            <div x-data="itemsTable()" x-init="init()" class="space-y-3">
+                                <div class="overflow-auto border border-gray-200 rounded-lg">
+                                    <table class="adjstock-detail-table min-w-full text-sm">
+                                        <thead class="bg-gray-50 border-b border-gray-200">
+                                            <tr>
+                                                <th class="p-2 text-left w-10 text-xs font-semibold text-gray-500 uppercase">#</th>
+                                                <th class="p-2 text-left w-40 text-xs font-semibold text-gray-500 uppercase">Kode Produk</th>
+                                                <th class="p-2 text-left text-xs font-semibold text-gray-500 uppercase" style="width: 20rem; min-width: 20rem;">Nama Produk</th>
+                                                <th class="p-2 text-left w-24 text-xs font-semibold text-gray-500 uppercase">Sat</th>
+                                                <th class="p-2 text-right w-36 text-xs font-semibold text-gray-500 uppercase">Qty Masuk</th>
+                                                <th class="p-2 text-right w-32 text-xs font-semibold text-gray-500 uppercase">@ Harga</th>
+                                                <th class="p-2 text-right w-36 text-xs font-semibold text-gray-500 uppercase">Total Harga</th>
+                                                <th class="p-2 text-center w-36 text-xs font-semibold text-gray-500 uppercase">Aksi</th>
                                             </tr>
-                                        </template>
-                                    </tbody>
-                                </table>
-                            </div>
-                            <div class="hidden">
-                                <template x-for="(it, i) in submitItems" :key="'submit-masuk-' + (it.uid || i)">
-                                    <div>
-                                        <input type="hidden" name="fitemcode[]" :value="it.fitemcode">
-                                        <input type="hidden" name="fitemname[]" :value="it.fitemname">
-                                        <input type="hidden" name="fsatuan[]" :value="it.fsatuan">
-                                        <input type="hidden" name="frefdtno[]" :value="it.frefdtno">
-                                        <input type="hidden" name="frefpr[]" :value="it.frefpr">
-                                        <input type="hidden" name="fqty[]" :value="it.fqty">
-                                        <input type="hidden" name="fprice[]" :value="it.fprice">
-                                        <input type="hidden" name="ftotal[]" :value="it.ftotal">
-                                        <input type="hidden" name="fketdt[]" :value="it.fketdt">
-                                        <input type="hidden" name="fdesc[]" :value="it.fdesc">
-                                    </div>
-                                </template>
-                            </div>
-                            <div class="w-1/2 ml-auto">
-                                <div class="rounded-lg border bg-gray-50 p-3 space-y-2">
-                                    <div class="flex items-center justify-between">
-                                        <span class="text-sm text-gray-700">Total Harga</span>
-                                        <span class="min-w-[140px] text-right font-medium"
-                                            x-text="rupiah(totalHarga)"></span>
+                                        </thead>
+
+                                        <tbody class="bg-white divide-y divide-gray-150">
+                                            <template x-for="(it, i) in savedItems" :key="it.uid || `item-${i}`">
+                                                <tr class="align-middle hover:bg-gray-50/50">
+                                                    <td class="p-2 text-gray-400" x-text="i + 1"></td>
+                                                    <td class="p-2">
+                                                        <div class="flex">
+                                                            <input type="text"
+                                                                class="flex-1 border border-gray-300 rounded-l-lg px-2 py-1 font-mono text-sm focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-100 bg-white"
+                                                                :id="'masuk_code_row_' + i"
+                                                                x-model.trim="it.fitemcode"
+                                                                @input="onCodeTypedRow(it, i)"
+                                                                @keydown.enter.prevent="focusRowUnit(it, i)">
+                                                            <button type="button" @click="openBrowseFor(i)"
+                                                                class="border border-l-0 border-gray-300 rounded-r-lg px-2 py-1 bg-white hover:bg-gray-50 text-gray-500 transition-colors"
+                                                                title="Cari Produk">
+                                                                <x-heroicon-o-magnifying-glass class="w-4 h-4" />
+                                                            </button>
+                                                        </div>
+                                                    </td>
+                                                    <td class="p-2 text-gray-800" style="width: 20rem; min-width: 20rem;">
+                                                        <div class="desc-inline-field">
+                                                            <div class="desc-inline-field__text rounded-l-lg border border-gray-300 bg-gray-50 px-2 py-1 text-sm leading-5 text-gray-600 whitespace-normal break-words"
+                                                                x-text="it.fitemname"></div>
+                                                            <button type="button" @click="openDesc('saved', i)"
+                                                                class="desc-inline-field__button inline-flex items-center rounded-r-lg border border-l-0 border-gray-300 px-2 py-1 transition-colors"
+                                                                :class="descButtonClass(it.fdesc)" title="Deskripsi">
+                                                                <x-heroicon-o-document-text class="w-4 h-4" />
+                                                            </button>
+                                                        </div>
+                                                    </td>
+                                                    <td class="p-2 text-left">
+                                                        <template x-if="it.units && it.units.length > 1">
+                                                            <select class="w-full border border-gray-300 rounded-lg px-2 py-1 text-sm focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-100"
+                                                                :id="'masuk_unit_row_' + i"
+                                                                x-model="it.fsatuan"
+                                                                @change="onRowUpdated(i)"
+                                                                @keydown.enter.prevent="focusRowQty(i)">
+                                                                <template x-for="u in it.units" :key="u">
+                                                                    <option :value="u" x-text="u"></option>
+                                                                </template>
+                                                            </select>
+                                                        </template>
+                                                        <template x-if="!it.units || it.units.length <= 1">
+                                                            <div class="rounded-lg border border-gray-250 bg-gray-50 px-2 py-1 text-sm text-gray-500"
+                                                                x-text="it.fsatuan || '-'"></div>
+                                                        </template>
+                                                    </td>
+                                                    <td class="p-2 text-right">
+                                                        <input type="number"
+                                                            class="w-full border border-gray-300 rounded-lg px-2 py-1 text-right text-sm focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-100 bg-white"
+                                                            min="0" step="0.01"
+                                                            :id="'masuk_qty_row_' + i"
+                                                            x-model.number="it.fqty"
+                                                            @input="onRowUpdated(i)"
+                                                            @change="onRowUpdated(i)"
+                                                            @keydown.enter.prevent="focusRowPrice(i)">
+                                                    </td>
+                                                    <td class="p-2 text-right">
+                                                        <input type="number"
+                                                            class="w-full border border-gray-300 rounded-lg px-2 py-1 text-right text-sm focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-100 bg-white"
+                                                            min="0" step="0.01"
+                                                            :id="'masuk_price_row_' + i"
+                                                            x-model.number="it.fprice"
+                                                            @input="onRowUpdated(i)"
+                                                            @change="onRowUpdated(i)"
+                                                            @keydown.enter.prevent="onRowUpdated(i)">
+                                                    </td>
+                                                    <td class="p-2 text-right font-semibold font-mono text-gray-700" x-text="rupiah(it.ftotal)"></td>
+                                                    <td class="p-2 text-center">
+                                                        <div class="flex items-center justify-center">
+                                                            <button type="button" @click="removeSaved(i)"
+                                                                class="inline-flex h-7 w-7 items-center justify-center rounded-lg bg-red-50 text-red-500 hover:bg-red-100 transition-colors border border-red-200"
+                                                                title="Hapus baris">
+                                                                <x-heroicon-o-minus class="w-4 h-4" />
+                                                            </button>
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                            </template>
+                                        </tbody>
+                                    </table>
+                                </div>
+                                <div class="hidden">
+                                    <template x-for="(it, i) in submitItems" :key="'submit-masuk-' + (it.uid || i)">
+                                        <div>
+                                            <input type="hidden" name="fitemcode[]" :value="it.fitemcode">
+                                            <input type="hidden" name="fitemname[]" :value="it.fitemname">
+                                            <input type="hidden" name="fsatuan[]" :value="it.fsatuan">
+                                            <input type="hidden" name="frefdtno[]" :value="it.frefdtno">
+                                            <input type="hidden" name="frefpr[]" :value="it.frefpr">
+                                            <input type="hidden" name="fqty[]" :value="it.fqty">
+                                            <input type="hidden" name="fprice[]" :value="it.fprice">
+                                            <input type="hidden" name="ftotal[]" :value="it.ftotal">
+                                            <input type="hidden" name="fketdt[]" :value="it.fketdt">
+                                            <input type="hidden" name="fdesc[]" :value="it.fdesc">
+                                        </div>
+                                    </template>
+                                </div>
+                                <div class="flex justify-end">
+                                    <div class="border border-gray-200 rounded-xl p-4 w-80 bg-gray-50/50 shadow-sm">
+                                        <div class="flex justify-between items-center font-bold text-gray-800">
+                                            <span class="text-sm">Total Harga</span>
+                                            <span class="text-lg font-mono text-blue-600" x-text="rupiah(totalHarga)"></span>
+                                        </div>
                                     </div>
                                 </div>
-                            </div>
-                            <div x-show="showDescModal" x-cloak
-                                class="fixed inset-0 z-[95] flex items-center justify-center" x-transition.opacity>
-                                <div class="absolute inset-0 bg-black/50" @click="closeDesc()"></div>
+                                <div x-show="showDescModal" x-cloak
+                                    class="fixed inset-0 z-[95] flex items-center justify-center bg-black/50 backdrop-blur-sm" x-transition.opacity>
+                                    <div class="absolute inset-0" @click="closeDesc()"></div>
 
-                                <div class="relative bg-white w-[92vw] max-w-lg rounded-2xl shadow-2xl overflow-hidden"
-                                    x-transition.scale>
-                                    <div class="px-5 py-4 border-b flex items-center">
-                                        <x-heroicon-o-document-text class="w-6 h-6 text-blue-600 mr-2" />
-                                        <h3 class="text-lg font-semibold text-gray-800">Isi Deskripsi Item</h3>
-                                    </div>
-
-                                    <div class="px-5 py-4 space-y-4">
-                                        <div>
-                                            <div class="mb-1 flex items-center justify-between gap-3">
-                                                <div class="text-sm text-gray-700">Nama Produk</div>
-                                                <button x-show="!descReadonly" type="button" @click="copyDescName()"
-                                                    class="h-8 px-3 rounded-lg bg-blue-50 text-blue-700 text-sm font-medium hover:bg-blue-100">
-                                                    Copy
-                                                </button>
-                                            </div>
-                                            <div class="rounded-lg border bg-gray-50 px-3 py-2 text-sm text-gray-800"
-                                                x-text="descItemName || '-'"></div>
+                                    <div class="relative bg-white w-[92vw] max-w-lg rounded-2xl shadow-2xl overflow-hidden"
+                                        x-transition.scale>
+                                        <div class="px-5 py-4 border-b flex items-center bg-gradient-to-r from-blue-50 to-white">
+                                            <x-heroicon-o-document-text class="w-6 h-6 text-blue-600 mr-2" />
+                                            <h3 class="text-lg font-semibold text-gray-800">Isi Deskripsi Item</h3>
                                         </div>
 
-                                        <label class="block text-sm text-gray-700">Deskripsi</label>
-                                        <textarea x-model="descValue" rows="5" class="w-full border rounded px-3 py-2" :readonly="descReadonly"
-                                            placeholder="Tulis deskripsi item di sini..."></textarea>
-                                    </div>
-
-                                    <div class="px-5 py-3 border-t flex items-center justify-end gap-2">
-                                        <button type="button" @click="closeDesc()"
-                                            class="h-9 px-4 rounded-lg bg-gray-100 text-gray-700 text-sm font-medium hover:bg-gray-200">
-                                            Batal
-                                        </button>
-                                        <button x-show="!descReadonly" type="button" @click="applyDesc()"
-                                            class="h-9 px-4 rounded-lg bg-emerald-600 text-white text-sm font-medium hover:bg-emerald-700">
-                                            Simpan
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </template>
-
-                    <template x-if="adjtype === 'k'">
-                        <div x-data="itemsTableKeluar()" x-init="init()" class="mt-6 space-y-2">
-
-                            {{-- DETAIL ITEM (tabel input) --}}
-                            <h3 class="text-base font-semibold text-gray-800">Detail Item Keluar</h3>
-
-                            <div class="overflow-auto border rounded">
-                                <table class="min-w-full text-sm">
-                                    <thead class="bg-gray-100">
-                                        <tr>
-                                            <th class="p-2 text-left w-10">#</th>
-                                            <th class="p-2 text-left w-40">Kode Produk</th>
-                                            <th class="p-2 text-left" style="width: 20rem; min-width: 20rem;">Nama Produk
-                                            </th>
-                                            <th class="p-2 text-left w-24">Sat</th>
-                                            <th class="p-2 text-right w-36">Qty Keluar</th>
-                                            <th class="p-2 text-center w-36">Aksi</th>
-                                        </tr>
-                                    </thead>
-
-                                    <tbody class="bg-green-100 text-green-900">
-                                        <template x-for="(it, i) in savedItems" :key="it.uid || `item-${i}`">
-                                            <tr class="border-t align-top">
-                                                <td class="p-2" x-text="i + 1"></td>
-                                                <td class="p-2">
-                                                    <div class="flex">
-                                                        <input type="text"
-                                                            class="flex-1 border rounded-l px-2 py-1 font-mono text-sm"
-                                                            :id="'keluar_code_row_' + i"
-                                                            x-model.trim="it.fitemcode"
-                                                            @input="onCodeTypedRow(it, i)"
-                                                            @keydown.enter.prevent="focusRowUnit(it, i)">
-                                                        <button type="button" @click="openBrowseFor(i)"
-                                                            class="border border-l-0 px-2 py-1 bg-white hover:bg-gray-50"
-                                                            title="Cari Produk">
-                                                            <x-heroicon-o-magnifying-glass class="w-4 h-4" />
-                                                        </button>
-                                                    </div>
-                                                </td>
-                                                <td class="p-2 text-gray-800" style="width: 20rem; min-width: 20rem;">
-                                                    <div class="desc-inline-field">
-                                                        <div class="desc-inline-field__text rounded-l border bg-gray-100 px-2 py-1 text-sm leading-5 text-gray-600 whitespace-normal break-words"
-                                                            x-text="it.fitemname"></div>
-                                                        <button type="button" @click="openDesc('saved', i)"
-                                                            class="desc-inline-field__button inline-flex items-center rounded-r border border-l-0 px-2 py-1 transition-colors"
-                                                            :class="descButtonClass(it.fdesc)" title="Deskripsi">
-                                                            <x-heroicon-o-document-text class="w-4 h-4" />
-                                                        </button>
-                                                    </div>
-                                                </td>
-                                                <td class="p-2 text-left">
-                                                    <template x-if="it.units && it.units.length > 1">
-                                                        <select class="w-full border rounded px-2 py-1 text-sm"
-                                                            :id="'keluar_unit_row_' + i"
-                                                            x-model="it.fsatuan"
-                                                            @change="onRowUpdated(i)"
-                                                            @keydown.enter.prevent="focusRowQty(i)">
-                                                            <template x-for="u in it.units" :key="u">
-                                                                <option :value="u" x-text="u"></option>
-                                                            </template>
-                                                        </select>
-                                                    </template>
-                                                    <template x-if="!it.units || it.units.length <= 1">
-                                                        <div class="rounded border bg-gray-100 px-2 py-1 text-sm text-gray-600"
-                                                            x-text="it.fsatuan || '-'"></div>
-                                                    </template>
-                                                </td>
-                                                <td class="p-2 text-right">
-                                                    <input type="number"
-                                                        class="w-full border rounded px-2 py-1 text-right text-sm"
-                                                        min="0" step="0.01"
-                                                        :id="'keluar_qty_row_' + i"
-                                                        x-model.number="it.fqty"
-                                                        @input="onRowUpdated(i)"
-                                                        @change="onRowUpdated(i)"
-                                                        @keydown.enter.prevent="onRowUpdated(i)">
-                                                </td>
-                                                <td class="p-2 text-center">
-                                                    <button type="button" @click="removeSaved(i)"
-                                                        class="inline-flex h-8 w-8 items-center justify-center rounded bg-red-100 text-red-600 hover:bg-red-200"
-                                                        title="Hapus baris">-</button>
-                                                </td>
-                                            </tr>
-                                        </template>
-                                    </tbody>
-                                </table>
-                            </div>
-                            <div class="hidden">
-                                <template x-for="(it, i) in submitItems" :key="'submit-keluar-' + (it.uid || i)">
-                                    <div>
-                                        <input type="hidden" name="fitemcode[]" :value="it.fitemcode">
-                                        <input type="hidden" name="fitemname[]" :value="it.fitemname">
-                                        <input type="hidden" name="fsatuan[]" :value="it.fsatuan">
-                                        <input type="hidden" name="frefdtno[]" :value="it.frefdtno">
-                                        <input type="hidden" name="frefpr[]" :value="it.frefpr">
-                                        <input type="hidden" name="fqty[]" :value="it.fqty">
-                                        <input type="hidden" name="fprice[]" :value="it.fprice">
-                                        <input type="hidden" name="ftotal[]" :value="it.ftotal">
-                                        <input type="hidden" name="fketdt[]" :value="it.fketdt">
-                                        <input type="hidden" name="fdesc[]" :value="it.fdesc">
-                                    </div>
-                                </template>
-                            </div>
-                            <div x-show="showDescModal" x-cloak
-                                class="fixed inset-0 z-[95] flex items-center justify-center" x-transition.opacity>
-                                <div class="absolute inset-0 bg-black/50" @click="closeDesc()"></div>
-
-                                <div class="relative bg-white w-[92vw] max-w-lg rounded-2xl shadow-2xl overflow-hidden"
-                                    x-transition.scale>
-                                    <div class="px-5 py-4 border-b flex items-center">
-                                        <x-heroicon-o-document-text class="w-6 h-6 text-blue-600 mr-2" />
-                                        <h3 class="text-lg font-semibold text-gray-800">Isi Deskripsi Item</h3>
-                                    </div>
-
-                                    <div class="px-5 py-4 space-y-4">
-                                        <div>
-                                            <div class="mb-1 flex items-center justify-between gap-3">
-                                                <div class="text-sm text-gray-700">Nama Produk</div>
-                                                <button x-show="!descReadonly" type="button" @click="copyDescName()"
-                                                    class="h-8 px-3 rounded-lg bg-blue-50 text-blue-700 text-sm font-medium hover:bg-blue-100">
-                                                    Copy
-                                                </button>
+                                        <div class="px-5 py-4 space-y-4">
+                                            <div>
+                                                <div class="mb-1 flex items-center justify-between gap-3">
+                                                    <div class="text-sm text-gray-700">Nama Produk</div>
+                                                    <button x-show="!descReadonly" type="button" @click="copyDescName()"
+                                                        class="h-8 px-3 rounded-lg bg-blue-50 text-blue-700 text-sm font-medium hover:bg-blue-100">
+                                                        Copy
+                                                    </button>
+                                                </div>
+                                                <div class="rounded-lg border bg-gray-50 px-3 py-2 text-sm text-gray-800"
+                                                    x-text="descItemName || '-'"></div>
                                             </div>
-                                            <div class="rounded-lg border bg-gray-50 px-3 py-2 text-sm text-gray-800"
-                                                x-text="descItemName || '-'"></div>
+
+                                            <label class="block text-sm text-gray-700">Deskripsi</label>
+                                            <textarea x-model="descValue" rows="5" class="w-full border rounded px-3 py-2" :readonly="descReadonly"
+                                                placeholder="Tulis deskripsi item di sini..."></textarea>
                                         </div>
 
-                                        <label class="block text-sm text-gray-700">Deskripsi</label>
-                                        <textarea x-model="descValue" rows="5" class="w-full border rounded px-3 py-2" :readonly="descReadonly"
-                                            placeholder="Tulis deskripsi item di sini..."></textarea>
-                                    </div>
-
-                                    <div class="px-5 py-3 border-t flex items-center justify-end gap-2">
-                                        <button type="button" @click="closeDesc()"
-                                            class="h-9 px-4 rounded-lg bg-gray-100 text-gray-700 text-sm font-medium hover:bg-gray-200">
-                                            Batal
-                                        </button>
-                                        <button x-show="!descReadonly" type="button" @click="applyDesc()"
-                                            class="h-9 px-4 rounded-lg bg-emerald-600 text-white text-sm font-medium hover:bg-emerald-700">
-                                            Simpan
-                                        </button>
+                                        <div class="px-5 py-3 border-t flex items-center justify-end gap-2 bg-gray-50">
+                                            <button type="button" @click="closeDesc()"
+                                                class="h-9 px-4 rounded-lg bg-gray-100 text-gray-700 text-sm font-medium hover:bg-gray-250">
+                                                Batal
+                                            </button>
+                                            <button x-show="!descReadonly" type="button" @click="applyDesc()"
+                                                class="h-9 px-4 rounded-lg bg-emerald-600 text-white text-sm font-medium hover:bg-emerald-700">
+                                                Simpan
+                                            </button>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
-                        </div>
-                    </template>
+                        </template>
+
+                        <template x-if="adjtype === 'k'">
+                            <div x-data="itemsTableKeluar()" x-init="init()" class="space-y-3">
+                                <div class="overflow-auto border border-gray-200 rounded-lg">
+                                    <table class="min-w-full text-sm">
+                                        <thead class="bg-gray-50 border-b border-gray-200">
+                                            <tr>
+                                                <th class="p-2 text-left w-10 text-xs font-semibold text-gray-500 uppercase">#</th>
+                                                <th class="p-2 text-left w-40 text-xs font-semibold text-gray-500 uppercase">Kode Produk</th>
+                                                <th class="p-2 text-left text-xs font-semibold text-gray-500 uppercase" style="width: 20rem; min-width: 20rem;">Nama Produk</th>
+                                                <th class="p-2 text-left w-24 text-xs font-semibold text-gray-500 uppercase">Sat</th>
+                                                <th class="p-2 text-right w-36 text-xs font-semibold text-gray-500 uppercase">Qty Keluar</th>
+                                                <th class="p-2 text-center w-36 text-xs font-semibold text-gray-500 uppercase">Aksi</th>
+                                            </tr>
+                                        </thead>
+
+                                        <tbody class="bg-white divide-y divide-gray-150">
+                                            <template x-for="(it, i) in savedItems" :key="it.uid || `item-${i}`">
+                                                <tr class="align-middle hover:bg-gray-50/50">
+                                                    <td class="p-2 text-gray-400" x-text="i + 1"></td>
+                                                    <td class="p-2">
+                                                        <div class="flex">
+                                                            <input type="text"
+                                                                class="flex-1 border border-gray-300 rounded-l-lg px-2 py-1 font-mono text-sm focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-100 bg-white"
+                                                                :id="'keluar_code_row_' + i"
+                                                                x-model.trim="it.fitemcode"
+                                                                @input="onCodeTypedRow(it, i)"
+                                                                @keydown.enter.prevent="focusRowUnit(it, i)">
+                                                            <button type="button" @click="openBrowseFor(i)"
+                                                                class="border border-l-0 border-gray-300 rounded-r-lg px-2 py-1 bg-white hover:bg-gray-50 text-gray-500 transition-colors"
+                                                                title="Cari Produk">
+                                                                <x-heroicon-o-magnifying-glass class="w-4 h-4" />
+                                                            </button>
+                                                        </div>
+                                                    </td>
+                                                    <td class="p-2 text-gray-800" style="width: 20rem; min-width: 20rem;">
+                                                        <div class="desc-inline-field">
+                                                            <div class="desc-inline-field__text rounded-l-lg border border-gray-300 bg-gray-50 px-2 py-1 text-sm leading-5 text-gray-600 whitespace-normal break-words"
+                                                                x-text="it.fitemname"></div>
+                                                            <button type="button" @click="openDesc('saved', i)"
+                                                                class="desc-inline-field__button inline-flex items-center rounded-r-lg border border-l-0 border-gray-300 px-2 py-1 transition-colors"
+                                                                :class="descButtonClass(it.fdesc)" title="Deskripsi">
+                                                                <x-heroicon-o-document-text class="w-4 h-4" />
+                                                            </button>
+                                                        </div>
+                                                    </td>
+                                                    <td class="p-2 text-left">
+                                                        <template x-if="it.units && it.units.length > 1">
+                                                            <select class="w-full border border-gray-300 rounded-lg px-2 py-1 text-sm focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-100"
+                                                                :id="'keluar_unit_row_' + i"
+                                                                x-model="it.fsatuan"
+                                                                @change="onRowUpdated(i)"
+                                                                @keydown.enter.prevent="focusRowQty(i)">
+                                                                <template x-for="u in it.units" :key="u">
+                                                                    <option :value="u" x-text="u"></option>
+                                                                </template>
+                                                            </select>
+                                                        </template>
+                                                        <template x-if="!it.units || it.units.length <= 1">
+                                                            <div class="rounded-lg border border-gray-250 bg-gray-50 px-2 py-1 text-sm text-gray-500"
+                                                                x-text="it.fsatuan || '-'"></div>
+                                                        </template>
+                                                    </td>
+                                                    <td class="p-2 text-right">
+                                                        <input type="number"
+                                                            class="w-full border border-gray-300 rounded-lg px-2 py-1 text-right text-sm focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-100 bg-white"
+                                                            min="0" step="0.01"
+                                                            :id="'keluar_qty_row_' + i"
+                                                            x-model.number="it.fqty"
+                                                            @input="onRowUpdated(i)"
+                                                            @change="onRowUpdated(i)"
+                                                            @keydown.enter.prevent="onRowUpdated(i)">
+                                                    </td>
+                                                    <td class="p-2 text-center">
+                                                        <div class="flex items-center justify-center">
+                                                            <button type="button" @click="removeSaved(i)"
+                                                                class="inline-flex h-7 w-7 items-center justify-center rounded-lg bg-red-50 text-red-500 hover:bg-red-100 transition-colors border border-red-200"
+                                                                title="Hapus baris">
+                                                                <x-heroicon-o-minus class="w-4 h-4" />
+                                                            </button>
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                            </template>
+                                        </tbody>
+                                    </table>
+                                </div>
+                                <div class="hidden">
+                                    <template x-for="(it, i) in submitItems" :key="'submit-keluar-' + (it.uid || i)">
+                                        <div>
+                                            <input type="hidden" name="fitemcode[]" :value="it.fitemcode">
+                                            <input type="hidden" name="fitemname[]" :value="it.fitemname">
+                                            <input type="hidden" name="fsatuan[]" :value="it.fsatuan">
+                                            <input type="hidden" name="frefdtno[]" :value="it.frefdtno">
+                                            <input type="hidden" name="frefpr[]" :value="it.frefpr">
+                                            <input type="hidden" name="fqty[]" :value="it.fqty">
+                                            <input type="hidden" name="fprice[]" :value="it.fprice">
+                                            <input type="hidden" name="ftotal[]" :value="it.ftotal">
+                                            <input type="hidden" name="fketdt[]" :value="it.fketdt">
+                                            <input type="hidden" name="fdesc[]" :value="it.fdesc">
+                                        </div>
+                                    </template>
+                                </div>
+                                <div x-show="showDescModal" x-cloak
+                                    class="fixed inset-0 z-[95] flex items-center justify-center bg-black/50 backdrop-blur-sm" x-transition.opacity>
+                                    <div class="absolute inset-0" @click="closeDesc()"></div>
+
+                                    <div class="relative bg-white w-[92vw] max-w-lg rounded-2xl shadow-2xl overflow-hidden"
+                                        x-transition.scale>
+                                        <div class="px-5 py-4 border-b flex items-center bg-gradient-to-r from-blue-50 to-white">
+                                            <x-heroicon-o-document-text class="w-6 h-6 text-blue-600 mr-2" />
+                                            <h3 class="text-lg font-semibold text-gray-800">Isi Deskripsi Item</h3>
+                                        </div>
+
+                                        <div class="px-5 py-4 space-y-4">
+                                            <div>
+                                                <div class="mb-1 flex items-center justify-between gap-3">
+                                                    <div class="text-sm text-gray-700">Nama Produk</div>
+                                                    <button x-show="!descReadonly" type="button" @click="copyDescName()"
+                                                        class="h-8 px-3 rounded-lg bg-blue-50 text-blue-700 text-sm font-medium hover:bg-blue-100">
+                                                        Copy
+                                                    </button>
+                                                </div>
+                                                <div class="rounded-lg border bg-gray-50 px-3 py-2 text-sm text-gray-800"
+                                                    x-text="descItemName || '-'"></div>
+                                            </div>
+
+                                            <label class="block text-sm text-gray-700">Deskripsi</label>
+                                            <textarea x-model="descValue" rows="5" class="w-full border rounded px-3 py-2" :readonly="descReadonly"
+                                                placeholder="Tulis deskripsi item di sini..."></textarea>
+                                        </div>
+
+                                        <div class="px-5 py-3 border-t flex items-center justify-end gap-2 bg-gray-50">
+                                            <button type="button" @click="closeDesc()"
+                                                class="h-9 px-4 rounded-lg bg-gray-100 text-gray-700 text-sm font-medium hover:bg-gray-250">
+                                                Batal
+                                            </button>
+                                            <button x-show="!descReadonly" type="button" @click="applyDesc()"
+                                                class="h-9 px-4 rounded-lg bg-emerald-600 text-white text-sm font-medium hover:bg-emerald-700">
+                                                Simpan
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </template>
+                    </div>
+                </div>
 
                     <!-- ===== Trigger: Add tr_prh dari panel kanan ===== -->
                     <div x-data="prhFormModal()" class="mt-3">
@@ -995,18 +1016,32 @@
                         </div>
                     </div>
 
-                    <div class="mt-8 flex justify-center gap-4">
-                        <button type="submit"
-                            class="bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700 flex items-center">
-                            <x-heroicon-o-check class="w-5 h-5 mr-2" /> Simpan
-                        </button>
+                {{-- ─── CARD 3: Aksi ────────────────────── --}}
+                <div class="bg-white border border-gray-200 rounded-xl mb-3 overflow-hidden">
+                    <div class="flex items-center gap-2 px-4 pt-3 pb-0">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-gray-400" fill="none"
+                            viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                        </svg>
+                        <p class="text-xs font-medium uppercase tracking-wide text-gray-400">Aksi</p>
+                    </div>
+                    <div class="p-4 space-y-4">
+                    </div>
+                    <div class="flex items-center justify-between px-4 py-3 bg-gray-50 border-t border-gray-200">
                         <button type="button" @click="window.location.href='{{ route('adjstock.index') }}'"
-                            class="bg-gray-500 text-white px-6 py-2 rounded hover:bg-gray-600 flex items-center">
-                            <x-heroicon-o-arrow-left class="w-5 h-5 mr-2" /> Keluar
+                            class="inline-flex items-center gap-2 px-4 py-2 border border-gray-300 bg-white text-gray-600 text-sm font-medium rounded-lg hover:bg-gray-50 hover:border-gray-400 transition-colors">
+                            <x-heroicon-o-arrow-left class="w-4 h-4" />
+                            Keluar
+                        </button>
+                        <button type="submit"
+                            class="inline-flex items-center gap-2 px-5 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors">
+                            <x-heroicon-o-check class="w-4 h-4" />
+                            Simpan
                         </button>
                     </div>
-                </form>
-            </div>
+                </div>
+            </form>
         </div>
     </div>
 @endsection
