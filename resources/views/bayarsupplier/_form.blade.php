@@ -683,7 +683,13 @@
                 ensureMinimumRows() { while (this.rows.length < 5) this.rows.push(this.emptyRow()); },
                 ensureTrailingRow() { if (this.rows.length && String(this.rows[this.rows.length - 1].frefno || '').trim() !== '') this.rows.push(this.emptyRow()); },
                 makeUid() { return `${Date.now()}-${Math.random().toString(36).slice(2, 10)}`; },
-                toNumber(value) { const number = Number(value); return Number.isFinite(number) ? number : 0; },
+                toNumber(value) {
+                    if (typeof value === 'string') {
+                        value = value.replace(/,/g, '').trim();
+                    }
+                    const number = Number(value);
+                    return Number.isFinite(number) ? number : 0;
+                },
                 formatNumber(value) { return this.toNumber(value).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }); },
                 showRawNumber(event, row, field) {
                     event.target.value = this.toNumber(row?.[field]).toFixed(2);
@@ -837,6 +843,8 @@
                 openPblModal() {
                     this.tempSelectedPbls = this.rows.filter(row => row.frefno).map(row => ({
                         fstockmtno: row.frefno,
+                        fstockmtcode: row.ftrcode || 'BUY',
+                        ftrcode: row.ftrcode || 'BUY',
                         fsupplier: String(row.fsupplier || this.supplierCode || '').trim(),
                         fsuppliername: String(row.fsuppliername || '').trim(),
                         ftempo: Number(row.ftempo || this.supplierTempo || 0),
@@ -894,10 +902,14 @@
                         window.showTransactionErrorModal(message);
                         return;
                     }
-                    Swal.fire({ icon: 'error', title: 'Terjadi kesalahan', text: message });
+                    if (typeof Swal !== 'undefined') {
+                        Swal.fire({ icon: 'error', title: 'Terjadi kesalahan', text: message });
+                        return;
+                    }
+                    alert(message);
                 },
                 isPblSupplierValid(record, supplierCode = null) {
-                    const selectedSupplier = String(supplierCode ?? this.supplierCode || '').trim();
+                    const selectedSupplier = String(supplierCode ?? (this.supplierCode || '')).trim();
                     const pblSupplier = String(record.fsupplier || '').trim();
                     if (pblSupplier === '') return false;
                     return selectedSupplier === '' || selectedSupplier === pblSupplier;

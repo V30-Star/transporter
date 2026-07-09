@@ -435,139 +435,139 @@ class="w-full border-gray-300 rounded-lg px-3 py-2 bg-gray-100 cursor-not-allowe
         </div>
     </div>
 </div>
-        @if (!$isReadOnly)
-            <div x-cloak x-show="notaModalOpen" x-transition.opacity
-                class="fixed inset-0 z-[95] flex items-center justify-center overflow-hidden p-3 md:p-6">
-                <div class="absolute inset-0 bg-black/50 backdrop-blur-sm" @click="closeNotaModal()"></div>
+    @if (!$isReadOnly)
+        <div x-cloak x-show="notaModalOpen" x-transition.opacity
+            class="fixed inset-0 z-[95] flex items-center justify-center overflow-hidden p-3 md:p-6">
+            <div class="absolute inset-0 bg-black/50 backdrop-blur-sm" @click="closeNotaModal()"></div>
 
-                <div class="relative bg-white rounded-2xl shadow-2xl w-full max-w-7xl flex flex-col overflow-hidden"
-                    style="height: min(760px, calc(100vh - 1.5rem));" x-transition.scale>
-                    <div
-                        class="px-6 py-4 border-b border-gray-200 flex items-center justify-between flex-shrink-0 bg-gradient-to-r from-blue-50 to-white">
-                        <div>
-                            <h3 class="text-xl font-bold text-gray-800">Browse nota</h3>
-                            <p class="text-sm text-gray-500 mt-0.5">Pilih nota yang ingin ditambahkan</p>
-                        </div>
-                        <div class="flex items-center gap-3">
-                            <button type="button" @click="submitSelectedNotas()" :disabled="!tempSelectedNotas.length"
-                                class="px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 disabled:bg-gray-200 disabled:text-gray-400 disabled:cursor-not-allowed text-white font-medium text-sm transition-all duration-150 shadow-sm">
-                                Submit (<span x-text="tempSelectedNotas.length"></span>)
-                            </button>
-                            <button type="button" @click="closeNotaModal()"
-                                class="px-4 py-2 rounded-lg border-2 border-gray-300 bg-white hover:bg-gray-50 hover:border-gray-400 transition-all duration-150 font-medium text-gray-700 text-sm">
-                                Tutup
-                            </button>
-                        </div>
+            <div class="relative bg-white rounded-2xl shadow-2xl w-full max-w-7xl flex flex-col overflow-hidden"
+                style="height: min(760px, calc(100vh - 1.5rem));" x-transition.scale>
+                <div
+                    class="px-6 py-4 border-b border-gray-200 flex items-center justify-between flex-shrink-0 bg-gradient-to-r from-blue-50 to-white">
+                    <div>
+                        <h3 class="text-xl font-bold text-gray-800">Browse nota</h3>
+                        <p class="text-sm text-gray-500 mt-0.5">Pilih nota yang ingin ditambahkan</p>
                     </div>
+                    <div class="flex items-center gap-3">
+                        <button type="button" @click="submitSelectedNotas()" :disabled="!tempSelectedNotas.length"
+                            class="px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 disabled:bg-gray-200 disabled:text-gray-400 disabled:cursor-not-allowed text-white font-medium text-sm transition-all duration-150 shadow-sm">
+                            Submit (<span x-text="tempSelectedNotas.length"></span>)
+                        </button>
+                        <button type="button" @click="closeNotaModal()"
+                            class="px-4 py-2 rounded-lg border-2 border-gray-300 bg-white hover:bg-gray-50 hover:border-gray-400 transition-all duration-150 font-medium text-gray-700 text-sm">
+                            Tutup
+                        </button>
+                    </div>
+                </div>
 
-                    <div class="px-6 pt-4 pb-2 flex-shrink-0 border-b border-gray-100">
-                        <div class="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+                <div class="px-6 pt-4 pb-2 flex-shrink-0 border-b border-gray-100">
+                    <div class="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+                        <label class="flex items-center gap-2 text-sm text-gray-700">
+                            <span class="font-medium">Cari:</span>
+                            <input type="text" x-model="notaSearch" @input.debounce.400ms="notaPage = 1; fetchNotaRecords()"
+                                class="w-full md:w-[320px] rounded-lg border-2 border-gray-200 px-3 py-2 text-sm"
+                                placeholder="No.nota, customer, tipe, atau kode customer">
+                        </label>
+
+                        <div class="flex items-center gap-2">
                             <label class="flex items-center gap-2 text-sm text-gray-700">
-                                <span class="font-medium">Cari:</span>
-                                <input type="text" x-model="notaSearch" @input.debounce.400ms="notaPage = 1; fetchNotaRecords()"
-                                    class="w-full md:w-[320px] rounded-lg border-2 border-gray-200 px-3 py-2 text-sm"
-                                    placeholder="No.nota, customer, tipe, atau kode customer">
+                                <span class="font-medium">Tampilkan</span>
+                                <select x-model.number="notaLength" @change="notaPage = 1; fetchNotaRecords()"
+                                    class="rounded-lg border-2 border-gray-200 px-3 py-2 text-sm">
+                                    <option value="10">10</option>
+                                    <option value="25">25</option>
+                                    <option value="50">50</option>
+                                </select>
                             </label>
-
-                            <div class="flex items-center gap-2">
-                                <label class="flex items-center gap-2 text-sm text-gray-700">
-                                    <span class="font-medium">Tampilkan</span>
-                                    <select x-model.number="notaLength" @change="notaPage = 1; fetchNotaRecords()"
-                                        class="rounded-lg border-2 border-gray-200 px-3 py-2 text-sm">
-                                        <option value="10">10</option>
-                                        <option value="25">25</option>
-                                        <option value="50">50</option>
-                                    </select>
-                                </label>
-                                <button type="button" @click="fetchNotaRecords()"
-                                    class="inline-flex items-center justify-center rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700">
-                                    Refresh
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="flex-1 overflow-auto px-6" style="min-height: 0;">
-                        <div x-show="notaError" x-text="notaError"
-                            class="my-4 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700"></div>
-
-                        <div x-show="notaLoading" class="py-10 text-center text-sm text-gray-500">
-                            Memuat data nota...
-                        </div>
-
-                        <div x-show="!notaLoading" class="bg-white min-w-max py-4">
-                            <table class="min-w-full text-sm border border-gray-200">
-                                <thead class="sticky top-0 z-10">
-                                    <tr class="bg-gradient-to-r from-gray-50 to-gray-100">
-                                        <th class="text-center p-3 font-semibold text-gray-700 border-b-2 border-r border-gray-200 w-16">
-                                            <input type="checkbox" :checked="isAllOnPageSelected()" @change="toggleAllOnPage()"
-                                                class="rounded border-gray-300 text-blue-600 focus:ring-blue-500 w-4 h-4 cursor-pointer">
-                                        </th>
-                                        <th class="text-left p-3 font-semibold text-gray-700 border-b-2 border-r border-gray-200">No.Nota</th>
-                                        <th class="text-left p-3 font-semibold text-gray-700 border-b-2 border-r border-gray-200">Tanggal</th>
-                                        <th class="text-left p-3 font-semibold text-gray-700 border-b-2 border-r border-gray-200">Customer</th>
-                                        <th class="text-left p-3 font-semibold text-gray-700 border-b-2 border-r border-gray-200">Tipe</th>
-                                        <th class="text-right p-3 font-semibold text-gray-700 border-b-2 border-r border-gray-200">Nilai Nota</th>
-                                        <th class="text-right p-3 font-semibold text-gray-700 border-b-2 border-r border-gray-200">Sisa Piutang</th>
-                                        <th class="text-center p-3 font-semibold text-gray-700 border-b-2 border-r border-gray-200">Item</th>
-                                        <th class="text-left p-3 font-semibold text-gray-700 border-b-2 border-gray-200">Jatuh Tempo</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <template x-if="!notaRecords.length">
-                                        <tr>
-                                            <td colspan="9" class="p-6 text-center text-gray-500 border-b border-gray-200">
-                                                Tidak ada data nota.
-                                            </td>
-                                        </tr>
-                                    </template>
-                                    <template x-for="record in notaRecords" :key="record.ftranmtid">
-                                        <tr class="bg-white hover:bg-gray-50 cursor-pointer" @click="toggleNotaSelection(record)">
-                                            <td class="p-3 text-center border-b border-r border-gray-200 align-middle" @click.stop>
-                                                <input type="checkbox" :checked="isNotaSelected(record)" @change="toggleNotaSelection(record)"
-                                                    class="rounded border-gray-300 text-blue-600 focus:ring-blue-500 w-4 h-4 cursor-pointer">
-                                            </td>
-                                            <td class="p-3 text-sm text-gray-700 border-b border-r border-gray-200 align-middle font-mono" x-text="record.fsono || '-'"></td>
-                                            <td class="p-3 text-sm text-gray-700 border-b border-r border-gray-200 align-middle" x-text="formatDateDisplay(record.fsodate)"></td>
-                                            <td class="p-3 text-sm text-gray-700 border-b border-r border-gray-200 align-middle">
-                                                <div class="font-medium" x-text="record.fcustomername || '-'"></div>
-                                                <div class="text-xs text-gray-500" x-text="record.fcustno || '-'"></div>
-                                            </td>
-                                            <td class="p-3 text-sm text-gray-700 border-b border-r border-gray-200 align-middle" x-text="record.ftrcode || '-'"></td>
-                                            <td class="p-3 text-sm text-gray-700 border-b border-r border-gray-200 text-right align-middle" x-text="formatNumber(record.famountso ?? record.famount)"></td>
-                                            <td class="p-3 text-sm text-gray-700 border-b border-r border-gray-200 text-right align-middle" x-text="formatNumber(record.famountremain)"></td>
-                                            <td class="p-3 text-sm text-gray-700 border-b border-r border-gray-200 text-center align-middle" x-text="record.detail_count ?? 0"></td>
-                                            <td class="p-3 text-sm text-gray-700 border-b align-middle" x-text="formatDateDisplay(record.fjatuhtempo)"></td>
-                                        </tr>
-                                    </template>
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-
-                    <div class="px-6 py-3 border-t border-gray-200 flex items-center justify-between gap-3 flex-shrink-0 bg-gray-50 text-sm text-gray-600">
-                        <div x-text="notaInfoText"></div>
-                        <div class="flex items-center gap-4">
-                            <button type="button" @click="submitSelectedNotas()" :disabled="!tempSelectedNotas.length"
-                                class="px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 disabled:bg-gray-200 disabled:text-gray-400 disabled:cursor-not-allowed text-white font-medium text-sm transition-all duration-150 shadow-sm">
-                                Submit (<span x-text="tempSelectedNotas.length"></span>)
+                            <button type="button" @click="fetchNotaRecords()"
+                                class="inline-flex items-center justify-center rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700">
+                                Refresh
                             </button>
-                            <div class="flex items-center gap-2">
-                                <button type="button" @click="prevNotaPage()" :disabled="notaPage <= 1"
-                                    class="px-3 py-1.5 rounded-lg border border-gray-300 bg-white hover:bg-gray-50 disabled:bg-gray-100 disabled:text-gray-400 disabled:cursor-not-allowed">
-                                    Sebelumnya
-                                </button>
-                                <span class="font-medium" x-text="`Hal. ${notaPage}`"></span>
-                                <button type="button" @click="nextNotaPage()" :disabled="!canNextNotaPage"
-                                    class="px-3 py-1.5 rounded-lg border border-gray-300 bg-white hover:bg-gray-50 disabled:bg-gray-100 disabled:text-gray-400 disabled:cursor-not-allowed">
-                                    Selanjutnya
-                                </button>
-                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flex-1 overflow-auto px-6" style="min-height: 0;">
+                    <div x-show="notaError" x-text="notaError"
+                        class="my-4 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700"></div>
+
+                    <div x-show="notaLoading" class="py-10 text-center text-sm text-gray-500">
+                        Memuat data nota...
+                    </div>
+
+                    <div x-show="!notaLoading" class="bg-white min-w-max py-4">
+                        <table class="min-w-full text-sm border border-gray-200">
+                            <thead class="sticky top-0 z-10">
+                                <tr class="bg-gradient-to-r from-gray-50 to-gray-100">
+                                    <th class="text-center p-3 font-semibold text-gray-700 border-b-2 border-r border-gray-200 w-16">
+                                        <input type="checkbox" :checked="isAllOnPageSelected()" @change="toggleAllOnPage()"
+                                            class="rounded border-gray-300 text-blue-600 focus:ring-blue-500 w-4 h-4 cursor-pointer">
+                                    </th>
+                                    <th class="text-left p-3 font-semibold text-gray-700 border-b-2 border-r border-gray-200">No.Nota</th>
+                                    <th class="text-left p-3 font-semibold text-gray-700 border-b-2 border-r border-gray-200">Tanggal</th>
+                                    <th class="text-left p-3 font-semibold text-gray-700 border-b-2 border-r border-gray-200">Customer</th>
+                                    <th class="text-left p-3 font-semibold text-gray-700 border-b-2 border-r border-gray-200">Tipe</th>
+                                    <th class="text-right p-3 font-semibold text-gray-700 border-b-2 border-r border-gray-200">Nilai Nota</th>
+                                    <th class="text-right p-3 font-semibold text-gray-700 border-b-2 border-r border-gray-200">Sisa Piutang</th>
+                                    <th class="text-center p-3 font-semibold text-gray-700 border-b-2 border-r border-gray-200">Item</th>
+                                    <th class="text-left p-3 font-semibold text-gray-700 border-b-2 border-gray-200">Jatuh Tempo</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <template x-if="!notaRecords.length">
+                                    <tr>
+                                        <td colspan="9" class="p-6 text-center text-gray-500 border-b border-gray-200">
+                                            Tidak ada data nota.
+                                        </td>
+                                    </tr>
+                                </template>
+                                <template x-for="record in notaRecords" :key="record.ftranmtid">
+                                    <tr class="bg-white hover:bg-gray-50 cursor-pointer" @click="toggleNotaSelection(record)">
+                                        <td class="p-3 text-center border-b border-r border-gray-200 align-middle" @click.stop>
+                                            <input type="checkbox" :checked="isNotaSelected(record)" @change="toggleNotaSelection(record)"
+                                                class="rounded border-gray-300 text-blue-600 focus:ring-blue-500 w-4 h-4 cursor-pointer">
+                                        </td>
+                                        <td class="p-3 text-sm text-gray-700 border-b border-r border-gray-200 align-middle font-mono" x-text="record.fsono || '-'"></td>
+                                        <td class="p-3 text-sm text-gray-700 border-b border-r border-gray-200 align-middle" x-text="formatDateDisplay(record.fsodate)"></td>
+                                        <td class="p-3 text-sm text-gray-700 border-b border-r border-gray-200 align-middle">
+                                            <div class="font-medium" x-text="record.fcustomername || '-'"></div>
+                                            <div class="text-xs text-gray-500" x-text="record.fcustno || '-'"></div>
+                                        </td>
+                                        <td class="p-3 text-sm text-gray-700 border-b border-r border-gray-200 align-middle" x-text="record.ftrcode || '-'"></td>
+                                        <td class="p-3 text-sm text-gray-700 border-b border-r border-gray-200 text-right align-middle" x-text="formatNumber(record.famountso ?? record.famount)"></td>
+                                        <td class="p-3 text-sm text-gray-700 border-b border-r border-gray-200 text-right align-middle" x-text="formatNumber(record.famountremain)"></td>
+                                        <td class="p-3 text-sm text-gray-700 border-b border-r border-gray-200 text-center align-middle" x-text="record.detail_count ?? 0"></td>
+                                        <td class="p-3 text-sm text-gray-700 border-b align-middle" x-text="formatDateDisplay(record.fjatuhtempo)"></td>
+                                    </tr>
+                                </template>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="px-6 py-3 border-t border-gray-200 flex items-center justify-between gap-3 flex-shrink-0 bg-gray-50 text-sm text-gray-600">
+                    <div x-text="notaInfoText"></div>
+                    <div class="flex items-center gap-4">
+                        <button type="button" @click="submitSelectedNotas()" :disabled="!tempSelectedNotas.length"
+                            class="px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 disabled:bg-gray-200 disabled:text-gray-400 disabled:cursor-not-allowed text-white font-medium text-sm transition-all duration-150 shadow-sm">
+                            Submit (<span x-text="tempSelectedNotas.length"></span>)
+                        </button>
+                        <div class="flex items-center gap-2">
+                            <button type="button" @click="prevNotaPage()" :disabled="notaPage <= 1"
+                                class="px-3 py-1.5 rounded-lg border border-gray-300 bg-white hover:bg-gray-50 disabled:bg-gray-100 disabled:text-gray-400 disabled:cursor-not-allowed">
+                                Sebelumnya
+                            </button>
+                            <span class="font-medium" x-text="`Hal. ${notaPage}`"></span>
+                            <button type="button" @click="nextNotaPage()" :disabled="!canNextNotaPage"
+                                class="px-3 py-1.5 rounded-lg border border-gray-300 bg-white hover:bg-gray-50 disabled:bg-gray-100 disabled:text-gray-400 disabled:cursor-not-allowed">
+                                Selanjutnya
+                            </button>
                         </div>
                     </div>
                 </div>
             </div>
-        @endif
+        </div>
+    @endif
     </form>
 </div>
 
