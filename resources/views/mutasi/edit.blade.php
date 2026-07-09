@@ -218,29 +218,55 @@
         </div>
     @endif
 
-    <div x-data="{ open: true }" class="{{ $action === 'delete' || $action === 'view' || $usageLocked ? 'readonly-mode' : '' }}">
-        <div x-data="{
-            open: true,
-        
-        
-            includePPN: false,
-            ppnRate: 0,
-            ppnAmount: 0,
-            totalHarga: 100000,
-        
-            showNoItems: false,
-        
-            savedItems: []
-        }" class="lg:col-span-5">
-            <div class="bg-white rounded shadow p-6 md:p-8 max-w-[1800px] w-full mx-auto">
+    <div x-data="{
+        includePPN: false,
+        ppnRate: 0,
+        ppnAmount: 0,
+        totalHarga: 100000,
+        showNoItems: false,
+        savedItems: []
+    }" class="mx-auto max-w-[1600px] px-4 py-8 {{ $action === 'delete' || $action === 'view' || $usageLocked ? 'readonly-mode' : '' }}">
+        {{-- ─── BREADCRUMB & HEADER ─────────────────────────── --}}
+        <div class="mb-6 flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
+            <div>
+                <nav class="flex text-xs font-semibold uppercase tracking-wider text-gray-400">
+                    <a href="{{ route('mutasi.index') }}" class="hover:text-gray-600">Mutasi Stock</a>
+                    <span class="mx-2 text-gray-300">/</span>
+                    <span class="text-gray-600">
+                        @if ($action === 'delete') Hapus
+                        @elseif ($action === 'view') Lihat
+                        @else Edit
+                        @endif
+                    </span>
+                </nav>
+                <h1 class="mt-1 text-2xl font-bold tracking-tight text-gray-900">
+                    @if ($action === 'delete') Hapus Mutasi Stock
+                    @elseif ($action === 'view') Lihat Mutasi Stock
+                    @else Edit Mutasi Stock
+                    @endif
+                </h1>
+            </div>
+            <div class="flex items-center gap-2">
+                <a href="{{ route('mutasi.index') }}"
+                    class="inline-flex h-9 items-center justify-center rounded-lg border border-gray-300 bg-white px-4 text-xs font-semibold text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">
+                    Kembali
+                </a>
+            </div>
+        </div>
 
-                {{-- ============================================ --}}
-                {{-- MODE DELETE: VIEW ONLY + BUTTON HAPUS       --}}
-                {{-- ============================================ --}}
-                @if ($action === 'delete')
-                    <div class="space-y-4">
-
-                        <div class="grid grid-cols-1 lg:grid-cols-12 gap-4">
+        @if ($action === 'delete')
+            {{-- ─── CARD 1: Identitas (Delete) ──────────────── --}}
+            <div class="bg-white border border-gray-200 rounded-xl mb-3 overflow-hidden">
+                <div class="flex items-center gap-2 px-4 pt-3 pb-0">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-gray-400" fill="none"
+                        viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
+                    </svg>
+                    <p class="text-xs font-medium uppercase tracking-wide text-gray-400">Identitas Mutasi Stock</p>
+                </div>
+                <div class="p-4">
+                    <div class="grid grid-cols-1 lg:grid-cols-12 gap-4">
                             <div class="lg:col-span-4">
                                 <label class="block text-sm font-medium">Cabang</label>
                                 <input type="text" class="w-full border rounded px-3 py-2 bg-gray-200 cursor-not-allowed"
@@ -374,8 +400,21 @@
                                 @enderror
                             </div>
                         </div>
+                </div>
+            </div>
 
-                        <div x-data="itemsTable()" x-init="init()" class="mt-6 space-y-2">
+            {{-- ─── CARD 2: Detail Item (Delete) ───────────── --}}
+            <div class="bg-white border border-gray-200 rounded-xl mb-3 overflow-hidden">
+                <div class="flex items-center gap-2 px-4 pt-3 pb-0">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-gray-400" fill="none"
+                        viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
+                    </svg>
+                    <p class="text-xs font-medium uppercase tracking-wide text-gray-400">Detail Item</p>
+                </div>
+                <div class="p-4">
+                    <div x-data="itemsTable()" x-init="init()" class="space-y-2">
 
                             {{-- DETAIL ITEM (tabel input) --}}
                             <h3 class="text-base font-semibold text-gray-800">Detail Item</h3>
@@ -432,7 +471,9 @@
                                 </table>
                             </div>
                             <input type="hidden" id="itemsCount" :value="submitItems.length">
-                        </div>
+                    </div> {{-- End itemsTable delete --}}
+                </div> {{-- End CARD 2 body --}}
+            </div> {{-- End CARD 2 --}}
 
                         <!-- MODAL DESC (di dalam itemsTable) -->
                         <div x-show="$store.mutasiDesc.show" x-cloak
@@ -631,32 +672,42 @@
                                 </div>
                             </div>
                         </div>
-                    </div>
+            {{-- ─── CARD 3: Aksi (Delete) ──────────────────── --}}
+            <div class="bg-white border border-gray-200 rounded-xl mb-3 overflow-hidden">
+                <div class="p-4 flex items-center justify-end gap-3 allow-action">
+                    <button type="button" onclick="showDeleteModal()"
+                        @if ($usageLocked) disabled @endif
+                        class="inline-flex h-9 items-center justify-center rounded-lg bg-red-600 px-4 text-xs font-semibold text-white shadow-sm hover:bg-red-700 disabled:opacity-60 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2">
+                        Hapus
+                    </button>
+                    <button type="button" onclick="window.location.href='{{ route('mutasi.index') }}'"
+                        class="inline-flex h-9 items-center justify-center rounded-lg border border-gray-300 bg-white px-4 text-xs font-semibold text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">
+                        Kembali
+                    </button>
+                </div>
+            </div>
 
-                    <div class="mt-6 flex justify-center space-x-4 allow-action">
-                        <button type="button" onclick="showDeleteModal()"
-                            @if ($usageLocked) disabled @endif
-                            class="bg-red-600 text-white px-6 py-2 rounded hover:bg-red-700 flex items-center disabled:opacity-60 disabled:cursor-not-allowed">
-                            <x-heroicon-o-trash class="w-5 h-5 mr-2" />
-                            Hapus
-                        </button>
-                        <button type="button" onclick="window.location.href='{{ route('mutasi.index') }}'"
-                            class="bg-gray-500 text-white px-6 py-2 rounded hover:bg-gray-600 flex items-center">
-                            <x-heroicon-o-arrow-left class="w-5 h-5 mr-2" />
-                            Kembali
-                        </button>
-                    </div>
+        {{-- ============================================ --}}
+        {{-- MODE EDIT / VIEW: FORM                      --}}
+        {{-- ============================================ --}}
+        @else
+            <form action="{{ route('mutasi.update', $mutasi->fstockmtid) }}" method="POST"
+                data-form-draft="true" data-draft-key="mutasi:edit:{{ $mutasi->fstockmtid }}"
+                @submit="onSubmit($event)">
+                @csrf
+                @method('PATCH')
 
-                    {{-- ============================================ --}}
-                    {{-- MODE EDIT: FORM EDITABLE                    --}}
-                    {{-- ============================================ --}}
-                @else
-                    <form action="{{ route('mutasi.update', $mutasi->fstockmtid) }}" method="POST" class="mt-6"
-                        data-form-draft="true" data-draft-key="mutasi:edit:{{ $mutasi->fstockmtid }}"
-                        @submit="onSubmit($event)">
-                        @csrf
-                        @method('PATCH')
-                        {{-- HEADER FORM --}}
+                {{-- ─── CARD 1: Identitas (Edit/View) ──────────── --}}
+                <div class="bg-white border border-gray-200 rounded-xl mb-3 overflow-hidden">
+                    <div class="flex items-center gap-2 px-4 pt-3 pb-0">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-gray-400" fill="none"
+                            viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
+                        </svg>
+                        <p class="text-xs font-medium uppercase tracking-wide text-gray-400">Identitas Mutasi Stock</p>
+                    </div>
+                    <div class="p-4">
                         <div class="grid grid-cols-1 lg:grid-cols-12 gap-4">
                             <div class="lg:col-span-4">
                                 <label class="block text-sm font-medium">Cabang</label>
@@ -792,8 +843,21 @@
                                 @enderror
                             </div>
                         </div>
+                    </div>
+                </div>
 
-                        <div x-data="itemsTable()" x-init="init()" class="mt-6 space-y-2">
+                {{-- ─── CARD 2: Detail Item (Edit/View) ─────── --}}
+                <div class="bg-white border border-gray-200 rounded-xl mb-3 overflow-hidden">
+                    <div class="flex items-center gap-2 px-4 pt-3 pb-0">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-gray-400" fill="none"
+                            viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
+                        </svg>
+                        <p class="text-xs font-medium uppercase tracking-wide text-gray-400">Detail Item</p>
+                    </div>
+                    <div class="p-4">
+                        <div x-data="itemsTable()" x-init="init()" class="space-y-2">
 
                             {{-- DETAIL ITEM (tabel input) --}}
                             <h3 class="text-base font-semibold text-gray-800">Detail Item</h3>
@@ -889,10 +953,12 @@
                                         <input type="hidden" name="fqty[]" :value="it.fqty">
                                         <input type="hidden" name="fdesc[]" :value="it.fdesc">
                                         <input type="hidden" name="fketdt[]" :value="it.fketdt">
-                                                                   </template>
+                                    </div>
+                                </template>
                                 <input type="hidden" id="itemsCount" :value="submitItems.length">
-                            </div>
-                        </div>
+                        </div> {{-- End itemsTable edit --}}
+                    </div> {{-- End CARD 2 body --}}
+                </div> {{-- End CARD 2 --}}
 
                         <!-- MODAL DESC (diamankan di dalam itemsTable) -->
                         <div x-show="$store.mutasiDesc.show" x-cloak
@@ -1090,23 +1156,24 @@
                             </div>
                         </div>
 
-                        <div class="mt-8 flex justify-center gap-4 allow-action">
-                            @if ($action === 'edit' && $canEditPermission)
-                                <button type="submit"
-                                    @if ($usageLocked) disabled @endif
-                                    class="bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700 flex items-center disabled:opacity-60 disabled:cursor-not-allowed">
-                                    <x-heroicon-o-check class="w-5 h-5 mr-2" /> Simpan
-                                </button>
-                            @endif
-                            <button type="button" @click="window.location.href='{{ route('mutasi.index') }}'"
-                                class="bg-gray-500 text-white px-6 py-2 rounded hover:bg-gray-600 flex items-center">
-                                <x-heroicon-o-arrow-left class="w-5 h-5 mr-2" /> {{ $action === 'view' ? 'Kembali' : 'Keluar' }}
+                {{-- ─── CARD 3: Aksi (Edit/View) ───────────── --}}
+                <div class="bg-white border border-gray-200 rounded-xl mb-3 overflow-hidden">
+                    <div class="p-4 flex items-center justify-end gap-3 allow-action">
+                        @if ($action === 'edit' && $canEditPermission)
+                            <button type="submit"
+                                @if ($usageLocked) disabled @endif
+                                class="inline-flex h-9 items-center justify-center rounded-lg bg-blue-600 px-4 text-xs font-semibold text-white shadow-sm hover:bg-blue-700 disabled:opacity-60 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">
+                                Simpan
                             </button>
-                        </div>
-                    </form>
-                @endif
-            </div>
-        </div>
+                        @endif
+                        <button type="button" @click="window.location.href='{{ route('mutasi.index') }}'"
+                            class="inline-flex h-9 items-center justify-center rounded-lg border border-gray-300 bg-white px-4 text-xs font-semibold text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">
+                            {{ $action === 'view' ? 'Kembali' : 'Keluar' }}
+                        </button>
+                    </div>
+                </div>
+            </form>
+        @endif
     </div>
 
     {{-- ============================================ --}}
