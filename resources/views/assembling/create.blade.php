@@ -151,6 +151,18 @@
             padding: .25rem .375rem !important;
         }
 
+        .assembling-detail-table thead {
+            background: #f9fafb !important;
+            border-bottom: 1px solid #e5e7eb;
+        }
+
+        .assembling-detail-table th {
+            color: #6b7280;
+            font-size: .75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
         .assembling-detail-table input:not([type="hidden"]),
         .assembling-detail-table select,
         .assembling-detail-table button {
@@ -174,15 +186,20 @@
         }
     </style>
 
-    <div class="lg:col-span-5">
-        <div class="bg-white rounded shadow p-6 md:p-8 max-w-[1800px] w-full mx-auto">
-            <form action="{{ route('assembling.store') }}" method="POST" class="mt-6" data-form-draft="true"
+    <div>
+        <div class="max-w-[1600px] mx-auto py-8 px-6">
+            <form action="{{ route('assembling.store') }}" method="POST" data-form-draft="true"
                 data-draft-key="assembling:create" x-data="Object.assign(itemsTable(), { showNoItems: false })"
                 x-init="init()" @submit="onSubmit($event)">
                 @csrf
 
                 {{-- HEADER FORM --}}
-                <div class="grid grid-cols-1 lg:grid-cols-12 gap-4">
+                <div class="bg-white border border-gray-200 rounded-xl mb-3 overflow-hidden">
+                    <div class="flex items-center gap-2 px-4 pt-3 pb-0">
+                        <x-heroicon-o-cube class="w-4 h-4 text-gray-400" />
+                        <p class="text-xs font-medium uppercase tracking-wide text-gray-400">Identitas Assembling</p>
+                    </div>
+                    <div class="p-4 grid grid-cols-1 lg:grid-cols-12 gap-3">
                     <div class="lg:col-span-4">
                         <label class="block text-sm font-medium">Cabang</label>
                         <input type="text" class="w-full border rounded px-3 py-2 bg-gray-200 cursor-not-allowed"
@@ -265,9 +282,15 @@
                             <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                         @enderror
                     </div>
+                    </div>
                 </div>
 
                 {{-- TAB NAVIGATION --}}
+                <div class="bg-white border border-gray-200 rounded-xl mb-3 overflow-hidden p-4">
+                <div class="flex items-center gap-2 mb-3">
+                    <x-heroicon-o-list-bullet class="w-4 h-4 text-gray-400" />
+                    <p class="text-xs font-medium uppercase tracking-wide text-gray-400">Detail Item</p>
+                </div>
                 <div class="border-b border-gray-200">
                     <nav class="-mb-px flex space-x-4" aria-label="Tabs">
                         <button type="button" @click="activeTab = 'bahan_baku'"
@@ -299,7 +322,7 @@
                     Detail Item - <span x-text="activeTab === 'bahan_baku' ? 'Bahan Baku' : 'Barang Jadi'"></span>
                 </h3>
                 
-                <div class="overflow-auto border rounded">
+                <div class="overflow-auto border border-gray-200 rounded-lg">
                     <table class="assembling-detail-table min-w-full text-sm">
                         <thead class="bg-gray-100">
                             <tr>
@@ -1107,7 +1130,9 @@
                     </div>
                 </div>
 
-                <div class="mt-8 flex justify-center gap-4">
+                </div>
+
+                <div class="mt-4 flex justify-center gap-4">
                     <button type="submit"
                         class="bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700 flex items-center">
                         <x-heroicon-o-check class="w-5 h-5 mr-2" /> Simpan

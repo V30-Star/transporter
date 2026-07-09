@@ -8,23 +8,25 @@
         $totalKredit = collect($savedItems)->where('fdk', 'K')->sum(fn($item) => (float) ($item['famount'] ?? 0));
     @endphp
 
-    <div class="bg-white rounded shadow p-6 md:p-8 max-w-[1800px] w-full mx-auto space-y-6">
-        <div class="grid grid-cols-1 lg:grid-cols-12 gap-4">
+    <div class="max-w-[1600px] mx-auto py-8 px-6">
+        <div class="border border-gray-200 rounded-xl bg-white p-6 mb-6">
+            <h3 class="text-base font-semibold text-gray-500 uppercase tracking-wide mb-4">Header Jurnal</h3>
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-4">
             <div class="lg:col-span-4">
-                <label class="block text-sm font-medium mb-1">Cabang</label>
+                <label class="block text-xs font-bold text-gray-600 mb-1">Cabang</label>
                 <input type="text" value="{{ $fbranchcode }}"
-                    class="w-full border rounded px-3 py-2 bg-gray-100 cursor-not-allowed" disabled>
+                    class="w-full border-gray-300 rounded-lg px-3 py-2 bg-gray-100 cursor-not-allowed" disabled>
             </div>
 
             <div class="lg:col-span-4">
-                <label class="block text-sm font-medium mb-1">No. Jurnal</label>
+                <label class="block text-xs font-bold text-gray-600 mb-1">No. Jurnal</label>
                 <input type="text" value="{{ $jurnaltransaksi->fjurnalno }}"
-                    class="w-full border rounded px-3 py-2 bg-gray-100 cursor-not-allowed" disabled>
+                    class="w-full border-gray-300 rounded-lg px-3 py-2 bg-gray-100 cursor-not-allowed" disabled>
             </div>
 
             <div class="lg:col-span-2">
-                <label class="block text-sm font-medium mb-1">Tipe Jurnal</label>
-                <select name="fjurnaltype" class="w-full border rounded px-3 py-2 bg-gray-100 cursor-not-allowed" disabled>
+                <label class="block text-xs font-bold text-gray-600 mb-1">Tipe Jurnal</label>
+                <select name="fjurnaltype" class="w-full border-gray-300 rounded-lg px-3 py-2 bg-gray-100 cursor-not-allowed" disabled>
                     @foreach ($journalTypes as $type)
                         <option value="{{ $type->fmastercode }}" @selected(trim($jurnaltransaksi->fjurnaltype) === $type->fmastercode)>
                             {{ $type->fmastercode }} - {{ $type->fmastername }}
@@ -34,20 +36,21 @@
             </div>
 
             <div class="lg:col-span-2">
-                <label class="block text-sm font-medium mb-1">Tanggal</label>
+                <label class="block text-xs font-bold text-gray-600 mb-1">Tanggal</label>
                 <input type="text" value="{{ \Carbon\Carbon::parse($jurnaltransaksi->fjurnaldate)->format('d/m/Y') }}"
-                    class="w-full border rounded px-3 py-2 bg-gray-100 cursor-not-allowed" disabled>
+                    class="w-full border-gray-300 rounded-lg px-3 py-2 bg-gray-100 cursor-not-allowed" disabled>
             </div>
 
             <div class="lg:col-span-12">
-                <label class="block text-sm font-medium mb-1">Keterangan Jurnal</label>
-                <textarea rows="3" class="w-full border rounded px-3 py-2 bg-gray-100 cursor-not-allowed" disabled>{{ $jurnaltransaksi->fjurnalnote }}</textarea>
+                <label class="block text-xs font-bold text-gray-600 mb-1">Keterangan Jurnal</label>
+                <textarea rows="3" class="w-full border-gray-300 rounded-lg px-3 py-2 bg-gray-100 cursor-not-allowed" disabled>{{ $jurnaltransaksi->fjurnalnote }}</textarea>
             </div>
-        </div>
+        </div> {{-- end header grid --}}
+        </div> {{-- end header card --}}
 
-        <div class="space-y-2">
-            <div class="flex flex-col gap-2 lg:flex-row lg:items-center lg:justify-between">
-                <h3 class="text-base font-semibold text-gray-800">Detail Jurnal</h3>
+        <div class="border border-gray-200 rounded-xl bg-white p-6 mb-6">
+            <h3 class="text-base font-semibold text-gray-500 uppercase tracking-wide mb-4">Detail Jurnal</h3>
+            <div class="flex items-center justify-between mb-4">
                 <div class="flex flex-col gap-1 text-sm sm:flex-row sm:gap-6">
                     <span>Total Debit:
                         <strong class="text-blue-700">{{ number_format($totalDebit, 2, ',', '.') }}</strong>
@@ -58,18 +61,18 @@
                 </div>
             </div>
 
-            <div class="overflow-auto border rounded">
-                <table class="min-w-full text-sm">
-                    <thead class="bg-gray-100">
+            <div class="overflow-auto border border-gray-200 rounded-lg">
+                <table class="min-w-full text-xs">
+                    <thead class="bg-gray-50">
                         <tr>
-                            <th class="p-2 text-left w-12">#</th>
-                            <th class="p-2 text-left w-44">Kode Account</th>
-                            <th class="p-2 text-left w-56">Nama Account</th>
-                            <th class="p-2 text-left w-56">Sub Account</th>
-                            <th class="p-2 text-left w-48">Ref No</th>
-                            <th class="p-2 text-left w-20">D/K</th>
-                            <th class="p-2 text-left w-[28rem]">Keterangan</th>
-                            <th class="p-2 text-right w-44">Jumlah</th>
+                            <th class="px-4 py-3 text-xs font-semibold text-gray-500 uppercase border-b border-gray-200 text-left w-12">#</th>
+                            <th class="px-4 py-3 text-xs font-semibold text-gray-500 uppercase border-b border-gray-200 text-left w-44">Kode Account</th>
+                            <th class="px-4 py-3 text-xs font-semibold text-gray-500 uppercase border-b border-gray-200 text-left w-56">Nama Account</th>
+                            <th class="px-4 py-3 text-xs font-semibold text-gray-500 uppercase border-b border-gray-200 text-left w-56">Sub Account</th>
+                            <th class="px-4 py-3 text-xs font-semibold text-gray-500 uppercase border-b border-gray-200 text-left w-48">Ref No</th>
+                            <th class="px-4 py-3 text-xs font-semibold text-gray-500 uppercase border-b border-gray-200 text-left w-20">D/K</th>
+                            <th class="px-4 py-3 text-xs font-semibold text-gray-500 uppercase border-b border-gray-200 text-left w-[28rem]">Keterangan</th>
+                            <th class="px-4 py-3 text-xs font-semibold text-gray-500 uppercase border-b border-gray-200 text-right w-44">Jumlah</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -94,7 +97,7 @@
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="7" class="p-4 text-center text-gray-500">Detail jurnal belum ada.</td>
+                                <td colspan="8" class="px-4 py-3 text-center text-gray-500">Detail jurnal belum ada.</td>
                             </tr>
                         @endforelse
                     </tbody>
@@ -102,17 +105,19 @@
             </div>
         </div>
 
-        <div class="flex justify-center gap-4">
-            <a href="{{ route('jurnaltransaksi.print', ['fjurnalno' => $jurnaltransaksi->fjurnalno]) }}" target="_blank"
-                class="inline-flex items-center bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700">
-                <x-heroicon-o-printer class="w-5 h-5 mr-2" />
-                Print
-            </a>
-            <a href="{{ $indexUrl ?? route('jurnaltransaksi.index') }}"
-                class="inline-flex items-center bg-gray-500 text-white px-6 py-2 rounded hover:bg-gray-600">
-                <x-heroicon-o-arrow-left class="w-5 h-5 mr-2" />
-                Kembali
-            </a>
+        <div class="border border-gray-200 rounded-xl bg-white p-6 mt-6">
+            <div class="flex justify-center gap-4">
+                <a href="{{ route('jurnaltransaksi.print', ['fjurnalno' => $jurnaltransaksi->fjurnalno]) }}" target="_blank"
+                    class="inline-flex items-center bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors">
+                    <x-heroicon-o-printer class="w-5 h-5 mr-2" />
+                    Print
+                </a>
+                <a href="{{ $indexUrl ?? route('jurnaltransaksi.index') }}"
+                    class="inline-flex items-center bg-gray-500 text-white px-6 py-2 rounded-lg hover:bg-gray-600 transition-colors">
+                    <x-heroicon-o-arrow-left class="w-5 h-5 mr-2" />
+                    Kembali
+                </a>
+            </div>
         </div>
     </div>
 @endsection

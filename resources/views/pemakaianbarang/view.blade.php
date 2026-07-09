@@ -116,24 +116,30 @@
             accounts: @js($accounts),
             subaccounts: @js($subaccounts),
             savedItems: []
-        }" class="lg:col-span-5">
-            <div class="bg-white rounded shadow p-6 md:p-8 max-w-[1800px] w-full mx-auto">
-                <div class="space-y-4">
+        }">
+            <div class="max-w-[1600px] mx-auto py-8 px-6">
+                {{-- ─── CARD 1: Identitas ────────────────────── --}}
+                <div class="bg-white border border-gray-200 rounded-xl mb-3 overflow-hidden">
+                    <div class="px-4 py-3 border-b border-gray-200 bg-gray-50 flex items-center gap-2">
+                        <x-heroicon-o-identification class="w-5 h-5 text-blue-600" />
+                        <h2 class="font-semibold text-gray-800">Identitas Pemakaian Barang</h2>
+                    </div>
+                    <div class="p-4">
                     {{-- HEADER FORM --}}
                     <div class="grid grid-cols-1 lg:grid-cols-12 gap-4">
                         <div class="lg:col-span-4">
-                            <label class="block text-sm font-medium">Cabang</label>
-                            <input type="text" class="w-full border rounded px-3 py-2 bg-gray-200 cursor-not-allowed"
+                            <label class="text-xs font-bold text-gray-600 mb-1">Cabang</label>
+                            <input type="text" class="w-full border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 bg-gray-200 cursor-not-allowed"
                                 value="{{ trim(($fbranchcode ?? '') . ($fcabang ?? '' ? ' - ' . $fcabang : '')) }}"
                                 disabled>
                             <input type="hidden" name="fbranchcode" value="{{ $fbranchcode }}">
                         </div>
                         <div class="lg:col-span-4" x-data="{ autoCode: true }">
-                            <label class="block text-sm font-medium mb-1">Transaksi#</label>
+                            <label class="text-xs font-bold text-gray-600 mb-1">Transaksi#</label>
                             <div class="flex items-center gap-3">
                                 <input type="text" name="fstockmtno"
                                     value="{{ old('fstockmtno', $pemakaianbarang->fstockmtno) }}"
-                                    class="w-full border rounded px-3 py-2" :disabled="autoCode"
+                                    class="w-full border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100" :disabled="autoCode"
                                     :class="autoCode ? 'bg-gray-200 cursor-not-allowed' : 'bg-white'">
                                 <label class="inline-flex items-center select-none">
                                     <input type="checkbox" x-model="autoCode" checked>
@@ -145,10 +151,10 @@
                         <input type="hidden" name="fstockmtid" value="fstockmtid">
 
                         <div class="lg:col-span-4">
-                            <label class="block text-sm font-medium">Tanggal</label>
+                            <label class="text-xs font-bold text-gray-600 mb-1">Tanggal</label>
                             <input disabled type="date" name="fstockmtdate"
                                 value="{{ old('fstockmtdate') ?? date('Y-m-d') }}"
-                                class="w-full border rounded px-3 py-2 bg-gray-100 @error('fstockmtdate') border-red-500 @enderror">
+                                class="w-full border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 bg-gray-100 @error('fstockmtdate') border-red-500 @enderror">
                             @error('fstockmtdate')
                                 <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                             @enderror
@@ -156,11 +162,11 @@
 
                         <!-- Field FROM -->
                         <div class="lg:col-span-4">
-                            <label class="block text-sm font-medium mb-1">Gudang</label>
+                            <label class="text-xs font-bold text-gray-600 mb-1">Gudang</label>
                             <div class="flex">
                                 <div class="relative flex-1">
                                     <select id="warehouseSelectFrom"
-                                        class="w-full border rounded-l px-3 py-2 bg-gray-100 text-gray-700 cursor-not-allowed"
+                                        class="w-full border-gray-300 rounded-l-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 bg-gray-100 text-gray-700 cursor-not-allowed"
                                         disabled>
                                         <option value=""></option>
                                         @foreach ($warehouses as $wh)
@@ -195,28 +201,35 @@
                         </div>
 
                         <div class="lg:col-span-12">
-                            <label class="block text-sm font-medium">Keterangan</label>
+                            <label class="text-xs font-bold text-gray-600 mb-1">Keterangan</label>
                             <textarea readonly name="fket" rows="3"
-                                class="w-full border rounded px-3 py-2 bg-gray-100 @error('fket') border-red-500 @enderror"
+                                class="w-full border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 bg-gray-100 @error('fket') border-red-500 @enderror"
                                 placeholder="Tulis keterangan tambahan di sini...">{{ old('fket', $pemakaianbarang->fket) }}</textarea>
                             @error('fket')
                                 <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                             @enderror
                         </div>
                     </div>
+                    </div>
 
-                    <div x-data="itemsTable()" x-init="init()" class="mt-6 space-y-2">
+                    {{-- ─── CARD 2: Detail Item ─────────────────────── --}}
+                    <div class="bg-white border border-gray-200 rounded-xl mb-3 overflow-hidden">
+                        <div class="px-4 py-3 border-b border-gray-200 bg-gray-50 flex items-center gap-2">
+                            <x-heroicon-o-list-bullet class="w-5 h-5 text-blue-600" />
+                            <h2 class="font-semibold text-gray-800">Detail Item</h2>
+                        </div>
+                        <div class="p-4">
+
+                    <div x-data="itemsTable()" x-init="init()" class="space-y-2">
 
                         {{-- DETAIL ITEM (tabel input) --}}
-                        <h3 class="text-base font-semibold text-gray-800">Detail Item</h3>
-
                         <div class="overflow-auto border rounded">
                             <table class="min-w-full text-sm">
-                                <thead class="bg-gray-100">
+                                <thead class="bg-gray-50 border-b border-gray-200">
                                     <tr>
                                         <th class="p-2 text-left w-10">#</th>
                                         <th class="p-2 text-left w-40">Kode Produk</th>
-                                        <th class="p-2 text-left" style="width: 20rem; min-width: 20rem;">Nama Produk</th>
+                                        <th class="p-2 text-left min-w-[12rem]">Nama Produk</th>
                                         <th class="p-2 text-left w-48">Account</th>
                                         <th class="p-2 text-left w-48">Sub Account</th>
                                         <th class="p-2 text-left w-24">Sat</th>
@@ -303,25 +316,26 @@
                             </table>
                         </div>
                     </div>
+                    </div>
                 </div>
+
+                {{-- ─── CARD 3: Aksi ─────────────────────────── --}}
+                <div class="bg-white border border-gray-200 rounded-xl mb-3 overflow-hidden">
+                <div class="flex items-center justify-center gap-3 px-4 py-3 bg-gray-50 border-t border-gray-200">
                 @php $isPrinted = (int) ($pemakaianbarang->fprint ?? 0) === 1; @endphp
-                <div class="mt-6 flex justify-center space-x-4">
+                    <button type="button" onclick="window.location.href='{{ route('pemakaianbarang.index') }}'"
+                        class="inline-flex items-center gap-2 px-4 py-2 border border-gray-300 bg-white text-gray-600 text-sm font-medium rounded-lg hover:bg-gray-50 hover:border-gray-400 transition-colors">
+                        <x-heroicon-o-arrow-left class="w-4 h-4" />
+                        Kembali
+                    </button>
                     @if ($canPrint)
                         <a href="{{ route('pemakaianbarang.print', $pemakaianbarang->fstockmtno) }}" target="_blank"
-                            class="{{ $isPrinted ? 'bg-gray-400 pointer-events-none cursor-not-allowed' : 'bg-blue-600 hover:bg-blue-700' }} text-white px-6 py-2 rounded flex items-center">
-                            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                    d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m10 0v-5a2 2 0 00-2-2H9a2 2 0 00-2 2v5m10 0v5H7v-5">
-                                </path>
-                            </svg>
+                            class="inline-flex items-center gap-2 px-5 py-2 {{ $isPrinted ? 'bg-gray-400 pointer-events-none cursor-not-allowed' : 'bg-blue-600 hover:bg-blue-700' }} text-white text-sm font-medium rounded-lg transition-colors">
+                            <x-heroicon-o-printer class="w-4 h-4" />
                             Print
                         </a>
                     @endif
-                    <button type="button" onclick="window.location.href='{{ route('pemakaianbarang.index') }}'"
-                        class="bg-gray-500 text-white px-6 py-2 rounded hover:bg-gray-600 flex items-center">
-                        <x-heroicon-o-arrow-left class="w-5 h-5 mr-2" />
-                        Kembali
-                    </button>
+                </div>
                 </div>
 
                 <div x-show="$store.pemakaianDesc.show" x-cloak
@@ -347,7 +361,7 @@
                             </div>
                             <label class="block text-sm text-gray-700">Deskripsi</label>
                             <textarea x-model="$store.pemakaianDesc.value" rows="5"
-                                class="w-full border rounded px-3 py-2 bg-gray-100 cursor-not-allowed text-gray-600" readonly></textarea>
+                                class="w-full border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 bg-gray-100 cursor-not-allowed text-gray-600" readonly></textarea>
                         </div>
                         <div class="px-5 py-3 border-t flex items-center justify-end gap-2">
                             <button type="button" @click="$store.pemakaianDesc.close()"

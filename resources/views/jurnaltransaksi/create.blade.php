@@ -3,76 +3,53 @@
 @section('title', $pageTitle ?? 'Jurnal Transaksi')
 
 @section('content')
-    <style>
-        input:focus,
-        select:focus,
-        textarea:focus {
-            outline: none;
-            border-color: #2563eb;
-            box-shadow: 0 0 0 2px rgba(37, 99, 235, .2);
-        }
-
-        [x-cloak] {
-            display: none !important
-        }
-
-        input[type=number]::-webkit-inner-spin-button,
-        input[type=number]::-webkit-outer-spin-button {
-            -webkit-appearance: none;
-            margin: 0;
-        }
-
-        input[type=number] {
-            -moz-appearance: textfield;
-        }
-    </style>
-
     <script>
         window.ACCOUNTS_DATA = @json($accounts);
         window.SUBACCOUNTS_DATA = @json($subaccounts);
         window.REFERENCE_ALLOWED_ACCOUNT_CODES = @json($referenceAllowedAccountCodes ?? []);
     </script>
 
-    <div x-data="{ open: true }">
-        <div class="bg-white rounded shadow p-6 md:p-8 max-w-[1800px] w-full mx-auto">
+    <div class="max-w-[1600px] mx-auto py-8 px-6">
 
             <form action="{{ route('jurnaltransaksi.store') }}" method="POST" data-form-draft="true"
                 data-draft-key="jurnaltransaksi:create" x-data="itemsTable()" x-init="init()"
                 @submit="onSubmit($event)"> @csrf
 
                 {{-- ── HEADER jurnalmt ── --}}
-                <div class="grid grid-cols-1 lg:grid-cols-12 gap-4">
+                <div class="border border-gray-200 rounded-xl bg-white p-6 mb-6">
+                    <h3 class="text-base font-semibold text-gray-500 uppercase tracking-wide mb-4">Header Jurnal</h3>
+                    <div class="grid grid-cols-1 lg:grid-cols-12 gap-4">
 
                     {{-- fbranchcode --}}
                     <div class="lg:col-span-4">
-                        <label class="block text-sm font-medium">Cabang</label>
-                        <input type="text" class="w-full border rounded px-3 py-2 bg-gray-200 cursor-not-allowed"
+                        <label class="block text-xs font-bold text-gray-600 mb-1">Cabang</label>
+                        <input type="text" class="w-full border-gray-300 rounded-lg px-3 py-2 bg-gray-200 cursor-not-allowed focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                             value="{{ $fbranchcode }}" disabled>
                         <input type="hidden" name="fbranchcode" value="{{ $fbranchcode }}">
                     </div>
 
                     {{-- fjurnalno (auto) --}}
                     <div class="lg:col-span-4" x-data="{ autoCode: true }">
-                        <label class="block text-sm font-medium mb-1">No. Jurnal</label>
+                        <label class="block text-xs font-bold text-gray-600 mb-1">No. Jurnal</label>
                         <div class="flex items-center gap-3">
-                            <input type="text" name="fjurnalno" class="w-full border rounded px-3 py-2"
+                            <input type="text" name="fjurnalno" class="w-full border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                                 :disabled="autoCode" :class="autoCode ? 'bg-gray-200 cursor-not-allowed' : 'bg-white'">
                             <label class="inline-flex items-center select-none">
                                 <input type="checkbox" x-model="autoCode" checked>
-                                <span class="ml-2 text-sm text-gray-700">Auto</span>
+                                <span class="ml-2 text-xs text-gray-700">Auto</span>
                             </label>
                         </div>
                     </div>
 
                     {{-- fjurnaltype --}}
                     <div class="lg:col-span-2">
-                        <label class="block text-sm font-medium">Tipe Jurnal</label>
+                        <label class="block text-xs font-bold text-gray-600 mb-1">Tipe Jurnal</label>
                         @if (!empty($fixedJournalType))
                             <input type="text" value="{{ $fixedJournalType }}"
-                                class="w-full border rounded px-3 py-2 bg-gray-100 cursor-not-allowed" disabled>
+                                class="w-full border-gray-300 rounded-lg px-3 py-2 bg-gray-100 cursor-not-allowed" disabled>
                             <input type="hidden" name="fjurnaltype" value="{{ $fixedJournalType }}">
                         @else
-                            <select class="w-full border rounded px-3 py-2 bg-gray-100 cursor-not-allowed" disabled>
+                            <select class="w-full border-gray-300 rounded-lg px-3 py-2 bg-gray-100 cursor-not-allowed" disabled>
                                 @foreach ($journalTypes as $type)
                                     <option value="{{ $type->fmastercode }}" @selected(old('fjurnaltype', ($journalType ?: 'SJU')) === $type->fmastercode)>
                                         {{ $type->fmastercode }} - {{ $type->fmastername }}
@@ -85,71 +62,73 @@
 
                     {{-- fjurnaldate --}}
                     <div class="lg:col-span-2">
-                        <label class="block text-sm font-medium">Tanggal</label>
+                        <label class="block text-xs font-bold text-gray-600 mb-1">Tanggal</label>
                         <input type="date" name="fjurnaldate" value="{{ old('fjurnaldate', date('Y-m-d')) }}"
-                            class="w-full border rounded px-3 py-2 @error('fjurnaldate') border-red-500 @enderror">
+                            class="w-full border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 @error('fjurnaldate') border-red-500 @enderror">
                         @error('fjurnaldate')
-                            <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+                            <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
                         @enderror
                     </div>
 
                     {{-- fjurnalnote --}}
                     <div class="lg:col-span-12">
-                        <label class="block text-sm font-medium">Keterangan Jurnal</label>
+                        <label class="block text-xs font-bold text-gray-600 mb-1">Keterangan Jurnal</label>
                         <textarea name="fjurnalnote" rows="2"
-                            class="w-full border rounded px-3 py-2 @error('fjurnalnote') border-red-500 @enderror"
+                            class="w-full border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 @error('fjurnalnote') border-red-500 @enderror"
                             placeholder="Keterangan jurnal...">{{ old('fjurnalnote') }}</textarea>
                         @error('fjurnalnote')
-                            <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+                            <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
                         @enderror
                     </div>
 
                 </div>{{-- end header grid --}}
+                </div>
 
                 {{-- ── DETAIL jurnaldt ── --}}
-                <div class="mt-6 space-y-2">
+                <div class="border border-gray-200 rounded-xl bg-white p-6 mb-6">
+                    <h3 class="text-base font-semibold text-gray-500 uppercase tracking-wide mb-4">Detail Jurnal</h3>
+                    <div class="mt-6">
 
-                    <div class="flex items-center justify-between">
-                        <h3 class="text-base font-semibold text-gray-800">Detail Jurnal</h3>
+                    <div class="flex items-center justify-between mb-4">
                         {{-- Indikator balance --}}
-                        <div class="text-sm flex gap-6">
+                        <div class="text-xs font-medium flex gap-6">
                             <span>Total Debit: <strong x-text="fmt(totalDebit)" class="text-blue-700"></strong></span>
                             <span>Total Kredit: <strong x-text="fmt(totalKredit)" class="text-green-700"></strong></span>
                         </div>
                     </div>
 
-                    <div class="overflow-auto border rounded">
-                        <table class="min-w-full text-sm">
-                            <thead class="bg-gray-100">
+                    <div class="overflow-auto border border-gray-200 rounded-lg">
+                        <table class="pr-detail-table min-w-full text-sm">
+                            <thead class="bg-gray-50 border-b border-gray-200">
                                 <tr>
-                                    <th class="p-2 text-left w-8">#</th>
-                                    <th class="p-2 text-left w-40">Kode Account <span class="text-red-500">*</span></th>
-                                    <th class="p-2 text-left w-56">Nama Account</th>
-                                    <th class="p-2 text-left w-52">Sub Account</th>
-                                    <th class="p-2 text-left w-28">Ref No</th>
-                                    <th class="p-2 text-left w-20">D/K <span class="text-red-500">*</span></th>
-                                    <th class="p-2 text-left w-72">Keterangan</th>
-                                    <th class="p-2 text-right w-40">Jumlah <span class="text-red-500">*</span>
+                                    <th class="p-2 text-left text-xs font-semibold text-gray-500 uppercase w-8">#</th>
+                                    <th class="p-2 text-left text-xs font-semibold text-gray-500 uppercase w-40">Kode Account <span class="text-red-500">*</span></th>
+                                    <th class="p-2 text-left text-xs font-semibold text-gray-500 uppercase w-56">Nama Account</th>
+                                    <th class="p-2 text-left text-xs font-semibold text-gray-500 uppercase w-52">Sub Account</th>
+                                    <th class="p-2 text-left text-xs font-semibold text-gray-500 uppercase w-28">Ref No</th>
+                                    <th class="p-2 text-left text-xs font-semibold text-gray-500 uppercase w-20">D/K <span class="text-red-500">*</span></th>
+                                    <th class="p-2 text-left text-xs font-semibold text-gray-500 uppercase w-72">Keterangan</th>
+                                    <th class="p-2 text-right text-xs font-semibold text-gray-500 uppercase w-40">Jumlah <span class="text-red-500">*</span>
                                     </th>
-                                    <th class="p-2 text-center w-28">Aksi</th>
+                                    <th class="p-2 text-center text-xs font-semibold text-gray-500 uppercase w-28">Aksi</th>
                                 </tr>
                             </thead>
 
                             <tbody>
                                 <template x-for="(row, index) in savedItems" :key="row.uid">
-                                    <tr class="border-t align-middle hover:bg-gray-50">
+                                    <tr class="border-t border-gray-150 align-top">
                                         <td class="p-2 text-gray-500" x-text="index + 1"></td>
 
                                         {{-- Kode Account --}}
                                         <td class="p-2">
                                             <div class="flex items-center gap-1">
                                                 <input type="text"
-                                                    class="w-full border rounded px-2 py-1 font-mono uppercase text-xs"
+                                                    class="w-full border-gray-300 rounded-lg px-2 py-1 font-mono uppercase text-xs focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                                                     x-model.trim="row.faccount"
                                                     @input="syncAccountFromCode(row)"
                                                     @keydown.enter.prevent="">
                                                 <button type="button" @click="openBrowseFor(index)"
-                                                    class="border rounded px-1.5 py-1 bg-white hover:bg-gray-50"
+                                                    class="border border-gray-300 rounded-lg px-1.5 py-1 bg-white hover:bg-gray-50 transition-colors"
                                                     title="Cari account">
                                                     <x-heroicon-o-magnifying-glass class="w-3.5 h-3.5" />
                                                 </button>
@@ -159,13 +138,13 @@
                                         {{-- Nama Account --}}
                                         <td class="p-2">
                                             <input type="text"
-                                                class="w-full border rounded px-2 py-1 bg-gray-100 text-gray-600 text-xs"
+                                                class="w-full border-gray-300 rounded-lg px-2 py-1 bg-gray-100 text-gray-600 text-xs"
                                                 :value="row.faccname || '-'" disabled>
                                         </td>
 
                                         {{-- Sub Account --}}
                                         <td class="p-2">
-                                            <select class="w-full border rounded px-2 py-1 text-xs transition-colors"
+                                            <select class="w-full border-gray-300 rounded-lg px-2 py-1 text-xs focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
                                                 x-model="row.fsubaccountcode" :disabled="!row.fhavesubaccount"
                                                 :class="!row.fhavesubaccount ? 'bg-gray-100 text-gray-400 cursor-not-allowed opacity-60' : 'bg-white'">
                                                 <option value="">— Pilih Sub —</option>
@@ -179,7 +158,7 @@
                                         {{-- Ref No --}}
                                         <td class="p-2">
                                             <input type="text" x-model="row.frefno"
-                                                class="w-full border rounded px-2 py-1 text-xs"
+                                                class="w-full border-gray-300 rounded-lg px-2 py-1 text-xs focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                                                 :disabled="!isRefAllowed(row.faccount)"
                                                 :class="!isRefAllowed(row.faccount) ? 'bg-gray-100 text-gray-400 cursor-not-allowed' : 'bg-white'"
                                                 placeholder="No Ref">
@@ -187,7 +166,7 @@
 
                                         {{-- D/K --}}
                                         <td class="p-2">
-                                            <select class="w-full border rounded px-2 py-1 text-xs"
+                                            <select class="w-full border-gray-300 rounded-lg px-2 py-1 text-xs focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                                                 x-model="row.fdk"
                                                 @change="autofillBalancedAmount(row); recalcTotals()">
                                                 <option value="D">D</option>
@@ -197,13 +176,13 @@
 
                                         {{-- Keterangan --}}
                                         <td class="p-2">
-                                            <input type="text" class="w-full border rounded px-2 py-1 text-xs"
+                                            <input type="text" class="w-full border-gray-300 rounded-lg px-2 py-1 text-xs focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                                                 x-model="row.faccountnote" placeholder="Keterangan">
                                         </td>
 
                                         {{-- Jumlah --}}
                                         <td class="p-2 text-right">
-                                            <input type="text" class="border rounded px-2 py-1 w-full text-right text-xs"
+                                            <input type="text" class="border-gray-300 rounded-lg px-2 py-1 w-full text-right text-xs focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                                                 inputmode="decimal"
                                                 x-model="row.famountInput" @blur="normalizeAmount(row)"
                                                 @input="recalcTotals()">
@@ -234,9 +213,9 @@
                                 </template>
 
                                 {{-- Total row --}}
-                                <tr class="border-t bg-gray-50 font-semibold text-sm">
-                                    <td colspan="7" class="p-2 text-right text-gray-600">Total:</td>
-                                    <td class="p-2 text-right" x-text="fmt(totalDebit)"></td>
+                                <tr class="border-t bg-gray-50 font-semibold text-xs">
+                                    <td colspan="7" class="px-4 py-3 text-right text-gray-600">Total:</td>
+                                    <td class="px-4 py-3 text-right" x-text="fmt(totalDebit)"></td>
                                     <td></td>
                                 </tr>
 
@@ -264,21 +243,23 @@
                     </div>
 
                 </div>{{-- end itemsTable --}}
+                </div>
 
-                <div class="mt-8 flex justify-center gap-4">
-                    <button type="submit"
-                        class="bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700 flex items-center">
-                        <x-heroicon-o-check class="w-5 h-5 mr-2" /> Simpan
-                    </button>
-                    <button type="button" onclick="window.location='{{ $indexUrl ?? route('jurnaltransaksi.index') }}'"
-                        class="bg-gray-500 text-white px-6 py-2 rounded hover:bg-gray-600 flex items-center">
-                        <x-heroicon-o-arrow-left class="w-5 h-5 mr-2" /> Keluar
-                    </button>
+                <div class="border border-gray-200 rounded-xl bg-white p-6 mt-6">
+                    <div class="flex justify-center gap-4">
+                        <button type="submit"
+                            class="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors flex items-center">
+                            <x-heroicon-o-check class="w-5 h-5 mr-2" /> Simpan
+                        </button>
+                        <button type="button" onclick="window.location='{{ $indexUrl ?? route('jurnaltransaksi.index') }}'"
+                            class="bg-gray-500 text-white px-6 py-2 rounded-lg hover:bg-gray-600 transition-colors flex items-center">
+                            <x-heroicon-o-arrow-left class="w-5 h-5 mr-2" /> Keluar
+                        </button>
+                    </div>
                 </div>
 
             </form>
         </div>
-    </div>
 @endsection
 
 @include('components.transaction.browse-account-modal', [

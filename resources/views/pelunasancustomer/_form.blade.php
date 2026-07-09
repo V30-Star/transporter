@@ -59,7 +59,7 @@
     $selectedAdminAccount2 = $selectedAdminAccount2 ?? null;
 @endphp
 
-<div class="bg-white rounded shadow p-6 md:p-8 max-w-[1800px] w-full mx-auto"
+<div class="max-w-[1600px] mx-auto py-8 px-6"
     x-data="pelunasanCustomerForm(@js($initialDetailRows), @js($selectedCustomerTempo), @js(old('fkasmtno', $voucherNo)))" x-init="init()">
     <form action="{{ $formAction }}" method="POST" class="space-y-6" @submit="handleFormSubmit($event)"
         @if (!$isReadOnly && !empty($draftKey)) data-form-draft="true" data-draft-key="{{ $draftKey }}" @endif>
@@ -70,21 +70,26 @@
 
         <input type="hidden" name="fcustomer_tempo" x-model="customerTempo">
         <input type="hidden" name="detail_snapshot" x-ref="detailSnapshot" value="{{ old('detail_snapshot') }}">
-        <fieldset @disabled($isReadOnly) class="space-y-3.5">
+
+        <div class="border border-gray-200 rounded-xl bg-white overflow-hidden">
+            <div class="bg-gray-50 border-b border-gray-200 px-6 py-4">
+                <h2 class="text-base font-semibold text-gray-800">Informasi {{ $pageTitle }}</h2>
+            </div>
+            <fieldset @disabled($isReadOnly) class="space-y-3.5 p-6">
             <!-- Row 1: Branch, Voucher Number, Date -->
             <div class="grid grid-cols-3 gap-3">
                 <div>
-                    <label class="block text-sm font-bold mb-1">{{ 'Cabang' }}</label>
+                    <label class="block text-xs font-bold text-gray-600 mb-1">{{ 'Cabang' }}</label>
                     <input type="text" value="{{ $currentBranchLabel ?? old('fbranchcode', $currentBranchCode) }}"
-                        class="w-full border rounded px-3 py-1.5 bg-gray-100 cursor-not-allowed text-gray-700" readonly>
-                    <input type="hidden" name="fbranchcode" value="{{ old('fbranchcode', $currentBranchCode) }}">
+class="w-full border-gray-300 rounded-lg px-3 py-2 bg-gray-100 cursor-not-allowed" readonly>
+                <input type="hidden" name="fbranchcode" value="{{ old('fbranchcode', $currentBranchCode) }}">
                 </div>
 
                 <div>
-                    <label class="block text-sm font-bold mb-1">{{ 'No. Voucher' }}</label>
+                    <label class="block text-xs font-bold text-gray-600 mb-1">{{ 'No. Voucher' }}</label>
                     <div class="flex items-center gap-3">
                         <input type="text" name="fkasmtno" x-model="voucherNo" :disabled="autoCode"
-                            class="w-full border rounded px-3 py-1.5 @error('fkasmtno') border-red-500 @enderror"
+                            class="w-full border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 @error('fkasmtno') border-red-500 @enderror"
                             :class="autoCode ? 'bg-gray-100 cursor-not-allowed' : 'bg-white'"
                             placeholder="Kosongkan untuk auto number">
                         <label class="inline-flex items-center select-none">
@@ -93,17 +98,17 @@
                         </label>
                     </div>
                     @error('fkasmtno')
-                        <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+                        <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
                     @enderror
                 </div>
 
                 <div>
-                    <label class="block text-sm font-bold mb-1">{{ 'Tanggal' }}</label>
+                    <label class="block text-xs font-bold text-gray-600 mb-1">{{ 'Tanggal' }}</label>
                     <input type="date" name="fkasmtdate" x-model="transactionDate"
                         value="{{ old('fkasmtdate', $transactionDate) }}"
-                        class="w-full border rounded px-3 py-1.5 @error('fkasmtdate') border-red-500 @enderror">
+                        class="w-full border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 @error('fkasmtdate') border-red-500 @enderror">
                     @error('fkasmtdate')
-                        <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+                        <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
                     @enderror
                 </div>
             </div>
@@ -111,7 +116,7 @@
             <!-- Row 2: Customer, Account, Giro/Cek -->
             <div class="grid grid-cols-3 gap-3">
                 <div>
-                    <label class="block text-sm font-bold mb-1">{{ 'Customer' }}</label>
+                    <label class="block text-xs font-bold text-gray-600 mb-1">{{ 'Customer' }}</label>
                     <div class="flex">
                         <div class="relative flex-1">
                             <select id="modal_filter_customer_id" name="filter_customer_id"
@@ -130,25 +135,25 @@
                             <button type="button" @click="if (!hasSelectedNotas) window.dispatchEvent(new CustomEvent('customer-browse-open'))"
                                 :class="hasSelectedNotas ? 'bg-gray-100 text-gray-400 cursor-not-allowed' : 'bg-white hover:bg-gray-50'"
                                 :disabled="hasSelectedNotas"
-                                class="border -ml-px px-3 py-1.5 rounded-r" title="Browse Customer">
+                                class="border border-gray-300 -ml-px px-3 py-2 rounded-r" title="Browse Customer">
                                 <x-heroicon-o-magnifying-glass class="w-5 h-5" />
                             </button>
                         @endif
                     </div>
                     @error('fcustomer')
-                        <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+                        <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
                     @enderror
                 </div>
 
                 <div>
-                    <label class="block text-sm font-bold mb-1">{{ 'Account' }}</label>
+                    <label class="block text-xs font-bold text-gray-600 mb-1">{{ 'Account' }}</label>
                     @if ($isReadOnly)
                         <input type="text" value="{{ $selectedAccountCode !== '' ? trim($selectedAccountCode . ' - ' . $selectedAccountName) : '' }}"
-                            class="w-full border rounded px-3 py-1.5 bg-gray-100 cursor-not-allowed text-gray-700" readonly>
+                            class="w-full border-gray-300 rounded-lg px-3 py-2 bg-gray-100 cursor-not-allowed" readonly>
                         <input type="hidden" name="faccountheader" value="{{ $selectedAccountCode }}">
                     @else
                         <div>
-                            <select name="faccountheader" x-model="accountCode" class="w-full border rounded px-3 py-1.5 bg-white text-gray-900 @error('faccountheader') border-red-500 @enderror">
+                            <select name="faccountheader" x-model="accountCode" class="w-full border-gray-300 rounded-lg px-3 py-2 bg-white text-gray-900 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 @error('faccountheader') border-red-500 @enderror">
                                 <option value="">{{ 'Pilih account' }}</option>
                                 @foreach ($headerAccounts as $account)
                                     <option value="{{ $account->faccount }}">
@@ -159,16 +164,16 @@
                         </div>
                     @endif
                     @error('faccountheader')
-                        <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+                        <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
                     @enderror
                 </div>
 
                 <div>
-                    <label class="block text-sm font-bold mb-1">{{ 'No.Giro/Cek' }}</label>
+                    <label class="block text-xs font-bold text-gray-600 mb-1">{{ 'No.Giro/Cek' }}</label>
                     <input type="text" name="fnogiro" value="{{ old('fnogiro', $giroNo ?? '') }}"
-                        class="w-full border rounded px-3 py-1.5 @error('fnogiro') border-red-500 @enderror">
+                        class="w-full border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 @error('fnogiro') border-red-500 @enderror">
                     @error('fnogiro')
-                        <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+                        <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
                     @enderror
                 </div>
             </div>
@@ -176,20 +181,20 @@
             <!-- Row 3: Giro Mundur, Due Date -->
             <div class="grid grid-cols-3 gap-3 items-end">
                 <div>
-                    <label class="inline-flex items-center gap-2 h-9 px-3 border rounded w-full bg-white">
-                        <input type="checkbox" x-model="isGiroMundur" class="rounded">{{ 'Giro Mundur' }}
+                    <label class="inline-flex items-center gap-2 h-9 px-3 border border-gray-300 rounded-lg w-full bg-white">
+                        <input type="checkbox" x-model="isGiroMundur" class="rounded border-gray-300">{{ 'Giro Mundur' }}
                     </label>
                     <input type="hidden" name="fgiromundur" :value="isGiroMundur ? '1' : '0'">
                 </div>
 
                 <div>
-                    <label class="block text-sm font-bold mb-1">{{ 'Tgl.Jatuh Tempo' }}</label>
+                    <label class="block text-xs font-bold text-gray-600 mb-1">{{ 'Tgl.Jatuh Tempo' }}</label>
                     <input type="date" name="ftgljatuhtempo" x-model="dueDate"
-                        class="w-full border rounded px-3 py-1.5 @error('ftgljatuhtempo') border-red-500 @enderror"
+                        class="w-full border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 @error('ftgljatuhtempo') border-red-500 @enderror"
                         :readonly="!isGiroMundur" :disabled="!isGiroMundur"
                         :class="!isGiroMundur ? 'bg-gray-100 cursor-not-allowed text-gray-400' : 'bg-white'">
                     @error('ftgljatuhtempo')
-                        <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+                        <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
                     @enderror
                 </div>
 
@@ -198,33 +203,36 @@
 
             <!-- Row 4: Description -->
             <div>
-                <label class="block text-sm font-bold mb-1">{{ 'Keterangan' }}</label>
+                <label class="block text-xs font-bold text-gray-600 mb-1">{{ 'Keterangan' }}</label>
                 <input type="text" name="fket" value="{{ old('fket', $noteValue ?? '') }}"
-                    class="w-full border rounded px-3 py-1.5 @error('fket') border-red-500 @enderror">
+                    class="w-full border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 @error('fket') border-red-500 @enderror">
                 @error('fket')
-                    <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+                    <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
                 @enderror
             </div>
+        </fieldset>
+    </div>
 
-            <div>
-                <div class="flex items-center justify-between mb-3">
-                    <h3 class="text-base font-semibold text-gray-800">{{ 'Detail Item' }}</h3>
-                </div>
+        <div class="mt-6 border border-gray-200 rounded-xl bg-white overflow-hidden">
+            <div class="bg-gray-50 border-b border-gray-200 px-6 py-4">
+                <h2 class="text-base font-semibold text-gray-800">Detail Item</h2>
+            </div>
+            <fieldset @disabled($isReadOnly) class="space-y-3.5 p-6">
 
-                <div class="overflow-auto border rounded-lg">
+                <div class="overflow-auto border border-gray-200 rounded-lg">
                     <table class="min-w-full text-sm balanced-detail-table">
-                        <thead class="bg-gray-100">
+                        <thead class="bg-gray-50 border-b border-gray-200">
                             <tr>
-                                <th class="border px-2 py-1.5 w-12">{{ 'No' }}</th>
-                                <th class="border px-2 py-1.5 min-w-[12rem]">{{ 'No.Nota' }}</th>
-                                <th class="border px-2 py-1.5 min-w-[10rem] text-left">{{ 'Tgl. Nota' }}</th>
-                                <th class="border px-2 py-1.5 min-w-[10rem] text-right">{{ 'Nilai Nota' }}</th>
-                                <th class="border px-2 py-1.5 min-w-[10rem] text-right">{{ 'Sisa Piutang' }}</th>
-                                <th class="border px-2 py-1.5 min-w-[8rem] text-right">{{ 'Disc%' }}</th>
-                                <th class="border px-2 py-1.5 min-w-[10rem] text-right">{{ 'Discount' }}</th>
-                                <th class="border px-2 py-1.5 min-w-[10rem] text-right">{{ 'Total Bayar' }}</th>
+                                <th class="border-b border-gray-200 px-4 py-3 text-xs font-semibold text-gray-500 uppercase w-12">{{ 'No' }}</th>
+                                <th class="border-b border-gray-200 px-4 py-3 text-xs font-semibold text-gray-500 uppercase min-w-[12rem]">{{ 'No.Nota' }}</th>
+                                <th class="border-b border-gray-200 px-4 py-3 text-xs font-semibold text-gray-500 uppercase min-w-[10rem] text-left">{{ 'Tgl. Nota' }}</th>
+                                <th class="border-b border-gray-200 px-4 py-3 text-xs font-semibold text-gray-500 uppercase min-w-[10rem] text-right">{{ 'Nilai Nota' }}</th>
+                                <th class="border-b border-gray-200 px-4 py-3 text-xs font-semibold text-gray-500 uppercase min-w-[10rem] text-right">{{ 'Sisa Piutang' }}</th>
+                                <th class="border-b border-gray-200 px-4 py-3 text-xs font-semibold text-gray-500 uppercase min-w-[8rem] text-right">{{ 'Disc%' }}</th>
+                                <th class="border-b border-gray-200 px-4 py-3 text-xs font-semibold text-gray-500 uppercase min-w-[10rem] text-right">{{ 'Discount' }}</th>
+                                <th class="border-b border-gray-200 px-4 py-3 text-xs font-semibold text-gray-500 uppercase min-w-[10rem] text-right">{{ 'Total Bayar' }}</th>
                                 @if (!$isReadOnly)
-                                    <th class="border px-2 py-1.5 w-16 text-center">{{ 'Aksi' }}</th>
+                                    <th class="border-b border-gray-200 px-4 py-3 text-xs font-semibold text-gray-500 uppercase w-16 text-center">{{ 'Aksi' }}</th>
                                 @endif
                             </tr>
                         </thead>
@@ -314,7 +322,7 @@
                 <div class="mt-3 flex justify-start">
                     <button type="button" @click="openNotaModal()"
                         @disabled($isReadOnly)
-                        class="inline-flex items-center justify-center gap-2 border rounded px-3 py-2 bg-white hover:bg-gray-50 disabled:bg-gray-100 disabled:text-gray-400 disabled:cursor-not-allowed">
+                        class="inline-flex items-center justify-center gap-2 border border-gray-300 rounded-lg px-4 py-2.5 bg-white hover:bg-gray-50 disabled:bg-gray-100 disabled:text-gray-400 disabled:cursor-not-allowed text-sm font-medium">
                         <x-heroicon-o-arrow-down-tray class="w-5 h-5" />
                         <span>{{ 'Add Nota' }}</span>
                     </button>
@@ -329,37 +337,37 @@
                             <div class="w-52">
                                 <input type="number" min="0" step="0.01" name="fbiayaadminbank" x-model="bankAdminFee"
                                     @input="recalcTotals()"
-                                    class="w-full border rounded px-3 py-2 text-right @error('fbiayaadminbank') border-red-500 @enderror">
+                                    class="w-full border-gray-300 rounded-lg px-3 py-2 text-right focus:ring-2 focus:ring-blue-500 focus:border-blue-500 @error('fbiayaadminbank') border-red-500 @enderror">
                             </div>
                         </div>
                         @error('fbiayaadminbank')
-                            <p class="text-red-600 text-sm">{{ $message }}</p>
+                            <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
                         @enderror
 
                         <div class="grid grid-cols-2 gap-3">
                             <div>
                                 <div class="flex">
                                     <input type="text" x-model="adminAccountLabel"
-                                        class="w-full border rounded-l px-3 py-2 text-sm bg-gray-100 cursor-not-allowed" readonly>
+                                        class="w-full border-gray-300 rounded-l px-3 py-2 text-sm bg-gray-100 cursor-not-allowed" readonly>
                                     <input type="hidden" name="faccountadmin" x-model="adminAccountCode">
                                     @if (!$isReadOnly)
                                         <button type="button" @click="activeAccountField = 'admin'; window.dispatchEvent(new CustomEvent('admin-account-browse-open'))"
-                                            class="border -ml-px px-3 py-2 bg-white hover:bg-gray-50 rounded-r" title="Browse Account Admin">
+                                            class="border border-gray-300 -ml-px px-3 py-2 bg-white hover:bg-gray-50 rounded-r" title="Browse Account Admin">
                                             <x-heroicon-o-magnifying-glass class="w-5 h-5" />
                                         </button>
                                     @endif
                                 </div>
                                 @error('faccountadmin')
-                                    <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+                                    <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
                                 @enderror
                             </div>
 
                             <div class="flex justify-end">
                                 <input type="number" min="0" step="0.01" name="fhargaadmin" x-model="hargaAdmin"
                                     @input="recalcTotals()"
-                                    class="w-52 border rounded px-3 py-2 text-right text-sm @error('fhargaadmin') border-red-500 @enderror">
+                                    class="w-52 border-gray-300 rounded-lg px-3 py-2 text-right text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 @error('fhargaadmin') border-red-500 @enderror">
                                 @error('fhargaadmin')
-                                    <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+                                    <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
                                 @enderror
                             </div>
                         </div>
@@ -368,26 +376,26 @@
                             <div>
                                 <div class="flex">
                                     <input type="text" x-model="adminAccount2Label"
-                                        class="w-full border rounded-l px-3 py-2 text-sm bg-gray-100 cursor-not-allowed" readonly>
+                                        class="w-full border-gray-300 rounded-l px-3 py-2 text-sm bg-gray-100 cursor-not-allowed" readonly>
                                     <input type="hidden" name="faccountadmin2" x-model="adminAccount2Code">
                                     @if (!$isReadOnly)
                                         <button type="button" @click="activeAccountField = 'admin2'; window.dispatchEvent(new CustomEvent('admin-account-browse-open'))"
-                                            class="border -ml-px px-3 py-2 bg-white hover:bg-gray-50 rounded-r" title="Browse Account Admin 2">
+                                            class="border border-gray-300 -ml-px px-3 py-2 bg-white hover:bg-gray-50 rounded-r" title="Browse Account Admin 2">
                                             <x-heroicon-o-magnifying-glass class="w-5 h-5" />
                                         </button>
                                     @endif
                                 </div>
                                 @error('faccountadmin2')
-                                    <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+                                    <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
                                 @enderror
                             </div>
 
                             <div class="flex justify-end">
                                 <input type="number" min="0" step="0.01" name="fhargaadmin2" x-model="hargaAdmin2"
                                     @input="recalcTotals()"
-                                    class="w-52 border rounded px-3 py-2 text-right text-sm @error('fhargaadmin2') border-red-500 @enderror">
+                                    class="w-52 border-gray-300 rounded-lg px-3 py-2 text-right text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 @error('fhargaadmin2') border-red-500 @enderror">
                                 @error('fhargaadmin2')
-                                    <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+                                    <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
                                 @enderror
                             </div>
                         </div>
@@ -397,31 +405,36 @@
                         <div class="flex items-center justify-between gap-4 border-t pt-3">
                             <span class="text-sm font-semibold text-gray-800">{{ 'Total Penerimaan' }}</span>
                             <input type="text" x-model="totalPenerimaanDisplay"
-                                class="w-52 border rounded px-3 py-2 bg-gray-100 text-right font-semibold cursor-not-allowed"
+                                class="w-52 border-gray-300 rounded-lg px-3 py-2 bg-gray-100 text-right font-semibold cursor-not-allowed"
                                 readonly>
                         </div>
                     </div>
                 </div>
             </div>
         </fieldset>
+    </div>
 
-        <div class="flex items-center justify-center gap-3">
+        <div class="mt-6 border border-gray-200 rounded-xl bg-white overflow-hidden">
+            <div class="p-6">
+                <div class="flex items-center justify-center gap-3">
              @if ($isDeleteMode)
                 <button type="submit"
-                    class="inline-flex items-center px-4 py-2 rounded bg-red-600 text-white hover:bg-red-700">
+                    class="bg-red-600 text-white px-6 py-2.5 rounded-lg hover:bg-red-700 inline-flex items-center text-sm font-medium">
                     {{ $submitLabel }}
                 </button>
             @elseif (!$isReadOnly && !empty($submitLabel))
                 <button type="submit"
-                    class="inline-flex items-center px-4 py-2 rounded bg-blue-600 text-white hover:bg-blue-700">
+                    class="bg-blue-600 text-white px-6 py-2.5 rounded-lg hover:bg-blue-700 inline-flex items-center text-sm font-medium">
                     {{ $submitLabel }}
                 </button>
             @endif
             <a href="{{ $backRoute }}"
-                class="inline-flex items-center px-4 py-2 rounded border border-gray-300 bg-white hover:bg-gray-50">
+                class="bg-gray-500 text-white px-6 py-2.5 rounded-lg hover:bg-gray-600 inline-flex items-center text-sm font-medium">
                 {{ 'Keluar' }}
             </a>
         </div>
+    </div>
+</div>
         @if (!$isReadOnly)
             <div x-cloak x-show="notaModalOpen" x-transition.opacity
                 class="fixed inset-0 z-[95] flex items-center justify-center overflow-hidden p-3 md:p-6">
@@ -572,16 +585,9 @@
     />
 @endif
 
-@push('styles')
+    @push('styles')
     <link rel="stylesheet" href="https://cdn.datatables.net/2.1.6/css/dataTables.dataTables.min.css">
     <style>
-        input:focus,
-        select:focus,
-        textarea:focus {
-            outline: none;
-            border-color: #2563eb;
-            box-shadow: 0 0 0 2px rgba(37, 99, 235, .2);
-        }
         .transaction-code-red:disabled {
             color: #dc2626 !important;
         }

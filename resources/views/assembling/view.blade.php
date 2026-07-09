@@ -112,17 +112,33 @@
             width: 2.5rem;
             justify-content: center;
         }
+
+        .assembling-detail-table thead {
+            background: #f9fafb !important;
+            border-bottom: 1px solid #e5e7eb;
+        }
+
+        .assembling-detail-table th {
+            color: #6b7280;
+            font-size: .75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
     </style>
 
     <div x-data="{ open: true }">
         <div x-data="{
             open: true,
             savedItems: []
-        }" class="lg:col-span-5">
-            <div class="bg-white rounded shadow p-6 md:p-8 max-w-[1800px] w-full mx-auto">
-                <div class="space-y-4">
+        }" class="max-w-[1600px] mx-auto py-8 px-6">
+            <div class="space-y-3">
                     {{-- HEADER FORM --}}
-                    <div class="grid grid-cols-1 lg:grid-cols-12 gap-4">
+                    <div class="bg-white border border-gray-200 rounded-xl overflow-hidden">
+                        <div class="flex items-center gap-2 px-4 pt-3 pb-0">
+                            <x-heroicon-o-cube class="w-4 h-4 text-gray-400" />
+                            <p class="text-xs font-medium uppercase tracking-wide text-gray-400">Identitas Assembling</p>
+                        </div>
+                    <div class="p-4 grid grid-cols-1 lg:grid-cols-12 gap-3">
                         <div class="lg:col-span-4">
                             <label class="block text-sm font-medium">Cabang</label>
                             <input type="text" class="w-full border rounded px-3 py-2 bg-gray-200 cursor-not-allowed"
@@ -205,8 +221,13 @@
                             @enderror
                         </div>
                     </div>
+                    </div>
 
-                    <div x-data="itemsTable()" x-init="init()" class="mt-6 space-y-2">
+                    <div x-data="itemsTable()" x-init="init()" class="bg-white border border-gray-200 rounded-xl overflow-hidden p-4 space-y-2">
+                        <div class="flex items-center gap-2">
+                            <x-heroicon-o-list-bullet class="w-4 h-4 text-gray-400" />
+                            <p class="text-xs font-medium uppercase tracking-wide text-gray-400">Detail Item</p>
+                        </div>
                         {{-- TAB NAVIGATION --}}
                         <div class="border-b border-gray-200">
                             <nav class="-mb-px flex space-x-4" aria-label="Tabs">
@@ -238,7 +259,7 @@
                             Detail Item - <span x-text="activeTab === 'bahan_baku' ? 'Bahan Baku' : 'Barang Jadi'"></span>
                         </h3>
 
-                        <div class="overflow-auto border rounded">
+                        <div class="overflow-auto border border-gray-200 rounded-lg">
                             <table class="min-w-full text-sm">
                                 <thead class="bg-gray-100">
                                     <tr>
