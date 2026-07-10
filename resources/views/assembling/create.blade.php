@@ -199,91 +199,97 @@
                         <x-heroicon-o-cube class="w-4 h-4 text-gray-400" />
                         <p class="text-xs font-medium uppercase tracking-wide text-gray-400">Identitas Assembling</p>
                     </div>
-                    <div class="p-4 grid grid-cols-1 lg:grid-cols-12 gap-3">
-                    <div class="lg:col-span-4">
-                        <label class="block text-sm font-medium">Cabang</label>
-                        <input type="text" class="w-full border rounded px-3 py-2 bg-gray-200 cursor-not-allowed"
-                            value="{{ trim(($fbranchcode ?? '') . ($fcabang ?? '' ? ' - ' . $fcabang : '')) }}" disabled>
-                        <input type="hidden" name="fbranchcode" value="{{ $fbranchcode }}">
-                    </div>
-                    <div class="lg:col-span-4" x-data="{ autoCode: true }">
-                        <label class="block text-sm font-medium mb-1">Transaksi#</label>
-                        <div class="flex items-center gap-3">
-                            <input type="text" name="fstockmtno" class="w-full border rounded px-3 py-2"
-                                :disabled="autoCode" :class="autoCode ? 'bg-gray-200 cursor-not-allowed' : 'bg-white'">
-                            <label class="inline-flex items-center select-none">
-                                <input type="checkbox" x-model="autoCode" checked>
-                                <span class="ml-2 text-sm text-gray-700">Auto</span>
-                            </label>
-                        </div>
-                    </div>
+                <div class="p-4 space-y-3">
+    <div class="p-4 grid grid-cols-3 gap-3">
+        <div>
+            <label class="block text-xs font-bold text-gray-600 mb-1">Cabang</label>
+            <input type="text" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm bg-gray-100 text-gray-500 cursor-not-allowed border-gray-200"
+                value="{{ trim(($fbranchcode ?? '') . ($fcabang ?? '' ? ' - ' . $fcabang : '')) }}" disabled>
+            <input type="hidden" name="fbranchcode" value="{{ $fbranchcode }}">
+        </div>
 
-                    <input type="hidden" name="fstockmtid" value="fstockmtid">
+        <div x-data="{ autoCode: true }">
+            <label class="block text-xs font-bold text-gray-600 mb-1">Transaksi#</label>
+            <div class="flex items-center gap-2">
+                <input type="text" name="fstockmtno" class="flex-1 border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                    :disabled="autoCode" :class="autoCode ? 'bg-gray-100 text-gray-500 border-gray-200 cursor-not-allowed' : 'bg-white'">
+                <label class="inline-flex items-center select-none">
+                    <input type="checkbox" x-model="autoCode" checked>
+                    <span class="ml-1.5">Auto</span>
+                </label>
+            </div>
+        </div>
 
-                    <div class="lg:col-span-4">
-                        <label class="block text-sm font-medium">Tanggal</label>
-                        <input type="date" name="fstockmtdate" value="{{ old('fstockmtdate') ?? date('Y-m-d') }}"
-                            class="w-full border rounded px-3 py-2 @error('fstockmtdate') border-red-500 @enderror">
-                        @error('fstockmtdate')
-                            <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
-                        @enderror
-                    </div>
+        <input type="hidden" name="fstockmtid" value="fstockmtid">
 
-                    <!-- Field FROM -->
-                    <div class="lg:col-span-4">
-                        <label class="block text-sm font-medium mb-1">Gudang</label>
-                        <div class="flex">
-                            <div class="relative flex-1">
-                                <select id="warehouseSelectFrom"
-                                    class="w-full border rounded-l px-3 py-2 bg-gray-100 text-gray-700 cursor-not-allowed"
-                                    disabled>
-                                    <option value=""></option>
-                                    @foreach ($warehouses as $wh)
-                                        <option value="{{ $wh->fwhcode }}" data-id="{{ $wh->fwhid }}"
-                                            data-branch="{{ $wh->fbranchcode }}"
-                                            {{ old('ffrom', $mutasi->ffrom ?? '') == $wh->fwhcode ? 'selected' : '' }}>
-                                            {{ $wh->fwhcode }} - {{ $wh->fwhname }}
-                                        </option>
-                                    @endforeach
-                                </select>
+        <!-- Tanggal - styled like Cabang -->
+        <div class="lg:col-span-4">
+            <label class="block text-xs font-bold text-gray-600 mb-1">Tanggal</label>
+            <input type="text" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm bg-gray-100 text-gray-500 cursor-not-allowed border-gray-200"
+                value="{{ old('fstockmtdate') ?? date('Y-m-d') }}" disabled>
+            <input type="hidden" name="fstockmtdate" value="{{ old('fstockmtdate') ?? date('Y-m-d') }}">
+            @error('fstockmtdate')
+                <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+            @enderror
+        </div>
 
-                                <div class="absolute inset-0" role="button" aria-label="Browse warehouse"
-                                    @click="window.dispatchEvent(new CustomEvent('warehouse-browse-open', { detail: 'from' }))">
-                                </div>
-                            </div>
+        <!-- Field FROM - styled like Cabang -->
+        <div class="lg:col-span-4">
+            <label class="block text-xs font-bold text-gray-600 mb-1">Gudang</label>
+            <div class="flex">
+                <div class="relative flex-1">
+                    <select id="warehouseSelectFrom"
+                        class="w-full border border-gray-300 rounded-l-lg px-3 py-2 text-sm bg-gray-100 text-gray-500 cursor-not-allowed border-gray-200"
+                        disabled>
+                        <option value=""></option>
+                        @foreach ($warehouses as $wh)
+                            <option value="{{ $wh->fwhcode }}" data-id="{{ $wh->fwhid }}"
+                                data-branch="{{ $wh->fbranchcode }}"
+                                {{ old('ffrom', $mutasi->ffrom ?? '') == $wh->fwhcode ? 'selected' : '' }}>
+                                {{ $wh->fwhcode }} - {{ $wh->fwhname }}
+                            </option>
+                        @endforeach
+                    </select>
 
-                            <!-- Simpan fwhid di ffrom -->
-                            <input type="hidden" name="ffrom" id="warehouseCodeHiddenFrom"
-                                value="{{ old('ffrom', $mutasi->ffrom ?? '') }}">
-
-                            <button type="button"
-                                @click="window.dispatchEvent(new CustomEvent('warehouse-browse-open', { detail: 'from' }))"
-                                class="border -ml-px px-3 py-2 bg-white hover:bg-gray-50 rounded-r-none"
-                                title="Browse Gudang">
-                                <x-heroicon-o-magnifying-glass class="w-5 h-5" />
-                            </button>
-
-                            <a href="{{ route('gudang.create') }}" target="_blank" rel="noopener"
-                                class="border -ml-px rounded-r px-3 py-2 bg-white hover:bg-gray-50" title="Tambah Gudang">
-                                <x-heroicon-o-plus class="w-5 h-5" />
-                            </a>
-                        </div>
-
-                        @error('ffrom')
-                            <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
-                        @enderror
-                    </div>
-
-                    <div class="lg:col-span-12">
-                        <label class="block text-sm font-medium">Keterangan</label>
-                        <textarea name="fket" rows="3" class="w-full border rounded px-3 py-2 @error('fket') border-red-500 @enderror"
-                            placeholder="Tulis keterangan tambahan di sini...">{{ old('fket') }}</textarea>
-                        @error('fket')
-                            <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
-                        @enderror
-                    </div>
+                    <div class="absolute inset-0" role="button" aria-label="Browse warehouse"
+                        @click="window.dispatchEvent(new CustomEvent('warehouse-browse-open', { detail: 'from' }))">
                     </div>
                 </div>
+
+                <!-- Simpan fwhid di ffrom -->
+                <input type="hidden" name="ffrom" id="warehouseCodeHiddenFrom"
+                    value="{{ old('ffrom', $mutasi->ffrom ?? '') }}">
+
+                <button type="button"
+                    @click="window.dispatchEvent(new CustomEvent('warehouse-browse-open', { detail: 'from' }))"
+                    class="border -ml-px px-3 py-2 bg-white hover:bg-gray-50 rounded-r-none"
+                    title="Browse Gudang">
+                    <x-heroicon-o-magnifying-glass class="w-5 h-5" />
+                </button>
+
+                <a href="{{ route('gudang.create') }}" target="_blank" rel="noopener"
+                    class="border -ml-px rounded-r px-3 py-2 bg-white hover:bg-gray-50" title="Tambah Gudang">
+                    <x-heroicon-o-plus class="w-5 h-5" />
+                </a>
+            </div>
+
+            @error('ffrom')
+                <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+            @enderror
+        </div>
+
+        <!-- Keterangan - styled like Cabang -->
+        <div class="lg:col-span-12">
+            <label class="block text-xs font-bold text-gray-600 mb-1">Keterangan</label>
+            <textarea rows="3" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm bg-gray-100 text-gray-500 cursor-not-allowed border-gray-200"
+                disabled>{{ old('fket') }}</textarea>
+            <input type="hidden" name="fket" value="{{ old('fket') }}">
+            @error('fket')
+                <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+            @enderror
+        </div>
+    </div>
+</div>
 
                 {{-- TAB NAVIGATION --}}
                 <div class="bg-white border border-gray-200 rounded-xl mb-3 overflow-hidden p-4">
