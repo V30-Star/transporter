@@ -202,7 +202,7 @@
         
             savedItems: []
         }" class="lg:col-span-5">
-            <div class="max-w-[1600px] mx-auto py-8 px-6">
+            <div>
 
                 {{-- ============================================ --}}
                 {{-- MODE DELETE: VIEW ONLY + BUTTON HAPUS       --}}
@@ -219,7 +219,7 @@
                             <p class="text-xs font-medium uppercase tracking-wide text-gray-400">Identitas Adjustment</p>
                         </div>
                         <div class="p-4 space-y-3">
-                            <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+                            <div  class="grid grid-cols-3 gap-3">
                                 {{-- Cabang --}}
                                 <div>
                                     <label class="block text-xs font-bold text-gray-600 mb-1">Cabang</label>
@@ -454,7 +454,7 @@
                     <p class="text-xs font-medium uppercase tracking-wide text-gray-400">Identitas Adjustment</p>
                 </div>
                 <div class="p-4 space-y-3">
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+                    <div class="grid grid-cols-3 gap-3">
                         {{-- Cabang --}}
                         <div>
                             <label class="block text-xs font-bold text-gray-600 mb-1">Cabang</label>

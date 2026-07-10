@@ -183,7 +183,7 @@
             subaccounts: @js($subaccounts),
             savedItems: []
         }">
-            <div class="max-w-[1600px] mx-auto py-8 px-6">
+            <div>
                 <form action="{{ route('pemakaianbarang.store') }}" method="POST"
                     data-form-draft="true" data-draft-key="pemakaianbarang:create"
                     @submit.prevent="window.dispatchEvent(new CustomEvent('pemakaianbarang-submit-request'))"

@@ -174,24 +174,7 @@
         totalHarga: 100000,
         showNoItems: false,
         savedItems: []
-    }" class="mx-auto max-w-[1600px] px-4 py-8">
-        {{-- ─── BREADCRUMB & HEADER ─────────────────────────── --}}
-        <div class="mb-6 flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
-            <div>
-                <nav class="flex text-xs font-semibold uppercase tracking-wider text-gray-400">
-                    <a href="{{ route('mutasi.index') }}" class="hover:text-gray-600">Mutasi Stock</a>
-                    <span class="mx-2 text-gray-300">/</span>
-                    <span class="text-gray-600">Tambah Baru</span>
-                </nav>
-                <h1 class="mt-1 text-2xl font-bold tracking-tight text-gray-900">Tambah Mutasi Stock</h1>
-            </div>
-            <div class="flex items-center gap-2">
-                <a href="{{ route('mutasi.index') }}"
-                    class="inline-flex h-9 items-center justify-center rounded-lg border border-gray-300 bg-white px-4 text-xs font-semibold text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">
-                    Kembali
-                </a>
-            </div>
-        </div>
+    }">
         <form action="{{ route('mutasi.store') }}" method="POST"
             data-form-draft="true" data-draft-key="mutasi:create"
             @submit="window.mutasiCreateItemsState?.onSubmit($event)">

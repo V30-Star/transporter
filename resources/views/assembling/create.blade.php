@@ -187,7 +187,7 @@
     </style>
 
     <div>
-        <div class="max-w-[1600px] mx-auto py-8 px-6">
+        <div>
             <form action="{{ route('assembling.store') }}" method="POST" data-form-draft="true"
                 data-draft-key="assembling:create" x-data="Object.assign(itemsTable(), { showNoItems: false })"
                 x-init="init()" @submit="onSubmit($event)">

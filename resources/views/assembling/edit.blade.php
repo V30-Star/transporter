@@ -247,7 +247,7 @@
         <div x-data="{
             open: true,
             savedItems: []
-        }" class="max-w-[1600px] mx-auto py-8 px-6">
+        }">
             <div class="space-y-3">
                 {{-- ============================================ --}}
                 {{-- MODE DELETE: VIEW ONLY + BUTTON HAPUS       --}}

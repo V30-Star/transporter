@@ -130,7 +130,7 @@
         <div x-data="{
             open: true,
             savedItems: []
-        }" class="max-w-[1600px] mx-auto py-8 px-6">
+        }">
             <div class="space-y-3">
                     {{-- HEADER FORM --}}
                     <div class="bg-white border border-gray-200 rounded-xl overflow-hidden">

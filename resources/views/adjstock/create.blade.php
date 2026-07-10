@@ -142,7 +142,7 @@
             showNoItems: false,
         
             savedItems: []
-        }" class="max-w-[1600px] mx-auto py-8 px-6">
+        }">
             <form action="{{ route('adjstock.store') }}" method="POST" data-form-draft="true"
                 data-draft-key="adjstock:create" @submit="onSubmit($event)">
                 @csrf
@@ -158,7 +158,7 @@
                         <p class="text-xs font-medium uppercase tracking-wide text-gray-400">Identitas Adjustment</p>
                     </div>
                     <div class="p-4 space-y-3">
-                        <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+                        <div class="grid grid-cols-3 gap-3">
                             {{-- Cabang --}}
                             <div>
                                 <label class="block text-xs font-bold text-gray-600 mb-1">Cabang</label>

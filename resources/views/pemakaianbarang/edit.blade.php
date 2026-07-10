@@ -237,7 +237,7 @@
             subaccounts: @js($subaccounts),
             savedItems: []
         }">
-            <div class="max-w-[1600px] mx-auto py-8 px-6">
+            <div>
                 {{-- ============================================ --}}
                 {{-- MODE DELETE: VIEW ONLY + BUTTON HAPUS       --}}
                 {{-- ============================================ --}}
@@ -251,7 +251,7 @@
                         <div class="p-4">
 
                         {{-- HEADER FORM --}}
-                        <div class="grid grid-cols-1 lg:grid-cols-12 gap-4">
+                        <div class="grid grid-cols-3 gap-3">
                             <div class="lg:col-span-4">
                                 <label class="text-xs font-bold text-gray-600 mb-1">Cabang</label>
                                 <input type="text" class="w-full border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 bg-gray-200 cursor-not-allowed"
@@ -515,7 +515,7 @@
                         <div class="p-4">
 
                         {{-- HEADER FORM --}}
-                        <div class="grid grid-cols-1 lg:grid-cols-12 gap-4">
+                        <div class="grid grid-cols-3 gap-3">
                             <div class="lg:col-span-4">
                                 <label class="text-xs font-bold text-gray-600 mb-1">Cabang</label>
                                 <input type="text"
