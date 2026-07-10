@@ -956,6 +956,7 @@
                 </form>
             </div>
 
+        <x-transaction.browse-warehouse-modal />
     </div>
 @endsection
 @push('styles')
