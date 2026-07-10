@@ -140,7 +140,7 @@
             ];
         }
     @endphp
-        <div class="max-w-[1600px] mx-auto py-8 px-6">
+        <div>
         <form action="{{ route('penerimaanbarang.store') }}" method="POST" data-form-draft="true"
             data-draft-key="penerimaanbarang:create" x-data="mainForm()" x-init="syncSupplierDisplay(@js(old('fsupplier', '')));
             restoreSavedItems(@js($initialPenerimaanItems));

@@ -18,7 +18,7 @@
 @section('title', $title)
 
 @section('content')
-    <div class="max-w-[1600px] mx-auto py-8 px-6">
+    <div>
         <form method="POST" action="{{ $isDelete ? route('lembarpenagihan.destroy', $header->ftagihanid) : $formAction }}"
             x-data="tagihanForm()">
             @csrf

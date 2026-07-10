@@ -210,24 +210,7 @@
             </div>
         </div>
     @endif
-    <div class="mx-auto max-w-[1600px] px-4 py-8">
-        {{-- ─── BREADCRUMB & HEADER ───────────────────────────────── --}}
-        <div class="mb-6 flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
-            <div>
-                <nav class="flex text-xs font-semibold uppercase tracking-wider text-gray-400">
-                    <a href="{{ route('suratjalan.index') }}" class="hover:text-gray-600">Surat Jalan</a>
-                    <span class="mx-2 text-gray-300">/</span>
-                    <span class="text-gray-600">Tambah Baru</span>
-                </nav>
-                <h1 class="mt-1 text-2xl font-bold tracking-tight text-gray-900">Tambah Surat Jalan</h1>
-            </div>
-            <div class="flex items-center gap-2">
-                <a href="{{ route('suratjalan.index') }}"
-                    class="inline-flex h-9 items-center justify-center rounded-lg border border-gray-300 bg-white px-4 text-xs font-semibold text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">
-                    Kembali
-                </a>
-            </div>
-        </div>
+    <div>
         <form action="{{ route('suratjalan.store') }}" method="POST" data-form-draft="true"
             data-draft-key="suratjalan:create" x-data="{ showNoItems: false, showWarehouseRequired: false }"
             @submit.prevent="
@@ -267,7 +250,7 @@
                     <p class="text-xs font-medium uppercase tracking-wide text-gray-400">Identitas Surat Jalan</p>
                 </div>
                 <div class="p-4 space-y-3">
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+                    <div class="grid grid-cols-3 gap-3">
                         {{-- Cabang --}}
                         <div>
                             <label class="block text-xs font-bold text-gray-600 mb-1">Cabang</label>

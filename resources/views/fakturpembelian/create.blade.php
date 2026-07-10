@@ -221,7 +221,7 @@
         selectedAccountId: '{{ $currentAccountId }}'
     }">
         <div class="lg:col-span-5">
-                        <div class="max-w-[1600px] mx-auto py-8 px-6">
+                        <div>
                 <form action="{{ route('fakturpembelian.store') }}" method="POST" data-form-draft="true"
                     data-draft-key="fakturpembelian:create" x-data="{ showNoItems: false }"
                     @submit.prevent="if (window.fakturPembelianItemsTable?.submitForm) { window.fakturPembelianItemsTable.submitForm($el); } else { const n = Number(document.getElementById('itemsCount')?.value || 0); if (n < 1) { showNoItems = true } else { window.submitFormWithStockMinusConfirmation?.($el) } }">

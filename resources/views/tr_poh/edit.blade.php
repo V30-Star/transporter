@@ -199,7 +199,7 @@
         </div>
     @endif
 
-    <div class="max-w-[1600px] mx-auto py-8 px-6">
+    <div>
         @if ($isReadOnly)
             {{-- ───────────────────────────────────────────────────────────────────
                  READ-ONLY MODE (VIEW / DELETE)

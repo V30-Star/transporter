@@ -120,7 +120,7 @@
     @endif
 
     <div>
-        <div class="max-w-[1600px] mx-auto py-8 px-6">
+        <div>
             <form action="{{ route('tr_prh.store') }}" method="POST" data-form-draft="true" data-draft-key="tr_prh:create"
                 @submit.prevent="window.dispatchEvent(new CustomEvent('tr-prh-submit-request'))">
                 @csrf

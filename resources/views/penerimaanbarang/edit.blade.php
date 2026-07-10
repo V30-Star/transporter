@@ -149,7 +149,7 @@
     @endif
         @if ($isReadOnly)
         {{-- Read Only View Mode --}}
-        <div class="max-w-[1600px] mx-auto py-8 px-6">
+        <div>
             {{-- ─── CARD 1: Identitas Penerimaan Barang ────────────────────── --}}
             <div class="bg-white border border-gray-200 rounded-xl mb-3 overflow-hidden">
                 <div class="flex items-center gap-2 px-4 pt-3 pb-0">
@@ -403,7 +403,7 @@
         </div>
     @else
         {{-- Edit Mode --}}
-        <div class="max-w-[1600px] mx-auto py-8 px-6">
+        <div>
             <form action="{{ route('penerimaanbarang.update', $penerimaanbarang->fstockmtid) }}" method="POST" data-form-draft="true"
                 data-draft-key="penerimaanbarang:edit:{{ $penerimaanbarang->fstockmtid }}" x-data="mainForm()" x-init="init()"
                 @submit.prevent="submitForm($el)">

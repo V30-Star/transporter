@@ -239,8 +239,8 @@
         </div>
     @endif
     <div>
-        <div x-data="{ fclose: {{ old('fclose', $salesorder->fclose) == '1' ? 'true' : 'false' }}, includePPN: false, ppnRate: 0, ppnAmount: 0, selected: 'alamatsurat', totalHarga: 100000 }" class="max-w-[1600px] mx-auto py-8 px-6">
-            @if ($isReadOnly)
+        <div x-data="{ fclose: {{ old('fclose', $salesorder->fclose) == '1' ? 'true' : 'false' }}, includePPN: false, ppnRate: 0, ppnAmount: 0, selected: 'alamatsurat', totalHarga: 100000 }">
+            <?php if ($isReadOnly) { ?>
                 <div class="space-y-4">
 
                     {{-- ─── CARD 1: Identitas Sales Order ────────────────────── --}}
@@ -254,7 +254,7 @@
                             <p class="text-xs font-medium uppercase tracking-wide text-gray-400">Identitas Sales Order</p>
                         </div>
                         <div class="p-4 space-y-3">
-                            <div class="grid grid-cols-1 md:grid-cols-12 gap-3">
+                            <div class="grid grid-cols-3 gap-3">
                                 {{-- Cabang --}}
                                 <div class="md:col-span-4">
                                     <label class="block text-xs font-bold text-gray-600 mb-1">Cabang</label>
@@ -739,7 +739,7 @@
                         </div>
                     </div>
                 </div>
-            @else
+            <?php } else { ?>
                         <script>
                             window._soLabels = {
                                 noItemsTitle: @json(__('Tidak Ada Item')),
@@ -1046,10 +1046,6 @@
                                         @enderror
                                     </div>
                                 </div>
-                            </div>xt-sm mt-1">{{ $message }}</p>
-                                    @enderror
-                                </div>
-                            </div>
 
                             <div x-data="itemsTable()" x-init="init()" class="mt-6 space-y-2">
 
@@ -1380,7 +1376,7 @@
                                 </button>
                             </div>
                         </form>
-                @endif
+                <?php } ?>
             </div>
         </div>
     </div>

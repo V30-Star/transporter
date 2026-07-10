@@ -136,7 +136,7 @@
             ];
         }
     @endphp
-    <div class="max-w-[1600px] mx-auto py-8 px-6">
+    <div>
         <form action="{{ route('tr_poh.store') }}" method="POST" data-form-draft="true"
             data-draft-key="tr_poh:create" x-data="mainForm()" x-init="init()" @submit.prevent="submitForm($el)">
             @csrf
