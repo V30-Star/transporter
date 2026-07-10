@@ -226,154 +226,116 @@
         showNoItems: false,
         savedItems: []
     }" {{ $action === 'delete' || $action === 'view' || $usageLocked ? 'readonly-mode' : '' }}>
-        @if ($action === 'delete')
+        @if ($action === 'delete' || $action === 'view' || $usageLocked)
             {{-- ─── CARD 1: Identitas (Delete) ──────────────── --}}
             <div class="bg-white border border-gray-200 rounded-xl mb-3 overflow-hidden">
-                <div class="flex items-center gap-2 px-4 pt-3 pb-0">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-gray-400" fill="none"
-                        viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
-                    </svg>
-                    <p class="text-xs font-medium uppercase tracking-wide text-gray-400">Identitas Mutasi Stock</p>
-                </div>
-                <div class="p-4">
-                    <div class="grid grid-cols-3 gap-3">
-                            <div class="lg:col-span-4">
-                                <label class="block text-sm font-medium">Cabang</label>
-                                <input type="text" class="w-full border rounded px-3 py-2 bg-gray-200 cursor-not-allowed"
-                                    value="{{ trim(($fbranchcode ?? '') . ($fcabang ?? '' ? ' - ' . $fcabang : '')) }}" disabled>
-                                <input type="hidden" name="fbranchcode" value="{{ $fbranchcode }}">
-                            </div>
-                            <div class="lg:col-span-4" x-data="{ autoCode: true }">
-                                <label class="block text-sm font-medium mb-1">Transaksi#</label>
-                                <div class="flex items-center gap-3">
-                                    <input type="text" name="fstockmtno"
-                                        value="{{ old('fstockmtno', $mutasi->fstockmtno) }}"
-                                        class="w-full border rounded px-3 py-2" :disabled="autoCode"
-                                        :class="autoCode ? 'bg-gray-200 cursor-not-allowed' : 'bg-white'">
-                                    <label class="inline-flex items-center select-none">
-                                        <input type="checkbox" x-model="autoCode" checked>
-                                        <span class="ml-2 text-sm text-gray-700">Auto</span>
-                                    </label>
-                                </div>
-                            </div>
+    <div class="flex items-center gap-2 px-4 pt-3 pb-0">
+        <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-gray-400" fill="none"
+            viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
+        </svg>
+        <p class="text-xs font-medium uppercase tracking-wide text-gray-400">Identitas Mutasi Stock</p>
+    </div>
+    <div class="p-4">
+        <div class="grid grid-cols-3 gap-3">
+            <div class="lg:col-span-4">
+                <label class="block text-xs font-bold text-gray-600 mb-1">Cabang</label>
+                <input type="text"
+                    class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm bg-gray-100 text-gray-500 cursor-not-allowed border-gray-200"
+                    value="{{ trim(($fbranchcode ?? '') . ($fcabang ?? '' ? ' - ' . $fcabang : '')) }}" disabled>
+                <input type="hidden" name="fbranchcode" value="{{ $fbranchcode }}">
+            </div>
+            <div class="lg:col-span-4">
+                <label class="block text-xs font-bold text-gray-600 mb-1">Transaksi#</label>
+                <input type="text"
+                    class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm bg-gray-100 text-gray-500 cursor-not-allowed border-gray-200"
+                    value="{{ old('fstockmtno', $mutasi->fstockmtno) }}" disabled>
+                <input type="hidden" name="fstockmtno" value="{{ old('fstockmtno', $mutasi->fstockmtno) }}">
+            </div>
 
-                            <input type="hidden" name="fstockmtid" value="{{ $mutasi->fstockmtid }}">
+            <input type="hidden" name="fstockmtid" value="{{ $mutasi->fstockmtid }}">
 
-                            <div class="lg:col-span-4">
-                                <label class="block text-sm font-medium">Tanggal</label>
-                                <input disabled type="date" name="fstockmtdate"
-                                    value="{{ old('fstockmtdate') ?? date('Y-m-d') }}"
-                                    class="w-full border rounded px-3 py-2 bg-gray-100 @error('fstockmtdate') border-red-500 @enderror">
-                                @error('fstockmtdate')
-                                    <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
-                                @enderror
-                            </div>
-                            <!-- Field FROM -->
-                            <div class="lg:col-span-4">
-                                <label class="block text-sm font-medium mb-1">Gudang (Dari)</label>
-                                <div class="flex">
-                                    <div class="relative flex-1">
-                                        <select id="warehouseSelectFrom"
-                                            class="w-full border rounded-l px-3 py-2 bg-gray-100 text-gray-700 cursor-not-allowed"
-                                            disabled>
-                                            <option value=""></option>
-                                            @foreach (($fromWarehouses ?? $warehouses) as $wh)
-                                                <option value="{{ $wh->fwhcode }}" data-id="{{ $wh->fwhid }}"
-                                                    data-branch="{{ $wh->fbranchcode }}"
-                                                    {{ old('ffrom', $mutasi->ffrom) == $wh->fwhcode ? 'selected' : '' }}>
-                                                    {{ $wh->fwhcode }} - {{ $wh->fwhname }}
-                                                </option>
-                                            @endforeach
-                                        </select>
+            <!-- Tanggal - styled like Cabang (assembling) -->
+            <div class="lg:col-span-4">
+                <label class="block text-xs font-bold text-gray-600 mb-1">Tanggal</label>
+                <input type="date"
+                    class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm bg-gray-100 text-gray-500 cursor-not-allowed border-gray-200"
+                    value="{{ old('fstockmtdate') ?? date('Y-m-d') }}" disabled>
+                <input type="hidden" name="fstockmtdate" value="{{ old('fstockmtdate') ?? date('Y-m-d') }}">
+            </div>
 
-                                        <div class="absolute inset-0" role="button" aria-label="Browse warehouse"
-                                            @click="window.dispatchEvent(new CustomEvent('warehouse-browse-open', { detail: 'from' }))">
-                                        </div>
-                                    </div>
+            <!-- Field FROM - styled like Cabang (assembling) -->
+            <div class="lg:col-span-4">
+                <label class="block text-xs font-bold text-gray-600 mb-1">Gudang (Dari)</label>
+                <div class="flex">
+                    <div class="relative flex-1">
+                        <select id="warehouseSelectFrom"
+                            class="w-full border border-gray-300 rounded-l-lg px-3 py-2 text-sm bg-gray-100 text-gray-500 cursor-not-allowed border-gray-200"
+                            disabled>
+                            <option value=""></option>
+                            @foreach (($fromWarehouses ?? $warehouses) as $wh)
+                                <option value="{{ $wh->fwhcode }}" data-id="{{ $wh->fwhid }}"
+                                    data-branch="{{ $wh->fbranchcode }}"
+                                    {{ old('ffrom', $mutasi->ffrom) == $wh->fwhcode ? 'selected' : '' }}>
+                                    {{ $wh->fwhcode }} - {{ $wh->fwhname }}
+                                </option>
+                            @endforeach
+                        </select>
+                    </div>
 
-                                    <!-- PERBAIKAN: ID unik untuk field FROM -->
-                                    <input type="hidden" name="ffrom" id="warehouseCodeHiddenFrom"
-                                        value="{{ old('ffrom', $mutasi->ffrom) }}">
+                    <input type="hidden" name="ffrom" id="warehouseCodeHiddenFrom"
+                        value="{{ old('ffrom', $mutasi->ffrom) }}">
 
-                                    <button type="button" disabled
-                                        @click="window.dispatchEvent(new CustomEvent('warehouse-browse-open', { detail: 'from' }))"
-                                        class="border -ml-px px-3 py-2 bg-white hover:bg-gray-50 rounded-r-none"
-                                        title="Browse Gudang">
-                                        <x-heroicon-o-magnifying-glass class="w-5 h-5" />
-                                    </button>
-
-                                    <a href="{{ route('gudang.create') }}" target="_blank" rel="noopener"
-                                        class="border -ml-px rounded-r px-3 py-2 bg-white hover:bg-gray-50"
-                                        title="Tambah Gudang">
-                                        <x-heroicon-o-plus class="w-5 h-5" />
-                                    </a>
-                                </div>
-
-                                @error('ffrom')
-                                    <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
-                                @enderror
-                            </div>
-
-                            <!-- Field TO -->
-                            <div class="lg:col-span-4">
-                                <label class="block text-sm font-medium mb-1">Gudang (Tujuan)</label>
-                                <div class="flex">
-                                    <div class="relative flex-1">
-                                        <select id="warehouseSelectTo"
-                                            class="w-full border rounded-l px-3 py-2 bg-gray-100 text-gray-700 cursor-not-allowed"
-                                            disabled>
-                                            <option value=""></option>
-                                            @foreach (($fromWarehouses ?? $warehouses) as $wh)
-                                                <option value="{{ $wh->fwhcode }}" data-id="{{ $wh->fwhid }}"
-                                                    data-branch="{{ $wh->fbranchcode }}"
-                                                    {{ old('fto', $mutasi->fto) == $wh->fwhcode ? 'selected' : '' }}>
-                                                    {{ $wh->fwhcode }} - {{ $wh->fwhname }}
-                                                </option>
-                                            @endforeach
-                                        </select>
-
-                                        <div class="absolute inset-0" role="button" aria-label="Browse warehouse"
-                                            @click="window.dispatchEvent(new CustomEvent('warehouse-browse-open', { detail: 'to' }))">
-                                        </div>
-                                    </div>
-
-                                    <!-- PERBAIKAN: ID unik untuk field TO -->
-                                    <input type="hidden" name="fto" id="warehouseCodeHiddenTo"
-                                        value="{{ old('fto', $mutasi->fto) }}">
-
-                                    <button type="button" disabled
-                                        @click="window.dispatchEvent(new CustomEvent('warehouse-browse-open', { detail: 'to' }))"
-                                        class="border -ml-px px-3 py-2 bg-white hover:bg-gray-50 rounded-r-none"
-                                        title="Browse Gudang">
-                                        <x-heroicon-o-magnifying-glass class="w-5 h-5" />
-                                    </button>
-
-                                    <a href="{{ route('gudang.create') }}" target="_blank" rel="noopener"
-                                        class="border -ml-px rounded-r px-3 py-2 bg-white hover:bg-gray-50"
-                                        title="Tambah Gudang">
-                                        <x-heroicon-o-plus class="w-5 h-5" />
-                                    </a>
-                                </div>
-
-                                @error('fto')
-                                    <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
-                                @enderror
-                            </div>
-
-                            <div class="lg:col-span-12">
-                                <label class="block text-sm font-medium">Keterangan</label>
-                                <textarea readonly name="fket" rows="3"
-                                    class="w-full border rounded px-3 py-2 bg-gray-100 @error('fket') border-red-500 @enderror"
-                                    placeholder="Tulis keterangan tambahan di sini...">{{ old('fket', $mutasi->fket) }}</textarea>
-                                @error('fket')
-                                    <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
-                                @enderror
-                            </div>
-                        </div>
+                    <button type="button" disabled
+                        class="border border-gray-300 -ml-px px-3 py-2 bg-gray-100 text-gray-500 cursor-not-allowed rounded-r-lg"
+                        title="Browse Gudang">
+                        <x-heroicon-o-magnifying-glass class="w-5 h-5" />
+                    </button>
                 </div>
             </div>
+
+            <!-- Field TO - styled like Cabang (assembling) -->
+            <div class="lg:col-span-4">
+                <label class="block text-xs font-bold text-gray-600 mb-1">Gudang (Tujuan)</label>
+                <div class="flex">
+                    <div class="relative flex-1">
+                        <select id="warehouseSelectTo"
+                            class="w-full border border-gray-300 rounded-l-lg px-3 py-2 text-sm bg-gray-100 text-gray-500 cursor-not-allowed border-gray-200"
+                            disabled>
+                            <option value=""></option>
+                            @foreach (($fromWarehouses ?? $warehouses) as $wh)
+                                <option value="{{ $wh->fwhcode }}" data-id="{{ $wh->fwhid }}"
+                                    data-branch="{{ $wh->fbranchcode }}"
+                                    {{ old('fto', $mutasi->fto) == $wh->fwhcode ? 'selected' : '' }}>
+                                    {{ $wh->fwhcode }} - {{ $wh->fwhname }}
+                                </option>
+                            @endforeach
+                        </select>
+                    </div>
+
+                    <input type="hidden" name="fto" id="warehouseCodeHiddenTo"
+                        value="{{ old('fto', $mutasi->fto) }}">
+
+                    <button type="button" disabled
+                        class="border border-gray-300 -ml-px px-3 py-2 bg-gray-100 text-gray-500 cursor-not-allowed rounded-r-lg"
+                        title="Browse Gudang">
+                        <x-heroicon-o-magnifying-glass class="w-5 h-5" />
+                    </button>
+                </div>
+            </div>
+
+            <!-- Keterangan - styled like Cabang (assembling) -->
+            <div class="lg:col-span-12">
+                <label class="block text-xs font-bold text-gray-600 mb-1">Keterangan</label>
+                <textarea rows="3"
+                    class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm bg-gray-100 text-gray-500 cursor-not-allowed border-gray-200"
+                    disabled>{{ old('fket', $mutasi->fket) }}</textarea>
+                <input type="hidden" name="fket" value="{{ old('fket', $mutasi->fket) }}">
+            </div>
+        </div>
+    </div>
+</div>
 
             {{-- ─── CARD 2: Detail Item (Delete) ───────────── --}}
             <div class="bg-white border border-gray-200 rounded-xl mb-3 overflow-hidden">
@@ -647,11 +609,13 @@
             {{-- ─── CARD 3: Aksi (Delete) ──────────────────── --}}
             <div class="bg-white border border-gray-200 rounded-xl mb-3 overflow-hidden">
                 <div class="p-4 flex items-center justify-end gap-3 allow-action">
+                    @if ($action === 'delete')
                     <button type="button" onclick="showDeleteModal()"
-                        @if ($usageLocked) disabled @endif
-                        class="inline-flex h-9 items-center justify-center rounded-lg bg-red-600 px-4 text-xs font-semibold text-white shadow-sm hover:bg-red-700 disabled:opacity-60 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2">
-                        Hapus
-                    </button>
+                    @if ($usageLocked) disabled @endif
+                    class="inline-flex h-9 items-center justify-center rounded-lg bg-red-600 px-4 text-xs font-semibold text-white shadow-sm hover:bg-red-700 disabled:opacity-60 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2">
+                    Hapus
+                </button>
+                @endif
                     <button type="button" onclick="window.location.href='{{ route('mutasi.index') }}'"
                         class="inline-flex h-9 items-center justify-center rounded-lg border border-gray-300 bg-white px-4 text-xs font-semibold text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">
                         Kembali
@@ -669,154 +633,155 @@
                 @csrf
                 @method('PATCH')
 
-                {{-- ─── CARD 1: Identitas (Edit/View) ──────────── --}}
-                <div class="bg-white border border-gray-200 rounded-xl mb-3 overflow-hidden">
-                    <div class="flex items-center gap-2 px-4 pt-3 pb-0">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-gray-400" fill="none"
-                            viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
-                        </svg>
-                        <p class="text-xs font-medium uppercase tracking-wide text-gray-400">Identitas Mutasi Stock</p>
-                    </div>
-                    <div class="p-4">
-                        <div  class="grid grid-cols-3 gap-3">
-                            <div class="lg:col-span-4">
-                                <label class="block text-sm font-medium">Cabang</label>
-                                <input type="text"
-                                    class="w-full border rounded px-3 py-2 bg-gray-200 cursor-not-allowed"
-                                    value="{{ trim(($fbranchcode ?? '') . ($fcabang ?? '' ? ' - ' . $fcabang : '')) }}" disabled>
-                                <input type="hidden" name="fbranchcode" value="{{ $fbranchcode }}">
-                            </div>
-                            <div class="lg:col-span-4" x-data="{ autoCode: true }">
-                                <label class="block text-sm font-medium mb-1">Transaksi#</label>
-                                <div class="flex items-center gap-3">
-                                    <input type="text" name="fstockmtno"
-                                        value="{{ old('fstockmtno', $mutasi->fstockmtno) }}"
-                                        class="w-full border rounded px-3 py-2" :disabled="autoCode"
-                                        :class="autoCode ? 'bg-gray-200 cursor-not-allowed' : 'bg-white'">
-                                    <label class="inline-flex items-center select-none">
-                                        <input type="checkbox" x-model="autoCode" checked>
-                                        <span class="ml-2 text-sm text-gray-700">Auto</span>
-                                    </label>
-                                </div>
-                            </div>
+                {{-- ─── CARD 1: Identitas (Edit) ──────────── --}}
+<div class="bg-white border border-gray-200 rounded-xl mb-3 overflow-hidden">
+    <div class="flex items-center gap-2 px-4 pt-3 pb-0">
+        <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-gray-400" fill="none"
+            viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
+        </svg>
+        <p class="text-xs font-medium uppercase tracking-wide text-gray-400">Identitas Mutasi Stock</p>
+    </div>
+    <div class="p-4">
+        <div class="grid grid-cols-3 gap-3">
+            <div class="lg:col-span-4">
+                <label class="block text-xs font-bold text-gray-600 mb-1">Cabang</label>
+                <input type="text"
+                    class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm bg-gray-100 text-gray-500 cursor-not-allowed border-gray-200"
+                    value="{{ trim(($fbranchcode ?? '') . ($fcabang ?? '' ? ' - ' . $fcabang : '')) }}" disabled>
+                <input type="hidden" name="fbranchcode" value="{{ $fbranchcode }}">
+            </div>
+            <div class="lg:col-span-4" x-data="{ autoCode: true }">
+                <label class="block text-xs font-bold text-gray-600 mb-1">Transaksi#</label>
+                <div class="flex items-center gap-3">
+                    <input type="text" name="fstockmtno"
+                        value="{{ old('fstockmtno', $mutasi->fstockmtno) }}"
+                        class="w-full border rounded px-3 py-2" :disabled="autoCode"
+                        :class="autoCode ? 'bg-gray-200 cursor-not-allowed' : 'bg-white'">
+                    <label class="inline-flex items-center select-none">
+                        <input type="checkbox" x-model="autoCode" checked>
+                        <span class="ml-2 text-sm text-gray-700">Auto</span>
+                    </label>
+                </div>
+            </div>
 
-                            <input type="hidden" name="fstockmtid" value="{{ $mutasi->fstockmtid }}">
+            <input type="hidden" name="fstockmtid" value="{{ $mutasi->fstockmtid }}">
 
-                            <div class="lg:col-span-4">
-                                <label class="block text-sm font-medium">Tanggal</label>
-                                <input type="date" name="fstockmtdate"
-                                    value="{{ old('fstockmtdate') ?? date('Y-m-d') }}"
-                                    class="w-full border rounded px-3 py-2 @error('fstockmtdate') border-red-500 @enderror">
-                                @error('fstockmtdate')
-                                    <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
-                                @enderror
-                            </div>
-                            <!-- Field FROM -->
-                            <div class="lg:col-span-4">
-                                <label class="block text-sm font-medium mb-1">Gudang (Dari)</label>
-                                <div class="flex">
-                                    <div class="relative flex-1">
-                                        <select id="warehouseSelectFrom"
-                                            class="w-full border rounded-l px-3 py-2 bg-gray-100 text-gray-700 cursor-not-allowed"
-                                            disabled>
-                                            <option value=""></option>
-                                            @foreach ($warehouses as $wh)
-                                            <option value="{{ $wh->fwhcode }}" data-id="{{ $wh->fwhid }}"
-                                                data-branch="{{ $wh->fbranchcode }}"
-                                                {{ old('ffrom', $mutasi->ffrom) == $wh->fwhcode ? 'selected' : '' }}>
-                                                    {{ $wh->fwhcode }} - {{ $wh->fwhname }}
-                                                </option>
-                                            @endforeach
-                                        </select>
+            <!-- Tanggal - editable, label matches Cabang -->
+            <div class="lg:col-span-4">
+                <label class="block text-xs font-bold text-gray-600 mb-1">Tanggal</label>
+                <input type="date" name="fstockmtdate"
+                    value="{{ old('fstockmtdate') ?? date('Y-m-d') }}"
+                    class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm @error('fstockmtdate') border-red-500 @enderror">
+                @error('fstockmtdate')
+                    <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+                @enderror
+            </div>
 
-                                        <div class="absolute inset-0" role="button" aria-label="Browse warehouse"
-                                            @click="window.dispatchEvent(new CustomEvent('warehouse-browse-open', { detail: 'from' }))">
-                                        </div>
-                                    </div>
+            <!-- Field FROM -->
+            <div class="lg:col-span-4">
+                <label class="block text-xs font-bold text-gray-600 mb-1">Gudang (Dari)</label>
+                <div class="flex">
+                    <div class="relative flex-1">
+                        <select id="warehouseSelectFrom"
+                            class="w-full border rounded-l px-3 py-2 bg-gray-100 text-gray-700 cursor-not-allowed"
+                            disabled>
+                            <option value=""></option>
+                            @foreach ($warehouses as $wh)
+                            <option value="{{ $wh->fwhcode }}" data-id="{{ $wh->fwhid }}"
+                                data-branch="{{ $wh->fbranchcode }}"
+                                {{ old('ffrom', $mutasi->ffrom) == $wh->fwhcode ? 'selected' : '' }}>
+                                    {{ $wh->fwhcode }} - {{ $wh->fwhname }}
+                                </option>
+                            @endforeach
+                        </select>
 
-                                    <!-- PERBAIKAN: ID unik untuk field FROM -->
-                                    <input type="hidden" name="ffrom" id="warehouseCodeHiddenFrom"
-                                        value="{{ old('ffrom', $mutasi->ffrom) }}">
-
-                                    <button type="button"
-                                        @click="window.dispatchEvent(new CustomEvent('warehouse-browse-open', { detail: 'from' }))"
-                                        class="border -ml-px px-3 py-2 bg-white hover:bg-gray-50 rounded-r-none"
-                                        title="Browse Gudang">
-                                        <x-heroicon-o-magnifying-glass class="w-5 h-5" />
-                                    </button>
-
-                                    <a href="{{ route('gudang.create') }}" target="_blank" rel="noopener"
-                                        class="border -ml-px rounded-r px-3 py-2 bg-white hover:bg-gray-50"
-                                        title="Tambah Gudang">
-                                        <x-heroicon-o-plus class="w-5 h-5" />
-                                    </a>
-                                </div>
-
-                                @error('ffrom')
-                                    <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
-                                @enderror
-                            </div>
-
-                            <!-- Field TO -->
-                            <div class="lg:col-span-4">
-                                <label class="block text-sm font-medium mb-1">Gudang (Tujuan)</label>
-                                <div class="flex">
-                                    <div class="relative flex-1">
-                                        <select id="warehouseSelectTo"
-                                            class="w-full border rounded-l px-3 py-2 bg-gray-100 text-gray-700 cursor-not-allowed"
-                                            disabled>
-                                            <option value=""></option>
-                                            @foreach ($warehouses as $wh)
-                                            <option value="{{ $wh->fwhcode }}" data-id="{{ $wh->fwhid }}"
-                                                data-branch="{{ $wh->fbranchcode }}"
-                                                {{ old('fto', $mutasi->fto) == $wh->fwhcode ? 'selected' : '' }}>
-                                                    {{ $wh->fwhcode }} - {{ $wh->fwhname }}
-                                                </option>
-                                            @endforeach
-                                        </select>
-
-                                        <div class="absolute inset-0" role="button" aria-label="Browse warehouse"
-                                            @click="window.dispatchEvent(new CustomEvent('warehouse-browse-open', { detail: 'to' }))">
-                                        </div>
-                                    </div>
-
-                                    <!-- PERBAIKAN: ID unik untuk field TO -->
-                                    <input type="hidden" name="fto" id="warehouseCodeHiddenTo"
-                                        value="{{ old('fto', $mutasi->fto) }}">
-
-                                    <button type="button"
-                                        @click="window.dispatchEvent(new CustomEvent('warehouse-browse-open', { detail: 'to' }))"
-                                        class="border -ml-px px-3 py-2 bg-white hover:bg-gray-50 rounded-r-none"
-                                        title="Browse Gudang">
-                                        <x-heroicon-o-magnifying-glass class="w-5 h-5" />
-                                    </button>
-
-                                    <a href="{{ route('gudang.create') }}" target="_blank" rel="noopener"
-                                        class="border -ml-px rounded-r px-3 py-2 bg-white hover:bg-gray-50"
-                                        title="Tambah Gudang">
-                                        <x-heroicon-o-plus class="w-5 h-5" />
-                                    </a>
-                                </div>
-
-                                @error('fto')
-                                    <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
-                                @enderror
-                            </div>
-
-                            <div class="lg:col-span-12">
-                                <label class="block text-sm font-medium">Keterangan</label>
-                                <textarea name="fket" rows="3"
-                                    class="w-full border rounded px-3 py-2 @error('fket') border-red-500 @enderror"
-                                    placeholder="Tulis keterangan tambahan di sini...">{{ old('fket', $mutasi->fket) }}</textarea>
-                                @error('fket')
-                                    <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
-                                @enderror
-                            </div>
+                        <div class="absolute inset-0" role="button" aria-label="Browse warehouse"
+                            @click="window.dispatchEvent(new CustomEvent('warehouse-browse-open', { detail: 'from' }))">
                         </div>
                     </div>
+
+                    <input type="hidden" name="ffrom" id="warehouseCodeHiddenFrom"
+                        value="{{ old('ffrom', $mutasi->ffrom) }}">
+
+                    <button type="button"
+                        @click="window.dispatchEvent(new CustomEvent('warehouse-browse-open', { detail: 'from' }))"
+                        class="border -ml-px px-3 py-2 bg-white hover:bg-gray-50 rounded-r-none"
+                        title="Browse Gudang">
+                        <x-heroicon-o-magnifying-glass class="w-5 h-5" />
+                    </button>
+
+                    <a href="{{ route('gudang.create') }}" target="_blank" rel="noopener"
+                        class="border -ml-px rounded-r px-3 py-2 bg-white hover:bg-gray-50"
+                        title="Tambah Gudang">
+                        <x-heroicon-o-plus class="w-5 h-5" />
+                    </a>
                 </div>
+
+                @error('ffrom')
+                    <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+                @enderror
+            </div>
+
+            <!-- Field TO -->
+            <div class="lg:col-span-4">
+                <label class="block text-xs font-bold text-gray-600 mb-1">Gudang (Tujuan)</label>
+                <div class="flex">
+                    <div class="relative flex-1">
+                        <select id="warehouseSelectTo"
+                            class="w-full border rounded-l px-3 py-2 bg-gray-100 text-gray-700 cursor-not-allowed"
+                            disabled>
+                            <option value=""></option>
+                            @foreach ($warehouses as $wh)
+                            <option value="{{ $wh->fwhcode }}" data-id="{{ $wh->fwhid }}"
+                                data-branch="{{ $wh->fbranchcode }}"
+                                {{ old('fto', $mutasi->fto) == $wh->fwhcode ? 'selected' : '' }}>
+                                    {{ $wh->fwhcode }} - {{ $wh->fwhname }}
+                                </option>
+                            @endforeach
+                        </select>
+
+                        <div class="absolute inset-0" role="button" aria-label="Browse warehouse"
+                            @click="window.dispatchEvent(new CustomEvent('warehouse-browse-open', { detail: 'to' }))">
+                        </div>
+                    </div>
+
+                    <input type="hidden" name="fto" id="warehouseCodeHiddenTo"
+                        value="{{ old('fto', $mutasi->fto) }}">
+
+                    <button type="button"
+                        @click="window.dispatchEvent(new CustomEvent('warehouse-browse-open', { detail: 'to' }))"
+                        class="border -ml-px px-3 py-2 bg-white hover:bg-gray-50 rounded-r-none"
+                        title="Browse Gudang">
+                        <x-heroicon-o-magnifying-glass class="w-5 h-5" />
+                    </button>
+
+                    <a href="{{ route('gudang.create') }}" target="_blank" rel="noopener"
+                        class="border -ml-px rounded-r px-3 py-2 bg-white hover:bg-gray-50"
+                        title="Tambah Gudang">
+                        <x-heroicon-o-plus class="w-5 h-5" />
+                    </a>
+                </div>
+
+                @error('fto')
+                    <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+                @enderror
+            </div>
+
+            <!-- Keterangan - editable, label matches Cabang -->
+            <div class="lg:col-span-12">
+                <label class="block text-xs font-bold text-gray-600 mb-1">Keterangan</label>
+                <textarea name="fket" rows="3"
+                    class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm @error('fket') border-red-500 @enderror"
+                    placeholder="Tulis keterangan tambahan di sini...">{{ old('fket', $mutasi->fket) }}</textarea>
+                @error('fket')
+                    <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+                @enderror
+            </div>
+        </div>
+    </div>
+</div>
 
                 {{-- ─── CARD 2: Detail Item (Edit/View) ─────── --}}
                 <div class="bg-white border border-gray-200 rounded-xl mb-3 overflow-hidden">
