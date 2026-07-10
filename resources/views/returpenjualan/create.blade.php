@@ -223,20 +223,20 @@
                     <p class="text-xs font-medium uppercase tracking-wide text-gray-400">Identitas Retur Penjualan</p>
                 </div>
                 <div class="p-4">
-                    <div class="grid grid-cols-1 lg:grid-cols-12 gap-4">
-                        <div class="lg:col-span-4">
-                            <label class="block text-sm font-medium">Cabang</label>
-                            <input type="text" class="w-full border rounded px-3 py-2 bg-gray-200 cursor-not-allowed"
+                    <div class="grid grid-cols-3 gap-3">
+                        <div>
+                            <label class="block text-xs font-bold text-gray-600 mb-1">Cabang</label>
+                            <input type="text" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm bg-gray-100 text-gray-500 cursor-not-allowed border-gray-200"
                                 value="{{ trim($fbranchcode) }}" disabled>
                             <input type="hidden" name="fbranchcode" value="{{ $fbranchcode }}">
                         </div>
 
-                        <div class="lg:col-span-4" x-data="{ autoCode: true }">
-                            <label class="block text-sm font-medium mb-1">Transaksi#</label>
+                        <div x-data="{ autoCode: true }">
+                            <label class="block text-xs font-bold text-gray-600 mb-1">Transaksi#</label>
                             <div class="flex items-center gap-3">
-                                <input type="text" name="fsono" class="w-full border rounded px-3 py-2"
+                                <input type="text" name="fsono" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
                                     :disabled="autoCode"
-                                    :class="autoCode ? 'bg-gray-200 cursor-not-allowed' : 'bg-white'">
+                                    :class="autoCode ? 'bg-gray-100 text-gray-500 cursor-not-allowed border-gray-200' : 'bg-white'">
                                 <label class="inline-flex items-center select-none">
                                     <input type="checkbox" x-model="autoCode" checked>
                                     <span class="ml-2 text-sm text-gray-700">Auto</span>
@@ -244,23 +244,23 @@
                             </div>
                         </div>
 
-                        <div class="lg:col-span-4">
-                            <label class="block text-sm font-medium">Tanggal</label>
+                        <div>
+                            <label class="block text-xs font-bold text-gray-600 mb-1">Tanggal</label>
                             <input type="date" id="fsodate" name="fsodate"
                                 value="{{ old('fsodate') ?? date('Y-m-d') }}"
-                                class="w-full border rounded px-3 py-2 @error('fsodate') border-red-500 @enderror">
+                                class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 @error('fsodate') border-red-500 @enderror">
                             @error('fsodate')
                                 <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                             @enderror
                         </div>
 
                         {{-- Customer --}}
-                        <div class="lg:col-span-4">
-                            <label class="block text-sm font-medium mb-1">Customer</label>
+                        <div>
+                            <label class="block text-xs font-bold text-gray-600 mb-1">Customer</label>
                             <div class="flex">
                                 <div class="relative flex-1" for="modal_filter_customer_id">
                                     <select id="modal_filter_customer_id" name="filter_customer_id"
-                                        class="w-full border rounded-l px-3 py-2 bg-gray-100 text-gray-700 cursor-not-allowed"
+                                        class="w-full border border-gray-300 rounded-l-lg px-3 py-2 text-sm bg-gray-50 text-gray-700 cursor-pointer focus:outline-none focus:border-blue-500 pointer-events-none"
                                         disabled>
                                         <option value=""></option>
                                         @foreach ($customers as $customer)
@@ -270,19 +270,19 @@
                                             </option>
                                         @endforeach
                                     </select>
-                                    <div class="absolute inset-0" role="button" aria-label="{{ 'Browse Customer' }}"
+                                    <div class="absolute inset-0 cursor-pointer z-10" role="button" aria-label="{{ 'Browse Customer' }}"
                                         @click="window.dispatchEvent(new CustomEvent('customer-browse-open'))"></div>
                                 </div>
                                 <input type="hidden" name="fcustno" id="customerCodeHidden" value="{{ old('fcustno') }}">
                                 <button type="button"
                                     @click="window.dispatchEvent(new CustomEvent('customer-browse-open'))"
-                                    class="border -ml-px px-3 py-2 bg-white hover:bg-gray-50 rounded-r-none"
+                                    class="border border-l-0 border-gray-300 px-3 py-2 bg-white hover:bg-gray-50 text-gray-500 transition-colors"
                                     title="{{ 'Browse Customer' }}">
                                     <x-heroicon-o-magnifying-glass class="w-5 h-5" />
                                 </button>
                                 @if (in_array('createCustomer', explode(',', session('user_restricted_permissions', '')), true))
                                     <a href="{{ route('customer.create') }}" target="_blank" rel="noopener"
-                                        class="border -ml-px rounded-r px-3 py-2 bg-white hover:bg-gray-50"
+                                        class="border border-l-0 border-gray-300 rounded-r-lg px-3 py-2 bg-white hover:bg-gray-50 text-gray-500 transition-colors"
                                         title="Tambah Customer">
                                         <x-heroicon-o-plus class="w-5 h-5" />
                                     </a>
@@ -294,12 +294,12 @@
                         </div>
 
                         {{-- Salesman --}}
-                        <div class="lg:col-span-4">
-                            <label class="block text-sm font-medium mb-1">Salesman</label>
+                        <div>
+                            <label class="block text-xs font-bold text-gray-600 mb-1">Salesman</label>
                             <div class="flex">
                                 <div class="relative flex-1" for="modal_filter_salesman_id">
                                     <select id="modal_filter_salesman_id" name="filter_salesman_id"
-                                        class="w-full border rounded-l px-3 py-2 bg-gray-100 text-gray-700 cursor-not-allowed"
+                                        class="w-full border border-gray-300 rounded-l-lg px-3 py-2 text-sm bg-gray-50 text-gray-700 cursor-pointer focus:outline-none focus:border-blue-500 pointer-events-none"
                                         disabled>
                                         <option value=""></option>
                                         @foreach ($salesmans as $salesman)
@@ -309,20 +309,20 @@
                                             </option>
                                         @endforeach
                                     </select>
-                                    <div class="absolute inset-0" role="button" aria-label="{{ 'Browse Salesman' }}"
+                                    <div class="absolute inset-0 cursor-pointer z-10" role="button" aria-label="{{ 'Browse Salesman' }}"
                                         @click="window.dispatchEvent(new CustomEvent('salesman-browse-open'))"></div>
                                 </div>
                                 <input type="hidden" name="fsalesman" id="salesmanCodeHidden"
                                     value="{{ old('fsalesman', '0') }}">
                                 <button type="button"
                                     @click="window.dispatchEvent(new CustomEvent('salesman-browse-open'))"
-                                    class="border -ml-px px-3 py-2 bg-white hover:bg-gray-50 rounded-r-none"
+                                    class="border border-l-0 border-gray-300 px-3 py-2 bg-white hover:bg-gray-50 text-gray-500 transition-colors"
                                     title="{{ 'Browse Salesman' }}">
                                     <x-heroicon-o-magnifying-glass class="w-5 h-5" />
                                 </button>
                                 @if (in_array('createSalesman', explode(',', session('user_restricted_permissions', '')), true))
                                     <a href="{{ route('salesman.create') }}" target="_blank" rel="noopener"
-                                        class="border -ml-px rounded-r px-3 py-2 bg-white hover:bg-gray-50"
+                                        class="border border-l-0 border-gray-300 rounded-r-lg px-3 py-2 bg-white hover:bg-gray-50 text-gray-500 transition-colors"
                                         title="Tambah Salesman">
                                         <x-heroicon-o-plus class="w-5 h-5" />
                                     </a>
@@ -334,12 +334,12 @@
                         </div>
 
                         {{-- Gudang --}}
-                        <div class="lg:col-span-4">
-                            <label class="block text-sm font-medium mb-1">Gudang</label>
+                        <div>
+                            <label class="block text-xs font-bold text-gray-600 mb-1">Gudang</label>
                             <div class="flex">
                                 <div class="relative flex-1" for="warehouseSelect">
                                     <select id="warehouseSelect" name="filter_warehouse_id"
-                                        class="w-full border rounded-l px-3 py-2 bg-gray-100 text-gray-700 cursor-not-allowed"
+                                        class="w-full border border-gray-300 rounded-l-lg px-3 py-2 text-sm bg-gray-50 text-gray-700 cursor-pointer focus:outline-none focus:border-blue-500 pointer-events-none"
                                         disabled>
                                         <option value=""></option>
                                         @foreach ($warehouses as $wh)
@@ -349,14 +349,14 @@
                                             </option>
                                         @endforeach
                                     </select>
-                                    <div class="absolute inset-0" role="button" aria-label="Browse Gudang"
+                                    <div class="absolute inset-0 cursor-pointer z-10" role="button" aria-label="Browse Gudang"
                                         @click="window.dispatchEvent(new CustomEvent('warehouse-browse-open'))"></div>
                                 </div>
                                 <input type="hidden" name="ffrom" id="warehouseCodeHidden"
                                     value="{{ old('ffrom') }}">
                                 <button type="button"
                                     @click="window.dispatchEvent(new CustomEvent('warehouse-browse-open'))"
-                                    class="border -ml-px px-3 py-2 bg-white hover:bg-gray-50 rounded-r"
+                                    class="border border-l-0 border-gray-300 rounded-r-lg px-3 py-2 bg-white hover:bg-gray-50 text-gray-500 transition-colors"
                                     title="Browse Gudang">
                                     <x-heroicon-o-magnifying-glass class="w-5 h-5" />
                                 </button>
@@ -368,10 +368,10 @@
 
                         <input type="hidden" name="ftaxno" value="0">
 
-                        <div class="lg:col-span-12">
-                            <label class="block text-sm font-medium">Keterangan</label>
-                            <textarea name="fket" rows="3"
-                                class="w-full border rounded px-3 py-2 @error('fket') border-red-500 @enderror"
+                        <div class="lg:col-span-3">
+                            <label class="block text-xs font-bold text-gray-600 mb-1">Keterangan</label>
+                            <textarea name="fket" rows="2"
+                                class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 @error('fket') border-red-500 @enderror"
                                 placeholder="Keterangan isi di sini..."></textarea>
                             @error('fket')
                                 <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
