@@ -433,7 +433,7 @@
                         </div>
 
                         {{-- Footer Buttons --}}
-                        <div class="flex items-center justify-between px-4 py-3 bg-gray-50 border-t border-gray-200">
+                        <div class="flex items-center justify-end gap-3 px-4 py-3 bg-gray-50 border-t border-gray-200">
                             <button type="button" onclick="window.location.href='{{ route('tr_prh.index') }}'"
                                 class="inline-flex items-center gap-2 px-4 py-2 border border-gray-300 bg-white text-gray-600 text-sm font-medium rounded-lg hover:bg-gray-50 hover:border-gray-400 transition-colors">
                                 <x-heroicon-o-arrow-left class="w-4 h-4" />
@@ -839,7 +839,7 @@
                         </div>
 
                         {{-- Footer Buttons --}}
-                        <div class="flex items-center justify-between px-4 py-3 bg-gray-50 border-t border-gray-200">
+                        <div class="flex items-center justify-end gap-3 px-4 py-3 bg-gray-50 border-t border-gray-200">
                             <button type="button" @click="window.location.href='{{ route('tr_prh.index') }}'"
                                 class="inline-flex items-center gap-2 px-4 py-2 border border-gray-300 bg-white text-gray-600 text-sm font-medium rounded-lg hover:bg-gray-50 hover:border-gray-400 transition-colors">
                                 <x-heroicon-o-arrow-left class="w-4 h-4" />
