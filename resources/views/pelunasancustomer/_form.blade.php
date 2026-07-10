@@ -327,7 +327,6 @@ class="w-full border-gray-300 rounded-lg px-3 py-2 bg-gray-100 cursor-not-allowe
                         <span>{{ 'Add Nota' }}</span>
                     </button>
                 </div>
-            </div>
 
             <div class="flex justify-end">
                 <div class="w-full max-w-2xl">
@@ -435,6 +434,7 @@ class="w-full border-gray-300 rounded-lg px-3 py-2 bg-gray-100 cursor-not-allowe
         </div>
     </div>
 </div>
+    </form>
     @if (!$isReadOnly)
         <div x-cloak x-show="notaModalOpen" x-transition.opacity
             class="fixed inset-0 z-[95] flex items-center justify-center overflow-hidden p-3 md:p-6">
@@ -568,7 +568,6 @@ class="w-full border-gray-300 rounded-lg px-3 py-2 bg-gray-100 cursor-not-allowe
             </div>
         </div>
     @endif
-    </form>
 </div>
 
 @if (!$isReadOnly)
