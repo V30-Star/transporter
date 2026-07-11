@@ -1708,6 +1708,7 @@ class InvoiceController extends Controller
                     'fneedacc' => $needsApprovalNotification ? '1' : '0',
                     'fuseracc' => $creditApproval['fuseracc'],
                     'fprint' => 0,
+                    'ftunai' => 0,
                     'fjatuhtempo' => $fjatuhtempo,
                     ...$approvalState,
                 ];

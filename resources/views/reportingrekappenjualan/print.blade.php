@@ -124,7 +124,6 @@
             background-color: transparent;
             margin-bottom: 0px;
             color: #0f172a;
-            /* border-bottom: 1px solid #edf2f7; */
             padding: 2px 8px;
         }
 
@@ -161,8 +160,6 @@
         .group-total-row {
             background-color: transparent;
             font-weight: bold;
-            /* border-top: 1px solid #000000; */
-            /* border-bottom: 1px solid #000000; */
             color: #0f172a;
         }
 
@@ -220,7 +217,7 @@
         .journal-block {
             page-break-inside: avoid;
             break-inside: avoid;
-            margin-bottom: 3px;
+            margin-bottom: 0px;
         }
 
         .po-totals-panel-wrapper {
@@ -355,7 +352,6 @@
                 {{ request('date_from') ? \Carbon\Carbon::parse(request('date_from'))->format('d/m/Y') : '...' }}
                 s/d
                 {{ request('date_to') ? \Carbon\Carbon::parse(request('date_to'))->format('d/m/Y') : '...' }}
-                | {{ $groupBy === 'group' ? 'By Group Produk' : 'By Merek' }}
             </div>
             <div class="info-tambahan">
                 <div><span class="info-label">Tanggal</span>: {{ date('d/m/Y') }}</div>
@@ -399,7 +395,7 @@
             {{-- Group Total block --}}
             <div class="journal-block">
                 <div class="group-total-row">
-                    <div style="grid-column: span 4; text-align: right; padding-right: 8px;">Total({{ $groupCode }})</div>
+                    <div style="grid-column: span 4; text-align: right; padding-right: 8px;">Total {{ $groupCode }}</div>
                     <div>{{ number_format((float) $groupTotal, 2, ',', '.') }}</div>
                 </div>
             </div>
@@ -478,7 +474,7 @@
                     ${headerSectionHtml}
                     ${poHeaderLabelsHtml}
                 </div>
-                <div class="page-content" style="margin-top: 5px;"></div>
+                <div class="page-content"></div>
             `;
             const infoTambahan = page.querySelector(".info-tambahan");
             if (infoTambahan) {

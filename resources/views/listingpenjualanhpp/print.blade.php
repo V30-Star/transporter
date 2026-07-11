@@ -129,7 +129,7 @@
         .detail-labels,
         .detail-row {
             display: grid;
-            grid-template-columns: 30mm 60mm 25mm 25mm 25mm 30mm 30mm 35mm;
+            grid-template-columns: 30mm 30mm 30mm 30mm 30mm 30mm 30mm 30mm;
             gap: 1px;
             font-size: 8px;
             padding: 2px 8px;
@@ -381,7 +381,7 @@
     </div>
 
     @php
-        $totalSales = $groupedData->sum(fn($items) => (float) ($items->first()->famountso ?? 0));
+        $totalSales = $groupedData->sum(fn($items) => (float) ($items->first()->famountgross ?? 0));
         $totalDiscount = $groupedData->sum(fn($items) => (float) ($items->first()->fdiscount ?? 0));
         $totalHpp = $rows->sum('famounthpp');
         $totalLaba = $rows->sum('flabarugi');
@@ -437,7 +437,7 @@
         @foreach ($groupedData as $fsono => $items)
             @php $h = $items->first(); @endphp
             <div class="journal-block">
-                <div class="invoice-row" style="margin-top: 5px;">
+                <div class="invoice-row">
                     <div>{{ $h->fbranchcode }}</div>
                     <div class="truncate" title="{{ $h->fsono }}">{{ $h->fsono }}</div>
                     <div>{{ $h->fsodate ? \Carbon\Carbon::parse($h->fsodate)->format('d/m/Y') : '' }}</div>
@@ -455,20 +455,14 @@
                     <div class="detail-row">
                         <div class="truncate">{{ $row->fprdcode }}</div>
                         <div class="truncate" title="{{ $row->fprdname }}">{{ $row->fprdname }}</div>
-                        <div>{{ number_format((float) $row->fqty, 2, ',', '.') }} {{ $row->fsatuan }}</div>
-                        <div>{{ number_format((float) $row->fpricenet, 2, ',', '.') }}</div>
-                        <div>{{ number_format((float) $row->fhpp, 2, ',', '.') }}</div>
-                        <div>{{ number_format((float) $row->famountsales, 2, ',', '.') }}</div>
-                        <div>{{ number_format((float) $row->famounthpp, 2, ',', '.') }}</div>
-                        <div>{{ number_format((float) $row->flabarugi, 2, ',', '.') }}</div>
+                        <div class="right">{{ number_format((float) $row->fqty, 2, ',', '.') }} {{ $row->fsatuan }}</div>
+                        <div class="right">{{ number_format((float) $row->famountgross, 2, ',', '.') }}</div>
+                        <div class="right">{{ number_format((float) $row->fhpp, 2, ',', '.') }}</div>
+                        <div class="right">{{ number_format((float) $row->famountsales, 2, ',', '.') }}</div>
+                        <div class="right">{{ number_format((float) $row->famounthpp, 2, ',', '.') }}</div>
+                        <div class="right">{{ number_format((float) $row->flabarugi, 2, ',', '.') }}</div>
                     </div>
                 @endforeach
-
-                <div class="detail-row" style="font-weight: bold;">
-                    <div style="grid-column: span 7;" class="right">Total Laba/Rugi {{ $h->fsono }}</div>
-                    <div>{{ number_format((float) $items->sum('flabarugi'), 2, ',', '.') }}</div>
-                </div>
-
                 @if (!$loop->last)
                     <div class="separator"></div>
                 @endif
@@ -560,7 +554,7 @@
                     ${salesHeaderLabelsHtml}
                     ${salesDetailLabelsHtml}
                 </div>
-                <div class="page-content" style="margin-top: 5px;"></div>
+                <div class="page-content"></div>
             `;
             const infoTambahan = page.querySelector(".info-tambahan");
             if (infoTambahan) {

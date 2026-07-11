@@ -45,7 +45,9 @@ class ListingPiutangPenjualanController extends Controller
 
         $base = DB::table('tranmt as m')
             ->join('mscustomer as c', 'm.fcustno', '=', 'c.fcustomercode')
-            ->selectRaw("m.fbranchcode, m.fsono, m.ftrcode AS fstockmtcode, m.fsodate, m.fjatuhtempo, m.frefno, m.fcustno AS fcustomer, c.fcustomername AS fcustname, m.famountso AS fnilainota, CASE WHEN m.ftrcode = 'REJ' THEN m.famountso * -1 ELSE m.famountso END AS famountso, m.fuserid, m.fsalesman, c.fwilayah")
+            ->selectRaw("m.fbranchcode, m.fsono, m.ftrcode AS fstockmtcode, m.fsodate, m.fjatuhtempo, m.frefno, m.fcustno AS fcustomer, 
+            c.fcustomername AS fcustname, m.famountso AS fnilainota, 
+            CASE WHEN m.ftrcode = 'REJ' THEN m.famountso * -1 ELSE m.famountso END AS famountso, m.fuserid, m.fsalesman, c.fwilayah")
             ->whereIn('m.ftrcode', ['INV', 'REJ'])
             ->where('m.fsodate', '<=', $perTanggal)
             ->where(function ($q) {
@@ -129,7 +131,7 @@ class ListingPiutangPenjualanController extends Controller
         // Header Informasi
         $writer->addRow($makeRow(['LISTING PIUTANG PENJUALAN'], $styleTitle));
         $writer->addRow($makeRow(['Tanggal:', date('d/m/Y').'  Jam: '.date('H:i')]));
-        $writer->addRow($makeRow(['Per Tanggal:', $request->input('per_tanggal', date('Y-m-d'))]));
+        $writer->addRow($makeRow(['Per Tanggal:', $request->input('per_tanggal', date('d-m-Y'))]));
         $writer->addRow($makeRow(['Operator:', auth('sysuser')->user()->fname ?? auth()->user()->fname ?? 'User']));
         $writer->addRow($makeRow([]));
 

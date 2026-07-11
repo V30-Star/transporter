@@ -87,51 +87,46 @@
         .item-row,
         .group-total-row {
             display: grid;
-            grid-template-columns: 10mm 15mm 1fr 20mm 22mm 28mm 28mm 22mm;
-            border-bottom: 1px solid #000;
-            gap: 1px;
+            grid-template-columns: 8mm 12mm 28mm 20mm 22mm 30mm 30mm 30mm;
+            gap: 4px;
             font-size: 8px;
             padding: 4px 3px;
         }
 
         .po-header-labels {
-            background-color: #f0f0f0;
             border: 1px solid #000;
             margin-bottom: 1px;
             font-weight: bold;
         }
 
         .item-row {
-            background-color: #fff;
             padding: 3px 3px;
-            border-bottom: 1px solid #eee;
         }
 
-        .item-row > div:nth-child(6),
-        .item-row > div:nth-child(7),
-        .po-header-labels > div:nth-child(6),
-        .po-header-labels > div:nth-child(7),
-        .group-total-row > div:nth-child(2),
-        .group-total-row > div:nth-child(3) {
+        .item-row>div:nth-child(6),
+        .item-row>div:nth-child(7),
+        .po-header-labels>div:nth-child(6),
+        .po-header-labels>div:nth-child(7),
+        .group-total-row>div:nth-child(2),
+        .group-total-row>div:nth-child(3) {
             text-align: right;
+        }
+
+        .item-row>div:nth-child(7),
+        .po-header-labels>div:nth-child(7) {
+            padding-right: 6px;
         }
 
         .group-row {
             display: block;
-            background-color: #ffe6e6;
-            color: #c00;
             font-weight: bold;
             font-size: 8px;
-            padding: 4px 6px;
-            border: 1px solid #ccc;
+            padding: 2px 6px;
             margin-bottom: 1px;
         }
 
         .group-total-row {
-            background-color: #f9fafb;
             font-weight: bold;
-            border-top: 1px solid #ccc;
-            border-bottom: 1px solid #000;
         }
 
         .truncate {
@@ -157,7 +152,8 @@
         }
 
         .print-button {
-            background-color: #0f172a; /* Navy-Ink background */
+            background-color: #0f172a;
+            /* Navy-Ink background */
             color: white;
             padding: 8px 16px;
             border-radius: 6px;
@@ -174,7 +170,8 @@
         }
 
         .print-button:hover {
-            background-color: #000000; /* Black background on hover */
+            background-color: #000000;
+            /* Black background on hover */
             transform: translateY(-1px);
             box-shadow: 0 4px 6px rgba(15, 23, 42, 0.3);
         }
@@ -185,23 +182,22 @@
         }
 
         .grand-total-section {
-            margin-top: 20px;
+            margin-top: 5px;
             border-top: 1px solid #919191;
-            padding-top: 10px;
+            border-bottom: 1px solid #919191;
+            padding-top: 1px;
             display: flex;
             justify-content: flex-end;
         }
 
         .grand-total-panel {
             width: 85mm;
-            border: 1px solid #919191;
             font-size: 10px;
         }
 
         .grand-total-row {
             display: grid;
             grid-template-columns: 25mm 30mm 30mm;
-            border-bottom: 1px solid #ccc;
             font-weight: bold;
         }
 
@@ -273,8 +269,7 @@
 
         <a href="{{ route('listingpiutangpenjualan.excel', request()->query()) }}"
             style="padding: 7px 12px; background-color: #22c55e; color: white; border-radius: 4px; text-decoration: none; font-weight: bold; font-size: 12px; display: inline-flex; align-items: center; justify-content: center; transition: background-color 0.2s;"
-            onmouseover="this.style.backgroundColor='#16a34a'"
-            onmouseout="this.style.backgroundColor='#22c55e'">
+            onmouseover="this.style.backgroundColor='#16a34a'" onmouseout="this.style.backgroundColor='#22c55e'">
             📊 Excel
         </a>
     </div>
@@ -282,7 +277,9 @@
     @php
         $grandFaktur = 0;
         $grandPiutang = 0;
-        $branchText = request()->has('branch_codes') ? implode(', ', (array) request()->input('branch_codes')) : 'Semua';
+        $branchText = request()->has('branch_codes')
+            ? implode(', ', (array) request()->input('branch_codes'))
+            : 'Semua';
     @endphp
 
     <div id="raw-source" style="display: none;">
@@ -293,7 +290,7 @@
             </div>
             <h2>Listing Piutang Penjualan</h2>
             <div class="filter-info">
-                Per Tanggal: {{ request('per_tanggal') ?: date('Y-m-d') }}
+                Per Tanggal: {{ \Carbon\Carbon::parse(request('per_tanggal') ?: now())->format('d/m/Y') }}
                 @if (request()->boolean('tgl_pembayaran'))
                     | Tgl. Pembayaran: {{ request('tgl_pembayaran_date') ?: request('per_tanggal') }}
                 @endif
@@ -327,7 +324,7 @@
                 $grandFaktur += $customerFaktur;
                 $grandPiutang += $customerPiutang;
             @endphp
-            
+
             {{-- Group Header block --}}
             <div class="journal-block group-row">
                 {{ $customer }} - {{ $first->fcustname }}
@@ -341,10 +338,12 @@
                             <div>{{ $row->fbranchcode }}</div>
                             <div class="truncate" title="{{ $row->fsono }}">{{ $row->fsono }}</div>
                             <div>{{ $row->fsodate ? \Carbon\Carbon::parse($row->fsodate)->format('d/m/Y') : '' }}</div>
-                            <div>{{ $row->fjatuhtempo ? \Carbon\Carbon::parse($row->fjatuhtempo)->format('d/m/Y') : '' }}</div>
+                            <div>
+                                {{ $row->fjatuhtempo ? \Carbon\Carbon::parse($row->fjatuhtempo)->format('d/m/Y') : '' }}
+                            </div>
                             <div>{{ number_format((float) $row->famountso, 2, ',', '.') }}</div>
                             <div>{{ number_format((float) $row->fsisapiu, 2, ',', '.') }}</div>
-                            <div class="truncate" title="{{ $row->fsalesman }}">{{ $row->fsalesman }}</div>
+                            <div title="{{ $row->fsalesman }}">{{ $row->fsalesman }}</div>
                         </div>
                     </div>
                 @endforeach
@@ -353,7 +352,8 @@
             {{-- Group Total block --}}
             <div class="journal-block">
                 <div class="group-total-row">
-                    <div style="grid-column: span 5; text-align: right; padding-right: 8px;">Total({{ $first->fcustname }})</div>
+                    <div style="grid-column: span 5; text-align: right; padding-right: 8px;">
+                        Total({{ $first->fcustname }})</div>
                     <div>{{ number_format((float) $customerFaktur, 2, ',', '.') }}</div>
                     <div>{{ number_format((float) $customerPiutang, 2, ',', '.') }}</div>
                     <div></div>
@@ -391,7 +391,8 @@
                         <div><span class="info-label">Jam</span>: {{ date('H:i') }}</div>
                         <div><span class="info-label">Opr</span>: {{ $user_session->fname ?? 'User' }}</div>
                     </div>
-                    <div style="margin-top: 30px; text-align: center; font-size: 12px; color: #666;">Tidak ada data ditemukan.</div>
+                    <div style="margin-top: 30px; text-align: center; font-size: 12px; color: #666;">Tidak ada data
+                        ditemukan.</div>
                 </div>
             </div>
         @endif
@@ -401,7 +402,7 @@
 </html>
 
 <script>
-    document.addEventListener("DOMContentLoaded", function () {
+    document.addEventListener("DOMContentLoaded", function() {
         const rawSource = document.getElementById("raw-source");
         const reportWrapper = document.getElementById("reportWrapper");
         if (!rawSource || !reportWrapper) return;
@@ -435,7 +436,8 @@
             const infoTambahan = page.querySelector(".info-tambahan");
             if (infoTambahan) {
                 const halDiv = document.createElement("div");
-                halDiv.innerHTML = `<span class="info-label">Hal</span>: <span class="page-number-current"></span> / <span class="page-number-total"></span>`;
+                halDiv.innerHTML =
+                    `<span class="info-label">Hal</span>: <span class="page-number-current"></span> / <span class="page-number-total"></span>`;
                 infoTambahan.prepend(halDiv);
             }
             reportWrapper.appendChild(page);

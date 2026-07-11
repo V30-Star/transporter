@@ -41,7 +41,19 @@ class ListingPenjualanHppController extends Controller
             ->leftJoin('trandt as d', 'm.fsono', '=', 'd.fsono')
             ->leftJoin('mscustomer as c', 'm.fcustno', '=', 'c.fcustomercode')
             ->leftJoin('msprd as p', 'd.fprdcode', '=', 'p.fprdcode')
-            ->selectRaw("m.fbranchcode::varchar AS fbranchcode, m.fsono::varchar AS fsono, m.fsodate, m.fcustno::varchar AS fcustno, c.fcustomername AS fcustname, COALESCE(m.fdiscpersen, 0) AS fdiscpersen, COALESCE(m.fdiscount, 0) AS fdiscount, COALESCE(m.ftotalsalesnet, 0) AS famountgross, COALESCE(m.famountsonet, 0) AS famountsonet, m.fsalesman::varchar AS fsalesman, p.fprdname, d.fsatuan, COALESCE(m.famountpajak, 0) AS famountpajak, COALESCE(m.famountso, 0) AS famountso, d.fprdcode::varchar AS fprdcode, COALESCE(d.fqty, 0) AS fqty, COALESCE(d.fprice, 0) AS fprice, COALESCE(d.fdisc, '0') AS fdisc, COALESCE(d.fqty, 0) * COALESCE(d.fhpp, 0) AS famounthpp, CASE WHEN COALESCE(m.fincludeppn, '0') = '1' THEN (100 / (100 + COALESCE(NULLIF(m.fppnpersen, 0), 11))) * COALESCE(d.fpricenet, 0) ELSE COALESCE(d.fpricenet, 0) END AS fpricenet, CASE WHEN COALESCE(m.fincludeppn, '0') = '1' THEN (100 / (100 + COALESCE(NULLIF(m.fppnpersen, 0), 11))) * COALESCE(d.fpricenet, 0) * COALESCE(d.fqty, 0) ELSE COALESCE(d.fqty, 0) * COALESCE(d.fpricenet, 0) END AS famountsales, COALESCE(d.famount, 0) AS famount, COALESCE(d.fhpp, 0) AS fhpp, ((CASE WHEN COALESCE(m.fincludeppn, '0') = '1' THEN (100 / (100 + COALESCE(NULLIF(m.fppnpersen, 0), 11))) * COALESCE(d.fpricenet, 0) ELSE COALESCE(d.fpricenet, 0) END * COALESCE(d.fqty, 0)) - (COALESCE(d.fqty, 0) * COALESCE(d.fhpp, 0))) AS flabarugi, m.fuserid::varchar AS fuserid, 'INV' AS fsource")
+            ->selectRaw("m.fbranchcode::varchar AS fbranchcode, m.fsono::varchar AS fsono, m.fsodate, 
+            m.fcustno::varchar AS fcustno, c.fcustomername AS fcustname, 
+            COALESCE(m.fdiscpersen, 0) AS fdiscpersen, ROUND(m.fdiscount, 0) AS fdiscount, 
+            ROUND(m.ftotalsalesnet, 0) AS famountgross, 
+            ROUND(m.famountsonet, 0) AS famountsonet, m.fsalesman::varchar AS fsalesman, p.fprdname, 
+            d.fsatuan, ROUND(m.famountpajak, 0) AS famountpajak, ROUND(m.famountso, 0) AS famountso, 
+            d.fprdcode::varchar AS fprdcode, ROUND(d.fqty, 0) AS fqty, ROUND(d.fprice, 0) AS fprice, COALESCE(d.fdisc, '0') AS fdisc, 
+            ROUND(d.fqtykecil, 0) * ROUND(d.fhpp, 0) AS famounthpp, 
+            (ROUND(m.famountgross, 0) * ROUND(d.fqty, 0)) - (ROUND(d.fqtykecil, 0) * ROUND(d.fhpp, 0)) AS flabarugi, 
+            CASE WHEN COALESCE(m.fincludeppn, '0') = '1' THEN (100 / (100 + COALESCE(NULLIF(m.fppnpersen, 0), 11))) * COALESCE(d.fpricenet, 0) ELSE COALESCE(d.fpricenet, 0) END AS fpricenet, 
+            CASE WHEN COALESCE(m.fincludeppn, '0') = '1' THEN (100 / (100 + COALESCE(NULLIF(m.fppnpersen, 0), 11))) * COALESCE(m.famountgross, 0) * ROUND(d.fqty, 0) ELSE ROUND(d.fqty, 0) * COALESCE(m.famountgross, 0) END AS famountsales, 
+            ROUND(d.famount, 0) AS famount, ROUND(d.fhpp, 0) AS fhpp, 
+            m.fuserid::varchar AS fuserid, 'INV' AS fsource")
             ->where('m.ftrcode', 'INV');
 
         $this->applyInvoiceFilters($invoice, $request, 'm', 'd');
@@ -54,16 +66,24 @@ class ListingPenjualanHppController extends Controller
             ->selectRaw('fsono, fprdcode, MAX(fhpp) AS fhpp')
             ->groupBy('fsono', 'fprdcode');
 
-        $retur = DB::table('trstockmt as m')
-            ->leftJoin('trstockdt as d', 'm.fstockmtno', '=', 'd.fstockmtno')
-            ->leftJoin('mscustomer as c', 'm.fsupplier', '=', 'c.fcustomercode')
+        $retur = DB::table('tranmt as m')
+           ->leftJoin('trandt as d', 'm.fsono', '=', 'd.fsono')
+            ->leftJoin('mscustomer as c', 'm.fcustno', '=', 'c.fcustomercode')
             ->leftJoin('msprd as p', 'd.fprdcode', '=', 'p.fprdcode')
-            ->leftJoinSub($invoiceHpp, 'n', function ($join) {
-                $join->on('m.frefno', '=', 'n.fsono')
-                    ->on('d.fprdcode', '=', 'n.fprdcode');
-            })
-            ->selectRaw("m.fbranchcode::varchar AS fbranchcode, m.fstockmtno::varchar AS fsono, m.fstockmtdate AS fsodate, m.fsupplier::varchar AS fcustno, c.fcustomername AS fcustname, CAST(0 AS NUMERIC) AS fdiscpersen, CAST(0 AS NUMERIC) AS fdiscount, COALESCE(m.famount, 0) * -1 AS famountgross, COALESCE(m.famount, 0) * -1 AS famountsonet, m.fsalesman::varchar AS fsalesman, p.fprdname, d.fsatuan, COALESCE(m.famountpajak, 0) * -1 AS famountpajak, COALESCE(m.famountmt, 0) * -1 AS famountso, d.fprdcode::varchar AS fprdcode, COALESCE(d.fqty, 0) AS fqty, COALESCE(d.fprice, 0) AS fprice, CAST('0' AS VARCHAR) AS fdisc, COALESCE(d.fqty, 0) * CASE WHEN d.fprdcode = 'AWAL' THEN COALESCE(d.fprice, 0) * -1 ELSE COALESCE(n.fhpp, 0) * -1 END AS famounthpp, COALESCE(d.fprice, 0) AS fpricenet, COALESCE(d.fqty, 0) * COALESCE(d.fprice, 0) AS famountsales, COALESCE(d.ftotprice, 0) AS famount, CASE WHEN d.fprdcode = 'AWAL' THEN COALESCE(d.fprice, 0) * -1 ELSE COALESCE(n.fhpp, 0) END AS fhpp, ((COALESCE(d.fqty, 0) * CASE WHEN d.fprdcode = 'AWAL' THEN 0 ELSE COALESCE(n.fhpp, 0) END) - (COALESCE(d.fqty, 0) * COALESCE(d.fprice, 0))) AS flabarugi, m.fusercreate::varchar AS fuserid, 'REJ' AS fsource")
-            ->where('m.fstockmtcode', 'REJ');
+            ->selectRaw("m.fbranchcode::varchar AS fbranchcode, m.fsono::varchar AS fsono, m.fsodate, 
+            m.fcustno::varchar AS fcustno, c.fcustomername AS fcustname, 
+            COALESCE(m.fdiscpersen, 0) AS fdiscpersen, ROUND(m.fdiscount, 0) AS fdiscount, 
+            ROUND(m.ftotalsalesnet, 0) AS famountgross, 
+            ROUND(m.famountsonet, 0) AS famountsonet, m.fsalesman::varchar AS fsalesman, p.fprdname, 
+            d.fsatuan, ROUND(m.famountpajak, 0) AS famountpajak, ROUND(m.famountso, 0) AS famountso, 
+            d.fprdcode::varchar AS fprdcode, ROUND(d.fqty, 0) AS fqty, ROUND(d.fprice, 0) AS fprice, COALESCE(d.fdisc, '0') AS fdisc, 
+            ROUND(d.fqtykecil, 0) * ROUND(d.fhpp, 0) AS famounthpp, 
+            (ROUND(m.famountgross, 0) * ROUND(d.fqty, 0)) - (ROUND(d.fqtykecil, 0) * ROUND(d.fhpp, 0)) AS flabarugi, 
+            CASE WHEN COALESCE(m.fincludeppn, '0') = '1' THEN (100 / (100 + COALESCE(NULLIF(m.fppnpersen, 0), 11))) * COALESCE(d.fpricenet, 0) ELSE COALESCE(d.fpricenet, 0) END AS fpricenet, 
+            CASE WHEN COALESCE(m.fincludeppn, '0') = '1' THEN (100 / (100 + COALESCE(NULLIF(m.fppnpersen, 0), 11))) * COALESCE(m.famountgross, 0) * ROUND(d.fqty, 0) ELSE ROUND(d.fqty, 0) * COALESCE(m.famountgross, 0) END AS famountsales, 
+            ROUND(d.famount, 0) AS famount, ROUND(d.fhpp, 0) AS fhpp, 
+            m.fuserid::varchar AS fuserid, 'INV' AS fsource")
+            ->where('m.ftrcode', 'REJ');
 
         $this->applyReturFilters($retur, $request, 'm', 'd');
 
@@ -97,10 +117,10 @@ class ListingPenjualanHppController extends Controller
             $query->whereIn("{$headerAlias}.fbranchcode", (array) $request->input('branch_codes'));
         }
         if ($request->filled('date_from')) {
-            $query->where("{$headerAlias}.fstockmtdate", '>=', $request->input('date_from'));
+            $query->where("{$headerAlias}.fsodate", '>=', $request->input('date_from'));
         }
         if ($request->filled('date_to')) {
-            $query->where("{$headerAlias}.fstockmtdate", '<=', $request->input('date_to') . ' 23:59:59');
+            $query->where("{$headerAlias}.fsodate", '<=', $request->input('date_to') . ' 23:59:59');
         }
         $this->applyCommonFilters($query, $request, $headerAlias, $detailAlias, 'fsupplier');
     }

@@ -54,8 +54,12 @@ class ReportingRekapPenjualanController extends Controller
             ->leftJoin('msprd as p', 'd.fprdcode', '=', 'p.fprdcode')
             ->leftJoin('ms_groupprd as g', 'g.fgroupcode', '=', 'p.fgroupcode')
             ->leftJoin('msmerek as merek', 'p.fmerek', '=', 'merek.fmerekcode')
-            ->selectRaw("{$groupCodeExpr} AS fmerek, {$groupNameExpr} AS fgroupname, {$qtyExpr} AS fqty, {$unitExpr} AS fsatuan, SUM(CASE WHEN m.ftrcode = 'INV' THEN (d.fsalesnet * d.fqty) - ((d.fsalesnet * d.fqty) * (COALESCE(CAST(NULLIF(d.fdisc, '') AS NUMERIC), 0) / 100)) WHEN m.ftrcode = 'REJ' THEN (d.fprice * d.fqty * -1) ELSE 0 END) AS famount, d.fprdcode, p.fprdname")
+            ->selectRaw("{$groupCodeExpr} AS fmerek, {$groupNameExpr} AS fgroupname, {$qtyExpr} AS fqty, {$unitExpr} AS fsatuan, 
+            SUM(CASE WHEN m.ftrcode = 'INV' THEN (d.fsalesnet * d.fqty) - ((d.fsalesnet * d.fqty) * (COALESCE(CAST(NULLIF(d.fdisc, '') AS NUMERIC), 0) / 100)) WHEN m.ftrcode = 'REJ' THEN (d.fprice * d.fqty * -1) ELSE 0 END) AS famount,
+             d.fprdcode, p.fprdname")
             ->whereIn('m.ftrcode', ['INV', 'REJ'])
+            ->where('m.ftypesales', 0)
+            ->whereNotIn('d.fprdcode', ['UM', 'AWAL'])
             ->where('m.fsodate', '>=', $request->input('date_from', now()->startOfMonth()->toDateString()))
             ->where('m.fsodate', '<=', $request->input('date_to', now()->toDateString()) . ' 23:59:59');
 
