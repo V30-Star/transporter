@@ -25,10 +25,10 @@
 
                 <form method="GET" action="{{ route('reportingpelunasansupplier.print') }}" target="_blank">
                     <div class="space-y-4">
-                        {{-- Cabang / Branch checkboxes --}}
+                        {{-- Cabang checkboxes --}}
                         <div>
                             <div class="flex justify-between items-center mb-2">
-                                <label class="block text-sm font-medium text-gray-700">Cabang / Branch</label>
+                                <label class="block text-sm font-medium text-gray-700">Cabang</label>
                                 @if ($isAuthorized)
                                     <div class="flex space-x-2">
                                         <button type="button" onclick="selectAllBranches(true)"

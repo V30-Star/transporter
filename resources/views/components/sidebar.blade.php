@@ -683,6 +683,47 @@
                 </ul>
             </li>
 
+            <!-- Laporan Sales Order -->
+            <li x-data="{ open: false }" x-effect="if(!openSidebar) open = false">
+                <button @click="open = !open"
+                    class="flex items-center w-full p-2 rounded-lg hover:bg-gray-700 focus:outline-none">
+                    <i class="fa-solid fa-clipboard-list w-5 text-center flex-shrink-0 text-lg"></i>
+                    <span class="ml-3 flex-1 text-left" x-show="openSidebar"
+                        x-transition.opacity.duration.150">{{ 'Laporan Sales Order' }}</span>
+                    <!-- caret -->
+                    <svg x-show="openSidebar" :class="{ 'rotate-180': open }"
+                        class="w-4 h-4 transition-transform ml-auto" fill="none" stroke="currentColor"
+                        viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                    </svg>
+                </button>
+
+                <!-- Submenu -->
+                <ul x-show="open && openSidebar" x-transition
+                    class="ml-9 mt-1 space-y-1 border-l border-white/10 pl-3" x-cloak>
+                    
+                    @if ($hasSidebarPermission('viewTr_poh', 'createTr_poh', 'updateTr_poh', 'deleteTr_poh'))
+                        <li>
+                            <a href="{{ route('listingso.index') }}"
+                                class="flex items-center p-2 rounded hover:bg-gray-700">
+                                <i class="fa-solid fa-rectangle-list w-5 text-center flex-shrink-0 text-lg"></i>
+                                <span class="ml-3">{{ 'Listing Sales Order (SO)' }}</span>
+                            </a>
+                        </li>
+                    @endif
+
+                    @if ($hasSidebarPermission('viewTr_poh', 'createTr_poh', 'updateTr_poh', 'deleteTr_poh'))
+                        <li>
+                            <a href="{{ route('listingsobelum.index') }}"
+                                class="flex items-center p-2 rounded hover:bg-gray-700">
+                                <i class="fa-solid fa-list-check w-5 text-center flex-shrink-0 text-lg"></i>
+                                <span class="ml-3">{{ 'SO Yang Belum Terkirim' }}</span>
+                            </a>
+                        </li>
+                    @endif
+                </ul>
+            </li>
+
             {{-- Reporting Penjualan --}}
             <li x-data="{ open: false }" x-effect="if(!openSidebar) open = false">
                 <button @click="open = !open"
@@ -697,32 +738,6 @@
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
                     </svg>
                 </button>
-
-                <ul x-show="open && openSidebar" x-transition
-                    class="ml-9 mt-1 space-y-1 border-l border-white/10 pl-3" x-cloak>
-                    @if ($hasSidebarPermission('viewTr_poh', 'createTr_poh', 'updateTr_poh', 'deleteTr_poh'))
-                        <li>
-                            <a href="{{ route('listingso.index') }}"
-                                class="flex items-center p-2 rounded hover:bg-gray-700">
-                                <i class="fa-solid fa-rectangle-list w-5 text-center flex-shrink-0 text-lg"></i>
-                                <span class="ml-3">{{ 'Listing Sales Order (SO)' }}</span>
-                            </a>
-                        </li>
-                    @endif
-                </ul>
-
-                <ul x-show="open && openSidebar" x-transition
-                    class="ml-9 mt-1 space-y-1 border-l border-white/10 pl-3" x-cloak>
-                    @if ($hasSidebarPermission('viewTr_poh', 'createTr_poh', 'updateTr_poh', 'deleteTr_poh'))
-                        <li>
-                            <a href="{{ route('listingsobelum.index') }}"
-                                class="flex items-center p-2 rounded hover:bg-gray-700">
-                                <i class="fa-solid fa-list-check w-5 text-center flex-shrink-0 text-lg"></i>
-                                <span class="ml-3">{{ 'SO Yang Belum Terkirim' }}</span>
-                            </a>
-                        </li>
-                    @endif
-                </ul>
 
                 <ul x-show="open && openSidebar" x-transition
                     class="ml-9 mt-1 space-y-1 border-l border-white/10 pl-3" x-cloak>
@@ -1083,25 +1098,6 @@
                                 class="flex items-center p-2 rounded hover:bg-gray-700">
                                 <i class="fa-solid fa-credit-card w-5 text-center flex-shrink-0 text-lg"></i>
                                 <span class="ml-3">{{ 'Laporan Bayar Supplier' }}</span>
-                            </a>
-                        </li>
-                    @endif
-                    @if ($hasSidebarPermission('createPengeluaranKas', 'updatePengeluaranKas', 'deletePengeluaranKas'))
-                        <li>
-                            <a href="{{ route('reportingkas.pengeluaran.index') }}"
-                                class="flex items-center p-2 rounded hover:bg-gray-700">
-                                <i class="fa-solid fa-chart-pie w-5 text-center flex-shrink-0 text-lg"></i>
-                                <span class="ml-3">{{ 'Laporan Pengeluaran Kas/Bank' }}</span>
-                            </a>
-                        </li>
-                    @endif
-
-                    @if ($hasSidebarPermission('createPenerimaanKas', 'updatePenerimaanKas', 'deletePenerimaanKas'))
-                        <li>
-                            <a href="{{ route('reportingkas.penerimaan.index') }}"
-                                class="flex items-center p-2 rounded hover:bg-gray-700">
-                                <i class="fa-solid fa-chart-column w-5 text-center flex-shrink-0 text-lg"></i>
-                                <span class="ml-3">{{ 'Laporan Penerimaan Kas/Bank' }}</span>
                             </a>
                         </li>
                     @endif

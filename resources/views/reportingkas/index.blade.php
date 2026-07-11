@@ -13,10 +13,10 @@
 
                 <form method="GET" action="{{ $printRoute }}" target="_blank">
                     <div class="space-y-4">
-                        {{-- Cabang / Branch checkboxes --}}
+                        {{-- Cabang checkboxes --}}
                         <div>
                             <div class="flex justify-between items-center mb-2">
-                                <label class="block text-xs font-bold uppercase">Cabang / Branch</label>
+                                <label class="block text-xs font-bold uppercase">Cabang</label>
                                 @if ($isAuthorized)
                                     <div class="flex space-x-2">
                                         <button type="button" onclick="selectAllBranches(true)"
@@ -34,7 +34,7 @@
                                 <div class="grid grid-cols-2 gap-2">
                                     @foreach ($branches as $b)
                                         @php
-                                            $isChecked = $isAuthorized || ($userBranchCode === $b->fcabangkode);
+                                            $isChecked = $isAuthorized || $userBranchCode === $b->fcabangkode;
                                         @endphp
                                         <label class="flex items-center text-sm cursor-pointer select-none">
                                             @if (!$isAuthorized && $userBranchCode === $b->fcabangkode)
@@ -42,9 +42,9 @@
                                             @endif
                                             <input type="checkbox" name="branch_codes[]" value="{{ $b->fcabangkode }}"
                                                 class="branch-checkbox mr-2 rounded border-gray-300 text-blue-600 focus:ring-blue-500 w-4 h-4"
-                                                {{ $isChecked ? 'checked' : '' }}
-                                                {{ !$isAuthorized ? 'disabled' : '' }}>
-                                            <span class="text-gray-700 font-medium">{{ $b->fcabangkode }} - {{ $b->fcabangname }}</span>
+                                                {{ $isChecked ? 'checked' : '' }} {{ !$isAuthorized ? 'disabled' : '' }}>
+                                            <span class="text-gray-700 font-medium">{{ $b->fcabangkode }} -
+                                                {{ $b->fcabangname }}</span>
                                         </label>
                                     @endforeach
                                 </div>

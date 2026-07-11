@@ -102,7 +102,7 @@
         .sales-header-labels,
         .sales-header {
             display: grid;
-            grid-template-columns: 8mm 18mm 16mm 16mm 20mm 18mm 14mm 22mm 14mm 14mm 15mm;
+            grid-template-columns: 8mm 18mm 15mm 20mm 19mm 18mm 14mm 20mm 14mm 14mm 15mm;
             gap: 1px;
             font-size: 8px;
             padding: 2px 8px; /* Reduced vertical padding matching PO */
@@ -226,7 +226,6 @@
         }
 
         .separator {
-            border-bottom: 1px solid #000000;
             margin: 4px 0;
             clear: both;
         }
@@ -413,15 +412,15 @@
         <div class="sales-header-labels">
             <div>Cab.</div>
             <div>No.Faktur</div>
-            <div>No.Pajak</div>
             <div>Tanggal</div>
             <div>Customer</div>
             <div>Salesman</div>
+            <div class="text-right">Total Harga</div>
             <div class="text-right">Disc</div>
             <div class="text-right">Netto</div>
             <div class="text-right">PPN</div>
             <div class="text-right">Ongkos</div>
-            <div class="text-right">Total</div>
+            <div class="text-right">Nilai Faktur</div>
         </div>
 
         {{-- Detail Labels --}}
@@ -445,10 +444,10 @@
                 <div class="sales-header">
                     <div class="truncate">{{ $h->fbranchcode }}</div>
                     <div class="truncate" title="{{ $h->fsono }}">{{ $h->fsono }}</div>
-                    <div class="truncate">{{ $h->ftaxno ?? '-' }}</div>
                     <div>{{ date('d/m/y', strtotime($h->fsodate)) }}</div>
                     <div class="truncate" title="{{ $h->fcustomername }}">{{ $h->fcustomername }}</div>
                     <div class="truncate" title="{{ $h->fsalesmanname ?? '-' }}">{{ $h->fsalesmanname ?? '-' }}</div>
+                    <div>{{ number_format((float) $h->famountgross, 2, ',', '.') }}</div>
                     <div>{{ number_format((float) $h->fdiscount, 2, ',', '.') }}</div>
                     <div>{{ number_format((float) $h->famountsonet, 2, ',', '.') }}</div>
                     <div>{{ number_format((float) $h->famountpajak, 2, ',', '.') }}</div>

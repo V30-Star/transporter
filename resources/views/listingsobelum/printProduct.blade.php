@@ -102,6 +102,7 @@
         .grid-header,
         .grid-row,
         .prd-subtotal {
+            color: #304ee7;
             display: grid;
             grid-template-columns: 25mm 18mm 45mm 15mm 24mm 24mm 24mm;
             gap: 1px;
@@ -248,7 +249,7 @@
             position: absolute;
             left: 50%;
             transform: translateX(-50%);
-            bottom: 5px; /* Vertically inline with bottom row */
+            bottom: -15px; /* Vertically inline with bottom row */
             font-family: 'IBM Plex Sans', sans-serif;
             font-size: 8px;
             font-weight: bold;
@@ -358,10 +359,9 @@
                 Customer: {{ $customerText }}
                 <br>Cabang: {{ $branchText }}
             </div>
-            <h2>SO Yang Belum Dikirim</h2>
+            <h2>SO Yang Belum Dikirim(By Produk)</h2>
             <div class="filter-info">
                 Periode: {{ $request->date_from ? \Carbon\Carbon::parse(request('date_from'))->format('d/m/Y') : '...' }} s/d {{ $request->date_to ? \Carbon\Carbon::parse(request('date_to'))->format('d/m/Y') : '...' }}
-                | Pengelompokan: Produk | Jenis: {{ $isRekap ? 'Rekap' : 'Detail' }}
             </div>
             <div class="info-tambahan">
                 <div><span class="info-label">Tanggal</span>: {{ date('d/m/Y') }}</div>
@@ -384,7 +384,7 @@
                     <div class="grid-row">
                         <div style="grid-column: span 4;" class="truncate">{{ $rows->first()->fprdname }} ({{ $prdCode }})</div>
                         <div class="text-center">{{ $row->fsatuan }}</div>
-                        <div class="text-right" style="font-weight: bold;">{{ number_format((float) $row->fqty, 2, ',', '.') }}</div>
+                        <div class="text-right">{{ number_format((float) $row->fqty, 2, ',', '.') }}</div>
                         <div class="text-right">{{ number_format((float) $row->fstock, 2, ',', '.') }}</div>
                     </div>
                 </div>
@@ -413,7 +413,7 @@
                             <div class="truncate" title="{{ $row->fcustomername }}">{{ $row->fcustomername }}</div>
                             <div class="text-center">{{ $row->fsatuan }}</div>
                             <div class="text-right">{{ number_format((float) $row->fpricenet, 2, ',', '.') }}</div>
-                            <div class="text-right" style="font-weight: bold;">{{ number_format((float) $row->fqty, 2, ',', '.') }}</div>
+                            <div class="text-right">{{ number_format((float) $row->fqty, 2, ',', '.') }}</div>
                             <div class="text-right">{{ number_format((float) $row->fstock, 2, ',', '.') }}</div>
                         </div>
                     @endforeach
@@ -439,12 +439,6 @@
     <div id="po-totals-panel-raw" style="display: none;">
         <div class="po-totals-panel-wrapper">
             <div class="end-of-report-inline">** END OF REPORT **</div>
-            <div class="po-totals-container">
-                <div class="po-total-row grand-total-row">
-                    <span>GRAND TOTAL QTY</span>
-                    <span>{{ number_format((float) $grandTotalQty, 2, ',', '.') }}</span>
-                </div>
-            </div>
         </div>
     </div>
 
@@ -457,7 +451,7 @@
                         Customer: {{ $customerText }}
                         <br>Cabang: {{ $branchText }}
                     </div>
-                    <h2>SO Yang Belum Dikirim</h2>
+                    <h2>SO Yang Belum Dikirim(By Produk)</h2>
                     <div class="info-tambahan">
                         <div><span class="info-label">Hal</span>: 1 / 1</div>
                         <div><span class="info-label">Tanggal</span>: {{ date('d/m/Y') }}</div>

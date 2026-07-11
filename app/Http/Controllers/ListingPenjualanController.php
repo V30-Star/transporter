@@ -40,7 +40,6 @@ class ListingPenjualanController extends Controller
                 'm.ftaxno',
                 'm.fsodate',
                 'm.fcustno',
-                'm.famountsonet',
                 'm.fongkosangkut',
                 'c.fcustomername',
                 'm.fdiscpersen',
@@ -51,7 +50,18 @@ class ListingPenjualanController extends Controller
                 'm.fuserid',
                 'm.fincludeppn',
                 'm.fppnpersen',
-                'm.fdiscount',
+                DB::raw("
+                    CASE 
+                        WHEN m.fincludeppn = '1' THEN (100 / (100 + m.fppnpersen)) * m.fdiscount 
+                        ELSE m.fdiscount 
+                    END as fdiscount
+                "),
+                DB::raw("
+                    CASE 
+                        WHEN m.fincludeppn = '1' THEN (100 / (100 + m.fppnpersen)) * m.famountsonet 
+                        ELSE m.famountsonet 
+                    END as famountsonet
+                "),
                 'd.fprdcode',
                 'd.fqty',
                 'd.fqtyremain',
@@ -78,7 +88,7 @@ class ListingPenjualanController extends Controller
             $query->where('m.fsodate', '>=', $request->date_from);
         }
         if ($request->date_to) {
-            $query->where('m.fsodate', '<=', $request->date_to.' 23:59:59');
+            $query->where('m.fsodate', '<=', $request->date_to . ' 23:59:59');
         }
         if ($request->prd_from) {
             $query->where('d.fprdcode', '>=', $request->prd_from);
@@ -135,7 +145,7 @@ class ListingPenjualanController extends Controller
         $type = $request->display_type ?? 'rekap';
         $grouped = $results->groupBy('fsono');
 
-        $filename = 'listing_penjualan_'.date('Ymd_His').'.xlsx';
+        $filename = 'listing_penjualan_' . date('Ymd_His') . '.xlsx';
 
         // ── Style preset (named constructor args, sama seperti ListingPenerimaan) ──────
         $styleTitle = new Style(fontBold: true, fontColor: 'C00000');
@@ -153,7 +163,7 @@ class ListingPenjualanController extends Controller
 
         $makeRow = function (array $values, ?Style $style = null) use ($writer): void {
             $cells = array_map(
-                fn ($value) => $style ? Cell::fromValue($value, $style) : Cell::fromValue($value),
+                fn($value) => $style ? Cell::fromValue($value, $style) : Cell::fromValue($value),
                 $values
             );
             $writer->addRow(new Row($cells));
@@ -162,7 +172,7 @@ class ListingPenjualanController extends Controller
         // ── Baris judul & info ────────────────────────────────────
         $periodeFrom = $request->date_from ?? '...';
         $periodeTo = $request->date_to ?? '...';
-        $customer = $request->cust_from ? '['.$request->cust_from.']' : 'Semua';
+        $customer = $request->cust_from ? '[' . $request->cust_from . ']' : 'Semua';
         $operator = auth()->user()->fname ?? 'admin';
 
         $selectedBranchesStr = !empty($request->branch_codes)
@@ -172,7 +182,7 @@ class ListingPenjualanController extends Controller
         $makeRow(['LISTING PENJUALAN'], $styleTitle);
         $makeRow(["Periode: {$periodeFrom} s/d {$periodeTo}"], $styleInfo);
         $makeRow(["Cabang: {$selectedBranchesStr}"], $styleInfo);
-        $makeRow(["Customer: {$customer}", '', '', '', '', '', '', 'Tanggal: '.date('d/m/Y'), '', 'Opr: '.$operator], $styleInfo);
+        $makeRow(["Customer: {$customer}", '', '', '', '', '', '', 'Tanggal: ' . date('d/m/Y'), '', 'Opr: ' . $operator], $styleInfo);
         $makeRow([]);   // baris kosong
 
         // ── Header kolom utama ────────────────────────────────────

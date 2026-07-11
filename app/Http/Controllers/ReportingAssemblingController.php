@@ -25,7 +25,7 @@ class ReportingAssemblingController extends Controller
         $query = PenerimaanPembelianHeader::query();
         $this->applyBranchVisibilityScope($query, 'trstockmt.fbranchcode');
 
-        // Terapkan Filter Cabang / Branch
+        // Terapkan Filter Cabang
         $selectedBranches = $request->input('branch_codes', []);
         if (! empty($selectedBranches)) {
             $query->whereIn('trstockmt.fbranchcode', (array) $selectedBranches);
@@ -69,9 +69,9 @@ class ReportingAssemblingController extends Controller
 
         // Cek apakah ada filter yang dijalankan
         $hasFilter = $request->has('filter_date_from') ||
-          $request->has('filter_date_to') ||
-          $request->has('filter_supplier_id') ||
-          $request->has('branch_codes');
+            $request->has('filter_date_to') ||
+            $request->has('filter_supplier_id') ||
+            $request->has('branch_codes');
 
         $prdData = collect();
 
@@ -111,7 +111,7 @@ class ReportingAssemblingController extends Controller
             ->where('fstockmtcode', 'LHP');
         $this->applyBranchVisibilityScope($query, 'trstockmt.fbranchcode');
 
-        // Terapkan Filter Cabang / Branch
+        // Terapkan Filter Cabang
         $selectedBranches = $request->input('branch_codes', []);
         if (! empty($selectedBranches)) {
             $query->whereIn('trstockmt.fbranchcode', (array) $selectedBranches);
@@ -226,7 +226,7 @@ class ReportingAssemblingController extends Controller
         // Tulis header (A1 sampai J1)
         $col = 'A';
         foreach ($headers as $header) {
-            $sheet->setCellValue($col.'1', $header);
+            $sheet->setCellValue($col . '1', $header);
             $col++;
         }
 
@@ -276,30 +276,30 @@ class ReportingAssemblingController extends Controller
                 $grandTotal['total_hpp'] += $total_hpp;
 
                 // Isi Baris Excel (Kolom A-J)
-                $sheet->setCellValue('A'.$row, $assembling->fstockmtno);
-                $sheet->setCellValue('B'.$row, \Carbon\Carbon::parse($assembling->fstockmtdate)->format('d/m/Y'));
-                $sheet->setCellValue('C'.$row, $wh_name); // Kolom Gudang Baru
-                $sheet->setCellValue('D'.$row, $assembling->fket ?? 'LOCO BL');
-                $sheet->setCellValue('E'.$row, $detail->fprdcode);
-                $sheet->setCellValue('F'.$row, $product_name);
-                $sheet->setCellValue('G'.$row, $qty);
-                $sheet->setCellValue('H'.$row, $rijeks);
-                $sheet->setCellValue('I'.$row, $hpp);
-                $sheet->setCellValue('J'.$row, $total_hpp);
+                $sheet->setCellValue('A' . $row, $assembling->fstockmtno);
+                $sheet->setCellValue('B' . $row, \Carbon\Carbon::parse($assembling->fstockmtdate)->format('d/m/Y'));
+                $sheet->setCellValue('C' . $row, $wh_name); // Kolom Gudang Baru
+                $sheet->setCellValue('D' . $row, $assembling->fket ?? 'LOCO BL');
+                $sheet->setCellValue('E' . $row, $detail->fprdcode);
+                $sheet->setCellValue('F' . $row, $product_name);
+                $sheet->setCellValue('G' . $row, $qty);
+                $sheet->setCellValue('H' . $row, $rijeks);
+                $sheet->setCellValue('I' . $row, $hpp);
+                $sheet->setCellValue('J' . $row, $total_hpp);
 
                 $row++;
             }
         }
 
         // --- BARIS GRAND TOTAL ---
-        $sheet->setCellValue('F'.$row, 'GRAND TOTAL');
-        $sheet->setCellValue('G'.$row, $grandTotal['qty']);
-        $sheet->setCellValue('H'.$row, $grandTotal['qty_rijeks']);
-        $sheet->setCellValue('J'.$row, $grandTotal['total_hpp']);
+        $sheet->setCellValue('F' . $row, 'GRAND TOTAL');
+        $sheet->setCellValue('G' . $row, $grandTotal['qty']);
+        $sheet->setCellValue('H' . $row, $grandTotal['qty_rijeks']);
+        $sheet->setCellValue('J' . $row, $grandTotal['total_hpp']);
 
         // Style Grand Total (Bold & Warna Kuning)
-        $sheet->getStyle('F'.$row.':J'.$row)->getFont()->setBold(true);
-        $sheet->getStyle('F'.$row.':J'.$row)->getFill()
+        $sheet->getStyle('F' . $row . ':J' . $row)->getFont()->setBold(true);
+        $sheet->getStyle('F' . $row . ':J' . $row)->getFill()
             ->setFillType(\PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID)
             ->getStartColor()->setRGB('FFFF00');
 
@@ -311,15 +311,15 @@ class ReportingAssemblingController extends Controller
         // Style Border & Format Angka 10.000,00
         $lastDataRow = $row;
         if ($lastDataRow >= 2) {
-            $sheet->getStyle('A1:J'.$lastDataRow)->getBorders()->getAllBorders()->setBorderStyle(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+            $sheet->getStyle('A1:J' . $lastDataRow)->getBorders()->getAllBorders()->setBorderStyle(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
 
             // G, H, I, J adalah kolom numerik (Qty, Rijeks, HPP, Total)
-            $sheet->getStyle('G2:J'.$lastDataRow)->getNumberFormat()->setFormatCode('#,##0.00');
+            $sheet->getStyle('G2:J' . $lastDataRow)->getNumberFormat()->setFormatCode('#,##0.00');
         }
 
-        $filename = 'Assembling_Report_LHP_'.now()->format('Ymd_His').'.xlsx';
+        $filename = 'Assembling_Report_LHP_' . now()->format('Ymd_His') . '.xlsx';
         header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
-        header('Content-Disposition: attachment; filename="'.$filename.'"');
+        header('Content-Disposition: attachment; filename="' . $filename . '"');
         header('Cache-Control: max-age=0');
 
         $writer = new \PhpOffice\PhpSpreadsheet\Writer\Xlsx($spreadsheet);

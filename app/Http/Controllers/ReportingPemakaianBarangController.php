@@ -24,7 +24,7 @@ class ReportingPemakaianBarangController extends Controller
         $query = PenerimaanPembelianHeader::query();
         $this->applyBranchVisibilityScope($query, 'trstockmt.fbranchcode');
 
-        // Terapkan Filter Cabang / Branch
+        // Terapkan Filter Cabang
         $selectedBranches = $request->input('branch_codes', []);
         if (! empty($selectedBranches)) {
             $query->whereIn('trstockmt.fbranchcode', (array) $selectedBranches);
@@ -68,9 +68,9 @@ class ReportingPemakaianBarangController extends Controller
 
         // Cek apakah ada filter yang dijalankan
         $hasFilter = $request->has('filter_date_from') ||
-          $request->has('filter_date_to') ||
-          $request->has('filter_supplier_id') ||
-          $request->has('branch_codes');
+            $request->has('filter_date_to') ||
+            $request->has('filter_supplier_id') ||
+            $request->has('branch_codes');
 
         $prdData = collect();
 
@@ -110,7 +110,7 @@ class ReportingPemakaianBarangController extends Controller
             ->where('fstockmtcode', 'PBR');
         $this->applyBranchVisibilityScope($query, 'trstockmt.fbranchcode');
 
-        // Terapkan Filter Cabang / Branch
+        // Terapkan Filter Cabang
         $selectedBranches = $request->input('branch_codes', []);
         if (! empty($selectedBranches)) {
             $query->whereIn('trstockmt.fbranchcode', (array) $selectedBranches);
@@ -243,7 +243,7 @@ class ReportingPemakaianBarangController extends Controller
 
         $col = 'A';
         foreach ($headers as $header) {
-            $sheet->setCellValue($col.'1', $header);
+            $sheet->setCellValue($col . '1', $header);
             $col++;
         }
 
@@ -290,21 +290,21 @@ class ReportingPemakaianBarangController extends Controller
                     $gtTotalHargaDetail += $detail->ftotprice ?? 0;
 
                     // Isi data ke baris Excel
-                    $sheet->setCellValue('A'.$row, $fakturpembelian->fstockmtno);
-                    $sheet->setCellValue('B'.$row, \Carbon\Carbon::parse($fakturpembelian->fstockmtdate)->format('d/m/Y'));
-                    $sheet->setCellValue('C'.$row, $fakturpembelian->fwhname);
-                    $sheet->setCellValue('D'.$row, $fakturpembelian->fket);
-                    $sheet->setCellValue('E'.$row, $fakturpembelian->famount ?? 0);
-                    $sheet->setCellValue('F'.$row, $fakturpembelian->fusercreate);
+                    $sheet->setCellValue('A' . $row, $fakturpembelian->fstockmtno);
+                    $sheet->setCellValue('B' . $row, \Carbon\Carbon::parse($fakturpembelian->fstockmtdate)->format('d/m/Y'));
+                    $sheet->setCellValue('C' . $row, $fakturpembelian->fwhname);
+                    $sheet->setCellValue('D' . $row, $fakturpembelian->fket);
+                    $sheet->setCellValue('E' . $row, $fakturpembelian->famount ?? 0);
+                    $sheet->setCellValue('F' . $row, $fakturpembelian->fusercreate);
 
-                    $sheet->setCellValue('G'.$row, $detail->fprdcode);
-                    $sheet->setCellValue('H'.$row, $product_name);
-                    $sheet->setCellValue('I'.$row, $detail->fsubaccountname ?? '-'); // Hasil Join
-                    $sheet->setCellValue('J'.$row, $detail->faccname ?? '-');        // Hasil Join
-                    $sheet->setCellValue('K'.$row, $detail->fqty ?? 0);
-                    $sheet->setCellValue('L'.$row, $detail->fprice ?? 0);
-                    $sheet->setCellValue('M'.$row, $detail->ftotprice ?? 0);
-                    $sheet->setCellValue('N'.$row, $detail->fketdt);
+                    $sheet->setCellValue('G' . $row, $detail->fprdcode);
+                    $sheet->setCellValue('H' . $row, $product_name);
+                    $sheet->setCellValue('I' . $row, $detail->fsubaccountname ?? '-'); // Hasil Join
+                    $sheet->setCellValue('J' . $row, $detail->faccname ?? '-');        // Hasil Join
+                    $sheet->setCellValue('K' . $row, $detail->fqty ?? 0);
+                    $sheet->setCellValue('L' . $row, $detail->fprice ?? 0);
+                    $sheet->setCellValue('M' . $row, $detail->ftotprice ?? 0);
+                    $sheet->setCellValue('N' . $row, $detail->fketdt);
 
                     $row++;
                 }
@@ -312,13 +312,13 @@ class ReportingPemakaianBarangController extends Controller
         }
 
         // --- GRAND TOTAL ---
-        $sheet->setCellValue('A'.$row, 'GRAND TOTAL');
+        $sheet->setCellValue('A' . $row, 'GRAND TOTAL');
         $sheet->mergeCells("A$row:D$row");
 
-        $sheet->setCellValue('E'.$row, $gtAmountHeader);
-        $sheet->setCellValue('K'.$row, $gtQty);
-        $sheet->setCellValue('L'.$row, $gtHargaSatuan);
-        $sheet->setCellValue('M'.$row, $gtTotalHargaDetail);
+        $sheet->setCellValue('E' . $row, $gtAmountHeader);
+        $sheet->setCellValue('K' . $row, $gtQty);
+        $sheet->setCellValue('L' . $row, $gtHargaSatuan);
+        $sheet->setCellValue('M' . $row, $gtTotalHargaDetail);
 
         // Style Grand Total
         $sheet->getStyle("A$row:N$row")->applyFromArray([
@@ -336,14 +336,14 @@ class ReportingPemakaianBarangController extends Controller
         }
 
         $numFormat = '#,##0.00';
-        $sheet->getStyle('E2:E'.$row)->getNumberFormat()->setFormatCode($numFormat);
-        $sheet->getStyle('K2:M'.$row)->getNumberFormat()->setFormatCode($numFormat);
-        $sheet->getStyle('A2:N'.($row - 1))->getBorders()->getAllBorders()->setBorderStyle(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        $sheet->getStyle('E2:E' . $row)->getNumberFormat()->setFormatCode($numFormat);
+        $sheet->getStyle('K2:M' . $row)->getNumberFormat()->setFormatCode($numFormat);
+        $sheet->getStyle('A2:N' . ($row - 1))->getBorders()->getAllBorders()->setBorderStyle(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
 
         // Download File
-        $filename = 'Pemakaian_Barang_Report_'.now()->format('Ymd_His').'.xlsx';
+        $filename = 'Pemakaian_Barang_Report_' . now()->format('Ymd_His') . '.xlsx';
         header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
-        header('Content-Disposition: attachment; filename="'.$filename.'"');
+        header('Content-Disposition: attachment; filename="' . $filename . '"');
 
         $writer = new \PhpOffice\PhpSpreadsheet\Writer\Xlsx($spreadsheet);
         $writer->save('php://output');

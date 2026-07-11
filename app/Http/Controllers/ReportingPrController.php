@@ -24,7 +24,7 @@ class ReportingPrController extends Controller
         $query = Tr_prh::query();
         $this->applyBranchVisibilityScope($query, 'tr_prh.fbranchcode');
 
-        // Terapkan Filter Cabang / Branch
+        // Terapkan Filter Cabang
         $selectedBranches = $request->input('branch_codes', []);
         if (! empty($selectedBranches)) {
             $query->whereIn('tr_prh.fbranchcode', (array) $selectedBranches);
@@ -68,23 +68,23 @@ class ReportingPrController extends Controller
 
         // Cek apakah ada filter yang dijalankan
         $hasFilter = $request->has('filter_date_from') ||
-          $request->has('filter_date_to') ||
-          $request->has('filter_supplier_id') ||
-          $request->has('branch_codes');
+            $request->has('filter_date_to') ||
+            $request->has('filter_supplier_id') ||
+            $request->has('branch_codes');
 
         // Hanya ambil data jika ada filter
         $prdData = $hasFilter
-          ? $this->getPrdQuery($request)
-              ->with('supplier:fsuppliercode,fsuppliername')
-              ->get([
-                  'fprhid',
-                  'fprno',
-                  'fprdate',
-                  'fsupplier',
-                  'fclose',
-                  'fapproval',
-              ])
-          : collect();
+            ? $this->getPrdQuery($request)
+            ->with('supplier:fsuppliercode,fsuppliername')
+            ->get([
+                'fprhid',
+                'fprno',
+                'fprdate',
+                'fsupplier',
+                'fclose',
+                'fapproval',
+            ])
+            : collect();
 
         // Ambil SEMUA Supplier untuk dropdown filter
         $suppliers = Supplier::orderBy('fsuppliername', 'asc')
@@ -120,7 +120,7 @@ class ReportingPrController extends Controller
         $query = DB::table('tr_prh')->select('tr_prh.*');
         $this->applyBranchVisibilityScope($query, 'tr_prh.fbranchcode');
 
-        // Filter Cabang / Branch
+        // Filter Cabang
         $selectedBranches = $request->input('branch_codes', []);
         if (! empty($selectedBranches)) {
             $query->whereIn('tr_prh.fbranchcode', (array) $selectedBranches);
@@ -226,7 +226,7 @@ class ReportingPrController extends Controller
         // Tulis header
         $col = 'A';
         foreach ($headers as $header) {
-            $sheet->setCellValue($col.'1', $header);
+            $sheet->setCellValue($col . '1', $header);
             $col++;
         }
 
@@ -270,23 +270,23 @@ class ReportingPrController extends Controller
                     $product_name = $product->fprdname ?? $detail->fprdcode;
 
                     // Tulis ke Excel
-                    $sheet->setCellValue('A'.$row, $prh->fprno);
-                    $sheet->setCellValue('B'.$row, \Carbon\Carbon::parse($prh->fprdate)->format('d/m/Y'));
-                    $sheet->setCellValue('C'.$row, $supplier_name);
-                    $sheet->setCellValue('D'.$row, $prh->fket ?? 'LOCO BL');
-                    $sheet->setCellValue('E'.$row, $detail->fprdcode);
-                    $sheet->setCellValue('F'.$row, $product_name);
-                    $sheet->setCellValue('G'.$row, $detail->funit ?? 'PCS');
-                    $sheet->setCellValue('H'.$row, $detail->fqty ?? 0);
+                    $sheet->setCellValue('A' . $row, $prh->fprno);
+                    $sheet->setCellValue('B' . $row, \Carbon\Carbon::parse($prh->fprdate)->format('d/m/Y'));
+                    $sheet->setCellValue('C' . $row, $supplier_name);
+                    $sheet->setCellValue('D' . $row, $prh->fket ?? 'LOCO BL');
+                    $sheet->setCellValue('E' . $row, $detail->fprdcode);
+                    $sheet->setCellValue('F' . $row, $product_name);
+                    $sheet->setCellValue('G' . $row, $detail->funit ?? 'PCS');
+                    $sheet->setCellValue('H' . $row, $detail->fqty ?? 0);
 
                     $row++;
                 }
             } else {
                 // Jika PR tidak punya item detail
-                $sheet->setCellValue('A'.$row, $prh->fprno);
-                $sheet->setCellValue('B'.$row, \Carbon\Carbon::parse($prh->fprdate)->format('d/m/Y'));
-                $sheet->setCellValue('C'.$row, $supplier_name);
-                $sheet->setCellValue('D'.$row, $prh->fket ?? 'LOCO BL');
+                $sheet->setCellValue('A' . $row, $prh->fprno);
+                $sheet->setCellValue('B' . $row, \Carbon\Carbon::parse($prh->fprdate)->format('d/m/Y'));
+                $sheet->setCellValue('C' . $row, $supplier_name);
+                $sheet->setCellValue('D' . $row, $prh->fket ?? 'LOCO BL');
                 $row++;
             }
         }
@@ -299,19 +299,19 @@ class ReportingPrController extends Controller
         // Border untuk semua data
         $lastDataRow = $row - 1;
         if ($lastDataRow >= 2) {
-            $sheet->getStyle('A2:H'.$lastDataRow)->applyFromArray([
+            $sheet->getStyle('A2:H' . $lastDataRow)->applyFromArray([
                 'borders' => [
                     'allBorders' => ['borderStyle' => \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN],
                 ],
             ]);
             // Format angka Qty
-            $sheet->getStyle('H2:H'.$lastDataRow)->getNumberFormat()->setFormatCode('#,##0.00');
+            $sheet->getStyle('H2:H' . $lastDataRow)->getNumberFormat()->setFormatCode('#,##0.00');
         }
 
         // Download file
-        $filename = 'PR_Report_'.now()->format('Ymd_His').'.xlsx';
+        $filename = 'PR_Report_' . now()->format('Ymd_His') . '.xlsx';
         header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
-        header('Content-Disposition: attachment; filename="'.$filename.'"');
+        header('Content-Disposition: attachment; filename="' . $filename . '"');
         header('Cache-Control: max-age=0');
 
         $writer = new \PhpOffice\PhpSpreadsheet\Writer\Xlsx($spreadsheet);

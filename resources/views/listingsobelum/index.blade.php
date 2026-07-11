@@ -10,7 +10,7 @@
             <form method="GET" action="" target="_blank" id="filterForm">
                 <input type="hidden" name="selected_products" id="selected_products_input">
 
-                {{-- Cabang / Branch checkboxes --}}
+                {{-- Cabang checkboxes --}}
                 <div class="mb-4">
                     <div class="flex justify-between items-center mb-2">
                         <label class="block text-xs font-bold text-gray-400 uppercase tracking-wider">Cabang /
@@ -75,7 +75,8 @@
                             <select name="cust_from" class="select2 w-full border border-gray-300 rounded-lg text-sm">
                                 <option value="">-- All --</option>
                                 @foreach ($customers as $c)
-                                    <option value="{{ $c->fcustomercode }}">{{ $c->fcustomercode }} - {{ $c->fcustomername }}</option>
+                                    <option value="{{ $c->fcustomercode }}">{{ $c->fcustomercode }} -
+                                        {{ $c->fcustomername }}</option>
                                 @endforeach
                             </select>
                         </div>
@@ -84,7 +85,8 @@
                             <select name="cust_to" class="select2 w-full border border-gray-300 rounded-lg text-sm">
                                 <option value="">-- All --</option>
                                 @foreach ($customers as $c)
-                                    <option value="{{ $c->fcustomercode }}">{{ $c->fcustomercode }} - {{ $c->fcustomername }}</option>
+                                    <option value="{{ $c->fcustomercode }}">{{ $c->fcustomercode }} -
+                                        {{ $c->fcustomername }}</option>
                                 @endforeach
                             </select>
                         </div>

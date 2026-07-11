@@ -216,7 +216,7 @@
         }
 
         .separator {
-            border-bottom: 1px solid #000000;
+            /* border-bottom: 1px solid #000000; */
             margin: 4px 0;
             clear: both;
         }
@@ -416,8 +416,8 @@
         <div class="po-detail-labels">
             <div>Kode Barang</div>
             <div>Nama Barang</div>
-            <div>Satuan</div>
             <div>Quantity</div>
+            <div>Satuan</div>
             <div>Qty. Sisa</div>
             <div>@ Harga</div>
             <div>Total Harga</div>
@@ -442,8 +442,8 @@
                     <div class="po-detail">
                         <div class="truncate">{{ $dt->fprdcode }}</div>
                         <div class="truncate" title="{{ $dt->product_name ?? $dt->fprdcode }}">{{ $dt->product_name ?? $dt->fprdcode }}</div>
-                        <div>{{ $dt->fsatuan }}</div>
                         <div>{{ number_format((float) $dt->fqty, 2, ',', '.') }}</div>
+                        <div>{{ $dt->fsatuan }}</div>
                         <div>{{ number_format((float) $dt->fqtyremain, 2, ',', '.') }}</div>
                         <div>{{ number_format((float) $dt->fprice, 2, ',', '.') }}</div>
                         <div>{{ number_format((float) ($dt->fqty * $dt->fprice), 2, ',', '.') }}</div>

@@ -25,10 +25,10 @@
 
                 <form method="GET" action="{{ route('reportingadjstock.printAdjStock') }}">
                     <div class="grid grid-cols-2 gap-4">
-                        {{-- Cabang / Branch checkboxes --}}
+                        {{-- Cabang checkboxes --}}
                         <div class="col-span-2">
                             <div class="flex justify-between items-center mb-2">
-                                <label class="block text-sm font-medium text-gray-700">Cabang / Branch</label>
+                                <label class="block text-sm font-medium text-gray-700">Cabang</label>
                                 @if ($isAuthorized)
                                     <div class="flex space-x-2">
                                         <button type="button" onclick="selectAllBranches(true)"
@@ -42,11 +42,12 @@
                                     </div>
                                 @endif
                             </div>
-                            <div id="branchCheckboxesArea" class="border rounded-lg p-3 bg-gray-50 max-h-40 overflow-y-auto">
+                            <div id="branchCheckboxesArea"
+                                class="border rounded-lg p-3 bg-gray-50 max-h-40 overflow-y-auto">
                                 <div class="grid grid-cols-2 gap-2">
                                     @foreach ($branches as $b)
                                         @php
-                                            $isChecked = $isAuthorized || ($userBranchCode === $b->fcabangkode);
+                                            $isChecked = $isAuthorized || $userBranchCode === $b->fcabangkode;
                                         @endphp
                                         <label class="flex items-center text-sm cursor-pointer select-none">
                                             @if (!$isAuthorized && $userBranchCode === $b->fcabangkode)
@@ -54,9 +55,9 @@
                                             @endif
                                             <input type="checkbox" name="branch_codes[]" value="{{ $b->fcabangkode }}"
                                                 class="branch-checkbox mr-2 rounded border-gray-300 text-blue-600 focus:ring-blue-500 w-4 h-4"
-                                                {{ $isChecked ? 'checked' : '' }}
-                                                {{ !$isAuthorized ? 'disabled' : '' }}>
-                                            <span class="text-gray-700 font-medium">{{ $b->fcabangkode }} - {{ $b->fcabangname }}</span>
+                                                {{ $isChecked ? 'checked' : '' }} {{ !$isAuthorized ? 'disabled' : '' }}>
+                                            <span class="text-gray-700 font-medium">{{ $b->fcabangkode }} -
+                                                {{ $b->fcabangname }}</span>
                                         </label>
                                     @endforeach
                                 </div>
@@ -122,7 +123,8 @@
                             Reset
                         </a>
                         {{-- Tombol Terapkan Filter --}}
-                        <button type="submit" formaction="{{ route('reportingadjstock.printAdjStock') }}" formtarget="_blank"
+                        <button type="submit" formaction="{{ route('reportingadjstock.printAdjStock') }}"
+                            formtarget="_blank"
                             class="px-4 py-2 bg-blue-600 text-white text-sm rounded hover:bg-blue-700 transition-colors">
                             Preview & Print
                         </button>
@@ -191,6 +193,5 @@
                 });
             @endif
         });
-
     </script>
 @endpush
