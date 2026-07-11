@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'Hapus Customer')
+@section('title', 'Customer - Hapus')
 
 @section('content')
     <div class="bg-white rounded shadow p-6 md:p-8 max-w-[1800px] w-full mx-auto">

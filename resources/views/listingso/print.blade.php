@@ -151,6 +151,14 @@
             background-color: transparent;
         }
 
+        .product-description {
+            display: block;
+            margin-top: 1px;
+            color: #7f1d1d;
+            font-style: italic;
+            white-space: normal;
+        }
+
         /* Alignment & Monospace Fonts */
         .po-header-labels > div:nth-child(6),
         .po-header-labels > div:nth-child(7),
@@ -423,6 +431,8 @@
             <div>Total Harga</div>
         </div>
 
+        @php($showDescription = request()->boolean('show_description'))
+
         @foreach ($soData as $mt)
             <div class="journal-block">
                 <div class="po-header" style="margin-top: 5px;">
@@ -441,7 +451,12 @@
                 @foreach ($mt->details as $dt)
                     <div class="po-detail">
                         <div class="truncate">{{ $dt->fprdcode }}</div>
-                        <div class="truncate" title="{{ $dt->product_name ?? $dt->fprdcode }}">{{ $dt->product_name ?? $dt->fprdcode }}</div>
+                        <div class="truncate" title="{{ $dt->product_name ?? $dt->fprdcode }}">
+                            {{ $dt->product_name ?? $dt->fprdcode }}
+                            @if ($showDescription && filled($dt->fdesc ?? null))
+                                <span class="product-description">{{ $dt->fdesc }}</span>
+                            @endif
+                        </div>
                         <div>{{ number_format((float) $dt->fqty, 2, ',', '.') }}</div>
                         <div>{{ $dt->fsatuan }}</div>
                         <div>{{ number_format((float) $dt->fqtyremain, 2, ',', '.') }}</div>

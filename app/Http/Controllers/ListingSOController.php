@@ -265,6 +265,7 @@ class ListingSOController extends Controller
                 : 'Semua',
         ]));
         $writer->addRow($makeRow([]));
+        $showDescription = $request->boolean('show_description');
 
         // --- Header Kolom ---
         $writer->addRow($makeRow([
@@ -303,7 +304,7 @@ class ListingSOController extends Controller
                     $isFirst ? (float) $mt->famountso : '',
                     $isFirst ? ($mt->fclose == '1' ? 'Y' : 'N') : '',
                     $dt->fprdcode,
-                    $dt->fprdname,
+                    $showDescription && filled($dt->fdesc ?? null) ? $dt->fprdname."\n".$dt->fdesc : $dt->fprdname,
                     (float) $dt->fqty,
                     0.00,
                     (float) $dt->fprice,

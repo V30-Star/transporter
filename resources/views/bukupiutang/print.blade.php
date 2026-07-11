@@ -18,8 +18,10 @@
         body {
             font-family: 'IBM Plex Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
             font-size: 10px;
-            color: #0f172a; /* Navy-Ink */
-            background-color: #f1f5f9; /* Modern light slate background on monitor */
+            color: #0f172a;
+            /* Navy-Ink */
+            background-color: #f1f5f9;
+            /* Modern light slate background on monitor */
             counter-reset: page;
             -webkit-print-color-adjust: exact;
             print-color-adjust: exact;
@@ -30,7 +32,8 @@
             width: 210mm;
             margin: 30px auto;
             background: white;
-            padding: 20mm 15mm 15mm 15mm; /* Enhanced page margin */
+            padding: 20mm 15mm 15mm 15mm;
+            /* Enhanced page margin */
             box-shadow: 0 10px 25px rgba(15, 23, 42, 0.08);
             position: relative;
             box-sizing: border-box;
@@ -59,13 +62,15 @@
             margin-bottom: 6px;
             font-weight: 600;
             text-transform: uppercase;
-            color: #cc0000; /* Dark Red matching Listing PR */
+            color: #cc0000;
+            /* Dark Red matching Listing PR */
             letter-spacing: 0.5px;
         }
 
         .filter-info {
             font-size: 10px;
-            color: #475569; /* Slate 600 */
+            color: #475569;
+            /* Slate 600 */
             margin-bottom: 5px;
             font-weight: 500;
         }
@@ -75,7 +80,8 @@
             top: 15px;
             left: 0mm;
             font-size: 10px;
-            color: #334155; /* Slate 700 */
+            color: #334155;
+            /* Slate 700 */
             text-align: left;
             line-height: 1.5;
         }
@@ -85,7 +91,8 @@
             top: 0;
             right: 0;
             font-size: 10px;
-            color: #334155; /* Slate 700 */
+            color: #334155;
+            /* Slate 700 */
             text-align: left;
             line-height: 1.5;
         }
@@ -94,7 +101,8 @@
             font-weight: 600;
             display: inline-block;
             width: 50px;
-            color: #475569; /* Slate 600 */
+            color: #475569;
+            /* Slate 600 */
         }
 
         /* --- TABLE HEADERS & ROWS (6 Kolom) --- */
@@ -128,24 +136,24 @@
             padding: 2px 8px;
         }
 
-        .ledger-row > div:nth-child(4),
-        .ledger-row > div:nth-child(5),
-        .ledger-row > div:nth-child(6),
-        .po-header-labels > div:nth-child(4),
-        .po-header-labels > div:nth-child(5),
-        .po-header-labels > div:nth-child(6),
-        .group-total-row > div:not(:first-child) {
+        .ledger-row>div:nth-child(4),
+        .ledger-row>div:nth-child(5),
+        .ledger-row>div:nth-child(6),
+        .po-header-labels>div:nth-child(4),
+        .po-header-labels>div:nth-child(5),
+        .po-header-labels>div:nth-child(6),
+        .group-total-row>div:not(:first-child) {
             text-align: right;
         }
 
         /* Fonts for Numbers & System Codes */
-        .ledger-row > div:nth-child(1),
-        .ledger-row > div:nth-child(2),
-        .ledger-row > div:nth-child(3),
-        .ledger-row > div:nth-child(4),
-        .ledger-row > div:nth-child(5),
-        .ledger-row > div:nth-child(6),
-        .group-total-row > div:not(:first-child) {
+        .ledger-row>div:nth-child(1),
+        .ledger-row>div:nth-child(2),
+        .ledger-row>div:nth-child(3),
+        .ledger-row>div:nth-child(4),
+        .ledger-row>div:nth-child(5),
+        .ledger-row>div:nth-child(6),
+        .group-total-row>div:not(:first-child) {
             font-family: 'IBM Plex Mono', Courier, monospace;
             font-variant-numeric: tabular-nums;
         }
@@ -170,6 +178,7 @@
         }
 
         .group-total-row {
+            /* border-top: 1px solid #000000; */
             background-color: transparent;
             font-weight: bold;
             color: #0f172a;
@@ -204,7 +213,8 @@
         }
 
         .print-button {
-            background-color: #0f172a; /* Navy-Ink background */
+            background-color: #0f172a;
+            /* Navy-Ink background */
             color: white;
             padding: 8px 16px;
             border-radius: 6px;
@@ -221,7 +231,8 @@
         }
 
         .print-button:hover {
-            background-color: #000000; /* Black background on hover */
+            background-color: #000000;
+            /* Black background on hover */
             transform: translateY(-1px);
             box-shadow: 0 4px 6px rgba(15, 23, 42, 0.3);
         }
@@ -233,9 +244,10 @@
         }
 
         .po-totals-panel-wrapper {
-            margin-top: 10px;
-            width: 180mm; /* Full printable width */
-            border-top: 1px solid #000000; 
+            margin-top: 0px;
+            width: 180mm;
+            /* Full printable width */
+            border-top: 1px solid #000000;
             padding-top: 18px;
             position: relative;
             page-break-inside: avoid;
@@ -315,17 +327,19 @@
 
         <a href="{{ route('bukupiutang.excel', request()->query()) }}"
             style="padding: 7px 12px; background-color: #22c55e; color: white; border-radius: 4px; text-decoration: none; font-weight: bold; font-size: 12px; display: inline-flex; align-items: center; justify-content: center; transition: background-color 0.2s;"
-            onmouseover="this.style.backgroundColor='#16a34a'"
-            onmouseout="this.style.backgroundColor='#22c55e'">
+            onmouseover="this.style.backgroundColor='#16a34a'" onmouseout="this.style.backgroundColor='#22c55e'">
             📊 Excel
         </a>
     </div>
 
     @php
-        $branchText = request()->has('branch_codes') ? implode(', ', (array) request()->input('branch_codes')) : 'Semua';
-        $customerText = trim((string) request('cust_from')) !== '' || trim((string) request('cust_to')) !== ''
-            ? (request('cust_from') ?: 'Awal') . ' s/d ' . (request('cust_to') ?: 'Akhir')
+        $branchText = request()->has('branch_codes')
+            ? implode(', ', (array) request()->input('branch_codes'))
             : 'Semua';
+        $customerText =
+            trim((string) request('cust_from')) !== '' || trim((string) request('cust_to')) !== ''
+                ? (request('cust_from') ?: 'Awal') . ' s/d ' . (request('cust_to') ?: 'Akhir')
+                : 'Semua';
     @endphp
 
     <div id="raw-source" style="display: none;">
@@ -340,7 +354,6 @@
                 {{ request('date_from') ? \Carbon\Carbon::parse(request('date_from'))->format('d/m/Y') : '...' }}
                 s/d
                 {{ request('date_to') ? \Carbon\Carbon::parse(request('date_to'))->format('d/m/Y') : '...' }}
-                | Urut Berdasarkan: No.Invoice
             </div>
             <div class="info-tambahan">
                 <div><span class="info-label">Tanggal</span>: {{ date('d/m/Y') }}</div>
@@ -365,9 +378,9 @@
                 $accountCredit = 0;
                 $accountSaldo = 0;
             @endphp
-            
+
             {{-- Account Heading block --}}
-            <div class="journal-block group-row">
+            <div style="color: #304ee7" class="journal-block group-row">
                 {{ $account }} - {{ $accountName }}
             </div>
 
@@ -381,16 +394,17 @@
                     $accountCredit += $credit;
                     $accountSaldo += $saldo;
                 @endphp
-                
+
                 {{-- Customer Heading block --}}
-                <div class="journal-block customer-row">
+                <div style="color: brown" class="journal-block customer-row">
                     {{ $customer }} - {{ $customerName }}
                 </div>
 
                 @foreach ($items as $row)
                     <div class="journal-block">
                         <div class="ledger-row">
-                            <div>{{ $row->fjurnaltgl ? \Carbon\Carbon::parse($row->fjurnaltgl)->format('d/m/Y') : '' }}</div>
+                            <div>{{ $row->fjurnaltgl ? \Carbon\Carbon::parse($row->fjurnaltgl)->format('d/m/Y') : '' }}
+                            </div>
                             <div class="truncate" title="{{ $row->fjurnalno }}">{{ $row->fjurnalno }}</div>
                             <div class="truncate" title="{{ $row->faccountno }}">{{ $row->faccountno }}</div>
                             <div>{{ number_format((float) $row->famountdb, 2, ',', '.') }}</div>
@@ -398,23 +412,22 @@
                             <div>{{ number_format((float) $row->ppvarsaldo, 2, ',', '.') }}</div>
                         </div>
                     </div>
-                @endforeach
-
-                {{-- Customer Total block --}}
-                <div class="journal-block">
-                    <div class="group-total-row">
-                        <div style="grid-column: span 3; text-align: right; padding-right: 8px;">Saldo Akhir {{ $customerName }}</div>
-                        <div>{{ number_format((float) $debit, 2, ',', '.') }}</div>
-                        <div>{{ number_format((float) $credit, 2, ',', '.') }}</div>
-                        <div>{{ number_format((float) $saldo, 2, ',', '.') }}</div>
+                    {{-- Customer Total block --}}
+                    <div class="journal-block">
+                        <div class="group-total-row">
+                            <div style="color: brown; grid-column: span 3; text-align: right; padding-right: 8px;">Saldo Akhir {{ $customerName }}</div>
+                            <div>{{ number_format((float) $debit, 2, ',', '.') }}</div>
+                            <div>{{ number_format((float) $credit, 2, ',', '.') }}</div>
+                            <div>{{ number_format((float) $saldo, 2, ',', '.') }}</div>
+                        </div>
                     </div>
-                </div>
+                @endforeach
             @endforeach
 
-            {{-- Account Total block --}}
+            {{-- Customer Total block --}}
             <div class="journal-block">
-                <div class="group-total-row">
-                    <div style="grid-column: span 3; text-align: right; padding-right: 8px;">Saldo Akhir {{ $accountName }}</div>
+                <div class="group-total-row" style="border-top: 1px solid #000000;">
+                    <div style="color: brown; grid-column: span 3; text-align: right; padding-right: 8px;">Saldo Akhir</div>
                     <div>{{ number_format((float) $accountDebit, 2, ',', '.') }}</div>
                     <div>{{ number_format((float) $accountCredit, 2, ',', '.') }}</div>
                     <div>{{ number_format((float) $accountSaldo, 2, ',', '.') }}</div>
@@ -427,7 +440,6 @@
         @endforelse
     </div>
 
-    {{-- Hidden Totals Panel Container --}}
     <div id="po-totals-panel-raw" style="display: none;">
         <div class="po-totals-panel-wrapper">
             <div class="end-of-report-inline">** END OF REPORT **</div>
@@ -449,7 +461,8 @@
                         <div><span class="info-label">Jam</span>: {{ date('H:i') }}</div>
                         <div><span class="info-label">Opr</span>: {{ $user_session->fname ?? 'admin' }}</div>
                     </div>
-                    <div style="margin-top: 30px; text-align: center; font-size: 12px; color: #666;">Tidak ada data ditemukan.</div>
+                    <div style="margin-top: 30px; text-align: center; font-size: 12px; color: #666;">Tidak ada data
+                        ditemukan.</div>
                 </div>
             </div>
         @endif
@@ -459,7 +472,7 @@
 </html>
 
 <script>
-    document.addEventListener("DOMContentLoaded", function () {
+    document.addEventListener("DOMContentLoaded", function() {
         const rawSource = document.getElementById("raw-source");
         const reportWrapper = document.getElementById("reportWrapper");
         if (!rawSource || !reportWrapper) return;
@@ -495,7 +508,8 @@
             const infoTambahan = page.querySelector(".info-tambahan");
             if (infoTambahan) {
                 const halDiv = document.createElement("div");
-                halDiv.innerHTML = `<span class="info-label">Hal</span>: <span class="page-number-current"></span> / <span class="page-number-total"></span>`;
+                halDiv.innerHTML =
+                    `<span class="info-label">Hal</span>: <span class="page-number-current"></span> / <span class="page-number-total"></span>`;
                 infoTambahan.prepend(halDiv);
             }
             reportWrapper.appendChild(page);

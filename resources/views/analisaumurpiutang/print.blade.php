@@ -18,8 +18,10 @@
         body {
             font-family: 'IBM Plex Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
             font-size: 10px;
-            color: #0f172a; /* Navy-Ink */
-            background-color: #f1f5f9; /* Modern light slate background on monitor */
+            color: #0f172a;
+            /* Navy-Ink */
+            background-color: #f1f5f9;
+            /* Modern light slate background on monitor */
             counter-reset: page;
             -webkit-print-color-adjust: exact;
             print-color-adjust: exact;
@@ -27,10 +29,10 @@
 
         /* Screen Simulation Styles for A4 Pages */
         .page-a4 {
-            width: 210mm;
+            width: 297mm;
             margin: 30px auto;
             background: white;
-            padding: 20mm 15mm 15mm 15mm; /* Enhanced page margin */
+            padding: 15mm 20mm 15mm 20mm;
             box-shadow: 0 10px 25px rgba(15, 23, 42, 0.08);
             position: relative;
             box-sizing: border-box;
@@ -41,8 +43,8 @@
 
         /* Strict height applied after pagination */
         .page-a4-strict {
-            height: 297mm !important;
-            min-height: 297mm !important;
+            height: 210mm !important;
+            min-height: 210mm !important;
             overflow: hidden !important;
         }
 
@@ -59,13 +61,15 @@
             margin-bottom: 6px;
             font-weight: 600;
             text-transform: uppercase;
-            color: #cc0000; /* Dark Red matching Listing PR */
+            color: #cc0000;
+            /* Dark Red matching Listing PR */
             letter-spacing: 0.5px;
         }
 
         .filter-info {
             font-size: 10px;
-            color: #475569; /* Slate 600 */
+            color: #475569;
+            /* Slate 600 */
             margin-bottom: 5px;
             font-weight: 500;
         }
@@ -75,7 +79,8 @@
             top: 15px;
             left: 0mm;
             font-size: 10px;
-            color: #334155; /* Slate 700 */
+            color: #334155;
+            /* Slate 700 */
             text-align: left;
             line-height: 1.5;
         }
@@ -85,7 +90,8 @@
             top: 0;
             right: 0;
             font-size: 10px;
-            color: #334155; /* Slate 700 */
+            color: #334155;
+            /* Slate 700 */
             text-align: left;
             line-height: 1.5;
         }
@@ -94,7 +100,8 @@
             font-weight: 600;
             display: inline-block;
             width: 50px;
-            color: #475569; /* Slate 600 */
+            color: #475569;
+            /* Slate 600 */
         }
 
         /* --- TABLE HEADERS & ROWS (13 Kolom) --- */
@@ -103,7 +110,7 @@
         .group-total-row,
         .grand-total-row {
             display: grid;
-            grid-template-columns: 7mm 10mm 1fr 16mm 16mm 12mm 18mm 14mm 13mm 13mm 13mm 13mm 13mm;
+            grid-template-columns: 8mm 12mm 1fr 20mm 20mm 15mm 22mm 17mm 17mm 16mm 16mm 16mm 16mm;
             gap: 1px;
             font-size: 7px;
             padding: 2px 8px;
@@ -129,43 +136,43 @@
             padding: 3px 8px;
         }
 
-        .row-data > div:nth-child(1) {
+        .row-data>div:nth-child(1) {
             text-align: center;
         }
 
-        .row-data > div:nth-child(6),
-        .row-data > div:nth-child(7),
-        .row-data > div:nth-child(8),
-        .row-data > div:nth-child(9),
-        .row-data > div:nth-child(10),
-        .row-data > div:nth-child(11),
-        .row-data > div:nth-child(12),
-        .row-data > div:nth-child(13),
-        .po-header-labels > div:nth-child(6),
-        .po-header-labels > div:nth-child(7),
-        .po-header-labels > div:nth-child(8),
-        .po-header-labels > div:nth-child(9),
-        .po-header-labels > div:nth-child(10),
-        .po-header-labels > div:nth-child(11),
-        .po-header-labels > div:nth-child(12),
-        .po-header-labels > div:nth-child(13),
-        .group-total-row > div:not(:first-child),
-        .grand-total-row > div:not(:first-child) {
+        .row-data>div:nth-child(6),
+        .row-data>div:nth-child(7),
+        .row-data>div:nth-child(8),
+        .row-data>div:nth-child(9),
+        .row-data>div:nth-child(10),
+        .row-data>div:nth-child(11),
+        .row-data>div:nth-child(12),
+        .row-data>div:nth-child(13),
+        .po-header-labels>div:nth-child(6),
+        .po-header-labels>div:nth-child(7),
+        .po-header-labels>div:nth-child(8),
+        .po-header-labels>div:nth-child(9),
+        .po-header-labels>div:nth-child(10),
+        .po-header-labels>div:nth-child(11),
+        .po-header-labels>div:nth-child(12),
+        .po-header-labels>div:nth-child(13),
+        .group-total-row>div:not(:first-child),
+        .grand-total-row>div:not(:first-child) {
             text-align: right;
         }
 
         /* Fonts for Numbers & System Codes */
-        .row-data > div:nth-child(3),
-        .row-data > div:nth-child(6),
-        .row-data > div:nth-child(7),
-        .row-data > div:nth-child(8),
-        .row-data > div:nth-child(9),
-        .row-data > div:nth-child(10),
-        .row-data > div:nth-child(11),
-        .row-data > div:nth-child(12),
-        .row-data > div:nth-child(13),
-        .group-total-row > div:not(:first-child),
-        .grand-total-row > div:not(:first-child) {
+        .row-data>div:nth-child(3),
+        .row-data>div:nth-child(6),
+        .row-data>div:nth-child(7),
+        .row-data>div:nth-child(8),
+        .row-data>div:nth-child(9),
+        .row-data>div:nth-child(10),
+        .row-data>div:nth-child(11),
+        .row-data>div:nth-child(12),
+        .row-data>div:nth-child(13),
+        .group-total-row>div:not(:first-child),
+        .grand-total-row>div:not(:first-child) {
             font-family: 'IBM Plex Mono', Courier, monospace;
             font-variant-numeric: tabular-nums;
         }
@@ -216,7 +223,8 @@
         }
 
         .print-button {
-            background-color: #0f172a; /* Navy-Ink background */
+            background-color: #0f172a;
+            /* Navy-Ink background */
             color: white;
             padding: 8px 16px;
             border-radius: 6px;
@@ -233,7 +241,8 @@
         }
 
         .print-button:hover {
-            background-color: #000000; /* Black background on hover */
+            background-color: #000000;
+            /* Black background on hover */
             transform: translateY(-1px);
             box-shadow: 0 4px 6px rgba(15, 23, 42, 0.3);
         }
@@ -246,8 +255,7 @@
 
         .po-totals-panel-wrapper {
             margin-top: 5px;
-            width: 180mm; /* Full printable width */
-            /* border-top: 1px solid #000000; Long line above totals */
+            width: 257mm;
             padding-top: 0px;
             position: relative;
             page-break-inside: avoid;
@@ -285,10 +293,10 @@
             }
 
             .page-a4 {
-                width: 210mm;
-                height: 297mm !important;
+                width: 297mm;
+                height: 210mm !important;
                 margin: 0 auto !important;
-                padding: 20mm 15mm 15mm 15mm !important;
+                padding: 15mm 20mm 15mm 20mm !important;
                 box-shadow: none !important;
                 page-break-after: always;
                 break-after: always;
@@ -304,7 +312,7 @@
             }
 
             @page {
-                size: A4 portrait;
+                size: A4 landscape;
                 margin: 0;
             }
         }
@@ -335,18 +343,20 @@
 
         <a href="{{ route('analisaumurpiutang.excel', request()->query()) }}"
             style="padding: 7px 12px; background-color: #22c55e; color: white; border-radius: 4px; text-decoration: none; font-weight: bold; font-size: 12px; display: inline-flex; align-items: center; justify-content: center; transition: background-color 0.2s;"
-            onmouseover="this.style.backgroundColor='#16a34a'"
-            onmouseout="this.style.backgroundColor='#22c55e'">
+            onmouseover="this.style.backgroundColor='#16a34a'" onmouseout="this.style.backgroundColor='#22c55e'">
             📊 Excel
         </a>
     </div>
 
     @php
         $grand = ['undue' => 0, 'd30' => 0, 'd60' => 0, 'd90' => 0, 'd91' => 0, 'd1y' => 0];
-        $branchText = request()->has('branch_codes') ? implode(', ', (array) request()->input('branch_codes')) : 'Semua';
-        $customerText = trim((string) request('cust_from')) !== '' || trim((string) request('cust_to')) !== ''
-            ? (request('cust_from') ?: 'Awal') . ' s/d ' . (request('cust_to') ?: 'Akhir')
+        $branchText = request()->has('branch_codes')
+            ? implode(', ', (array) request()->input('branch_codes'))
             : 'Semua';
+        $customerText =
+            trim((string) request('cust_from')) !== '' || trim((string) request('cust_to')) !== ''
+                ? (request('cust_from') ?: 'Awal') . ' s/d ' . (request('cust_to') ?: 'Akhir')
+                : 'Semua';
     @endphp
 
     <div id="raw-source" style="display: none;">
@@ -399,9 +409,11 @@
                     'd91' => $items->sum('ppvar91hari'),
                     'd1y' => $items->sum('ppvar1tahun'),
                 ];
-                foreach ($tot as $key => $value) $grand[$key] += $value;
+                foreach ($tot as $key => $value) {
+                    $grand[$key] += $value;
+                }
             @endphp
-            
+
             {{-- Group Header block --}}
             <div class="journal-block group-row">
                 {{ $custCode }} - {{ $name }}
@@ -414,7 +426,8 @@
                         <div class="truncate">{{ $row->fbranchcode }}</div>
                         <div class="truncate" title="{{ $row->fsono }}">{{ $row->fsono }}</div>
                         <div>{{ $row->fsodate ? \Carbon\Carbon::parse($row->fsodate)->format('d/m/Y') : '' }}</div>
-                        <div>{{ $row->fjatuhtempo ? \Carbon\Carbon::parse($row->fjatuhtempo)->format('d/m/Y') : '' }}</div>
+                        <div>{{ $row->fjatuhtempo ? \Carbon\Carbon::parse($row->fjatuhtempo)->format('d/m/Y') : '' }}
+                        </div>
                         <div>{{ $row->mu }}</div>
                         <div>{{ number_format((float) $row->famountso, 2, ',', '.') }}</div>
                         <div>{{ number_format((float) $row->varundue, 2, ',', '.') }}</div>
@@ -430,7 +443,8 @@
             {{-- Group Total block --}}
             <div class="journal-block">
                 <div class="group-total-row">
-                    <div style="grid-column: span 7; text-align: right; padding-right: 8px;">Total {{ $name }}</div>
+                    <div style="grid-column: span 7; text-align: right; padding-right: 8px;">Total {{ $name }}
+                    </div>
                     <div>{{ number_format((float) $tot['undue'], 2, ',', '.') }}</div>
                     <div>{{ number_format((float) $tot['d30'], 2, ',', '.') }}</div>
                     <div>{{ number_format((float) $tot['d60'], 2, ',', '.') }}</div>
@@ -477,7 +491,8 @@
                         <div><span class="info-label">Jam</span>: {{ date('H:i') }}</div>
                         <div><span class="info-label">Opr</span>: {{ $user_session->fname ?? 'admin' }}</div>
                     </div>
-                    <div style="margin-top: 30px; text-align: center; font-size: 12px; color: #666;">Tidak ada data ditemukan.</div>
+                    <div style="margin-top: 30px; text-align: center; font-size: 12px; color: #666;">Tidak ada data
+                        ditemukan.</div>
                 </div>
             </div>
         @endif
@@ -487,7 +502,7 @@
 </html>
 
 <script>
-    document.addEventListener("DOMContentLoaded", function () {
+    document.addEventListener("DOMContentLoaded", function() {
         const rawSource = document.getElementById("raw-source");
         const reportWrapper = document.getElementById("reportWrapper");
         if (!rawSource || !reportWrapper) return;
@@ -497,7 +512,7 @@
 
         // Measure actual 297mm page height on the screen dynamically in pixels
         const tempDiv = document.createElement("div");
-        tempDiv.style.height = "297mm";
+        tempDiv.style.height = "210mm";
         tempDiv.style.position = "absolute";
         tempDiv.style.visibility = "hidden";
         document.body.appendChild(tempDiv);
@@ -523,7 +538,8 @@
             const infoTambahan = page.querySelector(".info-tambahan");
             if (infoTambahan) {
                 const halDiv = document.createElement("div");
-                halDiv.innerHTML = `<span class="info-label">Hal</span>: <span class="page-number-current"></span> / <span class="page-number-total"></span>`;
+                halDiv.innerHTML =
+                    `<span class="info-label">Hal</span>: <span class="page-number-current"></span> / <span class="page-number-total"></span>`;
                 infoTambahan.prepend(halDiv);
             }
             reportWrapper.appendChild(page);

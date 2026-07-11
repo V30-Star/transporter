@@ -130,7 +130,7 @@
                             </div>
                         </div>
 
-                        <div class="grid grid-cols-2 gap-2 bg-gray-50 p-3 rounded border">
+                        <div class="grid grid-cols-3 gap-2 bg-gray-50 p-3 rounded border">
                             <label class="flex items-center text-sm font-semibold cursor-pointer">
                                 <input type="radio" name="so_filter" id="all_so" value="all" checked
                                     class="mr-2 w-4 h-4 text-blue-600 focus:ring-blue-500"> Semua SO
@@ -138,6 +138,10 @@
                             <label class="flex items-center text-sm font-semibold cursor-pointer">
                                 <input type="radio" name="so_filter" id="only_pending" value="only_pending"
                                     class="mr-2 w-4 h-4 text-blue-600 focus:ring-blue-500"> Hanya SO yg Belum Kirim
+                            </label>
+                            <label class="flex items-center text-sm font-semibold cursor-pointer">
+                                <input type="checkbox" name="show_description" value="1"
+                                    class="mr-2 w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"> Show Description
                             </label>
                         </div>
                     </div>

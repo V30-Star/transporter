@@ -11,7 +11,7 @@ use OpenSpout\Writer\XLSX\Writer;
 
 class BukuPiutangController extends Controller
 {
-    private const DEFAULT_PIUTANG_ACCOUNTS = ['11400', '11401', '21130', '21131', '11420', '11421'];
+    private const DEFAULT_PIUTANG_ACCOUNTS = ['11401'];
 
     public function index()
     {
