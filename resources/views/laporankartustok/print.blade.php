@@ -197,7 +197,6 @@
 
         .wh-title {
             font-weight: bold;
-            background-color: #f3f4f6;
             margin-top: 6px;
             padding: 2px 8px;
             font-size: 8px;
@@ -206,7 +205,6 @@
 
         .group-title {
             font-weight: bold;
-            background-color: #ffe6e6;
             margin-top: 3px;
             padding: 2px 8px;
             font-size: 8px;
