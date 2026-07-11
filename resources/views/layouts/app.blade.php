@@ -895,7 +895,11 @@
                     }
 
                     if (response.ok) {
-                        window.location.reload();
+                        const data = await response.clone().json().catch(() => null);
+                        if (data?.message) {
+                            await window.showAppSuccessToast(data.message);
+                        }
+                        window.location.href = data?.redirect_url || window.location.href;
                         return;
                     }
 

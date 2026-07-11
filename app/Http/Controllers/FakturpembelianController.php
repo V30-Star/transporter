@@ -1507,8 +1507,15 @@ class FakturpembelianController extends Controller
                 );
             });
 
+            if ($request->expectsJson()) {
+                return response()->json([
+                    'message' => 'Data berhasil disimpan',
+                    'redirect_url' => route('fakturpembelian.create'),
+                ]);
+            }
+
             return redirect()->route('fakturpembelian.create')
-                ->with('success', 'Faktur pembelian '.$this->formatDisplayTransactionNumber($fstockmtno, $fapplyppn === 1).' berhasil disimpan.');
+                ->with('success', 'Data berhasil disimpan');
         } catch (\Exception $e) {
             Log::error('FakturPembelian@store ERROR: ' . $e->getMessage());
 
