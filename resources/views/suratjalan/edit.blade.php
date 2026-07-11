@@ -1588,6 +1588,17 @@
                 }
             },
 
+            addRowsToEmptySlots(rows) {
+                rows.forEach((row) => {
+                    const emptyIndex = this.savedItems.findIndex((item) => !this.rowHasContent(item));
+                    if (emptyIndex === -1) {
+                        this.savedItems.push(row);
+                    } else {
+                        this.savedItems.splice(emptyIndex, 1, row);
+                    }
+                });
+            },
+
             onRowUpdated(index = null) {
                 const row = typeof index === 'number' ? this.savedItems[index] : null;
                 if (row) {
@@ -1864,12 +1875,7 @@
                 });
 
                 if (rowsToAdd.length > 0) {
-                    const shouldReplaceStarter = this.savedItems.every((row) => !this.rowHasContent(row));
-                    if (shouldReplaceStarter) {
-                        this.savedItems = rowsToAdd;
-                    } else {
-                        this.savedItems.push(...rowsToAdd);
-                    }
+                    this.addRowsToEmptySlots(rowsToAdd);
                 }
 
                 if (!this.isReadOnlyMode) {
