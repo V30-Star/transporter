@@ -78,7 +78,7 @@
                             </div>
                         </div>
 
-                        <div class="grid grid-cols-3 gap-4">
+                        <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
                             <div>
                                 <label class="block text-xs font-bold uppercase mb-1 text-gray-700">Group Produk</label>
                                 <select name="group_code" class="select2 w-full border rounded px-3 py-2 text-sm">
@@ -108,6 +108,15 @@
                                     @endforeach
                                 </select>
                             </div>
+
+                            <div>
+                                <label class="block text-xs font-bold uppercase mb-1 text-gray-700">Tipe Penjualan</label>
+                                <select name="ftypesales" class="w-full border rounded px-3 py-2 text-sm">
+                                    <option value="">-- Semua Tipe --</option>
+                                    <option value="1">Uang Muka (UM)</option>
+                                    <option value="0">Penjualan</option>
+                                </select>
+                            </div>
                         </div>
 
                         <div class="grid grid-cols-2 gap-4">
@@ -128,6 +137,9 @@
                                 </label>
                                 <label class="flex items-center text-sm font-semibold">
                                     <input type="checkbox" name="belum_kirim" class="mr-2"> Belum Di Kirim
+                                </label>
+                                <label class="flex items-center text-sm font-semibold">
+                                    <input type="checkbox" name="include_retur_penjualan" value="1" class="mr-2"> Retur Penjualan
                                 </label>
                             </div>
                             <hr>

@@ -37,6 +37,7 @@ class ListingPenjualanController extends Controller
             ->select(
                 'm.fbranchcode',
                 'm.fsono',
+                'm.ftrcode',
                 'm.ftaxno',
                 'm.fsodate',
                 'm.fcustno',
@@ -111,11 +112,18 @@ class ListingPenjualanController extends Controller
         if ($request->salesman) {
             $query->where('m.fsalesman', $request->salesman);
         }
+        if ($request->filled('ftypesales')) {
+            $query->where('m.ftypesales', $request->ftypesales);
+        }
         if ($request->has('belum_kirim')) {
             $query->where('d.fqtyremain', '>', 0);
         }
+        $query->whereIn('m.ftrcode', $request->boolean('include_retur_penjualan') ? ['INV', 'REJ'] : ['INV']);
 
-        return $query->orderBy('m.fsono')->orderBy('d.fnou');
+        return $query
+            ->orderByRaw("CASE WHEN m.ftrcode = 'REJ' THEN 1 ELSE 0 END")
+            ->orderBy('m.fsono')
+            ->orderBy('d.fnou');
     }
 
     // ─────────────────────────────────────────────────────────────
@@ -153,6 +161,7 @@ class ListingPenjualanController extends Controller
         $styleColHeader = new Style(fontBold: true, backgroundColor: 'D3D3D3');
         $styleDetHeader = new Style(fontBold: true, fontColor: 'C00000', backgroundColor: 'FFE6E6');
         $styleInvHeader = new Style(fontBold: true);
+        $styleReturInvoice = new Style(fontBold: true, fontColor: 'C00000');
         $styleDetail = new Style(fontColor: 'C00000');
         $styleFooter = new Style(fontBold: true, backgroundColor: '333333', fontColor: 'FFFFFF');
 
@@ -178,10 +187,16 @@ class ListingPenjualanController extends Controller
         $selectedBranchesStr = !empty($request->branch_codes)
             ? implode(', ', (array) $request->branch_codes)
             : 'Semua';
+        $salesType = match ((string) $request->input('ftypesales', '')) {
+            '1' => 'Uang Muka (UM)',
+            '0' => 'Penjualan',
+            default => 'Semua',
+        };
 
         $makeRow(['LISTING PENJUALAN'], $styleTitle);
         $makeRow(["Periode: {$periodeFrom} s/d {$periodeTo}"], $styleInfo);
         $makeRow(["Cabang: {$selectedBranchesStr}"], $styleInfo);
+        $makeRow(["Tipe Penjualan: {$salesType}"], $styleInfo);
         $makeRow(["Customer: {$customer}", '', '', '', '', '', '', 'Tanggal: ' . date('d/m/Y'), '', 'Opr: ' . $operator], $styleInfo);
         $makeRow([]);   // baris kosong
 
@@ -207,6 +222,8 @@ class ListingPenjualanController extends Controller
         // ── Data ──────────────────────────────────────────────────
         foreach ($grouped as $fsono => $details) {
             $h = $details->first();
+            $sign = $h->ftrcode === 'REJ' ? -1 : 1;
+            $invoiceStyle = $h->ftrcode === 'REJ' ? $styleReturInvoice : $styleInvHeader;
 
             $fakturCols = [
                 $h->fsono,
@@ -214,11 +231,11 @@ class ListingPenjualanController extends Controller
                 date('d/m/y', strtotime($h->fsodate)),
                 $h->fcustomername,
                 $h->fsalesmanname ?? '-',
-                (float) $h->fdiscount,
-                (float) $h->famountsonet,
-                (float) $h->famountpajak,
-                (float) $h->fongkosangkut,
-                (float) $h->famountso,
+                abs((float) $h->fdiscount) * $sign,
+                abs((float) $h->famountsonet) * $sign,
+                abs((float) $h->famountpajak) * $sign,
+                abs((float) $h->fongkosangkut) * $sign,
+                abs((float) $h->famountso) * $sign,
             ];
 
             if ($type === 'detail') {
@@ -233,7 +250,7 @@ class ListingPenjualanController extends Controller
                         (float) $d->fqty,
                         (float) $d->fprice,
                         $d->fdisc,
-                        (float) $d->famount,
+                        abs((float) $d->famount) * $sign,
                     ];
 
                     // Baris pertama: tampilkan info faktur + detail
@@ -242,12 +259,12 @@ class ListingPenjualanController extends Controller
                         ? $fakturCols
                         : array_fill(0, 10, '');
 
-                    $makeRow(array_merge($leftCols, $detailCols), $isFirst ? $styleInvHeader : $styleDetail);
+                    $makeRow(array_merge($leftCols, $detailCols), $isFirst ? $invoiceStyle : $styleDetail);
                     $isFirst = false;
                 }
             } else {
                 // Mode rekap: 1 baris per faktur tanpa detail
-                $makeRow($fakturCols, $styleInvHeader);
+                $makeRow($fakturCols, $invoiceStyle);
             }
 
             // Baris pemisah kosong antar faktur
