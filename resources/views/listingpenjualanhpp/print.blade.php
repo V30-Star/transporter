@@ -125,6 +125,10 @@
             color: #000000;
         }
 
+        .text-rej {
+            color: #cc0000 !important;
+        }
+
         /* --- JOURNAL DETAIL STYLES (8 Kolom) --- */
         .detail-labels,
         .detail-row {
@@ -381,10 +385,10 @@
     </div>
 
     @php
-        $totalSales = $groupedData->sum(fn($items) => (float) ($items->first()->famountgross ?? 0));
-        $totalDiscount = $groupedData->sum(fn($items) => (float) ($items->first()->fdiscount ?? 0));
-        $totalHpp = $rows->sum('famounthpp');
-        $totalLaba = $rows->sum('flabarugi');
+        $totalSales = $groupedData->sum(fn($items) => abs((float) ($items->first()->famountgross ?? 0)) * (($items->first()->fsource ?? '') === 'REJ' ? -1 : 1));
+        $totalDiscount = $groupedData->sum(fn($items) => abs((float) ($items->first()->fdiscount ?? 0)) * (($items->first()->fsource ?? '') === 'REJ' ? -1 : 1));
+        $totalHpp = $rows->sum(fn($row) => abs((float) ($row->famounthpp ?? 0)) * (($row->fsource ?? '') === 'REJ' ? -1 : 1));
+        $totalLaba = $rows->sum(fn($row) => abs((float) ($row->flabarugi ?? 0)) * (($row->fsource ?? '') === 'REJ' ? -1 : 1));
         $branchText = request()->has('branch_codes') ? implode(', ', (array) request()->input('branch_codes')) : 'Semua';
         $customerText = request('cust_from') || request('cust_to') ? (request('cust_from') ?: 'Awal') . ' s/d ' . (request('cust_to') ?: 'Akhir') : 'Semua';
     @endphp
@@ -434,21 +438,30 @@
             <div class="right">Laba/Rugi</div>
         </div>
 
+        @php($returnSectionStarted = false)
         @foreach ($groupedData as $fsono => $items)
-            @php $h = $items->first(); @endphp
-            <div class="journal-block">
+            @php
+                $h = $items->first();
+                $isReturn = ($h->fsource ?? '') === 'REJ';
+                $sign = $isReturn ? -1 : 1;
+                $forceNewPage = $isReturn && ! $returnSectionStarted;
+                if ($isReturn) {
+                    $returnSectionStarted = true;
+                }
+            @endphp
+            <div class="journal-block {{ $forceNewPage ? 'force-new-page-before' : '' }}">
                 <div class="invoice-row">
                     <div>{{ $h->fbranchcode }}</div>
-                    <div class="truncate" title="{{ $h->fsono }}">{{ $h->fsono }}</div>
+                    <div class="truncate {{ $isReturn ? 'text-rej' : '' }}" title="{{ $h->fsono }}">{{ $h->fsono }}</div>
                     <div>{{ $h->fsodate ? \Carbon\Carbon::parse($h->fsodate)->format('d/m/Y') : '' }}</div>
                     <div class="truncate" title="{{ $h->fcustname }}">{{ $h->fcustname }}</div>
                     <div class="truncate" title="{{ $h->fsalesman }}">{{ $h->fsalesman }}</div>
-                    <div>{{ number_format((float) $h->famountgross, 2, ',', '.') }}</div>
+                    <div>{{ number_format(abs((float) $h->famountgross) * $sign, 2, ',', '.') }}</div>
                     <div>{{ number_format((float) $h->fdiscpersen, 2, ',', '.') }}</div>
-                    <div>{{ number_format((float) $h->fdiscount, 2, ',', '.') }}</div>
-                    <div>{{ number_format((float) $h->famountsonet, 2, ',', '.') }}</div>
-                    <div>{{ number_format((float) $h->famountpajak, 2, ',', '.') }}</div>
-                    <div>{{ number_format((float) $h->famountso, 2, ',', '.') }}</div>
+                    <div>{{ number_format(abs((float) $h->fdiscount) * $sign, 2, ',', '.') }}</div>
+                    <div>{{ number_format(abs((float) $h->famountsonet) * $sign, 2, ',', '.') }}</div>
+                    <div>{{ number_format(abs((float) $h->famountpajak) * $sign, 2, ',', '.') }}</div>
+                    <div>{{ number_format(abs((float) $h->famountso) * $sign, 2, ',', '.') }}</div>
                 </div>
 
                 @foreach ($items as $row)
@@ -458,9 +471,9 @@
                         <div class="right">{{ number_format((float) $row->fqty, 2, ',', '.') }} {{ $row->fsatuan }}</div>
                         <div class="right">{{ number_format((float) $row->famountgross, 2, ',', '.') }}</div>
                         <div class="right">{{ number_format((float) $row->fhpp, 2, ',', '.') }}</div>
-                        <div class="right">{{ number_format((float) $row->famountsales, 2, ',', '.') }}</div>
-                        <div class="right">{{ number_format((float) $row->famounthpp, 2, ',', '.') }}</div>
-                        <div class="right">{{ number_format((float) $row->flabarugi, 2, ',', '.') }}</div>
+                        <div class="right">{{ number_format(abs((float) $row->famountsales) * $sign, 2, ',', '.') }}</div>
+                        <div class="right">{{ number_format(abs((float) $row->famounthpp) * $sign, 2, ',', '.') }}</div>
+                        <div class="right">{{ number_format(abs((float) $row->flabarugi) * $sign, 2, ',', '.') }}</div>
                     </div>
                 @endforeach
                 @if (!$loop->last)
@@ -570,6 +583,11 @@
         let currentContent = currentPage.querySelector(".page-content");
 
         journals.forEach((journal) => {
+            if (journal.classList.contains("force-new-page-before") && currentContent.children.length > 0) {
+                currentPage = createNewPage();
+                currentContent = currentPage.querySelector(".page-content");
+            }
+
             const poHeader = journal.querySelector(".invoice-row");
             const poDetails = Array.from(journal.querySelectorAll(".detail-row"));
             const separator = journal.querySelector(".separator");

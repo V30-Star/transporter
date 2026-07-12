@@ -82,13 +82,14 @@ class ListingPenjualanHppController extends Controller
             CASE WHEN COALESCE(m.fincludeppn, '0') = '1' THEN (100 / (100 + COALESCE(NULLIF(m.fppnpersen, 0), 11))) * COALESCE(d.fpricenet, 0) ELSE COALESCE(d.fpricenet, 0) END AS fpricenet, 
             CASE WHEN COALESCE(m.fincludeppn, '0') = '1' THEN (100 / (100 + COALESCE(NULLIF(m.fppnpersen, 0), 11))) * COALESCE(m.famountgross, 0) * ROUND(d.fqty, 0) ELSE ROUND(d.fqty, 0) * COALESCE(m.famountgross, 0) END AS famountsales, 
             ROUND(d.famount, 0) AS famount, ROUND(d.fhpp, 0) AS fhpp, 
-            m.fuserid::varchar AS fuserid, 'INV' AS fsource")
+            m.fuserid::varchar AS fuserid, 'REJ' AS fsource")
             ->where('m.ftrcode', 'REJ');
 
         $this->applyReturFilters($retur, $request, 'm', 'd');
 
         return DB::query()
             ->fromSub($invoice->unionAll($retur), 'x')
+            ->orderByRaw("CASE WHEN x.fsource = 'REJ' THEN 1 ELSE 0 END")
             ->orderBy('x.fbranchcode')
             ->orderBy('x.fsono')
             ->orderBy('x.fprdcode')
@@ -158,6 +159,7 @@ class ListingPenjualanHppController extends Controller
         $styleTitle = new Style(fontBold: true, fontSize: 14);
         $styleHeader = new Style(fontBold: true, backgroundColor: 'D3D3D3');
         $styleInvoice = new Style(fontBold: true, backgroundColor: 'E2E8F0');
+        $styleReturInvoice = new Style(fontBold: true, fontColor: 'C00000', backgroundColor: 'E2E8F0');
         $styleDetail = new Style(fontBold: false);
         $styleGrandTotal = new Style(fontBold: true, backgroundColor: '333333', fontColor: 'FFFFFF');
 
@@ -188,13 +190,15 @@ class ListingPenjualanHppController extends Controller
             '@ Harga Net', '@ HPP', 'Tot.Harga Jual', 'Total HPP', 'Laba/Rugi'
         ], $styleHeader));
 
-        $grandTotalSales = $groupedData->sum(fn($items) => (float) ($items->first()->famountso ?? 0));
-        $grandTotalDiscount = $groupedData->sum(fn($items) => (float) ($items->first()->fdiscount ?? 0));
-        $grandTotalHpp = $rows->sum('famounthpp');
-        $grandTotalLaba = $rows->sum('flabarugi');
+        $grandTotalSales = $groupedData->sum(fn($items) => abs((float) ($items->first()->famountso ?? 0)) * (($items->first()->fsource ?? '') === 'REJ' ? -1 : 1));
+        $grandTotalDiscount = $groupedData->sum(fn($items) => abs((float) ($items->first()->fdiscount ?? 0)) * (($items->first()->fsource ?? '') === 'REJ' ? -1 : 1));
+        $grandTotalHpp = $rows->sum(fn($row) => abs((float) ($row->famounthpp ?? 0)) * (($row->fsource ?? '') === 'REJ' ? -1 : 1));
+        $grandTotalLaba = $rows->sum(fn($row) => abs((float) ($row->flabarugi ?? 0)) * (($row->fsource ?? '') === 'REJ' ? -1 : 1));
 
         foreach ($groupedData as $fsono => $items) {
             $h = $items->first();
+            $sign = ($h->fsource ?? '') === 'REJ' ? -1 : 1;
+            $invoiceStyle = ($h->fsource ?? '') === 'REJ' ? $styleReturInvoice : $styleInvoice;
             // Write Invoice Header
             $writer->addRow($makeRow([
                 $h->fbranchcode,
@@ -202,13 +206,13 @@ class ListingPenjualanHppController extends Controller
                 $h->fsodate ? date('d/m/Y', strtotime($h->fsodate)) : '',
                 $h->fcustname,
                 $h->fsalesman,
-                (float) $h->famountgross,
+                abs((float) $h->famountgross) * $sign,
                 (float) $h->fdiscpersen,
-                (float) $h->fdiscount,
-                (float) $h->famountsonet,
-                (float) $h->famountpajak,
-                (float) $h->famountso
-            ], $styleInvoice));
+                abs((float) $h->fdiscount) * $sign,
+                abs((float) $h->famountsonet) * $sign,
+                abs((float) $h->famountpajak) * $sign,
+                abs((float) $h->famountso) * $sign
+            ], $invoiceStyle));
 
             // Write Details
             foreach ($items as $row) {
@@ -220,9 +224,9 @@ class ListingPenjualanHppController extends Controller
                     $row->fsatuan,
                     (float) $row->fpricenet,
                     (float) $row->fhpp,
-                    (float) $row->famountsales,
-                    (float) $row->famounthpp,
-                    (float) $row->flabarugi
+                    abs((float) $row->famountsales) * $sign,
+                    abs((float) $row->famounthpp) * $sign,
+                    abs((float) $row->flabarugi) * $sign
                 ], $styleDetail));
             }
         }

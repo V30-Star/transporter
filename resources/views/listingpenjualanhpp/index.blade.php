@@ -78,7 +78,7 @@
                                 <label class="flex items-center text-sm font-semibold cursor-pointer">
                                     <input type="checkbox" name="include_retur" value="1"
                                         class="mr-2 w-4 h-4 text-blue-600 focus:ring-blue-500">
-                                    Termasuk Retur Penjualan
+                                    Retur Penjualan
                                 </label>
                             </div>
                         </div>

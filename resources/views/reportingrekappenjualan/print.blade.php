@@ -163,6 +163,10 @@
             color: #0f172a;
         }
 
+        .text-rej {
+            color: #cc0000 !important;
+        }
+
         .separator {
             margin: 0px;
             clear: both;
@@ -368,37 +372,42 @@
             <div>Total Penjualan</div>
         </div>
 
-        @forelse ($rows->groupBy('fmerek') as $groupCode => $items)
-            @php
-                $groupName = $items->first()->fgroupname ?: $groupCode;
-                $groupTotal = $items->sum('famount');
-                $grandTotal += $groupTotal;
-            @endphp
-            
-            {{-- Group Header block --}}
-            <div class="journal-block group-row">
-                {{ $groupCode }} - {{ $groupName }}
+        @forelse ($rows->groupBy('fsource') as $source => $sourceRows)
+            @php($isReturn = $source === 'REJ')
+            <div class="journal-block group-row {{ $isReturn ? 'force-new-page-before text-rej' : '' }}">
+                {{ $isReturn ? 'RETUR PENJUALAN' : 'PENJUALAN' }}
             </div>
 
-            @foreach ($items as $index => $row)
+            @foreach ($sourceRows->groupBy('fmerek') as $groupCode => $items)
+                @php
+                    $groupName = $items->first()->fgroupname ?: $groupCode;
+                    $groupTotal = $items->sum(fn($item) => $isReturn ? abs((float) $item->famount) * -1 : abs((float) $item->famount));
+                    $grandTotal += $groupTotal;
+                @endphp
+
+                <div class="journal-block group-row {{ $isReturn ? 'text-rej' : '' }}">
+                    {{ $groupCode }} - {{ $groupName }}
+                </div>
+
+                @foreach ($items as $index => $row)
+                    <div class="journal-block">
+                        <div class="item-row {{ $isReturn ? 'text-rej' : '' }}">
+                            <div>{{ $index + 1 }}</div>
+                            <div>{{ $row->fprdcode }}</div>
+                            <div class="truncate" title="{{ $row->fprdname }}">{{ $row->fprdname }}</div>
+                            <div>{{ number_format((float) $row->fqty, 2, ',', '.') }}</div>
+                            <div>{{ number_format($isReturn ? abs((float) $row->famount) * -1 : abs((float) $row->famount), 2, ',', '.') }}</div>
+                        </div>
+                    </div>
+                @endforeach
+
                 <div class="journal-block">
-                    <div class="item-row">
-                        <div>{{ $index + 1 }}</div>
-                        <div>{{ $row->fprdcode }}</div>
-                        <div class="truncate" title="{{ $row->fprdname }}">{{ $row->fprdname }}</div>
-                        <div>{{ number_format((float) $row->fqty, 2, ',', '.') }}</div>
-                        <div>{{ number_format((float) $row->famount, 2, ',', '.') }}</div>
+                    <div class="group-total-row {{ $isReturn ? 'text-rej' : '' }}">
+                        <div style="grid-column: span 4; text-align: right; padding-right: 8px;">Total {{ $groupCode }}</div>
+                        <div>{{ number_format((float) $groupTotal, 2, ',', '.') }}</div>
                     </div>
                 </div>
             @endforeach
-
-            {{-- Group Total block --}}
-            <div class="journal-block">
-                <div class="group-total-row">
-                    <div style="grid-column: span 4; text-align: right; padding-right: 8px;">Total {{ $groupCode }}</div>
-                    <div>{{ number_format((float) $groupTotal, 2, ',', '.') }}</div>
-                </div>
-            </div>
         @empty
             <div class="journal-block" style="text-align: center; padding: 20px; font-size: 11px; color: #666;">
                 Tidak ada data ditemukan.
@@ -490,6 +499,11 @@
         let currentContent = currentPage.querySelector(".page-content");
 
         journals.forEach((journal) => {
+            if (journal.classList.contains("force-new-page-before") && currentContent.children.length > 0) {
+                currentPage = createNewPage();
+                currentContent = currentPage.querySelector(".page-content");
+            }
+
             const journalClone = journal.cloneNode(true);
             currentContent.appendChild(journalClone);
 

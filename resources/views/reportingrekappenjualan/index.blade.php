@@ -104,12 +104,15 @@
                         </div>
                     </div>
 
-                    <div class="grid grid-cols-2 gap-2 bg-gray-50 p-3 rounded border">
+                    <div class="grid grid-cols-3 gap-2 bg-gray-50 p-3 rounded border">
                         <label class="flex items-center text-sm font-semibold cursor-pointer">
                             <input type="checkbox" name="group_by" value="group" checked class="group-by-checkbox mr-2 w-4 h-4 text-blue-600 focus:ring-blue-500"> By Group Produk
                         </label>
                         <label class="flex items-center text-sm font-semibold cursor-pointer">
                             <input type="checkbox" name="group_by" value="merek" class="group-by-checkbox mr-2 w-4 h-4 text-blue-600 focus:ring-blue-500"> By Merek
+                        </label>
+                        <label class="flex items-center text-sm font-semibold cursor-pointer">
+                            <input type="checkbox" name="include_retur_penjualan" value="1" class="mr-2 w-4 h-4 text-blue-600 focus:ring-blue-500"> Retur Penjualan
                         </label>
                     </div>
                 </div>
