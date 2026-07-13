@@ -543,7 +543,7 @@
                             <textarea x-model="descValue" rows="5" class="w-full border rounded px-3 py-2"
                                 placeholder="Tulis deskripsi item di sini..."></textarea>
                         </div>
-                        <div class="px-5 py-3 border-t flex items-center justify-end gap-2">
+                        <div class="px-5 py-3 border-t flex items-center justify-end gap-3">
                             <button type="button" @click="closeDesc()"
                                 class="h-9 px-4 rounded-lg bg-gray-100 text-gray-700 text-sm font-medium hover:bg-gray-200">
                                 Batal

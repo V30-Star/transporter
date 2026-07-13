@@ -347,7 +347,7 @@
                 </div> {{-- end detail card --}}
 
                 <div class="border border-gray-200 rounded-xl bg-white p-6 mt-6">
-                    <div class="flex justify-center gap-4">
+                    <div class="flex justify-end gap-3">
                         <button type="submit"
                             class="inline-flex items-center bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors">
                             <x-heroicon-o-check class="w-5 h-5 mr-2" />
@@ -364,7 +364,7 @@
         @endif
         @if ($isDelete)
             <div x-show="showDeleteModal" x-cloak
-                class="fixed inset-0 z-[95] flex items-center justify-center"
+                class="fixed inset-0 z-[95] flex items-center justify-end gap-3"
                 x-transition.opacity>
                 <div class="absolute inset-0 bg-black/50" @click="showDeleteModal = false"></div>
                 <div class="relative bg-white w-[92vw] max-w-md rounded-2xl shadow-2xl overflow-hidden">

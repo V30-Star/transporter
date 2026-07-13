@@ -508,7 +508,7 @@
 
             {{-- ─── CARD 3: Aksi ────────────────── --}}
             <div class="bg-white border border-gray-200 rounded-xl mb-3 overflow-hidden">
-                <div class="p-4 bg-gray-50 flex justify-end items-center space-x-2">
+                <div class="p-4 bg-gray-50 flex justify-end gap-3 items-center space-x-2">
                     @if ($isDelete)
                         @if ($usageLocked)
                             <button type="button" disabled title="{{ $usageLockMessage }}"
@@ -1245,7 +1245,7 @@
 
                     {{-- ─── CARD 3: Aksi ────────────────── --}}
                     <div class="bg-white border border-gray-200 rounded-xl mb-3 overflow-hidden">
-                        <div class="p-4 bg-gray-50 flex justify-end items-center space-x-2">
+                        <div class="p-4 bg-gray-50 flex justify-end gap-3 items-center space-x-2">
                             <button type="button"
                                 @click="window.location.href='{{ route('suratjalan.index') }}'"
                                 class="bg-white border border-gray-300 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-50 flex items-center text-sm font-semibold shadow-sm transition">

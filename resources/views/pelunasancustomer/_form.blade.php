@@ -559,7 +559,7 @@ class="w-full border-gray-300 rounded-lg px-3 py-2 bg-gray-100 cursor-not-allowe
                     </div>
                 </div>
 
-                <div class="px-6 py-3 border-t border-gray-200 flex items-center justify-between gap-3 flex-shrink-0 bg-gray-50 text-sm text-gray-600">
+                <div class="px-6 py-3 border-t border-gray-200 flex items-center justify-end gap-3 flex-shrink-0 bg-gray-50 text-sm text-gray-600">
                     <div x-text="notaInfoText"></div>
                     <div class="flex items-center gap-4">
                         <button type="button" @click="submitSelectedNotas()" :disabled="!tempSelectedNotas.length"

@@ -1091,7 +1091,7 @@
 
                     </div>
 
-                    <div class="mt-6 flex justify-center space-x-4 allow-action">
+                    <div class="mt-6 flex justify-end gap-3 space-x-4 allow-action">
                         @if ($canDeletePermission)
                             <button type="button" onclick="showDeleteModal()"
                                 @if ($usageLocked) disabled @endif
@@ -2079,7 +2079,7 @@
                             </div>
                         </div>
 
-                        <div class="mt-8 flex justify-center gap-4 allow-action">
+                        <div class="mt-8 flex justify-end gap-3 allow-action">
                             @if ($canEditPermission)
                                 <button type="submit"
                                     @if ($usageLocked) disabled @endif

@@ -514,7 +514,7 @@
                         </div>
                     </div>
 
-                    <div class="px-6 py-3 border-t border-gray-200 flex items-center justify-between gap-3 flex-shrink-0 bg-gray-50 text-sm text-gray-600">
+                    <div class="px-6 py-3 border-t border-gray-200 flex items-center justify-end gap-3 flex-shrink-0 bg-gray-50 text-sm text-gray-600">
                         <div x-text="pblInfoText"></div>
                         <div class="flex items-center gap-4">
                             <button type="button" @click="submitSelectedPbls()" :disabled="!tempSelectedPbls.length"

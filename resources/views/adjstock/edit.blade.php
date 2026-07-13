@@ -918,7 +918,7 @@
                                     placeholder="Tulis deskripsi item di sini..."></textarea>
                             </div>
 
-                            <div class="px-5 py-3 border-t flex items-center justify-end gap-2">
+                            <div class="px-5 py-3 border-t flex items-center justify-end gap-3">
                                 <button type="button" @click="closeDesc()"
                                     class="h-9 px-4 rounded-lg bg-gray-100 text-gray-700 text-sm font-medium hover:bg-gray-200">
                                     Batal
@@ -1317,7 +1317,7 @@
             </div>
             {{-- ─── CARD 3: Aksi ──────────────────────────── --}}
             <div class="bg-white border border-gray-200 rounded-xl mb-3 overflow-hidden allow-action">
-                <div class="flex items-center justify-between px-4 py-3">
+                <div class="flex items-center justify-end gap-3 px-4 py-3">
                     <div class="flex items-center gap-3">
                         @if ($action !== 'view' && $canEditPermission)
                             <button type="submit"

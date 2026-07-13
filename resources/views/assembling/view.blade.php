@@ -883,7 +883,7 @@
                     </div>
                 </div>
                 @php $isPrinted = (int) ($assembling->fprint ?? 0) === 1; @endphp
-                <div class="mt-6 flex justify-center space-x-4">
+                <div class="mt-6 flex justify-end gap-3 space-x-4">
                     @if ($canPrint)
                         <a href="{{ route('assembling.print', $assembling->fstockmtno) }}" target="_blank"
                             class="{{ $isPrinted ? 'bg-gray-400 pointer-events-none cursor-not-allowed' : 'bg-blue-600 hover:bg-blue-700' }} text-white px-6 py-2 rounded flex items-center">

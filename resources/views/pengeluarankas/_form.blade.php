@@ -481,7 +481,7 @@
 
         <div class="mt-6 border border-gray-200 rounded-xl bg-white overflow-hidden">
             <div class="p-6">
-                <div class="flex justify-center gap-4">
+                <div class="flex justify-end gap-3">
                     @if ($isReadOnly && !$isDeleteMode && !empty($printRoute))
                         <a href="{{ $printRoute }}" target="_blank"
                             class="bg-blue-600 text-white px-6 py-2.5 rounded-lg hover:bg-blue-700 inline-flex items-center text-sm font-medium">
