@@ -505,7 +505,10 @@
                                         <td class="p-2 text-center">
                                             <div class="flex items-center justify-center gap-2 flex-wrap">
                                                 <button type="button" @click="addIfComplete()"
-                                                    class="px-3 py-1 rounded text-xs bg-emerald-600 text-white">Tambah</button>
+                                                    class="inline-flex h-7 w-7 items-center justify-center rounded-lg bg-red-50 text-red-500 hover:bg-red-100 transition-colors border border-red-200"
+                                                    title="Tambah baris">
+                                                    <x-heroicon-o-minus class="w-4 h-4" />
+                                                </button>
                                             </div>
                                         </td>
                                     </tr>
@@ -520,6 +523,86 @@
                                         <td class="p-0"></td>
                                         <td class="p-0"></td>
                                     </tr>
+
+                                    <template x-for="(row, n) in extraRows" :key="row.uid">
+                                        <tr class="border-t align-top">
+                                            <td class="p-2" x-text="savedItems.length + n + 2"></td>
+                                            <td class="p-2">
+                                                <div class="flex">
+                                                    <input type="text" class="flex-1 border rounded-l px-2 py-1 font-mono"
+                                                        x-model.trim="row.fitemcode"
+                                                        @input="onCodeTypedRow(row)"
+                                                        @keydown.enter.prevent="handleEnterOnCode('extra', row)">
+                                                    <button type="button" @click="openBrowseFor('extra', row)"
+                                                        class="border border-l-0 px-2 py-1 bg-white hover:bg-gray-50" title="Cari Produk">
+                                                        <x-heroicon-o-magnifying-glass class="w-4 h-4" />
+                                                    </button>
+                                                </div>
+                                            </td>
+                                            <td class="p-2" style="width: 20rem; min-width: 20rem;">
+                                                <div class="desc-inline-field">
+                                                    <div class="desc-inline-field__text rounded-l border bg-gray-100 px-2 py-1 text-sm leading-5 text-gray-600 whitespace-normal break-words"
+                                                        x-text="row.fitemname"></div>
+                                                    <button type="button" @click="openDesc(row)"
+                                                        class="desc-inline-field__button inline-flex items-center border border-l-0 rounded-r px-2 py-1 transition-colors"
+                                                        :class="row.fdesc ? 'border-emerald-300 bg-emerald-50 text-emerald-600 hover:bg-emerald-100' : 'border-gray-300 bg-white text-gray-500 hover:bg-gray-50'"
+                                                        title="Deskripsi item">
+                                                        <x-heroicon-o-document-text class="h-4 w-4" />
+                                                    </button>
+                                                </div>
+                                            </td>
+                                            <td class="p-2">
+                                                <select class="w-full border rounded px-2 py-1 select2" :value="row.account_code"
+                                                    @input="updateAccount(row, $event.target.value, $event.target.options[$event.target.selectedIndex].dataset.name)">
+                                                    <option value="">Pilih Akun</option>
+                                                    <template x-for="acc in accounts" :key="acc.faccount">
+                                                        <option :value="acc.faccount" :data-name="acc.faccname"
+                                                            x-text="`${acc.faccount} - ${acc.faccname}`"></option>
+                                                    </template>
+                                                </select>
+                                            </td>
+                                            <td class="p-2">
+                                                <select class="w-full border rounded px-2 py-1 select2"
+                                                    :value="row.subaccount_code"
+                                                    @input="updateSubAccount(row, $event.target.value, $event.target.options[$event.target.selectedIndex].dataset.name)">
+                                                    <option value="">Pilih Sub Akun</option>
+                                                    <template x-for="sacc in subaccounts" :key="sacc.fsubaccountcode">
+                                                        <option :value="sacc.fsubaccountcode" :data-name="sacc.fsubaccountname"
+                                                            x-text="`${sacc.fsubaccountcode} - ${sacc.fsubaccountname}`">
+                                                        </option>
+                                                    </template>
+                                                </select>
+                                            </td>
+                                            <td class="p-2">
+                                                <template x-if="row.units.length > 1">
+                                                    <select class="w-full border rounded px-2 py-1" x-model="row.fsatuan">
+                                                        <template x-for="u in row.units" :key="u">
+                                                            <option :value="u" x-text="u"></option>
+                                                        </template>
+                                                    </select>
+                                                </template>
+                                                <template x-if="row.units.length <= 1">
+                                                    <input type="text"
+                                                        class="w-full border rounded px-2 py-1 bg-gray-100 text-gray-600"
+                                                        :value="row.fsatuan || '-'" disabled>
+                                                </template>
+                                            </td>
+                                            <td class="p-2 text-right">
+                                                <input type="number" class="border rounded px-2 py-1 w-24 text-right"
+                                                    min="0" step="0.01"
+                                                    x-model.number="row.fqty" @change="recalc(row)" @blur="recalc(row)"
+                                                    @keydown.enter.prevent="addIfCompleteRow(row, n)">
+                                            </td>
+                                            <td class="p-2 text-center">
+                                                <div class="flex items-center justify-center gap-2 flex-wrap">
+                                                    <button type="button" @click="addIfCompleteRow(row, n)"
+                                                        class="inline-flex h-7 w-7 items-center justify-center rounded-lg bg-red-50 text-red-500 hover:bg-red-100 transition-colors border border-red-200" title="Tambah baris">
+                                                        <x-heroicon-o-minus class="w-4 h-4" />
+                                                    </button>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    </template>
                                 </tbody>
                             </table>
                         </div>
@@ -876,6 +959,10 @@
             showNoItems: false,
             savedItems: @json($initialPemakaianItems),
             draft: newRow(),
+            extraRows: Array.from({ length: 4 }, () => ({
+                ...newRow(),
+                uid: cryptoRandom(),
+            })),
                 totalHarga: 0,
 
                 updateAccount(row, accountCode, accName) {
@@ -988,6 +1075,13 @@
                     this.$nextTick(() => this.$refs.draftCode?.focus());
                 },
 
+                resetExtraRow(index) {
+                    this.extraRows.splice(index, 1, {
+                        ...newRow(),
+                        uid: cryptoRandom(),
+                    });
+                },
+
                 addManyFromPR(header, items) {
                     const existing = new Set(this.getCurrentItemKeys());
 
@@ -1033,12 +1127,16 @@
 
                 addIfComplete() {
                     const r = this.draft;
+                    return this.addRowIfComplete(r, () => this.resetDraft(), () => this.$refs.draftCode?.focus());
+                },
+
+                addIfCompleteRow(row, index) {
+                    return this.addRowIfComplete(row, () => this.resetExtraRow(index));
+                },
+
+                addRowIfComplete(r, reset, focusInvalid) {
                     if (!this.isComplete(r)) {
-                        if (!r.fitemcode) return this.$refs.draftCode?.focus();
-                        if (!r.fitemname) return this.$refs.draftCode?.focus();
-                        if (!r.fsatuan) return (r.units.length > 1 ? this.$refs.draftUnit?.focus() : this.$refs.draftCode
-                            ?.focus());
-                        if (!(@json((string) env('STOCKBOLEHMINUS', '0') === '1') ? Number(r.fqty) !== 0 : Number(r.fqty) > 0)) return this.$refs.draftQty?.focus();
+                        focusInvalid?.();
                         return;
                     }
 
@@ -1061,7 +1159,7 @@
                     });
 
                     this.showNoItems = false;
-                    this.resetDraft();
+                    reset?.();
                     this.$nextTick(() => {
                         this.$refs.draftCode?.focus();
                     });
@@ -1095,11 +1193,13 @@
                 },
 
                 handleEnterOnCode(where) {
-                    if (where === 'edit') {
-                        // handled by inline
-                    } else {
-                        if (this.draft.units.length > 1) this.$refs.draftUnit?.focus();
-                        else this.$refs.draftQty?.focus();
+                        if (where === 'edit') {
+                            // handled by inline
+                        } else if (where === 'extra') {
+                            // handled by row button
+                        } else {
+                            if (this.draft.units.length > 1) this.$refs.draftUnit?.focus();
+                            else this.$refs.draftQty?.focus();
                     }
                 },
 
@@ -1143,9 +1243,6 @@
                         const apply = (row) => {
                             row.fitemcode = (product.fprdcode || '').toString();
                             this.hydrateRowFromMeta(row, this.productMeta(row.fitemcode));
-                             this.rows.splice(this.browseTarget, 1, {
-                        ...this.rows[this.browseTarget]
-                    });
 
                             if (!row.fqty) row.fqty = 1;
                             this.recalc(row);
@@ -1153,6 +1250,8 @@
 
                         if (this.browseTarget === 'edit') {
                             // apply(this.editRow); 
+                        } else if (this.browseTarget === 'extra' && this.browseRow) {
+                            apply(this.browseRow);
                         } else {
                             apply(this.draft);
                             this.$nextTick(() => {
@@ -1165,8 +1264,10 @@
                 },
 
                 browseTarget: 'draft',
-                openBrowseFor(where) {
-                    this.browseTarget = (where === 'edit' ? 'edit' : 'draft');
+                browseRow: null,
+                openBrowseFor(where, row = null) {
+                    this.browseTarget = (where === 'edit' ? 'edit' : (where === 'extra' ? 'extra' : 'draft'));
+                    this.browseRow = row;
                     window.dispatchEvent(new CustomEvent('browse-open', {
                         detail: {
                             forEdit: this.browseTarget === 'edit'

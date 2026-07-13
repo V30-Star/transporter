@@ -820,9 +820,12 @@
                                             <!-- Aksi -->
                                             <td class="p-2 text-center">
                                                 <div class="flex items-center justify-center gap-2 flex-wrap">
-                                                    <button type="button" @click="addIfComplete()" <button
-                                                        type="button" @click="addIfComplete()"
-                                                        class="px-3 py-1 rounded text-xs bg-gray-800 text-white">Tambah</button>
+                                                    <button type="button" @click="addIfComplete()"
+                                                        class="inline-flex h-7 w-7 items-center justify-center rounded-lg bg-red-50 text-red-500 hover:bg-red-100 transition-colors border border-red-200"
+                                                        title="Tambah baris">
+                                                        <x-heroicon-o-minus class="w-4 h-4" />
+                                                    </button>
+                                                </div>
                                             </td>
                                         </tr>
                                         <tr class="border-b">
