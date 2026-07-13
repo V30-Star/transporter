@@ -91,6 +91,39 @@
             width: 2rem !important;
             flex-basis: 2rem !important;
         }
+
+        label,
+        input,
+        select,
+        textarea,
+        .desc-inline-field__text,
+        select option,
+        .pr-detail-table th,
+        .pr-detail-table td {
+            color: #000000 !important;
+            font-weight: 500 !important;
+        }
+
+        input:disabled,
+        select:disabled,
+        textarea:disabled {
+            color: #000000 !important;
+            -webkit-text-fill-color: #000000 !important;
+            opacity: 1 !important;
+        }
+        
+        input::placeholder,
+        textarea::placeholder {
+            color: #9ca3af !important;
+            font-weight: normal !important;
+        }
+
+        input:disabled::placeholder,
+        textarea:disabled::placeholder {
+            color: #9ca3af !important;
+            -webkit-text-fill-color: #9ca3af !important;
+            font-weight: normal !important;
+        }
     </style>
     @if ($errors->any())
         <div class="alert alert-danger alert-dismissible fade show border-0 shadow p-0 overflow-hidden mb-4 rounded-xl"
