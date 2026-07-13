@@ -133,6 +133,19 @@
             display: inline-flex;
             align-items: center;
         }
+
+        input::placeholder,
+        textarea::placeholder {
+            color: #9ca3af !important;
+            font-weight: normal !important;
+        }
+
+        input:disabled::placeholder,
+        textarea:disabled::placeholder {
+            color: #9ca3af !important;
+            -webkit-text-fill-color: #9ca3af !important;
+            font-weight: normal !important;
+        }
     </style>
     @php
         $usageLocked = !empty($isUsageLocked);

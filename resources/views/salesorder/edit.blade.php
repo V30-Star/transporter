@@ -114,6 +114,19 @@
             display: inline-flex;
             align-items: center;
         }
+
+        input::placeholder,
+        textarea::placeholder {
+            color: #9ca3af !important;
+            font-weight: normal !important;
+        }
+
+        input:disabled::placeholder,
+        textarea:disabled::placeholder {
+            color: #9ca3af !important;
+            -webkit-text-fill-color: #9ca3af !important;
+            font-weight: normal !important;
+        }
     </style>
     @if ($errors->any())
         <div class="alert alert-danger alert-dismissible fade show border-0 shadow p-0 overflow-hidden" role="alert">

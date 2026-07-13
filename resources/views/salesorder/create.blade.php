@@ -146,6 +146,19 @@
             display: inline-flex;
             align-items: center;
         }
+
+        input::placeholder,
+        textarea::placeholder {
+            color: #9ca3af !important;
+            font-weight: normal !important;
+        }
+
+        input:disabled::placeholder,
+        textarea:disabled::placeholder {
+            color: #9ca3af !important;
+            -webkit-text-fill-color: #9ca3af !important;
+            font-weight: normal !important;
+        }
     </style>
     @if ($errors->any())
         <div class="alert alert-danger alert-dismissible fade show border-0 shadow p-0 overflow-hidden" role="alert">
@@ -231,7 +244,7 @@
                                     :disabled="autoCode"
                                     :class="autoCode ? 'bg-gray-100 text-gray-500 border-gray-200 cursor-not-allowed' :
                                         'bg-white'"
-                                    placeholder="Auto Generated">
+                                    :placeholder="autoCode ? 'Auto Generated' : ''">
                                 <label
                                     class="inline-flex items-center select-none font-medium text-sm text-gray-600 cursor-pointer">
                                     <input type="checkbox" x-model="autoCode" checked

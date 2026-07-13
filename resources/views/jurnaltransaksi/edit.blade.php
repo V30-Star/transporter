@@ -3,6 +3,20 @@
 @section('title', $pageTitle ?? ($action === 'delete' ? 'Hapus Jurnal Transaksi' : 'Edit Jurnal Transaksi'))
 
 @section('content')
+    <style>
+        input::placeholder,
+        textarea::placeholder {
+            color: #9ca3af !important;
+            font-weight: normal !important;
+        }
+
+        input:disabled::placeholder,
+        textarea:disabled::placeholder {
+            color: #9ca3af !important;
+            -webkit-text-fill-color: #9ca3af !important;
+            font-weight: normal !important;
+        }
+    </style>
     @php
         $isDelete = $action === 'delete';
     @endphp

@@ -161,6 +161,19 @@
             display: inline-flex;
             align-items: center;
         }
+
+        input::placeholder,
+        textarea::placeholder {
+            color: #9ca3af !important;
+            font-weight: normal !important;
+        }
+
+        input:disabled::placeholder,
+        textarea:disabled::placeholder {
+            color: #9ca3af !important;
+            -webkit-text-fill-color: #9ca3af !important;
+            font-weight: normal !important;
+        }
     </style>
     @if ($errors->any())
         <div class="alert alert-danger alert-dismissible fade show border-0 shadow p-0 overflow-hidden" role="alert">
@@ -236,7 +249,8 @@
                             <div class="flex items-center gap-3">
                                 <input type="text" name="fsono" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
                                     :disabled="autoCode"
-                                    :class="autoCode ? 'bg-gray-100 text-gray-500 cursor-not-allowed border-gray-200' : 'bg-white'">
+                                    :class="autoCode ? 'bg-gray-100 text-gray-500 cursor-not-allowed border-gray-200' : 'bg-white'"
+                                    :placeholder="autoCode ? 'Auto Generated' : ''">
                                 <label class="inline-flex items-center select-none">
                                     <input type="checkbox" x-model="autoCode" checked>
                                     <span class="ml-2 text-sm text-gray-700">Auto</span>

@@ -97,6 +97,19 @@
         input[type=number] {
             -moz-appearance: textfield;
         }
+
+        input::placeholder,
+        textarea::placeholder {
+            color: #9ca3af !important;
+            font-weight: normal !important;
+        }
+
+        input:disabled::placeholder,
+        textarea:disabled::placeholder {
+            color: #9ca3af !important;
+            -webkit-text-fill-color: #9ca3af !important;
+            font-weight: normal !important;
+        }
     </style>
     @php
         $oldItemCodes = old('fitemcode', []);
@@ -186,7 +199,7 @@
                             <div class="flex items-center gap-2">
                                 <input type="text" name="fstockmtno" class="flex-1 border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
                                     :disabled="autoCode" :class="autoCode ? 'bg-gray-100 text-gray-500 border-gray-200 cursor-not-allowed' : 'bg-white'"
-                                    placeholder="Auto Generated">
+                                    :placeholder="autoCode ? 'Auto Generated' : ''">
                                 <label class="inline-flex items-center select-none font-medium text-sm text-gray-600 cursor-pointer">
                                     <input type="checkbox" x-model="autoCode" checked class="rounded text-blue-600 border-gray-300 focus:ring-blue-500">
                                     <span class="ml-1.5">Auto</span>

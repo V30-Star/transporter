@@ -184,6 +184,19 @@
             display: inline-flex;
             align-items: center;
         }
+
+        input::placeholder,
+        textarea::placeholder {
+            color: #9ca3af !important;
+            font-weight: normal !important;
+        }
+
+        input:disabled::placeholder,
+        textarea:disabled::placeholder {
+            color: #9ca3af !important;
+            -webkit-text-fill-color: #9ca3af !important;
+            font-weight: normal !important;
+        }
     </style>
 
     <div>
@@ -212,7 +225,8 @@
             <label class="block text-xs font-bold text-gray-600 mb-1">Transaksi#</label>
             <div class="flex items-center gap-2">
                 <input type="text" name="fstockmtno" class="flex-1 border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
-                    :disabled="autoCode" :class="autoCode ? 'bg-gray-100 text-gray-500 border-gray-200 cursor-not-allowed' : 'bg-white'">
+                    :disabled="autoCode" :class="autoCode ? 'bg-gray-100 text-gray-500 border-gray-200 cursor-not-allowed' : 'bg-white'"
+                    :placeholder="autoCode ? 'Auto Generated' : ''">
                 <label class="inline-flex items-center select-none">
                     <input type="checkbox" x-model="autoCode" checked>
                     <span class="ml-1.5">Auto</span>

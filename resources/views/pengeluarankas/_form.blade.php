@@ -82,6 +82,20 @@
 
 
 <div x-data="pengeluaranKasForm(@js($isReadOnly), @js(old('fkasmtno', $pengeluaranKas->fkasmtno ?? '')), @js($isGiroMundur), @js($isPenerimaanKasForm), @js($journalAccountValidation), @js($accountCatalog))" x-init="init()" >
+    <style>
+        input::placeholder,
+        textarea::placeholder {
+            color: #9ca3af !important;
+            font-weight: normal !important;
+        }
+
+        input:disabled::placeholder,
+        textarea:disabled::placeholder {
+            color: #9ca3af !important;
+            -webkit-text-fill-color: #9ca3af !important;
+            font-weight: normal !important;
+        }
+    </style>
 
     <form action="{{ $formAction }}" method="POST" @submit="handleSubmit($event)">
         @csrf
@@ -122,7 +136,7 @@
                                 <input type="text" name="fkasmtno" x-model="voucherNo" :disabled="autoCode"
                                     class="w-full border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                                     :class="autoCode ? 'bg-gray-100 cursor-not-allowed' : 'bg-white'"
-                                    placeholder="{{ 'Kosongkan untuk auto number' }}">
+                                    :placeholder="autoCode ? 'Kosongkan untuk auto number' : ''">
                                 <label class="inline-flex items-center select-none">
                                     <input type="checkbox" x-model="autoCode">
                                     <span class="ml-2 text-sm text-gray-700">{{ 'Auto' }}</span>

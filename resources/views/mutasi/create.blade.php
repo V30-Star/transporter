@@ -165,6 +165,19 @@
             display: inline-flex;
             align-items: center;
         }
+
+        input::placeholder,
+        textarea::placeholder {
+            color: #9ca3af !important;
+            font-weight: normal !important;
+        }
+
+        input:disabled::placeholder,
+        textarea:disabled::placeholder {
+            color: #9ca3af !important;
+            -webkit-text-fill-color: #9ca3af !important;
+            font-weight: normal !important;
+        }
     </style>
 
     <div x-data="{
@@ -204,7 +217,8 @@
                 <div class="flex items-center gap-3">
                     <input type="text" name="fstockmtno" class="w-full border rounded px-3 py-2"
                         :disabled="autoCode"
-                        :class="autoCode ? 'bg-gray-200 cursor-not-allowed' : 'bg-white'">
+                        :class="autoCode ? 'bg-gray-200 cursor-not-allowed' : 'bg-white'"
+                        :placeholder="autoCode ? 'Auto Generated' : ''">
                     <label class="inline-flex items-center select-none">
                         <input type="checkbox" x-model="autoCode" checked>
                         <span class="ml-2 text-sm text-gray-700">Auto</span>
