@@ -257,7 +257,7 @@
                         <div class="p-4 space-y-3">
                             <div class="grid grid-cols-3 gap-3">
                                 {{-- Cabang --}}
-                                <div class="md:col-span-4">
+                                <div>
                                     <label class="block text-xs font-bold text-gray-600 mb-1">Cabang</label>
                                     <input type="text"
                                         class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm bg-gray-100 text-gray-500 cursor-not-allowed border-gray-200"
@@ -266,14 +266,14 @@
                                 </div>
 
                                 {{-- SO# --}}
-                                <div class="md:col-span-4" x-data="{ autoCode: false }">
+                                <div x-data="{ autoCode: false }">
                                     <label class="block text-xs font-bold text-gray-600 mb-1">SO#</label>
                                     <div class="flex items-center gap-3">
                                         <input type="text" name="fsono"
                                             value="{{ old('fsono', $displayFsono ?? $salesorder->fsono) }}"
                                             class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm bg-gray-100 text-gray-500 cursor-not-allowed border-gray-200"
                                             :disabled="autoCode" readonly
-                                            :class="autoCode ? 'bg-gray-200 cursor-not-allowed text-gray-500' : 'bg-white'">
+                                            :class="autoCode ? 'bg-gray-100 text-gray-500 border-gray-200 cursor-not-allowed' : 'bg-white'">
 
                                         <label class="inline-flex items-center select-none text-xs font-bold text-gray-600">
                                             <input type="checkbox" x-model="autoCode" disabled
@@ -284,7 +284,7 @@
                                 </div>
 
                                 {{-- Tanggal --}}
-                                <div class="md:col-span-2">
+                                <div>
                                     <label class="block text-xs font-bold text-gray-600 mb-1">Tanggal</label>
                                     <input disabled type="date" name="fsodate"
                                         value="{{ old('fsodate') ?? date('Y-m-d', strtotime($salesorder->fsodate)) }}"
@@ -293,8 +293,9 @@
                                         <p class="text-red-600 text-[10px] mt-1">{{ $message }}</p>
                                     @enderror
                                 </div>
+                                </div>
 
-                                <div class="md:col-span-2 flex items-end pb-2">
+                                <div class="md:col-span-3 flex items-end pb-2">
                                     <div class="inline-flex items-center">
                                         <input id="fclose" type="checkbox" name="fclose" value="1" x-model="fclose"
                                             disabled
@@ -308,8 +309,9 @@
                                     </div>
                                 </div>
 
+                                 <div class="grid grid-cols-1 md:grid-cols-3 gap-3"></select></select></select></select></select>
                                 {{-- Customer --}}
-                                <div class="md:col-span-4">
+                                <div>
                                     <label class="block text-xs font-bold text-gray-600 mb-1">Customer</label>
                                     <select id="modal_filter_customer_id_readonly" name="filter_customer_id_readonly"
                                         class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm bg-gray-100 text-gray-500 cursor-not-allowed border-gray-200"
@@ -337,7 +339,7 @@
                                 </div>
 
                                 {{-- Salesman --}}
-                                <div class="md:col-span-4">
+                                <div>
                                     <label class="block text-xs font-bold text-gray-600 mb-1">Salesman</label>
                                     <select id="modal_filter_salesman_id_readonly" name="filter_salesman_id_readonly"
                                         class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm bg-gray-100 text-gray-500 cursor-not-allowed border-gray-200"
@@ -357,28 +359,30 @@
                                     @enderror
                                 </div>
 
-                                {{-- Tempo --}}
-                                <div class="md:col-span-2">
-                                    <label class="block text-xs font-bold text-gray-600 mb-1">Tempo</label>
-                                    <div class="flex items-center gap-1.5">
-                                        <input type="number" id="ftempohr" name="ftempohr" disabled
-                                            value="{{ trim(old('ftempohr', $salesorder->ftempohr ?? 0)) }}"
+                                {{-- Tempo & Ref.PO --}}
+                                <div class="grid grid-cols-2 gap-3">
+                                    <div>
+                                        <label class="block text-xs font-bold text-gray-600 mb-1">Tempo</label>
+                                        <div class="flex items-center gap-1.5">
+                                            <input type="number" id="ftempohr" name="ftempohr" disabled
+                                                value="{{ trim(old('ftempohr', $salesorder->ftempohr ?? 0)) }}"
+                                                class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm bg-gray-100 text-gray-500 cursor-not-allowed border-gray-200">
+                                            <span class="text-xs text-gray-500">Hari</span>
+                                        </div>
+                                    </div>
+
+                                    <div>
+                                        <label class="block text-xs font-bold text-gray-600 mb-1">Ref.PO</label>
+                                        <input type="text" name="frefpo" disabled
+                                            value="{{ old('frefpo', $salesorder->frefpo) }}"
                                             class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm bg-gray-100 text-gray-500 cursor-not-allowed border-gray-200">
-                                        <span class="text-xs text-gray-500">Hari</span>
                                     </div>
                                 </div>
-
-                                {{-- Ref.PO --}}
-                                <div class="md:col-span-2">
-                                    <label class="block text-xs font-bold text-gray-600 mb-1">Ref.PO</label>
-                                    <input type="text" name="frefpo" disabled
-                                        value="{{ old('frefpo', $salesorder->frefpo) }}"
-                                        class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm bg-gray-100 text-gray-500 cursor-not-allowed border-gray-200">
                                 </div>
 
                                 {{-- Address and Notes section --}}
-                                <div class="md:col-span-12 mt-2">
-                                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 items-stretch">
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div>
                                         <div x-data="{
                                             tab: 1,
                                             addr1: {{ json_encode(old('fkirimaddress1', $salesorder->customer->fkirimaddress1 ?? '')) }},
@@ -441,25 +445,24 @@
                                                     placeholder="Isi Alamat 3..."></textarea>
                                             </div>
                                         </div>
+                                    </div>
 
-                                        <div class="flex flex-col">
-                                            <label class="block text-xs font-bold text-gray-600 mb-2">Keterangan</label>
-                                            <textarea readonly name="fket"
-                                                class="w-full p-2 text-xs border border-gray-300 rounded bg-gray-100 text-gray-500 cursor-not-allowed min-h-[72px]"
-                                                placeholder="Keterangan isi di sini...">{{ old('fket', $salesorder->fket) }}</textarea>
-                                            @error('fket')
+                                        <div>
+                                            <label class="block text-xs font-bold text-gray-600 mb-2">Catatan Internal</label>
+                                            <textarea readonly name="fketinternal"
+                                                class="w-full p-2 text-xs border border-gray-300 rounded bg-gray-100 text-gray-500 cursor-not-allowed"
+                                                placeholder="Tulis Catatan Internal tambahan di sini...">{{ old('fketinternal', $salesorder->fketinternal) }}</textarea>
+                                            @error('fketinternal')
                                                 <span class="text-red-500 text-xs mt-1">{{ $message }}</span>
                                             @enderror
                                         </div>
-                                    </div>
-                                </div>
 
-                                <div class="md:col-span-12 mt-2">
-                                    <label class="block text-xs font-bold text-gray-600 mb-1">Catatan Internal</label>
-                                    <textarea readonly name="fketinternal" rows="2"
-                                        class="w-full border border-gray-300 rounded-lg px-3 py-2 text-xs bg-gray-100 text-gray-500 cursor-not-allowed border-gray-200 @error('fketinternal') border-red-500 @enderror"
-                                        placeholder="Tulis Catatan Internal tambahan di sini...">{{ old('fketinternal', $salesorder->fketinternal) }}</textarea>
-                                    @error('fketinternal')
+                                <div>
+                                    <label class="block text-xs font-bold text-gray-600 mb-1">Keterangan</label>
+                                    <textarea readonly name="fket" rows="2"
+                                        class="w-full border border-gray-300 rounded-lg text-xs bg-gray-100 text-gray-500 cursor-not-allowed border-gray-200 @error('fket') border-red-500 @enderror"
+                                        placeholder="Keterangan isi di sini...">{{ old('fket', $salesorder->fket) }}</textarea>
+                                    @error('fket')
                                         <p class="text-red-600 text-[10px] mt-1">{{ $message }}</p>
                                     @enderror
                                 </div>
@@ -777,7 +780,7 @@
                                     </svg>
                                     <p class="text-xs font-medium uppercase tracking-wide text-gray-400">Identitas Sales Order</p>
                                 </div>
-                                <div class="p-4 space-y-4">
+                                <div class="p-4 space-y-3">
                                     <div class="grid grid-cols-3 gap-3">
                                         {{-- Cabang --}}
                                         <div>
@@ -819,7 +822,7 @@
                                         </div>
 
                                         {{-- Close --}}
-                                        <div class="md:col-span-2 flex items-end pb-2">
+                                        <div class="md:col-span-3 flex items-end pb-2">
                                             <div class="inline-flex items-center">
                                                 <input id="fclose" type="checkbox" name="fclose" value="1"
                                                     x-model="fclose"
@@ -834,9 +837,9 @@
                                         </div>
                                     </div>
 
-                                    <div class="grid grid-cols-1 md:grid-cols-12 gap-3">
+                                    <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
                                         {{-- Customer --}}
-                                        <div class="md:col-span-4">
+                                        <div>
                                             <label class="block text-xs font-bold text-gray-600 mb-1">Customer <span class="text-red-500">*</span></label>
                                             <div class="flex">
                                                 <div class="relative flex-1" for="modal_filter_customer_id">
@@ -884,7 +887,7 @@
                                         </div>
 
                                         {{-- Salesman --}}
-                                        <div class="md:col-span-4">
+                                        <div>
                                             <label class="block text-xs font-bold text-gray-600 mb-1">Salesman</label>
                                             <div class="flex">
                                                 <div class="relative flex-1" for="modal_filter_salesman_id">
@@ -924,30 +927,31 @@
                                             @enderror
                                         </div>
 
-                                        {{-- Tempo --}}
-                                        <div class="md:col-span-2">
-                                            <label class="block text-xs font-bold text-gray-600 mb-1">Tempo</label>
-                                            <div class="flex items-center">
-                                                <input type="number" id="ftempohr" name="ftempohr"
-                                                    value="{{ trim(old('ftempohr', $salesorder->ftempohr ?? 0)) }}"
-                                                    class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 @error('ftempohr') border-red-400 @enderror">
-                                                <span class="ml-2 text-xs text-gray-500">Hari</span>
+                                        {{-- Tempo & Ref.PO --}}
+                                        <div class="grid grid-cols-2 gap-3">
+                                            <div>
+                                                <label class="block text-xs font-bold text-gray-600 mb-1">Tempo</label>
+                                                <div class="flex items-center">
+                                                    <input type="number" id="ftempohr" name="ftempohr"
+                                                        value="{{ trim(old('ftempohr', $salesorder->ftempohr ?? 0)) }}"
+                                                        class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 @error('ftempohr') border-red-400 @enderror">
+                                                    <span class="ml-2 text-xs text-gray-500">Hari</span>
+                                                </div>
+                                                @error('ftempohr')
+                                                    <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                                                @enderror
                                             </div>
-                                            @error('ftempohr')
-                                                <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
-                                            @enderror
-                                        </div>
 
-                                        {{-- Ref.PO --}}
-                                        <div class="md:col-span-2">
-                                            <label class="block text-xs font-bold text-gray-600 mb-1">Ref.PO</label>
-                                            <input type="text" name="frefpo"
-                                                value="{{ old('frefpo', $salesorder->frefpo) }}"
-                                                class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 @error('frefpo') border-red-400 @enderror"
-                                                placeholder="PO Customer">
-                                            @error('frefpo')
-                                                <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
-                                            @enderror
+                                            <div>
+                                                <label class="block text-xs font-bold text-gray-600 mb-1">Ref.PO</label>
+                                                <input type="text" name="frefpo"
+                                                    value="{{ old('frefpo', $salesorder->frefpo) }}"
+                                                    class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 @error('frefpo') border-red-400 @enderror"
+                                                    placeholder="PO Customer">
+                                                @error('frefpo')
+                                                    <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                                                @enderror
+                                            </div>
                                         </div>
                                     </div>
 
@@ -1024,25 +1028,25 @@
                                             </div>
                                         </div>
 
-                                        {{-- Keterangan --}}
+                                        {{-- Catatan Internal --}}
                                         <div class="flex flex-col">
-                                            <label class="block text-xs font-bold text-gray-600 mb-1">Keterangan</label>
-                                            <textarea name="fket"
+                                            <label class="block text-xs font-bold text-gray-600 mb-1">Catatan Internal</label>
+                                            <textarea name="fketinternal"
                                                 class="w-full p-2 text-sm border border-gray-300 rounded focus:ring-blue-500 focus:border-blue-500 flex-1 min-h-[80px]"
-                                                placeholder="Keterangan isi di sini...">{{ old('fket', $salesorder->fket) }}</textarea>
-                                            @error('fket')
+                                                placeholder="Tulis Catatan Internal tambahan di sini...">{{ old('fketinternal', $salesorder->fketinternal) }}</textarea>
+                                            @error('fketinternal')
                                                 <span class="text-red-500 text-xs mt-1">{{ $message }}</span>
                                             @enderror
                                         </div>
                                     </div>
 
-                                    {{-- Catatan Internal --}}
+                                    {{-- Keterangan --}}
                                     <div>
-                                        <label class="block text-xs font-bold text-gray-600 mb-1">Catatan Internal</label>
-                                        <textarea name="fketinternal" rows="2"
-                                            class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 @error('fketinternal') border-red-400 @enderror"
-                                            placeholder="Tulis Catatan Internal tambahan di sini...">{{ old('fketinternal', $salesorder->fketinternal) }}</textarea>
-                                        @error('fketinternal')
+                                        <label class="block text-xs font-bold text-gray-600 mb-1">Keterangan</label>
+                                        <textarea name="fket" rows="2"
+                                            class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 @error('fket') border-red-400 @enderror"
+                                            placeholder="Keterangan isi di sini...">{{ old('fket', $salesorder->fket) }}</textarea>
+                                        @error('fket')
                                             <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
                                         @enderror
                                     </div>
