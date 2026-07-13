@@ -239,9 +239,10 @@
         </div>
     @endif
     <div>
-        <div x-data="{ fclose: {{ old('fclose', $salesorder->fclose) == '1' ? 'true' : 'false' }}, includePPN: false, ppnRate: 0, ppnAmount: 0, selected: 'alamatsurat', totalHarga: 100000 }">
-            <?php if ($isReadOnly) { ?>
-                <div class="space-y-4">
+        <div class="max-w-[1600px] mx-auto py-8 px-6">
+            <div x-data="{ fclose: {{ old('fclose', $salesorder->fclose) == '1' ? 'true' : 'false' }}, includePPN: false, ppnRate: 0, ppnAmount: 0, selected: 'alamatsurat', totalHarga: 100000 }">
+                <?php if ($isReadOnly) { ?>
+                    <div class="space-y-4">
 
                     {{-- ─── CARD 1: Identitas Sales Order ────────────────────── --}}
                     <div class="bg-white border border-gray-200 rounded-xl mb-3 overflow-hidden">
@@ -699,7 +700,7 @@
                     @endif
 
                     <div class="bg-white border border-gray-200 rounded-xl mb-3 overflow-hidden">
-                        <div class="flex items-center justify-between px-4 py-3 bg-gray-50 border-t border-gray-200">
+                        <div class="flex items-center justify-end gap-3 px-4 py-3 bg-gray-50 border-t border-gray-200">
                             <div>
                                 <button type="button" onclick="window.location.href='{{ route('salesorder.index') }}'"
                                     class="inline-flex items-center gap-2 px-4 py-2 border border-gray-300 bg-white text-gray-600 text-sm font-medium rounded-lg hover:bg-gray-50 hover:border-gray-400 transition-colors">
@@ -777,9 +778,9 @@
                                     <p class="text-xs font-medium uppercase tracking-wide text-gray-400">Identitas Sales Order</p>
                                 </div>
                                 <div class="p-4 space-y-4">
-                                    <div class="grid grid-cols-1 md:grid-cols-12 gap-3">
+                                    <div class="grid grid-cols-3 gap-3">
                                         {{-- Cabang --}}
-                                        <div class="md:col-span-4">
+                                        <div>
                                             <label class="block text-xs font-bold text-gray-600 mb-1">Cabang</label>
                                             <input type="text"
                                                 class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm bg-gray-100 text-gray-500 cursor-not-allowed border-gray-200"
@@ -788,7 +789,7 @@
                                         </div>
 
                                         {{-- SO# --}}
-                                        <div class="md:col-span-4" x-data="{ autoCode: false }">
+                                        <div x-data="{ autoCode: false }">
                                             <label class="block text-xs font-bold text-gray-600 mb-1">SO#</label>
                                             <div class="flex items-center gap-2">
                                                 <input type="text" name="fsono"
@@ -807,7 +808,7 @@
                                         </div>
 
                                         {{-- Tanggal --}}
-                                        <div class="md:col-span-2">
+                                        <div>
                                             <label class="block text-xs font-bold text-gray-600 mb-1">Tanggal <span class="text-red-500">*</span></label>
                                             <input type="date" name="fsodate"
                                                 value="{{ old('fsodate') ?? date('Y-m-d', strtotime($salesorder->fsodate)) }}"
@@ -1356,7 +1357,7 @@
                                 );
                             @endphp
 
-                            <div class="mt-8 flex justify-center gap-4">
+                            <div class="mt-8 flex justify-end gap-3">
                                 @if ($canEditPermission)
                                     @if ($usageLocked)
                                         <button type="button" disabled title="{{ $usageLockMessage }}"
