@@ -167,7 +167,20 @@
                                 </div>
                             </div>
 
-                            {{-- Supplier --}}
+                            {{-- Tanggal --}}
+                            <div>
+                                <label class="block text-xs font-bold text-gray-600 mb-1">Tanggal <span
+                                        class="text-red-500">*</span></label>
+                                <input type="date" name="fprdate" value="{{ old('fprdate') ?? date('Y-m-d') }}"
+                                    class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 @error('fprdate') border-red-400 @enderror">
+                                @error('fprdate')
+                                    <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                                @enderror
+                            </div>     
+                        </div>
+
+                        <div class="grid grid-cols-3 gap-3">
+                           {{-- Supplier --}}
                             <div>
                                 <label class="block text-xs font-bold text-gray-600 mb-1">Supplier <span
                                         class="text-red-500">*</span></label>
@@ -205,19 +218,6 @@
                                     @endif
                                 </div>
                                 @error('fsupplier')
-                                    <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
-                                @enderror
-                            </div>
-                        </div>
-
-                        <div class="grid grid-cols-3 gap-3">
-                            {{-- Tanggal --}}
-                            <div>
-                                <label class="block text-xs font-bold text-gray-600 mb-1">Tanggal <span
-                                        class="text-red-500">*</span></label>
-                                <input type="date" name="fprdate" value="{{ old('fprdate') ?? date('Y-m-d') }}"
-                                    class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 @error('fprdate') border-red-400 @enderror">
-                                @error('fprdate')
                                     <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
                                 @enderror
                             </div>

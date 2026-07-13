@@ -253,21 +253,21 @@
                                         value="{{ $tr_prh->fprno }}" disabled>
                                 </div>
 
+                                {{-- Tanggal --}}
+                                <div>
+                                    <label class="block text-xs font-bold text-gray-600 mb-1">Tanggal</label>
+                                    <input disabled type="date" value="{{ $fmt($tr_prh->fprdate) }}"
+                                        class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm bg-gray-100 text-gray-500 cursor-not-allowed">
+                                </div>
+                            </div>
+                            
+                            <div class="grid grid-cols-3 gap-3">
                                 {{-- Supplier --}}
                                 <div>
                                     <label class="block text-xs font-bold text-gray-600 mb-1">Supplier</label>
                                     <input type="text"
                                         class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm bg-gray-100 text-gray-500 cursor-not-allowed"
                                         value="{{ $tr_prh->fsuppliercode }} - {{ $tr_prh->fsuppliername }}" disabled>
-                                </div>
-                            </div>
-
-                            <div class="grid grid-cols-3 gap-3">
-                                {{-- Tanggal --}}
-                                <div>
-                                    <label class="block text-xs font-bold text-gray-600 mb-1">Tanggal</label>
-                                    <input disabled type="date" value="{{ $fmt($tr_prh->fprdate) }}"
-                                        class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm bg-gray-100 text-gray-500 cursor-not-allowed">
                                 </div>
 
                                 {{-- Tanggal Dibutuhkan --}}
@@ -556,7 +556,17 @@
                                         class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm bg-gray-100 text-gray-500 cursor-not-allowed border-gray-200"
                                         value="{{ $tr_prh->fprno }}" disabled>
                                 </div>
+                                {{-- Tanggal --}}
+                                <div>
+                                    <label class="block text-xs font-bold text-gray-600 mb-1">Tanggal <span
+                                            class="text-red-500">*</span></label>
+                                    <input type="date" name="fprdate"
+                                        value="{{ old('fprdate', $fmt($tr_prh->fprdate)) }}"
+                                        class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100">
+                                </div>
+                            </div>
 
+                            <div class="grid grid-cols-3 gap-3">
                                 {{-- Supplier --}}
                                 <div x-data="{
                                     supplierId: '{{ old('fsupplier', $tr_prh->fsupplier) }}',
@@ -584,17 +594,6 @@
                                     @error('fsupplier')
                                         <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
                                     @enderror
-                                </div>
-                            </div>
-
-                            <div class="grid grid-cols-3 gap-3">
-                                {{-- Tanggal --}}
-                                <div>
-                                    <label class="block text-xs font-bold text-gray-600 mb-1">Tanggal <span
-                                            class="text-red-500">*</span></label>
-                                    <input type="date" name="fprdate"
-                                        value="{{ old('fprdate', $fmt($tr_prh->fprdate)) }}"
-                                        class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100">
                                 </div>
 
                                 {{-- Tanggal Dibutuhkan --}}
