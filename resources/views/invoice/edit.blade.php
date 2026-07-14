@@ -259,7 +259,7 @@
                 <div class="p-4 space-y-3">
                     <div class="grid grid-cols-3 gap-3">
                         <div>
-                            <label class="block text-xs font-bold text-gray-600 mb-1">Cabang</label>
+                            <label class="block text-xs font-bold mb-1">Cabang</label>
                             <input type="text" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm bg-gray-100 text-gray-500 cursor-not-allowed border-gray-200"
                                 value="{{ trim(($fbranchcode ?? '') . ($fcabang ?? '' ? ' - ' . $fcabang : '')) }}"
                                 disabled>
@@ -268,7 +268,7 @@
 
                         {{-- SO# --}}
                         <div x-data="{ autoCode: false }">
-                            <label class="block text-xs font-bold text-gray-600 mb-1">Faktur#</label>
+                            <label class="block text-xs font-bold mb-1">Faktur#</label>
                             <div class="flex items-center gap-2">
                                 <input type="text" name="fsono"
                                     value="{{ old('fsono', $displayFsono ?? $invoice->fsono) }}"
@@ -286,7 +286,7 @@
                         </div>
 
                         <div x-data="{ autoTax: {{ trim((string) $invoice->ftaxno) === trim((string) $invoice->fsono) ? 'true' : 'false' }} }">
-                            <label class="block text-xs font-bold text-gray-600 mb-1">Faktur Pajak#</label>
+                            <label class="block text-xs font-bold mb-1">Faktur Pajak#</label>
                             <div class="flex items-center gap-2">
                                 <input type="text" name="ftaxno" value="{{ old('ftaxno', $invoice->ftaxno) }}"
                                     class="flex-1 border border-gray-300 rounded-lg px-3 py-2 text-sm bg-gray-100 text-gray-500 cursor-not-allowed border-gray-200"
@@ -303,7 +303,7 @@
                         </div>
 
                         <div>
-                            <label class="block text-xs font-bold text-gray-600 mb-1">Type</label>
+                            <label class="block text-xs font-bold mb-1">Type</label>
                             <select name="ftypesales" id="ftypesales" x-model.number="ftypesales" x-init="ftypesales = 0"
                                 disabled
                                 class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm bg-gray-100 text-gray-500 cursor-not-allowed border-gray-200 @error('ftypesales') border-red-500 @enderror">
@@ -317,7 +317,7 @@
 
                         {{-- Tanggal --}}
                         <div>
-                            <label class="block text-xs font-bold text-gray-600 mb-1">Tanggal</label>
+                            <label class="block text-xs font-bold mb-1">Tanggal</label>
                             <input disabled type="date" name="fsodate"
                                 value="{{ old('fsodate') ?? date('Y-m-d', strtotime($invoice->fsodate)) }}"
                                 class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm bg-gray-100 text-gray-500 cursor-not-allowed border-gray-200 @error('fsodate') border-red-500 @enderror">
@@ -328,7 +328,7 @@
 
                         {{-- Customer --}}
                         <div>
-                            <label class="block text-xs font-bold text-gray-600 mb-1">Customer</label>
+                            <label class="block text-xs font-bold mb-1">Customer</label>
                             <div class="flex">
                                 <div class="relative flex-1" for="modal_filter_customer_id_readonly">
                                     <select id="modal_filter_customer_id_readonly" name="filter_customer_id_readonly"
@@ -357,7 +357,7 @@
 
                         {{-- Salesman --}}
                         <div>
-                            <label class="block text-xs font-bold text-gray-600 mb-1">Salesman</label>
+                            <label class="block text-xs font-bold mb-1">Salesman</label>
                             <div class="flex">
                                 <div class="relative flex-1" for="modal_filter_salesman_id_readonly">
                                     <select id="modal_filter_salesman_id_readonly" name="filter_salesman_id_readonly"
@@ -384,7 +384,7 @@
                         </div>
 <div class="grid grid-cols-2 gap-3">
                         <div>
-                            <label class="block text-xs font-bold text-gray-600 mb-1">TOP (Hari)</label>
+                            <label class="block text-xs font-bold mb-1">TOP (Hari)</label>
                             <input type="number" id="ftempohr" name="ftempohr" value="{{ old('ftempohr', '0') }}"
                                 readonly
                                 class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm bg-gray-100 text-gray-500 cursor-not-allowed border-gray-200 @error('ftempohr') border-red-500 @enderror"
@@ -395,7 +395,7 @@
                         </div>
 
                         <div>
-                            <label class="block text-xs font-bold text-gray-600 mb-1">Tgl. Jatuh Tempo</label>
+                            <label class="block text-xs font-bold mb-1">Tgl. Jatuh Tempo</label>
                             <input type="date" id="fjatuhtempo" name="fjatuhtempo" readonly
                                 value="{{ old('fjatuhtempo') ?? date('Y-m-d', strtotime($invoice->fjatuhtempo)) }}"
                                 class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm bg-gray-100 text-gray-500 cursor-not-allowed border-gray-200 @error('fjatuhtempo') border-red-500 @enderror">
@@ -407,7 +407,7 @@
 
                         <div class="grid grid-cols-2 gap-3">
                             <div>
-                                <label class="block text-xs font-bold text-gray-600 mb-1">Kode FP</label>
+                                <label class="block text-xs font-bold mb-1">Kode FP</label>
                                 <input type="text" name="fkodefp" id="invoiceFkodefp"
                                     value="{{ old('fkodefp', $invoice->fkodefp ?? optional($invoice->customer)->fkodefp) }}"
                                     class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm bg-gray-100 text-gray-500 cursor-not-allowed border-gray-200"
@@ -417,7 +417,7 @@
                                 @enderror
                             </div>
                             <div>
-                                <label class="block text-xs font-bold text-gray-600 mb-1">Reff.PO</label>
+                                <label class="block text-xs font-bold mb-1">Ref.PO</label>
                                 <input type="text" name="frefno" id="invoiceFrefno"
                                     value="{{ old('frefno', $invoice->frefno ?? '') }}"
                                     class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm bg-gray-100 text-gray-500 cursor-not-allowed border-gray-200"
@@ -458,7 +458,7 @@
                             });
                         </script>
                                 <div class="flex flex-col">
-                                    <label class="block text-xs font-bold text-gray-600 mb-1">Keterangan</label>
+                                    <label class="block text-xs font-bold mb-1">Keterangan</label>
                                     <textarea name="fket" rows="3"
                                         class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm disabled:bg-gray-100 disabled:text-gray-700 disabled:cursor-not-allowed @error('fket') border-red-500 @enderror"
                                         placeholder="Keterangan isi di sini...">{{ old('fket', $invoice->fket) }}</textarea>
@@ -468,7 +468,7 @@
                                 </div>
 
                                 <div class="flex flex-col">
-                                    <label class="block text-xs font-bold text-gray-600 mb-1">Catatan Internal</label>
+                                    <label class="block text-xs font-bold mb-1">Catatan Internal</label>
                                     <textarea name="fketinternal" id="fketinternal" rows="3"
                                         class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm disabled:bg-gray-100 disabled:text-gray-700 disabled:cursor-not-allowed @error('fketinternal') border-red-500 @enderror"
                                         placeholder="Catatan internal isi di sini...">{{ old('fketinternal', $invoice->fketinternal) }}</textarea>
@@ -961,7 +961,7 @@
                         <fieldset {{ $action === 'view' ? 'disabled' : '' }}>
                         <div class="grid grid-cols-3 gap-3">
                                 <div>
-                                    <label class="block text-xs font-bold text-gray-600 mb-1">Cabang</label>
+                                    <label class="block text-xs font-bold mb-1">Cabang</label>
                                     <input type="text"
                                         class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm bg-gray-100 text-gray-500 cursor-not-allowed border-gray-200"
                                         value="{{ trim(($fbranchcode ?? '') . ($fcabang ?? '' ? ' - ' . $fcabang : '')) }}"
@@ -971,7 +971,7 @@
 
                                 {{-- SO# --}}
                                 <div x-data="{ autoCode: false }">
-                                    <label class="block text-xs font-bold text-gray-600 mb-1">Faktur#</label>
+                                    <label class="block text-xs font-bold mb-1">Faktur#</label>
                                     <div class="flex items-center gap-2">
                                         <input type="text" name="fsono"
                                             value="{{ old('fsono', $displayFsono ?? $invoice->fsono) }}"
@@ -999,7 +999,7 @@
                                         trim((string) ($invoice->fsono ?? ''));
                                 @endphp
                                 <div x-data="{ autoTax: {{ old('_token') !== null ? (old('ftax_auto') == '1' ? 'true' : 'false') : ($isAutoTax ? 'true' : 'false') }} }">
-                                    <label class="block text-xs font-bold text-gray-600 mb-1">Faktur Pajak#</label>
+                                    <label class="block text-xs font-bold mb-1">Faktur Pajak#</label>
                                     <div class="flex items-center gap-2">
                                         <input type="text" id="ftaxno" name="ftaxno"
                                             value="{{ old('ftaxno', $invoice->ftaxno) }}"
@@ -1025,7 +1025,7 @@
                                 </div>
 
                                 <div>
-                                    <label class="block text-xs font-bold text-gray-600 mb-1">Type</label>
+                                    <label class="block text-xs font-bold mb-1">Type</label>
                                     <select name="ftypesales" id="ftypesales" x-model.number="ftypesales"
                                         x-init="ftypesales = {{ old('ftypesales', $invoice->ftypesales) }}"
                                         class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm disabled:bg-gray-100 disabled:text-gray-700 disabled:cursor-not-allowed @error('ftypesales') border-red-500 @enderror">
@@ -1039,7 +1039,7 @@
 
                                 {{-- Tanggal --}}
                                 <div>
-                                    <label class="block text-xs font-bold text-gray-600 mb-1">Tanggal</label>
+                                    <label class="block text-xs font-bold mb-1">Tanggal</label>
                                     <input type="date" id="fsodate" name="fsodate"
                                         value="{{ old('fsodate') ?? date('Y-m-d', strtotime($invoice->fsodate)) }}"
                                         class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm disabled:bg-gray-100 disabled:text-gray-700 disabled:cursor-not-allowed @error('fsodate') border-red-500 @enderror">
@@ -1050,7 +1050,7 @@
 
                                 {{-- Customer --}}
                                 <div>
-                                    <label class="block text-xs font-bold text-gray-600 mb-1">Customer</label>
+                                    <label class="block text-xs font-bold mb-1">Customer</label>
                                     <div class="flex">
                                         <div class="relative flex-1">
                                             <select id="modal_filter_customer_id" name="filter_customer_id"
@@ -1113,7 +1113,7 @@
 
                                 <div class="grid grid-cols-2 gap-3">
                                     <div>
-                                        <label class="block text-xs font-bold text-gray-600 mb-1">Kode FP</label>
+                                        <label class="block text-xs font-bold mb-1">Kode FP</label>
                                         <input type="text" name="fkodefp" id="invoiceFkodefp"
                                             value="{{ old('fkodefp', $invoice->fkodefp ?? optional($invoice->customer)->fkodefp) }}"
                                             class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm disabled:bg-gray-100 disabled:text-gray-700 disabled:cursor-not-allowed @error('fkodefp') border-red-500 @enderror">
@@ -1122,7 +1122,7 @@
                                         @enderror
                                     </div>
                                     <div>
-                                        <label class="block text-xs font-bold text-gray-600 mb-1">Reff.PO</label>
+                                        <label class="block text-xs font-bold mb-1">Ref.PO</label>
                                         <input type="text" name="frefno" id="invoiceFrefno"
                                             value="{{ old('frefno', $invoice->frefno ?? '') }}"
                                             class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm disabled:bg-gray-100 disabled:text-gray-700 disabled:cursor-not-allowed @error('frefno') border-red-500 @enderror">
@@ -1134,7 +1134,7 @@
 
                                 {{-- Salesman --}}
                                 <div>
-                                    <label class="block text-xs font-bold text-gray-600 mb-1">Salesman</label>
+                                    <label class="block text-xs font-bold mb-1">Salesman</label>
                                     <div class="flex">
                                         <div class="relative flex-1">
                                             <select id="modal_filter_salesman_id" name="filter_salesman_id"
@@ -1180,7 +1180,7 @@
 
                                 <div class="grid grid-cols-2 gap-3">
                                     <div>
-                                        <label class="block text-xs font-bold text-gray-600 mb-1">TOP (Hari)</label>
+                                        <label class="block text-xs font-bold mb-1">TOP (Hari)</label>
                                         <input type="number" id="ftempohr" name="ftempohr"
                                             value="{{ old('ftempohr', $invoice->ftempohr) }}"
                                             class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm disabled:bg-gray-100 disabled:text-gray-700 disabled:cursor-not-allowed @error('ftempohr') border-red-500 @enderror"
@@ -1191,7 +1191,7 @@
                                     </div>
 
                                     <div>
-                                        <label class="block text-xs font-bold text-gray-600 mb-1">Tgl. Jatuh Tempo</label>
+                                        <label class="block text-xs font-bold mb-1">Tgl. Jatuh Tempo</label>
                                         <input type="date" id="fjatuhtempo" name="fjatuhtempo"
                                             value="{{ old('fjatuhtempo') ?? date('Y-m-d', strtotime($invoice->fjatuhtempo)) }}"
                                             readonly
@@ -1233,7 +1233,7 @@
                                 </script>
 
                                         <div class="flex flex-col">
-                                            <label class="block text-xs font-bold text-gray-600 mb-1">Keterangan</label>
+                                            <label class="block text-xs font-bold mb-1">Keterangan</label>
                                             <textarea name="fket" rows="3"
                                                 class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm disabled:bg-gray-100 disabled:text-gray-700 disabled:cursor-not-allowed @error('fket') border-red-500 @enderror"
                                                 placeholder="Keterangan isi di sini...">{{ old('fket', $invoice->fket) }}</textarea>
@@ -1243,7 +1243,7 @@
                                         </div>
 
                                         <div class="flex flex-col">
-                                            <label class="block text-xs font-bold text-gray-600 mb-1">Catatan Internal</label>
+                                            <label class="block text-xs font-bold mb-1">Catatan Internal</label>
                                             <textarea name="fketinternal" id="fketinternal" rows="3"
                                                 class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm disabled:bg-gray-100 disabled:text-gray-700 disabled:cursor-not-allowed @error('fketinternal') border-red-500 @enderror"
                                                 placeholder="Catatan internal isi di sini...">{{ old('fketinternal', $invoice->fketinternal) }}</textarea>

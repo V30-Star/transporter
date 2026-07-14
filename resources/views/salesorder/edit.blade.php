@@ -585,13 +585,13 @@
                                                 class="w-16 h-8 px-2 text-xs text-right border border-gray-300 rounded-lg transition-opacity [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none disabled:bg-gray-100 disabled:opacity-60 disabled:cursor-not-allowed">
                                             <span class="text-gray-500">%</span>
                                             <span class="flex-1"></span>
-                                            <span class="font-medium text-right"
+                                            <span class="font-bold text-right"
                                                 x-text="rupiah(headerDiscAmount)"></span>
                                         </div>
 
                                         <div class="flex items-center justify-between">
                                             <span class="font-bold text-gray-700">Total Setelah Disc.</span>
-                                            <span class="font-medium text-gray-900"
+                                            <span class="font-bold text-gray-900"
                                                 x-text="rupiah(totalSetelahDisc)"></span>
                                         </div>
 
@@ -620,7 +620,7 @@
                                                 class="w-16 h-8 px-2 text-xs text-right border border-gray-300 rounded-lg transition-opacity [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none disabled:bg-gray-100 disabled:opacity-60 disabled:cursor-not-allowed">
                                             <span class="text-gray-500">%</span>
                                             <span class="flex-1"></span>
-                                            <span class="font-medium"
+                                            <span class="font-bold"
                                                 x-text="rupiah(ppnAmount)"></span>
                                         </div>
 
@@ -1203,13 +1203,13 @@
                                                             [&::-webkit-inner-spin-button]:appearance-none">
                                                 <span class="text-gray-500">%</span>
                                                 <span class="flex-1"></span>
-                                                <span class="font-medium text-right"
+                                                <span class="font-bold text-right"
                                                     x-text="rupiah(headerDiscAmount)"></span>
                                             </div>
 
                                             <div class="flex items-center justify-between">
                                                 <span class="font-bold text-gray-800">Total Setelah Disc.</span>
-                                                <span class="font-medium text-gray-900"
+                                                <span class="font-bold text-gray-900"
                                                     x-text="rupiah(totalSetelahDisc)"></span>
                                             </div>
 
@@ -1242,7 +1242,7 @@
                                                         disabled:bg-gray-100 disabled:opacity-60 disabled:cursor-not-allowed">
                                                 <span class="text-gray-500">%</span>
                                                 <span class="flex-1"></span>
-                                                <span class="font-medium"
+                                                <span class="font-bold"
                                                     x-text="rupiah(ppnAmount)"></span>
                                             </div>
 

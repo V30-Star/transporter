@@ -365,7 +365,7 @@
                             @enderror
                         </div>
                         <div>
-                            <label class="block text-xs font-bold mb-1">Reff.PO</label>
+                            <label class="block text-xs font-bold mb-1">Ref.PO</label>
                             <input type="text" name="frefno" id="invoiceFrefno" value="{{ old('frefno') }}"
                                 class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 @error('frefno') border-red-500 @enderror">
                             @error('frefno')
@@ -574,7 +574,7 @@
                                                     x-text="it.fsatuan || '-'"></div>
                                             </template>
                                         </td>
-                                        <td class="p-2 text-blue-600 font-semibold text-xs">
+                                        <td class="p-2 text-blue-600">
                                             <input type="text"
                                                 class="w-full border rounded px-2 py-1 bg-gray-100 text-gray-600 text-sm"
                                                 :value="it.frefno_display || it.frefdtno || '-'" disabled>
