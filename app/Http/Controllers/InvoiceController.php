@@ -428,10 +428,21 @@ class InvoiceController extends Controller
             return 0.0;
         }
 
-        return (float) DB::table('trstockdt')
+        $customerCodes = DB::table('trstockmt')
             ->whereIn('fstockmtno', $docNos)
-            ->where('fprdcode', 'UM')
-            ->sum(DB::raw('ABS(COALESCE(ftotprice_rp, 0))'));
+            ->pluck('fsupplier')
+            ->filter()
+            ->unique()
+            ->values()
+            ->all();
+
+        if (empty($customerCodes)) {
+            return 0.0;
+        }
+
+        return (float) DB::table('trsisadp_penjualan')
+            ->whereIn('fcustno', $customerCodes)
+            ->sum('fsisadp');
     }
 
     private function validateAdvanceReductionAmount(array $stockDocNos): ?string
@@ -1432,11 +1443,19 @@ class InvoiceController extends Controller
 
         // Logika UM
         $hasUM = in_array('UM', $itemCodes);
-        if ($hasUM && $typeSales === 0) {
-            return back()->withInput()->with('error', 'Produk UM hanya bisa dipakai pada transaksi Uang Muka.');
-        }
-        if (! $hasUM && $typeSales === 1) {
-            return back()->withInput()->with('error', 'Transaksi Uang Muka harus memakai produk UM.');
+        if ($typeSales === 1) {
+            $invalidAdvanceCodes = collect($itemCodes)
+                ->map(fn($code) => trim((string) $code))
+                ->filter(fn($code) => $code !== '' && strtoupper($code) !== 'UM')
+                ->unique()
+                ->values()
+                ->all();
+            if (! empty($invalidAdvanceCodes)) {
+                return back()->withInput()->with('error', 'Tipe uang muka hanya boleh pakai produk UM. Kode tidak valid: ' . strtoupper(implode(', ', $invalidAdvanceCodes)) . '.');
+            }
+            if (! $hasUM) {
+                return back()->withInput()->with('error', 'Transaksi Uang Muka harus memakai produk UM.');
+            }
         }
 
         $productCodes = collect($itemCodes)
@@ -2542,8 +2561,19 @@ class InvoiceController extends Controller
         $usedNoAcaks = [];
 
         $hasUM = in_array('UM', $itemCodes);
-        if ($hasUM && $typeSales === 0) {
-            return back()->withInput()->with('error', 'Produk UM hanya bisa dipakai pada transaksi Uang Muka.');
+        if ($typeSales === 1) {
+            $invalidAdvanceCodes = collect($itemCodes)
+                ->map(fn($code) => trim((string) $code))
+                ->filter(fn($code) => $code !== '' && strtoupper($code) !== 'UM')
+                ->unique()
+                ->values()
+                ->all();
+            if (! empty($invalidAdvanceCodes)) {
+                return back()->withInput()->with('error', 'Tipe uang muka hanya boleh pakai produk UM. Kode tidak valid: ' . strtoupper(implode(', ', $invalidAdvanceCodes)) . '.');
+            }
+            if (! $hasUM) {
+                return back()->withInput()->with('error', 'Transaksi Uang Muka harus memakai produk UM.');
+            }
         }
 
         $productCodes = collect($itemCodes)
