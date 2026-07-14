@@ -402,54 +402,60 @@
 
                         {{-- Totals Panel (Read-only) --}}
                         <div class="mt-3 flex justify-end">
-                            <div class="w-[480px] max-w-full">
-                                <div class="rounded-xl border border-gray-200 bg-gray-50 p-4 space-y-3 text-sm">
+                            <div class="w-[560px] max-w-full">
+                                <div class="rounded-lg border bg-gray-50 p-4 space-y-3 text-sm">
                                     <div class="flex items-center justify-between">
                                         <span class="font-bold text-gray-800">Total Harga</span>
                                         <span
                                             class="font-bold text-gray-900">{{ number_format($tr_poh->famountponet ?? 0, 2, ',', '.') }}</span>
                                     </div>
-                                    <div class="space-y-1">
-                                        <div class="flex items-center gap-2 flex-wrap">
-                                            <label class="flex items-center gap-1.5 select-none">
-                                                <input type="checkbox"
-                                                    class="h-4 w-4 text-blue-600 border-gray-300 rounded cursor-not-allowed"
-                                                    disabled {{ (int) ($tr_poh->fapplyppn ?? 0) === 1 ? 'checked' : '' }}>
-                                                <span class="font-bold text-gray-800">PPN</span>
-                                            </label>
-                                            <select
-                                                class="w-24 h-9 px-2 text-sm border rounded-lg bg-gray-100 text-gray-500 cursor-not-allowed"
-                                                disabled>
-                                                <option value="0"
-                                                    {{ (int) ($tr_poh->fincludeppn ?? 0) === 0 ? 'selected' : '' }}>Exclude
-                                                </option>
-                                                <option value="1"
-                                                    {{ (int) ($tr_poh->fincludeppn ?? 0) === 1 ? 'selected' : '' }}>Include
-                                                </option>
-                                            </select>
-                                            <input type="text"
-                                                class="w-16 h-9 px-2 text-sm text-right border rounded-lg bg-gray-100 text-gray-500 cursor-not-allowed"
-                                                disabled value="{{ $tr_poh->fppnrate ?? 11 }}">
-                                            <span class="text-gray-500">%</span>
-                                            <span class="flex-1"></span>
-                                            <span
-                                                class="font-medium text-gray-900">{{ number_format($tr_poh->famountpopajak ?? 0, 2, ',', '.') }}</span>
-                                        </div>
+                                    <div class="flex items-center gap-2">
+                                        <!-- Checkbox -->
+                                        <label class="flex items-center gap-1.5 select-none">
+                                            <input type="checkbox"
+                                                class="h-4 w-4 text-blue-600 border-gray-300 rounded cursor-not-allowed"
+                                                disabled {{ (int) ($tr_poh->fapplyppn ?? 0) === 1 ? 'checked' : '' }}>
+                                            <span class="font-bold">PPN</span>
+                                        </label>
+
+                                        <!-- Dropdown Include / Exclude -->
+                                        <select
+                                            class="w-28 h-9 px-2 text-sm leading-tight border border-gray-300 rounded transition-opacity appearance-none bg-gray-100 text-gray-500 cursor-not-allowed"
+                                            disabled>
+                                            <option value="0"
+                                                {{ (int) ($tr_poh->fincludeppn ?? 0) === 0 ? 'selected' : '' }}>Exclude
+                                            </option>
+                                            <option value="1"
+                                                {{ (int) ($tr_poh->fincludeppn ?? 0) === 1 ? 'selected' : '' }}>Include
+                                            </option>
+                                        </select>
+
+                                        <!-- Input Rate + Nominal -->
+                                        <input type="text"
+                                            class="w-16 h-9 px-2 text-sm text-right border border-gray-300 rounded bg-gray-100 text-gray-500 cursor-not-allowed"
+                                            disabled value="{{ $tr_poh->fppnpersen ?? 11 }}">
+                                        <span class="text-gray-500">%</span>
+                                        <span class="flex-1"></span>
+                                        <span
+                                            class="font-medium text-gray-900">{{ number_format($tr_poh->famountpopajak ?? 0, 2, ',', '.') }}</span>
                                     </div>
-                                    <div class="border-t border-gray-200"></div>
-                                    <div class="flex items-center justify-between">
-                                        <span class="font-semibold text-gray-800">
+
+                                    <div class="border-t my-1"></div>
+
+                                    <div class="flex items-center justify-between text-base">
+                                        <span class="font-extrabold text-gray-900">
                                             Grand Total
                                             <span
                                                 class="text-xs font-normal text-gray-500">({{ $tr_poh->fcurrency ?? 'IDR' }})</span>
                                         </span>
                                         <span
-                                            class="font-bold text-blue-700 text-lg">{{ number_format($tr_poh->famountpo ?? 0, 2, ',', '.') }}</span>
+                                            class="font-extrabold text-blue-700 text-lg">{{ number_format($tr_poh->famountpo ?? 0, 2, ',', '.') }}</span>
                                     </div>
-                                    <div class="flex items-center justify-between">
-                                        <span class="font-semibold text-gray-800">Grand Total (RP)</span>
+
+                                    <div class="flex items-center justify-between text-base">
+                                        <span class="font-extrabold text-gray-900">Grand Total (RP)</span>
                                         <span
-                                            class="font-bold text-emerald-700 text-lg">{{ number_format($tr_poh->famountpo_rp ?? 0, 2, ',', '.') }}</span>
+                                            class="font-extrabold text-emerald-700 text-lg">{{ number_format($tr_poh->famountpo_rp ?? 0, 2, ',', '.') }}</span>
                                     </div>
                                 </div>
                             </div>
@@ -920,49 +926,56 @@
                                 </div>
 
                                 {{-- Panel Totals --}}
-                                <div class="w-[480px] shrink-0 max-w-full">
-                                    <div class="rounded-xl border border-gray-200 bg-gray-50 p-4 space-y-3 text-sm">
+                                <div class="w-[560px] shrink-0 max-w-full">
+                                    <div class="rounded-lg border bg-gray-50 p-4 space-y-3 text-sm">
                                         <div class="flex items-center justify-between">
                                             <span class="font-bold text-gray-800">Total Harga</span>
                                             <span class="font-bold text-gray-900" x-text="fmtCurr(totalHarga)"></span>
                                         </div>
-                                        <div class="space-y-1">
-                                            <div class="flex items-center gap-2 flex-wrap">
-                                                <label class="flex items-center gap-1.5 cursor-pointer select-none">
-                                                    <input type="checkbox" name="fapplyppn" value="1"
-                                                        x-model="includePPN"
-                                                        class="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500">
-                                                    <span class="font-bold text-gray-800">PPN</span>
-                                                </label>
-                                                <select name="fincludeppn" x-model.number="ppnMode"
-                                                    :disabled="!includePPN"
-                                                    class="w-24 h-9 px-2 text-sm border rounded-lg bg-white disabled:bg-gray-100 disabled:opacity-60 disabled:cursor-not-allowed focus:outline-none focus:border-blue-500">
-                                                    <option value="0">Exclude</option>
-                                                    <option value="1">Include</option>
-                                                </select>
-                                                <input type="number" name="ppn_rate" min="0" max="100"
-                                                    step="0.01" x-model.number="ppnRate" :disabled="!includePPN"
-                                                    class="w-16 h-9 px-2 text-sm text-right border rounded-lg bg-white [appearance:textfield] disabled:bg-gray-100 disabled:opacity-60 disabled:cursor-not-allowed focus:outline-none focus:border-blue-500">
-                                                <span class="text-gray-500">%</span>
-                                                <span class="flex-1"></span>
-                                                <span class="font-medium text-gray-900"
-                                                    x-text="fmtCurr(ppnNominal)"></span>
-                                            </div>
+
+                                        <div class="flex items-center gap-2">
+                                            <!-- Checkbox -->
+                                            <label class="flex items-center gap-1.5 cursor-pointer select-none">
+                                                <input type="checkbox" name="fapplyppn" value="1" x-model="includePPN"
+                                                    class="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500">
+                                                <span class="font-bold">PPN</span>
+                                            </label>
+
+                                            <!-- Dropdown Include / Exclude -->
+                                            <select name="fincludeppn" x-model.number="ppnMode" :disabled="!includePPN"
+                                                class="w-28 h-9 px-2 text-sm leading-tight border border-gray-300 rounded transition-opacity appearance-none
+                                                       disabled:bg-gray-100 disabled:opacity-60 disabled:cursor-not-allowed focus:outline-none focus:border-blue-500">
+                                                <option value="0">Exclude</option>
+                                                <option value="1">Include</option>
+                                            </select>
+
+                                            <!-- Input Rate + Nominal -->
+                                            <input type="number" min="0" max="100" name="ppn_rate"
+                                                step="0.01" x-model.number="ppnRate" :disabled="!includePPN"
+                                                class="w-16 h-9 px-2 text-sm leading-tight text-right border border-gray-300 rounded transition-opacity
+                                                        [appearance:textfield]
+                                                        [&::-webkit-outer-spin-button]:appearance-none
+                                                        [&::-webkit-inner-spin-button]:appearance-none
+                                                        disabled:bg-gray-100 disabled:opacity-60 disabled:cursor-not-allowed focus:outline-none focus:border-blue-500">
+                                            <span class="text-gray-500">%</span>
+                                            <span class="flex-1"></span>
+                                            <span class="font-medium" x-text="fmtCurr(ppnNominal)"></span>
                                         </div>
-                                        <div class="border-t border-gray-200"></div>
-                                        <div class="flex items-center justify-between">
-                                            <span class="font-semibold text-gray-800">
+
+                                        <div class="border-t my-1"></div>
+
+                                        <div class="flex items-center justify-between text-base">
+                                            <span class="font-extrabold text-gray-900">
                                                 Grand Total
                                                 <span class="text-xs font-normal text-gray-500"
                                                     x-text="selectedCurrCode ? '(' + selectedCurrCode + ')' : ''"></span>
                                             </span>
-                                            <span class="font-bold text-blue-700 text-lg"
-                                                x-text="fmtCurr(grandTotal)"></span>
+                                            <span class="font-extrabold text-blue-700 text-lg" x-text="fmtCurr(grandTotal)"></span>
                                         </div>
-                                        <div class="flex items-center justify-between">
-                                            <span class="font-semibold text-gray-800">Grand Total (RP)</span>
-                                            <span class="font-bold text-emerald-700 text-lg"
-                                                x-text="rupiah(grandTotalRp)"></span>
+
+                                        <div class="flex items-center justify-between text-base">
+                                            <span class="font-extrabold text-gray-900">Grand Total (RP)</span>
+                                            <span class="font-extrabold text-emerald-700 text-lg" x-text="rupiah(grandTotalRp)"></span>
                                         </div>
                                     </div>
                                     <input type="hidden" name="famountponet" :value="totalHarga">

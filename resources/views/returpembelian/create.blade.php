@@ -688,41 +688,48 @@
                                 </div>
 
                                 {{-- Totals Panel --}}
-                                <div class="w-[480px] shrink-0 max-w-full">
-                                    <div class="rounded-xl border border-gray-200 bg-gray-50 p-4 space-y-3 text-sm">
+                                <div class="w-[560px] shrink-0 max-w-full">
+                                    <div class="rounded-lg border bg-gray-50 p-4 space-y-3 text-sm">
                                         <div class="flex items-center justify-between">
-                                            <span class="text-gray-600">Total Harga</span>
-                                            <span class="font-bold text-gray-850" x-text="formatTransactionAmount(totalHarga)"></span>
+                                            <span class="font-bold text-gray-800">Total Harga</span>
+                                            <span class="font-bold text-gray-900" x-text="formatTransactionAmount(totalHarga)"></span>
                                         </div>
 
-                                        <div class="flex items-center justify-between">
-                                            <div class="flex items-center gap-1.5">
-                                                <input id="fapplyppn" type="checkbox" name="fapplyppn" value="1"
+                                        <div class="flex items-center gap-2">
+                                            <!-- Checkbox -->
+                                            <label class="flex items-center gap-1.5 cursor-pointer select-none">
+                                                <input id="fapplyppn" name="fapplyppn" type="checkbox" value="1"
                                                     x-model="includePPN"
                                                     class="rounded text-blue-600 border-gray-300 focus:ring-blue-500 h-4 w-4">
-                                                <label for="fapplyppn" class="font-bold text-gray-700 cursor-pointer">PPN</label>
-                                            </div>
-                                            <div class="flex items-center gap-1.5">
-                                                <select id="includePPN" name="includePPN" x-model.number="fapplyppn"
-                                                    x-init="fapplyppn = 0" :disabled="!(includePPN || fapplyppn)"
-                                                    class="w-24 h-8 px-2 text-xs border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500 disabled:bg-gray-100 disabled:opacity-60 disabled:cursor-not-allowed">
-                                                    <option value="0">Exclude</option>
-                                                </select>
-                                                <div class="relative flex items-center">
-                                                    <input type="number" min="0" max="100" step="0.01"
-                                                        x-model.number="ppnRate" :disabled="!(includePPN || fapplyppn)"
-                                                        class="w-16 h-8 px-2 text-right text-xs border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500 disabled:bg-gray-100 disabled:opacity-60 disabled:cursor-not-allowed">
-                                                    <span class="absolute right-2 text-xs text-gray-400 select-none">%</span>
-                                                </div>
-                                                <span class="font-bold text-gray-850" x-text="rupiah(ppnAmount)"></span>
-                                            </div>
+                                                <span class="font-bold">PPN</span>
+                                            </label>
+
+                                            <!-- Dropdown Include / Exclude -->
+                                            <select id="includePPN" name="includePPN" x-model.number="fapplyppn"
+                                                x-init="fapplyppn = 0" :disabled="!(includePPN || fapplyppn)"
+                                                class="w-28 h-9 px-2 text-sm leading-tight border border-gray-300 rounded transition-opacity appearance-none
+                                                       disabled:bg-gray-100 disabled:opacity-60 disabled:cursor-not-allowed focus:outline-none focus:border-blue-500">
+                                                <option value="0">Exclude</option>
+                                            </select>
+
+                                            <!-- Input Rate + Nominal -->
+                                            <input type="number" min="0" max="100" name="ppn_rate"
+                                                step="0.01" x-model.number="ppnRate" :disabled="!(includePPN || fapplyppn)"
+                                                class="w-16 h-9 px-2 text-sm leading-tight text-right border border-gray-300 rounded transition-opacity
+                                                        [appearance:textfield]
+                                                        [&::-webkit-outer-spin-button]:appearance-none
+                                                        [&::-webkit-inner-spin-button]:appearance-none
+                                                        disabled:bg-gray-100 disabled:opacity-60 disabled:cursor-not-allowed focus:outline-none focus:border-blue-500">
+                                            <span class="text-gray-500">%</span>
+                                            <span class="flex-1"></span>
+                                            <span class="font-medium" x-text="rupiah(ppnAmount)"></span>
                                         </div>
 
-                                        <div class="border-t border-gray-200 my-1"></div>
+                                        <div class="border-t my-1"></div>
 
-                                        <div class="flex items-center justify-between">
-                                            <span class="font-bold text-gray-800 text-base">Grand Total</span>
-                                            <span class="font-bold text-gray-900 text-lg" x-text="rupiah(grandTotal)"></span>
+                                        <div class="flex items-center justify-between text-base">
+                                            <span class="font-extrabold text-gray-900">Grand Total</span>
+                                            <span class="font-extrabold text-blue-700 text-lg" x-text="rupiah(grandTotal)"></span>
                                         </div>
                                     </div>
 
