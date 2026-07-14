@@ -258,45 +258,45 @@
                     </div>
             </div>
             <div class="p-6">
-                <div class="overflow-auto border border-gray-200 rounded-lg">
-                <table class="pr-detail-table min-w-full text-sm">
+                <div class="overflow-auto border rounded">
+                <table class="pr-detail-table min-w-full text-sm balanced-detail-table"
+                    data-skip-auto-detail-style="true">
                     <colgroup>
                         @if ($isReadOnly)
-                            <col style="width:4%;">
+                            <col style="width:2%;">
                             <col style="width:15%;">
-                            <col style="width:16%;">
+                            <col style="width:20%;">
+                            <col style="width:20%;">
+                            <col style="width:28%;">
                             <col style="width:15%;">
-                            <col style="width:40%;">
-                            <col style="width:12%;">
-                            <col style="width:6%;">
                         @else
-                            <col style="width:4%;">
+                            <col style="width:2%;">
                             <col style="width:15%;">
-                            <col style="width:16%;">
+                            <col style="width:18%;">
+                            <col style="width:18%;">
+                            <col style="width:26%;">
                             <col style="width:15%;">
-                            <col style="width:40%;">
-                            <col style="width:12%;">
                             <col style="width:6%;">
                         @endif
                     </colgroup>
-                    <thead class="bg-gray-50 border-b border-gray-200">
+                    <thead class="bg-gray-100">
                         <tr>
-                            <th class="p-2 text-left text-xs font-semibold text-gray-500 uppercase">{{ 'No' }}</th>
-                            <th class="p-2 text-left text-xs font-semibold text-gray-500 uppercase">{{ 'Kode Account' }}</th>
-                            <th class="p-2 text-left text-xs font-semibold text-gray-500 uppercase">{{ 'Nama Account' }}</th>
-                            <th class="p-2 text-left text-xs font-semibold text-gray-500 uppercase">{{ 'Sub Account' }}</th>
-                            <th class="p-2 text-left text-xs font-semibold text-gray-500 uppercase">{{ 'Uraian' }}</th>
-                            <th class="p-2 text-right text-xs font-semibold text-gray-500 uppercase">{{ 'Nilai Bayar' }}</th>
+                            <th class="p-2 text-left w-10">No</th>
+                            <th class="p-2 text-left w-40">Kode Account</th>
+                            <th class="p-2 text-left w-56">Nama Account</th>
+                            <th class="p-2 text-left w-56">Sub Account</th>
+                            <th class="p-2 text-left w-[28rem]">Uraian</th>
+                            <th class="p-2 text-right w-44 whitespace-nowrap">Nilai Bayar</th>
                             @unless ($isReadOnly)
-                                <th class="p-2 text-center text-xs font-semibold text-gray-500 uppercase">{{ 'Aksi' }}</th>
+                                <th class="p-2 text-center text-xs font-semibold text-gray-500 uppercase">Aksi</th>
                             @endunless
                         </tr>
                     </thead>
                     <tbody id="detailRows">
                         @foreach ($detailRows as $index => $detail)
-                            <tr class="border-t border-gray-150 align-top detail-row">
-                                <td class="p-2 text-center align-top">{{ $index + 1 }}</td>
-                                <td class="p-2 align-top">
+                            <tr class="border-t align-top detail-row hover:bg-gray-50">
+                                <td class="p-2 text-gray-400 text-center align-middle">{{ $index + 1 }}</td>
+                                <td class="p-2">
                                     @php
                                         $detailAccountCode = (string) old(
                                             "details.$index.faccount",
@@ -313,31 +313,27 @@
                                         );
                                     @endphp
                                     @if ($isReadOnly)
-                                        <input type="text" value="{{ $detailAccountCode }}"
-                                            class="w-full border border-gray-200 rounded-lg px-2 py-1 bg-gray-50 text-gray-500 cursor-text select-all"
-                                            @focus="$event.target.select()" @click="$event.target.select()" readonly>
+                                        <div class="px-2 py-1 text-sm text-gray-655 bg-gray-50 border rounded font-mono">{{ $detailAccountCode }}</div>
                                         <input type="hidden" name="details[{{ $index }}][faccount]"
                                             value="{{ $detailAccountCode }}">
                                     @else
-                                        <div class="flex items-center gap-1">
-                                            <div class="flex-1 min-w-0">
-                                                <input type="text"
-                                                    class="detail-account-code w-full border border-gray-300 rounded-l-lg px-2 py-1 bg-white cursor-text select-all focus:outline-none focus:border-blue-500"
-                                                    name="details[{{ $index }}][faccount]"
-                                                    value="{{ $detailAccountCode }}" @focus="$event.target.select()"
-                                                    @click="$event.target.select()"
-                                                    @input="handleAccountCodeInput($event)"
-                                                    @blur="handleAccountCodeBlur($event)"
-                                                    data-role="account-code-display">
-                                                <input type="hidden" value="{{ $detailHasSubaccount ? '1' : '0' }}"
-                                                    data-role="account-has-subaccount">
-                                                <input type="hidden" value="{{ $detailSubaccountType }}"
-                                                    data-role="account-subaccount-type">
-                                            </div>
+                                        <div class="flex">
+                                            <input type="text"
+                                                class="detail-account-code flex-1 border rounded-l px-2 py-1 font-mono text-sm focus:ring-1 focus:ring-blue-500 min-w-0 bg-white"
+                                                name="details[{{ $index }}][faccount]"
+                                                value="{{ $detailAccountCode }}" @focus="$event.target.select()"
+                                                @click="$event.target.select()"
+                                                @input="handleAccountCodeInput($event)"
+                                                @blur="handleAccountCodeBlur($event)"
+                                                data-role="account-code-display">
+                                            <input type="hidden" value="{{ $detailHasSubaccount ? '1' : '0' }}"
+                                                data-role="account-has-subaccount">
+                                            <input type="hidden" value="{{ $detailSubaccountType }}"
+                                                data-role="account-subaccount-type">
                                             <button type="button" @click="openAccountBrowse($event)"
-                                                class="border border-l-0 border-gray-300 px-2 py-1 bg-white hover:bg-gray-50 text-gray-500 transition-colors shrink-0"
+                                                class="shrink-0 border border-l-0 px-2 py-1 bg-white hover:bg-gray-55 text-gray-500 transition-colors"
                                                 title="Cari Account">
-                                                <x-heroicon-o-magnifying-glass class="w-4 h-4" />
+                                                <x-heroicon-o-magnifying-glass class="w-4 h-4 text-gray-500" />
                                             </button>
                                         </div>
                                     @endif
@@ -345,12 +341,12 @@
                                         <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                                     @enderror
                                 </td>
-                                <td class="p-2 align-top">
+                                <td class="p-2">
                                     <input type="text" value="{{ $detailAccountName }}"
-                                        class="detail-account-name w-full border border-gray-200 rounded-lg px-2 py-1 bg-gray-50 text-gray-500 cursor-not-allowed"
+                                        class="detail-account-name w-full border bg-gray-50 text-gray-500 rounded px-2 py-1 text-sm cursor-not-allowed"
                                         readonly data-role="account-name-display">
                                 </td>
-                                <td class="p-2 align-top">
+                                <td class="p-2">
                                     @php
                                         $detailSubaccountCode = (string) old(
                                             "details.$index.fsubaccount",
@@ -393,26 +389,22 @@
                                         };
                                     @endphp
                                     @if ($isReadOnly)
-                                        <input type="text" value="{{ $detailSubaccountLabel }}"
-                                            class="w-full border border-gray-200 rounded-lg px-2 py-1 bg-gray-50 cursor-not-allowed"
-                                            readonly>
+                                        <div class="px-2 py-1 text-sm text-gray-655 bg-gray-50 border rounded">{{ $detailSubaccountLabel }}</div>
                                         <input type="hidden" name="details[{{ $index }}][fsubaccount]"
                                             value="{{ $detailSubaccountCode }}">
                                     @else
-                                        <div class="flex items-center gap-1">
-                                            <div class="flex-1 min-w-0">
-                                                <input type="text"
-                                                    class="detail-subaccount-display w-full border border-gray-200 rounded-lg px-2 py-1 bg-gray-50 cursor-not-allowed"
-                                                    value="{{ $detailSubaccountLabel }}" readonly
-                                                    data-role="subaccount-display">
-                                                <input type="hidden"
-                                                    name="details[{{ $index }}][fsubaccount]"
-                                                    value="{{ $detailSubaccountCode }}">
-                                            </div>
+                                        <div class="flex">
+                                            <input type="text"
+                                                class="detail-subaccount-display flex-1 border rounded-l px-2 py-1 text-sm bg-gray-50 text-gray-500 cursor-not-allowed min-w-0"
+                                                value="{{ $detailSubaccountLabel }}" readonly
+                                                data-role="subaccount-display">
+                                            <input type="hidden"
+                                                name="details[{{ $index }}][fsubaccount]"
+                                                value="{{ $detailSubaccountCode }}">
                                             <button type="button" @click="openSubaccountBrowse($event)"
-                                                class="detail-subaccount-btn border border-l-0 border-gray-300 px-2 py-1 bg-white hover:bg-gray-50 text-gray-500 transition-colors shrink-0"
+                                                class="detail-subaccount-btn shrink-0 border border-l-0 px-2 py-1 bg-white hover:bg-gray-55 text-gray-500 transition-colors"
                                                 title="{{ $detailSubaccountType === 'C' ? 'Cari Customer' : ($detailSubaccountType === 'P' ? 'Cari Supplier' : 'Cari Sub Account') }}">
-                                                <x-heroicon-o-magnifying-glass class="w-4 h-4" />
+                                                <x-heroicon-o-magnifying-glass class="w-4 h-4 text-gray-500" />
                                             </button>
                                         </div>
                                     @endif
@@ -420,7 +412,7 @@
                                         <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                                     @enderror
                                 </td>
-                                <td class="p-2 align-top">
+                                <td class="p-2">
                                     @php
                                         $detailReferenceValue = (string) old(
                                             "details.$index.frefno",
@@ -429,15 +421,19 @@
                                     @endphp
                                     <input type="hidden" name="details[{{ $index }}][frefno]"
                                         value="{{ $detailReferenceValue }}" data-role="detail-reference-input">
-                                    <textarea name="details[{{ $index }}][fnote]" rows="1"
-                                        class="w-full border border-gray-300 rounded-lg px-2 py-1 text-sm focus:outline-none focus:border-blue-500 {{ $isReadOnly ? 'bg-gray-50' : '' }}"
-                                        {{ $isReadOnly ? 'readonly' : '' }}>{{ old("details.$index.fnote", $detail->fnote ?? '') }}</textarea>
+                                    @if ($isReadOnly)
+                                        <div class="px-2 py-1 text-sm text-gray-655 bg-gray-50 border rounded whitespace-normal break-words">{{ old("details.$index.fnote", $detail->fnote ?? '') }}</div>
+                                        <input type="hidden" name="details[{{ $index }}][fnote]" value="{{ old("details.$index.fnote", $detail->fnote ?? '') }}">
+                                    @else
+                                        <textarea name="details[{{ $index }}][fnote]" rows="1"
+                                            class="w-full border rounded px-2 py-1 text-sm focus:ring-1 focus:ring-blue-500 bg-white"
+                                            >{{ old("details.$index.fnote", $detail->fnote ?? '') }}</textarea>
+                                    @endif
                                     @error("details.$index.fnote")
                                         <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                                     @enderror
                                 </td>
-
-                                <td class="p-2 align-top">
+                                <td class="p-2 text-right">
                                     @php
                                         $detailAmountValue = old(
                                             "details.$index.fkasdtvalue",
@@ -445,16 +441,13 @@
                                         );
                                     @endphp
                                     @if ($isReadOnly)
-                                        <input type="text"
-                                            value="{{ number_format($parseAmount($detailAmountValue ?: 0), 2, '.', ',') }}"
-                                            class="detail-amount w-full border border-gray-300 rounded-lg px-2 py-1 text-sm text-right focus:outline-none focus:border-blue-500 bg-gray-50"
-                                            readonly>
+                                        <div class="px-2 py-1 text-sm text-gray-700 bg-gray-50 border rounded text-right font-medium">{{ number_format($parseAmount($detailAmountValue ?: 0), 2, '.', ',') }}</div>
                                         <input type="hidden" name="details[{{ $index }}][fkasdtvalue]"
                                             value="{{ $detailAmountValue }}">
                                     @else
                                         <input type="text" name="details[{{ $index }}][fkasdtvalue]"
                                             value="{{ number_format($parseAmount($detailAmountValue ?: 0), 2, '.', ',') }}"
-                                            class="detail-amount w-full border border-gray-300 rounded-lg px-2 py-1 text-sm text-right focus:outline-none focus:border-blue-500"
+                                            class="detail-amount w-full border rounded px-2 py-1 text-sm text-right focus:ring-1 focus:ring-blue-500 bg-white"
                                             data-role="detail-amount-input">
                                     @endif
                                     @error("details.$index.fkasdtvalue")
@@ -462,14 +455,10 @@
                                     @enderror
                                 </td>
                                 @unless ($isReadOnly)
-                                    <td class="detail-action-cell p-2 text-center align-top">
-                                        <div class="flex items-center justify-center">
-                                            <button type="button" @click="removeRow($event)"
-                                                class="detail-delete-btn inline-flex h-7 w-7 items-center justify-center rounded-lg bg-red-50 text-red-500 hover:bg-red-100 transition-colors border border-red-200"
-                                                title="Hapus baris">
-                                                <x-heroicon-o-minus class="w-4 h-4" />
-                                            </button>
-                                        </div>
+                                    <td class="p-2 text-center text-xs">
+                                        <button type="button" @click="removeRow($event)"
+                                            class="detail-delete-btn inline-flex h-8 w-8 items-center justify-center rounded bg-red-100 text-red-600 hover:bg-red-200 transition-colors"
+                                            title="Hapus baris">-</button>
                                     </td>
                                 @endunless
                             </tr>

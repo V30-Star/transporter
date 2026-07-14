@@ -225,84 +225,122 @@
             <div class="p-4 space-y-3">
 
             <div>
-                <div class="overflow-auto border rounded-lg">
-                    <table class="min-w-full text-sm">
-                        <thead class="bg-gray-50 border-b border-gray-200">
+                <div class="overflow-auto border rounded">
+                    <table class="min-w-full text-sm balanced-detail-table"
+                        data-skip-auto-detail-style="true">
+                        <colgroup>
+                            @if ($isReadOnly)
+                                <col style="width:2%;">
+                                <col style="width:18%;">
+                                <col style="width:16%;">
+                                <col style="width:16%;">
+                                <col style="width:8%;">
+                                <col style="width:16%;">
+                                <col style="width:24%;">
+                            @else
+                                <col style="width:2%;">
+                                <col style="width:18%;">
+                                <col style="width:16%;">
+                                <col style="width:16%;">
+                                <col style="width:8%;">
+                                <col style="width:16%;">
+                                <col style="width:19%;">
+                                <col style="width:5%;">
+                            @endif
+                        </colgroup>
+                        <thead class="bg-gray-100">
                             <tr>
-                                <th class="px-3 py-2 text-left text-xs font-semibold text-gray-500 uppercase w-12">{{ 'No' }}</th>
-                                <th class="px-3 py-2 text-left text-xs font-semibold text-gray-500 uppercase min-w-[12rem]">{{ 'No.Penerimaan' }}</th>
-                                <th class="px-3 py-2 text-right text-xs font-semibold text-gray-500 uppercase min-w-[10rem]">{{ 'Nilai Order' }}</th>
-                                <th class="px-3 py-2 text-right text-xs font-semibold text-gray-500 uppercase min-w-[10rem]">{{ 'Sisa Hutang' }}</th>
-                                <th class="px-3 py-2 text-right text-xs font-semibold text-gray-500 uppercase min-w-[8rem]">{{ 'Disc.%' }}</th>
-                                <th class="px-3 py-2 text-right text-xs font-semibold text-gray-500 uppercase min-w-[10rem]">{{ 'Discount' }}</th>
-                                <th class="px-3 py-2 text-right text-xs font-semibold text-gray-500 uppercase min-w-[10rem]">{{ 'Total Bayar' }}</th>
+                                <th class="p-2 text-left w-12">No</th>
+                                <th class="p-2 text-left min-w-[12rem]">No.Penerimaan</th>
+                                <th class="p-2 text-right min-w-[10rem]">Nilai Order</th>
+                                <th class="p-2 text-right min-w-[10rem]">Sisa Hutang</th>
+                                <th class="p-2 text-right min-w-[8rem]">Disc.%</th>
+                                <th class="p-2 text-right min-w-[10rem]">Discount</th>
+                                <th class="p-2 text-right min-w-[10rem]">Total Bayar</th>
                                 @if (!$isReadOnly)
-                                    <th class="px-3 py-2 text-center text-xs font-semibold text-gray-500 uppercase w-16">{{ 'Aksi' }}</th>
+                                    <th class="p-2 text-center w-16">Aksi</th>
                                 @endif
                             </tr>
                         </thead>
                         <tbody>
                             <template x-for="(row, index) in rows" :key="row.uid">
-                                <tr>
-                                    <td class="border-b border-gray-200 px-3 py-2 text-center text-sm" x-text="index + 1"></td>
-                                    <td class="border-b border-gray-200 px-3 py-2">
-                                        <input type="text" :name="`details[${index}][frefno]`" x-model="row.frefno"
-                                            @input.debounce.500ms="handleManualPblInput(row); resolveManualPbl(row, true)"
-                                            @blur="resolveManualPbl(row)"
-                                            :class="referenceTextClass(row)"
-                                            class="w-full border-gray-300 rounded-lg px-2 py-1.5 text-sm focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100">
+                                <tr class="border-t hover:bg-gray-50">
+                                    <td class="p-2 text-gray-400 text-center align-middle" x-text="index + 1"></td>
+                                    <td class="p-2">
+                                        @if ($isReadOnly)
+                                            <div class="px-2 py-1 text-sm text-gray-655 bg-gray-50 border rounded font-mono" x-text="row.frefno"></div>
+                                            <input type="hidden" :name="`details[${index}][frefno]`" :value="row.frefno">
+                                        @else
+                                            <input type="text" :name="`details[${index}][frefno]`" x-model="row.frefno"
+                                                @input.debounce.500ms="handleManualPblInput(row); resolveManualPbl(row, true)"
+                                                @blur="resolveManualPbl(row)"
+                                                :class="referenceTextClass(row)"
+                                                class="w-full border rounded px-2 py-1 text-sm focus:ring-1 focus:ring-blue-500 bg-white">
+                                        @endif
                                         <input type="hidden" :name="`details[${index}][ftrcode]`" :value="row.ftrcode || 'BUY'">
                                         <input type="hidden" :name="`details[${index}][fsupplier]`" :value="row.fsupplier">
                                         <input type="hidden" :name="`details[${index}][fsuppliername]`" :value="row.fsuppliername">
                                         <input type="hidden" :name="`details[${index}][ftempo]`" :value="row.ftempo">
                                     </td>
-                                    <td class="border-b border-gray-200 px-3 py-2 text-sm">
-                                        <input type="text" :value="formatNumber(row.fnilai_order)"
-                                            :class="referenceTextClass(row)"
-                                            class="w-full border-gray-300 rounded-lg px-2 py-1.5 text-sm focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 text-right bg-gray-100 cursor-not-allowed" readonly disabled>
+                                    <td class="p-2">
+                                        <div class="px-2 py-1 text-sm text-gray-700 bg-gray-50 border rounded text-right font-medium" x-text="formatNumber(row.fnilai_order)"></div>
                                         <input type="hidden" :name="`details[${index}][fnilai_order]`" :value="row.fnilai_order">
                                     </td>
-                                    <td class="border-b border-gray-200 px-3 py-2 text-sm">
-                                        <input type="text" :value="formatNumber(row.fsisa_hutang)"
-                                            :class="referenceTextClass(row)"
-                                            class="w-full border-gray-300 rounded-lg px-2 py-1.5 text-sm focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 text-right bg-gray-100 cursor-not-allowed" readonly disabled>
+                                    <td class="p-2">
+                                        <div class="px-2 py-1 text-sm text-gray-700 bg-gray-55 border rounded text-right font-medium" x-text="formatNumber(row.fsisa_hutang)"></div>
                                         <input type="hidden" :name="`details[${index}][fsisa_hutang]`" :value="row.fsisa_hutang">
                                     </td>
-                                    <td class="border-b border-gray-200 px-3 py-2 text-sm">
-                                        <input type="number" min="0" max="100" step="0.01"
-                                            :name="`details[${index}][fdiscpersen]`" x-model="row.fdiscpersen"
-                                            @input="syncDiscountFromPercent(row, $event)"
-                                            :disabled="isDiscPercentDisabled(row)"
-                                            :class="referenceTextClass(row)"
-                                            class="w-full border-gray-300 rounded-lg px-2 py-1.5 text-sm focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 text-right disabled:bg-gray-100 disabled:text-gray-400 disabled:cursor-not-allowed">
-                                        <input type="hidden" x-show="isDiscPercentDisabled(row)"
-                                            :name="`details[${index}][fdiscpersen]`" :value="row.fdiscpersen">
+                                    <td class="p-2">
+                                        @if ($isReadOnly)
+                                            <div class="px-2 py-1 text-sm text-gray-700 bg-gray-50 border rounded text-right" x-text="row.fdiscpersen || '0'"></div>
+                                            <input type="hidden" :name="`details[${index}][fdiscpersen]`" :value="row.fdiscpersen">
+                                        @else
+                                            <input type="number" min="0" max="100" step="0.01"
+                                                :name="`details[${index}][fdiscpersen]`" x-model="row.fdiscpersen"
+                                                @input="syncDiscountFromPercent(row, $event)"
+                                                :disabled="isDiscPercentDisabled(row)"
+                                                :class="referenceTextClass(row)"
+                                                class="w-full border rounded px-2 py-1 text-right text-sm focus:ring-1 focus:ring-blue-500 bg-white disabled:bg-gray-50 disabled:text-gray-400 disabled:cursor-not-allowed">
+                                            <input type="hidden" x-show="isDiscPercentDisabled(row)"
+                                                :name="`details[${index}][fdiscpersen]`" :value="row.fdiscpersen">
+                                        @endif
                                     </td>
-                                    <td class="border-b border-gray-200 px-3 py-2 text-sm">
-                                        <input type="text" x-init="$el.value = formatNumber(row.fdiscount)"
-                                            x-effect="if (document.activeElement !== $el) $el.value = formatNumber(row.fdiscount)"
-                                            @focus="showRawNumber($event, row, 'fdiscount')"
-                                            @input="syncDiscountFromRp(row, $event.target.value)"
-                                            @blur="formatNumericField($event, row, 'fdiscount')"
-                                            :disabled="isDiscountDisabled(row)"
-                                            :class="referenceTextClass(row)"
-                                            class="w-full border-gray-300 rounded-lg px-2 py-1.5 text-sm focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 text-right disabled:bg-gray-100 disabled:text-gray-400 disabled:cursor-not-allowed">
-                                        <input type="hidden" :name="`details[${index}][fdiscount]`" :value="row.fdiscount">
+                                    <td class="p-2">
+                                        @if ($isReadOnly)
+                                            <div class="px-2 py-1 text-sm text-gray-700 bg-gray-50 border rounded text-right" x-text="formatNumber(row.fdiscount)"></div>
+                                            <input type="hidden" :name="`details[${index}][fdiscount]`" :value="row.fdiscount">
+                                        @else
+                                            <input type="text" x-init="$el.value = formatNumber(row.fdiscount)"
+                                                x-effect="if (document.activeElement !== $el) $el.value = formatNumber(row.fdiscount)"
+                                                @focus="showRawNumber($event, row, 'fdiscount')"
+                                                @input="syncDiscountFromRp(row, $event.target.value)"
+                                                @blur="formatNumericField($event, row, 'fdiscount')"
+                                                :disabled="isDiscountDisabled(row)"
+                                                :class="referenceTextClass(row)"
+                                                class="w-full border rounded px-2 py-1 text-right text-sm focus:ring-1 focus:ring-blue-500 bg-white disabled:bg-gray-50 disabled:text-gray-400 disabled:cursor-not-allowed">
+                                            <input type="hidden" :name="`details[${index}][fdiscount]`" :value="row.fdiscount">
+                                        @endif
                                     </td>
-                                    <td class="border-b border-gray-200 px-3 py-2 text-sm">
-                                        <input type="text" x-init="$el.value = formatNumber(row.fkasdtvalue)"
-                                            x-effect="if (document.activeElement !== $el) $el.value = formatNumber(row.fkasdtvalue)"
-                                            @focus="showRawNumber($event, row, 'fkasdtvalue')"
-                                            @input="syncTotalBayarInput(row, $event.target.value)"
-                                            @blur="formatNumericField($event, row, 'fkasdtvalue')"
-                                            :class="referenceTextClass(row)"
-                                            class="w-full border-gray-300 rounded-lg px-2 py-1.5 text-sm focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 text-right">
-                                        <input type="hidden" :name="`details[${index}][fkasdtvalue]`" :value="row.fkasdtvalue">
+                                    <td class="p-2">
+                                        @if ($isReadOnly)
+                                            <div class="px-2 py-1 text-sm text-gray-700 bg-gray-50 border rounded text-right font-medium" x-text="formatNumber(row.fkasdtvalue)"></div>
+                                            <input type="hidden" :name="`details[${index}][fkasdtvalue]`" :value="row.fkasdtvalue">
+                                        @else
+                                            <input type="text" x-init="$el.value = formatNumber(row.fkasdtvalue)"
+                                                x-effect="if (document.activeElement !== $el) $el.value = formatNumber(row.fkasdtvalue)"
+                                                @focus="showRawNumber($event, row, 'fkasdtvalue')"
+                                                @input="syncTotalBayarInput(row, $event.target.value)"
+                                                @blur="formatNumericField($event, row, 'fkasdtvalue')"
+                                                :class="referenceTextClass(row)"
+                                                class="w-full border rounded px-2 py-1 text-right text-sm focus:ring-1 focus:ring-blue-500 bg-white disabled:bg-gray-50 disabled:text-gray-400 disabled:cursor-not-allowed">
+                                            <input type="hidden" :name="`details[${index}][fkasdtvalue]`" :value="row.fkasdtvalue">
+                                        @endif
                                     </td>
                                     @if (!$isReadOnly)
-                                        <td class="border-b border-gray-200 px-3 py-2 text-center text-sm">
+                                        <td class="p-2 text-center text-xs">
                                             <button type="button" @click="removeRow(index)"
-                                                class="inline-flex h-8 w-8 items-center justify-center rounded bg-red-100 text-red-600 hover:bg-red-200 text-lg font-bold">-</button>
+                                                class="inline-flex h-8 w-8 items-center justify-center rounded bg-red-100 text-red-600 hover:bg-red-200 transition-colors"
+                                                title="Hapus baris">-</button>
                                         </td>
                                     @endif
                                 </tr>
