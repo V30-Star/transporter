@@ -1736,7 +1736,7 @@
                 browseIndex: null,
                 browseTarget: null,
                 showWarningModal: false,
-                warningTitle: 'Perhatian',
+                warningTitle: 'Informasi',
                 warningMessage: '',
                 warningItems: [],
                 warningCanProceed: false,
@@ -2206,7 +2206,7 @@
                 },
                 showConflictingReferencePpnWarning() {
                     window.showAppWarningAlert(
-                        'Perhatian',
+                        'Informasi',
                         'Setting PPN referensi berbeda. Dalam satu faktur pembelian, referensi PO atau TER harus memakai setting PPN yang sama.'
                     );
                 },
@@ -2538,7 +2538,7 @@
 
                 closeWarning() {
                     this.showWarningModal = false;
-                    this.warningTitle = 'Perhatian';
+                    this.warningTitle = 'Informasi';
                     this.warningMessage = '';
                     this.warningItems = [];
                     this.warningCanProceed = false;
@@ -3401,7 +3401,7 @@
                 }
 
                 if (typeof window.showAppWarningAlert === 'function') {
-                    window.showAppWarningAlert('Perhatian', message, {
+                    window.showAppWarningAlert('Informasi', message, {
                         confirmButtonText: 'Ok'
                     });
                     return;
@@ -3410,7 +3410,7 @@
                 if (typeof Swal !== 'undefined') {
                     Swal.fire({
                         icon: 'warning',
-                        title: 'Perhatian',
+                        title: 'Informasi',
                         text: message,
                         confirmButtonText: 'Ok'
                     });

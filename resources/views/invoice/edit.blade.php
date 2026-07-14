@@ -1097,6 +1097,20 @@
                                             @endif
                                         @endif
                                     </div>
+                                    <div id="customerAdvanceWarningBox" class="hidden my-2">
+                                        <div class="bg-yellow-50 border-l-4 border-yellow-400 p-4">
+                                            <div class="flex">
+                                                <div class="flex-shrink-0">
+                                                    <svg class="h-5 w-5 text-yellow-400" viewBox="0 0 20 20" fill="currentColor">
+                                                        <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd" />
+                                                    </svg>
+                                                </div>
+                                                <div class="ml-3">
+                                                    <p class="text-sm font-medium text-yellow-700" id="customerAdvanceWarningText"></p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
                                     @error('fcustno')
                                         <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                                     @enderror
@@ -3549,4 +3563,87 @@
         'showPagination' => true,
         'supportsForEdit' => true,
     ])
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const customerAdvanceWarnings = @json($customerAdvanceWarnings ?? []);
+            const warningBox = document.getElementById('customerAdvanceWarningBox');
+            const warningText = document.getElementById('customerAdvanceWarningText');
+            const hiddenInput = document.getElementById('customerCodeHidden');
+            const selectInput = document.getElementById('modal_filter_customer_id');
+            let lastPopupCustomerCode = '';
+
+            const showCustomerAdvancePopup = (message) => {
+                if (!message) {
+                    return;
+                }
+
+                if (typeof window.showAppWarningAlert === 'function') {
+                    window.showAppWarningAlert('Informasi', message, {
+                        confirmButtonText: 'Ok'
+                    });
+                    return;
+                }
+
+                if (typeof Swal !== 'undefined') {
+                    Swal.fire({
+                        icon: 'warning',
+                        title: 'Informasi',
+                        text: message,
+                        confirmButtonText: 'Ok'
+                    });
+                }
+            };
+
+            const updateCustomerAdvanceWarning = (customerCode = null, shouldPopup = false) => {
+                if (!warningBox || !warningText) {
+                    return;
+                }
+
+                const code = (customerCode ?? hiddenInput?.value ?? selectInput?.value ?? '').toString().trim();
+                const warning = customerAdvanceWarnings[code] ?? null;
+
+                if (!warning || !warning.message) {
+                    warningBox.classList.add('hidden');
+                    warningText.textContent = '';
+                    if (code !== lastPopupCustomerCode) {
+                        lastPopupCustomerCode = '';
+                    }
+                    return;
+                }
+
+                warningText.textContent = warning.message;
+                warningBox.classList.remove('hidden');
+
+                if (shouldPopup && code !== '' && code !== lastPopupCustomerCode) {
+                    lastPopupCustomerCode = code;
+                    showCustomerAdvancePopup(warning.message);
+                }
+            };
+
+            if (hiddenInput) {
+                hiddenInput.addEventListener('change', (e) => {
+                    updateCustomerAdvanceWarning(e.target.value, true);
+                });
+                hiddenInput.addEventListener('input', (e) => {
+                    updateCustomerAdvanceWarning(e.target.value, true);
+                });
+            }
+            if (selectInput) {
+                selectInput.addEventListener('change', (e) => {
+                    updateCustomerAdvanceWarning(e.target.value, true);
+                });
+            }
+
+            // Listen to customer-selected custom event
+            window.addEventListener('customer-selected', (e) => {
+                const code = e.detail?.fcustomercode;
+                updateCustomerAdvanceWarning(code, true);
+            });
+
+            // Initial check
+            setTimeout(() => {
+                updateCustomerAdvanceWarning(null, false);
+            }, 100);
+        });
+    </script>
 @endpush

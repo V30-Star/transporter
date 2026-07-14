@@ -1302,6 +1302,7 @@ class InvoiceController extends Controller
             'filterSupplierId' => $request->query('filter_supplier_id'),
             'filterSalesmanId' => $request->query('filter_salesman_id'),
             'autoLoadSuratJalanId' => $request->query('surat_jalan_id'),
+            'customerAdvanceWarnings' => $this->getCustomerAdvanceWarningMap(),
         ]);
     }
 
@@ -2362,6 +2363,7 @@ class InvoiceController extends Controller
             'isUsageLocked' => ! empty($usageLockMessage),
             'usageLockMessage' => $usageLockMessage,
             'action' => 'edit',
+            'customerAdvanceWarnings' => $this->getCustomerAdvanceWarningMap(),
         ]);
     }
 
@@ -2455,6 +2457,7 @@ class InvoiceController extends Controller
             'isUsageLocked' => false,
             'usageLockMessage' => null,
             'action' => 'view',
+            'customerAdvanceWarnings' => $this->getCustomerAdvanceWarningMap(),
         ]);
     }
 
@@ -3168,5 +3171,29 @@ class InvoiceController extends Controller
         $value = preg_replace('/\s+/', '', $value) ?? '0';
 
         return $value === '' ? '0' : mb_substr($value, 0, 50);
+    }
+
+    private function getCustomerAdvanceWarningMap(): array
+    {
+        return DB::table('trsisadp_penjualan')
+            ->selectRaw('TRIM(COALESCE(fcustno, \'\')) as fcustno')
+            ->selectRaw('SUM(COALESCE(fsisadp, 0)) as total_remain')
+            ->where('fsisadp', '>', 0)
+            ->groupBy(DB::raw('TRIM(COALESCE(fcustno, \'\'))'))
+            ->get()
+            ->filter(fn ($row) => trim((string) ($row->fcustno ?? '')) !== '')
+            ->mapWithKeys(function ($row) {
+                $customerCode = trim((string) ($row->fcustno ?? ''));
+                $remainRp = (float) ($row->total_remain ?? 0);
+
+                return [
+                    $customerCode => [
+                        'message' => $remainRp > 0
+                            ? 'Customer ini memiliki DP sebesar'.number_format($remainRp, 2, ',', '.').'.'
+                            : 'Customer ini memiliki DP.',
+                    ],
+                ];
+            })
+            ->all();
     }
 }

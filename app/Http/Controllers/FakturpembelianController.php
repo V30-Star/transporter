@@ -94,8 +94,8 @@ class FakturpembelianController extends Controller
                 return [
                     $supplierCode => [
                         'message' => $remainRp > 0
-                            ? 'Supplier ini ada sisa uang muka sebesar Rp '.number_format($remainRp, 2, ',', '.').'.'
-                            : 'Supplier ini ada sisa uang muka.',
+                            ? 'Supplier ini memiliki DP sebesar'.number_format($remainRp, 2, ',', '.').'.'
+                            : 'Supplier ini memiliki DP.',
                     ],
                 ];
             })
