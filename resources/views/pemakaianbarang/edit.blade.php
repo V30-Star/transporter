@@ -622,13 +622,13 @@
                                             </tr>
                                         </thead>
                                         <tbody>
-                                            <template x-for="(it, i) in savedItems" :key="it.uid">
-                                                <tr class="border-t align-top hover:bg-gray-50">
+                                            <template x-for="(it, i) in savedItems" :key="it.uid || `item-${i}`">
+                                                <tr class="border-t align-top hover:bg-gray-55">
                                                     <td class="p-2 text-gray-400" x-text="i + 1"></td>
                                                     <td class="p-2">
                                                         <div class="flex">
                                                             <input type="text" class="flex-1 border rounded-l px-2 py-1 font-mono text-sm focus:ring-1 focus:ring-blue-500 min-w-0 bg-white"
-                                                                :id="'mutasi_code_row_' + i"
+                                                                :id="'pemakaian_code_row_' + i"
                                                                 x-model.trim="it.fitemcode"
                                                                 @input="onCodeTypedRow(it, i)"
                                                                 @keydown.enter.prevent="focusRowUnit(it, i)">
@@ -654,7 +654,7 @@
                                                     <td class="p-2">
                                                         <select class="w-full border rounded px-2 py-1 select2 text-sm focus:ring-1 focus:ring-blue-500" :value="it.account_code"
                                                             x-init="window.initSelect2($el)"
-                                                            @change="it.account_code = $event.target.value; it.account_name = $event.target.options[$event.target.selectedIndex].dataset.name">
+                                                            @change="it.account_code = $event.target.value; it.account_name = $event.target.options[$event.target.selectedIndex].dataset.name; onRowUpdated(i)">
                                                             <option value="">Pilih Akun</option>
                                                             <template x-for="acc in accounts" :key="acc.faccount">
                                                                 <option :value="acc.faccount" :data-name="acc.faccname"
@@ -666,7 +666,7 @@
                                                     <td class="p-2">
                                                         <select class="w-full border rounded px-2 py-1 select2 text-sm focus:ring-1 focus:ring-blue-500" :value="it.subaccount_code"
                                                             x-init="window.initSelect2($el)"
-                                                            @change="it.subaccount_code = $event.target.value; it.subaccount_name = $event.target.options[$event.target.selectedIndex].dataset.name">
+                                                            @change="it.subaccount_code = $event.target.value; it.subaccount_name = $event.target.options[$event.target.selectedIndex].dataset.name; onRowUpdated(i)">
                                                             <option value="">Pilih Sub Akun</option>
                                                             <template x-for="sacc in subaccounts" :key="sacc.fsubaccountcode">
                                                                 <option :value="sacc.fsubaccountcode" :data-name="sacc.fsubaccountname"
@@ -676,23 +676,29 @@
                                                         </select>
                                                     </td>
                                                     <td class="p-2">
-                                                        <template x-if="it.units.length > 1">
-                                                            <select class="w-full border rounded px-2 py-1 text-sm focus:ring-1 focus:ring-blue-500" x-model="it.fsatuan">
+                                                        <template x-if="it.units && it.units.length > 1">
+                                                            <select class="w-full border rounded px-2 py-1 text-sm focus:ring-1 focus:ring-blue-500"
+                                                                :id="'pemakaian_unit_row_' + i"
+                                                                x-model="it.fsatuan"
+                                                                @change="onRowUpdated(i)"
+                                                                @keydown.enter.prevent="focusRowQty(i)">
                                                                 <template x-for="u in it.units" :key="u">
                                                                     <option :value="u" x-text="u" :selected="it.fsatuan == u"></option>
                                                                 </template>
                                                             </select>
                                                         </template>
-                                                        <template x-if="it.units.length <= 1">
-                                                            <div class="px-2 py-1 text-sm text-gray-650 bg-gray-50 border rounded"
+                                                        <template x-if="!it.units || it.units.length <= 1">
+                                                            <div class="px-2 py-1 text-sm text-gray-655 bg-gray-50 border rounded"
                                                                 x-text="it.fsatuan || '-'"></div>
                                                         </template>
                                                     </td>
                                                     <td class="p-2 text-right">
                                                         <input type="number" class="w-full border rounded px-2 py-1 text-right text-sm focus:ring-1 focus:ring-blue-500 bg-white"
                                                             min="0" step="0.01"
-                                                            x-model.number="it.fqty" @change="recalc(it)"
-                                                            @blur="recalc(it)">
+                                                            :id="'pemakaian_qty_row_' + i"
+                                                            x-model.number="it.fqty"
+                                                            @input="onRowUpdated(i)"
+                                                            @change="onRowUpdated(i)">
                                                     </td>
                                                     <td class="p-2 text-center text-xs">
                                                         <button type="button" @click="removeSaved(i)"
@@ -704,6 +710,24 @@
                                         </tbody>
                                     </table>
                             </div>
+
+                                {{-- Hidden submit rows --}}
+                                <div class="hidden">
+                                    <template x-for="(it, i) in submitItems" :key="'submit-pemakaian-' + (it.uid || i)">
+                                        <div>
+                                            <input type="hidden" name="fitemcode[]" :value="it.fitemcode">
+                                            <input type="hidden" name="fitemname[]" :value="it.fitemname">
+                                            <input type="hidden" name="fsatuan[]" :value="it.fsatuan">
+                                            <input type="hidden" name="frefdtno[]" :value="it.account_code">
+                                            <input type="hidden" name="frefso[]" :value="it.subaccount_code">
+                                            <input type="hidden" name="frefpr[]" :value="it.frefpr">
+                                            <input type="hidden" name="fqty[]" :value="it.fqty">
+                                            <input type="hidden" name="fdesc[]" :value="it.fdesc">
+                                            <input type="hidden" name="fketdt[]" :value="it.fketdt">
+                                        </div>
+                                    </template>
+                                    <input type="hidden" id="itemsCount" :value="submitItems.length">
+                                </div>
                         </div>
                         </div>
                     </div>
@@ -1173,7 +1197,7 @@
                 copyName() {
                     this.value = this.itemName || '';
                 },
-                close() {
+close() {
                     this.show = false;
                     this.value = '';
                     this.itemName = '';
@@ -1193,417 +1217,311 @@
         return {
             showNoItems: false,
             savedItems: @json(count($initialEditPemakaianItems) ? $initialEditPemakaianItems : $savedItems),
-            extraEditableRows: 4,
-            isNormalizingSubmit: false,
-            draft: newRow(),
-                totalHarga: 0,
+            minimumVisibleRows: 5,
+            browseTarget: 'extra',
+            browseRow: null,
+            totalHarga: 0,
 
-                updateAccount(row, accountCode, accName) {
-                    row.account_code = accountCode;
-                    row.account_name = accName;
-                    row.account_label = accountCode ? `${accountCode} - ${accName || accountCode}` : '';
-
-                    // Opsional: Cek apakah item lain di draft/edit perlu di-recalc
-                    // this.recalc(row); 
-                },
-
-                updateSubAccount(row, subAccountCode, subAccName) {
-                    row.subaccount_code = subAccountCode;
-                    row.subaccount_name = subAccName;
-                    row.subaccount_label = subAccountCode ? `${subAccountCode} - ${subAccName || subAccountCode}` : '';
-                },
-
-                fmt(n) {
-                    if (n === null || n === undefined || n === '') return '-';
-                    const v = Number(n);
-                    if (!isFinite(v)) return '-';
-
-                    // Jika angka adalah bulat, hilangkan desimal
-                    return v.toLocaleString('id-ID', {
+            fmt(n) {
+                if (n === null || n === undefined || n === '') return '-';
+                const v = Number(n);
+                if (!isFinite(v)) return '-';
+                return v.toLocaleString('id-ID', {
                     minimumFractionDigits: 2,
                     maximumFractionDigits: 2
                 });
-                },
+            },
 
-                rupiah(n) {
-                    const v = Number(n || 0);
-                    if (!isFinite(v)) return '-';
-                    return v.toLocaleString('id-ID', {
-                        minimumFractionDigits: 2,
-                        maximumFractionDigits: 2
-                    });
-                },
+            rupiah(n) {
+                const v = Number(n || 0);
+                if (!isFinite(v)) return '-';
+                return v.toLocaleString('id-ID', {
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2
+                });
+            },
 
-                fmtMoney(value) {
-                    return this.fmt(value);
-                },
+            fmtMoney(value) {
+                return this.fmt(value);
+            },
 
-                recalc(row) {
-                    this.$nextTick(() => {
-                        row.fqty = @json((string) env('STOCKBOLEHMINUS', '0') === '1') ? (Number(row.fqty) || 0) : Math.max(0, Number(row.fqty) || 0);
-                        row.fterima = Math.max(0, Number(row.fterima) || 0);
-                        row.fprice = Math.max(0, Number(row.fprice) || 0);
-
-                        row.ftotal = Number((row.fqty * row.fprice).toFixed(2));
-
-                        this.recalcTotals();
-                    });
-                },
-
-                recalcTotals() {
-                    this.totalHarga = (this.savedItems || []).reduce((sum, it) => {
-                        const v = Number(it?.ftotal ?? 0);
-                        return sum + (Number.isFinite(v) ? v : 0);
-                    }, 0);
-                },
-
-                removeSaved(i) {
-                    this.savedItems.splice(i, 1);
-                    this.ensureExtraEditableRows();
-                    this.syncDescList?.();
+            recalc(row) {
+                this.$nextTick(() => {
+                    row.fqty = @json((string) env('STOCKBOLEHMINUS', '0') === '1') ? (Number(row.fqty) || 0) : Math.max(0, Number(row.fqty) || 0);
+                    row.fterima = Math.max(0, Number(row.fterima) || 0);
+                    row.fprice = Math.max(0, Number(row.fprice) || 0);
+                    row.ftotal = Number((row.fqty * row.fprice).toFixed(2));
                     this.recalcTotals();
-                },
+                });
+            },
 
-                ensureExtraEditableRows() {
-                    while ((this.savedItems || []).filter(it => it?.__placeholder).length < this.extraEditableRows) {
-                        this.savedItems.push({
-                            ...newRow(),
-                            uid: cryptoRandom(),
-                            __placeholder: true,
-                        });
-                    }
-                },
+            recalcTotals() {
+                this.totalHarga = (this.savedItems || []).reduce((sum, it) => {
+                    const v = Number(it?.ftotal ?? 0);
+                    return sum + (Number.isFinite(v) ? v : 0);
+                }, 0);
+            },
 
-                normalizeSavedItemsForSubmit() {
-                    const cleaned = (this.savedItems || [])
-                        .filter(it => !it?.__placeholder && this.isComplete(it))
-                        .map((it) => {
-                            const row = {
-                                ...it
-                            };
-                            delete row.__placeholder;
-                            return row;
-                        });
+            removeSaved(i) {
+                this.savedItems.splice(i, 1);
+                this.ensureMinimumRows();
+                this.ensureTrailingRow();
+                this.recalcTotals();
+            },
 
-                    this.savedItems = cleaned;
-                    return cleaned;
-                },
+            productMeta(code) {
+                const key = (code || '').trim();
+                return window.PRODUCT_MAP?.[key] || null;
+            },
 
-                productMeta(code) {
-                    const key = (code || '').trim();
-                    return window.PRODUCT_MAP?.[key] || null;
-                },
+            hydrateRowFromMeta(row, meta) {
+                if (!meta) {
+                    row.fitemname = '';
+                    row.units = [];
+                    row.fsatuan = '';
+                    row.maxqty = 0;
+                    return;
+                }
+                row.fitemid = meta.id || '';
+                row.fitemname = meta.name || '';
+                const units = [...new Set((meta.units || []).map(u => (u ?? '').toString().trim()).filter(Boolean))];
+                row.units = units;
+                if (!units.includes(row.fsatuan)) row.fsatuan = units[0] || '';
+                const stock = Number.isFinite(+meta.stock) && +meta.stock > 0 ? +meta.stock : 0;
+                row.maxqty = stock;
+            },
 
-                hydrateRowFromMeta(row, meta) {
-                    if (!meta) {
-                        row.fitemid = '';
-                        row.fitemname = '';
-                        row.units = [];
-                        row.fsatuan = '';
-                        row.maxqty = 0;
-                        return;
-                    }
-                    row.fitemid = meta.id || '';
-                    row.fitemname = meta.name || '';
-                    const units = [...new Set((meta.units || []).map(u => (u ?? '').toString().trim()).filter(Boolean))];
-                    row.units = units;
-                    if (!units.includes(row.fsatuan)) row.fsatuan = units[0] || '';
-                    const stock = Number.isFinite(+meta.stock) && +meta.stock > 0 ? +meta.stock : 0;
-                    row.maxqty = stock;
-                },
+            rowHasContent(row) {
+                if (!row) return false;
+                return [
+                    row.fitemcode,
+                    row.fitemname,
+                    row.account_code,
+                    row.subaccount_code,
+                    row.frefpr,
+                    row.fdesc,
+                    row.fketdt,
+                ].some(value => String(value ?? '').trim() !== '') ||
+                    Number(row.fqty ?? 0) !== 0;
+            },
 
-                onCodeTypedRow(row) {
-                    this.hydrateRowFromMeta(row, this.productMeta(row.fitemcode));
-                },
+            isRowSavable(row) {
+                return !!(row && row.fitemcode && row.fitemname && row.fsatuan && (@json((string) env('STOCKBOLEHMINUS', '0') === '1') ? Number(row.fqty) !== 0 : Number(row.fqty) > 0));
+            },
 
-                isComplete(row) {
-                    return row.fitemcode && row.fitemname && row.fsatuan && (@json((string) env('STOCKBOLEHMINUS', '0') === '1') ? Number(row.fqty) !== 0 : Number(row.fqty) > 0);
-                },
+            ensureMinimumRows() {
+                while (this.savedItems.length < this.minimumVisibleRows) {
+                    this.savedItems.push(this.createRow());
+                }
+            },
 
-                onPrPicked(e) {
-                    const {
-                        header,
-                        items
-                    } = e.detail || {};
-                    if (!items || !Array.isArray(items)) return;
+            ensureTrailingRow(index = null) {
+                if (!this.savedItems.length) {
+                    this.ensureMinimumRows();
+                    return;
+                }
 
-                    this.resetDraft();
-                    this.addManyFromPR(header, items);
-                },
+                const targetIndex = index === null ? this.savedItems.length - 1 : index;
+                if (targetIndex !== this.savedItems.length - 1) return;
 
-                resetDraft() {
-                    this.draft = newRow();
-                    this.$nextTick(() => this.$refs.draftCode?.focus());
-                },
+                if (this.rowHasContent(this.savedItems[targetIndex])) {
+                    this.savedItems.push(this.createRow());
+                }
+            },
 
-                addManyFromPR(header, items) {
-                    const existing = new Set(this.getCurrentItemKeys());
+            onCodeTypedRow(row, index = null) {
+                this.hydrateRowFromMeta(row, this.productMeta(row.fitemcode));
+                this.recalc(row);
+                this.onRowUpdated(index);
+            },
 
-                    let added = 0,
-                        duplicates = [];
+            onRowUpdated(index) {
+                this.ensureTrailingRow(index);
+                this.recalcTotals();
+            },
 
-                    items.forEach(src => {
-                        const row = {
-                            uid: cryptoRandom(),
-                            fitemcode: src.fitemcode ?? '',
-                            fitemid: src.fitemid ?? '',
-                            fitemname: src.fitemname ?? '',
-                            fsatuan: src.fsatuan ?? '',
-                            frefpr: src.frefpr ?? (header?.fpono ?? ''),
-                            fqty: Number(src.fqty ?? 0),
-                            fdesc: src.fdesc ?? '',
-                            fketdt: src.fketdt ?? '',
-                            units: Array.isArray(src.units) && src.units.length ? src.units : [src.fsatuan]
-                                .filter(Boolean),
-                        };
+            onPrPicked(e) {
+                const {
+                    header,
+                    items
+                } = e.detail || {};
+                if (!items || !Array.isArray(items)) return;
 
-                        const key = this.itemKey({
-                            fitemcode: row.fitemcode,
-                            account_code: row.account_code
-                        });
+                this.addManyFromPR(header, items);
+            },
 
-                        if (existing.has(key)) {
-                            duplicates.push({
-                                key,
-                                code: row.fitemcode,
-                                ref: row.account_code
-                            });
-                            return;
-                        }
+            addManyFromPR(header, items) {
+                const existing = new Set(this.getCurrentItemKeys());
+                let added = 0;
 
+                items.forEach(src => {
+                    const row = {
+                        ...this.createRow(),
+                        fitemcode: src.fitemcode ?? '',
+                        fitemid: src.fitemid ?? '',
+                        fitemname: src.fitemname ?? '',
+                        fsatuan: src.fsatuan ?? '',
+                        frefpr: src.frefpr ?? (header?.fpono ?? ''),
+                        fqty: Number(src.fqty ?? 0),
+                        fdesc: src.fdesc ?? '',
+                        fketdt: src.fketdt ?? '',
+                        units: Array.isArray(src.units) && src.units.length ? src.units : [src.fsatuan].filter(Boolean),
+                    };
+
+                    const key = this.itemKey(row);
+                    if (existing.has(key)) return;
+
+                    // find first empty row to replace, or push
+                    const emptyIdx = this.savedItems.findIndex(r => !this.rowHasContent(r));
+                    if (emptyIdx !== -1) {
+                        this.savedItems.splice(emptyIdx, 1, row);
+                    } else {
                         this.savedItems.push(row);
-                        existing.add(key);
-                        added++;
-                    });
-
-                    this.recalcTotals();
-                },
-
-                addIfComplete() {
-                    const r = this.draft;
-                    if (!this.isComplete(r)) {
-                        if (!r.fitemcode) return this.$refs.draftCode?.focus();
-                        if (!r.fitemname) return this.$refs.draftCode?.focus();
-                        if (!r.fsatuan) return (r.units.length > 1 ? this.$refs.draftUnit?.focus() : this.$refs.draftCode
-                            ?.focus());
-                        if (!(@json((string) env('STOCKBOLEHMINUS', '0') === '1') ? Number(r.fqty) !== 0 : Number(r.fqty) > 0)) return this.$refs.draftQty?.focus();
-                        return;
                     }
+                    existing.add(key);
+                    added++;
+                });
 
-                    this.recalc(r);
+                this.ensureMinimumRows();
+                this.ensureTrailingRow();
+                this.recalcTotals();
+            },
 
-                    const dupe = this.savedItems.find(it =>
-                        it.fitemcode === r.fitemcode &&
-                        it.fsatuan === r.fsatuan && (it.fdesc || '') === (r.fdesc || '') &&
-                        (it.frefpr || '') === (r.frefpr || '')
-                    );
-
-                    if (dupe) {
-                        window.showAppWarningAlert('WARNING', 'ITEM SAMA SUDAH ADA.');
-                        return;
-                    }
-
-                    this.savedItems.push({
-                        ...r,
-                        uid: cryptoRandom()
-                    });
-
-                    this.showNoItems = false;
-                    this.resetDraft();
-                    this.ensureExtraEditableRows();
-                    this.$nextTick(() => {
-                        this.$refs.draftCode?.focus();
-                    });
-                    this.syncDescList?.();
-                    this.recalcTotals();
-                },
-
-
-
-                onSubmit($event) {
-                    if (this.isNormalizingSubmit) {
-                        return;
-                    }
-
-                    const cleaned = this.normalizeSavedItemsForSubmit();
-                    const duplicateCode = window.getPemakaianBarangDuplicateCode?.($event.target);
-                    if (duplicateCode) {
-                        $event.preventDefault();
-                        Swal.fire({
-                            icon: 'warning',
-                            title: 'Produk Duplikat',
-                            text: `Kode produk ${duplicateCode} tidak boleh sama dalam satu Pemakaian Barang.`,
-                            confirmButtonText: 'OK',
-                            customClass: {
-                                confirmButton: 'bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700'
-                            }
-                        });
-                        this.ensureExtraEditableRows();
-                        return;
-                    }
-                    if (cleaned.length === 0) {
-                        $event.preventDefault();
-                        this.showNoItems = true;
-                        this.ensureExtraEditableRows();
-                        return;
-                    }
-
+            onSubmit($event) {
+                const duplicateCode = window.getPemakaianBarangDuplicateCode?.($event.target);
+                if (duplicateCode) {
                     $event.preventDefault();
-                    this.isNormalizingSubmit = true;
-                    this.$nextTick(() => window.submitFormWithStockMinusConfirmation?.($event));
-                },
-
-                handleEnterOnCode(where) {
-                    if (where === 'edit') {
-                        // handled by inline
-                    } else {
-                        if (this.draft.units.length > 1) this.$refs.draftUnit?.focus();
-                        else this.$refs.draftQty?.focus();
-                    }
-                },
-
-                handleEnterOnPrice(where) {
-                    if (where === 'edit') {
-                        // handled by inline
-                    } else {
-                        this.addIfComplete();
-                    }
-                },
-
-                openDesc(targetRow, readonly = false) {
-                    Alpine.store('pemakaianDesc').open(targetRow, readonly);
-                },
-
-                itemKey(it) {
-                    return `${(it.fitemcode ?? '').toString().trim()}::${(it.account_code ?? '').toString().trim()}`;
-                },
-
-                getCurrentItemKeys() {
-                    return this.savedItems.filter(it => !it?.__placeholder && this.isComplete(it)).map(it => this.itemKey(it));
-                },
-
-                init() {
-                    const normalizedAccounts = (this.accounts || []).map(acc => ({
-                        ...acc,
-                        faccount: (acc?.faccount ?? '').toString().trim(),
-                        faccname: (acc?.faccname ?? '').toString().trim(),
-                    }));
-                    const normalizedSubaccounts = (this.subaccounts || []).map(sacc => ({
-                        ...sacc,
-                        fsubaccountcode: (sacc?.fsubaccountcode ?? '').toString().trim(),
-                        fsubaccountname: (sacc?.fsubaccountname ?? '').toString().trim(),
-                    }));
-
-                    this.accounts = normalizedAccounts;
-                    this.subaccounts = normalizedSubaccounts;
-
-                    const accountMap = Object.fromEntries(
-                        normalizedAccounts.map(acc => [acc.faccount, acc])
-                    );
-                    const subaccountMap = Object.fromEntries(
-                        normalizedSubaccounts.map(sacc => [sacc.fsubaccountcode, sacc])
-                    );
-
-                    this.savedItems = (this.savedItems || []).map((it) => {
-                        const accountCode = (it?.account_code ?? '').toString().trim();
-                        const subaccountCode = (it?.subaccount_code ?? '').toString().trim();
-                        const account = accountMap[accountCode] ?? null;
-                        const subaccount = subaccountMap[subaccountCode] ?? null;
-
-                        return {
-                            ...it,
-                            account_code: accountCode,
-                            account_name: account?.faccname || it?.account_name || '',
-                            account_label: accountCode
-                                ? `${accountCode} - ${account?.faccname || it?.account_name || accountCode}`
-                                : '',
-                            subaccount_code: subaccountCode,
-                            subaccount_name: subaccount?.fsubaccountname || it?.subaccount_name || '',
-                            subaccount_label: subaccountCode
-                                ? `${subaccountCode} - ${subaccount?.fsubaccountname || it?.subaccount_name || subaccountCode}`
-                                : '',
-                        };
-                    });
-                    this.ensureExtraEditableRows();
-
-                    window.getCurrentItemKeys = () => this.getCurrentItemKeys();
-
-                    window.addEventListener('pr-picked', this.onPrPicked.bind(this), {
-                        passive: true
-                    });
-
-                    window.addEventListener('product-chosen', (e) => {
-                        const {
-                            product
-                        } = e.detail || {};
-                        if (!product) return;
-
-                        const apply = (row) => {
-                            row.fitemcode = (product.fprdcode || '').toString();
-                            this.hydrateRowFromMeta(row, this.productMeta(row.fitemcode));
-                             this.rows.splice(this.browseTarget, 1, {
-                        ...this.rows[this.browseTarget]
-                    });
-
-                            if (!row.fqty) row.fqty = 1;
-                            this.recalc(row);
-                        };
-
-                        if (this.browseTarget === 'edit') {
-                            apply(this.editRow);
-                            this.$nextTick(() => {
-                                this.$refs.editQty?.focus();
-                            });
-                        } else {
-                            apply(this.draft);
-                            this.$nextTick(() => {
-                                this.$refs.draftQty?.focus();
-                            });
+                    Swal.fire({
+                        icon: 'warning',
+                        title: 'Produk Duplikat',
+                        text: `Kode produk ${duplicateCode} tidak boleh sama dalam satu Pemakaian Barang.`,
+                        confirmButtonText: 'OK',
+                        customClass: {
+                            confirmButton: 'bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700'
                         }
-                    }, {
-                        passive: true
                     });
-                },
+                    return;
+                }
+                if (this.submitItems.length === 0) {
+                    $event.preventDefault();
+                    this.showNoItems = true;
+                    return;
+                }
+                return window.submitFormWithStockMinusConfirmation?.($event);
+            },
 
-                browseTarget: 'draft',
-                openBrowseFor(where) {
-                    this.browseTarget = (where === 'edit' ? 'edit' : 'draft');
-                    window.dispatchEvent(new CustomEvent('browse-open', {
-                        detail: {
-                            forEdit: this.browseTarget === 'edit'
-                        }
-                    }));
-                },
-            };
+            focusRowUnit(row, index) {
+                if (row?.units?.length > 1) {
+                    document.getElementById(`pemakaian_unit_row_${index}`)?.focus();
+                    return;
+                }
+                this.focusRowQty(index);
+            },
 
-            function newRow() {
+            focusRowQty(index) {
+                document.getElementById(`pemakaian_qty_row_${index}`)?.focus();
+            },
+
+            openDesc(targetRow, readonly = false) {
+                Alpine.store('pemakaianDesc').open(targetRow, readonly);
+            },
+
+            itemKey(it) {
+                return `${(it.fitemcode ?? '').toString().trim()}::${(it.account_code ?? '').toString().trim()}`;
+            },
+
+            getCurrentItemKeys() {
+                return this.submitItems.map(it => this.itemKey(it));
+            },
+
+            get submitItems() {
+                return this.savedItems.filter(row => this.isRowSavable(row));
+            },
+
+            createRow() {
                 return {
-                    uid: null,
-                    fitemcode: '',
-                    fitemid: '',
-                    fitemname: '',
-                    units: [],
-                    fsatuan: '',
-                    frefpr: '',
-                    fqty: 0,
-                    fdesc: '',
-                    fketdt: '',
-                    maxqty: 0,
-                    account_code: '',
-                    account_name: '',
-                    account_label: '',
-                    subaccount_code: '',
-                    subaccount_name: '',
-                    subaccount_label: '',
+                    ...newRow(),
+                    uid: cryptoRandom(),
                 };
-            }
+            },
 
-            function cryptoRandom() {
-                return (window.crypto?.getRandomValues ? [...window.crypto.getRandomValues(new Uint32Array(2))].map(n => n
-                        .toString(16)).join('') :
-                    Math.random().toString(36).slice(2)) + Date.now();
-            }
+            init() {
+                window.getCurrentItemKeys = () => this.getCurrentItemKeys();
+
+                window.addEventListener('pr-picked', this.onPrPicked.bind(this), {
+                    passive: true
+                });
+
+                window.addEventListener('product-chosen', (e) => {
+                    const {
+                        product
+                    } = e.detail || {};
+                    if (!product) return;
+
+                    const row = this.browseRow || this.savedItems[this.savedItems.length - 1];
+                    if (row) {
+                        row.fitemcode = (product.fprdcode || '').toString();
+                        this.hydrateRowFromMeta(row, this.productMeta(row.fitemcode));
+                        if (!row.fqty) row.fqty = 1;
+                        this.recalc(row);
+                        this.onRowUpdated(this.savedItems.indexOf(row));
+                    }
+                }, {
+                    passive: true
+                });
+
+                // Initialize empty rows if needed
+                this.savedItems = (Array.isArray(this.savedItems) ? this.savedItems : []).map(item => ({
+                    ...this.createRow(),
+                    ...item,
+                    uid: item?.uid || cryptoRandom(),
+                }));
+                this.savedItems.forEach(row => {
+                    this.hydrateRowFromMeta(row, this.productMeta(row.fitemcode));
+                    this.recalc(row);
+                });
+                this.ensureMinimumRows();
+                this.ensureTrailingRow();
+            },
+
+            openBrowseFor(index) {
+                this.browseRow = this.savedItems[index];
+                window.dispatchEvent(new CustomEvent('browse-open', {
+                    detail: {
+                        forEdit: true
+                    }
+                }));
+            },
+        };
+
+        function newRow() {
+            return {
+                uid: null,
+                fitemcode: '',
+                fitemid: '',
+                fitemname: '',
+                units: [],
+                fsatuan: '',
+                frefpr: '',
+                fqty: 0,
+                fdesc: '',
+                fketdt: '',
+                maxqty: 0,
+                account_code: '',
+                account_name: '',
+                account_label: '',
+                subaccount_code: '',
+                subaccount_name: '',
+                subaccount_label: '',
+            };
         }
+
+        function cryptoRandom() {
+            return (window.crypto?.getRandomValues ? [...window.crypto.getRandomValues(new Uint32Array(2))].map(n => n
+                    .toString(16)).join('') :
+                Math.random().toString(36).slice(2)) + Date.now();
+        }
+    }
 
         window.getPemakaianBarangDuplicateCode = function(form) {
             const seen = new Set();
