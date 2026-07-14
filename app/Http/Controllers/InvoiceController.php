@@ -1639,9 +1639,11 @@ class InvoiceController extends Controller
         //     return back()->withInput()->with('error', $validationMessage);
         // }
 
-        // if ($validationMessage = $this->validateAdvanceReductionAmount($srjReferenceDocs)) {
-        //     return back()->withInput()->with('error', $validationMessage);
-        // }
+        if ($hasUM && $typeSales === 0) {
+            if ($validationMessage = $this->validateAdvanceReductionAmount($srjReferenceDocs)) {
+                return back()->withInput()->with('error', $validationMessage);
+            }
+        }
 
         $creditApproval = $this->resolveInvoiceCreditApproval($request, $grandTotal);
         $fsono = trim((string) $request->input('fsono', ''));
@@ -2767,9 +2769,11 @@ class InvoiceController extends Controller
         //     return back()->withInput()->with('error', $validationMessage);
         // }
 
-        // if ($validationMessage = $this->validateAdvanceReductionAmount($srjReferenceDocs)) {
-        //     return back()->withInput()->with('error', $validationMessage);
-        // }
+        if ($hasUM && $typeSales === 0) {
+            if ($validationMessage = $this->validateAdvanceReductionAmount($srjReferenceDocs)) {
+                return back()->withInput()->with('error', $validationMessage);
+            }
+        }
 
         $creditApproval = $this->resolveInvoiceCreditApproval($request, $grandTotal, (int) $ftranmtid);
         $fsono = trim((string) $request->input('fsono', ''));

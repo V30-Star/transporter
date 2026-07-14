@@ -76,15 +76,13 @@ class FakturpembelianController extends Controller
 
     private function getSupplierAdvanceWarningMap(): array
     {
-        return DB::table('trstockmt')
+        return DB::table('trsisadp_pembelian')
             ->selectRaw('TRIM(COALESCE(fsupplier, \'\')) as fsupplier')
-            ->selectRaw('SUM(COALESCE(famountremain, 0)) as total_remain')
-            ->selectRaw('SUM(COALESCE(famountremain_rp, 0)) as total_remain_rp')
-            ->where('fstockmtcode', 'BUY')
-            ->where('ftypebuy', 2)
+            ->selectRaw('SUM(COALESCE(fsisadp, 0)) as total_remain')
+            ->selectRaw('SUM(COALESCE(fsisadp_rp, 0)) as total_remain_rp')
             ->where(function ($query) {
-                $query->where('famountremain', '>', 0)
-                    ->orWhere('famountremain_rp', '>', 0);
+                $query->where('fsisadp', '>', 0)
+                    ->orWhere('fsisadp_rp', '>', 0);
             })
             ->groupBy(DB::raw('TRIM(COALESCE(fsupplier, \'\'))'))
             ->get()
