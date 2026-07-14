@@ -419,16 +419,16 @@
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        <template x-for="(it, i) in getItemsByTab(activeTab)" :key="it.uid">
+                                        <template x-for="(it, i) in getItemsByTab(activeTab)" :key="it.uid || `item-${i}`">
                                             <tr class="border-t align-top hover:bg-gray-55">
                                                 <td class="p-2 text-gray-400" x-text="i + 1"></td>
                                                 <td class="p-2">
-                                                    <div class="px-2 py-1 text-sm text-gray-655 bg-gray-50 border rounded font-mono" x-text="it.fitemcode"></div>
+                                                    <div class="px-2 py-1 text-sm text-gray-655 bg-gray-50 border rounded font-mono" x-text="it.fitemcode || '-'"></div>
                                                 </td>
                                                 <td class="p-2">
                                                     <div class="flex w-full max-w-full">
                                                         <div class="min-w-0 flex-1 rounded-l border bg-gray-101 px-2 py-1 text-sm leading-5 text-gray-655 whitespace-normal break-words"
-                                                            x-text="it.fitemname"></div>
+                                                            x-text="it.fitemname || '-'"></div>
                                                         <button type="button" @click="openDesc(it, true)"
                                                             class="shrink-0 inline-flex items-center border border-l-0 rounded-r bg-slate-50 px-2 py-1 text-slate-700 hover:bg-slate-100 transition-colors border-slate-200"
                                                             :class="it.fdesc ? 'bg-emerald-100 text-emerald-800 border-emerald-300' : ''"
@@ -438,10 +438,10 @@
                                                     </div>
                                                 </td>
                                                 <td class="p-2">
-                                                    <div class="px-2 py-1 text-sm text-gray-650 bg-gray-50 border rounded" x-text="it.fsatuan"></div>
+                                                    <div class="px-2 py-1 text-sm text-gray-650 bg-gray-50 border rounded" x-text="it.fsatuan || '-'"></div>
                                                 </td>
                                                 <td class="p-2 text-right">
-                                                    <div class="px-2 py-1 text-sm text-gray-700 bg-gray-55 border rounded text-right font-medium" x-text="fmt(it.fqty)"></div>
+                                                    <div class="px-2 py-1 text-sm text-gray-700 bg-gray-55 border rounded text-right font-medium" x-text="it.fitemcode ? fmt(it.fqty) : '-'"></div>
                                                 </td>
                                             </tr>
                                         </template>
@@ -450,82 +450,24 @@
                             </div>
                         </div>
 
-                        <div x-show="showDescModal" x-cloak class="fixed inset-0 z-[95] flex items-center justify-center"
-                            x-transition.opacity>
-                            <div class="absolute inset-0 bg-black/50" @click="closeDesc()"></div>
-                            <div class="relative bg-white w-[92vw] max-w-lg rounded-2xl shadow-2xl overflow-hidden"
-                                x-transition.scale>
-                                <div class="px-5 py-4 border-b flex items-center">
-                                    <x-heroicon-o-document-text class="w-6 h-6 text-blue-600 mr-2" />
-                                    <h3 class="text-lg font-semibold text-gray-800">Deskripsi Item</h3>
-                                </div>
-                                <div class="px-5 py-4 space-y-4">
-                                    <div>
-                                        <div class="mb-1 flex items-center justify-between gap-3">
-                                            <div class="text-sm text-gray-700">Nama Produk</div>
-                                            <button type="button" @click="copyDescName()"
-                                                class="h-8 px-3 rounded-lg bg-blue-50 text-blue-700 text-sm font-medium hover:bg-blue-100">
-                                                Copy
-                                            </button>
-                                        </div>
-                                        <div class="rounded-lg border bg-gray-50 px-3 py-2 text-sm text-gray-800" x-text="descItemName || '-'"></div>
-                                    </div>
-                                    <label class="block text-sm text-gray-700">Deskripsi</label>
-                                    <textarea x-model="descValue" rows="5"
-                                        class="w-full border rounded px-3 py-2 bg-gray-100 cursor-not-allowed text-gray-600"
-                                        readonly></textarea>
-                                </div>
-                                <div class="px-5 py-3 border-t flex items-center justify-end gap-2">
-                                    <button type="button" @click="closeDesc()"
-                                        class="h-9 px-4 rounded-lg bg-gray-100 text-gray-700 text-sm font-medium hover:bg-gray-200">
-                                        Tutup
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-
                         <script>
-                            // PASTE INI DI FILE JS ANDA, GANTI FUNCTION itemsTable() YANG LAMA
-                    function itemsTable() {
-                        return {
-                                    // === TAB STATE ===
+                            function itemsTable() {
+                                return {
                                     activeTab: 'bahan_baku',
-                                    editingTab: null,
-
-                                    // === ORIGINAL PROPERTIES ===
                                     showNoItems: false,
                                     savedItems: @json(count($initialEditAssemblingItems) ? $initialEditAssemblingItems : $savedItems),
-                                    extraEditableRows: 4,
-                                    isNormalizingSubmit: false,
-                                    draft: newRow(),
-                                    editingIndex: null,
-                                    editRow: newRow(),
+                                    minimumVisibleRows: 5,
+                                    browseRow: null,
                                     totalHarga: 0,
-
-                                    // === NEW METHOD: FILTER BY TAB ===
-                                    getItemsByTab(tab) {
-                                        return this.savedItems.filter(item => item.fitemtype === tab);
-                                    },
-
-                                    // === ORIGINAL METHODS (tidak berubah) ===
-                                    updateAccount(row, faccid, accName) {
-                                        row.faccid = faccid;
-                                        row.faccname = accName;
-                                    },
-
-                                    updateSubAccount(row, fsubaccountid, SubAccName) {
-                                        row.fsubaccountid = fsubaccountid;
-                                        row.fsubaccountname = SubAccName;
-                                    },
 
                                     fmt(n) {
                                         if (n === null || n === undefined || n === '') return '-';
                                         const v = Number(n);
                                         if (!isFinite(v)) return '-';
                                         return v.toLocaleString('id-ID', {
-                    minimumFractionDigits: 2,
-                    maximumFractionDigits: 2
-                });
+                                            minimumFractionDigits: 2,
+                                            maximumFractionDigits: 2
+                                        });
                                     },
 
                                     rupiah(n) {
@@ -552,48 +494,10 @@
                                     },
 
                                     recalcTotals() {
-                                        this.totalHarga = (this.savedItems || []).reduce((sum, it) => {
+                                        this.totalHarga = (this.submitItems || []).reduce((sum, it) => {
                                             const v = Number(it?.ftotal ?? 0);
                                             return sum + (Number.isFinite(v) ? v : 0);
                                         }, 0);
-                                    },
-
-                                    ensureExtraEditableRows() {
-                                        ['bahan_baku', 'barang_jadi'].forEach((tab) => {
-                                            while ((this.savedItems || []).filter(it => it?.__placeholder && it.fitemtype === tab).length < this.extraEditableRows) {
-                                                this.savedItems.push({
-                                                    ...newRow(),
-                                                    uid: cryptoRandom(),
-                                                    __placeholder: true,
-                                                    fitemtype: tab,
-                                                });
-                                            }
-                                        });
-                                    },
-
-                                    normalizeSavedItemsForSubmit() {
-                                        const cleaned = (this.savedItems || [])
-                                            .filter(it => !it?.__placeholder && this.isComplete(it))
-                                            .map((it) => {
-                                                const row = {
-                                                    ...it
-                                                };
-                                                delete row.__placeholder;
-                                                return row;
-                                            });
-
-                                        this.savedItems = cleaned;
-                                        return cleaned;
-                                    },
-
-                                    // === MODIFIED: removeSaved ===
-                                    removeSaved(i) {
-                                        const items = this.getItemsByTab(this.activeTab);
-                                        const actualIndex = this.savedItems.indexOf(items[i]);
-                                        this.savedItems.splice(actualIndex, 1);
-                                        this.ensureExtraEditableRows();
-                                        this.syncDescList?.();
-                                        this.recalcTotals();
                                     },
 
                                     productMeta(code) {
@@ -609,6 +513,7 @@
                                             row.maxqty = 0;
                                             return;
                                         }
+                                        row.fitemid = meta.id || '';
                                         row.fitemname = meta.name || '';
                                         const units = [...new Set((meta.units || []).map(u => (u ?? '').toString().trim()).filter(Boolean))];
                                         row.units = units;
@@ -617,292 +522,79 @@
                                         row.maxqty = stock;
                                     },
 
-                                    onCodeTypedRow(row) {
-                                        this.hydrateRowFromMeta(row, this.productMeta(row.fitemcode));
+                                    isRowSavable(row) {
+                                        return !!(row && row.fitemcode && row.fitemname && row.fsatuan && (@json((string) env('STOCKBOLEHMINUS', '0') === '1') ? Number(row.fqty) !== 0 : Number(row.fqty) > 0));
                                     },
 
-                                    isComplete(row) {
-                                        return row.fitemcode && row.fitemname && row.fsatuan && (@json((string) env('STOCKBOLEHMINUS', '0') === '1') ? Number(row.fqty) !== 0 : Number(row.fqty) > 0);
-                                    },
-
-                                    onPrPicked(e) {
-                                        const {
-                                            header,
-                                            items
-                                        } = e.detail || {};
-                                        if (!items || !Array.isArray(items)) return;
-                                        this.resetDraft();
-                                        this.addManyFromPR(header, items);
-                                    },
-
-                                    resetDraft() {
-                                        this.draft = newRow();
-                                        this.$nextTick(() => this.$refs.draftCode?.focus());
-                                    },
-
-                                    addManyFromPR(header, items) {
-                                        const existing = new Set(this.getCurrentItemKeys());
-                                        let added = 0,
-                                            duplicates = [];
-
-                                        items.forEach(src => {
-                                            const row = {
-                                                uid: cryptoRandom(),
-                                                fitemcode: src.fitemcode ?? '',
-                                                fitemname: src.fitemname ?? '',
-                                                fsatuan: src.fsatuan ?? '',
-                                                frefpr: src.frefpr ?? (header?.fpono ?? ''),
-                                                fqty: Number(src.fqty ?? 0),
-                                                fdesc: src.fdesc ?? '',
-                                                fketdt: src.fketdt ?? '',
-                                                fitemtype: this.activeTab, // SET TYPE
-                                                units: Array.isArray(src.units) && src.units.length ? src.units : [src.fsatuan]
-                                                    .filter(Boolean),
-                                            };
-
-                                            const key = this.itemKey({
-                                                fitemcode: row.fitemcode,
-                                                frefdtno: row.frefdtno
-                                            });
-                                            if (existing.has(key)) {
-                                                duplicates.push({
-                                                    key,
-                                                    code: row.fitemcode,
-                                                    ref: row.frefdtno
-                                                });
-                                                return;
+                                    ensureMinimumRows(tab = null) {
+                                        const tabs = tab ? [tab] : ['bahan_baku', 'barang_jadi'];
+                                        tabs.forEach(t => {
+                                            while (this.getItemsByTab(t).length < this.minimumVisibleRows) {
+                                                this.savedItems.push(this.createRow(t));
                                             }
-
-                                            this.savedItems.push(row);
-                                            existing.add(key);
-                                            added++;
                                         });
-
-                                        this.recalcTotals();
                                     },
 
-                                    // === MODIFIED: addIfComplete ===
-                                    addIfComplete() {
-                                        const r = this.draft;
-                                        if (!this.isComplete(r)) {
-                                            if (!r.fitemcode) return this.$refs.draftCode?.focus();
-                                            if (!r.fitemname) return this.$refs.draftCode?.focus();
-                                            if (!r.fsatuan) return (r.units.length > 1 ? this.$refs.draftUnit?.focus() : this.$refs.draftCode
-                                                ?.focus());
-                                            if (!(@json((string) env('STOCKBOLEHMINUS', '0') === '1') ? Number(r.fqty) !== 0 : Number(r.fqty) > 0)) return this.$refs.draftQty?.focus();
-                                            return;
-                                        }
-
-                                        this.recalc(r);
-
-                                        const dupe = this.savedItems.find(it =>
-                                            it.fitemcode === r.fitemcode &&
-                                            it.fsatuan === r.fsatuan &&
-                                            (it.fdesc || '') === (r.fdesc || '') &&
-                                            (it.frefpr || '') === (r.frefpr || '') &&
-                                            it.fitemtype === this.activeTab // CHECK TYPE
-                                        );
-
-                                        if (dupe) {
-                                            window.showAppWarningAlert('WARNING', 'ITEM SAMA SUDAH ADA.');
-                                            return;
-                                        }
-
-                                        this.savedItems.push({
-                                            ...r,
-                                            uid: cryptoRandom(),
-                                            fitemtype: this.activeTab // SET TYPE
-                                        });
-
-                                        this.showNoItems = false;
-                                        this.resetDraft();
-                                        this.ensureExtraEditableRows();
-                                        this.$nextTick(() => this.$refs.draftCode?.focus());
-                                        this.syncDescList?.();
-                                        this.recalcTotals();
-                                    },
-
-                                    // === MODIFIED: edit ===
-                                    edit(i) {
-                                        const items = this.getItemsByTab(this.activeTab);
-                                        const actualIndex = this.savedItems.indexOf(items[i]);
-
-                                        this.editingIndex = i;
-                                        this.editingTab = this.activeTab;
-                                        this.editRow = {
-                                            ...this.savedItems[actualIndex]
-                                        };
-                                        this.hydrateRowFromMeta(this.editRow, this.productMeta(this.editRow.fitemcode));
-                                        this.$nextTick(() => this.$refs.editQty?.focus());
-                                    },
-
-                                    // === MODIFIED: applyEdit ===
-                                    applyEdit() {
-                                        const r = this.editRow;
-                                        if (!this.isComplete(r)) {
-                                            window.showAppWarningAlert('WARNING', 'LENGKAPI DATA ITEM.');
-                                            return;
-                                        }
-
-                                        this.recalc(r);
-
-                                        const items = this.getItemsByTab(this.editingTab);
-                                        const actualIndex = this.savedItems.indexOf(items[this.editingIndex]);
-
-                                        this.savedItems.splice(actualIndex, 1, {
-                                            ...r,
-                                            __placeholder: false
-                                        });
-                                        this.cancelEdit();
-                                        this.ensureExtraEditableRows();
-                                        this.syncDescList?.();
-                                        this.recalcTotals();
-                                    },
-
-                                    // === MODIFIED: cancelEdit ===
-                                    cancelEdit() {
-                                        this.editingIndex = null;
-                                        this.editingTab = null;
-                                        this.editRow = newRow();
-                                    },
-
-                                    onSubmit($event) {
-                                        if (this.isNormalizingSubmit) {
-                                            return;
-                                        }
-
-                                        const cleaned = this.normalizeSavedItemsForSubmit();
-                                        const duplicateCode = window.getAssemblingDuplicateCode?.($event.target);
-                                        if (duplicateCode) {
-                                            $event.preventDefault();
-                                            Swal.fire({
-                                                icon: 'warning',
-                                                title: 'Produk Duplikat',
-                                                text: `Kode produk ${duplicateCode} tidak boleh sama dalam satu Assembling.`,
-                                                confirmButtonText: 'OK',
-                                                customClass: {
-                                                    confirmButton: 'bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700'
-                                                }
-                                            });
-                                            this.ensureExtraEditableRows();
-                                            return;
-                                        }
-                                        if (cleaned.length === 0) {
-                                            $event.preventDefault();
-                                            this.showNoItems = true;
-                                            this.ensureExtraEditableRows();
-                                            return;
-                                        }
-
-                                        $event.preventDefault();
-                                        this.isNormalizingSubmit = true;
-                                        this.$nextTick(() => window.submitFormWithStockMinusConfirmation?.($event));
-                                    },
-
-                                    handleEnterOnCode(where) {
-                                        if (where === 'edit') {
-                                            if (this.editRow.units.length > 1) this.$refs.editUnit?.focus();
-                                            else this.$refs.editQty?.focus();
-                                        } else {
-                                            if (this.draft.units.length > 1) this.$refs.draftUnit?.focus();
-                                            else this.$refs.draftQty?.focus();
-                                        }
-                                    },
-
-                                    handleEnterOnPrice(where) {
-                                        if (where === 'edit') {
-                                            this.applyEdit();
-                                        } else {
-                                            this.addIfComplete();
-                                        }
+                                    getItemsByTab(tab) {
+                                        return this.savedItems.filter(item => item.fitemtype === tab);
                                     },
 
                                     showDescModal: false,
-                                    descTarget: 'draft',
-                                    descSavedIndex: null,
                                     descValue: '',
                                     descItemName: '',
                                     _descTarget: null,
-                                    openDesc(targetRow) {
+
+                                    openDesc(targetRow, readonly = false) {
                                         this._descTarget = targetRow;
                                         this.descItemName = targetRow?.fitemname || '';
                                         this.descValue = targetRow?.fdesc || '';
                                         this.showDescModal = true;
                                     },
+
                                     copyDescName() {
                                         this.descValue = this.descItemName || '';
                                     },
+
                                     closeDesc() {
                                         this.showDescModal = false;
                                         this._descTarget = null;
                                         this.descItemName = '';
                                         this.descValue = '';
                                     },
-                                    applyDesc() {
-                                        this.closeDesc();
+
+                                    get submitItems() {
+                                        return this.savedItems.filter(row => this.isRowSavable(row));
                                     },
 
-                                    itemKey(it) {
-                                        return `${(it.fitemcode ?? '').toString().trim()}::${(it.frefdtno ?? '').toString().trim()}`;
-                                    },
-
-                                    getCurrentItemKeys() {
-                                        return this.savedItems.filter(it => !it?.__placeholder && this.isComplete(it)).map(it => this.itemKey(it));
+                                    createRow(tab) {
+                                        return {
+                                            ...newRow(),
+                                            uid: cryptoRandom(),
+                                            fitemtype: tab,
+                                        };
                                     },
 
                                     init() {
-                                        this.ensureExtraEditableRows();
-                                        window.getCurrentItemKeys = () => this.getCurrentItemKeys();
-
-                                        window.addEventListener('pr-picked', this.onPrPicked.bind(this), {
-                                            passive: true
-                                        });
-
-                                        window.addEventListener('product-chosen', (e) => {
-                                            const {
-                                                product
-                                            } = e.detail || {};
-                                            if (!product) return;
-
-                                            const apply = (row) => {
-                                                row.fitemcode = (product.fprdcode || '').toString();
-                                                this.hydrateRowFromMeta(row, this.productMeta(row.fitemcode));
-                                                 this.rows.splice(this.browseTarget, 1, {
-                        ...this.rows[this.browseTarget]
-                    });
-
-                                                if (!row.fqty) row.fqty = 1;
-                                                this.recalc(row);
-                                            };
-
-                                            if (this.browseTarget === 'edit') {
-                                                apply(this.editRow);
-                                                this.$nextTick(() => this.$refs.editQty?.focus());
-                                            } else {
-                                                apply(this.draft);
-                                                this.$nextTick(() => this.$refs.draftQty?.focus());
-                                            }
-                                        }, {
-                                            passive: true
-                                        });
-                                    },
-
-                                    browseTarget: 'draft',
-                                    openBrowseFor(where) {
-                                        this.browseTarget = (where === 'edit' ? 'edit' : 'draft');
-                                        window.dispatchEvent(new CustomEvent('browse-open', {
-                                            detail: {
-                                                forEdit: this.browseTarget === 'edit'
-                                            }
+                                        this.savedItems = (Array.isArray(this.savedItems) ? this.savedItems : []).map(item => ({
+                                            ...this.createRow(item.fitemtype || 'bahan_baku'),
+                                            ...item,
+                                            uid: item?.uid || cryptoRandom(),
                                         }));
+                                        this.savedItems.forEach(row => {
+                                            if (row.fitemcode) {
+                                                this.hydrateRowFromMeta(row, this.productMeta(row.fitemcode));
+                                                this.recalc(row);
+                                            }
+                                        });
+                                        this.ensureMinimumRows();
                                     },
                                 };
 
-                                // === HELPER FUNCTIONS ===
                                 function newRow() {
                                     return {
                                         uid: null,
                                         fitemcode: '',
+                                        fitemid: '',
                                         fitemname: '',
                                         units: [],
                                         fsatuan: '',
@@ -1280,160 +972,7 @@
                                 <th class="p-2 text-center w-36">Aksi</th>
                             </tr>
                         </thead>
-                        <tbody>
-                            <template x-for="(it, i) in getItemsByTab(activeTab)" :key="it.uid">
-                                <tr class="border-t align-top hover:bg-gray-50">
-                                    <td class="p-2 text-gray-400" x-text="i + 1"></td>
-                                    <td class="p-2">
-                                        <div class="px-2 py-1 text-sm text-gray-655 bg-gray-50 border rounded font-mono" x-text="it.fitemcode"></div>
-                                    </td>
-                                    <td class="p-2">
-                                        <div class="flex w-full max-w-full">
-                                            <div class="min-w-0 flex-1 rounded-l border bg-gray-101 px-2 py-1 text-sm leading-5 text-gray-650 whitespace-normal break-words"
-                                                x-text="it.fitemname"></div>
-                                            <button type="button" @click="openDesc(it)"
-                                                class="shrink-0 inline-flex items-center border border-l-0 rounded-r bg-slate-50 px-2 py-1 text-slate-700 hover:bg-slate-100 transition-colors border-slate-200"
-                                                :class="it.fdesc ? 'bg-emerald-100 text-emerald-800 border-emerald-300' : ''"
-                                                title="Deskripsi item">
-                                                <x-heroicon-o-document-text class="h-4 w-4" />
-                                            </button>
-                                        </div>
-                                    </td>
-                                    <td class="p-2">
-                                        <div class="px-2 py-1 text-sm text-gray-650 bg-gray-50 border rounded" x-text="it.fsatuan"></div>
-                                    </td>
-                                    <td class="p-2 text-right">
-                                        <div class="px-2 py-1 text-sm text-gray-700 bg-gray-50 border rounded text-right font-medium" x-text="fmt(it.fqty)"></div>
-                                    </td>
-                                    <td class="p-2 text-center text-xs">
-                                        <div class="flex items-center justify-center gap-1.5">
-                                            <button type="button" @click="edit(i)"
-                                                class="inline-flex h-8 px-2.5 items-center justify-center rounded bg-amber-50 text-amber-700 hover:bg-amber-100 transition-colors text-xs font-semibold"
-                                                title="Edit baris">Edit</button>
-                                            <button type="button" @click="removeSaved(i)"
-                                                class="inline-flex h-8 w-8 items-center justify-center rounded bg-red-100 text-red-600 hover:bg-red-200 transition-colors"
-                                                title="Hapus baris">-</button>
-                                        </div>
-                                    </td>
-                                </tr>
-                            </template>
 
-                            <!-- ROW EDIT UTAMA -->
-                            <tr x-show="editingIndex !== null && editingTab === activeTab" class="border-t align-top bg-amber-50"
-                                x-cloak>
-                                <td class="p-2 text-gray-400" x-text="(editingIndex ?? 0) + 1"></td>
-                                <td class="p-2">
-                                    <div class="flex">
-                                        <input type="text" class="flex-1 border rounded-l px-2 py-1 font-mono text-sm focus:ring-1 focus:ring-blue-500 min-w-0 bg-white"
-                                            x-ref="editCode" x-model.trim="editRow.fitemcode"
-                                            @input="onCodeTypedRow(editRow)"
-                                            @keydown.enter.prevent="handleEnterOnCode('edit')">
-                                        <button type="button" @click="openBrowseFor('edit')"
-                                            class="shrink-0 border border-l-0 px-2 py-1 bg-white hover:bg-gray-55 text-gray-500 transition-colors"
-                                            title="Cari Produk">
-                                            <x-heroicon-o-magnifying-glass class="w-4 h-4 text-gray-500" />
-                                        </button>
-                                    </div>
-                                </td>
-                                <td class="p-2">
-                                    <div class="flex w-full max-w-full">
-                                        <div class="min-w-0 flex-1 rounded-l border bg-gray-101 px-2 py-1 text-sm leading-5 text-gray-655 whitespace-normal break-words"
-                                            x-text="editRow.fitemname"></div>
-                                        <button type="button" @click="openDesc(editRow)"
-                                            class="shrink-0 inline-flex items-center border border-l-0 rounded-r bg-slate-50 px-2 py-1 text-slate-700 hover:bg-slate-100 transition-colors border-slate-200"
-                                            :class="editRow.fdesc ? 'bg-emerald-100 text-emerald-800 border-emerald-300' : ''"
-                                            title="Deskripsi item">
-                                            <x-heroicon-o-document-text class="h-4 w-4" />
-                                        </button>
-                                    </div>
-                                </td>
-                                <td class="p-2">
-                                    <template x-if="editRow.units.length > 1">
-                                        <select class="w-full border rounded px-2 py-1 text-sm focus:ring-1 focus:ring-blue-500" x-ref="editUnit"
-                                            x-model="editRow.fsatuan" @keydown.enter.prevent="$refs.editQty?.focus()">
-                                            <template x-for="u in editRow.units" :key="u">
-                                                <option :value="u" x-text="u"></option>
-                                            </template>
-                                        </select>
-                                    </template>
-                                    <template x-if="editRow.units.length <= 1">
-                                        <div class="px-2 py-1 text-sm text-gray-650 bg-gray-50 border rounded"
-                                            x-text="editRow.fsatuan || '-'"></div>
-                                    </template>
-                                </td>
-                                <td class="p-2 text-right">
-                                    <input type="number" class="w-full border rounded px-2 py-1 text-right text-sm focus:ring-1 focus:ring-blue-500 bg-white" min="0"
-                                        step="0.01" x-ref="editQty" x-model.number="editRow.fqty"
-                                        @change="recalc(editRow)" @blur="recalc(editRow)"
-                                        @keydown.enter.prevent="applyEdit()">
-                                </td>
-                                <td class="p-2 text-center text-xs">
-                                    <div class="flex items-center justify-center gap-1.5">
-                                        <button type="button" @click="applyEdit()"
-                                            class="inline-flex h-8 px-2.5 items-center justify-center rounded bg-emerald-600 text-white hover:bg-emerald-700 transition-colors text-xs font-semibold"
-                                            title="Simpan">Simpan</button>
-                                        <button type="button" @click="cancelEdit()"
-                                            class="inline-flex h-8 px-2.5 items-center justify-center rounded bg-gray-100 text-gray-700 hover:bg-gray-200 transition-colors text-xs font-semibold"
-                                            title="Batal">Batal</button>
-                                    </div>
-                                </td>
-                            </tr>
-
-                            <!-- ROW DRAFT UTAMA -->
-                            <tr class="border-t align-top bg-green-50/50">
-                                <td class="p-2 text-gray-400" x-text="getItemsByTab(activeTab).length + 1"></td>
-                                <td class="p-2">
-                                    <div class="flex">
-                                        <input type="text" class="flex-1 border rounded-l px-2 py-1 font-mono text-sm focus:ring-1 focus:ring-blue-500 min-w-0 bg-white"
-                                            x-ref="draftCode" x-model.trim="draft.fitemcode"
-                                            @input="onCodeTypedRow(draft)"
-                                            @keydown.enter.prevent="handleEnterOnCode('draft')">
-                                        <button type="button" @click="openBrowseFor('draft')"
-                                            class="shrink-0 border border-l-0 px-2 py-1 bg-white hover:bg-gray-55 text-gray-500 transition-colors"
-                                            title="Cari Produk">
-                                            <x-heroicon-o-magnifying-glass class="w-4 h-4 text-gray-500" />
-                                        </button>
-                                    </div>
-                                </td>
-                                <td class="p-2">
-                                    <div class="flex w-full max-w-full">
-                                        <div class="min-w-0 flex-1 rounded-l border bg-gray-101 px-2 py-1 text-sm leading-5 text-gray-655 whitespace-normal break-words"
-                                            x-text="draft.fitemname"></div>
-                                        <button type="button" @click="openDesc(draft)"
-                                            class="shrink-0 inline-flex items-center border border-l-0 rounded-r bg-slate-50 px-2 py-1 text-slate-700 hover:bg-slate-100 transition-colors border-slate-200"
-                                            :class="draft.fdesc ? 'bg-emerald-100 text-emerald-800 border-emerald-300' : ''"
-                                            title="Deskripsi item">
-                                            <x-heroicon-o-document-text class="h-4 w-4" />
-                                        </button>
-                                    </div>
-                                </td>
-                                <td class="p-2">
-                                    <template x-if="draft.units.length > 1">
-                                        <select class="w-full border rounded px-2 py-1 text-sm focus:ring-1 focus:ring-blue-500" x-ref="draftUnit"
-                                            x-model="draft.fsatuan" @keydown.enter.prevent="$refs.draftQty?.focus()">
-                                            <template x-for="u in draft.units" :key="u">
-                                                <option :value="u" x-text="u"></option>
-                                            </template>
-                                        </select>
-                                    </template>
-                                    <template x-if="draft.units.length <= 1">
-                                        <div class="px-2 py-1 text-sm text-gray-650 bg-gray-50 border rounded"
-                                            x-text="draft.fsatuan || '-'"></div>
-                                    </template>
-                                </td>
-                                <td class="p-2 text-right">
-                                    <input type="number" class="w-full border rounded px-2 py-1 text-right text-sm focus:ring-1 focus:ring-blue-500 bg-white" min="0"
-                                        step="0.01" x-ref="draftQty" x-model.number="draft.fqty"
-                                        @change="recalc(draft)" @blur="recalc(draft)"
-                                        @keydown.enter.prevent="addIfComplete()">
-                                </td>
-                                <td class="p-2 text-center text-xs">
-                                    <button type="button" @click="addIfComplete()"
-                                        class="inline-flex h-8 px-2.5 items-center justify-center rounded bg-emerald-600 text-white hover:bg-emerald-700 transition-colors text-xs font-semibold"
-                                        title="Tambah">Tambah</button>
-                                </td>
-                            </tr>
-                        </tbody>
                     </table>
                             </div>
                         </div>
