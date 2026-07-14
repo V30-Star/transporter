@@ -329,57 +329,64 @@
                                     class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm bg-gray-100 text-gray-500 cursor-not-allowed border-gray-200">{{ old('fket', $returpembelian->fket) }}</textarea>
                             </div>
 
-                            <div class="overflow-auto border border-gray-200 rounded-lg">
-                                <table class="fpb-detail-table min-w-full text-sm">
-                                    <thead class="bg-gray-50 border-b border-gray-200">
+                            <div class="overflow-auto border rounded">
+                                <table class="fpb-detail-table min-w-full text-sm balanced-detail-table"
+                                    data-skip-auto-detail-style="true">
+                                    <colgroup>
+                                        <col style="width:2%;">
+                                        <col style="width:12%;">
+                                        <col style="width:25%;">
+                                        <col style="width:12%;">
+                                        <col style="width:8%;">
+                                        <col style="width:8%;">
+                                        <col style="width:15%;">
+                                        <col style="width:18%;">
+                                    </colgroup>
+                                    <thead class="bg-gray-100">
                                         <tr>
-                                            <th class="p-2 text-left w-10 text-xs font-semibold text-gray-500 uppercase">#</th>
-                                            <th class="p-2 text-left w-36 text-xs font-semibold text-gray-500 uppercase">Kode Produk</th>
-                                            <th class="p-2 text-left text-xs font-semibold text-gray-500 uppercase" style="width: 20rem; min-width: 20rem;">Nama Produk</th>
-                                            <th class="p-2 text-left w-28 text-xs font-semibold text-gray-500 uppercase">No Referensi</th>
-                                            <th class="p-2 text-left w-20 text-xs font-semibold text-gray-500 uppercase">Satuan</th>
-                                            <th class="p-2 text-right w-20 text-xs font-semibold text-gray-500 uppercase">Qty</th>
-                                            <th class="p-2 text-right w-24 text-xs font-semibold text-gray-500 uppercase">@ Harga</th>
-                                            <th class="p-2 text-right w-28 text-xs font-semibold text-gray-500 uppercase">Total Harga</th>
+                                            <th class="p-2 text-left w-10">#</th>
+                                            <th class="p-2 text-left w-36">Kode Produk</th>
+                                            <th class="p-2 text-left w-96">Nama Produk</th>
+                                            <th class="p-2 text-left w-28">No Referensi</th>
+                                            <th class="p-2 text-left w-20">Satuan</th>
+                                            <th class="p-2 text-right w-20 whitespace-nowrap">Qty</th>
+                                            <th class="p-2 text-right w-24 whitespace-nowrap">@ Harga</th>
+                                            <th class="p-2 text-right w-28 whitespace-nowrap">Total Harga</th>
                                         </tr>
                                     </thead>
                                     <template x-for="(it, i) in savedItems" :key="it.uid">
                                         <tbody>
-                                            <tr class="border-t border-gray-150 align-top hover:bg-gray-50">
+                                            <tr class="border-t align-top hover:bg-gray-50">
                                                 <td class="p-2 text-gray-400" x-text="i + 1"></td>
-
-                                                {{-- Kode Produk --}}
-                                                <td class="p-2 font-mono text-gray-700" x-text="it.fitemcode"></td>
-
-                                                {{-- Nama Produk --}}
-                                                <td class="p-2" style="width: 20rem; min-width: 20rem;">
-                                                    <div class="desc-inline-field flex w-full min-w-0 flex-nowrap items-stretch">
-                                                        <div class="desc-inline-field__text min-w-0 flex-1 rounded-l-lg border border-gray-300 bg-gray-55 px-2 py-1 text-sm leading-5 text-gray-600 whitespace-normal break-words"
-                                                            style="flex:1 1 auto !important; min-width:0 !important;"
+                                                <td class="p-2">
+                                                    <div class="px-2 py-1 text-sm text-gray-600 bg-gray-50 border rounded font-mono" x-text="it.fitemcode"></div>
+                                                </td>
+                                                <td class="p-2">
+                                                    <div class="flex w-full max-w-full">
+                                                        <div class="min-w-0 flex-1 rounded-l border bg-gray-100 px-2 py-1 text-sm leading-5 text-gray-600 whitespace-normal break-words"
                                                             x-text="it.fitemname"></div>
                                                         <button type="button" @click="openDesc('saved', i)"
-                                                            class="desc-inline-field__button inline-flex w-10 shrink-0 items-center justify-center border border-l-0 border-gray-300 rounded-r-lg px-2 py-1 transition-colors border-gray-300 bg-white text-gray-500 hover:bg-gray-50"
-                                                            style="display:inline-flex !important; flex:0 0 2rem !important; width:2rem !important; justify-content:center !important; align-items:center !important;"
+                                                            class="shrink-0 inline-flex items-center border border-l-0 rounded-r bg-slate-50 px-2 py-1 text-slate-700 hover:bg-slate-100 transition-colors border-slate-200"
                                                             title="Deskripsi">
                                                             <x-heroicon-o-document-text class="w-4 h-4" />
                                                         </button>
                                                     </div>
                                                 </td>
-
-                                                {{-- No Referensi --}}
-                                                <td class="p-2 text-gray-650" x-text="it.frefdtno"></td>
-
-                                                {{-- Satuan --}}
-                                                <td class="p-2 text-gray-650" x-text="it.fsatuan"></td>
-
-                                                {{-- Qty --}}
-                                                <td class="p-2 text-right text-gray-700" x-text="fmt(it.fqty)"></td>
-
-                                                {{-- @ Harga --}}
-                                                <td class="p-2 text-right text-gray-700" x-text="fmt(it.fprice)"></td>
-
-                                                {{-- Total Harga --}}
-                                                <td class="p-2 text-right text-gray-700" x-text="fmt(it.ftotprice)"></td>
+                                                <td class="p-2">
+                                                    <div class="px-2 py-1 text-sm text-gray-600 bg-gray-50 border rounded" x-text="it.frefdtno || '-'"></div>
+                                                </td>
+                                                <td class="p-2">
+                                                    <div class="px-2 py-1 text-sm text-gray-600 bg-gray-50 border rounded" x-text="it.fsatuan || '-'"></div>
+                                                </td>
+                                                <td class="p-2 text-right">
+                                                    <div class="px-2 py-1 text-sm text-gray-700 bg-gray-50 border rounded text-right font-medium" x-text="fmt(it.fqty)"></div>
+                                                </td>
+                                                <td class="p-2 text-right">
+                                                    <div class="px-2 py-1 text-sm text-gray-700 bg-gray-50 border rounded text-right font-medium" x-text="fmt(it.fprice)"></div>
+                                                </td>
+                                                <td class="p-2 text-right">
+                                                    <div class="px-2 py-1 text-sm text-gray-700 bg-gray-50 border rounded text-right font-medium" x-text="fmt(it.ftotprice)"></div>
+                                                </td>
                                             </tr>
                                         </tbody>
                                     </template>
@@ -647,52 +654,74 @@
                                     @enderror
                                 </div>
 
-                                <div class="overflow-auto border border-gray-200 rounded-lg">
-                                    <table class="fpb-detail-table min-w-full text-sm">
-                                        <thead class="bg-gray-55 border-b border-gray-200">
+                                <div class="overflow-auto border rounded">
+                                    <table class="fpb-detail-table min-w-full text-sm balanced-detail-table"
+                                        data-skip-auto-detail-style="true">
+                                        <colgroup>
+                                            <col style="width:2%;">
+                                            <col style="width:12%;">
+                                            <col style="width:25%;">
+                                            <col style="width:12%;">
+                                            <col style="width:8%;">
+                                            <col style="width:8%;">
+                                            <col style="width:12%;">
+                                            <col style="width:15%;">
+                                            <col style="width:6%;">
+                                        </colgroup>
+                                        <thead class="bg-gray-100">
                                             <tr>
-                                                <th class="p-2 text-left w-10 text-xs font-semibold text-gray-500 uppercase">#</th>
-                                                <th class="p-2 text-left w-36 text-xs font-semibold text-gray-500 uppercase">Kode Produk</th>
-                                                <th class="p-2 text-left text-xs font-semibold text-gray-500 uppercase" style="width: 20rem; min-width: 20rem;">Nama Produk</th>
-                                                <th class="p-2 text-left w-28 text-xs font-semibold text-gray-500 uppercase">No Referensi</th>
-                                                <th class="p-2 text-left w-20 text-xs font-semibold text-gray-500 uppercase">Satuan</th>
-                                                <th class="p-2 text-right w-20 text-xs font-semibold text-gray-500 uppercase">Qty</th>
-                                                <th class="p-2 text-right w-24 text-xs font-semibold text-gray-500 uppercase">@ Harga</th>
-                                                <th class="p-2 text-right w-28 text-xs font-semibold text-gray-500 uppercase">Total Harga</th>
-                                                <th class="p-2 text-center w-24 text-xs font-semibold text-gray-500 uppercase">Aksi</th>
+                                                <th class="p-2 text-left w-10">#</th>
+                                                <th class="p-2 text-left w-36">Kode Produk</th>
+                                                <th class="p-2 text-left w-96">Nama Produk</th>
+                                                <th class="p-2 text-left w-28">No Referensi</th>
+                                                <th class="p-2 text-left w-20">Satuan</th>
+                                                <th class="p-2 text-right w-20 whitespace-nowrap">Qty</th>
+                                                <th class="p-2 text-right w-24 whitespace-nowrap">@ Harga</th>
+                                                <th class="p-2 text-right w-28 whitespace-nowrap">Total Harga</th>
+                                                <th class="p-2 text-center w-24">Aksi</th>
                                             </tr>
                                         </thead>
                                         <tbody>
                                             {{-- Loop savedItems --}}
                                             <template x-for="(it, i) in savedItems" :key="it.uid">
-                                                <tr class="border-t border-gray-150 align-top hover:bg-gray-50">
+                                                <tr class="border-t align-top hover:bg-gray-50">
                                                     <td class="p-2 text-gray-400" x-text="i + 1"></td>
-                                                    <td class="p-2 font-mono text-gray-700" x-text="it.fitemcode"></td>
-                                                    <td class="p-2" style="width: 20rem; min-width: 20rem;">
-                                                        <div class="desc-inline-field flex w-full min-w-0 flex-nowrap items-stretch">
-                                                            <div class="desc-inline-field__text min-w-0 flex-1 rounded-l-lg border border-gray-300 bg-gray-50 px-2 py-1 text-sm leading-5 text-gray-600 whitespace-normal break-words"
-                                                                style="flex:1 1 auto !important; min-width:0 !important;"
+                                                    <td class="p-2">
+                                                        <div class="px-2 py-1 text-sm text-gray-600 bg-gray-55 border rounded font-mono" x-text="it.fitemcode"></div>
+                                                    </td>
+                                                    <td class="p-2">
+                                                        <div class="flex w-full max-w-full">
+                                                            <div class="min-w-0 flex-1 rounded-l border bg-gray-105 px-2 py-1 text-sm leading-5 text-gray-600 whitespace-normal break-words"
                                                                 x-text="it.fitemname"></div>
                                                             <button type="button" @click="openDesc('saved', i)"
-                                                                class="desc-inline-field__button inline-flex w-10 shrink-0 items-center justify-center border border-l-0 border-gray-300 rounded-r-lg px-2 py-1 transition-colors border-gray-300 bg-white text-gray-500 hover:bg-gray-50"
-                                                                style="display:inline-flex !important; flex:0 0 2rem !important; width:2rem !important; justify-content:center !important; align-items:center !important;"
-                                                                :class="it.fdesc ? 'border-emerald-300 bg-emerald-50 text-emerald-600 hover:bg-emerald-100' : 'border-gray-300 bg-white text-gray-500 hover:bg-gray-50'"
+                                                                class="shrink-0 inline-flex items-center border border-l-0 rounded-r bg-slate-50 px-2 py-1 text-slate-700 hover:bg-slate-100 transition-colors border-slate-200"
+                                                                :class="it.fdesc ? 'bg-emerald-100 text-emerald-800 border-emerald-300' : ''"
                                                                 title="Deskripsi item">
                                                                 <x-heroicon-o-document-text class="w-4 h-4" />
                                                             </button>
                                                         </div>
                                                     </td>
-                                                    <td class="p-2 text-gray-650" x-text="it.frefdtno"></td>
-                                                    <td class="p-2 text-gray-650" x-text="it.fsatuan"></td>
-                                                    <td class="p-2 text-right text-gray-700" x-text="fmt(it.fqty)"></td>
-                                                    <td class="p-2 text-right text-gray-700" x-text="fmt(it.fprice)"></td>
-                                                    <td class="p-2 text-right text-gray-700" x-text="fmt(it.ftotprice)"></td>
+                                                    <td class="p-2">
+                                                        <div class="px-2 py-1 text-sm text-gray-600 bg-gray-50 border rounded" x-text="it.frefdtno || '-'"></div>
+                                                    </td>
+                                                    <td class="p-2">
+                                                        <div class="px-2 py-1 text-sm text-gray-600 bg-gray-50 border rounded" x-text="it.fsatuan || '-'"></div>
+                                                    </td>
+                                                    <td class="p-2 text-right">
+                                                        <div class="px-2 py-1 text-sm text-gray-700 bg-gray-50 border rounded text-right font-medium" x-text="fmt(it.fqty)"></div>
+                                                    </td>
+                                                    <td class="p-2 text-right">
+                                                        <div class="px-2 py-1 text-sm text-gray-700 bg-gray-50 border rounded text-right font-medium" x-text="fmt(it.fprice)"></div>
+                                                    </td>
+                                                    <td class="p-2 text-right">
+                                                        <div class="px-2 py-1 text-sm text-gray-700 bg-gray-50 border rounded text-right font-medium" x-text="fmt(it.ftotprice)"></div>
+                                                    </td>
                                                     <td class="p-2 text-center">
-                                                        <div class="flex items-center justify-center gap-1.5 flex-wrap">
+                                                        <div class="flex items-center justify-center gap-1">
                                                             <button type="button" @click="edit(i)"
-                                                                class="px-2.5 py-1 rounded-lg text-xs bg-amber-50 text-amber-600 hover:bg-amber-100 transition-colors border border-amber-200">Edit</button>
+                                                                class="px-2 py-1 rounded bg-amber-100 text-amber-700 hover:bg-amber-200 text-xs transition-colors">Edit</button>
                                                             <button type="button" @click="removeSaved(i)"
-                                                                class="px-2.5 py-1 rounded-lg text-xs bg-red-50 text-red-500 hover:bg-red-100 transition-colors border border-red-200">Hapus</button>
+                                                                class="px-2 py-1 rounded bg-red-100 text-red-600 hover:bg-red-200 text-xs transition-colors">-</button>
                                                         </div>
                                                     </td>
 
@@ -714,34 +743,32 @@
                                             </template>
 
                                             {{-- ROW EDIT UTAMA --}}
-                                            <tr x-show="editingIndex !== null" class="border-t border-gray-150 align-top hover:bg-gray-55 bg-amber-50" x-cloak>
+                                            <tr x-show="editingIndex !== null" class="border-t align-top hover:bg-gray-50 bg-amber-50" x-cloak>
                                                 <td class="p-2 text-gray-400" x-text="(editingIndex ?? 0) + 1"></td>
 
                                                 {{-- Kode Produk --}}
                                                 <td class="p-2">
                                                     <div class="flex">
-                                                        <input type="text" class="w-full border border-gray-300 rounded-l-lg px-2 py-1 font-mono text-sm focus:outline-none focus:border-blue-500"
+                                                        <input type="text" class="flex-1 border rounded-l px-2 py-1 font-mono text-sm min-w-0 focus:ring-1 focus:ring-blue-500"
                                                             x-ref="editCode" x-model.trim="editRow.fitemcode"
                                                             @input="onCodeTypedRow(editRow)"
                                                             @keydown.enter.prevent="handleEnterOnCode('edit')">
                                                         <button type="button" @click="openBrowseFor('edit')"
-                                                            class="shrink-0 border border-l-0 border-gray-300 rounded-r-lg px-2 py-1 bg-white hover:bg-gray-50 text-gray-500 transition-colors"
+                                                            class="shrink-0 border border-l-0 px-2 py-1 bg-white hover:bg-gray-55 text-gray-500 transition-colors"
                                                             title="Cari Produk">
                                                             <x-heroicon-o-magnifying-glass class="w-4 h-4" />
                                                         </button>
                                                     </div>
                                                 </td>
 
-                                                {{-- Nama Produk --}}
-                                                <td class="p-2" style="width: 20rem; min-width: 20rem;">
-                                                    <div class="desc-inline-field flex w-full min-w-0 flex-nowrap items-stretch">
-                                                        <div class="desc-inline-field__text min-w-0 flex-1 rounded-l-lg border border-gray-300 bg-gray-55 px-2 py-1 text-sm leading-5 text-gray-600 whitespace-normal break-words"
-                                                            style="flex:1 1 auto !important; min-width:0 !important;"
+                                                {{-- Nama Produk (readonly) --}}
+                                                <td class="p-2">
+                                                    <div class="flex w-full max-w-full">
+                                                        <div class="min-w-0 flex-1 rounded-l border bg-gray-101 px-2 py-1 text-sm leading-5 text-gray-600 whitespace-normal break-words"
                                                             x-text="editRow.fitemname"></div>
                                                         <button type="button" @click="openDesc('edit')"
-                                                            class="desc-inline-field__button inline-flex w-10 shrink-0 items-center justify-center border border-l-0 border-gray-300 rounded-r-lg px-2 py-1 transition-colors"
-                                                            style="display:inline-flex !important; flex:0 0 2rem !important; width:2rem !important; justify-content:center !important; align-items:center !important;"
-                                                            :class="editRow.fdesc ? 'border-emerald-300 bg-emerald-50 text-emerald-600 hover:bg-emerald-100' : 'border-gray-300 bg-white text-gray-500 hover:bg-gray-50'"
+                                                            class="shrink-0 inline-flex items-center border border-l-0 rounded-r bg-slate-50 px-2 py-1 text-slate-700 hover:bg-slate-100 transition-colors border-slate-200"
+                                                            :class="editRow.fdesc ? 'bg-emerald-100 text-emerald-800 border-emerald-300' : ''"
                                                             title="Deskripsi item">
                                                             <x-heroicon-o-document-text class="w-4 h-4" />
                                                         </button>
@@ -750,14 +777,13 @@
 
                                                 {{-- No Referensi --}}
                                                 <td class="p-2">
-                                                    <input type="text" class="w-full border border-gray-250 rounded-lg px-2 py-1 bg-gray-50 text-gray-500 text-sm cursor-not-allowed"
-                                                        :value="editRow.frefdtno" disabled placeholder="No Ref">
+                                                    <div class="px-2 py-1 text-sm text-gray-600 bg-gray-50 border rounded" x-text="editRow.frefdtno || '-'"></div>
                                                 </td>
 
                                                 {{-- Satuan --}}
                                                 <td class="p-2">
                                                     <template x-if="editRow.units.length > 1">
-                                                        <select class="w-full border border-gray-300 rounded-lg px-2 py-1 text-sm focus:outline-none focus:border-blue-500" x-ref="editUnit"
+                                                        <select class="w-full border rounded px-2 py-1 text-sm focus:ring-1 focus:ring-blue-500" x-ref="editUnit"
                                                             x-model="editRow.fsatuan"
                                                             @keydown.enter.prevent="$refs.editRefPr?.focus()">
                                                             <template x-for="u in editRow.units" :key="u">
@@ -766,69 +792,68 @@
                                                         </select>
                                                     </template>
                                                     <template x-if="editRow.units.length <= 1">
-                                                        <input type="text" class="w-full border border-gray-250 rounded-lg px-2 py-1 bg-gray-50 text-gray-500 text-sm cursor-not-allowed"
-                                                            :value="editRow.fsatuan || '-'" disabled>
+                                                        <div class="px-2 py-1 text-sm text-gray-600 bg-gray-50 border rounded" x-text="editRow.fsatuan || '-'"></div>
                                                     </template>
                                                 </td>
 
                                                 {{-- Qty --}}
                                                 <td class="p-2 text-right">
-                                                    <input type="number" class="w-full border border-gray-300 rounded-lg px-2 py-1 text-right text-sm focus:outline-none focus:border-blue-500"
+                                                    <input type="number" class="w-full border rounded px-2 py-1 text-right text-sm focus:ring-1 focus:ring-blue-500"
                                                         min="0" step="0.01" x-ref="editQty"
                                                         x-model.number="editRow.fqty" @input="recalc(editRow)">
                                                 </td>
 
                                                 {{-- @ Harga --}}
                                                 <td class="p-2 text-right">
-                                                    <input type="text" inputmode="decimal" class="w-full border border-gray-300 rounded-lg px-2 py-1 text-right text-sm focus:outline-none focus:border-blue-500"
+                                                    <input type="text" class="w-full border rounded px-2 py-1 text-right text-sm focus:ring-1 focus:ring-blue-500"
                                                         x-ref="editPrice" x-model="editRow.fpriceInput"
                                                         @input="onPriceInput(editRow)" @blur="blurPriceInput(editRow)">
                                                 </td>
 
                                                 {{-- Total Harga --}}
-                                                <td class="p-2 text-right text-gray-700 text-sm font-medium align-middle" x-text="fmt(editRow.ftotprice)"></td>
+                                                <td class="p-2 text-right">
+                                                    <div class="px-2 py-1 text-sm text-gray-700 bg-gray-55 border rounded text-right font-medium" x-text="fmt(editRow.ftotprice)"></div>
+                                                </td>
 
                                                 {{-- Aksi --}}
                                                 <td class="p-2 text-center">
-                                                    <div class="flex items-center justify-center gap-1.5 flex-wrap">
+                                                    <div class="flex items-center justify-center gap-1">
                                                         <button type="button" @click="applyEdit()"
-                                                            class="px-2.5 py-1 rounded-lg text-xs bg-emerald-600 text-white hover:bg-emerald-700 transition-colors">Simpan</button>
+                                                            class="px-2 py-1 rounded bg-emerald-600 text-white hover:bg-emerald-700 text-xs transition-colors">Simpan</button>
                                                         <button type="button" @click="cancelEdit()"
-                                                            class="px-2.5 py-1 rounded-lg text-xs bg-white border border-gray-300 text-gray-650 hover:bg-gray-50 transition-colors">Batal</button>
+                                                            class="px-2 py-1 rounded bg-white border border-gray-305 text-gray-600 hover:bg-gray-55 text-xs transition-colors">Batal</button>
                                                     </div>
                                                 </td>
                                             </tr>
 
                                             {{-- ROW DRAFT (multi-row, minimum 5) --}}
                                             <template x-for="(dr, di) in draftRows" :key="dr._uid">
-                                                <tr class="border-t border-gray-150 align-top hover:bg-gray-50">
+                                                <tr class="border-t align-top hover:bg-gray-50">
                                                     <td class="p-2 text-gray-400" x-text="savedItems.length + di + 1"></td>
 
                                                     {{-- Kode Produk --}}
                                                     <td class="p-2">
                                                         <div class="flex">
-                                                            <input type="text" class="w-full border border-gray-300 rounded-l-lg px-2 py-1 font-mono text-sm focus:outline-none focus:border-blue-500"
+                                                            <input type="text" class="flex-1 border rounded-l px-2 py-1 font-mono text-sm min-w-0 focus:ring-1 focus:ring-blue-500"
                                                                 x-model.trim="dr.fitemcode"
                                                                 @input="onCodeTypedRow(dr)"
                                                                 @keydown.enter.prevent="focusDraftField(di, 'qty')">
                                                             <button type="button" @click="openBrowseFor(di)"
-                                                                class="shrink-0 border border-l-0 border-gray-300 rounded-r-lg px-2 py-1 bg-white hover:bg-gray-50 text-gray-500 transition-colors"
+                                                                class="shrink-0 border border-l-0 px-2 py-1 bg-white hover:bg-gray-55 text-gray-500 transition-colors"
                                                                 title="Cari Produk">
                                                                 <x-heroicon-o-magnifying-glass class="w-4 h-4" />
                                                             </button>
                                                         </div>
                                                     </td>
 
-                                                    {{-- Nama Produk --}}
-                                                    <td class="p-2" style="width: 20rem; min-width: 20rem;">
-                                                        <div class="desc-inline-field flex w-full min-w-0 flex-nowrap items-stretch">
-                                                            <div class="desc-inline-field__text min-w-0 flex-1 rounded-l-lg border border-gray-300 bg-gray-50 px-2 py-1 text-sm leading-5 text-gray-600 whitespace-normal break-words"
-                                                                style="flex:1 1 auto !important; min-width:0 !important;"
+                                                    {{-- Nama Produk (readonly) --}}
+                                                    <td class="p-2">
+                                                        <div class="flex w-full max-w-full">
+                                                            <div class="min-w-0 flex-1 rounded-l border bg-gray-101 px-2 py-1 text-sm leading-5 text-gray-600 whitespace-normal break-words"
                                                                 x-text="dr.fitemname"></div>
                                                             <button type="button" @click="openDesc('draft', di)"
-                                                                class="desc-inline-field__button inline-flex w-10 shrink-0 items-center justify-center border border-l-0 border-gray-300 rounded-r-lg px-2 py-1 transition-colors border-gray-300 bg-white text-gray-500 hover:bg-gray-50"
-                                                                style="display:inline-flex !important; flex:0 0 2rem !important; width:2rem !important; justify-content:center !important; align-items:center !important;"
-                                                                :class="dr.fdesc ? 'border-emerald-300 bg-emerald-50 text-emerald-600 hover:bg-emerald-100' : 'border-gray-300 bg-white text-gray-500 hover:bg-gray-50'"
+                                                                class="shrink-0 inline-flex items-center border border-l-0 rounded-r bg-slate-50 px-2 py-1 text-slate-700 hover:bg-slate-100 transition-colors border-slate-200"
+                                                                :class="dr.fdesc ? 'bg-emerald-100 text-emerald-800 border-emerald-300' : ''"
                                                                 title="Deskripsi item">
                                                                 <x-heroicon-o-document-text class="w-4 h-4" />
                                                             </button>
@@ -837,14 +862,13 @@
 
                                                     {{-- No Referensi --}}
                                                     <td class="p-2">
-                                                        <input type="text" class="w-full border border-gray-250 rounded-lg px-2 py-1 bg-gray-50 text-gray-500 text-sm cursor-not-allowed"
-                                                            :value="dr.frefdtno" disabled placeholder="No Ref">
+                                                        <div class="px-2 py-1 text-sm text-gray-600 bg-gray-50 border rounded" x-text="dr.frefdtno || '-'"></div>
                                                     </td>
 
                                                     {{-- Satuan --}}
                                                     <td class="p-2">
                                                         <template x-if="dr.units.length > 1">
-                                                            <select class="w-full border border-gray-300 rounded-lg px-2 py-1 text-sm focus:outline-none focus:border-blue-500"
+                                                            <select class="w-full border rounded px-2 py-1 text-sm focus:ring-1 focus:ring-blue-500"
                                                                 x-model="dr.fsatuan">
                                                                 <template x-for="u in dr.units" :key="u">
                                                                     <option :value="u" x-text="u"></option>
@@ -852,37 +876,33 @@
                                                             </select>
                                                         </template>
                                                         <template x-if="dr.units.length <= 1">
-                                                            <input type="text" class="w-full border border-gray-250 rounded-lg px-2 py-1 bg-gray-50 text-gray-500 text-sm cursor-not-allowed"
-                                                                :value="dr.fsatuan || '-'" disabled>
+                                                            <div class="px-2 py-1 text-sm text-gray-600 bg-gray-50 border rounded" x-text="dr.fsatuan || '-'"></div>
                                                         </template>
                                                     </td>
 
                                                     {{-- Qty --}}
                                                     <td class="p-2 text-right">
-                                                        <input type="number" class="w-full border border-gray-300 rounded-lg px-2 py-1 text-right text-sm focus:outline-none focus:border-blue-500"
+                                                        <input type="number" class="w-full border rounded px-2 py-1 text-right text-sm focus:ring-1 focus:ring-blue-500"
                                                             :id="'draft-qty-' + di" min="0" step="0.01"
                                                             x-model.number="dr.fqty" @input="recalc(dr)">
                                                     </td>
 
                                                     {{-- @ Harga --}}
                                                     <td class="p-2 text-right">
-                                                        <input type="text" inputmode="decimal" class="w-full border border-gray-300 rounded-lg px-2 py-1 text-right text-sm focus:outline-none focus:border-blue-500"
+                                                        <input type="text" class="w-full border rounded px-2 py-1 text-right text-sm focus:ring-1 focus:ring-blue-500"
                                                             x-model="dr.fpriceInput"
                                                             @input="onPriceInput(dr)" @blur="blurPriceInput(dr)">
                                                     </td>
 
                                                     {{-- Total Harga --}}
-                                                    <td class="p-2 text-right text-gray-700 text-sm font-medium align-middle" x-text="fmt(dr.ftotprice)"></td>
+                                                    <td class="p-2 text-right">
+                                                        <div class="px-2 py-1 text-sm text-gray-700 bg-gray-50 border rounded text-right font-medium" x-text="fmt(dr.ftotprice)"></div>
+                                                    </td>
 
                                                     {{-- Aksi --}}
-                                                    <td class="p-2 text-center">
-                                                        <div class="flex items-center justify-center">
-                                                            <button type="button" @click="removeDraftRow(di)"
-                                                                class="inline-flex h-7 w-7 items-center justify-center rounded-lg bg-red-50 text-red-500 hover:bg-red-100 transition-colors border border-red-200"
-                                                                title="Hapus baris">
-                                                                <x-heroicon-o-minus class="w-4 h-4" />
-                                                            </button>
-                                                        </div>
+                                                    <td class="p-2 text-center text-xs">
+                                                        <button type="button" @click="removeDraftRow(di)"
+                                                            class="inline-flex h-8 w-8 items-center justify-center rounded bg-red-100 text-red-600 hover:bg-red-200">-</button>
                                                     </td>
 
                                                     {{-- hidden inputs for complete draft rows --}}

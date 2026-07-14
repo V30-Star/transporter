@@ -362,8 +362,18 @@
                         <div x-data="itemsTable()" x-init="init()" class="space-y-2">
 
                             <div class="overflow-auto border rounded">
-                                <table class="pemakaianbarang-detail-table min-w-full text-sm">
-                                    <thead class="bg-gray-50 border-b border-gray-200">
+                                <table class="pemakaianbarang-detail-table min-w-full text-sm balanced-detail-table"
+                                    data-skip-auto-detail-style="true">
+                                    <colgroup>
+                                        <col style="width:2%;">
+                                        <col style="width:12%;">
+                                        <col style="width:25%;">
+                                        <col style="width:20%;">
+                                        <col style="width:20%;">
+                                        <col style="width:8%;">
+                                        <col style="width:13%;">
+                                    </colgroup>
+                                    <thead class="bg-gray-100">
                                         <tr>
                                             <th class="p-2 text-left w-10">#</th>
                                             <th class="p-2 text-left w-40">Kode Produk</th>
@@ -371,83 +381,42 @@
                                             <th class="p-2 text-left w-48">Account</th>
                                             <th class="p-2 text-left w-48">Sub Account</th>
                                             <th class="p-2 text-left w-24">Sat</th>
-                                            <th class="p-2 text-right w-36">Qty</th>
+                                            <th class="p-2 text-right w-36 whitespace-nowrap">Qty</th>
                                         </tr>
                                     </thead>
-
                                     <tbody>
                                         <template x-for="(it, i) in savedItems" :key="it.uid">
-                                            <!-- ROW UTAMA -->
-                                            <tr class="border-t align-top">
-                                                <td class="p-2" x-text="i + 1"></td>
-                                                <td class="p-2 font-mono" x-text="it.fitemcode"></td>
-                                                <td class="p-2 text-gray-800" style="width: 20rem; min-width: 20rem;">
-                                                    <div class="desc-inline-field">
-                                                        <div class="desc-inline-field__text rounded-l border bg-gray-100 px-2 py-1 text-sm leading-5 text-gray-600 whitespace-normal break-words"
+                                            <tr class="border-t align-top hover:bg-gray-55">
+                                                <td class="p-2 text-gray-400" x-text="i + 1"></td>
+                                                <td class="p-2">
+                                                    <div class="px-2 py-1 text-sm text-gray-655 bg-gray-50 border rounded font-mono" x-text="it.fitemcode"></div>
+                                                </td>
+                                                <td class="p-2">
+                                                    <div class="flex w-full max-w-full">
+                                                        <div class="min-w-0 flex-1 rounded-l border bg-gray-101 px-2 py-1 text-sm leading-5 text-gray-650 whitespace-normal break-words"
                                                             x-text="it.fitemname"></div>
                                                         <button type="button" @click="openDesc(it, true)"
-                                                            class="desc-inline-field__button inline-flex items-center border border-l-0 rounded-r px-2 py-1 transition-colors"
-                                                            :class="it.fdesc ? 'border-emerald-300 bg-emerald-50 text-emerald-600 hover:bg-emerald-100' : 'border-gray-300 bg-white text-gray-500 hover:bg-gray-50'"
+                                                            class="shrink-0 inline-flex items-center border border-l-0 rounded-r bg-slate-50 px-2 py-1 text-slate-700 hover:bg-slate-100 transition-colors border-slate-200"
+                                                            :class="it.fdesc ? 'bg-emerald-100 text-emerald-800 border-emerald-300' : ''"
                                                             title="Deskripsi item">
                                                             <x-heroicon-o-document-text class="h-4 w-4" />
                                                         </button>
                                                     </div>
                                                 </td>
-                                                <td class="p-2 text-left">
-                                                    <span x-text="it.account_label"></span>
+                                                <td class="p-2">
+                                                    <div class="px-2 py-1 text-sm text-gray-650 bg-gray-50 border rounded" x-text="it.account_label"></div>
                                                 </td>
-                                                <td class="p-2 text-left">
-                                                    <span x-text="it.subaccount_label"></span>
+                                                <td class="p-2">
+                                                    <div class="px-2 py-1 text-sm text-gray-650 bg-gray-50 border rounded" x-text="it.subaccount_label"></div>
                                                 </td>
-                                                <td class="p-2 text-left" x-text="it.fsatuan"></td>
-                                                <td class="p-2 text-right" x-text="fmt(it.fqty)"></td>
-
-                                                <!-- hidden inputs -->
-                                                <td class="hidden">
-                                                    <input type="hidden" name="fitemcode[]" :value="it.fitemcode">
-                                                    <input type="hidden" name="fitemname[]" :value="it.fitemname">
-                                                    <input type="hidden" name="fsatuan[]" :value="it.fsatuan">
-                                                    <input type="hidden" name="frefdtno[]" :value="it.account_code">
-                                                    <input type="hidden" name="frefso[]" :value="it.subaccount_code">
-                                                    <input type="hidden" name="frefpr[]" :value="it.frefpr">
-                                                    <input type="hidden" name="fqty[]" :value="it.fqty">
-                                                    <input type="hidden" name="fdesc[]" :value="it.fdesc">
-                                                    <input type="hidden" name="fketdt[]" :value="it.fketdt">
+                                                <td class="p-2">
+                                                    <div class="px-2 py-1 text-sm text-gray-655 bg-gray-50 border rounded" x-text="it.fsatuan"></div>
                                                 </td>
-                                            </tr>
-
-                                            <tr class="border-b">
-                                                <td class="p-0"></td> <!-- # -->
-                                                <td class="p-0"></td> <!-- Kode -->
-                                                <!-- Deskripsi HANYA di kolom Nama Produk -->
-                                                <!-- Kolom sisanya kosong supaya total 7 kolom -->
-                                                <td class="p-0"></td> <!-- Satuan -->
-                                                <td class="p-0"></td> <!-- Qty -->
-                                                <td class="p-0"></td> <!-- Ket Item -->
-                                                <td class="p-0"></td> <!-- Aksi -->
+                                                <td class="p-2 text-right">
+                                                    <div class="px-2 py-1 text-sm text-gray-700 bg-gray-50 border rounded text-right font-medium" x-text="fmt(it.fqty)"></div>
+                                                </td>
                                             </tr>
                                         </template>
-
-                                        <!-- ROW EDIT DESC -->
-                                        <tr class="bg-amber-50 border-b" x-cloak>
-                                            <td class="p-0"></td>
-                                            <td class="p-0"></td>
-                                            <td class="p-0"></td>
-                                            <td class="p-0"></td>
-                                            <td class="p-0"></td>
-                                            <td class="p-0"></td>
-                                            <td class="p-0"></td>
-                                        </tr>
-
-                                        <!-- ROW DRAFT DESC -->
-                                        <tr class="bg-green-50 border-b">
-                                            <td class="p-0"></td>
-                                            <td class="p-0"></td>
-                                            <td class="p-0"></td>
-                                            <td class="p-0"></td>
-                                            <td class="p-0"></td>
-                                            <td class="p-0"></td>
-                                        </tr>
                                     </tbody>
                                 </table>
                             </div>
@@ -628,218 +597,112 @@
 
                             {{-- DETAIL ITEM (tabel input) --}}
                             <div class="overflow-auto border rounded">
-                                <table class="pemakaianbarang-detail-table min-w-full text-sm">
-                                    <thead class="bg-gray-50 border-b border-gray-200">
-                                        <tr>
-                                            <th class="p-2 text-left w-10">#</th>
-                                            <th class="p-2 text-left w-40">Kode Produk</th>
-                                            <th class="p-2 text-left min-w-[12rem]">Nama Produk</th>
-                                            <th class="p-2 text-left w-48">Account</th>
-                                            <th class="p-2 text-left w-48">Sub Account</th>
-                                            <th class="p-2 text-left w-24">Sat</th>
-                                            <th class="p-2 text-right w-36">Qty</th>
-                                            <th class="p-2 text-center w-36">Aksi</th>
-                                        </tr>
-                                    </thead>
-
-                                    <tbody>
-                                        <template x-for="(it, i) in savedItems" :key="it.uid">
-                                            <!-- ROW UTAMA -->
-                                            <tr class="border-t align-top">
-                                                <td class="p-2" x-text="i + 1"></td>
-                                                <td class="p-2 font-mono" x-text="it.fitemcode"></td>
-                                                <td class="p-2 text-gray-800" style="width: 20rem; min-width: 20rem;">
-                                                    <div class="desc-inline-field">
-                                                        <div class="desc-inline-field__text rounded-l border bg-gray-100 px-2 py-1 text-sm leading-5 text-gray-600 whitespace-normal break-words"
-                                                            x-text="it.fitemname"></div>
-                                                        <button type="button" @click="openDesc(it)"
-                                                            class="desc-inline-field__button inline-flex items-center border border-l-0 rounded-r px-2 py-1 transition-colors"
-                                                            :class="it.fdesc ? 'border-emerald-300 bg-emerald-50 text-emerald-600 hover:bg-emerald-100' : 'border-gray-300 bg-white text-gray-500 hover:bg-gray-50'"
-                                                            title="Deskripsi item">
-                                                            <x-heroicon-o-document-text class="h-4 w-4" />
-                                                        </button>
-                                                    </div>
-                                                </td>
-                                                <td class="p-2 text-left">
-                                                    <select class="w-full border-gray-300 rounded-lg px-2 py-1 text-sm focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
-                                                        x-model="it.account_code"
-                                                        @change="updateAccount(it, $event.target.value, $event.target.options[$event.target.selectedIndex].dataset.name)">
-                                                        <option value="">Pilih Akun</option>
-                                                        <template x-for="acc in accounts" :key="acc.faccount">
-                                                            <option :value="acc.faccount" :data-name="acc.faccname"
-                                                                x-text="`${acc.faccount} - ${acc.faccname}`"
-                                                                :selected="it.account_code == acc.faccount"></option>
-                                                        </template>
-                                                    </select>
-                                                </td>
-                                                <td class="p-2 text-left">
-                                                    <select class="w-full border-gray-300 rounded-lg px-2 py-1 text-sm focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
-                                                        x-model="it.subaccount_code"
-                                                        @change="updateSubAccount(it, $event.target.value, $event.target.options[$event.target.selectedIndex].dataset.name)">
-                                                        <option value="">Pilih Sub Akun</option>
-                                                        <template x-for="sacc in subaccounts" :key="sacc.fsubaccountcode">
-                                                            <option :value="sacc.fsubaccountcode"
-                                                                :data-name="sacc.fsubaccountname"
-                                                                x-text="`${sacc.fsubaccountcode} - ${sacc.fsubaccountname}`"
-                                                                :selected="it.subaccount_code == sacc.fsubaccountcode">
-                                                            </option>
-                                                        </template>
-                                                    </select>
-                                                </td>
-                                                <td class="p-2 text-left">
-                                                    <template x-if="it.units.length > 1">
-                                                        <select class="w-full border-gray-300 rounded-lg px-2 py-1 text-sm focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
-                                                            x-model="it.fsatuan">
-                                                            <template x-for="u in it.units" :key="u">
-                                                                <option :value="u" x-text="u"
-                                                                    :selected="it.fsatuan == u"></option>
+                                <table class="pemakaianbarang-detail-table min-w-full text-sm balanced-detail-table"
+                                        data-skip-auto-detail-style="true">
+                                        <colgroup>
+                                            <col style="width:2%;">
+                                            <col style="width:12%;">
+                                            <col style="width:25%;">
+                                            <col style="width:20%;">
+                                            <col style="width:20%;">
+                                            <col style="width:8%;">
+                                            <col style="width:8%;">
+                                            <col style="width:5%;">
+                                        </colgroup>
+                                        <thead class="bg-gray-100">
+                                            <tr>
+                                                <th class="p-2 text-left w-10">#</th>
+                                                <th class="p-2 text-left w-40">Kode Produk</th>
+                                                <th class="p-2 text-left w-[18rem]">Nama Produk</th>
+                                                <th class="p-2 text-left w-44">Account</th>
+                                                <th class="p-2 text-left w-44">Sub Account</th>
+                                                <th class="p-2 text-left w-20">Sat</th>
+                                                <th class="p-2 text-right w-28 whitespace-nowrap">Qty</th>
+                                                <th class="p-2 text-center w-24">Aksi</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <template x-for="(it, i) in savedItems" :key="it.uid">
+                                                <tr class="border-t align-top hover:bg-gray-50">
+                                                    <td class="p-2 text-gray-400" x-text="i + 1"></td>
+                                                    <td class="p-2">
+                                                        <div class="flex">
+                                                            <input type="text" class="flex-1 border rounded-l px-2 py-1 font-mono text-sm focus:ring-1 focus:ring-blue-500 min-w-0 bg-white"
+                                                                :id="'mutasi_code_row_' + i"
+                                                                x-model.trim="it.fitemcode"
+                                                                @input="onCodeTypedRow(it, i)"
+                                                                @keydown.enter.prevent="focusRowUnit(it, i)">
+                                                            <button type="button" @click="openBrowseFor(i)"
+                                                                class="shrink-0 border border-l-0 px-2 py-1 bg-white hover:bg-gray-55 text-gray-500 transition-colors"
+                                                                title="Cari Produk">
+                                                                <x-heroicon-o-magnifying-glass class="w-4 h-4 text-gray-500" />
+                                                            </button>
+                                                        </div>
+                                                    </td>
+                                                    <td class="p-2">
+                                                        <div class="flex w-full max-w-full">
+                                                            <div class="min-w-0 flex-1 rounded-l border bg-gray-101 px-2 py-1 text-sm leading-5 text-gray-655 whitespace-normal break-words"
+                                                                x-text="it.fitemname"></div>
+                                                            <button type="button" @click="openDesc(it)"
+                                                                class="shrink-0 inline-flex items-center border border-l-0 rounded-r bg-slate-50 px-2 py-1 text-slate-700 hover:bg-slate-100 transition-colors border-slate-200"
+                                                                :class="it.fdesc ? 'bg-emerald-100 text-emerald-800 border-emerald-300' : ''"
+                                                                title="Deskripsi item">
+                                                                <x-heroicon-o-document-text class="h-4 w-4" />
+                                                            </button>
+                                                        </div>
+                                                    </td>
+                                                    <td class="p-2">
+                                                        <select class="w-full border rounded px-2 py-1 select2 text-sm focus:ring-1 focus:ring-blue-500" :value="it.account_code"
+                                                            x-init="window.initSelect2($el)"
+                                                            @change="it.account_code = $event.target.value; it.account_name = $event.target.options[$event.target.selectedIndex].dataset.name">
+                                                            <option value="">Pilih Akun</option>
+                                                            <template x-for="acc in accounts" :key="acc.faccount">
+                                                                <option :value="acc.faccount" :data-name="acc.faccname"
+                                                                    x-text="`${acc.faccount} - ${acc.faccname}`"
+                                                                    :selected="it.account_code == acc.faccount"></option>
                                                             </template>
                                                         </select>
-                                                    </template>
-                                                    <template x-if="it.units.length <= 1">
-                                                        <span x-text="it.fsatuan || '-'"></span>
-                                                    </template>
-                                                </td>
-                                                <td class="p-2 text-right">
-                                                    <input type="number" class="border-gray-300 rounded-lg px-2 py-1 text-sm focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 w-24 text-right"
-                                                    min="0" step="0.01" x-model.number="it.fqty"
-                                                        @change="recalc(it)" @blur="recalc(it)">
-                                                </td>
-                                                <td class="p-2 text-center">
-                                                    <button type="button" @click="removeSaved(i)"
-                                                        class="px-3 py-1 rounded text-xs bg-red-100 text-red-600 hover:bg-red-200">Hapus</button>
-                                                </td>
-
-                                                <!-- hidden inputs -->
-                                                <td class="hidden">
-                                                    <input type="hidden" name="fitemcode[]" :value="it.fitemcode">
-                                                    <input type="hidden" name="fitemname[]" :value="it.fitemname">
-                                                    <input type="hidden" name="fsatuan[]" :value="it.fsatuan">
-                                                    <input type="hidden" name="frefdtno[]" :value="it.account_code">
-                                                    <input type="hidden" name="frefso[]" :value="it.subaccount_code">
-                                                    <input type="hidden" name="frefpr[]" :value="it.frefpr">
-                                                    <input type="hidden" name="fqty[]" :value="it.fqty">
-                                                    <input type="hidden" name="fdesc[]" :value="it.fdesc">
-                                                    <input type="hidden" name="fketdt[]" :value="it.fketdt">
-                                                </td>
-                                            </tr>
-
-                                        </template>
-
-
-
-                                        <!-- ROW DRAFT UTAMA -->
-                                        <tr class="border-t align-top">
-                                            <!-- # -->
-                                            <td class="p-2" x-text="savedItems.length + 1"></td>
-
-                                            <!-- Kode Produk -->
-                                            <td class="p-2">
-                                                <div class="flex">
-                                                    <input type="text"
-                                                        class="flex-1 border rounded-l px-2 py-1 font-mono"
-                                                        x-ref="draftCode" x-model.trim="draft.fitemcode"
-                                                        @input="onCodeTypedRow(draft)"
-                                                        @keydown.enter.prevent="handleEnterOnCode('draft')">
-                                                    <button type="button" @click="openBrowseFor('draft')"
-                                                        class="border border-l-0 px-2 py-1 bg-white hover:bg-gray-50"
-                                                        title="Cari Produk">
-                                                        <x-heroicon-o-magnifying-glass class="w-4 h-4" />
-                                                    </button>
-
-                                                </div>
-                                            </td>
-
-                                            <!-- Nama Produk (readonly) -->
-                                            <td class="p-2" style="width: 20rem; min-width: 20rem;">
-                                                <div class="desc-inline-field">
-                                                    <div class="desc-inline-field__text rounded-l border bg-gray-100 px-2 py-1 text-sm leading-5 text-gray-600 whitespace-normal break-words"
-                                                        x-text="draft.fitemname"></div>
-                                                    <button type="button" @click="openDesc(draft)"
-                                                        class="desc-inline-field__button inline-flex items-center border border-l-0 rounded-r px-2 py-1 transition-colors"
-                                                        :class="draft.fdesc ? 'border-emerald-300 bg-emerald-50 text-emerald-600 hover:bg-emerald-100' : 'border-gray-300 bg-white text-gray-500 hover:bg-gray-50'"
-                                                        title="Deskripsi item">
-                                                        <x-heroicon-o-document-text class="h-4 w-4" />
-                                                    </button>
-                                                </div>
-                                            </td>
-
-                                            <td class="p-2">
-                                                <select class="w-full border-gray-300 rounded-lg px-2 py-1 text-sm focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
-                                                    x-model="draft.account_code"
-                                                    @input="updateAccount(draft, $event.target.value, $event.target.options[$event.target.selectedIndex].dataset.name)">
-                                                    <option value="">Pilih Akun</option>
-                                                    <template x-for="acc in accounts" :key="acc.faccount">
-                                                        <option :value="acc.faccount" :data-name="acc.faccname"
-                                                            x-text="`${acc.faccount} - ${acc.faccname}`"></option>
-                                                    </template>
-                                                </select>
-                                            </td>
-
-                                            <td class="p-2">
-                                                <select class="w-full border-gray-300 rounded-lg px-2 py-1 text-sm focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
-                                                    x-model="draft.subaccount_code"
-                                                    @input="updateSubAccount(draft, $event.target.value, $event.target.options[$event.target.selectedIndex].dataset.name)">
-                                                    <option value="">Pilih Sub Akun</option>
-                                                    <template x-for="sacc in subaccounts" :key="sacc.fsubaccountcode">
-                                                        <option :value="sacc.fsubaccountcode"
-                                                            :data-name="sacc.fsubaccountname"
-                                                            x-text="`${sacc.fsubaccountcode} - ${sacc.fsubaccountname}`">
-                                                        </option>
-                                                    </template>
-                                                </select>
-                                            </td>
-
-                                            <!-- Satuan -->
-                                            <td class="p-2">
-                                                <template x-if="draft.units.length > 1">
-                                                    <select class="w-full border-gray-300 rounded-lg px-2 py-1 text-sm focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100" x-ref="draftUnit"
-                                                        x-model="draft.fsatuan"
-                                                        @keydown.enter.prevent="$refs.draftRefPr?.focus()">
-                                                        <template x-for="u in draft.units" :key="u">
-                                                            <option :value="u" x-text="u"></option>
+                                                    </td>
+                                                    <td class="p-2">
+                                                        <select class="w-full border rounded px-2 py-1 select2 text-sm focus:ring-1 focus:ring-blue-500" :value="it.subaccount_code"
+                                                            x-init="window.initSelect2($el)"
+                                                            @change="it.subaccount_code = $event.target.value; it.subaccount_name = $event.target.options[$event.target.selectedIndex].dataset.name">
+                                                            <option value="">Pilih Sub Akun</option>
+                                                            <template x-for="sacc in subaccounts" :key="sacc.fsubaccountcode">
+                                                                <option :value="sacc.fsubaccountcode" :data-name="sacc.fsubaccountname"
+                                                                    x-text="`${sacc.fsubaccountcode} - ${sacc.fsubaccountname}`"
+                                                                    :selected="it.subaccount_code == sacc.fsubaccountcode"></option>
+                                                            </template>
+                                                        </select>
+                                                    </td>
+                                                    <td class="p-2">
+                                                        <template x-if="it.units.length > 1">
+                                                            <select class="w-full border rounded px-2 py-1 text-sm focus:ring-1 focus:ring-blue-500" x-model="it.fsatuan">
+                                                                <template x-for="u in it.units" :key="u">
+                                                                    <option :value="u" x-text="u" :selected="it.fsatuan == u"></option>
+                                                                </template>
+                                                            </select>
                                                         </template>
-                                                    </select>
-                                                </template>
-                                                <template x-if="draft.units.length <= 1">
-                                                    <input type="text"
-                                                        class="w-full border-gray-300 rounded-lg px-2 py-1 text-sm focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 bg-gray-100 text-gray-600"
-                                                        :value="draft.fsatuan || '-'" disabled>
-                                                </template>
-                                            </td>
-
-                                            <!-- Qty -->
-                                            <td class="p-2 text-right">
-                                                <input type="number" class="border-gray-300 rounded-lg px-2 py-1 text-sm focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 w-24 text-right"
-                                                    min="0" step="0.01" x-ref="draftQty"
-                                                    x-model.number="draft.fqty" @change="recalc(draft)"
-                                                    @blur="recalc(draft)"
-                                                    @keydown.enter.prevent="$refs.draftPrice?.focus()">
-                                            </td>
-
-                                            <!-- Aksi -->
-                                            <td class="p-2 text-center">
-                                                <div class="flex items-center justify-center gap-2 flex-wrap">
-                                                    <button type="button" @click="addIfComplete()"
-                                                        class="inline-flex h-7 w-7 items-center justify-center rounded-lg bg-red-50 text-red-500 hover:bg-red-100 transition-colors border border-red-200"
-                                                        title="Tambah baris">
-                                                        <x-heroicon-o-minus class="w-4 h-4" />
-                                                    </button>
-                                                </div>
-                                            </td>
-                                        </tr>
-                                        <tr class="border-b">
-                                            <td class="p-0"></td>
-                                            <td class="p-0"></td>
-                                            <td class="p-0"></td>
-                                            <td class="p-0"></td>
-                                            <td class="p-0"></td>
-                                            <td class="p-0"></td>
-                                            <td class="p-0"></td>
-                                            <td class="p-0"></td>
-                                        </tr>
-                                    </tbody>
-                                </table>
+                                                        <template x-if="it.units.length <= 1">
+                                                            <div class="px-2 py-1 text-sm text-gray-650 bg-gray-50 border rounded"
+                                                                x-text="it.fsatuan || '-'"></div>
+                                                        </template>
+                                                    </td>
+                                                    <td class="p-2 text-right">
+                                                        <input type="number" class="w-full border rounded px-2 py-1 text-right text-sm focus:ring-1 focus:ring-blue-500 bg-white"
+                                                            min="0" step="0.01"
+                                                            x-model.number="it.fqty" @change="recalc(it)"
+                                                            @blur="recalc(it)">
+                                                    </td>
+                                                    <td class="p-2 text-center text-xs">
+                                                        <button type="button" @click="removeSaved(i)"
+                                                            class="inline-flex h-8 w-8 items-center justify-center rounded bg-red-100 text-red-600 hover:bg-red-200 transition-colors"
+                                                            title="Hapus baris">-</button>
+                                                    </td>
+                                                </tr>
+                                            </template>
+                                        </tbody>
+                                    </table>
                             </div>
                         </div>
                         </div>

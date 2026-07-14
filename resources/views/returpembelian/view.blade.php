@@ -248,57 +248,64 @@
                                     class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm bg-gray-100 text-gray-500 cursor-not-allowed border-gray-200">{{ old('fket', $returpembelian->fket) }}</textarea>
                             </div>
 
-                            <div class="overflow-auto border border-gray-200 rounded-lg">
-                                <table class="fpb-detail-table min-w-full text-sm">
-                                    <thead class="bg-gray-50 border-b border-gray-200">
+                            <div class="overflow-auto border rounded">
+                                <table class="fpb-detail-table min-w-full text-sm balanced-detail-table"
+                                    data-skip-auto-detail-style="true">
+                                    <colgroup>
+                                        <col style="width:2%;">
+                                        <col style="width:12%;">
+                                        <col style="width:25%;">
+                                        <col style="width:12%;">
+                                        <col style="width:8%;">
+                                        <col style="width:8%;">
+                                        <col style="width:15%;">
+                                        <col style="width:18%;">
+                                    </colgroup>
+                                    <thead class="bg-gray-100">
                                         <tr>
-                                            <th class="p-2 text-left w-10 text-xs font-semibold text-gray-500 uppercase">#</th>
-                                            <th class="p-2 text-left w-36 text-xs font-semibold text-gray-500 uppercase">Kode Produk</th>
-                                            <th class="p-2 text-left text-xs font-semibold text-gray-500 uppercase" style="width: 20rem; min-width: 20rem;">Nama Produk</th>
-                                            <th class="p-2 text-left w-28 text-xs font-semibold text-gray-500 uppercase">No Referensi</th>
-                                            <th class="p-2 text-left w-20 text-xs font-semibold text-gray-500 uppercase">Satuan</th>
-                                            <th class="p-2 text-right w-20 text-xs font-semibold text-gray-500 uppercase">Qty</th>
-                                            <th class="p-2 text-right w-24 text-xs font-semibold text-gray-500 uppercase">@ Harga</th>
-                                            <th class="p-2 text-right w-28 text-xs font-semibold text-gray-500 uppercase">Total Harga</th>
+                                            <th class="p-2 text-left w-10">#</th>
+                                            <th class="p-2 text-left w-36">Kode Produk</th>
+                                            <th class="p-2 text-left w-96">Nama Produk</th>
+                                            <th class="p-2 text-left w-28">No Referensi</th>
+                                            <th class="p-2 text-left w-20">Satuan</th>
+                                            <th class="p-2 text-right w-20 whitespace-nowrap">Qty</th>
+                                            <th class="p-2 text-right w-24 whitespace-nowrap">@ Harga</th>
+                                            <th class="p-2 text-right w-28 whitespace-nowrap">Total Harga</th>
                                         </tr>
                                     </thead>
                                     <template x-for="(it, i) in savedItems" :key="it.uid">
                                         <tbody>
-                                            <tr class="border-t border-gray-150 align-top hover:bg-gray-55">
+                                            <tr class="border-t align-top hover:bg-gray-55">
                                                 <td class="p-2 text-gray-400" x-text="i + 1"></td>
-
-                                                {{-- Kode Produk --}}
-                                                <td class="p-2 font-mono text-gray-700" x-text="it.fitemcode"></td>
-
-                                                {{-- Nama Produk --}}
-                                                <td class="p-2" style="width: 20rem; min-width: 20rem;">
-                                                    <div class="desc-inline-field flex w-full min-w-0 flex-nowrap items-stretch">
-                                                        <div class="desc-inline-field__text min-w-0 flex-1 rounded-l-lg border border-gray-300 bg-gray-55 px-2 py-1 text-sm leading-5 text-gray-600 whitespace-normal break-words"
-                                                            style="flex:1 1 auto !important; min-width:0 !important;"
+                                                <td class="p-2">
+                                                    <div class="px-2 py-1 text-sm text-gray-600 bg-gray-50 border rounded font-mono" x-text="it.fitemcode"></div>
+                                                </td>
+                                                <td class="p-2">
+                                                    <div class="flex w-full max-w-full">
+                                                        <div class="min-w-0 flex-1 rounded-l border bg-gray-100 px-2 py-1 text-sm leading-5 text-gray-600 whitespace-normal break-words"
                                                             x-text="it.fitemname"></div>
                                                         <button type="button" @click="openDesc(it)"
-                                                            class="desc-inline-field__button inline-flex w-10 shrink-0 items-center justify-center border border-l-0 border-gray-300 rounded-r-lg px-2 py-1 transition-colors border-gray-300 bg-white text-gray-500 hover:bg-gray-50"
-                                                            style="display:inline-flex !important; flex:0 0 2rem !important; width:2rem !important; justify-content:center !important; align-items:center !important;"
+                                                            class="shrink-0 inline-flex items-center border border-l-0 rounded-r bg-slate-50 px-2 py-1 text-slate-700 hover:bg-slate-100 transition-colors border-slate-200"
                                                             title="Deskripsi">
                                                             <x-heroicon-o-document-text class="w-4 h-4" />
                                                         </button>
                                                     </div>
                                                 </td>
-
-                                                {{-- No Referensi --}}
-                                                <td class="p-2 text-gray-650" x-text="it.frefdtno"></td>
-
-                                                {{-- Satuan --}}
-                                                <td class="p-2 text-gray-650" x-text="it.fsatuan"></td>
-
-                                                {{-- Qty --}}
-                                                <td class="p-2 text-right text-gray-700" x-text="fmt(it.fqty)"></td>
-
-                                                {{-- @ Harga --}}
-                                                <td class="p-2 text-right text-gray-700" x-text="fmt(it.fprice)"></td>
-
-                                                {{-- Total Harga --}}
-                                                <td class="p-2 text-right text-gray-700" x-text="fmt(it.ftotprice)"></td>
+                                                <td class="p-2">
+                                                    <div class="px-2 py-1 text-sm text-gray-600 bg-gray-50 border rounded" x-text="it.frefdtno || '-'"></div>
+                                                </td>
+                                                <td class="p-2">
+                                                    <div class="px-2 py-1 text-sm text-gray-600 bg-gray-50 border rounded" x-text="it.fsatuan || '-'"></div>
+                                                </td>
+                                                <td class="p-2 text-right">
+                                                    <div class="px-2 py-1 text-sm text-gray-700 bg-gray-50 border rounded text-right font-medium" x-text="fmt(it.fqty)"></div>
+                                                </td>
+                                                <td class="p-2 text-right">
+                                                    <div class="px-2 py-1 text-sm text-gray-700 bg-gray-50 border rounded text-right font-medium" x-text="fmt(it.fprice)"></div>
+                                                </td>
+                                                <td class="p-2 text-right">
+                                                    <div class="px-2 py-1 text-sm text-gray-700 bg-gray-50 border rounded text-right font-medium" x-text="fmt(it.ftotprice)"></div>
+                                                </td>
                                             </tr>
                                         </tbody>
                                     </template>

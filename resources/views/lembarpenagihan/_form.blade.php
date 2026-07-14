@@ -129,18 +129,39 @@
                     <p class="text-xs font-medium uppercase tracking-wide text-gray-400">Detail Penagihan</p>
                 </div>
                 <div class="p-4">
-                    <div class="overflow-auto border border-gray-200 rounded-lg">
-                        <table class="pr-detail-table min-w-full text-sm" id="tagihan-detail-table">
-                            <thead class="bg-gray-50 border-b border-gray-200">
+                    <div class="overflow-auto border rounded">
+                        <table class="pr-detail-table min-w-full text-sm balanced-detail-table" id="tagihan-detail-table"
+                            data-skip-auto-detail-style="true">
+                            @if ($isReadOnly)
+                                <colgroup>
+                                    <col style="width:2%;">
+                                    <col style="width:20%;">
+                                    <col style="width:18%;">
+                                    <col style="width:20%;">
+                                    <col style="width:20%;">
+                                    <col style="width:20%;">
+                                </colgroup>
+                            @else
+                                <colgroup>
+                                    <col style="width:2%;">
+                                    <col style="width:20%;">
+                                    <col style="width:15%;">
+                                    <col style="width:18%;">
+                                    <col style="width:18%;">
+                                    <col style="width:18%;">
+                                    <col style="width:9%;">
+                                </colgroup>
+                            @endif
+                            <thead class="bg-gray-100">
                                 <tr>
-                                    <th class="p-2 text-left w-10 text-xs font-semibold text-gray-500 uppercase">#</th>
-                                    <th class="p-2 text-left w-52 text-xs font-semibold text-gray-500 uppercase">No.Nota</th>
-                                    <th class="p-2 text-left w-40 text-xs font-semibold text-gray-500 uppercase">Tanggal Nota</th>
-                                    <th class="p-2 text-right w-36 text-xs font-semibold text-gray-500 uppercase">Nilai Nota</th>
-                                    <th class="p-2 text-right w-36 text-xs font-semibold text-gray-500 uppercase">Ongkos Kirim</th>
-                                    <th class="p-2 text-right w-36 text-xs font-semibold text-gray-500 uppercase">Sisa Piutang</th>
+                                    <th class="p-2 text-left w-10">#</th>
+                                    <th class="p-2 text-left w-52">No.Nota</th>
+                                    <th class="p-2 text-left w-40">Tanggal Nota</th>
+                                    <th class="p-2 text-right w-36 whitespace-nowrap">Nilai Nota</th>
+                                    <th class="p-2 text-right w-36 whitespace-nowrap">Ongkos Kirim</th>
+                                    <th class="p-2 text-right w-36 whitespace-nowrap">Sisa Piutang</th>
                                     @if (!$isReadOnly)
-                                        <th class="p-2 text-center w-24 text-xs font-semibold text-gray-500 uppercase">Aksi</th>
+                                        <th class="p-2 text-center w-24">Aksi</th>
                                     @endif
                                 </tr>
                             </thead>
@@ -148,58 +169,46 @@
                                 @php
                                     $actualCount = count($detailRows);
                                     $placeholderCount = max(0, 5 - $actualCount);
-                                @endphp
+                                </php>
                                 @foreach ($detailRows as $index => $row)
-                                    <tr class="border-t border-gray-150 align-middle bg-white" data-ref="{{ $row['frefsono'] }}">
-                                        <td class="p-2 text-gray-400 row-number">{{ $row['ftrtagihanid'] ?: $index + 1 }}</td>
+                                    <tr class="border-t align-middle bg-white hover:bg-gray-50" data-ref="{{ $row['frefsono'] }}">
+                                        <td class="p-2 text-gray-400 row-number">{{ $index + 1 }}</td>
                                         <td class="p-2">
-                                            <input type="text" class="w-full border border-gray-200 rounded-lg px-2 py-1 font-mono text-sm bg-gray-100 text-gray-500 cursor-not-allowed" value="{{ $row['frefsono'] }}" readonly>
+                                            <div class="px-2 py-1 text-sm text-gray-650 bg-gray-50 border rounded font-mono">{{ $row['frefsono'] }}</div>
                                             <input type="hidden" name="frefsono[{{ $index }}]" value="{{ $row['frefsono'] }}">
                                             <input type="hidden" name="frefcode[{{ $index }}]" value="{{ $row['frefcode'] }}">
                                         </td>
                                         <td class="p-2">
-                                            <input type="text" class="w-full border border-gray-200 rounded-lg px-2 py-1 text-sm bg-gray-100 text-gray-500 cursor-not-allowed" value="{{ $row['fsodate'] }}" readonly>
+                                            <div class="px-2 py-1 text-sm text-gray-650 bg-gray-50 border rounded">{{ $row['fsodate'] }}</div>
                                         </td>
                                         <td class="p-2 text-right">
-                                            <input type="text" class="w-full border border-gray-200 rounded-lg px-2 py-1 text-right text-sm bg-gray-100 text-gray-500 cursor-not-allowed" value="{{ number_format($row['famountbil'], 2, ',', '.') }}" readonly>
+                                            <div class="px-2 py-1 text-sm text-gray-700 bg-gray-50 border rounded text-right font-medium">{{ number_format($row['famountbil'], 2, ',', '.') }}</div>
                                         </td>
                                         <td class="p-2 text-right">
-                                            <input type="text" class="w-full border border-gray-200 rounded-lg px-2 py-1 text-right text-sm bg-gray-100 text-gray-500 cursor-not-allowed" value="{{ number_format($row['fongkos'], 2, ',', '.') }}" readonly>
+                                            <div class="px-2 py-1 text-sm text-gray-700 bg-gray-50 border rounded text-right font-medium">{{ number_format($row['fongkos'], 2, ',', '.') }}</div>
                                         </td>
                                         <td class="p-2 text-right">
-                                            <input type="text" class="w-full border border-gray-200 rounded-lg px-2 py-1 text-right text-sm bg-gray-100 text-gray-500 cursor-not-allowed" value="{{ number_format($row['famount'], 2, ',', '.') }}" readonly>
+                                            <div class="px-2 py-1 text-sm text-gray-700 bg-gray-50 border rounded text-right font-medium">{{ number_format($row['famount'], 2, ',', '.') }}</div>
                                             <input type="hidden" name="famount[{{ $index }}]" value="{{ $row['famount'] }}" class="row-amount">
                                         </td>
                                         @if (!$isReadOnly)
-                                            <td class="p-2 text-center">
-                                                <div class="flex items-center justify-center">
-                                                    <button type="button" class="btn-remove-row inline-flex h-7 w-7 items-center justify-center rounded-lg bg-red-50 text-red-500 hover:bg-red-100 transition-colors border border-red-200" title="Hapus baris">
-                                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4">
-                                                            <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 12h-15" />
-                                                        </svg>
-                                                    </button>
-                                                </div>
+                                            <td class="p-2 text-center text-xs">
+                                                <button type="button" class="btn-remove-row inline-flex h-8 w-8 items-center justify-center rounded bg-red-100 text-red-600 hover:bg-red-200 transition-colors" title="Hapus baris">-</button>
                                             </td>
                                         @endif
                                     </tr>
                                 @endforeach
                                 @for ($i = 0; $i < $placeholderCount; $i++)
-                                    <tr class="border-t border-gray-150 align-middle bg-white empty-row">
+                                    <tr class="border-t align-middle bg-white empty-row">
                                         <td class="p-2 text-gray-400 row-number">{{ $actualCount + $i + 1 }}</td>
-                                        <td class="p-2"><input type="text" class="w-full border border-gray-200 rounded-lg px-2 py-1 font-mono text-sm bg-gray-50 text-gray-400 cursor-not-allowed" readonly></td>
-                                        <td class="p-2"><input type="text" class="w-full border border-gray-200 rounded-lg px-2 py-1 text-sm bg-gray-50 text-gray-400 cursor-not-allowed" readonly></td>
-                                        <td class="p-2"><input type="text" class="w-full border border-gray-200 rounded-lg px-2 py-1 text-right text-sm bg-gray-50 text-gray-400 cursor-not-allowed" readonly></td>
-                                        <td class="p-2"><input type="text" class="w-full border border-gray-200 rounded-lg px-2 py-1 text-right text-sm bg-gray-50 text-gray-400 cursor-not-allowed" readonly></td>
-                                        <td class="p-2"><input type="text" class="w-full border border-gray-200 rounded-lg px-2 py-1 text-right text-sm bg-gray-50 text-gray-400 cursor-not-allowed" readonly></td>
+                                        <td class="p-2"><div class="px-2 py-1 text-sm text-gray-400 bg-gray-50 border border-dashed rounded font-mono">-</div></td>
+                                        <td class="p-2"><div class="px-2 py-1 text-sm text-gray-400 bg-gray-50 border border-dashed rounded">-</div></td>
+                                        <td class="p-2"><div class="px-2 py-1 text-sm text-gray-400 bg-gray-50 border border-dashed rounded text-right">-</div></td>
+                                        <td class="p-2"><div class="px-2 py-1 text-sm text-gray-400 bg-gray-50 border border-dashed rounded text-right">-</div></td>
+                                        <td class="p-2"><div class="px-2 py-1 text-sm text-gray-400 bg-gray-50 border border-dashed rounded text-right">-</div></td>
                                         @if (!$isReadOnly)
-                                            <td class="p-2 text-center">
-                                                <div class="flex items-center justify-center">
-                                                    <button type="button" class="btn-remove-row inline-flex h-7 w-7 items-center justify-center rounded-lg bg-red-50 text-red-500 hover:bg-red-100 transition-colors border border-red-200" title="Hapus baris" disabled style="opacity: 0.5; cursor: not-allowed;">
-                                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4">
-                                                            <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 12h-15" />
-                                                        </svg>
-                                                    </button>
-                                                </div>
+                                            <td class="p-2 text-center text-xs">
+                                                <button type="button" class="btn-remove-row inline-flex h-8 w-8 items-center justify-center rounded bg-gray-100 text-gray-400 border border-gray-200 cursor-not-allowed" title="Hapus baris" disabled>-</button>
                                             </td>
                                         @endif
                                     </tr>

@@ -270,53 +270,53 @@
                     </div>
                     <div class="p-4">
                         <div x-data="itemsTableRows()" x-init="init()" class="space-y-2">
-                            <div class="overflow-auto border border-gray-200 rounded-lg">
-                                <table class="pr-detail-table min-w-full text-sm">
-                                    <thead class="bg-gray-50 border-b border-gray-200">
+                            <div class="overflow-auto border rounded">
+                                <table class="pr-detail-table min-w-full text-sm balanced-detail-table"
+                                    data-skip-auto-detail-style="true">
+                                    <colgroup>
+                                        <col style="width:2%;">
+                                        <col style="width:18%;">
+                                        <col style="width:35%;">
+                                        <col style="width:12%;">
+                                        <col style="width:10%;">
+                                        <col style="width:20%;">
+                                        <col style="width:3%;">
+                                    </colgroup>
+                                    <thead class="bg-gray-100">
                                         <tr>
-                                            <th class="p-2 text-left w-10 text-xs font-semibold text-gray-500 uppercase">#
-                                            </th>
-                                            <th class="p-2 text-left w-52 text-xs font-semibold text-gray-500 uppercase">
-                                                Kode Produk</th>
-                                            <th class="p-2 text-left text-xs font-semibold text-gray-500 uppercase"
-                                                style="width: 20rem; min-width: 20rem;">Nama Produk</th>
-                                            <th class="p-2 text-left w-40 text-xs font-semibold text-gray-500 uppercase">
-                                                Satuan</th>
-                                            <th class="p-2 text-right w-28 text-xs font-semibold text-gray-500 uppercase">
-                                                Qty</th>
-                                            <th class="p-2 text-left w-56 text-xs font-semibold text-gray-500 uppercase">
-                                                Ket Item</th>
-                                            <th class="p-2 text-center w-24 text-xs font-semibold text-gray-500 uppercase">
-                                                Aksi</th>
+                                            <th class="p-2 text-left w-10">#</th>
+                                            <th class="p-2 text-left w-52">Kode Produk</th>
+                                            <th class="p-2 text-left w-96">Nama Produk</th>
+                                            <th class="p-2 text-left w-40">Satuan</th>
+                                            <th class="p-2 text-right w-28 whitespace-nowrap">Qty</th>
+                                            <th class="p-2 text-left w-56">Ket Item</th>
+                                            <th class="p-2 text-center w-24">Aksi</th>
                                         </tr>
                                     </thead>
                                     <tbody>
                                         <template x-for="(row, i) in rows" :key="row.uid">
-                                            <tr class="border-t border-gray-150 align-top"
+                                            <tr class="border-t align-top"
                                                 :class="i === 0 ? 'bg-green-50/40' : 'bg-white'">
                                                 <td class="p-2 text-gray-400" x-text="i + 1"></td>
                                                 <td class="p-2">
                                                     <div class="flex">
                                                         <input type="text"
-                                                            class="flex-1 border border-gray-300 rounded-l-lg px-2 py-1 font-mono text-sm min-w-0 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-100"
+                                                            class="flex-1 border rounded-l px-2 py-1 font-mono text-sm min-w-0 focus:ring-1 focus:ring-blue-500"
                                                             x-model.trim="row.fitemcode" @input="onCodeTyped(row, i)"
                                                             @keydown.enter.prevent="focusNextField(row, i)">
                                                         <button type="button" @click="openBrowseFor(i)"
-                                                            class="border border-l-0 border-gray-300 px-2 py-1 bg-white hover:bg-gray-50 text-gray-500 transition-colors"
+                                                            class="border border-l-0 px-2 py-1 bg-white hover:bg-gray-50 text-gray-500 transition-colors"
                                                             title="Cari Produk">
                                                             <x-heroicon-o-magnifying-glass class="w-4 h-4" />
                                                         </button>
                                                     </div>
                                                 </td>
-                                                <td class="p-2" style="width: 20rem; min-width: 20rem;">
-                                                    <div
-                                                        class="desc-inline-field flex w-full min-w-0 flex-nowrap items-stretch">
-                                                        <div class="desc-inline-field__text min-w-0 flex-1 rounded-l-lg border border-gray-300 bg-gray-50 px-2 py-1 text-sm leading-5 text-gray-600 whitespace-normal break-words"
-                                                            style="flex:1 1 auto !important; min-width:0 !important;"
+                                                <td class="p-2">
+                                                    <div class="flex w-full max-w-full">
+                                                        <div class="min-w-0 flex-1 rounded-l border bg-gray-100 px-2 py-1 text-sm leading-5 text-gray-600 whitespace-normal break-words"
                                                             x-text="row.fitemname || '-'"></div>
                                                         <button type="button" @click="openDesc(i)"
-                                                            class="desc-inline-field__button inline-flex w-10 shrink-0 items-center justify-center border border-l-0 border-gray-300 rounded-r-lg px-2 py-1 transition-colors"
-                                                            style="display:inline-flex !important; flex:0 0 2rem !important; width:2rem !important; justify-content:center !important; align-items:center !important;"
+                                                            class="shrink-0 inline-flex items-center border border-l-0 rounded-r bg-slate-50 px-2 py-1 text-slate-700 hover:bg-slate-100 transition-colors"
                                                             :class="descButtonClass(row.fdesc)" title="Deskripsi item">
                                                             <x-heroicon-o-document-text class="w-4 h-4" />
                                                         </button>
@@ -325,7 +325,7 @@
                                                 <td class="p-2">
                                                     <template x-if="row.units.length > 1">
                                                         <select
-                                                            class="w-full border border-gray-300 rounded-lg px-2 py-1 text-sm focus:outline-none focus:border-blue-500"
+                                                            class="w-full border rounded px-2 py-1 text-sm focus:ring-1 focus:ring-blue-500"
                                                             x-model="row.fsatuan" @change="onRowUpdated(i)">
                                                             <template x-for="unit in row.units" :key="unit">
                                                                 <option :value="unit" x-text="unit"></option>
@@ -333,30 +333,25 @@
                                                         </select>
                                                     </template>
                                                     <template x-if="row.units.length <= 1">
-                                                        <input type="text"
-                                                            class="w-full border border-gray-200 rounded-lg px-2 py-1 bg-gray-50 text-gray-500 text-sm cursor-not-allowed"
-                                                            :value="row.fsatuan || '-'" disabled>
+                                                        <div class="px-2 py-1 text-sm text-gray-600 bg-gray-50 border rounded"
+                                                            x-text="row.fsatuan || '-'"></div>
                                                     </template>
                                                 </td>
                                                 <td class="p-2 text-right">
                                                     <input type="text" inputmode="decimal"
-                                                        class="w-full border border-gray-300 rounded-lg px-2 py-1 text-right focus:outline-none focus:border-blue-500"
+                                                        class="w-full border rounded px-2 py-1 text-right text-sm focus:ring-1 focus:ring-blue-500"
                                                         x-model="row.fqty" @focus="unformatQtyInput(row)"
                                                         @input="onQtyInput(row, i)" @blur="formatQtyInput(row, i)">
                                                 </td>
                                                 <td class="p-2">
                                                     <input type="text"
-                                                        class="w-full border border-gray-300 rounded-lg px-2 py-1 text-sm focus:outline-none focus:border-blue-500"
+                                                        class="w-full border rounded px-2 py-1 text-sm focus:ring-1 focus:ring-blue-500"
                                                         x-model="row.fketdt" @input="onRowUpdated(i)">
                                                 </td>
-                                                <td class="p-2 text-center">
-                                                    <div class="flex items-center justify-center">
-                                                        <button type="button" @click="removeRow(i)"
-                                                            class="inline-flex h-7 w-7 items-center justify-center rounded-lg bg-red-50 text-red-500 hover:bg-red-100 transition-colors border border-red-200"
-                                                            title="Hapus baris">
-                                                            <x-heroicon-o-minus class="w-4 h-4" />
-                                                        </button>
-                                                    </div>
+                                                <td class="p-2 text-center text-xs">
+                                                    <button type="button" @click="removeRow(i)"
+                                                        class="inline-flex h-8 w-8 items-center justify-center rounded bg-red-100 text-red-600 hover:bg-red-200"
+                                                        title="Hapus baris">-</button>
                                                 </td>
                                             </tr>
                                         </template>

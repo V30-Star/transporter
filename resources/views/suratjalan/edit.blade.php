@@ -447,41 +447,54 @@
                     <div x-data="itemsTable()" x-init="init()" class="space-y-2">
 
                             <div class="overflow-auto border rounded">
-                                <table class="suratjalan-detail-table min-w-full text-sm">
+                                <table class="suratjalan-detail-table min-w-full text-sm balanced-detail-table"
+                                    data-skip-auto-detail-style="true">
+                                    <colgroup>
+                                        <col style="width:2%;">
+                                        <col style="width:15%;">
+                                        <col style="width:35%;">
+                                        <col style="width:20%;">
+                                        <col style="width:13%;">
+                                        <col style="width:15%;">
+                                    </colgroup>
                                     <thead class="bg-gray-100">
                                         <tr>
                                             <th class="p-2 text-left w-10">#</th>
                                             <th class="p-2 text-left w-40">Kode Produk</th>
                                             <th class="p-2 text-left w-102">Nama Produk</th>
-                                            <th class="p-2 text-left" style="width: 18%;">No.Ref</th>
+                                            <th class="p-2 text-left">No.Ref</th>
                                             <th class="p-2 text-left w-24">Sat</th>
-                                            <th class="p-2 text-right w-28">Qty</th>
+                                            <th class="p-2 text-right w-28 whitespace-nowrap">Qty</th>
                                         </tr>
                                     </thead>
-
                                     <tbody>
                                         <template x-for="(it, i) in savedItems" :key="it.uid">
-                                            <tr class="border-t align-top">
-                                                <td class="p-2" x-text="i + 1"></td>
-                                                <td class="p-2 font-mono" x-text="it.fitemcode"></td>
-                                                <td class="p-2 text-gray-800">
-                                                    <div class="desc-inline-field">
-                                                        <div class="desc-inline-field__text rounded-l border bg-gray-100 px-2 py-1 text-sm leading-5 text-gray-600 whitespace-normal break-words"
+                                            <tr class="border-t align-top hover:bg-gray-55">
+                                                <td class="p-2 text-gray-400" x-text="i + 1"></td>
+                                                <td class="p-2">
+                                                    <div class="px-2 py-1 text-sm text-gray-600 bg-gray-50 border rounded font-mono" x-text="it.fitemcode"></div>
+                                                </td>
+                                                <td class="p-2">
+                                                    <div class="flex w-full max-w-full">
+                                                        <div class="min-w-0 flex-1 rounded-l border bg-gray-100 px-2 py-1 text-sm leading-5 text-gray-600 whitespace-normal break-words"
                                                             x-text="it.fitemname"></div>
                                                         <button type="button" @click="openDesc(i)"
-                                                            class="desc-inline-field__button inline-flex items-center rounded-r border border-l-0 px-2 py-1 transition-colors"
-                                                            :class="it.fdesc ?
-                                                                'border-emerald-300 bg-emerald-50 text-emerald-600 hover:bg-emerald-100' :
-                                                                'border-gray-300 bg-white text-gray-500 hover:bg-gray-50'"
+                                                            class="shrink-0 inline-flex items-center border border-l-0 rounded-r bg-slate-50 px-2 py-1 text-slate-700 hover:bg-slate-100 transition-colors border-slate-200"
+                                                            :class="it.fdesc ? 'bg-emerald-100 text-emerald-800 border-emerald-300' : ''"
                                                             title="Deskripsi item">
                                                             <x-heroicon-o-document-text class="h-4 w-4" />
                                                         </button>
                                                     </div>
                                                 </td>
-                                                <td class="p-2" x-text="it.frefno_display || it.frefso || '-'"></td>
-                                                <td class="p-2 text-left italic text-gray-700" x-text="it.fsatuan || '-'">
+                                                <td class="p-2">
+                                                    <div class="px-2 py-1 text-sm text-gray-650 bg-gray-50 border rounded" x-text="it.frefno_display || it.frefso || '-'"></div>
                                                 </td>
-                                                <td class="p-2 text-right" x-text="formatQtyValue(it.fqty)"></td>
+                                                <td class="p-2">
+                                                    <div class="px-2 py-1 text-sm text-gray-650 bg-gray-50 border rounded" x-text="it.fsatuan || '-'"></div>
+                                                </td>
+                                                <td class="p-2 text-right">
+                                                    <div class="px-2 py-1 text-sm text-gray-700 bg-gray-50 border rounded text-right font-medium" x-text="formatQtyValue(it.fqty)"></div>
+                                                </td>
                                                 <td class="hidden">
                                                     <input type="hidden" :name="`fitemcode[${it.formIndex}]`" :value="it.fitemcode">
                                                     <input type="hidden" :name="`fitemname[${it.formIndex}]`" :value="it.fitemname">
@@ -498,19 +511,7 @@
                                                     <input type="hidden" :name="`fketdt[${it.formIndex}]`" :value="it.fketdt">
                                                 </td>
                                             </tr>
-
                                         </template>
-
-                                        <tr class="border-b">
-                                            <td class="p-0"></td>
-                                            <td class="p-0"></td>
-                                            <td class="p-0"></td>
-                                            <td class="p-0"></td>
-                                            <td class="p-0"></td>
-                                            <td class="p-0"></td>
-                                            <td class="p-0"></td>
-                                            <td class="p-0"></td>
-                                        </tr>
                                     </tbody>
                                 </table>
                             </div>
@@ -759,74 +760,81 @@
                     <p class="text-xs font-medium uppercase tracking-wide text-gray-400">Detail Item</p>
                 </div>
                                     <div class="p-4">
-                                        <div class="overflow-x-auto border border-gray-200 rounded-lg">
-                                            <table class="min-w-full divide-y divide-gray-200 text-sm">
-                                                <thead class="bg-gray-50">
+                                        <div class="overflow-x-auto border rounded">
+                                            <table class="min-w-full text-sm balanced-detail-table"
+                                                data-skip-auto-detail-style="true">
+                                                <colgroup>
+                                                    <col style="width:2%;">
+                                                    <col style="width:15%;">
+                                                    <col style="width:30%;">
+                                                    <col style="width:18%;">
+                                                    <col style="width:10%;">
+                                                    <col style="width:15%;">
+                                                    <col style="width:10%;">
+                                                </colgroup>
+                                                <thead class="bg-gray-100">
                                                     <tr>
-                                                        <th scope="col" class="px-3 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider w-10">#</th>
-                                                        <th scope="col" class="px-3 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider w-40">Kode Produk</th>
-                                                        <th scope="col" class="px-3 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider w-102">Nama Produk</th>
-                                                        <th scope="col" class="px-3 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider" style="width: 18%;">No.Ref</th>
-                                                        <th scope="col" class="px-3 py-3 text-right text-xs font-bold text-gray-500 uppercase tracking-wider w-24">Sat</th>
-                                                        <th scope="col" class="px-3 py-3 text-right text-xs font-bold text-gray-500 uppercase tracking-wider w-24">Qty</th>
-                                                        <th scope="col" class="px-3 py-3 text-center text-xs font-bold text-gray-500 uppercase tracking-wider w-36">Aksi</th>
+                                                        <th class="p-2 text-left w-10">#</th>
+                                                        <th class="p-2 text-left w-40">Kode Produk</th>
+                                                        <th class="p-2 text-left w-102">Nama Produk</th>
+                                                        <th class="p-2 text-left">No.Ref</th>
+                                                        <th class="p-2 text-right w-24">Sat</th>
+                                                        <th class="p-2 text-right w-24 whitespace-nowrap">Qty</th>
+                                                        <th class="p-2 text-center w-36">Aksi</th>
                                                     </tr>
                                                 </thead>
                                                 <tbody>
                                             <template x-for="(it, i) in savedItems" :key="it.uid">
-                                                <tr class="border-t align-top">
-                                                    <td class="p-2" x-text="i + 1"></td>
+                                                <tr class="border-t align-top hover:bg-gray-50">
+                                                    <td class="p-2 text-gray-400" x-text="i + 1"></td>
                                                     <td class="p-2">
                                                         <div class="flex">
                                                             <input type="text"
-                                                                class="flex-1 border rounded-l px-2 py-1 font-mono text-sm"
+                                                                class="flex-1 border rounded-l px-2 py-1 font-mono text-sm focus:ring-1 focus:ring-blue-500 min-w-0"
                                                                 x-model.trim="it.fitemcode" @input="onCodeTypedRow(it, i)"
                                                                 @keydown.enter.prevent="focusRowUnit(it, i)">
                                                             <button type="button" @click="openBrowseFor(i)"
-                                                                class="border border-l-0 px-2 py-1 bg-white hover:bg-gray-50"
+                                                                class="shrink-0 border border-l-0 px-2 py-1 bg-white hover:bg-gray-55 text-gray-500 transition-colors"
                                                                 title="Cari Produk">
                                                                 <x-heroicon-o-magnifying-glass class="w-4 h-4" />
                                                             </button>
                                                         </div>
                                                     </td>
                                                     <td class="p-2">
-                                                        <div class="desc-inline-field">
-                                                            <div class="desc-inline-field__text rounded-l border bg-gray-100 px-2 py-1 text-sm leading-5 text-gray-600 whitespace-normal break-words"
+                                                        <div class="flex w-full max-w-full">
+                                                            <div class="min-w-0 flex-1 rounded-l border bg-gray-101 px-2 py-1 text-sm leading-5 text-gray-650 whitespace-normal break-words"
                                                                 x-text="it.fitemname"></div>
                                                             <button type="button" @click="openDesc(i)"
-                                                                class="desc-inline-field__button inline-flex items-center rounded-r border border-l-0 bg-slate-50 px-2 py-1 text-slate-700 hover:bg-slate-100"
+                                                                class="shrink-0 inline-flex items-center border border-l-0 rounded-r bg-slate-50 px-2 py-1 text-slate-700 hover:bg-slate-100 transition-colors border-slate-200"
+                                                                :class="it.fdesc ? 'bg-emerald-100 text-emerald-800 border-emerald-300' : ''"
                                                                 title="Deskripsi">
                                                                 <x-heroicon-o-document-text class="h-4 w-4" />
                                                             </button>
                                                         </div>
                                                     </td>
                                                     <td class="p-2">
-                                                        <input type="text"
-                                                            class="w-full border rounded px-2 py-1 bg-gray-100 text-gray-600 text-sm"
-                                                            :value="it.frefno_display || (it.frefdtno && it
-                                                                .frefdtno !== '0' ? it.frefdtno : '') || '-'"
-                                                            disabled>
+                                                        <div class="px-2 py-1 text-sm text-gray-655 bg-gray-50 border rounded"
+                                                            x-text="it.frefno_display || (it.frefdtno && it.frefdtno !== '0' ? it.frefdtno : '') || '-'"></div>
                                                     </td>
-                                                    <template x-if="it.units && it.units.length > 1">
-                                                        <select class="w-full border rounded px-2 py-1 text-xs"
-                                                            :id="'unit_row_' + i" x-model="it.fsatuan"
-                                                            x-effect="$el.value = it.fsatuan" @change="onRowUpdated(i)"
-                                                            @keydown.enter.prevent="focusRowQty(i)">
-                                                            <template x-for="u in it.units" :key="u">
-                                                                <option :value="u"
-                                                                    :selected="u === it.fsatuan" x-text="u"></option>
-                                                            </template>
-                                                        </select>
-                                                    </template>
-                                                    <template x-if="!(it.units && it.units.length > 1)">
-                                                        <input type="text"
-                                                            class="w-full border rounded px-2 py-1 bg-gray-100 text-gray-600 text-xs"
-                                                            :value="it.fsatuan || '-'" disabled>
-                                                    </template>
+                                                    <td class="p-2">
+                                                        <template x-if="it.units && it.units.length > 1">
+                                                            <select class="w-full border rounded px-2 py-1 text-sm focus:ring-1 focus:ring-blue-500"
+                                                                :id="'unit_row_' + i" x-model="it.fsatuan"
+                                                                x-effect="$el.value = it.fsatuan" @change="onRowUpdated(i)"
+                                                                @keydown.enter.prevent="focusRowQty(i)">
+                                                                <template x-for="u in it.units" :key="u">
+                                                                    <option :value="u"
+                                                                        :selected="u === it.fsatuan" x-text="u"></option>
+                                                                </template>
+                                                            </select>
+                                                        </template>
+                                                        <template x-if="!(it.units && it.units.length > 1)">
+                                                            <div class="px-2 py-1 text-sm text-gray-650 bg-gray-50 border rounded" x-text="it.fsatuan || '-'"></div>
+                                                        </template>
                                                     </td>
                                                     <td class="p-2 text-right">
                                                         <input type="number"
-                                                            class="w-full border rounded px-2 py-1 text-right text-sm"
+                                                            class="w-full border rounded px-2 py-1 text-right text-sm focus:ring-1 focus:ring-blue-500"
                                                             :id="'qty_row_' + i" x-model.number="it.fqty"
                                                             @input="enforceQtyRow(it); onRowUpdated(i)"
                                                             @change="enforceQtyRow(it); onRowUpdated(i)">

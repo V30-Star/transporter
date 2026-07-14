@@ -237,8 +237,18 @@
 
                         {{-- DETAIL ITEM (tabel input) --}}
                         <div class="overflow-auto border rounded">
-                            <table class="min-w-full text-sm">
-                                <thead class="bg-gray-50 border-b border-gray-200">
+                            <table class="min-w-full text-sm balanced-detail-table"
+                                data-skip-auto-detail-style="true">
+                                <colgroup>
+                                    <col style="width:2%;">
+                                    <col style="width:12%;">
+                                    <col style="width:25%;">
+                                    <col style="width:20%;">
+                                    <col style="width:20%;">
+                                    <col style="width:8%;">
+                                    <col style="width:13%;">
+                                </colgroup>
+                                <thead class="bg-gray-100">
                                     <tr>
                                         <th class="p-2 text-left w-10">#</th>
                                         <th class="p-2 text-left w-40">Kode Produk</th>
@@ -246,85 +256,42 @@
                                         <th class="p-2 text-left w-48">Account</th>
                                         <th class="p-2 text-left w-48">Sub Account</th>
                                         <th class="p-2 text-left w-24">Sat</th>
-                                        <th class="p-2 text-right w-36">Qty</th>
+                                        <th class="p-2 text-right w-36 whitespace-nowrap">Qty</th>
                                     </tr>
                                 </thead>
-
                                 <tbody>
                                     <template x-for="(it, i) in savedItems" :key="it.uid">
-                                        <!-- ROW UTAMA -->
-                                        <tr class="border-t align-top">
-                                            <td class="p-2" x-text="i + 1"></td>
-                                            <td class="p-2 font-mono" x-text="it.fitemcode"></td>
-                                            <td class="p-2 text-gray-800" style="width: 20rem; min-width: 20rem;">
-                                                <div class="desc-inline-field">
-                                                    <div class="desc-inline-field__text rounded-l border bg-gray-100 px-2 py-1 text-sm leading-5 text-gray-600 whitespace-normal break-words"
+                                        <tr class="border-t align-top hover:bg-gray-55">
+                                            <td class="p-2 text-gray-400" x-text="i + 1"></td>
+                                            <td class="p-2">
+                                                <div class="px-2 py-1 text-sm text-gray-655 bg-gray-50 border rounded font-mono" x-text="it.fitemcode"></div>
+                                            </td>
+                                            <td class="p-2">
+                                                <div class="flex w-full max-w-full">
+                                                    <div class="min-w-0 flex-1 rounded-l border bg-gray-101 px-2 py-1 text-sm leading-5 text-gray-650 whitespace-normal break-words"
                                                         x-text="it.fitemname"></div>
                                                     <button type="button" @click="openDesc(it)"
-                                                        class="desc-inline-field__button inline-flex items-center border border-l-0 rounded-r px-2 py-1 transition-colors"
-                                                        :class="it.fdesc ?
-                                                            'border-emerald-300 bg-emerald-50 text-emerald-600 hover:bg-emerald-100' :
-                                                            'border-gray-300 bg-white text-gray-500 hover:bg-gray-50'"
+                                                        class="shrink-0 inline-flex items-center border border-l-0 rounded-r bg-slate-50 px-2 py-1 text-slate-700 hover:bg-slate-100 transition-colors border-slate-200"
+                                                        :class="it.fdesc ? 'bg-emerald-100 text-emerald-800 border-emerald-300' : ''"
                                                         title="Deskripsi item">
                                                         <x-heroicon-o-document-text class="h-4 w-4" />
                                                     </button>
                                                 </div>
                                             </td>
-                                            <td class="p-2 text-left">
-                                                <span x-text="it.account_label"></span>
+                                            <td class="p-2">
+                                                <div class="px-2 py-1 text-sm text-gray-655 bg-gray-50 border rounded" x-text="it.account_label"></div>
                                             </td>
-                                            <td class="p-2 text-left">
-                                                <span x-text="it.subaccount_label"></span>
+                                            <td class="p-2">
+                                                <div class="px-2 py-1 text-sm text-gray-655 bg-gray-50 border rounded" x-text="it.subaccount_label"></div>
                                             </td>
-                                            <td class="p-2 text-left" x-text="it.fsatuan"></td>
-                                            <td class="p-2 text-right" x-text="fmt(it.fqty)"></td>
-
-                                            <!-- hidden inputs -->
-                                            <td class="hidden">
-                                                <input type="hidden" name="fitemcode[]" :value="it.fitemcode">
-                                                <input type="hidden" name="fitemname[]" :value="it.fitemname">
-                                                <input type="hidden" name="fsatuan[]" :value="it.fsatuan">
-                                                <input type="hidden" name="frefdtno[]" :value="it.account_code">
-                                                <input type="hidden" name="frefso[]" :value="it.subaccount_code">
-                                                <input type="hidden" name="frefpr[]" :value="it.frefpr">
-                                                <input type="hidden" name="fqty[]" :value="it.fqty">
-                                                <input type="hidden" name="fdesc[]" :value="it.fdesc">
-                                                <input type="hidden" name="fketdt[]" :value="it.fketdt">
+                                            <td class="p-2">
+                                                <div class="px-2 py-1 text-sm text-gray-655 bg-gray-50 border rounded" x-text="it.fsatuan"></div>
                                             </td>
-                                        </tr>
-
-                                        <tr class="border-b">
-                                            <td class="p-0"></td> <!-- # -->
-                                            <td class="p-0"></td> <!-- Kode -->
-                                            <!-- Deskripsi HANYA di kolom Nama Produk -->
-                                            <!-- Kolom sisanya kosong supaya total 7 kolom -->
-                                            <td class="p-0"></td> <!-- Satuan -->
-                                            <td class="p-0"></td> <!-- Qty -->
-                                            <td class="p-0"></td> <!-- Ket Item -->
-                                            <td class="p-0"></td> <!-- Aksi -->
+                                            <td class="p-2 text-right">
+                                                <div class="px-2 py-1 text-sm text-gray-700 bg-gray-50 border rounded text-right font-medium" x-text="fmt(it.fqty)"></div>
+                                            </td>
                                         </tr>
                                     </template>
-
-                                    <!-- ROW EDIT DESC -->
-                                    <tr x-show="editingIndex !== null" class="bg-amber-50 border-b" x-cloak>
-                                        <td class="p-0"></td>
-                                        <td class="p-0"></td>
-                                        <td class="p-0"></td>
-                                        <td class="p-0"></td>
-                                        <td class="p-0"></td>
-                                        <td class="p-0"></td>
-                                        <td class="p-0"></td>
-                                    </tr>
-
-                                    <!-- ROW DRAFT DESC -->
-                                    <tr class="bg-green-50 border-b">
-                                        <td class="p-0"></td>
-                                        <td class="p-0"></td>
-                                        <td class="p-0"></td>
-                                        <td class="p-0"></td>
-                                        <td class="p-0"></td>
-                                        <td class="p-0"></td>
-                                    </tr>
                                 </tbody>
                             </table>
                         </div>

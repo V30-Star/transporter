@@ -74,39 +74,58 @@
                 </div>
             </div>
 
-            <div class="overflow-auto border border-gray-200 rounded-lg">
-                <table class="pr-detail-table min-w-full text-sm">
-                    <thead class="bg-gray-50 border-b border-gray-200">
+            <div class="overflow-auto border rounded">
+                <table class="pr-detail-table min-w-full text-sm balanced-detail-table"
+                    data-skip-auto-detail-style="true">
+                    <colgroup>
+                        <col style="width:2%;">
+                        <col style="width:12%;">
+                        <col style="width:23%;">
+                        <col style="width:18%;">
+                        <col style="width:12%;">
+                        <col style="width:8%;">
+                        <col style="width:15%;">
+                        <col style="width:10%;">
+                    </colgroup>
+                    <thead class="bg-gray-100">
                         <tr>
-                            <th class="p-2 text-left text-xs font-semibold text-gray-500 uppercase w-12">#</th>
-                            <th class="p-2 text-left text-xs font-semibold text-gray-500 uppercase w-44">Kode Account</th>
-                            <th class="p-2 text-left text-xs font-semibold text-gray-500 uppercase w-56">Nama Account</th>
-                            <th class="p-2 text-left text-xs font-semibold text-gray-500 uppercase w-56">Sub Account</th>
-                            <th class="p-2 text-left text-xs font-semibold text-gray-500 uppercase w-48">Ref No</th>
-                            <th class="p-2 text-left text-xs font-semibold text-gray-500 uppercase w-20">D/K</th>
-                            <th class="p-2 text-left text-xs font-semibold text-gray-500 uppercase w-[28rem]">Keterangan</th>
-                            <th class="p-2 text-right text-xs font-semibold text-gray-500 uppercase w-44">Jumlah</th>
+                            <th class="p-2 text-left w-12">#</th>
+                            <th class="p-2 text-left w-44">Kode Account</th>
+                            <th class="p-2 text-left w-56">Nama Account</th>
+                            <th class="p-2 text-left w-56">Sub Account</th>
+                            <th class="p-2 text-left w-48">Ref No</th>
+                            <th class="p-2 text-left w-20">D/K</th>
+                            <th class="p-2 text-left w-[28rem]">Keterangan</th>
+                            <th class="p-2 text-right w-44 whitespace-nowrap">Jumlah</th>
                         </tr>
                     </thead>
                     <tbody>
                         @forelse ($savedItems as $index => $item)
-                            <tr class="border-t border-gray-150 align-top">
-                                <td class="p-2 text-gray-500">{{ $index + 1 }}</td>
-                                <td class="p-2 text-gray-700 font-mono">{{ $item['faccount'] ?: '-' }}</td>
+                            <tr class="border-t align-top hover:bg-gray-55">
+                                <td class="p-2 text-gray-400">{{ $index + 1 }}</td>
                                 <td class="p-2">
-                                    <div class="font-medium text-gray-800">{{ $item['faccname'] ?: '-' }}</div>
+                                    <div class="px-2 py-1 text-sm text-gray-655 bg-gray-50 border rounded font-mono">{{ $item['faccount'] ?: '-' }}</div>
                                 </td>
-                                <td class="p-2 text-gray-700">{{ $item['fsubaccountname'] ?: '-' }}</td>
-                                <td class="p-2 text-gray-600">{{ $item['frefno'] ?: '-' }}</td>
                                 <td class="p-2">
-                                    <span
-                                        class="px-2 py-0.5 rounded text-xs font-semibold {{ ($item['fdk'] ?? '') === 'D' ? 'bg-blue-100 text-blue-700' : 'bg-green-100 text-green-700' }}">
+                                    <div class="px-2 py-1 text-sm text-gray-655 bg-gray-50 border rounded">{{ $item['faccname'] ?: '-' }}</div>
+                                </td>
+                                <td class="p-2">
+                                    <div class="px-2 py-1 text-sm text-gray-655 bg-gray-50 border rounded">{{ $item['fsubaccountname'] ?: '-' }}</div>
+                                </td>
+                                <td class="p-2">
+                                    <div class="px-2 py-1 text-sm text-gray-650 bg-gray-50 border rounded">{{ $item['frefno'] ?: '-' }}</div>
+                                </td>
+                                <td class="p-2 text-center">
+                                    <div class="px-2 py-1 text-sm text-center border rounded font-medium {{ ($item['fdk'] ?? '') === 'D' ? 'bg-blue-50 text-blue-700 border-blue-200' : 'bg-green-50 text-green-700 border-green-200' }}">
                                         {{ ($item['fdk'] ?? '') === 'D' ? 'Debit' : 'Kredit' }}
-                                    </span>
+                                    </div>
                                 </td>
-                                <td class="p-2 text-gray-700">{{ $item['faccountnote'] ?: '-' }}</td>
-                                <td class="p-2 text-right font-medium">
-                                    {{ number_format((float) ($item['famount'] ?? 0), 2, ',', '.') }}</td>
+                                <td class="p-2">
+                                    <div class="px-2 py-1 text-sm text-gray-655 bg-gray-50 border rounded">{{ $item['faccountnote'] ?: '-' }}</div>
+                                </td>
+                                <td class="p-2 text-right">
+                                    <div class="px-2 py-1 text-sm text-gray-700 bg-gray-50 border rounded text-right font-medium">{{ number_format((float) ($item['famount'] ?? 0), 2, ',', '.') }}</div>
+                                </td>
                             </tr>
                         @empty
                             <tr>
