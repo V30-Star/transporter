@@ -169,7 +169,7 @@
                                 @php
                                     $actualCount = count($detailRows);
                                     $placeholderCount = max(0, 5 - $actualCount);
-                                </php>
+                                @endphp
                                 @foreach ($detailRows as $index => $row)
                                     <tr class="border-t align-middle bg-white hover:bg-gray-50" data-ref="{{ $row['frefsono'] }}">
                                         <td class="p-2 text-gray-400 row-number">{{ $index + 1 }}</td>
@@ -265,10 +265,14 @@
                     @endif
 
                     <div class="flex justify-end mt-4">
-                        <div class="border border-gray-200 rounded-xl p-4 w-80 bg-gray-50/50 shadow-sm">
-                            <div class="flex justify-between items-center font-bold text-gray-800">
-                                <span class="text-sm">Total Tagihan:</span>
-                                <span id="total-tagihan-value" class="text-lg font-mono text-blue-600">{{ number_format($header->famounttagihan ?? 0, 2, ',', '.') }}</span>
+                        <div class="w-[560px] shrink-0 max-w-full">
+                            <div class="rounded-lg border bg-gray-50 p-4 space-y-3 text-sm">
+                                <div class="flex items-center justify-between text-base">
+                                    <span class="font-extrabold text-gray-900">Total Tagihan</span>
+                                    <span id="total-tagihan-value" class="font-extrabold text-blue-700 text-lg">
+                                        {{ number_format($header->famounttagihan ?? 0, 2, ',', '.') }}
+                                    </span>
+                                </div>
                             </div>
                         </div>
                     </div>
