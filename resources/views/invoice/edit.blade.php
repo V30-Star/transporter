@@ -498,9 +498,6 @@
                 <div class="p-4">
                     <div x-data="itemsTable()" x-init="init()" class="space-y-2">
 
-                        {{-- DETAIL ITEM (tabel input) --}}
-                        <h3 class="text-base font-semibold text-gray-800">Detail Item</h3>
-
                         <div class="overflow-auto border rounded">
                             <table class="invoice-detail-table min-w-full text-sm">
                                 <thead class="bg-gray-100">
@@ -1265,9 +1262,6 @@
                     </div>
                     <div class="p-4">
                         <div x-data="itemsTable()" x-init="init()" class="space-y-2">
-
-                                {{-- DETAIL ITEM (tabel input) --}}
-                                <h3 class="text-base font-semibold text-gray-800">Detail Item</h3>
 
                                 <div class="overflow-auto border rounded">
                                     <table class="invoice-detail-table min-w-full text-sm balanced-detail-table"
