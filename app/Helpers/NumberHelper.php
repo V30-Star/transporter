@@ -18,6 +18,21 @@ if (!function_exists('format_currency')) {
   }
 }
 
+if (!function_exists('stock_boleh_minus')) {
+  function stock_boleh_minus(): bool
+  {
+    static $allow = null;
+
+    if ($allow !== null) {
+      return $allow;
+    }
+
+    $allow = trim((string) \Illuminate\Support\Facades\DB::table('setini')->value('fstokbolehminus')) === '1';
+
+    return $allow;
+  }
+}
+
 if (!function_exists('terbilang')) {
   function terbilang($number)
   {

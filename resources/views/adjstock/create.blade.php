@@ -1256,7 +1256,7 @@
 
             recalc(row) {
                 this.$nextTick(() => {
-                    row.fqty = @json((string) env('STOCKBOLEHMINUS', '0') === '1') ? (Number(row.fqty) || 0) : Math.max(0, Number(row
+                    row.fqty = @json(stock_boleh_minus()) ? (Number(row.fqty) || 0) : Math.max(0, Number(row
                         .fqty) || 0);
                     row.fterima = Math.max(0, Number(row.fterima) || 0);
                     row.fprice = Math.max(0, Number(row.fprice) || 0);
@@ -1316,7 +1316,7 @@
             },
 
             isRowSavable(row) {
-                return !!(row && row.fitemcode && row.fitemname && row.fsatuan && (@json((string) env('STOCKBOLEHMINUS', '0') === '1') ? Number(row.fqty) !== 0 : Number(row.fqty) > 0));
+                return !!(row && row.fitemcode && row.fitemname && row.fsatuan && (@json(stock_boleh_minus()) ? Number(row.fqty) !== 0 : Number(row.fqty) > 0));
             },
 
             ensureMinimumRows() {
@@ -1346,7 +1346,7 @@
             },
 
             isComplete(row) {
-                return row.fitemcode && row.fitemname && row.fsatuan && (@json((string) env('STOCKBOLEHMINUS', '0') === '1') ? Number(row
+                return row.fitemcode && row.fitemname && row.fsatuan && (@json(stock_boleh_minus()) ? Number(row
                     .fqty) !== 0 : Number(row.fqty) > 0);
             },
 
@@ -1374,7 +1374,7 @@
                         fsatuan: src.fsatuan ?? '',
                         frefpr: src.frefpr ?? (header?.fpono ?? ''),
                         fqty: (src.fqty !== null && src.fqty !== undefined && (
-                            @json((string) env('STOCKBOLEHMINUS', '0') === '1') ? Number(src.fqty) !== 0 : Number(src
+                            @json(stock_boleh_minus()) ? Number(src.fqty) !== 0 : Number(src
                             .fqty) > 0)) ? Number(src.fqty) : 1,
                         fprice: Number(src.fprice ?? 0),
                         ftotal: Number(src.ftotal ?? 0),
@@ -1565,7 +1565,7 @@
                         ...this.rows[this.browseTarget]
                     });
 
-                        if (!row.fqty) row.fqty = @json((string) env('STOCKBOLEHMINUS', '0') === '1') ? 1 : 0;
+                        if (!row.fqty) row.fqty = @json(stock_boleh_minus()) ? 1 : 0;
                         this.recalc(row);
                     };
 
@@ -1653,7 +1653,7 @@
 
             recalc(row) {
                 this.$nextTick(() => {
-                    row.fqty = @json((string) env('STOCKBOLEHMINUS', '0') === '1') ? (Number(row.fqty) || 0) : Math.max(0, Number(row
+                    row.fqty = @json(stock_boleh_minus()) ? (Number(row.fqty) || 0) : Math.max(0, Number(row
                         .fqty) || 0);
                     row.fterima = Math.max(0, Number(row.fterima) || 0);
                     row.fprice = Math.max(0, Number(row.fprice) || 0);
@@ -1712,7 +1712,7 @@
             },
 
             isRowSavable(row) {
-                return !!(row && row.fitemcode && row.fitemname && row.fsatuan && (@json((string) env('STOCKBOLEHMINUS', '0') === '1') ? Number(row.fqty) !== 0 : Number(row.fqty) > 0));
+                return !!(row && row.fitemcode && row.fitemname && row.fsatuan && (@json(stock_boleh_minus()) ? Number(row.fqty) !== 0 : Number(row.fqty) > 0));
             },
 
             ensureMinimumRows() {
@@ -1742,7 +1742,7 @@
             },
 
             isComplete(row) {
-                return row.fitemcode && row.fitemname && row.fsatuan && (@json((string) env('STOCKBOLEHMINUS', '0') === '1') ? Number(row
+                return row.fitemcode && row.fitemname && row.fsatuan && (@json(stock_boleh_minus()) ? Number(row
                     .fqty) !== 0 : Number(row.fqty) > 0);
             },
 
@@ -1770,7 +1770,7 @@
                         fsatuan: src.fsatuan ?? '',
                         frefpr: src.frefpr ?? (header?.fpono ?? ''),
                         fqty: (src.fqty !== null && src.fqty !== undefined && (
-                            @json((string) env('STOCKBOLEHMINUS', '0') === '1') ? Number(src.fqty) !== 0 : Number(src
+                            @json(stock_boleh_minus()) ? Number(src.fqty) !== 0 : Number(src
                             .fqty) > 0)) ? Number(src.fqty) : 1,
                         fdesc: src.fdesc ?? '',
                         fketdt: src.fketdt ?? '',
@@ -1954,7 +1954,7 @@
                         ...this.rows[this.browseTarget]
                     });
 
-                        if (!row.fqty) row.fqty = @json((string) env('STOCKBOLEHMINUS', '0') === '1') ? 1 : 0;
+                        if (!row.fqty) row.fqty = @json(stock_boleh_minus()) ? 1 : 0;
                         this.recalc(row);
                     };
 

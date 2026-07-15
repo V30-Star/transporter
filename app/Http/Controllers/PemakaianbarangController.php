@@ -421,7 +421,7 @@ class PemakaianbarangController extends Controller
 
     public function store(Request $request)
     {
-        $allowNegativeStockQty = (string) env('STOCKBOLEHMINUS', '0') === '1';
+        $allowNegativeStockQty = stock_boleh_minus();
         // =========================
         // 1) VALIDASI INPUT
         // =========================
@@ -963,7 +963,7 @@ class PemakaianbarangController extends Controller
 
     public function update(Request $request, $fstockmtid)
     {
-        $allowNegativeStockQty = (string) env('STOCKBOLEHMINUS', '0') === '1';
+        $allowNegativeStockQty = stock_boleh_minus();
         // =========================
         // 1) VALIDASI INPUT
         // =========================

@@ -196,7 +196,7 @@ abstract class Controller
 
     protected function stockMinusAllowsForce(): bool
     {
-        return trim((string) env('STOKBOLEHMINUS', '0')) === '1';
+        return stock_boleh_minus();
     }
 
     protected function validateStockMinusLines(array $lines, bool $forceSave = false)
