@@ -256,6 +256,15 @@ Route::middleware('auth')->group(function () {
         Route::patch('/jurnalpembelian/{fcurrid}', [JurnalTransaksiController::class, 'update'])->name('jurnalpembelian.update');
         Route::delete('/jurnalpembelian/{fcurrid}', [JurnalTransaksiController::class, 'destroy'])->name('jurnalpembelian.destroy');
 
+        Route::get('/jurnalpenjualan', fn () => redirect()->route('jurnaltransaksi.index', ['journal_type' => 'SLS']))->name('jurnalpenjualan.index');
+        Route::post('/jurnalpenjualan', [JurnalTransaksiController::class, 'store'])->name('jurnalpenjualan.store');
+        Route::get('/jurnalpenjualan/create', fn () => redirect()->route('jurnaltransaksi.create', ['journal_type' => 'SLS']))->name('jurnalpenjualan.create');
+        Route::get('/jurnalpenjualan/{fcurrid}/view', fn ($fcurrid) => redirect()->route('jurnaltransaksi.view', ['fcurrid' => $fcurrid, 'journal_type' => 'SLS']))->name('jurnalpenjualan.view');
+        Route::get('/jurnalpenjualan/{fcurrid}/edit', fn ($fcurrid) => redirect()->route('jurnaltransaksi.edit', ['fcurrid' => $fcurrid, 'journal_type' => 'SLS']))->name('jurnalpenjualan.edit');
+        Route::get('/jurnalpenjualan/{fcurrid}/delete', fn ($fcurrid) => redirect()->route('jurnaltransaksi.delete', ['fcurrid' => $fcurrid, 'journal_type' => 'SLS']))->name('jurnalpenjualan.delete');
+        Route::patch('/jurnalpenjualan/{fcurrid}', [JurnalTransaksiController::class, 'update'])->name('jurnalpenjualan.update');
+        Route::delete('/jurnalpenjualan/{fcurrid}', [JurnalTransaksiController::class, 'destroy'])->name('jurnalpenjualan.destroy');
+
         Route::get('/pengeluarankas', [PengeluaranKasController::class, 'index'])->name('pengeluarankas.index');
         Route::post('/pengeluarankas', [PengeluaranKasController::class, 'store'])->name('pengeluarankas.store');
         Route::get('/pengeluarankas/create', [PengeluaranKasController::class, 'create'])->name('pengeluarankas.create');

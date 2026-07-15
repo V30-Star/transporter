@@ -18,6 +18,7 @@ class JurnalTransaksiController extends Controller
 {
     private const GENERAL_JOURNAL_TYPE = 'SJU';
     private const PURCHASE_JOURNAL_TYPE = 'JBL';
+    private const SALES_JOURNAL_TYPE = 'SLS';
     private const REFERENCE_ALLOWED_ACCOUNT_NAMES = [
         'HUTANGDAGANG',
         'PIUTANGDAGANG',
@@ -80,19 +81,68 @@ class JurnalTransaksiController extends Controller
     {
         $type = strtoupper(trim((string) $journalType));
         $isPurchaseJournal = $type === self::PURCHASE_JOURNAL_TYPE;
+        $isSalesJournal = $type === self::SALES_JOURNAL_TYPE;
 
         return [
             'journalType' => $type,
             'isPurchaseJournal' => $isPurchaseJournal,
-            'pageTitle' => $isPurchaseJournal ? 'Jurnal Faktur Pembelian' : 'Jurnal Transaksi',
+            'isSalesJournal' => $isSalesJournal,
+            'pageTitle' => $this->resolveJournalTitle($type),
         ];
+    }
+
+    private function resolveJournalTitle(?string $journalType = null, string $action = ''): string
+    {
+        $type = strtoupper(trim((string) $journalType));
+        $prefix = trim($action) !== '' ? trim($action).' ' : '';
+
+        return match ($type) {
+            self::PURCHASE_JOURNAL_TYPE => $prefix.'Jurnal Faktur Pembelian',
+            self::SALES_JOURNAL_TYPE => $prefix.'Jurnal Penjualan',
+            default => $prefix.'Jurnal Transaksi',
+        };
+    }
+
+    private function resolveJournalSuccessName(?string $journalType = null): string
+    {
+        return match (strtoupper(trim((string) $journalType))) {
+            self::PURCHASE_JOURNAL_TYPE => 'jurnal faktur pembelian',
+            self::SALES_JOURNAL_TYPE => 'jurnal penjualan',
+            default => 'jurnal transaksi',
+        };
     }
 
     private function resolveJournalIndexRouteParams(?string $journalType = null): array
     {
-        return strtoupper(trim((string) $journalType)) === self::PURCHASE_JOURNAL_TYPE
-            ? ['journal_type' => self::PURCHASE_JOURNAL_TYPE]
+        $type = strtoupper(trim((string) $journalType));
+
+        return in_array($type, [self::PURCHASE_JOURNAL_TYPE, self::SALES_JOURNAL_TYPE], true)
+            ? ['journal_type' => $type]
             : [];
+    }
+
+    private function getJournalTypes()
+    {
+        $defaults = collect([
+            (object) ['fmastercode' => self::GENERAL_JOURNAL_TYPE, 'fmastername' => 'Jurnal Umum'],
+            (object) ['fmastercode' => self::PURCHASE_JOURNAL_TYPE, 'fmastername' => 'Jurnal Pembelian'],
+            (object) ['fmastercode' => self::SALES_JOURNAL_TYPE, 'fmastername' => 'Jurnal Penjualan'],
+        ]);
+
+        $configured = DB::table('tbmaster')
+            ->whereRaw('TRIM(ftblcode) = ?', ['JURNAL'])
+            ->orderBy('fmastercode')
+            ->get()
+            ->map(function ($item) {
+                $item->fmastercode = trim($item->fmastercode);
+                $item->fmastername = trim($item->fmastername);
+                return $item;
+            });
+
+        return $defaults
+            ->merge($configured)
+            ->unique('fmastercode')
+            ->values();
     }
 
     public function index(Request $request)
@@ -458,7 +508,7 @@ class JurnalTransaksiController extends Controller
 
         $requestedJournalType = strtoupper(trim((string) request()->query('journal_type', '')));
         $pageMeta = $this->resolveJournalPageMeta($requestedJournalType);
-        $fixedJournalType = $pageMeta['isPurchaseJournal'] ? self::PURCHASE_JOURNAL_TYPE : null;
+        $fixedJournalType = null;
         $newtr_prh_code = $this->generatetr_poh_Code(now(), $fbranchcode);
 
         $products = Product::select(
@@ -473,15 +523,7 @@ class JurnalTransaksiController extends Controller
 
         $referenceAllowedAccountCodes = $this->resolveReferenceAllowedAccountCodes();
 
-        $journalTypes = DB::table('tbmaster')
-            ->whereRaw('TRIM(ftblcode) = ?', ['JURNAL'])
-            ->orderBy('fmastercode')
-            ->get()
-            ->map(function ($item) {
-                $item->fmastercode = trim($item->fmastercode);
-                $item->fmastername = trim($item->fmastername);
-                return $item;
-            });
+        $journalTypes = $this->getJournalTypes();
 
         return view('jurnaltransaksi.create', [
             'newtr_prh_code' => $newtr_prh_code,
@@ -783,7 +825,7 @@ class JurnalTransaksiController extends Controller
                 ['fcurrid' => $newJurnalMtId],
                 $this->resolveJournalIndexRouteParams($fjurnaltype)
             ))
-            ->with('success', $fjurnaltype === self::PURCHASE_JOURNAL_TYPE ? 'Jurnal faktur pembelian berhasil disimpan.' : 'Jurnal transaksi berhasil disimpan.')
+            ->with('success', ucfirst($this->resolveJournalSuccessName($fjurnaltype)).' berhasil disimpan.')
             ->with('success_prompt', [
                 'type'         => 'jurnaltransaksi_create',
                 'redirect_url' => $printUrl,
@@ -838,15 +880,7 @@ class JurnalTransaksiController extends Controller
         $referenceAllowedAccountCodes = $this->resolveReferenceAllowedAccountCodes();
         $indexUrl = route('jurnaltransaksi.index', $this->resolveJournalIndexRouteParams($jurnaltransaksi->fjurnaltype));
 
-        $journalTypes = DB::table('tbmaster')
-            ->whereRaw('TRIM(ftblcode) = ?', ['JURNAL'])
-            ->orderBy('fmastercode')
-            ->get()
-            ->map(function ($item) {
-                $item->fmastercode = trim($item->fmastercode);
-                $item->fmastername = trim($item->fmastername);
-                return $item;
-            });
+        $journalTypes = $this->getJournalTypes();
 
         return view('jurnaltransaksi.edit', [
             'supplier' => $supplier,
@@ -866,8 +900,8 @@ class JurnalTransaksiController extends Controller
             'famountponet' => 0,
             'famountpo' => 0,
             'action' => 'edit',
-            'pageTitle' => $jurnaltransaksi->fjurnaltype === self::PURCHASE_JOURNAL_TYPE ? 'Edit Jurnal Faktur Pembelian' : 'Edit Jurnal Transaksi',
-            'lockJournalType' => $jurnaltransaksi->fjurnaltype === self::PURCHASE_JOURNAL_TYPE,
+            'pageTitle' => $this->resolveJournalTitle($jurnaltransaksi->fjurnaltype, 'Edit'),
+            'lockJournalType' => false,
             'journalTypes' => $journalTypes,
             'indexUrl' => $indexUrl,
         ]);
@@ -918,15 +952,7 @@ class JurnalTransaksiController extends Controller
         $referenceAllowedAccountCodes = $this->resolveReferenceAllowedAccountCodes();
         $indexUrl = route('jurnaltransaksi.index', $this->resolveJournalIndexRouteParams($jurnaltransaksi->fjurnaltype));
 
-        $journalTypes = DB::table('tbmaster')
-            ->whereRaw('TRIM(ftblcode) = ?', ['JURNAL'])
-            ->orderBy('fmastercode')
-            ->get()
-            ->map(function ($item) {
-                $item->fmastercode = trim($item->fmastercode);
-                $item->fmastername = trim($item->fmastername);
-                return $item;
-            });
+        $journalTypes = $this->getJournalTypes();
 
         $currentType = trim($jurnaltransaksi->fjurnaltype);
         $hasCurrentType = $journalTypes->contains(function ($item) use ($currentType) {
@@ -936,7 +962,11 @@ class JurnalTransaksiController extends Controller
         if (!$hasCurrentType && $currentType !== '') {
             $journalTypes->push((object)[
                 'fmastercode' => $currentType,
-                'fmastername' => $currentType === self::PURCHASE_JOURNAL_TYPE ? 'JURNAL PEMBELIAN (JBL)' : $currentType,
+                'fmastername' => match ($currentType) {
+                    self::PURCHASE_JOURNAL_TYPE => 'JURNAL PEMBELIAN (JBL)',
+                    self::SALES_JOURNAL_TYPE => 'JURNAL PENJUALAN (SLS)',
+                    default => $currentType,
+                },
             ]);
         }
 
@@ -958,7 +988,7 @@ class JurnalTransaksiController extends Controller
             'famountponet' => 0,
             'famountpo' => 0,
             'journalTypes' => $journalTypes,
-            'pageTitle' => $jurnaltransaksi->fjurnaltype === self::PURCHASE_JOURNAL_TYPE ? 'View Jurnal Faktur Pembelian' : 'View Jurnal Transaksi',
+            'pageTitle' => $this->resolveJournalTitle($jurnaltransaksi->fjurnaltype, 'View'),
             'indexUrl' => $indexUrl,
         ]);
     }
@@ -1014,9 +1044,7 @@ class JurnalTransaksiController extends Controller
 
         $fjurnaldate = Carbon::parse($request->fjurnaldate)->startOfDay();
         $this->ensureCreateDateWithinEditPeriod($fjurnaldate, $header->fjurnaldate);
-        $fjurnaltype = $header->fjurnaltype === self::PURCHASE_JOURNAL_TYPE
-            ? self::PURCHASE_JOURNAL_TYPE
-            : strtoupper(trim((string) $request->input('fjurnaltype', 'SJU')));
+        $fjurnaltype = strtoupper(trim((string) $request->input('fjurnaltype', 'SJU')));
         $fjurnalnote = trim((string) $request->input('fjurnalnote', ''));
         $fbranchcode = $request->input('fbranchcode');
         $now = now();
@@ -1181,7 +1209,7 @@ class JurnalTransaksiController extends Controller
                 ['fcurrid' => $fstockmtid],
                 $this->resolveJournalIndexRouteParams($fjurnaltype)
             ))
-            ->with('success', $fjurnaltype === self::PURCHASE_JOURNAL_TYPE ? 'Jurnal faktur pembelian ' . trim((string) $header->fjurnalno) . ' berhasil diupdate.' : 'Jurnal transaksi ' . trim((string) $header->fjurnalno) . ' berhasil diupdate.');
+            ->with('success', ucfirst($this->resolveJournalSuccessName($fjurnaltype)) . ' ' . trim((string) $header->fjurnalno) . ' berhasil diupdate.');
     }
 
     public function delete($fstockmtid)
@@ -1246,7 +1274,7 @@ class JurnalTransaksiController extends Controller
             'famountponet' => 0,
             'famountpo' => 0,
             'action' => 'delete',
-            'pageTitle' => $jurnaltransaksi->fjurnaltype === self::PURCHASE_JOURNAL_TYPE ? 'Hapus Jurnal Faktur Pembelian' : 'Hapus Jurnal Transaksi',
+            'pageTitle' => $this->resolveJournalTitle($jurnaltransaksi->fjurnaltype, 'Hapus'),
             'lockJournalType' => true,
             'indexUrl' => route('jurnaltransaksi.index', $this->resolveJournalIndexRouteParams($jurnaltransaksi->fjurnaltype)),
         ]);
@@ -1273,7 +1301,7 @@ class JurnalTransaksiController extends Controller
             });
 
             $redirectUrl = route('jurnaltransaksi.index', $this->resolveJournalIndexRouteParams($jurnaltransaksi->fjurnaltype ?? null));
-            $message = (($jurnaltransaksi->fjurnaltype ?? null) === self::PURCHASE_JOURNAL_TYPE ? 'Data jurnal faktur pembelian ' : 'Data jurnal transaksi ').trim((string) $jurnaltransaksi->fjurnalno).' berhasil dihapus.';
+            $message = 'Data '.$this->resolveJournalSuccessName($jurnaltransaksi->fjurnaltype ?? null).' '.trim((string) $jurnaltransaksi->fjurnalno).' berhasil dihapus.';
 
             if (request()->expectsJson()) {
                 return response()->json([

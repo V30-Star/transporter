@@ -69,14 +69,13 @@
                                 class="w-full border-gray-300 rounded-lg px-3 py-2 bg-gray-100 cursor-not-allowed" disabled>
                             <input type="hidden" name="fjurnaltype" value="{{ $fixedJournalType }}">
                         @else
-                            <select class="w-full border-gray-300 rounded-lg px-3 py-2 bg-gray-100 cursor-not-allowed" disabled>
+                            <select name="fjurnaltype" class="w-full border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
                                 @foreach ($journalTypes as $type)
                                     <option value="{{ $type->fmastercode }}" @selected(old('fjurnaltype', ($journalType ?: 'SJU')) === $type->fmastercode)>
                                         {{ $type->fmastercode }} - {{ $type->fmastername }}
                                     </option>
                                 @endforeach
                             </select>
-                            <input type="hidden" name="fjurnaltype" value="{{ old('fjurnaltype', ($journalType ?: 'SJU')) }}">
                         @endif
                     </div>
 

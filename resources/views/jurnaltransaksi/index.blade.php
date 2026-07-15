@@ -1,11 +1,6 @@
 @extends('layouts.app')
 
-@section('title',
-    $pageMeta['pageTitle'] ??
-    (($journalType ?? '') === 'JBL'
-    ? 'Jurnal Faktur Pembelian'
-    : 'Jurnal
-    Transaksi'))
+@section('title', $pageMeta['pageTitle'] ?? 'Jurnal Transaksi')
 
 @section('content')
     <div x-data="{
@@ -27,7 +22,7 @@
             <div></div>
 
             @if ($canCreate)
-                <a href="{{ ($journalType ?? '') === 'JBL' ? route('jurnaltransaksi.create', ['journal_type' => 'JBL']) : route('jurnaltransaksi.create') }}"
+                <a href="{{ !empty($journalType) ? route('jurnaltransaksi.create', ['journal_type' => $journalType]) : route('jurnaltransaksi.create') }}"
                     class="inline-flex items-center bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
                     <x-heroicon-o-plus class="w-4 h-4 mr-1" /> Tambah Baru
                 </a>
