@@ -227,7 +227,7 @@
                     <div class="grid grid-cols-3 gap-3">
                         {{-- Cabang --}}
                         <div>
-                            <label class="block text-xs font-bold text-gray-600 mb-1">Cabang</label>
+                            <label class="block text-xs font-bold mb-1">Cabang</label>
                             <input type="text"
                                 class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm bg-gray-100 text-gray-500 cursor-not-allowed border-gray-200"
                                 value="{{ trim(($fbranchcode ?? '') . ($fcabang ?? '' ? ' - ' . $fcabang : '')) }}"
@@ -237,7 +237,7 @@
 
                         {{-- SO# --}}
                         <div x-data="{ autoCode: true }">
-                            <label class="block text-xs font-bold text-gray-600 mb-1">SO#</label>
+                            <label class="block text-xs font-bold mb-1">SO#</label>
                             <div class="flex items-center gap-2">
                                 <input type="text" name="fsono"
                                     class="flex-1 border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
@@ -256,7 +256,7 @@
 
                         {{-- Tanggal --}}
                         <div>
-                            <label class="block text-xs font-bold text-gray-600 mb-1">Tanggal <span
+                            <label class="block text-xs font-bold mb-1">Tanggal <span
                                     class="text-red-500">*</span></label>
                             <input type="date" name="fsodate" value="{{ old('fsodate') ?? date('Y-m-d') }}"
                                 class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 @error('fsodate') border-red-400 @enderror">
@@ -269,7 +269,7 @@
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
                         {{-- Customer --}}
                         <div>
-                            <label class="block text-xs font-bold text-gray-600 mb-1">Customer <span
+                            <label class="block text-xs font-bold mb-1">Customer <span
                                     class="text-red-500">*</span></label>
                             <div class="flex">
                                 <div class="relative flex-1" for="modal_filter_customer_id">
@@ -313,7 +313,7 @@
 
                         {{-- Salesman --}}
                         <div>
-                            <label class="block text-xs font-bold text-gray-600 mb-1">Salesman</label>
+                            <label class="block text-xs font-bold mb-1">Salesman</label>
                             <div class="flex">
                                 <div class="relative flex-1" for="modal_filter_salesman_id">
                                     <select id="modal_filter_salesman_id" name="filter_salesman_id"
@@ -355,7 +355,7 @@
                         {{-- Tempo & Ref.PO --}}
                         <div class="grid grid-cols-2 gap-3">
                             <div>
-                                <label class="block text-xs font-bold text-gray-600 mb-1">Tempo</label>
+                                <label class="block text-xs font-bold mb-1">Tempo</label>
                                 <div class="flex items-center">
                                     <input type="number" id="ftempohr" name="ftempohr"
                                         value="{{ old('ftempohr', 0) }}"
@@ -368,7 +368,7 @@
                             </div>
 
                             <div>
-                                <label class="block text-xs font-bold text-gray-600 mb-1">Ref.PO</label>
+                                <label class="block text-xs font-bold mb-1">Ref.PO</label>
                                 <input type="text" name="frefpo" value="{{ old('frefpo') }}"
                                     class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 @error('frefpo') border-red-400 @enderror"
                                     placeholder="PO Customer">
@@ -403,7 +403,7 @@
                                 value="{{ old('falamatkirim') }}">
 
                             <div class="flex items-center gap-2">
-                                <label class="text-xs font-bold text-gray-600 mr-2">Kirim ke :</label>
+                                <label class="text-xs font-bold mr-2">Kirim ke :</label>
 
                                 <div class="inline-flex rounded-md shadow-sm" role="group">
                                     <button type="button" @click="tab = 1"
@@ -444,7 +444,7 @@
 
                         {{-- Keterangan --}}
                         <div class="flex flex-col">
-                            <label class="block text-xs font-bold text-gray-600 mb-1">Keterangan</label>
+                            <label class="block text-xs font-bold mb-1">Keterangan</label>
                             <textarea name="fket"
                                 class="w-full p-2 text-sm border border-gray-300 rounded focus:ring-blue-500 focus:border-blue-500 flex-1 min-h-[80px]"
                                 placeholder="Keterangan isi di sini...">{{ old('fket') }}</textarea>
@@ -456,7 +456,7 @@
 
                     {{-- Catatan Internal --}}
                     <div>
-                        <label class="block text-xs font-bold text-gray-600 mb-1">Catatan Internal</label>
+                        <label class="block text-xs font-bold mb-1">Catatan Internal</label>
                         <textarea name="fketinternal" rows="2"
                             class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 @error('fketinternal') border-red-400 @enderror"
                             placeholder="Tulis Catatan Internal tambahan di sini...">{{ old('fketinternal') }}</textarea>

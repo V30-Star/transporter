@@ -288,7 +288,7 @@
                 <div class="p-4">
                                     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                                         <div>
-                                            <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Cabang</label>
+                                            <label class="block text-xs font-semibold uppercase tracking-wider mb-1">Cabang</label>
                                             <input type="text"
                                                 class="w-full border border-gray-200 rounded-lg px-3 py-2 bg-gray-50 text-gray-500 text-sm cursor-not-allowed"
                                                 value="{{ trim(($fbranchcode ?? '') . ($fcabang ?? '' ? ' - ' . $fcabang : '')) }}"
@@ -296,7 +296,7 @@
                                             <input type="hidden" name="fbranchcode" value="{{ $fbranchcode }}">
                                         </div>
                                         <div x-data="{ autoCode: true }">
-                                            <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Transaksi#</label>
+                                            <label class="block text-xs font-semibold uppercase tracking-wider mb-1">Transaksi#</label>
                                             <div class="flex items-center gap-2">
                                                 <input type="text" name="fstockmtno" 
                                                     class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition"
@@ -314,7 +314,7 @@
                                         </div>
 
                                         <div>
-                                            <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Tanggal</label>
+                                            <label class="block text-xs font-semibold uppercase tracking-wider mb-1">Tanggal</label>
                                             <input type="date" name="fstockmtdate" disabled
                                                 value="{{ old('fstockmtdate', !empty($suratjalan->fstockmtdate) ? \Illuminate\Support\Carbon::parse($suratjalan->fstockmtdate)->format('Y-m-d') : date('Y-m-d')) }}"
                                                 class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition @error('fstockmtdate') border-red-500 @enderror">
@@ -324,7 +324,7 @@
                                         </div>
 
                                         <div>
-                                            <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Customer</label>
+                                            <label class="block text-xs font-semibold uppercase tracking-wider mb-1">Customer</label>
                                             <div class="flex rounded-lg shadow-sm">
                                                 <div class="relative flex-1" for="modal_filter_customer_id">
                                                     <select id="modal_filter_customer_id" name="filter_customer_id"
@@ -365,7 +365,7 @@
                                         </div>
 
                                         <div>
-                                            <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Gudang</label>
+                                            <label class="block text-xs font-semibold uppercase tracking-wider mb-1">Gudang</label>
                                             <div class="flex rounded-lg shadow-sm">
                                                 <div class="relative flex-1">
                                                     <select id="warehouseSelect"
@@ -401,7 +401,7 @@
                                         <div></div>
 
                                         <div>
-                                            <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Kirim Ke</label>
+                                            <label class="block text-xs font-semibold uppercase tracking-wider mb-1">Kirim Ke</label>
                                             <textarea name="fkirim" rows="3" readonly
                                                 class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition @error('fkirim') border-red-500 @enderror"
                                                 placeholder="Tulis Kirim Ke di sini...">{{ old('fkirim', $suratjalan->fkirim) }}</textarea>
@@ -411,7 +411,7 @@
                                         </div>
 
                                         <div>
-                                            <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Keterangan</label>
+                                            <label class="block text-xs font-semibold uppercase tracking-wider mb-1">Keterangan</label>
                                             <textarea name="fket" rows="3" readonly
                                                 class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition @error('fket') border-red-500 @enderror"
                                                 placeholder="Tulis keterangan tambahan di sini...">{{ old('fket', $suratjalan->fket) }}</textarea>
@@ -421,7 +421,7 @@
                                         </div>
 
                                         <div>
-                                            <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Catatan Internal</label>
+                                            <label class="block text-xs font-semibold uppercase tracking-wider mb-1">Catatan Internal</label>
                                             <textarea name="fketinternal" id="fketinternal" rows="3" readonly
                                                 class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition @error('fketinternal') border-red-500 @enderror"
                                                 placeholder="Tulis catatan internal di sini...">{{ old('fketinternal', $suratjalan->fketinternal) }}</textarea>
@@ -603,7 +603,7 @@
                                 <div class="p-4">
                                     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                                         <div>
-                                            <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Cabang</label>
+                                            <label class="block text-xs font-semibold  uppercase tracking-wider mb-1">Cabang</label>
                                             <input type="text"
                                                 class="w-full border border-gray-200 rounded-lg px-3 py-2 bg-gray-50 text-gray-500 text-sm cursor-not-allowed"
                                                 value="{{ trim(($fbranchcode ?? '') . ($fcabang ?? '' ? ' - ' . $fcabang : '')) }}"
@@ -611,7 +611,7 @@
                                             <input type="hidden" name="fbranchcode" value="{{ $fbranchcode }}">
                                         </div>
                                         <div x-data="{ autoCode: true }">
-                                            <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Transaksi#</label>
+                                            <label class="block text-xs font-semibold uppercase tracking-wider mb-1">Transaksi#</label>
                                             <div class="flex items-center gap-2">
                                                 <input type="text" name="fstockmtno" 
                                                     class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition"
@@ -629,7 +629,7 @@
                                         </div>
 
                                         <div>
-                                            <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Tanggal</label>
+                                            <label class="block text-xs font-semibold uppercase tracking-wider mb-1">Tanggal</label>
                                             <input type="date" name="fstockmtdate"
                                                 value="{{ old('fstockmtdate', !empty($suratjalan->fstockmtdate) ? \Illuminate\Support\Carbon::parse($suratjalan->fstockmtdate)->format('Y-m-d') : date('Y-m-d')) }}"
                                                 class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition @error('fstockmtdate') border-red-500 @enderror">
@@ -639,7 +639,7 @@
                                         </div>
 
                                         <div>
-                                            <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Customer</label>
+                                            <label class="block text-xs font-semibold uppercase tracking-wider mb-1">Customer</label>
                                             <div class="flex rounded-lg shadow-sm">
                                                 <div class="relative flex-1" for="modal_filter_customer_id">
                                                     <select id="modal_filter_customer_id" name="filter_customer_id"
@@ -680,7 +680,7 @@
                                         </div>
 
                                         <div>
-                                            <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Gudang</label>
+                                            <label class="block text-xs font-semibold uppercase tracking-wider mb-1">Gudang</label>
                                             <div class="flex rounded-lg shadow-sm">
                                                 <div class="relative flex-1">
                                                     <select id="warehouseSelect"
@@ -716,7 +716,7 @@
                                         <div></div>
 
                                         <div>
-                                            <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Kirim Ke</label>
+                                            <label class="block text-xs font-semibold uppercase tracking-wider mb-1">Kirim Ke</label>
                                             <textarea name="fkirim" rows="3"
                                                 class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition @error('fkirim') border-red-500 @enderror"
                                                 placeholder="Tulis Kirim Ke di sini...">{{ old('fkirim', $suratjalan->fkirim) }}</textarea>
@@ -726,7 +726,7 @@
                                         </div>
 
                                         <div>
-                                            <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Keterangan</label>
+                                            <label class="block text-xs font-semibold uppercase tracking-wider mb-1">Keterangan</label>
                                             <textarea name="fket" rows="3"
                                                 class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition @error('fket') border-red-500 @enderror"
                                                 placeholder="Tulis keterangan tambahan di sini...">{{ old('fket', $suratjalan->fket) }}</textarea>

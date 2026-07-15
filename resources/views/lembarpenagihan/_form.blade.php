@@ -40,7 +40,7 @@
                         {{-- No. Tagihan --}}
                         @if ($action === 'create')
                             <div x-data="{ autoCode: true }">
-                                <label class="block text-xs font-bold text-gray-600 mb-1">No. Tagihan</label>
+                                <label class="block text-xs font-bold mb-1">No. Tagihan</label>
                                 <div class="flex items-center gap-2">
                                     <input type="text" name="ftagihanno" value="{{ old('ftagihanno') }}"
                                         :disabled="autoCode"
@@ -56,7 +56,7 @@
                             </div>
                         @else
                             <div>
-                                <label class="block text-xs font-bold text-gray-600 mb-1">No. Tagihan</label>
+                                <label class="block text-xs font-bold mb-1">No. Tagihan</label>
                                 <input type="text" name="ftagihanno" value="{{ old('ftagihanno', $header->ftagihanno ?? $nextNo) }}" readonly
                                     class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm bg-gray-100 text-gray-500 cursor-not-allowed">
                             </div>
@@ -64,7 +64,7 @@
 
                         {{-- Customer --}}
                         <div>
-                            <label class="block text-xs font-bold text-gray-600 mb-1">Customer <span class="text-red-500">*</span></label>
+                            <label class="block text-xs font-bold mb-1">Customer <span class="text-red-500">*</span></label>
                             @if ($isReadOnly)
                                 <input type="text" class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm bg-gray-100 text-gray-500 cursor-not-allowed"
                                     value="{{ $header->fcustno }} - {{ $header->fcustomername ?? '' }}" readonly>
@@ -99,7 +99,7 @@
 
                         {{-- Tanggal --}}
                         <div>
-                            <label class="block text-xs font-bold text-gray-600 mb-1">Tanggal <span class="text-red-500">*</span></label>
+                            <label class="block text-xs font-bold mb-1">Tanggal <span class="text-red-500">*</span></label>
                             <input type="date" name="ftagihandate"
                                 value="{{ old('ftagihandate', isset($header) ? \Carbon\Carbon::parse($header->ftagihandate)->format('Y-m-d') : date('Y-m-d')) }}"
                                 class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 {{ $isReadOnly ? 'bg-gray-100 text-gray-500 border-gray-200 cursor-not-allowed' : '' }}"
@@ -109,7 +109,7 @@
 
                     {{-- Keterangan --}}
                     <div>
-                        <label class="block text-xs font-bold text-gray-600 mb-1">Keterangan</label>
+                        <label class="block text-xs font-bold mb-1">Keterangan</label>
                         <textarea name="fnote" rows="2"
                             class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 {{ $isReadOnly ? 'bg-gray-100 text-gray-500 border-gray-200 cursor-not-allowed' : '' }}"
                             {{ $isReadOnly ? 'readonly' : '' }}

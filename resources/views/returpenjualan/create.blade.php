@@ -238,14 +238,14 @@
                 <div class="p-4">
                     <div class="grid grid-cols-3 gap-3">
                         <div>
-                            <label class="block text-xs font-bold text-gray-600 mb-1">Cabang</label>
+                            <label class="block text-xs font-bold mb-1">Cabang</label>
                             <input type="text" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm bg-gray-100 text-gray-500 cursor-not-allowed border-gray-200"
                                 value="{{ trim($fbranchcode) }}" disabled>
                             <input type="hidden" name="fbranchcode" value="{{ $fbranchcode }}">
                         </div>
 
                         <div x-data="{ autoCode: true }">
-                            <label class="block text-xs font-bold text-gray-600 mb-1">Transaksi#</label>
+                            <label class="block text-xs font-bold mb-1">Transaksi#</label>
                             <div class="flex items-center gap-3">
                                 <input type="text" name="fsono" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
                                     :disabled="autoCode"
@@ -259,7 +259,7 @@
                         </div>
 
                         <div>
-                            <label class="block text-xs font-bold text-gray-600 mb-1">Tanggal</label>
+                            <label class="block text-xs font-bold mb-1">Tanggal</label>
                             <input type="date" id="fsodate" name="fsodate"
                                 value="{{ old('fsodate') ?? date('Y-m-d') }}"
                                 class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 @error('fsodate') border-red-500 @enderror">
@@ -270,7 +270,7 @@
 
                         {{-- Customer --}}
                         <div>
-                            <label class="block text-xs font-bold text-gray-600 mb-1">Customer</label>
+                            <label class="block text-xs font-bold mb-1">Customer</label>
                             <div class="flex">
                                 <div class="relative flex-1" for="modal_filter_customer_id">
                                     <select id="modal_filter_customer_id" name="filter_customer_id"
@@ -309,7 +309,7 @@
 
                         {{-- Salesman --}}
                         <div>
-                            <label class="block text-xs font-bold text-gray-600 mb-1">Salesman</label>
+                            <label class="block text-xs font-bold mb-1">Salesman</label>
                             <div class="flex">
                                 <div class="relative flex-1" for="modal_filter_salesman_id">
                                     <select id="modal_filter_salesman_id" name="filter_salesman_id"
@@ -349,7 +349,7 @@
 
                         {{-- Gudang --}}
                         <div>
-                            <label class="block text-xs font-bold text-gray-600 mb-1">Gudang</label>
+                            <label class="block text-xs font-bold mb-1">Gudang</label>
                             <div class="flex">
                                 <div class="relative flex-1" for="warehouseSelect">
                                     <select id="warehouseSelect" name="filter_warehouse_id"
@@ -383,7 +383,7 @@
                         <input type="hidden" name="ftaxno" value="0">
 
                         <div class="lg:col-span-3">
-                            <label class="block text-xs font-bold text-gray-600 mb-1">Keterangan</label>
+                            <label class="block text-xs font-bold mb-1">Keterangan</label>
                             <textarea name="fket" rows="2"
                                 class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 @error('fket') border-red-500 @enderror"
                                 placeholder="Keterangan isi di sini..."></textarea>
