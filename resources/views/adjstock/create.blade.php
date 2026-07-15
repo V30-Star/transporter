@@ -174,7 +174,7 @@
                         <div class="grid grid-cols-3 gap-3">
                             {{-- Cabang --}}
                             <div>
-                                <label class="block text-xs font-bold text-gray-600 mb-1">Cabang</label>
+                                <label class="block text-xs font-bold mb-1">Cabang</label>
                                 <input type="text" class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm bg-gray-100 text-gray-500 cursor-not-allowed"
                                     value="{{ trim(($fbranchcode ?? '') . ($fcabang ?? '' ? ' - ' . $fcabang : '')) }}" disabled>
                                 <input type="hidden" name="fbranchcode" value="{{ $fbranchcode }}">
@@ -182,7 +182,7 @@
 
                             {{-- Transaksi# --}}
                             <div x-data="{ autoCode: true }">
-                                <label class="block text-xs font-bold text-gray-600 mb-1">Transaksi#</label>
+                                <label class="block text-xs font-bold mb-1">Transaksi#</label>
                                 <div class="flex items-center gap-2">
                                     <input type="text" name="fstockmtno"
                                         class="flex-1 border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
@@ -199,7 +199,7 @@
 
                             {{-- Adj. Type --}}
                             <div>
-                                <label class="block text-xs font-bold text-gray-600 mb-1">Adj. Type</label>
+                                <label class="block text-xs font-bold mb-1">Adj. Type</label>
                                 <select name="ftrancode" x-model="adjtype"
                                     class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 @error('ftrancode') border-red-400 @enderror">
                                     <option value="m">Masuk</option>
@@ -216,7 +216,7 @@
                         <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
                             {{-- Account --}}
                             <div>
-                                <label class="block text-xs font-bold text-gray-600 mb-1">Account <span class="text-red-500">*</span></label>
+                                <label class="block text-xs font-bold mb-1">Account <span class="text-red-500">*</span></label>
                                 <div class="flex">
                                     <div class="relative flex-1" for="accountSelect">
                                         <select id="accountSelect"
@@ -248,7 +248,7 @@
 
                             {{-- Gudang --}}
                             <div>
-                                <label class="block text-xs font-bold text-gray-600 mb-1">Gudang <span class="text-red-500">*</span></label>
+                                <label class="block text-xs font-bold mb-1">Gudang <span class="text-red-500">*</span></label>
                                 <div class="flex">
                                     <div class="relative flex-1" for="warehouseSelect">
                                         <select id="warehouseSelect"
@@ -285,7 +285,7 @@
 
                             {{-- Tanggal --}}
                             <div>
-                                <label class="block text-xs font-bold text-gray-600 mb-1">Tanggal <span class="text-red-500">*</span></label>
+                                <label class="block text-xs font-bold mb-1">Tanggal <span class="text-red-500">*</span></label>
                                 <input type="date" name="fstockmtdate" value="{{ old('fstockmtdate') ?? date('Y-m-d') }}"
                                     class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 @error('fstockmtdate') border-red-400 @enderror">
                                 @error('fstockmtdate')
@@ -296,7 +296,7 @@
 
                         {{-- Keterangan --}}
                         <div>
-                            <label class="block text-xs font-bold text-gray-600 mb-1">Keterangan</label>
+                            <label class="block text-xs font-bold mb-1">Keterangan</label>
                             <textarea name="fket" rows="2"
                                 class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 @error('fket') border-red-400 @enderror"
                                 placeholder="Tulis keterangan tambahan di sini...">{{ old('fket') }}</textarea>

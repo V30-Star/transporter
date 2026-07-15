@@ -141,14 +141,14 @@
                     {{-- HEADER FORM --}}
                     <div class="grid grid-cols-3 gap-3">
                         <div class="lg:col-span-4">
-                            <label class="text-xs font-bold text-gray-600 mb-1">Cabang</label>
+                            <label class="text-xs font-bold mb-1">Cabang</label>
                             <input type="text" class="w-full border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 bg-gray-200 cursor-not-allowed"
                                 value="{{ trim(($fbranchcode ?? '') . ($fcabang ?? '' ? ' - ' . $fcabang : '')) }}"
                                 disabled>
                             <input type="hidden" name="fbranchcode" value="{{ $fbranchcode }}">
                         </div>
                         <div class="lg:col-span-4" x-data="{ autoCode: true }">
-                            <label class="text-xs font-bold text-gray-600 mb-1">Transaksi#</label>
+                            <label class="text-xs font-bold mb-1">Transaksi#</label>
                             <div class="flex items-center gap-3">
                                 <input type="text" name="fstockmtno"
                                     value="{{ old('fstockmtno', $pemakaianbarang->fstockmtno) }}"
@@ -164,7 +164,7 @@
                         <input type="hidden" name="fstockmtid" value="fstockmtid">
 
                         <div class="lg:col-span-4">
-                            <label class="text-xs font-bold text-gray-600 mb-1">Tanggal</label>
+                            <label class="text-xs font-bold mb-1">Tanggal</label>
                             <input disabled type="date" name="fstockmtdate"
                                 value="{{ old('fstockmtdate') ?? date('Y-m-d') }}"
                                 class="w-full border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 bg-gray-100 @error('fstockmtdate') border-red-500 @enderror">
@@ -175,7 +175,7 @@
 
                         <!-- Field FROM -->
                         <div class="lg:col-span-4">
-                            <label class="text-xs font-bold text-gray-600 mb-1">Gudang</label>
+                            <label class="text-xs font-bold mb-1">Gudang</label>
                             <div class="flex">
                                 <div class="relative flex-1">
                                     <select id="warehouseSelectFrom"
@@ -214,7 +214,7 @@
                         </div>
 
                         <div class="lg:col-span-12">
-                            <label class="text-xs font-bold text-gray-600 mb-1">Keterangan</label>
+                            <label class="text-xs font-bold mb-1">Keterangan</label>
                             <textarea readonly name="fket" rows="3"
                                 class="w-full border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 bg-gray-100 @error('fket') border-red-500 @enderror"
                                 placeholder="Tulis keterangan tambahan di sini...">{{ old('fket', $pemakaianbarang->fket) }}</textarea>

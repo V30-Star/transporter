@@ -45,31 +45,31 @@
                         <p class="text-xs font-medium uppercase tracking-wide text-gray-400">Identitas Jurnal</p>
                     </div>                <div class="grid grid-cols-1 lg:grid-cols-12 gap-4">
                     <div class="lg:col-span-4">
-                        <label class="block text-xs font-bold text-gray-600 mb-1">Cabang</label>
+                        <label class="block text-xs font-bold mb-1">Cabang</label>
                         <input type="text" value="{{ $fbranchcode }}"
                             class="w-full border-gray-300 rounded-lg px-3 py-2 bg-gray-100 cursor-not-allowed" disabled>
                     </div>
 
                     <div class="lg:col-span-4">
-                        <label class="block text-xs font-bold text-gray-600 mb-1">No. Jurnal</label>
+                        <label class="block text-xs font-bold mb-1">No. Jurnal</label>
                         <input type="text" value="{{ $jurnaltransaksi->fjurnalno }}"
                             class="w-full border-gray-300 rounded-lg px-3 py-2 bg-gray-100 cursor-not-allowed" disabled>
                     </div>
 
                     <div class="lg:col-span-2">
-                        <label class="block text-xs font-bold text-gray-600 mb-1">Tipe Jurnal</label>
+                        <label class="block text-xs font-bold mb-1">Tipe Jurnal</label>
                         <input type="text" value="{{ $jurnaltransaksi->fjurnaltype }}"
                             class="w-full border-gray-300 rounded-lg px-3 py-2 bg-gray-100 cursor-not-allowed" disabled>
                     </div>
 
                     <div class="lg:col-span-2">
-                        <label class="block text-xs font-bold text-gray-600 mb-1">Tanggal</label>
+                        <label class="block text-xs font-bold mb-1">Tanggal</label>
                         <input type="text" value="{{ \Carbon\Carbon::parse($jurnaltransaksi->fjurnaldate)->format('d/m/Y') }}"
                             class="w-full border-gray-300 rounded-lg px-3 py-2 bg-gray-100 cursor-not-allowed" disabled>
                     </div>
 
                     <div class="lg:col-span-12">
-                        <label class="block text-xs font-bold text-gray-600 mb-1">Keterangan Jurnal</label>
+                        <label class="block text-xs font-bold mb-1">Keterangan Jurnal</label>
                         <textarea rows="3" class="w-full border-gray-300 rounded-lg px-3 py-2 bg-gray-100 cursor-not-allowed" disabled>{{ $jurnaltransaksi->fjurnalnote }}</textarea>
                     </div>
                 </div>

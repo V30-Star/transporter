@@ -275,14 +275,14 @@
     </div>
     <div class="p-4 grid grid-cols-1 lg:grid-cols-12 gap-3">
         <div class="lg:col-span-4">
-            <label class="block text-xs font-bold text-gray-600 mb-1">Cabang</label>
+            <label class="block text-xs font-bold mb-1">Cabang</label>
             <input type="text" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm bg-gray-100 text-gray-500 cursor-not-allowed border-gray-200"
                 value="{{ trim(($fbranchcode ?? '') . ($fcabang ?? '' ? ' - ' . $fcabang : '')) }}" disabled>
             <input type="hidden" name="fbranchcode" value="{{ $fbranchcode }}">
         </div>
 
         <div class="lg:col-span-4" x-data="{ autoCode: true }">
-            <label class="block text-xs font-bold text-gray-600 mb-1">Transaksi#</label>
+            <label class="block text-xs font-bold mb-1">Transaksi#</label>
             <div class="flex items-center gap-3">
                 <input type="text" name="fstockmtno" class="w-full border rounded px-3 py-2" value=" {{ old('fstockmtno', $assembling->fstockmtno) }}"
                     :disabled="autoCode"
@@ -298,7 +298,7 @@
 
         <!-- Tanggal - styled like Cabang -->
         <div class="lg:col-span-4">
-            <label class="block text-xs font-bold text-gray-600 mb-1">Tanggal</label>
+            <label class="block text-xs font-bold mb-1">Tanggal</label>
             <input type="text" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm bg-gray-100 text-gray-500 cursor-not-allowed border-gray-200"
                 value="{{ $assemblingDate }}" disabled>
             <input type="hidden" name="fstockmtdate" value="{{ $assemblingDate }}">
@@ -309,7 +309,7 @@
 
         <!-- Field FROM - styled like Cabang -->
         <div class="lg:col-span-4">
-            <label class="block text-xs font-bold text-gray-600 mb-1">Gudang</label>
+            <label class="block text-xs font-bold mb-1">Gudang</label>
             <div class="flex">
                 <div class="relative flex-1">
 
@@ -350,7 +350,7 @@
 
         <!-- Keterangan - styled like Cabang -->
         <div class="lg:col-span-12">
-            <label class="block text-xs font-bold text-gray-600 mb-1">Keterangan</label>
+            <label class="block text-xs font-bold mb-1">Keterangan</label>
             <textarea rows="3"
                 class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm bg-gray-100 text-gray-500 cursor-not-allowed border-gray-200"
                 disabled>{{ old('fket', $assembling->fket) }}</textarea>
@@ -827,7 +827,7 @@
     </div>
     <div class="p-4 grid grid-cols-1 lg:grid-cols-12 gap-3">
         <div class="lg:col-span-4">
-            <label class="block text-xs font-bold text-gray-600 mb-1">Cabang</label>
+            <label class="block text-xs font-bold mb-1">Cabang</label>
             <input type="text"
                 class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm bg-gray-100 text-gray-500 cursor-not-allowed border-gray-200"
                 value="{{ trim(($fbranchcode ?? '') . ($fcabang ?? '' ? ' - ' . $fcabang : '')) }}" disabled>
@@ -835,7 +835,7 @@
         </div>
 
         <div class="lg:col-span-4" x-data="{ autoCode: true }">
-            <label class="block text-xs font-bold text-gray-600 mb-1">Transaksi#</label>
+            <label class="block text-xs font-bold mb-1">Transaksi#</label>
             <div class="flex items-center gap-3">
                 <input type="text" name="fstockmtno" class="w-full border rounded px-3 py-2"
                     :disabled="autoCode" value=" {{ old('fstockmtno', $assembling->fstockmtno) }}"
@@ -851,7 +851,7 @@
 
         <!-- Tanggal - display only, same as Cabang -->
         <div class="lg:col-span-4">
-            <label class="block text-xs font-bold text-gray-600 mb-1">Tanggal</label>
+            <label class="block text-xs font-bold mb-1">Tanggal</label>
             <input type="date" name="fstockmtdate"
                 value="{{ $assemblingDate }}"
                 class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm text-gray-500 cursor-not-allowed border-gray-200 @error('fstockmtdate') border-red-500 @enderror">
@@ -862,7 +862,7 @@
 
         <!-- Field FROM - display only, same as Cabang -->
         <div class="lg:col-span-4">
-            <label class="block text-xs font-bold text-gray-600 mb-1">Gudang</label>
+            <label class="block text-xs font-bold mb-1">Gudang</label>
             <div class="flex">
                 <div class="relative flex-1">
 
@@ -903,7 +903,7 @@
 
         <!-- Keterangan - display only, same as Cabang -->
         <div class="lg:col-span-12">
-            <label class="block text-xs font-bold text-gray-600 mb-1">Keterangan</label>
+            <label class="block text-xs font-bold mb-1">Keterangan</label>
             <textarea name="fket" rows="3"
                 class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm text-gray-500 cursor-not-allowed border-gray-200 @error('fket') border-red-500 @enderror"
                 placeholder="Tulis keterangan tambahan di sini...">{{ old('fket', $assembling->fket) }}</textarea>
@@ -1815,346 +1815,6 @@
                 descList: []
             });
         });
-
-        // function itemsTable() {
-        //     return {
-        //         showNoItems: false,
-        //         savedItems: @json($savedItems),
-        //         draft: newRow(),
-        //         editingIndex: null,
-        //         editRow: newRow(),
-        //         totalHarga: 0,
-
-        //         updateAccount(row, faccid, accName) {
-        //             row.faccid = faccid;
-        //             row.faccname = accName;
-
-        //             // Opsional: Cek apakah item lain di draft/edit perlu di-recalc
-        //             // this.recalc(row); 
-        //         },
-
-        //         updateSubAccount(row, fsubaccountid, SubAccName) {
-        //             row.fsubaccountid = fsubaccountid;
-        //             row.fsubaccountname = SubAccName;
-        //         },
-
-        //         fmt(n) {
-        //             if (n === null || n === undefined || n === '') return '-';
-        //             const v = Number(n);
-        //             if (!isFinite(v)) return '-';
-
-        //             // Jika angka adalah bulat, hilangkan desimal
-        //             if (Number.isInteger(v)) {
-        //                 return v.toLocaleString('id-ID');
-        //             } else {
-        //                 return v.toLocaleString('id-ID', {
-        //                     minimumFractionDigits: 2,
-        //                     maximumFractionDigits: 2
-        //                 });
-        //             }
-        //         },
-
-        //         rupiah(n) {
-        //             const v = Number(n || 0);
-        //             if (!isFinite(v)) return 'Rp -';
-        //             return 'Rp ' + v.toLocaleString('id-ID', {
-        //                 minimumFractionDigits: 2,
-        //                 maximumFractionDigits: 2
-        //             });
-        //         },
-
-        //         fmtMoney(value) {
-        //             return this.fmt(value);
-        //         },
-
-        //         recalc(row) {
-        //             this.$nextTick(() => {
-        //                 row.fqty = Math.max(0, Number(row.fqty) || 0);
-        //                 row.fterima = Math.max(0, Number(row.fterima) || 0);
-        //                 row.fprice = Math.max(0, Number(row.fprice) || 0);
-
-        //                 row.ftotal = Number((row.fqty * row.fprice).toFixed(2));
-
-        //                 this.recalcTotals();
-        //             });
-        //         },
-
-        //         recalcTotals() {
-        //             this.totalHarga = (this.savedItems || []).reduce((sum, it) => {
-        //                 const v = Number(it?.ftotal ?? 0);
-        //                 return sum + (Number.isFinite(v) ? v : 0);
-        //             }, 0);
-        //         },
-
-        //         removeSaved(i) {
-        //             this.savedItems.splice(i, 1);
-        //             this.syncDescList?.();
-        //             this.recalcTotals();
-        //         },
-
-        //         productMeta(code) {
-        //             const key = (code || '').trim();
-        //             return window.PRODUCT_MAP?.[key] || null;
-        //         },
-
-        //         hydrateRowFromMeta(row, meta) {
-        //             if (!meta) {
-        //                 row.fitemname = '';
-        //                 row.units = [];
-        //                 row.fsatuan = '';
-        //                 row.maxqty = 0;
-        //                 return;
-        //             }
-        //             row.fitemname = meta.name || '';
-        //             const units = [...new Set((meta.units || []).map(u => (u ?? '').toString().trim()).filter(Boolean))];
-        //             row.units = units;
-        //             if (!units.includes(row.fsatuan)) row.fsatuan = units[0] || '';
-        //             const stock = Number.isFinite(+meta.stock) && +meta.stock > 0 ? +meta.stock : 0;
-        //             row.maxqty = stock;
-        //         },
-
-        //         onCodeTypedRow(row) {
-        //             this.hydrateRowFromMeta(row, this.productMeta(row.fitemcode));
-        //         },
-
-        //         isComplete(row) {
-        //             return row.fitemcode && row.fitemname && row.fsatuan && Number(row.fqty) > 0;
-        //         },
-
-        //         onPrPicked(e) {
-        //             const {
-        //                 header,
-        //                 items
-        //             } = e.detail || {};
-        //             if (!items || !Array.isArray(items)) return;
-
-        //             this.resetDraft();
-        //             this.addManyFromPR(header, items);
-        //         },
-
-        //         resetDraft() {
-        //             this.draft = newRow();
-        //             this.$nextTick(() => this.$refs.draftCode?.focus());
-        //         },
-
-        //         addManyFromPR(header, items) {
-        //             const existing = new Set(this.getCurrentItemKeys());
-
-        //             let added = 0,
-        //                 duplicates = [];
-
-        //             items.forEach(src => {
-        //                 const row = {
-        //                     uid: cryptoRandom(),
-        //                     fitemcode: src.fitemcode ?? '',
-        //                     fitemname: src.fitemname ?? '',
-        //                     fsatuan: src.fsatuan ?? '',
-        //                     frefpr: src.frefpr ?? (header?.fpono ?? ''),
-        //                     fqty: Number(src.fqty ?? 0),
-        //                     fdesc: src.fdesc ?? '',
-        //                     fketdt: src.fketdt ?? '',
-        //                     units: Array.isArray(src.units) && src.units.length ? src.units : [src.fsatuan]
-        //                         .filter(Boolean),
-        //                 };
-
-        //                 const key = this.itemKey({
-        //                     fitemcode: row.fitemcode,
-        //                     frefdtno: row.frefdtno
-        //                 });
-
-        //                 if (existing.has(key)) {
-        //                     duplicates.push({
-        //                         key,
-        //                         code: row.fitemcode,
-        //                         ref: row.frefdtno
-        //                     });
-        //                     return;
-        //                 }
-
-        //                 this.savedItems.push(row);
-        //                 existing.add(key);
-        //                 added++;
-        //             });
-
-        //             this.recalcTotals();
-        //         },
-
-        //         addIfComplete() {
-        //             const r = this.draft;
-        //             if (!this.isComplete(r)) {
-        //                 if (!r.fitemcode) return this.$refs.draftCode?.focus();
-        //                 if (!r.fitemname) return this.$refs.draftCode?.focus();
-        //                 if (!r.fsatuan) return (r.units.length > 1 ? this.$refs.draftUnit?.focus() : this.$refs.draftCode
-        //                     ?.focus());
-        //                 if (!(Number(r.fqty) > 0)) return this.$refs.draftQty?.focus();
-        //                 return;
-        //             }
-
-        //             this.recalc(r);
-
-        //             const dupe = this.savedItems.find(it =>
-        //                 it.fitemcode === r.fitemcode &&
-        //                 it.fsatuan === r.fsatuan && (it.fdesc || '') === (r.fdesc || '') &&
-        //                 (it.frefpr || '') === (r.frefpr || '')
-        //             );
-
-        //             if (dupe) {
-        //                 alert('Item sama sudah ada.');
-        //                 return;
-        //             }
-
-        //             this.savedItems.push({
-        //                 ...r,
-        //                 uid: cryptoRandom()
-        //             });
-
-        //             this.showNoItems = false;
-        //             this.resetDraft();
-        //             this.$nextTick(() => this.$refs.draftCode?.focus());
-        //             this.syncDescList?.();
-        //             this.recalcTotals();
-        //         },
-
-        //         edit(i) {
-        //             this.editingIndex = i;
-        //             this.editRow = {
-        //                 ...this.savedItems[i]
-        //             };
-        //             this.hydrateRowFromMeta(this.editRow, this.productMeta(this.editRow.fitemcode));
-        //             this.$nextTick(() => this.$refs.editQty?.focus());
-        //         },
-
-        //         applyEdit() {
-        //             const r = this.editRow;
-        //             if (!this.isComplete(r)) {
-        //                 alert('Lengkapi data item.');
-        //                 return;
-        //             }
-
-        //             this.recalc(r);
-        //             this.savedItems.splice(this.editingIndex, 1, {
-        //                 ...r
-        //             });
-        //             this.cancelEdit();
-        //             this.syncDescList?.();
-        //             this.recalcTotals();
-        //         },
-
-        //         cancelEdit() {
-        //             this.editingIndex = null;
-        //             this.editRow = newRow();
-        //         },
-
-        //         onSubmit($event) {
-        //             if (this.savedItems.length === 0) {
-        //                 $event.preventDefault();
-        //                 this.showNoItems = true;
-        //                 return;
-        //             }
-        //         },
-
-        //         handleEnterOnCode(where) {
-        //             if (where === 'edit') {
-        //                 if (this.editRow.units.length > 1) this.$refs.editUnit?.focus();
-        //                 else this.$refs.editQty?.focus();
-        //             } else {
-        //                 if (this.draft.units.length > 1) this.$refs.draftUnit?.focus();
-        //                 else this.$refs.draftQty?.focus();
-        //             }
-        //         },
-
-        //         handleEnterOnPrice(where) {
-        //             if (where === 'edit') {
-        //                 this.applyEdit();
-        //             } else {
-        //                 this.addIfComplete();
-        //             }
-        //         },
-
-        //         showDescModal: false,
-        //         descTarget: 'draft',
-        //         descSavedIndex: null,
-        //         descValue: '',
-        //         openDesc() {},
-        //         closeDesc() {},
-        //         applyDesc() {},
-
-        //         itemKey(it) {
-        //             return `${(it.fitemcode ?? '').toString().trim()}::${(it.frefdtno ?? '').toString().trim()}`;
-        //         },
-
-        //         getCurrentItemKeys() {
-        //             return this.savedItems.map(it => this.itemKey(it));
-        //         },
-
-        //         init() {
-        //             window.getCurrentItemKeys = () => this.getCurrentItemKeys();
-
-        //             window.addEventListener('pr-picked', this.onPrPicked.bind(this), {
-        //                 passive: true
-        //             });
-
-        //             window.addEventListener('product-chosen', (e) => {
-        //                 const {
-        //                     product
-        //                 } = e.detail || {};
-        //                 if (!product) return;
-
-        //                 const apply = (row) => {
-        //                     row.fitemcode = (product.fprdcode || '').toString();
-        //                     this.hydrateRowFromMeta(row, this.productMeta(row.fitemcode));
-        //                     if (!row.fqty) row.fqty = 1;
-        //                     this.recalc(row);
-        //                 };
-
-        //                 if (this.browseTarget === 'edit') {
-        //                     apply(this.editRow);
-        //                     this.$nextTick(() => this.$refs.editQty?.focus());
-        //                 } else {
-        //                     apply(this.draft);
-        //                     this.$nextTick(() => this.$refs.draftQty?.focus());
-        //                 }
-        //             }, {
-        //                 passive: true
-        //             });
-        //         },
-
-        //         browseTarget: 'draft',
-        //         openBrowseFor(where) {
-        //             this.browseTarget = (where === 'edit' ? 'edit' : 'draft');
-        //             window.dispatchEvent(new CustomEvent('browse-open', {
-        //                 detail: {
-        //                     forEdit: this.browseTarget === 'edit'
-        //                 }
-        //             }));
-        //         },
-        //     };
-
-        //     function newRow() {
-        //         return {
-        //             uid: null,
-        //             fitemcode: '',
-        //             fitemname: '',
-        //             units: [],
-        //             fsatuan: '',
-        //             frefpr: '',
-        //             fqty: 0,
-        //             fdesc: '',
-        //             fketdt: '',
-        //             maxqty: 0,
-        //             faccid: null,
-        //             faccname: '',
-        //             fsubaccountid: null,
-        //             fsubaccountname: '',
-        //         };
-        //     }
-
-        //     function cryptoRandom() {
-        //         return (window.crypto?.getRandomValues ? [...window.crypto.getRandomValues(new Uint32Array(2))].map(n => n
-        //                 .toString(16)).join('') :
-        //             Math.random().toString(36).slice(2)) + Date.now();
-        //     }
-        // }
 
         // Warehouse Browser dengan DataTables
         window.warehouseBrowser = function() {

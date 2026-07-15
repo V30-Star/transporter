@@ -86,14 +86,14 @@
             <!-- Row 1: Branch, Voucher Number, Date -->
             <div class="grid grid-cols-3 gap-3">
                 <div>
-                    <label class="block text-xs font-bold text-gray-600 mb-1">{{ 'Cabang' }}</label>
+                    <label class="block text-xs font-bold mb-1">{{ 'Cabang' }}</label>
                     <input type="text" value="{{ $currentBranchLabel ?? old('fbranchcode', $currentBranchCode) }}"
 class="w-full border-gray-300 rounded-lg px-3 py-2 bg-gray-100 cursor-not-allowed" readonly>
                 <input type="hidden" name="fbranchcode" value="{{ old('fbranchcode', $currentBranchCode) }}">
                 </div>
 
                 <div>
-                    <label class="block text-xs font-bold text-gray-600 mb-1">{{ 'No. Voucher' }}</label>
+                    <label class="block text-xs font-bold mb-1">{{ 'No. Voucher' }}</label>
                     <div class="flex items-center gap-3">
                         <input type="text" name="fkasmtno" x-model="voucherNo" :disabled="autoCode"
                             class="w-full border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 @error('fkasmtno') border-red-500 @enderror"
@@ -110,7 +110,7 @@ class="w-full border-gray-300 rounded-lg px-3 py-2 bg-gray-100 cursor-not-allowe
                 </div>
 
                 <div>
-                    <label class="block text-xs font-bold text-gray-600 mb-1">{{ 'Tanggal' }}</label>
+                    <label class="block text-xs font-bold mb-1">{{ 'Tanggal' }}</label>
                     <input type="date" name="fkasmtdate" x-model="transactionDate"
                         value="{{ old('fkasmtdate', $transactionDate) }}"
                         class="w-full border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 @error('fkasmtdate') border-red-500 @enderror">
@@ -123,7 +123,7 @@ class="w-full border-gray-300 rounded-lg px-3 py-2 bg-gray-100 cursor-not-allowe
             <!-- Row 2: Customer, Account, Giro/Cek -->
             <div class="grid grid-cols-3 gap-3">
                 <div>
-                    <label class="block text-xs font-bold text-gray-600 mb-1">{{ 'Customer' }}</label>
+                    <label class="block text-xs font-bold mb-1">{{ 'Customer' }}</label>
                     <div class="flex">
                         <div class="relative flex-1">
                             <select id="modal_filter_customer_id" name="filter_customer_id"
@@ -153,7 +153,7 @@ class="w-full border-gray-300 rounded-lg px-3 py-2 bg-gray-100 cursor-not-allowe
                 </div>
 
                 <div>
-                    <label class="block text-xs font-bold text-gray-600 mb-1">{{ 'Account' }}</label>
+                    <label class="block text-xs font-bold mb-1">{{ 'Account' }}</label>
                     @if ($isReadOnly)
                         <input type="text" value="{{ $selectedAccountCode !== '' ? trim($selectedAccountCode . ' - ' . $selectedAccountName) : '' }}"
                             class="w-full border-gray-300 rounded-lg px-3 py-2 bg-gray-100 cursor-not-allowed" readonly>
@@ -176,7 +176,7 @@ class="w-full border-gray-300 rounded-lg px-3 py-2 bg-gray-100 cursor-not-allowe
                 </div>
 
                 <div>
-                    <label class="block text-xs font-bold text-gray-600 mb-1">{{ 'No.Giro/Cek' }}</label>
+                    <label class="block text-xs font-bold mb-1">{{ 'No.Giro/Cek' }}</label>
                     <input type="text" name="fnogiro" value="{{ old('fnogiro', $giroNo ?? '') }}"
                         class="w-full border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 @error('fnogiro') border-red-500 @enderror">
                     @error('fnogiro')
@@ -195,7 +195,7 @@ class="w-full border-gray-300 rounded-lg px-3 py-2 bg-gray-100 cursor-not-allowe
                 </div>
 
                 <div>
-                    <label class="block text-xs font-bold text-gray-600 mb-1">{{ 'Tgl.Jatuh Tempo' }}</label>
+                    <label class="block text-xs font-bold mb-1">{{ 'Tgl.Jatuh Tempo' }}</label>
                     <input type="date" name="ftgljatuhtempo" x-model="dueDate"
                         class="w-full border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 @error('ftgljatuhtempo') border-red-500 @enderror"
                         :readonly="!isGiroMundur" :disabled="!isGiroMundur"
@@ -210,7 +210,7 @@ class="w-full border-gray-300 rounded-lg px-3 py-2 bg-gray-100 cursor-not-allowe
 
             <!-- Row 4: Description -->
             <div>
-                <label class="block text-xs font-bold text-gray-600 mb-1">{{ 'Keterangan' }}</label>
+                <label class="block text-xs font-bold mb-1">{{ 'Keterangan' }}</label>
                 <input type="text" name="fket" value="{{ old('fket', $noteValue ?? '') }}"
                     class="w-full border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 @error('fket') border-red-500 @enderror">
                 @error('fket')

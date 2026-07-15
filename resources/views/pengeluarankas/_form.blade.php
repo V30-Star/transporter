@@ -117,7 +117,7 @@
             <div class="p-6">
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
-                        <label class="block text-xs font-bold text-gray-600 mb-1">{{ 'Cabang' }}</label>
+                        <label class="block text-xs font-bold mb-1">{{ 'Cabang' }}</label>
                         <input type="text" value="{{ $resolvedBranchLabel }}"
                             class="w-full border-gray-300 rounded-lg px-3 py-2 bg-gray-100 cursor-not-allowed" readonly>
                         <input type="hidden" name="fbranchcode" value="{{ $resolvedBranchCode }}">
@@ -127,7 +127,7 @@
                     </div>
 
                     <div>
-                        <label class="block text-xs font-bold text-gray-600 mb-1">{{ 'Voucher No.' }}</label>
+                        <label class="block text-xs font-bold mb-1">{{ 'Voucher No.' }}</label>
                         @if ($isReadOnly)
                             <input type="text" name="fkasmtno" value="{{ old('fkasmtno', $pengeluaranKas->fkasmtno ?? '') }}"
                                 class="w-full border-gray-300 rounded-lg px-3 py-2 bg-gray-100 cursor-not-allowed" readonly>
@@ -149,7 +149,7 @@
                     </div>
 
                     <div>
-                        <label class="block text-xs font-bold text-gray-600 mb-1">{{ 'Tanggal' }}</label>
+                        <label class="block text-xs font-bold mb-1">{{ 'Tanggal' }}</label>
                         <input type="date" name="fkasmtdate"
                             value="{{ old('fkasmtdate', optional($pengeluaranKas->fkasmtdate)->format('Y-m-d') ?? $pengeluaranKas->fkasmtdate) }}"
                             class="w-full border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 {{ $isReadOnly ? 'bg-gray-100' : '' }}"
@@ -160,7 +160,7 @@
                     </div>
 
                     <div>
-                        <label class="block text-xs font-bold text-gray-600 mb-1">{{ 'Cash / Bank Account' }}</label>
+                        <label class="block text-xs font-bold mb-1">{{ 'Cash / Bank Account' }}</label>
                         @if ($isReadOnly)
                             <input type="text" value="{{ $selectedHeaderLabel }}"
                                 class="w-full border-gray-300 rounded-lg px-3 py-2 bg-gray-100 cursor-not-allowed" readonly>
@@ -186,7 +186,7 @@
                     </div>
 
                     <div>
-                        <label class="block text-xs font-bold text-gray-600 mb-1">{{ 'Penerima' }}</label>
+                        <label class="block text-xs font-bold mb-1">{{ 'Penerima' }}</label>
                         <input type="text" name="fwhom" value="{{ old('fwhom', $pengeluaranKas->fwhom) }}"
                             class="w-full border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 {{ $isReadOnly ? 'bg-gray-100' : '' }}"
                             {{ $isReadOnly ? 'readonly' : '' }}>
@@ -196,7 +196,7 @@
                     </div>
 
                     <div>
-                        <label class="block text-xs font-bold text-gray-600 mb-1">{{ 'No.Giro/Cek' }}</label>
+                        <label class="block text-xs font-bold mb-1">{{ 'No.Giro/Cek' }}</label>
                         <div class="flex items-center gap-3 flex-nowrap">
                             <div class="w-[12rem] shrink-0">
                                 <input type="text" name="fnogiro" value="{{ old('fnogiro', $pengeluaranKas->fnogiro) }}"
@@ -214,7 +214,7 @@
                             </div>
 
                             <div class="flex items-center gap-2 shrink-0">
-                                <label class="text-xs font-bold text-gray-600 whitespace-nowrap">{{ 'Tgl. Jatuh Tempo' }}</label>
+                                <label class="text-xs font-bold whitespace-nowrap">{{ 'Tgl. Jatuh Tempo' }}</label>
                                 <input type="date" name="ftgljatuhtempo" value="{{ $selectedJatuhTempo }}"
                                     class="w-[12rem] border-gray-300 rounded-lg px-3 py-2"
                                     :class="isReadOnly || !isGiroMundur ? 'bg-gray-100 cursor-not-allowed text-gray-400' : 'bg-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500'"
@@ -234,7 +234,7 @@
                     </div>
 
                     <div class="md:col-span-2">
-                        <label class="block text-xs font-bold text-gray-600 mb-1">{{ 'Keterangan' }}</label>
+                        <label class="block text-xs font-bold mb-1">{{ 'Keterangan' }}</label>
                         <textarea name="fket" rows="3"
                             class="w-full border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 {{ $isReadOnly ? 'bg-gray-100' : '' }}"
                             {{ $isReadOnly ? 'readonly' : '' }}>{{ old('fket', $pengeluaranKas->fket) }}</textarea>

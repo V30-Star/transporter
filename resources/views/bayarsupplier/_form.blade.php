@@ -86,14 +86,14 @@
 
             <div class="grid grid-cols-3 gap-3">
                 <div>
-                    <label class="text-xs font-bold text-gray-600 mb-1">{{ 'Cabang' }}</label>
+                    <label class="text-xs font-bold mb-1">{{ 'Cabang' }}</label>
                     <input type="text" value="{{ $currentBranchLabel ?? old('fbranchcode', $currentBranchCode) }}"
                         class="w-full border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 bg-gray-100 cursor-not-allowed text-gray-700" readonly>
                     <input type="hidden" name="fbranchcode" value="{{ old('fbranchcode', $currentBranchCode) }}">
                 </div>
 
                 <div>
-                    <label class="text-xs font-bold text-gray-600 mb-1">{{ 'No. Voucher' }}</label>
+                    <label class="text-xs font-bold mb-1">{{ 'No. Voucher' }}</label>
                     <input type="text" name="fkasmtno" value="{{ old('fkasmtno', $voucherNo) }}"
                         class="w-full border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 @error('fkasmtno') border-red-500 @enderror"
                         placeholder="Kosongkan untuk auto number">
@@ -103,7 +103,7 @@
                 </div>
 
                 <div>
-                    <label class="text-xs font-bold text-gray-600 mb-1">{{ 'Tanggal' }}</label>
+                    <label class="text-xs font-bold mb-1">{{ 'Tanggal' }}</label>
                     <input type="date" name="fkasmtdate" x-model="transactionDate"
                         value="{{ old('fkasmtdate', $transactionDate) }}"
                         class="w-full border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 @error('fkasmtdate') border-red-500 @enderror">
@@ -116,7 +116,7 @@
             {{-- Row 2: Supplier, Account, No.Giro --}}
             <div class="grid grid-cols-3 gap-3">
                 <div>
-                    <label class="text-xs font-bold text-gray-600 mb-1">{{ 'Supplier' }}</label>
+                    <label class="text-xs font-bold mb-1">{{ 'Supplier' }}</label>
                     <div class="flex">
                         <div class="relative flex-1">
                             <select id="modal_filter_supplier_id" name="filter_supplier_id"
@@ -142,7 +142,7 @@
                 </div>
 
                 <div>
-                    <label class="text-xs font-bold text-gray-600 mb-1">{{ 'Account' }}</label>
+                    <label class="text-xs font-bold mb-1">{{ 'Account' }}</label>
                     @if ($isReadOnly)
                         <input type="text" value="{{ $selectedAccountCode !== '' ? trim($selectedAccountCode . ' - ' . $selectedAccountName) : '' }}"
                             class="w-full border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 bg-gray-100 cursor-not-allowed text-gray-700" readonly>
@@ -165,7 +165,7 @@
                 </div>
 
                 <div>
-                    <label class="text-xs font-bold text-gray-600 mb-1">{{ 'No.Giro' }}</label>
+                    <label class="text-xs font-bold mb-1">{{ 'No.Giro' }}</label>
                     <input type="text" name="fnogiro" value="{{ old('fnogiro', $giroNo ?? '') }}"
                         class="w-full border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 @error('fnogiro') border-red-500 @enderror">
                     @error('fnogiro')
@@ -184,7 +184,7 @@
                 </div>
 
                 <div>
-                    <label class="text-xs font-bold text-gray-600 mb-1">{{ 'Tgl.Jatuh Tempo' }}</label>
+                    <label class="text-xs font-bold mb-1">{{ 'Tgl.Jatuh Tempo' }}</label>
                     <input type="date" name="ftgljatuhtempo" x-model="dueDate"
                         :readonly="!isGiroMundur" :disabled="!isGiroMundur"
                         :class="!isGiroMundur ? 'bg-gray-100 cursor-not-allowed text-gray-400' : 'bg-white'"
@@ -199,7 +199,7 @@
 
             {{-- Row 4: Keterangan --}}
             <div>
-                <label class="text-xs font-bold text-gray-600 mb-1">{{ 'Keterangan' }}</label>
+                <label class="text-xs font-bold mb-1">{{ 'Keterangan' }}</label>
                 <input type="text" name="fket" value="{{ old('fket', $noteValue ?? '') }}"
                     class="w-full border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 @error('fket') border-red-500 @enderror">
                 @error('fket')
@@ -446,7 +446,7 @@
         <div class="bg-white border border-gray-200 rounded-xl mb-3 overflow-hidden">
             <div class="flex items-center justify-between px-4 py-3 bg-gray-50 border-t border-gray-200">
                 <a href="{{ $backRoute }}"
-                    class="inline-flex items-center gap-2 px-4 py-2 border border-gray-300 bg-white text-gray-600 text-sm font-medium rounded-lg hover:bg-gray-50 hover:border-gray-400 transition-colors">
+                    class="inline-flex items-center gap-2 px-4 py-2 border border-gray-300 bg-white text-sm font-medium rounded-lg hover:bg-gray-50 hover:border-gray-400 transition-colors">
                     <x-heroicon-o-arrow-left class="w-4 h-4" />
                     {{ 'Keluar' }}
                 </a>

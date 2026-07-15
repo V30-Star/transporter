@@ -215,14 +215,14 @@
                 <div class="p-4 space-y-3">
     <div class="p-4 grid grid-cols-3 gap-3">
         <div>
-            <label class="block text-xs font-bold text-gray-600 mb-1">Cabang</label>
+            <label class="block text-xs font-bold mb-1">Cabang</label>
             <input type="text" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm bg-gray-100 text-gray-500 cursor-not-allowed border-gray-200"
                 value="{{ trim(($fbranchcode ?? '') . ($fcabang ?? '' ? ' - ' . $fcabang : '')) }}" disabled>
             <input type="hidden" name="fbranchcode" value="{{ $fbranchcode }}">
         </div>
 
         <div x-data="{ autoCode: true }">
-            <label class="block text-xs font-bold text-gray-600 mb-1">Transaksi#</label>
+            <label class="block text-xs font-bold mb-1">Transaksi#</label>
             <div class="flex items-center gap-2">
                 <input type="text" name="fstockmtno" class="flex-1 border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
                     :disabled="autoCode" :class="autoCode ? 'bg-gray-100 text-gray-500 border-gray-200 cursor-not-allowed' : 'bg-white'"
@@ -238,7 +238,7 @@
 
         <!-- Tanggal - styled like Cabang -->
         <div class="lg:col-span-4">
-            <label class="block text-xs font-bold text-gray-600 mb-1">Tanggal</label>
+            <label class="block text-xs font-bold mb-1">Tanggal</label>
             <input type="text" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm bg-gray-100 text-gray-500 cursor-not-allowed border-gray-200"
                 value="{{ old('fstockmtdate') ?? date('Y-m-d') }}" disabled>
             <input type="hidden" name="fstockmtdate" value="{{ old('fstockmtdate') ?? date('Y-m-d') }}">
@@ -249,7 +249,7 @@
 
         <!-- Field FROM - styled like Cabang -->
         <div class="lg:col-span-4">
-            <label class="block text-xs font-bold text-gray-600 mb-1">Gudang</label>
+            <label class="block text-xs font-bold mb-1">Gudang</label>
             <div class="flex">
                 <div class="relative flex-1">
                     <select id="warehouseSelectFrom"
@@ -294,7 +294,7 @@
 
         <!-- Keterangan - styled like Cabang -->
         <div class="lg:col-span-12">
-            <label class="block text-xs font-bold text-gray-600 mb-1">Keterangan</label>
+            <label class="block text-xs font-bold mb-1">Keterangan</label>
             <textarea rows="3" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm bg-gray-100 text-gray-500 cursor-not-allowed border-gray-200"
                 disabled>{{ old('fket') }}</textarea>
             <input type="hidden" name="fket" value="{{ old('fket') }}">

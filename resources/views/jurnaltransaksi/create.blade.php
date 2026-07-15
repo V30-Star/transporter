@@ -41,7 +41,7 @@
                     <div class="grid grid-cols-1 lg:grid-cols-12 gap-4">
                     {{-- fbranchcode --}}
                     <div class="lg:col-span-4">
-                        <label class="block text-xs font-bold text-gray-600 mb-1">Cabang</label>
+                        <label class="block text-xs font-bold mb-1">Cabang</label>
                         <input type="text" class="w-full border-gray-300 rounded-lg px-3 py-2 bg-gray-200 cursor-not-allowed focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                             value="{{ $fbranchcode }}" disabled>
                         <input type="hidden" name="fbranchcode" value="{{ $fbranchcode }}">
@@ -49,7 +49,7 @@
 
                     {{-- fjurnalno (auto) --}}
                     <div class="lg:col-span-4" x-data="{ autoCode: true }">
-                        <label class="block text-xs font-bold text-gray-600 mb-1">No. Jurnal</label>
+                        <label class="block text-xs font-bold mb-1">No. Jurnal</label>
                         <div class="flex items-center gap-3">
                             <input type="text" name="fjurnalno" class="w-full border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                                 :disabled="autoCode" :class="autoCode ? 'bg-gray-200 cursor-not-allowed' : 'bg-white'"
@@ -63,7 +63,7 @@
 
                     {{-- fjurnaltype --}}
                     <div class="lg:col-span-2">
-                        <label class="block text-xs font-bold text-gray-600 mb-1">Tipe Jurnal</label>
+                        <label class="block text-xs font-bold mb-1">Tipe Jurnal</label>
                         @if (!empty($fixedJournalType))
                             <input type="text" value="{{ $fixedJournalType }}"
                                 class="w-full border-gray-300 rounded-lg px-3 py-2 bg-gray-100 cursor-not-allowed" disabled>
@@ -82,7 +82,7 @@
 
                     {{-- fjurnaldate --}}
                     <div class="lg:col-span-2">
-                        <label class="block text-xs font-bold text-gray-600 mb-1">Tanggal</label>
+                        <label class="block text-xs font-bold mb-1">Tanggal</label>
                         <input type="date" name="fjurnaldate" value="{{ old('fjurnaldate', date('Y-m-d')) }}"
                             class="w-full border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 @error('fjurnaldate') border-red-500 @enderror">
                         @error('fjurnaldate')
@@ -92,7 +92,7 @@
 
                     {{-- fjurnalnote --}}
                     <div class="lg:col-span-12">
-                        <label class="block text-xs font-bold text-gray-600 mb-1">Keterangan Jurnal</label>
+                        <label class="block text-xs font-bold mb-1">Keterangan Jurnal</label>
                         <textarea name="fjurnalnote" rows="2"
                             class="w-full border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 @error('fjurnalnote') border-red-500 @enderror"
                             placeholder="Keterangan jurnal...">{{ old('fjurnalnote') }}</textarea>

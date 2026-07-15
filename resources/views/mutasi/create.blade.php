@@ -206,14 +206,14 @@
     <div class="p-4">
         <div class="grid grid-cols-1 lg:grid-cols-12 gap-4">
             <div class="lg:col-span-4">
-                <label class="block text-xs font-bold text-gray-600 mb-1">Cabang</label>
+                <label class="block text-xs font-bold mb-1">Cabang</label>
                 <input type="text"
                     class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm bg-gray-100 text-gray-500 cursor-not-allowed border-gray-200"
                     value="{{ trim(($fbranchcode ?? '') . ($fcabang ?? '' ? ' - ' . $fcabang : '')) }}" disabled>
                 <input type="hidden" name="fbranchcode" value="{{ $fbranchcode }}">
             </div>
             <div class="lg:col-span-4" x-data="{ autoCode: true }">
-                <label class="block text-xs font-bold text-gray-600 mb-1">Transaksi#</label>
+                <label class="block text-xs font-bold mb-1">Transaksi#</label>
                 <div class="flex items-center gap-3">
                     <input type="text" name="fstockmtno" class="w-full border rounded px-3 py-2"
                         :disabled="autoCode"
@@ -230,7 +230,7 @@
 
             <!-- Tanggal - styled like Cabang (assembling) -->
             <div class="lg:col-span-4">
-                <label class="block text-xs font-bold text-gray-600 mb-1">Tanggal</label>
+                <label class="block text-xs font-bold mb-1">Tanggal</label>
                 <input type="date" name="fstockmtdate" value="{{ old('fstockmtdate') ?? date('Y-m-d') }}"
                     class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm bg-gray-100 text-gray-500 cursor-not-allowed border-gray-200 @error('fstockmtdate') border-red-500 @enderror">
                 @error('fstockmtdate')
@@ -240,7 +240,7 @@
 
             <!-- Field FROM - styled like Cabang (assembling) -->
             <div class="lg:col-span-4">
-                <label class="block text-xs font-bold text-gray-600 mb-1">Gudang (Dari)</label>
+                <label class="block text-xs font-bold mb-1">Gudang (Dari)</label>
                 <div class="flex">
                     <div class="relative flex-1">
                         <select id="warehouseSelectFrom"
@@ -286,7 +286,7 @@
 
             <!-- Field TO - styled like Cabang (assembling) -->
             <div class="lg:col-span-4">
-                <label class="block text-xs font-bold text-gray-600 mb-1">Gudang (Tujuan)</label>
+                <label class="block text-xs font-bold mb-1">Gudang (Tujuan)</label>
                 <div class="flex">
                     <div class="relative flex-1">
                         <select id="warehouseSelectTo"
@@ -332,7 +332,7 @@
 
             <!-- Keterangan - styled like Cabang (assembling) -->
             <div class="lg:col-span-12">
-                <label class="block text-xs font-bold text-gray-600 mb-1">Keterangan</label>
+                <label class="block text-xs font-bold mb-1">Keterangan</label>
                 <textarea name="fket" rows="3"
                     class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm bg-gray-100 text-gray-500 cursor-not-allowed border-gray-200 @error('fket') border-red-500 @enderror"
                     placeholder="Tulis keterangan tambahan di sini...">{{ old('fket') }}</textarea>

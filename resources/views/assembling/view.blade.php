@@ -153,14 +153,14 @@
     </div>
     <div class="p-4 grid grid-cols-1 lg:grid-cols-12 gap-3">
         <div class="lg:col-span-4">
-            <label class="block text-xs font-bold text-gray-600 mb-1">Cabang</label>
+            <label class="block text-xs font-bold mb-1">Cabang</label>
             <input type="text" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm bg-gray-100 text-gray-500 cursor-not-allowed border-gray-200"
                 value="{{ trim(($fbranchcode ?? '') . ($fcabang ?? '' ? ' - ' . $fcabang : '')) }}" disabled>
             <input type="hidden" name="fbranchcode" value="{{ $fbranchcode }}">
         </div>
 
         <div class="lg:col-span-4" x-data="{ autoCode: true }">
-            <label class="block text-xs font-bold text-gray-600 mb-1">Transaksi#</label>
+            <label class="block text-xs font-bold mb-1">Transaksi#</label>
             <div class="flex items-center gap-3">
                 <input type="text" name="fstockmtno" class="w-full border rounded px-3 py-2" value=" {{ old('fstockmtno', $assembling->fstockmtno) }}"
                     :disabled="autoCode"
@@ -176,7 +176,7 @@
 
         <!-- Tanggal - styled like Cabang -->
         <div class="lg:col-span-4">
-            <label class="block text-xs font-bold text-gray-600 mb-1">Tanggal</label>
+            <label class="block text-xs font-bold mb-1">Tanggal</label>
             <input type="text" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm bg-gray-100 text-gray-500 cursor-not-allowed border-gray-200"
                 value="{{ $assemblingDate }}" disabled>
             <input type="hidden" name="fstockmtdate" value="{{ $assemblingDate }}">
@@ -187,7 +187,7 @@
 
         <!-- Field FROM - styled like Cabang -->
         <div class="lg:col-span-4">
-            <label class="block text-xs font-bold text-gray-600 mb-1">Gudang</label>
+            <label class="block text-xs font-bold mb-1">Gudang</label>
             <div class="flex">
                 <div class="relative flex-1">
 
@@ -228,7 +228,7 @@
 
         <!-- Keterangan - styled like Cabang -->
         <div class="lg:col-span-12">
-            <label class="block text-xs font-bold text-gray-600 mb-1">Keterangan</label>
+            <label class="block text-xs font-bold mb-1">Keterangan</label>
             <textarea rows="3"
                 class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm bg-gray-100 text-gray-500 cursor-not-allowed border-gray-200"
                 disabled>{{ old('fket', $assembling->fket) }}</textarea>

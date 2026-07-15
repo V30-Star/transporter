@@ -235,21 +235,21 @@
                             <div  class="grid grid-cols-3 gap-3">
                                 {{-- Cabang --}}
                                 <div>
-                                    <label class="block text-xs font-bold text-gray-600 mb-1">Cabang</label>
+                                    <label class="block text-xs font-bold mb-1">Cabang</label>
                                     <input type="text" class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm bg-gray-100 text-gray-500 cursor-not-allowed"
                                         value="{{ trim(($fbranchcode ?? '') . ($fcabang ?? '' ? ' - ' . $fcabang : '')) }}" readonly>
                                 </div>
 
                                 {{-- Transaksi# --}}
                                 <div>
-                                    <label class="block text-xs font-bold text-gray-600 mb-1">Transaksi#</label>
+                                    <label class="block text-xs font-bold mb-1">Transaksi#</label>
                                     <input type="text" class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm bg-gray-100 text-gray-500 cursor-not-allowed"
                                         value="{{ old('fstockmtno', $adjstock->fstockmtno) }}" readonly>
                                 </div>
 
                                 {{-- Adj. Type --}}
                                 <div>
-                                    <label class="block text-xs font-bold text-gray-600 mb-1">Adj. Type</label>
+                                    <label class="block text-xs font-bold mb-1">Adj. Type</label>
                                     <input type="text" class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm bg-gray-100 text-gray-500 cursor-not-allowed"
                                         value="{{ $adjstock->ftrancode === 'm' ? 'Masuk' : 'Keluar' }}" readonly>
                                 </div>
@@ -258,21 +258,21 @@
                             <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
                                 {{-- Account --}}
                                 <div>
-                                    <label class="block text-xs font-bold text-gray-600 mb-1">Account</label>
+                                    <label class="block text-xs font-bold mb-1">Account</label>
                                     <input type="text" class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm bg-gray-100 text-gray-500 cursor-not-allowed"
                                         value="{{ $adjstock->fprdjadi }} - {{ $accounts->firstWhere('faccount', $adjstock->fprdjadi)->faccname ?? '' }}" readonly>
                                 </div>
 
                                 {{-- Gudang --}}
                                 <div>
-                                    <label class="block text-xs font-bold text-gray-600 mb-1">Gudang</label>
+                                    <label class="block text-xs font-bold mb-1">Gudang</label>
                                     <input type="text" class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm bg-gray-100 text-gray-500 cursor-not-allowed"
                                         value="{{ $adjstock->ffrom }} - {{ $warehouses->firstWhere('fwhcode', $adjstock->ffrom)->fwhname ?? '' }}" readonly>
                                 </div>
 
                                 {{-- Tanggal --}}
                                 <div>
-                                    <label class="block text-xs font-bold text-gray-600 mb-1">Tanggal</label>
+                                    <label class="block text-xs font-bold mb-1">Tanggal</label>
                                     <input type="date" name="fstockmtdate" class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm bg-gray-100 text-gray-500 cursor-not-allowed"
                                         value="{{ old('fstockmtdate', $adjstock->fstockmtdate->format('Y-m-d')) }}" readonly>
                                 </div>
@@ -280,7 +280,7 @@
 
                             {{-- Keterangan --}}
                             <div>
-                                <label class="block text-xs font-bold text-gray-600 mb-1">Keterangan</label>
+                                <label class="block text-xs font-bold mb-1">Keterangan</label>
                                 <textarea readonly name="fket" rows="2" class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm bg-gray-100 text-gray-500 cursor-not-allowed">{{ old('fket', $adjstock->fket) }}</textarea>
                             </div>
                         </div>
@@ -476,7 +476,7 @@
                     <div class="grid grid-cols-3 gap-3">
                         {{-- Cabang --}}
                         <div>
-                            <label class="block text-xs font-bold text-gray-600 mb-1">Cabang</label>
+                            <label class="block text-xs font-bold mb-1">Cabang</label>
                             <input type="text"
                                 class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm bg-gray-50 text-gray-500 cursor-not-allowed"
                                 value="{{ trim(($fbranchcode ?? '') . ($fcabang ?? '' ? ' - ' . $fcabang : '')) }}"
@@ -486,7 +486,7 @@
 
                         {{-- Transaksi# --}}
                         <div x-data="{ autoCode: true }">
-                            <label class="block text-xs font-bold text-gray-600 mb-1">Transaksi#</label>
+                            <label class="block text-xs font-bold mb-1">Transaksi#</label>
                             <div class="flex items-center gap-2">
                                 <input type="text" name="fstockmtno"
                                     class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm bg-gray-50 text-gray-500 cursor-not-allowed"
@@ -502,7 +502,7 @@
 
                         {{-- Adj. Type --}}
                         <div>
-                            <label class="block text-xs font-bold text-gray-600 mb-1">Adj. Type</label>
+                            <label class="block text-xs font-bold mb-1">Adj. Type</label>
                             <select name="ftrancode" x-model="adjtype"
                                 class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm bg-white focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-100 @error('ftrancode') border-red-500 @enderror">
                                 <option value="m"
@@ -522,7 +522,7 @@
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
                         {{-- Account --}}
                         <div>
-                            <label class="block text-xs font-bold text-gray-600 mb-1">Account</label>
+                            <label class="block text-xs font-bold mb-1">Account</label>
                             <div class="flex">
                                 <div class="relative flex-1">
                                     <select id="accountSelect"
@@ -558,7 +558,7 @@
 
                         {{-- Gudang --}}
                         <div>
-                            <label class="block text-xs font-bold text-gray-600 mb-1">Gudang</label>
+                            <label class="block text-xs font-bold mb-1">Gudang</label>
                             <div class="flex">
                                 <div class="relative flex-1">
                                     <select id="warehouseSelect"
@@ -594,7 +594,7 @@
 
                         {{-- Tanggal --}}
                         <div>
-                            <label class="block text-xs font-bold text-gray-600 mb-1">Tanggal</label>
+                            <label class="block text-xs font-bold mb-1">Tanggal</label>
                             <input type="date" name="fstockmtdate"
                                 value="{{ old('fstockmtdate', $adjstock->fstockmtdate->format('Y-m-d')) }}"
                                 class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm bg-white focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-100 @error('fstockmtdate') border-red-500 @enderror">
@@ -606,7 +606,7 @@
 
                     {{-- Keterangan --}}
                     <div>
-                        <label class="block text-xs font-bold text-gray-600 mb-1">Keterangan</label>
+                        <label class="block text-xs font-bold mb-1">Keterangan</label>
                         <textarea name="fket" rows="2"
                             class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm bg-white focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-100 @error('fket') border-red-500 @enderror"
                             placeholder="Tulis keterangan tambahan di sini...">{{ old('fket', $adjstock->fket) }}</textarea>
