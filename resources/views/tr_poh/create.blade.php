@@ -167,7 +167,7 @@
                     <div class="grid grid-cols-3 gap-3">
                         {{-- Cabang --}}
                         <div>
-                            <label class="block text-xs font-bold text-gray-600 mb-1">Cabang</label>
+                            <label class="block text-xs font-bold mb-1">Cabang</label>
                             <input type="text" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm bg-gray-100 text-gray-500 cursor-not-allowed border-gray-200"
                                 value="{{ trim(($fbranchcode ?? '') . ($fcabang ?? '' ? ' - ' . $fcabang : '')) }}" disabled>
                             <input type="hidden" name="fbranchcode" value="{{ $fbranchcode }}">
@@ -175,7 +175,7 @@
 
                         {{-- PO# --}}
                         <div x-data="{ autoCode: true }">
-                            <label class="block text-xs font-bold text-gray-600 mb-1">PO#</label>
+                            <label class="block text-xs font-bold mb-1">PO#</label>
                             <div class="flex items-center gap-2">
                                 <input type="text" name="fpohid" class="flex-1 border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
                                     :disabled="autoCode" :class="autoCode ? 'bg-gray-100 text-gray-500 border-gray-200 cursor-not-allowed' : 'bg-white'"
@@ -189,7 +189,7 @@
 
                         {{-- Supplier --}}
                         <div>
-                            <label class="block text-xs font-bold text-gray-600 mb-1">Supplier <span class="text-red-500">*</span></label>
+                            <label class="block text-xs font-bold mb-1">Supplier <span class="text-red-500">*</span></label>
                             <div class="flex">
                                 <div class="relative flex-1">
                                     <select id="modal_filter_supplier_id" name="filter_supplier_id"
@@ -231,7 +231,7 @@
                     <div class="grid grid-cols-3 gap-3">
                         {{-- Tanggal --}}
                         <div>
-                            <label class="block text-xs font-bold text-gray-600 mb-1">Tanggal <span class="text-red-500">*</span></label>
+                            <label class="block text-xs font-bold mb-1">Tanggal <span class="text-red-500">*</span></label>
                             <input type="date" name="fpodate" value="{{ old('fpodate') ?? date('Y-m-d') }}"
                                 class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 @error('fpodate') border-red-400 @enderror">
                             @error('fpodate')
@@ -241,7 +241,7 @@
 
                         {{-- Tgl. Kirim --}}
                         <div>
-                            <label class="block text-xs font-bold text-gray-600 mb-1">Tgl. Kirim</label>
+                            <label class="block text-xs font-bold mb-1">Tgl. Kirim</label>
                             <input type="date" name="fkirimdate" value="{{ old('fkirimdate', '') }}"
                                 class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 @error('fkirimdate') border-red-400 @enderror">
                             @error('fkirimdate')
@@ -251,7 +251,7 @@
 
                         {{-- Tempo --}}
                         <div>
-                            <label class="block text-xs font-bold text-gray-600 mb-1">Tempo</label>
+                            <label class="block text-xs font-bold mb-1">Tempo</label>
                             <div class="flex items-center gap-2">
                                 <input type="number" id="ftempohr" name="ftempohr" value="{{ old('ftempohr', 0) }}"
                                     class="flex-1 border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100">
@@ -263,7 +263,7 @@
                     <div class="grid grid-cols-3 gap-3">
                         {{-- Currency --}}
                         <div>
-                            <label class="block text-xs font-bold text-gray-600 mb-1">Currency <span class="text-red-500">*</span></label>
+                            <label class="block text-xs font-bold mb-1">Currency <span class="text-red-500">*</span></label>
                             <select name="fcurrency" id="currencySelect" x-model="selectedCurrCode" @change="onCurrencyChange()"
                                 class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm bg-white focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 @error('fcurrency') border-red-400 @enderror">
                                 <option value="">-- Pilih Currency --</option>
@@ -284,7 +284,7 @@
 
                         {{-- Rate --}}
                         <div>
-                            <label class="block text-xs font-bold text-gray-600 mb-1">Rate <span class="text-red-500">*</span></label>
+                            <label class="block text-xs font-bold mb-1">Rate <span class="text-red-500">*</span></label>
                             <input type="number" step="0.01" min="0" name="frate" x-model.number="rateValue"
                                 class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 @error('frate') border-red-400 @enderror"
                                 placeholder="Rate akan terisi otomatis">
@@ -296,7 +296,7 @@
 
                     {{-- Keterangan --}}
                     <div>
-                        <label class="block text-xs font-bold text-gray-600 mb-1">Keterangan</label>
+                        <label class="block text-xs font-bold mb-1">Keterangan</label>
                         <textarea name="fket" rows="2" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 @error('fket') border-red-400 @enderror"
                             placeholder="Tulis keterangan tambahan di sini...">{{ old('fket') }}</textarea>
                         @error('fket')

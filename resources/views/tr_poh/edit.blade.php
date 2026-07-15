@@ -232,7 +232,7 @@
                         <div class="grid grid-cols-3 gap-3">
                             {{-- Cabang --}}
                             <div>
-                                <label class="block text-xs font-bold text-gray-600 mb-1">Cabang</label>
+                                <label class="block text-xs font-bold mb-1">Cabang</label>
                                 <input type="text"
                                     class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm bg-gray-100 text-gray-500 cursor-not-allowed"
                                     value="{{ trim(($fbranchcode ?? '') . ($fcabang ?? '' ? ' - ' . $fcabang : '')) }}"
@@ -241,7 +241,7 @@
 
                             {{-- PO# --}}
                             <div>
-                                <label class="block text-xs font-bold text-gray-600 mb-1">PO#</label>
+                                <label class="block text-xs font-bold mb-1">PO#</label>
                                 <input type="text"
                                     class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm bg-gray-100 text-gray-500 cursor-not-allowed"
                                     value="{{ $displayFpono ?? $tr_poh->fpono }}" disabled>
@@ -249,7 +249,7 @@
 
                             {{-- Supplier --}}
                             <div>
-                                <label class="block text-xs font-bold text-gray-600 mb-1">Supplier</label>
+                                <label class="block text-xs font-bold mb-1">Supplier</label>
                                 <input type="text"
                                     class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm bg-gray-100 text-gray-500 cursor-not-allowed"
                                     value="{{ $tr_poh->fsupplier }} - {{ $tr_poh->fsuppliername }}" disabled>
@@ -259,7 +259,7 @@
                         <div class="grid grid-cols-3 gap-3">
                             {{-- Tanggal --}}
                             <div>
-                                <label class="block text-xs font-bold text-gray-600 mb-1">Tanggal</label>
+                                <label class="block text-xs font-bold mb-1">Tanggal</label>
                                 <input type="text"
                                     class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm bg-gray-100 text-gray-500 cursor-not-allowed"
                                     value="{{ $tr_poh->fpodate ? \Carbon\Carbon::parse($tr_poh->fpodate)->format('d/m/Y') : '-' }}"
@@ -268,7 +268,7 @@
 
                             {{-- Tgl. Kirim --}}
                             <div>
-                                <label class="block text-xs font-bold text-gray-600 mb-1">Tgl. Kirim</label>
+                                <label class="block text-xs font-bold mb-1">Tgl. Kirim</label>
                                 <input type="text"
                                     class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm bg-gray-100 text-gray-500 cursor-not-allowed"
                                     value="{{ $tr_poh->fkirimdate ? \Carbon\Carbon::parse($tr_poh->fkirimdate)->format('d/m/Y') : '-' }}"
@@ -277,7 +277,7 @@
 
                             {{-- Tempo --}}
                             <div>
-                                <label class="block text-xs font-bold text-gray-600 mb-1">Tempo</label>
+                                <label class="block text-xs font-bold mb-1">Tempo</label>
                                 <input type="text"
                                     class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm bg-gray-100 text-gray-500 cursor-not-allowed"
                                     value="{{ $tr_poh->ftempohr ?? 0 }} Hari" disabled>
@@ -287,7 +287,7 @@
                         <div class="grid grid-cols-3 gap-3">
                             {{-- Currency --}}
                             <div>
-                                <label class="block text-xs font-bold text-gray-600 mb-1">Currency</label>
+                                <label class="block text-xs font-bold mb-1">Currency</label>
                                 <input type="text"
                                     class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm bg-gray-100 text-gray-500 cursor-not-allowed"
                                     value="{{ isset($currentCurrency) ? $currentCurrency->fcurrname . ' (' . $currentCurrency->fcurrcode . ')' : $tr_poh->fcurrency ?? 'IDR' }}"
@@ -296,7 +296,7 @@
 
                             {{-- Rate --}}
                             <div>
-                                <label class="block text-xs font-bold text-gray-600 mb-1">Rate</label>
+                                <label class="block text-xs font-bold mb-1">Rate</label>
                                 <input type="text"
                                     class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm bg-gray-100 text-gray-500 cursor-not-allowed"
                                     value="{{ number_format($tr_poh->frate ?? 0, 2, ',', '.') }}" disabled>
@@ -305,7 +305,7 @@
 
                         {{-- Keterangan --}}
                         <div>
-                            <label class="block text-xs font-bold text-gray-600 mb-1">Keterangan</label>
+                            <label class="block text-xs font-bold mb-1">Keterangan</label>
                             <textarea
                                 class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm bg-gray-100 text-gray-500 cursor-not-allowed"
                                 rows="2" disabled>{{ $tr_poh->fket }}</textarea>
@@ -579,7 +579,7 @@
                         <div class="grid grid-cols-3 gap-3">
                             {{-- Cabang --}}
                             <div>
-                                <label class="block text-xs font-bold text-gray-600 mb-1">Cabang</label>
+                                <label class="block text-xs font-bold mb-1">Cabang</label>
                                 <input type="text"
                                     class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm bg-gray-100 text-gray-500 cursor-not-allowed border-gray-200"
                                     value="{{ trim(($fbranchcode ?? '') . ($fcabang ?? '' ? ' - ' . $fcabang : '')) }}"
@@ -589,7 +589,7 @@
 
                             {{-- PO# --}}
                             <div>
-                                <label class="block text-xs font-bold text-gray-600 mb-1">PO#</label>
+                                <label class="block text-xs font-bold mb-1">PO#</label>
                                 <input type="text" name="fpohid"
                                     value="{{ old('fpohid', $displayFpono ?? $tr_poh->fpono) }}"
                                     class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm bg-gray-100 text-gray-500 cursor-not-allowed border-gray-200"
@@ -598,7 +598,7 @@
 
                             {{-- Supplier --}}
                             <div>
-                                <label class="block text-xs font-bold text-gray-600 mb-1">Supplier <span
+                                <label class="block text-xs font-bold mb-1">Supplier <span
                                         class="text-red-500">*</span></label>
                                 <div class="flex">
                                     <div class="relative flex-1">
@@ -645,7 +645,7 @@
                         <div class="grid grid-cols-3 gap-3">
                             {{-- Tanggal --}}
                             <div>
-                                <label class="block text-xs font-bold text-gray-600 mb-1">Tanggal <span
+                                <label class="block text-xs font-bold mb-1">Tanggal <span
                                         class="text-red-500">*</span></label>
                                 <input type="date" name="fpodate"
                                     value="{{ old('fpodate', substr($tr_poh->fpodate ?? '', 0, 10)) }}"
@@ -657,7 +657,7 @@
 
                             {{-- Tgl. Kirim --}}
                             <div>
-                                <label class="block text-xs font-bold text-gray-600 mb-1">Tgl. Kirim</label>
+                                <label class="block text-xs font-bold mb-1">Tgl. Kirim</label>
                                 <input type="date" name="fkirimdate"
                                     value="{{ old('fkirimdate', substr($tr_poh->fkirimdate ?? '', 0, 10)) }}"
                                     class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 @error('fkirimdate') border-red-400 @enderror">
@@ -668,7 +668,7 @@
 
                             {{-- Tempo --}}
                             <div>
-                                <label class="block text-xs font-bold text-gray-600 mb-1">Tempo</label>
+                                <label class="block text-xs font-bold mb-1">Tempo</label>
                                 <div class="flex items-center gap-2">
                                     <input type="number" id="ftempohr" name="ftempohr"
                                         value="{{ old('ftempohr', $tr_poh->ftempohr ?? 0) }}"
@@ -681,7 +681,7 @@
                         <div class="grid grid-cols-3 gap-3">
                             {{-- Currency --}}
                             <div>
-                                <label class="block text-xs font-bold text-gray-600 mb-1">Currency <span
+                                <label class="block text-xs font-bold mb-1">Currency <span
                                         class="text-red-500">*</span></label>
                                 <select name="fcurrency" id="currencySelect" x-model="selectedCurrCode"
                                     @change="onCurrencyChange()"
@@ -704,7 +704,7 @@
 
                             {{-- Rate --}}
                             <div>
-                                <label class="block text-xs font-bold text-gray-600 mb-1">Rate <span
+                                <label class="block text-xs font-bold mb-1">Rate <span
                                         class="text-red-500">*</span></label>
                                 <input type="number" step="0.01" min="0" name="frate"
                                     x-model.number="rateValue"
@@ -718,7 +718,7 @@
 
                         {{-- Keterangan --}}
                         <div>
-                            <label class="block text-xs font-bold text-gray-600 mb-1">Keterangan</label>
+                            <label class="block text-xs font-bold mb-1">Keterangan</label>
                             <textarea name="fket" rows="2"
                                 class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 @error('fket') border-red-400 @enderror"
                                 placeholder="Tulis keterangan tambahan di sini...">{{ old('fket', $tr_poh->fket) }}</textarea>

@@ -239,7 +239,7 @@
                             <div class="grid grid-cols-3 gap-3">
                                 {{-- Cabang --}}
                                 <div>
-                                    <label class="block text-xs font-bold text-gray-600 mb-1">Cabang</label>
+                                    <label class="block text-xs font-bold mb-1">Cabang</label>
                                     <input type="text"
                                         class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm bg-gray-100 text-gray-500 cursor-not-allowed"
                                         value="{{ $fbranchlabel ?? $fcabang }}" disabled>
@@ -247,7 +247,7 @@
 
                                 {{-- PR# --}}
                                 <div>
-                                    <label class="block text-xs font-bold text-gray-600 mb-1">PR#</label>
+                                    <label class="block text-xs font-bold mb-1">PR#</label>
                                     <input type="text"
                                         class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm bg-gray-100 text-gray-500 cursor-not-allowed"
                                         value="{{ $tr_prh->fprno }}" disabled>
@@ -255,7 +255,7 @@
 
                                 {{-- Tanggal --}}
                                 <div>
-                                    <label class="block text-xs font-bold text-gray-600 mb-1">Tanggal</label>
+                                    <label class="block text-xs font-bold mb-1">Tanggal</label>
                                     <input disabled type="date" value="{{ $fmt($tr_prh->fprdate) }}"
                                         class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm bg-gray-100 text-gray-500 cursor-not-allowed">
                                 </div>
@@ -264,7 +264,7 @@
                             <div class="grid grid-cols-3 gap-3">
                                 {{-- Supplier --}}
                                 <div>
-                                    <label class="block text-xs font-bold text-gray-600 mb-1">Supplier</label>
+                                    <label class="block text-xs font-bold mb-1">Supplier</label>
                                     <input type="text"
                                         class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm bg-gray-100 text-gray-500 cursor-not-allowed"
                                         value="{{ $tr_prh->fsuppliercode }} - {{ $tr_prh->fsuppliername }}" disabled>
@@ -272,14 +272,14 @@
 
                                 {{-- Tanggal Dibutuhkan --}}
                                 <div>
-                                    <label class="block text-xs font-bold text-gray-600 mb-1">Tanggal Dibutuhkan</label>
+                                    <label class="block text-xs font-bold mb-1">Tanggal Dibutuhkan</label>
                                     <input disabled type="date" value="{{ $fmt($tr_prh->fneeddate) }}"
                                         class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm bg-gray-100 text-gray-500 cursor-not-allowed">
                                 </div>
 
                                 {{-- Tanggal Paling Lambat --}}
                                 <div>
-                                    <label class="block text-xs font-bold text-gray-600 mb-1">Tanggal Paling Lambat</label>
+                                    <label class="block text-xs font-bold mb-1">Tanggal Paling Lambat</label>
                                     <input disabled type="date" value="{{ $fmt($tr_prh->fduedate) }}"
                                         class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm bg-gray-100 text-gray-500 cursor-not-allowed">
                                 </div>
@@ -287,7 +287,7 @@
 
                             {{-- Keterangan --}}
                             <div>
-                                <label class="block text-xs font-bold text-gray-600 mb-1">Keterangan</label>
+                                <label class="block text-xs font-bold mb-1">Keterangan</label>
                                 <textarea readonly rows="2"
                                     class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm bg-gray-100 text-gray-500 cursor-not-allowed">{{ $tr_prh->fket }}</textarea>
                             </div>
@@ -544,7 +544,7 @@
                             <div class="grid grid-cols-3 gap-3">
                                 {{-- Cabang --}}
                                 <div>
-                                    <label class="block text-xs font-bold text-gray-600 mb-1">Cabang</label>
+                                    <label class="block text-xs font-bold mb-1">Cabang</label>
                                     <input type="text"
                                         class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm bg-gray-100 text-gray-500 cursor-not-allowed border-gray-200"
                                         value="{{ $fbranchlabel ?? $fcabang }}" disabled>
@@ -553,14 +553,14 @@
 
                                 {{-- PR# --}}
                                 <div>
-                                    <label class="block text-xs font-bold text-gray-600 mb-1">PR#</label>
+                                    <label class="block text-xs font-bold mb-1">PR#</label>
                                     <input type="text" name="fprno"
                                         class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm bg-gray-100 text-gray-500 cursor-not-allowed border-gray-200"
                                         value="{{ $tr_prh->fprno }}" disabled>
                                 </div>
                                 {{-- Tanggal --}}
                                 <div>
-                                    <label class="block text-xs font-bold text-gray-600 mb-1">Tanggal <span
+                                    <label class="block text-xs font-bold mb-1">Tanggal <span
                                             class="text-red-500">*</span></label>
                                     <input type="date" name="fprdate"
                                         value="{{ old('fprdate', $fmt($tr_prh->fprdate)) }}"
@@ -575,7 +575,7 @@
                                     supplierDisplay: '{{ $tr_prh->fsuppliercode }} - {{ $tr_prh->fsuppliername }}'
                                 }"
                                     @supplier-chosen.window="supplierId = $event.detail.fsuppliercode; supplierDisplay = $event.detail.fsuppliername + ' (' + $event.detail.fsuppliercode + ')'">
-                                    <label class="block text-xs font-bold text-gray-600 mb-1">Supplier <span
+                                    <label class="block text-xs font-bold mb-1">Supplier <span
                                             class="text-red-500">*</span></label>
                                     <div class="flex">
                                         <input type="text" x-model="supplierDisplay"
@@ -600,7 +600,7 @@
 
                                 {{-- Tanggal Dibutuhkan --}}
                                 <div>
-                                    <label class="block text-xs font-bold text-gray-600 mb-1">Tanggal Dibutuhkan <span
+                                    <label class="block text-xs font-bold mb-1">Tanggal Dibutuhkan <span
                                             class="text-red-500">*</span></label>
                                     <input type="date" name="fneeddate"
                                         value="{{ old('fneeddate', $fmt($tr_prh->fneeddate)) }}"
@@ -609,7 +609,7 @@
 
                                 {{-- Tanggal Paling Lambat --}}
                                 <div>
-                                    <label class="block text-xs font-bold text-gray-600 mb-1">Tanggal Paling Lambat <span
+                                    <label class="block text-xs font-bold mb-1">Tanggal Paling Lambat <span
                                             class="text-red-500">*</span></label>
                                     <input type="date" name="fduedate"
                                         value="{{ old('fduedate', $fmt($tr_prh->fduedate)) }}"
@@ -619,7 +619,7 @@
 
                             {{-- Keterangan --}}
                             <div>
-                                <label class="block text-xs font-bold text-gray-600 mb-1">Keterangan</label>
+                                <label class="block text-xs font-bold mb-1">Keterangan</label>
                                 <textarea name="fket" rows="2"
                                     class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100">{{ old('fket', $tr_prh->fket) }}</textarea>
                             </div>

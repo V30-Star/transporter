@@ -217,7 +217,7 @@
                             <div class="grid grid-cols-3 gap-3">
                                 {{-- Cabang --}}
                                 <div>
-                                    <label class="block text-xs font-bold text-gray-600 mb-1">Cabang</label>
+                                    <label class="block text-xs font-bold mb-1">Cabang</label>
                                     <input type="text" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm bg-gray-100 text-gray-500 cursor-not-allowed border-gray-200"
                                         value="{{ $fcabang }}" disabled>
                                     <input type="hidden" name="fbranchcode" value="{{ $fbranchcode }}">
@@ -225,7 +225,7 @@
 
                                 {{-- Transaksi# --}}
                                 <div x-data="{ autoCode: true }">
-                                    <label class="block text-xs font-bold text-gray-600 mb-1">No.Transaksi#</label>
+                                    <label class="block text-xs font-bold mb-1">No.Transaksi#</label>
                                     <div class="flex items-center gap-2">
                                         <input type="text" name="fpono" class="flex-1 border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
                                             :disabled="autoCode" :class="autoCode ? 'bg-gray-100 text-gray-500 border-gray-200 cursor-not-allowed' : 'bg-white'"
@@ -239,7 +239,7 @@
 
                                 {{-- Tanggal --}}
                                 <div>
-                                    <label class="block text-xs font-bold text-gray-600 mb-1">Tanggal <span class="text-red-500">*</span></label>
+                                    <label class="block text-xs font-bold mb-1">Tanggal <span class="text-red-500">*</span></label>
                                     <input type="date" id="fstockmtdate" name="fstockmtdate"
                                         value="{{ old('fstockmtdate') ?? date('Y-m-d') }}"
                                         class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 @error('fstockmtdate') border-red-400 @enderror">
@@ -252,7 +252,7 @@
                             <div class="grid grid-cols-2 gap-3">
                                 {{-- Supplier --}}
                                 <div>
-                                    <label class="block text-xs font-bold text-gray-600 mb-1">Supplier <span class="text-red-500">*</span></label>
+                                    <label class="block text-xs font-bold mb-1">Supplier <span class="text-red-500">*</span></label>
                                     <div class="flex">
                                         <div class="relative flex-1">
                                             <select id="modal_filter_supplier_id" name="filter_supplier_id"
@@ -291,7 +291,7 @@
 
                                 {{-- Gudang --}}
                                 <div>
-                                    <label class="block text-xs font-bold text-gray-600 mb-1">Gudang <span class="text-red-500">*</span></label>
+                                    <label class="block text-xs font-bold mb-1">Gudang <span class="text-red-500">*</span></label>
                                     <div class="flex">
                                         <div class="relative flex-1">
                                             <select id="warehouseSelect"

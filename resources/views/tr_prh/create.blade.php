@@ -141,7 +141,7 @@
                         <div class="grid grid-cols-3 gap-3">
                             {{-- Cabang --}}
                             <div>
-                                <label class="block text-xs font-bold text-gray-600 mb-1">Cabang</label>
+                                <label class="block text-xs font-bold mb-1">Cabang</label>
                                 <input type="text"
                                     class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm bg-gray-100 text-gray-500 cursor-not-allowed border-gray-200"
                                     value="{{ $fbranchlabel ?? $fcabang }}" disabled>
@@ -150,7 +150,7 @@
 
                             {{-- PR# --}}
                             <div x-data="{ autoCode: true }">
-                                <label class="block text-xs font-bold text-gray-600 mb-1">PR#</label>
+                                <label class="block text-xs font-bold mb-1">PR#</label>
                                 <div class="flex items-center gap-2">
                                     <input type="text" name="fprno"
                                         class="flex-1 border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
@@ -169,7 +169,7 @@
 
                             {{-- Tanggal --}}
                             <div>
-                                <label class="block text-xs font-bold text-gray-600 mb-1">Tanggal <span
+                                <label class="block text-xs font-bold mb-1">Tanggal <span
                                         class="text-red-500">*</span></label>
                                 <input type="date" name="fprdate" value="{{ old('fprdate') ?? date('Y-m-d') }}"
                                     class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 @error('fprdate') border-red-400 @enderror">
@@ -182,7 +182,7 @@
                         <div class="grid grid-cols-3 gap-3">
                            {{-- Supplier --}}
                             <div>
-                                <label class="block text-xs font-bold text-gray-600 mb-1">Supplier <span
+                                <label class="block text-xs font-bold mb-1">Supplier <span
                                         class="text-red-500">*</span></label>
                                 <div class="flex">
                                     <div class="relative flex-1" for="modal_filter_supplier_id">
@@ -224,7 +224,7 @@
 
                             {{-- Tanggal Dibutuhkan --}}
                             <div>
-                                <label class="block text-xs font-bold text-gray-600 mb-1">Tanggal Dibutuhkan <span
+                                <label class="block text-xs font-bold mb-1">Tanggal Dibutuhkan <span
                                         class="text-red-500">*</span></label>
                                 <input type="date" name="fneeddate" value="{{ old('fneeddate') }}"
                                     class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 @error('fneeddate') border-red-400 @enderror">
@@ -235,7 +235,7 @@
 
                             {{-- Tanggal Paling Lambat --}}
                             <div>
-                                <label class="block text-xs font-bold text-gray-600 mb-1">Tanggal Paling Lambat <span
+                                <label class="block text-xs font-bold mb-1">Tanggal Paling Lambat <span
                                         class="text-red-500">*</span></label>
                                 <input type="date" name="fduedate" value="{{ old('fduedate') }}"
                                     class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 @error('fduedate') border-red-400 @enderror">
@@ -247,7 +247,7 @@
 
                         {{-- Keterangan --}}
                         <div>
-                            <label class="block text-xs font-bold text-gray-600 mb-1">Keterangan</label>
+                            <label class="block text-xs font-bold mb-1">Keterangan</label>
                             <textarea name="fket" rows="2"
                                 class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 @error('fket') border-red-400 @enderror"
                                 placeholder="Tulis keterangan tambahan di sini...">{{ old('fket') }}</textarea>
