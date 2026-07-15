@@ -141,12 +141,12 @@
             <div class="flex justify-end gap-3">
                 <a href="{{ route('jurnaltransaksi.print', ['fjurnalno' => $jurnaltransaksi->fjurnalno]) }}" target="_blank"
                     class="inline-flex items-center bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors">
-                    <x-heroicon-o-printer class="w-5 h-5 mr-2" />
+                    <x-heroicon-o-printer class="w-6 h-6 mr-2" />
                     Print
                 </a>
                 <a href="{{ $indexUrl ?? route('jurnaltransaksi.index') }}"
                     class="inline-flex items-center bg-gray-500 text-white px-6 py-2 rounded-lg hover:bg-gray-600 transition-colors">
-                    <x-heroicon-o-arrow-left class="w-5 h-5 mr-2" />
+                    <x-heroicon-o-arrow-left class="w-6 h-6 mr-2" />
                     Kembali
                 </a>
             </div>

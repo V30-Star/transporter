@@ -296,29 +296,29 @@
                 {{-- Footer Buttons --}}
                 <div class="flex items-center justify-end gap-3 px-4 py-3 bg-gray-50 border-t border-gray-200">
                     <a href="{{ route('lembarpenagihan.index') }}"
-                        class="inline-flex items-center gap-2 px-4 py-2 border border-gray-300 bg-white text-gray-600 text-sm font-medium rounded-lg hover:bg-gray-50 hover:border-gray-400 transition-colors">
-                        <x-heroicon-o-arrow-left class="w-4 h-4" />
+                        class="inline-flex items-center gap-2 px-5 py-2 border border-gray-300 bg-white text-gray-600 text-sm font-medium rounded-lg hover:bg-gray-50 hover:border-gray-400 transition-colors">
+                        <x-heroicon-o-arrow-left class="w-6 h-6" />
                         Keluar
                     </a>
                     <div class="flex gap-2">
                         @if ($isDelete)
                             <button type="submit"
                                 class="inline-flex items-center gap-2 px-5 py-2 bg-red-600 text-white text-sm font-medium rounded-lg hover:bg-red-700 transition-colors">
-                                <x-heroicon-o-trash class="w-4 h-4" />
+                                <x-heroicon-o-trash class="w-6 h-6" />
                                 Hapus
                             </button>
                         @endif
                         @if (!$isReadOnly)
                             <button type="submit"
                                 class="inline-flex items-center gap-2 px-5 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors">
-                                <x-heroicon-o-check class="w-4 h-4" />
+                                <x-heroicon-o-check class="w-6 h-6" />
                                 Simpan
                             </button>
                         @endif
                         @if ($action === 'view')
                             <a href="{{ route('lembarpenagihan.print', $header->ftagihanno) }}" target="_blank"
                                 class="inline-flex items-center gap-2 px-5 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors">
-                                <x-heroicon-o-printer class="w-4 h-4" />
+                                <x-heroicon-o-printer class="w-6 h-6" />
                                 Print
                             </a>
                         @endif

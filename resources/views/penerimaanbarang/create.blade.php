@@ -714,16 +714,16 @@
             {{-- ─── CARD 3: Aksi / Footer ────────────────────── --}}
             <div class="bg-white border border-gray-200 rounded-xl mb-3 overflow-hidden">
                 {{-- Footer Buttons --}}
-                <div class="flex items-center justify-end gap-3 px-4 py-3 bg-gray-50">
+                <div class="flex items-center justify-end gap-3 w-6 h-6 bg-gray-50">
                     <button type="button"
                         onclick="window.location.href='{{ route('penerimaanbarang.index') }}'"
-                        class="inline-flex items-center gap-2 px-4 py-2 border border-gray-300 bg-white text-gray-600 text-sm font-medium rounded-lg hover:bg-gray-50 hover:border-gray-400 transition-colors">
-                        <x-heroicon-o-arrow-left class="w-4 h-4" />
+                        class="inline-flex items-center gap-2 px-5 py-2 border border-gray-300 bg-white text-gray-600 text-sm font-medium rounded-lg hover:bg-gray-50 hover:border-gray-400 transition-colors">
+                        <x-heroicon-o-arrow-left class="w-6 h-6" />
                         Keluar
                     </button>
                     <button type="submit"
                         class="inline-flex items-center gap-2 px-5 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors">
-                        <x-heroicon-o-check class="w-4 h-4" />
+                        <x-heroicon-o-check class="w-6 h-6" />
                         Simpan
                     </button>
                 </div>

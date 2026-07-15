@@ -526,21 +526,21 @@
                     @if ($isDelete)
                         @if ($usageLocked)
                             <button type="button" disabled title="{{ $usageLockMessage }}"
-                                class="bg-red-300 text-white px-4 py-2 rounded-lg flex items-center cursor-not-allowed opacity-70 text-sm font-semibold shadow-sm">
-                                <x-heroicon-o-lock-closed class="w-4 h-4 mr-1.5" />
+                                class="bg-red-300 text-white px-5 py-2 rounded-lg flex items-center cursor-not-allowed opacity-70 text-sm font-semibold shadow-sm">
+                                <x-heroicon-o-lock-closed class="w-6 h-6 mr-1.5" />
                                 Hapus
                             </button>
                         @else
                             <button type="button" onclick="showDeleteModal()"
-                                class="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 flex items-center text-sm font-semibold shadow-sm transition">
-                                <x-heroicon-o-trash class="w-4 h-4 mr-1.5" />
+                                class="bg-red-600 text-white px-5 py-2 rounded-lg hover:bg-red-700 flex items-center text-sm font-semibold shadow-sm transition">
+                                <x-heroicon-o-trash class="w-6 h-6 mr-1.5" />
                                 Hapus
                             </button>
                         @endif
                     @elseif ($isView && $canPrintPermission)
                         <a href="{{ route('suratjalan.print', $suratjalan->fstockmtno) }}" target="_blank"
-                            class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 flex items-center text-sm font-semibold shadow-sm transition">
-                            <svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            class="bg-blue-600 text-white px-5 py-2 rounded-lg hover:bg-blue-700 flex items-center text-sm font-semibold shadow-sm transition">
+                            <svg class="w-6 h-6 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                     d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m10 0v-5a2 2 0 00-2-2H9a2 2 0 00-2 2v5m10 0v5H7v-5">
                                 </path>
@@ -549,8 +549,8 @@
                         </a>
                     @endif
                     <button type="button" onclick="window.location.href='{{ route('suratjalan.index') }}'"
-                        class="bg-white border border-gray-300 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-50 flex items-center text-sm font-semibold shadow-sm transition">
-                        <x-heroicon-o-arrow-left class="w-4 h-4 mr-1.5" />
+                        class="bg-white border border-gray-300 text-gray-700 px-5 py-2 rounded-lg hover:bg-gray-50 flex items-center text-sm font-semibold shadow-sm transition">
+                        <x-heroicon-o-arrow-left class="w-6 h-6 mr-1.5" />
                         Kembali
                     </button>
                 </div>
@@ -1269,20 +1269,20 @@
                         <div class="p-4 bg-gray-50 flex justify-end gap-3 items-center space-x-2">
                             <button type="button"
                                 @click="window.location.href='{{ route('suratjalan.index') }}'"
-                                class="bg-white border border-gray-300 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-50 flex items-center text-sm font-semibold shadow-sm transition">
-                                <x-heroicon-o-arrow-left class="w-4 h-4 mr-1.5" />
+                                class="bg-white border border-gray-300 text-gray-700 px-5 py-2 rounded-lg hover:bg-gray-50 flex items-center text-sm font-semibold shadow-sm transition">
+                                <x-heroicon-o-arrow-left class="w-6 h-6 mr-1.5" />
                                 Keluar
                             </button>
                             @if ($canEditPermission)
                                 @if ($usageLocked)
                                     <button type="button" disabled title="{{ $usageLockMessage }}"
-                                        class="bg-blue-300 text-white px-4 py-2 rounded-lg flex items-center cursor-not-allowed opacity-70 text-sm font-semibold shadow-sm">
-                                        <x-heroicon-o-lock-closed class="w-4 h-4 mr-1.5" /> Simpan
+                                        class="bg-blue-300 text-white px-5 py-2 rounded-lg flex items-center cursor-not-allowed opacity-70 text-sm font-semibold shadow-sm">
+                                        <x-heroicon-o-lock-closed class="w-6 h-6 mr-1.5" /> Simpan
                                     </button>
                                 @else
                                     <button type="submit"
-                                        class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 flex items-center text-sm font-semibold shadow-sm transition">
-                                        <x-heroicon-o-check class="w-4 h-4 mr-1.5" /> Simpan
+                                        class="bg-blue-600 text-white px-5 py-2 rounded-lg hover:bg-blue-700 flex items-center text-sm font-semibold shadow-sm transition">
+                                        <x-heroicon-o-check class="w-6 h-6 mr-1.5" /> Simpan
                                     </button>
                                 @endif
                             @endif
@@ -1307,11 +1307,11 @@
                     @csrf
                     @method('DELETE')
                     <div class="flex justify-end space-x-2">
-                        <button onclick="closeDeleteModal()" class="px-4 py-2 bg-gray-300 rounded hover:bg-gray-400"
+                        <button onclick="closeDeleteModal()" class="px-5 py-2 bg-gray-300 rounded hover:bg-gray-400"
                             id="btnTidak">
                             Tidak
                         </button>
-                        <button type="submit" class="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700">
+                        <button type="submit" class="px-5 py-2 bg-red-600 text-white rounded hover:bg-red-700">
                             Ya, Hapus
                         </button>
                     </div>

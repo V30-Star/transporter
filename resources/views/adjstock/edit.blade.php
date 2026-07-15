@@ -428,7 +428,7 @@
             {{-- ─── CARD 3: Aksi ────────────────────── --}}
             <div class="bg-white border border-gray-200 rounded-xl mb-3 overflow-hidden allow-action">
                 <div class="flex items-center gap-2 px-4 pt-3 pb-0">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-gray-400" fill="none"
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6 text-gray-400" fill="none"
                         viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                             d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
@@ -439,14 +439,14 @@
                 </div>
                 <div class="flex items-center justify-between px-4 py-3 bg-gray-50 border-t border-gray-200">
                     <button type="button" onclick="window.location.href='{{ route('adjstock.index') }}'"
-                        class="inline-flex items-center gap-2 px-4 py-2 border border-gray-300 bg-white text-gray-600 text-sm font-medium rounded-lg hover:bg-gray-50 hover:border-gray-400 transition-colors">
-                        <x-heroicon-o-arrow-left class="w-4 h-4" />
+                        class="inline-flex items-center gap-2 px-5 py-2 border border-gray-300 bg-white text-gray-600 text-sm font-medium rounded-lg hover:bg-gray-50 hover:border-gray-400 transition-colors">
+                        <x-heroicon-o-arrow-left class="w-6 h-6" />
                         Kembali
                     </button>
                     <button type="button" onclick="showDeleteModal()"
                         @if ($usageLocked) disabled @endif
                         class="inline-flex items-center gap-2 px-5 py-2 bg-red-600 text-white text-sm font-medium rounded-lg hover:bg-red-700 transition-colors disabled:opacity-60 disabled:cursor-not-allowed">
-                        <x-heroicon-o-trash class="w-4 h-4" />
+                        <x-heroicon-o-trash class="w-6 h-6" />
                         Hapus
                     </button>
                 </div>
@@ -1358,12 +1358,12 @@
                             <button type="submit"
                                 @if ($usageLocked) disabled @endif
                                 class="inline-flex items-center gap-2 px-5 py-2 bg-blue-600 text-white text-sm font-semibold rounded-lg hover:bg-blue-700 disabled:opacity-60 disabled:cursor-not-allowed transition-colors shadow-sm">
-                                <x-heroicon-o-check class="w-4 h-4" /> Simpan
+                                <x-heroicon-o-check class="w-6 h-6" /> Simpan
                             </button>
                         @endif
                         <button type="button" @click="window.location.href='{{ route('adjstock.index') }}'"
                             class="inline-flex items-center gap-2 px-5 py-2 bg-gray-100 text-gray-700 text-sm font-semibold rounded-lg hover:bg-gray-200 transition-colors">
-                            <x-heroicon-o-arrow-left class="w-4 h-4" /> {{ $action === 'view' ? 'Kembali' : 'Keluar' }}
+                            <x-heroicon-o-arrow-left class="w-6 h-6" /> {{ $action === 'view' ? 'Kembali' : 'Keluar' }}
                         </button>
                     </div>
                 </div>

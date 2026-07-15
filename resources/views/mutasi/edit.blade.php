@@ -1144,11 +1144,11 @@
                     @csrf
                     @method('DELETE')
                     <div class="flex justify-end space-x-2">
-                        <button onclick="closeDeleteModal()" class="px-4 py-2 bg-gray-300 rounded hover:bg-gray-400"
+                        <button onclick="closeDeleteModal()" class="px-5 py-2 bg-gray-300 rounded hover:bg-gray-400"
                             id="btnTidak">
                             Tidak
                         </button>
-                        <button type="submit" @if ($usageLocked) disabled @endif class="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 disabled:opacity-60 disabled:cursor-not-allowed">
+                        <button type="submit" @if ($usageLocked) disabled @endif class="px-5 py-2 bg-red-600 text-white rounded hover:bg-red-700 disabled:opacity-60 disabled:cursor-not-allowed">
                             Ya, Hapus
                         </button>
                     </div>

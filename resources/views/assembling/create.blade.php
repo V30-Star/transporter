@@ -915,12 +915,12 @@
 
                 <div class="mt-4 flex justify-center gap-4">
                     <button type="submit"
-                        class="bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700 flex items-center">
-                        <x-heroicon-o-check class="w-5 h-5 mr-2" /> Simpan
+                        class="bg-blue-600 text-white px-5 py-2 rounded hover:bg-blue-700 flex items-center">
+                        <x-heroicon-o-check class="w-6 h-6 mr-2" /> Simpan
                     </button>
                     <button type="button" @click="window.location.href='{{ route('assembling.index') }}'"
-                        class="bg-gray-500 text-white px-6 py-2 rounded hover:bg-gray-600 flex items-center">
-                        <x-heroicon-o-arrow-left class="w-5 h-5 mr-2" /> Keluar
+                        class="bg-gray-500 text-white px-5 py-2 rounded hover:bg-gray-600 flex items-center">
+                        <x-heroicon-o-arrow-left class="w-6 h-6 mr-2" /> Keluar
                     </button>
                 </div>
             </form>

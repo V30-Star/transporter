@@ -1123,21 +1123,21 @@
                             <div class="flex items-center justify-end gap-3 px-4 py-3 bg-gray-50">
                                 <button type="button"
                                     onclick="window.location.href='{{ route('returpembelian.index') }}'"
-                                    class="inline-flex items-center gap-2 px-4 py-2 border border-gray-300 bg-white text-gray-600 text-sm font-medium rounded-lg hover:bg-gray-50 hover:border-gray-400 transition-colors">
-                                    <x-heroicon-o-arrow-left class="w-4 h-4" />
+                                    class="inline-flex items-center gap-2 px-5 py-2 border border-gray-300 bg-white text-gray-600 text-sm font-medium rounded-lg hover:bg-gray-50 hover:border-gray-400 transition-colors">
+                                    <x-heroicon-o-arrow-left class="w-6 h-6" />
                                     Keluar
                                 </button>
                                 @if ($canEditPermission)
                                     @if ($usageLocked)
                                         <button type="button" disabled title="{{ $usageLockMessage }}"
                                             class="inline-flex items-center gap-2 px-5 py-2 bg-blue-300 text-white text-sm font-medium rounded-lg cursor-not-allowed opacity-70 border border-blue-200">
-                                            <x-heroicon-o-lock-closed class="w-4 h-4" />
+                                            <x-heroicon-o-lock-closed class="w-6 h-6" />
                                             Simpan
                                         </button>
                                     @else
                                         <button type="submit"
                                             class="inline-flex items-center gap-2 px-5 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors">
-                                            <x-heroicon-o-check class="w-4 h-4" />
+                                            <x-heroicon-o-check class="w-6 h-6" />
                                             Simpan
                                         </button>
                                     @endif

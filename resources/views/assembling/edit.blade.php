@@ -797,13 +797,13 @@
                             <button type="button" onclick="showDeleteModal()"
                                 @if ($usageLocked) disabled @endif
                                 class="bg-red-600 text-white px-6 py-2 rounded hover:bg-red-700 flex items-center disabled:opacity-60 disabled:cursor-not-allowed">
-                                <x-heroicon-o-trash class="w-5 h-5 mr-2" />
+                                <x-heroicon-o-trash class="w-6 h-6 mr-2" />
                                 Hapus
                             </button>
                         @endif
                         <button type="button" onclick="window.location.href='{{ route('assembling.index') }}'"
                             class="bg-gray-500 text-white px-6 py-2 rounded hover:bg-gray-600 flex items-center">
-                            <x-heroicon-o-arrow-left class="w-5 h-5 mr-2" />
+                            <x-heroicon-o-arrow-left class="w-6 h-6 mr-2" />
                             Kembali
                         </button>
                     </div>
@@ -1003,11 +1003,11 @@
                                 </div>
                                 <div class="px-5 py-3 border-t flex items-center justify-end gap-2">
                                     <button type="button" @click="closeDesc()"
-                                        class="h-9 px-4 rounded-lg bg-gray-100 text-gray-700 text-sm font-medium hover:bg-gray-200">
+                                        class="h-9 px-5 rounded-lg bg-gray-100 text-gray-700 text-sm font-medium hover:bg-gray-200">
                                         Batal
                                     </button>
                                     <button type="button" @click="applyDesc()"
-                                        class="h-9 px-4 rounded-lg bg-emerald-600 text-white text-sm font-medium hover:bg-emerald-700">
+                                        class="h-9 px-5 rounded-lg bg-emerald-600 text-white text-sm font-medium hover:bg-emerald-700">
                                         Simpan
                                     </button>
                                 </div>

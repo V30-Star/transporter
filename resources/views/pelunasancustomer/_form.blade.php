@@ -462,17 +462,17 @@ class="w-full border-gray-300 rounded-lg px-3 py-2 bg-gray-100 cursor-not-allowe
                 <div class="flex items-center justify-center gap-3">
              @if ($isDeleteMode)
                 <button type="submit"
-                    class="bg-red-600 text-white px-6 py-2.5 rounded-lg hover:bg-red-700 inline-flex items-center text-sm font-medium">
+                    class="bg-red-600 text-white px-5 py-2 rounded-lg hover:bg-red-700 inline-flex items-center text-sm font-medium">
                     {{ $submitLabel }}
                 </button>
             @elseif (!$isReadOnly && !empty($submitLabel))
                 <button type="submit"
-                    class="bg-blue-600 text-white px-6 py-2.5 rounded-lg hover:bg-blue-700 inline-flex items-center text-sm font-medium">
+                    class="bg-blue-600 text-white px-5 py-2 rounded-lg hover:bg-blue-700 inline-flex items-center text-sm font-medium">
                     {{ $submitLabel }}
                 </button>
             @endif
             <a href="{{ $backRoute }}"
-                class="bg-gray-500 text-white px-6 py-2.5 rounded-lg hover:bg-gray-600 inline-flex items-center text-sm font-medium">
+                class="bg-gray-500 text-white px-5 py-2 rounded-lg hover:bg-gray-600 inline-flex items-center text-sm font-medium">
                 {{ 'Keluar' }}
             </a>
         </div>
@@ -494,11 +494,11 @@ class="w-full border-gray-300 rounded-lg px-3 py-2 bg-gray-100 cursor-not-allowe
                     </div>
                     <div class="flex items-center gap-3">
                         <button type="button" @click="submitSelectedNotas()" :disabled="!tempSelectedNotas.length"
-                            class="px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 disabled:bg-gray-200 disabled:text-gray-400 disabled:cursor-not-allowed text-white font-medium text-sm transition-all duration-150 shadow-sm">
+                            class="px-5 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 disabled:bg-gray-200 disabled:text-gray-400 disabled:cursor-not-allowed text-white font-medium text-sm transition-all duration-150 shadow-sm">
                             Submit (<span x-text="tempSelectedNotas.length"></span>)
                         </button>
                         <button type="button" @click="closeNotaModal()"
-                            class="px-4 py-2 rounded-lg border-2 border-gray-300 bg-white hover:bg-gray-50 hover:border-gray-400 transition-all duration-150 font-medium text-gray-700 text-sm">
+                            class="px-5 py-2 rounded-lg border-2 border-gray-300 bg-white hover:bg-gray-50 hover:border-gray-400 transition-all duration-150 font-medium text-gray-700 text-sm">
                             Tutup
                         </button>
                     </div>
@@ -524,7 +524,7 @@ class="w-full border-gray-300 rounded-lg px-3 py-2 bg-gray-100 cursor-not-allowe
                                 </select>
                             </label>
                             <button type="button" @click="fetchNotaRecords()"
-                                class="inline-flex items-center justify-center rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700">
+                                class="inline-flex items-center justify-center rounded-lg bg-blue-600 px-5 py-2 text-sm font-medium text-white hover:bg-blue-700">
                                 Refresh
                             </button>
                         </div>
@@ -593,17 +593,17 @@ class="w-full border-gray-300 rounded-lg px-3 py-2 bg-gray-100 cursor-not-allowe
                     <div x-text="notaInfoText"></div>
                     <div class="flex items-center gap-4">
                         <button type="button" @click="submitSelectedNotas()" :disabled="!tempSelectedNotas.length"
-                            class="px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 disabled:bg-gray-200 disabled:text-gray-400 disabled:cursor-not-allowed text-white font-medium text-sm transition-all duration-150 shadow-sm">
+                            class="px-5 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 disabled:bg-gray-200 disabled:text-gray-400 disabled:cursor-not-allowed text-white font-medium text-sm transition-all duration-150 shadow-sm">
                             Submit (<span x-text="tempSelectedNotas.length"></span>)
                         </button>
                         <div class="flex items-center gap-2">
                             <button type="button" @click="prevNotaPage()" :disabled="notaPage <= 1"
-                                class="px-3 py-1.5 rounded-lg border border-gray-300 bg-white hover:bg-gray-50 disabled:bg-gray-100 disabled:text-gray-400 disabled:cursor-not-allowed">
+                                class="px-5 py-2 rounded-lg border border-gray-300 bg-white hover:bg-gray-50 disabled:bg-gray-100 disabled:text-gray-400 disabled:cursor-not-allowed">
                                 Sebelumnya
                             </button>
                             <span class="font-medium" x-text="`Hal. ${notaPage}`"></span>
                             <button type="button" @click="nextNotaPage()" :disabled="!canNextNotaPage"
-                                class="px-3 py-1.5 rounded-lg border border-gray-300 bg-white hover:bg-gray-50 disabled:bg-gray-100 disabled:text-gray-400 disabled:cursor-not-allowed">
+                                class="px-5 py-2 rounded-lg border border-gray-300 bg-white hover:bg-gray-50 disabled:bg-gray-100 disabled:text-gray-400 disabled:cursor-not-allowed">
                                 Selanjutnya
                             </button>
                         </div>

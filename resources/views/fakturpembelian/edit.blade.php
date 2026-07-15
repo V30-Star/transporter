@@ -632,11 +632,11 @@
 
                     {{-- ─── CARD 3: Aksi / Footer (ReadOnly) ────────────────────── --}}
                     <div class="bg-white border border-gray-200 rounded-xl mb-3 overflow-hidden">
-                        <div class="flex items-center justify-end gap-3 px-4 py-3 bg-gray-50">
+                        <div class="flex items-center justify-end gap-3 px-5 py-2 bg-gray-50">
                             <button type="button"
                                 onclick="window.location.href='{{ route('fakturpembelian.index') }}'"
-                                class="inline-flex items-center gap-2 px-4 py-2 border border-gray-300 bg-white text-gray-600 text-sm font-medium rounded-lg hover:bg-gray-50 hover:border-gray-400 transition-colors">
-                                <x-heroicon-o-arrow-left class="w-4 h-4" />
+                                class="inline-flex items-center gap-2 px-5 py-2 border border-gray-300 bg-white text-gray-600 text-sm font-medium rounded-lg hover:bg-gray-50 hover:border-gray-400 transition-colors">
+                                <x-heroicon-o-arrow-left class="w-6 h-6" />
                                 Kembali
                             </button>
                             <div class="flex gap-2">
@@ -644,13 +644,13 @@
                                     @if ($usageLocked)
                                         <button type="button" disabled title="{{ $usageLockMessage }}"
                                             class="inline-flex items-center gap-2 px-5 py-2 bg-red-300 text-white text-sm font-medium rounded-lg cursor-not-allowed opacity-70 border border-red-250">
-                                            <x-heroicon-o-lock-closed class="w-4 h-4" />
+                                            <x-heroicon-o-lock-closed class="w-6 h-6" />
                                             Hapus
                                         </button>
                                     @else
                                         <button type="button" onclick="showDeleteModal()"
                                             class="inline-flex items-center gap-2 px-5 py-2 bg-red-600 text-white text-sm font-medium rounded-lg hover:bg-red-700 transition-colors">
-                                            <x-heroicon-o-trash class="w-4 h-4" />
+                                            <x-heroicon-o-trash class="w-6 h-6" />
                                             Hapus
                                         </button>
                                     @endif
@@ -658,7 +658,7 @@
                                     <a href="{{ route('fakturpembelian.print', $fakturpembelian->fstockmtid) }}"
                                         target="_blank"
                                         class="inline-flex items-center gap-2 px-5 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors">
-                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                                 d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m10 0v-5a2 2 0 00-2-2H9a2 2 0 00-2 2v5m10 0v5H7v-5">
                                             </path>

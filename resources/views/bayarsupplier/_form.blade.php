@@ -446,8 +446,8 @@
         <div class="bg-white border border-gray-200 rounded-xl mb-3 overflow-hidden">
             <div class="flex items-center justify-between px-4 py-3 bg-gray-50 border-t border-gray-200">
                 <a href="{{ $backRoute }}"
-                    class="inline-flex items-center gap-2 px-4 py-2 border border-gray-300 bg-white text-sm font-medium rounded-lg hover:bg-gray-50 hover:border-gray-400 transition-colors">
-                    <x-heroicon-o-arrow-left class="w-4 h-4" />
+                    class="inline-flex items-center gap-2 px-5 py-2 border border-gray-300 bg-white text-sm font-medium rounded-lg hover:bg-gray-50 hover:border-gray-400 transition-colors">
+                    <x-heroicon-o-arrow-left class="w-6 h-6" />
                     {{ 'Keluar' }}
                 </a>
                 @if ($isDeleteMode)
@@ -556,13 +556,13 @@
                         <div x-text="pblInfoText"></div>
                         <div class="flex items-center gap-4">
                             <button type="button" @click="submitSelectedPbls()" :disabled="!tempSelectedPbls.length"
-                                class="px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 disabled:bg-gray-200 disabled:text-gray-400 disabled:cursor-not-allowed text-white font-medium text-sm">
+                                class="px-5 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 disabled:bg-gray-200 disabled:text-gray-400 disabled:cursor-not-allowed text-white font-medium text-sm">
                                 Submit (<span x-text="tempSelectedPbls.length"></span>)
                             </button>
                             <div class="flex items-center gap-2">
-                                <button type="button" @click="prevPblPage()" :disabled="pblPage <= 1" class="px-3 py-1.5 rounded-lg border border-gray-300 bg-white hover:bg-gray-50 disabled:bg-gray-100 disabled:text-gray-400">Sebelumnya</button>
+                                <button type="button" @click="prevPblPage()" :disabled="pblPage <= 1" class="px-5 py-2 rounded-lg border border-gray-300 bg-white hover:bg-gray-50 disabled:bg-gray-100 disabled:text-gray-400">Sebelumnya</button>
                                 <span class="font-medium" x-text="`Hal. ${pblPage}`"></span>
-                                <button type="button" @click="nextPblPage()" :disabled="!canNextPblPage" class="px-3 py-1.5 rounded-lg border border-gray-300 bg-white hover:bg-gray-50 disabled:bg-gray-100 disabled:text-gray-400">Selanjutnya</button>
+                                <button type="button" @click="nextPblPage()" :disabled="!canNextPblPage" class="px-5 py-2 rounded-lg border border-gray-300 bg-white hover:bg-gray-50 disabled:bg-gray-100 disabled:text-gray-400">Selanjutnya</button>
                             </div>
                         </div>
                     </div>

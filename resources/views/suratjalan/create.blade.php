@@ -923,20 +923,19 @@
                     </div> {{-- End of itemsTable --}}
                 </div> {{-- End of CARD 2 body --}}
             </div> {{-- End of CARD 2 container --}}
-
-            {{-- ─── CARD 3: Aksi ─────────────────────────── --}}
-            <div class="bg-white border border-gray-200 rounded-xl mb-3 overflow-hidden">
-                <div class="p-4 flex items-center justify-end gap-3">
-                    <button type="button" @click="window.location.href='{{ route('suratjalan.index') }}'"
-                        class="inline-flex h-9 items-center justify-center rounded-lg border border-gray-300 bg-white px-4 text-xs font-semibold text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">
-                        Keluar
-                    </button>
-                    <button type="submit"
-                        class="inline-flex h-9 items-center justify-center rounded-lg bg-blue-600 px-4 text-xs font-semibold text-white shadow-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">
-                        Simpan
-                    </button>
-                </div>
-            </div>
+             {{-- Footer Buttons --}}
+                    <div class="flex items-center justify-end gap-3 px-5 py-2 bg-gray-50 border-t border-gray-200">
+                        <button type="button" onclick="window.location.href='{{ route('suratjalan.index') }}'"
+                            class="inline-flex items-center gap-2 px-5 py-2 border border-gray-300 bg-white text-gray-600 text-sm font-medium rounded-lg hover:bg-gray-50 hover:border-gray-400 transition-colors">
+                            <x-heroicon-o-arrow-left class="w-6 h-6" />
+                            Keluar
+                        </button>
+                        <button type="submit"
+                            class="inline-flex items-center gap-2 px-5 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors">
+                            <x-heroicon-o-check class="w-6 h-6" />
+                            Simpan
+                        </button>
+                    </div>
                 </form>
             </div>
         </div>
