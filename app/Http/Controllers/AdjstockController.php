@@ -478,7 +478,7 @@ class AdjstockController extends Controller
             if (! empty($uniqueCodes)) {
                 $prodMeta = DB::table('msprd')
                     ->whereIn('fprdcode', $uniqueCodes)
-                    ->get(['fprdid', 'fprdcode', 'fsatuankecil', 'fsatuanbesar', 'fsatuanbesar2'])
+                    ->get(['fprdid', 'fprdcode', 'fsatuankecil', 'fsatuanbesar', 'fsatuanbesar2', 'fqtykecil', 'fqtykecil2'])
                     ->keyBy('fprdcode');
             }
 
@@ -534,6 +534,13 @@ class AdjstockController extends Controller
                     continue;
                 }
 
+                $qtyKecil = $qty;
+                if ($sat === trim((string) ($meta->fsatuanbesar ?? '')) && (float) ($meta->fqtykecil ?? 0) > 0) {
+                    $qtyKecil = $qty * (float) $meta->fqtykecil;
+                } elseif ($sat === trim((string) ($meta->fsatuanbesar2 ?? '')) && (float) ($meta->fqtykecil2 ?? 0) > 0) {
+                    $qtyKecil = $qty * (float) $meta->fqtykecil2;
+                }
+
                 $price = (float) ($prices[$i] ?? 0);
                 $amount = $qty * $price;
                 $subtotal += $amount;
@@ -543,7 +550,7 @@ class AdjstockController extends Controller
                     'fnoacak' => $this->normalizeRandomNumber(null, $usedNoAcaks),
                     'frefdtno' => trim((string) ($refdtno[$i] ?? '')) ?: null,
                     'fqty' => $qty,
-                    'fqtyremain' => $qty,
+                    'fqtyremain' => $qtyKecil,
                     'fprice' => $price,
                     'fprice_rp' => $price * $frate,
                     'ftotprice' => $amount,
@@ -555,7 +562,7 @@ class AdjstockController extends Controller
                     'frefso' => null,
                     'fdesc' => ($descs[$i] ?? '') ?: null,
                     'fsatuan' => $sat,
-                    'fqtykecil' => $qty,
+                    'fqtykecil' => $qtyKecil,
                     'fclosedt' => '0',
                     'fdiscpersen' => 0,
                     'fbiaya' => 0,
@@ -985,7 +992,7 @@ class AdjstockController extends Controller
         $uniqueCodes = array_values(array_unique(array_filter(array_map(fn ($c) => trim((string) $c), $codes))));
         $prodMeta = DB::table('msprd')
             ->whereIn('fprdcode', $uniqueCodes)
-            ->get(['fprdid', 'fprdcode', 'fsatuankecil', 'fsatuanbesar', 'fsatuanbesar2'])
+            ->get(['fprdid', 'fprdcode', 'fsatuankecil', 'fsatuanbesar', 'fsatuanbesar2', 'fqtykecil', 'fqtykecil2'])
             ->keyBy('fprdcode');
 
         $pickDefaultSat = function (?object $meta): string {
@@ -1035,6 +1042,13 @@ class AdjstockController extends Controller
                 continue;
             }
 
+            $qtyKecil = $qty;
+            if ($sat === trim((string) ($meta->fsatuanbesar ?? '')) && (float) ($meta->fqtykecil ?? 0) > 0) {
+                $qtyKecil = $qty * (float) $meta->fqtykecil;
+            } elseif ($sat === trim((string) ($meta->fsatuanbesar2 ?? '')) && (float) ($meta->fqtykecil2 ?? 0) > 0) {
+                $qtyKecil = $qty * (float) $meta->fqtykecil2;
+            }
+
             $amount = $qty * $price;
             $subtotal += $amount;
 
@@ -1043,7 +1057,7 @@ class AdjstockController extends Controller
                 'fnoacak' => $this->normalizeRandomNumber(null, $usedNoAcaks),
                 'frefdtno' => $rref,
                 'fqty' => $qty,
-                'fqtyremain' => $qty,
+                'fqtyremain' => $qtyKecil,
                 'fprice' => $price,
                 'fprice_rp' => $price * $frate,
                 'ftotprice' => $amount,
@@ -1055,7 +1069,7 @@ class AdjstockController extends Controller
                 'frefso' => null,
                 'fdesc' => $desc,
                 'fsatuan' => $sat,
-                'fqtykecil' => $qty,
+                'fqtykecil' => $qtyKecil,
                 'fclosedt' => '0',
                 'fdiscpersen' => 0,
                 'fbiaya' => 0,

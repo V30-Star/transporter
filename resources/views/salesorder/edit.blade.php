@@ -1275,8 +1275,6 @@
                                         <input type="hidden" name="famountsonet" :value="totalDPP">
                                     </div>
                                 </div>
-                            </div>
-
                                 <!-- MODAL DESC (di dalam itemsTable) -->
                                 <div x-show="showDescModal" x-cloak
                                     class="fixed inset-0 z-[95] flex items-center justify-center" x-transition.opacity>
