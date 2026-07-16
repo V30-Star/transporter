@@ -202,8 +202,8 @@
                                 <label class="block text-xs font-bold mb-1">Adj. Type</label>
                                 <select name="ftrancode" x-model="adjtype"
                                     class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 @error('ftrancode') border-red-400 @enderror">
-                                    <option value="m">Masuk</option>
-                                    <option value="k">Keluar</option>
+                                    <option value="M">Masuk</option>
+                                    <option value="K">Keluar</option>
                                 </select>
                                 @error('ftrancode')
                                     <p class="text-red-500 text-xs mt-1">{{ $message }}</p>

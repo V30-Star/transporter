@@ -201,10 +201,10 @@
         </div>
     @endif
 
-    <div x-data="{ open: true, adjtype: '{{ old('ftrancode', 'm') }}' }" class="{{ $action === 'delete' || $action === 'view' || $usageLocked ? 'readonly-mode' : '' }}">
+    <div x-data="{ open: true, adjtype: '{{ old('ftrancode', 'M') }}' }" class="{{ $action === 'delete' || $action === 'view' || $usageLocked ? 'readonly-mode' : '' }}">
         <div x-data="{
             open: true,
-            adjtype: '{{ old('ftrancode', 'm') }}',
+            adjtype: '{{ old('ftrancode', 'M') }}',
         
             includePPN: false,
             ppnRate: 0,
@@ -251,7 +251,7 @@
                                 <div>
                                     <label class="block text-xs font-bold mb-1">Adj. Type</label>
                                     <input type="text" class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm bg-gray-100 text-gray-500 cursor-not-allowed"
-                                        value="{{ $adjstock->ftrancode === 'm' ? 'Masuk' : 'Keluar' }}" readonly>
+                                        value="{{ $adjstock->ftrancode === 'M' ? 'Masuk' : 'Keluar' }}" readonly>
                                 </div>
                             </div>
 
@@ -505,11 +505,11 @@
                             <label class="block text-xs font-bold mb-1">Adj. Type</label>
                             <select name="ftrancode" x-model="adjtype"
                                 class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm bg-white focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-100 @error('ftrancode') border-red-500 @enderror">
-                                <option value="m"
-                                    {{ old('ftrancode', $adjstock->ftrancode ?? 'm') === 'm' ? 'selected' : '' }}>Masuk
+                                <option value="M"
+                                    {{ old('ftrancode', $adjstock->ftrancode ?? 'M') === 'M' ? 'selected' : '' }}>Masuk
                                 </option>
-                                <option value="k"
-                                    {{ old('ftrancode', $adjstock->ftrancode ?? 'k') === 'k' ? 'selected' : '' }}>
+                                <option value="K"
+                                    {{ old('ftrancode', $adjstock->ftrancode ?? 'K') === 'K' ? 'selected' : '' }}>
                                     Keluar
                                 </option>
                             </select>
