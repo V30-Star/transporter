@@ -255,10 +255,12 @@ abstract class Controller
 
         $products = array_map(function ($row) {
             $name = $row['fprdname'] !== '' ? ' - ' . $row['fprdname'] : '';
-            return $row['fprdcode'] . $name . ' (Gudang ' . $row['fwhcode'] . ', stok ' . rtrim(rtrim(number_format($row['available'], 4, '.', ''), '0'), '.') . ', butuh ' . rtrim(rtrim(number_format($row['required'], 4, '.', ''), '0'), '.') . ')';
+            $available = rtrim(rtrim(number_format($row['available'], 4, '.', ''), '0'), '.');
+
+            return $row['fprdcode'] . $name . ' - Stok Hanya ' . $available;
         }, $shortages);
 
-        $message = 'Produk ' . implode(', ', $products) . "\nQty Stok tidak cukup digudang";
+        $message = "Produk\n" . implode("\n", $products) . "\nQty Stok tidak cukup digudang";
 
         if (request()->expectsJson() || request()->ajax()) {
             return response()->json([
