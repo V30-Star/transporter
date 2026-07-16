@@ -252,7 +252,7 @@
         </div>
     @endif
     <div>
-        <div class="max-w-[1600px] mx-auto py-8 px-6">
+        <div>
             <div x-data="{ fclose: {{ old('fclose', $salesorder->fclose) == '1' ? 'true' : 'false' }}, includePPN: false, ppnRate: 0, ppnAmount: 0, selected: 'alamatsurat', totalHarga: 100000 }">
                 <?php if ($isReadOnly) { ?>
                     <div class="space-y-4">
@@ -296,8 +296,10 @@
                                     </div>
                                 </div>
 
-                                {{-- Tanggal --}}
-                                <div>
+                                {{-- Tanggal & Close (Digabung dalam satu kolom grid) --}}
+                                        <div class="flex items-start gap-3">
+                                            {{-- Tanggal (Diberi flex-1 agar mengambil setengah ruang lebih) --}}
+                                            <div class="flex-1">
                                     <label class="block text-xs font-bold mb-1">Tanggal</label>
                                     <input disabled type="date" name="fsodate"
                                         value="{{ old('fsodate') ?? date('Y-m-d', strtotime($salesorder->fsodate)) }}"
@@ -306,9 +308,7 @@
                                         <p class="text-red-600 text-[10px] mt-1">{{ $message }}</p>
                                     @enderror
                                 </div>
-                                </div>
-
-                                <div class="md:col-span-3 flex items-end pb-2">
+                                <div class="flex items-center h-[38px] mt-5">
                                     <div class="inline-flex items-center">
                                         <input id="fclose" type="checkbox" name="fclose" value="1" x-model="fclose"
                                             disabled
@@ -320,6 +320,8 @@
                                             Close
                                         </label>
                                     </div>
+                                </div>
+                                </div>
                                 </div>
 
                                  <div class="grid grid-cols-1 md:grid-cols-3 gap-3"></select></select></select></select></select>
@@ -749,7 +751,7 @@
                         </script>
 
                         <form id="salesOrderForm" action="{{ route('salesorder.update', $salesorder->ftrsomtid) }}"
-                            method="POST" class="mt-6" data-form-draft="true"
+                            method="POST" data-form-draft="true"
                             data-draft-key="salesorder:edit:{{ $salesorder->ftrsomtid }}"
                             data-salesorder-id="{{ $salesorder->ftrsomtid }}" x-data="{
                                 handleSubmit() {
@@ -806,29 +808,32 @@
                                             <p x-show="autoCode" class="text-[10px] text-blue-600 mt-1">* Nomor akan digenerate otomatis saat simpan</p>
                                         </div>
 
-                                        {{-- Tanggal --}}
-                                        <div>
-                                            <label class="block text-xs font-bold mb-1">Tanggal <span class="text-red-500">*</span></label>
-                                            <input type="date" name="fsodate"
-                                                value="{{ old('fsodate') ?? date('Y-m-d', strtotime($salesorder->fsodate)) }}"
-                                                class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 @error('fsodate') border-red-500 @enderror">
-                                            @error('fsodate')
-                                                <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
-                                            @enderror
-                                        </div>
+                                        {{-- Tanggal & Close (Digabung dalam satu kolom grid) --}}
+                                        <div class="flex items-start gap-3">
+                                            {{-- Tanggal (Diberi flex-1 agar mengambil setengah ruang lebih) --}}
+                                            <div class="flex-1">
+                                                <label class="block text-xs font-bold mb-1">Tanggal <span class="text-red-500">*</span></label>
+                                                <input type="date" name="fsodate"
+                                                    value="{{ old('fsodate') ?? date('Y-m-d', strtotime($salesorder->fsodate)) }}"
+                                                    class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 @error('fsodate') border-red-500 @enderror">
+                                                @error('fsodate')
+                                                    <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                                                @enderror
+                                            </div>
 
-                                        {{-- Close --}}
-                                        <div class="md:col-span-3 flex items-end pb-2">
-                                            <div class="inline-flex items-center">
-                                                <input id="fclose" type="checkbox" name="fclose" value="1"
-                                                    x-model="fclose"
-                                                    class="w-5 h-5 text-red-600 border-gray-300 rounded cursor-pointer focus:ring-red-500"
-                                                    {{ old('fclose', $salesorder->fclose) ? 'checked' : '' }}>
+                                            {{-- Close (Sejajar dengan input tanggal berkat h-[38px] atau item-end) --}}
+                                            <div class="flex items-center h-[38px] mt-5">
+                                                <div class="inline-flex items-center">
+                                                    <input id="fclose" type="checkbox" name="fclose" value="1"
+                                                        x-model="fclose"
+                                                        class="w-5 h-5 text-red-600 border-gray-300 rounded cursor-pointer focus:ring-red-500"
+                                                        {{ old('fclose', $salesorder->fclose) ? 'checked' : '' }}>
 
-                                                <label for="fclose"
-                                                    class="ml-2 text-sm font-bold text-red-600 whitespace-nowrap cursor-pointer">
-                                                    Close
-                                                </label>
+                                                    <label for="fclose"
+                                                        class="ml-2 text-sm font-bold text-red-600 whitespace-nowrap cursor-pointer">
+                                                        Close
+                                                    </label>
+                                                </div>
                                             </div>
                                         </div>
                                     </div>
@@ -1048,13 +1053,20 @@
                                     </div>
                                 </div>
 
-                            <div x-data="itemsTable()" x-init="init()" class="mt-6 space-y-2">
+                            <div x-data="itemsTable()" x-init="init()" class="bg-white border border-gray-200 rounded-xl mb-3 overflow-hidden">
 
                                 {{-- DETAIL ITEM (tabel input) --}}
-                                <h3 class="text-base font-semibold text-gray-800">Detail Item</h3>
+                                <div class="flex items-center gap-2 px-4 pt-3 pb-0">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-gray-400" fill="none"
+                                        viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                                    </svg>
+                                    <p class="text-xs font-medium uppercase tracking-wide text-gray-400">Detail Item</p>
+                                </div>
 
                                 <fieldset>
-                                    <div class="overflow-auto border rounded">
+                                    <div class="p-4 overflow-x-auto">
                                         <table class="sales-detail-table min-w-full text-sm balanced-detail-table"
                                             data-skip-auto-detail-style="true">
                                             <colgroup>
