@@ -3,6 +3,54 @@
 @section('title', 'Adjustment Stock - New')
 
 @section('content')
+    @php
+        $oldItemCodes = old('fitemcode', []);
+        $oldItemNames = old('fitemname', []);
+        $oldUnits = old('fsatuan', []);
+        $oldRefPrs = old('frefpr', []);
+        $oldQtys = old('fqty', []);
+        $oldPrices = old('fprice', []);
+        $oldTotals = old('ftotal', []);
+        $oldDescs = old('fdesc', []);
+        $oldKetdts = old('fketdt', []);
+
+        $oldAdjstockItems = [];
+        foreach (array_keys(is_array($oldItemCodes) ? $oldItemCodes : []) as $index) {
+            $code = trim((string) ($oldItemCodes[$index] ?? ''));
+            $name = trim((string) ($oldItemNames[$index] ?? ''));
+            if ($code === '' && $name === '') {
+                continue;
+            }
+
+            $unit = trim((string) ($oldUnits[$index] ?? ''));
+            $oldAdjstockItems[] = [
+                'uid' => 'old-adjstock-' . $index,
+                'fitemcode' => $code,
+                'fitemname' => $name,
+                'units' => $unit !== '' ? [$unit] : [],
+                'fsatuan' => $unit,
+                'frefpr' => trim((string) ($oldRefPrs[$index] ?? '')),
+                'fqty' => (float) ($oldQtys[$index] ?? 0),
+                'fprice' => (float) ($oldPrices[$index] ?? 0),
+                'ftotal' => (float) ($oldTotals[$index] ?? 0),
+                'fdesc' => (string) ($oldDescs[$index] ?? ''),
+                'fketdt' => (string) ($oldKetdts[$index] ?? ''),
+                'maxqty' => 0,
+            ];
+        }
+    @endphp
+
+    @if ($errors->any())
+        <div class="mb-3 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+            <div class="font-semibold">Adjustment stock belum bisa disimpan.</div>
+            <ul class="mt-2 list-disc pl-5">
+                @foreach ($errors->all() as $error)
+                    <li>{{ $error }}</li>
+                @endforeach
+            </ul>
+        </div>
+    @endif
+
     <style>
         input:focus,
         select:focus,
@@ -142,10 +190,10 @@
         }
     </style>
 
-    <div x-data="{ open: true, adjtype: '{{ old('ftrancode', 'm') }}' }">
+    <div x-data="{ open: true, adjtype: '{{ old('ftrancode', 'M') }}' }">
         <div x-data="{
             open: true,
-            adjtype: '{{ old('ftrancode', 'm') }}',
+            adjtype: '{{ old('ftrancode', 'M') }}',
         
             includePPN: false,
             ppnRate: 0,
@@ -154,7 +202,35 @@
         
             showNoItems: false,
         
-            savedItems: []
+            savedItems: @json(strtoupper((string) old('ftrancode', 'M')) === 'K' ? $oldAdjstockItems : []),
+
+            onSubmit($event) {
+                const duplicateCode = window.getAdjstockDuplicateCode?.($event.target);
+                if (duplicateCode) {
+                    $event.preventDefault();
+                    Swal.fire({
+                        icon: 'warning',
+                        title: 'Produk Duplikat',
+                        text: `Kode produk ${duplicateCode} tidak boleh sama dalam satu Adjustment Stock.`,
+                        confirmButtonText: 'OK',
+                        customClass: {
+                            confirmButton: 'bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700'
+                        }
+                    });
+                    return;
+                }
+
+                const itemInputs = $event.target.elements['fitemcode[]'];
+                const itemCount = Array.from(itemInputs ? (itemInputs.length === undefined ? [itemInputs] : itemInputs) : [])
+                    .filter(input => String(input.value || '').trim() !== '').length;
+                if (itemCount === 0) {
+                    $event.preventDefault();
+                    this.showNoItems = true;
+                    return;
+                }
+
+                return window.submitFormWithStockMinusConfirmation?.($event);
+            }
         }">
             <form action="{{ route('adjstock.store') }}" method="POST" data-form-draft="true"
                 data-draft-key="adjstock:create" @submit="onSubmit($event)">
@@ -318,7 +394,7 @@
                         <p class="text-xs font-medium uppercase tracking-wide text-gray-400">Detail Item</p>
                     </div>
                     <div class="p-4">
-                        <template x-if="adjtype === 'm'">
+                        <template x-if="adjtype === 'M'">
                             <div x-data="itemsTable()" x-init="init()" class="space-y-3">
                                 <div class="overflow-auto border rounded">
                                     <table class="adjstock-detail-table min-w-full text-sm balanced-detail-table"
@@ -493,7 +569,7 @@
                             </div>
                         </template>
 
-                        <template x-if="adjtype === 'k'">
+                        <template x-if="adjtype === 'K'">
                             <div x-data="itemsTableKeluar()" x-init="init()" class="space-y-3">
                                 <div class="overflow-auto border rounded">
                                     <table class="min-w-full text-sm balanced-detail-table"
@@ -832,11 +908,11 @@
                                 </div>
                             </div>
                         </div>
-                        <input type="hidden" id="itemsCount" :value="submitItems.length">
+                        <input type="hidden" id="itemsCount" value="0">
                     </div>
 
                     {{-- MODAL ERROR: belum ada item --}}
-                    <div x-show="showNoItems && savedItems.length === 0" x-cloak
+                    <div x-show="showNoItems" x-cloak
                         class="fixed inset-0 z-[90] flex items-center justify-center" x-transition.opacity>
                         <div class="absolute inset-0 bg-black/50" @click="showNoItems=false"></div>
 
@@ -1223,7 +1299,7 @@
     function itemsTable() {
         return {
             showNoItems: false,
-            savedItems: [],
+            savedItems: @json(strtoupper((string) old('ftrancode', 'M')) === 'M' ? $oldAdjstockItems : []),
             minimumVisibleRows: 5,
             browseTarget: null,
 
@@ -1561,9 +1637,6 @@
                     const apply = (row) => {
                         row.fitemcode = (product.fprdcode || '').toString();
                         this.hydrateRowFromMeta(row, this.productMeta(row.fitemcode));
-                         this.rows.splice(this.browseTarget, 1, {
-                        ...this.rows[this.browseTarget]
-                    });
 
                         if (!row.fqty) row.fqty = @json(stock_boleh_minus()) ? 1 : 0;
                         this.recalc(row);
@@ -1620,7 +1693,7 @@
     function itemsTableKeluar() {
         return {
             showNoItems: false,
-            savedItems: [],
+            savedItems: @json(strtoupper((string) old('ftrancode', 'M')) === 'K' ? $oldAdjstockItems : []),
             minimumVisibleRows: 5,
             browseTarget: null,
 
@@ -1950,9 +2023,6 @@
                     const apply = (row) => {
                         row.fitemcode = (product.fprdcode || '').toString();
                         this.hydrateRowFromMeta(row, this.productMeta(row.fitemcode));
-                         this.rows.splice(this.browseTarget, 1, {
-                        ...this.rows[this.browseTarget]
-                    });
 
                         if (!row.fqty) row.fqty = @json(stock_boleh_minus()) ? 1 : 0;
                         this.recalc(row);

@@ -213,7 +213,35 @@
         
             showNoItems: false,
         
-            savedItems: []
+            savedItems: [],
+
+            onSubmit($event) {
+                const duplicateCode = window.getAdjstockDuplicateCode?.($event.target);
+                if (duplicateCode) {
+                    $event.preventDefault();
+                    Swal.fire({
+                        icon: 'warning',
+                        title: 'Produk Duplikat',
+                        text: `Kode produk ${duplicateCode} tidak boleh sama dalam satu Adjustment Stock.`,
+                        confirmButtonText: 'OK',
+                        customClass: {
+                            confirmButton: 'bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700'
+                        }
+                    });
+                    return;
+                }
+
+                const itemInputs = $event.target.elements['fitemcode[]'];
+                const itemCount = Array.from(itemInputs ? (itemInputs.length === undefined ? [itemInputs] : itemInputs) : [])
+                    .filter(input => String(input.value || '').trim() !== '').length;
+                if (itemCount === 0) {
+                    $event.preventDefault();
+                    this.showNoItems = true;
+                    return;
+                }
+
+                return window.submitFormWithStockMinusConfirmation?.($event);
+            }
         }" class="lg:col-span-5">
             <div>
 
@@ -297,7 +325,7 @@
                             <p class="text-xs font-medium uppercase tracking-wide text-gray-400">Detail Item</p>
                         </div>
                         <div class="p-4">
-                            <template x-if="adjtype === 'm'">
+                            <template x-if="adjtype === 'M'">
                                 <div x-data="itemsTable()" x-init="init()" class="space-y-3">
                                     <div class="overflow-auto border rounded">
                                         <table class="adjstock-detail-table min-w-full text-sm balanced-detail-table"
@@ -368,7 +396,7 @@
                                 </div>
                             </template>
 
-                            <template x-if="adjtype === 'k'">
+                            <template x-if="adjtype === 'K'">
                                 <div x-data="itemsTableKeluar()" x-init="init()" class="space-y-3">
                                     <div class="overflow-auto border rounded">
                                         <table class="min-w-full text-sm balanced-detail-table"
@@ -628,7 +656,7 @@
                     <p class="text-xs font-medium uppercase tracking-wide text-gray-400">Detail Item</p>
                 </div>
                 <div class="p-4">
-                    <template x-if="adjtype === 'm'">
+                    <template x-if="adjtype === 'M'">
                         <div x-data="itemsTable()" x-init="init()" class="space-y-3">
 
                     <div class="overflow-auto border rounded">
@@ -809,7 +837,7 @@
                         </div>{{-- /itemsTable alpine div --}}
                     </template>
 
-                    <template x-if="adjtype === 'k'">
+                    <template x-if="adjtype === 'K'">
                         <div x-data="itemsTableKeluar()" x-init="init()" class="space-y-3">
 
                     <div class="overflow-auto border rounded">
@@ -1156,11 +1184,11 @@
                         </div>
                     </div>
                 </div>
-                <input type="hidden" id="itemsCount" :value="submitItems.length">
+                <input type="hidden" id="itemsCount" value="0">
             </div>
 
             {{-- MODAL ERROR: belum ada item --}}
-            <div x-show="showNoItems && submitItems.length === 0" x-cloak
+            <div x-show="showNoItems" x-cloak
                 class="fixed inset-0 z-[90] flex items-center justify-center" x-transition.opacity>
                 <div class="absolute inset-0 bg-black/50" @click="showNoItems=false"></div>
 
@@ -1959,9 +1987,6 @@
                     const apply = (row) => {
                         row.fitemcode = (product.fprdcode || '').toString();
                         this.hydrateRowFromMeta(row, this.productMeta(row.fitemcode));
-                         this.rows.splice(this.browseTarget, 1, {
-                        ...this.rows[this.browseTarget]
-                    });
 
                         if (!row.fqty) row.fqty = @json(stock_boleh_minus()) ? 1 : 0;
                         this.recalc(row);
@@ -2357,9 +2382,6 @@
                     const apply = (row) => {
                         row.fitemcode = (product.fprdcode || '').toString();
                         this.hydrateRowFromMeta(row, this.productMeta(row.fitemcode));
-                         this.rows.splice(this.browseTarget, 1, {
-                        ...this.rows[this.browseTarget]
-                    });
 
                         if (!row.fqty) row.fqty = @json(stock_boleh_minus()) ? 1 : 0;
                         this.recalc(row);

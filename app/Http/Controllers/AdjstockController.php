@@ -672,8 +672,11 @@ class AdjstockController extends Controller
             return redirect()
                 ->route('adjstock.create')
                 ->with('success', "Adjustment stock {$finalNo} berhasil disimpan.");
+        } catch (ValidationException $e) {
+            throw $e;
         } catch (\Exception $e) {
-            return back()->withInput()->withErrors(['fatal' => 'Adjustment stock belum bisa disimpan. Cek data transaksi.']);
+            \Log::error('AdjstockController@store error: ' . $e->getMessage(), ['exception' => $e]);
+            return back()->withInput()->withErrors(['fatal' => 'Adjustment stock belum bisa disimpan: ' . $e->getMessage()]);
         }
     }
 
