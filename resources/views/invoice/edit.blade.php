@@ -714,32 +714,32 @@
                                 <!-- Kanan: Panel Totals -->
                                 <div class="w-1/2">
                                     <div class="rounded-lg border bg-gray-50 p-3 space-y-2">
-                                        <div class="flex items-center justify-between">
-                                            <span class="text-sm text-gray-700">Total Harga</span>
-                                            <span class="min-w-[140px] text-right font-medium"
-                                                x-text="formatTransactionAmount(totalHarga)"></span>
-                                        </div>
+                                                <div class="flex items-center justify-between">
+                                                <span class="font-bold text-gray-800">Total Harga</span>
+                                                <span class="font-bold text-gray-900"
+                                                    x-text="formatTransactionAmount(totalHarga)"></span>
+                                            </div>
 
-                                        <div class="flex items-center justify-between gap-3">
-                                            <span class="text-sm text-gray-700">Discount</span>
-                                            <div class="flex items-center gap-2">
+                                        <div class="flex items-center gap-2">
+                                            <span class="font-bold text-gray-800">Discount</span>
                                                 <input type="number" min="0" max="100" step="0.01"
                                                     name="fdiscpersen" x-model.number="headerDiscPercent" disabled
-                                                    class="w-20 h-9 px-2 text-sm leading-tight text-right border rounded transition-opacity
+                                                    class="w-16 h-9 px-2 text-sm leading-tight text-right border rounded transition-opacity
                                                             [appearance:textfield]
                                                             [&::-webkit-outer-spin-button]:appearance-none
                                                             [&::-webkit-inner-spin-button]:appearance-none
                                                             disabled:bg-gray-100 disabled:opacity-60 disabled:cursor-not-allowed">
-                                                <span class="text-sm">%</span>
-                                                <span class="min-w-[140px] text-right font-medium"
+                                                 <span class="text-gray-500">%</span>
+                                                <span class="flex-1"></span>
+                                                <span class="font-bold text-right"
                                                     x-text="rupiah(headerDiscAmount)"></span>
-                                            </div>
                                         </div>
+
                                         <div class="flex items-center justify-between">
-                                            <span class="text-sm text-gray-700">Total Setelah Disc</span>
-                                            <span class="min-w-[140px] text-right font-medium"
-                                                x-text="rupiah(totalSetelahDisc)"></span>
-                                        </div>
+                                                <span class="font-bold text-gray-800">Total Setelah Disc.</span>
+                                                <span class="font-bold text-gray-900"
+                                                    x-text="rupiah(totalSetelahDisc)"></span>
+                                            </div>
 
                                         <div class="flex items-center justify-between gap-6">
                                             <!-- Checkbox -->
@@ -765,29 +765,26 @@
                                             </div>
 
                                             <!-- Input Rate + Nominal (kanan) -->
-                                            <div class="flex items-center gap-2">
                                                 <input disabled type="number" min="0" max="100"
                                                     step="0.01" x-model.number="ppnRate" readonly
                                                     :disabled="!(includePPN || fapplyppn)"
-                                                    class="w-20 h-9 px-2 text-sm leading-tight text-right border rounded transition-opacity
+                                                    class="w-16 h-9 px-2 text-sm leading-tight text-right border rounded transition-opacity
                                                             [appearance:textfield]
                                                             [&::-webkit-outer-spin-button]:appearance-none
                                                             [&::-webkit-inner-spin-button]:appearance-none
                                                             disabled:bg-gray-100 disabled:opacity-60 disabled:cursor-not-allowed">
-                                                <span class="text-sm">%</span>
-                                                <span class="min-w-[140px] text-right font-medium"
-                                                    x-text="rupiah(ppnAmount)"></span>
-                                            </div>
-
-                                        </div>
-
+                                                 <span class="text-gray-500">%</span>
+                                                        <span class="flex-1"></span>
+                                                        <span class="font-bold"
+                                                            x-text="rupiah(ppnAmount)"></span>
+                                                        </div>
                                         <div class="border-t my-1"></div>
 
-                                        <div class="flex items-center justify-between">
-                                            <span class="text-sm font-semibold text-gray-800">Grand Total</span>
-                                            <span class="min-w-[140px] text-right text-lg font-semibold"
-                                                x-text="rupiah(grandTotal)"></span>
-                                        </div>
+                                        <div class="flex items-center justify-between text-base">
+                                                <span class="font-extrabold text-gray-900">Grand Total</span>
+                                                <span class="font-extrabold text-blue-700 text-lg"
+                                                    x-text="rupiah(grandTotal)"></span>
+                                            </div>
                                     </div>
 
                                     <!-- Hidden inputs for submit -->
@@ -1720,33 +1717,30 @@
                                         <div class="w-1/2">
                                             <div class="rounded-lg border bg-gray-50 p-3 space-y-2">
                                                 <div class="flex items-center justify-between">
-                                                    <span class="text-sm text-gray-700">Total Harga</span>
-                                                    <span class="min-w-[140px] text-right font-medium"
-                                                        x-text="formatTransactionAmount(netTotal)"></span>
-                                                </div>
+                                                <span class="font-bold text-gray-800">Total Harga</span>
+                                                <span class="font-bold text-gray-900"
+                                                    x-text="formatTransactionAmount(totalHarga)"></span>
+                                            </div>
 
-                                                <div class="flex items-center justify-between gap-3">
-                                                    <span class="text-sm text-gray-700">Discount</span>
-                                                    <div class="flex items-center gap-2">
-                                                        <input type="number" min="0" max="100"
-                                                            step="0.01" name="fdiscpersen"
-                                                            x-model.number="headerDiscPercent"
-                                                            :disabled="action === 'delete' || action === 'view'"
-                                                            class="w-20 h-9 px-2 text-sm leading-tight text-right border rounded transition-opacity
+                                            <div class="flex items-center gap-2">
+                                                <span class="font-bold text-gray-800">Discount</span>
+                                                <input type="number" min="0" max="100" step="0.01"
+                                                    name="fdiscpersen" x-model.number="headerDiscPercent"
+                                                    class="w-16 h-9 px-2 text-sm leading-tight text-right border rounded transition-opacity
                                                             [appearance:textfield]
                                                             [&::-webkit-outer-spin-button]:appearance-none
-                                                            [&::-webkit-inner-spin-button]:appearance-none
-                                                            disabled:bg-gray-100 disabled:opacity-60 disabled:cursor-not-allowed">
-                                                        <span class="text-sm">%</span>
-                                                        <span class="min-w-[140px] text-right font-medium"
-                                                            x-text="rupiah(headerDiscAmount)"></span>
-                                                    </div>
-                                                </div>
-                                                <div class="flex items-center justify-between">
-                                                    <span class="text-sm text-gray-700">Total Setelah Disc</span>
-                                                    <span class="min-w-[140px] text-right font-medium"
-                                                        x-text="rupiah(totalSetelahDisc)"></span>
-                                                </div>
+                                                            [&::-webkit-inner-spin-button]:appearance-none">
+                                                <span class="text-gray-500">%</span>
+                                                <span class="flex-1"></span>
+                                                <span class="font-bold text-right"
+                                                    x-text="rupiah(headerDiscAmount)"></span>
+                                            </div>
+
+                                            <div class="flex items-center justify-between">
+                                                <span class="font-bold text-gray-800">Total Setelah Disc.</span>
+                                                <span class="font-bold text-gray-900"
+                                                    x-text="rupiah(totalSetelahDisc)"></span>
+                                            </div>
 
                                                 <div class="flex items-center justify-between gap-6">
                                                     <!-- Checkbox -->
@@ -1775,31 +1769,28 @@
                                                     </div>
 
                                                     <!-- Input Rate + Nominal (kanan) -->
-                                                    <div class="flex items-center gap-2">
                                                         <input type="number" min="0" max="100"
                                                             step="0.01" x-model.number="ppnRate"
                                                             :disabled="!(includePPN || fapplyppn) || action === 'delete' ||
                                                                 action === 'view'"
-                                                            class="w-20 h-9 px-2 text-sm leading-tight text-right border rounded transition-opacity
+                                                            class="w-16 h-9 px-2 text-sm leading-tight text-right border rounded transition-opacity
                                                             [appearance:textfield]
                                                             [&::-webkit-outer-spin-button]:appearance-none
                                                             [&::-webkit-inner-spin-button]:appearance-none
                                                             disabled:bg-gray-100 disabled:opacity-60 disabled:cursor-not-allowed">
-                                                        <span class="text-sm">%</span>
-                                                        <span class="min-w-[140px] text-right font-medium"
+                                                        <span class="text-gray-500">%</span>
+                                                        <span class="flex-1"></span>
+                                                        <span class="font-bold"
                                                             x-text="rupiah(ppnAmount)"></span>
-                                                    </div>
-
                                                 </div>
 
                                                 <div class="border-t my-1"></div>
 
-                                                <div class="flex items-center justify-between">
-                                                    <span class="text-sm font-semibold text-gray-800">Grand
-                                                        Total</span>
-                                                    <span class="min-w-[140px] text-right text-lg font-semibold"
-                                                        x-text="rupiah(grandTotal)"></span>
-                                                </div>
+                                                <div class="flex items-center justify-between text-base">
+                                                <span class="font-extrabold text-gray-900">Grand Total</span>
+                                                <span class="font-extrabold text-blue-700 text-lg"
+                                                    x-text="rupiah(grandTotal)"></span>
+                                            </div>
                                             </div>
 
                                             <!-- Hidden inputs for submit -->

@@ -578,12 +578,12 @@ class InvoiceController extends Controller
         );
     }
 
-    private function getApprovalLockMessage($record): ?string
-    {
-        return ApprovalState::isEditBlockedRecord($record)
-            ? 'Faktur Penjualan belum dapat diubah karena status approval saat ini belum mengizinkan edit.'
-            : null;
-    }
+    // private function getApprovalLockMessage($record): ?string
+    // {
+    //     return ApprovalState::isEditBlockedRecord($record)
+    //         ? 'Faktur Penjualan belum dapat diubah karena status approval saat ini belum mengizinkan edit.'
+    //         : null;
+    // }
 
     private function getCustomerCreditChecks(string $customerCode, float $currentTransactionAmount = 0, ?int $exceptTranmtId = null): array
     {
@@ -2266,9 +2266,9 @@ class InvoiceController extends Controller
             return redirect()->route('invoice.view', $invoice->ftranmtid)->with('error', $message);
         }
 
-        if ($message = $this->getApprovalLockMessage($invoice)) {
-            return redirect()->route('invoice.view', $invoice->ftranmtid)->with('error', $message);
-        }
+        // if ($message = $this->getApprovalLockMessage($invoice)) {
+        //     return redirect()->route('invoice.view', $invoice->ftranmtid)->with('error', $message);
+        // }
 
         if (! $invoice->customer) {
             $invoice->setRelation('customer', Customer::where('fcustomercode', trim((string) $invoice->fcustno))->first());
@@ -2395,7 +2395,7 @@ class InvoiceController extends Controller
 
         ['fcabang' => $fcabang, 'fbranchcode' => $fbranchcode] = $this->resolveBranchContext($invoice->fbranchcode ?? null);
 
-        $approvalLockMessage = $this->getApprovalLockMessage($invoice);
+        // $approvalLockMessage = $this->getApprovalLockMessage($invoice);
 
         $referenceSummary = $this->getReferenceSummaryByTranNo((string) $invoice->fsono);
 
@@ -2448,7 +2448,6 @@ class InvoiceController extends Controller
             'invoice' => $invoice,
             'displayFsono' => $this->formatDisplayTransactionNumber($invoice->fsono ?? null, (string) ($invoice->fincludeppn ?? '0') === '1'),
             'savedItems' => $savedItems,
-            'approvalLockMessage' => $approvalLockMessage,
             'ppnAmount' => (float) ($invoice->famountpopajak ?? 0), // total PPN from DB
             'famountgross' => (float) ($invoice->famountgross ?? 0),  // nilai Grand Total dari DB
             'famountso' => (float) ($invoice->famountso ?? 0),  // nilai Grand Total dari DB
@@ -2522,9 +2521,9 @@ class InvoiceController extends Controller
         if ($message = $this->getPostedPeriodLockMessage($header->fsodate, 'Faktur ini')) {
             return redirect()->route('invoice.view', $ftranmtid)->with('error', $message);
         }
-        if ($message = $this->getApprovalLockMessage((object) $header)) {
-            return redirect()->route('invoice.view', $ftranmtid)->with('error', $message);
-        }
+        // if ($message = $this->getApprovalLockMessage((object) $header)) {
+        //     return redirect()->route('invoice.view', $ftranmtid)->with('error', $message);
+        // }
         if ($message = $this->getUsageLockMessage((object) $header)) {
             return redirect()->route('invoice.index')->with('error', $message);
         }
@@ -2927,9 +2926,9 @@ class InvoiceController extends Controller
             return redirect()->route('invoice.view', $invoice->ftranmtid)->with('error', $message);
         }
 
-        if ($message = $this->getApprovalLockMessage($invoice)) {
-            return redirect()->route('invoice.view', $invoice->ftranmtid)->with('error', $message);
-        }
+        // if ($message = $this->getApprovalLockMessage($invoice)) {
+        //     return redirect()->route('invoice.view', $invoice->ftranmtid)->with('error', $message);
+        // }
 
         if (! $invoice->customer) {
             $invoice->setRelation('customer', Customer::where('fcustomercode', trim((string) $invoice->fcustno))->first());

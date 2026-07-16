@@ -964,77 +964,68 @@
                             </div>
 
                             <!-- ===== Panel Totals (DESAIN ASLI dipertahankan, hanya wrapper yang diperbaiki) ===== -->
-                            <div x-data="prhFormModal()" class="w-full md:w-auto md:min-w-[550px] lg:min-w-[650px]">
+                            <div x-data="prhFormModal()" class="w-full md:w-auto md:min-w-[550px]">
                                 <div class="rounded-lg border bg-gray-50 p-3 space-y-2">
                                     <div class="flex items-center justify-between">
-                                        <span class="text-sm text-gray-700">Total Harga</span>
-                                        <span class="min-w-[140px] text-right font-medium"
-                                            x-text="formatTransactionAmount(netTotal)"></span>
+                                        <span class="font-bold text-gray-800">Total Harga</span>
+                                        <span class="font-bold text-gray-900"
+                                            x-text="formatTransactionAmount(totalHarga)"></span>
                                     </div>
 
-                                    <div class="flex items-center justify-between gap-3">
-                                        <span class="text-sm text-gray-700">Discount</span>
-                                        <div class="flex items-center gap-2">
-                                            <input type="number" min="0" max="100" step="0.01"
-                                                name="fdiscpersen" x-model.number="headerDiscPercent"
-                                                class="w-20 h-9 px-2 text-sm leading-tight text-right border rounded transition-opacity
-                            [appearance:textfield]
-                            [&::-webkit-outer-spin-button]:appearance-none
-                            [&::-webkit-inner-spin-button]:appearance-none">
-                                            <span class="text-sm">%</span>
-                                            <span class="min-w-[140px] text-right font-medium"
-                                                x-text="rupiah(headerDiscAmount)"></span>
-                                        </div>
+                                    <div class="flex items-center gap-2">
+                                        <span class="font-bold text-gray-800">Discount</span>
+                                        <input type="number" min="0" max="100" step="0.01"
+                                            name="fdiscpersen" x-model.number="headerDiscPercent"
+                                            class="w-16 h-9 px-2 text-sm leading-tight text-right border border-gray-300 rounded transition-opacity
+                                                [appearance:textfield]
+                                                [&::-webkit-outer-spin-button]:appearance-none
+                                                [&::-webkit-inner-spin-button]:appearance-none">
+                                        <span class="text-gray-500">%</span>
+                                        <span class="flex-1"></span>
+                                        <span class="font-bold text-right" x-text="rupiah(headerDiscAmount)"></span>
                                     </div>
+
                                     <div class="flex items-center justify-between">
-                                        <span class="text-sm text-gray-700">Total Setelah Disc</span>
-                                        <span class="min-w-[140px] text-right font-medium"
-                                            x-text="rupiah(totalSetelahDisc)"></span>
+                                        <span class="font-bold text-gray-800">Total Setelah Disc</span>
+                                        <span class="font-bold text-gray-900" x-text="rupiah(totalSetelahDisc)"></span>
                                     </div>
 
-                                    <div class="flex items-center justify-between gap-6">
+                                    <div class="flex items-center gap-2">
                                         <!-- Checkbox -->
-                                        <div class="flex items-center">
-                                            <input id="fincludeppn_input" type="checkbox" name="fincludeppn"
-                                                value="1" x-model="includePPN"
+                                        <label class="flex items-center gap-1.5 cursor-pointer select-none">
+                                            <input id="fapplyppn" name="fapplyppn" type="checkbox" value="1"
+                                                x-model="includePPN"
                                                 class="h-4 w-4 text-blue-600 border-gray-300 rounded">
-                                            <label for="fincludeppn_input" class="ml-2 text-sm font-medium text-gray-700">
-                                                <span class="font-bold">PPN</span>
-                                            </label>
-                                        </div>
+                                            <span class="font-bold">PPN</span>
+                                        </label>
 
-                                        <!-- Dropdown Include / Exclude (tengah) -->
-                                        <div class="flex items-center gap-2">
-                                            <select id="fapplyppn_input" name="fapplyppn" x-model.number="fapplyppn"
-                                                x-init="fapplyppn = 0" :disabled="!(includePPN || fapplyppn)"
-                                                class="w-28 h-9 px-2 text-sm leading-tight border rounded transition-opacity appearance-none
-                               disabled:bg-gray-100 disabled:opacity-60 disabled:cursor-not-allowed">
-                                                <option value="0">Exclude</option>
-                                                <option value="1">Include</option>
-                                            </select>
-                                        </div>
+                                        <!-- Dropdown Include / Exclude -->
+                                        <select id="ppnMode" name="fincludeppn" x-model.number="ppnMode"
+                                            :disabled="!includePPN"
+                                            class="w-28 h-9 px-2 text-sm leading-tight border border-gray-300 rounded transition-opacity appearance-none
+                                                disabled:bg-gray-100 disabled:opacity-60 disabled:cursor-not-allowed">
+                                            <option value="0">Exclude</option>
+                                            <option value="1">Include</option>
+                                        </select>
 
-                                        <!-- Input Rate + Nominal (kanan) -->
-                                        <div class="flex items-center gap-2">
-                                            <input type="number" min="0" max="100" step="0.01"
-                                                x-model.number="ppnRate" :disabled="!(includePPN || fapplyppn)"
-                                                class="w-20 h-9 px-2 text-sm leading-tight text-right border rounded transition-opacity
-                            [appearance:textfield]
-                            [&::-webkit-outer-spin-button]:appearance-none
-                            [&::-webkit-inner-spin-button]:appearance-none
-                            disabled:bg-gray-100 disabled:opacity-60 disabled:cursor-not-allowed">
-                                            <span class="text-sm">%</span>
-                                            <span class="min-w-[140px] text-right font-medium"
-                                                x-text="rupiah(ppnAmount)"></span>
-                                        </div>
-
+                                        <!-- Input Rate + Nominal -->
+                                        <input type="number" min="0" max="100" name="ppn_rate"
+                                            step="0.01" x-model.number="ppnRate" :disabled="!includePPN"
+                                            class="w-16 h-9 px-2 text-sm leading-tight text-right border border-gray-300 rounded transition-opacity
+                                                    [appearance:textfield]
+                                                    [&::-webkit-outer-spin-button]:appearance-none
+                                                    [&::-webkit-inner-spin-button]:appearance-none
+                                                    disabled:bg-gray-100 disabled:opacity-60 disabled:cursor-not-allowed">
+                                        <span class="text-gray-500">%</span>
+                                        <span class="flex-1"></span>
+                                        <span class="font-bold" x-text="rupiah(ppnAmount)"></span>
                                     </div>
 
                                     <div class="border-t my-1"></div>
 
                                     <div class="flex items-center justify-between">
-                                        <span class="text-sm font-semibold text-gray-800">Grand Total</span>
-                                        <span class="min-w-[140px] text-right text-lg font-semibold"
+                                        <span class="font-extrabold text-gray-900">Grand Total</span>
+                                        <span class="font-extrabold text-blue-700 text-lg"
                                             x-text="rupiah(grandTotal)"></span>
                                     </div>
                                 </div>
