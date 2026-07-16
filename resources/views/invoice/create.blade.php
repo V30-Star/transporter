@@ -357,21 +357,25 @@
 
                     <div class="grid grid-cols-2 gap-3">
                         <div>
-                            <label class="block text-xs font-bold mb-1">Kode FP</label>
-                            <input type="text" name="fkodefp" id="invoiceFkodefp" value="{{ old('fkodefp') }}"
-                                class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 @error('fkodefp') border-red-500 @enderror">
-                            @error('fkodefp')
-                                <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
-                            @enderror
-                        </div>
-                        <div>
-                            <label class="block text-xs font-bold mb-1">Ref.PO</label>
-                            <input type="text" name="frefno" id="invoiceFrefno" value="{{ old('frefno') }}"
-                                class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 @error('frefno') border-red-500 @enderror">
-                            @error('frefno')
-                                <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
-                            @enderror
-                        </div>
+                        <label class="block text-xs font-bold mb-1">TOP (Hari)</label>
+                        <input type="number" id="ftempohr" name="ftempohr" value="{{ old('ftempohr', '0') }}"
+                            class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 @error('ftempohr') border-red-500 @enderror"
+                            placeholder="Masukkan jumlah hari">
+                        @error('ftempohr')
+                            <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+                        @enderror
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-bold mb-1">Tgl. Jatuh Tempo</label>
+                        <input type="date" id="fjatuhtempo" name="fjatuhtempo"
+                            value="{{ old('fjatuhtempo') ?? date('Y-m-d') }}" readonly
+                            class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm bg-gray-100 text-gray-500 cursor-not-allowed border-gray-200 @error('fjatuhtempo') border-red-500 @enderror">
+                        @error('fjatuhtempo')
+                            <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+                        @enderror
+                    </div>
+                       
                     </div>
 
                     {{-- Salesman --}}
@@ -414,27 +418,23 @@
                         @enderror
                     </div>
                     <div class="grid grid-cols-2 gap-3">
-                    <div>
-                        <label class="block text-xs font-bold mb-1">TOP (Hari)</label>
-                        <input type="number" id="ftempohr" name="ftempohr" value="{{ old('ftempohr', '0') }}"
-                            class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 @error('ftempohr') border-red-500 @enderror"
-                            placeholder="Masukkan jumlah hari">
-                        @error('ftempohr')
-                            <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
-                        @enderror
-                    </div>
-
-                    <div>
-                        <label class="block text-xs font-bold mb-1">Tgl. Jatuh Tempo</label>
-                        <input type="date" id="fjatuhtempo" name="fjatuhtempo"
-                            value="{{ old('fjatuhtempo') ?? date('Y-m-d') }}" readonly
-                            class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm bg-gray-100 text-gray-500 cursor-not-allowed border-gray-200 @error('fjatuhtempo') border-red-500 @enderror">
-                        @error('fjatuhtempo')
-                            <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
-                        @enderror
-                    </div>
-
+                     <div>
+                            <label class="block text-xs font-bold mb-1">Kode FP</label>
+                            <input type="text" name="fkodefp" id="invoiceFkodefp" value="{{ old('fkodefp') }}"
+                                class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 @error('fkodefp') border-red-500 @enderror">
+                            @error('fkodefp')
+                                <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+                            @enderror
                         </div>
+                        <div>
+                            <label class="block text-xs font-bold mb-1">Ref.PO</label>
+                            <input type="text" name="frefno" id="invoiceFrefno" value="{{ old('frefno') }}"
+                                class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 @error('frefno') border-red-500 @enderror">
+                            @error('frefno')
+                                <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+                            @enderror
+                        </div>
+                    </div>
                     <script>
                         document.addEventListener('DOMContentLoaded', function() {
                             function calculateDueDate() {

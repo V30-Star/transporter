@@ -355,7 +355,30 @@
                             @enderror
                         </div>
 
-                        {{-- Salesman --}}
+                        <div class="grid grid-cols-2 gap-3">
+                            <div>
+                                <label class="block text-xs font-bold mb-1">Kode FP</label>
+                                <input type="text" name="fkodefp" id="invoiceFkodefp"
+                                    value="{{ old('fkodefp', $invoice->fkodefp ?? optional($invoice->customer)->fkodefp) }}"
+                                    class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm bg-gray-100 text-gray-500 cursor-not-allowed border-gray-200"
+                                    readonly>
+                                @error('fkodefp')
+                                    <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+                                @enderror
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold mb-1">Ref.PO</label>
+                                <input type="text" name="frefno" id="invoiceFrefno"
+                                    value="{{ old('frefno', $invoice->frefno ?? '') }}"
+                                    class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm bg-gray-100 text-gray-500 cursor-not-allowed border-gray-200"
+                                    readonly>
+                                @error('frefno')
+                                    <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+                                @enderror
+                            </div>
+                        </div>
+
+                           {{-- Salesman --}}
                         <div>
                             <label class="block text-xs font-bold mb-1">Salesman</label>
                             <div class="flex">
@@ -382,7 +405,8 @@
                                 <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                             @enderror
                         </div>
-<div class="grid grid-cols-2 gap-3">
+
+                           <div class="grid grid-cols-2 gap-3">
                         <div>
                             <label class="block text-xs font-bold mb-1">TOP (Hari)</label>
                             <input type="number" id="ftempohr" name="ftempohr" value="{{ old('ftempohr', '0') }}"
@@ -403,29 +427,6 @@
                                 <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                             @enderror
                         </div>
-                        </div>
-
-                        <div class="grid grid-cols-2 gap-3">
-                            <div>
-                                <label class="block text-xs font-bold mb-1">Kode FP</label>
-                                <input type="text" name="fkodefp" id="invoiceFkodefp"
-                                    value="{{ old('fkodefp', $invoice->fkodefp ?? optional($invoice->customer)->fkodefp) }}"
-                                    class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm bg-gray-100 text-gray-500 cursor-not-allowed border-gray-200"
-                                    readonly>
-                                @error('fkodefp')
-                                    <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
-                                @enderror
-                            </div>
-                            <div>
-                                <label class="block text-xs font-bold mb-1">Ref.PO</label>
-                                <input type="text" name="frefno" id="invoiceFrefno"
-                                    value="{{ old('frefno', $invoice->frefno ?? '') }}"
-                                    class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm bg-gray-100 text-gray-500 cursor-not-allowed border-gray-200"
-                                    readonly>
-                                @error('frefno')
-                                    <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
-                                @enderror
-                            </div>
                         </div>
 
                         <script>
@@ -1111,22 +1112,25 @@
                                     @enderror
                                 </div>
 
-                                <div class="grid grid-cols-2 gap-3">
+                              <div class="grid grid-cols-2 gap-3">
                                     <div>
-                                        <label class="block text-xs font-bold mb-1">Kode FP</label>
-                                        <input type="text" name="fkodefp" id="invoiceFkodefp"
-                                            value="{{ old('fkodefp', $invoice->fkodefp ?? optional($invoice->customer)->fkodefp) }}"
-                                            class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm disabled:bg-gray-100 disabled:text-gray-700 disabled:cursor-not-allowed @error('fkodefp') border-red-500 @enderror">
-                                        @error('fkodefp')
+                                        <label class="block text-xs font-bold mb-1">TOP (Hari)</label>
+                                        <input type="number" id="ftempohr" name="ftempohr"
+                                            value="{{ old('ftempohr', $invoice->ftempohr) }}"
+                                            class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm disabled:bg-gray-100 disabled:text-gray-700 disabled:cursor-not-allowed @error('ftempohr') border-red-500 @enderror"
+                                            placeholder="Masukkan jumlah hari">
+                                        @error('ftempohr')
                                             <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                                         @enderror
                                     </div>
+
                                     <div>
-                                        <label class="block text-xs font-bold mb-1">Ref.PO</label>
-                                        <input type="text" name="frefno" id="invoiceFrefno"
-                                            value="{{ old('frefno', $invoice->frefno ?? '') }}"
-                                            class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm disabled:bg-gray-100 disabled:text-gray-700 disabled:cursor-not-allowed @error('frefno') border-red-500 @enderror">
-                                        @error('frefno')
+                                        <label class="block text-xs font-bold mb-1">Tgl. Jatuh Tempo</label>
+                                        <input type="date" id="fjatuhtempo" name="fjatuhtempo"
+                                            value="{{ old('fjatuhtempo') ?? date('Y-m-d', strtotime($invoice->fjatuhtempo)) }}"
+                                            readonly
+                                            class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm bg-gray-100 disabled:bg-gray-100 disabled:text-gray-700 disabled:cursor-not-allowed @error('fjatuhtempo') border-red-500 @enderror">
+                                        @error('fjatuhtempo')
                                             <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                                         @enderror
                                     </div>
@@ -1177,26 +1181,22 @@
                                         <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                                     @enderror
                                 </div>
-
-                                <div class="grid grid-cols-2 gap-3">
+   <div class="grid grid-cols-2 gap-3">
                                     <div>
-                                        <label class="block text-xs font-bold mb-1">TOP (Hari)</label>
-                                        <input type="number" id="ftempohr" name="ftempohr"
-                                            value="{{ old('ftempohr', $invoice->ftempohr) }}"
-                                            class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm disabled:bg-gray-100 disabled:text-gray-700 disabled:cursor-not-allowed @error('ftempohr') border-red-500 @enderror"
-                                            placeholder="Masukkan jumlah hari">
-                                        @error('ftempohr')
+                                        <label class="block text-xs font-bold mb-1">Kode FP</label>
+                                        <input type="text" name="fkodefp" id="invoiceFkodefp"
+                                            value="{{ old('fkodefp', $invoice->fkodefp ?? optional($invoice->customer)->fkodefp) }}"
+                                            class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm disabled:bg-gray-100 disabled:text-gray-700 disabled:cursor-not-allowed @error('fkodefp') border-red-500 @enderror">
+                                        @error('fkodefp')
                                             <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                                         @enderror
                                     </div>
-
                                     <div>
-                                        <label class="block text-xs font-bold mb-1">Tgl. Jatuh Tempo</label>
-                                        <input type="date" id="fjatuhtempo" name="fjatuhtempo"
-                                            value="{{ old('fjatuhtempo') ?? date('Y-m-d', strtotime($invoice->fjatuhtempo)) }}"
-                                            readonly
-                                            class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm bg-gray-100 disabled:bg-gray-100 disabled:text-gray-700 disabled:cursor-not-allowed @error('fjatuhtempo') border-red-500 @enderror">
-                                        @error('fjatuhtempo')
+                                        <label class="block text-xs font-bold mb-1">Ref.PO</label>
+                                        <input type="text" name="frefno" id="invoiceFrefno"
+                                            value="{{ old('frefno', $invoice->frefno ?? '') }}"
+                                            class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm disabled:bg-gray-100 disabled:text-gray-700 disabled:cursor-not-allowed @error('frefno') border-red-500 @enderror">
+                                        @error('frefno')
                                             <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                                         @enderror
                                     </div>
@@ -1978,16 +1978,23 @@
                     @csrf
                     @method('DELETE')
                     <div class="flex justify-end space-x-2">
-                        <button onclick="closeDeleteModal()" class="px-5 py-2 bg-gray-300 rounded hover:bg-gray-400"
+                        <button type="button" onclick="closeDeleteModal()" class="px-5 py-2 bg-gray-300 rounded hover:bg-gray-400"
                             id="btnTidak">
                             Tidak
                         </button>
-                        </button>
-                        <button type="submit" class="px-5 py-2 bg-red-600 text-white rounded hover:bg-red-700">
+                        <button type="button" onclick="confirmDelete()" id="btnYa"
+                            class="px-5 py-2 bg-red-600 text-white rounded hover:bg-red-700 disabled:opacity-60 disabled:cursor-not-allowed">
                             Ya, Hapus
                         </button>
                     </div>
                 </form>
+            </div>
+        </div>
+
+        <div id="toast" class="hidden fixed top-5 right-5 z-[60]">
+            <div id="toastContent" class="bg-green-500 text-white px-6 py-4 rounded-lg shadow-lg flex items-center">
+                <span id="toastMessage"></span>
+                <button type="button" onclick="closeToast()" class="ml-4 font-bold leading-none">&times;</button>
             </div>
         </div>
 
