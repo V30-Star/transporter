@@ -1308,9 +1308,10 @@
                                                     <td class="p-2">
                                                         <div class="flex">
                                                             <input type="text"
-                                                                class="flex-1 border rounded-l px-2 py-1 font-mono text-sm focus:ring-1 focus:ring-blue-500"
+                                                                class="flex-1 border rounded-l px-2 py-1 font-mono text-sm focus:ring-1 focus:ring-blue-500 disabled:bg-gray-100 disabled:text-gray-500 disabled:cursor-not-allowed"
                                                                 x-model.trim="it.fitemcode" @input="onCodeTypedRow(it, i)"
-                                                                @keydown.enter.prevent="focusRowUnit(it, i)">
+                                                                @keydown.enter.prevent="focusRowUnit(it, i)"
+                                                                {{ $action === 'view' ? 'disabled' : '' }}>
                                                             @if ($action !== 'view')
                                                                 <button type="button" @click="openBrowseFor(i)"
                                                                     class="border border-l-0 px-2 py-1 bg-white hover:bg-gray-50"
@@ -1334,10 +1335,11 @@
                                                     <td class="p-2">
                                                         <template x-if="it.units && it.units.length > 1">
                                                             <select
-                                                                class="w-full border rounded px-2 py-1 text-sm focus:ring-1 focus:ring-blue-500"
+                                                                class="w-full border rounded px-2 py-1 text-sm focus:ring-1 focus:ring-blue-500 disabled:bg-gray-100 disabled:text-gray-500 disabled:cursor-not-allowed"
                                                                 :id="'unit_row_' + i" x-model="it.fsatuan"
                                                                 @change="applyInvoicePrice(it); onRowUpdated(i)"
-                                                                @keydown.enter.prevent="focusRowQty(i)">
+                                                                @keydown.enter.prevent="focusRowQty(i)"
+                                                                {{ $action === 'view' ? 'disabled' : '' }}>
                                                                 <template x-for="u in it.units" :key="u">
                                                                     <option :value="u"
                                                                         :selected="u === it.fsatuan" x-text="u">
@@ -1357,11 +1359,12 @@
                                                     </td>
                                                     <td class="p-2 text-right">
                                                         <input type="number"
-                                                            class="w-full border rounded px-2 py-1 text-right text-sm"
+                                                            class="w-full border rounded px-2 py-1 text-right text-sm disabled:bg-gray-100 disabled:text-gray-500 disabled:cursor-not-allowed"
                                                             :id="'qty_row_' + i" x-model.number="it.fqty"
                                                             @input="enforceQtyRow(it); onRowUpdated(i)"
                                                             @change="enforceQtyRow(it); onRowUpdated(i)"
-                                                            @keydown.enter.prevent="focusRowPrice(i)">
+                                                            @keydown.enter.prevent="focusRowPrice(i)"
+                                                            {{ $action === 'view' ? 'disabled' : '' }}>
                                                         <div class="text-xs text-gray-400 mt-0.5 text-right">
                                                             <span x-show="it.fitemcode"
                                                                 x-html="formatStockLimit(it)"></span>
@@ -1369,22 +1372,24 @@
                                                     </td>
                                                     <td class="p-2 text-right">
                                                         <input type="text" inputmode="decimal"
-                                                            class="w-full border rounded px-2 py-1 text-right text-sm"
+                                                            class="w-full border rounded px-2 py-1 text-right text-sm disabled:bg-gray-100 disabled:text-gray-500 disabled:cursor-not-allowed"
                                                             :id="'price_row_' + i" x-model="it.fpriceInput"
                                                             @focus="activeRow = it.uid; focusPriceInput(it); $event.target.select()"
                                                             @blur="activeRow = null; blurPriceInput(it)"
                                                             @input="onPriceInput(it); onRowUpdated(i)"
-                                                            @keydown.enter.prevent="focusRowDisc(i)">
+                                                            @keydown.enter.prevent="focusRowDisc(i)"
+                                                            {{ $action === 'view' ? 'disabled' : '' }}>
                                                     </td>
                                                     <td class="p-2 text-right">
                                                         <input type="text"
-                                                            class="w-full border rounded px-2 py-1 text-right text-sm"
+                                                            class="w-full border rounded px-2 py-1 text-right text-sm disabled:bg-gray-100 disabled:text-gray-500 disabled:cursor-not-allowed"
                                                             :id="'disc_row_' + i"
                                                             :value="normalizeDiscountValue(it.fdisc)"
                                                             @focus="activeRow = it.uid; $event.target.select()"
                                                             @blur="activeRow = null; normalizeDiscountInput($event, it)"
                                                             @input="it.fdisc = $event.target.value; onRowUpdated(i)"
-                                                            @keydown.enter.prevent="$event.target.blur()">
+                                                            @keydown.enter.prevent="$event.target.blur()"
+                                                            {{ $action === 'view' ? 'disabled' : '' }}>
                                                     </td>
                                                     <td class="p-2">
                                                         <input type="text"
