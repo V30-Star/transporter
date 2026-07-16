@@ -696,7 +696,7 @@
                                 <div>
                                     <label class="block text-xs font-bold text-gray-500 mb-1">Nama Produk</label>
                                     <div class="w-full bg-gray-100 px-3 py-2 rounded text-sm text-gray-600"
-                                        x-text="descPreview.label"></div>
+                                        x-text="descItemName"></div>
                                 </div>
                                 <div>
                                     <div class="flex justify-between items-center mb-1">
@@ -704,7 +704,7 @@
                                         <button x-show="!descReadonly" type="button" @click="copyDescName()"
                                             class="text-xs text-blue-600 hover:underline">Copy Nama Produk</button>
                                     </div>
-                                    <textarea x-model="descPreview.text" rows="4" :readonly="descReadonly"
+                                    <textarea x-model="descValue" rows="4" :readonly="descReadonly"
                                         class="w-full p-3 border border-gray-300 rounded focus:ring-blue-500 focus:border-blue-500 text-sm"
                                         placeholder="Tambahkan keterangan spesifik item di sini..."></textarea>
                                 </div>
