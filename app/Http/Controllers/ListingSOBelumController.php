@@ -56,7 +56,7 @@ class ListingSOBelumController extends Controller
     {
         $results = $this->getQueryResult($request, 'customer');
 
-        $filename = 'SO_Belum_Dikirim_Customer_'.date('YmdHis').'.xlsx';
+        $filename = 'SO_Belum_Dikirim_Customer_' . date('YmdHis') . '.xlsx';
         $tempFile = tempnam(sys_get_temp_dir(), 'xlsx_');
 
         $writer = new Writer;
@@ -72,7 +72,7 @@ class ListingSOBelumController extends Controller
 
         $makeRow = function (array $values, ?Style $style = null): Row {
             $cells = array_map(
-                fn ($value) => $style ? Cell::fromValue($value, $style) : Cell::fromValue($value),
+                fn($value) => $style ? Cell::fromValue($value, $style) : Cell::fromValue($value),
                 $values
             );
 
@@ -81,15 +81,15 @@ class ListingSOBelumController extends Controller
 
         // Header Informasi
         $writer->addRow($makeRow(['SO YANG BELUM DIKIRIM (BY CUSTOMER)'], $styleTitle));
-        $writer->addRow($makeRow(['Tanggal:', date('d/m/Y').'  Jam: '.date('H:i')]));
-        $writer->addRow($makeRow(['Periode:', $request->date_from.' s/d '.$request->date_to]));
+        $writer->addRow($makeRow(['Tanggal:', date('d/m/Y') . '  Jam: ' . date('H:i')]));
+        $writer->addRow($makeRow(['Periode:', $request->date_from . ' s/d ' . $request->date_to]));
         $writer->addRow($makeRow([
             'Cabang:',
             !empty($request->branch_codes)
                 ? implode(', ', (array) $request->branch_codes)
                 : 'Semua',
         ]));
-        $writer->addRow($makeRow(['Customer:', $request->cust_from ? $request->cust_from.' s/d '.$request->cust_to : 'Semua']));
+        $writer->addRow($makeRow(['Customer:', $request->cust_from ? $request->cust_from . ' s/d ' . $request->cust_to : 'Semua']));
         $writer->addRow($makeRow(['Operator:', (auth('sysuser')->user() ?? auth()->user())->fname ?? 'User']));
         $writer->addRow($makeRow([]));
 
@@ -100,9 +100,9 @@ class ListingSOBelumController extends Controller
             foreach ($results as $row) {
                 $grandTotalQty += (float) $row->fqty;
                 $writer->addRow($makeRow([
-                    $row->fcustno.' - '.$row->fcustomername,
+                    $row->fcustno . ' - ' . $row->fcustomername,
                     (float) $row->fqty,
-                    (float) $row->fstock,
+                    (float) $row->fstok,
                 ]));
             }
 
@@ -131,7 +131,7 @@ class ListingSOBelumController extends Controller
         foreach ($results as $custId => $rows) {
             // Group Customer
             $writer->addRow($makeRow([
-                'Customer: '.$rows->first()->fcustomername,
+                'Customer: ' . $rows->first()->fcustomername,
                 '',
                 '',
                 '',
@@ -151,13 +151,13 @@ class ListingSOBelumController extends Controller
                     $row->fsatuan,
                     (float) $row->fpricenet,
                     (float) $row->fqty,
-                    (float) $row->fstock,
+                    (float) $row->fstok,
                 ]));
             }
 
             // Subtotal per Customer
             $writer->addRow($makeRow([
-                'Total '.$rows->first()->fcustomername,
+                'Total ' . $rows->first()->fcustomername,
                 '',
                 '',
                 '',
@@ -192,7 +192,7 @@ class ListingSOBelumController extends Controller
     {
         $results = $this->getQueryResult($request, 'produk');
 
-        $filename = 'SO_Belum_Dikirim_Produk_'.date('YmdHis').'.xlsx';
+        $filename = 'SO_Belum_Dikirim_Produk_' . date('YmdHis') . '.xlsx';
         $tempFile = tempnam(sys_get_temp_dir(), 'xlsx_');
 
         $writer = new Writer;
@@ -206,7 +206,7 @@ class ListingSOBelumController extends Controller
 
         $makeRow = function (array $values, ?Style $style = null): Row {
             $cells = array_map(
-                fn ($value) => $style ? Cell::fromValue($value, $style) : Cell::fromValue($value),
+                fn($value) => $style ? Cell::fromValue($value, $style) : Cell::fromValue($value),
                 $values
             );
 
@@ -215,15 +215,15 @@ class ListingSOBelumController extends Controller
 
         // Header Informasi
         $writer->addRow($makeRow(['SO YANG BELUM DIKIRIM (BY PRODUK)'], $styleTitle));
-        $writer->addRow($makeRow(['Tanggal:', date('d/m/Y').'  Jam: '.date('H:i')]));
-        $writer->addRow($makeRow(['Periode:', $request->date_from.' s/d '.$request->date_to]));
+        $writer->addRow($makeRow(['Tanggal:', date('d/m/Y') . '  Jam: ' . date('H:i')]));
+        $writer->addRow($makeRow(['Periode:', $request->date_from . ' s/d ' . $request->date_to]));
         $writer->addRow($makeRow([
             'Cabang:',
             !empty($request->branch_codes)
                 ? implode(', ', (array) $request->branch_codes)
                 : 'Semua',
         ]));
-        $writer->addRow($makeRow(['Customer:', $request->cust_from ? $request->cust_from.' s/d '.$request->cust_to : 'Semua']));
+        $writer->addRow($makeRow(['Customer:', $request->cust_from ? $request->cust_from . ' s/d ' . $request->cust_to : 'Semua']));
         $writer->addRow($makeRow(['Operator:', (auth('sysuser')->user() ?? auth()->user())->fname ?? 'User']));
         $writer->addRow($makeRow([]));
 
@@ -238,7 +238,7 @@ class ListingSOBelumController extends Controller
                     $row->fprdname,
                     $row->fsatuan,
                     (float) $row->fqty,
-                    (float) $row->fstock,
+                    (float) $row->fstok,
                 ]));
             }
 
@@ -266,7 +266,7 @@ class ListingSOBelumController extends Controller
         foreach ($results as $prdCode => $rows) {
             // Group Produk
             $writer->addRow($makeRow([
-                'Produk: ['.$prdCode.'] '.$rows->first()->fprdname,
+                'Produk: [' . $prdCode . '] ' . $rows->first()->fprdname,
                 '',
                 '',
                 '',
@@ -286,13 +286,13 @@ class ListingSOBelumController extends Controller
                     $row->fsatuan,
                     (float) $row->fpricenet,
                     (float) $row->fqty,
-                    (float) $row->fstock,
+                    (float) $row->fstok,
                 ]));
             }
 
             // Subtotal per Produk
             $writer->addRow($makeRow([
-                'Total ['.$prdCode.'] '.$rows->first()->fprdname,
+                'Total [' . $prdCode . '] ' . $rows->first()->fprdname,
                 '',
                 '',
                 '',
@@ -327,7 +327,7 @@ class ListingSOBelumController extends Controller
     {
         $reportType = $request->input('report_type', 'detail');
         $remainQty = 'CASE WHEN d.fsatuan = p.fsatuanbesar AND COALESCE(p.fqtykecil, 0) > 0 THEN COALESCE(d.fqtyremain, 0) / p.fqtykecil ELSE COALESCE(d.fqtyremain, 0) END';
-        $stockQty = "COALESCE(CAST(NULLIF(p.fstock, '') AS NUMERIC), 0)";
+        $stockQty = "COALESCE(CAST(NULLIF(p.fstok, '') AS NUMERIC), 0)";
 
         $query = DB::table('trsomt as m')
             ->join('trsodt as d', 'm.fsono', '=', 'd.fsono')
@@ -346,7 +346,7 @@ class ListingSOBelumController extends Controller
             $query->where('m.fsodate', '>=', $request->date_from);
         }
         if ($request->date_to) {
-            $query->where('m.fsodate', '<=', $request->date_to.' 23:59:59');
+            $query->where('m.fsodate', '<=', $request->date_to . ' 23:59:59');
         }
         if ($request->cust_from && $request->cust_to) {
             $query->whereBetween('c.fcustomercode', [$request->cust_from, $request->cust_to]);
@@ -358,7 +358,7 @@ class ListingSOBelumController extends Controller
             $query->whereIn('p.fprdcode', explode(',', $request->selected_products));
         }
         if ($request->has('only_stok')) {
-            $query->whereRaw($stockQty.' > 0');
+            $query->whereRaw($stockQty . ' > 0');
         }
 
         if ($reportType === 'rekap') {
@@ -367,7 +367,7 @@ class ListingSOBelumController extends Controller
                     'p.fprdcode',
                     'p.fprdname',
                     DB::raw('MAX(d.fsatuan) as fsatuan'),
-                    DB::raw("MAX($stockQty) as fstock"),
+                    DB::raw("MAX($stockQty) as fstok"),
                     DB::raw("SUM($remainQty) as fqty")
                 )
                     ->groupBy('p.fprdcode', 'p.fprdname')
@@ -379,7 +379,7 @@ class ListingSOBelumController extends Controller
                 'm.fcustno',
                 'c.fcustomername',
                 DB::raw("SUM($remainQty) as fqty"),
-                DB::raw("SUM($stockQty) as fstock")
+                DB::raw("SUM($stockQty) as fstok")
             )
                 ->groupBy('m.fcustno', 'c.fcustomername')
                 ->orderBy('m.fcustno')
@@ -395,10 +395,10 @@ class ListingSOBelumController extends Controller
             'p.fprdname',
             'd.fsatuan',
             'd.fpricenet',
-            DB::raw($stockQty.' as fstock'),
+            DB::raw($stockQty . ' as fstok'),
             'p.fqtykecil',
             'p.fsatuanbesar',
-            DB::raw($remainQty.' as fqty')
+            DB::raw($remainQty . ' as fqty')
         );
 
         if ($grouping == 'produk') {

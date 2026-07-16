@@ -33,8 +33,8 @@ class ReportingProductController extends Controller
         ];
 
         $warehouseName = $request->warehouse
-          ? DB::table('mswh')->where('fwhcode', $request->warehouse)->value('fwhname')
-          : 'Semua Gudang';
+            ? DB::table('mswh')->where('fwhcode', $request->warehouse)->value('fwhname')
+            : 'Semua Gudang';
 
         return view('reportingproduct.print', [
             'data' => $data,
@@ -56,10 +56,10 @@ class ReportingProductController extends Controller
         ];
 
         $warehouseName = $request->warehouse
-          ? DB::table('mswh')->where('fwhcode', $request->warehouse)->value('fwhname')
-          : 'Semua Gudang';
+            ? DB::table('mswh')->where('fwhcode', $request->warehouse)->value('fwhname')
+            : 'Semua Gudang';
 
-        $filename = 'Master_Product_'.date('YmdHis').'.xlsx';
+        $filename = 'Master_Product_' . date('YmdHis') . '.xlsx';
         $tempFile = tempnam(sys_get_temp_dir(), 'xlsx_');
 
         $writer = new Writer;
@@ -73,7 +73,7 @@ class ReportingProductController extends Controller
 
         $makeRow = function (array $values, ?Style $style = null): Row {
             $cells = array_map(
-                fn ($value) => $style ? Cell::fromValue($value, $style) : Cell::fromValue($value),
+                fn($value) => $style ? Cell::fromValue($value, $style) : Cell::fromValue($value),
                 $values
             );
 
@@ -82,12 +82,12 @@ class ReportingProductController extends Controller
 
         // --- Header Informasi ---
         $writer->addRow($makeRow(['MASTER PRODUCT LIST'], $styleTitle));
-        $writer->addRow($makeRow(['Tanggal:', date('d/m/Y').'  Jam: '.date('H:i')]));
+        $writer->addRow($makeRow(['Tanggal:', date('d/m/Y') . '  Jam: ' . date('H:i')]));
         $writer->addRow($makeRow([
             'Produk:',
             $request->prd_from
-              ? '['.$request->prd_from.'] s/d ['.$request->prd_to.']'
-              : 'Semua',
+                ? '[' . $request->prd_from . '] s/d [' . $request->prd_to . ']'
+                : 'Semua',
         ]));
         $writer->addRow($makeRow(['Gudang:', $warehouseName]));
         $writer->addRow($makeRow(['Group:', $request->group ?? 'Semua']));
@@ -115,14 +115,14 @@ class ReportingProductController extends Controller
         $totalStok = 0;
 
         foreach ($data as $i => $row) {
-            $totalStok += (float) $row->fstock;
+            $totalStok += (float) $row->fstok;
 
             $cols = [
                 $i + 1,
                 $row->fprdcode,
                 $row->fprdname,
                 $row->fsatuankecil,
-                (float) $row->fstock,
+                (float) $row->fstok,
             ];
 
             if ($showCols['hpp']) {
@@ -146,7 +146,7 @@ class ReportingProductController extends Controller
 
         $totalCols = array_fill(0, count($headers), '');
         $totalCols[0] = 'TOTAL JENIS BARANG';
-        $totalCols[1] = count($data).' Items';
+        $totalCols[1] = count($data) . ' Items';
         $totalCols[4] = $totalStok;
 
         $writer->addRow($makeRow($totalCols, $styleGrandTotal));
@@ -174,7 +174,7 @@ class ReportingProductController extends Controller
         }
 
         if ($request->has('only_stock')) {
-            $query->whereRaw("CAST(COALESCE(fstock, '0') AS FLOAT) > 0");
+            $query->whereRaw("CAST(COALESCE(fstok, '0') AS FLOAT) > 0");
         }
 
         $orderBy = $request->sort_by == 'name' ? 'fprdname' : 'fprdcode';

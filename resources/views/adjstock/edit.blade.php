@@ -344,7 +344,7 @@
                                                     <th class="p-2 text-left w-10">#</th>
                                                     <th class="p-2 text-left w-40">Kode Produk</th>
                                                     <th class="p-2 text-left w-[27rem]">Nama Produk</th>
-                                                    <th class="p-2 text-left w-24">Sat</th>
+                                                    <th class="p-2 text-left w-24">Satuan</th>
                                                     <th class="p-2 text-right w-36 whitespace-nowrap">Qty Masuk</th>
                                                     <th class="p-2 text-right w-32 whitespace-nowrap">@ Harga</th>
                                                     <th class="p-2 text-right w-36 whitespace-nowrap">Total Harga</th>
@@ -413,7 +413,7 @@
                                                     <th class="p-2 text-left w-10">#</th>
                                                     <th class="p-2 text-left w-40">Kode Produk</th>
                                                     <th class="p-2 text-left w-[27rem]">Nama Produk</th>
-                                                    <th class="p-2 text-left w-24">Sat</th>
+                                                    <th class="p-2 text-left w-24">Satuan</th>
                                                     <th class="p-2 text-right w-36 whitespace-nowrap">Qty Keluar</th>
                                                 </tr>
                                             </thead>
@@ -677,7 +677,7 @@
                                                 <th class="p-2 text-left w-10">#</th>
                                                 <th class="p-2 text-left w-40">Kode Produk</th>
                                                 <th class="p-2 text-left w-[20rem]">Nama Produk</th>
-                                                <th class="p-2 text-left w-24">Sat</th>
+                                                <th class="p-2 text-left w-24">Satuan</th>
                                                 <th class="p-2 text-right w-36 whitespace-nowrap">Qty Masuk</th>
                                                 <th class="p-2 text-right w-32 whitespace-nowrap">@ Harga</th>
                                                 <th class="p-2 text-right w-36 whitespace-nowrap">Total Harga</th>
@@ -856,7 +856,7 @@
                                                 <th class="p-2 text-left w-10">#</th>
                                                 <th class="p-2 text-left w-40">Kode Produk</th>
                                                 <th class="p-2 text-left w-[20rem]">Nama Produk</th>
-                                                <th class="p-2 text-left w-24">Sat</th>
+                                                <th class="p-2 text-left w-24">Satuan</th>
                                                 <th class="p-2 text-right w-36 whitespace-nowrap">Qty Keluar</th>
                                                 <th class="p-2 text-center w-36">Aksi</th>
                                             </tr>

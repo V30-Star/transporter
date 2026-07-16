@@ -8,7 +8,9 @@
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;1,100;1,200;1,300;1,400;1,500;1,600;1,700&family=IBM+Plex+Sans:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;1,100;1,200;1,300;1,400;1,500;1,600;1,700&family=Source+Serif+4:ital,opsz,wght@0,8..60,200..900;1,8..60,200..900&display=swap" rel="stylesheet">
+    <link
+        href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;1,100;1,200;1,300;1,400;1,500;1,600;1,700&family=IBM+Plex+Sans:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;1,100;1,200;1,300;1,400;1,500;1,600;1,700&family=Source+Serif+4:ital,opsz,wght@0,8..60,200..900;1,8..60,200..900&display=swap"
+        rel="stylesheet">
     <style>
         * {
             margin: 0;
@@ -20,8 +22,10 @@
         body {
             font-family: 'IBM Plex Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
             font-size: 10px;
-            color: #000000; /* Solid Black text */
-            background-color: #f1f5f9; /* Modern light slate background on monitor */
+            color: #000000;
+            /* Solid Black text */
+            background-color: #f1f5f9;
+            /* Modern light slate background on monitor */
             counter-reset: page;
             -webkit-print-color-adjust: exact;
             print-color-adjust: exact;
@@ -60,23 +64,27 @@
             margin-bottom: 6px;
             font-weight: 600;
             text-transform: uppercase;
-            color: #cc0000; /* Dark Red matching Listing PO */
+            color: #cc0000;
+            /* Dark Red matching Listing PO */
             letter-spacing: 0.5px;
         }
 
         .filter-info {
             font-size: 10px;
-            color: #475569; /* Slate 600 */
+            color: #475569;
+            /* Slate 600 */
             margin-bottom: 5px;
             font-weight: 500;
         }
 
         .supplier-info-kiri {
             position: absolute;
-            top: 15px; /* Shifted one line up inline with right side metadata */
+            top: 15px;
+            /* Shifted one line up inline with right side metadata */
             left: 0mm;
             font-size: 10px;
-            color: #334155; /* Slate 700 */
+            color: #334155;
+            /* Slate 700 */
             text-align: left;
             line-height: 1.5;
         }
@@ -86,7 +94,8 @@
             top: 0;
             right: 0;
             font-size: 10px;
-            color: #334155; /* Slate 700 */
+            color: #334155;
+            /* Slate 700 */
             text-align: left;
             line-height: 1.5;
         }
@@ -95,7 +104,8 @@
             font-weight: 600;
             display: inline-block;
             width: 50px;
-            color: #475569; /* Slate 600 */
+            color: #475569;
+            /* Slate 600 */
         }
 
         /* --- COLUMN STYLES (7 Kolom) --- */
@@ -107,7 +117,8 @@
             grid-template-columns: 25mm 18mm 45mm 15mm 24mm 24mm 24mm;
             gap: 1px;
             font-size: 8px;
-            padding: 2px 8px; /* Reduced vertical padding matching PO */
+            padding: 2px 8px;
+            /* Reduced vertical padding matching PO */
             align-items: center;
         }
 
@@ -116,7 +127,8 @@
             color: #000000;
             border-top: 1px solid #000000;
             border-bottom: 1px solid #000000;
-            margin-bottom: 0px; /* Reduced spacing */
+            margin-bottom: 0px;
+            /* Reduced spacing */
             font-weight: bold;
             text-transform: uppercase;
             letter-spacing: 0.5px;
@@ -145,36 +157,37 @@
         }
 
         /* Alignment & Monospace Fonts */
-        .grid-header > div.text-right,
-        .grid-row > div.text-right,
-        .cust-subtotal > div.text-right {
+        .grid-header>div.text-right,
+        .grid-row>div.text-right,
+        .cust-subtotal>div.text-right {
             text-align: right;
         }
 
-        .grid-header > div.text-center,
-        .grid-row > div.text-center,
-        .cust-subtotal > div.text-center {
+        .grid-header>div.text-center,
+        .grid-row>div.text-center,
+        .cust-subtotal>div.text-center {
             text-align: center;
         }
 
-        .grid-row > div:nth-child(1),
-        .grid-row > div:nth-child(2),
-        .grid-row > div:nth-child(4),
-        .grid-row > div:nth-child(5),
-        .grid-row > div:nth-child(6),
-        .grid-row > div:nth-child(7),
-        .cust-subtotal > div.text-right {
+        .grid-row>div:nth-child(1),
+        .grid-row>div:nth-child(2),
+        .grid-row>div:nth-child(4),
+        .grid-row>div:nth-child(5),
+        .grid-row>div:nth-child(6),
+        .grid-row>div:nth-child(7),
+        .cust-subtotal>div.text-right {
             font-family: 'IBM Plex Mono', Courier, monospace;
             font-variant-numeric: tabular-nums;
         }
 
-        .grid-row > div:nth-child(1),
-        .grid-row > div:nth-child(2),
-        .grid-row > div:nth-child(4),
-        .grid-row > div:nth-child(5),
-        .grid-row > div:nth-child(6),
-        .grid-row > div:nth-child(7) {
-            font-weight: normal; /* Normal weight for detail items */
+        .grid-row>div:nth-child(1),
+        .grid-row>div:nth-child(2),
+        .grid-row>div:nth-child(4),
+        .grid-row>div:nth-child(5),
+        .grid-row>div:nth-child(6),
+        .grid-row>div:nth-child(7) {
+            font-weight: normal;
+            /* Normal weight for detail items */
         }
 
         .truncate {
@@ -200,7 +213,8 @@
         }
 
         .print-button {
-            background-color: #0f172a; /* Navy-Ink background */
+            background-color: #0f172a;
+            /* Navy-Ink background */
             color: white;
             padding: 8px 16px;
             border-radius: 6px;
@@ -217,7 +231,8 @@
         }
 
         .print-button:hover {
-            background-color: #000000; /* Black background on hover */
+            background-color: #000000;
+            /* Black background on hover */
             transform: translateY(-1px);
             box-shadow: 0 4px 6px rgba(15, 23, 42, 0.3);
         }
@@ -237,9 +252,11 @@
         .po-totals-panel-wrapper {
             margin-top: 5px;
             border-top: 1px solid #000000;
-            width: 180mm; /* Full printable width */
+            width: 180mm;
+            /* Full printable width */
             padding-top: 5px;
-            position: relative; /* Position context for centering */
+            position: relative;
+            /* Position context for centering */
             page-break-inside: avoid;
             break-inside: avoid;
         }
@@ -248,7 +265,8 @@
             position: absolute;
             left: 50%;
             transform: translateX(-50%);
-            bottom: -15px; /* Vertically inline with bottom row */
+            bottom: -15px;
+            /* Vertically inline with bottom row */
             font-family: 'IBM Plex Sans', sans-serif;
             font-size: 8px;
             font-weight: bold;
@@ -258,7 +276,8 @@
         }
 
         .po-totals-container {
-            margin-left: auto; /* Push to the right side */
+            margin-left: auto;
+            /* Push to the right side */
             width: 70mm;
             font-family: 'IBM Plex Mono', Courier, monospace;
             font-size: 8.5px;
@@ -339,15 +358,18 @@
 
         <a href="{{ route('listingsobelum.excelCustomer', request()->query()) }}"
             style="padding: 7px 12px; background-color: #22c55e; color: white; border-radius: 4px; text-decoration: none; font-weight: bold; font-size: 12px; display: inline-flex; align-items: center; justify-content: center; transition: background-color 0.2s;"
-            onmouseover="this.style.backgroundColor='#16a34a'"
-            onmouseout="this.style.backgroundColor='#22c55e'">
+            onmouseover="this.style.backgroundColor='#16a34a'" onmouseout="this.style.backgroundColor='#22c55e'">
             📊 Excel
         </a>
     </div>
 
     @php
-        $branchText = request()->has('branch_codes') ? implode(', ', (array) request()->input('branch_codes')) : 'Semua';
-        $customerText = request('cust_from') ? request('cust_from') . (request('cust_to') ? ' s/d ' . request('cust_to') : '') : 'Semua';
+        $branchText = request()->has('branch_codes')
+            ? implode(', ', (array) request()->input('branch_codes'))
+            : 'Semua';
+        $customerText = request('cust_from')
+            ? request('cust_from') . (request('cust_to') ? ' s/d ' . request('cust_to') : '')
+            : 'Semua';
         $isRekap = ($reportType ?? request('report_type', 'detail')) === 'rekap';
     @endphp
 
@@ -360,7 +382,8 @@
             </div>
             <h2>SO Yang Belum Dikirim(By Customer)</h2>
             <div class="filter-info">
-                Periode: {{ $request->date_from ? \Carbon\Carbon::parse($request->date_from)->format('d/m/Y') : '...' }} s/d {{ $request->date_to ? \Carbon\Carbon::parse($request->date_to)->format('d/m/Y') : '...' }}
+                Periode: {{ $request->date_from ? \Carbon\Carbon::parse($request->date_from)->format('d/m/Y') : '...' }}
+                s/d {{ $request->date_to ? \Carbon\Carbon::parse($request->date_to)->format('d/m/Y') : '...' }}
             </div>
             <div class="info-tambahan">
                 <div><span class="info-label">Tanggal</span>: {{ date('d/m/Y') }}</div>
@@ -380,9 +403,10 @@
                 <div class="journal-block">
                     <div class="cust-group">Customer: {{ $row->fcustomername }}</div>
                     <div class="grid-row">
-                        <div style="grid-column: span 5;" class="truncate">{{ $row->fcustno }} - {{ $row->fcustomername }}</div>
+                        <div style="grid-column: span 5;" class="truncate">{{ $row->fcustno }} -
+                            {{ $row->fcustomername }}</div>
                         <div class="text-right">{{ number_format((float) $row->fqty, 2, ',', '.') }}</div>
-                        <div class="text-right">{{ number_format((float) $row->fstock, 2, ',', '.') }}</div>
+                        <div class="text-right">{{ number_format((float) $row->fstok, 2, ',', '.') }}</div>
                     </div>
                 </div>
             @endforeach
@@ -411,7 +435,7 @@
                             <div class="text-center">{{ $row->fsatuan }}</div>
                             <div class="text-right">{{ number_format((float) $row->fpricenet, 2, ',', '.') }}</div>
                             <div class="text-right">{{ number_format((float) $row->fqty, 2, ',', '.') }}</div>
-                            <div class="text-right">{{ number_format((float) $row->fstock, 2, ',', '.') }}</div>
+                            <div class="text-right">{{ number_format((float) $row->fstok, 2, ',', '.') }}</div>
                         </div>
                     @endforeach
 
@@ -429,7 +453,7 @@
 
     @php
         $grandTotalQty = 0;
-        $grandTotalQty = $isRekap ? $soData->sum('fqty') : $soData->sum(fn ($rows) => $rows->sum('fqty'));
+        $grandTotalQty = $isRekap ? $soData->sum('fqty') : $soData->sum(fn($rows) => $rows->sum('fqty'));
     @endphp
 
     {{-- Hidden Totals Panel Container --}}
@@ -455,7 +479,8 @@
                         <div><span class="info-label">Jam</span>: {{ date('H:i') }}</div>
                         <div><span class="info-label">Opr</span>: {{ $user_session->fname ?? 'User' }}</div>
                     </div>
-                    <div style="margin-top: 30px; text-align: center; font-size: 12px; color: #666;">Tidak ada data ditemukan.</div>
+                    <div style="margin-top: 30px; text-align: center; font-size: 12px; color: #666;">Tidak ada data
+                        ditemukan.</div>
                 </div>
             </div>
         @endif
@@ -465,7 +490,7 @@
 </html>
 
 <script>
-    document.addEventListener("DOMContentLoaded", function () {
+    document.addEventListener("DOMContentLoaded", function() {
         const rawSource = document.getElementById("raw-source");
         const reportWrapper = document.getElementById("reportWrapper");
         if (!rawSource || !reportWrapper) return;
@@ -501,7 +526,8 @@
             const infoTambahan = page.querySelector(".info-tambahan");
             if (infoTambahan) {
                 const halDiv = document.createElement("div");
-                halDiv.innerHTML = `<span class="info-label">Hal</span>: <span class="page-number-current"></span> / <span class="page-number-total"></span>`;
+                halDiv.innerHTML =
+                    `<span class="info-label">Hal</span>: <span class="page-number-current"></span> / <span class="page-number-total"></span>`;
                 infoTambahan.prepend(halDiv);
             }
             reportWrapper.appendChild(page);
