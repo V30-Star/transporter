@@ -669,6 +669,13 @@ class AdjstockController extends Controller
                 return $fstockmtno;
             });
 
+            if ($request->expectsJson()) {
+                return response()->json([
+                    'message' => "Adjustment stock {$finalNo} berhasil disimpan.",
+                    'redirect_url' => route('adjstock.create'),
+                ]);
+            }
+
             return redirect()
                 ->route('adjstock.create')
                 ->with('success', "Adjustment stock {$finalNo} berhasil disimpan.");
@@ -1155,6 +1162,13 @@ class AdjstockController extends Controller
 
             DB::table('trstockdt')->insert($rowsDt);
         });
+
+        if ($request->expectsJson()) {
+            return response()->json([
+                'message' => "Adjustment stock {$header->fstockmtno} berhasil diupdate.",
+                'redirect_url' => route('adjstock.index'),
+            ]);
+        }
 
         return redirect()
             ->route('adjstock.index')
