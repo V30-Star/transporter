@@ -589,11 +589,11 @@ class FakturpembelianController extends Controller
         $rasio = (float) ($row->fqtykecil_master ?? 0);
         $rasio2 = (float) ($row->fqtykecil2_master ?? 0);
 
-        if ($sat !== '' && $satBesar !== '' && strcasecmp($sat, $satBesar) === 0 && $rasio > 0) {
+        if ($sat !== '' && $satBesar !== '' && $sat === $satBesar && $rasio > 0) {
             return $qtyKecil / $rasio;
         }
 
-        if ($sat !== '' && $satBesar2 !== '' && strcasecmp($sat, $satBesar2) === 0 && $rasio2 > 0) {
+        if ($sat !== '' && $satBesar2 !== '' && $sat === $satBesar2 && $rasio2 > 0) {
             return $qtyKecil / $rasio2;
         }
 
@@ -612,11 +612,11 @@ class FakturpembelianController extends Controller
         $rasio = (float) ($row->fqtykecil_master ?? $row->fqtykecil ?? 0);
         $rasio2 = (float) ($row->fqtykecil2_master ?? $row->fqtykecil2 ?? 0);
 
-        if ($sat !== '' && $satBesar !== '' && strcasecmp($sat, $satBesar) === 0 && $rasio > 0) {
+        if ($sat !== '' && $satBesar !== '' && $sat === $satBesar && $rasio > 0) {
             return $qty * $rasio;
         }
 
-        if ($sat !== '' && $satBesar2 !== '' && strcasecmp($sat, $satBesar2) === 0 && $rasio2 > 0) {
+        if ($sat !== '' && $satBesar2 !== '' && $sat === $satBesar2 && $rasio2 > 0) {
             return $qty * $rasio2;
         }
 
