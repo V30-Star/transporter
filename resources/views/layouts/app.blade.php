@@ -862,10 +862,11 @@
                     if (response.status === 422) {
                         const data = await response.clone().json().catch(() => null);
                         if (data?.status === 'insufficient_stock') {
+                            const htmlMessage = (data.message || '').replace(/\n/g, '<br>');
                             if (!data.allow_force) {
                                 await Swal.fire({
                                     title: 'Peringatan Stok',
-                                    html: data.message,
+                                    html: htmlMessage,
                                     icon: 'warning',
                                     confirmButtonText: 'Tidak, Batalkan',
                                 });
@@ -874,7 +875,7 @@
 
                             const result = await Swal.fire({
                                 title: 'Peringatan Stok',
-                                html: data.message,
+                                html: htmlMessage,
                                 icon: 'warning',
                                 showCancelButton: true,
                                 confirmButtonText: 'Ya, Lanjutkan',
