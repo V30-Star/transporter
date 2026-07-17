@@ -230,19 +230,22 @@ abstract class Controller
         $shortages = [];
         foreach ($needs as $need) {
             $stock = DB::table('prdwh as w')
-                ->join('msprd as p', 'p.fprdcode', '=', 'w.fprdcode')
-                ->where('p.fprdcode', $need['fprdcode'])
+                ->where('w.fprdcode', $need['fprdcode'])
                 ->where('w.fwhcode', $need['fwhcode'])
-                ->first(['w.*', 'p.fprdname']);
+                ->first(['w.*']);
 
             $available = (float) ($stock->fsaldo ?? 0);
             if ($available + 0.000001 >= $need['qty']) {
                 continue;
             }
 
+            $product = DB::table('msprd')
+                ->where('fprdcode', $need['fprdcode'])
+                ->first(['fprdname']);
+
             $shortages[] = [
                 'fprdcode' => $need['fprdcode'],
-                'fprdname' => trim((string) ($stock->fprdname ?? '')),
+                'fprdname' => trim((string) ($product->fprdname ?? '')),
                 'fwhcode' => $need['fwhcode'],
                 'available' => $available,
                 'required' => $need['qty'],
@@ -255,7 +258,7 @@ abstract class Controller
 
         $products = array_map(function ($i, $row) {
             $no = $i + 1;
-            $label = $row['fprdname'] !== '' ? $row['fprdname'] : $row['fprdcode'] . ' (nama tidak ditemukan)';
+            $label = $row['fprdname'];
             $available = rtrim(rtrim(number_format($row['available'], 4, '.', ''), '0'), '.');
 
             return $no . '. ' . $label . ' - Stok => ' . $available;
