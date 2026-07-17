@@ -865,7 +865,7 @@
                             const htmlMessage = (data.message || '').replace(/\n/g, '<br>');
                             if (!data.allow_force) {
                                 await Swal.fire({
-                                    title: 'Peringatan Stok',
+                                    title: 'Information',
                                     html: htmlMessage,
                                     icon: 'warning',
                                     confirmButtonText: 'Tidak, Batalkan',
@@ -874,7 +874,7 @@
                             }
 
                             const result = await Swal.fire({
-                                title: 'Peringatan Stok',
+                                title: 'Information',
                                 html: htmlMessage,
                                 icon: 'warning',
                                 showCancelButton: true,

@@ -264,7 +264,7 @@ abstract class Controller
             return $no . '. ' . $label . ' - Stok => ' . $available;
         }, array_keys($shortages), $shortages);
 
-        $message = "Produk\n" . implode("\n", $products) . "\nQty Stok tidak cukup digudang";
+        $message = "Produk ini Qty Stok tidak cukup digudang\n" . implode("\n", $products);
 
         if (request()->expectsJson() || request()->ajax()) {
             return response()->json([
