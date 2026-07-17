@@ -1149,16 +1149,16 @@ class Tr_prhController extends Controller
             return $qty;
         }
 
-        if ($unit === $product->fsatuanbesar) {
-            $ratio = is_numeric($product->fqtykecil) ? (float) $product->fqtykecil : 1;
+        $unit = trim($unit);
+        $largeUnit = trim((string) ($product->fsatuanbesar ?? ''));
+        $largeUnit2 = trim((string) ($product->fsatuanbesar2 ?? ''));
 
-            return $qty * $ratio;
+        if ($unit !== '' && $unit === $largeUnit && (float) ($product->fqtykecil ?? 0) > 0) {
+            return $qty * (float) $product->fqtykecil;
         }
 
-        if (! empty($product->fsatuanbesar2) && $unit === $product->fsatuanbesar2) {
-            $ratio = is_numeric($product->fqtykecil2) ? (float) $product->fqtykecil2 : 1;
-
-            return $qty * $ratio;
+        if ($unit !== '' && $unit === $largeUnit2 && (float) ($product->fqtykecil2 ?? 0) > 0) {
+            return $qty * (float) $product->fqtykecil2;
         }
 
         return $qty;

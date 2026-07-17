@@ -436,10 +436,10 @@ class Tr_pohController extends Controller
         $besar2 = trim((string) ($product->fsatuanbesar2 ?? ''));
         $rasio = (float) ($product->fqtykecil ?? 0);
         $rasio2 = (float) ($product->fqtykecil2 ?? 0);
-        if ($sat !== '' && $besar !== '' && strcasecmp($sat, $besar) === 0 && $rasio > 0) {
+        if ($sat !== '' && $besar !== '' && $sat === $besar && $rasio > 0) {
             return $qty * $rasio;
         }
-        if ($sat !== '' && $besar2 !== '' && strcasecmp($sat, $besar2) === 0 && $rasio2 > 0) {
+        if ($sat !== '' && $besar2 !== '' && $sat === $besar2 && $rasio2 > 0) {
             return $qty * $rasio2;
         }
 
@@ -915,7 +915,7 @@ class Tr_pohController extends Controller
         $uniqueCodes = array_values(array_unique(array_filter(array_map(fn($c) => trim((string) $c), $codes))));
         $prodMeta = DB::table('msprd')
             ->whereIn('fprdcode', $uniqueCodes)
-            ->get(['fprdid', 'fprdcode', 'fsatuankecil', 'fsatuanbesar', 'fsatuanbesar2'])
+            ->get(['fprdid', 'fprdcode', 'fsatuankecil', 'fsatuanbesar', 'fsatuanbesar2', 'fqtykecil', 'fqtykecil2'])
             ->keyBy('fprdcode');
 
         $pickDefaultSat = function (string $code) use ($prodMeta): string {
@@ -977,10 +977,7 @@ class Tr_pohController extends Controller
                 continue;
             }
 
-            $product = DB::table('msprd')
-                ->where('fprdcode', $code)
-                ->select('fprdid', 'fprdcode', 'fsatuanbesar', 'fsatuanbesar2', 'fqtykecil', 'fqtykecil2')
-                ->first();
+            $product = $prodMeta[$code] ?? null;
 
             $qtyKecil = $this->qtyPoToKecil($product, $sat, $qty);
 
@@ -1559,7 +1556,7 @@ class Tr_pohController extends Controller
 
         $prodMeta = DB::table('msprd')
             ->whereIn('fprdcode', $uniqueCodes)
-            ->get(['fprdid', 'fprdcode', 'fsatuankecil', 'fsatuanbesar', 'fsatuanbesar2'])
+            ->get(['fprdid', 'fprdcode', 'fsatuankecil', 'fsatuanbesar', 'fsatuanbesar2', 'fqtykecil', 'fqtykecil2'])
             ->keyBy('fprdcode');
 
         $pickDefaultSat = function ($code) use ($prodMeta) {
@@ -1611,10 +1608,7 @@ class Tr_pohController extends Controller
                 continue;
             }
 
-            $product = DB::table('msprd')
-                ->where('fprdcode', $code)
-                ->select('fprdid', 'fprdcode', 'fsatuanbesar', 'fsatuanbesar2', 'fqtykecil', 'fqtykecil2')
-                ->first();
+            $product = $prodMeta[$code] ?? null;
 
             if (! $product) {
                 continue;
