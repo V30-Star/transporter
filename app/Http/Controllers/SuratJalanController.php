@@ -837,15 +837,6 @@ class SuratJalanController extends Controller
                 }
             }
 
-            $qtyKecil = $qty;
-            if ($referenceRatio !== null && $referenceRatio > 0) {
-                $qtyKecil = $qty * $referenceRatio;
-            } elseif ($meta && $sat !== '' && $sat === trim((string) ($meta->fsatuanbesar ?? '')) && (float) $meta->fqtykecil > 0) {
-                $qtyKecil = $qty * (float) $meta->fqtykecil;
-            } elseif ($meta && $sat !== '' && $sat === trim((string) ($meta->fsatuanbesar2 ?? '')) && (float) ($meta->fqtykecil2 ?? 0) > 0) {
-                $qtyKecil = $qty * (float) $meta->fqtykecil2;
-            }
-
             if ($sat === '') {
                 $sat = $pickDefaultSat($meta);
             }
@@ -854,6 +845,15 @@ class SuratJalanController extends Controller
                 // LOG 3: Deteksi item yang dilewati karena tidak punya satuan valid
                 Log::debug("SuratJalan@store: Detail baris index-{$i} dilewati karena satuan kosong.", ['code' => $code]);
                 continue;
+            }
+
+            $qtyKecil = $qty;
+            if ($referenceRatio !== null && $referenceRatio > 0) {
+                $qtyKecil = $qty * $referenceRatio;
+            } elseif ($meta && $sat === trim((string) ($meta->fsatuanbesar ?? '')) && (float) $meta->fqtykecil > 0) {
+                $qtyKecil = $qty * (float) $meta->fqtykecil;
+            } elseif ($meta && $sat === trim((string) ($meta->fsatuanbesar2 ?? '')) && (float) ($meta->fqtykecil2 ?? 0) > 0) {
+                $qtyKecil = $qty * (float) $meta->fqtykecil2;
             }
 
             $frefdtnoValue = $refDoc !== '' ? $refDoc : $frefdtnoValue;
@@ -1441,21 +1441,21 @@ class SuratJalanController extends Controller
                 }
             }
 
-            $qtyKecil = $qty;
-            if ($referenceRatio !== null && $referenceRatio > 0) {
-                $qtyKecil = $qty * $referenceRatio;
-            } elseif ($meta && $sat !== '' && $sat === trim((string) ($meta->fsatuanbesar ?? '')) && (float) $meta->fqtykecil > 0) {
-                $qtyKecil = $qty * (float) $meta->fqtykecil;
-            } elseif ($meta && $sat !== '' && $sat === trim((string) ($meta->fsatuanbesar2 ?? '')) && (float) ($meta->fqtykecil2 ?? 0) > 0) {
-                $qtyKecil = $qty * (float) $meta->fqtykecil2;
-            }
-
             if ($sat === '') {
                 $sat = $pickDefaultSat($meta);
             }
             $sat = mb_substr($sat, 0, 5);
             if ($sat === '') {
                 continue;
+            }
+
+            $qtyKecil = $qty;
+            if ($referenceRatio !== null && $referenceRatio > 0) {
+                $qtyKecil = $qty * $referenceRatio;
+            } elseif ($meta && $sat === trim((string) ($meta->fsatuanbesar ?? '')) && (float) $meta->fqtykecil > 0) {
+                $qtyKecil = $qty * (float) $meta->fqtykecil;
+            } elseif ($meta && $sat === trim((string) ($meta->fsatuanbesar2 ?? '')) && (float) ($meta->fqtykecil2 ?? 0) > 0) {
+                $qtyKecil = $qty * (float) $meta->fqtykecil2;
             }
 
             $frefdtnoValue = $refDoc !== '' ? $refDoc : $frefdtnoValue;

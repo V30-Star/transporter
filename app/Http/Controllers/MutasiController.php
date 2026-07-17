@@ -619,7 +619,7 @@ class MutasiController extends Controller
             if (! empty($uniqueCodes)) {
                 $prodMeta = DB::table('msprd')
                     ->whereIn('fprdcode', $uniqueCodes)
-                    ->get(['fprdid', 'fprdcode', 'fsatuankecil', 'fsatuanbesar', 'fsatuanbesar2', 'fqtykecil'])
+                    ->get(['fprdid', 'fprdcode', 'fsatuankecil', 'fsatuanbesar', 'fsatuanbesar2', 'fqtykecil', 'fqtykecil2'])
                     ->keyBy('fprdcode');
             }
 
@@ -658,11 +658,17 @@ class MutasiController extends Controller
                 }
 
                 $sat = trim((string) ($satuans[$i] ?? ''));
+                if ($sat === '') {
+                    $sat = trim((string) ($meta->fsatuankecil ?? ''));
+                }
+                $sat = mb_substr($sat, 0, 5);
 
                 // Konversi ke Qty Kecil
                 $qtyKecil = $qty;
-                if ($sat === $meta->fsatuanbesar) {
-                    $qtyKecil = $qty * (float) ($meta->fqtykecil ?? 1);
+                if ($sat === trim((string) ($meta->fsatuanbesar ?? '')) && (float) ($meta->fqtykecil ?? 0) > 0) {
+                    $qtyKecil = $qty * (float) $meta->fqtykecil;
+                } elseif ($sat === trim((string) ($meta->fsatuanbesar2 ?? '')) && (float) ($meta->fqtykecil2 ?? 0) > 0) {
+                    $qtyKecil = $qty * (float) $meta->fqtykecil2;
                 }
 
                 $price = (float) ($prices[$i] ?? 0);
@@ -685,7 +691,7 @@ class MutasiController extends Controller
                     'frefso' => trim((string) ($frefso[$i] ?? '')) ?: null,
                     'frefnoacak' => $this->normalizeReferenceRandomNumber($frefnoacaks[$i] ?? null),
                     'fdesc' => $descs[$i] ?? '',
-                    'fsatuan' => mb_substr($sat, 0, 5),
+                    'fsatuan' => $sat,
                     'fclosedt' => '0',
                     'fdiscpersen' => 0,
                     'fbiaya' => 0,
@@ -992,7 +998,7 @@ class MutasiController extends Controller
             if (! empty($uniqueCodes)) {
                 $prodMeta = DB::table('msprd')
                     ->whereIn('fprdcode', $uniqueCodes)
-                    ->get(['fprdid', 'fprdcode', 'fsatuankecil', 'fsatuanbesar', 'fsatuanbesar2'])
+                    ->get(['fprdid', 'fprdcode', 'fsatuankecil', 'fsatuanbesar', 'fsatuanbesar2', 'fqtykecil', 'fqtykecil2'])
                     ->keyBy('fprdcode');
             }
 
@@ -1036,18 +1042,18 @@ class MutasiController extends Controller
                     continue;
                 }
 
-                // Logika Rasio Satuan (Sesuai Store)
-                $produk = DB::table('msprd')
-                    ->where('fprdcode', $code)
-                    ->select('fprdid', 'fsatuanbesar', 'fqtykecil as rasio_konversi')
-                    ->first();
+                if ($sat === '') {
+                    $sat = trim((string) ($meta->fsatuankecil ?? ''));
+                }
+                $sat = mb_substr($sat, 0, 5);
 
                 $qtyKecil = $qty;
-                if ($produk && $sat === $produk->fsatuanbesar) {
-                    $qtyKecil = $qty * (float) $produk->rasio_konversi;
+                if ($sat === trim((string) ($meta->fsatuanbesar ?? '')) && (float) ($meta->fqtykecil ?? 0) > 0) {
+                    $qtyKecil = $qty * (float) $meta->fqtykecil;
+                } elseif ($sat === trim((string) ($meta->fsatuanbesar2 ?? '')) && (float) ($meta->fqtykecil2 ?? 0) > 0) {
+                    $qtyKecil = $qty * (float) $meta->fqtykecil2;
                 }
 
-                $sat = mb_substr($sat, 0, 5);
                 $refSo = trim((string) ($frefso[$i] ?? ''));
 
                 $amount = $qty * $price;

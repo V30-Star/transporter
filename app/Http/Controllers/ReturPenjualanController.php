@@ -887,20 +887,28 @@ class ReturPenjualanController extends Controller
             }
             // --- END override ---
 
-            $qtyKecil = $qty;
             $selectedUnit = trim((string) ($satuans[$i] ?? ''));
+            if ($selectedUnit === '' && $product) {
+                foreach (['fsatuankecil', 'fsatuanbesar', 'fsatuanbesar2'] as $k) {
+                    $v = trim((string) ($product->$k ?? ''));
+                    if ($v !== '') {
+                        $selectedUnit = mb_substr($v, 0, 5);
+                        break;
+                    }
+                }
+            }
+
+            $qtyKecil = $qty;
             if ($referenceRatio !== null && $referenceRatio > 0) {
                 $qtyKecil = $qty * $referenceRatio;
             } elseif (
                 $product
-                && $selectedUnit !== ''
                 && $selectedUnit === trim((string) ($product->fsatuanbesar ?? ''))
                 && (float) ($product->fqtykecil ?? 0) > 0
             ) {
                 $qtyKecil = $qty * (float) $product->fqtykecil;
             } elseif (
                 $product
-                && $selectedUnit !== ''
                 && $selectedUnit === trim((string) ($product->fsatuanbesar2 ?? ''))
                 && (float) ($product->fqtykecil2 ?? 0) > 0
             ) {
@@ -930,7 +938,7 @@ class ReturPenjualanController extends Controller
                 'fdesc' => $itemDescs[$i] ?? '',
                 'fqty' => $qty,
                 'fqtykecil' => $qtyKecil,
-                'fqtyremain' => $qty,
+                'fqtyremain' => $qtyKecil,
                 'fprice' => $price,
                 'fprice_rp' => $price * $frate,
                 'fdisc' => $discRaw,
@@ -939,7 +947,7 @@ class ReturPenjualanController extends Controller
                 'fsalesnet' => $fsalesnet,
                 'famount' => $amountRow,
                 'famount_rp' => $amountRow * $frate,
-                'fsatuan' => mb_substr($satuans[$i] ?? '', 0, 5),
+                'fsatuan' => mb_substr($selectedUnit, 0, 5),
                 'fuserid' => $userid,
                 'fdatetime' => $now,
                 'frefcode' => 'REJ',
@@ -959,7 +967,7 @@ class ReturPenjualanController extends Controller
                 'ftotprice' => $amountRow,
                 'fusercreate' => $userid,
                 'fdatetime' => $now,
-                'fsatuan' => mb_substr($satuans[$i] ?? '', 0, 5),
+                'fsatuan' => mb_substr($selectedUnit, 0, 5),
                 'fcode' => '0',
             ];
         }
@@ -2010,20 +2018,28 @@ class ReturPenjualanController extends Controller
             }
             // --- END override ---
 
-            $qtyKecil = $qty;
             $selectedUnit = trim((string) ($satuans[$i] ?? ''));
+            if ($selectedUnit === '' && $product) {
+                foreach (['fsatuankecil', 'fsatuanbesar', 'fsatuanbesar2'] as $k) {
+                    $v = trim((string) ($product->$k ?? ''));
+                    if ($v !== '') {
+                        $selectedUnit = mb_substr($v, 0, 5);
+                        break;
+                    }
+                }
+            }
+
+            $qtyKecil = $qty;
             if ($referenceRatio !== null && $referenceRatio > 0) {
                 $qtyKecil = $qty * $referenceRatio;
             } elseif (
                 $product
-                && $selectedUnit !== ''
                 && $selectedUnit === trim((string) ($product->fsatuanbesar ?? ''))
                 && (float) ($product->fqtykecil ?? 0) > 0
             ) {
                 $qtyKecil = $qty * (float) $product->fqtykecil;
             } elseif (
                 $product
-                && $selectedUnit !== ''
                 && $selectedUnit === trim((string) ($product->fsatuanbesar2 ?? ''))
                 && (float) ($product->fqtykecil2 ?? 0) > 0
             ) {
@@ -2054,7 +2070,7 @@ class ReturPenjualanController extends Controller
                 'fdesc' => $itemDescs[$i] ?? '',
                 'fqty' => $qty,
                 'fqtykecil' => $qtyKecil,
-                'fqtyremain' => $qty,
+                'fqtyremain' => $qtyKecil,
                 'fprice' => $price,
                 'fprice_rp' => $price * $frate,
                 'fdisc' => $discRaw,
@@ -2063,7 +2079,7 @@ class ReturPenjualanController extends Controller
                 'fsalesnet' => $fsalesnet,
                 'famount' => $amountRow,
                 'famount_rp' => $amountRow * $frate,
-                'fsatuan' => mb_substr($satuans[$i] ?? '', 0, 5),
+                'fsatuan' => mb_substr($selectedUnit, 0, 5),
                 'fuserid' => $userid,
                 'fdatetime' => $now,
                 'frefcode' => 'REJ',
@@ -2083,7 +2099,7 @@ class ReturPenjualanController extends Controller
                 'ftotprice' => $amountRow,
                 'fusercreate' => $userid,
                 'fdatetime' => $now,
-                'fsatuan' => mb_substr($satuans[$i] ?? '', 0, 5),
+                'fsatuan' => mb_substr($selectedUnit, 0, 5),
                 'fcode' => '0',
             ];
         }

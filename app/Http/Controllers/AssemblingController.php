@@ -535,7 +535,7 @@ class AssemblingController extends Controller
         $uniqueCodes = array_values(array_unique(array_filter(array_map(fn ($c) => trim((string) $c), $codes))));
         $prodMeta = DB::table('msprd')
             ->whereIn('fprdcode', $uniqueCodes)
-            ->get(['fprdid', 'fprdcode', 'fsatuankecil', 'fsatuanbesar', 'fsatuanbesar2'])
+            ->get(['fprdid', 'fprdcode', 'fsatuankecil', 'fsatuanbesar', 'fsatuanbesar2', 'fqtykecil', 'fqtykecil2'])
             ->keyBy('fprdcode');
 
         $pickDefaultSat = function ($meta) {
@@ -567,24 +567,13 @@ class AssemblingController extends Controller
                 continue;
             }
 
-            $produk = DB::table('msprd')
-                ->where('fprdcode', $code)
-                ->select('fprdid', 'fsatuanbesar', 'fqtykecil as rasio_konversi')
-                ->first();
-
-            $itemeId = $produk ? $produk->fprdid : $itemeId;
-
-            $qtyKecil = $qty;
-            if ($produk && $sat === $produk->fsatuanbesar) {
-                $qtyKecil = $qty * (float) $produk->rasio_konversi;
-            }
-
             $meta = $prodMeta[$code] ?? null;
             if (! $meta) {
                 continue;
             }
 
             $prdId = $meta->fprdid;
+            $itemeId = $prdId;
 
             if ($sat === '') {
                 $sat = $pickDefaultSat($meta);
@@ -592,6 +581,13 @@ class AssemblingController extends Controller
             $sat = mb_substr($sat, 0, 5);
             if ($sat === '') {
                 continue;
+            }
+
+            $qtyKecil = $qty;
+            if ($sat === trim((string) ($meta->fsatuanbesar ?? '')) && (float) ($meta->fqtykecil ?? 0) > 0) {
+                $qtyKecil = $qty * (float) $meta->fqtykecil;
+            } elseif ($sat === trim((string) ($meta->fsatuanbesar2 ?? '')) && (float) ($meta->fqtykecil2 ?? 0) > 0) {
+                $qtyKecil = $qty * (float) $meta->fqtykecil2;
             }
 
             // KONVERSI fitemtype => fcode
@@ -1059,7 +1055,7 @@ class AssemblingController extends Controller
         $uniqueCodes = array_values(array_unique(array_filter(array_map(fn ($c) => trim((string) $c), $codes))));
         $prodMeta = DB::table('msprd')
             ->whereIn('fprdcode', $uniqueCodes)
-            ->get(['fprdid', 'fprdcode', 'fsatuankecil', 'fsatuanbesar', 'fsatuanbesar2'])
+            ->get(['fprdid', 'fprdcode', 'fsatuankecil', 'fsatuanbesar', 'fsatuanbesar2', 'fqtykecil', 'fqtykecil2'])
             ->keyBy('fprdcode');
 
         $pickDefaultSat = function (?object $meta): string {
@@ -1094,24 +1090,13 @@ class AssemblingController extends Controller
                 continue;
             }
 
-            $produk = DB::table('msprd')
-                ->where('fprdcode', $code)
-                ->select('fprdid', 'fsatuanbesar', 'fqtykecil as rasio_konversi')
-                ->first();
-
-            $itemeId = $produk ? $produk->fprdid : $itemeId;
-
-            $qtyKecil = $qty;
-            if ($produk && $sat === $produk->fsatuanbesar) {
-                $qtyKecil = $qty * (float) $produk->rasio_konversi;
-            }
-
             $meta = $prodMeta[$code] ?? null;
             if (! $meta) {
                 continue;
             }
 
             $prdId = $meta->fprdid;
+            $itemeId = $prdId;
 
             if ($sat === '') {
                 $sat = $pickDefaultSat($meta);
@@ -1119,6 +1104,13 @@ class AssemblingController extends Controller
             $sat = mb_substr($sat, 0, 5);
             if ($sat === '') {
                 continue;
+            }
+
+            $qtyKecil = $qty;
+            if ($sat === trim((string) ($meta->fsatuanbesar ?? '')) && (float) ($meta->fqtykecil ?? 0) > 0) {
+                $qtyKecil = $qty * (float) $meta->fqtykecil;
+            } elseif ($sat === trim((string) ($meta->fsatuanbesar2 ?? '')) && (float) ($meta->fqtykecil2 ?? 0) > 0) {
+                $qtyKecil = $qty * (float) $meta->fqtykecil2;
             }
 
             $fcode = '0';

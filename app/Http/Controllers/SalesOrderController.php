@@ -1165,6 +1165,11 @@ class SalesOrderController extends Controller
         $totalGross = 0.0;
         $totalDisc = 0.0;
         $usedNoAcaks = [];
+        $uniqueCodes = array_values(array_unique(array_filter(array_map(fn($code) => trim((string) $code), $itemCodes))));
+        $prodMeta = DB::table('msprd')
+            ->whereIn('fprdcode', $uniqueCodes)
+            ->get(['fprdid', 'fprdcode', 'fsatuankecil', 'fsatuanbesar', 'fsatuanbesar2', 'fqtykecil', 'fqtykecil2'])
+            ->keyBy('fprdcode');
 
         $rowCount = count($itemCodes);
 
@@ -1178,19 +1183,11 @@ class SalesOrderController extends Controller
                 continue;
             }
 
-            $produk = DB::table('msprd')
-                ->where('fprdcode', $itemCode)
-                ->select(
-                    'fprdid',
-                    'fsatuankecil',
-                    'fsatuanbesar',
-                    'fsatuanbesar2',
-                    'fqtykecil',
-                    'fqtykecil2'
-                )
-                ->first();
-
             $satuan = trim((string) ($satuans[$i] ?? ''));
+            $produk = $prodMeta[$itemCode] ?? null;
+            if ($satuan === '' && $produk) {
+                $satuan = trim((string) ($produk->fsatuankecil ?? ''));
+            }
 
             // Konversi Qty Kecil
             $qtyKecil = $qty;
@@ -1737,6 +1734,11 @@ class SalesOrderController extends Controller
         $totalGross = 0.0;
         $totalDisc = 0.0;
         $usedNoAcaks = [];
+        $uniqueCodes = array_values(array_unique(array_filter(array_map(fn($code) => trim((string) $code), $itemCodes))));
+        $prodMeta = DB::table('msprd')
+            ->whereIn('fprdcode', $uniqueCodes)
+            ->get(['fprdid', 'fprdcode', 'fsatuankecil', 'fsatuanbesar', 'fsatuanbesar2', 'fqtykecil', 'fqtykecil2'])
+            ->keyBy('fprdcode');
         $rowCount = max(
             count($itemCodes),
             count($satuans),
@@ -1760,17 +1762,10 @@ class SalesOrderController extends Controller
                 continue;
             }
 
-            $produk = DB::table('msprd')
-                ->where('fprdcode', $itemCode)
-                ->select(
-                    'fprdid',
-                    'fsatuankecil',
-                    'fsatuanbesar',
-                    'fsatuanbesar2',
-                    'fqtykecil',
-                    'fqtykecil2'
-                )
-                ->first();
+            $produk = $prodMeta[$itemCode] ?? null;
+            if ($satuan === '' && $produk) {
+                $satuan = trim((string) ($produk->fsatuankecil ?? ''));
+            }
 
             $qtyKecil = $qty;
             if (
