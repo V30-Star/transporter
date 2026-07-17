@@ -410,7 +410,7 @@ class JurnalTransaksiController extends Controller
             $kodeCabang = 'NA';
         }
 
-        $prefix = sprintf('PBR.%s.%s.%s.', $kodeCabang, $date->format('Y'), $date->format('m'));
+        $prefix = sprintf('PBR.%s.%s.%s.00.', $kodeCabang, $date->format('y'), $date->format('m'));
 
         // kunci per (branch, tahun-bulan) — TANPA bikin tabel baru
         $driver = DB::getDriverName();
@@ -420,7 +420,7 @@ class JurnalTransaksiController extends Controller
 
             $last = DB::table('tr_poh')
                 ->where('fpono', 'like', $prefix.'%')
-                ->selectRaw("MAX(CAST(split_part(fpono, '.', 5) AS int)) AS lastno")
+                ->selectRaw("MAX(CAST(split_part(fpono, '.', 6) AS int)) AS lastno")
                 ->value('lastno');
         } else {
             $last = DB::table('tr_poh')
@@ -621,7 +621,7 @@ class JurnalTransaksiController extends Controller
             $kodeCabang = 'NA';
         }
 
-        $yy = $fjurnaldate->format('Y');
+        $yy = $fjurnaldate->format('y');
         $mm = $fjurnaldate->format('m');
 
         // =========================================================
@@ -742,15 +742,15 @@ class JurnalTransaksiController extends Controller
             $fjurnalno = trim((string) $request->input('fjurnalno', ''));
 
             if (empty($fjurnalno)) {
-                $prefix = sprintf('%s.%s.%s.%s.', $fjurnaltype, $kodeCabang, $yy, $mm);
+                $prefix = sprintf('%s.%s.%s.%s.00.', $fjurnaltype, $kodeCabang, $yy, $mm);
                 $driver = DB::getDriverName();
                 if ($driver === 'pgsql') {
-                    $lockKey = crc32('JURNAL|'.$fjurnaltype.'|'.$kodeCabang.'|'.$fjurnaldate->format('Y-m'));
+                    $lockKey = crc32('JURNAL|'.$fjurnaltype.'|'.$kodeCabang.'|'.$fjurnaldate->format('y-m'));
                     DB::statement('SELECT pg_advisory_xact_lock(?)', [$lockKey]);
 
                     $lastNo = DB::table('jurnalmt')
                         ->where('fjurnalno', 'like', $prefix.'%')
-                        ->selectRaw("MAX(CAST(split_part(fjurnalno, '.', 5) AS int)) AS lastno")
+                        ->selectRaw("MAX(CAST(split_part(fjurnalno, '.', 6) AS int)) AS lastno")
                         ->value('lastno');
                 } else {
                     $lastNo = DB::table('jurnalmt')
@@ -758,7 +758,7 @@ class JurnalTransaksiController extends Controller
                         ->get()
                         ->map(function ($row) {
                             $parts = explode('.', $row->fjurnalno);
-                            return isset($parts[4]) ? (int) $parts[4] : 0;
+                            return isset($parts[5]) ? (int) $parts[5] : 0;
                         })
                         ->max();
                 }

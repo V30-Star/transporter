@@ -709,7 +709,8 @@ class PengeluaranKasController extends Controller
     private function generateVoucherNo(Carbon $date, ?string $branchCode = null, ?Account $headerAccount = null): string
     {
         $branchCode = trim((string) ($branchCode ?: $this->resolveBranchCode())) ?: 'NA';
-        $prefix = sprintf('%s.%s.%s.%s.', self::TRAN_CODE, $branchCode, $date->format('Y'), $date->format('m'));
+        $bankType = $this->resolveBankType($headerAccount);
+        $prefix = sprintf('%s.%s.%s.%s.%s.', self::TRAN_CODE, $branchCode, $date->format('y'), $date->format('m'), $bankType);
 
         $lastNumber = DB::table('trkasmt')
             ->where('ftrancode', self::TRAN_CODE)
@@ -717,8 +718,8 @@ class PengeluaranKasController extends Controller
             ->selectRaw("
                 MAX(
                     CASE
-                        WHEN split_part(fkasmtno, '.', 5) ~ '^[0-9]+$'
-                        THEN CAST(split_part(fkasmtno, '.', 5) AS integer)
+                        WHEN split_part(fkasmtno, '.', 6) ~ '^[0-9]+$'
+                        THEN CAST(split_part(fkasmtno, '.', 6) AS integer)
                         ELSE NULL
                     END
                 ) as last_no

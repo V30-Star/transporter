@@ -668,7 +668,7 @@ class Tr_pohController extends Controller
             $kodeCabang = 'NA';
         }
 
-        $prefix = sprintf('PO.%s.%s.%s.', $kodeCabang, $date->format('Y'), $date->format('m'));
+        $prefix = sprintf('PO.%s.%s.%s.00.', $kodeCabang, $date->format('y'), $date->format('m'));
 
         // kunci per (branch, tahun-bulan) — TANPA bikin tabel baru
         $lockKey = crc32('PO|' . $kodeCabang . '|' . $date->format('Y-m'));
@@ -677,7 +677,7 @@ class Tr_pohController extends Controller
 
             $last = DB::table('tr_poh')
                 ->where('fpono', 'like', $prefix . '%')
-                ->selectRaw("MAX(CAST(split_part(fpono, '.', 5) AS int)) AS lastno")
+                ->selectRaw("MAX(CAST(split_part(fpono, '.', 6) AS int)) AS lastno")
                 ->value('lastno');
 
             $next = (int) $last + 1;
@@ -1059,9 +1059,9 @@ class Tr_pohController extends Controller
                         $kodeCabang = 'NA';
                     }
 
-                    $yy = $fpodate->format('Y');
+                    $yy = $fpodate->format('y');
                     $mm = $fpodate->format('m');
-                    $prefix = sprintf('PO.%s.%s.%s.', $kodeCabang, $yy, $mm);
+                    $prefix = sprintf('PO.%s.%s.%s.00.', $kodeCabang, $yy, $mm);
 
                     // advisory lock per (branch, y-m)
                     $lockKey = crc32('PO|' . $kodeCabang . '|' . $fpodate->format('Y-m'));
@@ -1070,7 +1070,7 @@ class Tr_pohController extends Controller
                     // get last sequence under this prefix
                     $last = DB::table('tr_poh')
                         ->where('fpono', 'like', $prefix . '%')
-                        ->selectRaw("MAX(CAST(split_part(fpono, '.', 5) AS int)) AS lastno")
+                        ->selectRaw("MAX(CAST(split_part(fpono, '.', 6) AS int)) AS lastno")
                         ->value('lastno');
 
                     $next = (int) $last + 1;

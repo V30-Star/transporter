@@ -735,14 +735,14 @@ class PenerimaanBarangController extends Controller
             $kodeCabang = 'NA';
         }
 
-        $lockKey = crc32("STOCKMT|{$prefix}|{$kodeCabang}|" . $date->format('Y-m'));
+        $lockKey = crc32("STOCKMT|{$prefix}|{$kodeCabang}|" . $date->format('y-m'));
         DB::statement('SELECT pg_advisory_xact_lock(?)', [$lockKey]);
 
-        $noPrefix = sprintf('%s.%s.%s.%s.', $prefix, $kodeCabang, $date->format('Y'), $date->format('m'));
+        $noPrefix = sprintf('%s.%s.%s.%s.00.', $prefix, $kodeCabang, $date->format('y'), $date->format('m'));
 
         $last = DB::table('trstockmt')
             ->where('fstockmtno', 'like', $noPrefix . '%')
-            ->selectRaw("MAX(CAST(split_part(fstockmtno, '.', 5) AS int)) AS lastno")
+            ->selectRaw("MAX(CAST(split_part(fstockmtno, '.', 6) AS int)) AS lastno")
             ->value('lastno');
 
         $next = (int) $last + 1;
@@ -979,19 +979,19 @@ class PenerimaanBarangController extends Controller
                     ->orWhere('fcabangkode', $rawBranch)
                     ->value('fcabangkode') ?? 'NA';
 
-                $yy = $fstockmtdate->format('Y');
+                $yy = $fstockmtdate->format('y');
                 $mm = $fstockmtdate->format('m');
                 $fstockmtcode = 'TER';
 
                 // B. Penomoran Otomatis
                 if (empty($fstockmtno)) {
-                    $prefix = sprintf('%s.%s.%s.%s.', $fstockmtcode, $kodeCabang, $yy, $mm);
-                    $lockKey = crc32("STOCKMT|{$fstockmtcode}|{$kodeCabang}|" . $fstockmtdate->format('Y-m'));
+                    $prefix = sprintf('%s.%s.%s.%s.00.', $fstockmtcode, $kodeCabang, $yy, $mm);
+                    $lockKey = crc32("STOCKMT|{$fstockmtcode}|{$kodeCabang}|" . $fstockmtdate->format('y-m'));
                     DB::statement('SELECT pg_advisory_xact_lock(?)', [$lockKey]);
 
                     $last = DB::table('trstockmt')
                         ->where('fstockmtno', 'like', $prefix . '%')
-                        ->selectRaw("MAX(CAST(split_part(fstockmtno, '.', 5) AS int)) AS lastno")
+                        ->selectRaw("MAX(CAST(split_part(fstockmtno, '.', 6) AS int)) AS lastno")
                         ->value('lastno');
 
                     $fstockmtno = $prefix . str_pad((string) ((int) $last + 1), 4, '0', STR_PAD_LEFT);
@@ -1617,13 +1617,13 @@ class PenerimaanBarangController extends Controller
         $accountPPNBeli = DB::table('set_account')->where('faccount_name', 'PPNBELI')->value('faccount') ?? '11400';
 
         $fjurnaltype  = 'JTB';
-        $jurnalPrefix = sprintf('JV.JTB.%s.%s.', $kodeCabang, $fstockmtdate->format('ym'));
+        $jurnalPrefix = sprintf('%s.%s.%s.%s.00.', $fjurnaltype, $kodeCabang, $fstockmtdate->format('y'), $fstockmtdate->format('m'));
 
         if (DB::getDriverName() === 'pgsql') {
-            $lockKey = crc32('JURNAL|' . $fjurnaltype . '|' . $kodeCabang . '|' . $fstockmtdate->format('Y-m'));
+            $lockKey = crc32('JURNAL|' . $fjurnaltype . '|' . $kodeCabang . '|' . $fstockmtdate->format('y-m'));
             DB::statement('SELECT pg_advisory_xact_lock(?)', [$lockKey]);
             $lastJ = DB::table('jurnalmt')->where('fjurnalno', 'like', $jurnalPrefix . '%')
-                ->selectRaw("MAX(CAST(split_part(fjurnalno, '.', 5) AS int)) AS lastno")->value('lastno');
+                ->selectRaw("MAX(CAST(split_part(fjurnalno, '.', 6) AS int)) AS lastno")->value('lastno');
             $nextJ = (int) $lastJ + 1;
         } else {
             $lastJurnalNo = DB::table('jurnalmt')

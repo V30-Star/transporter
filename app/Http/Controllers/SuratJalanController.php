@@ -558,7 +558,7 @@ class SuratJalanController extends Controller
             $kodeCabang = 'NA';
         }
 
-        $prefix = sprintf('PO.%s.%s.%s.', $kodeCabang, $date->format('Y'), $date->format('m'));
+        $prefix = sprintf('PO.%s.%s.%s.00.', $kodeCabang, $date->format('y'), $date->format('m'));
 
         // kunci per (branch, tahun-bulan) — TANPA bikin tabel baru
         $lockKey = crc32('PO|' . $kodeCabang . '|' . $date->format('Y-m'));
@@ -566,7 +566,7 @@ class SuratJalanController extends Controller
 
         $last = DB::table('trstockmt')
             ->where('fstockmtno', 'like', $prefix . '%')
-            ->selectRaw("MAX(CAST(split_part(fstockmtno, '.', 5) AS int)) AS lastno")
+            ->selectRaw("MAX(CAST(split_part(fstockmtno, '.', 6) AS int)) AS lastno")
             ->value('lastno');
 
         $next = (int) $last + 1;
@@ -942,19 +942,19 @@ class SuratJalanController extends Controller
                     $kodeCabang = 'NA';
                 }
 
-                $yy = $fstockmtdate->format('Y');
+                $yy = $fstockmtdate->format('y');
                 $mm = $fstockmtdate->format('m');
                 $fstockmtcode = 'SRJ';
 
                 // ---- 7.2. Generate nomor transaksi ----
                 if (empty($fstockmtno)) {
-                    $prefix = sprintf('%s.%s.%s.%s.', $fstockmtcode, $kodeCabang, $yy, $mm);
-                    $lockKey = crc32('STOCKMT|' . $fstockmtcode . '|' . $kodeCabang . '|' . $fstockmtdate->format('Y-m'));
+                    $prefix = sprintf('%s.%s.%s.%s.00.', $fstockmtcode, $kodeCabang, $yy, $mm);
+                    $lockKey = crc32('STOCKMT|' . $fstockmtcode . '|' . $kodeCabang . '|' . $fstockmtdate->format('y-m'));
                     DB::statement('SELECT pg_advisory_xact_lock(?)', [$lockKey]);
 
                     $last = DB::table('trstockmt')
                         ->where('fstockmtno', 'like', $prefix . '%')
-                        ->selectRaw("MAX(CAST(split_part(fstockmtno, '.', 5) AS int)) AS lastno")
+                        ->selectRaw("MAX(CAST(split_part(fstockmtno, '.', 6) AS int)) AS lastno")
                         ->value('lastno');
                     $next = (int) $last + 1;
                     $fstockmtno = $prefix . str_pad((string) $next, 4, '0', STR_PAD_LEFT);

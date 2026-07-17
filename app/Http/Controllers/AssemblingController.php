@@ -344,7 +344,7 @@ class AssemblingController extends Controller
             $kodeCabang = 'NA';
         }
 
-        $prefix = sprintf('LHP.%s.%s.%s.', $kodeCabang, $date->format('Y'), $date->format('m'));
+        $prefix = sprintf('LHP.%s.%s.%s.00.', $kodeCabang, $date->format('y'), $date->format('m'));
 
         // kunci per (branch, tahun-bulan) — TANPA bikin tabel baru
         $lockKey = crc32('LHP|'.$kodeCabang.'|'.$date->format('Y-m'));
@@ -352,7 +352,7 @@ class AssemblingController extends Controller
 
         $last = DB::table('tr_poh')
             ->where('fpono', 'like', $prefix.'%')
-            ->selectRaw("MAX(CAST(split_part(fpono, '.', 5) AS int)) AS lastno")
+            ->selectRaw("MAX(CAST(split_part(fpono, '.', 6) AS int)) AS lastno")
             ->value('lastno');
 
         $next = (int) $last + 1;
@@ -678,19 +678,19 @@ class AssemblingController extends Controller
                 $kodeCabang = 'NA';
             }
 
-            $yy = $fstockmtdate->format('Y');
+            $yy = $fstockmtdate->format('y');
             $mm = $fstockmtdate->format('m');
             $fstockmtcode = 'LHP';
 
             if (empty($fstockmtno)) {
-                $prefix = sprintf('%s.%s.%s.%s.', $fstockmtcode, $kodeCabang, $yy, $mm);
+                $prefix = sprintf('%s.%s.%s.%s.00.', $fstockmtcode, $kodeCabang, $yy, $mm);
 
-                $lockKey = crc32('STOCKMT|'.$fstockmtcode.'|'.$kodeCabang.'|'.$fstockmtdate->format('Y-m'));
+                $lockKey = crc32('STOCKMT|'.$fstockmtcode.'|'.$kodeCabang.'|'.$fstockmtdate->format('y-m'));
                 DB::statement('SELECT pg_advisory_xact_lock(?)', [$lockKey]);
 
                 $last = DB::table('trstockmt')
                     ->where('fstockmtno', 'like', $prefix.'%')
-                    ->selectRaw("MAX(CAST(split_part(fstockmtno, '.', 5) AS int)) AS lastno")
+                    ->selectRaw("MAX(CAST(split_part(fstockmtno, '.', 6) AS int)) AS lastno")
                     ->value('lastno');
 
                 $next = (int) $last + 1;
@@ -1213,19 +1213,19 @@ class AssemblingController extends Controller
                 $kodeCabang = 'NA';
             }
 
-            $yy = $fstockmtdate->format('Y');
+            $yy = $fstockmtdate->format('y');
             $mm = $fstockmtdate->format('m');
             $fstockmtcode = 'LHP';
 
             if (empty($fstockmtno)) {
-                $prefix = sprintf('%s.%s.%s.%s.', $fstockmtcode, $kodeCabang, $yy, $mm);
+                $prefix = sprintf('%s.%s.%s.%s.00.', $fstockmtcode, $kodeCabang, $yy, $mm);
 
-                $lockKey = crc32('STOCKMT|'.$fstockmtcode.'|'.$kodeCabang.'|'.$fstockmtdate->format('Y-m'));
+                $lockKey = crc32('STOCKMT|'.$fstockmtcode.'|'.$kodeCabang.'|'.$fstockmtdate->format('y-m'));
                 DB::statement('SELECT pg_advisory_xact_lock(?)', [$lockKey]);
 
                 $last = DB::table('trstockmt')
                     ->where('fstockmtno', 'like', $prefix.'%')
-                    ->selectRaw("MAX(CAST(split_part(fstockmtno, '.', 5) AS int)) AS lastno")
+                    ->selectRaw("MAX(CAST(split_part(fstockmtno, '.', 6) AS int)) AS lastno")
                     ->value('lastno');
 
                 $next = (int) $last + 1;

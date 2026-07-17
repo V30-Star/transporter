@@ -93,7 +93,7 @@ class PenerimaanKasController extends Controller
             );
             $voucherNo = $voucherNoInput !== ''
                 ? $voucherNoInput
-                : $this->generateVoucherNo(Carbon::parse($payload['fkasmtdate']), $payload['fbranchcode']);
+                : $this->generateVoucherNo(Carbon::parse($payload['fkasmtdate']), $payload['fbranchcode'], $headerAccount);
             $headerId = $this->nextIntegerId('trkasmt', 'fkasmtid');
             $savedHeaderId = $headerId;
 
@@ -784,13 +784,29 @@ class PenerimaanKasController extends Controller
             ->firstOrFail();
     }
 
-    private function generateVoucherNo(Carbon $date, ?string $branchCode = null): string
+    private function resolveBankType(?Account $headerAccount = null): string
+    {
+        $bankType = trim((string) ($headerAccount?->finitjurnal ?? ''));
+
+        return $bankType !== '' ? $bankType : '00';
+    }
+
+    private function generateVoucherNo(Carbon $date, ?string $branchCode = null, ?Account $headerAccount = null): string
     {
         $branchCode = trim((string) ($branchCode ?: $this->resolveBranchCode())) ?: 'NA';
-        $prefix = sprintf('%s.%s.%s.%s.', self::TRAN_CODE, $branchCode, $date->format('Y'), $date->format('m'));
+        $bankType = $this->resolveBankType($headerAccount);
+        $prefix = sprintf('%s.%s.%s.%s.%s.', self::TRAN_CODE, $branchCode, $date->format('y'), $date->format('m'), $bankType);
         $lastNumber = DB::table('trkasmt')
             ->where('fkasmtno', 'like', $prefix . '%')
-            ->selectRaw("MAX(CAST(split_part(fkasmtno, '.', 5) AS integer)) as last_no")
+            ->selectRaw("
+                MAX(
+                    CASE
+                        WHEN split_part(fkasmtno, '.', 6) ~ '^[0-9]+$'
+                        THEN CAST(split_part(fkasmtno, '.', 6) AS integer)
+                        ELSE NULL
+                    END
+                ) as last_no
+            ")
             ->value('last_no');
 
         return $prefix . str_pad((string) (((int) $lastNumber) + 1), 4, '0', STR_PAD_LEFT);

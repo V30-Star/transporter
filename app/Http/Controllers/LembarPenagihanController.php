@@ -194,6 +194,24 @@ class LembarPenagihanController extends Controller
         $userId = substr((string) (auth()->user()->fname ?? auth()->user()->name ?? 'SYSTEM'), 0, 10);
 
         DB::transaction(function () use ($data, $tagihanNo, $total, $userId) {
+            $branch = auth()->guard('sysuser')->user()?->fcabang
+                ?? auth()->user()?->fcabang
+                ?? null;
+
+            $kodeCabang = null;
+            if ($branch !== null) {
+                $needle = trim((string) $branch);
+                if (is_numeric($needle)) {
+                    $kodeCabang = DB::table('mscabang')->where('fcabangid', (int) $needle)->value('fcabangkode');
+                } else {
+                    $kodeCabang = DB::table('mscabang')->whereRaw('LOWER(fcabangkode)=LOWER(?)', [$needle])->value('fcabangkode')
+                        ?: DB::table('mscabang')->whereRaw('LOWER(fcabangname)=LOWER(?)', [$needle])->value('fcabangkode');
+                }
+            }
+            if (! $kodeCabang) {
+                $kodeCabang = 'NA';
+            }
+
             DB::table('trtagihanmt')->insert([
                 'ftagihanno' => $tagihanNo,
                 'ftagihandate' => $data['ftagihandate'],
@@ -203,6 +221,7 @@ class LembarPenagihanController extends Controller
                 'famounttagihan' => $total,
                 'fuserid' => $userId,
                 'fdatetime' => now(),
+                'fbranchcode' => $kodeCabang,
             ]);
             $this->replaceDetails($tagihanNo, $data, $userId);
         });
@@ -234,6 +253,24 @@ class LembarPenagihanController extends Controller
         $userId = substr((string) (auth()->user()->fname ?? auth()->user()->name ?? 'SYSTEM'), 0, 10);
 
         DB::transaction(function () use ($data, $id, $tagihanNo, $total, $userId) {
+            $branch = auth()->guard('sysuser')->user()?->fcabang
+                ?? auth()->user()?->fcabang
+                ?? null;
+
+            $kodeCabang = null;
+            if ($branch !== null) {
+                $needle = trim((string) $branch);
+                if (is_numeric($needle)) {
+                    $kodeCabang = DB::table('mscabang')->where('fcabangid', (int) $needle)->value('fcabangkode');
+                } else {
+                    $kodeCabang = DB::table('mscabang')->whereRaw('LOWER(fcabangkode)=LOWER(?)', [$needle])->value('fcabangkode')
+                        ?: DB::table('mscabang')->whereRaw('LOWER(fcabangname)=LOWER(?)', [$needle])->value('fcabangkode');
+                }
+            }
+            if (! $kodeCabang) {
+                $kodeCabang = 'NA';
+            }
+
             DB::table('trtagihanmt')->where('ftagihanid', $id)->update([
                 'ftagihandate' => $data['ftagihandate'],
                 'fcustno' => $data['fcustno'],
@@ -242,12 +279,13 @@ class LembarPenagihanController extends Controller
                 'famounttagihan' => $total,
                 'fuserid' => $userId,
                 'fdatetime' => now(),
+                'fbranchcode' => $kodeCabang,
             ]);
             DB::table('trtagihandt')->where('ftagihanno', $tagihanNo)->delete();
             $this->replaceDetails($tagihanNo, $data, $userId);
         });
 
-        return redirect()->route('lembarpenagihan.index')->with('success', 'Lembar penagihan berhasil diperbarui.');
+        return redirect()->route('lembarpenagihan.index')->with('success', 'Lembar penagihan berhasil diupdate.');
     }
 
     public function destroy(int $id)
@@ -363,7 +401,7 @@ class LembarPenagihanController extends Controller
             'ftagihanno' => [
                 'nullable',
                 'string',
-                'max:15',
+                'max:30',
                 $ignoreId
                     ? 'unique:trtagihanmt,ftagihanno,' . $ignoreId . ',ftagihanid'
                     : 'unique:trtagihanmt,ftagihanno'
@@ -384,7 +422,7 @@ class LembarPenagihanController extends Controller
     {
         foreach ($data['frefsono'] as $idx => $refNo) {
             DB::table('trtagihandt')->insert([
-                'ftrtagihanid' => substr($tagihanNo . '-' . str_pad((string) ($idx + 1), 3, '0', STR_PAD_LEFT), 0, 20),
+                'ftrtagihanid' => substr($tagihanNo . '-' . str_pad((string) ($idx + 1), 3, '0', STR_PAD_LEFT), 0, 30),
                 'ftrancode' => self::CODE,
                 'frefcode' => substr((string) ($data['frefcode'][$idx] ?? 'INV'), 0, 3),
                 'ftagihanno' => $tagihanNo,
@@ -398,12 +436,30 @@ class LembarPenagihanController extends Controller
 
     private function generateTagihanNo(Carbon $date): string
     {
-        $prefix = 'LPT.' . $date->format('ym') . '.';
+        $branch = auth()->guard('sysuser')->user()?->fcabang
+            ?? auth()->user()?->fcabang
+            ?? null;
+
+        $kodeCabang = null;
+        if ($branch !== null) {
+            $needle = trim((string) $branch);
+            if (is_numeric($needle)) {
+                $kodeCabang = DB::table('mscabang')->where('fcabangid', (int) $needle)->value('fcabangkode');
+            } else {
+                $kodeCabang = DB::table('mscabang')->whereRaw('LOWER(fcabangkode)=LOWER(?)', [$needle])->value('fcabangkode')
+                    ?: DB::table('mscabang')->whereRaw('LOWER(fcabangname)=LOWER(?)', [$needle])->value('fcabangkode');
+            }
+        }
+        if (! $kodeCabang) {
+            $kodeCabang = 'NA';
+        }
+
+        $prefix = sprintf('LPT.%s.%s.%s.00.', $kodeCabang, $date->format('y'), $date->format('m'));
         $last = DB::table('trtagihanmt')
             ->where('ftagihanno', 'like', $prefix . '%')
-            ->orderBy('ftagihanno', 'desc')
-            ->value('ftagihanno');
-        $next = $last ? ((int) substr((string) $last, -4)) + 1 : 1;
+            ->selectRaw("MAX(CAST(split_part(ftagihanno, '.', 6) AS int)) AS lastno")
+            ->value('lastno');
+        $next = (int) $last + 1;
 
         return $prefix . str_pad((string) $next, 4, '0', STR_PAD_LEFT);
     }

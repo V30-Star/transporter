@@ -616,11 +616,11 @@ class ReturPenjualanController extends Controller
     {
         $date = $onDate ?: now();
         $branchCode = trim((string) ($branchCode ?: 'NA')) ?: 'NA';
-        $prefix = sprintf('REJ.%s.%s.%s.', $branchCode, $date->format('Y'), $date->format('m'));
+        $prefix = sprintf('REJ.%s.%s.%s.00.', $branchCode, $date->format('y'), $date->format('m'));
 
         $last = DB::table('tranmt')
             ->where('fsono', 'like', $prefix . '%')
-            ->selectRaw("MAX(CAST(split_part(fsono, '.', 5) AS int)) AS lastno")
+            ->selectRaw("MAX(CAST(split_part(fsono, '.', 6) AS int)) AS lastno")
             ->value('lastno');
 
         $next = (int) $last + 1;
@@ -1025,11 +1025,11 @@ class ReturPenjualanController extends Controller
 
                 if (empty($fsono)) {
                     $branchCode = trim((string) ($request->input('fbranchcode') ?: 'NA')) ?: 'NA';
-                    $prefix = sprintf('REJ.%s.%s.%s.', $branchCode, $fsodate->format('Y'), $fsodate->format('m'));
+                    $prefix = sprintf('REJ.%s.%s.%s.00.', $branchCode, $fsodate->format('y'), $fsodate->format('m'));
 
                     $lastRecord = DB::table('tranmt')
                         ->where('fsono', 'like', $prefix . '%')
-                        ->orderByRaw("CAST(split_part(fsono, '.', 5) AS int) DESC")
+                        ->orderByRaw("CAST(split_part(fsono, '.', 6) AS int) DESC")
                         ->lockForUpdate()
                         ->first();
 
@@ -2486,13 +2486,13 @@ class ReturPenjualanController extends Controller
         $accountReturnSalesPiutang    = $setAccounts->get('RETJUALBLMPOTPIUTANG', '21181');
 
         $fjurnaltype = 'JRJ';
-        $jurnalPrefix = sprintf('JV.REJ.%s.%s.', $kodeCabang, $fsodate->format('ym'));
+        $jurnalPrefix = sprintf('%s.%s.%s.%s.00.', $fjurnaltype, $kodeCabang, $fsodate->format('y'), $fsodate->format('m'));
 
         if (DB::getDriverName() === 'pgsql') {
-            $lockKey = crc32('JURNAL|' . $fjurnaltype . '|' . $kodeCabang . '|' . $fsodate->format('Y-m'));
+            $lockKey = crc32('JURNAL|' . $fjurnaltype . '|' . $kodeCabang . '|' . $fsodate->format('y-m'));
             DB::statement('SELECT pg_advisory_xact_lock(?)', [$lockKey]);
             $lastJ = DB::table('jurnalmt')->where('fjurnalno', 'like', $jurnalPrefix . '%')
-                ->selectRaw("MAX(CAST(split_part(fjurnalno, '.', 5) AS int)) AS lastno")->value('lastno');
+                ->selectRaw("MAX(CAST(split_part(fjurnalno, '.', 6) AS int)) AS lastno")->value('lastno');
             $nextJ = (int) $lastJ + 1;
         } else {
             $lastJurnalNo = DB::table('jurnalmt')

@@ -307,7 +307,7 @@ class AdjstockController extends Controller
             $kodeCabang = 'NA';
         }
 
-        $prefix = sprintf('PO.%s.%s.%s.', $kodeCabang, $date->format('Y'), $date->format('m'));
+        $prefix = sprintf('PO.%s.%s.%s.00.', $kodeCabang, $date->format('y'), $date->format('m'));
 
         // kunci per (branch, tahun-bulan) — TANPA bikin tabel baru
         $lockKey = crc32('PO|'.$kodeCabang.'|'.$date->format('Y-m'));
@@ -315,7 +315,7 @@ class AdjstockController extends Controller
 
         $last = DB::table('tr_poh')
             ->where('fpono', 'like', $prefix.'%')
-            ->selectRaw("MAX(CAST(split_part(fpono, '.', 5) AS int)) AS lastno")
+            ->selectRaw("MAX(CAST(split_part(fpono, '.', 6) AS int)) AS lastno")
             ->value('lastno');
 
         $next = (int) $last + 1;
@@ -648,14 +648,14 @@ class AdjstockController extends Controller
                     }
                     $kodeCabang = $kodeCabang ?: 'NA';
 
-                    $prefix = sprintf('%s.%s.%s.%s.', $headerData['fstockmtcode'], $kodeCabang, $headerData['fstockmtdate']->format('Y'), $headerData['fstockmtdate']->format('m'));
+                    $prefix = sprintf('%s.%s.%s.%s.00.', $headerData['fstockmtcode'], $kodeCabang, $headerData['fstockmtdate']->format('y'), $headerData['fstockmtdate']->format('m'));
 
-                    $lockKey = crc32('STOCKMT|'.$headerData['fstockmtcode'].'|'.$kodeCabang.'|'.$headerData['fstockmtdate']->format('Y-m'));
+                    $lockKey = crc32('STOCKMT|'.$headerData['fstockmtcode'].'|'.$kodeCabang.'|'.$headerData['fstockmtdate']->format('y-m'));
                     DB::statement('SELECT pg_advisory_xact_lock(?)', [$lockKey]);
 
                     $last = DB::table('trstockmt')
                         ->where('fstockmtno', 'like', $prefix.'%')
-                        ->selectRaw("MAX(CAST(split_part(fstockmtno, '.', 5) AS int)) AS lastno")
+                        ->selectRaw("MAX(CAST(split_part(fstockmtno, '.', 6) AS int)) AS lastno")
                         ->value('lastno');
 
                     $fstockmtno = $prefix.str_pad((string) ((int) $last + 1), 4, '0', STR_PAD_LEFT);

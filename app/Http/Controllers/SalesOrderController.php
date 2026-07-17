@@ -944,7 +944,7 @@ class SalesOrderController extends Controller
             $kodeCabang = 'NA';
         }
 
-        $prefix = sprintf('PO.%s.%s.%s.', $kodeCabang, $date->format('Y'), $date->format('m'));
+        $prefix = sprintf('PO.%s.%s.%s.00.', $kodeCabang, $date->format('y'), $date->format('m'));
 
         // kunci per (branch, tahun-bulan) — TANPA bikin tabel baru
         $lockKey = crc32('PO|' . $kodeCabang . '|' . $date->format('Y-m'));
@@ -952,7 +952,7 @@ class SalesOrderController extends Controller
 
         $last = DB::table('trsomt')
             ->where('fsono', 'like', $prefix . '%')
-            ->selectRaw("MAX(CAST(split_part(fsono, '.', 5) AS int)) AS lastno")
+            ->selectRaw("MAX(CAST(split_part(fsono, '.', 6) AS int)) AS lastno")
             ->value('lastno');
 
         $next = (int) $last + 1;
@@ -1300,16 +1300,16 @@ class SalesOrderController extends Controller
                             ->value('fcabangcode') ?: 'NA');
                     }
 
-                    $yy = $fsodate->format('Y');
+                    $yy = $fsodate->format('y');
                     $mm = $fsodate->format('m');
-                    $prefix = sprintf('SO.%s.%s.%s.', $kodeCabang, $yy, $mm);
+                    $prefix = sprintf('SO.%s.%s.%s.00.', $kodeCabang, $yy, $mm);
 
-                    $lockKey = crc32('SO|' . $kodeCabang . '|' . $fsodate->format('Y-m'));
+                    $lockKey = crc32('SO|' . $kodeCabang . '|' . $fsodate->format('y-m'));
                     DB::statement('SELECT pg_advisory_xact_lock(?)', [$lockKey]);
 
                     $last = DB::table('trsomt')
                         ->where('fsono', 'like', $prefix . '%')
-                        ->selectRaw("MAX(CAST(split_part(fsono, '.', 5) AS int)) AS lastno")
+                        ->selectRaw("MAX(CAST(split_part(fsono, '.', 6) AS int)) AS lastno")
                         ->value('lastno');
 
                     $fsono = $prefix . str_pad((string) ((int) $last + 1), 4, '0', STR_PAD_LEFT);
