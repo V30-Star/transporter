@@ -253,12 +253,13 @@ abstract class Controller
             return null;
         }
 
-        $products = array_map(function ($row) {
+        $products = array_map(function ($i, $row) {
+            $no = $i + 1;
             $name = $row['fprdname'] !== '' ? ' - ' . $row['fprdname'] : '';
             $available = rtrim(rtrim(number_format($row['available'], 4, '.', ''), '0'), '.');
 
-            return $row['fprdname'] . $name . ' - Stok Hanya ' . $available;
-        }, $shortages);
+            return $no . '. ' . $name . ' - Stok => ' . $available;
+        }, array_keys($shortages), $shortages);
 
         $message = "Produk\n" . implode("\n", $products) . "\nQty Stok tidak cukup digudang";
 
