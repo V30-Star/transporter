@@ -865,7 +865,7 @@
                             if (!data.allow_force) {
                                 await Swal.fire({
                                     title: 'Peringatan Stok',
-                                    text: data.message,
+                                    html: data.message,
                                     icon: 'warning',
                                     confirmButtonText: 'Tidak, Batalkan',
                                 });
@@ -874,7 +874,7 @@
 
                             const result = await Swal.fire({
                                 title: 'Peringatan Stok',
-                                text: data.message,
+                                html: data.message,
                                 icon: 'warning',
                                 showCancelButton: true,
                                 confirmButtonText: 'Ya, Lanjutkan',

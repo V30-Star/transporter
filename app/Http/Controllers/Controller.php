@@ -255,10 +255,10 @@ abstract class Controller
 
         $products = array_map(function ($i, $row) {
             $no = $i + 1;
-            $name = $row['fprdname'] !== '' ? ' - ' . $row['fprdname'] : '';
+            $label = $row['fprdname'] !== '' ? $row['fprdname'] : $row['fprdcode'] . ' (nama tidak ditemukan)';
             $available = rtrim(rtrim(number_format($row['available'], 4, '.', ''), '0'), '.');
 
-            return $no . '. ' . $name . ' - Stok => ' . $available;
+            return $no . '. ' . $label . ' - Stok => ' . $available;
         }, array_keys($shortages), $shortages);
 
         $message = "Produk\n" . implode("\n", $products) . "\nQty Stok tidak cukup digudang";
