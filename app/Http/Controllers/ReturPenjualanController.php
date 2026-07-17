@@ -741,6 +741,7 @@ class ReturPenjualanController extends Controller
     public function store(Request $request)
     {
         try {
+            $allowNegativeStockQty = stock_boleh_minus();
             $request->validate([
                 'fsodate' => ['required', 'date'],
                 'fcustno' => ['required', 'string', 'max:10'],
@@ -748,7 +749,15 @@ class ReturPenjualanController extends Controller
                 'fitemcode' => ['required', 'array', 'min:1'],
                 'fitemcode.*' => ['nullable', 'string', 'max:30'],
                 'fqty' => ['required', 'array'],
-                'fqty.*' => ['numeric', 'min:0'],
+                'fqty.*' => [
+                    'required',
+                    'numeric',
+                    function ($attribute, $value, $fail) use ($allowNegativeStockQty) {
+                        if ($allowNegativeStockQty ? (float) $value == 0.0 : (float) $value <= 0) {
+                            $fail($allowNegativeStockQty ? 'Qty tidak boleh 0.' : 'Qty harus lebih dari 0.');
+                        }
+                    },
+                ],
                 'fprice' => ['required', 'array'],
                 'fprice.*' => ['numeric', 'min:0'],
                 'frefcode' => ['nullable', 'array'],
@@ -1881,6 +1890,7 @@ class ReturPenjualanController extends Controller
 
     public function update(Request $request, $ftranmtid)
     {
+        $allowNegativeStockQty = stock_boleh_minus();
         // 1. VALIDASI
         $request->validate([
             'fsodate' => ['required', 'date'],
@@ -1889,7 +1899,15 @@ class ReturPenjualanController extends Controller
             'fitemcode' => ['required', 'array', 'min:1'],
             'fitemcode.*' => ['required', 'string', 'max:30'],
             'fqty' => ['required', 'array'],
-            'fqty.*' => ['numeric', 'min:0.01'],
+            'fqty.*' => [
+                'required',
+                'numeric',
+                function ($attribute, $value, $fail) use ($allowNegativeStockQty) {
+                    if ($allowNegativeStockQty ? (float) $value == 0.0 : (float) $value <= 0) {
+                        $fail($allowNegativeStockQty ? 'Qty tidak boleh 0.' : 'Qty harus lebih dari 0.');
+                    }
+                },
+            ],
             'fprice' => ['required', 'array'],
             'fprice.*' => ['numeric', 'min:0'],
             'fdisc' => ['nullable', 'array'],

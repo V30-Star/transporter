@@ -684,6 +684,7 @@ class SuratJalanController extends Controller
 
     public function store(Request $request)
     {
+        $allowNegativeStockQty = stock_boleh_minus();
         $userid = auth('sysuser')->user()->fsysuserid ?? 'admin';
 
         // =========================
@@ -706,7 +707,15 @@ class SuratJalanController extends Controller
                 'frefdtno' => ['nullable', 'array'],
                 'frefdtno.*' => ['nullable', 'string', 'max:100'],
                 'fqty' => ['required', 'array'],
-                'fqty.*' => ['numeric', 'min:0'],
+                'fqty.*' => [
+                    'required',
+                    'numeric',
+                    function ($attribute, $value, $fail) use ($allowNegativeStockQty) {
+                        if ($allowNegativeStockQty ? (float) $value == 0.0 : (float) $value <= 0) {
+                            $fail($allowNegativeStockQty ? 'Qty tidak boleh 0.' : 'Qty harus lebih dari 0.');
+                        }
+                    },
+                ],
                 'fprice' => ['required', 'array'],
                 'fprice.*' => ['numeric', 'min:0'],
                 'fdesc' => ['nullable', 'array'],
@@ -1296,6 +1305,7 @@ class SuratJalanController extends Controller
 
     public function update(Request $request, $fstockmtid)
     {
+        $allowNegativeStockQty = stock_boleh_minus();
         // =========================
         // 1) VALIDASI INPUT
         // =========================
@@ -1315,7 +1325,15 @@ class SuratJalanController extends Controller
             'frefdtno' => ['nullable', 'array'],
             'frefdtno.*' => ['nullable', 'string', 'max:100'],
             'fqty' => ['required', 'array'],
-            'fqty.*' => ['numeric', 'min:0'],
+            'fqty.*' => [
+                'required',
+                'numeric',
+                function ($attribute, $value, $fail) use ($allowNegativeStockQty) {
+                    if ($allowNegativeStockQty ? (float) $value == 0.0 : (float) $value <= 0) {
+                        $fail($allowNegativeStockQty ? 'Qty tidak boleh 0.' : 'Qty harus lebih dari 0.');
+                    }
+                },
+            ],
             'fprice' => ['required', 'array'],
             'fprice.*' => ['numeric', 'min:0'],
             'fdesc' => ['nullable', 'array'],

@@ -1025,7 +1025,7 @@
                                                         <template x-if="action !== 'view'">
                                                             <input type="number"
                                                                 class="w-full border rounded px-2 py-1 text-right text-sm focus:ring-1 focus:ring-blue-500"
-                                                                min="0" step="0.01" :id="'qty_row_' + i"
+                                                                :min="@json(stock_boleh_minus()) ? null : 0" step="0.01" :id="'qty_row_' + i"
                                                                 x-model.number="it.fqty"
                                                                 @input="enforceQtyRow(it); onRowUpdated(i)"
                                                                 @change="enforceQtyRow(it); onRowUpdated(i)"
@@ -2921,7 +2921,7 @@
 
             // ✅ UPDATE FUNGSI recalc untuk menggunakan parseDiscount
             recalc(row) {
-                row.fqty = Math.max(0, +row.fqty || 0);
+                row.fqty = @json(stock_boleh_minus()) ? (+row.fqty || 0) : Math.max(0, +row.fqty || 0);
                 row.fterima = Math.max(0, +row.fterima || 0);
                 if (this.isSRJRow(row)) {
                     row.fprice = 0;
@@ -3073,7 +3073,7 @@
                     row.fqty = 0;
                     return;
                 }
-                if (n < 0) {
+                if (!@json(stock_boleh_minus()) && n < 0) {
                     row.fqty = 0;
                     return;
                 }
@@ -3128,14 +3128,14 @@
                         row.fdesc,
                         row.fketdt,
                     ].some(value => String(value ?? '').trim() !== '') ||
-                    Number(row.fqty ?? 0) > 0 ||
+                    (@json(stock_boleh_minus()) ? Number(row.fqty ?? 0) !== 0 : Number(row.fqty ?? 0) > 0) ||
                     Number(row.fprice ?? 0) > 0 ||
                     Number(row.fdisc ?? 0) > 0;
             },
 
             isRowSavable(row) {
                 if (!row) return false;
-                return String(row.fitemcode ?? '').trim() !== '' && Number(row.fqty ?? 0) > 0;
+                return String(row.fitemcode ?? '').trim() !== '' && (@json(stock_boleh_minus()) ? Number(row.fqty ?? 0) !== 0 : Number(row.fqty ?? 0) > 0);
             },
 
             isSRJRow(row) {
@@ -3173,7 +3173,7 @@
             },
 
             isComplete(row) {
-                return row.fitemcode && row.fitemname && row.fsatuan && Number(row.fqty) > 0;
+                return row.fitemcode && row.fitemname && row.fsatuan && (@json(stock_boleh_minus()) ? Number(row.fqty) !== 0 : Number(row.fqty) > 0);
             },
 
             normalizeNoAcak(value) {

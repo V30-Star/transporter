@@ -548,7 +548,7 @@
 
                 recalc(row) {
                     this.$nextTick(() => {
-                        row.fqty = Math.max(0, Number(row.fqty) || 0);
+                        row.fqty = @json(stock_boleh_minus()) ? (Number(row.fqty) || 0) : Math.max(0, Number(row.fqty) || 0);
                         row.fterima = Math.max(0, Number(row.fterima) || 0);
                         row.fprice = Math.max(0, Number(row.fprice) || 0);
 
@@ -597,7 +597,7 @@
                 },
 
                 isComplete(row) {
-                    return row.fitemcode && row.fitemname && row.fsatuan && Number(row.fqty) > 0;
+                    return row.fitemcode && row.fitemname && row.fsatuan && (@json(stock_boleh_minus()) ? Number(row.fqty) !== 0 : Number(row.fqty) > 0);
                 },
 
                 onPrPicked(e) {

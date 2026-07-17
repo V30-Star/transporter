@@ -414,7 +414,7 @@
                                                     </td>
                                                     <td class="p-2 text-right">
                                                         <input type="number" class="w-full border rounded px-2 py-1 text-right text-sm focus:ring-1 focus:ring-blue-500 bg-white"
-                                                            min="0" step="0.01"
+                                                            :min="@json(stock_boleh_minus()) ? null : 0" step="0.01"
                                                             :id="'pemakaian_qty_row_' + i"
                                                             x-model.number="it.fqty"
                                                             @input="onRowUpdated(i)"

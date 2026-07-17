@@ -803,7 +803,7 @@
                                                 {{-- Qty --}}
                                                 <td class="p-2 text-right">
                                                     <input type="number" class="w-full border rounded px-2 py-1 text-right text-sm focus:ring-1 focus:ring-blue-500"
-                                                        min="0" step="0.01" x-ref="editQty"
+                                                        :min="@json(stock_boleh_minus()) ? null : 0" step="0.01" x-ref="editQty"
                                                         x-model.number="editRow.fqty" @input="recalc(editRow)">
                                                 </td>
 
@@ -887,7 +887,7 @@
                                                     {{-- Qty --}}
                                                     <td class="p-2 text-right">
                                                         <input type="number" class="w-full border rounded px-2 py-1 text-right text-sm focus:ring-1 focus:ring-blue-500"
-                                                            :id="'draft-qty-' + di" min="0" step="0.01"
+                                                            :id="'draft-qty-' + di" :min="@json(stock_boleh_minus()) ? null : 0" step="0.01"
                                                             x-model.number="dr.fqty" @input="recalc(dr)">
                                                     </td>
 
@@ -1496,7 +1496,7 @@
             },
 
             recalc(row) {
-                row.fqty = Math.max(0, +row.fqty || 0);
+                row.fqty = @json(stock_boleh_minus()) ? (+row.fqty || 0) : Math.max(0, +row.fqty || 0);
                 row.fterima = Math.max(0, +row.fterima || 0);
                 row.fprice = Math.max(0, +row.fprice || 0);
                 if (typeof row.fpriceInput === 'undefined') {
@@ -1589,7 +1589,7 @@
             },
 
             isComplete(row) {
-                return row.fitemcode && row.fitemname && row.fsatuan && Number(row.fqty) > 0;
+                return row.fitemcode && row.fitemname && row.fsatuan && (@json(stock_boleh_minus()) ? Number(row.fqty) !== 0 : Number(row.fqty) > 0);
             },
 
             onPrPicked(e) {

@@ -414,7 +414,7 @@
                                         {{-- Qty --}}
                                         <td class="p-2 text-right">
                                             <input type="number" class="w-full border rounded px-2 py-1 text-right text-sm focus:ring-1 focus:ring-blue-500"
-                                                :id="'qty_saved_' + i" x-model.number="it.fqty" min="0" step="any"
+                                                :id="'qty_saved_' + i" x-model.number="it.fqty" :min="@json(stock_boleh_minus()) ? null : 0" step="any"
                                                 @focus="activeRow = it.uid; $event.target.select()"
                                                 @blur="activeRow = null; enforceQtyRow(it)" @input="onRowUpdated(i)"
                                                 @change="onRowUpdated(i)" @keydown.enter.prevent="focusSavedPrice(i)">
@@ -890,7 +890,7 @@
                 },
 
                 recalc(row) {
-                    const qty = Math.max(0, Number(row.fqty || 0));
+                    const qty = @json(stock_boleh_minus()) ? (Number(row.fqty || 0)) : Math.max(0, Number(row.fqty || 0));
                     const price = Math.max(0, Number(row.fprice || 0));
                     row.fqty = qty;
                     row.fprice = price;
@@ -926,8 +926,8 @@
                 },
                 enforceQtyRow(row) {
                     const n = Number(row.fqty || 0);
-                    if (!Number.isFinite(n) || n < 0.001) {
-                        row.fqty = 0.001;
+                    if (!Number.isFinite(n) || (@json(stock_boleh_minus()) ? n === 0 : n <= 0)) {
+                        row.fqty = @json(stock_boleh_minus()) ? 1 : 0.001;
                     }
                 },
                 enforcePoQtyRow(row) {
@@ -1160,7 +1160,7 @@
                     };
                 },
                 isRowSavable(row) {
-                    return !!((row.fitemcode || '').trim() && (row.fsatuan || '').trim() && Number(row.fqty) > 0);
+                    return !!((row.fitemcode || '').trim() && (row.fsatuan || '').trim() && (@json(stock_boleh_minus()) ? Number(row.fqty) !== 0 : Number(row.fqty) > 0));
                 },
                 isRowFilled(row) {
                     return [
@@ -1174,7 +1174,7 @@
                             row.fdesc,
                             row.fketdt
                         ].some((value) => String(value ?? '').trim() !== '' && Number(value ?? 0) !== 0) ||
-                        Number(row.fqty || 0) > 0;
+                        (@json(stock_boleh_minus()) ? Number(row.fqty || 0) !== 0 : Number(row.fqty || 0) > 0);
                 },
                 rowWarningLabel(row) {
                     return `Data Produk ${row.fitemname || row.fitemcode || '(tanpa nama)'} qty masih 0, tidak akan tersimpan.`;
