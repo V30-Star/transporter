@@ -388,7 +388,7 @@
 
                                         {{-- Satuan --}}
                                         <td class="p-2">
-                                            <template x-if="row.units.length > 1 && !row.frefdtid">
+                                            <template x-if="row.fsatuan && row.units.length >= 1 && !row.frefdtid">
                                                 <select class="w-full border rounded px-2 py-1 text-sm focus:ring-1 focus:ring-blue-500"
                                                     :id="'unit_row_' + i" x-model="row.fsatuan"
                                                     @focus="activeRow = row.uid" @blur="activeRow = null"
@@ -398,7 +398,7 @@
                                                     </template>
                                                 </select>
                                             </template>
-                                            <template x-if="row.units.length <= 1 || row.frefdtid">
+                                            <template x-if="!row.fsatuan || row.units.length < 1 || row.frefdtid">
                                                 <div class="px-2 py-1 text-sm text-gray-600 bg-gray-50 border rounded"
                                                     x-text="row.fsatuan || '-'"></div>
                                             </template>
