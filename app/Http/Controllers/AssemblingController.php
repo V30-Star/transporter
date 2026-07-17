@@ -495,6 +495,7 @@ class AssemblingController extends Controller
             'frate' => ['nullable', 'numeric', 'min:0'],
             'famountpopajak' => ['nullable', 'numeric', 'min:0'],
         ], [
+            'ffrom.required' => 'Gudang wajib diisi.',
             'fstockmtdate.required' => 'Tanggal transaksi wajib diisi.',
             'fsupplier.required' => 'Supplier wajib diisi.',
             'fitemcode.required' => 'Minimal 1 item.',

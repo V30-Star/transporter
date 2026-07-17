@@ -257,7 +257,7 @@ abstract class Controller
             $name = $row['fprdname'] !== '' ? ' - ' . $row['fprdname'] : '';
             $available = rtrim(rtrim(number_format($row['available'], 4, '.', ''), '0'), '.');
 
-            return $row['fprdcode'] . $name . ' - Stok Hanya ' . $available;
+            return $row['fprdname'] . $name . ' - Stok Hanya ' . $available;
         }, $shortages);
 
         $message = "Produk\n" . implode("\n", $products) . "\nQty Stok tidak cukup digudang";
