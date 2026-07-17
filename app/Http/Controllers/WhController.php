@@ -36,6 +36,7 @@ class WhController extends Controller
                 'mswh.faddress',
                 'mswh.fnonactive',
                 'mswh.fbranchcode',
+                'mswh.fstokpenjualan',
                 'mscabang.fcabangname',
             ]);
 
@@ -97,6 +98,7 @@ class WhController extends Controller
         $validated['fcreatedat'] = now();
 
         $validated['fnonactive'] = $request->boolean('fnonactive') ? '1' : '0';
+        $validated['fstokpenjualan'] = $request->boolean('fstokpenjualan') ? '1' : '0';
 
         Wh::create($validated);
 
@@ -187,6 +189,7 @@ class WhController extends Controller
         $validated['fwhname'] = strtoupper($validated['fwhname']);
 
         $validated['fnonactive'] = $request->boolean('fnonactive') ? '1' : '0';
+        $validated['fstokpenjualan'] = $request->boolean('fstokpenjualan') ? '1' : '0';
         $validated['fupdatedby'] = auth('sysuser')->user()->fname ?? null; // Use the authenticated user's name or 'system' as default
         $validated['fupdatedat'] = now(); // Use the current time
 

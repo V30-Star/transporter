@@ -84,6 +84,19 @@
                     </div>
                 </div>
 
+                {{-- Status Aktif --}}
+                <div>
+                    <div class="flex items-center justify-between p-3 border border-gray-200 rounded-lg bg-gray-50 cursor-not-allowed">
+                        <div>
+                            <p class="text-sm text-gray-800">Stok Penjualan</p>
+                            <p class="text-xs text-gray-400 mt-0.5">Gudang yang dipakai untuk menyimpan stok penjualan</p>
+                        </div>
+                        <div class="relative w-9 h-5 duration-200 flex-shrink-0 cursor-not-allowed {{ $gudang->fstokpenjualan == '0' ? 'bg-blue-500/60' : 'bg-gray-200' }}">
+                            <div class="absolute w-3.5 h-3.5 bg-white rounded-full top-0.5 transition-transform duration-200 {{ $gudang->fstokpenjualan == '0' ? 'translate-x-4 left-0.5' : 'left-0.5' }}"></div>
+                        </div>
+                    </div>
+                </div>
+
             </div>
 
             {{-- Footer Buttons --}}
