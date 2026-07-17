@@ -1765,20 +1765,45 @@ class InvoiceController extends Controller
             $redirect = redirect()->route('invoice.index')->with('success', 'Faktur penjualan ' . $this->formatDisplayTransactionNumber($fsono, $fincludeppn === '1') . ' berhasil disimpan.');
 
             if ($needsApprovalNotification || ! $this->canCreateSuratJalan() || ! $ftranmtid) {
+                if ($request->expectsJson()) {
+                    return response()->json([
+                        'message' => 'Faktur penjualan ' . $this->formatDisplayTransactionNumber($fsono, $fincludeppn === '1') . ' berhasil disimpan.',
+                        'redirect_url' => route('invoice.index'),
+                    ]);
+                }
                 return $redirect;
             }
 
             // Prompt tetap tampil jika invoice campuran masih punya produk normal yang perlu dibuatkan Surat Jalan.
             if ($fprdoutVal === '0') {
+                if ($request->expectsJson()) {
+                    return response()->json([
+                        'message' => 'Faktur penjualan ' . $this->formatDisplayTransactionNumber($fsono, $fincludeppn === '1') . ' berhasil disimpan.',
+                        'redirect_url' => route('invoice.index'),
+                        'success_prompt' => [
+                            'type' => 'invoice_create_suratjalan',
+                            'redirect_url' => route('suratjalan.create', ['invoice_id' => $ftranmtid]),
+                        ]
+                    ]);
+                }
                 return $redirect->with('success_prompt', [
                     'type' => 'invoice_create_suratjalan',
                     'redirect_url' => route('suratjalan.create', ['invoice_id' => $ftranmtid]),
                 ]);
             }
 
+            if ($request->expectsJson()) {
+                return response()->json([
+                    'message' => 'Faktur penjualan ' . $this->formatDisplayTransactionNumber($fsono, $fincludeppn === '1') . ' berhasil disimpan.',
+                    'redirect_url' => route('invoice.index'),
+                ]);
+            }
             return $redirect;
         } catch (\Exception $e) {
             report($e);
+            if ($request->expectsJson()) {
+                return response()->json(['message' => 'Faktur penjualan belum bisa disimpan: ' . $e->getMessage()], 500);
+            }
             return back()->withInput()->with('error', 'Faktur penjualan belum bisa disimpan. Cek data.');
         }
     }
@@ -2882,20 +2907,45 @@ class InvoiceController extends Controller
             $redirect = redirect()->route('invoice.index')->with('success', 'Faktur penjualan ' . $this->formatDisplayTransactionNumber($header->fsono, $fincludeppn === '1') . ' berhasil diupdate.');
 
             if ($needsApprovalNotification || ! $this->canCreateSuratJalan()) {
+                if ($request->expectsJson()) {
+                    return response()->json([
+                        'message' => 'Faktur penjualan ' . $this->formatDisplayTransactionNumber($header->fsono, $fincludeppn === '1') . ' berhasil diupdate.',
+                        'redirect_url' => route('invoice.index'),
+                    ]);
+                }
                 return $redirect;
             }
 
             // Prompt tetap tampil jika invoice campuran masih punya produk normal yang perlu dibuatkan Surat Jalan.
             if ($fprdoutVal === '0') {
+                if ($request->expectsJson()) {
+                    return response()->json([
+                        'message' => 'Faktur penjualan ' . $this->formatDisplayTransactionNumber($header->fsono, $fincludeppn === '1') . ' berhasil diupdate.',
+                        'redirect_url' => route('invoice.index'),
+                        'success_prompt' => [
+                            'type' => 'invoice_create_suratjalan',
+                            'redirect_url' => route('suratjalan.create', ['invoice_id' => $ftranmtid]),
+                        ]
+                    ]);
+                }
                 return $redirect->with('success_prompt', [
                     'type' => 'invoice_create_suratjalan',
                     'redirect_url' => route('suratjalan.create', ['invoice_id' => $ftranmtid]),
                 ]);
             }
 
+            if ($request->expectsJson()) {
+                return response()->json([
+                    'message' => 'Faktur penjualan ' . $this->formatDisplayTransactionNumber($header->fsono, $fincludeppn === '1') . ' berhasil diupdate.',
+                    'redirect_url' => route('invoice.index'),
+                ]);
+            }
             return $redirect;
         } catch (\Exception $e) {
             report($e);
+            if ($request->expectsJson()) {
+                return response()->json(['message' => 'Faktur penjualan belum bisa diupdate: ' . $e->getMessage()], 500);
+            }
             return back()->withInput()->with('error', 'Faktur penjualan belum bisa diupdate. Cek data.');
         }
     }
@@ -3030,10 +3080,22 @@ class InvoiceController extends Controller
                 $invoice->delete();
             });
 
+            if (request()->expectsJson()) {
+                return response()->json([
+                    'message' => 'Faktur penjualan ' . $this->formatDisplayTransactionNumber($invoice->fsono, (string) ($invoice->fincludeppn ?? '0') === '1') . ' berhasil dihapus.',
+                    'redirect_url' => route('invoice.index'),
+                ]);
+            }
+
             return redirect()->route('invoice.index')->with('success', 'Faktur penjualan ' . $this->formatDisplayTransactionNumber($invoice->fsono, (string) ($invoice->fincludeppn ?? '0') === '1') . ' berhasil dihapus.');
         } catch (\Exception $e) {
             // Jika terjadi kesalahan saat menghapus, kembali ke halaman delete dengan pesan error
             report($e);
+            if (request()->expectsJson()) {
+                return response()->json([
+                    'message' => 'Faktur penjualan belum bisa dihapus. Coba lagi: ' . $e->getMessage(),
+                ], 500);
+            }
             return redirect()->route('invoice.delete', $ftranmtid)->with('error', 'Faktur penjualan belum bisa dihapus. Coba lagi.');
         }
     }

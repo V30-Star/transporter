@@ -762,10 +762,22 @@ class ReturPembelianController extends Controller
                 );
             });
 
+            if (request()->expectsJson()) {
+                return response()->json([
+                    'message' => 'Retur pembelian ' . $this->formatDisplayTransactionNumber($fstockmtno, (float) $ppnAmount > 0) . ' berhasil disimpan.',
+                    'redirect_url' => route('returpembelian.create'),
+                ]);
+            }
+
             return redirect()
                 ->route('returpembelian.create')
                 ->with('success', 'Retur pembelian ' . $this->formatDisplayTransactionNumber($fstockmtno, (float) $ppnAmount > 0) . ' berhasil disimpan.');
         } catch (\Exception $e) {
+            if (request()->expectsJson()) {
+                return response()->json([
+                    'message' => 'Retur pembelian belum bisa disimpan: ' . $e->getMessage(),
+                ], 500);
+            }
             return back()
                 ->withInput()
                 ->withErrors(['error' => 'Retur pembelian belum bisa disimpan. Cek data transaksi.']);
@@ -1290,10 +1302,22 @@ class ReturPembelianController extends Controller
                 );
             });
 
+            if (request()->expectsJson()) {
+                return response()->json([
+                    'message' => 'Retur pembelian ' . $this->formatDisplayTransactionNumber($fstockmtno, (float) $ppnAmount > 0) . ' berhasil diupdate.',
+                    'redirect_url' => route('returpembelian.index'),
+                ]);
+            }
+
             return redirect()
                 ->route('returpembelian.index') // <-- Redirect kembali ke halaman edit
                 ->with('success', 'Retur pembelian ' . $this->formatDisplayTransactionNumber($fstockmtno, (float) $ppnAmount > 0) . ' berhasil diupdate.');
         } catch (\Exception $e) {
+            if (request()->expectsJson()) {
+                return response()->json([
+                    'message' => 'Retur pembelian belum bisa diupdate: ' . $e->getMessage(),
+                ], 500);
+            }
             return back()
                 ->withInput()
                 ->withErrors(['error' => 'Retur pembelian belum bisa diupdate. Cek data transaksi.']);
@@ -1447,8 +1471,20 @@ class ReturPembelianController extends Controller
                 $returpembelian->delete();
             });
 
+            if (request()->expectsJson()) {
+                return response()->json([
+                    'message' => 'Retur pembelian ' . $this->formatDisplayTransactionNumber($returpembelian->fstockmtno, (string) ($returpembelian->fincludeppn ?? '0') === '1') . ' berhasil dihapus.',
+                    'redirect_url' => route('returpembelian.index'),
+                ]);
+            }
+
             return redirect()->route('returpembelian.index')->with('success', 'Retur pembelian ' . $this->formatDisplayTransactionNumber($returpembelian->fstockmtno, (string) ($returpembelian->fincludeppn ?? '0') === '1') . ' berhasil dihapus.');
         } catch (\Exception $e) {
+            if (request()->expectsJson()) {
+                return response()->json([
+                    'message' => 'Retur pembelian belum bisa dihapus. Coba lagi: ' . $e->getMessage(),
+                ], 500);
+            }
             // Jika terjadi kesalahan saat menghapus, kembali ke halaman delete dengan pesan error
             return redirect()->route('returpembelian.delete', $fstockmtid)->with('error', 'Retur pembelian belum bisa dihapus. Coba lagi.');
         }

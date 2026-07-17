@@ -11,6 +11,7 @@ use Carbon\Carbon;
 use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
@@ -832,6 +833,8 @@ class PenerimaanBarangController extends Controller
             'fbranchcode' => ['nullable', 'string', 'max:20'],
             'fitemcode' => ['required', 'array', 'min:1'],
             'fitemcode.*' => ['required', 'string', 'max:50'],
+            'frefdtid' => ['nullable', 'array'],
+            'frefdtid.*' => ['nullable'],
             'fqty' => ['required', 'array'],
             'fqty.*' => ['numeric', 'min:0.001'],
             'fprice' => ['required', 'array'],
@@ -896,9 +899,11 @@ class PenerimaanBarangController extends Controller
                 $sat = mb_substr($meta->fsatuankecil ?? $meta->fsatuanbesar ?? '', 0, 5);
             }
 
-            $frefdtid = isset($refdtids[$i]) ? (int) $refdtids[$i] : null;
-            if (! $frefdtid) {
-                return back()->withInput()->withErrors(['detail' => 'Penerimaan Barang hanya boleh input produk dari Add PO.']);
+            $rawRefId = $refdtids[$i] ?? null;
+            $frefdtid = ($rawRefId !== null && $rawRefId !== '') ? (int) $rawRefId : null;
+            if ($frefdtid === null || $frefdtid <= 0) {
+                // Skip rows without a valid PO reference
+                continue;
             }
             if ($frefdtid > 0) {
                 $poUnit = DB::table('tr_pod')
@@ -1044,9 +1049,23 @@ class PenerimaanBarangController extends Controller
                 );
             });
         } catch (\RuntimeException $e) {
+            if ($request->expectsJson()) {
+                return response()->json(['message' => $e->getMessage()], 422);
+            }
             return back()->withInput()->withErrors(['detail' => $e->getMessage()]);
         } catch (Exception $e) {
+            Log::error('PenerimaanBarang@store ERROR: '.$e->getMessage());
+            if ($request->expectsJson()) {
+                return response()->json(['message' => 'Gagal simpan: ' . $e->getMessage()], 500);
+            }
             return back()->withInput()->withErrors(['detail' => 'Gagal simpan: ' . $e->getMessage()]);
+        }
+
+        if ($request->expectsJson()) {
+            return response()->json([
+                'message' => 'Penerimaan barang '.$this->formatDisplayTransactionNumber($fstockmtno, false).' berhasil disimpan.',
+                'redirect_url' => route('penerimaanbarang.create'),
+            ]);
         }
 
         return redirect()->route('penerimaanbarang.create')->with('success', 'Penerimaan barang '.$this->formatDisplayTransactionNumber($fstockmtno, false).' berhasil disimpan.');
@@ -1289,7 +1308,8 @@ class PenerimaanBarangController extends Controller
             $code = trim((string) ($codes[$i] ?? ''));
             $sat = trim((string) ($satuans[$i] ?? ''));
             $rno = trim((string) ($refdtnos[$i] ?? ''));
-            $rid = isset($refdtids[$i]) ? (int) $refdtids[$i] : null;
+            $rawRid = $refdtids[$i] ?? null;
+            $rid = ($rawRid !== null && $rawRid !== '') ? (int) $rawRid : null;
             $qty = (float) ($qtys[$i] ?? 0);
             $price = (float) ($prices[$i] ?? 0);
             $desc = trim((string) ($descs[$i] ?? ''));
@@ -1303,8 +1323,9 @@ class PenerimaanBarangController extends Controller
                 continue;
             }
 
-            if (! $rid) {
-                return back()->withInput()->withErrors(['detail' => 'Penerimaan Barang hanya boleh input produk dari Add PO.']);
+            if ($rid === null || $rid <= 0) {
+                // Skip rows without a valid PO reference
+                continue;
             }
 
             if ($sat === '') {
@@ -1453,7 +1474,23 @@ class PenerimaanBarangController extends Controller
                 );
             });
         } catch (\RuntimeException $e) {
+            if ($request->expectsJson()) {
+                return response()->json(['message' => $e->getMessage()], 422);
+            }
             return back()->withInput()->withErrors(['detail' => $e->getMessage()]);
+        } catch (\Exception $e) {
+            Log::error('PenerimaanBarang@update ERROR: '.$e->getMessage());
+            if ($request->expectsJson()) {
+                return response()->json(['message' => 'Gagal update: ' . $e->getMessage()], 500);
+            }
+            return back()->withInput()->withErrors(['detail' => 'Gagal update: ' . $e->getMessage()]);
+        }
+
+        if ($request->expectsJson()) {
+            return response()->json([
+                'message' => 'Penerimaan barang '.$this->formatDisplayTransactionNumber($header->fstockmtno, false).' berhasil diupdate.',
+                'redirect_url' => route('penerimaanbarang.index'),
+            ]);
         }
 
         return redirect()->route('penerimaanbarang.index')
@@ -1497,9 +1534,21 @@ class PenerimaanBarangController extends Controller
                 $penerimaanbarang->delete();
             });
 
+            if (request()->expectsJson()) {
+                return response()->json([
+                    'message' => 'Penerimaan barang ' . $this->formatDisplayTransactionNumber($penerimaanbarang->fstockmtno, false) . ' berhasil dihapus.',
+                    'redirect_url' => route('penerimaanbarang.index'),
+                ]);
+            }
+
             return redirect()->route('penerimaanbarang.index')
                 ->with('success', 'Penerimaan barang ' . $this->formatDisplayTransactionNumber($penerimaanbarang->fstockmtno, false) . ' berhasil dihapus.');
         } catch (\Exception $e) {
+            if (request()->expectsJson()) {
+                return response()->json([
+                    'message' => 'Penerimaan barang belum bisa dihapus. Coba lagi: ' . $e->getMessage(),
+                ], 500);
+            }
             return redirect()->route('penerimaanbarang.delete', $fstockmtid)
                 ->with('error', 'Penerimaan barang belum bisa dihapus. Coba lagi.');
         }

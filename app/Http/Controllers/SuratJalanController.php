@@ -1016,29 +1016,43 @@ class SuratJalanController extends Controller
 
                 DB::table('trstockdt')->insert($rowsDt);
             });
-        } catch (\Throwable $e) {
-
-            return back()->withInput()->withErrors([
-                'detail' => 'Data belum berhasil disimpan. Cek data log internal.',
-            ]);
-        }
-
-        $this->syncInvoiceOutFlags($invoiceReferenceDocs);
-
-        Log::info("SuratJalan@store: Flow penyimpanan sukses total untuk nomor [{$fstockmtno}].");
-
         $redirect = redirect()
             ->route('suratjalan.create')
             ->with('success', 'Surat jalan ' . $this->formatDisplayTransactionNumber($fstockmtno, false) . ' berhasil disimpan.');
 
         if (! $this->canCreateInvoice() || ! $newStockMasterId || ! empty($invoiceReferenceDocs)) {
+            if ($request->expectsJson()) {
+                return response()->json([
+                    'message' => 'Surat jalan ' . $this->formatDisplayTransactionNumber($fstockmtno, false) . ' berhasil disimpan.',
+                    'redirect_url' => route('suratjalan.create'),
+                ]);
+            }
             return $redirect;
+        }
+
+        if ($request->expectsJson()) {
+            return response()->json([
+                'message' => 'Surat jalan ' . $this->formatDisplayTransactionNumber($fstockmtno, false) . ' berhasil disimpan.',
+                'redirect_url' => route('suratjalan.create'),
+                'success_prompt' => [
+                    'type' => 'suratjalan_create_invoice',
+                    'redirect_url' => route('invoice.create', ['surat_jalan_id' => $newStockMasterId]),
+                ]
+            ]);
         }
 
         return $redirect->with('success_prompt', [
             'type' => 'suratjalan_create_invoice',
             'redirect_url' => route('invoice.create', ['surat_jalan_id' => $newStockMasterId]),
         ]);
+        } catch (\Throwable $e) {
+            if ($request->expectsJson()) {
+                return response()->json(['message' => 'Data belum berhasil disimpan: ' . $e->getMessage()], 500);
+            }
+            return back()->withInput()->withErrors([
+                'detail' => 'Data belum berhasil disimpan. Cek data log internal.',
+            ]);
+        }
     }
 
     public function edit(Request $request, $fstockmtid)
@@ -1600,12 +1614,26 @@ class SuratJalanController extends Controller
                 DB::table('trstockdt')->insert($rowsDt);
             });
         } catch (\Throwable $e) {
+            if ($request->expectsJson()) {
+                return response()->json(['message' => 'Data belum berhasil diperbarui: ' . $e->getMessage()], 500);
+            }
             return back()->withInput()->withErrors([
                 'detail' => 'Data belum berhasil diperbarui. Cek isian transaksi.',
             ]);
         }
 
         $this->syncInvoiceOutFlags(array_merge($oldInvoiceReferenceDocs, $newInvoiceReferenceDocs));
+
+        if ($request->expectsJson()) {
+            return response()->json([
+                'message' => 'Surat jalan ' . $this->formatDisplayTransactionNumber($fstockmtno, false) . ' berhasil diupdate.',
+                'redirect_url' => route('suratjalan.index'),
+                'success_prompt' => ! $this->canCreateInvoice() ? null : [
+                    'type' => 'suratjalan_create_invoice',
+                    'redirect_url' => route('invoice.create', ['surat_jalan_id' => $fstockmtid]),
+                ]
+            ]);
+        }
 
         $redirect = redirect()
             ->route('suratjalan.index')
@@ -1777,8 +1805,20 @@ class SuratJalanController extends Controller
 
             $this->syncInvoiceOutFlags($invoiceReferenceDocs);
 
+            if (request()->expectsJson()) {
+                return response()->json([
+                    'message' => 'Surat jalan ' . $this->formatDisplayTransactionNumber($suratjalan->fstockmtno, false) . ' berhasil dihapus.',
+                    'redirect_url' => route('suratjalan.index'),
+                ]);
+            }
+
             return redirect()->route('suratjalan.index')->with('success', 'Surat jalan ' . $this->formatDisplayTransactionNumber($suratjalan->fstockmtno, false) . ' berhasil dihapus.');
         } catch (\Exception $e) {
+            if (request()->expectsJson()) {
+                return response()->json([
+                    'message' => 'Surat jalan belum bisa dihapus. Coba lagi: ' . $e->getMessage(),
+                ], 500);
+            }
             // Jika terjadi kesalahan saat menghapus, kembali ke halaman delete dengan pesan error
             return redirect()->route('suratjalan.delete', $fstockmtid)->with('error', 'Surat jalan belum bisa dihapus. Coba lagi.');
         }

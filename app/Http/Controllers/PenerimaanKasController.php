@@ -146,6 +146,13 @@ class PenerimaanKasController extends Controller
             return $header;
         });
 
+        if ($request->expectsJson()) {
+            return response()->json([
+                'message' => 'Penerimaan kas ' . $header->fkasmtno . ' berhasil disimpan.',
+                'redirect_url' => route('penerimaankas.create'),
+            ]);
+        }
+
         return redirect()
             ->route('penerimaankas.create')
             ->with('success', 'Penerimaan kas ' . $header->fkasmtno . ' berhasil disimpan.');
@@ -271,6 +278,13 @@ class PenerimaanKasController extends Controller
             }
         });
 
+        if ($request->expectsJson()) {
+            return response()->json([
+                'message' => 'Penerimaan kas ' . $header->fkasmtno . ' berhasil diupdate.',
+                'redirect_url' => route('penerimaankas.edit', ['fkasmtno' => $header->fkasmtno]),
+            ]);
+        }
+
         return redirect()
             ->route('penerimaankas.edit', ['fkasmtno' => $header->fkasmtno])
             ->with('success', 'Penerimaan kas ' . $header->fkasmtno . ' berhasil diupdate.');
@@ -293,16 +307,16 @@ class PenerimaanKasController extends Controller
             $header->delete();
         });
 
-        if (! request()->expectsJson()) {
-            return redirect()
-                ->route('penerimaankas.index')
-                ->with('success', 'Penerimaan kas ' . $deletedNo . ' berhasil dihapus.');
+        if (request()->expectsJson()) {
+            return response()->json([
+                'message' => 'Penerimaan kas ' . $deletedNo . ' berhasil dihapus.',
+                'redirect_url' => route('penerimaankas.index'),
+            ]);
         }
 
-        return response()->json([
-            'success' => true,
-            'message' => 'Penerimaan kas ' . $deletedNo . ' berhasil dihapus.',
-        ]);
+        return redirect()
+            ->route('penerimaankas.index')
+            ->with('success', 'Penerimaan kas ' . $deletedNo . ' berhasil dihapus.');
     }
 
     public function print(string $fkasmtno)

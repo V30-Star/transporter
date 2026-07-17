@@ -1379,7 +1379,24 @@ class SalesOrderController extends Controller
                 ->with('success', 'Sales Order ' . $this->formatDisplayTransactionNumber($fsono, (int) $fapplyppn === 1) . ' berhasil disimpan.');
 
             if (! $canContinueToSuratJalan || ! $this->canCreateSuratJalan() || $requiresApprovalBeforeContinue) {
+                if ($request->expectsJson()) {
+                    return response()->json([
+                        'message' => 'Sales Order ' . $this->formatDisplayTransactionNumber($fsono, (int) $fapplyppn === 1) . ' berhasil disimpan.',
+                        'redirect_url' => route('salesorder.create'),
+                    ]);
+                }
                 return $redirect;
+            }
+
+            if ($request->expectsJson()) {
+                return response()->json([
+                    'message' => 'Sales Order ' . $this->formatDisplayTransactionNumber($fsono, (int) $fapplyppn === 1) . ' berhasil disimpan.',
+                    'redirect_url' => route('salesorder.create'),
+                    'success_prompt' => [
+                        'type' => 'salesorder_create_suratjalan',
+                        'redirect_url' => route('suratjalan.create', ['sales_order_id' => $ftrsomtid]),
+                    ]
+                ]);
             }
 
             return $redirect->with('success_prompt', [
@@ -1388,6 +1405,9 @@ class SalesOrderController extends Controller
             ]);
         } catch (\Exception $e) {
             report($e);
+            if ($request->expectsJson()) {
+                return response()->json(['message' => 'Sales Order belum bisa disimpan: ' . $e->getMessage()], 500);
+            }
             return back()->withInput()->withErrors(['error' => 'Sales Order belum bisa disimpan. Cek data.']);
         }
     }
@@ -1898,6 +1918,17 @@ class SalesOrderController extends Controller
             $this->sendApprovalNotification($header->fsono, $userid);
         }
 
+        if ($request->expectsJson()) {
+            return response()->json([
+                'message' => 'Sales Order ' . $this->formatDisplayTransactionNumber($header->fsono, (int) ($header->fapplyppn ?? 0) === 1) . ' berhasil diupdate.',
+                'redirect_url' => route('salesorder.index'),
+                'success_prompt' => (! $canContinueToSuratJalan || ! $this->canCreateSuratJalan() || $requiresApprovalBeforeContinue) ? null : [
+                    'type' => 'salesorder_create_suratjalan',
+                    'redirect_url' => route('suratjalan.create', ['sales_order_id' => $ftrsomtid]),
+                ]
+            ]);
+        }
+
         $redirect = redirect()
             ->route('salesorder.index')
             ->with('success', 'Sales Order ' . $this->formatDisplayTransactionNumber($header->fsono, (int) ($header->fapplyppn ?? 0) === 1) . ' berhasil diupdate.');
@@ -2061,9 +2092,21 @@ class SalesOrderController extends Controller
                     ->delete();
             });
 
+            if (request()->expectsJson()) {
+                return response()->json([
+                    'message' => 'Sales Order ' . $this->formatDisplayTransactionNumber($salesorder->fsono, (int) ($salesorder->fapplyppn ?? 0) === 1) . ' berhasil dihapus.',
+                    'redirect_url' => route('salesorder.index'),
+                ]);
+            }
+
             return redirect()->route('salesorder.index')->with('success', 'Sales Order ' . $this->formatDisplayTransactionNumber($salesorder->fsono, (int) ($salesorder->fapplyppn ?? 0) === 1) . ' berhasil dihapus.');
         } catch (\Exception $e) {
             report($e);
+            if (request()->expectsJson()) {
+                return response()->json([
+                    'message' => 'Sales Order belum bisa dihapus. Coba lagi: ' . $e->getMessage(),
+                ], 500);
+            }
             return redirect()->route('salesorder.view', $ftrsomtid)->with('error', 'Sales Order belum bisa dihapus. Coba lagi.');
         }
     }

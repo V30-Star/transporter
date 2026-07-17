@@ -1140,9 +1140,20 @@ class ReturPenjualanController extends Controller
                 // Validasi sisa SO/SRJ berdasarkan fqtykecil dinonaktifkan.
             });
 
+            if ($request->expectsJson()) {
+                return response()->json([
+                    'message' => 'Retur penjualan '.$this->formatDisplayTransactionNumber($savedFsono, $fincludeppn === '1').' berhasil disimpan.',
+                    'redirect_url' => route('returpenjualan.index'),
+                ]);
+            }
+
             return redirect()->route('returpenjualan.index')->with('success', 'Retur penjualan '.$this->formatDisplayTransactionNumber($savedFsono, $fincludeppn === '1').' berhasil disimpan.');
         } catch (\Exception $e) {
-
+            if ($request->expectsJson()) {
+                return response()->json([
+                    'message' => 'Retur penjualan belum bisa disimpan: ' . $e->getMessage(),
+                ], 500);
+            }
             return back()->withInput()->with('error', 'Retur penjualan belum bisa disimpan. Cek data transaksi.');
         }
     }
@@ -2259,8 +2270,20 @@ class ReturPenjualanController extends Controller
                 // Validasi sisa SO/SRJ berdasarkan fqtykecil dinonaktifkan.
             });
 
+            if ($request->expectsJson()) {
+                return response()->json([
+                    'message' => 'Retur penjualan '.$this->formatDisplayTransactionNumber($header->fsono, $fincludeppn === '1').' berhasil diupdate.',
+                    'redirect_url' => route('returpenjualan.index'),
+                ]);
+            }
+
             return redirect()->route('returpenjualan.index')->with('success', 'Retur penjualan '.$this->formatDisplayTransactionNumber($header->fsono, $fincludeppn === '1').' berhasil diupdate.');
         } catch (\Exception $e) {
+            if ($request->expectsJson()) {
+                return response()->json([
+                    'message' => 'Retur penjualan belum bisa diupdate: ' . $e->getMessage(),
+                ], 500);
+            }
             return back()->withInput()->with('error', 'Retur penjualan belum bisa diupdate. Cek data transaksi.');
         }
     }
@@ -2455,8 +2478,20 @@ class ReturPenjualanController extends Controller
             });
 
             $displayNo = $this->formatDisplayTransactionNumber((string) ($deletedHeader->fsono ?? ''), (string) ($deletedHeader->fincludeppn ?? '0') === '1');
+            if (request()->expectsJson()) {
+                return response()->json([
+                    'message' => 'Retur penjualan '.$displayNo.' berhasil dihapus.',
+                    'redirect_url' => route('returpenjualan.index'),
+                ]);
+            }
+
             return redirect()->route('returpenjualan.index')->with('success', 'Retur penjualan '.$displayNo.' berhasil dihapus.');
         } catch (\Exception $e) {
+            if (request()->expectsJson()) {
+                return response()->json([
+                    'message' => 'Retur penjualan belum bisa dihapus. Coba lagi: ' . $e->getMessage(),
+                ], 500);
+            }
             return redirect()->route('returpenjualan.index')->with('error', 'Retur penjualan belum bisa dihapus. Coba lagi.');
         }
     }

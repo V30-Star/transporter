@@ -405,6 +405,13 @@ class BayarSupplierController extends Controller
             }
         });
 
+        if ($request->expectsJson()) {
+            return response()->json([
+                'message' => 'Bayar supplier ' . $voucherNo . ' berhasil disimpan.',
+                'redirect_url' => route('bayarsupplier.create'),
+            ]);
+        }
+
         return redirect()
             ->route('bayarsupplier.create')
             ->with('success', 'Bayar supplier ' . $voucherNo . ' berhasil disimpan.');
@@ -621,6 +628,13 @@ class BayarSupplierController extends Controller
             }
         });
 
+        if ($request->expectsJson()) {
+            return response()->json([
+                'message' => 'Bayar supplier ' . $voucherNo . ' berhasil diperbarui.',
+                'redirect_url' => route('bayarsupplier.edit', $voucherNo),
+            ]);
+        }
+
         return redirect()
             ->route('bayarsupplier.edit', $voucherNo)
             ->with('success', 'Bayar supplier ' . $voucherNo . ' berhasil diperbarui.');
@@ -638,6 +652,13 @@ class BayarSupplierController extends Controller
             Trkasdt::where('fkasmtid', $header->fkasmtid)->delete();
             $header->delete();
         });
+
+        if (request()->expectsJson()) {
+            return response()->json([
+                'message' => 'Bayar supplier ' . $fkasmtno . ' berhasil dihapus.',
+                'redirect_url' => route('bayarsupplier.index'),
+            ]);
+        }
 
         return redirect()
             ->route('bayarsupplier.index')

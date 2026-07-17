@@ -690,6 +690,9 @@ class AdjstockController extends Controller
             throw $e;
         } catch (\Exception $e) {
             \Log::error('AdjstockController@store error: ' . $e->getMessage(), ['exception' => $e]);
+            if ($request->expectsJson()) {
+                return response()->json(['message' => 'Adjustment stock belum bisa disimpan: ' . $e->getMessage()], 500);
+            }
             return back()->withInput()->withErrors(['fatal' => 'Adjustment stock belum bisa disimpan: ' . $e->getMessage()]);
         }
     }
@@ -1323,8 +1326,20 @@ class AdjstockController extends Controller
                 $adjstock->delete();
             });
 
+            if (request()->expectsJson()) {
+                return response()->json([
+                    'message' => 'Adjustment stock '.$adjstock->fstockmtno.' berhasil dihapus.',
+                    'redirect_url' => route('adjstock.index'),
+                ]);
+            }
+
             return redirect()->route('adjstock.index')->with('success', 'Adjustment stock '.$adjstock->fstockmtno.' berhasil dihapus.');
         } catch (\Exception $e) {
+            if (request()->expectsJson()) {
+                return response()->json([
+                    'message' => 'Adjustment stock belum bisa dihapus. Coba lagi: ' . $e->getMessage(),
+                ], 500);
+            }
             // Jika terjadi kesalahan saat menghapus, kembali ke halaman delete dengan pesan error
             return redirect()->route('adjstock.delete', $fstockmtid)->with('error', 'Adjustment stock belum bisa dihapus. Coba lagi.');
         }

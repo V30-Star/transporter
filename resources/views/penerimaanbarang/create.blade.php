@@ -712,9 +712,9 @@
             <x-transaction.browse-product-modal />
 
             {{-- ─── CARD 3: Aksi / Footer ────────────────────── --}}
-            <div class="bg-white border border-gray-200 rounded-xl mb-3 overflow-hidden">
+            <div class="flex items-center justify-end gap-3 px-5 py-2 bg-gray-50 border-t border-gray-200">
                 {{-- Footer Buttons --}}
-                <div class="flex items-center justify-end gap-3 w-6 h-6 bg-gray-50">
+                <div >
                     <button type="button"
                         onclick="window.location.href='{{ route('penerimaanbarang.index') }}'"
                         class="inline-flex items-center gap-2 px-5 py-2 border border-gray-300 bg-white text-gray-600 text-sm font-medium rounded-lg hover:bg-gray-50 hover:border-gray-400 transition-colors">

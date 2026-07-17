@@ -1516,7 +1516,9 @@ class FakturpembelianController extends Controller
                 ->with('success', 'Data berhasil disimpan');
         } catch (\Exception $e) {
             Log::error('FakturPembelian@store ERROR: ' . $e->getMessage());
-
+            if ($request->expectsJson()) {
+                return response()->json(['message' => 'Gagal simpan: ' . $e->getMessage()], 500);
+            }
             return back()->withInput()->withErrors(['error' => 'Gagal simpan: ' . $e->getMessage()]);
         }
     }
@@ -2250,11 +2252,22 @@ class FakturpembelianController extends Controller
                 );
             });
 
+            if ($request->expectsJson()) {
+                return response()->json([
+                    'message' => 'Faktur pembelian '.$this->formatDisplayTransactionNumber($fstockmtno, $fapplyppn === 1).' berhasil diupdate.',
+                    'redirect_url' => route('fakturpembelian.index'),
+                ]);
+            }
+
             return redirect()
                 ->route('fakturpembelian.index')
                 ->with('success', 'Faktur pembelian '.$this->formatDisplayTransactionNumber($fstockmtno, $fapplyppn === 1).' berhasil diupdate.');
         } catch (\Exception $e) {
-
+            if ($request->expectsJson()) {
+                return response()->json([
+                    'message' => 'Terjadi kesalahan sistem: ' . $e->getMessage(),
+                ], 500);
+            }
             return back()
                 ->withInput()
                 ->withErrors(['error' => 'Terjadi kesalahan sistem: ' . $e->getMessage()]);
@@ -2444,8 +2457,20 @@ class FakturpembelianController extends Controller
                 $fakturpembelian->delete();
             });
 
+            if (request()->expectsJson()) {
+                return response()->json([
+                    'message' => 'Faktur pembelian ' . $this->formatDisplayTransactionNumber($fakturpembelian->fstockmtno, (int) ($fakturpembelian->fapplyppn ?? 0) === 1) . ' berhasil dihapus.',
+                    'redirect_url' => route('fakturpembelian.index'),
+                ]);
+            }
+
             return redirect()->route('fakturpembelian.index')->with('success', 'Faktur pembelian ' . $this->formatDisplayTransactionNumber($fakturpembelian->fstockmtno, (int) ($fakturpembelian->fapplyppn ?? 0) === 1) . ' berhasil dihapus.');
         } catch (\Exception $e) {
+            if (request()->expectsJson()) {
+                return response()->json([
+                    'message' => 'Faktur pembelian belum bisa dihapus. Coba lagi: ' . $e->getMessage(),
+                ], 500);
+            }
             // Jika terjadi kesalahan saat menghapus, kembali ke halaman delete dengan pesan error
             return redirect()->route('fakturpembelian.delete', $fstockmtid)->with('error', 'Faktur pembelian belum bisa dihapus. Coba lagi.');
         }

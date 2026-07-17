@@ -143,6 +143,13 @@ class PengeluaranKasController extends Controller
             return $header;
         });
 
+        if ($request->expectsJson()) {
+            return response()->json([
+                'message' => 'Pengeluaran kas ' . $header->fkasmtno . ' berhasil disimpan.',
+                'redirect_url' => route('pengeluarankas.create'),
+            ]);
+        }
+
         return redirect()
             ->route('pengeluarankas.create')
             ->with('success', 'Pengeluaran kas ' . $header->fkasmtno . ' berhasil disimpan.');
@@ -268,6 +275,13 @@ class PengeluaranKasController extends Controller
             }
         });
 
+        if ($request->expectsJson()) {
+            return response()->json([
+                'message' => 'Pengeluaran kas ' . $header->fkasmtno . ' berhasil diupdate.',
+                'redirect_url' => route('pengeluarankas.edit', ['fkasmtno' => $header->fkasmtno]),
+            ]);
+        }
+
         return redirect()
             ->route('pengeluarankas.edit', ['fkasmtno' => $header->fkasmtno])
             ->with('success', 'Pengeluaran kas ' . $header->fkasmtno . ' berhasil diupdate.');
@@ -290,16 +304,16 @@ class PengeluaranKasController extends Controller
             $header->delete();
         });
 
-        if (! request()->expectsJson()) {
-            return redirect()
-                ->route('pengeluarankas.index')
-                ->with('success', 'Pengeluaran kas ' . $deletedNo . ' berhasil dihapus.');
+        if (request()->expectsJson()) {
+            return response()->json([
+                'message' => 'Pengeluaran kas ' . $deletedNo . ' berhasil dihapus.',
+                'redirect_url' => route('pengeluarankas.index'),
+            ]);
         }
 
-        return response()->json([
-            'success' => true,
-            'message' => 'Pengeluaran kas ' . $deletedNo . ' berhasil dihapus.',
-        ]);
+        return redirect()
+            ->route('pengeluarankas.index')
+            ->with('success', 'Pengeluaran kas ' . $deletedNo . ' berhasil dihapus.');
     }
 
     public function print(string $fkasmtno)

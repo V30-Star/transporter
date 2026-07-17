@@ -682,6 +682,13 @@ class PemakaianbarangController extends Controller
 
         // =================================================================
 
+        if (request()->expectsJson()) {
+            return response()->json([
+                'message' => "Pemakaian barang {$fstockmtno} berhasil disimpan.",
+                'redirect_url' => route('pemakaianbarang.create'),
+            ]);
+        }
+
         return redirect()
             ->route('pemakaianbarang.create')
             ->with('success', "Pemakaian barang {$fstockmtno} berhasil disimpan.");
@@ -1195,6 +1202,13 @@ class PemakaianbarangController extends Controller
             DB::table('trstockdt')->insert($rowsDt);
         });
 
+        if (request()->expectsJson()) {
+            return response()->json([
+                'message' => "Pemakaian barang {$header->fstockmtno} berhasil diupdate.",
+                'redirect_url' => route('pemakaianbarang.index'),
+            ]);
+        }
+
         return redirect()
             ->route('pemakaianbarang.index')
             ->with('success', "Pemakaian barang {$header->fstockmtno} berhasil diupdate.");
@@ -1361,8 +1375,20 @@ class PemakaianbarangController extends Controller
                 $pemakaianbarang->delete();
             });
 
+            if (request()->expectsJson()) {
+                return response()->json([
+                    'message' => 'Pemakaian barang '.$pemakaianbarang->fstockmtno.' berhasil dihapus.',
+                    'redirect_url' => route('pemakaianbarang.index'),
+                ]);
+            }
+
             return redirect()->route('pemakaianbarang.index')->with('success', 'Pemakaian barang '.$pemakaianbarang->fstockmtno.' berhasil dihapus.');
         } catch (\Exception $e) {
+            if (request()->expectsJson()) {
+                return response()->json([
+                    'message' => 'Pemakaian barang belum bisa dihapus. Coba lagi: ' . $e->getMessage(),
+                ], 500);
+            }
             // Jika terjadi kesalahan saat menghapus, kembali ke halaman delete dengan pesan error
             return redirect()->route('pemakaianbarang.delete', $fstockmtid)->with('error', 'Pemakaian barang belum bisa dihapus. Coba lagi.');
         }

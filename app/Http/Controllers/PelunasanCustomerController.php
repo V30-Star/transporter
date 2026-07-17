@@ -445,6 +445,13 @@ class PelunasanCustomerController extends Controller
             }
         });
 
+        if ($request->expectsJson()) {
+            return response()->json([
+                'message' => 'Pelunasan customer ' . $voucherNo . ' berhasil disimpan.',
+                'redirect_url' => route('pelunasancustomer.create'),
+            ]);
+        }
+
         return redirect()
             ->route('pelunasancustomer.create')
             ->with('success', 'Pelunasan customer ' . $voucherNo . ' berhasil disimpan.');
@@ -636,6 +643,13 @@ class PelunasanCustomerController extends Controller
             }
         });
 
+        if ($request->expectsJson()) {
+            return response()->json([
+                'message' => 'Pelunasan customer ' . $voucherNo . ' berhasil diperbarui.',
+                'redirect_url' => route('pelunasancustomer.edit', $voucherNo),
+            ]);
+        }
+
         return redirect()
             ->route('pelunasancustomer.edit', $voucherNo)
             ->with('success', 'Pelunasan customer ' . $voucherNo . ' berhasil diperbarui.');
@@ -653,6 +667,13 @@ class PelunasanCustomerController extends Controller
             Trkasdt::where('fkasmtid', $header->fkasmtid)->delete();
             $header->delete();
         });
+
+        if (request()->expectsJson()) {
+            return response()->json([
+                'message' => 'Pelunasan customer ' . $fkasmtno . ' berhasil dihapus.',
+                'redirect_url' => route('pelunasancustomer.index'),
+            ]);
+        }
 
         return redirect()
             ->route('pelunasancustomer.index')

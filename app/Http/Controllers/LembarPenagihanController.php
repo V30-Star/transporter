@@ -226,6 +226,13 @@ class LembarPenagihanController extends Controller
             $this->replaceDetails($tagihanNo, $data, $userId);
         });
 
+        if (request()->expectsJson()) {
+            return response()->json([
+                'message' => 'Lembar penagihan berhasil disimpan.',
+                'redirect_url' => route('lembarpenagihan.index'),
+            ]);
+        }
+
         return redirect()->route('lembarpenagihan.index')->with('success', 'Lembar penagihan berhasil disimpan.');
     }
 
@@ -285,6 +292,13 @@ class LembarPenagihanController extends Controller
             $this->replaceDetails($tagihanNo, $data, $userId);
         });
 
+        if (request()->expectsJson()) {
+            return response()->json([
+                'message' => 'Lembar penagihan berhasil diupdate.',
+                'redirect_url' => route('lembarpenagihan.index'),
+            ]);
+        }
+
         return redirect()->route('lembarpenagihan.index')->with('success', 'Lembar penagihan berhasil diupdate.');
     }
 
@@ -295,6 +309,13 @@ class LembarPenagihanController extends Controller
             DB::table('trtagihandt')->where('ftagihanno', $header->ftagihanno)->delete();
             DB::table('trtagihanmt')->where('ftagihanid', $id)->delete();
         });
+
+        if (request()->expectsJson()) {
+            return response()->json([
+                'message' => 'Lembar penagihan berhasil dihapus.',
+                'redirect_url' => route('lembarpenagihan.index'),
+            ]);
+        }
 
         return redirect()->route('lembarpenagihan.index')->with('success', 'Lembar penagihan berhasil dihapus.');
     }

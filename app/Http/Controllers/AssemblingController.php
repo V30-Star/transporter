@@ -733,6 +733,13 @@ class AssemblingController extends Controller
             DB::table('trstockdt')->insert($rowsDt);
         });
 
+        if (request()->expectsJson()) {
+            return response()->json([
+                'message' => "Assembling {$fstockmtno} berhasil disimpan.",
+                'redirect_url' => route('assembling.create'),
+            ]);
+        }
+
         return redirect()
             ->route('assembling.create')
             ->with('success', "Assembling {$fstockmtno} berhasil disimpan.");
@@ -1254,6 +1261,13 @@ class AssemblingController extends Controller
             DB::table('trstockdt')->insert($rowsDt);
         });
 
+        if (request()->expectsJson()) {
+            return response()->json([
+                'message' => "Assembling {$header->fstockmtno} berhasil diupdate.",
+                'redirect_url' => route('assembling.index'),
+            ]);
+        }
+
         return redirect()
             ->route('assembling.index')
             ->with('success', "Assembling {$header->fstockmtno} berhasil diupdate.");
@@ -1422,8 +1436,20 @@ class AssemblingController extends Controller
                 $assembling->delete();
             });
 
+            if (request()->expectsJson()) {
+                return response()->json([
+                    'message' => 'Assembling '.$assembling->fstockmtno.' berhasil dihapus.',
+                    'redirect_url' => route('assembling.index'),
+                ]);
+            }
+
             return redirect()->route('assembling.index')->with('success', 'Assembling '.$assembling->fstockmtno.' berhasil dihapus.');
         } catch (\Exception $e) {
+            if (request()->expectsJson()) {
+                return response()->json([
+                    'message' => 'Assembling belum bisa dihapus. Coba lagi: ' . $e->getMessage(),
+                ], 500);
+            }
             // Jika terjadi kesalahan saat menghapus, kembali ke halaman delete dengan pesan error
             return redirect()->route('assembling.delete', $fstockmtid)->with('error', 'Assembling belum bisa dihapus. Coba lagi.');
         }

@@ -661,6 +661,11 @@ class JurnalTransaksiController extends Controller
             }
 
             if ($frefno !== null && ! isset($referenceAllowedAccountCodes[strtoupper($faccount)])) {
+                if ($request->expectsJson()) {
+                    return response()->json([
+                        'message' => "Ref No di baris ".($i + 1)." tidak boleh diisi untuk account ini."
+                    ], 422);
+                }
                 return back()->withInput()->withErrors([
                     'detail' => "Ref No di baris ".($i + 1)." tidak boleh diisi untuk account ini.",
                 ]);
@@ -695,6 +700,11 @@ class JurnalTransaksiController extends Controller
         }
 
         if (empty($rowsDt)) {
+            if ($request->expectsJson()) {
+                return response()->json([
+                    'message' => 'Minimal harus ada 1 baris jurnal yang lengkap dan jumlahnya lebih dari 0.'
+                ], 422);
+            }
             return back()->withInput()->withErrors([
                 'detail' => 'Minimal harus ada 1 baris jurnal yang lengkap dan jumlahnya lebih dari 0.',
             ]);
@@ -702,18 +712,29 @@ class JurnalTransaksiController extends Controller
 
         // ── Validasi balance debit = kredit ──
         if ($validationMessage = $this->validateUniqueJournalReferenceUsage($rowsDt)) {
+            if ($request->expectsJson()) {
+                return response()->json([
+                    'message' => $validationMessage
+                ], 422);
+            }
             return back()->withInput()->withErrors([
                 'detail' => $validationMessage,
             ]);
         }
 
         if (round($totalDebit, 2) !== round($totalKredit, 2)) {
+            $msg = sprintf(
+                'Jurnal belum seimbang. Total Debit Rp %s dan Total Kredit Rp %s.',
+                number_format($totalDebit, 2, ',', '.'),
+                number_format($totalKredit, 2, ',', '.')
+            );
+            if ($request->expectsJson()) {
+                return response()->json([
+                    'message' => $msg
+                ], 422);
+            }
             return back()->withInput()->withErrors([
-                'detail' => sprintf(
-                    'Jurnal belum seimbang. Total Debit Rp %s dan Total Kredit Rp %s.',
-                    number_format($totalDebit, 2, ',', '.'),
-                    number_format($totalKredit, 2, ',', '.')
-                ),
+                'detail' => $msg,
             ]);
         }
 
@@ -819,6 +840,20 @@ class JurnalTransaksiController extends Controller
         });
 
         $printUrl = route('jurnaltransaksi.print', ['fjurnalno' => $fjurnalno]);
+
+        if ($request->expectsJson()) {
+            return response()->json([
+                'message' => ucfirst($this->resolveJournalSuccessName($fjurnaltype)).' berhasil disimpan.',
+                'redirect_url' => route('jurnaltransaksi.create', array_merge(
+                    ['fcurrid' => $newJurnalMtId],
+                    $this->resolveJournalIndexRouteParams($fjurnaltype)
+                )),
+                'success_prompt' => [
+                    'type'         => 'jurnaltransaksi_create',
+                    'redirect_url' => $printUrl,
+                ]
+            ]);
+        }
 
         return redirect()
             ->route('jurnaltransaksi.create', array_merge(
@@ -1084,6 +1119,11 @@ class JurnalTransaksiController extends Controller
             }
 
             if ($frefno !== null && ! isset($referenceAllowedAccountCodes[strtoupper($faccount)])) {
+                if ($request->expectsJson()) {
+                    return response()->json([
+                        'message' => "Ref No di baris ".($i + 1)." tidak boleh diisi untuk account ini."
+                    ], 422);
+                }
                 return back()->withInput()->withErrors([
                     'detail' => "Ref No di baris ".($i + 1)." tidak boleh diisi untuk account ini.",
                 ]);
@@ -1116,24 +1156,40 @@ class JurnalTransaksiController extends Controller
         }
 
         if (empty($rowsDt)) {
+            if ($request->expectsJson()) {
+                return response()->json([
+                    'message' => 'Minimal harus ada 1 baris jurnal yang lengkap dan jumlahnya lebih dari 0.'
+                ], 422);
+            }
             return back()->withInput()->withErrors([
                 'detail' => 'Minimal harus ada 1 baris jurnal yang lengkap dan jumlahnya lebih dari 0.',
             ]);
         }
 
         if ($validationMessage = $this->validateUniqueJournalReferenceUsage($rowsDt, $header->fjurnalno)) {
+            if ($request->expectsJson()) {
+                return response()->json([
+                    'message' => $validationMessage
+                ], 422);
+            }
             return back()->withInput()->withErrors([
                 'detail' => $validationMessage,
             ]);
         }
 
         if (round($totalDebit, 2) !== round($totalKredit, 2)) {
+            $msg = sprintf(
+                'Jurnal belum seimbang. Total Debit Rp %s dan Total Kredit Rp %s.',
+                number_format($totalDebit, 2, ',', '.'),
+                number_format($totalKredit, 2, ',', '.')
+            );
+            if ($request->expectsJson()) {
+                return response()->json([
+                    'message' => $msg
+                ], 422);
+            }
             return back()->withInput()->withErrors([
-                'detail' => sprintf(
-                    'Jurnal belum seimbang. Total Debit Rp %s dan Total Kredit Rp %s.',
-                    number_format($totalDebit, 2, ',', '.'),
-                    number_format($totalKredit, 2, ',', '.')
-                ),
+                'detail' => $msg,
             ]);
         }
 
@@ -1203,6 +1259,16 @@ class JurnalTransaksiController extends Controller
 
             DB::table('jurnaldt')->insert($details);
         });
+
+        if ($request->expectsJson()) {
+            return response()->json([
+                'message' => ucfirst($this->resolveJournalSuccessName($fjurnaltype)) . ' ' . trim((string) $header->fjurnalno) . ' berhasil diupdate.',
+                'redirect_url' => route('jurnaltransaksi.edit', array_merge(
+                    ['fcurrid' => $fstockmtid],
+                    $this->resolveJournalIndexRouteParams($fjurnaltype)
+                )),
+            ]);
+        }
 
         return redirect()
             ->route('jurnaltransaksi.edit', array_merge(
@@ -1306,7 +1372,7 @@ class JurnalTransaksiController extends Controller
             if (request()->expectsJson()) {
                 return response()->json([
                     'message' => $message,
-                    'redirect' => $redirectUrl,
+                    'redirect_url' => $redirectUrl,
                 ]);
             }
 

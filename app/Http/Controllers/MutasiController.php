@@ -803,10 +803,20 @@ class MutasiController extends Controller
                 return $fstockmtno;
             });
 
+            if ($request->expectsJson()) {
+                return response()->json([
+                    'message' => "Mutasi {$finalNo} berhasil disimpan.",
+                    'redirect_url' => route('mutasi.create'),
+                ]);
+            }
+
             return redirect()
                 ->route('mutasi.create')
                 ->with('success', "Mutasi {$finalNo} berhasil disimpan.");
         } catch (\Exception $e) {
+            if ($request->expectsJson()) {
+                return response()->json(['message' => 'Mutasi belum bisa disimpan: ' . $e->getMessage()], 500);
+            }
             return back()->withInput()->withErrors(['fatal' => 'Mutasi belum bisa disimpan. Cek data transaksi.']);
         }
     }
@@ -1137,10 +1147,20 @@ class MutasiController extends Controller
                 DB::table('trstockdt')->insert($rowsDt);
             });
 
+            if ($request->expectsJson()) {
+                return response()->json([
+                    'message' => "Mutasi {$header->fstockmtno} berhasil diupdate.",
+                    'redirect_url' => route('mutasi.index'),
+                ]);
+            }
+
             return redirect()
                 ->route('mutasi.index')
                 ->with('success', "Mutasi {$header->fstockmtno} berhasil diupdate.");
         } catch (\Exception $e) {
+            if ($request->expectsJson()) {
+                return response()->json(['message' => 'Mutasi belum bisa diupdate: ' . $e->getMessage()], 500);
+            }
             return back()->withInput()->withErrors([
                 'fatal' => 'Mutasi belum bisa diupdate. Cek data transaksi.',
             ]);
@@ -1320,10 +1340,23 @@ class MutasiController extends Controller
 
             DB::commit();
 
+            if (request()->expectsJson()) {
+                return response()->json([
+                    'message' => 'Mutasi ' . $docNo . ' berhasil dihapus.',
+                    'redirect_url' => route('mutasi.index'),
+                ]);
+            }
+
             return redirect()->route('mutasi.index')->with('success', 'Mutasi ' . $docNo . ' berhasil dihapus.');
         } catch (\Exception $e) {
             if (DB::transactionLevel() > 0) {
                 DB::rollBack();
+            }
+
+            if (request()->expectsJson()) {
+                return response()->json([
+                    'message' => 'Mutasi belum bisa dihapus. Coba lagi: ' . $e->getMessage(),
+                ], 500);
             }
 
             return redirect()->route('mutasi.index')->with('error', 'Mutasi belum bisa dihapus. Coba lagi.');
