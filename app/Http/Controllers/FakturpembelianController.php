@@ -1139,6 +1139,7 @@ class FakturpembelianController extends Controller
     public function store(Request $request)
     {
         try {
+            $allowNegativeStockQty = stock_boleh_minus();
             $rawCodes = collect($request->input('fitemcode', []));
             $hasOpeningBalanceItem = $rawCodes->contains(fn ($code) => $this->isOpeningBalanceProductCode($code));
 
@@ -1157,7 +1158,15 @@ class FakturpembelianController extends Controller
                 'ftypebuy' => ['nullable', 'integer'],
                 'fprdjadi' => ['required_if:ftypebuy,1'],
                 'fqty' => ['required', 'array'],
-                'fqty.*' => ['numeric', 'min:0.001'],
+                'fqty.*' => [
+                    'required',
+                    'numeric',
+                    function ($attribute, $value, $fail) use ($allowNegativeStockQty) {
+                        if ($allowNegativeStockQty ? (float) $value == 0.0 : (float) $value <= 0) {
+                            $fail($allowNegativeStockQty ? 'Qty tidak boleh 0.' : 'Qty harus lebih dari 0.');
+                        }
+                    },
+                ],
                 'fprice' => ['required', 'array'],
                 'fprice.*' => ['numeric', 'min:0'],
                 'fdiscpersen' => ['nullable', 'array'],
@@ -1848,6 +1857,7 @@ class FakturpembelianController extends Controller
     {
 
         try {
+            $allowNegativeStockQty = stock_boleh_minus();
             $rawCodes = collect($request->input('fitemcode', []));
             $hasOpeningBalanceItem = $rawCodes->contains(fn ($code) => $this->isOpeningBalanceProductCode($code));
 
@@ -1871,7 +1881,15 @@ class FakturpembelianController extends Controller
                 'frefdtno' => ['nullable', 'array'],
                 'frefdtno.*' => ['nullable', 'string', 'max:20'],
                 'fqty' => ['required', 'array'],
-                'fqty.*' => ['numeric', 'min:0'],
+                'fqty.*' => [
+                    'required',
+                    'numeric',
+                    function ($attribute, $value, $fail) use ($allowNegativeStockQty) {
+                        if ($allowNegativeStockQty ? (float) $value == 0.0 : (float) $value <= 0) {
+                            $fail($allowNegativeStockQty ? 'Qty tidak boleh 0.' : 'Qty harus lebih dari 0.');
+                        }
+                    },
+                ],
                 'fprice' => ['required', 'array'],
                 'fprice.*' => ['numeric', 'min:0'],
                 'fdiscpersen' => ['nullable', 'array'],

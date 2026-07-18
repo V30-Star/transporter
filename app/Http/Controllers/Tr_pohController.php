@@ -1443,6 +1443,7 @@ class Tr_pohController extends Controller
 
     public function update(Request $request, $fpohid)
     {
+        $allowNegativeStockQty = stock_boleh_minus();
         $header = Tr_poh::where('fpohid', $fpohid)->firstOrFail();
 
         if ($message = $this->getPostedPeriodLockMessage($header->fpodate, 'Data ini')) {
@@ -1493,7 +1494,15 @@ class Tr_pohController extends Controller
             'frefnoacak' => ['nullable', 'array'],
             'frefnoacak.*' => ['nullable', 'regex:/^\d{3}$/'],
             'fqty' => ['required', 'array'],
-            'fqty.*' => ['numeric', 'min:0', 'gt:0'],
+            'fqty.*' => [
+                'required',
+                'numeric',
+                function ($attribute, $value, $fail) use ($allowNegativeStockQty) {
+                    if ($allowNegativeStockQty ? (float) $value == 0.0 : (float) $value <= 0) {
+                        $fail($allowNegativeStockQty ? 'Qty tidak boleh 0.' : 'Qty harus lebih dari 0.');
+                    }
+                },
+            ],
             'fprice' => ['nullable', 'array'],
             'fprice.*' => ['numeric', 'min:0'],
             'fdisc' => ['nullable', 'array'],

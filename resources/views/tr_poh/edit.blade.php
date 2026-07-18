@@ -836,7 +836,7 @@
                                             {{-- Qty --}}
                                             <td class="p-2 text-right">
                                                 <input type="number" class="w-full border rounded px-2 py-1 text-right text-sm focus:ring-1 focus:ring-blue-500"
-                                                    :id="'qty_row_' + i" x-model.number="row.fqty" min="0" step="any"
+                                                    :id="'qty_row_' + i" x-model.number="row.fqty" :min="@json(stock_boleh_minus()) ? null : 0" step="any"
                                                     @focus="activeRow = row.uid; $event.target.select()"
                                                     @blur="activeRow = null; enforcePrQtyRow(row)" @input="onRowUpdated(i)"
                                                     @change="onRowUpdated(i)" @keydown.enter.prevent="focusRowPrice(i)">
@@ -1731,7 +1731,7 @@
             },
 
             recalc(row) {
-                const qty = Math.max(0, +row.fqty || 0);
+                const qty = @json(stock_boleh_minus()) ? (+row.fqty || 0) : Math.max(0, +row.fqty || 0);
                 const price = Math.max(0, +row.fprice || 0);
                 const discPercent = this.parseDiscount(row.fdisc);
                 row.fqty = qty;
@@ -1801,7 +1801,7 @@
                     this.recalc(row);
                     return;
                 }
-                if (n < 0) row.fqty = 0;
+                if (!@json(stock_boleh_minus()) && n < 0) row.fqty = 0;
                 if (!row.frefdtid) {
                     this.recalc(row);
                     return;
@@ -1934,7 +1934,7 @@
                         row.fdesc,
                         row.fketdt
                     ].some((value) => String(value ?? '').trim() !== '' && Number(value ?? 0) !== 0) ||
-                    Number(row.fqty || 0) > 0;
+                    (@json(stock_boleh_minus()) ? Number(row.fqty || 0) !== 0 : Number(row.fqty || 0) > 0);
             },
 
             isRowSavable(row) {
@@ -1942,7 +1942,7 @@
                     (row.fitemcode || '').trim() &&
                     (row.fitemname || '').trim() &&
                     (row.fsatuan || '').trim() &&
-                    Number(row.fqty || 0) > 0
+                    (@json(stock_boleh_minus()) ? Number(row.fqty || 0) !== 0 : Number(row.fqty || 0) > 0)
                 );
             },
 
