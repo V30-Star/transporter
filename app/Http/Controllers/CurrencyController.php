@@ -122,8 +122,8 @@ class CurrencyController extends Controller
 
         $validated = $request->validate(
             [
-                'fcurrcode' => 'required|string|max:10|unique:mscurrency,fcurrcode,'.$fcurrid.',fcurrid',
-                'fcurrname' => 'required|string|unique:mscurrency,fcurrname,'.$fcurrid.',fcurrid',
+                'fcurrcode' => 'required|string|max:10|unique:mscurrency,fcurrcode,' . $fcurrid . ',fcurrid',
+                'fcurrname' => 'required|string|unique:mscurrency,fcurrname,' . $fcurrid . ',fcurrid',
                 'frate' => 'required|numeric|min:0',
             ],
             [
@@ -141,7 +141,23 @@ class CurrencyController extends Controller
         $validated['fnonactive'] = $request->boolean('fnonactive') ? '1' : '0';
 
         $currency = Currency::findOrFail($fcurrid);
+
+        // 1. Jalankan update ke tabel utama
         $currency->update($validated);
+
+        $userLogin = auth('sysuser')->user();
+
+        // 2. Selalu INSERT log baru (feditmode = 'U')
+        DB::table('logcurrency')->insert([
+            'fcurrid'      => $currency->fcurrid,
+            'fcurrcode'    => $currency->fcurrcode,
+            'fcurrname'    => $currency->fcurrname,
+            'frate'        => $currency->frate,
+            'fnonactive'   => $currency->fnonactive,
+            'feditmode'    => 'U', // 'U' untuk Update
+            'fuseridlog'   => $userLogin->fuserid ?? null,
+            'fdatetimelog' => now(),
+        ]);
 
         return redirect()
             ->route('currency.index')
@@ -186,11 +202,26 @@ class CurrencyController extends Controller
                 ], 422);
             }
 
+            $userLogin = auth('sysuser')->user();
+
+            // 1. Selalu INSERT log baru sebelum data utama di-delete (feditmode = 'D')
+            DB::table('logcurrency')->insert([
+                'fcurrid'      => $currency->fcurrid,
+                'fcurrcode'    => $currency->fcurrcode,
+                'fcurrname'    => $currency->fcurrname,
+                'frate'        => $currency->frate,
+                'fnonactive'   => $currency->fnonactive,
+                'feditmode'    => 'D', // 'D' untuk Delete
+                'fuseridlog'   => $userLogin->fuserid ?? null,
+                'fdatetimelog' => now(),
+            ]);
+
+            // 2. Jalankan hapus data utama
             $currency->delete();
 
             return response()->json([
                 'success' => true,
-                'message' => 'Currency '.$currency->fcurrcode.' berhasil dihapus.',
+                'message' => 'Currency ' . $currency->fcurrcode . ' berhasil dihapus.',
                 'redirect' => route('currency.index'),
             ]);
         } catch (\Exception $e) {

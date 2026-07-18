@@ -127,12 +127,28 @@ class GroupcustomerController extends Controller
         $validated['fgroupcode'] = strtoupper($validated['fgroupcode']);
         $validated['fgroupname'] = strtoupper($validated['fgroupname']);
 
+        $userLogin = auth('sysuser')->user();
         $validated['fupdatedby'] = auth('sysuser')->user()->fname ?? null;
         $validated['fupdatedat'] = now(); // Menggunakan waktu sekarang
         $validated['fnonactive'] = $request->boolean('fnonactive') ? '1' : '0';
 
         $groupcustomer = Groupcustomer::findOrFail($fgroupid);
         $groupcustomer->update($validated);
+
+        // 2. Selalu INSERT log baru (feditmode = 'U')
+        \Illuminate\Support\Facades\DB::table('loggroupcustomer')->insert([
+            'fgroupid'     => $groupcustomer->fgroupid,
+            'fgroupcode'   => $groupcustomer->fgroupcode,
+            'fgroupname'   => $groupcustomer->fgroupname,
+            'fcreatedat'   => $groupcustomer->fcreatedat,
+            'fupdatedat'   => $groupcustomer->fupdatedat,
+            'fcreatedby'   => $groupcustomer->fcreatedby,
+            'fupdatedby'   => $groupcustomer->fupdatedby,
+            'fnonactive'   => $groupcustomer->fnonactive,
+            'feditmode'    => 'U', // Update
+            'fuseridlog'   => $userLogin->fname ?? null,
+            'fdatetimelog' => now(),
+        ]);
 
         return redirect()->route('groupcustomer.index')
             ->with('success', 'Group customer berhasil diupdate.');
@@ -176,11 +192,28 @@ class GroupcustomerController extends Controller
                 ], 422);
             }
 
+            $userLogin = auth('sysuser')->user();
+
+            // 1. Selalu INSERT log baru sebelum data utama di-delete (feditmode = 'D')
+            \Illuminate\Support\Facades\DB::table('loggroupcustomer')->insert([
+                'fgroupid'     => $groupcustomer->fgroupid,
+                'fgroupcode'   => $groupcustomer->fgroupcode,
+                'fgroupname'   => $groupcustomer->fgroupname,
+                'fcreatedat'   => $groupcustomer->fcreatedat,
+                'fupdatedat'   => $groupcustomer->fupdatedat,
+                'fcreatedby'   => $groupcustomer->fcreatedby,
+                'fupdatedby'   => $groupcustomer->fupdatedby,
+                'fnonactive'   => $groupcustomer->fnonactive,
+                'feditmode'    => 'D', // Delete
+                'fuseridlog'   => $userLogin->fname ?? null,
+                'fdatetimelog' => now(),
+            ]);
+
             $groupcustomer->delete();
 
             return response()->json([
                 'success' => true,
-                'message' => 'Group customer '.$groupcustomer->fgroupname.' berhasil dihapus.',
+                'message' => 'Group customer ' . $groupcustomer->fgroupname . ' berhasil dihapus.',
                 'redirect' => route('groupcustomer.index'),
             ]);
         } catch (\Exception $e) {

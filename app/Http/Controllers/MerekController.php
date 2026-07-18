@@ -142,12 +142,27 @@ class MerekController extends Controller
         $validated['fmerekcode'] = strtoupper($validated['fmerekcode']);
         $validated['fmerekname'] = strtoupper($validated['fmerekname']);
 
+        $userLogin = auth('sysuser')->user();
         $validated['fnonactive'] = $request->boolean('fnonactive') ? '1' : '0';
         $validated['fupdatedby'] = auth('sysuser')->user()->fname ?? null;
         $validated['fupdatedat'] = now();
 
         $merek = Merek::findOrFail($fmerekid);
         $merek->update($validated);
+
+        \Illuminate\Support\Facades\DB::table('logmerek')->insert([
+            'fmerekid'     => $merek->fmerekid,
+            'fmerekcode'   => $merek->fmerekcode,
+            'fmerekname'   => $merek->fmerekname,
+            'fcreatedat'   => $merek->fcreatedat,
+            'fupdatedat'   => $merek->fupdatedat,
+            'fcreatedby'   => $merek->fcreatedby,
+            'fupdatedby'   => $merek->fupdatedby,
+            'fnonactive'   => $merek->fnonactive,
+            'feditmode'    => 'U', // Update
+            'fuseridlog'   => $userLogin->fuserid ?? null,
+            'fdatetimelog' => now(),
+        ]);
 
         return redirect()
             ->route('merek.index')
@@ -192,11 +207,28 @@ class MerekController extends Controller
                 ], 422);
             }
 
+            $userLogin = auth('sysuser')->user();
+
+            // 1. Selalu INSERT log baru sebelum data utama di-delete (feditmode = 'D')
+            \Illuminate\Support\Facades\DB::table('logmerek')->insert([
+                'fmerekid'     => $merek->fmerekid,
+                'fmerekcode'   => $merek->fmerekcode,
+                'fmerekname'   => $merek->fmerekname,
+                'fcreatedat'   => $merek->fcreatedat,
+                'fupdatedat'   => $merek->fupdatedat,
+                'fcreatedby'   => $merek->fcreatedby,
+                'fupdatedby'   => $merek->fupdatedby,
+                'fnonactive'   => $merek->fnonactive,
+                'feditmode'    => 'D', // Delete
+                'fuseridlog'   => $userLogin->fuserid ?? null,
+                'fdatetimelog' => now(),
+            ]);
+
             $merek->delete();
 
             return response()->json([
                 'success' => true,
-                'message' => 'Merek '.$merek->fmerekname.' berhasil dihapus.',
+                'message' => 'Merek ' . $merek->fmerekname . ' berhasil dihapus.',
                 'redirect' => route('merek.index'),
             ]);
         } catch (\Exception $e) {

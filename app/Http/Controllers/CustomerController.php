@@ -142,7 +142,7 @@ class CustomerController extends Controller
                     'ftempo' => $customer->ftempo,
                     'status' => $statusBadge,
                     'fcustomerid' => $customer->fcustomerid, // KIRIM ID INI
-                    'DT_RowId' => 'row_'.$customer->fcustomerid,
+                    'DT_RowId' => 'row_' . $customer->fcustomerid,
                 ];
             });
             // --- AKHIR PERUBAHAN ---
@@ -181,7 +181,7 @@ class CustomerController extends Controller
         $number = (int) substr($lastCode, 2);
         $newNumber = $number + 1;
 
-        return 'C-'.str_pad($newNumber, 2, '0', STR_PAD_LEFT);
+        return 'C-' . str_pad($newNumber, 2, '0', STR_PAD_LEFT);
     }
 
     // Create method to return the customer creation form
@@ -370,7 +370,7 @@ class CustomerController extends Controller
         }
 
         $validated = $request->validate([
-            'fcustomercode' => 'required|string|max:10|unique:mscustomer,fcustomercode,'.$fcustomerid.',fcustomerid',
+            'fcustomercode' => 'required|string|max:10|unique:mscustomer,fcustomercode,' . $fcustomerid . ',fcustomerid',
             'fcustomername' => 'required|string|max:50', // Validate customer name (max 50 chars)
             'fgroup' => '', // Validate the Group Produk field
             'fsalesman' => '', // Validate the Group Produk field
@@ -427,6 +427,7 @@ class CustomerController extends Controller
         ]);
         $customer = Customer::findOrFail($fcustomerid);
 
+        $userLogin = auth('sysuser')->user();
         $validated['fupdatedby'] = auth('sysuser')->user()->fname ?? null;
         $validated['fupdatedat'] = now();
 
@@ -438,6 +439,49 @@ class CustomerController extends Controller
             $validated['fcustomercode'] = $customer->fcustomercode;
         }
         $customer->update($validated);
+
+        // 2. Selalu INSERT log baru (feditmode = 'U')
+        \Illuminate\Support\Facades\DB::table('logcustomer')->insert([
+            'fcustomerid'                => $customer->fcustomerid,
+            'fcustomercode'              => $customer->fcustomercode,
+            'fcustomername'              => $customer->fcustomername,
+            'fnpwp'                      => $customer->fnpwp,
+            'faddress'                   => $customer->faddress,
+            'ftelp'                      => $customer->ftelp,
+            'ffax'                       => $customer->ffax,
+            'ftempo'                     => $customer->ftempo,
+            'fhargalevel'                => $customer->fhargalevel,
+            'fcreatedby'                 => $customer->fcreatedby,
+            'fupdatedby'                 => $customer->fupdatedby,
+            'fcreatedat'                 => $customer->fcreatedat,
+            'fupdatedat'                 => $customer->fupdatedat,
+            'fcurr'                      => $customer->fcurr,
+            'ftaxaddress'                => $customer->ftaxaddress,
+            'fkodefp'                    => $customer->fkodefp,
+            'fwilayah'                   => $customer->fwilayah,
+            'fkirimaddress1'             => $customer->fkirimaddress1,
+            'fkirimaddress2'             => $customer->fkirimaddress2,
+            'fkirimaddress3'             => $customer->fkirimaddress3,
+            'fkirimaddress4'             => $customer->fkirimaddress4,
+            'flimit'                     => $customer->flimit,
+            'fkontakperson'              => $customer->fkontakperson,
+            'fjabatan'                   => $customer->fjabatan,
+            'fsalesman'                  => $customer->fsalesman,
+            'femail'                     => $customer->femail,
+            'fmemo'                      => $customer->fmemo,
+            'fmaxtempo'                  => $customer->fmaxtempo,
+            'fblokir'                    => $customer->fblokir,
+            'frekening'                  => $customer->frekening,
+            'fnik'                       => $customer->fnik,
+            'fgroup'                     => $customer->fgroup,
+            'fnonactive'                 => $customer->fnonactive,
+            'fjadwaltukarfakturmingguan' => $customer->fjadwaltukarfakturmingguan,
+            'fapproval'                  => $customer->fapproval,
+            'fjadwaltukarfakturhari'     => $customer->fjadwaltukarfakturhari,
+            'feditmode'                  => 'U', // Update
+            'fuseridlog'                 => $userLogin->fname ?? null,
+            'fdatetimelog'               => now(),
+        ]);
 
         return redirect()
             ->route('customer.index')
@@ -491,11 +535,56 @@ class CustomerController extends Controller
                 return redirect()->route('customer.view', $customer->fcustomerid)->with('error', $message);
             }
 
+            $userLogin = auth('sysuser')->user();
+
+            // 1. Selalu INSERT log baru sebelum data utama di-delete (feditmode = 'D')
+            \Illuminate\Support\Facades\DB::table('logcustomer')->insert([
+                'fcustomerid'                => $customer->fcustomerid,
+                'fcustomercode'              => $customer->fcustomercode,
+                'fcustomername'              => $customer->fcustomername,
+                'fnpwp'                      => $customer->fnpwp,
+                'faddress'                   => $customer->faddress,
+                'ftelp'                      => $customer->ftelp,
+                'ffax'                       => $customer->ffax,
+                'ftempo'                     => $customer->ftempo,
+                'fhargalevel'                => $customer->fhargalevel,
+                'fcreatedby'                 => $customer->fcreatedby,
+                'fupdatedby'                 => $customer->fupdatedby,
+                'fcreatedat'                 => $customer->fcreatedat,
+                'fupdatedat'                 => $customer->fupdatedat,
+                'fcurr'                      => $customer->fcurr,
+                'ftaxaddress'                => $customer->ftaxaddress,
+                'fkodefp'                    => $customer->fkodefp,
+                'fwilayah'                   => $customer->fwilayah,
+                'fkirimaddress1'             => $customer->fkirimaddress1,
+                'fkirimaddress2'             => $customer->fkirimaddress2,
+                'fkirimaddress3'             => $customer->fkirimaddress3,
+                'fkirimaddress4'             => $customer->fkirimaddress4,
+                'flimit'                     => $customer->flimit,
+                'fkontakperson'              => $customer->fkontakperson,
+                'fjabatan'                   => $customer->fjabatan,
+                'fsalesman'                  => $customer->fsalesman,
+                'femail'                     => $customer->femail,
+                'fmemo'                      => $customer->fmemo,
+                'fmaxtempo'                  => $customer->fmaxtempo,
+                'fblokir'                    => $customer->fblokir,
+                'frekening'                  => $customer->frekening,
+                'fnik'                       => $customer->fnik,
+                'fgroup'                     => $customer->fgroup,
+                'fnonactive'                 => $customer->fnonactive,
+                'fjadwaltukarfakturmingguan' => $customer->fjadwaltukarfakturmingguan,
+                'fapproval'                  => $customer->fapproval,
+                'fjadwaltukarfakturhari'     => $customer->fjadwaltukarfakturhari,
+                'feditmode'                  => 'D', // Delete
+                'fuseridlog'                 => $userLogin->fname ?? null,
+                'fdatetimelog'               => now(),
+            ]);
+
             $customer->delete();
 
             return response()->json([
                 'success' => true,
-                'message' => 'Customer '.$customer->fcustomername.' berhasil dihapus.',
+                'message' => 'Customer ' . $customer->fcustomername . ' berhasil dihapus.',
                 'redirect' => route('customer.index'),
             ]);
         } catch (\Exception $e) {

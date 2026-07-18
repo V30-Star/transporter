@@ -188,6 +188,7 @@ class WhController extends Controller
         $validated['fwhcode'] = strtoupper($validated['fwhcode']);
         $validated['fwhname'] = strtoupper($validated['fwhname']);
 
+        $userLogin = auth('sysuser')->user();
         $validated['fnonactive'] = $request->boolean('fnonactive') ? '1' : '0';
         $validated['fstokpenjualan'] = $request->boolean('fstokpenjualan') ? '1' : '0';
         $validated['fupdatedby'] = auth('sysuser')->user()->fname ?? null; // Use the authenticated user's name or 'system' as default
@@ -199,6 +200,24 @@ class WhController extends Controller
         }
 
         $gudang->update($validated);
+
+        // 2. Selalu INSERT log baru (feditmode = 'U')
+        \Illuminate\Support\Facades\DB::table('logwh')->insert([
+            'fwhid'          => $gudang->fwhid,
+            'fwhcode'        => $gudang->fwhcode,
+            'fwhname'        => $gudang->fwhname,
+            'faddress'       => $gudang->faddress,
+            'fcreatedat'     => $gudang->fcreatedat,
+            'fupdatedat'     => $gudang->fupdatedat,
+            'fcreatedby'     => $gudang->fcreatedby,
+            'fupdatedby'     => $gudang->fupdatedby,
+            'fnonactive'     => $gudang->fnonactive,
+            'fbranchcode'    => $gudang->fbranchcode,
+            'fstokpenjualan' => $gudang->fstokpenjualan,
+            'feditmode'      => 'U', // Update
+            'fuseridlog'     => $userLogin->fname ?? null,
+            'fdatetimelog'   => now(),
+        ]);
 
         return redirect()
             ->route('gudang.index')
@@ -252,11 +271,31 @@ class WhController extends Controller
                 return redirect()->route('gudang.view', $gudang->fwhid)->with('error', $message);
             }
 
+            $userLogin = auth('sysuser')->user();
+
+            // 1. Selalu INSERT log baru sebelum data utama di-delete (feditmode = 'D')
+            \Illuminate\Support\Facades\DB::table('logwh')->insert([
+                'fwhid'          => $gudang->fwhid,
+                'fwhcode'        => $gudang->fwhcode,
+                'fwhname'        => $gudang->fwhname,
+                'faddress'       => $gudang->faddress,
+                'fcreatedat'     => $gudang->fcreatedat,
+                'fupdatedat'     => $gudang->fupdatedat,
+                'fcreatedby'     => $gudang->fcreatedby,
+                'fupdatedby'     => $gudang->fupdatedby,
+                'fnonactive'     => $gudang->fnonactive,
+                'fbranchcode'    => $gudang->fbranchcode,
+                'fstokpenjualan' => $gudang->fstokpenjualan,
+                'feditmode'      => 'D', // Delete
+                'fuseridlog'     => $userLogin->fname ?? null,
+                'fdatetimelog'   => now(),
+            ]);
+
             $gudang->delete();
 
             return response()->json([
                 'success' => true,
-                'message' => 'Gudang '.$gudang->fwhname.' berhasil dihapus.',
+                'message' => 'Gudang ' . $gudang->fwhname . ' berhasil dihapus.',
                 'redirect' => route('gudang.index'),
             ]);
         } catch (\Exception $e) {

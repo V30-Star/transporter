@@ -134,6 +134,7 @@ class WilayahController extends Controller
         $validated['fwilayahcode'] = strtoupper($validated['fwilayahcode']);
         $validated['fwilayahname'] = strtoupper($validated['fwilayahname']);
 
+        $userLogin = auth('sysuser')->user();
         $validated['fnonactive'] = $request->boolean('fnonactive') ? '1' : '0';
         $validated['fupdatedby'] = auth('sysuser')->user()->fname ?? null;
         $validated['fupdatedat'] = now();
@@ -143,6 +144,21 @@ class WilayahController extends Controller
         }
 
         $wilayah->update($validated);
+
+        // 2. Selalu INSERT log baru (feditmode = 'U')
+        \Illuminate\Support\Facades\DB::table('logwilayah')->insert([
+            'fwilayahid'   => $wilayah->fwilayahid,
+            'fwilayahcode' => $wilayah->fwilayahcode,
+            'fwilayahname' => $wilayah->fwilayahname,
+            'fcreatedat'   => $wilayah->fcreatedat,
+            'fupdatedat'   => $wilayah->fupdatedat,
+            'fcreatedby'   => $wilayah->fcreatedby,
+            'fupdatedby'   => $wilayah->fupdatedby,
+            'fnonactive'   => $wilayah->fnonactive,
+            'feditmode'    => 'U', // Update
+            'fuseridlog'   => $userLogin->fname ?? null,
+            'fdatetimelog' => now(),
+        ]);
 
         return redirect()
             ->route('wilayah.index')
@@ -196,11 +212,28 @@ class WilayahController extends Controller
                 return redirect()->route('wilayah.view', $wilayah->fwilayahid)->with('error', $message);
             }
 
+            $userLogin = auth('sysuser')->user();
+
+            // 1. Selalu INSERT log baru sebelum data utama di-delete (feditmode = 'D')
+            \Illuminate\Support\Facades\DB::table('logwilayah')->insert([
+                'fwilayahid'   => $wilayah->fwilayahid,
+                'fwilayahcode' => $wilayah->fwilayahcode,
+                'fwilayahname' => $wilayah->fwilayahname,
+                'fcreatedat'   => $wilayah->fcreatedat,
+                'fupdatedat'   => $wilayah->fupdatedat,
+                'fcreatedby'   => $wilayah->fcreatedby,
+                'fupdatedby'   => $wilayah->fupdatedby,
+                'fnonactive'   => $wilayah->fnonactive,
+                'feditmode'    => 'D', // Delete
+                'fuseridlog'   => $userLogin->fname ?? null,
+                'fdatetimelog' => now(),
+            ]);
+
             $wilayah->delete();
 
             return response()->json([
                 'success' => true,
-                'message' => 'Wilayah '.$wilayah->fwilayahname.' berhasil dihapus.',
+                'message' => 'Wilayah ' . $wilayah->fwilayahname . ' berhasil dihapus.',
                 'redirect' => route('wilayah.index'),
             ]);
         } catch (\Exception $e) {

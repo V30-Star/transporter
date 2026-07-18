@@ -110,7 +110,7 @@ class ProductController extends Controller
     {
         return ApprovalState::initializeApprovalColumns(
             array_slice($this->getApprovalRecipients(), 0, 2),
-            fn () => \Illuminate\Support\Str::random(64)
+            fn() => \Illuminate\Support\Str::random(64)
         );
     }
 
@@ -124,7 +124,7 @@ class ProductController extends Controller
     protected function getEnabledProductImageNumbers(): array
     {
         return collect([1, 2, 3])
-            ->filter(fn ($number) => (string) env('UPLOADFOTO'.$number, '1') === '1')
+            ->filter(fn($number) => (string) env('UPLOADFOTO' . $number, '1') === '1')
             ->values()
             ->all();
     }
@@ -132,7 +132,7 @@ class ProductController extends Controller
     protected function getEnabledProductImageFields(): array
     {
         return array_map(
-            fn ($number) => 'fimage'.$number,
+            fn($number) => 'fimage' . $number,
             $this->getEnabledProductImageNumbers()
         );
     }
@@ -155,7 +155,7 @@ class ProductController extends Controller
         ];
 
         $usedBy = collect($usageMap)
-            ->filter(fn ($item) => $item['used'])
+            ->filter(fn($item) => $item['used'])
             ->pluck('label')
             ->values()
             ->all();
@@ -334,11 +334,11 @@ class ProductController extends Controller
         $paddedGroupId = str_pad($groupId, 3, '0', STR_PAD_LEFT);
         $paddedMerekId = str_pad($merekId, 3, '0', STR_PAD_LEFT);
 
-        $prefix = $paddedGroupId.'.'.$paddedMerekId.'.';
+        $prefix = $paddedGroupId . '.' . $paddedMerekId . '.';
         $prefixLength = strlen($prefix);
 
-        $lastCode = Product::where('fprdcode', 'like', $prefix.'%')
-            ->orderByRaw('CAST(SUBSTRING(fprdcode FROM '.($prefixLength + 1).') AS INTEGER) DESC')
+        $lastCode = Product::where('fprdcode', 'like', $prefix . '%')
+            ->orderByRaw('CAST(SUBSTRING(fprdcode FROM ' . ($prefixLength + 1) . ') AS INTEGER) DESC')
             ->value('fprdcode');
 
         if (! $lastCode) {
@@ -348,7 +348,7 @@ class ProductController extends Controller
             $newNumber = $number + 1;
         }
 
-        return $prefix.str_pad($newNumber, 6, '0', STR_PAD_LEFT);
+        return $prefix . str_pad($newNumber, 6, '0', STR_PAD_LEFT);
     }
 
     public function create()
@@ -404,9 +404,11 @@ class ProductController extends Controller
                         if ($request->filled('fsatuanbesar2') && (float) $value <= 1) {
                             $fail('Isi Satuan 3 harus lebih besar dari 1.');
                         }
-                        if ($request->filled('fsatuanbesar') && $request->filled('fsatuanbesar2')
+                        if (
+                            $request->filled('fsatuanbesar') && $request->filled('fsatuanbesar2')
                             && trim((string) $request->input('fsatuanbesar')) !== trim((string) $request->input('fsatuanbesar2'))
-                            && (float) $request->input('fqtykecil') === (float) $value) {
+                            && (float) $request->input('fqtykecil') === (float) $value
+                        ) {
                             $fail('Isi Satuan 3 tidak boleh sama dengan Isi Satuan 2 jika satuannya berbeda.');
                         }
                     },
@@ -488,7 +490,7 @@ class ProductController extends Controller
                             $validated[$imageField] = $fileId;
                         }
                     } catch (\Exception $e) {
-                        \Log::error("Upload $imageField Failed: ".$e->getMessage());
+                        \Log::error("Upload $imageField Failed: " . $e->getMessage());
                     }
                 }
             }
@@ -569,191 +571,253 @@ class ProductController extends Controller
             return redirect()->route('product.view', $product->fprdid)->with('error', $message);
         }
         try {
-        $shouldSendApprovalNotification = false;
-        $usageInfo = $this->getProductUsageInfo($product);
-        $enabledImageFields = $this->getEnabledProductImageFields();
+            $shouldSendApprovalNotification = false;
+            $usageInfo = $this->getProductUsageInfo($product);
+            $enabledImageFields = $this->getEnabledProductImageFields();
 
-        $validationRules = [
-            'fprdcode' => "required|string|unique:msprd,fprdcode,{$fprdid},fprdid",
-            'fprdname' => 'required|string',
-            'ftype' => 'string',
-            'fbarcode' => 'nullable',
-            'fgroupcode' => 'required',
-            'fmerek' => 'required',
-            'fsatuankecil' => 'required',
-            'fsatuanbesar' => ['nullable', 'string', 'different:fsatuankecil'],
-            'fsatuanbesar2' => [
-                'nullable',
-                'string',
-                'different:fsatuankecil',
-                'different:fsatuanbesar',
-            ],
-            'fsatuandefault' => 'in:1,2,3',
-            'fsatuandefaultlaporan' => 'in:1,2,3',
-            'fqtykecil' => [
-                'nullable',
-                'numeric',
-                function ($attribute, $value, $fail) use ($request) {
-                    if ($request->filled('fsatuanbesar') && (float) $value <= 1) {
-                        $fail('Isi Satuan 2 harus lebih besar dari 1.');
-                    }
-                },
-            ],
-            'fqtykecil2' => [
-                'nullable',
-                'numeric',
-                function ($attribute, $value, $fail) use ($request) {
-                    if ($request->filled('fsatuanbesar2') && (float) $value <= 1) {
-                        $fail('Isi Satuan 3 harus lebih besar dari 1.');
-                    }
-                    if ($request->filled('fsatuanbesar') && $request->filled('fsatuanbesar2')
-                        && trim((string) $request->input('fsatuanbesar')) !== trim((string) $request->input('fsatuanbesar2'))
-                        && (float) $request->input('fqtykecil') === (float) $value) {
-                        $fail('Isi Satuan 3 tidak boleh sama dengan Isi Satuan 2 jika satuannya berbeda.');
-                    }
-                },
-            ],
-            'fminstock' => 'numeric',
-            'fhpp' => 'nullable',
-            'fhpp2' => 'nullable',
-            'fhpp3' => 'nullable',
-        ];
-
-        foreach ($enabledImageFields as $imageField) {
-            $validationRules[$imageField] = 'nullable|image|max:2048';
-        }
-
-        $validated = $request->validate(
-            $validationRules,
-            [
-                'fprdcode.unique' => 'Kode produk sudah ada.',
-                'fprdname.required' => 'Nama produk wajib diisi.',
-                'fgroupcode.required' => 'Group produk wajib diisi.',
-                'fmerek.required' => 'Merek wajib diisi.',
-                'fsatuankecil.required' => 'Satuan 1 wajib diisi.',
-                'fsatuanbesar.string' => 'Satuan 2 tidak valid.',
-                'fsatuanbesar.different' => 'Satuan 2 tidak boleh sama dengan Satuan 1.',
-                'fsatuanbesar2.string' => 'Satuan 3 tidak valid.',
-                'fsatuanbesar2.different' => 'Satuan 3 tidak boleh sama dengan Satuan 1 atau 2.',
-                'fqtykecil.numeric' => 'Satuan 2 harus angka.',
-                'fqtykecil2.numeric' => 'Satuan 3 harus angka.',
-            ]
-        );
-
-        $validated['fprdcode'] = strtoupper($validated['fprdcode']);
-        $validated['fprdname'] = strtoupper($validated['fprdname']);
-
-        $shouldSendApprovalNotification = false;
-
-        $sanitizeNumeric = function ($value) {
-            if ($value === null || $value === '') {
-                return 0;
-            }
-            $clean = preg_replace('/[^0-9.]/', '', $value);
-
-            return (is_numeric($clean)) ? (float) $clean : 0;
-        };
-
-        $numericFields = [
-            'fhpp',
-            'fhpp2',
-            'fhpp3',
-            'fhargajuallevel1',
-            'fhargajuallevel2',
-            'fhargajuallevel3',
-            'fhargajual2level1',
-            'fhargajual2level2',
-            'fhargajual2level3',
-            'fhargajual3level1',
-            'fhargajual3level2',
-            'fhargajual3level3',
-            'fqtykecil',
-            'fqtykecil2',
-            'fminstock',
-        ];
-
-        foreach ($numericFields as $field) {
-            $validated[$field] = $sanitizeNumeric($request->input($field));
-        }
-
-        if ($usageInfo['is_used']) {
-            $normalizeText = fn ($value) => strtoupper(trim((string) ($value ?? '')));
-            $normalizeNumber = fn ($value) => (float) ($value ?? 0);
-
-            $unitFields = ['fsatuankecil', 'fsatuanbesar', 'fsatuanbesar2'];
-            $qtyFields = [
-                'fsatuanbesar' => 'fqtykecil',
-                'fsatuanbesar2' => 'fqtykecil2',
-            ];
-            $unitLabels = [
-                'fsatuankecil' => 'Satuan 1',
-                'fsatuanbesar' => 'Satuan 2',
-                'fsatuanbesar2' => 'Satuan 3',
-            ];
-
-            $errors = [];
-
-            if ($normalizeText($product->fprdcode) !== $normalizeText($validated['fprdcode'] ?? null)) {
-                $errors['fprdcode'] = 'Kode produk tidak bisa diubah. Sudah dipakai transaksi.';
-            }
-
-            foreach ($unitFields as $field) {
-                if ($normalizeText($product->{$field}) !== $normalizeText($validated[$field] ?? null)) {
-                    $errors[$field] = ($unitLabels[$field] ?? 'Satuan').' tidak bisa diubah. Sudah dipakai transaksi.';
-                }
-            }
-
-            foreach ($qtyFields as $unitField => $qtyField) {
-                $oldUnit = $normalizeText($product->{$unitField});
-                $oldQty = $normalizeNumber($product->{$qtyField});
-                $newQty = $normalizeNumber($validated[$qtyField] ?? null);
-
-                if (abs($oldQty - $newQty) > 0.000001) {
-                    $errors[$qtyField] = 'Qty konversi untuk '.$oldUnit.' tidak bisa diubah. Sudah dipakai transaksi.';
-                }
-            }
-
-            if (! empty($errors)) {
-                throw ValidationException::withMessages($errors);
-            }
-        }
-
-        $validated['fupdatedby'] = auth('sysuser')->user()->fname ?? null;
-        $validated['fupdatedat'] = now();
-        $validated['fnonactive'] = $request->has('fnonactive') ? '1' : '0';
-        $needsApprovalNotification = $this->shouldRequestProductApproval($request);
-
-        $googleDriveService = new GoogleDriveService;
-        foreach ($enabledImageFields as $imageField) {
-            if ($request->hasFile($imageField) && $request->file($imageField)->isValid()) {
-                try {
-                    if (! empty($product->{$imageField})) {
-                        $oldFileId = $this->normalizeGoogleDriveFileId($product->{$imageField});
-                        if ($oldFileId) {
-                            $googleDriveService->deleteImage($oldFileId);
+            $validationRules = [
+                'fprdcode' => "required|string|unique:msprd,fprdcode,{$fprdid},fprdid",
+                'fprdname' => 'required|string',
+                'ftype' => 'string',
+                'fbarcode' => 'nullable',
+                'fgroupcode' => 'required',
+                'fmerek' => 'required',
+                'fsatuankecil' => 'required',
+                'fsatuanbesar' => ['nullable', 'string', 'different:fsatuankecil'],
+                'fsatuanbesar2' => [
+                    'nullable',
+                    'string',
+                    'different:fsatuankecil',
+                    'different:fsatuanbesar',
+                ],
+                'fsatuandefault' => 'in:1,2,3',
+                'fsatuandefaultlaporan' => 'in:1,2,3',
+                'fqtykecil' => [
+                    'nullable',
+                    'numeric',
+                    function ($attribute, $value, $fail) use ($request) {
+                        if ($request->filled('fsatuanbesar') && (float) $value <= 1) {
+                            $fail('Isi Satuan 2 harus lebih besar dari 1.');
                         }
-                    }
+                    },
+                ],
+                'fqtykecil2' => [
+                    'nullable',
+                    'numeric',
+                    function ($attribute, $value, $fail) use ($request) {
+                        if ($request->filled('fsatuanbesar2') && (float) $value <= 1) {
+                            $fail('Isi Satuan 3 harus lebih besar dari 1.');
+                        }
+                        if (
+                            $request->filled('fsatuanbesar') && $request->filled('fsatuanbesar2')
+                            && trim((string) $request->input('fsatuanbesar')) !== trim((string) $request->input('fsatuanbesar2'))
+                            && (float) $request->input('fqtykecil') === (float) $value
+                        ) {
+                            $fail('Isi Satuan 3 tidak boleh sama dengan Isi Satuan 2 jika satuannya berbeda.');
+                        }
+                    },
+                ],
+                'fminstock' => 'numeric',
+                'fhpp' => 'nullable',
+                'fhpp2' => 'nullable',
+                'fhpp3' => 'nullable',
+            ];
 
-                    $fileId = $googleDriveService->uploadImage($request, $imageField);
-                    if ($fileId) {
-                        $validated[$imageField] = $fileId;
+            foreach ($enabledImageFields as $imageField) {
+                $validationRules[$imageField] = 'nullable|image|max:2048';
+            }
+
+            $validated = $request->validate(
+                $validationRules,
+                [
+                    'fprdcode.unique' => 'Kode produk sudah ada.',
+                    'fprdname.required' => 'Nama produk wajib diisi.',
+                    'fgroupcode.required' => 'Group produk wajib diisi.',
+                    'fmerek.required' => 'Merek wajib diisi.',
+                    'fsatuankecil.required' => 'Satuan 1 wajib diisi.',
+                    'fsatuanbesar.string' => 'Satuan 2 tidak valid.',
+                    'fsatuanbesar.different' => 'Satuan 2 tidak boleh sama dengan Satuan 1.',
+                    'fsatuanbesar2.string' => 'Satuan 3 tidak valid.',
+                    'fsatuanbesar2.different' => 'Satuan 3 tidak boleh sama dengan Satuan 1 atau 2.',
+                    'fqtykecil.numeric' => 'Satuan 2 harus angka.',
+                    'fqtykecil2.numeric' => 'Satuan 3 harus angka.',
+                ]
+            );
+
+            $validated['fprdcode'] = strtoupper($validated['fprdcode']);
+            $validated['fprdname'] = strtoupper($validated['fprdname']);
+
+            $shouldSendApprovalNotification = false;
+
+            $sanitizeNumeric = function ($value) {
+                if ($value === null || $value === '') {
+                    return 0;
+                }
+                $clean = preg_replace('/[^0-9.]/', '', $value);
+
+                return (is_numeric($clean)) ? (float) $clean : 0;
+            };
+
+            $numericFields = [
+                'fhpp',
+                'fhpp2',
+                'fhpp3',
+                'fhargajuallevel1',
+                'fhargajuallevel2',
+                'fhargajuallevel3',
+                'fhargajual2level1',
+                'fhargajual2level2',
+                'fhargajual2level3',
+                'fhargajual3level1',
+                'fhargajual3level2',
+                'fhargajual3level3',
+                'fqtykecil',
+                'fqtykecil2',
+                'fminstock',
+            ];
+
+            foreach ($numericFields as $field) {
+                $validated[$field] = $sanitizeNumeric($request->input($field));
+            }
+
+            if ($usageInfo['is_used']) {
+                $normalizeText = fn($value) => strtoupper(trim((string) ($value ?? '')));
+                $normalizeNumber = fn($value) => (float) ($value ?? 0);
+
+                $unitFields = ['fsatuankecil', 'fsatuanbesar', 'fsatuanbesar2'];
+                $qtyFields = [
+                    'fsatuanbesar' => 'fqtykecil',
+                    'fsatuanbesar2' => 'fqtykecil2',
+                ];
+                $unitLabels = [
+                    'fsatuankecil' => 'Satuan 1',
+                    'fsatuanbesar' => 'Satuan 2',
+                    'fsatuanbesar2' => 'Satuan 3',
+                ];
+
+                $errors = [];
+
+                if ($normalizeText($product->fprdcode) !== $normalizeText($validated['fprdcode'] ?? null)) {
+                    $errors['fprdcode'] = 'Kode produk tidak bisa diubah. Sudah dipakai transaksi.';
+                }
+
+                foreach ($unitFields as $field) {
+                    if ($normalizeText($product->{$field}) !== $normalizeText($validated[$field] ?? null)) {
+                        $errors[$field] = ($unitLabels[$field] ?? 'Satuan') . ' tidak bisa diubah. Sudah dipakai transaksi.';
                     }
-                } catch (\Exception $e) {
-                    return redirect()->back()->with('error', 'Produk belum bisa diupdate. Cek data.');
+                }
+
+                foreach ($qtyFields as $unitField => $qtyField) {
+                    $oldUnit = $normalizeText($product->{$unitField});
+                    $oldQty = $normalizeNumber($product->{$qtyField});
+                    $newQty = $normalizeNumber($validated[$qtyField] ?? null);
+
+                    if (abs($oldQty - $newQty) > 0.000001) {
+                        $errors[$qtyField] = 'Qty konversi untuk ' . $oldUnit . ' tidak bisa diubah. Sudah dipakai transaksi.';
+                    }
+                }
+
+                if (! empty($errors)) {
+                    throw ValidationException::withMessages($errors);
                 }
             }
-        }
 
-        $product->update($validated);
+            $userLogin = auth('sysuser')->user();
+            $validated['fupdatedby'] = auth('sysuser')->user()->fname ?? null;
+            $validated['fupdatedat'] = now();
+            $validated['fnonactive'] = $request->has('fnonactive') ? '1' : '0';
+            $needsApprovalNotification = $this->shouldRequestProductApproval($request);
 
-        if ($needsApprovalNotification && $shouldSendApprovalNotification) {
-            $product->refresh();
-            $this->sendApprovalNotification($product, auth('sysuser')->user()->fname ?? 'System');
-        }
+            $googleDriveService = new GoogleDriveService;
+            foreach ($enabledImageFields as $imageField) {
+                if ($request->hasFile($imageField) && $request->file($imageField)->isValid()) {
+                    try {
+                        if (! empty($product->{$imageField})) {
+                            $oldFileId = $this->normalizeGoogleDriveFileId($product->{$imageField});
+                            if ($oldFileId) {
+                                $googleDriveService->deleteImage($oldFileId);
+                            }
+                        }
 
-        return redirect()
-            ->route('product.index')
-            ->with('success', 'Produk berhasil diupdate.');
+                        $fileId = $googleDriveService->uploadImage($request, $imageField);
+                        if ($fileId) {
+                            $validated[$imageField] = $fileId;
+                        }
+                    } catch (\Exception $e) {
+                        return redirect()->back()->with('error', 'Produk belum bisa diupdate. Cek data.');
+                    }
+                }
+            }
+
+            $product->update($validated);
+
+            DB::table('logprd')->insert([
+                'fprdid'                  => $product->fprdid,
+                'fprdcode'                => $product->fprdcode,
+                'fprdname'                => $product->fprdname,
+                'fgroupcode'              => $product->fgroupcode,
+                'ftype'                   => $product->ftype,
+                'fhpp'                    => $product->fhpp,
+                'fstok'                   => $product->fstok,
+                'fhargajuallevel1'        => $product->fhargajuallevel1,
+                'fhargajuallevel2'        => $product->fhargajuallevel2,
+                'fhargajuallevel3'        => $product->fhargajuallevel3,
+                'fhargajual2level1'       => $product->fhargajual2level1,
+                'fhargajual2level2'       => $product->fhargajual2level2,
+                'fhargajual2level3'       => $product->fhargajual2level3,
+                'fnonactive'              => $product->fnonactive,
+                'fcreatedby'              => $product->fcreatedby,
+                'fupdatedby'              => $product->fupdatedby,
+                'fcreatedat'              => $product->fcreatedat,
+                'fupdatedat'              => $product->fupdatedat,
+                'fmerek'                  => $product->fmerek,
+                'fminmargin'              => $product->fminmargin,
+                'fformula'                => $product->fformula,
+                'fminstock'               => $product->fminstock,
+                'fsatuanbesar'            => $product->fsatuanbesar,
+                'fsatuanbesar2'           => $product->fsatuanbesar2,
+                'fhargasatuankecillevel1' => $product->fhargasatuankecillevel1,
+                'fhargasatuankecillevel2' => $product->fhargasatuankecillevel2,
+                'fhargasatuankecillevel3' => $product->fhargasatuankecillevel3,
+                'ftypeproduct'            => $product->ftypeproduct,
+                'fsatuankecil'            => $product->fsatuankecil,
+                'fqtykecil'               => $product->fqtykecil,
+                'fsatuandefault'          => $product->fsatuandefault,
+                'fimagename'              => $product->fimagename,
+                'fbarcode'                => $product->fbarcode,
+                'fapproval'               => $product->fapproval,
+                'fhpp2'                   => $product->fhpp2,
+                'fhpp3'                   => $product->fhpp3,
+                'fhargajual3level1'       => $product->fhargajual3level1,
+                'fhargajual3level2'       => $product->fhargajual3level2,
+                'fhargajual3level3'       => $product->fhargajual3level3,
+                'fimage1'                 => $product->fimage1,
+                'fimage2'                 => $product->fimage2,
+                'fimage3'                 => $product->fimage3,
+                'fqtykecil2'              => $product->fqtykecil2,
+                'fuserapproved'           => $product->fuserapproved,
+                'fdateapproved'           => $product->fdateapproved,
+                'fapproval_reason'        => $product->fapproval_reason,
+                'fapproval_token'         => $product->fapproval_token,
+                'fapproval2'              => $product->fapproval2,
+                'fuserapproved2'          => $product->fuserapproved2,
+                'fdateapproved2'          => $product->fdateapproved2,
+                'fapproval_reason2'       => $product->fapproval_reason2,
+                'fapproval_token2'        => $product->fapproval_token2,
+                'fsatuandefaultlaporan'   => $product->fsatuandefaultlaporan,
+                'feditmode'               => 'U', // Update
+                'fuseridlog'              => $userLogin->fname ?? null,
+                'fdatetimelog'            => now(),
+            ]);
+
+            if ($needsApprovalNotification && $shouldSendApprovalNotification) {
+                $product->refresh();
+                $this->sendApprovalNotification($product, auth('sysuser')->user()->fname ?? 'System');
+            }
+
+            return redirect()
+                ->route('product.index')
+                ->with('success', 'Produk berhasil diupdate.');
         } catch (ValidationException $e) {
             return redirect()
                 ->route('product.edit', $product->fprdid)
@@ -800,7 +864,6 @@ class ProductController extends Controller
                 'message' => 'Foto product berhasil dihapus.',
             ]);
         } catch (\Exception $e) {
-            \Log::error('Delete product photo failed: '.$e->getMessage());
 
             return response()->json([
                 'message' => 'Gagal menghapus foto product.',
@@ -840,11 +903,10 @@ class ProductController extends Controller
 
             return response($imageData['content'], 200, [
                 'Content-Type' => $imageData['mimeType'] ?? 'application/octet-stream',
-                'Content-Disposition' => 'inline; filename="'.($imageData['name'] ?? 'product-image').'"',
+                'Content-Disposition' => 'inline; filename="' . ($imageData['name'] ?? 'product-image') . '"',
                 'Cache-Control' => 'private, max-age=300',
             ]);
         } catch (\Exception $e) {
-            \Log::error('Product photo preview failed: '.$e->getMessage());
             abort(500);
         }
     }
@@ -882,9 +944,71 @@ class ProductController extends Controller
                 ], 422);
             }
 
+            $userLogin = auth('sysuser')->user();
+
+            // 1. Selalu INSERT log baru sebelum data utama di-delete (feditmode = 'D')
+            DB::table('logprd')->insert([
+                'fprdid'                  => $product->fprdid,
+                'fprdcode'                => $product->fprdcode,
+                'fprdname'                => $product->fprdname,
+                'fgroupcode'              => $product->fgroupcode,
+                'ftype'                   => $product->ftype,
+                'fhpp'                    => $product->fhpp,
+                'fstok'                   => $product->fstok,
+                'fhargajuallevel1'        => $product->fhargajuallevel1,
+                'fhargajuallevel2'        => $product->fhargajuallevel2,
+                'fhargajuallevel3'        => $product->fhargajuallevel3,
+                'fhargajual2level1'       => $product->fhargajual2level1,
+                'fhargajual2level2'       => $product->fhargajual2level2,
+                'fhargajual2level3'       => $product->fhargajual2level3,
+                'fnonactive'              => $product->fnonactive,
+                'fcreatedby'              => $product->fcreatedby,
+                'fupdatedby'              => $product->fupdatedby,
+                'fcreatedat'              => $product->fcreatedat,
+                'fupdatedat'              => $product->fupdatedat,
+                'fmerek'                  => $product->fmerek,
+                'fminmargin'              => $product->fminmargin,
+                'fformula'                => $product->fformula,
+                'fminstock'               => $product->fminstock,
+                'fsatuanbesar'            => $product->fsatuanbesar,
+                'fsatuanbesar2'           => $product->fsatuanbesar2,
+                'fhargasatuankecillevel1' => $product->fhargasatuankecillevel1,
+                'fhargasatuankecillevel2' => $product->fhargasatuankecillevel2,
+                'fhargasatuankecillevel3' => $product->fhargasatuankecillevel3,
+                'ftypeproduct'            => $product->ftypeproduct,
+                'fsatuankecil'            => $product->fsatuankecil,
+                'fqtykecil'               => $product->fqtykecil,
+                'fsatuandefault'          => $product->fsatuandefault,
+                'fimagename'              => $product->fimagename,
+                'fbarcode'                => $product->fbarcode,
+                'fapproval'               => $product->fapproval,
+                'fhpp2'                   => $product->fhpp2,
+                'fhpp3'                   => $product->fhpp3,
+                'fhargajual3level1'       => $product->fhargajual3level1,
+                'fhargajual3level2'       => $product->fhargajual3level2,
+                'fhargajual3level3'       => $product->fhargajual3level3,
+                'fimage1'                 => $product->fimage1,
+                'fimage2'                 => $product->fimage2,
+                'fimage3'                 => $product->fimage3,
+                'fqtykecil2'              => $product->fqtykecil2,
+                'fuserapproved'           => $product->fuserapproved,
+                'fdateapproved'           => $product->fdateapproved,
+                'fapproval_reason'        => $product->fapproval_reason,
+                'fapproval_token'         => $product->fapproval_token,
+                'fapproval2'              => $product->fapproval2,
+                'fuserapproved2'          => $product->fuserapproved2,
+                'fdateapproved2'          => $product->fdateapproved2,
+                'fapproval_reason2'       => $product->fapproval_reason2,
+                'fapproval_token2'        => $product->fapproval_token2,
+                'fsatuandefaultlaporan'   => $product->fsatuandefaultlaporan,
+                'feditmode'               => 'D', // Delete
+                'fuseridlog'              => $userLogin->fname ?? null,
+                'fdatetimelog'            => now(),
+            ]);
+
             $product->delete();
 
-            return response()->json(['message' => 'Produk '.$product->fprdname.' berhasil dihapus.']);
+            return response()->json(['message' => 'Produk ' . $product->fprdname . ' berhasil dihapus.']);
         } catch (\Exception $e) {
             return response()->json(['message' => 'Produk belum bisa dihapus. Coba lagi.'], 500);
         }

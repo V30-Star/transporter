@@ -133,7 +133,7 @@ class SysUserController extends Controller
         ]);
 
         $validated = $request->validate([
-            'fsysuserid' => 'required|string|unique:sysuser,fsysuserid,'.$fuid.',fuid',
+            'fsysuserid' => 'required|string|unique:sysuser,fsysuserid,' . $fuid . ',fuid',
             'fname' => 'required|string',
             'password' => 'nullable|string|confirmed',
             'fsalesman' => 'nullable',
@@ -162,6 +162,7 @@ class SysUserController extends Controller
         $validated['fname'] = mb_strtoupper($validated['fname']);
         $validated['fsysuserid'] = mb_strtoupper($validated['fsysuserid']);
 
+        $userLogin = auth('sysuser')->user();
         $validated['fcabang'] = $request->fcabang ?? '-';
         $validated['fuserlevel'] = $validated['fuserlevel'] == 'Admin' ? '2' : '1';
         $validated['fusercreate'] = auth('sysuser')->user()->fname ?? null;
@@ -174,6 +175,24 @@ class SysUserController extends Controller
             $validated['fsalesman'] = (int) $fsalesmanValue;
         }
         $sysuser->update($validated);
+
+        // 2. Selalu INSERT log baru (feditmode = 'U')
+        \Illuminate\Support\Facades\DB::table('logsysuser')->insert([
+            'fuid'         => $sysuser->fuid,
+            'fsysuserid'   => $sysuser->fsysuserid,
+            'fname'        => $sysuser->fname,
+            'password'     => $sysuser->password,
+            'fusercreate'  => $sysuser->fusercreate,
+            'fsalesman'    => $sysuser->fsalesman,
+            'fuserlevel'   => $sysuser->fuserlevel,
+            'fcabang'      => $sysuser->fcabang,
+            'created_at'   => $sysuser->created_at,
+            'updated_at'   => $sysuser->updated_at,
+            'fuserupdate'  => $sysuser->fuserupdate,
+            'feditmode'    => 'U', // Update
+            'fuseridlog'   => $userLogin->fname ?? null,
+            'fdatetimelog' => now(),
+        ]);
 
         return redirect()
             ->route('sysuser.index')
@@ -209,6 +228,26 @@ class SysUserController extends Controller
                 ->route('sysuser.delete', $fuid)
                 ->with('error', 'User tidak bisa dihapus. Sudah direferensi di role access.');
         }
+
+        $userLogin = auth('sysuser')->user();
+
+        // 1. Selalu INSERT log baru sebelum data utama di-delete (feditmode = 'D')
+        \Illuminate\Support\Facades\DB::table('logsysuser')->insert([
+            'fuid'         => $sysuser->fuid,
+            'fsysuserid'   => $sysuser->fsysuserid,
+            'fname'        => $sysuser->fname,
+            'password'     => $sysuser->password,
+            'fusercreate'  => $sysuser->fusercreate,
+            'fsalesman'    => $sysuser->fsalesman,
+            'fuserlevel'   => $sysuser->fuserlevel,
+            'fcabang'      => $sysuser->fcabang,
+            'created_at'   => $sysuser->created_at,
+            'updated_at'   => $sysuser->updated_at,
+            'fuserupdate'  => $sysuser->fuserupdate,
+            'feditmode'    => 'D', // Delete
+            'fuseridlog'   => $userLogin->fname ?? null,
+            'fdatetimelog' => now(),
+        ]);
 
         $sysuser->delete();
 

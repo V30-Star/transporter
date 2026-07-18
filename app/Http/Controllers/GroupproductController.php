@@ -156,6 +156,7 @@ class GroupproductController extends Controller
         $validated['fgroupcode'] = strtoupper($validated['fgroupcode']);
         $validated['fgroupname'] = strtoupper($validated['fgroupname']);
 
+        $userLogin = auth('sysuser')->user();
         $validated['fnonactive'] = $request->boolean('fnonactive') ? '1' : '0';
         $validated['fupdatedby'] = auth('sysuser')->user()->fname ?? null;
         $validated['fupdatedat'] = now();
@@ -165,6 +166,21 @@ class GroupproductController extends Controller
                 ->whereRaw('TRIM(fgroupcode) = ?', [trim($oldGroupCode)])
                 ->update(['fgroupcode' => $newGroupCode]);
         }
+
+        // 2. Selalu INSERT log baru (feditmode = 'U')
+        \Illuminate\Support\Facades\DB::table('loggroupcustomer')->insert([
+            'fgroupid'     => $groupproduct->fgroupid,
+            'fgroupcode'   => $groupproduct->fgroupcode,
+            'fgroupname'   => $groupproduct->fgroupname,
+            'fcreatedat'   => $groupproduct->fcreatedat,
+            'fupdatedat'   => $groupproduct->fupdatedat,
+            'fcreatedby'   => $groupproduct->fcreatedby,
+            'fupdatedby'   => $groupproduct->fupdatedby,
+            'fnonactive'   => $groupproduct->fnonactive,
+            'feditmode'    => 'U', // Update
+            'fuseridlog'   => $userLogin->fname ?? null,
+            'fdatetimelog' => now(),
+        ]);
 
         $groupproduct->update($validated);
 
@@ -211,11 +227,28 @@ class GroupproductController extends Controller
                 ], 422);
             }
 
+            $userLogin = auth('sysuser')->user();
+
+            // 1. Selalu INSERT log baru sebelum data utama di-delete (feditmode = 'D')
+            \Illuminate\Support\Facades\DB::table('loggroupcustomer')->insert([
+                'fgroupid'     => $groupproduct->fgroupid,
+                'fgroupcode'   => $groupproduct->fgroupcode,
+                'fgroupname'   => $groupproduct->fgroupname,
+                'fcreatedat'   => $groupproduct->fcreatedat,
+                'fupdatedat'   => $groupproduct->fupdatedat,
+                'fcreatedby'   => $groupproduct->fcreatedby,
+                'fupdatedby'   => $groupproduct->fupdatedby,
+                'fnonactive'   => $groupproduct->fnonactive,
+                'feditmode'    => 'D', // Delete
+                'fuseridlog'   => $userLogin->fname ?? null,
+                'fdatetimelog' => now(),
+            ]);
+
             $groupproduct->delete();
 
             return response()->json([
                 'success' => true,
-                'message' => 'Group product '.$groupproduct->fgroupname.' berhasil dihapus.',
+                'message' => 'Group product ' . $groupproduct->fgroupname . ' berhasil dihapus.',
                 'redirect' => route('groupproduct.index'),
             ]);
         } catch (\Exception $e) {
@@ -291,7 +324,7 @@ class GroupproductController extends Controller
         $poQuery = \Illuminate\Support\Facades\DB::table('tr_pod');
         $hasPo = false;
         if (!empty($productIds)) {
-            $poQuery->where(function($q) use ($productIds, $productCodes) {
+            $poQuery->where(function ($q) use ($productIds, $productCodes) {
                 $q->whereIn('fprdid', $productIds);
                 if (!empty($productCodes)) {
                     $q->orWhereIn('fprdcode', $productCodes);

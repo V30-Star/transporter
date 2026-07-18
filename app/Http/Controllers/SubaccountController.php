@@ -110,11 +110,30 @@ class SubaccountController extends Controller
         $validated['fsubaccountname'] = strtoupper($validated['fsubaccountname']);
 
         $validated['fnonactive'] = $request->boolean('fnonactive') ? '1' : '0';
-        $validated['fupdatedby'] = auth('sysuser')->user()->fname ?? null;
+
+        $userLogin = auth('sysuser')->user();
+        $validated['fupdatedby'] = $userLogin->fname ?? null;
         $validated['fupdatedat'] = now();
 
         $subaccount = Subaccount::findOrFail($fsubaccountid);
+
+        // 1. Jalankan update ke tabel utama
         $subaccount->update($validated);
+
+        // 2. Selalu INSERT log baru (feditmode = 'U')
+        DB::table('logsubaccount')->insert([
+            'fsubaccountid'   => $subaccount->fsubaccountid,
+            'fsubaccountcode' => $subaccount->fsubaccountcode,
+            'fsubaccountname' => $subaccount->fsubaccountname,
+            'fcreatedat'      => $subaccount->fcreatedat,
+            'fupdatedat'      => $subaccount->fupdatedat,
+            'fcreatedby'      => $subaccount->fcreatedby,
+            'fupdatedby'      => $subaccount->fupdatedby,
+            'fnonactive'      => $subaccount->fnonactive,
+            'feditmode'       => 'U', // 'U' untuk Update
+            'fuseridlog'      => $userLogin->fname ?? null,
+            'fdatetimelog'    => now(),
+        ]);
 
         return redirect()
             ->route('subaccount.index')
@@ -148,11 +167,27 @@ class SubaccountController extends Controller
                 ], 422);
             }
 
+            $userLogin = auth('sysuser')->user();
+
+            DB::table('logsubaccount')->insert([
+                'fsubaccountid'   => $subaccount->fsubaccountid,
+                'fsubaccountcode' => $subaccount->fsubaccountcode,
+                'fsubaccountname' => $subaccount->fsubaccountname,
+                'fcreatedat'      => $subaccount->fcreatedat,
+                'fupdatedat'      => $subaccount->fupdatedat,
+                'fcreatedby'      => $subaccount->fcreatedby,
+                'fupdatedby'      => $subaccount->fupdatedby,
+                'fnonactive'      => $subaccount->fnonactive,
+                'feditmode'       => 'D', // 'D' untuk Delete
+                'fuseridlog'      => $userLogin->fname ?? null,
+                'fdatetimelog'    => now(),
+            ]);
+
             $subaccount->delete();
 
             return response()->json([
                 'success' => true,
-                'message' => 'Subaccount '.$subaccount->fsubaccountname.' berhasil dihapus.',
+                'message' => 'Subaccount ' . $subaccount->fsubaccountname . ' berhasil dihapus.',
                 'redirect' => route('subaccount.index'),
             ]);
         } catch (\Exception $e) {

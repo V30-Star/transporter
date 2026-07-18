@@ -171,6 +171,7 @@ class SupplierController extends Controller
         $validated['fsuppliercode'] = strtoupper($validated['fsuppliercode']);
         $validated['fsuppliername'] = strtoupper($validated['fsuppliername']);
 
+        $userLogin = auth('sysuser')->user();
         $validated['fnonactive'] = $request->boolean('fnonactive') ? '1' : '0';
         $validated['fupdatedby'] = auth('sysuser')->user()->fname ?? null; // Use the authenticated user's name or 'system' as default
         $validated['fupdatedat'] = now(); // Use the current time
@@ -181,6 +182,31 @@ class SupplierController extends Controller
 
         try {
             $supplier->update($validated);
+
+            // 2. Selalu INSERT log baru (feditmode = 'U')
+            \Illuminate\Support\Facades\DB::table('logsupplier')->insert([
+                'fsupplierid'   => $supplier->fsupplierid,
+                'fsuppliercode' => $supplier->fsuppliercode,
+                'fsuppliername' => $supplier->fsuppliername,
+                'fnpwp'          => $supplier->fnpwp,
+                'faddress'       => $supplier->faddress,
+                'ftelp'          => $supplier->ftelp,
+                'ffax'           => $supplier->ffax,
+                'fcreatedby'     => $supplier->fcreatedby,
+                'fupdatedby'     => $supplier->fupdatedby,
+                'fcreatedat'     => $supplier->fcreatedat,
+                'fupdatedat'     => $supplier->fupdatedat,
+                'fcurr'          => $supplier->fcurr,
+                'fkontakperson'  => $supplier->fkontakperson,
+                'fjabatan'       => $supplier->fjabatan,
+                'ftempo'         => $supplier->ftempo,
+                'fnorekening'    => $supplier->fnorekening,
+                'fmemo'          => $supplier->fmemo,
+                'fnonactive'     => $supplier->fnonactive,
+                'feditmode'      => 'U', // Update
+                'fuseridlog'     => $userLogin->fname ?? null,
+                'fdatetimelog'   => now(),
+            ]);
         } catch (\Throwable $e) {
             return back()
                 ->withInput()
@@ -238,6 +264,33 @@ class SupplierController extends Controller
 
                 return redirect()->route('supplier.view', $supplier->fsupplierid)->with('error', $message);
             }
+
+            $userLogin = auth('sysuser')->user();
+
+            // 1. Selalu INSERT log baru sebelum data utama di-delete (feditmode = 'D')
+            \Illuminate\Support\Facades\DB::table('logsupplier')->insert([
+                'fsupplierid'   => $supplier->fsupplierid,
+                'fsuppliercode' => $supplier->fsuppliercode,
+                'fsuppliername' => $supplier->fsuppliername,
+                'fnpwp'          => $supplier->fnpwp,
+                'faddress'       => $supplier->faddress,
+                'ftelp'          => $supplier->ftelp,
+                'ffax'           => $supplier->ffax,
+                'fcreatedby'     => $supplier->fcreatedby,
+                'fupdatedby'     => $supplier->fupdatedby,
+                'fcreatedat'     => $supplier->fcreatedat,
+                'fupdatedat'     => $supplier->fupdatedat,
+                'fcurr'          => $supplier->fcurr,
+                'fkontakperson'  => $supplier->fkontakperson,
+                'fjabatan'       => $supplier->fjabatan,
+                'ftempo'         => $supplier->ftempo,
+                'fnorekening'    => $supplier->fnorekening,
+                'fmemo'          => $supplier->fmemo,
+                'fnonactive'     => $supplier->fnonactive,
+                'feditmode'      => 'D', // Delete
+                'fuseridlog'     => $userLogin->fname ?? null,
+                'fdatetimelog'   => now(),
+            ]);
 
             $supplier->delete();
 

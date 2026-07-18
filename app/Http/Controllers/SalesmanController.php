@@ -140,6 +140,7 @@ class SalesmanController extends Controller
         $validated['fsalesmancode'] = strtoupper($validated['fsalesmancode']);
         $validated['fsalesmanname'] = strtoupper($validated['fsalesmanname']);
 
+        $userLogin = auth('sysuser')->user();
         $validated['fnonactive'] = $request->boolean('fnonactive') ? '1' : '0';
         $validated['fupdatedby'] = auth('sysuser')->user()->fname ?? null;
         $validated['fupdatedat'] = now();
@@ -149,6 +150,21 @@ class SalesmanController extends Controller
         }
 
         $salesman->update($validated);
+
+        // 2. Selalu INSERT log baru (feditmode = 'U')
+        \Illuminate\Support\Facades\DB::table('logsalesman')->insert([
+            'fsalesmanid'   => $salesman->fsalesmanid,
+            'fsalesmancode' => $salesman->fsalesmancode,
+            'fsalesmanname' => $salesman->fsalesmanname,
+            'fcreatedat'   => $salesman->fcreatedat,
+            'fupdatedat'   => $salesman->fupdatedat,
+            'fcreatedby'   => $salesman->fcreatedby,
+            'fupdatedby'   => $salesman->fupdatedby,
+            'fnonactive'   => $salesman->fnonactive,
+            'feditmode'    => 'U', // Update
+            'fuseridlog'   => $userLogin->fname ?? null,
+            'fdatetimelog' => now(),
+        ]);
 
         return redirect()
             ->route('salesman.index')
@@ -202,11 +218,28 @@ class SalesmanController extends Controller
                 return redirect()->route('salesman.view', $salesman->fsalesmanid)->with('error', $message);
             }
 
+            $userLogin = auth('sysuser')->user();
+
+            // 1. Selalu INSERT log baru sebelum data utama di-delete (feditmode = 'D')
+            \Illuminate\Support\Facades\DB::table('logsalesman')->insert([
+                'fsalesmanid'   => $salesman->fsalesmanid,
+                'fsalesmancode' => $salesman->fsalesmancode,
+                'fsalesmanname' => $salesman->fsalesmanname,
+                'fcreatedat'   => $salesman->fcreatedat,
+                'fupdatedat'   => $salesman->fupdatedat,
+                'fcreatedby'   => $salesman->fcreatedby,
+                'fupdatedby'   => $salesman->fupdatedby,
+                'fnonactive'   => $salesman->fnonactive,
+                'feditmode'    => 'D', // Delete
+                'fuseridlog'   => $userLogin->fname ?? null,
+                'fdatetimelog' => now(),
+            ]);
+
             $salesman->delete();
 
             return response()->json([
                 'success' => true,
-                'message' => 'Salesman '.$salesman->fsalesmanname.' berhasil dihapus.',
+                'message' => 'Salesman ' . $salesman->fsalesmanname . ' berhasil dihapus.',
                 'redirect' => route('salesman.index'),
             ]);
         } catch (\Exception $e) {

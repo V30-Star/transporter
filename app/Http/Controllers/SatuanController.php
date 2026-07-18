@@ -133,11 +133,27 @@ class SatuanController extends Controller
 
         $validated['fnonactive'] = $request->boolean('fnonactive') ? '1' : '0';
 
+        $userLogin = auth('sysuser')->user();
         $validated['fupdatedby'] = auth('sysuser')->user()->fname ?? null;
         $validated['fupdatedat'] = now();
 
         $satuan = Satuan::findOrFail($fsatuanid);
         $satuan->update($validated);
+
+        // 2. Selalu INSERT log baru (feditmode = 'U')
+        \Illuminate\Support\Facades\DB::table('logsatuan')->insert([
+            'fsatuanid'    => $satuan->fsatuanid,
+            'fsatuancode'  => $satuan->fsatuancode,
+            'fsatuanname'  => $satuan->fsatuanname,
+            'fcreatedat'   => $satuan->fcreatedat,
+            'fupdatedat'   => $satuan->fupdatedat,
+            'fcreatedby'   => $satuan->fcreatedby,
+            'fupdatedby'   => $satuan->fupdatedby,
+            'fnonactive'   => $satuan->fnonactive,
+            'feditmode'    => 'U', // Update
+            'fuseridlog'   => $userLogin->fname ?? null,
+            'fdatetimelog' => now(),
+        ]);
 
         return redirect()
             ->route('satuan.index')
@@ -178,18 +194,36 @@ class SatuanController extends Controller
             if (\Illuminate\Support\Facades\DB::table('msprd')
                 ->where('fsatuankecil', $satuan->fsatuancode)
                 ->orWhere('fsatuanbesar', $satuan->fsatuancode)
-                ->exists()) {
+                ->exists()
+            ) {
                 return response()->json([
                     'success' => false,
                     'message' => 'Satuan tidak bisa dihapus. Sudah direferensi di produk.',
                 ], 422);
             }
 
+            $userLogin = auth('sysuser')->user();
+
+            // 1. Selalu INSERT log baru sebelum data utama di-delete (feditmode = 'D')
+            \Illuminate\Support\Facades\DB::table('logsatuan')->insert([
+                'fsatuanid'    => $satuan->fsatuanid,
+                'fsatuancode'  => $satuan->fsatuancode,
+                'fsatuanname'  => $satuan->fsatuanname,
+                'fcreatedat'   => $satuan->fcreatedat,
+                'fupdatedat'   => $satuan->fupdatedat,
+                'fcreatedby'   => $satuan->fcreatedby,
+                'fupdatedby'   => $satuan->fupdatedby,
+                'fnonactive'   => $satuan->fnonactive,
+                'feditmode'    => 'D', // Delete
+                'fuseridlog'   => $userLogin->fname ?? null,
+                'fdatetimelog' => now(),
+            ]);
+
             $satuan->delete();
 
             return response()->json([
                 'success' => true,
-                'message' => 'Satuan '.$satuan->fsatuanname.' berhasil dihapus.',
+                'message' => 'Satuan ' . $satuan->fsatuanname . ' berhasil dihapus.',
                 'redirect' => route('satuan.index'),
             ]);
         } catch (\Exception $e) {

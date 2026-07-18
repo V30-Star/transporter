@@ -131,11 +131,30 @@ class RekeningController extends Controller
 
         $validated['fnonactive'] = $request->boolean('fnonactive') ? '1' : '0';
         $validated['frekeningcode'] = '0';
-        $validated['fupdatedby'] = auth('sysuser')->user()->fname ?? null;
+
+        $userLogin = auth('sysuser')->user();
+        $validated['fupdatedby'] = $userLogin->fname ?? null;
         $validated['fupdatedat'] = now();
 
         $rekening = Rekening::findOrFail($frekeningid);
+
+        // 1. Jalankan update ke tabel utama
         $rekening->update($validated);
+
+        // 2. Selalu INSERT log baru (feditmode = 'U')
+        DB::table('logrekening')->insert([
+            'frekeningid'   => $rekening->frekeningid,
+            'frekeningcode' => $rekening->frekeningcode,
+            'frekeningname' => $rekening->frekeningname,
+            'fcreatedat'    => $rekening->fcreatedat,
+            'fupdatedat'    => $rekening->fupdatedat,
+            'fcreatedby'    => $rekening->fcreatedby,
+            'fupdatedby'    => $rekening->fupdatedby,
+            'fnonactive'    => $rekening->fnonactive,
+            'feditmode'     => 'U', // 'U' untuk Update
+            'fuseridlog'    => $userLogin->fname ?? null,
+            'fdatetimelog'  => now(),
+        ]);
 
         return redirect()
             ->route('rekening.index')
@@ -189,11 +208,27 @@ class RekeningController extends Controller
                 return redirect()->route('rekening.view', $rekening->frekeningid)->with('error', $message);
             }
 
+            $userLogin = auth('sysuser')->user();
+
+            DB::table('logrekening')->insert([
+                'frekeningid'   => $rekening->frekeningid,
+                'frekeningcode' => $rekening->frekeningcode,
+                'frekeningname' => $rekening->frekeningname,
+                'fcreatedat'    => $rekening->fcreatedat,
+                'fupdatedat'    => $rekening->fupdatedat,
+                'fcreatedby'    => $rekening->fcreatedby,
+                'fupdatedby'    => $rekening->fupdatedby,
+                'fnonactive'    => $rekening->fnonactive,
+                'feditmode'     => 'D', // 'D' untuk Delete
+                'fuseridlog'    => $userLogin->fname ?? null,
+                'fdatetimelog'  => now(),
+            ]);
+
             $rekening->delete();
 
             return response()->json([
                 'success' => true,
-                'message' => 'Rekening '.$rekening->frekeningname.' berhasil dihapus.',
+                'message' => 'Rekening ' . $rekening->frekeningname . ' berhasil dihapus.',
                 'redirect' => route('rekening.index'),
             ]);
         } catch (\Exception $e) {
