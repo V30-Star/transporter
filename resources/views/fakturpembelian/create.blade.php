@@ -594,7 +594,7 @@
                                                 {{-- Qty --}}
                                                 <td class="p-2 text-right">
                                                     <input type="number" class="w-full border rounded px-2 py-1 text-right text-sm focus:ring-1 focus:ring-blue-500"
-                                                        x-model.number="it.fqty" :id="'qty_saved_' + i" :min="@json(stock_boleh_minus()) ? null : 0" step="any"
+                                                        x-model.number="it.fqty" :id="'qty_saved_' + i" step="any"
                                                         @focus="activeRow = it.uid; $event.target.select()"
                                                         @blur="activeRow = null; enforceQtyRow(it); " @input="onRowUpdated(i)"
                                                         @change="onRowUpdated(i)"
@@ -1373,7 +1373,7 @@
             },
 
             recalc(row) {
-                row.fqty = @json(stock_boleh_minus()) ? (+row.fqty || 0) : Math.max(0, +row.fqty || 0);
+                row.fqty = Math.max(0, +row.fqty || 0);
                 row.fprice = Math.max(0, +row.fprice || 0);
                 if (typeof row.fpriceInput === 'undefined') {
                     row.fpriceInput = this.fmt(row.fprice);
@@ -1514,7 +1514,7 @@
                     row.fqty = 0;
                     return;
                 }
-                if (!@json(stock_boleh_minus()) && n < 0) row.fqty = 0;
+                if (n < 0) row.fqty = 0;
             },
 
             hydrateRowFromMeta(row, meta, forceDefaultUnit = false) {
@@ -1759,7 +1759,7 @@
             },
 
             isComplete(row) {
-                return row.fitemcode && row.fitemname && row.fsatuan && (@json(stock_boleh_minus()) ? Number(row.fqty) !== 0 : Number(row.fqty) > 0);
+                return row.fitemcode && row.fitemname && row.fsatuan && Number(row.fqty) > 0;
             },
 
             onPoPicked(e) {
@@ -1936,7 +1936,7 @@
             },
 
             isRowSavable(row) {
-                return !!((row.fitemcode || '').trim() && (row.fsatuan || '').trim() && (@json(stock_boleh_minus()) ? Number(row.fqty) !== 0 : Number(row.fqty) > 0));
+                return !!((row.fitemcode || '').trim() && (row.fsatuan || '').trim() && Number(row.fqty) > 0);
             },
 
             get submitItems() {
@@ -1999,7 +1999,7 @@
                         row.fdesc,
                         row.fketdt
                     ].some((value) => String(value ?? '').trim() !== '' && Number(value ?? 0) !== 0) ||
-                    (@json(stock_boleh_minus()) ? Number(row.fqty || 0) !== 0 : Number(row.fqty || 0) > 0);
+                    Number(row.fqty || 0) > 0;
             },
 
             rowWarningLabel(row) {
