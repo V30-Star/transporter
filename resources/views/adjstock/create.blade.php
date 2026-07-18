@@ -1153,9 +1153,11 @@
                             Download Excel
                         </a>
                         <button type="button"
+                            id="adjstockUploadButton"
                             onclick="document.getElementById('adjstockUploadType').value = document.querySelector('[name=ftrancode]')?.value || 'K'; document.getElementById('adjstockExcelFile')?.click()"
                             class="inline-flex items-center gap-2 px-4 py-3 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors">
-                            Upload Excel
+                            <span id="adjstockUploadSpinner" class="hidden h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent"></span>
+                            <span id="adjstockUploadText">Upload Excel</span>
                         </button>
                         <button type="submit"
                             class="inline-flex items-center gap-2 px-5 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors">
@@ -1171,9 +1173,30 @@
         @csrf
         <input id="adjstockUploadType" type="hidden" name="ftrancode" value="{{ old('ftrancode', 'K') }}">
         <input id="adjstockExcelFile" type="file" name="excel_file" accept=".xlsx,.xls"
-            onchange="if (this.files && this.files.length) this.form.submit();">
+            onchange="submitAdjstockExcelUpload(this)">
     </form>
 @endsection
+@push('scripts')
+    <script>
+        function submitAdjstockExcelUpload(input) {
+            if (!input.files || !input.files.length) return;
+
+            const button = document.getElementById('adjstockUploadButton');
+            const spinner = document.getElementById('adjstockUploadSpinner');
+            const text = document.getElementById('adjstockUploadText');
+
+            if (button) {
+                button.disabled = true;
+                button.classList.add('opacity-75', 'cursor-not-allowed');
+            }
+
+            spinner?.classList.remove('hidden');
+            if (text) text.textContent = 'Sedang Upload ke Detail Item';
+
+            input.form.submit();
+        }
+    </script>
+@endpush
 @push('styles')
     <link rel="stylesheet" href="https://cdn.datatables.net/1.13.7/css/jquery.dataTables.min.css">
     <style>
