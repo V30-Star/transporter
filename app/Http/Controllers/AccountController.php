@@ -68,7 +68,7 @@ class AccountController extends Controller
                     'max:2',
                     'unique:account,finitjurnal',
                 ],
-                'fnormal' => 'required|in:D',
+                'fnormal' => 'required|in:D,K', // Ditambahkan 'K' jika ada Credit, sesuaikan bisnis logikanya
                 'fend' => 'required|in:1,0',
                 'fuserlevel' => 'required|in:1,2,3',
                 'fhavesubaccount' => 'sometimes|boolean',
@@ -177,7 +177,7 @@ class AccountController extends Controller
             [
                 'faccount' => "required|string|unique:account,faccount,{$faccid},faccid|max:10",
                 'faccname' => 'required|string|max:50',
-                'fnormal' => 'required|in:D',
+                'fnormal' => 'required|in:D,K',
                 'finitjurnal' => [
                     $isSetAccount ? 'required' : 'nullable',
                     'string',
@@ -216,7 +216,9 @@ class AccountController extends Controller
 
         // Checkbox & metadata
         $validated['fnonactive'] = $request->boolean('fnonactive') ? '1' : '0';
-        $validated['fupdatedby'] = auth('sysuser')->user()->fname ?? null;
+
+        $userLogin = auth('sysuser')->user();
+        $validated['fupdatedby'] = $userLogin->fname ?? null;
         $validated['fupdatedat'] = now();
 
         // Sub account
@@ -239,7 +241,30 @@ class AccountController extends Controller
                 ? trim((string) $request->input('faccupline'))
                 : null);
 
+        // 1. Jalankan update ke tabel utama
         $account->update($validated);
+
+        DB::table('logaccount')->insert([
+            'faccid'          => $account->faccid,
+            'faccount'        => $account->faccount,
+            'faccname'        => $account->faccname,
+            'faccupline'      => $account->faccupline,
+            'fcurrency'       => $account->fcurrency,
+            'fend'            => $account->fend,
+            'fnormal'         => $account->fnormal,
+            'finitjurnal'     => $account->finitjurnal,
+            'fhavesubaccount' => $account->fhavesubaccount,
+            'fcreatedat'      => $account->fcreatedat,
+            'fupdatedat'      => $account->fupdatedat,
+            'fcreatedby'      => $account->fcreatedby,
+            'fupdatedby'      => $account->fupdatedby,
+            'ftypesubaccount' => $account->ftypesubaccount,
+            'fuserlevel'      => $account->fuserlevel,
+            'fnonactive'      => $account->fnonactive,
+            'feditmode'       => 'U', 
+            'fuseridlog'      => $userLogin->fname ?? null,
+            'fdatetimelog'    => now(),
+        ]);
 
         return redirect()->route('account.index')->with('success', 'Account berhasil diupdate.');
     }
@@ -277,11 +302,36 @@ class AccountController extends Controller
                 return response()->json(['message' => 'Account tidak bisa dihapus. Sudah direferensi di transaksi.'], 422);
             }
 
+            $userLogin = auth('sysuser')->user();
+
+            DB::table('logaccount')->insert([
+                'faccid'          => $account->faccid,
+                'faccount'        => $account->faccount,
+                'faccname'        => $account->faccname,
+                'faccupline'      => $account->faccupline,
+                'fcurrency'       => $account->fcurrency,
+                'fend'            => $account->fend,
+                'fnormal'         => $account->fnormal,
+                'finitjurnal'     => $account->finitjurnal,
+                'fhavesubaccount' => $account->fhavesubaccount,
+                'fcreatedat'      => $account->fcreatedat,
+                'fupdatedat'      => $account->fupdatedat,
+                'fcreatedby'      => $account->fcreatedby,
+                'fupdatedby'      => $account->fupdatedby,
+                'ftypesubaccount' => $account->ftypesubaccount,
+                'fuserlevel'      => $account->fuserlevel,
+                'fnonactive'      => $account->fnonactive,
+                'feditmode'       => 'D',
+                'fuseridlog'      => $userLogin->fname ?? null,
+                'fdatetimelog'    => now(),
+            ]);
+
+            // 2. Jalankan hapus data utama
             $account->delete();
 
             return response()->json([
                 'success' => true,
-                'message' => 'Account '.$account->faccname.' berhasil dihapus.',
+                'message' => 'Account ' . $account->faccname . ' berhasil dihapus.',
             ]);
         } catch (\Exception $e) {
             return response()->json([

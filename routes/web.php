@@ -375,6 +375,8 @@ Route::middleware('auth')->group(function () {
         Route::get('/adjstock', [AdjstockController::class, 'index'])->name('adjstock.index');
         Route::post('/adjstock', [AdjstockController::class, 'store'])->name('adjstock.store');
         Route::get('/adjstock/create', [AdjstockController::class, 'create'])->name('adjstock.create');
+        Route::get('/adjstock/template/download', [AdjstockController::class, 'downloadTemplate'])->name('adjstock.template.download');
+        Route::post('/adjstock/upload-excel', [AdjstockController::class, 'uploadExcel'])->name('adjstock.uploadExcel');
         Route::get('/adjstock/{fstockmtid}/view', [AdjstockController::class, 'view'])->name('adjstock.view');
         Route::get('/adjstock/{fstockmtid}/edit', [AdjstockController::class, 'edit'])->name('adjstock.edit');
         Route::get('/adjstock/{fstockmtid}/delete', [AdjstockController::class, 'delete'])->name('adjstock.delete');

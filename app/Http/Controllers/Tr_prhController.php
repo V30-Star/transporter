@@ -456,7 +456,6 @@ class Tr_prhController extends Controller
 
             Tr_prd::insert($detailRows);
 
-
             if ($isApproval === 1) {
                 $dt = Tr_prd::query()
                     ->leftJoin('msprd as p', 'p.fprdcode', '=', 'tr_prd.fprdcode')

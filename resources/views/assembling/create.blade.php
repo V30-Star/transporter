@@ -913,7 +913,7 @@
 
                 </div>
 
-                <div class="mt-4 flex justify-center gap-4">
+                <div class="mt-4 flex justify-end gap-4">
                     <button type="submit"
                         class="bg-blue-600 text-white px-5 py-2 rounded hover:bg-blue-700 flex items-center">
                         <x-heroicon-o-check class="w-6 h-6 mr-2" /> Simpan

@@ -51,6 +51,19 @@
         </div>
     @endif
 
+    @if (session('adjstock_upload_missing_codes'))
+        <div class="mb-3 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+            <div class="font-semibold">Upload excel failed</div>
+            <div class="mt-2 font-semibold">List kode produk</div>
+            <ul class="mt-2 list-disc pl-5">
+                @foreach (session('adjstock_upload_missing_codes', []) as $code)
+                    <li>{{ $code }}</li>
+                @endforeach
+            </ul>
+            <div class="mt-2 font-semibold">Nothing on Produk</div>
+        </div>
+    @endif
+
     <style>
         input:focus,
         select:focus,
@@ -1135,6 +1148,15 @@
                             <x-heroicon-o-arrow-left class="w-6 h-6" />
                             Keluar
                         </button>
+                        <a href="{{ route('adjstock.template.download') }}"
+                            class="inline-flex items-center gap-2 px-4 py-3 bg-emerald-600 text-white text-sm font-medium rounded-lg hover:bg-emerald-700 transition-colors">
+                            Download Excel
+                        </a>
+                        <button type="button"
+                            onclick="document.getElementById('adjstockUploadType').value = document.querySelector('[name=ftrancode]')?.value || 'K'; document.getElementById('adjstockExcelFile')?.click()"
+                            class="inline-flex items-center gap-2 px-4 py-3 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors">
+                            Upload Excel
+                        </button>
                         <button type="submit"
                             class="inline-flex items-center gap-2 px-5 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors">
                             <x-heroicon-o-check class="w-6 h-6" />
@@ -1145,6 +1167,12 @@
             </form>
         </div>
     </div>
+    <form id="adjstockUploadForm" action="{{ route('adjstock.uploadExcel') }}" method="POST" enctype="multipart/form-data" class="hidden">
+        @csrf
+        <input id="adjstockUploadType" type="hidden" name="ftrancode" value="{{ old('ftrancode', 'K') }}">
+        <input id="adjstockExcelFile" type="file" name="excel_file" accept=".xlsx,.xls"
+            onchange="if (this.files && this.files.length) this.form.submit();">
+    </form>
 @endsection
 @push('styles')
     <link rel="stylesheet" href="https://cdn.datatables.net/1.13.7/css/jquery.dataTables.min.css">

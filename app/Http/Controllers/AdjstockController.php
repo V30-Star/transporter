@@ -14,6 +14,8 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB; // sekalian biar aman untuk tanggal
 use Illuminate\Validation\ValidationException;
+use Maatwebsite\Excel\Concerns\ToArray;
+use Maatwebsite\Excel\Facades\Excel;
 
 class AdjstockController extends Controller
 {
@@ -423,6 +425,108 @@ class AdjstockController extends Controller
             'fbranchcode' => $fbranchcode,
             'products' => $products,
         ]);
+    }
+
+    public function downloadTemplate()
+    {
+        $path = public_path('Template Adjustment Stock.xlsx');
+
+        if (! is_file($path)) {
+            abort(404, 'Template Adjustment Stock.xlsx tidak ditemukan.');
+        }
+
+        return response()->download($path, 'Template Adjustment Stock.xlsx');
+    }
+
+    public function uploadExcel(Request $request)
+    {
+        $request->validate([
+            'excel_file' => ['required', 'file', 'mimes:xlsx,xls', 'max:5120'],
+            'ftrancode' => ['nullable', 'in:M,K'],
+        ]);
+
+        $transactionType = strtoupper((string) $request->input('ftrancode', 'K')) === 'M' ? 'M' : 'K';
+
+        $sheets = Excel::toArray(new class implements ToArray {
+            public function array(array $array) {}
+        }, $request->file('excel_file'));
+        $sheet = $sheets[0] ?? [];
+        $rows = array_slice($sheet, 1);
+
+        $parsedRows = [];
+        $codes = [];
+        foreach ($rows as $row) {
+            $code = strtoupper(trim((string) ($row[0] ?? '')));
+            $unit = strtoupper(trim((string) ($row[1] ?? '')));
+            $qty = $this->parseExcelNumber($row[2] ?? 0);
+            $price = $this->parseExcelNumber($row[3] ?? 0);
+
+            if ($code === '' && $unit === '' && $qty == 0.0 && $price == 0.0) {
+                continue;
+            }
+
+            if ($code !== '') {
+                $codes[] = $code;
+            }
+
+            $parsedRows[] = compact('code', 'unit', 'qty', 'price');
+        }
+
+        if ($parsedRows === []) {
+            return back()->withErrors(['excel_upload' => 'Upload excel failed. File tidak berisi data item.']);
+        }
+
+        $products = Product::query()
+            ->whereIn(DB::raw('UPPER(TRIM(fprdcode))'), array_values(array_unique($codes)))
+            ->get(['fprdcode', 'fprdname', 'fsatuankecil', 'fsatuanbesar', 'fsatuanbesar2'])
+            ->keyBy(fn ($product) => strtoupper(trim((string) $product->fprdcode)));
+
+        $missingCodes = array_values(array_unique(array_filter($codes, fn ($code) => ! $products->has($code))));
+        if ($missingCodes !== []) {
+            return redirect()->route('adjstock.create')
+                ->withInput($request->except('excel_file') + ['ftrancode' => $transactionType])
+                ->with('adjstock_upload_missing_codes', $missingCodes);
+        }
+
+        $items = [];
+        foreach ($parsedRows as $row) {
+            $product = $products->get($row['code']);
+            if (! $product) {
+                continue;
+            }
+
+            $unit = $row['unit'] !== '' ? $row['unit'] : strtoupper(trim((string) ($product->fsatuankecil ?? '')));
+            $items[] = [
+                'fitemcode' => $row['code'],
+                'fitemname' => trim((string) ($product->fprdname ?? '')),
+                'fsatuan' => $unit,
+                'fqty' => $row['qty'],
+                'fprice' => $row['price'],
+                'ftotal' => $row['qty'] * $row['price'],
+            ];
+        }
+
+        return redirect()->route('adjstock.create')->withInput([
+            'ftrancode' => $transactionType,
+            'fitemcode' => array_column($items, 'fitemcode'),
+            'fitemname' => array_column($items, 'fitemname'),
+            'fsatuan' => array_column($items, 'fsatuan'),
+            'fqty' => array_column($items, 'fqty'),
+            'fprice' => array_column($items, 'fprice'),
+            'ftotal' => array_column($items, 'ftotal'),
+        ])->with('success', 'Upload excel berhasil.');
+    }
+
+    private function parseExcelNumber($value): float
+    {
+        if (is_numeric($value)) {
+            return (float) $value;
+        }
+
+        $normalized = str_replace(',', '.', trim((string) $value));
+        $normalized = preg_replace('/[^0-9.\-]/', '', $normalized) ?: '0';
+
+        return (float) $normalized;
     }
 
     public function store(Request $request)
