@@ -264,12 +264,12 @@ abstract class Controller
             return $no . '. ' . $label . ' - Stok => ' . $available;
         }, array_keys($shortages), $shortages);
 
-        $message = "Produk ini Qty Stok tidak cukup digudang\n" . implode("\n", $products);
+        $message = "Produk ini Qty Stok tidak cukup digudang :\n \n" . implode("\n", $products);
 
         if (request()->expectsJson() || request()->ajax()) {
             return response()->json([
                 'status' => 'insufficient_stock',
-                'message' => $message . ($this->stockMinusAllowsForce() ? "\nApakah anda ingin melanjutkan penyimpanan?" : ''),
+                'message' => $message . ($this->stockMinusAllowsForce() ? "\n \nApakah anda ingin melanjutkan penyimpanan?" : ''),
                 'allow_force' => $this->stockMinusAllowsForce(),
                 'products' => $shortages,
             ], 422);
