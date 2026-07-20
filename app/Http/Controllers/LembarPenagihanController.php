@@ -21,8 +21,8 @@ class LembarPenagihanController extends Controller
             $query = DB::table('trtagihanmt as h')
                 ->leftJoin('mscustomer as c', 'c.fcustomercode', '=', 'h.fcustno')
                 ->leftJoin('trtagihandt as d', 'd.ftagihanno', '=', 'h.ftagihanno')
-                ->selectRaw("\n                    h.ftagihanid,\n                    h.ftagihanno,\n                    h.ftagihandate,\n                    h.fcustno,\n                    c.fcustomername,\n                    h.famounttagihan,\n                    h.fnote,\n                    STRING_AGG(TRIM(d.frefsono), ', ' ORDER BY d.frefsono) as invoice_refs\n                ")
-                ->groupBy('h.ftagihanid', 'h.ftagihanno', 'h.ftagihandate', 'h.fcustno', 'c.fcustomername', 'h.famounttagihan', 'h.fnote');
+                ->selectRaw("\n                    h.ftagihanid,\n                    h.ftagihanno,\n                    h.ftagihandate,\n                    h.fbranchcode,\n                    h.fcustno,\n                    c.fcustomername,\n                    h.famounttagihan,\n                    h.fnote,\n                    STRING_AGG(TRIM(d.frefsono), ', ' ORDER BY d.frefsono) as invoice_refs\n                ")
+                ->groupBy('h.ftagihanid', 'h.fbranchcode', 'h.ftagihanno', 'h.ftagihandate', 'h.fcustno', 'c.fcustomername', 'h.famounttagihan', 'h.fnote');
 
             $totalRecords = DB::query()->fromSub(clone $query, 'tagihan_rows')->count();
             if ($search = trim((string) $request->input('search.value', ''))) {
@@ -50,6 +50,7 @@ class LembarPenagihanController extends Controller
                     'ftagihanid' => $row->ftagihanid,
                     'ftagihanno' => trim((string) $row->ftagihanno),
                     'ftagihandate' => $row->ftagihandate ? Carbon::parse($row->ftagihandate)->format('d-m-Y') : '',
+                    'fcabang' => trim((string) $row->fbranchcode),
                     'invoice_refs' => trim((string) $row->invoice_refs),
                     'fcustomername' => trim((string) $row->fcustomername),
                     'famounttagihan' => (float) $row->famounttagihan,

@@ -15,6 +15,7 @@
         <table id="tagihanTable" class="min-w-full border text-sm">
             <thead class="bg-gray-100">
                 <tr>
+                    <th class="border px-2 py-1">Cabang</th>
                     <th class="border px-2 py-1">Tagihan#</th>
                     <th class="border px-2 py-1">Tanggal</th>
                     <th class="border px-2 py-1">No.Faktur</th>
@@ -43,6 +44,7 @@
                 serverSide: true,
                 ajax: '{{ route('lembarpenagihan.index') }}',
                 columns: [
+                    { data: 'fcabang' },
                     { data: 'ftagihanno' },
                     { data: 'ftagihandate' },
                     { data: 'invoice_refs' },
@@ -51,6 +53,10 @@
                     { data: 'fnote' },
                     { data: 'actions', orderable: false, searchable: false, className: 'text-right' }
                 ],
+                layout: {
+                    topStart: 'search',
+                    topEnd: 'pageLength'
+                },
                 order: [[1, 'desc']]
             });
         });
