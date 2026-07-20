@@ -424,6 +424,8 @@ class ProductController extends Controller
             }
 
             $validated = $request->validate($validationRules, [
+                'fprdcode.required' => 'Kode produk wajib diisi.',
+                'fprdcode.unique' => 'Kode produk ini sudah ada.',
                 'fgroupcode.required' => 'Group produk wajib diisi.',
                 'fmerek.required' => 'Merek wajib diisi.',
                 'fprdname.required' => 'Nama produk wajib diisi.',
@@ -630,7 +632,8 @@ class ProductController extends Controller
             $validated = $request->validate(
                 $validationRules,
                 [
-                    'fprdcode.unique' => 'Kode produk sudah ada.',
+                    'fprdcode.required' => 'Kode produk wajib diisi.',
+                    'fprdcode.unique' => 'Kode produk ini sudah ada.',
                     'fprdname.required' => 'Nama produk wajib diisi.',
                     'fgroupcode.required' => 'Group produk wajib diisi.',
                     'fmerek.required' => 'Merek wajib diisi.',
