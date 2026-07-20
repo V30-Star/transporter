@@ -326,6 +326,10 @@
                 </div>
             </div>
         </form>
+
+        @unless ($isReadOnly)
+            <x-transaction.browse-customer-modal />
+        @endunless
     </div>
 @endsection
 
