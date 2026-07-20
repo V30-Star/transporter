@@ -754,7 +754,7 @@ class ProductController extends Controller
 
             $product->update($validated);
 
-            DB::table('logprd')->insert([
+            DB::table('logmsprd')->insert([
                 'fprdid'                  => $product->fprdid,
                 'fprdcode'                => $product->fprdcode,
                 'fprdname'                => $product->fprdname,
@@ -949,7 +949,7 @@ class ProductController extends Controller
             $userLogin = auth('sysuser')->user();
 
             // 1. Selalu INSERT log baru sebelum data utama di-delete (feditmode = 'D')
-            DB::table('logprd')->insert([
+            DB::table('logmsprd')->insert([
                 'fprdid'                  => $product->fprdid,
                 'fprdcode'                => $product->fprdcode,
                 'fprdname'                => $product->fprdname,

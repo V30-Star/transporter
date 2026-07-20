@@ -136,7 +136,7 @@ class GroupcustomerController extends Controller
         $groupcustomer->update($validated);
 
         // 2. Selalu INSERT log baru (feditmode = 'U')
-        \Illuminate\Support\Facades\DB::table('loggroupcustomer')->insert([
+        \Illuminate\Support\Facades\DB::table('logmsgroupcustomer')->insert([
             'fgroupid'     => $groupcustomer->fgroupid,
             'fgroupcode'   => $groupcustomer->fgroupcode,
             'fgroupname'   => $groupcustomer->fgroupname,
@@ -195,7 +195,7 @@ class GroupcustomerController extends Controller
             $userLogin = auth('sysuser')->user();
 
             // 1. Selalu INSERT log baru sebelum data utama di-delete (feditmode = 'D')
-            \Illuminate\Support\Facades\DB::table('loggroupcustomer')->insert([
+            \Illuminate\Support\Facades\DB::table('logmsgroupcustomer')->insert([
                 'fgroupid'     => $groupcustomer->fgroupid,
                 'fgroupcode'   => $groupcustomer->fgroupcode,
                 'fgroupname'   => $groupcustomer->fgroupname,

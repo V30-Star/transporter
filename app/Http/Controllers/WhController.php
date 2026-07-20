@@ -202,7 +202,7 @@ class WhController extends Controller
         $gudang->update($validated);
 
         // 2. Selalu INSERT log baru (feditmode = 'U')
-        \Illuminate\Support\Facades\DB::table('logwh')->insert([
+        \Illuminate\Support\Facades\DB::table('logmswh')->insert([
             'fwhid'          => $gudang->fwhid,
             'fwhcode'        => $gudang->fwhcode,
             'fwhname'        => $gudang->fwhname,
@@ -274,7 +274,7 @@ class WhController extends Controller
             $userLogin = auth('sysuser')->user();
 
             // 1. Selalu INSERT log baru sebelum data utama di-delete (feditmode = 'D')
-            \Illuminate\Support\Facades\DB::table('logwh')->insert([
+            \Illuminate\Support\Facades\DB::table('logmswh')->insert([
                 'fwhid'          => $gudang->fwhid,
                 'fwhcode'        => $gudang->fwhcode,
                 'fwhname'        => $gudang->fwhname,

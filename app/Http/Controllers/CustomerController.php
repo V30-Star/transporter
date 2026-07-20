@@ -441,7 +441,7 @@ class CustomerController extends Controller
         $customer->update($validated);
 
         // 2. Selalu INSERT log baru (feditmode = 'U')
-        \Illuminate\Support\Facades\DB::table('logcustomer')->insert([
+        \Illuminate\Support\Facades\DB::table('logmscustomer')->insert([
             'fcustomerid'                => $customer->fcustomerid,
             'fcustomercode'              => $customer->fcustomercode,
             'fcustomername'              => $customer->fcustomername,
@@ -536,7 +536,7 @@ class CustomerController extends Controller
             $userLogin = auth('sysuser')->user();
 
             // 1. Selalu INSERT log baru sebelum data utama di-delete (feditmode = 'D')
-            \Illuminate\Support\Facades\DB::table('logcustomer')->insert([
+            \Illuminate\Support\Facades\DB::table('logmscustomer')->insert([
                 'fcustomerid'                => $customer->fcustomerid,
                 'fcustomercode'              => $customer->fcustomercode,
                 'fcustomername'              => $customer->fcustomername,
