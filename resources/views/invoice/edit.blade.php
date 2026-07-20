@@ -669,9 +669,11 @@
 
                                     <!-- Disc.% -->
                                     <td class="p-2 text-right">
-                                        <input type="text" class="border rounded px-2 py-1 w-24 text-right"
+                                        <input type="text"
+                                            class="border rounded px-2 py-1 w-24 text-right disabled:bg-gray-100 disabled:text-gray-500 disabled:cursor-not-allowed"
                                             x-ref="editDisc" x-model="editRow.fdisc" @input="recalc(editRow)"
-                                            @keydown.enter.prevent="applyEdit()" placeholder="10+2">
+                                            @keydown.enter.prevent="applyEdit()" placeholder="10+2"
+                                            {{ $action === 'view' ? 'disabled' : '' }}>
                                     </td>
 
                                     <!-- Total Harga (readonly) -->
@@ -1729,7 +1731,9 @@
                                                     class="w-16 h-9 px-2 text-sm leading-tight text-right border rounded transition-opacity
                                                             [appearance:textfield]
                                                             [&::-webkit-outer-spin-button]:appearance-none
-                                                            [&::-webkit-inner-spin-button]:appearance-none">
+                                                            [&::-webkit-inner-spin-button]:appearance-none
+                                                            disabled:bg-gray-100 disabled:opacity-60 disabled:cursor-not-allowed"
+                                                    {{ $action === 'view' ? 'disabled' : '' }}>
                                                 <span class="text-gray-500">%</span>
                                                 <span class="flex-1"></span>
                                                 <span class="font-bold text-right"

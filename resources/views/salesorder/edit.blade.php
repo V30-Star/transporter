@@ -1212,7 +1212,9 @@
                                                     class="w-16 h-9 px-2 text-sm leading-tight text-right border rounded transition-opacity
                                                             [appearance:textfield]
                                                             [&::-webkit-outer-spin-button]:appearance-none
-                                                            [&::-webkit-inner-spin-button]:appearance-none">
+                                                            [&::-webkit-inner-spin-button]:appearance-none
+                                                            disabled:bg-gray-100 disabled:opacity-60 disabled:cursor-not-allowed"
+                                                    {{ $action === 'view' ? 'disabled' : '' }}>
                                                 <span class="text-gray-500">%</span>
                                                 <span class="flex-1"></span>
                                                 <span class="font-bold text-right"
