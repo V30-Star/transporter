@@ -20,6 +20,32 @@ class FakturpembelianController extends Controller
 {
     use ProductBrowseHelper;
 
+    private function isEnabledEnv(string $key): bool
+    {
+        return in_array(strtolower(trim((string) env($key, '0'))), ['1', 'true', 'yes', 'on'], true);
+    }
+
+    private function purchasePriceFlags(): array
+    {
+        return [
+            'history_price' => $this->isEnabledEnv('HISTORYHARGABELI'),
+            'history_discount' => $this->isEnabledEnv('HISTORYDISKONBELI'),
+        ];
+    }
+
+    private function latestPurchaseHistory(string $supplierCode, string $productCode, string $unit): ?object
+    {
+        return DB::table('trstockmt as m')
+            ->join('trstockdt as d', 'm.fstockmtno', '=', 'd.fstockmtno')
+            ->where('m.fstockmtcode', 'BUY')
+            ->whereRaw('TRIM(d.fprdcode) = ?', [$productCode])
+            ->whereRaw('TRIM(m.fsupplier) = ?', [$supplierCode])
+            ->whereRaw('TRIM(d.fsatuan) = ?', [$unit])
+            ->orderByDesc('m.fstockmtdate')
+            ->select('d.fprice', 'd.fsatuan', 'd.fdiscpersen')
+            ->first();
+    }
+
     private function formatDisplayTransactionNumber(?string $number, bool $useSlash = false): string
     {
         $normalized = trim((string) $number);
@@ -1133,6 +1159,36 @@ class FakturpembelianController extends Controller
             'products' => $products,
             'filterSupplierId' => $request->query('filter_supplier_id'),
             'supplierAdvanceWarnings' => $supplierAdvanceWarnings,
+        ]);
+    }
+
+    public function priceInfo(Request $request)
+    {
+        $data = $request->validate([
+            'fsupplier' => ['required', 'string', 'max:20'],
+            'fprdcode' => ['required', 'string', 'max:20'],
+            'fsatuan' => ['required', 'string', 'max:20'],
+        ]);
+
+        $supplierCode = trim($data['fsupplier']);
+        $productCode = trim($data['fprdcode']);
+        $unit = trim($data['fsatuan']);
+        $flags = $this->purchasePriceFlags();
+        $useHistoryDiscount = $flags['history_price'] || $flags['history_discount'];
+        $history = $useHistoryDiscount
+            ? $this->latestPurchaseHistory($supplierCode, $productCode, $unit)
+            : null;
+
+        return response()->json([
+            'price' => $flags['history_price'] && $history ? (float) ($history->fprice ?? 0) : null,
+            'unit' => $flags['history_price'] && $history && trim((string) ($history->fsatuan ?? '')) !== ''
+                ? trim((string) $history->fsatuan)
+                : $unit,
+            'discount' => $useHistoryDiscount && $history ? $this->normalizeDiscountInput($history->fdiscpersen ?? 0) : null,
+            'source' => [
+                'price' => $flags['history_price'] && $history ? 'history' : 'default',
+                'discount' => $useHistoryDiscount && $history ? 'history' : 'default',
+            ],
         ]);
     }
 

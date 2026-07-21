@@ -1677,6 +1677,7 @@
     </style>
     <script>
         const ACTION = @json($action);
+        window.FAKTUR_PEMBELIAN_PRICE_INFO_URL = @json(route('fakturpembelian.price-info'));
 
         // Map produk untuk auto-fill tabel
         window.PRODUCT_MAP = {
@@ -1910,6 +1911,39 @@
                     }
                     if (event?.target) {
                         event.target.value = normalized;
+                    }
+                },
+
+                async applyPurchasePrice(row) {
+                    const supplierCode = this.getSelectedSupplierCode();
+                    const productCode = (row?.fitemcode || '').toString().trim();
+                    const unit = (row?.fsatuan || '').toString().trim();
+                    if (!supplierCode || !productCode || !unit) return;
+
+                    const params = new URLSearchParams({
+                        fsupplier: supplierCode,
+                        fprdcode: productCode,
+                        fsatuan: unit,
+                    });
+
+                    try {
+                        const response = await fetch(`${window.FAKTUR_PEMBELIAN_PRICE_INFO_URL}?${params.toString()}`, {
+                            headers: { Accept: 'application/json' }
+                        });
+                        if (!response.ok) return;
+
+                        const payload = await response.json();
+                        row.fsatuan = payload.unit || row.fsatuan;
+                        if (payload.price !== null && payload.price !== undefined) {
+                            row.fprice = Math.max(0, Number(payload.price || 0));
+                            row.fpriceInput = this.fmt(row.fprice);
+                        }
+                        if (payload.discount !== null && payload.discount !== undefined) {
+                            row.fdiscpersen = payload.discount;
+                        }
+                        this.recalc(row);
+                    } catch (error) {
+                        console.warn('Gagal mengambil harga faktur pembelian:', error);
                     }
                 },
 
@@ -2306,6 +2340,7 @@
                         return;
                     }
                     this.hydrateRowFromMeta(row, this.productMeta(row.fitemcode), true);
+                    this.applyPurchasePrice(row);
                     this.onRowUpdated(index);
                 },
 
@@ -2839,6 +2874,7 @@
                             row.fitemcode = (product.fprdcode || '').toString();
                             row.hideQtyLimitHint = true;
                             this.hydrateRowFromMeta(row, this.productMeta(row.fitemcode));
+                            this.applyPurchasePrice(row);
                             this.rows.splice(this.browseTarget, 1, {
                                 ...this.rows[this.browseTarget]
                             });

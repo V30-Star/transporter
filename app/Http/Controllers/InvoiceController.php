@@ -1330,7 +1330,8 @@ class InvoiceController extends Controller
 
         $flags = $this->invoicePriceFlags();
         $normalPrice = $this->normalSalesPrice($product, $customer, $unit);
-        $history = ($flags['history_price'] || $flags['history_discount'])
+        $useHistoryDiscount = $flags['history_price'] || $flags['history_discount'];
+        $history = $useHistoryDiscount
             ? $this->latestSalesHistory($customerCode, $productCode, $unit)
             : null;
 
@@ -1339,10 +1340,10 @@ class InvoiceController extends Controller
             'unit' => $flags['history_price'] && $history && trim((string) ($history->fsatuan ?? '')) !== ''
                 ? trim((string) $history->fsatuan)
                 : $unit,
-            'discount' => $flags['history_discount'] && $history ? $this->normalizeDiscountInput($history->fdisc ?? 0) : '0',
+            'discount' => $useHistoryDiscount && $history ? $this->normalizeDiscountInput($history->fdisc ?? 0) : '0',
             'source' => [
                 'price' => $flags['history_price'] && $history ? 'history' : 'price_list',
-                'discount' => $flags['history_discount'] && $history ? 'history' : 'default',
+                'discount' => $useHistoryDiscount && $history ? 'history' : 'default',
             ],
         ]);
     }
