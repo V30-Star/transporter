@@ -14,6 +14,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\ValidationException;
 use App\Support\ApprovalState;
 
@@ -1313,8 +1314,10 @@ class SalesOrderController extends Controller
                 }
 
                 $lastRefNo = DB::table('trsomt')
+                    ->whereRaw("frefpo ~ '^[0-9]+$'")
                     ->selectRaw("MAX(NULLIF(frefpo, '')::int) as max_no")
                     ->value('max_no') ?? 0;
+
                 $nextRefNo = $lastRefNo + 1;
 
                 $approvalState = $this->initializeApprovalState();
@@ -1404,6 +1407,7 @@ class SalesOrderController extends Controller
                 'redirect_url' => route('suratjalan.create', ['sales_order_id' => $ftrsomtid]),
             ]);
         } catch (\Exception $e) {
+            Log::error('AdjstockController@store error: ' . $e->getMessage(), ['exception' => $e]);
             report($e);
             if ($request->expectsJson()) {
                 return response()->json(['message' => 'Sales Order belum bisa disimpan: ' . $e->getMessage()], 500);
