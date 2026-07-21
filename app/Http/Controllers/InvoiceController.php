@@ -14,6 +14,7 @@ use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Schema;
 // sekalian biar aman untuk tanggal
@@ -1661,31 +1662,36 @@ class InvoiceController extends Controller
                 if (empty($fsono)) {
                     $isAdvancePayment = (int) $request->input('ftypesales', 0) === 1;
                     $branchCode = trim((string) ($request->fbranchcode ?? 'BG')) ?: 'BG';
+
+                    $year = $fsodate->format('y');  // Format 2 digit tahun, misal: 26
+                    $month = $fsodate->format('m'); // Format 2 digit bulan, misal: 07
+                    $digits = 4;
+
+                    // Tentukan prefix berdasarkan jenis penjualan
                     if ($isAdvancePayment) {
-                        $year = $fsodate->format('y'); // 2-digit year format, e.g. 26
-                        $month = $fsodate->format('m'); // 2-digit month format, e.g. 06
-                        $digits = 4;
                         $prefix = sprintf('UM.%s.%s.%s.00.', $branchCode, $year, $month);
-                        $last = DB::table('tranmt')
-                            ->where('fsono', 'like', $prefix . '%')
-                            ->lockForUpdate()
-                            ->selectRaw("MAX(CAST(split_part(fsono, '.', 6) AS int)) AS lastno")
-                            ->value('lastno');
-
-                        $fsono = $prefix . str_pad((string) ((int) $last + 1), $digits, '0', STR_PAD_LEFT);
                     } else {
-                        $year = $fsodate->format('y'); // 2-digit year format, e.g. 26
-                        $month = $fsodate->format('m'); // 2-digit month format, e.g. 06
-                        $digits = 4;
                         $prefix = sprintf('INV.%s.%s.%s.00.', $branchCode, $year, $month);
-                        $last = DB::table('tranmt')
-                            ->where('fsono', 'like', $prefix . '%')
-                            ->lockForUpdate()
-                            ->selectRaw("MAX(CAST(split_part(fsono, '.', 6) AS int)) AS lastno")
-                            ->value('lastno');
-
-                        $fsono = $prefix . str_pad((string) ((int) $last + 1), $digits, '0', STR_PAD_LEFT);
                     }
+
+                    // Ambil 1 record terakhir dengan nomor suffix terbesar & kunci barisnya (FOR UPDATE)
+                    $lastRecord = DB::table('tranmt')
+                        ->where('fsono', 'like', $prefix . '%')
+                        ->whereRaw("split_part(fsono, '.', 6) ~ '^[0-9]+$'") // Pengaman agar hanya memproses nomor berbentuk angka
+                        ->orderByRaw("CAST(split_part(fsono, '.', 6) AS int) DESC")
+                        ->lockForUpdate()
+                        ->first();
+
+                    if ($lastRecord) {
+                        // Ambil bagian nomor urut ke-6 (setelah split titik)
+                        $parts = explode('.', $lastRecord->fsono);
+                        $last = (int) ($parts[5] ?? 0);
+                    } else {
+                        $last = 0;
+                    }
+
+                    // Generate nomor fsono baru
+                    $fsono = $prefix . str_pad((string) ($last + 1), $digits, '0', STR_PAD_LEFT);
                 }
 
                 $approvalState = $this->initializeApprovalState();
@@ -1800,6 +1806,7 @@ class InvoiceController extends Controller
             }
             return $redirect;
         } catch (\Exception $e) {
+            Log::error('Invoice@store ERROR: ' . $e->getMessage());
             report($e);
             if ($request->expectsJson()) {
                 return response()->json(['message' => 'Faktur penjualan belum bisa disimpan: ' . $e->getMessage()], 500);
@@ -2949,7 +2956,7 @@ class InvoiceController extends Controller
             return back()->withInput()->with('error', 'Faktur penjualan belum bisa diupdate. Cek data.');
         }
     }
-    
+
     public function delete(Request $request, $ftranmtid)
     {
         $customers = Customer::orderBy('fcustomername', 'asc')
@@ -3242,7 +3249,7 @@ class InvoiceController extends Controller
             ->where('fsisadp', '>', 0)
             ->groupBy(DB::raw('TRIM(COALESCE(fcustno, \'\'))'))
             ->get()
-            ->filter(fn ($row) => trim((string) ($row->fcustno ?? '')) !== '')
+            ->filter(fn($row) => trim((string) ($row->fcustno ?? '')) !== '')
             ->mapWithKeys(function ($row) {
                 $customerCode = trim((string) ($row->fcustno ?? ''));
                 $remainRp = (float) ($row->total_remain ?? 0);
@@ -3250,7 +3257,7 @@ class InvoiceController extends Controller
                 return [
                     $customerCode => [
                         'message' => $remainRp > 0
-                            ? 'Customer ini memiliki DP sebesar '.number_format($remainRp, 2, ',', '.').'.'
+                            ? 'Customer ini memiliki DP sebesar ' . number_format($remainRp, 2, ',', '.') . '.'
                             : 'Customer ini memiliki DP.',
                     ],
                 ];
