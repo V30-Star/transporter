@@ -3566,31 +3566,7 @@
             const warningText = document.getElementById('customerAdvanceWarningText');
             const hiddenInput = document.getElementById('customerCodeHidden');
             const selectInput = document.getElementById('modal_filter_customer_id');
-            let lastPopupCustomerCode = '';
-
-            const showCustomerAdvancePopup = (message) => {
-                if (!message) {
-                    return;
-                }
-
-                if (typeof window.showAppWarningAlert === 'function') {
-                    window.showAppWarningAlert('Informasi', message, {
-                        confirmButtonText: 'Ok'
-                    });
-                    return;
-                }
-
-                if (typeof Swal !== 'undefined') {
-                    Swal.fire({
-                        icon: 'warning',
-                        title: 'Informasi',
-                        text: message,
-                        confirmButtonText: 'Ok'
-                    });
-                }
-            };
-
-            const updateCustomerAdvanceWarning = (customerCode = null, shouldPopup = false) => {
+            const updateCustomerAdvanceWarning = (customerCode = null) => {
                 if (!warningBox || !warningText) {
                     return;
                 }
@@ -3601,44 +3577,36 @@
                 if (!warning || !warning.message) {
                     warningBox.classList.add('hidden');
                     warningText.textContent = '';
-                    if (code !== lastPopupCustomerCode) {
-                        lastPopupCustomerCode = '';
-                    }
                     return;
                 }
 
                 warningText.textContent = warning.message;
                 warningBox.classList.remove('hidden');
-
-                if (shouldPopup && code !== '' && code !== lastPopupCustomerCode) {
-                    lastPopupCustomerCode = code;
-                    showCustomerAdvancePopup(warning.message);
-                }
             };
 
             if (hiddenInput) {
                 hiddenInput.addEventListener('change', (e) => {
-                    updateCustomerAdvanceWarning(e.target.value, true);
+                    updateCustomerAdvanceWarning(e.target.value);
                 });
                 hiddenInput.addEventListener('input', (e) => {
-                    updateCustomerAdvanceWarning(e.target.value, true);
+                    updateCustomerAdvanceWarning(e.target.value);
                 });
             }
             if (selectInput) {
                 selectInput.addEventListener('change', (e) => {
-                    updateCustomerAdvanceWarning(e.target.value, true);
+                    updateCustomerAdvanceWarning(e.target.value);
                 });
             }
 
             // Listen to customer-selected custom event
             window.addEventListener('customer-selected', (e) => {
                 const code = e.detail?.fcustomercode;
-                updateCustomerAdvanceWarning(code, true);
+                updateCustomerAdvanceWarning(code);
             });
 
             // Initial check
             setTimeout(() => {
-                updateCustomerAdvanceWarning(null, false);
+                updateCustomerAdvanceWarning();
             }, 100);
         });
     </script>

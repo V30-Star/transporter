@@ -3250,7 +3250,7 @@ class InvoiceController extends Controller
                 return [
                     $customerCode => [
                         'message' => $remainRp > 0
-                            ? 'Customer ini memiliki DP sebesar'.number_format($remainRp, 2, ',', '.').'.'
+                            ? 'Customer ini memiliki DP sebesar '.number_format($remainRp, 2, ',', '.').'.'
                             : 'Customer ini memiliki DP.',
                     ],
                 ];
