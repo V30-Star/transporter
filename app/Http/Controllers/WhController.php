@@ -37,7 +37,7 @@ class WhController extends Controller
                 'mswh.fnonactive',
                 'mswh.fbranchcode',
                 'mswh.fstokpenjualan',
-                'mscabang.fcabangname',
+                'mscabang.fcabangkode',
             ]);
 
         $permsArr = explode(',', (string) session('user_restricted_permissions', ''));

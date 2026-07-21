@@ -5,7 +5,7 @@
 @section('content')
     @php
         $canCreate = in_array('createGudang', explode(',', session('user_restricted_permissions', '')));
-        $canEdit   = in_array('updateGudang', explode(',', session('user_restricted_permissions', '')));
+        $canEdit = in_array('updateGudang', explode(',', session('user_restricted_permissions', '')));
         $canDelete = in_array('deleteGudang', explode(',', session('user_restricted_permissions', '')));
         $showActionsColumn = $canEdit || $canDelete;
     @endphp
@@ -42,6 +42,7 @@
                     <th class="border px-2 py-2">Kode Gudang</th>
                     <th class="border px-2 py-2">Nama Gudang</th>
                     <th class="border px-2 py-2 no-sort">Alamat</th>
+                    <th class="border px-2 py-2 no-sort">Stok Penjualan</th>
                     <th class="border px-2 py-2 no-sort">Status</th>
                     {{-- Kolom hidden untuk filter client-side, berisi nilai mentah 0/1 --}}
                     <th data-col="statusRaw" class="border px-2 py-2">StatusRaw</th>
@@ -54,14 +55,18 @@
                 @foreach ($gudangs as $item)
                     @php $isActive = (string) $item->fnonactive === '0'; @endphp
                     <tr class="hover:bg-gray-50">
-                        <td class="border px-2 py-1">{{ $item->fcabangname ?? 'N/A' }}</td>
+                        <td class="border px-2 py-1">{{ $item->fcabangkode ?? 'N/A' }}</td>
                         <td class="border px-2 py-1">{{ $item->fwhcode }}</td>
                         <td class="border px-2 py-1">{{ $item->fwhname }}</td>
                         <td class="border px-2 py-1">{{ $item->faddress }}</td>
+                        <td class="border px-2 py-1 text-center">
+                            {{ $item->fstokpenjualan == 1 ? '✓' : '' }}
+                        </td>
 
                         {{-- Tampilan badge Status --}}
                         <td class="border px-2 py-1">
-                            <span class="inline-flex items-center px-2 py-0.5 rounded text-xs
+                            <span
+                                class="inline-flex items-center px-2 py-0.5 rounded text-xs
                                 {{ $isActive ? 'bg-green-100 text-green-700' : 'bg-red-200 text-red-700' }}">
                                 {{ $isActive ? 'Active' : 'Non Active' }}
                             </span>
@@ -73,13 +78,15 @@
                         @if ($showActionsColumn)
                             <td class="border px-2 py-1 space-x-1.5 text-right">
                                 <a href="{{ route('gudang.view', $item->fwhid) }}">
-                                    <button class="inline-flex items-center bg-slate-500 text-white px-3 py-1.5 text-xs rounded hover:bg-slate-600">
+                                    <button
+                                        class="inline-flex items-center bg-slate-500 text-white px-3 py-1.5 text-xs rounded hover:bg-slate-600">
                                         <x-heroicon-o-pencil-square class="w-3.5 h-3.5 mr-1" /> View
                                     </button>
                                 </a>
                                 @if ($canEdit)
                                     <a href="{{ route('gudang.edit', $item->fwhid) }}">
-                                        <button class="inline-flex items-center bg-yellow-500 text-white px-3 py-1.5 text-xs rounded hover:bg-yellow-600">
+                                        <button
+                                            class="inline-flex items-center bg-yellow-500 text-white px-3 py-1.5 text-xs rounded hover:bg-yellow-600">
                                             <x-heroicon-o-pencil-square class="w-3.5 h-3.5 mr-1" /> Edit
                                         </button>
                                     </a>
@@ -160,22 +167,31 @@
         // =============================================
         // jQuery — Inisialisasi DataTables
         // =============================================
-        $(function () {
+        $(function() {
 
             const table = $('#gudangTable').DataTable({
-                autoWidth  : false,
-                pageLength : 10,
-                lengthMenu : [10, 25, 50, 100],
-                order      : [[0, 'asc']],
+                autoWidth: false,
+                pageLength: 10,
+                lengthMenu: [10, 25, 50, 100],
+                order: [
+                    [0, 'asc']
+                ],
                 layout: {
-                    topStart   : 'search',
-                    topEnd     : 'pageLength',
+                    topStart: 'search',
+                    topEnd: 'pageLength',
                     bottomStart: 'info',
-                    bottomEnd  : 'paging',
+                    bottomEnd: 'paging',
                 },
-                columnDefs: [
-                    { targets: 'col-aksi', orderable: false, searchable: false, width: 120 },
-                    { targets: 'no-sort',  orderable: false },
+                columnDefs: [{
+                        targets: 'col-aksi',
+                        orderable: false,
+                        searchable: false,
+                        width: 120
+                    },
+                    {
+                        targets: 'no-sort',
+                        orderable: false
+                    },
                 ],
                 language: {
                     lengthMenu: "Show _MENU_ entries",
@@ -202,7 +218,7 @@
             // ------------------------------------------
             // 2. Clone template filter Status ke toolbar Search
             // ------------------------------------------
-            const $container     = $(table.table().container());
+            const $container = $(table.table().container());
             const $toolbarSearch = $container.find('.dt-search');
 
             const $filter = $('#statusFilterTemplate #statusFilterWrap').clone(true, true);
@@ -211,7 +227,7 @@
             $toolbarSearch.append($filter); // sebelah kanan kotak search
 
             // Event: dropdown filter Status berubah
-            $select.on('change', function () {
+            $select.on('change', function() {
                 const val = this.value;
                 if (val === 'active') {
                     table.column(statusRawIdx).search('^0$', true, false).draw();
@@ -228,15 +244,15 @@
             // ------------------------------------------
             const $searchInput = $toolbarSearch.find('.dt-input');
             $searchInput.css({
-                'width'          : '400px',
-                'maxWidth'       : '100%',
-                'text-transform' : 'uppercase',
+                'width': '400px',
+                'maxWidth': '100%',
+                'text-transform': 'uppercase',
             });
 
-            $container.on('input', '.dt-search .dt-input', function () {
+            $container.on('input', '.dt-search .dt-input', function() {
                 const start = this.selectionStart;
-                const end   = this.selectionEnd;
-                this.value  = this.value.toUpperCase();
+                const end = this.selectionEnd;
+                this.value = this.value.toUpperCase();
                 this.setSelectionRange(start, end); // jaga posisi kursor
                 table.search(this.value).draw();
             });
