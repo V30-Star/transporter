@@ -983,7 +983,14 @@
                 </form>
             </div>
 
+        <x-transaction.browse-supplier-modal :open-delay="50" :destroy-on-close="true" />
         <x-transaction.browse-warehouse-modal />
+        @include('components.transaction.browse-product-script', [
+            'showControls' => true,
+            'showPagination' => true,
+            'supportsForEdit' => true,
+        ])
+        <x-transaction.browse-product-modal show-controls="true" show-pagination="true" />
     </div>
 @endsection
 @push('styles')

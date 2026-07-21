@@ -1517,7 +1517,14 @@
                 }
             </script>
         @endif
+        <x-transaction.browse-supplier-modal :open-delay="50" :destroy-on-close="true" />
         <x-transaction.browse-warehouse-modal />
+        @include('components.transaction.browse-product-script', [
+            'showControls' => true,
+            'showPagination' => true,
+            'supportsForEdit' => true,
+        ])
+        <x-transaction.browse-product-modal show-controls="true" show-pagination="true" />
     @endsection
     @push('styles')
         <link rel="stylesheet" href="https://cdn.datatables.net/1.13.7/css/jquery.dataTables.min.css">
@@ -2930,9 +2937,6 @@
                 },
 
                 openBrowseFor(where, index = null) {
-                    if (!this.requireSupplierBeforeManualProduct()) {
-                        return;
-                    }
                     this.browseTarget = where;
                     this.browseIndex = index;
                     window.dispatchEvent(new CustomEvent('browse-open', {
@@ -3469,11 +3473,6 @@
 
         @include('components.transaction.browse-warehouse-script', [
             'eventName' => 'faktur-pembelian-warehouse-browse-open',
-        ])
-        @include('components.transaction.browse-product-script', [
-            'showControls' => true,
-            'showPagination' => true,
-            'supportsForEdit' => true,
         ])
         <script>
             document.addEventListener('alpine:init', () => {
