@@ -2340,7 +2340,6 @@
                         return;
                     }
                     this.hydrateRowFromMeta(row, this.productMeta(row.fitemcode), true);
-                    this.applyPurchasePrice(row);
                     this.onRowUpdated(index);
                 },
 

@@ -20,19 +20,6 @@ class FakturpembelianController extends Controller
 {
     use ProductBrowseHelper;
 
-    private function isEnabledEnv(string $key): bool
-    {
-        return in_array(strtolower(trim((string) env($key, '0'))), ['1', 'true', 'yes', 'on'], true);
-    }
-
-    private function purchasePriceFlags(): array
-    {
-        return [
-            'history_price' => $this->isEnabledEnv('HISTORYHARGABELI'),
-            'history_discount' => $this->isEnabledEnv('HISTORYDISKONBELI'),
-        ];
-    }
-
     private function latestPurchaseHistory(string $supplierCode, string $productCode, string $unit): ?object
     {
         return DB::table('trstockmt as m')
@@ -1173,21 +1160,17 @@ class FakturpembelianController extends Controller
         $supplierCode = trim($data['fsupplier']);
         $productCode = trim($data['fprdcode']);
         $unit = trim($data['fsatuan']);
-        $flags = $this->purchasePriceFlags();
-        $useHistoryDiscount = $flags['history_price'] || $flags['history_discount'];
-        $history = $useHistoryDiscount
-            ? $this->latestPurchaseHistory($supplierCode, $productCode, $unit)
-            : null;
+        $history = $this->latestPurchaseHistory($supplierCode, $productCode, $unit);
 
         return response()->json([
-            'price' => $flags['history_price'] && $history ? (float) ($history->fprice ?? 0) : null,
-            'unit' => $flags['history_price'] && $history && trim((string) ($history->fsatuan ?? '')) !== ''
+            'price' => $history ? (float) ($history->fprice ?? 0) : null,
+            'unit' => $history && trim((string) ($history->fsatuan ?? '')) !== ''
                 ? trim((string) $history->fsatuan)
                 : $unit,
-            'discount' => $useHistoryDiscount && $history ? $this->normalizeDiscountInput($history->fdiscpersen ?? 0) : null,
+            'discount' => $history ? $this->normalizeDiscountInput($history->fdiscpersen ?? 0) : null,
             'source' => [
-                'price' => $flags['history_price'] && $history ? 'history' : 'default',
-                'discount' => $useHistoryDiscount && $history ? 'history' : 'default',
+                'price' => $history ? 'history' : 'default',
+                'discount' => $history ? 'history' : 'default',
             ],
         ]);
     }
