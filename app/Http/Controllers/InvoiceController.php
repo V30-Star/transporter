@@ -3159,8 +3159,8 @@ class InvoiceController extends Controller
             'fjurnaltype' => $fjurnaltype,
             'fjurnaldate' => $fsodate,
             'fjurnalnote' => 'Jurnal Faktur Penjualan ' . $fsono,
-            'fbalance' => 0,
-            'fbalance_rp' => 0,
+            'fbalance' => $famount,
+            'fbalance_rp' => $famountRp,
             'fdatetime' => $now,
             'fuserid' => $userName,
         ], 'fjurnalmtid');
