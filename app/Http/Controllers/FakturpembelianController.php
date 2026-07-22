@@ -2650,7 +2650,7 @@ class FakturpembelianController extends Controller
     ): void {
         $this->deleteFakturPembelianJournalEntries($fstockmtno);
 
-        $fjurnaltype = 'JBL';
+        $fjurnaltype = 'SLS';
         $yy = $fstockmtdate->format('y');
         $mm = $fstockmtdate->format('m');
         $jurnalPrefix = sprintf('%s.%s.%s.%s.00.', $fjurnaltype, $kodeCabang, $yy, $mm);
@@ -2704,7 +2704,7 @@ class FakturpembelianController extends Controller
     {
         $jurnalIds = DB::table('jurnaldt')
             ->where('frefno', $fstockmtno)
-            ->where('fjurnaltype', 'JBL')
+            ->where('fjurnaltype', 'SLS')
             ->pluck('fjurnalmtid')
             ->filter(fn($id) => ! is_null($id))
             ->unique()

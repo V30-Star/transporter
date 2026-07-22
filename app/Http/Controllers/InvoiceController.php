@@ -3122,7 +3122,7 @@ class InvoiceController extends Controller
     ): void {
         $kodeCabang = trim($branchCode) !== '' ? trim($branchCode) : trim((string) (session('fcabang') ?: '01'));
         $customerCode = trim($customerCode);
-        $fjurnaltype = 'JIV';
+        $fjurnaltype = 'SLS';
         $prefix = sprintf('%s.%s.%s.%s.00.', $fjurnaltype, $kodeCabang, $fsodate->format('y'), $fsodate->format('m'));
 
         if (DB::getDriverName() === 'pgsql') {
@@ -3216,7 +3216,7 @@ class InvoiceController extends Controller
     {
         $existingJurnalIds = DB::table('jurnaldt')
             ->where('frefno', $fsono)
-            ->where('fjurnaltype', 'JIV')
+            ->where('fjurnaltype', 'SLS')
             ->pluck('fjurnalmtid')
             ->filter()
             ->unique()
