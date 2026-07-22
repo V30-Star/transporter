@@ -155,11 +155,12 @@
         #statusFilterWrap {
             margin-right: .25rem;
         }
-        
+
         #gudangTable td.text-center,
         #gudangTable th.text-center {
             text-align: center !important;
         }
+        
     </style>
 @endpush
 
