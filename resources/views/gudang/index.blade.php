@@ -59,7 +59,7 @@
                         <td class="border px-2 py-1">{{ $item->fwhcode }}</td>
                         <td class="border px-2 py-1">{{ $item->fwhname }}</td>
                         <td class="border px-2 py-1">{{ $item->faddress }}</td>
-                        <td class="border px-2 py-1 text-center">
+                        <td class="border px-2 py-1 text-center font-bold">
                             {{ $item->fstokpenjualan == 1 ? '✓' : '' }}
                         </td>
 
@@ -154,6 +154,11 @@
 
         #statusFilterWrap {
             margin-right: .25rem;
+        }
+        
+        #gudangTable td.text-center,
+        #gudangTable th.text-center {
+            text-align: center !important;
         }
     </style>
 @endpush
