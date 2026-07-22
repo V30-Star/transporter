@@ -59,13 +59,6 @@ class ProductController extends Controller
             'fapproval' => '1',
             'fuserapproved' => null,
             'fdateapproved' => null,
-            'fapproval_reason' => null,
-            'fapproval_token' => null,
-            'fapproval2' => null,
-            'fuserapproved2' => null,
-            'fdateapproved2' => null,
-            'fapproval_reason2' => null,
-            'fapproval_token2' => null,
         ];
     }
 
@@ -196,7 +189,6 @@ class ProductController extends Controller
                 'msprd.fprdid',
                 'msprd.fnonactive',
                 'msprd.fapproval',
-                'msprd.fapproval2',
                 'msprd.fmerek',
                 'msprd.fhpp',
                 'msprd.fhpp2',
@@ -221,7 +213,6 @@ class ProductController extends Controller
                     'status' => $statusBadge,
                     'fprdid' => $item->fprdid,
                     'fapproval' => $item->fapproval,
-                    'fapproval2' => $item->fapproval2,
                 ];
             });
 
@@ -680,19 +671,11 @@ class ProductController extends Controller
                 $validated['fapproval'] = '2';
                 $validated['fuserapproved'] = $userLogin->fname ?? 'System';
                 $validated['fdateapproved'] = now();
-                $validated['fapproval_reason'] = null;
             } else {
                 unset(
                     $validated['fapproval'],
                     $validated['fuserapproved'],
-                    $validated['fdateapproved'],
-                    $validated['fapproval_reason'],
-                    $validated['fapproval_token'],
-                    $validated['fapproval2'],
-                    $validated['fuserapproved2'],
-                    $validated['fdateapproved2'],
-                    $validated['fapproval_reason2'],
-                    $validated['fapproval_token2']
+                    $validated['fdateapproved']
                 );
             }
 
@@ -757,8 +740,6 @@ class ProductController extends Controller
                 'fqtykecil2'              => $product->fqtykecil2,
                 'fuserapproved'           => $product->fuserapproved,
                 'fdateapproved'           => $product->fdateapproved,
-                'fapproval_reason'        => $product->fapproval_reason,
-                'fapproval_token'         => $product->fapproval_token,
                 'fsatuandefaultlaporan'   => $product->fsatuandefaultlaporan,
                 'feditmode'               => 'U', // Update
                 'fuseridlog'              => $userLogin->fname ?? null,
@@ -935,8 +916,6 @@ class ProductController extends Controller
                 'fqtykecil2'              => $product->fqtykecil2,
                 'fuserapproved'           => $product->fuserapproved,
                 'fdateapproved'           => $product->fdateapproved,
-                'fapproval_reason'        => $product->fapproval_reason,
-                'fapproval_token'         => $product->fapproval_token,
                 'fsatuandefaultlaporan'   => $product->fsatuandefaultlaporan,
                 'feditmode'               => 'D', // Delete
                 'fuseridlog'              => $userLogin->fname ?? null,

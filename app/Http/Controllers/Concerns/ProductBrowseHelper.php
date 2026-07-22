@@ -3,7 +3,6 @@
 namespace App\Http\Controllers\Concerns;
 
 use App\Models\Product;
-use App\Support\ApprovalState;
 use Illuminate\Support\Facades\Cache;
 
 trait ProductBrowseHelper
@@ -44,7 +43,7 @@ trait ProductBrowseHelper
                 'fqtykecil2',
                 'fminstock'
             )
-                ->whereRaw(ApprovalState::approvedSql('msprd.'))
+                ->whereRaw("COALESCE(TRIM(CAST(msprd.fapproval AS TEXT)), '') IN ('0', '2')")
                 ->orderBy('fprdname')
                 ->get();
         });
