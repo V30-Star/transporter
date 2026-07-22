@@ -163,10 +163,31 @@
                 });
             },
 
+            focusSearch() {
+                const focus = (attempt = 0) => {
+                    const input = this.$el?.querySelector?.('input[type="search"], .dt-input, .dataTables_filter input, input')
+                        || document.querySelector('#srjTable_wrapper input');
+                    if (input) {
+                        if (document.activeElement !== input) {
+                            input.focus();
+                            if (!input.value) {
+                                input.select?.();
+                            }
+                        }
+                    }
+                    if (attempt < 15) {
+                        setTimeout(() => focus(attempt + 1), 100);
+                    }
+                };
+
+                focus();
+            },
+
             openSrjModal() {
                 this.showSrjModal = true;
                 this.$nextTick(() => {
                     this.initDataTable();
+                    this.focusSearch();
                 });
             },
 

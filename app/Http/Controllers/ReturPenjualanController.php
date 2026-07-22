@@ -383,6 +383,87 @@ class ReturPenjualanController extends Controller
         ]);
     }
 
+    public function browse(Request $request)
+    {
+        $customerCode = trim((string) $request->input('customer_code', ''));
+
+        $query = DB::table('tranmt as mt')
+            ->leftJoin('mscustomer as cust', 'mt.fcustno', '=', 'cust.fcustomercode')
+            ->where('mt.ftrcode', 'REJ')
+            ->select(
+                'mt.ftranmtid',
+                'mt.fbranchcode',
+                'mt.fsono',
+                'mt.frefno',
+                'mt.fsodate',
+                'mt.fcustno',
+                'cust.fcustomername',
+                'mt.famountso',
+                'mt.fket'
+            );
+
+        $this->applyBranchVisibilityScope($query, 'mt.fbranchcode');
+
+        if ($customerCode !== '') {
+            $query->whereRaw("TRIM(COALESCE(mt.fcustno, '')) = ?", [$customerCode]);
+        }
+
+        $recordsTotal = (clone $query)->count();
+
+        if ($request->filled('search') && $request->search != '') {
+            $search = $request->search;
+            $query->where(function ($q) use ($search) {
+                $q->where('mt.fsono', 'ilike', "%{$search}%")
+                    ->orWhere('mt.frefno', 'ilike', "%{$search}%")
+                    ->orWhere('cust.fcustomername', 'ilike', "%{$search}%")
+                    ->orWhere('mt.fcustno', 'ilike', "%{$search}%")
+                    ->orWhere('mt.fket', 'ilike', "%{$search}%");
+            });
+        }
+
+        $recordsFiltered = $query->count();
+
+        $orderColumn = $request->input('order_column', 'fsodate');
+        $orderDir    = $request->input('order_dir', 'desc');
+
+        $allowedColumns = ['fsono', 'frefno', 'fsodate', 'fcustomername', 'famountso'];
+        if (in_array($orderColumn, $allowedColumns)) {
+            if ($orderColumn === 'fcustomername') {
+                $query->orderBy('cust.fcustomername', $orderDir);
+            } else {
+                $query->orderBy('mt.' . $orderColumn, $orderDir);
+            }
+        } else {
+            $query->orderBy('mt.fsodate', 'desc')->orderBy('mt.fsono', 'desc');
+        }
+
+        $start  = (int) $request->input('start', 0);
+        $length = (int) $request->input('length', 10);
+
+        $data = $query->skip($start)->take($length)->get()->map(function ($row) {
+            return [
+                'ftranmtid'     => $row->ftranmtid,
+                'fbranchcode'   => trim((string) ($row->fbranchcode ?? '')),
+                'fsono'         => trim((string) ($row->fsono ?? '')),
+                'frefno'        => trim((string) ($row->frefno ?? '')),
+                'fsodate'       => $row->fsodate
+                    ? \Carbon\Carbon::parse($row->fsodate)->format('d-m-Y')
+                    : '',
+                'fcustno'       => trim((string) ($row->fcustno ?? '')),
+                'fcustomername' => trim((string) ($row->fcustomername ?? '')),
+                'famountso'     => (float) ($row->famountso ?? 0),
+                'fket'          => trim((string) ($row->fket ?? '')),
+            ];
+        });
+
+        return response()->json([
+            'draw'            => (int) $request->input('draw', 1),
+            'recordsTotal'    => (int) $recordsTotal,
+            'recordsFiltered' => (int) $recordsFiltered,
+            'data'            => $data,
+        ]);
+    }
+
     public function productHistory(Request $request)
     {
         $customerCode = trim((string) $request->input('fcustno', ''));

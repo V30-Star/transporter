@@ -115,7 +115,7 @@
                             border: '2px solid #e5e7eb',
                             borderRadius: '8px',
                             fontSize: '14px'
-                        }).focus();
+                        });
 
                         $container.find('.dt-length select, .dataTables_length select').css({
                             padding: '6px 32px 6px 10px',
@@ -130,6 +130,15 @@
                             overflowX: 'auto',
                             overflowY: 'auto'
                         });
+
+                        // Focus search after all DOM moves are complete
+                        setTimeout(() => {
+                            const inp = document.querySelector('#{{ $tableId }}_wrapper input[type="search"], #{{ $tableId }}_wrapper input');
+                            if (inp && document.activeElement !== inp) {
+                                inp.focus();
+                                if (!inp.value) inp.select?.();
+                            }
+                        }, 50);
                     }
                 });
 
@@ -140,10 +149,31 @@
                 });
             },
 
+            focusSearch() {
+                const focus = (attempt = 0) => {
+                    const input = this.$el?.querySelector?.('input[type="search"], .dt-input, .dataTables_filter input, input')
+                        || document.querySelector('#{{ $tableId }}_wrapper input');
+                    if (input) {
+                        if (document.activeElement !== input) {
+                            input.focus();
+                            if (!input.value) {
+                                input.select?.();
+                            }
+                        }
+                    }
+                    if (attempt < 15) {
+                        setTimeout(() => focus(attempt + 1), 100);
+                    }
+                };
+
+                focus();
+            },
+
             openModal() {
                 this.show = true;
                 this.$nextTick(() => {
                     this.initDataTable();
+                    this.focusSearch();
                 });
             },
 

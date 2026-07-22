@@ -1,79 +1,28 @@
 @php
-    $tableId = $tableId ?? 'salesmanBrowseTable';
-    $controlsId = $controlsId ?? 'salesmanTableControls';
-    $paginationId = $paginationId ?? 'salesmanTablePagination';
-    $routeName = $routeName ?? 'salesman.browse';
-    $openDelay = $openDelay ?? 0;
+    $tableId      = $tableId      ?? 'returpenjualanBrowseTable';
+    $controlsId   = $controlsId   ?? 'returpenjualanTableControls';
+    $paginationId = $paginationId ?? 'returpenjualanTablePagination';
+    $routeName    = $routeName    ?? 'returpenjualan.browse';
+    $openDelay    = $openDelay    ?? 0;
     $destroyOnClose = $destroyOnClose ?? true;
 @endphp
 
 <script>
-    window.applyTransactionSalesmanSelection = function(salesman = {}) {
-        const normalize = (value) => String(value ?? '').trim();
-        const code = normalize(salesman.fsalesmancode ?? salesman.fsalesman ?? salesman.salesman_code);
-
-        const selects = Array.from(document.querySelectorAll('#modal_filter_salesman_id'));
-        const hiddenInputs = Array.from(document.querySelectorAll('#salesmanCodeHidden'));
-
-        if (!selects.length) {
-            return false;
-        }
-
-        const name = normalize(salesman.fsalesmanname ?? salesman.salesman_name);
-        const label = name ? `${name} (${code})` : code;
-
-        selects.forEach((sel) => {
-            let opt = code ? [...sel.options].find(o => normalize(o.value) === code) : null;
-
-            if (code && !opt) {
-                opt = new Option(label, code, true, true);
-                sel.add(opt);
-            }
-
-            if (opt) {
-                opt.text = label;
-                opt.selected = true;
-                sel.value = code;
-            } else {
-                sel.value = "";
-            }
-
-            sel.value = code || '';
-            sel.dispatchEvent(new Event('change', { bubbles: true }));
-        });
-
-        hiddenInputs.forEach((hid) => {
-            hid.value = code;
-            hid.dispatchEvent(new Event('input', {
-                bubbles: true
-            }));
-            hid.dispatchEvent(new Event('change', {
-                bubbles: true
-            }));
-        });
-
-        window.dispatchEvent(new CustomEvent('salesman-picked', {
-            detail: salesman
-        }));
-
-        return true;
-    };
-
-    function salesmanBrowser() {
+    function returPenjualanBrowser() {
         const dataTableLanguage = {
-            processing: @json("Memuat data..."),
-            search: @json("Search" . ':'),
-            lengthMenu: @json("Tampilkan _MENU_"),
-            info: @json("Menampilkan _START_ - _END_ dari _TOTAL_ data"),
-            infoEmpty: @json("Tidak ada data"),
-            infoFiltered: @json("(disaring dari _MAX_ total data)"),
-            zeroRecords: @json("Tidak ada data yang ditemukan"),
-            emptyTable: @json("Tidak ada data tersedia"),
+            processing: @json('Memuat data...'),
+            search: @json('Search' . ':'),
+            lengthMenu: @json('Tampilkan _MENU_'),
+            info: @json('Menampilkan _START_ - _END_ dari _TOTAL_ data'),
+            infoEmpty: @json('Tidak ada data'),
+            infoFiltered: @json('(disaring dari _MAX_ total data)'),
+            zeroRecords: @json('Tidak ada data yang ditemukan'),
+            emptyTable: @json('Tidak ada data tersedia'),
             paginate: {
-                first: @json("Pertama"),
-                last: @json("Terakhir"),
-                next: @json("Selanjutnya"),
-                previous: @json("Sebelumnya")
+                first: @json('Pertama'),
+                last: @json('Terakhir'),
+                next: @json('Selanjutnya'),
+                previous: @json('Sebelumnya')
             }
         };
 
@@ -82,14 +31,14 @@
             dataTable: null,
 
             initDataTable() {
-                // Always destroy & clear listeners before reinitialising
+                // If already initialized, just re-adjust columns
                 if (this.dataTable) {
                     this.dataTable.columns.adjust().draw(false);
                     return;
                 }
 
-                // Clear any stale listeners on the element (before DataTable rewrites the DOM)
-                $('#{{ $tableId }}').off('.salespick');
+                // Clear any stale listeners on the element before DataTable rewrites DOM
+                $('#{{ $tableId }}').off('.rpick');
 
                 this.dataTable = $('#{{ $tableId }}').DataTable({
                     processing: true,
@@ -98,36 +47,106 @@
                         url: "{{ route($routeName) }}",
                         type: 'GET',
                         data: function(d) {
-                            return {
+                            const params = {
                                 draw: d.draw,
                                 start: d.start,
                                 length: d.length,
                                 search: d.search.value,
                                 order_column: d.columns[d.order[0].column].data,
-                                order_dir: d.order[0].dir
+                                order_dir: d.order[0].dir,
                             };
+                            // Optionally filter by selected customer
+                            const custCode = (
+                                document.getElementById('customerCodeHidden')?.value ||
+                                document.getElementById('modal_filter_customer_id')?.value ||
+                                ''
+                            ).trim();
+                            if (custCode) params.customer_code = custCode;
+                            return params;
                         }
                     },
-                    columns: [{
-                            data: 'fsalesmancode',
-                            name: 'fsalesmancode',
+                    columns: [
+                        {
+                            data: 'fbranchcode',
+                            name: 'fbranchcode',
+                            className: 'text-sm',
+                            defaultContent: '-',
+                            width: '8%',
+                            render: function(data) {
+                                return (data || '').toString().trim() || '-';
+                            }
+                        },
+                        {
+                            data: 'fsono',
+                            name: 'fsono',
                             className: 'font-mono text-sm',
                             width: '15%'
                         },
                         {
-                            data: 'fsalesmanname',
-                            name: 'fsalesmanname',
+                            data: 'frefno',
+                            name: 'frefno',
+                            className: 'font-mono text-sm',
+                            defaultContent: '-',
+                            width: '15%',
+                            render: function(data) {
+                                return (data || '').toString().trim() || '-';
+                            }
+                        },
+                        {
+                            data: 'fsodate',
+                            name: 'fsodate',
                             className: 'text-sm',
-                            width: '25%'
+                            width: '10%',
+                            render: function(data) {
+                                return data || '-';
+                            }
+                        },
+                        {
+                            data: null,
+                            name: 'fcustomername',
+                            className: 'text-sm',
+                            width: '20%',
+                            render: function(data, type, row) {
+                                const code = (row.fcustno || '').toString().trim();
+                                const name = (row.fcustomername || '').toString().trim();
+                                if (code && name) return `${code} - ${name}`;
+                                return code || name || '-';
+                            }
+                        },
+                        {
+                            data: 'famountso',
+                            name: 'famountso',
+                            className: 'text-sm text-right',
+                            width: '12%',
+                            render: function(data) {
+                                if (data == null) return '-';
+                                return Number(data).toLocaleString('id-ID', {
+                                    minimumFractionDigits: 0,
+                                    maximumFractionDigits: 2
+                                });
+                            }
+                        },
+                        {
+                            data: 'fket',
+                            name: 'fket',
+                            className: 'text-sm',
+                            defaultContent: '-',
+                            orderable: false,
+                            render: function(data) {
+                                const v = (data || '').toString().trim();
+                                return v ? `<span title="${v}">${v.length > 40 ? v.substring(0, 40) + '…' : v}</span>` : '-';
+                            }
                         },
                         {
                             data: null,
                             orderable: false,
                             searchable: false,
                             className: 'text-center',
-                            width: '15%',
-                            render: function() {
-                                return '<button type="button" class="btn-choose px-4 py-1.5 rounded-md text-sm font-medium bg-blue-600 hover:bg-blue-700 text-white transition-colors duration-150">' + @json("Pilih") + '</button>';
+                            width: '10%',
+                            render: function(data, type, row) {
+                                return '<button type="button" class="btn-choose px-4 py-1.5 rounded-md text-sm font-medium bg-rose-600 hover:bg-rose-700 text-white transition-colors duration-150">' +
+                                    @json('Pilih') +
+                                    '</button>';
                             }
                         }
                     ],
@@ -136,12 +155,14 @@
                         [10, 25, 50, 100],
                         [10, 25, 50, 100]
                     ],
-                    dom: '<"salesman-browser-top"fl>rt<"salesman-browser-bottom"ip>',
+                    dom: '<"customer-browser-top"fl>rt<"customer-browser-bottom"ip>',
                     language: dataTableLanguage,
                     order: [
-                        [1, 'asc']
+                        [3, 'desc']
                     ],
                     autoWidth: false,
+                    scrollX: true,
+                    scrollCollapse: true,
                     initComplete: function() {
                         const api = this.api();
                         const $container = $(api.table().container());
@@ -159,6 +180,12 @@
                             border: '2px solid #e5e7eb',
                             borderRadius: '8px',
                             fontSize: '14px'
+                        });
+
+                        $container.find('.dataTables_scroll').css({ width: '100%' });
+                        $container.find('.dataTables_scrollBody').css({
+                            overflowX: 'auto',
+                            overflowY: 'auto'
                         });
 
                         const controls = document.getElementById(@js($controlsId));
@@ -184,7 +211,7 @@
                             pagination.className = 'flex items-center justify-between gap-4 flex-nowrap';
                             pagination.setAttribute('style', 'display:flex !important; align-items:center !important; justify-content:space-between !important; gap:16px !important; flex-wrap:nowrap !important; width:100% !important;');
 
-                            const $info = $container.find('.dataTables_info, .dt-info');
+                            const $info    = $container.find('.dataTables_info, .dt-info');
                             const $paginate = $container.find('.dataTables_paginate, .dt-paging');
 
                             if ($info.length) {
@@ -207,31 +234,27 @@
                 });
 
                 // Pilih button click (delegated on table)
-                $('#{{ $tableId }}').on('click.salespick', '.btn-choose', (e) => {
+                $('#{{ $tableId }}').on('click.rpick', '.btn-choose', (e) => {
                     e.preventDefault();
                     e.stopPropagation();
 
                     const data = this.dataTable?.row($(e.currentTarget).closest('tr')).data();
-                    if (!data) {
-                        return;
-                    }
+                    if (!data) return;
 
-                    this.chooseSalesman(data);
+                    this.chooseReturPenjualan(data);
                 });
 
                 // Single-row click (delegated on table, targeting tbody tr)
-                $('#{{ $tableId }}').on('click.salespick', 'tbody tr', (e) => {
+                $('#{{ $tableId }}').on('click.rpick', 'tbody tr', (e) => {
                     if ($(e.target).closest('button, a, input, select, textarea').length) {
                         return;
                     }
 
-                    const tr = e.currentTarget;
+                    const tr   = e.currentTarget;
                     const data = this.dataTable?.row(tr).data();
-                    if (!data) {
-                        return;
-                    }
+                    if (!data) return;
 
-                    this.chooseSalesman(data);
+                    this.chooseReturPenjualan(data);
                 });
             },
 
@@ -274,21 +297,22 @@
             close() {
                 this.open = false;
 
-                // Always destroy so listeners are fully cleared on next open
-                if (this.dataTable) {
-                    $('#{{ $tableId }}').off('.salespick');
+                if (@json($destroyOnClose) && this.dataTable) {
+                    $('#{{ $tableId }}').off('.rpick');
                     this.dataTable.destroy();
                     this.dataTable = null;
                 }
             },
 
-            chooseSalesman(salesman) {
-                window.applyTransactionSalesmanSelection(salesman);
+            chooseReturPenjualan(row) {
+                window.dispatchEvent(new CustomEvent('returpenjualan-selected', {
+                    detail: row || {}
+                }));
                 this.close();
             },
 
             init() {
-                window.addEventListener('salesman-browse-open', () => this.openBrowse(), {
+                window.addEventListener('returpenjualan-browse-open', () => this.openBrowse(), {
                     passive: true
                 });
             }

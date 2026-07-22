@@ -1683,7 +1683,7 @@
                             border: '2px solid #e5e7eb',
                             borderRadius: '8px',
                             fontSize: '14px'
-                        }).focus();
+                        });
 
                         // Style length select
                         $container.find('.dt-length select, .dataTables_length select').css({
@@ -1692,6 +1692,15 @@
                             borderRadius: '8px',
                             fontSize: '14px'
                         });
+
+                        // Focus search after all DOM moves are complete
+                        setTimeout(() => {
+                            const inp = document.querySelector('#warehouseTable_wrapper input[type="search"], #warehouseTable_wrapper input');
+                            if (inp && document.activeElement !== inp) {
+                                inp.focus();
+                                if (!inp.value) inp.select?.();
+                            }
+                        }, 50);
                     }
                 });
 
@@ -1707,11 +1716,22 @@
             },
 
             focusSearch() {
-                setTimeout(() => {
-                    const input = document.querySelector('#warehouseTable_wrapper .dt-search .dt-input, #warehouseTable_wrapper .dataTables_filter input');
-                    input?.focus();
-                    input?.select?.();
-                }, 100);
+                const focus = (attempt = 0) => {
+                    const input = this.$el?.querySelector?.('input[type="search"], .dt-input, .dataTables_filter input, input')
+                        || document.querySelector('#warehouseTable_wrapper input');
+                    if (input) {
+                        input.focus();
+                        input.select?.();
+                        if (document.activeElement === input) {
+                            return;
+                        }
+                    }
+                    if (attempt < 15) {
+                        setTimeout(() => focus(attempt + 1), 100);
+                    }
+                };
+
+                focus();
             },
 
             openModal() {
@@ -1885,7 +1905,7 @@
                                 border: '2px solid #e5e7eb',
                                 borderRadius: '8px',
                                 fontSize: '14px'
-                            }).focus();
+                            });
 
                             // Style length select
                             $container.find('.dt-length select, .dataTables_length select').css({
@@ -1894,6 +1914,15 @@
                                 borderRadius: '8px',
                                 fontSize: '14px'
                             });
+
+                            // Focus search after all DOM moves are complete
+                            setTimeout(() => {
+                                const inp = document.querySelector('#productTable_wrapper input[type="search"], #productTable_wrapper input');
+                                if (inp && document.activeElement !== inp) {
+                                    inp.focus();
+                                    if (!inp.value) inp.select?.();
+                                }
+                            }, 50);
                         }
                     });
 
@@ -1922,11 +1951,22 @@
                 },
 
                 focusSearch() {
-                    setTimeout(() => {
-                        const input = document.querySelector('#productTable_wrapper .dt-search .dt-input, #productTable_wrapper .dataTables_filter input');
-                        input?.focus();
-                        input?.select?.();
-                    }, 100);
+                    const focus = (attempt = 0) => {
+                        const input = this.$el?.querySelector?.('input[type="search"], .dt-input, .dataTables_filter input, input')
+                            || document.querySelector('#productTable_wrapper input');
+                        if (input) {
+                            input.focus();
+                            input.select?.();
+                            if (document.activeElement === input) {
+                                return;
+                            }
+                        }
+                        if (attempt < 15) {
+                            setTimeout(() => focus(attempt + 1), 100);
+                        }
+                    };
+
+                    focus();
                 },
 
                 init() {
@@ -2068,7 +2108,7 @@
                                 border: '2px solid #e5e7eb',
                                 borderRadius: '8px',
                                 fontSize: '14px'
-                            }).focus();
+                            });
 
                             // Style length select
                             $container.find('.dt-length select, .dataTables_length select').css({
@@ -2077,6 +2117,15 @@
                                 borderRadius: '8px',
                                 fontSize: '14px'
                             });
+
+                            // Focus search after all DOM moves are complete
+                            setTimeout(() => {
+                                const inp = document.querySelector('#supplierBrowseTable_wrapper input[type="search"], #supplierBrowseTable_wrapper input');
+                                if (inp && document.activeElement !== inp) {
+                                    inp.focus();
+                                    if (!inp.value) inp.select?.();
+                                }
+                            }, 50);
                         }
                     });
 
@@ -2088,11 +2137,22 @@
                 },
 
                 focusSearch() {
-                    setTimeout(() => {
-                        const input = document.querySelector('#supplierBrowseTable_wrapper .dt-search .dt-input, #supplierBrowseTable_wrapper .dataTables_filter input');
-                        input?.focus();
-                        input?.select?.();
-                    }, 100);
+                    const focus = (attempt = 0) => {
+                        const input = this.$el?.querySelector?.('input[type="search"], .dt-input, .dataTables_filter input, input')
+                            || document.querySelector('#supplierBrowseTable_wrapper input');
+                        if (input) {
+                            input.focus();
+                            input.select?.();
+                            if (document.activeElement === input) {
+                                return;
+                            }
+                        }
+                        if (attempt < 15) {
+                            setTimeout(() => focus(attempt + 1), 100);
+                        }
+                    };
+
+                    focus();
                 },
 
                 openBrowse() {

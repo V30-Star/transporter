@@ -103,14 +103,19 @@
 
             focusSearch() {
                 const focus = (attempt = 0) => {
-                    const input = document.querySelector('#{{ $controlsId }} .dt-search .dt-input, #{{ $controlsId }} .dataTables_filter input, #{{ $tableId }}_wrapper .dt-search .dt-input, #{{ $tableId }}_wrapper .dataTables_filter input');
-                    if (!input && attempt < 10) {
-                        setTimeout(() => focus(attempt + 1), 100);
-                        return;
+                    const input = this.$el?.querySelector?.('input[type="search"], .dt-input, .dataTables_filter input, input')
+                        || document.querySelector('#{{ $controlsId }} input, #{{ $tableId }}_wrapper input');
+                    if (input) {
+                        if (document.activeElement !== input) {
+                            input.focus();
+                            if (!input.value) {
+                                input.select?.();
+                            }
+                        }
                     }
-
-                    input?.focus();
-                    input?.select?.();
+                    if (attempt < 15) {
+                        setTimeout(() => focus(attempt + 1), 100);
+                    }
                 };
 
                 focus();
